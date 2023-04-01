@@ -1,8 +1,10 @@
+import '../helpers/loadEnv'
 import * as path from 'path'
 import { promises as fs } from 'fs'
 import loadModels from '../helpers/loadModels'
 import sspawn from '../helpers/sspawn'
-import { dreamYamlConfig } from '../helpers/path'
+import { dreamsConfigPath, loadDreamConfigFile, loadDreamYamlFile, loadFile } from '../helpers/path'
+import loadDBConfig from '../helpers/loadDBConfig'
 
 export default async function sync() {
   console.log('copying schema and dream config...')
@@ -14,6 +16,14 @@ export default async function sync() {
 
   console.log('syncing models...')
   await writeModels()
+
+  const yamlConf = await loadDreamYamlFile()
+  const dbConfig = await loadDBConfig()
+  await sspawn(
+    `kysely-codegen --url=postgres://${dbConfig.user}@${dbConfig.host}:${dbConfig.port}/${dbConfig.name} --out-file=./${yamlConf.schema_path}`
+  )
+
+  console.log('sync complete!')
 }
 sync()
 
@@ -36,6 +46,6 @@ export default {
 ${Object.keys(models).map(key => `  "${key.replace(/\.ts/, '')}": ${models[key].name}`)}
 }
 `
-  console.log(await dreamYamlConfig())
+  console.log(await loadDreamYamlFile())
   await fs.writeFile(filePath, str)
 }
