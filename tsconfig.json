@@ -3,10 +3,14 @@
     "module": "commonjs",
     "target": "ESNext",
     "declaration": true,
-    "outDir": "./dist",
     "strict": true,
     "noImplicitAny": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+
+    /* rootDir and outDir together help maintain dist/src folder */
+    "rootDir": "./",
+    "outDir": "./dist"
   },
   "include": ["src/**/*"]
 }

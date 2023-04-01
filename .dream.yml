@@ -1,0 +1,2 @@
+models_path: 'src/test-app/app/models'
+migrations_path: 'src/test-app/db/migrations'

@@ -9,8 +9,8 @@
   "private": true,
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "sync": "rm -rf src/sync && mkdir src/sync && cp ./src/test-app/db/schema.ts ./src/sync && cp ./src/test-app/conf/dream.ts ./src/sync",
-    "db:migrate": "yarn sync && yarn build && node dist/bin/migrate.js",
+    "sync": "yarn build && CORE_DEVELOPMENT=1 ts-node src/bin/sync.ts",
+    "db:migrate": "yarn sync && node dist/src/bin/migrate.js",
     "spec": "CORE_DEVELOPMENT=1 jest --runInBand"
   },
   "devDependencies": {
@@ -25,6 +25,7 @@
     "@types/pg": "^8.6.6",
     "dotenv": "^16.0.3",
     "kysely": "^0.24.2",
-    "pg": "^8.10.0"
+    "pg": "^8.10.0",
+    "yaml": "^2.2.1"
   }
 }
