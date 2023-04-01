@@ -5,7 +5,8 @@
     "declaration": true,
     "outDir": "./dist",
     "strict": true,
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "experimentalDecorators": true
   },
   "include": ["src/**/*"]
 }

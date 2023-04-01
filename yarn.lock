@@ -1515,6 +1515,11 @@ jest-mock@^29.5.0:
     "@types/node" "*"
     jest-util "^29.5.0"
 
+jest-plugin-context@^2.9.0:
+  version "2.9.0"
+  resolved "https://registry.yarnpkg.com/jest-plugin-context/-/jest-plugin-context-2.9.0.tgz#602aacbe61213a3bb229067db0eee9e003eb1931"
+  integrity sha512-soBudNt3oTgeSFhRzLY2BwZdVuAlJ29zraNqt+PVRogkTPzNdvxIT3b0JXHQZUnT3jNsoNhTY9EDnGsyO2ExAg==
+
 jest-pnp-resolver@^1.2.2:
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/jest-pnp-resolver/-/jest-pnp-resolver-1.2.3.tgz#930b1546164d4ad5937d5540e711d4d38d4cad2e"

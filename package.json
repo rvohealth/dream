@@ -9,11 +9,14 @@
   "private": true,
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "migrate": "yarn build && node dist/bin/migrate.js"
+    "sync": "rm -rf src/sync && mkdir src/sync && cp ./src/test-app/db/schema.ts ./src/sync && cp ./src/test-app/conf/dream.ts ./src/sync",
+    "db:migrate": "yarn sync && yarn build && node dist/bin/migrate.js",
+    "spec": "CORE_DEVELOPMENT=1 jest --runInBand"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",
     "jest": "^29.5.0",
+    "jest-plugin-context": "^2.9.0",
     "ts-jest": "^29.0.5",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.3"
