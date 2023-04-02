@@ -10,6 +10,7 @@
   "scripts": {
     "build": "rm -rf dist && tsc",
     "sync": "yarn build && CORE_DEVELOPMENT=1 ts-node src/bin/sync.ts",
+    "enhance-schema": "yarn build && CORE_DEVELOPMENT=1 ts-node src/bin/enhanceSchema.ts",
     "db:migrate": "yarn sync && node dist/src/bin/migrate.js",
     "spec": "CORE_DEVELOPMENT=1 jest --runInBand"
   },
@@ -23,10 +24,12 @@
   },
   "dependencies": {
     "@types/pg": "^8.6.6",
+    "@types/pluralize": "^0.0.29",
     "dotenv": "^16.0.3",
     "kysely": "^0.24.2",
     "kysely-codegen": "^0.10.0",
     "pg": "^8.10.0",
+    "pluralize": "^8.0.0",
     "yaml": "^2.2.1"
   }
 }

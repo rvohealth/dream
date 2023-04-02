@@ -1,7 +1,4 @@
 import Dream from '../../..'
-import { Column } from '../../../decorators/column'
+import { Users } from '../../db/schema'
 
-export default class User extends Dream {
-  @Column('howyadoin')
-  public id?: number
-}
+export default class User extends Dream<Users> {}

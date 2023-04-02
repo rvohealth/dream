@@ -2,8 +2,15 @@ import '../helpers/loadEnv'
 import * as path from 'path'
 import { promises as fs } from 'fs'
 import loadModels from '../helpers/loadModels'
-import sspawn from '../helpers/sspawn'
-import { dreamsConfigPath, loadDreamConfigFile, loadDreamYamlFile, loadFile } from '../helpers/path'
+import sspawn, { ssspawn } from '../helpers/sspawn'
+import {
+  dreamsConfigPath,
+  importFile,
+  loadDreamConfigFile,
+  loadDreamYamlFile,
+  loadFile,
+  projectRootPath,
+} from '../helpers/path'
 import loadDBConfig from '../helpers/loadDBConfig'
 
 export default async function sync() {
@@ -17,11 +24,8 @@ export default async function sync() {
   console.log('syncing models...')
   await writeModels()
 
-  const yamlConf = await loadDreamYamlFile()
-  const dbConfig = await loadDBConfig()
-  await sspawn(
-    `kysely-codegen --url=postgres://${dbConfig.user}@${dbConfig.host}:${dbConfig.port}/${dbConfig.name} --out-file=./${yamlConf.schema_path}`
-  )
+  console.log('writing schema...')
+  await writeSchema()
 
   console.log('sync complete!')
 }
@@ -46,6 +50,24 @@ export default {
 ${Object.keys(models).map(key => `  "${key.replace(/\.ts/, '')}": ${models[key].name}`)}
 }
 `
-  console.log(await loadDreamYamlFile())
   await fs.writeFile(filePath, str)
+}
+
+async function writeSchema() {
+  const yamlConf = await loadDreamYamlFile()
+  const dbConfig = await loadDBConfig()
+  const child = await ssspawn(
+    `kysely-codegen --url=postgres://${dbConfig.user}@${dbConfig.host}:${dbConfig.port}/${dbConfig.name} --print`,
+    {
+      detached: true,
+      stdio: ['ignore', 1, 2],
+    }
+  )
+  child.unref()
+  await new Promise(accept => {
+    child.on('close', data => {
+      console.log(data)
+      accept({})
+    })
+  })
 }

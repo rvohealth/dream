@@ -7,11 +7,19 @@ export async function loadFile(filepath: string) {
   return await fs.readFile(filepath)
 }
 
+export async function writeFile(filepath: string, contents: string) {
+  return await fs.writeFile(filepath, contents)
+}
+
+export async function importFile(filepath: string) {
+  return await import(filepath)
+}
+
 let _yamlCache: DreamYamlFile | null = null
 export async function loadDreamYamlFile() {
   if (_yamlCache) return _yamlCache
 
-  const file = await loadFile(projectRootPath('.dream.yml'))
+  const file = await loadFile(projectRootPath({ filepath: '.dream.yml' }))
   const config = (await YAML.parse(file.toString())) as DreamYamlFile
 
   // TODO: validate shape of yaml file!
@@ -32,27 +40,36 @@ export async function loadDreamConfigFile() {
   return dreamConfig
 }
 
-export function projectRootPath(filepath?: string) {
+export function projectRootPath({
+  filepath,
+  omitDirname,
+}: { filepath?: string; omitDirname?: boolean } = {}) {
+  const dirname = omitDirname ? undefined : __dirname
   if (process.env.CORE_DEVELOPMENT === '1') {
-    return path.join(...compact([__dirname, '..', '..', filepath]))
+    return path.join(...compact([dirname, '..', '..', filepath]))
   } else {
-    return path.join(...compact([__dirname, '..', '..', '..', '..', filepath]))
+    return path.join(...compact([dirname, '..', '..', '..', '..', filepath]))
   }
 }
 
-export async function modelsPath() {
+export async function schemaPath({ omitDirname }: { omitDirname?: boolean } = {}) {
   const yamlConfig = await loadDreamYamlFile()
-  return projectRootPath(yamlConfig.models_path)
+  return projectRootPath({ filepath: yamlConfig.schema_path, omitDirname })
 }
 
-export async function migrationsPath() {
+export async function modelsPath({ omitDirname }: { omitDirname?: boolean } = {}) {
   const yamlConfig = await loadDreamYamlFile()
-  return projectRootPath(yamlConfig.migrations_path)
+  return projectRootPath({ filepath: yamlConfig.models_path, omitDirname })
 }
 
-export async function dreamsConfigPath() {
+export async function migrationsPath({ omitDirname }: { omitDirname?: boolean } = {}) {
   const yamlConfig = await loadDreamYamlFile()
-  return projectRootPath(yamlConfig.dream_config_path)
+  return projectRootPath({ filepath: yamlConfig.migrations_path, omitDirname })
+}
+
+export async function dreamsConfigPath({ omitDirname }: { omitDirname?: boolean } = {}) {
+  const yamlConfig = await loadDreamYamlFile()
+  return projectRootPath({ filepath: yamlConfig.dream_config_path, omitDirname })
 }
 
 export interface DreamYamlFile {

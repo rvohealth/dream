@@ -1,11 +1,11 @@
 import '../helpers/loadEnv'
 import { Kysely, PostgresDialect } from 'kysely'
 import { Pool } from 'pg'
-import { Database } from '../sync/schema'
+import { DB } from '../sync/schema'
 import userDreamConf from '../sync/dream'
 
 const c: any = userDreamConf
-export default new Kysely<Database>({
+export default new Kysely<DB>({
   dialect: new PostgresDialect({
     pool: new Pool({
       user: c.db.user || '',
