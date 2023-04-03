@@ -1,3 +1,6 @@
 import '../../src/helpers/loadEnv'
+import truncate from '../helpers/truncate'
 
-export default async () => {}
+export default async () => {
+  await truncate()
+}
