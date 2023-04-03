@@ -1,7 +1,7 @@
 import { Tables } from './db/reflections'
 import db from './db'
 import { DB, DBColumns, DBOpts } from './sync/schema'
-import { Selectable, SelectExpression, SelectType, Updateable } from 'kysely'
+import { Selectable, SelectExpression, Selection, SelectQueryBuilder, SelectType, Updateable } from 'kysely'
 import snakeify from './helpers/snakeify'
 
 export default function dream<Tablename extends Tables>(tableName: Tablename) {
@@ -84,6 +84,19 @@ export default function dream<Tablename extends Tables>(tableName: Tablename) {
         .select(columns as SelectExpression<DB, keyof DB>[])
         .executeTakeFirstOrThrow()
       return new this(data) as T
+    }
+
+    public static where<T extends Dream>(
+      this: { new (): T } & typeof Dream,
+      attributes: Updateable<Table>
+    ): SelectQueryBuilder<DB, keyof DB, Selection<DB, keyof DB, SelectExpression<DB, keyof DB>>> {
+      const query = db.selectFrom(this.table).select(columns as SelectExpression<DB, keyof DB>[])
+
+      Object.keys(attributes).forEach(attr => {
+        query.where(attr as any, '=', (attributes as any)[attr])
+      })
+
+      return query
     }
 
     constructor(opts?: Updateable<Table>) {
