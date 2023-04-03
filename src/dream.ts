@@ -2,6 +2,7 @@ import { Tables } from './db/reflections'
 import db from './db'
 import { DB, DBColumns, DBOpts } from './sync/schema'
 import { Selectable, SelectExpression, SelectType, Updateable } from 'kysely'
+import snakeify from './helpers/snakeify'
 
 export default function dream<Tablename extends Tables>(tableName: Tablename) {
   const columns = DBColumns[tableName]
@@ -13,6 +14,7 @@ export default function dream<Tablename extends Tables>(tableName: Tablename) {
 
   return class Dream {
     public static primaryKey = 'id'
+    public static createdAtField = 'createdAt'
 
     public static get table(): Tables {
       return tableName
@@ -54,6 +56,23 @@ export default function dream<Tablename extends Tables>(tableName: Tablename) {
       })
 
       const data = await query.executeTakeFirstOrThrow()
+      return new this(data) as T
+    }
+
+    public static async first<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T> {
+      const data = await db
+        .selectFrom(this.table)
+        .select(columns as SelectExpression<DB, keyof DB>[])
+        .executeTakeFirstOrThrow()
+      return new this(data) as T
+    }
+
+    public static async last<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T> {
+      const data = await db
+        .selectFrom(this.table)
+        .orderBy(snakeify(this.createdAtField), 'desc')
+        .select(columns as SelectExpression<DB, keyof DB>[])
+        .executeTakeFirstOrThrow()
       return new this(data) as T
     }
 
