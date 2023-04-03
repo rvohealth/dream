@@ -1,16 +1,13 @@
-import Dream from '../dream'
-
 export function Column(dataType: string): any {
-  // return function (target: Dream, key: any, _: any) {
-  //   const t = target.constructor as typeof Dream
-  //   const currentSchema = { ...t.schema }
-  //   Object.defineProperty(t, 'schema', {
-  //     get: () => {
-  //       return {
-  //         ...currentSchema,
-  //         [key]: dataType,
-  //       }
-  //     },
-  //   })
-  // }
+  return function (target: any, key: string, _: any) {
+    Object.defineProperty(target, key, {
+      get() {
+        return this.attributes[key]
+      },
+
+      set(value: any) {
+        this.attributes[key] = value
+      },
+    })
+  }
 }
