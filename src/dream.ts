@@ -12,7 +12,7 @@ export default function dream<Tablename extends Tables>(tableName: Tablename) {
   type Id = Readonly<SelectType<IdColumn>>
 
   return class Dream {
-    public static get tableName(): Tables {
+    public static get table(): Tables {
       return tableName
     }
 
@@ -25,7 +25,7 @@ export default function dream<Tablename extends Tables>(tableName: Tablename) {
 
     public static async find<T extends Dream>(this: { new (): T } & typeof Dream, id: Id): Promise<T> {
       const data = await db
-        .selectFrom(this.tableName)
+        .selectFrom(this.table)
         .select(columns as SelectExpression<DB, keyof DB>[])
         .where('id', '=', id! as unknown as number)
         .executeTakeFirstOrThrow()
@@ -36,7 +36,7 @@ export default function dream<Tablename extends Tables>(tableName: Tablename) {
       this: { new (): T } & typeof Dream,
       attributes: Updateable<Table>
     ): Promise<T> {
-      const query = db.selectFrom(this.tableName).select(columns as SelectExpression<DB, keyof DB>[])
+      const query = db.selectFrom(this.table).select(columns as SelectExpression<DB, keyof DB>[])
 
       Object.keys(attributes).forEach(attr => {
         query.where(attr as any, '=', (attributes as any)[attr])
