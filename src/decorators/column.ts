@@ -1,4 +1,4 @@
-import Dream from '..'
+import Dream from '../dream'
 
 export function Column(dataType: string): any {
   // return function (target: Dream, key: any, _: any) {

@@ -1,4 +1,4 @@
-import Dream from '..'
+import Dream from '../dream'
 import { Tables } from '../db/reflections'
 
 export function Table(table: Tables): ClassDecorator {

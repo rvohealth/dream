@@ -1,4 +1,3 @@
-import Dream from '../../..'
-import { Users } from '../../db/schema'
+import dream from '../../../dream'
 
-export default class User extends Dream<Users> {}
+export default class User extends dream<'users'>('users') {}

@@ -2,6 +2,8 @@ import * as path from 'path'
 import * as YAML from 'yaml'
 import { promises as fs } from 'fs'
 import compact from './compact'
+import { Kysely } from 'kysely'
+import { DB } from '../sync/schema'
 
 export async function loadFile(filepath: string) {
   return await fs.readFile(filepath)
@@ -40,15 +42,36 @@ export async function loadDreamConfigFile() {
   return dreamConfig
 }
 
+let _db: Kysely<DB> | null = null
+export async function loadDB() {
+  if (_db) return _db
+
+  const db = (await import(await dbPath())).default as Kysely<DB>
+
+  // TODO: validate db import
+
+  _db = db
+  return db
+}
+
 export function projectRootPath({
   filepath,
   omitDirname,
 }: { filepath?: string; omitDirname?: boolean } = {}) {
   const dirname = omitDirname ? undefined : __dirname
-  if (process.env.CORE_DEVELOPMENT === '1') {
-    return path.join(...compact([dirname, '..', '..', filepath]))
+
+  if (process.env.ALREADY_AT_PROJECT_ROOT === '1') {
+    if (process.env.CORE_DEVELOPMENT === '1') {
+      return path.join(...compact([dirname, filepath]))
+    } else {
+      return path.join(...compact([dirname, '..', '..', filepath]))
+    }
   } else {
-    return path.join(...compact([dirname, '..', '..', '..', '..', filepath]))
+    if (process.env.CORE_DEVELOPMENT === '1') {
+      return path.join(...compact([dirname, '..', '..', filepath]))
+    } else {
+      return path.join(...compact([dirname, '..', '..', '..', '..', filepath]))
+    }
   }
 }
 
@@ -72,11 +95,17 @@ export async function dreamsConfigPath({ omitDirname }: { omitDirname?: boolean 
   return projectRootPath({ filepath: yamlConfig.dream_config_path, omitDirname })
 }
 
+export default async function dbPath({ omitDirname }: { omitDirname?: boolean } = {}) {
+  const yamlConfig = await loadDreamYamlFile()
+  return projectRootPath({ filepath: yamlConfig.db_path, omitDirname })
+}
+
 export interface DreamYamlFile {
   models_path: string
   migrations_path: string
   schema_path: string
   dream_config_path: string
+  db_path: string
 }
 
 export interface DreamConfig {

@@ -1,6 +1,6 @@
 import * as path from 'path'
 import { promises as fs } from 'fs'
-import Dream from '..'
+import Dream from '../dream'
 import { modelsPath } from './path'
 
 export default async function loadModels() {

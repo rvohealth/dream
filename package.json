@@ -10,8 +10,7 @@
   "scripts": {
     "build": "rm -rf dist && tsc",
     "sync": "yarn build && CORE_DEVELOPMENT=1 ts-node src/bin/sync.ts",
-    "enhance-schema": "yarn build && CORE_DEVELOPMENT=1 ts-node src/bin/enhanceSchema.ts",
-    "db:migrate": "yarn sync && node dist/src/bin/migrate.js",
+    "db:migrate": "yarn sync && ALREADY_AT_PROJECT_ROOT=1 ts-node src/bin/migrate.ts && yarn sync",
     "spec": "CORE_DEVELOPMENT=1 jest --runInBand"
   },
   "devDependencies": {

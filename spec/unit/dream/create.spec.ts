@@ -1,8 +1,9 @@
-import Dream from '../../../src'
+import { Users } from '../../../src/sync/schema'
 import User from '../../../src/test-app/app/models/user'
 
 describe('Dream#create', () => {
   it('creates the underlying model in the db', async () => {
-    // const u = await User.create({ email: 'hi@hi' })
+    const u = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    console.log(u)
   })
 })

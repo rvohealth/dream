@@ -2,9 +2,10 @@ import * as path from 'path'
 import { Pool } from 'pg'
 import { promises as fs } from 'fs'
 import { Kysely, Migrator, PostgresDialect, FileMigrationProvider } from 'kysely'
-import db from '../db'
+import { loadDB } from '../helpers/path'
 
 async function migrateToLatest() {
+  const db = await loadDB()
   const migrator = new Migrator({
     db,
     provider: new FileMigrationProvider({
