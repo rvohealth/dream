@@ -32,6 +32,20 @@ export default function dream<Tablename extends Tables>(tableName: Tablename) {
       return new this(data) as T
     }
 
+    public static async findBy<T extends Dream>(
+      this: { new (): T } & typeof Dream,
+      attributes: Updateable<Table>
+    ): Promise<T> {
+      const query = db.selectFrom(this.tableName).select(columns as SelectExpression<DB, keyof DB>[])
+
+      Object.keys(attributes).forEach(attr => {
+        query.where(attr as any, '=', (attributes as any)[attr])
+      })
+
+      const data = await query.executeTakeFirstOrThrow()
+      return new this(data) as T
+    }
+
     constructor(opts?: Updateable<Table>) {
       if (opts) this.setAttributes(opts)
     }
