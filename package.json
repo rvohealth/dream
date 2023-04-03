@@ -11,7 +11,7 @@
     "build": "rm -rf dist && tsc",
     "sync": "yarn build && CORE_DEVELOPMENT=1 ts-node src/bin/sync.ts",
     "db:migrate": "yarn sync && ALREADY_AT_PROJECT_ROOT=1 ts-node src/bin/migrate.ts && yarn sync",
-    "spec": "CORE_DEVELOPMENT=1 jest --runInBand"
+    "spec": "CORE_DEVELOPMENT=1 jest --runInBand --forceExit"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",
