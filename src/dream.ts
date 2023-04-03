@@ -12,13 +12,24 @@ export default function dream<Tablename extends Tables>(tableName: Tablename) {
   type Id = Readonly<SelectType<IdColumn>>
 
   return class Dream {
+    public static primaryKey = 'id'
+
     public static get table(): Tables {
       return tableName
     }
 
+    public static async all<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T[]> {
+      const results = await db
+        .selectFrom(this.table)
+        .select(columns as SelectExpression<DB, keyof DB>[])
+        .execute()
+
+      return results.map(record => new this(record) as T)
+    }
+
     public static async create<T extends Dream>(
       this: { new (): T } & typeof Dream,
-      opts: Updateable<Table>
+      opts?: Updateable<Table>
     ): Promise<T> {
       return (await new this(opts).save()) as T
     }
@@ -59,14 +70,18 @@ export default function dream<Tablename extends Tables>(tableName: Tablename) {
     }
 
     public async save<T extends Dream>(this: T): Promise<T> {
-      const { id } = await db
-        .insertInto(tableName)
-        .values(this.attributes as any)
-        .returning('id')
-        .executeTakeFirstOrThrow()
+      let query = db.insertInto(tableName)
+      if (Object.keys(this.attributes).length) {
+        query = query.values(this.attributes as any)
+      } else {
+        query = query.values({ id: 0 } as any)
+      }
+
+      const data = await query.returningAll().executeTakeFirstOrThrow()
 
       const base = this.constructor as typeof Dream
-      return (await base.find(id as unknown as Id)) as T
+      // @ts-ignore
+      return (await base.find(data[base.primaryKey as any] as unknown as Id)) as T
     }
   }
 }
