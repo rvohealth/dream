@@ -42,18 +42,6 @@ export async function loadDreamConfigFile() {
   return dreamConfig
 }
 
-let _db: Kysely<DB> | null = null
-export async function loadDB() {
-  if (_db) return _db
-
-  const db = (await import(await dbPath())).default as Kysely<DB>
-
-  // TODO: validate db import
-
-  _db = db
-  return db
-}
-
 export function projectRootPath({
   filepath,
   omitDirname,
@@ -95,17 +83,11 @@ export async function dreamsConfigPath({ omitDirname }: { omitDirname?: boolean 
   return projectRootPath({ filepath: yamlConfig.dream_config_path, omitDirname })
 }
 
-export default async function dbPath({ omitDirname }: { omitDirname?: boolean } = {}) {
-  const yamlConfig = await loadDreamYamlFile()
-  return projectRootPath({ filepath: yamlConfig.db_path, omitDirname })
-}
-
 export interface DreamYamlFile {
   models_path: string
   migrations_path: string
   schema_path: string
   dream_config_path: string
-  db_path: string
 }
 
 export interface DreamConfig {
