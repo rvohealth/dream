@@ -1,7 +1,7 @@
 import { Tables } from './db/reflections'
 import db from './db'
 import { DB, DBColumns, DBOpts } from './sync/schema'
-import { SelectExpression } from 'kysely'
+import { ColumnType, SelectExpression } from 'kysely'
 import { InsertObjectOrList } from 'kysely/dist/cjs/parser/insert-values-parser'
 
 export default function dream<Tablename extends Tables>(tableName: Tables) {
@@ -17,6 +17,14 @@ export default function dream<Tablename extends Tables>(tableName: Tables) {
       return await new this(opts).save()
     }
 
+    public static async find(id: ThisTableOpts['id']) {
+      return await db
+        .selectFrom(this.tableName)
+        .select(keys as SelectExpression<DB, keyof DB>[])
+        .where('id', '=', id! as unknown as number)
+        .executeTakeFirstOrThrow()
+    }
+
     public attributes: ThisTableOpts = {}
     constructor(opts?: ThisTableOpts) {
       if (opts) this.setAttributes(opts)
@@ -29,18 +37,15 @@ export default function dream<Tablename extends Tables>(tableName: Tables) {
       })
     }
 
-    public async save() {
+    public async save<T extends Dream>(this: T) {
       const { id } = await db
         .insertInto(tableName)
         .values(this.attributes as InsertObjectOrList<DB, keyof DB>)
         .returning('id')
         .executeTakeFirstOrThrow()
 
-      return await db
-        .selectFrom(tableName)
-        .where('id', '=', id)
-        .select(keys as SelectExpression<DB, keyof DB>[])
-        .executeTakeFirstOrThrow()
+      const base = this.constructor as typeof Dream
+      return await base.find(id as unknown as ColumnType<number, number | undefined, number>)
     }
   }
 }
