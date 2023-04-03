@@ -29,6 +29,16 @@ export default function dream<Tablename extends Tables>(tableName: Tablename) {
       return results.map(record => new this(record) as T)
     }
 
+    public static async count<T extends Dream>(this: { new (): T } & typeof Dream): Promise<number> {
+      const { count } = db.fn
+      const data = await db
+        .selectFrom(this.table)
+        .select(count(`${this.table}.id`).as('tablecount'))
+        .executeTakeFirstOrThrow()
+
+      return parseInt(data.tablecount.toString())
+    }
+
     public static async create<T extends Dream>(
       this: { new (): T } & typeof Dream,
       opts?: Updateable<Table>
