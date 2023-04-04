@@ -1,13 +1,13 @@
-import '../helpers/loadEnv'
+import '../src/helpers/loadEnv'
+import * as pluralize from 'pluralize'
 import * as path from 'path'
 import { promises as fs } from 'fs'
-import loadModels from '../helpers/loadModels'
-import sspawn from '../helpers/sspawn'
-import { loadDreamYamlFile } from '../helpers/path'
-import compact from '../helpers/compact'
-import pluralize = require('pluralize')
-import camelize from '../helpers/camelize'
-import snakeify from '../helpers/snakeify'
+import loadModels from '../src/helpers/loadModels'
+import sspawn from '../src/helpers/sspawn'
+import { loadDreamYamlFile } from '../src/helpers/path'
+import compact from '../src/helpers/compact'
+import camelize from '../src/helpers/camelize'
+import snakeify from '../src/helpers/snakeify'
 
 export default async function sync() {
   console.log('copying schema and dream config...')
@@ -20,8 +20,8 @@ export default async function sync() {
   console.log('writing schema...')
   await writeSchema()
 
-  console.log('syncing models...')
-  await writeModels()
+  // console.log('syncing models...')
+  // await writeModels()
 
   console.log('sync complete!')
 }
@@ -29,10 +29,10 @@ sync()
 
 async function writeModels() {
   const models = await loadModels()
-  const filePath = path.join(__dirname, '..', 'sync', 'models.ts')
+  const filePath = path.join(__dirname, '..', 'src', 'sync', 'models.ts')
   const relativePathToModels =
     process.env.CORE_DEVELOPMENT === '1'
-      ? path.join('..', 'test-app', 'app', 'models')
+      ? path.join('..', 'src', 'test-app', 'app', 'models')
       : path.join('..', '..', '..', 'src', 'app', 'models')
 
   const importStatements = Object.keys(models)
@@ -52,9 +52,9 @@ ${Object.keys(models).map(key => `  "${key.replace(/\.ts/, '')}": ${models[key].
 async function writeSchema() {
   const yamlConf = await loadDreamYamlFile()
 
-  let absoluteSchemaPath = path.join(__dirname, '..', '..', '..', yamlConf.schema_path)
+  let absoluteSchemaPath = path.join(__dirname, '..', '..', yamlConf.schema_path)
   if (process.env.CORE_DEVELOPMENT === '1') {
-    absoluteSchemaPath = path.join(__dirname, '..', '..', yamlConf.schema_path)
+    absoluteSchemaPath = path.join(__dirname, '..', yamlConf.schema_path)
   }
 
   await sspawn(

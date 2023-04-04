@@ -9,8 +9,9 @@
   "private": true,
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "sync": "yarn build && CORE_DEVELOPMENT=1 ts-node src/bin/sync.ts",
-    "db:migrate": "yarn sync && ALREADY_AT_PROJECT_ROOT=1 ts-node src/bin/migrate.ts && yarn sync",
+    "sync": "CORE_DEVELOPMENT=1 ts-node boot/sync.ts",
+    "copy-models": "CORE_DEVELOPMENT=1 ts-node src/bin/copy-models.ts",
+    "db:migrate": "yarn sync && ALREADY_AT_PROJECT_ROOT=1 ts-node src/bin/migrate.ts && yarn sync && yarn copy-models",
     "db:drop": "ts-node src/bin/db-drop.ts",
     "db:create": "ts-node src/bin/db-create.ts",
     "spec": "CORE_DEVELOPMENT=1 jest --runInBand --forceExit"
