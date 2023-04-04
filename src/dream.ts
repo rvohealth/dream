@@ -128,12 +128,19 @@ export default function dream<
       return query
     }
 
+    public frozenAttributes: Updateable<Table> = {}
     constructor(opts?: Updateable<Table>) {
       if (opts) this.setAttributes(opts)
+      this.freezeAttributes()
     }
 
     public get isDreamInstance() {
       return true
+    }
+
+    public get isPersisted() {
+      // todo: clean up types here
+      return !!(this as any)[(this.constructor as typeof Dream).primaryKey as any]
     }
 
     public get attributes(): Updateable<Table> {
@@ -144,6 +151,27 @@ export default function dream<
       return obj
     }
 
+    public get isDirty() {
+      return !!Object.keys(this.dirtyAttributes).length
+    }
+
+    public get dirtyAttributes(): Updateable<Table> {
+      const obj: Updateable<Table> = {}
+      Object.keys(this.attributes).forEach(column => {
+        // TODO: clean up types
+        if (
+          (this.frozenAttributes as any)[column] &&
+          (this.frozenAttributes as any)[column] !== (this.attributes as any)[column]
+        )
+          (obj as any)[column] = (this.attributes as any)[column]
+      })
+      return obj
+    }
+
+    public freezeAttributes() {
+      this.frozenAttributes = { ...this.attributes }
+    }
+
     public setAttributes(attributes: Updateable<Table>) {
       Object.keys(attributes).forEach(attr => {
         ;(this as any)[attr] = (attributes as any)[attr]
@@ -151,6 +179,7 @@ export default function dream<
     }
 
     public async save<T extends Dream>(this: T): Promise<T> {
+      if (this.isPersisted) return await this.update()
       let query = db.insertInto(tableName)
       if (Object.keys(this.attributes).length) {
         query = query.values(this.attributes as any)
@@ -160,6 +189,19 @@ export default function dream<
 
       const data = await query.returning(columns as any).executeTakeFirstOrThrow()
 
+      const base = this.constructor as typeof Dream
+
+      // @ts-ignore
+      return (await base.find(data[base.primaryKey as any] as unknown as Id)) as T
+    }
+
+    public async update<T extends Dream>(this: T, attributes?: Updateable<Table>): Promise<T> {
+      let query = db.updateTable(tableName)
+      if (attributes) this.setAttributes(attributes)
+
+      query = query.set(this.attributes as any)
+
+      const data = await query.returning(columns as any).executeTakeFirstOrThrow()
       const base = this.constructor as typeof Dream
 
       // @ts-ignore
