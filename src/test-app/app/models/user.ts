@@ -9,5 +9,8 @@ export default class User extends dream('users') {
   public email: string
 
   @Column('string')
+  public name: string
+
+  @Column('string')
   public password: string
 }

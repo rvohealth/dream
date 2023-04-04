@@ -5,12 +5,12 @@ import { Selectable, SelectExpression, SelectType, Updateable } from 'kysely'
 import snakeify from './helpers/snakeify'
 
 export default function dream<
-  TableIndex extends keyof DB & string,
-  IdColumnName extends keyof DB[TableIndex] & string
->(tableName: TableIndex, primaryKey: IdColumnName = 'id' as IdColumnName) {
+  TableName extends keyof DB & string,
+  IdColumnName extends keyof DB[TableName] & string
+>(tableName: TableName, primaryKey: IdColumnName = 'id' as IdColumnName) {
   const columns = DBColumns[tableName]
 
-  type Table = DB[TableIndex]
+  type Table = DB[TableName]
   type IdColumn = Table[IdColumnName]
   type Data = Selectable<Table>
   type Id = Readonly<SelectType<IdColumn>>
@@ -94,7 +94,7 @@ export default function dream<
     }
 
     public static limit<T extends Dream>(this: { new (): T } & typeof Dream, count: number) {
-      const query: SelectQuery<T> = new SelectQuery<T>(this)
+      const query: Query<T> = new Query<T>(this)
       query.limit(count)
       return query
     }
@@ -104,13 +104,13 @@ export default function dream<
       column: ColumnName,
       direction: 'asc' | 'desc' = 'asc'
     ) {
-      const query: SelectQuery<T> = new SelectQuery<T>(this)
+      const query: Query<T> = new Query<T>(this)
       query.order(column, direction)
       return query
     }
 
     public static where<T extends Dream>(this: { new (): T } & typeof Dream, attributes: Updateable<Table>) {
-      const query: SelectQuery<T> = new SelectQuery<T>(this)
+      const query: Query<T> = new Query<T>(this)
       query.where(attributes)
       return query
     }
@@ -154,7 +154,7 @@ export default function dream<
     }
   }
 
-  class SelectQuery<DreamClass extends Dream> {
+  class Query<DreamClass extends Dream> {
     public whereStatement: Updateable<Table> | null = null
     public limitStatement: { count: number } | null = null
     public orderStatement: { column: keyof Table & string; direction: 'asc' | 'desc' } | null = null
@@ -183,7 +183,7 @@ export default function dream<
     }
 
     public async all() {
-      const query = this.build()
+      const query = this.buildSelect()
       const results = await query.execute()
       const DreamClass = Dream
       return results.map(r => new DreamClass(r as Updateable<Table>) as DreamClass)
@@ -192,7 +192,7 @@ export default function dream<
     public async first() {
       if (!this.orderStatement) this.order(Dream.primaryKey as keyof Table & string, 'asc')
 
-      const query = this.build()
+      const query = this.buildSelect()
       const results = await query.executeTakeFirstOrThrow()
 
       if (results) return new this.dreamClass(results as any) as DreamClass
@@ -202,7 +202,7 @@ export default function dream<
     public async last() {
       if (!this.orderStatement) this.order(Dream.primaryKey, 'desc')
 
-      const query = this.build()
+      const query = this.buildSelect()
       const results = await query.execute()
 
       const res = results.length ? (results as any)[results.length - 1] : null
@@ -211,7 +211,20 @@ export default function dream<
       else return null
     }
 
-    public build() {
+    public async update(attributes: Updateable<Table>) {
+      const query = this.buildUpdate(attributes)
+      await query.execute()
+
+      const selectQuery = this.buildSelect()
+      const results = await selectQuery.execute()
+
+      const DreamClass = Dream
+      return results.map(r => new DreamClass(r as any) as DreamClass)
+    }
+
+    // private
+
+    public buildSelect() {
       let query = db.selectFrom(tableName).selectAll()
       if (this.whereStatement) {
         Object.keys(this.whereStatement).forEach(attr => {
@@ -222,6 +235,16 @@ export default function dream<
       if (this.orderStatement)
         query = query.orderBy(this.orderStatement.column as any, this.orderStatement.direction)
 
+      return query
+    }
+
+    public buildUpdate(attributes: Updateable<Table>) {
+      let query = db.updateTable(tableName as TableName).set(attributes as any)
+      if (this.whereStatement) {
+        Object.keys(this.whereStatement).forEach(attr => {
+          query = query.where(attr as any, '=', (this.whereStatement as any)[attr])
+        })
+      }
       return query
     }
   }
