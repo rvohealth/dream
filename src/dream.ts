@@ -53,6 +53,19 @@ export default function dream<
       return (await new this(opts).save()) as T
     }
 
+    public static async destroyAll<T extends Dream>(this: { new (): T } & typeof Dream) {
+      const query: Query<T> = new Query<T>(this)
+      return await query.destroy()
+    }
+
+    public static async destroyBy<T extends Dream>(
+      this: { new (): T } & typeof Dream,
+      opts?: Updateable<Table>
+    ) {
+      const query: Query<T> = new Query<T>(this)
+      return await query.destroyBy(opts as any)
+    }
+
     public static async find<T extends Dream>(this: { new (): T } & typeof Dream, id: Id): Promise<T> {
       const data = await db
         .selectFrom(this.table)
