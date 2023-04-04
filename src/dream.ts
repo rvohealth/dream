@@ -211,6 +211,14 @@ export default function dream<
       else return null
     }
 
+    public async destroy() {
+      const query = this.buildDestroy()
+      const selectQuery = this.buildSelect()
+      const results = await selectQuery.execute()
+      await query.execute()
+      return results.length
+    }
+
     public async update(attributes: Updateable<Table>) {
       const query = this.buildUpdate(attributes)
       await query.execute()
@@ -223,6 +231,16 @@ export default function dream<
     }
 
     // private
+
+    public buildDestroy() {
+      let query = db.deleteFrom(tableName as TableName)
+      if (this.whereStatement) {
+        Object.keys(this.whereStatement).forEach(attr => {
+          query = query.where(attr as any, '=', (this.whereStatement as any)[attr])
+        })
+      }
+      return query
+    }
 
     public buildSelect() {
       let query = db.selectFrom(tableName).selectAll()
