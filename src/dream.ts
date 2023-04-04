@@ -232,6 +232,8 @@ export default function dream<
           ;(this as any)[association] = new ModelClass(belongsToResult)
           break
       }
+
+      return (this as any)[association] as typeof ModelClass | null
     }
 
     public loadAssociation<T extends Dream>(
