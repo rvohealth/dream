@@ -7,7 +7,7 @@ import snakeify from './helpers/snakeify'
 export default function dream<
   TableIndex extends keyof DB & string,
   IdColumnName extends keyof DB[TableIndex] & string
->(tableName: TableIndex, primaryKey: IdColumnName) {
+>(tableName: TableIndex, primaryKey: IdColumnName = 'id' as IdColumnName) {
   const columns = DBColumns[tableName]
 
   type Table = DB[TableIndex]
@@ -94,22 +94,23 @@ export default function dream<
     }
 
     public static limit<T extends Dream>(this: { new (): T } & typeof Dream, count: number) {
-      const query: SelectQuery = new SelectQuery(this.prototype.constructor)
+      const query: SelectQuery<T> = new SelectQuery<T>(this)
       query.limit(count)
       return query
     }
 
-    public static order<ColumnName extends keyof Table & string>(
+    public static order<T extends Dream, ColumnName extends keyof Table & string>(
+      this: { new (): T } & typeof Dream,
       column: ColumnName,
       direction: 'asc' | 'desc' = 'asc'
     ) {
-      const query: SelectQuery = new SelectQuery(this)
+      const query: SelectQuery<T> = new SelectQuery<T>(this)
       query.order(column, direction)
       return query
     }
 
     public static where<T extends Dream>(this: { new (): T } & typeof Dream, attributes: Updateable<Table>) {
-      const query: SelectQuery = new SelectQuery(this.prototype.constructor)
+      const query: SelectQuery<T> = new SelectQuery<T>(this)
       query.where(attributes)
       return query
     }
@@ -144,7 +145,7 @@ export default function dream<
         query = query.values({ id: 0 } as any)
       }
 
-      const data = await query.returningAll().executeTakeFirstOrThrow()
+      const data = await query.returning(columns as any).executeTakeFirstOrThrow()
 
       const base = this.constructor as typeof Dream
 
@@ -153,7 +154,7 @@ export default function dream<
     }
   }
 
-  class SelectQuery {
+  class SelectQuery<DreamClass extends Dream> {
     public whereStatement: Updateable<Table> | null = null
     public limitStatement: { count: number } | null = null
     public orderStatement: { column: keyof Table & string; direction: 'asc' | 'desc' } | null = null
@@ -185,7 +186,7 @@ export default function dream<
       const query = this.build()
       const results = await query.execute()
       const DreamClass = Dream
-      return results.map(r => new DreamClass(r as Updateable<Table>))
+      return results.map(r => new DreamClass(r as Updateable<Table>) as DreamClass)
     }
 
     public async first() {
@@ -194,7 +195,7 @@ export default function dream<
       const query = this.build()
       const results = await query.executeTakeFirstOrThrow()
 
-      if ((results as any)[0]) return new this.dreamClass((results as any)[0])
+      if (results) return new this.dreamClass(results as any) as DreamClass
       else return null
     }
 
@@ -206,7 +207,7 @@ export default function dream<
 
       const res = results.length ? (results as any)[results.length - 1] : null
 
-      if (res) return new this.dreamClass(res) as any
+      if (res) return new Dream(res) as DreamClass
       else return null
     }
 
