@@ -19,6 +19,15 @@ export default function dream<
   class Dream {
     public static primaryKey: IdColumnName = primaryKey
     public static createdAtField = 'createdAt'
+    public static associations: {
+      belongsTo: BelongsToStatement<any>[]
+      hasMany: HasManyStatement<any>[]
+      hasOne: HasOneStatement<any>[]
+    } = {
+      belongsTo: [],
+      hasMany: [],
+      hasOne: [],
+    }
 
     public static get isDream() {
       return true
@@ -170,7 +179,7 @@ export default function dream<
       Object.keys(this.attributes).forEach(column => {
         // TODO: clean up types
         if (
-          (this.frozenAttributes as any)[column] &&
+          (this.frozenAttributes as any)[column] === undefined ||
           (this.frozenAttributes as any)[column] !== (this.attributes as any)[column]
         )
           (obj as any)[column] = (this.attributes as any)[column]
@@ -184,10 +193,15 @@ export default function dream<
 
     public setAttributes(attributes: Updateable<Table>) {
       Object.keys(attributes).forEach(attr => {
+        // TODO: cleanup type chaos
         ;(this as any)[attr] = (attributes as any)[attr]
       })
     }
 
+    public async reload() {
+      const base = this.constructor as typeof Dream
+
+      // TODO: cleanup type chaos
       // @ts-ignore
       const newRecord = (await base.find(this[base.primaryKey as any] as unknown as Id)) as T
       this.setAttributes(newRecord.attributes)
@@ -200,18 +214,17 @@ export default function dream<
       if (this.isPersisted) return await this.update()
 
       let query = db.insertInto(tableName)
-      if (Object.keys(this.attributes).length) {
-        query = query.values(this.attributes as any)
       if (Object.keys(this.dirtyAttributes).length) {
+        query = query.values(this.dirtyAttributes as any)
       } else {
         query = query.values({ id: 0 } as any)
       }
 
       const data = await query.returning(columns as any).executeTakeFirstOrThrow()
-
       const base = this.constructor as typeof Dream
 
-      // @ts-ignore
+      // sets the id before reloading, since this is a new record
+      // TODO: cleanup type chaos
       ;(this as any)[base.primaryKey as any] = data[base.primaryKey]
 
       return await this.reload()
@@ -221,13 +234,14 @@ export default function dream<
       let query = db.updateTable(tableName)
       if (attributes) this.setAttributes(attributes)
 
-      query = query.set(this.attributes as any)
+      if (Object.keys(this.dirtyAttributes).length === 0) return this
+      query = query.set(this.dirtyAttributes as any)
 
       const data = await query.returning(columns as any).executeTakeFirstOrThrow()
       const base = this.constructor as typeof Dream
 
-      // @ts-ignore
-      return (await base.find(data[base.primaryKey as any] as unknown as Id)) as T
+      await this.reload()
+      return this
     }
   }
 
@@ -353,10 +367,80 @@ export default function dream<
     }
   }
 
-  return { Dream, Query }
+  function BelongsTo<TableName extends keyof DB & string>(
+    tableName: TableName,
+    modelCB: () => ReturnType<typeof dream<TableName, any>>['Dream']
+  ): any {
+    return function (target: any, key: string, _: any) {
+      Object.defineProperty(target.constructor.associations, 'belongsTo', {
+        value: [
+          ...(target.constructor.associations.belongsTo as BelongsToStatement<any>[]),
+          {
+            modelCB,
+            to: tableName,
+            // TODO: abstract foreign key capture to helper, with optional override provided by the api
+            foreignKey: pluralize.singular(tableName) + '_id',
+          } as BelongsToStatement<any>,
+        ] as BelongsToStatement<any>[],
+      })
+    }
+  }
+
+  function HasMany<TableName extends keyof DB & string>(
+    tableName: TableName,
+    modelCB: () => ReturnType<typeof dream<TableName, any>>['Dream']
+  ): any {
+    return function (target: any, key: string, _: any) {
+      Object.defineProperty(target.constructor.associations, 'hasMany', {
+        value: [
+          ...(target.constructor.associations.hasMany as HasManyStatement<any>[]),
+          {
+            modelCB,
+            to: tableName,
+            // TODO: abstract foreign key capture to helper, with optional override provided by the api
+            foreignKey: pluralize.singular(Dream.table) + '_id',
+          } as HasManyStatement<any>,
+        ] as HasManyStatement<any>[],
+      })
+    }
+  }
+
+  function HasOne<TableName extends keyof DB & string>(
+    tableName: TableName,
+    modelCB: () => ReturnType<typeof dream<TableName, any>>['Dream']
+  ): any {
+    return function (target: any, key: string, _: any) {
+      Object.defineProperty(target.constructor.associations, 'hasOne', {
+        value: [
+          ...(target.constructor.associations.hasMany as HasOneStatement<any>[]),
+          {
+            modelCB,
+            to: tableName,
+            // TODO: abstract foreign key capture to helper, with optional override provided by the api
+            foreignKey: pluralize.singular(Dream.table) + '_id',
+          } as HasOneStatement<any>,
+        ] as HasOneStatement<any>[],
+      })
+    }
+  }
+
+  return { Dream, Query, BelongsTo, HasMany }
+}
+
+export interface BelongsToStatement<ForeignTablename extends keyof DB & string> {
+  modelCB: () => ReturnType<typeof dream<ForeignTablename, any>>['Dream']
+  to: keyof DB & string
+  foreignKey: keyof DB[ForeignTablename] & string
+}
+
+export interface HasManyStatement<ForeignTablename extends keyof DB & string> {
+  modelCB: () => ReturnType<typeof dream<ForeignTablename, any>>['Dream']
+  to: keyof DB & string
+  foreignKey: keyof DB[ForeignTablename] & string
+}
 }
 
 export type DreamModel<
   TableName extends keyof DB & string,
   IdColumnName extends keyof DB[TableName] & string
-> = ReturnType<typeof dream<TableName, IdColumnName>>
+> = ReturnType<typeof dream<TableName, IdColumnName>>['Dream']

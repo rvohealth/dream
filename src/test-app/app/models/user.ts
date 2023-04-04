@@ -1,7 +1,8 @@
 import { Column } from '../../../decorators/column'
 import dream from '../../../dream'
+import Composition from './composition'
 
-const { Dream } = dream('users')
+const { Dream, HasMany } = dream('users')
 export default class User extends Dream {
   @Column('number')
   public id: number
@@ -14,4 +15,7 @@ export default class User extends Dream {
 
   @Column('string')
   public password: string
+
+  @HasMany('compositions', () => Composition)
+  public compositions: Composition[]
 }
