@@ -15,6 +15,7 @@ export interface Compositions {
 
 export interface Users {
   id: Generated<number>;
+  name: string | null;
   email: string;
   password: string;
   created_at: Generated<Timestamp>;
@@ -34,6 +35,7 @@ export interface CompositionOpts {
 
 export interface UserOpts {
   id?:  Generated<number>;
+  name?:  string | null;
   email?:  string;
   password?:  string;
   createdAt?:  Generated<Timestamp>;
@@ -41,7 +43,7 @@ export interface UserOpts {
 
 
 export const CompositionColumns = ['id', 'user_id', 'created_at']
-export const UserColumns = ['id', 'email', 'password', 'created_at']
+export const UserColumns = ['id', 'name', 'email', 'password', 'created_at']
 
 export interface DBOpts {
   compositions: CompositionOpts

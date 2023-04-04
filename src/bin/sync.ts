@@ -17,11 +17,11 @@ export default async function sync() {
       'cp ./src/test-app/conf/dream.ts ./src/sync'
   )
 
-  console.log('syncing models...')
-  await writeModels()
-
   console.log('writing schema...')
   await writeSchema()
+
+  console.log('syncing models...')
+  await writeModels()
 
   console.log('sync complete!')
 }
