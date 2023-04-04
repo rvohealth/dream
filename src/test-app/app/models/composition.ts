@@ -7,7 +7,9 @@ export default class Composition extends Dream {
   @Column('number')
   public id: number
 
-  @BelongsTo('users', () => User)
   @Column('number')
   public user_id: number
+
+  @BelongsTo('users', () => User)
+  public user: User
 }

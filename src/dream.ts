@@ -191,11 +191,72 @@ export default function dream<
       this.frozenAttributes = { ...this.attributes }
     }
 
-    public setAttributes(attributes: Updateable<Table>) {
-      Object.keys(attributes).forEach(attr => {
-        // TODO: cleanup type chaos
-        ;(this as any)[attr] = (attributes as any)[attr]
-      })
+    public async load<T extends Dream>(this: T, association: string) {
+      const [type, realAssociation] = this.loadAssociation(association)
+      if (!type || !realAssociation) throw `Association not found: ${association}`
+
+      const id = (this as any)[(this.constructor as typeof Dream).primaryKey]
+      if (!id) throw `Cannot load association on unpersisted record`
+
+      const ModelClass = realAssociation.modelCB()
+
+      switch (type) {
+        case 'hasOne':
+          const hasOneResult = await db
+            .selectFrom(realAssociation.to)
+            .where(realAssociation.foreignKey as any, '=', id)
+            .selectAll()
+            .executeTakeFirst()
+
+          ;(this as any)[association] = new ModelClass(hasOneResult)
+          break
+
+        case 'hasMany':
+          const hasManyResults = await db
+            .selectFrom(realAssociation.to)
+            .where(realAssociation.foreignKey as any, '=', id)
+            .selectAll()
+            .execute()
+
+          ;(this as any)[association] = hasManyResults.map(r => new ModelClass(r))
+          break
+
+        case 'belongsTo':
+          const foreignKey = (this as any)[realAssociation.foreignKey]
+          const belongsToResult = await db
+            .selectFrom(realAssociation.to)
+            .where(ModelClass.primaryKey as any, '=', foreignKey)
+            .selectAll()
+            .executeTakeFirst()
+
+          ;(this as any)[association] = new ModelClass(belongsToResult)
+          break
+      }
+    }
+
+    public loadAssociation<T extends Dream>(
+      this: T,
+      association: string
+    ): [
+      'hasOne' | 'hasMany' | 'belongsTo' | null,
+      HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any> | null
+    ] {
+      const hasOneMatch = (this.constructor as typeof Dream).associations.hasOne.find(
+        d => d.as === association
+      )
+      if (hasOneMatch) return ['hasOne', hasOneMatch]
+
+      const hasManyMatch = (this.constructor as typeof Dream).associations.hasMany.find(
+        d => d.as === association
+      )
+      if (hasManyMatch) return ['hasMany', hasManyMatch]
+
+      const belongsToMatch = (this.constructor as typeof Dream).associations.belongsTo.find(
+        d => d.as === association
+      )
+      if (belongsToMatch) return ['belongsTo', belongsToMatch]
+
+      return [null, null]
     }
 
     public async reload() {
@@ -208,6 +269,13 @@ export default function dream<
       this.freezeAttributes()
 
       return this
+    }
+
+    public setAttributes(attributes: Updateable<Table>) {
+      Object.keys(attributes).forEach(attr => {
+        // TODO: cleanup type chaos
+        ;(this as any)[attr] = (attributes as any)[attr]
+      })
     }
 
     public async save<T extends Dream>(this: T): Promise<T> {
