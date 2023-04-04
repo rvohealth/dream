@@ -1,7 +1,8 @@
 import { Column } from '../../../decorators/column'
 import dream from '../../../dream'
 
-export default class User extends dream('users') {
+const { Dream } = dream('users')
+export default class User extends Dream {
   @Column('number')
   public id: number
 

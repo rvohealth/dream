@@ -331,7 +331,7 @@ export default function dream<
     }
   }
 
-  return Dream
+  return { Dream, Query }
 }
 
 export type DreamModel<
