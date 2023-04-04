@@ -380,6 +380,7 @@ export default function dream<
             to: tableName,
             // TODO: abstract foreign key capture to helper, with optional override provided by the api
             foreignKey: pluralize.singular(tableName) + '_id',
+            as: key,
           } as BelongsToStatement<any>,
         ] as BelongsToStatement<any>[],
       })
@@ -399,6 +400,7 @@ export default function dream<
             to: tableName,
             // TODO: abstract foreign key capture to helper, with optional override provided by the api
             foreignKey: pluralize.singular(Dream.table) + '_id',
+            as: key,
           } as HasManyStatement<any>,
         ] as HasManyStatement<any>[],
       })
@@ -412,32 +414,41 @@ export default function dream<
     return function (target: any, key: string, _: any) {
       Object.defineProperty(target.constructor.associations, 'hasOne', {
         value: [
-          ...(target.constructor.associations.hasMany as HasOneStatement<any>[]),
+          ...(target.constructor.associations.hasOne as HasOneStatement<any>[]),
           {
             modelCB,
             to: tableName,
             // TODO: abstract foreign key capture to helper, with optional override provided by the api
             foreignKey: pluralize.singular(Dream.table) + '_id',
+            as: key,
           } as HasOneStatement<any>,
         ] as HasOneStatement<any>[],
       })
     }
   }
 
-  return { Dream, Query, BelongsTo, HasMany }
+  return { Dream, Query, BelongsTo, HasMany, HasOne }
 }
 
 export interface BelongsToStatement<ForeignTablename extends keyof DB & string> {
   modelCB: () => ReturnType<typeof dream<ForeignTablename, any>>['Dream']
   to: keyof DB & string
   foreignKey: keyof DB[ForeignTablename] & string
+  as: string
 }
 
 export interface HasManyStatement<ForeignTablename extends keyof DB & string> {
   modelCB: () => ReturnType<typeof dream<ForeignTablename, any>>['Dream']
   to: keyof DB & string
   foreignKey: keyof DB[ForeignTablename] & string
+  as: string
 }
+
+export interface HasOneStatement<ForeignTablename extends keyof DB & string> {
+  modelCB: () => ReturnType<typeof dream<ForeignTablename, any>>['Dream']
+  to: keyof DB & string
+  foreignKey: keyof DB[ForeignTablename] & string
+  as: string
 }
 
 export type DreamModel<
