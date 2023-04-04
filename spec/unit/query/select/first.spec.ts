@@ -1,6 +1,6 @@
 import User from '../../../../src/test-app/app/models/user'
 
-describe('SelectQuery#first', () => {
+describe('Query#first', () => {
   it('returns first record found', async () => {
     const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     await User.create({ email: 'how@yadoin', password: 'howyadoin' })

@@ -1,6 +1,6 @@
 import User from '../../../../src/test-app/app/models/user'
 
-describe('SelectQuery#limit', () => {
+describe('Query#limit', () => {
   it('limits number of records returned', async () => {
     const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })

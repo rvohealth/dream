@@ -94,7 +94,7 @@ export default function dream<
     }
 
     public static limit<T extends Dream>(this: { new (): T } & typeof Dream, count: number) {
-      const query: SelectQuery<T> = new SelectQuery<T>(this)
+      const query: Query<T> = new Query<T>(this)
       query.limit(count)
       return query
     }
@@ -104,13 +104,13 @@ export default function dream<
       column: ColumnName,
       direction: 'asc' | 'desc' = 'asc'
     ) {
-      const query: SelectQuery<T> = new SelectQuery<T>(this)
+      const query: Query<T> = new Query<T>(this)
       query.order(column, direction)
       return query
     }
 
     public static where<T extends Dream>(this: { new (): T } & typeof Dream, attributes: Updateable<Table>) {
-      const query: SelectQuery<T> = new SelectQuery<T>(this)
+      const query: Query<T> = new Query<T>(this)
       query.where(attributes)
       return query
     }
@@ -154,7 +154,7 @@ export default function dream<
     }
   }
 
-  class SelectQuery<DreamClass extends Dream> {
+  class Query<DreamClass extends Dream> {
     public whereStatement: Updateable<Table> | null = null
     public limitStatement: { count: number } | null = null
     public orderStatement: { column: keyof Table & string; direction: 'asc' | 'desc' } | null = null
