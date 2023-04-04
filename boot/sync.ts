@@ -20,9 +20,6 @@ export default async function sync() {
   console.log('writing schema...')
   await writeSchema()
 
-  // console.log('syncing models...')
-  // await writeModels()
-
   console.log('sync complete!')
 }
 sync()
