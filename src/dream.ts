@@ -4,6 +4,9 @@ import { DB, DBColumns } from './sync/schema'
 import { Selectable, SelectExpression, SelectType, Updateable } from 'kysely'
 import snakeify from './helpers/snakeify'
 import pluralize = require('pluralize')
+import { HasManyStatement } from './associations/has-many'
+import { BelongsToStatement } from './associations/belongs-to'
+import { HasOneStatement } from './associations/has-one'
 
 export default function dream<
   TableName extends keyof DB & string,
@@ -436,89 +439,7 @@ export default function dream<
       return query
     }
   }
-
-  function BelongsTo<TableName extends keyof DB & string>(
-    tableName: TableName,
-    modelCB: () => ReturnType<typeof dream<TableName, any>>['Dream']
-  ): any {
-    return function (target: any, key: string, _: any) {
-      Object.defineProperty(target.constructor.associations, 'belongsTo', {
-        value: [
-          ...(target.constructor.associations.belongsTo as BelongsToStatement<any>[]),
-          {
-            modelCB,
-            to: tableName,
-            // TODO: abstract foreign key capture to helper, with optional override provided by the api
-            foreignKey: pluralize.singular(tableName) + '_id',
-            as: key,
-          } as BelongsToStatement<any>,
-        ] as BelongsToStatement<any>[],
-      })
-    }
-  }
-
-  function HasMany<TableName extends keyof DB & string>(
-    tableName: TableName,
-    modelCB: () => ReturnType<typeof dream<TableName, any>>['Dream']
-  ): any {
-    return function (target: any, key: string, _: any) {
-      Object.defineProperty(target.constructor.associations, 'hasMany', {
-        value: [
-          ...(target.constructor.associations.hasMany as HasManyStatement<any>[]),
-          {
-            modelCB,
-            to: tableName,
-            // TODO: abstract foreign key capture to helper, with optional override provided by the api
-            foreignKey: pluralize.singular(Dream.table) + '_id',
-            as: key,
-          } as HasManyStatement<any>,
-        ] as HasManyStatement<any>[],
-      })
-    }
-  }
-
-  function HasOne<TableName extends keyof DB & string>(
-    tableName: TableName,
-    modelCB: () => ReturnType<typeof dream<TableName, any>>['Dream']
-  ): any {
-    return function (target: any, key: string, _: any) {
-      Object.defineProperty(target.constructor.associations, 'hasOne', {
-        value: [
-          ...(target.constructor.associations.hasOne as HasOneStatement<any>[]),
-          {
-            modelCB,
-            to: tableName,
-            // TODO: abstract foreign key capture to helper, with optional override provided by the api
-            foreignKey: pluralize.singular(Dream.table) + '_id',
-            as: key,
-          } as HasOneStatement<any>,
-        ] as HasOneStatement<any>[],
-      })
-    }
-  }
-
-  return { Dream, Query, BelongsTo, HasMany, HasOne }
-}
-
-export interface BelongsToStatement<ForeignTablename extends keyof DB & string> {
-  modelCB: () => ReturnType<typeof dream<ForeignTablename, any>>['Dream']
-  to: keyof DB & string
-  foreignKey: keyof DB[ForeignTablename] & string
-  as: string
-}
-
-export interface HasManyStatement<ForeignTablename extends keyof DB & string> {
-  modelCB: () => ReturnType<typeof dream<ForeignTablename, any>>['Dream']
-  to: keyof DB & string
-  foreignKey: keyof DB[ForeignTablename] & string
-  as: string
-}
-
-export interface HasOneStatement<ForeignTablename extends keyof DB & string> {
-  modelCB: () => ReturnType<typeof dream<ForeignTablename, any>>['Dream']
-  to: keyof DB & string
-  foreignKey: keyof DB[ForeignTablename] & string
-  as: string
+  return { Dream, Query }
 }
 
 export type DreamModel<

@@ -1,8 +1,10 @@
+import HasMany from '../../../associations/has-many'
+import HasOne from '../../../associations/has-one'
 import { Column } from '../../../decorators/column'
 import dream from '../../../dream'
 import Composition from './composition'
 
-const { Dream, HasMany, HasOne } = dream('users')
+const { Dream } = dream('users')
 export default class User extends Dream {
   @Column('number')
   public id: number

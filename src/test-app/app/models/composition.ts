@@ -1,8 +1,9 @@
+import BelongsTo from '../../../associations/belongs-to'
 import { Column } from '../../../decorators/column'
 import dream from '../../../dream'
 import User from './user'
 
-const { Dream, BelongsTo } = dream('compositions')
+const { Dream } = dream('compositions')
 export default class Composition extends Dream {
   @Column('number')
   public id: number
