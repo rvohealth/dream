@@ -219,6 +219,15 @@ export default function dream<
       return results.length
     }
 
+    public async destroyBy(attributes: Updateable<Table>) {
+      this.where(attributes)
+      const query = this.buildDestroy()
+      const selectQuery = this.buildSelect()
+      const results = await selectQuery.execute()
+      await query.execute()
+      return results.length
+    }
+
     public async update(attributes: Updateable<Table>) {
       const query = this.buildUpdate(attributes)
       await query.execute()
