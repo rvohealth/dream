@@ -1,6 +1,6 @@
 import User from '../../../../src/test-app/app/models/user'
 
-describe('Query#all', () => {
+describe('SelectQuery#all', () => {
   it('returns multiple records', async () => {
     const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
