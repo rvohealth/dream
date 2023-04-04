@@ -3,6 +3,7 @@ import db from './db'
 import { DB, DBColumns } from './sync/schema'
 import { Selectable, SelectExpression, SelectType, Updateable } from 'kysely'
 import snakeify from './helpers/snakeify'
+import pluralize = require('pluralize')
 
 export default function dream<
   TableName extends keyof DB & string,
@@ -130,8 +131,17 @@ export default function dream<
 
     public frozenAttributes: Updateable<Table> = {}
     constructor(opts?: Updateable<Table>) {
-      if (opts) this.setAttributes(opts)
-      this.freezeAttributes()
+      if (opts) {
+        this.setAttributes(opts)
+
+        // if id is set, then we freeze attributes after setting them, so that
+        // any modifications afterwards will indicate updates.
+        if (this.isPersisted) this.freezeAttributes()
+      }
+    }
+
+    public hasId(attributes: Updateable<Table> = this.attributes) {
+      return !!(attributes as any)[(this.constructor as typeof Dream).primaryKey]
     }
 
     public get isDreamInstance() {
@@ -178,11 +188,21 @@ export default function dream<
       })
     }
 
+      // @ts-ignore
+      const newRecord = (await base.find(this[base.primaryKey as any] as unknown as Id)) as T
+      this.setAttributes(newRecord.attributes)
+      this.freezeAttributes()
+
+      return this
+    }
+
     public async save<T extends Dream>(this: T): Promise<T> {
       if (this.isPersisted) return await this.update()
+
       let query = db.insertInto(tableName)
       if (Object.keys(this.attributes).length) {
         query = query.values(this.attributes as any)
+      if (Object.keys(this.dirtyAttributes).length) {
       } else {
         query = query.values({ id: 0 } as any)
       }
@@ -192,7 +212,9 @@ export default function dream<
       const base = this.constructor as typeof Dream
 
       // @ts-ignore
-      return (await base.find(data[base.primaryKey as any] as unknown as Id)) as T
+      ;(this as any)[base.primaryKey as any] = data[base.primaryKey]
+
+      return await this.reload()
     }
 
     public async update<T extends Dream>(this: T, attributes?: Updateable<Table>): Promise<T> {
