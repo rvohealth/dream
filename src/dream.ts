@@ -89,11 +89,9 @@ export default function dream<
     }
 
     public static async find<T extends Dream>(this: { new (): T } & typeof Dream, id: Id): Promise<T> {
-      const data = await db
-        .selectFrom(this.table)
-        .select(columns as any[])
-        .where('id', '=', id! as unknown as number)
-        .executeTakeFirstOrThrow()
+      const query = db.selectFrom(this.table).select(columns as any[])
+      // apply scopes here
+      const data = await query.where('id', '=', id! as unknown as number).executeTakeFirstOrThrow()
       return new this(data) as T
     }
 
@@ -102,6 +100,7 @@ export default function dream<
       attributes: Updateable<Table>
     ): Promise<T> {
       const query = db.selectFrom(this.table).select(columns as any[])
+      // apply scopes here
 
       Object.keys(attributes).forEach(attr => {
         query.where(attr as any, '=', (attributes as any)[attr])
@@ -112,16 +111,16 @@ export default function dream<
     }
 
     public static async first<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T> {
-      const data = await db
-        .selectFrom(this.table)
-        .select(columns as any[])
-        .executeTakeFirstOrThrow()
+      const query = db.selectFrom(this.table)
+      // apply scopes here
+      const data = await query.select(columns as any[]).executeTakeFirstOrThrow()
       return new this(data) as T
     }
 
     public static async last<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T> {
-      const data = await db
-        .selectFrom(this.table)
+      const query = db.selectFrom(this.table)
+      // apply scopes here
+      const data = await query
         .orderBy(snakeify(this.createdAtField), 'desc')
         .select(columns as any[])
         .executeTakeFirstOrThrow()
@@ -217,6 +216,7 @@ export default function dream<
           const hasOneAssociation = realAssociation as HasOneStatement<TableName>
           if (hasOneAssociation.through) {
             let hasOneQuery = db.selectFrom(hasOneAssociation.to)
+            // apply scopes here
             hasOneQuery = this.loadHasManyThrough(
               hasOneAssociation,
               hasOneQuery,
@@ -225,8 +225,9 @@ export default function dream<
             const hasOneResults = await hasOneQuery.execute()
             if (hasOneResults[0]) (this as any)[association] = new ModelClass(hasOneResults[0])
           } else {
-            const hasOneResult = await db
-              .selectFrom(hasOneAssociation.to)
+            let hasOneQuery = db.selectFrom(hasOneAssociation.to)
+            // apply scopes here
+            const hasOneResult = await hasOneQuery
               .where(hasOneAssociation.foreignKey() as any, '=', id)
               .selectAll()
               .executeTakeFirst()
@@ -240,6 +241,7 @@ export default function dream<
 
           if (hasManyAssociation.through) {
             let hasManyQuery = db.selectFrom(hasManyAssociation.to)
+            // apply scopes here
             hasManyQuery = this.loadHasManyThrough(
               hasManyAssociation,
               hasManyQuery,
@@ -249,6 +251,7 @@ export default function dream<
             ;(this as any)[association] = hasManyResults.map(r => new ModelClass(r))
           } else {
             const hasManyQuery = db.selectFrom(realAssociation.to)
+            // apply scopes here
             const hasManyResults = await hasManyQuery
               .where(realAssociation.foreignKey() as any, '=', id)
               .selectAll()
@@ -260,12 +263,12 @@ export default function dream<
         case 'belongsTo':
           const belongsToAssociation = realAssociation as BelongsToStatement<TableName>
           const foreignKey = (this as any)[belongsToAssociation.foreignKey()]
-          const belongsToResult = await db
-            .selectFrom(realAssociation.to)
+          const belongsToQuery = db.selectFrom(realAssociation.to)
+          // apply scopes here
+          const belongsToResult = await belongsToQuery
             .where(ModelClass.primaryKey as any, '=', foreignKey)
             .selectAll()
             .executeTakeFirst()
-
           ;(this as any)[association] = new ModelClass(belongsToResult)
           break
       }
@@ -566,6 +569,7 @@ export default function dream<
 
     public buildSelect() {
       let query = db.selectFrom(tableName).selectAll()
+      // apply scopes here
       if (this.whereStatement) {
         Object.keys(this.whereStatement).forEach(attr => {
           query = query.where(attr as any, '=', (this.whereStatement as any)[attr])
@@ -580,6 +584,7 @@ export default function dream<
 
     public buildUpdate(attributes: Updateable<Table>) {
       let query = db.updateTable(this.dreamClass.table).set(attributes as any)
+      // apply scopes here
       if (this.whereStatement) {
         Object.keys(this.whereStatement).forEach(attr => {
           query = query.where(attr as any, '=', (this.whereStatement as any)[attr])
