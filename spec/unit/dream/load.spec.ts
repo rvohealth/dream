@@ -67,6 +67,19 @@ describe('Dream#load', () => {
         expect(user.compositionAssetAudits![0].isDreamInstance).toEqual(true)
         expect(user.compositionAssetAudits![0].attributes).toEqual(compositionAssetAudit.attributes)
       })
+
+      it('loads a HasOne through another through association', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user_id: user.id })
+        const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+        const compositionAssetAudit = await CompositionAssetAudit.create({
+          composition_asset_id: compositionAsset.id,
+        })
+
+        await user.load('mainCompositionAssetAudit')
+        expect(user.mainCompositionAssetAudit!.isDreamInstance).toEqual(true)
+        expect(user.mainCompositionAssetAudit!.attributes).toEqual(compositionAssetAudit.attributes)
+      })
     })
   })
 })

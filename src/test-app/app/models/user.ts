@@ -43,4 +43,10 @@ export default class User extends Dream {
     throughKey: 'compositionAssets',
   })
   public compositionAssetAudits: CompositionAssetAudit[]
+
+  @HasOne('composition_asset_audits', () => CompositionAssetAudit, {
+    through: () => CompositionAsset,
+    throughKey: 'mainCompositionAssetAudit',
+  })
+  public mainCompositionAssetAudit: CompositionAssetAudit
 }
