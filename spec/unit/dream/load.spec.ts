@@ -1,5 +1,6 @@
-import Composition from '../../../src/test-app/app/models/composition'
 import User from '../../../src/test-app/app/models/user'
+import Composition from '../../../src/test-app/app/models/composition'
+import CompositionAsset from '../../../src/test-app/app/models/composition-asset'
 
 describe('Dream#load', () => {
   it('loads a HasOne association', async () => {
@@ -29,5 +30,17 @@ describe('Dream#load', () => {
     await composition.load('user')
     expect(composition.user!.isDreamInstance).toEqual(true)
     expect(composition.user!.attributes).toEqual(user.attributes)
+  })
+
+  describe('through associations', () => {
+    it('loads a HasOne through association', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ user_id: user.id })
+      const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+
+      await user.load('compositionAssets')
+      expect(user.compositionAssets[0].isDreamInstance).toEqual(true)
+      expect(user.compositionAssets[0]!.attributes).toEqual(compositionAsset.attributes)
+    })
   })
 })

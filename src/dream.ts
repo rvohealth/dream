@@ -1,7 +1,7 @@
 import { Tables } from './db/reflections'
 import db from './db'
 import { DB, DBColumns } from './sync/schema'
-import { Selectable, SelectExpression, SelectType, Updateable } from 'kysely'
+import { Selectable, SelectExpression, SelectQueryBuilder, SelectType, Updateable } from 'kysely'
 import snakeify from './helpers/snakeify'
 import pluralize = require('pluralize')
 import { HasManyStatement } from './associations/has-many'
@@ -195,7 +195,7 @@ export default function dream<
     }
 
     public async load<T extends Dream>(this: T, association: string) {
-      const [type, realAssociation] = this.loadAssociation(association)
+      const [type, realAssociation] = this.associationMetadataFor(association)
       if (!type || !realAssociation) throw `Association not found: ${association}`
 
       const id = (this as any)[(this.constructor as typeof Dream).primaryKey]
@@ -205,9 +205,10 @@ export default function dream<
 
       switch (type) {
         case 'hasOne':
+          const hasOneAssociation = realAssociation as HasOneStatement<TableName>
           const hasOneResult = await db
-            .selectFrom(realAssociation.to)
-            .where(realAssociation.foreignKey as any, '=', id)
+            .selectFrom(hasOneAssociation.to)
+            .where(hasOneAssociation.foreignKey() as any, '=', id)
             .selectAll()
             .executeTakeFirst()
 
@@ -215,17 +216,25 @@ export default function dream<
           break
 
         case 'hasMany':
-          const hasManyResults = await db
-            .selectFrom(realAssociation.to)
-            .where(realAssociation.foreignKey as any, '=', id)
-            .selectAll()
-            .execute()
+          const hasManyAssociation = realAssociation as HasManyStatement<TableName>
 
-          ;(this as any)[association] = hasManyResults.map(r => new ModelClass(r))
+          if (hasManyAssociation.through) {
+            const hasManyQuery = db.selectFrom(Dream.table)
+            const hasManyResults = await this.loadHasManyThrough(hasManyAssociation, hasManyQuery)
+            ;(this as any)[association] = hasManyResults.map(r => new ModelClass(r))
+          } else {
+            const hasManyQuery = db.selectFrom(realAssociation.to)
+            const hasManyResults = await hasManyQuery
+              .where(realAssociation.foreignKey() as any, '=', id)
+              .selectAll()
+              .execute()
+            ;(this as any)[association] = hasManyResults.map(r => new ModelClass(r))
+          }
           break
 
         case 'belongsTo':
-          const foreignKey = (this as any)[realAssociation.foreignKey]
+          const belongsToAssociation = realAssociation as BelongsToStatement<TableName>
+          const foreignKey = (this as any)[belongsToAssociation.foreignKey()]
           const belongsToResult = await db
             .selectFrom(realAssociation.to)
             .where(ModelClass.primaryKey as any, '=', foreignKey)
@@ -235,9 +244,59 @@ export default function dream<
           ;(this as any)[association] = new ModelClass(belongsToResult)
           break
       }
+
+      return (this as any)[association] as typeof ModelClass | null
     }
 
-    public loadAssociation<T extends Dream>(
+    async loadHasManyThrough(
+      association: HasManyStatement<TableName>,
+      query: SelectQueryBuilder<DB, TableName, {}>
+    ) {
+      if (!association.through)
+        throw `
+        Should not be loading has many through, since this association does not have a through attribute.
+        Attributes provided were:
+          ${JSON.stringify(association)}
+      `
+
+      const [type, throughAssociationMetadata] = this.associationMetadataFor(association.through().table)
+      if (!throughAssociationMetadata)
+        throw `
+        Unable to find association metadata for:
+          ${JSON.stringify(throughAssociationMetadata)}
+      `
+
+      const FinalModelClass = association.modelCB()
+      const ThroughModelClass = throughAssociationMetadata.modelCB()
+      const ThisModelClass = this.constructor as typeof Dream
+      query = query.innerJoin(
+        throughAssociationMetadata.to,
+        // @ts-ignore
+        `${throughAssociationMetadata.to}.${throughAssociationMetadata.foreignKey()}`,
+        `${Dream.table}.${Dream.primaryKey}`
+        // (this as any)[ThisModelClass.primaryKey]
+      )
+
+      query = query.innerJoin(
+        association.to,
+        // @ts-ignore
+        `${association.to}.${association.foreignKey()}`,
+        `${ThroughModelClass.table}.${ThroughModelClass.primaryKey}`
+        // (this as any)[ThisModelClass.primaryKey]
+      )
+
+      const select = DBColumns[association.to].map(
+        column => `${FinalModelClass.table}.${column} as ${column}`
+      )
+      query = query
+        // @ts-ignore
+        .where(`${Dream.table}.${Dream.primaryKey}`, '=', (this as any)[ThisModelClass.primaryKey])
+        .select(select as any)
+
+      return await query.execute()
+    }
+
+    public associationMetadataFor<T extends Dream>(
       this: T,
       association: string
     ): [
@@ -428,7 +487,7 @@ export default function dream<
     }
 
     public buildUpdate(attributes: Updateable<Table>) {
-      let query = db.updateTable(tableName as TableName).set(attributes as any)
+      let query = db.updateTable(this.dreamClass.table).set(attributes as any)
       if (this.whereStatement) {
         Object.keys(this.whereStatement).forEach(attr => {
           query = query.where(attr as any, '=', (this.whereStatement as any)[attr])
@@ -437,10 +496,11 @@ export default function dream<
       return query
     }
   }
-  return { Dream, Query }
+
+  return Dream
 }
 
 export type DreamModel<
   TableName extends keyof DB & string,
   IdColumnName extends keyof DB[TableName] & string
-> = ReturnType<typeof dream<TableName, IdColumnName>>['Dream']
+> = ReturnType<typeof dream<TableName, IdColumnName>>
