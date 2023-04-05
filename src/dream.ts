@@ -1,16 +1,13 @@
 import { Tables } from './db/reflections'
 import db from './db'
+import camelize from './helpers/camelize'
 import { DB, DBColumns } from './sync/schema'
 import { CompiledQuery, Selectable, SelectQueryBuilder, SelectType, Updateable } from 'kysely'
 import { HasManyStatement } from './decorators/associations/has-many'
 import { BelongsToStatement } from './decorators/associations/belongs-to'
 import { HasOneStatement } from './decorators/associations/has-one'
 import { ScopeStatement } from './decorators/scope'
-import camelize from './helpers/camelize'
-import { BeforeCreateStatement } from './decorators/hooks/before-create'
-import { BeforeSaveStatement } from './decorators/hooks/before-save'
-import { BeforeUpdateStatement } from './decorators/hooks/before-update'
-import { BeforeDestroyStatement } from './decorators/hooks/before-destroy'
+import { HookStatement } from './decorators/hooks/shared'
 
 export default function dream<
   TableName extends keyof DB & string,
@@ -50,15 +47,23 @@ export default function dream<
       value: null,
     }
     public static hooks: {
-      beforeCreate: BeforeCreateStatement[]
-      beforeUpdate: BeforeUpdateStatement[]
-      beforeSave: BeforeSaveStatement[]
-      beforeDestroy: BeforeDestroyStatement[]
+      beforeCreate: HookStatement[]
+      beforeUpdate: HookStatement[]
+      beforeSave: HookStatement[]
+      beforeDestroy: HookStatement[]
+      afterCreate: HookStatement[]
+      afterUpdate: HookStatement[]
+      afterSave: HookStatement[]
+      afterDestroy: HookStatement[]
     } = {
       beforeCreate: [],
       beforeUpdate: [],
       beforeSave: [],
       beforeDestroy: [],
+      afterCreate: [],
+      afterUpdate: [],
+      afterSave: [],
+      afterDestroy: [],
     }
 
     public static get isDream() {
@@ -325,7 +330,12 @@ export default function dream<
       // TODO: cleanup type chaos
       ;(this as any)[base.primaryKey as any] = data[base.primaryKey]
 
-      return await this.reload()
+      await this.reload()
+
+      await runHooksFor('afterSave', this)
+      await runHooksFor('afterCreate', this)
+
+      return this
     }
 
     public async update<T extends Dream>(this: T, attributes?: Updateable<Table>): Promise<T> {
@@ -342,6 +352,10 @@ export default function dream<
       const base = this.constructor as typeof Dream
 
       await this.reload()
+
+      await runHooksFor('afterSave', this)
+      await runHooksFor('afterUpdate', this)
+
       return this
     }
 
@@ -354,6 +368,7 @@ export default function dream<
         .where(base.primaryKey as any, '=', (this as any)[base.primaryKey])
         .execute()
 
+      await runHooksFor('afterDestroy', this)
       return this
     }
   }
@@ -550,7 +565,15 @@ export default function dream<
   }
 
   async function runHooksFor<T extends Dream>(
-    key: 'beforeCreate' | 'beforeSave' | 'beforeUpdate' | 'beforeDestroy',
+    key:
+      | 'beforeCreate'
+      | 'beforeSave'
+      | 'beforeUpdate'
+      | 'beforeDestroy'
+      | 'afterCreate'
+      | 'afterSave'
+      | 'afterUpdate'
+      | 'afterDestroy',
     dream: T
   ): Promise<void> {
     if (['beforeCreate', 'beforeSave', 'beforeUpdate'].includes(key)) {
