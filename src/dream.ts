@@ -206,13 +206,19 @@ export default function dream<
       switch (type) {
         case 'hasOne':
           const hasOneAssociation = realAssociation as HasOneStatement<TableName>
-          const hasOneResult = await db
-            .selectFrom(hasOneAssociation.to)
-            .where(hasOneAssociation.foreignKey() as any, '=', id)
-            .selectAll()
-            .executeTakeFirst()
+          if (hasOneAssociation.through) {
+            const hasOneQuery = db.selectFrom(Dream.table)
+            const hasOneResults = await this.loadHasManyThrough(hasOneAssociation, hasOneQuery)
+            if (hasOneResults[0]) (this as any)[association] = new ModelClass(hasOneResults[0])
+          } else {
+            const hasOneResult = await db
+              .selectFrom(hasOneAssociation.to)
+              .where(hasOneAssociation.foreignKey() as any, '=', id)
+              .selectAll()
+              .executeTakeFirst()
 
-          ;(this as any)[association] = new ModelClass(hasOneResult)
+            ;(this as any)[association] = new ModelClass(hasOneResult)
+          }
           break
 
         case 'hasMany':
@@ -259,7 +265,7 @@ export default function dream<
           ${JSON.stringify(association)}
       `
 
-      const [type, throughAssociationMetadata] = this.associationMetadataFor(association.through().table)
+      const [_, throughAssociationMetadata] = this.associationMetadataFor(association.through().table)
       if (!throughAssociationMetadata)
         throw `
         Unable to find association metadata for:
@@ -274,7 +280,6 @@ export default function dream<
         // @ts-ignore
         `${throughAssociationMetadata.to}.${throughAssociationMetadata.foreignKey()}`,
         `${Dream.table}.${Dream.primaryKey}`
-        // (this as any)[ThisModelClass.primaryKey]
       )
 
       query = query.innerJoin(
@@ -282,7 +287,6 @@ export default function dream<
         // @ts-ignore
         `${association.to}.${association.foreignKey()}`,
         `${ThroughModelClass.table}.${ThroughModelClass.primaryKey}`
-        // (this as any)[ThisModelClass.primaryKey]
       )
 
       const select = DBColumns[association.to].map(

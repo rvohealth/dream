@@ -38,6 +38,16 @@ describe('Dream#load', () => {
       const composition = await Composition.create({ user_id: user.id })
       const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
+      await user.load('mainCompositionAsset')
+      expect(user.mainCompositionAsset!.isDreamInstance).toEqual(true)
+      expect(user.mainCompositionAsset!.attributes).toEqual(compositionAsset.attributes)
+    })
+
+    it('loads a HasMany through association', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ user_id: user.id })
+      const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+
       await user.load('compositionAssets')
       expect(user.compositionAssets[0].isDreamInstance).toEqual(true)
       expect(user.compositionAssets[0]!.attributes).toEqual(compositionAsset.attributes)

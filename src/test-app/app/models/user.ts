@@ -22,9 +22,12 @@ export default class User extends Dream {
   @HasMany('compositions', () => Composition)
   public compositions: Composition[]
 
+  @HasOne('compositions', () => Composition)
+  public mainComposition: Composition
+
   @HasMany('composition_assets', () => CompositionAsset, { through: () => Composition })
   public compositionAssets: CompositionAsset[]
 
-  @HasOne('compositions', () => Composition)
-  public mainComposition: Composition
+  @HasOne('composition_assets', () => CompositionAsset, { through: () => Composition })
+  public mainCompositionAsset: CompositionAsset
 }

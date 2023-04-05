@@ -4,7 +4,12 @@ import { DB } from '../sync/schema'
 
 export default function HasOne<TableName extends keyof DB & string>(
   tableName: TableName,
-  modelCB: () => ReturnType<typeof dream<TableName, any>>
+  modelCB: () => ReturnType<typeof dream<TableName, any>>,
+  {
+    through,
+  }: {
+    through?: () => ReturnType<typeof dream<any, any>>
+  } = {}
 ): any {
   return function (target: any, key: string, _: any) {
     Object.defineProperty(target.constructor.associations, 'hasOne', {
@@ -14,8 +19,12 @@ export default function HasOne<TableName extends keyof DB & string>(
           modelCB,
           to: tableName,
           // TODO: abstract foreign key capture to helper, with optional override provided by the api
-          foreignKey: () => pluralize.singular(target.constructor.table) + '_id',
+          foreignKey: () =>
+            through
+              ? pluralize.singular(through().table) + '_id'
+              : pluralize.singular(target.constructor.table) + '_id',
           as: key,
+          through,
         } as HasOneStatement<any>,
       ] as HasOneStatement<any>[],
     })
@@ -27,4 +36,5 @@ export interface HasOneStatement<ForeignTablename extends keyof DB & string> {
   to: keyof DB & string
   foreignKey: () => keyof DB[ForeignTablename] & string
   as: string
+  through?: () => ReturnType<typeof dream<ForeignTablename, any>>
 }
