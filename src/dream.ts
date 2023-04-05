@@ -90,22 +90,11 @@ export default function dream<
     ): Promise<T | null> {
       const query: Query<T> = new Query<T>(this)
       return await query.where(attributes).first()
-      // const query = db.selectFrom(this.table).select(columns as any[])
-      // // apply scopes here
-
-      // Object.keys(attributes).forEach(attr => {
-      //   query.where(attr as any, '=', (attributes as any)[attr])
-      // })
-
-      // const data = await query.executeTakeFirstOrThrow()
-      // return new this(data) as T
     }
 
-    public static async first<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T> {
-      const query = db.selectFrom(this.table)
-      // apply scopes here
-      const data = await query.select(columns as any[]).executeTakeFirstOrThrow()
-      return new this(data) as T
+    public static async first<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T | null> {
+      const query: Query<T> = new Query<T>(this)
+      return await query.first()
     }
 
     public static async last<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T> {

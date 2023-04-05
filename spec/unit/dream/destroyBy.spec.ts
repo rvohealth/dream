@@ -9,6 +9,6 @@ describe('Dream#destroyBy', () => {
     await User.destroyBy({ name: 'howyadoin' })
 
     expect(await User.count()).toEqual(1)
-    expect((await User.first()).id).toEqual(user3.id)
+    expect((await User.first())!.id).toEqual(user3.id)
   })
 })

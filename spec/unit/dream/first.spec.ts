@@ -5,6 +5,6 @@ describe('Dream.first', () => {
     const u1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const results = await User.first()
-    expect(results.id).toEqual(u1.id)
+    expect(results!.id).toEqual(u1.id)
   })
 })

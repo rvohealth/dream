@@ -9,6 +9,6 @@ describe('Query#destroy', () => {
     await User.where({ name: 'howyadoin' }).destroy()
 
     expect(await User.count()).toEqual(1)
-    expect((await User.first()).id).toEqual(user3.id)
+    expect((await User.first())!.id).toEqual(user3.id)
   })
 })
