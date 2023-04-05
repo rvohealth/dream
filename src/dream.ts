@@ -79,11 +79,9 @@ export default function dream<
       return await query.destroyBy(opts as any)
     }
 
-    public static async find<T extends Dream>(this: { new (): T } & typeof Dream, id: Id): Promise<T> {
-      const query = db.selectFrom(this.table).select(columns as any[])
-      // apply scopes here
-      const data = await query.where('id', '=', id! as unknown as number).executeTakeFirstOrThrow()
-      return new this(data) as T
+    public static async find<T extends Dream>(this: { new (): T } & typeof Dream, id: Id): Promise<T | null> {
+      const query: Query<T> = new Query<T>(this)
+      return await query.where({ [Dream.primaryKey]: id } as any).first()
     }
 
     public static async findBy<T extends Dream>(
@@ -510,7 +508,7 @@ export default function dream<
       if (!this.orderStatement) this.order(Dream.primaryKey as keyof Table & string, 'asc')
 
       const query = this.buildSelect()
-      const results = await query.executeTakeFirstOrThrow()
+      const results = await query.executeTakeFirst()
 
       if (results) return new this.dreamClass(results as any) as DreamClass
       else return null
