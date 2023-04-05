@@ -97,14 +97,9 @@ export default function dream<
       return await query.first()
     }
 
-    public static async last<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T> {
-      const query = db.selectFrom(this.table)
-      // apply scopes here
-      const data = await query
-        .orderBy(snakeify(this.createdAtField), 'desc')
-        .select(columns as any[])
-        .executeTakeFirstOrThrow()
-      return new this(data) as T
+    public static async last<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T | null> {
+      const query: Query<T> = new Query<T>(this)
+      return await query.last()
     }
 
     public static limit<T extends Dream>(this: { new (): T } & typeof Dream, count: number) {
