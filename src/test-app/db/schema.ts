@@ -33,6 +33,7 @@ export interface Compositions {
 export interface Users {
   id: Generated<number>;
   name: string | null;
+  type: string | null;
   email: string;
   password: string;
   created_at: Generated<Timestamp>;
@@ -74,6 +75,7 @@ export interface CompositionOpts {
 export interface UserOpts {
   id?:  Generated<number>;
   name?:  string | null;
+  type?:  string | null;
   email?:  string;
   password?:  string;
   createdAt?:  Generated<Timestamp>;
@@ -85,7 +87,7 @@ export interface UserOpts {
 export const CompositionAssetAuditColumns = ['id', 'composition_asset_id', 'approval', 'created_at', 'updated_at']
 export const CompositionAssetColumns = ['id', 'composition_id', 'src', 'created_at', 'updated_at']
 export const CompositionColumns = ['id', 'user_id', 'created_at', 'updated_at']
-export const UserColumns = ['id', 'name', 'email', 'password', 'created_at', 'updated_at', 'deleted_at']
+export const UserColumns = ['id', 'name', 'type', 'email', 'password', 'created_at', 'updated_at', 'deleted_at']
 
 export interface DBOpts {
   composition_asset_audits: CompositionAssetAuditOpts

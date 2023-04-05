@@ -23,6 +23,9 @@ export default class User extends Dream {
   @Column('string')
   public password: string
 
+  @Column('string')
+  public type: string
+
   @Column('datetime')
   public deleted_at: Date
 

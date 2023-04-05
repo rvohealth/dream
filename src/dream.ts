@@ -1,7 +1,14 @@
 import { Tables } from './db/reflections'
 import db from './db'
 import { DB, DBColumns } from './sync/schema'
-import { Selectable, SelectExpression, SelectQueryBuilder, SelectType, Updateable } from 'kysely'
+import {
+  CompiledQuery,
+  Selectable,
+  SelectExpression,
+  SelectQueryBuilder,
+  SelectType,
+  Updateable,
+} from 'kysely'
 import snakeify from './helpers/snakeify'
 import pluralize = require('pluralize')
 import { HasManyStatement } from './associations/has-many'
@@ -39,6 +46,13 @@ export default function dream<
     } = {
       default: [],
       named: [],
+    }
+    public static sti: {
+      column: string | null
+      value: string | null
+    } = {
+      column: null,
+      value: null,
     }
 
     public static get isDream() {
@@ -122,6 +136,11 @@ export default function dream<
       let query: Query<T> = new Query<T>(this)
       query = (this as any)[scopeName](query) as Query<T>
       return query
+    }
+
+    public static sql<T extends Dream>(this: { new (): T } & typeof Dream): CompiledQuery<{}> {
+      const query: Query<T> = new Query<T>(this)
+      return query.sql()
     }
 
     public static where<T extends Dream>(this: { new (): T } & typeof Dream, attributes: Updateable<Table>) {
@@ -424,6 +443,9 @@ export default function dream<
     public async save<T extends Dream>(this: T): Promise<T> {
       if (this.isPersisted) return await this.update()
 
+      await this.runBeforeCreateHooks()
+      await this.runBeforeSaveHooks()
+
       let query = db.insertInto(tableName)
       if (Object.keys(this.dirtyAttributes).length) {
         query = query.values(this.dirtyAttributes as any)
@@ -439,6 +461,22 @@ export default function dream<
       ;(this as any)[base.primaryKey as any] = data[base.primaryKey]
 
       return await this.reload()
+    }
+
+    public ensureSTITypeFieldIsSet() {
+      // todo: turn STI logic here into before create applied by decorator
+      const Base = this.constructor as typeof Dream
+      if (Base.sti.value && Base.sti.column) {
+        ;(this as any)[Base.sti.column] = Base.sti.value
+      }
+    }
+
+    public async runBeforeCreateHooks(): Promise<void> {
+      this.ensureSTITypeFieldIsSet()
+    }
+
+    public async runBeforeSaveHooks(): Promise<void> {
+      this.ensureSTITypeFieldIsSet()
     }
 
     public async update<T extends Dream>(this: T, attributes?: Updateable<Table>): Promise<T> {
@@ -488,6 +526,11 @@ export default function dream<
     public limit(count: number) {
       this.limitStatement = { count }
       return this
+    }
+
+    public sql() {
+      const query = this.buildSelect()
+      return query.compile()
     }
 
     public async count() {
