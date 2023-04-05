@@ -396,12 +396,18 @@ export default function dream<
       return [null, null]
     }
 
-    public async reload() {
+    public async reload<T extends Dream>(this: T) {
       const base = this.constructor as typeof Dream
+
+      const query: Query<T> = new Query<T>(base)
+      await query
+        .bypassDefaultScopes()
+        // @ts-ignore
+        .where({ [base.primaryKey as any]: this[base.primaryKey] } as Updateable<Table>)
 
       // TODO: cleanup type chaos
       // @ts-ignore
-      const newRecord = (await base.find(this[base.primaryKey as any] as unknown as Id)) as T
+      const newRecord = (await query.first()) as T
       this.setAttributes(newRecord.attributes)
       this.freezeAttributes()
 
@@ -454,14 +460,20 @@ export default function dream<
     public whereStatement: Updateable<Table> | null = null
     public limitStatement: { count: number } | null = null
     public orderStatement: { column: keyof Table & string; direction: 'asc' | 'desc' } | null = null
+    public shouldBypassDefaultScopes: boolean = false
     public dreamClass: typeof Dream
 
     constructor(DreamClass: typeof Dream) {
       this.dreamClass = DreamClass
     }
 
+    public bypassDefaultScopes() {
+      this.shouldBypassDefaultScopes = true
+      return this
+    }
+
     public where(attributes: Updateable<Table>) {
-      this.whereStatement = attributes
+      this.whereStatement = { ...this.whereStatement, ...attributes }
       return this
     }
 
@@ -509,11 +521,9 @@ export default function dream<
       if (!this.orderStatement) this.order(Dream.primaryKey, 'desc')
 
       const query = this.buildSelect()
-      const results = await query.execute()
+      const results = await query.executeTakeFirst()
 
-      const res = results.length ? (results as any)[results.length - 1] : null
-
-      if (res) return new Dream(res) as DreamClass
+      if (results) return new Dream(results) as DreamClass
       else return null
     }
 
@@ -547,6 +557,13 @@ export default function dream<
 
     // private
 
+    public conditionallyApplyScopes() {
+      if (this.shouldBypassDefaultScopes) return
+      for (const scope of Dream.scopes.default) {
+        ;(this.dreamClass as any)[scope.method](this)
+      }
+    }
+
     public buildDestroy() {
       let query = db.deleteFrom(tableName as TableName)
       if (this.whereStatement) {
@@ -558,12 +575,19 @@ export default function dream<
     }
 
     public buildSelect({ bypassSelectAll = false }: { bypassSelectAll?: boolean } = {}) {
+      this.conditionallyApplyScopes()
+
       let query = db.selectFrom(tableName)
       if (!bypassSelectAll) query = query.selectAll()
 
       if (this.whereStatement) {
         Object.keys(this.whereStatement).forEach(attr => {
-          query = query.where(attr as any, '=', (this.whereStatement as any)[attr])
+          const val = (this.whereStatement as any)[attr]
+          if (val === null) {
+            query = query.where(attr as any, 'is', val)
+          } else {
+            query = query.where(attr as any, '=', val)
+          }
         })
       }
       if (this.limitStatement) query = query.limit(this.limitStatement.count)

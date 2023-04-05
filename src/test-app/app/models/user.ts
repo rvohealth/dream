@@ -23,6 +23,9 @@ export default class User extends Dream {
   @Column('string')
   public password: string
 
+  @Column('datetime')
+  public deleted_at: Date
+
   @HasMany('compositions', () => Composition)
   public compositions: Composition[]
 
@@ -56,5 +59,9 @@ export default class User extends Dream {
   @Scope()
   public static withFunnyName(query: any) {
     return query.where({ name: 'Chalupas jr' })
+  }
+  @Scope({ default: true })
+  public static hideDeleted(query: any) {
+    return query.where({ deleted_at: null })
   }
 }
