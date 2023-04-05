@@ -166,10 +166,6 @@ export default function dream<
       }
     }
 
-    public hasId(attributes: Updateable<Table> = this.attributes) {
-      return !!(attributes as any)[(this.constructor as typeof Dream).primaryKey]
-    }
-
     public get isDreamInstance() {
       return true
     }
@@ -679,6 +675,7 @@ export default function dream<
 
     return query
   }
+
   return Dream
 }
 
