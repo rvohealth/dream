@@ -1,6 +1,7 @@
 import User from '../../../src/test-app/app/models/user'
 import Composition from '../../../src/test-app/app/models/composition'
 import CompositionAsset from '../../../src/test-app/app/models/composition-asset'
+import CompositionAssetAudit from '../../../src/test-app/app/models/composition-asset-audit'
 
 describe('Dream#load', () => {
   it('loads a HasOne association', async () => {
@@ -51,6 +52,21 @@ describe('Dream#load', () => {
       await user.load('compositionAssets')
       expect(user.compositionAssets[0].isDreamInstance).toEqual(true)
       expect(user.compositionAssets[0]!.attributes).toEqual(compositionAsset.attributes)
+    })
+
+    describe('nested through associations', () => {
+      it('loads a HasMany through another through association', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user_id: user.id })
+        const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+        const compositionAssetAudit = await CompositionAssetAudit.create({
+          composition_asset_id: compositionAsset.id,
+        })
+
+        await user.load('compositionAssetAudits')
+        expect(user.compositionAssetAudits![0].isDreamInstance).toEqual(true)
+        expect(user.compositionAssetAudits![0].attributes).toEqual(compositionAssetAudit.attributes)
+      })
     })
   })
 })

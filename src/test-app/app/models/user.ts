@@ -4,6 +4,7 @@ import { Column } from '../../../decorators/column'
 import dream from '../../../dream'
 import Composition from './composition'
 import CompositionAsset from './composition-asset'
+import CompositionAssetAudit from './composition-asset-audit'
 
 const Dream = dream('users')
 export default class User extends Dream {
@@ -25,9 +26,21 @@ export default class User extends Dream {
   @HasOne('compositions', () => Composition)
   public mainComposition: Composition
 
-  @HasMany('composition_assets', () => CompositionAsset, { through: () => Composition })
+  @HasMany('composition_assets', () => CompositionAsset, {
+    through: () => Composition,
+    throughKey: 'compositions',
+  })
   public compositionAssets: CompositionAsset[]
 
-  @HasOne('composition_assets', () => CompositionAsset, { through: () => Composition })
+  @HasOne('composition_assets', () => CompositionAsset, {
+    through: () => Composition,
+    throughKey: 'compositions',
+  })
   public mainCompositionAsset: CompositionAsset
+
+  @HasMany('composition_asset_audits', () => CompositionAssetAudit, {
+    through: () => CompositionAsset,
+    throughKey: 'compositionAssets',
+  })
+  public compositionAssetAudits: CompositionAssetAudit[]
 }
