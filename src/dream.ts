@@ -423,8 +423,8 @@ export default function dream<
     public async save<T extends Dream>(this: T): Promise<T> {
       if (this.isPersisted) return await this.update()
 
-      await this.runHooksFor('beforeSave')
-      await this.runHooksFor('beforeCreate')
+      await runHooksFor('beforeSave', this)
+      await runHooksFor('beforeCreate', this)
 
       let query = db.insertInto(tableName)
       if (Object.keys(this.dirtyAttributes).length) {
@@ -443,30 +443,9 @@ export default function dream<
       return await this.reload()
     }
 
-    public ensureSTITypeFieldIsSet() {
-      // todo: turn STI logic here into before create applied by decorator
-      const Base = this.constructor as typeof Dream
-      if (Base.sti.value && Base.sti.column) {
-        ;(this as any)[Base.sti.column] = Base.sti.value
-      }
-    }
-
-    public async runHooksFor(
-      key: 'beforeCreate' | 'beforeSave' | 'beforeUpdate' | 'beforeDestroy'
-    ): Promise<void> {
-      if (['beforeCreate', 'beforeSave', 'beforeUpdate'].includes(key)) {
-        this.ensureSTITypeFieldIsSet()
-      }
-
-      const Base = this.constructor as typeof Dream
-      for (const statement of Base.hooks[key]) {
-        await (this as any)[statement.method]()
-      }
-    }
-
     public async update<T extends Dream>(this: T, attributes?: Updateable<Table>): Promise<T> {
-      await this.runHooksFor('beforeSave')
-      await this.runHooksFor('beforeUpdate')
+      await runHooksFor('beforeSave', this)
+      await runHooksFor('beforeUpdate', this)
 
       let query = db.updateTable(tableName)
       if (attributes) this.setAttributes(attributes)
@@ -482,7 +461,7 @@ export default function dream<
     }
 
     public async destroy<T extends Dream>(this: T): Promise<T> {
-      await this.runHooksFor('beforeDestroy')
+      await runHooksFor('beforeDestroy', this)
 
       const base = this.constructor as typeof Dream
       await db
@@ -675,6 +654,28 @@ export default function dream<
     if (belongsToMatch) return ['belongsTo', belongsToMatch]
 
     return [null, null]
+  }
+
+  function ensureSTITypeFieldIsSet<T extends Dream>(dream: T) {
+    // todo: turn STI logic here into before create applied by decorator
+    const Base = dream.constructor as typeof Dream
+    if (Base.sti.value && Base.sti.column) {
+      ;(dream as any)[Base.sti.column] = Base.sti.value
+    }
+  }
+
+  async function runHooksFor<T extends Dream>(
+    key: 'beforeCreate' | 'beforeSave' | 'beforeUpdate' | 'beforeDestroy',
+    dream: T
+  ): Promise<void> {
+    if (['beforeCreate', 'beforeSave', 'beforeUpdate'].includes(key)) {
+      ensureSTITypeFieldIsSet(dream)
+    }
+
+    const Base = dream.constructor as typeof Dream
+    for (const statement of Base.hooks[key]) {
+      await (dream as any)[statement.method]()
+    }
   }
 
   return Dream
