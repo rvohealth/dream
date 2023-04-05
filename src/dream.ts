@@ -1,21 +1,16 @@
 import { Tables } from './db/reflections'
 import db from './db'
 import { DB, DBColumns } from './sync/schema'
-import {
-  CompiledQuery,
-  Selectable,
-  SelectExpression,
-  SelectQueryBuilder,
-  SelectType,
-  Updateable,
-} from 'kysely'
-import snakeify from './helpers/snakeify'
-import pluralize = require('pluralize')
+import { CompiledQuery, Selectable, SelectQueryBuilder, SelectType, Updateable } from 'kysely'
 import { HasManyStatement } from './decorators/associations/has-many'
 import { BelongsToStatement } from './decorators/associations/belongs-to'
 import { HasOneStatement } from './decorators/associations/has-one'
-import camelize from './helpers/camelize'
 import { ScopeStatement } from './decorators/scope'
+import camelize from './helpers/camelize'
+import { BeforeCreateStatement } from './decorators/hooks/before-create'
+import { BeforeSaveStatement } from './decorators/hooks/before-save'
+import { BeforeUpdateStatement } from './decorators/hooks/before-update'
+import { BeforeDestroyStatement } from './decorators/hooks/before-destroy'
 
 export default function dream<
   TableName extends keyof DB & string,
@@ -53,6 +48,17 @@ export default function dream<
     } = {
       column: null,
       value: null,
+    }
+    public static hooks: {
+      beforeCreate: BeforeCreateStatement[]
+      beforeUpdate: BeforeUpdateStatement[]
+      beforeSave: BeforeSaveStatement[]
+      beforeDestroy: BeforeDestroyStatement[]
+    } = {
+      beforeCreate: [],
+      beforeUpdate: [],
+      beforeSave: [],
+      beforeDestroy: [],
     }
 
     public static get isDream() {
@@ -443,8 +449,8 @@ export default function dream<
     public async save<T extends Dream>(this: T): Promise<T> {
       if (this.isPersisted) return await this.update()
 
-      await this.runBeforeCreateHooks()
-      await this.runBeforeSaveHooks()
+      await this.runHooksFor('beforeSave')
+      await this.runHooksFor('beforeCreate')
 
       let query = db.insertInto(tableName)
       if (Object.keys(this.dirtyAttributes).length) {
@@ -471,15 +477,23 @@ export default function dream<
       }
     }
 
-    public async runBeforeCreateHooks(): Promise<void> {
-      this.ensureSTITypeFieldIsSet()
-    }
+    public async runHooksFor(
+      key: 'beforeCreate' | 'beforeSave' | 'beforeUpdate' | 'beforeDestroy'
+    ): Promise<void> {
+      if (['beforeCreate', 'beforeSave', 'beforeUpdate'].includes(key)) {
+        this.ensureSTITypeFieldIsSet()
+      }
 
-    public async runBeforeSaveHooks(): Promise<void> {
-      this.ensureSTITypeFieldIsSet()
+      const Base = this.constructor as typeof Dream
+      for (const statement of Base.hooks[key]) {
+        await (this as any)[statement.method]()
+      }
     }
 
     public async update<T extends Dream>(this: T, attributes?: Updateable<Table>): Promise<T> {
+      await this.runHooksFor('beforeSave')
+      await this.runHooksFor('beforeUpdate')
+
       let query = db.updateTable(tableName)
       if (attributes) this.setAttributes(attributes)
 
@@ -490,6 +504,18 @@ export default function dream<
       const base = this.constructor as typeof Dream
 
       await this.reload()
+      return this
+    }
+
+    public async destroy<T extends Dream>(this: T): Promise<T> {
+      await this.runHooksFor('beforeDestroy')
+
+      const base = this.constructor as typeof Dream
+      await db
+        .deleteFrom(tableName)
+        .where(base.primaryKey as any, '=', (this as any)[base.primaryKey])
+        .execute()
+
       return this
     }
   }

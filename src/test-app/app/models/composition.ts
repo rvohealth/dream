@@ -1,6 +1,8 @@
 import BelongsTo from '../../../decorators/associations/belongs-to'
 import HasMany from '../../../decorators/associations/has-many'
 import { Column } from '../../../decorators/column'
+import BeforeCreate from '../../../decorators/hooks/before-create'
+import BeforeSave from '../../../decorators/hooks/before-save'
 import dream from '../../../dream'
 import CompositionAsset from './composition-asset'
 import CompositionAssetAudit from './composition-asset-audit'
@@ -14,6 +16,9 @@ export default class Composition extends Dream {
   @Column('number')
   public user_id: number
 
+  @Column('string')
+  public content: string | null
+
   @BelongsTo('users', () => User)
   public user: User
 
@@ -25,4 +30,9 @@ export default class Composition extends Dream {
     throughKey: 'compositionAssets',
   })
   public compositionAssetAudits: CompositionAssetAudit[]
+
+  @BeforeCreate()
+  public setDefaultContent() {
+    if (!this.content) this.content = 'default content'
+  }
 }
