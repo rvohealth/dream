@@ -118,6 +118,12 @@ export default function dream<
       return query
     }
 
+    public static scope<T extends Dream>(this: { new (): T } & typeof Dream, scopeName: string) {
+      let query: Query<T> = new Query<T>(this)
+      query = (this as any)[scopeName](query) as Query<T>
+      return query
+    }
+
     public static where<T extends Dream>(this: { new (): T } & typeof Dream, attributes: Updateable<Table>) {
       const query: Query<T> = new Query<T>(this)
       query.where(attributes)
@@ -555,7 +561,6 @@ export default function dream<
       let query = db.selectFrom(tableName)
       if (!bypassSelectAll) query = query.selectAll()
 
-      // apply scopes here
       if (this.whereStatement) {
         Object.keys(this.whereStatement).forEach(attr => {
           query = query.where(attr as any, '=', (this.whereStatement as any)[attr])
@@ -570,7 +575,6 @@ export default function dream<
 
     public buildUpdate(attributes: Updateable<Table>) {
       let query = db.updateTable(this.dreamClass.table).set(attributes as any)
-      // apply scopes here
       if (this.whereStatement) {
         Object.keys(this.whereStatement).forEach(attr => {
           query = query.where(attr as any, '=', (this.whereStatement as any)[attr])
