@@ -324,7 +324,6 @@ export default function dream<
       }
 
       const FinalModelClass = association.modelCB()
-      const ThroughModelClass = throughAssociationMetadata.modelCB()
 
       // if we are dealing with a nested through situation
       if (throughAssociationMetadata.through) {
