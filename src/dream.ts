@@ -11,9 +11,9 @@ import {
 } from 'kysely'
 import snakeify from './helpers/snakeify'
 import pluralize = require('pluralize')
-import { HasManyStatement } from './associations/has-many'
-import { BelongsToStatement } from './associations/belongs-to'
-import { HasOneStatement } from './associations/has-one'
+import { HasManyStatement } from './decorators/associations/has-many'
+import { BelongsToStatement } from './decorators/associations/belongs-to'
+import { HasOneStatement } from './decorators/associations/has-one'
 import camelize from './helpers/camelize'
 import { ScopeStatement } from './decorators/scope'
 

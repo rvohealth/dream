@@ -1,6 +1,6 @@
 import pluralize = require('pluralize')
-import dream from '../dream'
-import { DB } from '../sync/schema'
+import dream from '../../dream'
+import { DB } from '../../sync/schema'
 
 export default function BelongsTo<TableName extends keyof DB & string>(
   tableName: TableName,

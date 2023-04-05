@@ -1,6 +1,6 @@
 import { SelectQueryBuilder } from 'kysely'
-import HasMany from '../../../associations/has-many'
-import HasOne from '../../../associations/has-one'
+import HasMany from '../../../decorators/associations/has-many'
+import HasOne from '../../../decorators/associations/has-one'
 import { Column } from '../../../decorators/column'
 import Scope from '../../../decorators/scope'
 import dream from '../../../dream'

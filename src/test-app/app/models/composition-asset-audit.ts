@@ -1,4 +1,4 @@
-import BelongsTo from '../../../associations/belongs-to'
+import BelongsTo from '../../../decorators/associations/belongs-to'
 import { Column } from '../../../decorators/column'
 import dream from '../../../dream'
 import Composition from './composition'
