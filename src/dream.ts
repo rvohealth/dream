@@ -223,10 +223,11 @@ export default function dream<
           if (hasOneAssociation.through) {
             let hasOneQuery = db.selectFrom(hasOneAssociation.to)
             // apply scopes here
-            hasOneQuery = this.loadHasManyThrough(
+            hasOneQuery = loadHasManyThrough(
               hasOneAssociation,
               hasOneQuery,
-              this.constructor as any
+              this.constructor as any,
+              this
             ) as SelectQueryBuilder<DB, keyof DB, {}>
             const hasOneResults = await hasOneQuery.execute()
             if (hasOneResults[0]) (this as any)[association] = new ModelClass(hasOneResults[0])
@@ -248,10 +249,11 @@ export default function dream<
           if (hasManyAssociation.through) {
             let hasManyQuery = db.selectFrom(hasManyAssociation.to)
             // apply scopes here
-            hasManyQuery = this.loadHasManyThrough(
+            hasManyQuery = loadHasManyThrough(
               hasManyAssociation,
               hasManyQuery,
-              this.constructor as any
+              this.constructor as any,
+              this
             ) as SelectQueryBuilder<DB, keyof DB, {}>
             const hasManyResults = await hasManyQuery.execute()
             ;(this as any)[association] = hasManyResults.map(r => new ModelClass(r))
@@ -280,119 +282,6 @@ export default function dream<
       }
 
       return (this as any)[association] as typeof ModelClass | null
-    }
-
-    // internal
-    public loadHasManyThrough(
-      association: HasManyStatement<TableName> | HasOneStatement<TableName>,
-      query: SelectQueryBuilder<DB, TableName, {}>,
-      BaseModelClass: DreamModel<any, any>
-    ) {
-      if (!association.through)
-        throw `
-        Should not be loading has many through, since this association does not have a through attribute.
-        Attributes provided were:
-          ${JSON.stringify(association)}
-      `
-
-      const throughKey = camelize(association.through().table)
-      const [_, _throughAssociationMetadata] = associationMetadataFor(throughKey, this)
-      const throughAssociationMetadata: HasOneStatement<any> | HasManyStatement<any> =
-        _throughAssociationMetadata as HasManyStatement<any> | BelongsToStatement<any>
-      if (!throughAssociationMetadata)
-        throw `
-        Unable to find association metadata for:
-          ${JSON.stringify(throughAssociationMetadata)}
-      `
-
-      const recursiveThrough = (
-        association: HasManyStatement<TableName> | HasOneStatement<TableName>,
-        query: SelectQueryBuilder<DB, TableName, {}>,
-        CurrentModelClass: DreamModel<any, any>,
-        BaseModelClass: DreamModel<any, any>,
-        PreviousModelClass: DreamModel<any, any>,
-        previousForeignKey: string
-      ) => {
-        const ThisModelClass = association.modelCB()
-        const ThroughModelClass = association.through!()
-        const throughKey = association.throughKey!
-        const [throughAssociationType, throughAssociationMetadata] = associationMetadataFor(throughKey, this)
-        const typedThroughAssociationMetadata = throughAssociationMetadata as
-          | HasManyStatement<any>
-          | HasOneStatement<any>
-        query = query.innerJoin(
-          association.to,
-          // @ts-ignore
-          `${association.to}.${ThisModelClass.primaryKey}`,
-          `${PreviousModelClass.table}.${previousForeignKey}`
-        )
-
-        if (typedThroughAssociationMetadata.through)
-          query = recursiveThrough(
-            typedThroughAssociationMetadata,
-            query,
-            ThroughModelClass,
-            BaseModelClass,
-            CurrentModelClass,
-            typedThroughAssociationMetadata.foreignKey()
-          )
-        else {
-          query = query.innerJoin(
-            typedThroughAssociationMetadata.to,
-            // @ts-ignore
-            `${typedThroughAssociationMetadata.to}.${typedThroughAssociationMetadata.modelCB().primaryKey}`,
-            `${association.to}.${association.foreignKey()}`
-          )
-          query = query.innerJoin(
-            BaseModelClass.table,
-            // @ts-ignore
-            `${BaseModelClass.table}.${BaseModelClass.primaryKey}`,
-            `${typedThroughAssociationMetadata.to}.${typedThroughAssociationMetadata.foreignKey()}`
-          )
-        }
-
-        return query
-      }
-
-      const FinalModelClass = association.modelCB()
-
-      // if we are dealing with a nested through situation
-      if (throughAssociationMetadata.through) {
-        const ThroughModelClass = throughAssociationMetadata.through()
-        query = recursiveThrough(
-          throughAssociationMetadata,
-          query,
-          ThroughModelClass,
-          BaseModelClass,
-          FinalModelClass,
-          association.foreignKey()
-        )
-      } else {
-        query = query.innerJoin(
-          throughAssociationMetadata.to,
-          // @ts-ignore
-          `${throughAssociationMetadata.to}.${throughAssociationMetadata.modelCB().primaryKey}`,
-          `${association.to}.${association.foreignKey()}`
-        )
-        query = query.innerJoin(
-          BaseModelClass.table,
-          // @ts-ignore
-          `${BaseModelClass.table}.${BaseModelClass.primaryKey}`,
-          `${throughAssociationMetadata.to}.${throughAssociationMetadata.foreignKey()}`
-        )
-      }
-
-      const select = [
-        `${Dream.table}.${Dream.primaryKey}`,
-        ...DBColumns[association.to].map(column => `${FinalModelClass.table}.${column} as ${column}`),
-      ]
-
-      query = query
-        // @ts-ignore
-        .select(select as any)
-        .where(`${Dream.table}.${Dream.primaryKey}` as any, '=', (this as any)[BaseModelClass.primaryKey])
-
-      return query
     }
 
     public async reload<T extends Dream>(this: T) {
@@ -678,6 +567,118 @@ export default function dream<
     }
   }
 
+  function loadHasManyThrough<T extends Dream>(
+    association: HasManyStatement<TableName> | HasOneStatement<TableName>,
+    query: SelectQueryBuilder<DB, TableName, {}>,
+    BaseModelClass: DreamModel<any, any>,
+    dream: T
+  ) {
+    if (!association.through)
+      throw `
+        Should not be loading has many through, since this association does not have a through attribute.
+        Attributes provided were:
+          ${JSON.stringify(association)}
+      `
+
+    const throughKey = camelize(association.through().table)
+    const [_, _throughAssociationMetadata] = associationMetadataFor(throughKey, dream)
+    const throughAssociationMetadata: HasOneStatement<any> | HasManyStatement<any> =
+      _throughAssociationMetadata as HasManyStatement<any> | BelongsToStatement<any>
+    if (!throughAssociationMetadata)
+      throw `
+        Unable to find association metadata for:
+          ${JSON.stringify(throughAssociationMetadata)}
+      `
+
+    const recursiveThrough = (
+      association: HasManyStatement<TableName> | HasOneStatement<TableName>,
+      query: SelectQueryBuilder<DB, TableName, {}>,
+      CurrentModelClass: DreamModel<any, any>,
+      BaseModelClass: DreamModel<any, any>,
+      PreviousModelClass: DreamModel<any, any>,
+      previousForeignKey: string
+    ) => {
+      const ThisModelClass = association.modelCB()
+      const ThroughModelClass = association.through!()
+      const throughKey = association.throughKey!
+      const [throughAssociationType, throughAssociationMetadata] = associationMetadataFor(throughKey, dream)
+      const typedThroughAssociationMetadata = throughAssociationMetadata as
+        | HasManyStatement<any>
+        | HasOneStatement<any>
+      query = query.innerJoin(
+        association.to,
+        // @ts-ignore
+        `${association.to}.${ThisModelClass.primaryKey}`,
+        `${PreviousModelClass.table}.${previousForeignKey}`
+      )
+
+      if (typedThroughAssociationMetadata.through)
+        query = recursiveThrough(
+          typedThroughAssociationMetadata,
+          query,
+          ThroughModelClass,
+          BaseModelClass,
+          CurrentModelClass,
+          typedThroughAssociationMetadata.foreignKey()
+        )
+      else {
+        query = query.innerJoin(
+          typedThroughAssociationMetadata.to,
+          // @ts-ignore
+          `${typedThroughAssociationMetadata.to}.${typedThroughAssociationMetadata.modelCB().primaryKey}`,
+          `${association.to}.${association.foreignKey()}`
+        )
+        query = query.innerJoin(
+          BaseModelClass.table,
+          // @ts-ignore
+          `${BaseModelClass.table}.${BaseModelClass.primaryKey}`,
+          `${typedThroughAssociationMetadata.to}.${typedThroughAssociationMetadata.foreignKey()}`
+        )
+      }
+
+      return query
+    }
+
+    const FinalModelClass = association.modelCB()
+
+    // if we are dealing with a nested through situation
+    if (throughAssociationMetadata.through) {
+      const ThroughModelClass = throughAssociationMetadata.through()
+      query = recursiveThrough(
+        throughAssociationMetadata,
+        query,
+        ThroughModelClass,
+        BaseModelClass,
+        FinalModelClass,
+        association.foreignKey()
+      )
+    } else {
+      query = query.innerJoin(
+        throughAssociationMetadata.to,
+        // @ts-ignore
+        `${throughAssociationMetadata.to}.${throughAssociationMetadata.modelCB().primaryKey}`,
+        `${association.to}.${association.foreignKey()}`
+      )
+      query = query.innerJoin(
+        BaseModelClass.table,
+        // @ts-ignore
+        `${BaseModelClass.table}.${BaseModelClass.primaryKey}`,
+        `${throughAssociationMetadata.to}.${throughAssociationMetadata.foreignKey()}`
+      )
+    }
+
+    const select = [
+      `${Dream.table}.${Dream.primaryKey}`,
+      ...DBColumns[association.to].map(column => `${FinalModelClass.table}.${column} as ${column}`),
+    ]
+
+    query = query
+      // @ts-ignore
+      .select(select as any)
+      .where(`${Dream.table}.${Dream.primaryKey}` as any, '=', (dream as any)[BaseModelClass.primaryKey])
+
+    return query
+  }
   return Dream
 }
 
