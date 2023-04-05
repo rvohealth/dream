@@ -50,22 +50,13 @@ export default function dream<
     }
 
     public static async all<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T[]> {
-      const results = await db
-        .selectFrom(this.table)
-        .select(columns as any[])
-        .execute()
-
-      return results.map(record => new this(record) as T)
+      const query: Query<T> = new Query<T>(this)
+      return await query.all()
     }
 
     public static async count<T extends Dream>(this: { new (): T } & typeof Dream): Promise<number> {
-      const { count } = db.fn
-      const data = await db
-        .selectFrom(this.table)
-        .select(count(`${this.table}.id`).as('tablecount'))
-        .executeTakeFirstOrThrow()
-
-      return parseInt(data.tablecount.toString())
+      const query: Query<T> = new Query<T>(this)
+      return await query.count()
     }
 
     public static async create<T extends Dream>(
@@ -498,6 +489,16 @@ export default function dream<
       return this
     }
 
+    public async count() {
+      const { count } = db.fn
+      let query = this.buildSelect({ bypassSelectAll: true })
+
+      query = query.select(count(`${Dream.table}.${Dream.primaryKey}` as any).as('tablecount'))
+      const data = (await query.executeTakeFirstOrThrow()) as any
+
+      return parseInt(data.tablecount.toString())
+    }
+
     public async all() {
       const query = this.buildSelect()
       const results = await query.execute()
@@ -567,8 +568,10 @@ export default function dream<
       return query
     }
 
-    public buildSelect() {
-      let query = db.selectFrom(tableName).selectAll()
+    public buildSelect({ bypassSelectAll = false }: { bypassSelectAll?: boolean } = {}) {
+      let query = db.selectFrom(tableName)
+      if (!bypassSelectAll) query = query.selectAll()
+
       // apply scopes here
       if (this.whereStatement) {
         Object.keys(this.whereStatement).forEach(attr => {
