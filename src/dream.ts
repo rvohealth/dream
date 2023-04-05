@@ -209,7 +209,7 @@ export default function dream<
     }
 
     public async load<T extends Dream>(this: T, association: string) {
-      const [type, realAssociation] = this.associationMetadataFor(association)
+      const [type, realAssociation] = associationMetadataFor(association, this)
       if (!type || !realAssociation) throw `Association not found: ${association}`
 
       const id = (this as any)[(this.constructor as typeof Dream).primaryKey]
@@ -296,7 +296,7 @@ export default function dream<
       `
 
       const throughKey = camelize(association.through().table)
-      const [_, _throughAssociationMetadata] = this.associationMetadataFor(throughKey)
+      const [_, _throughAssociationMetadata] = associationMetadataFor(throughKey, this)
       const throughAssociationMetadata: HasOneStatement<any> | HasManyStatement<any> =
         _throughAssociationMetadata as HasManyStatement<any> | BelongsToStatement<any>
       if (!throughAssociationMetadata)
@@ -316,7 +316,7 @@ export default function dream<
         const ThisModelClass = association.modelCB()
         const ThroughModelClass = association.through!()
         const throughKey = association.throughKey!
-        const [throughAssociationType, throughAssociationMetadata] = this.associationMetadataFor(throughKey)
+        const [throughAssociationType, throughAssociationMetadata] = associationMetadataFor(throughKey, this)
         const typedThroughAssociationMetadata = throughAssociationMetadata as
           | HasManyStatement<any>
           | HasOneStatement<any>
@@ -393,32 +393,6 @@ export default function dream<
         .where(`${Dream.table}.${Dream.primaryKey}` as any, '=', (this as any)[BaseModelClass.primaryKey])
 
       return query
-    }
-
-    // internal
-    public associationMetadataFor<T extends Dream>(
-      this: T,
-      association: string
-    ): [
-      'hasOne' | 'hasMany' | 'belongsTo' | null,
-      HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any> | null
-    ] {
-      const hasOneMatch = (this.constructor as typeof Dream).associations.hasOne.find(
-        d => d.as === association
-      )
-      if (hasOneMatch) return ['hasOne', hasOneMatch]
-
-      const hasManyMatch = (this.constructor as typeof Dream).associations.hasMany.find(
-        d => d.as === association
-      )
-      if (hasManyMatch) return ['hasMany', hasManyMatch]
-
-      const belongsToMatch = (this.constructor as typeof Dream).associations.belongsTo.find(
-        d => d.as === association
-      )
-      if (belongsToMatch) return ['belongsTo', belongsToMatch]
-
-      return [null, null]
     }
 
     public async reload<T extends Dream>(this: T) {
@@ -675,6 +649,32 @@ export default function dream<
       }
       return query
     }
+  }
+
+  // internal
+  function associationMetadataFor<T extends Dream>(
+    association: string,
+    dream: T
+  ): [
+    'hasOne' | 'hasMany' | 'belongsTo' | null,
+    HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any> | null
+  ] {
+    const hasOneMatch = (dream.constructor as typeof Dream).associations.hasOne.find(
+      d => d.as === association
+    )
+    if (hasOneMatch) return ['hasOne', hasOneMatch]
+
+    const hasManyMatch = (dream.constructor as typeof Dream).associations.hasMany.find(
+      d => d.as === association
+    )
+    if (hasManyMatch) return ['hasMany', hasManyMatch]
+
+    const belongsToMatch = (dream.constructor as typeof Dream).associations.belongsTo.find(
+      d => d.as === association
+    )
+    if (belongsToMatch) return ['belongsTo', belongsToMatch]
+
+    return [null, null]
   }
 
   return Dream
