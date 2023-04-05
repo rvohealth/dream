@@ -1,6 +1,7 @@
 import HasMany from '../../../associations/has-many'
 import HasOne from '../../../associations/has-one'
 import { Column } from '../../../decorators/column'
+import Scope from '../../../decorators/scope'
 import dream from '../../../dream'
 import Composition from './composition'
 import CompositionAsset from './composition-asset'
@@ -49,4 +50,9 @@ export default class User extends Dream {
     throughKey: 'mainCompositionAssetAudit',
   })
   public mainCompositionAssetAudit: CompositionAssetAudit
+
+  @Scope()
+  public static withEmail() {
+    throw `halllllleluja!`
+  }
 }

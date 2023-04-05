@@ -8,6 +8,7 @@ import { HasManyStatement } from './associations/has-many'
 import { BelongsToStatement } from './associations/belongs-to'
 import { HasOneStatement } from './associations/has-one'
 import camelize from './helpers/camelize'
+import { ScopeStatement } from './decorators/scope'
 
 export default function dream<
   TableName extends keyof DB & string,
@@ -31,6 +32,13 @@ export default function dream<
       belongsTo: [],
       hasMany: [],
       hasOne: [],
+    }
+    public static scopes: {
+      default: ScopeStatement[]
+      named: ScopeStatement[]
+    } = {
+      default: [],
+      named: [],
     }
 
     public static get isDream() {
