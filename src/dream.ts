@@ -87,16 +87,18 @@ export default function dream<
     public static async findBy<T extends Dream>(
       this: { new (): T } & typeof Dream,
       attributes: Updateable<Table>
-    ): Promise<T> {
-      const query = db.selectFrom(this.table).select(columns as any[])
-      // apply scopes here
+    ): Promise<T | null> {
+      const query: Query<T> = new Query<T>(this)
+      return await query.where(attributes).first()
+      // const query = db.selectFrom(this.table).select(columns as any[])
+      // // apply scopes here
 
-      Object.keys(attributes).forEach(attr => {
-        query.where(attr as any, '=', (attributes as any)[attr])
-      })
+      // Object.keys(attributes).forEach(attr => {
+      //   query.where(attr as any, '=', (attributes as any)[attr])
+      // })
 
-      const data = await query.executeTakeFirstOrThrow()
-      return new this(data) as T
+      // const data = await query.executeTakeFirstOrThrow()
+      // return new this(data) as T
     }
 
     public static async first<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T> {
