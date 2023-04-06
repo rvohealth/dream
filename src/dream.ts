@@ -682,7 +682,6 @@ export default function dream<
       )
     } else {
       if (throughAssociationType === 'belongsTo') {
-        const ThroughAssociationClass = throughAssociationMetadata.modelCB()
         query = query.innerJoin(
           throughAssociationMetadata.to,
           // @ts-ignore
