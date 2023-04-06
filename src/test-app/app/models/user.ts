@@ -39,26 +39,26 @@ export default class User extends Dream {
   public mainComposition: Composition
 
   @HasMany('composition_assets', () => CompositionAsset, {
-    throughClass: () => Composition,
     through: 'compositions',
+    throughClass: () => Composition,
   })
   public compositionAssets: CompositionAsset[]
 
   @HasOne('composition_assets', () => CompositionAsset, {
-    throughClass: () => Composition,
     through: 'compositions',
+    throughClass: () => Composition,
   })
   public mainCompositionAsset: CompositionAsset
 
   @HasMany('composition_asset_audits', () => CompositionAssetAudit, {
-    throughClass: () => CompositionAsset,
     through: 'compositionAssets',
+    throughClass: () => CompositionAsset,
   })
   public compositionAssetAudits: CompositionAssetAudit[]
 
   @HasOne('composition_asset_audits', () => CompositionAssetAudit, {
-    throughClass: () => CompositionAsset,
     through: 'compositionAssets',
+    throughClass: () => CompositionAsset,
   })
   public mainCompositionAssetAudit: CompositionAssetAudit
 

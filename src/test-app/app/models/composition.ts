@@ -29,8 +29,8 @@ export default class Composition extends Dream {
   public compositionAssets: CompositionAsset[]
 
   @HasMany('composition_asset_audits', () => CompositionAssetAudit, {
-    throughClass: () => CompositionAsset,
     through: 'compositionAssets',
+    throughClass: () => CompositionAsset,
   })
   public compositionAssetAudits: CompositionAssetAudit[]
 
