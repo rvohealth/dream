@@ -141,8 +141,8 @@ export default function dream<
     }
 
     public static limit<T extends Dream>(this: { new (): T } & typeof Dream, count: number) {
-      const query: Query<T> = new Query<T>(this)
-      query.limit(count)
+      let query: Query<T> = new Query<T>(this)
+      query = query.limit(count)
       return query
     }
 
@@ -151,9 +151,17 @@ export default function dream<
       column: ColumnName,
       direction: 'asc' | 'desc' = 'asc'
     ) {
-      const query: Query<T> = new Query<T>(this)
-      query.order(column, direction)
+      let query: Query<T> = new Query<T>(this)
+      query = query.order(column, direction)
       return query
+    }
+
+    public static async pluck<
+      T extends Dream,
+      SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>
+    >(this: { new (): T } & typeof Dream, fields: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>) {
+      let query: Query<T> = new Query<T>(this)
+      return await query.pluck(fields)
     }
 
     public static selectForWhere<
@@ -477,6 +485,14 @@ export default function dream<
       const data = (await query.executeTakeFirstOrThrow()) as any
 
       return parseInt(data.tablecount.toString())
+    }
+
+    public async pluck<SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>>(
+      fields: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>
+    ) {
+      let query = this.buildSelect({ bypassSelectAll: true })
+      query = query.select(fields)
+      return await query.execute()
     }
 
     public async all() {
