@@ -617,7 +617,7 @@ export default function dream<
           ${JSON.stringify(association)}
       `
 
-    const throughKey = association.throughKey!
+    const throughKey = association.through!
     const [throughAssociationType, _throughAssociationMetadata] = associationMetadataFor(throughKey, dream)
     const throughAssociationMetadata: HasOneStatement<any> | HasManyStatement<any> =
       _throughAssociationMetadata as HasManyStatement<any> | BelongsToStatement<any>
@@ -630,8 +630,8 @@ export default function dream<
     const FinalModelClass = association.modelCB()
 
     // if we are dealing with a nested through situation
-    if (throughAssociationMetadata.through) {
-      const ThroughModelClass = throughAssociationMetadata.through()
+    if (throughAssociationMetadata.throughClass) {
+      const ThroughModelClass = throughAssociationMetadata.throughClass()
       query = recursiveThrough(
         throughAssociationMetadata,
         query,
@@ -694,8 +694,8 @@ export default function dream<
     dream: Dream
   ) => {
     const ThisModelClass = association.modelCB()
-    const ThroughModelClass = association.through!()
-    const throughKey = association.throughKey!
+    const ThroughModelClass = association.throughClass!()
+    const throughKey = association.through!
     const [throughAssociationType, throughAssociationMetadata] = associationMetadataFor(throughKey, dream)
     if (!throughAssociationMetadata || !throughAssociationType)
       throw `
@@ -711,7 +711,7 @@ export default function dream<
 
     if (
       ['hasMany', 'hasOne'].includes(throughAssociationType!) &&
-      (throughAssociationMetadata as HasManyStatement<TableName> | HasOneStatement<TableName>).through
+      (throughAssociationMetadata as HasManyStatement<TableName> | HasOneStatement<TableName>).throughClass
     ) {
       const typedThroughAssociationMetadata = throughAssociationMetadata as
         | HasManyStatement<TableName>

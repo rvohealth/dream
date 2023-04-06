@@ -14,17 +14,17 @@ describe('Dream HasMany association', () => {
     expect(userAssociations[0].to).toEqual('compositions')
 
     // composition assets
-    expect(userAssociations[1].throughKey).toEqual('compositions')
+    expect(userAssociations[1].through).toEqual('compositions')
     expect(userAssociations[1].foreignKey()).toEqual('composition_id')
     expect(userAssociations[1].modelCB()).toEqual(CompositionAsset)
     expect(userAssociations[1].to).toEqual('composition_assets')
-    expect(userAssociations[1].through!()).toEqual(Composition)
+    expect(userAssociations[1].throughClass!()).toEqual(Composition)
 
     // composition asset audits
-    expect(userAssociations[2].throughKey).toEqual('compositionAssets')
+    expect(userAssociations[2].through).toEqual('compositionAssets')
     expect(userAssociations[2].modelCB()).toEqual(CompositionAssetAudit)
     expect(userAssociations[2].to).toEqual('composition_asset_audits')
-    expect(userAssociations[2].through!()).toEqual(CompositionAsset)
+    expect(userAssociations[2].throughClass!()).toEqual(CompositionAsset)
 
     // ensure that other model associations have not
     // accidentally overwritten this one

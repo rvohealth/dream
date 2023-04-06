@@ -7,14 +7,14 @@ export default function HasOne<TableName extends keyof DB & string>(
   modelCB: () => ReturnType<typeof dream<TableName, any>>,
   {
     through,
-    throughKey,
+    throughClass,
   }: {
-    through?: () => ReturnType<typeof dream<any, any>>
-    throughKey?: string
+    through?: string
+    throughClass?: () => ReturnType<typeof dream<any, any>>
   } = {}
 ): any {
   return function (target: any, key: string, _: any) {
-    if ((through && !throughKey) || (throughKey && !through))
+    if ((through && !throughClass) || (throughClass && !through))
       throw `
       Must pass both 'through' and 'throughKey' to through associations
     `
@@ -30,11 +30,11 @@ export default function HasOne<TableName extends keyof DB & string>(
           // TODO: abstract foreign key capture to helper, with optional override provided by the api
           foreignKey: () =>
             through
-              ? pluralize.singular(through().table) + '_id'
+              ? pluralize.singular(throughClass!().table) + '_id'
               : pluralize.singular(target.constructor.table) + '_id',
           as: key,
           through,
-          throughKey,
+          throughClass,
         } as HasOneStatement<any>,
       ] as HasOneStatement<any>[],
     })
@@ -46,6 +46,6 @@ export interface HasOneStatement<ForeignTablename extends keyof DB & string> {
   to: keyof DB & string
   foreignKey: () => keyof DB[ForeignTablename] & string
   as: string
-  through?: () => ReturnType<typeof dream<ForeignTablename, any>>
-  throughKey?: string
+  through?: string
+  throughClass?: () => ReturnType<typeof dream<ForeignTablename, any>>
 }

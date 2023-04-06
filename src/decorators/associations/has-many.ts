@@ -6,15 +6,15 @@ export default function HasMany<TableName extends keyof DB & string>(
   tableName: TableName,
   modelCB: () => ReturnType<typeof dream<TableName, any>>,
   {
+    throughClass,
     through,
-    throughKey,
   }: {
-    through?: () => ReturnType<typeof dream<any, any>>
-    throughKey?: string
+    throughClass?: () => ReturnType<typeof dream<any, any>>
+    through?: string
   } = {}
 ): any {
   return function (target: any, key: string, _: any) {
-    if ((through && !throughKey) || (throughKey && !through))
+    if ((throughClass && !through) || (through && !throughClass))
       throw `
       Must pass both 'through' and 'throughKey' to through associations
     `
@@ -29,12 +29,12 @@ export default function HasMany<TableName extends keyof DB & string>(
           to: tableName,
           // TODO: abstract foreign key capture to helper, with optional override provided by the api
           foreignKey: () =>
-            through
-              ? pluralize.singular(through().table) + '_id'
+            throughClass
+              ? pluralize.singular(throughClass().table) + '_id'
               : pluralize.singular(target.constructor.table) + '_id',
           as: key,
+          throughClass,
           through,
-          throughKey,
         } as HasManyStatement<any>,
       ] as HasManyStatement<any>[],
     })
@@ -46,6 +46,6 @@ export interface HasManyStatement<ForeignTablename extends keyof DB & string> {
   to: keyof DB & string
   foreignKey: () => keyof DB[ForeignTablename] & string
   as: string
-  through?: () => ReturnType<typeof dream<ForeignTablename, any>>
-  throughKey?: string
+  throughClass?: () => ReturnType<typeof dream<ForeignTablename, any>>
+  through?: string
 }

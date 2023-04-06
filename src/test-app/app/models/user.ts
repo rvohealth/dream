@@ -39,26 +39,26 @@ export default class User extends Dream {
   public mainComposition: Composition
 
   @HasMany('composition_assets', () => CompositionAsset, {
-    through: () => Composition,
-    throughKey: 'compositions',
+    throughClass: () => Composition,
+    through: 'compositions',
   })
   public compositionAssets: CompositionAsset[]
 
   @HasOne('composition_assets', () => CompositionAsset, {
-    through: () => Composition,
-    throughKey: 'compositions',
+    throughClass: () => Composition,
+    through: 'compositions',
   })
   public mainCompositionAsset: CompositionAsset
 
   @HasMany('composition_asset_audits', () => CompositionAssetAudit, {
-    through: () => CompositionAsset,
-    throughKey: 'compositionAssets',
+    throughClass: () => CompositionAsset,
+    through: 'compositionAssets',
   })
   public compositionAssetAudits: CompositionAssetAudit[]
 
   @HasOne('composition_asset_audits', () => CompositionAssetAudit, {
-    through: () => CompositionAsset,
-    throughKey: 'compositionAssets',
+    throughClass: () => CompositionAsset,
+    through: 'compositionAssets',
   })
   public mainCompositionAssetAudit: CompositionAssetAudit
 
@@ -66,6 +66,7 @@ export default class User extends Dream {
   public static withFunnyName(query: any) {
     return query.where({ name: 'Chalupas jr' })
   }
+
   @Scope({ default: true })
   public static hideDeleted(query: any) {
     return query.where({ deleted_at: null })
