@@ -1,4 +1,4 @@
-import User from '../../../../src/test-app/app/models/user'
+import User from '../../../src/test-app/app/models/user'
 
 describe('Query#update', () => {
   it('takes passed params and sends them through to all models matchin query', async () => {
