@@ -33,4 +33,5 @@ END;
 $$;
 `
   )
+  await client.end()
 }
