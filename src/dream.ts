@@ -8,6 +8,7 @@ import { BelongsToStatement } from './decorators/associations/belongs-to'
 import { HasOneStatement } from './decorators/associations/has-one'
 import { ScopeStatement } from './decorators/scope'
 import { HookStatement } from './decorators/hooks/shared'
+import pluralize = require('pluralize')
 
 export default function dream<
   TableName extends keyof DB & string,
@@ -599,14 +600,14 @@ export default function dream<
           ${JSON.stringify(association)}
       `
 
-    const throughKey = camelize(association.through().table)
-    const [_, _throughAssociationMetadata] = associationMetadataFor(throughKey, dream)
+    const throughKey = association.throughKey!
+    const [throughAssociationType, _throughAssociationMetadata] = associationMetadataFor(throughKey, dream)
     const throughAssociationMetadata: HasOneStatement<any> | HasManyStatement<any> =
       _throughAssociationMetadata as HasManyStatement<any> | BelongsToStatement<any>
     if (!throughAssociationMetadata)
       throw `
         Unable to find association metadata for:
-          ${JSON.stringify(throughAssociationMetadata)}
+          ${dream.constructor.name} ${throughKey}
       `
 
     const recursiveThrough = (
@@ -680,18 +681,34 @@ export default function dream<
         association.foreignKey()
       )
     } else {
-      query = query.innerJoin(
-        throughAssociationMetadata.to,
-        // @ts-ignore
-        `${throughAssociationMetadata.to}.${throughAssociationMetadata.modelCB().primaryKey}`,
-        `${association.to}.${association.foreignKey()}`
-      )
-      query = query.innerJoin(
-        BaseModelClass.table,
-        // @ts-ignore
-        `${BaseModelClass.table}.${BaseModelClass.primaryKey}`,
-        `${throughAssociationMetadata.to}.${throughAssociationMetadata.foreignKey()}`
-      )
+      if (throughAssociationType === 'belongsTo') {
+        const ThroughAssociationClass = throughAssociationMetadata.modelCB()
+        query = query.innerJoin(
+          throughAssociationMetadata.to,
+          // @ts-ignore
+          `${throughAssociationMetadata.to}.${pluralize.singular(association.to)}_id`,
+          `${association.to}.${association.modelCB().primaryKey}`
+        )
+        query = query.innerJoin(
+          BaseModelClass.table,
+          // @ts-ignore
+          `${BaseModelClass.table}.${throughAssociationMetadata.foreignKey()}`,
+          `${throughAssociationMetadata.to}.${throughAssociationMetadata.modelCB().primaryKey}`
+        )
+      } else {
+        query = query.innerJoin(
+          throughAssociationMetadata.to,
+          // @ts-ignore
+          `${throughAssociationMetadata.to}.${throughAssociationMetadata.modelCB().primaryKey}`,
+          `${association.to}.${association.foreignKey()}`
+        )
+        query = query.innerJoin(
+          BaseModelClass.table,
+          // @ts-ignore
+          `${BaseModelClass.table}.${BaseModelClass.primaryKey}`,
+          `${throughAssociationMetadata.to}.${throughAssociationMetadata.foreignKey()}`
+        )
+      }
     }
 
     const select = [
