@@ -1,11 +1,25 @@
 import User from '../../../src/test-app/app/models/user'
 
 describe('Dream#pluck', () => {
-  it('plucks the specified attributes and returns them as raw data', async () => {
-    const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+  let user1: User
+  let user2: User
+  beforeEach(async () => {
+    user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+  })
 
+  it('plucks the specified attributes and returns them as raw data', async () => {
     const records = await User.pluck('id')
-    expect(records).toEqual([{ id: user1.id }, { id: user2.id }])
+    expect(records).toEqual([user1.id, user2.id])
+  })
+
+  context('with multiple fields', () => {
+    it('should return multi-dimensional array', async () => {
+      const records = await User.order('id').pluck('id', 'created_at')
+      expect(records).toEqual([
+        [user1.id, user1.created_at],
+        [user2.id, user2.created_at],
+      ])
+    })
   })
 })

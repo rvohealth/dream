@@ -159,9 +159,9 @@ export default function dream<
     public static async pluck<
       T extends Dream,
       SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>
-    >(this: { new (): T } & typeof Dream, fields: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>) {
+    >(this: { new (): T } & typeof Dream, ...fields: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>[]) {
       let query: Query<T> = new Query<T>(this)
-      return await query.pluck(fields)
+      return await query.pluck(...fields)
     }
 
     public static selectForWhere<
@@ -488,11 +488,19 @@ export default function dream<
     }
 
     public async pluck<SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>>(
-      fields: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>
+      ...fields: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>[]
     ) {
       let query = this.buildSelect({ bypassSelectAll: true })
-      query = query.select(fields)
-      return await query.execute()
+      fields.forEach(field => {
+        query = query.select(field)
+      })
+
+      const vals = (await query.execute()).map(result => Object.values(result))
+      if (fields.length > 1) {
+        return vals
+      } else {
+        return vals.flat()
+      }
     }
 
     public async all() {
