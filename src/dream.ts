@@ -2,7 +2,16 @@ import { Tables } from './db/reflections'
 import db from './db'
 import camelize from './helpers/camelize'
 import { DB, DBColumns } from './sync/schema'
-import { CompiledQuery, Selectable, SelectQueryBuilder, SelectType, Updateable } from 'kysely'
+import {
+  CompiledQuery,
+  Selectable,
+  SelectArg,
+  SelectExpression,
+  Selection,
+  SelectQueryBuilder,
+  SelectType,
+  Updateable,
+} from 'kysely'
 import { HasManyStatement } from './decorators/associations/has-many'
 import { BelongsToStatement } from './decorators/associations/belongs-to'
 import { HasOneStatement } from './decorators/associations/has-one'
@@ -10,6 +19,7 @@ import { ScopeStatement } from './decorators/scope'
 import { HookStatement } from './decorators/hooks/shared'
 import pluralize = require('pluralize')
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
+import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 
 export default function dream<
   TableName extends keyof DB & string,
@@ -146,6 +156,14 @@ export default function dream<
       return query
     }
 
+    public static selectForWhere<
+      T extends Dream,
+      SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>
+    >(this: { new (): T } & typeof Dream, selection: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>) {
+      let query: Query<T> = new Query<T>(this)
+      return query.selectForWhere(selection)
+    }
+
     public static scope<T extends Dream>(this: { new (): T } & typeof Dream, scopeName: string) {
       let query: Query<T> = new Query<T>(this)
       query = (this as any)[scopeName](query) as Query<T>
@@ -157,8 +175,17 @@ export default function dream<
       return query.sql()
     }
 
-    public static where<T extends Dream>(this: { new (): T } & typeof Dream, attributes: Updateable<Table>) {
+    public static where<T extends Dream, SubTable extends keyof DB>(
+      this: { new (): T } & typeof Dream,
+      attributes:
+        | Updateable<Table>
+        | Partial<
+            Record<keyof Table, SelectQueryBuilder<DB, SubTable, Selection<DB, SubTable, DB[SubTable]>>>
+          >
+      // | Partial<Record<keyof Table, SelectQueryBuilder<DB, "users", Selection<DB, "users", "users.id">>
+    ) {
       const query: Query<T> = new Query<T>(this)
+      // @ts-ignore
       query.where(attributes)
       return query
     }
@@ -392,9 +419,10 @@ export default function dream<
   }
 
   class Query<DreamClass extends Dream> {
-    public whereStatement: Updateable<Table> | null = null
+    public whereStatement: Updateable<Table> | SelectQueryBuilder<DB, TableName, {}> | null = null
     public limitStatement: { count: number } | null = null
     public orderStatement: { column: keyof Table & string; direction: 'asc' | 'desc' } | null = null
+    public selectStatement: SelectArg<DB, TableName, SelectExpression<DB, TableName>> | null = null
     public shouldBypassDefaultScopes: boolean = false
     public dreamClass: typeof Dream
 
@@ -407,9 +435,20 @@ export default function dream<
       return this
     }
 
-    public where(attributes: Updateable<Table>) {
+    public where(attributes: Updateable<Table> | SelectQueryBuilder<DB, TableName, {}>) {
       this.whereStatement = { ...this.whereStatement, ...attributes }
       return this
+    }
+
+    public select<SE extends SelectExpression<DB, TableName>>(selection: SelectArg<DB, TableName, SE>) {
+      this.selectStatement = selection
+      return this
+    }
+
+    public selectForWhere<SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>>(
+      selection: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>
+    ) {
+      return db.selectFrom(tableName).select(selection)
     }
 
     public order<ColumnName extends keyof Table & string>(
@@ -520,11 +559,17 @@ export default function dream<
       let query = db.selectFrom(tableName)
       if (!bypassSelectAll) query = query.selectAll()
 
+      if (this.selectStatement) {
+        query = query.select(this.selectStatement as any)
+      }
+
       if (this.whereStatement) {
         Object.keys(this.whereStatement).forEach(attr => {
           const val = (this.whereStatement as any)[attr]
           if (val === null) {
             query = query.where(attr as any, 'is', val)
+          } else if (val.constructor === SelectQueryBuilder) {
+            query = query.where(attr as any, 'in', val)
           } else {
             query = query.where(attr as any, '=', val)
           }
