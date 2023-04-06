@@ -9,6 +9,7 @@ import { HasOneStatement } from './decorators/associations/has-one'
 import { ScopeStatement } from './decorators/scope'
 import { HookStatement } from './decorators/hooks/shared'
 import pluralize = require('pluralize')
+import ValidationStatement, { ValidationType } from './decorators/validations/shared'
 
 export default function dream<
   TableName extends keyof DB & string,
@@ -66,6 +67,7 @@ export default function dream<
       afterSave: [],
       afterDestroy: [],
     }
+    public static validations: ValidationStatement[] = []
 
     public static get isDream() {
       return true
@@ -161,6 +163,7 @@ export default function dream<
       return query
     }
 
+    public errors: { [key: string]: ValidationType[] } = {}
     public frozenAttributes: Updateable<Table> = {}
     constructor(opts?: Updateable<Table>) {
       if (opts) {
@@ -172,6 +175,10 @@ export default function dream<
       }
     }
 
+    public get isDirty() {
+      return !!Object.keys(this.dirtyAttributes).length
+    }
+
     public get isDreamInstance() {
       return true
     }
@@ -181,16 +188,21 @@ export default function dream<
       return !!(this as any)[(this.constructor as typeof Dream).primaryKey as any]
     }
 
+    public get isValid(): boolean {
+      const validationErrors = checkValidationsFor(this)
+      return !Object.keys(validationErrors).filter(key => !!validationErrors[key].length).length
+    }
+
+    public get isInvalid(): boolean {
+      return !this.isValid
+    }
+
     public get attributes(): Updateable<Table> {
       const obj: Updateable<Table> = {}
       columns.forEach(column => {
         ;(obj as any)[column] = (this as any)[column]
       })
       return obj
-    }
-
-    public get isDirty() {
-      return !!Object.keys(this.dirtyAttributes).length
     }
 
     public get dirtyAttributes(): Updateable<Table> {
@@ -324,6 +336,9 @@ export default function dream<
         query = query.values({ id: 0 } as any)
       }
 
+      await runValidationsFor(this)
+      if (this.isInvalid) throw new ValidationError(this.constructor.name, this.errors)
+
       const data = await query.returning(columns as any).executeTakeFirstOrThrow()
       const base = this.constructor as typeof Dream
 
@@ -348,6 +363,8 @@ export default function dream<
 
       if (Object.keys(this.dirtyAttributes).length === 0) return this
       query = query.set(this.dirtyAttributes as any)
+
+      await runValidationsFor(this)
 
       const data = await query.returning(columns as any).executeTakeFirstOrThrow()
       const base = this.constructor as typeof Dream
@@ -626,13 +643,6 @@ export default function dream<
       )
     } else {
       if (throughAssociationType === 'belongsTo') {
-        console.log(
-          throughAssociationMetadata.foreignKey(),
-          throughAssociationMetadata.to,
-          // @ts-ignore
-          `${throughAssociationMetadata.to}.${pluralize.singular(association.to)}_id`,
-          `${association.to}.${association.modelCB().primaryKey}`
-        )
         query = query.innerJoin(
           throughAssociationMetadata.to,
           // @ts-ignore
@@ -733,7 +743,78 @@ export default function dream<
     return query
   }
 
+  function checkValidationsFor(dream: Dream) {
+    const Base = dream.constructor as typeof Dream
+    const validationErrors: { [key: string]: ValidationType[] } = {}
+
+    columns.forEach(column => {
+      Base.validations
+        .filter(
+          // @ts-ignore
+          validation => validation.column === column
+        )
+        .forEach(validation => {
+          if (!isValid(dream, validation)) {
+            validationErrors[validation.column] ||= []
+            validationErrors[validation.column].push(validation.type)
+          }
+        })
+    })
+
+    return validationErrors
+  }
+
+  function runValidationsFor(dream: Dream) {
+    const Base = dream.constructor as typeof Dream
+
+    columns.forEach(column => {
+      Base.validations
+        .filter(
+          // @ts-ignore
+          validation => validation.column === column
+        )
+        .forEach(validation => runValidation(dream, validation))
+    })
+  }
+
+  function runValidation(dream: Dream, validation: ValidationStatement) {
+    if (!isValid(dream, validation)) addValidationError(dream, validation)
+  }
+
+  function isValid(dream: Dream, validation: ValidationStatement) {
+    switch (validation.type) {
+      case 'presence':
+        return ![undefined, null, ''].includes((dream as any)[validation.column])
+
+      default:
+        throw `Unhandled validation type found while running validations: ${validation.type}`
+    }
+  }
+
+  function addValidationError(dream: Dream, validation: ValidationStatement) {
+    dream.errors[validation.column] ||= []
+    dream.errors[validation.column].push(validation.type)
+  }
+
   return Dream
+}
+
+export class ValidationError extends Error {
+  private dreamClassName: string
+  private errors: { [key: string]: ValidationType[] }
+  constructor(dreamClassName: string, errors: { [key: string]: ValidationType[] }) {
+    super()
+    this.dreamClassName = dreamClassName
+    this.errors = errors
+  }
+
+  public get message() {
+    return `\
+Failed to same ${this.dreamClassName}. The following validation errors occurred while trying to save:
+
+${JSON.stringify(this.errors, null, 2)}
+`
+  }
 }
 
 export type DreamModel<

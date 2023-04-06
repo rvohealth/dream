@@ -38,13 +38,14 @@ export default class CompositionAsset extends Dream {
   @BeforeDestroy()
   public async updateCompositionContentBeforeDestroy() {
     await this.load('composition')
-    if (this.src === 'mark before destroy') this.composition!.update({ content: 'something was destroyed' })
+    if (this.src === 'mark before destroy')
+      await this.composition!.update({ content: 'something was destroyed' })
   }
 
   @AfterDestroy()
   public async updateCompositionContentAfterDestroy() {
     await this.load('composition')
     if (this.src === 'mark after destroy')
-      this.composition!.update({ content: 'changed after destroying composition asset' })
+      await this.composition!.update({ content: 'changed after destroying composition asset' })
   }
 }
