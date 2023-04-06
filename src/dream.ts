@@ -786,6 +786,14 @@ export default function dream<
       case 'presence':
         return ![undefined, null, ''].includes((dream as any)[validation.column])
 
+      case 'contains':
+        switch (validation.options!.contains!.value.constructor) {
+          case String:
+            return new RegExp(validation.options!.contains!.value).test((dream as any)[validation.column])
+          case RegExp:
+            return (validation.options!.contains!.value as RegExp).test((dream as any)[validation.column])
+        }
+
       default:
         throw `Unhandled validation type found while running validations: ${validation.type}`
     }

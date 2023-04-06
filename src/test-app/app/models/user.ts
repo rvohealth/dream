@@ -9,13 +9,15 @@ import CompositionAsset from './composition-asset'
 import CompositionAssetAudit from './composition-asset-audit'
 import { DB } from '../../db/schema'
 import Presence from '../../../decorators/validations/presence'
+import Validates from '../../../decorators/validations/validates'
 
 const Dream = dream('users')
 export default class User extends Dream {
   @Column('number')
   public id: number
 
-  @Presence()
+  @Validates('contains', '@')
+  @Validates('presence')
   @Column('string')
   public email: string
 

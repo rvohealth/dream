@@ -18,6 +18,6 @@ describe('Dream presence validation', () => {
 
     expect(user.isPersisted).toEqual(false)
     expect(await User.count()).toEqual(0)
-    expect(user.errors).toEqual({ email: ['presence'] })
+    expect(user.errors.email).toContain('presence')
   })
 })
