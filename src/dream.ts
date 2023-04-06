@@ -20,6 +20,7 @@ import { HookStatement } from './decorators/hooks/shared'
 import pluralize = require('pluralize')
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
+import { DateTime } from 'luxon'
 
 export default function dream<
   TableName extends keyof DB & string,
@@ -190,7 +191,6 @@ export default function dream<
         | Partial<
             Record<keyof Table, SelectQueryBuilder<DB, SubTable, Selection<DB, SubTable, DB[SubTable]>>>
           >
-      // | Partial<Record<keyof Table, SelectQueryBuilder<DB, "users", Selection<DB, "users", "users.id">>
     ) {
       const query: Query<T> = new Query<T>(this)
       // @ts-ignore
@@ -364,9 +364,11 @@ export default function dream<
       await runHooksFor('beforeSave', this)
       await runHooksFor('beforeCreate', this)
 
+      const sqlifiedAttributes = sqlAttributes(this.dirtyAttributes)
+
       let query = db.insertInto(tableName)
-      if (Object.keys(this.dirtyAttributes).length) {
-        query = query.values(this.dirtyAttributes as any)
+      if (Object.keys(sqlifiedAttributes).length) {
+        query = query.values(sqlifiedAttributes as any)
       } else {
         query = query.values({ id: 0 } as any)
       }
@@ -395,9 +397,10 @@ export default function dream<
 
       let query = db.updateTable(tableName)
       if (attributes) this.setAttributes(attributes)
+      const sqlifiedAttributes = sqlAttributes(this.dirtyAttributes)
 
-      if (Object.keys(this.dirtyAttributes).length === 0) return this
-      query = query.set(this.dirtyAttributes as any)
+      if (Object.keys(sqlifiedAttributes).length === 0) return this
+      query = query.set(sqlifiedAttributes as any)
 
       await runValidationsFor(this)
 
@@ -427,7 +430,11 @@ export default function dream<
   }
 
   class Query<DreamClass extends Dream> {
-    public whereStatement: Updateable<Table> | SelectQueryBuilder<DB, TableName, {}> | null = null
+    public whereStatement:
+      | Updateable<Table>
+      | SelectQueryBuilder<DB, TableName, {}>
+      | Partial<Record<keyof Table, DateRange>>
+      | null = null
     public limitStatement: { count: number } | null = null
     public orderStatement: { column: keyof Table & string; direction: 'asc' | 'desc' } | null = null
     public selectStatement: SelectArg<DB, TableName, SelectExpression<DB, TableName>> | null = null
@@ -443,7 +450,12 @@ export default function dream<
       return this
     }
 
-    public where(attributes: Updateable<Table> | SelectQueryBuilder<DB, TableName, {}>) {
+    public where(
+      attributes:
+        | Updateable<Table>
+        | SelectQueryBuilder<DB, TableName, {}>
+        | Partial<Record<keyof Table, DateRange>>
+    ) {
       this.whereStatement = { ...this.whereStatement, ...attributes }
       return this
     }
@@ -590,10 +602,23 @@ export default function dream<
       if (this.whereStatement) {
         Object.keys(this.whereStatement).forEach(attr => {
           const val = (this.whereStatement as any)[attr]
+
           if (val === null) {
             query = query.where(attr as any, 'is', val)
           } else if (val.constructor === SelectQueryBuilder) {
             query = query.where(attr as any, 'in', val)
+          } else if (val.constructor === DateRange) {
+            const begin = val.begin?.toUTC()?.toSQL({ includeOffset: false })
+            const end = val.end?.toUTC()?.toSQL({ includeOffset: false })
+            const excludeEnd = val.excludeEnd
+
+            if (begin && end) {
+              query = query.where(attr as any, '>=', begin).where(attr as any, excludeEnd ? '<' : '<=', end)
+            } else if (begin) {
+              query = query.where(attr as any, '>=', begin)
+            } else {
+              query = query.where(attr as any, excludeEnd ? '<' : '<=', end)
+            }
           } else {
             query = query.where(attr as any, '=', val)
           }
@@ -900,6 +925,40 @@ Failed to same ${this.dreamClassName}. The following validation errors occurred 
 
 ${JSON.stringify(this.errors, null, 2)}
 `
+  }
+}
+
+export function sqlAttributes(attributes: { [key: string]: any }) {
+  return Object.keys(attributes).reduce((result, key) => {
+    const val = attributes[key]
+
+    if (val?.constructor === DateTime) {
+      result[key] = val.toUTC().toSQL({ includeOffset: false })
+    } else {
+      result[key] = val
+    }
+
+    return result
+  }, {} as { [key: string]: any })
+}
+
+export function daterange(begin: DateTime | null, end: DateTime | null = null, excludeEnd: boolean = false) {
+  return new DateRange(begin, end, excludeEnd)
+}
+
+export class DateRange {
+  public begin: DateTime | null
+  public end: DateTime | null
+  public excludeEnd?: boolean
+  constructor(begin: DateTime | null, end: DateTime | null = null, excludeEnd: boolean = false) {
+    if (!begin && !end)
+      throw `
+        Must pass either begin or end to a date range
+      `
+
+    this.begin = begin
+    this.end = end
+    this.excludeEnd = excludeEnd
   }
 }
 

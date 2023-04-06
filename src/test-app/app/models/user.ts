@@ -32,6 +32,12 @@ export default class User extends Dream {
   @Column('datetime')
   public deleted_at: Date
 
+  @Column('datetime')
+  public created_at: Date
+
+  @Column('datetime')
+  public updated_at: Date
+
   @HasMany('compositions', () => Composition)
   public compositions: Composition[]
 

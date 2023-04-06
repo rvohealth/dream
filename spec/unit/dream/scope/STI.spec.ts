@@ -1,5 +1,6 @@
 import User from '../../../../src/test-app/app/models/user'
 import AdminUser from '../../../../src/test-app/app/models/admin-user'
+import { DateTime } from 'luxon'
 
 describe('Dream STI', () => {
   it('builds scope mapping', async () => {
@@ -11,11 +12,11 @@ describe('Dream STI', () => {
   })
 
   it('auto-applies the type field for STI classes upon insertion', async () => {
-    const user = await User.create({ email: 'how@ya0', password: 'doin', deleted_at: new Date().toJSON() })
+    const user = await User.create({ email: 'how@ya0', password: 'doin', deleted_at: DateTime.now() })
     const adminUser = await AdminUser.create({
       email: 'how@ya0',
       password: 'doin',
-      deleted_at: new Date().toJSON(),
+      deleted_at: DateTime.now(),
     })
     expect(user.type).toEqual(null)
     expect(adminUser.type).toEqual('AdminUser')
