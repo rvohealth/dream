@@ -2,9 +2,9 @@ import User from '../../../src/test-app/app/models/user'
 
 describe('Dream#destroyBy', () => {
   it('destroys all records matching the query', async () => {
-    const user1 = await User.create({ email: 'fred@frewd', name: 'howyadoin', password: 'ham' })
-    const user2 = await User.create({ email: 'how@yadoin', name: 'howyadoin', password: 'ham' })
-    const user3 = await User.create({ email: 'fish@yadoin', name: 'cheese', password: 'ham' })
+    const user1 = await User.create({ email: 'fred@frewd', name: 'howyadoin', password: 'hamz' })
+    const user2 = await User.create({ email: 'how@yadoin', name: 'howyadoin', password: 'hamz' })
+    const user3 = await User.create({ email: 'fish@yadoin', name: 'cheese', password: 'hamz' })
 
     await User.destroyBy({ name: 'howyadoin' })
 

@@ -3,9 +3,9 @@ import User from '../../../../src/test-app/app/models/user'
 
 describe('Dream presence validation', () => {
   it('builds scope mapping', async () => {
-    const emailPresenceValidation = User.validations[0]
-    expect(emailPresenceValidation.type).toEqual('presence')
-    expect(emailPresenceValidation.column).toEqual('email')
+    const validation = User.validations.find(v => v.column === 'email' && v.type === 'presence')!
+    expect(validation.type).toEqual('presence')
+    expect(validation.column).toEqual('email')
   })
 
   it('prevents saving when a field requiring presence is blank', async () => {

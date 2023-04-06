@@ -794,6 +794,15 @@ export default function dream<
             return (validation.options!.contains!.value as RegExp).test((dream as any)[validation.column])
         }
 
+      case 'length':
+        const length = (dream as any)[validation.column]?.length
+        return (
+          length &&
+          length >= validation.options!.length!.min &&
+          validation.options!.length!.max &&
+          length <= validation.options!.length!.max
+        )
+
       default:
         throw `Unhandled validation type found while running validations: ${validation.type}`
     }

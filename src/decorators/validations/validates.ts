@@ -23,5 +23,21 @@ function extractValidationOptionsFromArgs(type: ValidationType, args: any) {
         throw `When validating using "contains", the second argument must be a string or regular expression`
 
       return { contains: { value: args as string | RegExp } }
+
+    case 'length':
+      if (typeof args === 'number') {
+        return { length: { min: args } }
+      } else if (args?.min) {
+        return { length: { min: args.min, max: args?.max } }
+      } else {
+        throw `
+          When validating using "length", the second argument must be a number representing
+          the min length, or else an object expressing both min and max length, like so:
+          
+          @Validates('length', { min: 4, max: 32 })
+        `
+      }
+
+      return { contains: { value: args as string | RegExp } }
   }
 }

@@ -6,7 +6,11 @@ export default interface ValidationStatement {
     contains?: {
       value: string | RegExp
     }
+    length?: {
+      min: number
+      max?: number
+    }
   }
 }
 
-export type ValidationType = 'presence' | 'contains'
+export type ValidationType = 'presence' | 'contains' | 'length'
