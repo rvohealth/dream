@@ -621,9 +621,11 @@ export default function dream<
       const ThroughModelClass = association.through!()
       const throughKey = association.throughKey!
       const [throughAssociationType, throughAssociationMetadata] = associationMetadataFor(throughKey, dream)
-      const typedThroughAssociationMetadata = throughAssociationMetadata as
-        | HasManyStatement<any>
-        | HasOneStatement<any>
+      if (!throughAssociationMetadata || !throughAssociationType)
+        throw `
+          Missing association for ${throughKey}
+        `
+
       query = query.innerJoin(
         association.to,
         // @ts-ignore
@@ -631,27 +633,33 @@ export default function dream<
         `${PreviousModelClass.table}.${previousForeignKey}`
       )
 
-      if (typedThroughAssociationMetadata.through)
+      if (
+        ['hasMany', 'hasOne'].includes(throughAssociationType!) &&
+        (throughAssociationMetadata as HasManyStatement<TableName> | HasOneStatement<TableName>).through
+      ) {
+        const typedThroughAssociationMetadata = throughAssociationMetadata as
+          | HasManyStatement<TableName>
+          | HasOneStatement<TableName>
         query = recursiveThrough(
-          typedThroughAssociationMetadata,
+          typedThroughAssociationMetadata!,
           query,
           ThroughModelClass,
           BaseModelClass,
           CurrentModelClass,
-          typedThroughAssociationMetadata.foreignKey()
+          throughAssociationMetadata!.foreignKey()
         )
-      else {
+      } else {
         query = query.innerJoin(
-          typedThroughAssociationMetadata.to,
+          throughAssociationMetadata!.to,
           // @ts-ignore
-          `${typedThroughAssociationMetadata.to}.${typedThroughAssociationMetadata.modelCB().primaryKey}`,
+          `${throughAssociationMetadata!.to}.${throughAssociationMetadata!.modelCB().primaryKey}`,
           `${association.to}.${association.foreignKey()}`
         )
         query = query.innerJoin(
           BaseModelClass.table,
           // @ts-ignore
           `${BaseModelClass.table}.${BaseModelClass.primaryKey}`,
-          `${typedThroughAssociationMetadata.to}.${typedThroughAssociationMetadata.foreignKey()}`
+          `${throughAssociationMetadata!.to}.${throughAssociationMetadata!.foreignKey()}`
         )
       }
 
