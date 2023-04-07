@@ -622,8 +622,8 @@ export default function dream<
           } else if (val.constructor === ILikeStatement) {
             query = query.where(attr as any, 'ilike', val.ilike)
           } else if (val.constructor === DateRange) {
-            const begin = val.begin?.toUTC()?.toSQL({ includeOffset: false })
-            const end = val.end?.toUTC()?.toSQL({ includeOffset: false })
+            const begin = val.begin?.toUTC()?.toSQL()
+            const end = val.end?.toUTC()?.toSQL()
             const excludeEnd = val.excludeEnd
 
             if (begin && end) {
