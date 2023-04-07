@@ -4,6 +4,43 @@ The dream ORM is an ORM inspired heavily by the [Ruby on Rails Active Record](LI
 
 Using this library as our query building engine, we have stacked a comprehensive ORM layer on top to provide a rich set of features, of which will be predominantly used in the psychic web framework, also being developed and inspired by the Ruby on Rails web framework.
 
+## Getting started
+
+### Add ENV files
+
+make sure to add the following files to the root of the project:
+
+```
+# .env
+CORE_DEVELOPMENT=1
+DB_USER=YOUR_PG_USERNAME
+DB_NAME=dream_core_dev
+DB_PORT=5432
+DB_HOST=localhost
+```
+
+```
+# .env.test
+CORE_DEVELOPMENT=1
+DB_USER=YOUR_PG_USERNAME
+DB_NAME=dream_core_test
+DB_PORT=5432
+DB_HOST=localhost
+```
+
+### Build db and sync schema
+
+```bash
+yarn install
+yarn db:create
+yarn db:migrate
+yarn sync
+
+# note: migrations sometimes break rn, if this happens, do this to fix:
+yarn sync
+yarn db:migrate
+```
+
 ## Features
 
 The dream ORM features:
@@ -152,43 +189,6 @@ class User {
 
 User.scope('withFunnyName')
 // will only return records with the name "Chalupas jr"
-```
-
-## Getting started
-
-### Add ENV files
-
-make sure to add the following files to the root of the project:
-
-```
-# .env
-CORE_DEVELOPMENT=1
-DB_USER=YOUR_PG_USERNAME
-DB_NAME=dream_core_dev
-DB_PORT=5432
-DB_HOST=localhost
-```
-
-```
-# .env.test
-CORE_DEVELOPMENT=1
-DB_USER=YOUR_PG_USERNAME
-DB_NAME=dream_core_test
-DB_PORT=5432
-DB_HOST=localhost
-```
-
-### Up and running
-
-```bash
-yarn install
-yarn db:create
-yarn db:migrate
-yarn sync
-
-# note: migrations sometimes break rn, if this happens, do this to fix:
-yarn sync
-yarn db:migrate
 ```
 
 ### REPL
