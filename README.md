@@ -379,6 +379,11 @@ hooks:
 - DONE after save
 - DONE after delete
 
+- after create commit
+- after udpate commit
+- after save commit
+- after delete commit
+
 validations:
 
 - DONE validation engine
