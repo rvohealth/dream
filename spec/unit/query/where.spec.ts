@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import User from '../../../src/test-app/app/models/user'
-import { DateRange, daterange } from '../../../src/dream'
+import daterange from '../../../src/helpers/daterange'
 
 describe('Query#where', () => {
   it('orders records by id', async () => {

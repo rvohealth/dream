@@ -1,4 +1,4 @@
-import { ValidationError } from '../../../../src/dream'
+import ValidationError from '../../../../src/exceptions/validation-error'
 import User from '../../../../src/test-app/app/models/user'
 
 describe('Dream length validation', () => {

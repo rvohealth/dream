@@ -21,6 +21,10 @@ import pluralize = require('pluralize')
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { DateTime } from 'luxon'
+import { marshalDBValue } from './helpers/marshalDBValue'
+import sqlAttributes from './helpers/sqlAttributes'
+import { DateRange } from './helpers/daterange'
+import ValidationError from './exceptions/validation-error'
 
 export default function dream<
   TableName extends keyof DB & string,
@@ -908,63 +912,6 @@ export default function dream<
   }
 
   return Dream
-}
-
-export class ValidationError extends Error {
-  private dreamClassName: string
-  private errors: { [key: string]: ValidationType[] }
-  constructor(dreamClassName: string, errors: { [key: string]: ValidationType[] }) {
-    super()
-    this.dreamClassName = dreamClassName
-    this.errors = errors
-  }
-
-  public get message() {
-    return `\
-Failed to same ${this.dreamClassName}. The following validation errors occurred while trying to save:
-
-${JSON.stringify(this.errors, null, 2)}
-`
-  }
-}
-
-export function sqlAttributes(attributes: { [key: string]: any }) {
-  return Object.keys(attributes).reduce((result, key) => {
-    const val = attributes[key]
-
-    if (val?.constructor === DateTime) {
-      result[key] = val.toUTC().toSQL({ includeOffset: false })
-    } else {
-      result[key] = val
-    }
-
-    return result
-  }, {} as { [key: string]: any })
-}
-
-export function daterange(begin: DateTime | null, end: DateTime | null = null, excludeEnd: boolean = false) {
-  return new DateRange(begin, end, excludeEnd)
-}
-
-export function marshalDBValue(value: any) {
-  if (value?.constructor === Date) return DateTime.fromJSDate(value)
-  return value
-}
-
-export class DateRange {
-  public begin: DateTime | null
-  public end: DateTime | null
-  public excludeEnd?: boolean
-  constructor(begin: DateTime | null, end: DateTime | null = null, excludeEnd: boolean = false) {
-    if (!begin && !end)
-      throw `
-        Must pass either begin or end to a date range
-      `
-
-    this.begin = begin
-    this.end = end
-    this.excludeEnd = excludeEnd
-  }
 }
 
 export type DreamModel<
