@@ -24,7 +24,7 @@ import { marshalDBValue } from './helpers/marshalDBValue'
 import sqlAttributes from './helpers/sqlAttributes'
 import { DateRange } from './helpers/daterange'
 import ValidationError from './exceptions/validation-error'
-import { InStatement } from './helpers/ops'
+import InStatement from './ops/in'
 
 export default function dream<
   TableName extends keyof DB & string,
