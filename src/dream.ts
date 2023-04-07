@@ -20,7 +20,6 @@ import { HookStatement } from './decorators/hooks/shared'
 import pluralize = require('pluralize')
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
-import { DateTime } from 'luxon'
 import { marshalDBValue } from './helpers/marshalDBValue'
 import sqlAttributes from './helpers/sqlAttributes'
 import { DateRange } from './helpers/daterange'
