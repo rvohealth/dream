@@ -23,8 +23,52 @@ describe('Query#where', () => {
         email: 'frez@frewd',
         password: 'howyadoin',
       })
+      const user3 = await User.create({
+        email: 'frez@frewd',
+        password: 'howyadoin',
+      })
 
       const records = await User.where({ id: ops.in([user1.id, user2.id]) }).pluck('id')
+      expect(records).toEqual([user1.id, user2.id])
+    })
+  })
+
+  context('a Like statement is passed', () => {
+    it('uses an "in" operator for comparison', async () => {
+      const user1 = await User.create({
+        email: 'aaa@aaa',
+        password: 'howyadoin',
+      })
+      const user2 = await User.create({
+        email: 'Aaa@zzz',
+        password: 'howyadoin',
+      })
+      const user3 = await User.create({
+        email: 'zzz@zzz',
+        password: 'howyadoin',
+      })
+
+      const records = await User.where({ email: ops.like('%aaa@%') }).pluck('id')
+      expect(records).toEqual([user1.id])
+    })
+  })
+
+  context('an ilike statement is passed', () => {
+    it('uses an "ilike" operator for comparison', async () => {
+      const user1 = await User.create({
+        email: 'aaa@aaa',
+        password: 'howyadoin',
+      })
+      const user2 = await User.create({
+        email: 'Aaa@zzz',
+        password: 'howyadoin',
+      })
+      const user3 = await User.create({
+        email: 'zzz@zzz',
+        password: 'howyadoin',
+      })
+
+      const records = await User.where({ email: ops.ilike('%aaa@%') }).pluck('id')
       expect(records).toEqual([user1.id, user2.id])
     })
   })

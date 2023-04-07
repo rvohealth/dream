@@ -25,6 +25,9 @@ import sqlAttributes from './helpers/sqlAttributes'
 import { DateRange } from './helpers/daterange'
 import ValidationError from './exceptions/validation-error'
 import InStatement from './ops/in'
+import LikeStatement from './ops/like'
+import ILikeStatement from './ops/ilike'
+import { OpsStatement } from './ops'
 
 export default function dream<
   TableName extends keyof DB & string,
@@ -192,11 +195,10 @@ export default function dream<
       this: { new (): T } & typeof Dream,
       attributes:
         | Updateable<Table>
-        | Partial<Record<keyof Table, DateRange>>
+        | Partial<Record<keyof Table, DateRange | OpsStatement>>
         | Partial<
             Record<keyof Table, SelectQueryBuilder<DB, SubTable, Selection<DB, SubTable, DB[SubTable]>>>
           >
-        | Partial<Record<keyof Table, InStatement>>
     ) {
       const query: Query<T> = new Query<T>(this)
       // @ts-ignore
@@ -438,8 +440,7 @@ export default function dream<
     public whereStatement:
       | Updateable<Table>
       | SelectQueryBuilder<DB, TableName, {}>
-      | Partial<Record<keyof Table, DateRange>>
-      | Partial<Record<keyof Table, InStatement>>
+      | Partial<Record<keyof Table, DateRange | OpsStatement>>
       | null = null
     public limitStatement: { count: number } | null = null
     public orderStatement: { column: keyof Table & string; direction: 'asc' | 'desc' } | null = null
@@ -460,8 +461,7 @@ export default function dream<
       attributes:
         | Updateable<Table>
         | SelectQueryBuilder<DB, TableName, {}>
-        | Partial<Record<keyof Table, DateRange>>
-        | Partial<Record<keyof Table, InStatement>>
+        | Partial<Record<keyof Table, DateRange | OpsStatement>>
     ) {
       this.whereStatement = { ...this.whereStatement, ...attributes }
       return this
@@ -617,6 +617,10 @@ export default function dream<
             query = query.where(attr as any, 'in', val)
           } else if (val.constructor === InStatement) {
             query = query.where(attr as any, 'in', val.in)
+          } else if (val.constructor === LikeStatement) {
+            query = query.where(attr as any, 'like', val.like)
+          } else if (val.constructor === ILikeStatement) {
+            query = query.where(attr as any, 'ilike', val.ilike)
           } else if (val.constructor === DateRange) {
             const begin = val.begin?.toUTC()?.toSQL({ includeOffset: false })
             const end = val.end?.toUTC()?.toSQL({ includeOffset: false })
