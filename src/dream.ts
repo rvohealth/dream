@@ -354,11 +354,7 @@ export default function dream<
     public setAttributes(attributes: Updateable<Table>) {
       Object.keys(attributes).forEach(attr => {
         // TODO: cleanup type chaos
-        if ((attributes as any)[attr]?.constructor === Date) {
-          ;(this as any)[attr] = DateTime.fromJSDate((attributes as any)[attr])
-        } else {
-          ;(this as any)[attr] = (attributes as any)[attr]
-        }
+        ;(this as any)[attr] = marshalDBValue((attributes as any)[attr])
       })
     }
 
@@ -408,8 +404,7 @@ export default function dream<
 
       await runValidationsFor(this)
 
-      const data = await query.returning(columns as any).executeTakeFirstOrThrow()
-      const base = this.constructor as typeof Dream
+      await query.executeTakeFirstOrThrow()
 
       await this.reload()
 
@@ -512,10 +507,11 @@ export default function dream<
       })
 
       const vals = (await query.execute()).map(result => Object.values(result))
+
       if (fields.length > 1) {
-        return vals
+        return vals.map(arr => arr.map(val => marshalDBValue(val)))
       } else {
-        return vals.flat()
+        return vals.flat().map(val => marshalDBValue(val))
       }
     }
 
@@ -948,6 +944,11 @@ export function sqlAttributes(attributes: { [key: string]: any }) {
 
 export function daterange(begin: DateTime | null, end: DateTime | null = null, excludeEnd: boolean = false) {
   return new DateRange(begin, end, excludeEnd)
+}
+
+export function marshalDBValue(value: any) {
+  if (value?.constructor === Date) return DateTime.fromJSDate(value)
+  return value
 }
 
 export class DateRange {
