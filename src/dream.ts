@@ -354,7 +354,11 @@ export default function dream<
     public setAttributes(attributes: Updateable<Table>) {
       Object.keys(attributes).forEach(attr => {
         // TODO: cleanup type chaos
-        ;(this as any)[attr] = (attributes as any)[attr]
+        if ((attributes as any)[attr]?.constructor === Date) {
+          ;(this as any)[attr] = DateTime.fromJSDate((attributes as any)[attr])
+        } else {
+          ;(this as any)[attr] = (attributes as any)[attr]
+        }
       })
     }
 
