@@ -260,6 +260,7 @@ general:
 
 - <DANIEL>separate query builders from dream if possible
 - <DANIEL>recursivley scan models dir
+- uuid support
 - finish building migration runner
   - DONE create
   - DONE drop

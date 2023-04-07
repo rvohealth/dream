@@ -15,7 +15,8 @@
     "db:drop": "ts-node src/bin/db-drop.ts",
     "db:create": "ts-node src/bin/db-create.ts",
     "spec": "CORE_DEVELOPMENT=1 jest --runInBand --forceExit",
-    "console": "yarn build && CORE_DEVELOPMENT=1 NODE_ENV=development ts-node --project ./tsconfig.json ./src/test-app/conf/repl.ts"
+    "console": "yarn build && CORE_DEVELOPMENT=1 NODE_ENV=development ts-node --project ./tsconfig.json ./src/test-app/conf/repl.ts",
+    "dream": "ts-node ./boot/cli.ts"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",
@@ -30,6 +31,7 @@
   "dependencies": {
     "@types/pg": "^8.6.6",
     "@types/pluralize": "^0.0.29",
+    "commander": "^10.0.0",
     "dotenv": "^16.0.3",
     "kysely": "^0.24.2",
     "kysely-codegen": "^0.10.0",
