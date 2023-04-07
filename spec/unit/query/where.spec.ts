@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import User from '../../../src/test-app/app/models/user'
 import daterange from '../../../src/helpers/daterange'
+import ops from '../../../src/helpers/ops'
 
 describe('Query#where', () => {
   it('orders records by id', async () => {
@@ -10,6 +11,22 @@ describe('Query#where', () => {
     const records = await User.limit(1).where({ email: 'fred@frewd' }).all()
     expect(records.length).toEqual(1)
     expect(records[0].id).toEqual(user1.id)
+  })
+
+  context('an InStatement is passed', () => {
+    it('uses an "in" operator for comparison', async () => {
+      const user1 = await User.create({
+        email: 'fred@frewd',
+        password: 'howyadoin',
+      })
+      const user2 = await User.create({
+        email: 'frez@frewd',
+        password: 'howyadoin',
+      })
+
+      const records = await User.where({ id: ops.in([user1.id, user2.id]) }).pluck('id')
+      expect(records).toEqual([user1.id, user2.id])
+    })
   })
 
   context('a date range is passed', () => {
@@ -28,12 +45,12 @@ describe('Query#where', () => {
         created_at: begin.minus({ hour: 1 }),
       })
       user1 = await User.create({
-        email: 'fred@frewd',
+        email: 'fred@frezd',
         password: 'howyadoin',
         created_at: begin,
       })
       user2 = await User.create({
-        email: 'fred@frewd',
+        email: 'fred@frwwd',
         password: 'howyadoin',
         created_at: begin.plus({ hour: 1 }),
       })
@@ -43,7 +60,7 @@ describe('Query#where', () => {
         created_at: end,
       })
       user4 = await User.create({
-        email: 'fred@frewdzsd',
+        email: 'fred@frwewdzsd',
         password: 'howyadoin',
         created_at: end.plus({ hour: 1 }),
       })

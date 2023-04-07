@@ -24,6 +24,7 @@ import { marshalDBValue } from './helpers/marshalDBValue'
 import sqlAttributes from './helpers/sqlAttributes'
 import { DateRange } from './helpers/daterange'
 import ValidationError from './exceptions/validation-error'
+import { InStatement } from './helpers/ops'
 
 export default function dream<
   TableName extends keyof DB & string,
@@ -191,9 +192,11 @@ export default function dream<
       this: { new (): T } & typeof Dream,
       attributes:
         | Updateable<Table>
+        | Partial<Record<keyof Table, DateRange>>
         | Partial<
             Record<keyof Table, SelectQueryBuilder<DB, SubTable, Selection<DB, SubTable, DB[SubTable]>>>
           >
+        | Partial<Record<keyof Table, InStatement>>
     ) {
       const query: Query<T> = new Query<T>(this)
       // @ts-ignore
@@ -436,6 +439,7 @@ export default function dream<
       | Updateable<Table>
       | SelectQueryBuilder<DB, TableName, {}>
       | Partial<Record<keyof Table, DateRange>>
+      | Partial<Record<keyof Table, InStatement>>
       | null = null
     public limitStatement: { count: number } | null = null
     public orderStatement: { column: keyof Table & string; direction: 'asc' | 'desc' } | null = null
@@ -457,6 +461,7 @@ export default function dream<
         | Updateable<Table>
         | SelectQueryBuilder<DB, TableName, {}>
         | Partial<Record<keyof Table, DateRange>>
+        | Partial<Record<keyof Table, InStatement>>
     ) {
       this.whereStatement = { ...this.whereStatement, ...attributes }
       return this
@@ -610,6 +615,8 @@ export default function dream<
             query = query.where(attr as any, 'is', val)
           } else if (val.constructor === SelectQueryBuilder) {
             query = query.where(attr as any, 'in', val)
+          } else if (val.constructor === InStatement) {
+            query = query.where(attr as any, 'in', val.in)
           } else if (val.constructor === DateRange) {
             const begin = val.begin?.toUTC()?.toSQL({ includeOffset: false })
             const end = val.end?.toUTC()?.toSQL({ includeOffset: false })
