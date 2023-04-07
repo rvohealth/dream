@@ -1,6 +1,158 @@
-# dream
+# dream ORM
 
-dream orm
+The dream ORM is an ORM inspired heavily by the [Ruby on Rails Active Record](LINK_NEEDED) pattern, and was designed predominantly as a tool to help migrate PlateJoy's app ecosystem from ruby to node. In the search for a comprehensive ORM in node that maintains the depth and necessary features provided by rails, we have decided to write our own, written on a [very powerful, safely type-guarded query builder called kysely](LINK_NEEDED).
+
+Using this library as our query building engine, we have stacked a comprehensive ORM layer on top to provide a rich set of features, of which will be predominantly used in the psychic web framework, also being developed and inspired by the Ruby on Rails web framework.
+
+## Features
+
+The dream ORM features:
+
+- static query building engine
+
+```ts
+const records = await User.where({ email: 'fred@fred' }).all()
+// User[]
+
+const user = await User.where({ email: 'fred@fred' }).first()
+const user = await User.where({ email: 'fred@fred' }).last()
+// User | null
+
+const user = await User.where({ email: ops.like('%fred@%') })
+  .order('id', 'desc')
+  .limit(3)
+  .all()
+
+// User[]
+```
+
+- model hooks
+  - before create
+  - before update
+  - before delete
+  - before save
+  - after create
+  - after update
+  - after delete
+  - after save
+
+```ts
+// models/composition.ts
+
+class Composition {
+  ...
+  @BeforeCreate()
+  public setDefaultContent() {
+    if (!this.content) this.content = 'default content'
+  }
+
+  @AfterCreate()
+  public conditionallyChangeContentOnCreate() {
+    if (this.content === 'change me after create') this.content = 'changed after create'
+  }
+
+  @AfterUpdate()
+  public conditionallyChangeContentOnUpdate() {
+    if (this.content === 'change me after update') this.content = 'changed after update'
+  }
+
+  @AfterSave()
+  public conditionallyChangeContentOnSave() {
+    if (this.content === 'change me after save') this.content = 'changed after save'
+  }
+  ...
+}
+```
+
+- validations
+  - presence
+  - length{min, max}
+  - contains{string | regex}
+
+```ts
+export default class User extends Dream {
+  ...
+  @Validates('contains', '@')
+  @Validates('presence')
+  @Column('string')
+  public email: string
+
+  @Validates('length', { min: 4, max: 18 })
+  @Column('string')
+  public password: string
+  ...
+}
+```
+
+- associations
+
+  - belongs to
+  - has one
+  - has many
+  - has one through
+  - has many through
+  - has one through (nested indefinitely)
+  - has many through (nested indefinitely)
+
+```ts
+// models/user.ts
+class User {
+  ...
+  @HasMany('compositions', () => Composition)
+  public compositions: Composition[]
+
+  @HasOne('compositions', () => Composition)
+  public mainComposition: Composition
+
+  @HasMany('composition_assets', () => CompositionAsset, {
+    through: 'compositions',
+    throughClass: () => Composition,
+  })
+  public compositionAssets: CompositionAsset[]
+}
+
+// models/composition.ts
+export default class Composition extends Dream {
+  ...
+  @BelongsTo('users', () => User)
+  public user: User
+}
+
+// models/composition-asset.ts
+export default class CompositionAsset extends Dream {
+  ...
+  @BelongsTo('compositions', () => Composition)
+  public composition: Composition
+  ...
+}
+
+
+```
+
+- scopes
+
+  - named
+  - default
+
+- single table inheritance
+
+```ts
+class User {
+  @Scope()
+  public static withFunnyName(query: any) {
+    return query.where({ name: 'Chalupas jr' })
+  }
+
+  // this will always fire whenever queries are run against the model
+  @Scope({ default: true })
+  public static hideDeleted(query: any) {
+    return query.where({ deleted_at: null })
+  }
+}
+
+User.scope('withFunnyName')
+// will only return records with the name "Chalupas jr"
+```
 
 ## Getting started
 
