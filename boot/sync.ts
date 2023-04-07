@@ -24,28 +24,6 @@ export default async function sync() {
 }
 sync()
 
-async function writeModels() {
-  const models = await loadModels()
-  const filePath = path.join(__dirname, '..', 'src', 'sync', 'models.ts')
-  const relativePathToModels =
-    process.env.CORE_DEVELOPMENT === '1'
-      ? path.join('..', 'src', 'test-app', 'app', 'models')
-      : path.join('..', '..', '..', 'src', 'app', 'models')
-
-  const importStatements = Object.keys(models)
-    .map(key => `import ${models[key].name} from '${relativePathToModels + '/' + key.replace(/\.ts$/, '')}'`)
-    .join('\n')
-
-  const str = `\
-${importStatements}
-
-export default {
-${Object.keys(models).map(key => `  "${key.replace(/\.ts/, '')}": ${models[key].name}`)}
-}
-`
-  await fs.writeFile(filePath, str)
-}
-
 async function writeSchema() {
   const yamlConf = await loadDreamYamlFile()
 
@@ -70,6 +48,7 @@ async function writeSchema() {
 // begin: schema helpers
 
 async function enhanceSchema(file: string) {
+  file = replaceTimestampWithLuxonVariant(file)
   const interfaces = file.split(/export interface/g)
   const results = interfaces.slice(1, interfaces.length)
 
@@ -97,6 +76,15 @@ export const DBColumns = {
   return newFileContents
 }
 
+function replaceTimestampWithLuxonVariant(file: string) {
+  return `\
+import { DateTime } from 'luxon'
+${file.replace(
+  'export type Timestamp = ColumnType<Date, Date | string, Date | string>',
+  'export type Timestamp = ColumnType<DateTime>'
+)}`
+}
+
 function transformInterface(str: string) {
   const name = str.split(' {')[0].replace(/\s/g, '')
   if (name === 'DB') return null
@@ -118,6 +106,9 @@ export interface ${pluralize.singular(name)}Opts {
 }\ 
 `
 }
+
+// export type Timestamp = ColumnType<Date, Date | string, Date | string>
+// export type Timestamp = ColumnType<DateTime>
 
 function indexInterfaceKeys(str: string) {
   const name = str.split(' {')[0].replace(/\s/g, '')
