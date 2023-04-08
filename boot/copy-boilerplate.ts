@@ -3,6 +3,14 @@ import sspawn from '../src/helpers/sspawn'
 
 export default async function copyBoilerplate() {
   console.log('checking for sync folder compatibility...')
+
+  try {
+    await fs.statfs('./src/sync')
+  } catch (_) {
+    console.log('schema folder missing, adding now')
+    await sspawn('mkdir ./src/sync')
+  }
+
   try {
     await fs.statfs('./src/sync/schema.ts')
   } catch (_) {
