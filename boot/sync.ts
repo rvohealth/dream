@@ -10,15 +10,15 @@ import camelize from '../src/helpers/camelize'
 import snakeify from '../src/helpers/snakeify'
 
 export default async function sync() {
-  console.log('copying schema and dream config...')
+  console.log('writing schema...')
+  await writeSchema()
+
+  console.log('syncing schema and dream config...')
   await sspawn(
     'rm src/sync/schema.ts && rm src/sync/dream.ts && ' +
       'cp ./src/test-app/db/schema.ts ./src/sync && ' +
       'cp ./src/test-app/conf/dream.ts ./src/sync'
   )
-
-  console.log('writing schema...')
-  await writeSchema()
 
   console.log('sync complete!')
 }
