@@ -10,15 +10,15 @@ import camelize from '../src/helpers/camelize'
 import snakeify from '../src/helpers/snakeify'
 
 export default async function sync() {
-  console.log('copying schema and dream config...')
+  console.log('writing schema...')
+  await writeSchema()
+
+  console.log('syncing schema and dream config...')
   await sspawn(
-    'rm -rf src/sync && mkdir src/sync && ' +
+    'rm src/sync/schema.ts && rm src/sync/dream.ts && ' +
       'cp ./src/test-app/db/schema.ts ./src/sync && ' +
       'cp ./src/test-app/conf/dream.ts ./src/sync'
   )
-
-  console.log('writing schema...')
-  await writeSchema()
 
   console.log('sync complete!')
 }
@@ -49,6 +49,7 @@ async function writeSchema() {
 
 async function enhanceSchema(file: string) {
   file = replaceTimestampWithLuxonVariant(file)
+
   const interfaces = file.split(/export interface/g)
   const results = interfaces.slice(1, interfaces.length)
 
@@ -106,9 +107,6 @@ export interface ${pluralize.singular(name)}Opts {
 }\ 
 `
 }
-
-// export type Timestamp = ColumnType<Date, Date | string, Date | string>
-// export type Timestamp = ColumnType<DateTime>
 
 function indexInterfaceKeys(str: string) {
   const name = str.split(' {')[0].replace(/\s/g, '')

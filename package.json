@@ -4,18 +4,22 @@
   "description": "dream orm",
   "main": "dist/src/index.js",
   "repository": "https://github.com/avocadojesus/dream.git",
-  "author": "avocadojesus <jgarbey@gmail.com>",
+  "author": "avocadojesust",
   "license": "MIT",
   "private": true,
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "sync": "CORE_DEVELOPMENT=1 ts-node boot/sync.ts",
-    "copy-models": "CORE_DEVELOPMENT=1 ts-node src/bin/copy-models.ts",
-    "db:migrate": "yarn sync && ALREADY_AT_PROJECT_ROOT=1 ts-node src/bin/migrate.ts && yarn copy-models && yarn build && yarn sync",
+    "sync": "CORE_DEVELOPMENT=1 ts-node boot/sync.ts && yarn copy:models",
+    "copy:boilerplate": "ts-node boot/copy-boilerplate.ts",
+    "copy:models": "yarn ensure:models-file && yarn build && CORE_DEVELOPMENT=1 ts-node src/bin/copy-models.ts",
+    "ensure:models-file": "CORE_DEVELOPMENT=1 ts-node boot/ensure-models-file.ts",
+    "db:migrate": "ALREADY_AT_PROJECT_ROOT=1 ts-node src/bin/migrate.ts && yarn sync",
     "db:drop": "ts-node src/bin/db-drop.ts",
     "db:create": "ts-node src/bin/db-create.ts",
     "spec": "CORE_DEVELOPMENT=1 jest --runInBand --forceExit",
-    "console": "yarn build && CORE_DEVELOPMENT=1 NODE_ENV=development ts-node --project ./tsconfig.json ./src/test-app/conf/repl.ts"
+    "console": "yarn build && CORE_DEVELOPMENT=1 NODE_ENV=development ts-node --project ./tsconfig.json ./src/test-app/conf/repl.ts",
+    "dream": "ts-node ./boot/cli.ts",
+    "postinstall": "yarn copy:boilerplate"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",
@@ -30,6 +34,7 @@
   "dependencies": {
     "@types/pg": "^8.6.6",
     "@types/pluralize": "^0.0.29",
+    "commander": "^10.0.0",
     "dotenv": "^16.0.3",
     "kysely": "^0.24.2",
     "kysely-codegen": "^0.10.0",

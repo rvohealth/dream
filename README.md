@@ -260,6 +260,7 @@ general:
 
 - <DANIEL>separate query builders from dream if possible
 - <DANIEL>recursivley scan models dir
+- uuid support
 - finish building migration runner
   - DONE create
   - DONE drop
@@ -281,6 +282,7 @@ general:
 - DONE unify static methods and query builder implementations
 - clean up type chaos sweep 1
 - clean up type chaos sweep 2 (may need assistance at this stage depending on how much gets done in sweep 1)
+- replace ALREADY_AT_PROJECT_ROOT with arg passed to function with arg calledFromProjectRoot: boolean
 
 static:
 

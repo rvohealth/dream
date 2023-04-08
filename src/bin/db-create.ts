@@ -1,11 +1,11 @@
 import '../helpers/loadEnv'
-import _createDb from '../helpers/db/createDb'
+import createDb from '../helpers/db/createDb'
 
-async function dbDrop() {
-  console.log(`dropping ${process.env.DB_NAME}`)
-  await _createDb()
+async function dbCreate() {
+  console.log(`creating ${process.env.DB_NAME}`)
+  await createDb()
   console.log('complete!')
   process.exit()
 }
 
-dbDrop()
+dbCreate()
