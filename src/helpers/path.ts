@@ -2,8 +2,6 @@ import * as path from 'path'
 import * as YAML from 'yaml'
 import { promises as fs } from 'fs'
 import compact from './compact'
-import { Kysely } from 'kysely'
-import { DB } from '../sync/schema'
 
 export async function loadFile(filepath: string) {
   return await fs.readFile(filepath)

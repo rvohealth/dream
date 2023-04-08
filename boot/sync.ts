@@ -49,6 +49,7 @@ async function writeSchema() {
 
 async function enhanceSchema(file: string) {
   file = replaceTimestampWithLuxonVariant(file)
+
   const interfaces = file.split(/export interface/g)
   const results = interfaces.slice(1, interfaces.length)
 
@@ -106,9 +107,6 @@ export interface ${pluralize.singular(name)}Opts {
 }\ 
 `
 }
-
-// export type Timestamp = ColumnType<Date, Date | string, Date | string>
-// export type Timestamp = ColumnType<DateTime>
 
 function indexInterfaceKeys(str: string) {
   const name = str.split(' {')[0].replace(/\s/g, '')

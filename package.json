@@ -4,7 +4,7 @@
   "description": "dream orm",
   "main": "dist/src/index.js",
   "repository": "https://github.com/avocadojesus/dream.git",
-  "author": "avocadojesus <jgarbey@gmail.com>",
+  "author": "avocadojesust",
   "license": "MIT",
   "private": true,
   "scripts": {
