@@ -12,7 +12,7 @@ import snakeify from '../src/helpers/snakeify'
 export default async function sync() {
   console.log('copying schema and dream config...')
   await sspawn(
-    'rm -rf src/sync && mkdir src/sync && ' +
+    'rm src/sync/schema.ts && rm src/sync/dream.ts && ' +
       'cp ./src/test-app/db/schema.ts ./src/sync && ' +
       'cp ./src/test-app/conf/dream.ts ./src/sync'
   )
