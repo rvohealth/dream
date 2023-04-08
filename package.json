@@ -10,7 +10,7 @@
   "scripts": {
     "build": "rm -rf dist && tsc",
     "sync": "CORE_DEVELOPMENT=1 ts-node boot/sync.ts",
-    "copy:boilerplate": "ts-node boot/add-boilerplate.ts",
+    "copy:boilerplate": "ts-node boot/copy-boilerplate.ts",
     "copy:models": "CORE_DEVELOPMENT=1 ts-node src/bin/copy-models.ts",
     "db:migrate": "yarn sync && ALREADY_AT_PROJECT_ROOT=1 ts-node src/bin/migrate.ts && yarn build && yarn sync && yarn copy:models",
     "db:drop": "ts-node src/bin/db-drop.ts",
