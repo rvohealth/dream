@@ -10,13 +10,15 @@
   "scripts": {
     "build": "rm -rf dist && tsc",
     "sync": "CORE_DEVELOPMENT=1 ts-node boot/sync.ts",
-    "copy-models": "CORE_DEVELOPMENT=1 ts-node src/bin/copy-models.ts",
-    "db:migrate": "yarn sync && ALREADY_AT_PROJECT_ROOT=1 ts-node src/bin/migrate.ts && yarn copy-models && yarn build && yarn sync",
+    "copy:boilerplate": "ts-node boot/add-boilerplate.ts",
+    "copy:models": "CORE_DEVELOPMENT=1 ts-node src/bin/copy-models.ts",
+    "db:migrate": "yarn sync && ALREADY_AT_PROJECT_ROOT=1 ts-node src/bin/migrate.ts && yarn build && yarn sync && yarn copy:models",
     "db:drop": "ts-node src/bin/db-drop.ts",
     "db:create": "ts-node src/bin/db-create.ts",
     "spec": "CORE_DEVELOPMENT=1 jest --runInBand --forceExit",
     "console": "yarn build && CORE_DEVELOPMENT=1 NODE_ENV=development ts-node --project ./tsconfig.json ./src/test-app/conf/repl.ts",
-    "dream": "ts-node ./boot/cli.ts"
+    "dream": "ts-node ./boot/cli.ts",
+    "postinstall": "yarn copy:boilerplate"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",
