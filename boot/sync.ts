@@ -37,10 +37,12 @@ sync()
 async function writeSchema() {
   const yamlConf = await loadDreamYamlFile()
 
-  let absoluteSchemaPath = path.join(__dirname, '..', '..', '..', yamlConf.schema_path)
-  console.log('ABS PATH', absoluteSchemaPath)
+  let absoluteSchemaPath = path.join(__dirname, yamlConf.schema_path)
+  let absoluteSchemaWritePath = path.join(__dirname, '..', '..', '..', yamlConf.schema_path)
+  console.log('ABS PATH', absoluteSchemaPath, absoluteSchemaWritePath)
   if (process.env.CORE_DEVELOPMENT === '1') {
-    absoluteSchemaPath = path.join(__dirname, '..', yamlConf.schema_path)
+    absoluteSchemaWritePath = path.join(__dirname, '..', yamlConf.schema_path)
+    let absoluteSchemaPath = path.join(__dirname, '..', yamlConf.schema_path)
   }
 
   await sspawn(
@@ -52,7 +54,7 @@ async function writeSchema() {
   const file = await (await fs.readFile(absoluteSchemaPath)).toString()
   const enhancedSchema = await enhanceSchema(file)
 
-  await fs.writeFile(absoluteSchemaPath, enhancedSchema)
+  await fs.writeFile(absoluteSchemaWritePath, enhancedSchema)
   console.log('done enhancing schema!')
 }
 
