@@ -62,6 +62,7 @@ async function writeSchema() {
 
 async function enhanceSchema(file: string) {
   file = replaceTimestampWithLuxonVariant(file)
+  file = replaceBlankExport(file)
 
   const interfaces = file.split(/export interface/g)
   const results = interfaces.slice(1, interfaces.length)
@@ -105,6 +106,10 @@ ${file.replace(
   'export type Timestamp = ColumnType<Date, Date | string, Date | string>',
   'export type Timestamp = ColumnType<DateTime>'
 )}`
+}
+
+function replaceBlankExport(str: string) {
+  return str.replace(/export interface DB \{\}/, 'export interface DB { placeholder: {} }')
 }
 
 function transformInterface(str: string) {
