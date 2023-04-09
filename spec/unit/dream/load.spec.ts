@@ -1,7 +1,7 @@
-import User from '../../../src/test-app/app/models/user'
-import Composition from '../../../src/test-app/app/models/composition'
-import CompositionAsset from '../../../src/test-app/app/models/composition-asset'
-import CompositionAssetAudit from '../../../src/test-app/app/models/composition-asset-audit'
+import User from '../../../test-app/app/models/user'
+import Composition from '../../../test-app/app/models/composition'
+import CompositionAsset from '../../../test-app/app/models/composition-asset'
+import CompositionAssetAudit from '../../../test-app/app/models/composition-asset-audit'
 
 describe('Dream#load', () => {
   it('loads a HasOne association', async () => {

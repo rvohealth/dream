@@ -1,4 +1,4 @@
-import User from '../../../src/test-app/app/models/user'
+import User from '../../../test-app/app/models/user'
 
 describe('Query#order', () => {
   it('orders records by id', async () => {

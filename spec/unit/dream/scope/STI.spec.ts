@@ -1,5 +1,5 @@
-import User from '../../../../src/test-app/app/models/user'
-import AdminUser from '../../../../src/test-app/app/models/admin-user'
+import User from '../../../../test-app/app/models/user'
+import AdminUser from '../../../../test-app/app/models/admin-user'
 import { DateTime } from 'luxon'
 
 describe('Dream STI', () => {

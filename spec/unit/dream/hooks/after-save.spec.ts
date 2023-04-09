@@ -1,5 +1,5 @@
-import Composition from '../../../../src/test-app/app/models/composition'
-import User from '../../../../src/test-app/app/models/user'
+import Composition from '../../../../test-app/app/models/composition'
+import User from '../../../../test-app/app/models/user'
 
 describe('Dream AfterSave decorator', () => {
   it('runs the query after saving a record', async () => {

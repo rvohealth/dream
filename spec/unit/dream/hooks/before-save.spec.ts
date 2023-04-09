@@ -1,6 +1,6 @@
-import Composition from '../../../../src/test-app/app/models/composition'
-import CompositionAsset from '../../../../src/test-app/app/models/composition-asset'
-import User from '../../../../src/test-app/app/models/user'
+import Composition from '../../../../test-app/app/models/composition'
+import CompositionAsset from '../../../../test-app/app/models/composition-asset'
+import User from '../../../../test-app/app/models/user'
 
 describe('Dream BeforeSave decorator', () => {
   it('runs the query before creating a record', async () => {

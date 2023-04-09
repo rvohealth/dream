@@ -1,5 +1,5 @@
-import User from '../../../src/test-app/app/models/user'
-import Composition from '../../../src/test-app/app/models/composition'
+import User from '../../../test-app/app/models/user'
+import Composition from '../../../test-app/app/models/composition'
 
 describe('Dream.all', () => {
   it('finds all records for a given model', async () => {

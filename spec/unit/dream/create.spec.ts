@@ -1,4 +1,4 @@
-import User from '../../../src/test-app/app/models/user'
+import User from '../../../test-app/app/models/user'
 
 describe('Dream.create', () => {
   it('creates the underlying model in the db', async () => {

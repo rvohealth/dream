@@ -1,4 +1,4 @@
-import User from '../../../src/test-app/app/models/user'
+import User from '../../../test-app/app/models/user'
 
 describe('Dream.findBy', () => {
   it('is able to locate records in the database by the attributes passed', async () => {

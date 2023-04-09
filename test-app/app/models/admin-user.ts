@@ -1,4 +1,4 @@
-import STI from '../../../decorators/STI'
+import STI from '../../../src/decorators/STI'
 import User from './user'
 
 @STI()

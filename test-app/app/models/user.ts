@@ -1,13 +1,12 @@
-import { SelectQueryBuilder } from 'kysely'
-import HasMany from '../../../decorators/associations/has-many'
-import HasOne from '../../../decorators/associations/has-one'
-import { Column } from '../../../decorators/column'
-import Scope from '../../../decorators/scope'
-import dream from '../../../dream'
+import HasMany from '../../../src/decorators/associations/has-many'
+import HasOne from '../../../src/decorators/associations/has-one'
+import { Column } from '../../../src/decorators/column'
+import Scope from '../../../src/decorators/scope'
+import dream from '../../../src/dream'
 import Composition from './composition'
 import CompositionAsset from './composition-asset'
 import CompositionAssetAudit from './composition-asset-audit'
-import Validates from '../../../decorators/validations/validates'
+import Validates from '../../../src/decorators/validations/validates'
 
 const Dream = dream('users')
 export default class User extends Dream {

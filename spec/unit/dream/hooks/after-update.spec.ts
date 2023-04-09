@@ -1,5 +1,5 @@
-import Composition from '../../../../src/test-app/app/models/composition'
-import User from '../../../../src/test-app/app/models/user'
+import Composition from '../../../../test-app/app/models/composition'
+import User from '../../../../test-app/app/models/user'
 
 describe('Dream AfterUpdate decorator', () => {
   it('runs the query after updating a record', async () => {
