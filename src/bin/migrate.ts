@@ -8,6 +8,7 @@ async function migrateToLatest() {
   const yamlConf = await loadDreamYamlFile()
   console.log(
     'FROM MIGRATION',
+    process.env.CORE_DEVELOPMENT,
     process.env.CORE_DEVELOPMENT === '1'
       ? path.join(__dirname, '..', 'test-app', 'db', 'migrations')
       : path.join(__dirname, '..', '..', '..', '..', yamlConf.migrations_path)
