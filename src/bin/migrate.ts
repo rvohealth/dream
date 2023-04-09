@@ -2,14 +2,19 @@ import * as path from 'path'
 import { promises as fs } from 'fs'
 import { Migrator, FileMigrationProvider } from 'kysely'
 import db from '../db'
+import { loadDreamYamlFile } from '../helpers/path'
 
 async function migrateToLatest() {
+  const yamlConf = await loadDreamYamlFile()
   const migrator = new Migrator({
     db,
     provider: new FileMigrationProvider({
       fs,
       path,
-      migrationFolder: path.join(__dirname, '..', 'test-app', 'db', 'migrations'),
+      migrationFolder:
+        process.env.CORE_DEVELOPMENT === '1'
+          ? path.join(__dirname, '..', 'test-app', 'db', 'migrations')
+          : path.join(__dirname, '..', '..', '..', '..', yamlConf.migrations_path),
     }),
   })
 
