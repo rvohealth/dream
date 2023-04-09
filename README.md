@@ -33,12 +33,12 @@ DB_HOST=localhost
 ```bash
 yarn install
 yarn db:create
-yarn db:migrate
-yarn sync
+yarn core:db:migrate
+yarn core:sync
 
 # note: migrations sometimes break rn, if this happens, do this to fix:
-yarn sync
-yarn db:migrate
+yarn core:sync
+yarn core:db:migrate
 ```
 
 ## Features
