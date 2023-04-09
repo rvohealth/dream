@@ -16,13 +16,13 @@ export default async function sync() {
   const yamlConf = await loadDreamYamlFile()
   if (process.env.CORE_DEVELOPMENT === '1') {
     await sspawn(
-      'rm src/sync/schema.ts && rm src/sync/dream.ts && ' +
-        'cp ./src/test-app/db/schema.ts ./src/sync && ' +
-        'cp ./src/test-app/conf/dream.ts ./src/sync'
+      'rm -f src/sync/schema.ts && rm -f src/sync/dream.ts && ' +
+        'cp ./test-app/db/schema.ts ./src/sync && ' +
+        'cp ./test-app/conf/dream.ts ./src/sync'
     )
   } else {
     await sspawn(
-      'rm src/sync/schema.ts && rm src/sync/dream.ts && ' +
+      'rm -f src/sync/schema.ts && rm -f src/sync/dream.ts && ' +
         `cp ../../${yamlConf.schema_path} ./src/sync && ` +
         `cp ../../${yamlConf.dream_config_path} ./src/sync`
     )

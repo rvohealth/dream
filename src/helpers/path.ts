@@ -46,19 +46,10 @@ export function projectRootPath({
 }: { filepath?: string; omitDirname?: boolean } = {}) {
   const dirname = omitDirname ? undefined : __dirname
 
-  if (process.env.ALREADY_AT_PROJECT_ROOT === '1') {
-    if (process.env.CORE_DEVELOPMENT === '1') {
-      return path.join(...compact([dirname, filepath]))
-    } else {
-      console.log('DEBUG:', compact([dirname, '..', '..', '..', '..', filepath]))
-      return path.join(...compact([dirname, '..', '..', '..', '..', filepath]))
-    }
+  if (process.env.CORE_DEVELOPMENT === '1') {
+    return path.join(...compact([dirname, '..', '..', filepath]))
   } else {
-    if (process.env.CORE_DEVELOPMENT === '1') {
-      return path.join(...compact([dirname, '..', '..', filepath]))
-    } else {
-      return path.join(...compact([dirname, '..', '..', '..', '..', filepath]))
-    }
+    return path.join(...compact([dirname, '..', '..', '..', '..', filepath]))
   }
 }
 
