@@ -7,6 +7,7 @@
 
 import { Command } from 'commander'
 import generateDream from './cli/helpers/generateDream'
+import generateMigration from './cli/helpers/generateMigration'
 
 const program = new Command()
 
@@ -22,14 +23,14 @@ program
     await generateDream(name, attributes)
   })
 
-// program
-//   .command('generate:migration')
-//   .alias('g:migration')
-//   .description('g:migration <name> create a new howl migration')
-//   .argument('<name>', 'name of the migration')
-//   .action(async () => {
-//     const [_, name] = program.args
-//     await generateMigration(name)
-//   })
+program
+  .command('generate:migration')
+  .alias('g:migration')
+  .description('g:migration <name> create a new howl migration')
+  .argument('<name>', 'name of the migration')
+  .action(async () => {
+    const [_, name] = program.args
+    await generateMigration(name)
+  })
 
 program.parse()

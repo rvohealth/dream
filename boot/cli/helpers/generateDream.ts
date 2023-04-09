@@ -63,7 +63,7 @@ export default async function generateDream(
     console.log(`generating migration: ${migrationPath}`)
     await thisfs.writeFile(
       migrationPath,
-      generateMigrationContent(`create-${hyphenize(pluralize(dreamName))}`, timestamp, {
+      generateMigrationContent({
         table: snakeify(pluralize(dreamName)),
         attributes,
         useUUID,

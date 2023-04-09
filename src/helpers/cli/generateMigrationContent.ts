@@ -9,19 +9,15 @@ const typeCoersions = {
   timestamp: 'timestamp',
 }
 
-export default function generateMigrationString(
-  migrationName: string,
-  timestamp: number,
-  {
-    table,
-    attributes = [],
-    useUUID = false,
-  }: {
-    table?: string
-    attributes?: string[]
-    useUUID?: boolean
-  } = {}
-) {
+export default function generateMigrationContent({
+  table,
+  attributes = [],
+  useUUID = false,
+}: {
+  table?: string
+  attributes?: string[]
+  useUUID?: boolean
+} = {}) {
   let requireCitextExtension = false
   const columnDefs = attributes
     .map(attribute => {
