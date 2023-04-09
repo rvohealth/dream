@@ -1,11 +1,12 @@
+import * as pluralize from 'pluralize'
 import pascalize from '../../../src/helpers/pascalize'
 
 const typeCoersions = {
-  citext: 'Sequelize.CITEXT',
-  date: 'Sequelize.DATEONLY',
-  datetime: 'Sequelize.DATE',
-  string: 'Sequelize.STRING',
-  timestamp: 'Sequelize.DATE',
+  citext: 'citext',
+  date: 'date',
+  datetime: 'datetime',
+  string: 'text',
+  timestamp: 'timestamp',
 }
 
 export default function generateMigrationString(
@@ -22,119 +23,74 @@ export default function generateMigrationString(
   } = {}
 ) {
   let requireCitextExtension = false
-  const sequelizeColumnDefs = attributes
+  const columnDefs = attributes
     .map(attribute => {
       const [attributeName, attributeType, ...descriptors] = attribute.split(':')
+      let coercedAttributeType = (typeCoersions as any)[attributeType] || attributeType
       if (['has_one', 'has_many'].includes(attributeType)) return null
-      if (attributeType === 'belongs_to')
-        return generateBelongsToStr(attributeName, attributeType, descriptors, { useUUID })
+      if (attributeType === 'belongs_to') return generateBelongsToStr(attributeName, { useUUID })
       else if (attributeType === 'citext') requireCitextExtension = true
 
-      return generateColumnStr(attributeName, attributeType, descriptors, { useUUID })
+      return generateColumnStr(attributeName, coercedAttributeType, descriptors)
     })
     .filter(str => str !== null)
 
   if (!table) {
     return `\
-/** @type {import('sequelize-cli').Migration} */
-module.exports = {
-  async up(queryinterface, Sequelize) {
-  },
+import { Kysely, sql } from 'kysely'
 
-  async down(queryinterface, Sequelize) {
-  }
+export async function up(db: Kysely<any>): Promise<void> {
+}
+
+export async function down(db: Kysely<any>): Promise<void> {
 }\
 `
   }
-
-  const uuidExtension = useUUID
-    ? `await queryInterface.sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";')\n    `
-    : ''
 
   const citextExtension = requireCitextExtension
     ? `await queryInterface.sequelize.query('CREATE EXTENSION IF NOT EXISTS "citext";')\n    `
     : ''
 
   return `\
-/** @type {import('sequelize-cli').Migration} */
-module.exports = {
-  async up(queryInterface, Sequelize) {
-    ${uuidExtension}${citextExtension}await queryInterface.createTable('${table}', {
-      id: {
-${generateIdFields({ useUUID })}
-      },${!!sequelizeColumnDefs.length ? '\n' + sequelizeColumnDefs.join('\n') : ''}
-      created_at: {
-        type: Sequelize.DATE,
-      },
-      updated_at: {
-        type: Sequelize.DATE,
-      },
-    })
-  },
+import { Kysely, sql } from 'kysely'
 
-  async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('${table}')
-  }
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createTable('${table}')
+    ${generateIdStr({ useUUID })}${columnDefs.length ? '\n    ' + columnDefs.join('\n    ') : ''}
+    .addColumn('created_at', 'timestamp', col => col.defaultTo(sql\`now()\`).notNull())
+    .addColumn('updated_at', 'timestamp', col => col.defaultTo(sql\`now()\`).notNull())
+    .execute()
+}
+
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropTable('users').execute()
 }\
 `
 }
 
-function generateColumnStr(
-  attributeName: string,
-  attributeType: string,
-  descriptors: string[],
-  { useUUID }: { useUUID?: boolean }
-) {
-  let returnStr = `\
-      '${attributeName}': {
-        type: ${(typeCoersions as any)[attributeType] || `'${attributeType}'`},`
+function generateColumnStr(attributeName: string, attributeType: string, descriptors: string[]) {
+  let returnStr = `.addColumn('${attributeName}', '${attributeType}'`
 
   const providedDefaultArg = descriptors.find(d => /^default\(/.test(d))
   const providedDefault = providedDefaultArg?.replace(/^default\(/, '')?.replace(/\)$/, '')
+  const hasExtraValues = descriptors.includes('primary') || providedDefault
+  if (hasExtraValues) returnStr += ', col => col'
 
-  if (descriptors.includes('primary'))
-    returnStr += `\
-        primaryKey: true,
-`
-
-  if (providedDefault)
-    returnStr += `\
-        defaultValue: ${providedDefault},
-`
+  if (descriptors.includes('primary')) returnStr += `.defaultTo('${providedDefault}')`
+  if (providedDefault) returnStr += `.defaultTo('${providedDefault}')`
   // TODO: handle index
 
-  return (
-    returnStr +
-    `
-      },`
-  )
+  return `${returnStr}${hasExtraValues ? '))' : ')'}`
 }
 
-function generateBelongsToStr(
-  attributeName: string,
-  attributeType: string,
-  descriptors: string[],
-  { useUUID }: { useUUID: boolean }
-) {
-  const dataType = `${useUUID ? 'UUID' : 'INTEGER'}`
-  let returnStr = `\
-      '${attributeName}_id': {
-        type: Sequelize.DataTypes.${dataType},
-      },`
-  return returnStr
+function generateBelongsToStr(attributeName: string, { useUUID }: { useUUID: boolean }) {
+  const dataType = `${useUUID ? 'uuid' : 'serial'}`
+  const references = pluralize(attributeName.replace(/_id$/, ''))
+  return `.addColumn('${attributeName}', '${dataType}', col => col.references('${references}.id').onDelete('cascade').notNull())`
 }
 
-function generateIdFields({ useUUID }: { useUUID: boolean }) {
-  if (useUUID)
-    return `\
-        allowNull: false,
-        primaryKey: true,
-        defaultValue: Sequelize.literal('uuid_generate_v4()'),
-        type: Sequelize.DataTypes.UUID,`
-
-  return `\
-        allowNull: false,
-        primaryKey: true,
-        autoIncrement: true,
-        type: Sequelize.DataTypes.INTEGER,`
+function generateIdStr({ useUUID }: { useUUID: boolean }) {
+  if (useUUID) return `.addColumn('id', 'uuid', col => col.primaryKey())`
+  return `.addColumn('id', 'serial', col => col.primaryKey())`
 }

@@ -58,19 +58,9 @@ export default function generateDreamContent(
     useUUID?: boolean
   } = {}
 ) {
-  const sequelizeImports: string[] = ['Sequelize', 'DataType', 'Table', 'Column', 'PrimaryKey']
-  if (useUUID) sequelizeImports.push('IsUUID')
-  else sequelizeImports.push('AutoIncrement')
+  const dreamImports: string[] = ['dream', 'Column']
 
-  const howlImports: string[] = ['HowlModel']
-  if (useUUID) howlImports.push('UUID')
-
-  const uuidFlagTrimmed = useUUID ? '@IsUUID(4)\n' : ''
-  const uuidFlag = useUUID ? uuidFlagTrimmed + '  ' : ''
-  const idTypescriptType = useUUID ? 'UUID' : 'number'
-  const idDataType = useUUID ? 'DataType.UUID' : 'DataType.INTEGER'
-  const newIdOpts = useUUID ? '{ defaultValue: Sequelize.literal("uuid_generate_v4()") }' : 'DataType.INTEGER'
-  const autoIncrementFlag = useUUID ? '' : '\n  @AutoIncrement'
+  const idTypescriptType = useUUID ? 'string' : 'number'
 
   const additionalImports: string[] = []
   const attributeStatements = attributes.map(attribute => {
@@ -78,73 +68,64 @@ export default function generateDreamContent(
     const associationImportStatement = `import ${pascalize(attributeName)} from './${hyphenize(
       attributeName
     )}'`
-    const formattedAttributeName = camelize(attributeName)
 
     if (!attributeType) throw `must pass a column type for ${attributeName} (i.e. ${attributeName}:string)`
 
     switch (attributeType) {
       case 'belongs_to':
-        sequelizeImports.push('BelongsTo')
-        sequelizeImports.push('ForeignKey')
+        dreamImports.push('BelongsTo')
         additionalImports.push(associationImportStatement)
         let belongsToOptions = descriptors.includes('many_to_one') ? ", { mode: 'many_to_one' }" : ''
         return `\
-${uuidFlagTrimmed}@ForeignKey(() => ${pascalize(attributeName)})
-@Column(${idDataType})
-public ${formattedAttributeName}Id: ${idTypescriptType}
+@Column('${idTypescriptType})
+public ${attributeName}Id: ${idTypescriptType}
 
 @BelongsTo(() => ${pascalize(attributeName)}${belongsToOptions})
-public ${formattedAttributeName}: ${pascalize(attributeName)}\
+public ${attributeName}: ${pascalize(attributeName)}\
 `
 
       case 'has_one':
-        sequelizeImports.push('HasOne')
+        dreamImports.push('HasOne')
         additionalImports.push(associationImportStatement)
         return `\
-@HasOne(() => ${pascalize(attributeName)}, { inverse: ${camelize(attributeName)} => ${camelize(
-          attributeName
-        )}.${pluralize.singular(modelName)} })
-public ${formattedAttributeName}: ${pascalize(attributeName)}\
+@HasOne(() => ${pascalize(attributeName)})
+public ${attributeName}: ${pascalize(attributeName)}\
 `
 
       case 'has_many':
-        sequelizeImports.push('HasMany')
+        dreamImports.push('HasMany')
         additionalImports.push(associationImportStatement)
         return `\
-@HasMany(() => ${pascalize(attributeName)}, { inverse: ${camelize(attributeName)} => ${camelize(
-          attributeName
-        )}.${pluralize.singular(modelName)} })
-public ${pluralize(formattedAttributeName)}: ${pascalize(attributeName)}[]\
+@HasMany(() => ${pascalize(attributeName)})
+public ${pluralize(attributeName)}: ${pascalize(attributeName)}[]\
 `
 
       default:
         return `\
 ${columnStatement(attributeType)}
-public ${formattedAttributeName}: ${(cooercedTypes as any)[attributeType] || attributeType}\
+public ${attributeName}: ${(cooercedTypes as any)[attributeType] || attributeType}\
 `
     }
   })
 
   const timestamps = `
-  @Column(DataType.DATE)
+  @Column('datetime')
   public createdAt: Date
 
-  @Column(DataType.DATE)
+  @Column('datetime')
   public updatedAt: Date`
 
   const tableName = snakeify(pluralize(modelName))
-  const uniqueSequelizeImports = [...new Set(sequelizeImports)]
+  const uniqueSequelizeImports = [...new Set(dreamImports)]
 
   return `\
-import { ${uniqueSequelizeImports.join(', ')} } from 'sequelize-typescript'
-import { ${howlImports.join(', ')} } from 'howl'${
+import { ${dreamImports.join(', ')} } from 'dream'${
     !!additionalImports.length ? '\n' + additionalImports.join('\n') : ''
   }
 
-@Table({ tableName: '${tableName}', underscored: true })
-export default class ${pascalize(pluralize.singular(modelName))} extends HowlModel {
-  ${uuidFlag}@PrimaryKey${autoIncrementFlag}
-  @Column(${newIdOpts})
+const Dream = dream('${tableName}')
+export default class ${pascalize(pluralize.singular(modelName))} extends dream {
+  @Column('${idTypescriptType}')
   public id: ${idTypescriptType}
 
   ${attributeStatements.map(s => s.split('\n').join('\n  ')).join('\n\n  ')}
@@ -158,12 +139,12 @@ function columnStatement(attributeType: string) {
     case 'datetime':
     case 'date':
     case 'timestamp':
-      return '@Column(DataType.DATE)'
+      return "@Column('datetime')"
 
     case 'citext':
-      return '@Column(DataType.CITEXT)'
+      return "@Column('citext')"
 
     default:
-      return '@Column'
+      return `@Column('${attributeType}')`
   }
 }

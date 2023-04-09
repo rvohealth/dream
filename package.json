@@ -19,6 +19,7 @@
     "spec": "CORE_DEVELOPMENT=1 jest --runInBand --forceExit",
     "console": "yarn build && CORE_DEVELOPMENT=1 NODE_ENV=development npx ts-node --project ./tsconfig.json ./test-app/conf/repl.ts",
     "dream": "npx ts-node ./boot/cli.ts",
+    "core:dream": "CORE_DEVELOPMENT=1 npx ts-node ./boot/cli.ts",
     "postinstall": "yarn copy:boilerplate"
   },
   "devDependencies": {
