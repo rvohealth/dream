@@ -14,7 +14,6 @@ export default async function sync() {
 
   console.log('syncing schema and dream config...')
   const yamlConf = await loadDreamYamlFile()
-  console.log('YAML CONF:', yamlConf)
   if (process.env.CORE_DEVELOPMENT === '1') {
     await sspawn(
       'rm src/sync/schema.ts && rm src/sync/dream.ts && ' +
@@ -38,7 +37,6 @@ async function writeSchema() {
 
   let absoluteSchemaPath = path.join(__dirname, '..', yamlConf.schema_path)
   let absoluteSchemaWritePath = path.join(__dirname, '..', '..', '..', yamlConf.schema_path)
-  console.log('ABS PATH', absoluteSchemaPath, absoluteSchemaWritePath)
   if (process.env.CORE_DEVELOPMENT === '1') {
     absoluteSchemaWritePath = path.join(__dirname, '..', yamlConf.schema_path)
     let absoluteSchemaPath = path.join(__dirname, '..', yamlConf.schema_path)
