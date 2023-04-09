@@ -19,9 +19,7 @@ let _yamlCache: DreamYamlFile | null = null
 export async function loadDreamYamlFile() {
   if (_yamlCache) return _yamlCache
 
-  const file = await loadFile(
-    projectRootPath({ filepath: process.env.CORE_DEVELOPMENT === '1' ? '.dream.yml' : '../../.dream.yml' })
-  )
+  const file = await loadFile(projectRootPath({ filepath: '.dream.yml' }))
   const config = (await YAML.parse(file.toString())) as DreamYamlFile
 
   // TODO: validate shape of yaml file!
@@ -52,6 +50,7 @@ export function projectRootPath({
     if (process.env.CORE_DEVELOPMENT === '1') {
       return path.join(...compact([dirname, filepath]))
     } else {
+      console.log('DEBUG:', compact([dirname, '..', '..', filepath]))
       return path.join(...compact([dirname, '..', '..', filepath]))
     }
   } else {
