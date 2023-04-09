@@ -8,7 +8,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "build": "rm -rf dist && tsc",
+    "build": "rm -rf dist && npx tsc",
     "core:sync": "CORE_DEVELOPMENT=1 npx ts-node boot/sync.ts && yarn copy:models",
     "sync": "npx ts-node boot/sync.ts && yarn copy:models",
     "copy:boilerplate": "npx ts-node boot/copy-boilerplate.ts",
