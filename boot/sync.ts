@@ -37,7 +37,7 @@ sync()
 async function writeSchema() {
   const yamlConf = await loadDreamYamlFile()
 
-  let absoluteSchemaPath = path.join(__dirname, yamlConf.schema_path)
+  let absoluteSchemaPath = path.join(__dirname, '..', yamlConf.schema_path)
   let absoluteSchemaWritePath = path.join(__dirname, '..', '..', '..', yamlConf.schema_path)
   console.log('ABS PATH', absoluteSchemaPath, absoluteSchemaWritePath)
   if (process.env.CORE_DEVELOPMENT === '1') {
