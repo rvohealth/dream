@@ -17,7 +17,7 @@ async function writeModels() {
   const relativePathToModels =
     process.env.CORE_DEVELOPMENT === '1'
       ? path.join('..', 'test-app', 'app', 'models')
-      : path.join('..', '..', '..', 'src', 'app', 'models')
+      : path.join('..', '..', '..', '..', 'src', 'app', 'models')
 
   const importStatements = Object.keys(models)
     .map(key => `import ${models[key].name} from '${relativePathToModels + '/' + key.replace(/\.ts$/, '')}'`)
