@@ -12,3 +12,7 @@ export { default as BeforeSave } from './decorators/hooks/before-save'
 export { default as BeforeUpdate } from './decorators/hooks/before-update'
 export { default as Validates } from './decorators/validations/validates'
 export { default as Presence } from './decorators/validations/presence'
+export { default as STI } from './decorators/STI'
+export { default as Scope } from './decorators/scope'
+
+export { Column } from './decorators/column'
