@@ -582,7 +582,9 @@ export default function dream<
 
     public conditionallyApplyScopes() {
       if (this.shouldBypassDefaultScopes) return
-      for (const scope of Dream.scopes.default) {
+
+      const thisScopes = this.dreamClass.scopes.default.filter(s => s.className === this.dreamClass.name)
+      for (const scope of thisScopes) {
         ;(this.dreamClass as any)[scope.method](this)
       }
     }

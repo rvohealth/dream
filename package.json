@@ -17,7 +17,7 @@
     "db:drop": "npx ts-node src/bin/db-drop.ts",
     "db:create": "npx ts-node src/bin/db-create.ts",
     "spec": "CORE_DEVELOPMENT=1 jest --runInBand --forceExit",
-    "console": "yarn build && CORE_DEVELOPMENT=1 NODE_ENV=development npx ts-node --project ./tsconfig.json ./src/test-app/conf/repl.ts",
+    "console": "yarn build && CORE_DEVELOPMENT=1 NODE_ENV=development npx ts-node --project ./tsconfig.json ./test-app/conf/repl.ts",
     "dream": "npx ts-node ./boot/cli.ts",
     "postinstall": "yarn copy:boilerplate"
   },

@@ -32,4 +32,15 @@ describe('Dream STI', () => {
     const results = await AdminUser.all()
     expect(results.map(r => r.id)).toEqual([adminUser.id])
   })
+
+  it('does not bleed scope to child class', async () => {
+    const user = await User.create({ email: 'how@ya0', password: 'doin' })
+    const adminUser = await AdminUser.create({
+      email: 'how@ya0',
+      password: 'doin',
+    })
+
+    const results = await User.all()
+    expect(results.map(r => r.id)).toEqual([user.id, adminUser.id])
+  })
 })
