@@ -18,7 +18,6 @@ program
   .description('g:dream <name> [...attributes] create a new dream')
   .argument('<name>', 'name of the dream')
   .action(async () => {
-    console.log(program.args)
     const [_, name, ...attributes] = program.args
     await generateDream(name, attributes)
   })
