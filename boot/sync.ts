@@ -68,7 +68,7 @@ async function enhanceSchema(file: string) {
 
   const transformedInterfaces = compact(results.map(result => transformInterface(result)))
   const interfaceKeyIndexes = compact(results.map(result => indexInterfaceKeys(result)))
-  const transformedNames = compact(results.map(result => transformName(result))) as [string, string][]
+  let transformedNames = compact(results.map(result => transformName(result))) as [string, string][]
 
   const newFileContents = `
 ${file}
@@ -78,13 +78,21 @@ ${transformedInterfaces.join('\n')}
 ${interfaceKeyIndexes.join('\n')}
 
 export interface DBOpts {
-  ${transformedNames.map(([name, newName]) => `${snakeify(name)}: ${newName}`).join('\n  ')}
+  ${
+    transformedNames.length
+      ? transformedNames.map(([name, newName]) => `${snakeify(name)}: ${newName}`).join('\n  ')
+      : 'placeholder: {}'
+  }
 }
 
 export const DBColumns = {
-  ${transformedNames
-    .map(([name, newName]) => `${snakeify(name)}: ${pluralize.singular(name)}Columns`)
-    .join(',\n  ')}
+  ${
+    transformedNames.length
+      ? transformedNames
+          .map(([name, newName]) => `${snakeify(name)}: ${pluralize.singular(name)}Columns`)
+          .join(',\n  ')
+      : 'placeholder: {}'
+  }
 }
 `
   return newFileContents
