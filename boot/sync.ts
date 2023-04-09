@@ -26,7 +26,7 @@ export default async function sync() {
     await sspawn(
       'rm src/sync/schema.ts && rm src/sync/dream.ts && ' +
         `cp ./${yamlConf.schema_path} ./src/sync && ` +
-        `cp ./${yamlConf.dream_config_path}.ts ./src/sync`
+        `cp ./${yamlConf.dream_config_path} ./src/sync`
     )
   }
 
