@@ -1,4 +1,4 @@
-export { default as dream } from './dream'
+export { default as dream, DreamModel } from './dream'
 export { default as BelongsTo } from './decorators/associations/belongs-to'
 export { default as HasMany } from './decorators/associations/has-many'
 export { default as HasOne } from './decorators/associations/has-one'
