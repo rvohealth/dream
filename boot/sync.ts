@@ -15,7 +15,7 @@ export default async function sync() {
 
   console.log('syncing schema and dream config...')
   const yamlConf = await loadDreamYamlFile()
-  console.log('YAML CONF:', yamlConf)
+  console.log('YAML CONF:', yamlConf, process.env)
   if (process.env.CORE_DEVELOPMENT === '1') {
     await sspawn(
       'rm src/sync/schema.ts && rm src/sync/dream.ts && ' +
