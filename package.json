@@ -15,7 +15,7 @@
     "copy:models": "yarn ensure:models-file && yarn build && CORE_DEVELOPMENT=1 npx ts-node src/bin/copy-models.ts",
     "ensure:models-file": "CORE_DEVELOPMENT=1 npx ts-node boot/ensure-models-file.ts",
     "db:migrate": "ALREADY_AT_PROJECT_ROOT=1 npx ts-node src/bin/migrate.ts && yarn sync",
-    "core:db:migrate": "ALREADY_AT_PROJECT_ROOT=1 npx ts-node src/bin/migrate.ts && yarn sync-core",
+    "core:db:migrate": "ALREADY_AT_PROJECT_ROOT=1 npx ts-node src/bin/migrate.ts && yarn core:sync",
     "db:drop": "npx ts-node src/bin/db-drop.ts",
     "db:create": "npx ts-node src/bin/db-create.ts",
     "spec": "CORE_DEVELOPMENT=1 jest --runInBand --forceExit",
