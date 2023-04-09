@@ -246,6 +246,71 @@ describe('Dream#pluck', () => {
 })
 ```
 
+### CLI
+
+```bash
+yarn core:db:migrate
+# runs migrations for core development. Use this if you are working on the dream ORM source code.
+
+yarn db:migrate
+# runs migrations for an app that is consuming the dream ORM. This is meant to be run from another repo,
+# e.g. within a different app's package.json:
+#
+#  "scripts": {
+#     "db:migrate": "yarn --cwd=node_modules/dream db:migrate"
+# }
+
+yarn build
+# builds source code using the typescript compiler, sending it into the dist folder
+
+yarn sync
+# syncs db schema from an app that is consuming the dream ORM. This is necessary, because in order to provide
+# deep integration with kysely, we must actually introspect the schema of your app and provide it
+# as part of the dream orm source code build. It essentially scans your database, examines all tables, outputs interfaces that kysely can consume, puts them into a file, and exports all the interfaces within that file.
+
+# the sync command is already run as part of the migration sequence, so there should be no need to
+# run it manually. Simply run migrations to have the syncing done for you.
+
+# A copy of this is output to your app (though don't bother manually modifying it, since it is blown away each
+# time you run migrations). It is then copied over to the node_modules/dream/src/sync folder, so that importing
+# the dream orm can provide that integration for you.
+
+# This is meant to be run from another repo,
+# e.g. within a different app's package.json:
+#
+#  "scripts": {
+#     "sync": "yarn --cwd=node_modules/dream sync"
+# }
+
+yarn core:sync
+# runs the same sync script mentioned above, but for core development. You would run this if you were trying to
+# sync for the test-app, which is used to seed the local tests and provide models for use within the console.
+# Similar to above, a local copy of schema is kept within test-app/db/schema.ts, which is updated each time you
+# run yarn core:db:migrate.
+
+yarn copy:boilerplate
+# copies default templated files to sit in place of real schema files. This is generally only done on installation, since In the beginning you have no migrations and the app still needs to import something.
+
+yarn db:drop
+# drops the db for either the core app or a consuming app (which is why there is no "core:db:drop" variant)
+
+yarn db:create
+# creates the db for either the core app or a consuming app (which is why there is no "core:db:create" variant)
+
+yarn spec
+# runs core development specs
+
+yarn console
+# opens console, providing access to the internal test-app/app/models folder.
+
+yarn dream
+# opens a small node cli program, which right now only provides commands for generating dreams and migrations,
+# but which will likely eventually encompass all of the above commands
+
+yarn core:dream
+# similar to above, but with CORE_DEVELOPMENT=1 set, so that the test-app structure is used for outputting files.
+```
+
 ### Contributing
 
 Though the spec framework isn't entirely comprehensive, this application was built with a BDD philosophy guiding its foundation, using tests that actually excercize the ORM from front to back, rather than relying on lot's of stubbing of internal modules.
