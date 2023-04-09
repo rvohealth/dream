@@ -92,7 +92,7 @@ export const DBColumns = {
       ? transformedNames
           .map(([name, newName]) => `${snakeify(name)}: ${pluralize.singular(name)}Columns`)
           .join(',\n  ')
-      : 'placeholder: {}'
+      : 'placeholder: string[]'
   }
 }
 `
