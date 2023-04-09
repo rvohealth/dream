@@ -258,28 +258,29 @@ I am not writing tests for internal functions for the most part, though if you f
 
 general:
 
-- <DANIEL>separate query builders from dream if possible
-- <DANIEL>recursivley scan models dir
+- DANIEL separate query builders from dream if possible
+- DANIEL recursivley scan models dir
 - uuid support
 - finish building migration runner
   - DONE create
   - DONE drop
-  - <HELPER>rollback
+  - HELPER rollback
 - DONE stabilize syncing behavior
-- <DANIEL> fix intermittent db:migration error on frist run
+- DANIEL fix intermittent db:migration error on frist run
 - DONE add repl
 - move sync to .sync
-- see about moving test-app to root dir, or at least out of src folder. If not, rename to .test-app?
-- <HELPER>ensure creating blank models saves to db correctly
-- <OPTING OUT>camelize attributes
+- DONE see about moving test-app to root dir, or at least out of src folder. If not, rename to .test-app?
+- HELPER ensure creating blank models saves to db correctly
+- OPTING OUT camelize attributes
 - allow passing of models directly as arguments, maybe?
-- <DANIEL> add type guards around load method (at worst, we could generate types and spit out into sync folder)
-- add boilerplate stubbing for schema and models files, since they are generated.
+- DANIEL add type guards around load method (at worst, we could generate types and spit out into sync folder)
+- DONE add boilerplate stubbing for schema and models files, since they are generated.
 - updated at field should auto-update
 - DONE update sync to swap luxon timestamp type for a luxon-driven type
 - DONE marhsal db objects to DateTime when initializing a dream instance
 - DONE ensure plucking also marshals dates to datetime
 - DONE unify static methods and query builder implementations
+- DONE add boilerplate create-dream-app repo, which is set up to play with dream orm, and make sure it works
 - clean up type chaos sweep 1
 - clean up type chaos sweep 2 (may need assistance at this stage depending on how much gets done in sweep 1)
 - replace ALREADY_AT_PROJECT_ROOT with arg passed to function with arg calledFromProjectRoot: boolean
@@ -295,12 +296,12 @@ static:
 - DONE destroyBy
 - DONE select
 - DONE pluck
-- <HELPER>distinct
-- <HELPER>having
-- <DANIEL>joins
-- <DANIEL>includes
-- <DANIEL OR HELPER>or
-- <DANIEL OR HELPER>not
+- HELPER distinct
+- HELPER having
+- DANIEL joins
+- DANIEL includes
+- DANIEL OR HELPER or
+- DANIEL OR HELPER not
 - DONE sql
 - DONE first
 - DONE last
@@ -328,23 +329,23 @@ query:
 - DONE sql
 - DONE select
 - DONE pluck
-- <HELPER>distinct
-- <HELPER>having
-- <DANIEL>joins
-- <DANIEL>includes
-- <DANIEL>or
-- <DANIEL>not
+- HELPER distinct
+- HELPER having
+- DANIEL joins
+- DANIEL includes
+- DANIEL or
+- DANIEL not
 - where needs complex expressions
   - DONE time ranges (.where({ created_at: { start?: Date, end?: Date, omitEnd?: true } }))
   - DONE in
   - DONE like
   - DONE ilike
-  - <HELPER>is
-  - <HELPER>gt
-  - <HELPER>lt
-  - <HELPER>match
-  - <HELPER>operator (catch all for other expressions (full list commented below))
-  - <HELPER>not (this one will apply a negation clause to the statement passed to it)
+  - HELPER is
+  - HELPER gt
+  - HELPER lt
+  - HELPER match
+  - HELPER operator (catch all for other expressions (full list commented below))
+  - HELPER not (this one will apply a negation clause to the statement passed to it)
     // "=", "==", "!=", "<>", ">", ">=", "<", "<=", "in", "not in",
     // "is", "is not", "like", "not like", "match", "ilike",
     // "not ilike", "@>", "<@", "?", "?&", "!<", "!>",
@@ -352,7 +353,7 @@ query:
 - DONE all
 - DONE first
 - DONE last
-- <DANIEL>add backdoor for manual access to kysely query
+- DANIEL add backdoor for manual access to kysely query
 
 relations:
 
@@ -364,11 +365,11 @@ relations:
 - DONE nested has many through
 - DONE nested has one through
 - DONE pass custom through key
-- <HELPER>has_many through belongs_to
+- HELPER has_many through belongs_to
 - DONE has_one through belongs_to
-- <DANIEL>belongs to polymorphic
-- <DANIEL>belongs to through polymorphic
-- <DANIEL>nested belongs to through polymorphic
+- DANIEL belongs to polymorphic
+- DANIEL belongs to through polymorphic
+- DANIEL nested belongs to through polymorphic
 
 hooks:
 
@@ -393,14 +394,14 @@ validations:
   - DONE length
   - DONE contains
   - DONE presence
-  - <HELPER>numericality
-  - <HELPER>uniqueness
-  - <HELPER>inclusion
-  - <HELPER>exclusion
-  - <HELPER>format
-  - <HELPER>custom validations (validatesWith?)
-  - <HELPER>comparison (https://guides.rubyonrails.org/active_record_validations.html#comparison)
-- <DANIEL>add type guards to validator
+  - HELPER numericality
+  - HELPER uniqueness
+  - HELPER inclusion
+  - HELPER exclusion
+  - HELPER format
+  - HELPER custom validations (validatesWith?)
+  - HELPER comparison (https://guides.rubyonrails.org/active_record_validations.html#comparison)
+- DANIEL add type guards to validator
 
 scopes:
 
@@ -410,8 +411,8 @@ scopes:
 
 cli:
 
-- generate migration
-- generate dream
+- DONE generate migration
+- DONE generate dream
 
 framework:
 
