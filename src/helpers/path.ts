@@ -20,7 +20,7 @@ export async function loadDreamYamlFile() {
   if (_yamlCache) return _yamlCache
 
   const file = await loadFile(
-    projectRootPath({ filepath: process.env.CORE_DEVELOPMENT === '1' ? '.dream.yml' : '.dream.yml' })
+    projectRootPath({ filepath: process.env.CORE_DEVELOPMENT === '1' ? '.dream.yml' : '../../.dream.yml' })
   )
   const config = (await YAML.parse(file.toString())) as DreamYamlFile
 
