@@ -15,8 +15,8 @@ const cooercedTypes = {
   cidr: 'string',
   circle: 'string',
   citext: 'string',
-  date: 'Date',
-  datetime: 'Date',
+  date: 'DateTime',
+  datetime: 'DateTime',
   double: 'string',
   float: 'number', // custom
   inet: 'string',
@@ -40,8 +40,8 @@ const cooercedTypes = {
   smallserial: 'string',
   serial: 'string',
   text: 'string',
-  time: 'Date',
-  timestamp: 'Date',
+  time: 'DateTime',
+  timestamp: 'DateTime',
   tsquery: 'string',
   tsvector: 'string',
   txid_snapshot: 'string',
@@ -60,6 +60,7 @@ export default function generateDreamContent(
 ) {
   const dreamImports: string[] = ['dream', 'Column']
 
+  const idDBType = useUUID ? 'uuid' : 'integer'
   const idTypescriptType = useUUID ? 'string' : 'number'
 
   const additionalImports: string[] = []
@@ -77,11 +78,11 @@ export default function generateDreamContent(
         additionalImports.push(associationImportStatement)
         let belongsToOptions = descriptors.includes('many_to_one') ? ", { mode: 'many_to_one' }" : ''
         return `\
-@Column('${idTypescriptType})
-public ${attributeName}Id: ${idTypescriptType}
+@Column('${idDBType}')
+public ${attributeName}_id: ${idTypescriptType}
 
 @BelongsTo(() => ${pascalize(attributeName)}${belongsToOptions})
-public ${attributeName}: ${pascalize(attributeName)}\
+public ${camelize(attributeName)}: ${pascalize(attributeName)}\
 `
 
       case 'has_one':
@@ -110,22 +111,23 @@ public ${attributeName}: ${(cooercedTypes as any)[attributeType] || attributeTyp
 
   const timestamps = `
   @Column('datetime')
-  public createdAt: Date
+  public created_at: DateTime
 
   @Column('datetime')
-  public updatedAt: Date`
+  public updated_at: DateTime`
 
   const tableName = snakeify(pluralize(modelName))
   const uniqueSequelizeImports = [...new Set(dreamImports)]
 
   return `\
-import { ${dreamImports.join(', ')} } from 'dream'${
+import { DateTime } from 'luxon'
+import { ${[...new Set(dreamImports)].join(', ')} } from 'dream'${
     !!additionalImports.length ? '\n' + additionalImports.join('\n') : ''
   }
 
 const Dream = dream('${tableName}')
-export default class ${pascalize(pluralize.singular(modelName))} extends dream {
-  @Column('${idTypescriptType}')
+export default class ${pascalize(pluralize.singular(modelName))} extends Dream {
+  @Column('${idDBType}')
   public id: ${idTypescriptType}
 
   ${attributeStatements.map(s => s.split('\n').join('\n  ')).join('\n\n  ')}
