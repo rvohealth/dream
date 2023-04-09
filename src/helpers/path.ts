@@ -50,8 +50,8 @@ export function projectRootPath({
     if (process.env.CORE_DEVELOPMENT === '1') {
       return path.join(...compact([dirname, filepath]))
     } else {
-      console.log('DEBUG:', compact([dirname, '..', '..', filepath]))
-      return path.join(...compact([dirname, '..', '..', filepath]))
+      console.log('DEBUG:', compact([dirname, '..', '..', '..', '..', filepath]))
+      return path.join(...compact([dirname, '..', '..', '..', '..', filepath]))
     }
   } else {
     if (process.env.CORE_DEVELOPMENT === '1') {
