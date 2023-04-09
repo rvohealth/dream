@@ -4,7 +4,7 @@ describe('dream generate:model <name> [...attributes]', () => {
   context('when provided attributes', () => {
     context('string attributes', () => {
       it('generates a sequelize migration with multiple text fields', async () => {
-        const res = generateMigrationContent('create-users', 12345, {
+        const res = generateMigrationContent({
           table: 'users',
           attributes: [
             'email:string',
@@ -46,7 +46,7 @@ export async function down(db: Kysely<any>): Promise<void> {
 
     context('belongs_to attribute is passed', () => {
       it('generates a sequelize model with the belongs_to association', async () => {
-        const res = generateMigrationContent('create-compositions', 12345, {
+        const res = generateMigrationContent({
           table: 'compositions',
           attributes: ['user:belongs_to'],
           useUUID: false,
@@ -76,7 +76,7 @@ export async function down(db: Kysely<any>): Promise<void> {
 
     context('belongs_to attribute is passed AND useUUID=false', () => {
       it('generates a sequelize model with the belongs_to association', async () => {
-        const res = generateMigrationContent('create-compositions', 12345, {
+        const res = generateMigrationContent({
           table: 'compositions',
           attributes: ['user:belongs_to'],
           useUUID: true,
@@ -106,7 +106,7 @@ export async function down(db: Kysely<any>): Promise<void> {
 
     context('has_one attribute is passed', () => {
       it('ignores the attribute', async () => {
-        const res = generateMigrationContent('create-compositions', 12345, {
+        const res = generateMigrationContent({
           table: 'compositions',
           attributes: ['user:has_one'],
           useUUID: true,
@@ -135,7 +135,7 @@ export async function down(db: Kysely<any>): Promise<void> {
 
     context('has_many attribute is passed', () => {
       it('ignores the attribute', async () => {
-        const res = generateMigrationContent('create-compositions', 12345, {
+        const res = generateMigrationContent({
           table: 'compositions',
           attributes: ['user:has_many'],
           useUUID: true,

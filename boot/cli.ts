@@ -43,7 +43,89 @@ program
   .option('--core', 'sets core to true')
   .action(async () => {
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(`${coreDevFlag}npx ts-node src/bin/migrate.ts && yarn sync`)
+    await sspawn(
+      `${coreDevFlag}npx ts-node src/bin/migrate.ts && ${
+        process.env.CORE_DEVELOPMENT === '1' ? 'yarn dream sync --core' : 'yarn dream sync'
+      }`
+    )
+  })
+
+program
+  .command('sync')
+  .description(
+    'sync introspects your database, updating your schema to reflect, and then syncs the new schema with the installed dream node module, allowing it provide your schema to the underlying kysely integration'
+  )
+  .option('--core', 'sets core to true')
+  .action(async () => {
+    const coreDevFlag = setCoreDevelopmentFlag(program.args)
+    await sspawn(`${coreDevFlag}npx ts-node boot/sync.ts`)
+  })
+
+program
+  .command('db:create')
+  .description(
+    'creates a new database, seeding from local .env or .env.test if NODE_ENV=test is set for env vars'
+  )
+  .option('--core', 'sets core to true')
+  .action(async () => {
+    const coreDevFlag = setCoreDevelopmentFlag(program.args)
+    await sspawn(`${coreDevFlag}npx ts-node src/bin/db-create.ts`)
+  })
+
+program
+  .command('db:drop')
+  .description(
+    'drops the database, seeding from local .env or .env.test if NODE_ENV=test is set for env vars'
+  )
+  .option('--core', 'sets core to true')
+  .action(async () => {
+    const coreDevFlag = setCoreDevelopmentFlag(program.args)
+    await sspawn(`${coreDevFlag}npx ts-node src/bin/db-drop.ts`)
+  })
+
+program
+  .command('copy:boilerplate')
+  .description(
+    'copies a boilerplate template for schema.ts and dream.ts, which are both provided to the dream framework'
+  )
+  .option('--core', 'sets core to true')
+  .action(async () => {
+    setCoreDevelopmentFlag(program.args)
+    if (process.env.CORE_DEVELOPMENT === '1') {
+      await sspawn(`npx ts-node boot/copy-boilerplate.ts`)
+    } else {
+      throw 'this command is not meant for use outside core development'
+    }
+  })
+
+program
+  .command('spec')
+  .description(
+    'copies a boilerplate template for schema.ts and dream.ts, which are both provided to the dream framework'
+  )
+  .option('--core', 'sets core to true')
+  .action(async () => {
+    setCoreDevelopmentFlag(program.args)
+    if (process.env.CORE_DEVELOPMENT === '1') {
+      await sspawn(`CORE_DEVELOPMENT=1 jest --runInBand --forceExit`)
+    } else {
+      throw 'this command is not meant for use outside core development'
+    }
+  })
+
+program
+  .command('console')
+  .description('initiates a repl, loading the models from the development test-app into scope for easy use')
+  .option('--core', 'sets core to true')
+  .action(async () => {
+    setCoreDevelopmentFlag(program.args)
+    if (process.env.CORE_DEVELOPMENT === '1') {
+      await sspawn(
+        `yarn build && CORE_DEVELOPMENT=1 NODE_ENV=development npx ts-node --project ./tsconfig.json ./test-app/conf/repl.ts`
+      )
+    } else {
+      throw 'this command is not meant for use outside core development'
+    }
   })
 
 program.parse()

@@ -32,13 +32,13 @@ DB_HOST=localhost
 
 ```bash
 yarn install
-yarn db:create
-yarn core:db:migrate
-yarn core:sync
+yarn dream db:create --core
+yarn dream db:migrate --core
+yarn dream sync --core
 
 # note: migrations sometimes break rn, if this happens, do this to fix:
-yarn core:sync
-yarn core:db:migrate
+yarn dream sync --core
+yarn dream db:migrate --core
 ```
 
 ## Features
@@ -249,10 +249,23 @@ describe('Dream#pluck', () => {
 ### CLI
 
 ```bash
-yarn core:db:migrate
+yarn build
+# builds source code using the typescript compiler, sending it into the dist folder
+
+yarn spec
+# runs core development specs (same as yarn dream spec --core)
+
+yarn console
+# opens console, providing access to the internal test-app/app/models folder (same as yarn dream console --core)
+
+yarn dream
+# opens a small node cli program, which right now only provides commands for generating dreams and migrations,
+# but which will likely eventually encompass all of the above commands
+
+yarn dream db:migrate --core
 # runs migrations for core development. Use this if you are working on the dream ORM source code.
 
-yarn db:migrate
+yarn dream db:migrate
 # runs migrations for an app that is consuming the dream ORM. This is meant to be run from another repo,
 # e.g. within a different app's package.json:
 #
@@ -260,10 +273,7 @@ yarn db:migrate
 #     "db:migrate": "yarn --cwd=node_modules/dream db:migrate"
 # }
 
-yarn build
-# builds source code using the typescript compiler, sending it into the dist folder
-
-yarn sync
+yarn dream sync
 # syncs db schema from an app that is consuming the dream ORM. This is necessary, because in order to provide
 # deep integration with kysely, we must actually introspect the schema of your app and provide it
 # as part of the dream orm source code build. It essentially scans your database, examines all tables, outputs interfaces that kysely can consume, puts them into a file, and exports all the interfaces within that file.
@@ -282,33 +292,20 @@ yarn sync
 #     "sync": "yarn --cwd=node_modules/dream sync"
 # }
 
-yarn core:sync
+yarn dream sync --core
 # runs the same sync script mentioned above, but for core development. You would run this if you were trying to
 # sync for the test-app, which is used to seed the local tests and provide models for use within the console.
 # Similar to above, a local copy of schema is kept within test-app/db/schema.ts, which is updated each time you
 # run yarn core:db:migrate.
 
-yarn copy:boilerplate
+yarn dream copy:boilerplate --core
 # copies default templated files to sit in place of real schema files. This is generally only done on installation, since In the beginning you have no migrations and the app still needs to import something.
 
-yarn db:drop
+yarn dream db:drop --core
 # drops the db for either the core app or a consuming app (which is why there is no "core:db:drop" variant)
 
-yarn db:create
+yarn dream db:create --core
 # creates the db for either the core app or a consuming app (which is why there is no "core:db:create" variant)
-
-yarn spec
-# runs core development specs
-
-yarn console
-# opens console, providing access to the internal test-app/app/models folder.
-
-yarn dream
-# opens a small node cli program, which right now only provides commands for generating dreams and migrations,
-# but which will likely eventually encompass all of the above commands
-
-yarn core:dream
-# similar to above, but with CORE_DEVELOPMENT=1 set, so that the test-app structure is used for outputting files.
 ```
 
 ### Contributing

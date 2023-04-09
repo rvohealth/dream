@@ -9,18 +9,10 @@
   "private": true,
   "scripts": {
     "build": "rm -rf dist && npx tsc",
-    "sync": "npx ts-node boot/sync.ts",
-    "core:sync": "CORE_DEVELOPMENT=1 npx ts-node boot/sync.ts",
-    "copy:boilerplate": "npx ts-node boot/copy-boilerplate.ts",
-    "db:migrate": "npx ts-node src/bin/migrate.ts && yarn sync",
-    "core:db:migrate": "CORE_DEVELOPMENT=1 npx ts-node src/bin/migrate.ts && yarn core:sync",
-    "db:drop": "npx ts-node src/bin/db-drop.ts",
-    "db:create": "npx ts-node src/bin/db-create.ts",
-    "spec": "CORE_DEVELOPMENT=1 jest --runInBand --forceExit",
-    "console": "yarn build && CORE_DEVELOPMENT=1 NODE_ENV=development npx ts-node --project ./tsconfig.json ./test-app/conf/repl.ts",
+    "spec": "yarn dream spec --core",
+    "console": "yarn dream console --core",
     "dream": "npx ts-node ./boot/cli.ts",
-    "core:dream": "CORE_DEVELOPMENT=1 npx ts-node ./boot/cli.ts",
-    "postinstall": "yarn copy:boilerplate"
+    "postinstall": "yarn dream copy:boilerplate --core"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",
