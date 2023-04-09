@@ -4,7 +4,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('compositions')
     .addColumn('id', 'serial', col => col.primaryKey())
-    .addColumn('user_id', 'serial', col => col.notNull())
+    .addColumn('user_id', 'serial', col => col.references('users.id').onDelete('cascade').notNull())
     .addColumn('content', 'text')
     .addColumn('flexible_id', 'serial')
     .addColumn('flexible_type', 'serial')
