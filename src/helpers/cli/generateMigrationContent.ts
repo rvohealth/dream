@@ -4,7 +4,7 @@ import pascalize from '../../../src/helpers/pascalize'
 const typeCoersions = {
   citext: 'citext',
   date: 'date',
-  datetime: 'datetime',
+  datetime: 'timestamp',
   string: 'text',
   timestamp: 'timestamp',
 }
@@ -64,7 +64,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropTable('users').execute()
+  await db.schema.dropTable('${table}').execute()
 }\
 `
 }
@@ -87,7 +87,10 @@ function generateColumnStr(attributeName: string, attributeType: string, descrip
 function generateBelongsToStr(attributeName: string, { useUUID }: { useUUID: boolean }) {
   const dataType = `${useUUID ? 'uuid' : 'serial'}`
   const references = pluralize(attributeName.replace(/_id$/, ''))
-  return `.addColumn('${attributeName}', '${dataType}', col => col.references('${references}.id').onDelete('cascade').notNull())`
+  return `.addColumn('${attributeName.replace(
+    /_id$/,
+    ''
+  )}_id', '${dataType}', col => col.references('${references}.id').onDelete('cascade').notNull())`
 }
 
 function generateIdStr({ useUUID }: { useUUID: boolean }) {
