@@ -46,7 +46,7 @@ program
     await sspawn(
       `${coreDevFlag}npx ts-node src/bin/migrate.ts && ${
         process.env.CORE_DEVELOPMENT === '1' ? 'yarn dream sync --core' : 'yarn dream sync'
-      }`
+      } && yarn build`
     )
   })
 
@@ -59,6 +59,7 @@ program
   .action(async () => {
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
     await sspawn(`${coreDevFlag}npx ts-node boot/sync.ts`)
+    await sspawn(`${coreDevFlag}yarn build`)
   })
 
 program
