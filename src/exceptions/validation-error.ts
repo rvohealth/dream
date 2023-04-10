@@ -1,8 +1,8 @@
 import { ValidationType } from '../decorators/validations/shared'
 
 export default class ValidationError extends Error {
-  private dreamClassName: string
-  private errors: { [key: string]: ValidationType[] }
+  public dreamClassName: string
+  public errors: { [key: string]: ValidationType[] }
   constructor(dreamClassName: string, errors: { [key: string]: ValidationType[] }) {
     super()
     this.dreamClassName = dreamClassName
