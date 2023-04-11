@@ -64,7 +64,6 @@ async function enhanceSchema(file: string) {
   const interfaces = file.split(/export interface/g)
   const results = interfaces.slice(1, interfaces.length)
 
-  const transformedInterfaces = compact(results.map(result => transformInterface(result)))
   const interfaceKeyIndexes = compact(results.map(result => indexInterfaceKeys(result)))
   let transformedNames = compact(results.map(result => transformName(result))) as [string, string][]
 
@@ -97,28 +96,6 @@ ${file.replace(
 
 function replaceBlankExport(str: string) {
   return str.replace(/export interface DB \{\}/, 'export interface DB { placeholder: {} }')
-}
-
-function transformInterface(str: string) {
-  const name = str.split(' {')[0].replace(/\s/g, '')
-  if (name === 'DB') return null
-
-  const attributes = str
-    .split('{')[1]
-    .split('\n')
-    .filter(str => !['', '}'].includes(str.replace(/\s/g, '')))
-
-  return `\
-export interface ${pluralize.singular(name)}Opts {
-  ${attributes
-    .map(attr => {
-      const key = attr.split(':')[0].replace(/\s/g, '')
-      const val = attr.split(':')[1]
-      return `${camelize(key)}?: ${val}`
-    })
-    .join('\n  ')}
-}\ 
-`
 }
 
 function indexInterfaceKeys(str: string) {
