@@ -71,17 +71,7 @@ async function enhanceSchema(file: string) {
   const newFileContents = `
 ${file}
 
-${transformedInterfaces.join('\n')}
-
 ${interfaceKeyIndexes.join('\n')}
-
-export interface DBOpts {
-  ${
-    transformedNames.length
-      ? transformedNames.map(([name, newName]) => `${snakeify(name)}: ${newName}`).join('\n  ')
-      : 'placeholder: {}'
-  }
-}
 
 export const DBColumns = {
   ${
