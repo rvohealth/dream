@@ -2,7 +2,7 @@
   "name": "dream",
   "version": "0.0.0",
   "description": "dream orm",
-  "main": "dist/src/index.js",
+  "main": "src/index.ts",
   "repository": "https://github.com/avocadojesus/dream.git",
   "author": "avocadojesust",
   "license": "MIT",
