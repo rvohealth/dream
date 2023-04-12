@@ -14,10 +14,15 @@ buildAssociations()
 
 async function writeAssociationsFile() {
   const models = Object.values(await loadModels()) as any[]
-  const finalModels: { [key: string]: string[] } = {}
+  const finalModels: { [key: string]: { names: string[]; nameTableMap: { [key: string]: string } } } = {}
   for (const model of models) {
-    finalModels[model.table] ||= []
-    finalModels[model.table] = [...new Set([...finalModels[model.table], ...new model().associationNames])]
+    finalModels[model.table] ||= { names: [], nameTableMap: {} }
+    finalModels[model.table].names = [
+      ...new Set([...finalModels[model.table].names, ...new model().associationNames]),
+    ]
+    for (const associationName of new model().associationNames) {
+      finalModels[model.table].nameTableMap[associationName] = new model().associationMap[associationName].to
+    }
   }
   const filePath = path.join(__dirname, '..', 'sync', 'associations.ts')
 
@@ -31,10 +36,18 @@ async function writeAssociationsFile() {
 export default ${JSON.stringify(finalModels, null, 2)}
 
 export interface SyncedAssociations {
-  ${Object.keys(finalModels).map(
-    table => `"${table}": ${finalModels[table].map(association => `"${association}"`).join(' | ')}`
-  )}
-} 
+  ${Object.keys(finalModels)
+    .map(
+      table => `\
+  "${table}": {
+    AssociationName: ${finalModels[table].names.map(association => `"${association}"`).join(' | ')},
+    AssociationTableMap: {\n${Object.keys(finalModels[table].nameTableMap)
+      .map(association => `"${association}": "${finalModels[table].nameTableMap[association]}"`)
+      .join('\n  ')}}\n  `
+    )
+    .join('}\n  ')}
+  } 
+}
   `
   await fs.writeFile(filePath, str)
   await fs.writeFile(clientFilePath, str)
