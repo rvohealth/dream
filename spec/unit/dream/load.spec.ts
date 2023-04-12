@@ -52,6 +52,14 @@ describe('Dream#load', () => {
     expect(user.mainComposition!.attributes).toEqual(composition1.attributes)
   })
 
+  it('can handle object notation', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const composition = await Composition.create({ user_id: user.id })
+    const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+
+    // await user.load({ mainComposition: ['compositionAssets'] })
+  })
+
   it('loads a BelongsTo association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ user_id: user.id })
@@ -60,6 +68,17 @@ describe('Dream#load', () => {
     expect(composition.user!.isDreamInstance).toEqual(true)
     expect(composition.user!.attributes).toEqual(user.attributes)
   })
+
+  // describe('nested associations', () => {
+  //   it.only('can load an association on a child', async () => {
+  //     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+  //     const composition = await Composition.create({ user_id: user.id })
+
+  //     await user.load('composition')
+  //     expect(composition.user!.isDreamInstance).toEqual(true)
+  //     expect(composition.user!.attributes).toEqual(user.attributes)
+  //   })
+  // })
 
   describe('through associations', () => {
     it('loads a HasOne through HasMany association', async () => {
