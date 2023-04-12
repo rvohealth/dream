@@ -489,6 +489,6 @@ framework:
 
 - build cli scripts to mirror dream cli commands, providing migration and repl commands
 - determine if dream being a dependency of this framework, which then reaches into another app to consume is a problematic pattern, and solve for it if it is
-- import server, router, and controller modules from howl and adapt to mould around dream orm
+- PARTIALLY DONE import server, router, and controller modules from howl and adapt to mould around dream orm
 - add resource generator, tapping into underlying model generator api from dream orm
-- rebuild implicit auth mechanisms in controller layer to work with dream ORM
+- PARTIALLY DONE rebuild implicit auth mechanisms in controller layer to work with dream ORM
