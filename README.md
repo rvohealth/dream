@@ -344,7 +344,7 @@ general:
 - HELPER ensure creating blank models saves to db correctly
 - OPTING OUT camelize attributes
 - allow passing of models directly as arguments, maybe?
-- DANIEL add type guards around load method (at worst, we could generate types and spit out into sync folder)
+- DONE (DANIEL) add type guards around load method (at worst, we could generate types and spit out into sync folder)
 - DONE add boilerplate stubbing for schema and models files, since they are generated.
 - updated at field should auto-update
 - DONE update sync to swap luxon timestamp type for a luxon-driven type
