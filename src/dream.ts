@@ -306,81 +306,88 @@ export default function dream<
       return (this.constructor as typeof Dream).table
     }
 
-    public async load<DreamClass extends Dream, AE extends string | number>(
+    public async load<DreamClass extends Dream, AE extends string | string[]>(
       this: DreamClass,
       ...associations: AssociationExpression<DreamClass['table'], AE>[]
     ): Promise<void> {
-      for (const association of associations) {
-        const [type, realAssociation] = associationMetadataFor(association, this)
-        if (!type || !realAssociation) throw `Association not found: ${association}`
+      for (let association of associations) {
+        if (Array.isArray(association)) {
+          await this.load(...(association as any))
+        } else {
+          const [type, associationMetadata] = associationMetadataFor(
+            association as SyncedAssociations[DreamClass['table']]['AssociationName'],
+            this
+          )
+          if (!type || !associationMetadata) throw `Association not found: ${association}`
 
-        const id = (this as any)[(this.constructor as typeof Dream).primaryKey]
-        if (!id) throw `Cannot load association on unpersisted record`
+          const id = (this as any)[(this.constructor as typeof Dream).primaryKey]
+          if (!id) throw `Cannot load association on unpersisted record`
 
-        const ModelClass = realAssociation.modelCB()
+          const ModelClass = associationMetadata.modelCB()
 
-        switch (type) {
-          case 'hasOne':
-            const hasOneAssociation = realAssociation as HasOneStatement<TableName>
-            if (hasOneAssociation.through) {
-              let hasOneQuery = db.selectFrom(hasOneAssociation.to)
+          switch (type) {
+            case 'hasOne':
+              const hasOneAssociation = associationMetadata as HasOneStatement<TableName>
+              if (hasOneAssociation.through) {
+                let hasOneQuery = db.selectFrom(hasOneAssociation.to)
+                // apply scopes here
+                hasOneQuery = loadHasManyThrough(
+                  hasOneAssociation,
+                  hasOneQuery,
+                  this.constructor as any,
+                  this
+                ) as SelectQueryBuilder<DB, keyof DB, {}>
+                const hasOneResults = await hasOneQuery.execute()
+                if (hasOneResults[0]) (this as any)[association] = new ModelClass(hasOneResults[0])
+              } else {
+                let hasOneQuery = db.selectFrom(hasOneAssociation.to)
+                // apply scopes here
+                const hasOneResult = await hasOneQuery
+                  .where(hasOneAssociation.foreignKey() as any, '=', id)
+                  .selectAll()
+                  .executeTakeFirst()
+
+                ;(this as any)[association] = new ModelClass(hasOneResult)
+              }
+              break
+
+            case 'hasMany':
+              const hasManyAssociation = associationMetadata as HasManyStatement<TableName>
+
+              if (hasManyAssociation.through) {
+                let hasManyQuery = db.selectFrom(hasManyAssociation.to)
+                // apply scopes here
+                hasManyQuery = loadHasManyThrough(
+                  hasManyAssociation,
+                  hasManyQuery,
+                  this.constructor as any,
+                  this
+                ) as SelectQueryBuilder<DB, keyof DB, {}>
+                const hasManyResults = await hasManyQuery.execute()
+                ;(this as any)[association] = hasManyResults.map(r => new ModelClass(r))
+              } else {
+                const hasManyQuery = db.selectFrom(associationMetadata.to)
+                // apply scopes here
+                const hasManyResults = await hasManyQuery
+                  .where(associationMetadata.foreignKey() as any, '=', id)
+                  .selectAll()
+                  .execute()
+                ;(this as any)[association] = hasManyResults.map(r => new ModelClass(r))
+              }
+              break
+
+            case 'belongsTo':
+              const belongsToAssociation = associationMetadata as BelongsToStatement<TableName>
+              const foreignKey = (this as any)[belongsToAssociation.foreignKey()]
+              const belongsToQuery = db.selectFrom(associationMetadata.to)
               // apply scopes here
-              hasOneQuery = loadHasManyThrough(
-                hasOneAssociation,
-                hasOneQuery,
-                this.constructor as any,
-                this
-              ) as SelectQueryBuilder<DB, keyof DB, {}>
-              const hasOneResults = await hasOneQuery.execute()
-              if (hasOneResults[0]) (this as any)[association] = new ModelClass(hasOneResults[0])
-            } else {
-              let hasOneQuery = db.selectFrom(hasOneAssociation.to)
-              // apply scopes here
-              const hasOneResult = await hasOneQuery
-                .where(hasOneAssociation.foreignKey() as any, '=', id)
+              const belongsToResult = await belongsToQuery
+                .where(ModelClass.primaryKey as any, '=', foreignKey)
                 .selectAll()
                 .executeTakeFirst()
-
-              ;(this as any)[association] = new ModelClass(hasOneResult)
-            }
-            break
-
-          case 'hasMany':
-            const hasManyAssociation = realAssociation as HasManyStatement<TableName>
-
-            if (hasManyAssociation.through) {
-              let hasManyQuery = db.selectFrom(hasManyAssociation.to)
-              // apply scopes here
-              hasManyQuery = loadHasManyThrough(
-                hasManyAssociation,
-                hasManyQuery,
-                this.constructor as any,
-                this
-              ) as SelectQueryBuilder<DB, keyof DB, {}>
-              const hasManyResults = await hasManyQuery.execute()
-              ;(this as any)[association] = hasManyResults.map(r => new ModelClass(r))
-            } else {
-              const hasManyQuery = db.selectFrom(realAssociation.to)
-              // apply scopes here
-              const hasManyResults = await hasManyQuery
-                .where(realAssociation.foreignKey() as any, '=', id)
-                .selectAll()
-                .execute()
-              ;(this as any)[association] = hasManyResults.map(r => new ModelClass(r))
-            }
-            break
-
-          case 'belongsTo':
-            const belongsToAssociation = realAssociation as BelongsToStatement<TableName>
-            const foreignKey = (this as any)[belongsToAssociation.foreignKey()]
-            const belongsToQuery = db.selectFrom(realAssociation.to)
-            // apply scopes here
-            const belongsToResult = await belongsToQuery
-              .where(ModelClass.primaryKey as any, '=', foreignKey)
-              .selectAll()
-              .executeTakeFirst()
-            ;(this as any)[association] = new ModelClass(belongsToResult)
-            break
+              ;(this as any)[association] = new ModelClass(belongsToResult)
+              break
+          }
         }
       }
     }
@@ -997,8 +1004,12 @@ export default function dream<
 
 export type AssociationExpression<
   TableName extends keyof DB,
-  Expression extends string | number
-> = Expression extends string ? SyncedAssociations[TableName]['AssociationName'] : never
+  Expression extends string | string[]
+> = Expression extends string
+  ? SyncedAssociations[TableName]['AssociationName']
+  : Expression extends string[]
+  ? SyncedAssociations[TableName]['AssociationName'][]
+  : never
 
 export interface IncludesStatement<
   TableName extends keyof DB,
