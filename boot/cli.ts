@@ -45,13 +45,27 @@ program
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
     await sspawn(
       `${coreDevFlag}npx ts-node src/bin/migrate.ts && ${
-        process.env.CORE_DEVELOPMENT === '1' ? 'yarn dream sync --core' : 'yarn dream sync'
-      } && yarn build`
+        process.env.CORE_DEVELOPMENT === '1' ? 'yarn dream build:types --core' : 'yarn dream build:types'
+      }`
     )
   })
 
 program
-  .command('sync')
+  .command('build:types')
+  .alias('build:all')
+  .description('runs yarn dream build:schema, then yarn dream build:associations')
+  .option('--core', 'sets core to true')
+  .action(async () => {
+    const coreDevFlag = setCoreDevelopmentFlag(program.args)
+    await sspawn(`yarn dream build:schema ${!!coreDevFlag ? '--core' : ''}`)
+    await sspawn(`yarn dream build:associations ${!!coreDevFlag ? '--core' : ''}`)
+    await sspawn(`${coreDevFlag}yarn build`)
+  })
+
+program
+  .command('build:schema')
+  .alias('sync')
+  .alias('introspect')
   .description(
     'sync introspects your database, updating your schema to reflect, and then syncs the new schema with the installed dream node module, allowing it provide your schema to the underlying kysely integration'
   )
@@ -59,7 +73,17 @@ program
   .action(async () => {
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
     await sspawn(`${coreDevFlag}npx ts-node boot/sync.ts`)
-    await sspawn(`${coreDevFlag}yarn build`)
+  })
+
+program
+  .command('build:associations')
+  .description(
+    'examines your current models, building a type-map of the associations so that the ORM can understand your relational setup. This is commited to your repo, and synced to the dream repo for consumption within the underlying library.'
+  )
+  .option('--core', 'sets core to true')
+  .action(async () => {
+    const coreDevFlag = setCoreDevelopmentFlag(program.args)
+    await sspawn(`${coreDevFlag}npx ts-node src/bin/build-associations.ts`)
   })
 
 program
@@ -109,6 +133,7 @@ program
     setCoreDevelopmentFlag(program.args)
     const files = program.args.filter(arg => /\.spec\.ts$/.test(arg))
     if (process.env.CORE_DEVELOPMENT === '1') {
+      await sspawn(`yarn dream build:types --core`)
       await sspawn(`CORE_DEVELOPMENT=1 jest --runInBand --forceExit ${files.join(' ')}`)
     } else {
       throw 'this command is not meant for use outside core development'
@@ -123,7 +148,7 @@ program
     setCoreDevelopmentFlag(program.args)
     if (process.env.CORE_DEVELOPMENT === '1') {
       await sspawn(
-        `yarn build && CORE_DEVELOPMENT=1 NODE_ENV=development npx ts-node --project ./tsconfig.json ./test-app/conf/repl.ts`
+        `yarn dream build:types --core && CORE_DEVELOPMENT=1 NODE_ENV=development npx ts-node --project ./tsconfig.json ./test-app/conf/repl.ts`
       )
     } else {
       throw 'this command is not meant for use outside core development'

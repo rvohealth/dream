@@ -75,6 +75,7 @@ export async function dreamsConfigPath({ omitDirname }: { omitDirname?: boolean 
 
 export interface DreamYamlFile {
   models_path: string
+  associations_path: string
   migrations_path: string
   schema_path: string
   dream_config_path: string

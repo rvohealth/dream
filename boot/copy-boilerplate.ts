@@ -24,6 +24,13 @@ export default async function copyBoilerplate() {
     console.log('dream file missing, adding boilerplate dream file')
     await sspawn('cp ./boot/boilerplate/sync/dream.ts ./src/sync/dream.ts')
   }
+
+  try {
+    await fs.statfs('./src/sync/associations.ts')
+  } catch (_) {
+    console.log('associations file missing, adding boilerplate dream file')
+    await sspawn('cp ./boot/boilerplate/sync/associations.ts ./src/sync/associations.ts')
+  }
 }
 
 copyBoilerplate()

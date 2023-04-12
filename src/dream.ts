@@ -28,6 +28,7 @@ import InStatement from './ops/in'
 import LikeStatement from './ops/like'
 import ILikeStatement from './ops/ilike'
 import { OpsStatement } from './ops'
+import { SyncedAssociations } from './sync/associations'
 
 export default function dream<
   TableName extends keyof DB & string,
@@ -265,8 +266,49 @@ export default function dream<
       this.frozenAttributes = { ...this.attributes }
     }
 
-    public async load<T extends Dream>(this: T, association: string) {
-      const [type, realAssociation] = associationMetadataFor(association, this)
+    public get associationMap() {
+      return (this.constructor as typeof Dream).associations
+    }
+
+    public get newAssociations() {
+      const allAssociations = [
+        ...this.associationMap.belongsTo,
+        ...this.associationMap.hasOne,
+        ...this.associationMap.hasMany,
+      ]
+
+      const map = {} as {
+        [key: typeof allAssociations[number]['as']]:
+          | BelongsToStatement<any>
+          | HasManyStatement<any>
+          | HasOneStatement<any>
+      }
+      for (const association of allAssociations) {
+        map[association.as] = association
+      }
+      return map
+    }
+
+    public get associationNames() {
+      const allAssociations = [
+        ...this.associationMap.belongsTo,
+        ...this.associationMap.hasOne,
+        ...this.associationMap.hasMany,
+      ]
+      return allAssociations.map(association => {
+        return association.as
+      })
+    }
+
+    public get table() {
+      return (this.constructor as typeof Dream).table
+    }
+
+    public async load<T extends Dream>(
+      this: T,
+      association: SyncedAssociations[T['table']]
+    ): Promise<InstanceType<ReturnType<typeof dream<keyof DB, any>>> | null> {
+      const [type, realAssociation] = associationMetadataFor(association as string, this)
       if (!type || !realAssociation) throw `Association not found: ${association}`
 
       const id = (this as any)[(this.constructor as typeof Dream).primaryKey]
@@ -338,7 +380,7 @@ export default function dream<
           break
       }
 
-      return (this as any)[association] as typeof ModelClass | null
+      return (this as any)[association] as InstanceType<ReturnType<typeof dream<keyof DB, any>>> | null
     }
 
     public async reload<T extends Dream>(this: T) {
