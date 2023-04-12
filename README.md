@@ -355,6 +355,7 @@ general:
 - clean up type chaos sweep 1
 - clean up type chaos sweep 2 (may need assistance at this stage depending on how much gets done in sweep 1)
 - DONE replace ALREADY_AT_PROJECT_ROOT with arg passed to function with arg calledFromProjectRoot: boolean
+- ensure blank arrays are removed from payloads before passing along to controllers (read up on rails practices here)
 
 static:
 

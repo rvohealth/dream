@@ -24,6 +24,20 @@ describe('Dream#load', () => {
     expect(user.compositions[1]!.attributes).toEqual(composition2.attributes)
   })
 
+  it('can sideload multiple associations at once', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const composition1 = await Composition.create({ user_id: user.id })
+    const composition2 = await Composition.create({ user_id: user.id })
+
+    await user.load('compositions', 'mainComposition')
+    expect(user.compositions[0]!.isDreamInstance).toEqual(true)
+    expect(user.compositions[0]!.attributes).toEqual(composition1.attributes)
+    expect(user.compositions[1]!.attributes).toEqual(composition2.attributes)
+
+    expect(user.mainComposition.isDreamInstance).toEqual(true)
+    expect(user.mainComposition!.attributes).toEqual(composition1.attributes)
+  })
+
   it('loads a BelongsTo association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ user_id: user.id })
