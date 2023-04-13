@@ -26,6 +26,7 @@ export default function HasMany<TableName extends keyof DB & string>(
         ...(target.constructor.associations.hasMany as HasManyStatement<any>[]),
         {
           modelCB,
+          type: 'HasMany',
           to: tableName,
           // TODO: abstract foreign key capture to helper, with optional override provided by the api
           foreignKey: () =>
@@ -43,6 +44,7 @@ export default function HasMany<TableName extends keyof DB & string>(
 
 export interface HasManyStatement<ForeignTablename extends keyof DB & string> {
   modelCB: () => ReturnType<typeof dream<ForeignTablename, any>>
+  type: 'HasMany'
   to: keyof DB & string
   foreignKey: () => keyof DB[ForeignTablename] & string
   as: string

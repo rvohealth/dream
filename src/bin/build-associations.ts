@@ -14,14 +14,11 @@ buildAssociations()
 
 async function writeAssociationsFile() {
   const models = Object.values(await loadModels()) as any[]
-  const finalModels: { [key: string]: { names: string[]; nameTableMap: { [key: string]: string } } } = {}
+  const finalModels: { [key: string]: { [key: string]: string } } = {}
   for (const model of models) {
-    finalModels[model.table] ||= { names: [], nameTableMap: {} }
-    finalModels[model.table].names = [
-      ...new Set([...finalModels[model.table].names, ...new model().associationNames]),
-    ]
+    finalModels[model.table] ||= {}
     for (const associationName of new model().associationNames) {
-      finalModels[model.table].nameTableMap[associationName] = new model().associationMap[associationName].to
+      finalModels[model.table][associationName] = new model().associationMap[associationName].to
     }
   }
   const filePath = path.join(__dirname, '..', 'sync', 'associations.ts')
@@ -38,8 +35,8 @@ export default ${JSON.stringify(finalModels, null, 2)}
 export interface SyncedAssociations {
   ${Object.keys(finalModels).map(
     table => `\
-  "${table}": {\n${Object.keys(finalModels[table].nameTableMap)
-      .map(association => `"${association}": "${finalModels[table].nameTableMap[association]}"`)
+  "${table}": {\n${Object.keys(finalModels[table])
+      .map(association => `"${association}": "${finalModels[table][association]}"`)
       .join('\n  ')}}\n  `
   )} 
 }

@@ -26,6 +26,7 @@ export default function HasOne<TableName extends keyof DB & string>(
         ...(target.constructor.associations.hasOne as HasOneStatement<any>[]),
         {
           modelCB,
+          type: 'HasOne',
           to: tableName,
           // TODO: abstract foreign key capture to helper, with optional override provided by the api
           foreignKey: () =>
@@ -43,6 +44,7 @@ export default function HasOne<TableName extends keyof DB & string>(
 
 export interface HasOneStatement<ForeignTablename extends keyof DB & string> {
   modelCB: () => ReturnType<typeof dream<ForeignTablename, any>>
+  type: 'HasOne'
   to: keyof DB & string
   foreignKey: () => keyof DB[ForeignTablename] & string
   as: string

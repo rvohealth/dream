@@ -28,7 +28,7 @@ import InStatement from './ops/in'
 import LikeStatement from './ops/like'
 import ILikeStatement from './ops/ilike'
 import { OpsStatement } from './ops'
-import { SyncedAssociations } from './sync/associations'
+import Associations, { SyncedAssociations } from './sync/associations'
 import { Inc } from './helpers/typeutils'
 
 export default function dream<
@@ -95,6 +95,27 @@ export default function dream<
 
     public static get table(): TableName {
       return tableName as TableName
+    }
+
+    public static get associationMap() {
+      const allAssociations = [
+        ...this.associations.belongsTo,
+        ...this.associations.hasOne,
+        ...this.associations.hasMany,
+      ]
+
+      const map = {} as {
+        [key: typeof allAssociations[number]['as']]:
+          | BelongsToStatement<any>
+          | HasManyStatement<any>
+          | HasOneStatement<any>
+      }
+
+      for (const association of allAssociations) {
+        map[association.as] = association
+      }
+
+      return map
     }
 
     public static async all<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T[]> {
@@ -220,6 +241,14 @@ export default function dream<
       }
     }
 
+    public get primaryKey() {
+      return (this.constructor as typeof Dream).primaryKey
+    }
+
+    public get primaryKeyValue(): string | number | null {
+      return (dream as any)[this.primaryKey] || null
+    }
+
     public get isDirty() {
       return !!Object.keys(this.dirtyAttributes).length
     }
@@ -230,7 +259,7 @@ export default function dream<
 
     public get isPersisted() {
       // todo: clean up types here
-      return !!(this as any)[(this.constructor as typeof Dream).primaryKey as any]
+      return !!(this as any)[this.primaryKey]
     }
 
     public get isValid(): boolean {
@@ -267,29 +296,12 @@ export default function dream<
       this.frozenAttributes = { ...this.attributes }
     }
 
-    public get associations() {
-      return (this.constructor as typeof Dream).associations
+    public get associationMap() {
+      return (this.constructor as typeof Dream).associationMap
     }
 
-    public get associationMap() {
-      const allAssociations = [
-        ...this.associations.belongsTo,
-        ...this.associations.hasOne,
-        ...this.associations.hasMany,
-      ]
-
-      const map = {} as {
-        [key: typeof allAssociations[number]['as']]:
-          | BelongsToStatement<any>
-          | HasManyStatement<any>
-          | HasOneStatement<any>
-      }
-
-      for (const association of allAssociations) {
-        map[association.as] = association
-      }
-
-      return map
+    public get associations() {
+      return (this.constructor as typeof Dream).associations
     }
 
     public get associationNames() {
@@ -321,7 +333,7 @@ export default function dream<
           )
           if (!type || !associationMetadata) throw `Association not found: ${association as any}`
 
-          const id = (this as any)[(this.constructor as typeof Dream).primaryKey]
+          const id = (this as any)[this.primaryKey]
           if (!id) throw `Cannot load association on unpersisted record`
 
           const ModelClass = associationMetadata.modelCB()
@@ -488,7 +500,13 @@ export default function dream<
     }
   }
 
-  class Query<DreamClass extends Dream> {
+  class Query<
+    DreamClass extends Dream,
+    QueryAssociationExpression extends AssociationExpression<
+      DreamClass['table'] & keyof SyncedAssociations,
+      any
+    > = AssociationExpression<DreamClass['table'] & keyof SyncedAssociations, any>
+  > {
     public whereStatement:
       | Updateable<Table>
       | SelectQueryBuilder<DB, TableName, {}>
@@ -497,7 +515,7 @@ export default function dream<
     public limitStatement: { count: number } | null = null
     public orderStatement: { column: keyof Table & string; direction: 'asc' | 'desc' } | null = null
     public selectStatement: SelectArg<DB, TableName, SelectExpression<DB, TableName>> | null = null
-    // public includesStatements: IncludesStatement<TableName>[] = []
+    public includesStatements: QueryAssociationExpression[] = []
     public shouldBypassDefaultScopes: boolean = false
     public dreamClass: typeof Dream
 
@@ -510,18 +528,8 @@ export default function dream<
       return this
     }
 
-    public includes(...args: AssociationExpression<DreamClass['table'] & keyof SyncedAssociations, any>[]) {
-      // this.includesStatements = [
-      //   ...new Set([
-      //     ...this.includesStatements,
-      //     ...args.map(
-      //       arg =>
-      //         ({
-      //           expression: arg,
-      //         } as IncludesStatement<TableName, any>)
-      //     ),
-      //   ]),
-      // ]
+    public includes(...args: QueryAssociationExpression[]) {
+      this.includesStatements = [...this.includesStatements, ...args]
       return this
     }
 
@@ -595,7 +603,9 @@ export default function dream<
       const query = this.buildSelect()
       const results = await query.execute()
       const DreamClass = Dream
-      return results.map(r => new DreamClass(r as Updateable<Table>) as DreamClass)
+      const theAll = results.map(r => new DreamClass(r as Updateable<Table>) as DreamClass)
+      await this.applyThisDotIncludes(theAll)
+      return theAll
     }
 
     public async first() {
@@ -604,8 +614,132 @@ export default function dream<
       const query = this.buildSelect()
       const results = await query.executeTakeFirst()
 
-      if (results) return new this.dreamClass(results as any) as DreamClass
-      else return null
+      if (results) {
+        const theFirst = new this.dreamClass(results as any) as DreamClass
+        await this.applyThisDotIncludes([theFirst])
+        return theFirst
+      } else return null
+    }
+
+    public async applyThisDotIncludes(dreams: DreamClass[]) {
+      for (const includesStatement of this.includesStatements) {
+        this.applyIncludes(includesStatement, dreams)
+      }
+    }
+
+    public async hydrateAssociation(
+      dreams: Dream[],
+      association: HasManyStatement<any> | HasOneStatement<any> | BelongsToStatement<any>,
+      loadedAssociations: Dream[]
+    ) {
+      for (const loadedAssociation of loadedAssociations) {
+        if (association.type === 'BelongsTo') {
+          dreams
+            .filter(dream => (dream as any)[association.foreignKey()] === loadedAssociation.primaryKeyValue)
+            .forEach(dream => {
+              ;(dream as any)[association.as] = loadedAssociation
+              // TODO
+              // if (association.reverseAsType === 'HasOne') {
+              //   ;(loadedAssociation as any)[association.reverseAs] = dream
+              // } else {
+              //   ;(loadedAssociation as any)[association.reverseAs] ||= []
+              //   ;(loadedAssociation as any)[association.reverseAs].push(dream)
+              // }
+            })
+        } else {
+          dreams
+            .filter(dream => (loadedAssociation as any)[association.foreignKey()] === dream.primaryKeyValue)
+            .forEach(dream => {
+              if (association.type === 'HasOne') {
+                ;(dream as any)[association.as] = loadedAssociation
+              } else {
+                ;(dream as any)[association.as] ||= []
+                ;(dream as any)[association.as].push(loadedAssociation)
+              }
+            })
+        }
+      }
+    }
+
+    public async applyOneInclude(associationString: string, dreams: Dream | Dream[]) {
+      if (dreams.constructor !== Array) dreams = [dreams as Dream]
+
+      const association = this.dreamClass.associationMap[associationString]
+
+      console.log('*********************')
+      console.log('*********************')
+      console.log('*********************')
+      console.log(associationString)
+      console.log(association)
+      console.log('*********************')
+      console.log('*********************')
+      console.log('*********************')
+
+      if (association.type === 'BelongsTo') {
+        this.hydrateAssociation(
+          dreams,
+          association,
+          await association
+            .modelCB()
+            .where({ [association.foreignKey()]: dreams.map(dream => (dream as any)[dream.primaryKey]) })
+            .all()
+        )
+      } else {
+        this.hydrateAssociation(
+          dreams,
+          association,
+          await association
+            .modelCB()
+            .where({
+              [association.modelCB().primaryKey]: dreams.map(
+                dream => (dream as any)[association.foreignKey()]
+              ),
+            })
+            .all()
+        )
+      }
+
+      return dreams.map(dream => (dream as any)[association.as]).flat(1)
+      // comment_upvotes.each { |comment_upvote| comment_map[comment_upvote.comment_id].add_comment_upvote_to_memoized_list(comment_upvote) }
+
+      // Dream (e.g. Post)
+      //   Dream[association] (e.g. Post[recentComments])
+      //     Dream[association].query() (e.g. comments.where(created_at: 2.weeks.ago..))
+
+      //
+      // (Associations as SyncedAssociations)[dreams[0].table]
+      // [association]
+      //
+      // public includesStatements: AssociationExpression<Dream['table'] & keyof SyncedAssociations, any>[] =
+      //
+      // Post
+      // Comment
+      // CommentUpvote
+      // Post.all.includes(comments: comment_upvotes)
+      // Post.all.includes(recentComments: comment_upvotes)
+      // SELECT * FROM posts
+      // SELECT * FROM comments WHERE comments.post_id IN (SELECT id from posts)
+      // SELECT * FROM comment_upvotes WHERE comments_upvotes.comment_id in (SELECT * FROM comments WHERE comments.post_id IN (SELECT id from posts))
+      // comment_map = comments.each_with_object({}) { |comment, map| map[comment.id] = map }
+      // comment_upvotes.each { |comment_upvote| comment_map[comment_upvote.comment_id].add_comment_upvote_to_memoized_list(comment_upvote) }
+    }
+
+    public async applyIncludes(includesStatement: QueryAssociationExpression, dream: Dream | Dream[]) {
+      switch (includesStatement.constructor) {
+        case String:
+          await this.applyOneInclude(includesStatement as string, dream)
+          break
+        case Array:
+          for (const str of includesStatement as QueryAssociationExpression[]) {
+            await this.applyIncludes(str, dream)
+          }
+          break
+        default:
+          for (const key of Object.keys(includesStatement)) {
+            const nestedDream = await this.applyOneInclude(key, dream)
+            await this.applyIncludes((includesStatement as any)[key], nestedDream)
+          }
+      }
     }
 
     public async last() {
@@ -614,8 +748,11 @@ export default function dream<
       const query = this.buildSelect()
       const results = await query.executeTakeFirst()
 
-      if (results) return new Dream(results) as DreamClass
-      else return null
+      if (results) {
+        const theLast = new Dream(results) as DreamClass
+        await this.applyThisDotIncludes([theLast])
+        return theLast
+      } else return null
     }
 
     public async destroy() {
@@ -801,7 +938,7 @@ export default function dream<
       dream
     )
     const throughAssociationMetadata: HasOneStatement<any> | HasManyStatement<any> =
-      _throughAssociationMetadata as HasManyStatement<any> | BelongsToStatement<any>
+      _throughAssociationMetadata as HasOneStatement<any> | HasManyStatement<any>
     if (!throughAssociationMetadata)
       throw `
         Unable to find association metadata for:

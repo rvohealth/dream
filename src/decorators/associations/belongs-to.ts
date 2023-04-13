@@ -12,6 +12,7 @@ export default function BelongsTo<TableName extends keyof DB & string>(
         ...(target.constructor.associations.belongsTo as BelongsToStatement<any>[]),
         {
           modelCB,
+          type: 'BelongsTo',
           to: tableName,
           // TODO: abstract foreign key capture to helper, with optional override provided by the api
           foreignKey: () => pluralize.singular(tableName) + '_id',
@@ -24,6 +25,7 @@ export default function BelongsTo<TableName extends keyof DB & string>(
 
 export interface BelongsToStatement<ForeignTablename extends keyof DB & string> {
   modelCB: () => ReturnType<typeof dream<ForeignTablename, any>>
+  type: 'BelongsTo'
   to: keyof DB & string
   foreignKey: () => keyof DB[ForeignTablename] & string
   as: string
