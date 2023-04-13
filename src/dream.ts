@@ -315,7 +315,7 @@ export default function dream<
           await this.load(...(association as any))
         } else {
           const [type, associationMetadata] = associationMetadataFor(
-            association as SyncedAssociations[DreamClass['table']]['AssociationName'],
+            association as keyof SyncedAssociations[DreamClass['table']],
             this
           )
           if (!type || !associationMetadata) throw `Association not found: ${association as any}`
@@ -509,10 +509,7 @@ export default function dream<
       return this
     }
 
-    // public includes<IncludesExpression = SyncedAssociations[TableName] | '${SyncedAssociations[TableName]}'>() {
-    public includes<IncludesExpression extends SyncedAssociations[TableName]['AssociationName']>(
-      ...args: AssociationExpression<DreamClass['table'] & keyof SyncedAssociations, any>[]
-    ) {
+    public includes(...args: AssociationExpression<DreamClass['table'] & keyof SyncedAssociations, any>[]) {
       // this.includesStatements = [
       //   ...new Set([
       //     ...this.includesStatements,
@@ -730,7 +727,7 @@ export default function dream<
 
   // internal
   function associationMetadataFor<T extends Dream>(
-    association: SyncedAssociations[T['table']]['AssociationName'],
+    association: keyof SyncedAssociations[T['table']],
     dream: T
   ): [
     'hasOne' | 'hasMany' | 'belongsTo' | null,
@@ -1008,30 +1005,19 @@ export default function dream<
 
 type NestedAssociationExpression<
   TB extends keyof SyncedAssociations & string,
-  Property extends keyof SyncedAssociations[TB]['AssociationTableMap'],
+  Property extends keyof SyncedAssociations[TB],
   Next
-> = AssociationExpression<
-  SyncedAssociations[TB]['AssociationTableMap'][Property] & keyof SyncedAssociations,
-  Next
->
+> = AssociationExpression<SyncedAssociations[TB][Property] & keyof SyncedAssociations, Next>
 
 type AssociationExpression<TB extends keyof SyncedAssociations & string, AE = unknown> = AE extends string
-  ? keyof SyncedAssociations[TB]['AssociationTableMap']
+  ? keyof SyncedAssociations[TB]
   : AE extends string[]
-  ? (keyof SyncedAssociations[TB]['AssociationTableMap'])[]
+  ? (keyof SyncedAssociations[TB])[]
   : AE extends Partial<{
-      [Property in keyof SyncedAssociations[TB]['AssociationTableMap']]: NestedAssociationExpression<
-        TB,
-        Property,
-        any
-      >
+      [Property in keyof SyncedAssociations[TB]]: NestedAssociationExpression<TB, Property, any>
     }>
   ? Partial<{
-      [Property in keyof SyncedAssociations[TB]['AssociationTableMap']]: NestedAssociationExpression<
-        TB,
-        Property,
-        AE[Property]
-      >
+      [Property in keyof SyncedAssociations[TB]]: NestedAssociationExpression<TB, Property, AE[Property]>
     }>
   : never
 

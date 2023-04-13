@@ -53,34 +53,22 @@ export default {
 
 export interface SyncedAssociations {
     "users": {
-    AssociationName: "mainComposition" | "mainCompositionAsset" | "mainCompositionAssetAudit" | "compositions" | "compositionAssets" | "compositionAssetAudits",
-    AssociationTableMap: {
 "mainComposition": "compositions"
   "mainCompositionAsset": "composition_assets"
   "mainCompositionAssetAudit": "composition_asset_audits"
   "compositions": "compositions"
   "compositionAssets": "composition_assets"
   "compositionAssetAudits": "composition_asset_audits"}
-  }
-    "composition_asset_audits": {
-    AssociationName: "compositionAsset",
-    AssociationTableMap: {
+  ,  "composition_asset_audits": {
 "compositionAsset": "composition_assets"}
-  }
-    "composition_assets": {
-    AssociationName: "composition" | "user" | "compositionAssetAudits",
-    AssociationTableMap: {
+  ,  "composition_assets": {
 "composition": "compositions"
   "user": "users"
   "compositionAssetAudits": "composition_asset_audits"}
-  }
-    "compositions": {
-    AssociationName: "user" | "compositionAssets" | "compositionAssetAudits",
-    AssociationTableMap: {
+  ,  "compositions": {
 "user": "users"
   "compositionAssets": "composition_assets"
   "compositionAssetAudits": "composition_asset_audits"}
-  
-  } 
+   
 }
   
