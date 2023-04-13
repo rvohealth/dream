@@ -218,7 +218,7 @@ export default function dream<
       this: { new (): T } & typeof Dream,
       attributes:
         | Updateable<Table>
-        | Partial<Record<keyof Table, DateRange | OpsStatement>>
+        | Partial<Record<keyof Table, DateRange | OpsStatement | (string | number)[]>>
         | Partial<
             Record<keyof Table, SelectQueryBuilder<DB, SubTable, Selection<DB, SubTable, DB[SubTable]>>>
           >
@@ -246,7 +246,7 @@ export default function dream<
     }
 
     public get primaryKeyValue(): string | number | null {
-      return (dream as any)[this.primaryKey] || null
+      return (this as any)[this.primaryKey] || null
     }
 
     public get isDirty() {
@@ -510,7 +510,7 @@ export default function dream<
     public whereStatement:
       | Updateable<Table>
       | SelectQueryBuilder<DB, TableName, {}>
-      | Partial<Record<keyof Table, DateRange | OpsStatement>>
+      | Partial<Record<keyof Table, DateRange | OpsStatement | (string | number)[]>>
       | null = null
     public limitStatement: { count: number } | null = null
     public orderStatement: { column: keyof Table & string; direction: 'asc' | 'desc' } | null = null
@@ -537,7 +537,7 @@ export default function dream<
       attributes:
         | Updateable<Table>
         | SelectQueryBuilder<DB, TableName, {}>
-        | Partial<Record<keyof Table, DateRange | OpsStatement>>
+        | Partial<Record<keyof Table, DateRange | OpsStatement | (string | number)[]>>
     ) {
       this.whereStatement = { ...this.whereStatement, ...attributes }
       return this
@@ -623,11 +623,11 @@ export default function dream<
 
     public async applyThisDotIncludes(dreams: DreamClass[]) {
       for (const includesStatement of this.includesStatements) {
-        this.applyIncludes(includesStatement, dreams)
+        await this.applyIncludes(includesStatement, dreams)
       }
     }
 
-    public async hydrateAssociation(
+    public hydrateAssociation(
       dreams: Dream[],
       association: HasManyStatement<any> | HasOneStatement<any> | BelongsToStatement<any>,
       loadedAssociations: Dream[]
@@ -666,37 +666,18 @@ export default function dream<
 
       const association = this.dreamClass.associationMap[associationString]
 
-      console.log('*********************')
-      console.log('*********************')
-      console.log('*********************')
-      console.log(associationString)
-      console.log(association)
-      console.log('*********************')
-      console.log('*********************')
-      console.log('*********************')
-
       if (association.type === 'BelongsTo') {
-        this.hydrateAssociation(
-          dreams,
-          association,
-          await association
-            .modelCB()
-            .where({ [association.foreignKey()]: dreams.map(dream => (dream as any)[dream.primaryKey]) })
-            .all()
-        )
+        const associationQuery = association.modelCB().where({
+          [association.modelCB().primaryKey]: dreams.map(dream => (dream as any)[association.foreignKey()]),
+        })
+
+        this.hydrateAssociation(dreams, association, await associationQuery.all())
       } else {
-        this.hydrateAssociation(
-          dreams,
-          association,
-          await association
-            .modelCB()
-            .where({
-              [association.modelCB().primaryKey]: dreams.map(
-                dream => (dream as any)[association.foreignKey()]
-              ),
-            })
-            .all()
-        )
+        const associationQuery = association.modelCB().where({
+          [association.foreignKey()]: dreams.map(dream => (dream as any)[dream.primaryKey]),
+        })
+
+        this.hydrateAssociation(dreams, association, await associationQuery.all())
       }
 
       return dreams.map(dream => (dream as any)[association.as]).flat(1)
@@ -821,6 +802,8 @@ export default function dream<
           if (val === null) {
             query = query.where(attr as any, 'is', val)
           } else if (val.constructor === SelectQueryBuilder) {
+            query = query.where(attr as any, 'in', val)
+          } else if (val.constructor === Array) {
             query = query.where(attr as any, 'in', val)
           } else if (val.constructor === InStatement) {
             query = query.where(attr as any, 'in', val.in)

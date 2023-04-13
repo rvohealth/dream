@@ -4,16 +4,17 @@ import CompositionAsset from '../../../test-app/app/models/composition-asset'
 import CompositionAssetAudit from '../../../test-app/app/models/composition-asset-audit'
 
 describe('Query#includes', () => {
-  it.only('loads a HasOne association', async () => {
+  it('loads a HasOne association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ user_id: user.id })
 
-    await User.limit(1).includes('mainComposition').first()
-    await User.limit(1)
-      .includes('mainComposition')
-      // .includes('mainComposition', { compositionAssetAudits: ['compositionAsset'] })
-      .first()
-    expect(user.mainComposition).toMatchObject(composition)
+    // await User.limit(1)
+    //   .includes('mainComposition', { compositionAssetAudits: ['compositionAsset'] })
+    //   .first()
+    // expect(reloadedUser!.mainComposition).toMatchObject(composition)
+
+    const reloadedUser = await User.limit(1).includes('mainComposition').first()
+    expect(reloadedUser!.mainComposition).toMatchObject(composition)
   })
 
   // it('loads a HasMany association', async () => {

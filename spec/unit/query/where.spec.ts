@@ -33,6 +33,26 @@ describe('Query#where', () => {
     })
   })
 
+  context('an array is passed', () => {
+    it('uses an "in" operator for comparison', async () => {
+      const user1 = await User.create({
+        email: 'fred@frewd',
+        password: 'howyadoin',
+      })
+      const user2 = await User.create({
+        email: 'frez@frewd',
+        password: 'howyadoin',
+      })
+      await User.create({
+        email: 'frez@frewd',
+        password: 'howyadoin',
+      })
+
+      const records = await User.where({ id: [user1.id, user2.id] }).pluck('id')
+      expect(records).toEqual([user1.id, user2.id])
+    })
+  })
+
   context('a Like statement is passed', () => {
     it('uses an "in" operator for comparison', async () => {
       const user1 = await User.create({
