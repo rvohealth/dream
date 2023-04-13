@@ -116,11 +116,7 @@ program
   .option('--core', 'sets core to true')
   .action(async () => {
     setCoreDevelopmentFlag(program.args)
-    if (process.env.CORE_DEVELOPMENT === '1') {
-      await sspawn(`npx ts-node boot/copy-boilerplate.ts`)
-    } else {
-      throw 'this command is not meant for use outside core development'
-    }
+    await sspawn(`npx ts-node boot/copy-boilerplate.ts`)
   })
 
 program
