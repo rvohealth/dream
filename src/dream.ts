@@ -29,6 +29,7 @@ import LikeStatement from './ops/like'
 import ILikeStatement from './ops/ilike'
 import { OpsStatement } from './ops'
 import { SyncedAssociations } from './sync/associations'
+import { Inc } from './helpers/typeutils'
 
 export default function dream<
   TableName extends keyof DB & keyof SyncedAssociations & string,
@@ -1009,10 +1010,16 @@ type NestedAssociationExpression<
   Next
 > = AssociationExpression<SyncedAssociations[TB][Property] & keyof SyncedAssociations, Next>
 
-type AssociationExpression<TB extends keyof SyncedAssociations & string, AE = unknown> = AE extends string
+type AssociationExpression<
+  TB extends keyof SyncedAssociations & string,
+  AE = unknown,
+  Depth extends number = 0
+> = Depth extends 10
+  ? never
+  : AE extends string
   ? keyof SyncedAssociations[TB]
-  : AE extends string[]
-  ? (keyof SyncedAssociations[TB])[]
+  : AE extends any[]
+  ? AssociationExpression<TB, AE[number], Inc<Depth>>[]
   : AE extends Partial<{
       [Property in keyof SyncedAssociations[TB]]: NestedAssociationExpression<TB, Property, any>
     }>
