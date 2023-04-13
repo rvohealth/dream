@@ -17,7 +17,7 @@ import { BelongsToStatement } from './decorators/associations/belongs-to'
 import { HasOneStatement } from './decorators/associations/has-one'
 import { ScopeStatement } from './decorators/scope'
 import { HookStatement } from './decorators/hooks/shared'
-import pluralize = require('pluralize')
+import * as pluralize from 'pluralize'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { marshalDBValue } from './helpers/marshalDBValue'
@@ -31,7 +31,7 @@ import { OpsStatement } from './ops'
 import { SyncedAssociations } from './sync/associations'
 
 export default function dream<
-  TableName extends keyof DB & string,
+  TableName extends keyof DB & keyof SyncedAssociations & string,
   IdColumnName extends keyof DB[TableName] & string
 >(tableName: TableName, primaryKey: IdColumnName = 'id' as IdColumnName) {
   const columns = DBColumns[tableName]
@@ -92,8 +92,8 @@ export default function dream<
       return true
     }
 
-    public static get table(): Tables {
-      return tableName
+    public static get table(): TableName {
+      return tableName as TableName
     }
 
     public static async all<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T[]> {
@@ -302,13 +302,13 @@ export default function dream<
       })
     }
 
-    public get table() {
-      return (this.constructor as typeof Dream).table
+    public get table(): TableName {
+      return (this.constructor as typeof Dream).table as TableName
     }
 
-    public async load<DreamClass extends Dream, AE extends string | string[]>(
+    public async load<DreamClass extends Dream>(
       this: DreamClass,
-      ...associations: AssociationExpression<DreamClass['table'], AE>[]
+      ...associations: AssociationExpression<DreamClass['table'] & keyof SyncedAssociations, any>[]
     ): Promise<void> {
       for (let association of associations) {
         if (Array.isArray(association)) {
@@ -318,7 +318,7 @@ export default function dream<
             association as SyncedAssociations[DreamClass['table']]['AssociationName'],
             this
           )
-          if (!type || !associationMetadata) throw `Association not found: ${association}`
+          if (!type || !associationMetadata) throw `Association not found: ${association as any}`
 
           const id = (this as any)[(this.constructor as typeof Dream).primaryKey]
           if (!id) throw `Cannot load association on unpersisted record`
@@ -511,7 +511,7 @@ export default function dream<
 
     // public includes<IncludesExpression = SyncedAssociations[TableName] | '${SyncedAssociations[TableName]}'>() {
     public includes<IncludesExpression extends SyncedAssociations[TableName]['AssociationName']>(
-      ...args: IncludesExpression[]
+      ...args: AssociationExpression<DreamClass['table'] & keyof SyncedAssociations, any>[]
     ) {
       // this.includesStatements = [
       //   ...new Set([
@@ -832,6 +832,7 @@ export default function dream<
           `${throughAssociationMetadata.to}.${pluralize.singular(association.to)}_id`,
           `${association.to}.${association.modelCB().primaryKey}`
         )
+        // @ts-ignore
         query = query.innerJoin(
           BaseModelClass.table,
           // @ts-ignore
@@ -845,6 +846,7 @@ export default function dream<
           `${throughAssociationMetadata.to}.${throughAssociationMetadata.modelCB().primaryKey}`,
           `${association.to}.${association.foreignKey()}`
         )
+        // @ts-ignore
         query = query.innerJoin(
           BaseModelClass.table,
           // @ts-ignore
@@ -918,6 +920,8 @@ export default function dream<
         `${throughAssociationMetadata!.to}.${throughAssociationMetadata!.modelCB().primaryKey}`,
         `${association.to}.${association.foreignKey()}`
       )
+
+      // @ts-ignore
       query = query.innerJoin(
         BaseModelClass.table,
         // @ts-ignore
@@ -1002,13 +1006,33 @@ export default function dream<
   return Dream
 }
 
-export type AssociationExpression<
-  TableName extends keyof DB,
-  Expression extends string | string[]
-> = Expression extends string
-  ? SyncedAssociations[TableName]['AssociationName']
-  : Expression extends string[]
-  ? SyncedAssociations[TableName]['AssociationName'][]
+type NestedAssociationExpression<
+  TB extends keyof SyncedAssociations & string,
+  Property extends keyof SyncedAssociations[TB]['AssociationTableMap'],
+  Next
+> = AssociationExpression<
+  SyncedAssociations[TB]['AssociationTableMap'][Property] & keyof SyncedAssociations,
+  Next
+>
+
+type AssociationExpression<TB extends keyof SyncedAssociations & string, AE = unknown> = AE extends string
+  ? keyof SyncedAssociations[TB]['AssociationTableMap']
+  : AE extends string[]
+  ? (keyof SyncedAssociations[TB]['AssociationTableMap'])[]
+  : AE extends Partial<{
+      [Property in keyof SyncedAssociations[TB]['AssociationTableMap']]: NestedAssociationExpression<
+        TB,
+        Property,
+        any
+      >
+    }>
+  ? Partial<{
+      [Property in keyof SyncedAssociations[TB]['AssociationTableMap']]: NestedAssociationExpression<
+        TB,
+        Property,
+        AE[Property]
+      >
+    }>
   : never
 
 export interface IncludesStatement<
