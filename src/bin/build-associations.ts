@@ -36,17 +36,12 @@ async function writeAssociationsFile() {
 export default ${JSON.stringify(finalModels, null, 2)}
 
 export interface SyncedAssociations {
-  ${Object.keys(finalModels)
-    .map(
-      table => `\
-  "${table}": {
-    AssociationName: ${finalModels[table].names.map(association => `"${association}"`).join(' | ')},
-    AssociationTableMap: {\n${Object.keys(finalModels[table].nameTableMap)
+  ${Object.keys(finalModels).map(
+    table => `\
+  "${table}": {\n${Object.keys(finalModels[table].nameTableMap)
       .map(association => `"${association}": "${finalModels[table].nameTableMap[association]}"`)
       .join('\n  ')}}\n  `
-    )
-    .join('}\n  ')}
-  } 
+  )} 
 }
   `
   await fs.writeFile(filePath, str)
