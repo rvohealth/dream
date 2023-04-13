@@ -17,25 +17,22 @@ describe('Query#includes', () => {
     expect(reloadedUser!.mainComposition).toMatchObject(composition)
   })
 
-  // it('loads a HasMany association', async () => {
-  //   const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-  //   const composition1 = await Composition.create({ user_id: user.id })
-  //   const composition2 = await Composition.create({ user_id: user.id })
+  it('loads a HasMany association', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const composition1 = await Composition.create({ user_id: user.id })
+    const composition2 = await Composition.create({ user_id: user.id })
 
-  //   await user.load('compositions')
-  //   expect(user.compositions[0]!.isDreamInstance).toEqual(true)
-  //   expect(user.compositions[0]!.attributes).toEqual(composition1.attributes)
-  //   expect(user.compositions[1]!.attributes).toEqual(composition2.attributes)
-  // })
+    const reloadedUser = await User.limit(1).includes('compositions').first()
+    expect(reloadedUser!.compositions[0]).toMatchObject(composition1)
+    expect(reloadedUser!.compositions[1]).toMatchObject(composition2)
+  })
 
-  // it('loads a BelongsTo association', async () => {
-  //   const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-  //   const composition = await Composition.create({ user_id: user.id })
-
-  //   await composition.load('user')
-  //   expect(composition.user!.isDreamInstance).toEqual(true)
-  //   expect(composition.user!.attributes).toEqual(user.attributes)
-  // })
+  it('loads a BelongsTo association', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    await Composition.create({ user_id: user.id })
+    const reloadedComposition = await Composition.limit(1).includes('user').first()
+    expect(reloadedComposition!.user).toMatchObject(user)
+  })
 
   // describe('through associations', () => {
   //   it('loads a HasOne through HasMany association', async () => {
