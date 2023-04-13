@@ -661,10 +661,55 @@ export default function dream<
       }
     }
 
+    public async bridgeThroughAssociations(
+      dreams: Dream[],
+      association: HasOneStatement<any> | HasManyStatement<any>
+    ) {
+      if (association.through) {
+        await this.applyOneInclude(association.through, dreams)
+        await this.applyOneInclude(
+          association.as,
+          (dreams as any[]).map(dream => dream[association.through!])
+        )
+        // association: association.throughClass!().associationMap[association.as],
+
+        dreams.forEach(dream => {
+          if (association.type === 'HasOne') {
+            Object.defineProperty(dream, association.as, {
+              get: () => (dream as any)[association.through!]![association.as],
+            })
+          } else {
+            console.log('HIIIIII', dream, association)
+            Object.defineProperty(dream, association.as, {
+              get: () => {
+                console.log(
+                  (dream as any)[association.through!],
+                  ((dream as any)[association.through!] as any[])
+                    .map(record => (record as any)![association.as])
+                    .flat()
+                )
+                return ((dream as any)[association.through!] as any[])
+                  .map(record => (record as any)![association.as])
+                  .flat()
+              },
+            })
+          }
+        })
+
+        // this.bridgeThroughAssociations()
+        // return {
+        //   dreams: (dreams as any[]).map(dream => dream[association.through!]),
+        //   association: association.throughClass!().associationMap[association.as],
+        // }
+        // } else {
+        //   return { dreams, association }
+      }
+    }
+
     public async applyOneInclude(associationString: string, dreams: Dream | Dream[]) {
       if (dreams.constructor !== Array) dreams = [dreams as Dream]
 
-      const association = this.dreamClass.associationMap[associationString]
+      let association = this.dreamClass.associationMap[associationString]
 
       if (association.type === 'BelongsTo') {
         const associationQuery = association.modelCB().where({
@@ -673,6 +718,8 @@ export default function dream<
 
         this.hydrateAssociation(dreams, association, await associationQuery.all())
       } else {
+        await this.bridgeThroughAssociations(dreams, association)
+
         const associationQuery = association.modelCB().where({
           [association.foreignKey()]: dreams.map(dream => (dream as any)[dream.primaryKey]),
         })
