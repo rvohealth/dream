@@ -664,52 +664,57 @@ export default function dream<
     public async bridgeThroughAssociations(
       dreams: Dream[],
       association: HasOneStatement<any> | HasManyStatement<any>
-    ) {
+    ): Promise<{
+      dreams: Dream[]
+      association: HasOneStatement<any> | HasManyStatement<any>
+    }> {
+      // Post has many Commenters through Comments
       if (association.through) {
+        // hydrate Post Comments
         await this.applyOneInclude(association.through, dreams)
-        await this.applyOneInclude(
-          association.as,
-          (dreams as any[]).map(dream => dream[association.through!])
-        )
-        // association: association.throughClass!().associationMap[association.as],
 
         dreams.forEach(dream => {
           if (association.type === 'HasOne') {
             Object.defineProperty(dream, association.as, {
-              get: () => (dream as any)[association.through!]![association.as],
+              get() {
+                return (dream as any)[association.through!]![association.as]
+              },
             })
           } else {
-            console.log('HIIIIII', dream, association)
             Object.defineProperty(dream, association.as, {
-              get: () => {
-                console.log(
-                  (dream as any)[association.through!],
-                  ((dream as any)[association.through!] as any[])
-                    .map(record => (record as any)![association.as])
-                    .flat()
+              get() {
+                return ((dream as any)[association.through!] as any[])?.flatMap(
+                  record => (record as any)![association.as]
                 )
-                return ((dream as any)[association.through!] as any[])
-                  .map(record => (record as any)![association.as])
-                  .flat()
               },
             })
           }
         })
 
-        // this.bridgeThroughAssociations()
-        // return {
-        //   dreams: (dreams as any[]).map(dream => dream[association.through!]),
-        //   association: association.throughClass!().associationMap[association.as],
-        // }
-        // } else {
-        //   return { dreams, association }
+        // await this.bridgeThroughAssociations()
+        // return:
+        //  Comments,
+        //  the Comments -> CommentAuthors hasMany association
+        // So that Comments may be properly hydrated with many CommentAuthors
+        dreams = (dreams as any[]).flatMap(dream => dream[association.through!])
+        association = association.throughClass!().associationMap[association.as] as
+          | HasOneStatement<any>
+          | HasManyStatement<any>
+
+        if (association.through) return await this.bridgeThroughAssociations(dreams, association)
+        return { dreams, association }
+      } else {
+        return { dreams, association }
       }
     }
 
     public async applyOneInclude(associationString: string, dreams: Dream | Dream[]) {
       if (dreams.constructor !== Array) dreams = [dreams as Dream]
 
-      let association = this.dreamClass.associationMap[associationString]
+      const dream = dreams[0]
+      if (!dream) return
+
+      let association = dream.associationMap[associationString]
 
       if (association.type === 'BelongsTo') {
         const associationQuery = association.modelCB().where({
@@ -718,16 +723,18 @@ export default function dream<
 
         this.hydrateAssociation(dreams, association, await associationQuery.all())
       } else {
-        await this.bridgeThroughAssociations(dreams, association)
+        const results = await this.bridgeThroughAssociations(dreams, association)
+        dreams = results.dreams
+        association = results.association
 
         const associationQuery = association.modelCB().where({
-          [association.foreignKey()]: dreams.map(dream => (dream as any)[dream.primaryKey]),
+          [association.foreignKey()]: dreams.map(dream => dream.primaryKeyValue),
         })
 
         this.hydrateAssociation(dreams, association, await associationQuery.all())
       }
 
-      return dreams.map(dream => (dream as any)[association.as]).flat(1)
+      return dreams.flatMap(dream => (dream as any)[association.as])
       // comment_upvotes.each { |comment_upvote| comment_map[comment_upvote.comment_id].add_comment_upvote_to_memoized_list(comment_upvote) }
 
       // Dream (e.g. Post)
@@ -765,7 +772,9 @@ export default function dream<
         default:
           for (const key of Object.keys(includesStatement)) {
             const nestedDream = await this.applyOneInclude(key, dream)
-            await this.applyIncludes((includesStatement as any)[key], nestedDream)
+            if (nestedDream) {
+              await this.applyIncludes((includesStatement as any)[key], nestedDream)
+            }
           }
       }
     }

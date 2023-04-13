@@ -91,9 +91,9 @@ describe('Query#includes', () => {
       const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
       const reloadedUser = await User.limit(1).includes('compositionAssets').first()
-      expect(reloadedUser!.compositionAssets).toEqual([compositionAsset])
       expect(reloadedUser!.compositions).toMatchObject([composition])
       expect(reloadedUser!.compositions[0].compositionAssets).toEqual([compositionAsset])
+      expect(reloadedUser!.compositionAssets).toEqual([compositionAsset])
     })
 
     //   describe('nested through associations', () => {
