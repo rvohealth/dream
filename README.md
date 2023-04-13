@@ -372,6 +372,16 @@ static:
 - HELPER having
 - DANIEL joins
 - DANIEL includes
+
+  Post.all.includes(comments: comment*upvotes)
+  SELECT * FROM posts
+  SELECT _ FROM comments WHERE comments.post_id IN (SELECT id from posts)
+  SELECT _ FROM comment*upvotes WHERE comments_upvotes.comment_id in (SELECT * FROM comments WHERE comments.post_id IN (SELECT id from posts))
+  In actuality, we'd need to break this up into multiple selects so we don't end up selecting 100,000 IDs
+
+  comment_map = comments.each_with_object({}) { |comment, map| map[comment.id] = map }
+  comment_upvotes.each { |comment_upvote| comment_map[comment_upvote.comment_id].add_comment_upvote_to_memoized_list(comment_upvote) }
+
 - DANIEL OR HELPER or
 - DANIEL OR HELPER not
 - DONE sql
