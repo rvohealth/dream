@@ -651,7 +651,7 @@ export default function dream<
             .filter(dream => (loadedAssociation as any)[association.foreignKey()] === dream.primaryKeyValue)
             .forEach(dream => {
               if (association.type === 'HasOne') {
-                ;(dream as any)[association.as] = loadedAssociation
+                ;(dream as any)[association.as] ||= loadedAssociation
               } else {
                 ;(dream as any)[association.as] ||= []
                 ;(dream as any)[association.as].push(loadedAssociation)

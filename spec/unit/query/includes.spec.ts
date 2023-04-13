@@ -34,6 +34,35 @@ describe('Query#includes', () => {
     expect(reloadedComposition!.user).toMatchObject(user)
   })
 
+  context('when passed an object', () => {
+    it('loads specified associations', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ user_id: user.id })
+      const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+
+      const reloadedUser = await User.limit(1).includes({ mainComposition: 'compositionAssets' }).first()
+      expect(reloadedUser!.mainComposition).toMatchObject(composition)
+      expect(reloadedUser!.mainComposition.compositionAssets).toMatchObject([compositionAsset])
+    })
+  })
+
+  context('when passed an array', () => {
+    it('loads specified associations', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ user_id: user.id })
+      const composition2 = await Composition.create({ user_id: user.id })
+      const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+
+      const reloadedUser = await User.limit(1)
+        .includes(['compositions', { mainComposition: 'compositionAssets' }])
+        .first()
+
+      expect(reloadedUser!.mainComposition).toMatchObject(composition)
+      expect(reloadedUser!.compositions).toMatchObject([composition, composition2])
+      expect(reloadedUser!.mainComposition.compositionAssets).toMatchObject([compositionAsset])
+    })
+  })
+
   // describe('through associations', () => {
   //   it('loads a HasOne through HasMany association', async () => {
   //     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
