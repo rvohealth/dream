@@ -34,11 +34,8 @@ DB_HOST=localhost
 yarn install
 yarn dream db:create --core
 yarn dream db:migrate --core
-yarn dream build:schema --core
-
-# note: migrations sometimes break rn, if this happens, do this to fix:
-yarn dream build:schema --core
-yarn dream db:migrate --core
+NODE_ENV=test yarn dream db:create --core
+NODE_ENV=test yarn dream db:migrate --core
 ```
 
 ## Features

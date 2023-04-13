@@ -14,7 +14,7 @@ export default async function loadModels() {
     try {
       ModelClass = (await import(fullPath)).default
     } catch (error) {
-      console.log(`Failed to import the following file: ${fullPath}`)
+      console.log(`Failed to import the following file: ${fullPath}. Error: ${error}`)
     }
 
     models[modelPath.replace(/\.ts$/, '')] = ModelClass!
