@@ -33,7 +33,11 @@ import { Inc } from './helpers/typeutils'
 
 export default function dream<
   TableName extends keyof DB & keyof SyncedAssociations & string,
-  IdColumnName extends keyof DB[TableName] & string
+  IdColumnName extends keyof DB[TableName] & string,
+  QueryAssociationExpression extends AssociationExpression<
+    TableName & keyof SyncedAssociations,
+    any
+  > = AssociationExpression<TableName & keyof SyncedAssociations, any>
 >(tableName: TableName, primaryKey: IdColumnName = 'id' as IdColumnName) {
   const columns = DBColumns[tableName]
 
@@ -164,6 +168,14 @@ export default function dream<
     public static async first<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T | null> {
       const query: Query<T> = new Query<T>(this)
       return await query.first()
+    }
+
+    public static includes<T extends Dream>(
+      this: { new (): T } & typeof Dream,
+      ...associations: QueryAssociationExpression[]
+    ) {
+      const query: Query<T> = new Query<T>(this)
+      return query.includes(...associations)
     }
 
     public static async last<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T | null> {
@@ -319,97 +331,19 @@ export default function dream<
       return (this.constructor as typeof Dream).table as TableName
     }
 
-    public async load<DreamClass extends Dream>(
-      this: DreamClass,
-      ...associations: AssociationExpression<DreamClass['table'] & keyof SyncedAssociations, any>[]
+    public async load<T extends Dream>(
+      this: T,
+      ...associations: QueryAssociationExpression[]
     ): Promise<void> {
-      for (let association of associations) {
-        if (Array.isArray(association)) {
-          await this.load(...(association as any))
-        } else {
-          const [type, associationMetadata] = associationMetadataFor(
-            association as keyof SyncedAssociations[DreamClass['table']],
-            this
-          )
-          if (!type || !associationMetadata) throw `Association not found: ${association as any}`
-
-          const id = (this as any)[this.primaryKey]
-          if (!id) throw `Cannot load association on unpersisted record`
-
-          const ModelClass = associationMetadata.modelCB()
-
-          switch (type) {
-            case 'hasOne':
-              const hasOneAssociation = associationMetadata as HasOneStatement<TableName>
-              if (hasOneAssociation.through) {
-                let hasOneQuery = db.selectFrom(hasOneAssociation.to)
-                // apply scopes here
-                hasOneQuery = loadHasManyThrough(
-                  hasOneAssociation,
-                  hasOneQuery,
-                  this.constructor as any,
-                  this
-                ) as SelectQueryBuilder<DB, keyof DB, {}>
-                const hasOneResults = await hasOneQuery.execute()
-                if (hasOneResults[0]) (this as any)[association] = new ModelClass(hasOneResults[0])
-              } else {
-                let hasOneQuery = db.selectFrom(hasOneAssociation.to)
-                // apply scopes here
-                const hasOneResult = await hasOneQuery
-                  .where(hasOneAssociation.foreignKey() as any, '=', id)
-                  .selectAll()
-                  .executeTakeFirst()
-
-                ;(this as any)[association] = new ModelClass(hasOneResult)
-              }
-              break
-
-            case 'hasMany':
-              const hasManyAssociation = associationMetadata as HasManyStatement<TableName>
-
-              if (hasManyAssociation.through) {
-                let hasManyQuery = db.selectFrom(hasManyAssociation.to)
-                // apply scopes here
-                hasManyQuery = loadHasManyThrough(
-                  hasManyAssociation,
-                  hasManyQuery,
-                  this.constructor as any,
-                  this
-                ) as SelectQueryBuilder<DB, keyof DB, {}>
-                const hasManyResults = await hasManyQuery.execute()
-                ;(this as any)[association] = hasManyResults.map(r => new ModelClass(r))
-              } else {
-                const hasManyQuery = db.selectFrom(associationMetadata.to)
-                // apply scopes here
-                const hasManyResults = await hasManyQuery
-                  .where(associationMetadata.foreignKey() as any, '=', id)
-                  .selectAll()
-                  .execute()
-                ;(this as any)[association] = hasManyResults.map(r => new ModelClass(r))
-              }
-              break
-
-            case 'belongsTo':
-              const belongsToAssociation = associationMetadata as BelongsToStatement<TableName>
-              const foreignKey = (this as any)[belongsToAssociation.foreignKey()]
-              const belongsToQuery = db.selectFrom(associationMetadata.to)
-              // apply scopes here
-              const belongsToResult = await belongsToQuery
-                .where(ModelClass.primaryKey as any, '=', foreignKey)
-                .selectAll()
-                .executeTakeFirst()
-              ;(this as any)[association] = new ModelClass(belongsToResult)
-              break
-          }
-        }
-      }
+      const query: Query<T> = new Query<T>(this.constructor as typeof Dream)
+      for (const association of associations) await query.applyIncludes(association, [this])
     }
 
     public async reload<T extends Dream>(this: T) {
       const base = this.constructor as typeof Dream
 
       const query: Query<T> = new Query<T>(base)
-      await query
+      query
         .bypassDefaultScopes()
         // @ts-ignore
         .where({ [base.primaryKey as any]: this[base.primaryKey] } as Updateable<Table>)
@@ -500,13 +434,7 @@ export default function dream<
     }
   }
 
-  class Query<
-    DreamClass extends Dream,
-    QueryAssociationExpression extends AssociationExpression<
-      DreamClass['table'] & keyof SyncedAssociations,
-      any
-    > = AssociationExpression<DreamClass['table'] & keyof SyncedAssociations, any>
-  > {
+  class Query<DreamClass extends Dream> {
     public whereStatement:
       | Updateable<Table>
       | SelectQueryBuilder<DB, TableName, {}>
@@ -601,9 +529,21 @@ export default function dream<
 
     public async all() {
       const query = this.buildSelect()
-      const results = await query.execute()
-      const DreamClass = Dream
-      const theAll = results.map(r => new DreamClass(r as Updateable<Table>) as DreamClass)
+      let results: any[]
+      try {
+        results = await query.execute()
+      } catch (error) {
+        throw `
+          Error executing SQL:
+          ${error}
+
+          SQL:
+          ${query.compile().sql}
+          [ ${query.compile().parameters.join(', ')} ]
+        `
+      }
+
+      const theAll = results.map(r => new this.dreamClass(r as Updateable<Table>) as DreamClass)
       await this.applyThisDotIncludes(theAll)
       return theAll
     }
@@ -663,13 +603,15 @@ export default function dream<
 
     public async bridgeThroughAssociations(
       dreams: Dream[],
-      association: HasOneStatement<any> | HasManyStatement<any>
+      association: HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any>
     ): Promise<{
       dreams: Dream[]
-      association: HasOneStatement<any> | HasManyStatement<any>
+      association: HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any>
     }> {
-      // Post has many Commenters through Comments
-      if (association.through) {
+      if (association.type === 'BelongsTo' || !association.through) {
+        return { dreams, association }
+      } else {
+        // Post has many Commenters through Comments
         // hydrate Post Comments
         await this.applyOneInclude(association.through, dreams)
 
@@ -691,20 +633,13 @@ export default function dream<
           }
         })
 
-        // await this.bridgeThroughAssociations()
         // return:
         //  Comments,
         //  the Comments -> CommentAuthors hasMany association
         // So that Comments may be properly hydrated with many CommentAuthors
         const newDreams = (dreams as any[]).flatMap(dream => dream[association.through!])
-        const newAssociation = association.throughClass!().associationMap[association.as] as
-          | HasOneStatement<any>
-          | HasManyStatement<any>
-
-        if (association.through) return await this.bridgeThroughAssociations(newDreams, newAssociation)
-        return { dreams: newDreams, association: newAssociation }
-      } else {
-        return { dreams, association }
+        const newAssociation = association.throughClass!().associationMap[association.as]
+        return await this.bridgeThroughAssociations(newDreams, newAssociation)
       }
     }
 
@@ -715,48 +650,25 @@ export default function dream<
       if (!dream) return
 
       let association = dream.associationMap[associationString]
+      let associationQuery
+
+      const results = await this.bridgeThroughAssociations(dreams, association)
+      dreams = results.dreams
+      association = results.association
 
       if (association.type === 'BelongsTo') {
-        const associationQuery = association.modelCB().where({
+        associationQuery = association.modelCB().where({
           [association.modelCB().primaryKey]: dreams.map(dream => (dream as any)[association.foreignKey()]),
         })
-
-        this.hydrateAssociation(dreams, association, await associationQuery.all())
       } else {
-        const results = await this.bridgeThroughAssociations(dreams, association)
-        dreams = results.dreams
-        association = results.association
-
-        const associationQuery = association.modelCB().where({
+        associationQuery = association.modelCB().where({
           [association.foreignKey()]: dreams.map(dream => dream.primaryKeyValue),
         })
-
-        this.hydrateAssociation(dreams, association, await associationQuery.all())
       }
 
+      this.hydrateAssociation(dreams, association, await associationQuery.all())
+
       return dreams.flatMap(dream => (dream as any)[association.as])
-      // comment_upvotes.each { |comment_upvote| comment_map[comment_upvote.comment_id].add_comment_upvote_to_memoized_list(comment_upvote) }
-
-      // Dream (e.g. Post)
-      //   Dream[association] (e.g. Post[recentComments])
-      //     Dream[association].query() (e.g. comments.where(created_at: 2.weeks.ago..))
-
-      //
-      // (Associations as SyncedAssociations)[dreams[0].table]
-      // [association]
-      //
-      // public includesStatements: AssociationExpression<Dream['table'] & keyof SyncedAssociations, any>[] =
-      //
-      // Post
-      // Comment
-      // CommentUpvote
-      // Post.all.includes(comments: comment_upvotes)
-      // Post.all.includes(recentComments: comment_upvotes)
-      // SELECT * FROM posts
-      // SELECT * FROM comments WHERE comments.post_id IN (SELECT id from posts)
-      // SELECT * FROM comment_upvotes WHERE comments_upvotes.comment_id in (SELECT * FROM comments WHERE comments.post_id IN (SELECT id from posts))
-      // comment_map = comments.each_with_object({}) { |comment, map| map[comment.id] = map }
-      // comment_upvotes.each { |comment_upvote| comment_map[comment_upvote.comment_id].add_comment_upvote_to_memoized_list(comment_upvote) }
     }
 
     public async applyIncludes(includesStatement: QueryAssociationExpression, dream: Dream | Dream[]) {
@@ -954,7 +866,15 @@ export default function dream<
 
     const Base = dream.constructor as typeof Dream
     for (const statement of Base.hooks[key]) {
-      await (dream as any)[statement.method]()
+      try {
+        await (dream as any)[statement.method]()
+      } catch (error) {
+        throw `
+          Error running ${key} on ${Base.name}
+          ${error}
+          statement.method: ${statement.method}
+        `
+      }
     }
   }
 

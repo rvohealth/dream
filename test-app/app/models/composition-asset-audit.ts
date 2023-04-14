@@ -1,3 +1,4 @@
+import { HasOne } from '../../../src'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import { Column } from '../../../src/decorators/column'
 import BeforeUpdate from '../../../src/decorators/hooks/before-update'
@@ -19,6 +20,18 @@ export default class CompositionAssetAudit extends Dream {
 
   @BelongsTo('composition_assets', () => CompositionAsset)
   public compositionAsset: CompositionAsset
+
+  @HasOne('compositions', () => Composition, {
+    through: 'compositionAsset',
+    throughClass: () => CompositionAsset,
+  })
+  public composition: Composition
+
+  @HasOne('users', () => User, {
+    through: 'compositionAsset',
+    throughClass: () => CompositionAsset,
+  })
+  public user: User
 
   @BeforeUpdate()
   public ensureApprovalIsSet() {

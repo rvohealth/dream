@@ -7,10 +7,13 @@ describe('Dream#load', () => {
   it('loads a HasOne association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ user_id: user.id })
+    const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+    const compositionAssetAudit = await CompositionAssetAudit.create({
+      composition_asset_id: compositionAsset.id,
+    })
 
-    await user.load('mainComposition')
-    expect(user.mainComposition.isDreamInstance).toEqual(true)
-    expect(user.mainComposition!.attributes).toEqual(composition.attributes)
+    await compositionAssetAudit.load('compositionAsset')
+    expect(compositionAssetAudit!.compositionAsset).toMatchObject(compositionAsset)
   })
 
   it('loads a HasMany association', async () => {
@@ -19,37 +22,34 @@ describe('Dream#load', () => {
     const composition2 = await Composition.create({ user_id: user.id })
 
     await user.load('compositions')
-    expect(user.compositions[0]!.isDreamInstance).toEqual(true)
-    expect(user.compositions[0]!.attributes).toEqual(composition1.attributes)
-    expect(user.compositions[1]!.attributes).toEqual(composition2.attributes)
+    expect(user.compositions[0]!).toMatchObject(composition1)
+    expect(user.compositions[1]!).toMatchObject(composition2)
   })
 
   it('can sideload multiple associations at once', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition1 = await Composition.create({ user_id: user.id })
-    const composition2 = await Composition.create({ user_id: user.id })
+    const composition = await Composition.create({ user_id: user.id })
+    const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+    const compositionAssetAudit = await CompositionAssetAudit.create({
+      composition_asset_id: compositionAsset.id,
+    })
 
-    await user.load('compositions', 'mainComposition')
-    expect(user.compositions[0]!.isDreamInstance).toEqual(true)
-    expect(user.compositions[0]!.attributes).toEqual(composition1.attributes)
-    expect(user.compositions[1]!.attributes).toEqual(composition2.attributes)
-
-    expect(user.mainComposition.isDreamInstance).toEqual(true)
-    expect(user.mainComposition!.attributes).toEqual(composition1.attributes)
+    await compositionAssetAudit.load('composition', 'user')
+    expect(compositionAssetAudit!.composition).toMatchObject(composition)
+    expect(compositionAssetAudit!.user).toMatchObject(user)
   })
 
   it('can handle an array of associations being passed', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition1 = await Composition.create({ user_id: user.id })
-    const composition2 = await Composition.create({ user_id: user.id })
+    const composition = await Composition.create({ user_id: user.id })
+    const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+    const compositionAssetAudit = await CompositionAssetAudit.create({
+      composition_asset_id: compositionAsset.id,
+    })
 
-    await user.load(['compositions', 'mainComposition'])
-    expect(user.compositions[0]!.isDreamInstance).toEqual(true)
-    expect(user.compositions[0]!.attributes).toEqual(composition1.attributes)
-    expect(user.compositions[1]!.attributes).toEqual(composition2.attributes)
-
-    expect(user.mainComposition.isDreamInstance).toEqual(true)
-    expect(user.mainComposition!.attributes).toEqual(composition1.attributes)
+    await compositionAssetAudit.load(['composition', 'user'])
+    expect(compositionAssetAudit!.composition).toMatchObject(composition)
+    expect(compositionAssetAudit!.user).toMatchObject(user)
   })
 
   it('can handle object notation', async () => {
@@ -57,7 +57,9 @@ describe('Dream#load', () => {
     const composition = await Composition.create({ user_id: user.id })
     const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
-    // await user.load({ mainComposition: ['compositionAssets'] })
+    await user.load({ compositions: ['compositionAssets'] })
+    expect(user!.compositions).toMatchObject([composition])
+    expect(user!.compositions[0].compositionAssets).toMatchObject([compositionAsset])
   })
 
   it('loads a BelongsTo association', async () => {
@@ -65,40 +67,17 @@ describe('Dream#load', () => {
     const composition = await Composition.create({ user_id: user.id })
 
     await composition.load('user')
-    expect(composition.user!.isDreamInstance).toEqual(true)
-    expect(composition.user!.attributes).toEqual(user.attributes)
+    expect(composition.user).toMatchObject(user)
   })
 
-  // describe('nested associations', () => {
-  //   it.only('can load an association on a child', async () => {
-  //     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-  //     const composition = await Composition.create({ user_id: user.id })
-
-  //     await user.load('composition')
-  //     expect(composition.user!.isDreamInstance).toEqual(true)
-  //     expect(composition.user!.attributes).toEqual(user.attributes)
-  //   })
-  // })
-
   describe('through associations', () => {
-    it('loads a HasOne through HasMany association', async () => {
-      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const composition = await Composition.create({ user_id: user.id })
-      const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
-
-      await user.load('mainCompositionAsset')
-      expect(user.mainCompositionAsset!.isDreamInstance).toEqual(true)
-      expect(user.mainCompositionAsset!.attributes).toEqual(compositionAsset.attributes)
-    })
-
     it('loads a HasOne through BelongsTo association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ user_id: user.id })
       const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
       await compositionAsset.load('user')
-      expect(compositionAsset.user!.isDreamInstance).toEqual(true)
-      expect(compositionAsset.user!.attributes).toEqual(user.attributes)
+      expect(compositionAsset.user!).toMatchObject(user)
     })
 
     it('loads a HasMany through HasMany association', async () => {
@@ -107,12 +86,11 @@ describe('Dream#load', () => {
       const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
       await user.load('compositionAssets')
-      expect(user.compositionAssets[0].isDreamInstance).toEqual(true)
-      expect(user.compositionAssets[0]!.attributes).toEqual(compositionAsset.attributes)
+      expect(user.compositionAssets[0]!).toMatchObject(compositionAsset)
     })
 
     describe('nested through associations', () => {
-      it('loads a HasMany through another through association', async () => {
+      it('loads a HasMany through a HasMany through a HasMany', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user_id: user.id })
         const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
@@ -121,11 +99,10 @@ describe('Dream#load', () => {
         })
 
         await user.load('compositionAssetAudits')
-        expect(user.compositionAssetAudits![0].isDreamInstance).toEqual(true)
-        expect(user.compositionAssetAudits![0].attributes).toEqual(compositionAssetAudit.attributes)
+        expect(user.compositionAssetAudits).toMatchObject([compositionAssetAudit])
       })
 
-      it('loads a HasOne through another through association', async () => {
+      it('loads a HasMany through a HasMany through a HasOne', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user_id: user.id })
         const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
@@ -133,9 +110,20 @@ describe('Dream#load', () => {
           composition_asset_id: compositionAsset.id,
         })
 
-        await user.load('mainCompositionAssetAudit')
-        expect(user.mainCompositionAssetAudit!.isDreamInstance).toEqual(true)
-        expect(user.mainCompositionAssetAudit!.attributes).toEqual(compositionAssetAudit.attributes)
+        await user.load('compositionAssetAudits')
+        expect(user.compositionAssetAudits).toMatchObject([compositionAssetAudit])
+      })
+
+      it('loads a HasOne through a HasOne through a BelongsTo', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user_id: user.id })
+        const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+        const compositionAssetAudit = await CompositionAssetAudit.create({
+          composition_asset_id: compositionAsset.id,
+        })
+
+        await compositionAssetAudit.load('user')
+        expect(compositionAssetAudit!.user).toMatchObject(user)
       })
     })
   })

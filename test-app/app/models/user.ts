@@ -61,12 +61,6 @@ export default class User extends Dream {
   })
   public compositionAssetAudits: CompositionAssetAudit[]
 
-  @HasOne('composition_asset_audits', () => CompositionAssetAudit, {
-    through: 'compositionAssets',
-    throughClass: () => CompositionAsset,
-  })
-  public mainCompositionAssetAudit: CompositionAssetAudit
-
   @Scope()
   public static withFunnyName(query: any) {
     return query.where({ name: 'Chalupas jr' })
