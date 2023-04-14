@@ -664,10 +664,7 @@ export default function dream<
     public async bridgeThroughAssociations(
       dreams: Dream[],
       association: HasOneStatement<any> | HasManyStatement<any>
-    ): Promise<{
-      dreams: Dream[]
-      association: HasOneStatement<any> | HasManyStatement<any>
-    }> {
+    ) {
       // Post has many Commenters through Comments
       if (association.through) {
         // hydrate Post Comments
@@ -683,7 +680,7 @@ export default function dream<
           } else {
             Object.defineProperty(dream, association.as, {
               get() {
-                return ((dream as any)[association.through!] as any[])?.flatMap(
+                return ((dream as any)[association.through!] as any[]).flatMap(
                   record => (record as any)![association.as]
                 )
               },
@@ -696,13 +693,10 @@ export default function dream<
         //  Comments,
         //  the Comments -> CommentAuthors hasMany association
         // So that Comments may be properly hydrated with many CommentAuthors
-        dreams = (dreams as any[]).flatMap(dream => dream[association.through!])
-        association = association.throughClass!().associationMap[association.as] as
-          | HasOneStatement<any>
-          | HasManyStatement<any>
-
-        if (association.through) return await this.bridgeThroughAssociations(dreams, association)
-        return { dreams, association }
+        return {
+          dreams: (dreams as any[]).flatMap(dream => dream[association.through!]),
+          association: association.throughClass!().associationMap[association.as],
+        }
       } else {
         return { dreams, association }
       }

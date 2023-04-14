@@ -85,7 +85,7 @@ describe('Query#includes', () => {
     //     expect(compositionAsset.user!.attributes).toEqual(user.attributes)
     //   })
 
-    it.only('loads a HasMany through HasMany association', async () => {
+    it('loads a HasMany through HasMany association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ user_id: user.id })
       const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
