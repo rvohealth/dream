@@ -147,7 +147,9 @@ program
         `yarn dream build:types --core && CORE_DEVELOPMENT=1 NODE_ENV=development npx ts-node --project ./tsconfig.json ./test-app/conf/repl.ts`
       )
     } else {
-      throw 'this command is not meant for use outside core development'
+      await sspawn(
+        `yarn dream build:types --core && NODE_ENV=development npx ts-node --project ./tsconfig.json ./test-app/conf/repl.ts`
+      )
     }
   })
 
