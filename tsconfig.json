@@ -17,5 +17,10 @@
     "rootDir": "./",
     "outDir": "./dist"
   },
+  "ts-node": {
+    "compilerOptions": {
+      "module": "CommonJS"
+    }
+  },
   "include": ["src/**/*", "test-app"]
 }
