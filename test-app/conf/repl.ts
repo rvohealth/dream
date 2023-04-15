@@ -10,11 +10,6 @@ export default (async function () {
     process.env.CORE_DEVELOPMENT === '1' ? `./${yamlConf.models_path}` : `../../${yamlConf.models_path}`
   )
   for (const dreamPath of dreamPaths) {
-    // const importablePath = dreamPath.replace(
-    //   new RegExp(`^.*${yamlConf.models_path.replace(/\//g, '\\/')}`),
-    //   '..'
-    // )
-    // console.log('replacy!:', yamlConf.models_path.replace(/\//g, '\\/'), importablePath)
     const DreamClass = (await import(dreamPath)).default
     replServer.context[(DreamClass as any).name] = DreamClass
   }
