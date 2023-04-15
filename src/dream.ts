@@ -442,8 +442,12 @@ export default function dream<
   class Query<DreamClass extends Dream> {
     public whereStatement:
       | Updateable<Table>
-      | SelectQueryBuilder<DB, TableName, {}>
-      | Partial<Record<keyof Table, DateRange | OpsStatement | (string | number)[]>>
+      | Partial<
+          Record<
+            keyof Table,
+            DateRange | OpsStatement | (string | number)[] | SelectQueryBuilder<DB, TableName, {}>
+          >
+        >
       | null = null
     public limitStatement: { count: number } | null = null
     public orderStatement: { column: keyof Table & string; direction: 'asc' | 'desc' } | null = null
@@ -469,8 +473,12 @@ export default function dream<
     public where(
       attributes:
         | Updateable<Table>
-        | SelectQueryBuilder<DB, TableName, {}>
-        | Partial<Record<keyof Table, DateRange | OpsStatement | (string | number)[]>>
+        | Partial<
+            Record<
+              keyof Table,
+              DateRange | OpsStatement | (string | number)[] | SelectQueryBuilder<DB, TableName, {}>
+            >
+          >
     ) {
       this.whereStatement = { ...this.whereStatement, ...attributes }
       return this
