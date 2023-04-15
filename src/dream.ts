@@ -450,6 +450,7 @@ export default function dream<
         >
       | null = null
     public limitStatement: { count: number } | null = null
+    public orStatements: Query<DreamClass>[] = []
     public orderStatement: { column: keyof Table & string; direction: 'asc' | 'desc' } | null = null
     public selectStatement: SelectArg<DB, TableName, SelectExpression<DB, TableName>> | null = null
     public includesStatements: QueryAssociationExpression[] = []
@@ -470,6 +471,11 @@ export default function dream<
       return this
     }
 
+    public or(orStatement: Query<DreamClass>) {
+      this.orStatements = [...this.orStatements, orStatement]
+      return this
+    }
+
     public where(
       attributes:
         | Updateable<Table>
@@ -481,11 +487,6 @@ export default function dream<
           >
     ) {
       this.whereStatement = { ...this.whereStatement, ...attributes }
-      return this
-    }
-
-    public select<SE extends SelectExpression<DB, TableName>>(selection: SelectArg<DB, TableName, SE>) {
-      this.selectStatement = selection
       return this
     }
 
@@ -512,6 +513,19 @@ export default function dream<
     public sql() {
       const query = this.buildSelect()
       return query.compile()
+    }
+
+    public toKysely(type: 'select' | 'update' | 'delete' = 'select') {
+      switch (type) {
+        case 'select':
+          return this.buildSelect()
+
+        case 'delete':
+          return this.buildDelete()
+
+        case 'update':
+          return this.buildUpdate({})
+      }
     }
 
     public async count() {
@@ -719,7 +733,7 @@ export default function dream<
     }
 
     public async destroy() {
-      const query = this.buildDestroy()
+      const query = this.buildDelete()
       const selectQuery = this.buildSelect()
       const results = await selectQuery.execute()
       await query.execute()
@@ -728,7 +742,7 @@ export default function dream<
 
     public async destroyBy(attributes: Updateable<Table>) {
       this.where(attributes)
-      const query = this.buildDestroy()
+      const query = this.buildDelete()
       const selectQuery = this.buildSelect()
       const results = await selectQuery.execute()
       await query.execute()
@@ -757,7 +771,7 @@ export default function dream<
       }
     }
 
-    public buildDestroy() {
+    public buildDelete() {
       let query = db.deleteFrom(tableName as TableName)
       if (this.whereStatement) {
         Object.keys(this.whereStatement).forEach(attr => {
@@ -776,6 +790,10 @@ export default function dream<
       if (this.selectStatement) {
         query = query.select(this.selectStatement as any)
       }
+
+      this.orStatements.forEach(orStatement => {
+        query = query.union(orStatement.toKysely() as any)
+      })
 
       if (this.whereStatement) {
         Object.keys(this.whereStatement).forEach(attr => {
