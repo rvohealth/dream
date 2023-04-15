@@ -5,6 +5,7 @@ import { modelsPath } from './path'
 
 export default async function loadModels() {
   const pathToModels = await modelsPath()
+  console.log('PATH TO MODELS', pathToModels, process.cwd())
   const modelPaths = await fs.readdir(pathToModels)
   const models: { [key: string]: typeof Dream } = {}
 
