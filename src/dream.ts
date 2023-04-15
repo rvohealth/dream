@@ -230,9 +230,14 @@ export default function dream<
       this: { new (): T } & typeof Dream,
       attributes:
         | Updateable<Table>
-        | Partial<Record<keyof Table, DateRange | OpsStatement | (string | number)[]>>
         | Partial<
-            Record<keyof Table, SelectQueryBuilder<DB, SubTable, Selection<DB, SubTable, DB[SubTable]>>>
+            Record<
+              keyof Table,
+              | DateRange
+              | OpsStatement
+              | SelectQueryBuilder<DB, SubTable, Selection<DB, SubTable, DB[SubTable]>>
+              | (string | number)[]
+            >
           >
     ) {
       const query: Query<T> = new Query<T>(this)
