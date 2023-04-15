@@ -207,12 +207,12 @@ export default function dream<
       return await query.pluck(...fields)
     }
 
-    public static selectForWhere<
+    public static nestedSelect<
       T extends Dream,
       SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>
     >(this: { new (): T } & typeof Dream, selection: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>) {
       let query: Query<T> = new Query<T>(this)
-      return query.selectForWhere(selection)
+      return query.nestedSelect(selection)
     }
 
     public static scope<T extends Dream>(this: { new (): T } & typeof Dream, scopeName: string) {
@@ -489,10 +489,11 @@ export default function dream<
       return this
     }
 
-    public selectForWhere<SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>>(
+    public nestedSelect<SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>>(
       selection: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>
     ) {
-      return db.selectFrom(tableName).select(selection)
+      const query = this.buildSelect({ bypassSelectAll: true })
+      return query.select(selection)
     }
 
     public order<ColumnName extends keyof Table & string>(
