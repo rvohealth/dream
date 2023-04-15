@@ -6,7 +6,7 @@ import { loadDreamYamlFile, modelsPath } from './path'
 export default async function loadModels() {
   const pathToModels = await modelsPath()
   const yamlConf = await loadDreamYamlFile()
-  const modelPaths = await fs.readdir(pathToModels)
+  const modelPaths = await getFiles(pathToModels)
   const models: { [key: string]: typeof Dream } = {}
 
   for (const modelPath of modelPaths.filter(path => /\.ts$/.test(path))) {
