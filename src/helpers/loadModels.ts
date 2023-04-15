@@ -12,7 +12,7 @@ export default async function loadModels() {
   for (const modelPath of modelPaths.filter(path => /\.ts$/.test(path))) {
     const fullPath = path.join(pathToModels, modelPath)
     const relativePath =
-      `../../${process.env.CORE_DEVELOPMENT === '1' ? '' : ''}${yamlConf.models_path}/` +
+      `../../${process.env.CORE_DEVELOPMENT === '1' ? '' : '../../../'}${yamlConf.models_path}/` +
       fullPath.replace(new RegExp(`^.*${yamlConf.models_path}\/`), '')
     // .replace(new RegExp(`^${process.cwd()}`, ''), '')
     console.log(
