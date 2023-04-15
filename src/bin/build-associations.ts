@@ -14,7 +14,6 @@ buildAssociations()
 
 async function writeAssociationsFile() {
   const models = Object.values(await loadModels()) as any[]
-  console.log('MODELS: ', models)
   const finalModels: { [key: string]: { [key: string]: string } } = {}
   for (const model of models) {
     finalModels[model.table] ||= {}
