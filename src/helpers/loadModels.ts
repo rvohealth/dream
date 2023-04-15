@@ -11,12 +11,20 @@ export default async function loadModels() {
 
   for (const modelPath of modelPaths.filter(path => /\.ts$/.test(path))) {
     const fullPath = path.join(pathToModels, modelPath)
-    console.log('CWD: ', process.cwd(), 'YAML CONF:', yamlConf, 'Full path:', fullPath)
     const relativePath =
       `../../${process.env.CORE_DEVELOPMENT === '1' ? '' : '../../'}${yamlConf.models_path}/` +
-      fullPath
-        .replace(new RegExp(`^${process.cwd()}`, ''), '')
-        .replace(new RegExp(`^\/${yamlConf.models_path}\/`), '')
+      fullPath.replace(new RegExp(`^.*${yamlConf.models_path}\/`), '')
+    // .replace(new RegExp(`^${process.cwd()}`, ''), '')
+    console.log(
+      'CWD: ',
+      process.cwd(),
+      'YAML CONF:',
+      yamlConf,
+      'Full path:',
+      fullPath,
+      'Final path',
+      relativePath
+    )
 
     let ModelClass: typeof Dream | null = null
     try {
