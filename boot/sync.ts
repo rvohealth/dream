@@ -10,21 +10,23 @@ import snakeify from '../src/helpers/snakeify'
 
 export default async function sync() {
   console.log('writing schema...')
-  await writeSchema()
+  const [schema, transformedNames] = await writeSchema()
 
-  console.log('syncing schema and dream config...')
+  console.log('syncing schema, associations, and dream config files...')
   const yamlConf = await loadDreamYamlFile()
   if (process.env.CORE_DEVELOPMENT === '1') {
     await sspawn(
       'rm -f src/sync/schema.ts && rm -f src/sync/dream.ts && ' +
         'cp ./test-app/db/schema.ts ./src/sync && ' +
-        'cp ./test-app/conf/dream.ts ./src/sync'
+        'cp ./test-app/conf/dream.ts ./src/sync && ' +
+        'cp ./test-app/db/associations.ts ./src/sync'
     )
   } else {
     await sspawn(
       'rm -f src/sync/schema.ts && rm -f src/sync/dream.ts && ' +
         `cp ../../${yamlConf.schema_path} ./src/sync && ` +
-        `cp ../../${yamlConf.dream_config_path} ./src/sync`
+        `cp ../../${yamlConf.dream_config_path} ./src/sync && ` +
+        `cp ../../${yamlConf.associations_path} ./src/sync`
     )
   }
 
@@ -49,10 +51,12 @@ async function writeSchema() {
   // intentionally bypassing helpers here, since they often end up referencing
   // from the dist folder, whereas dirname here is pointing to true src folder.
   const file = await (await fs.readFile(absoluteSchemaPath)).toString()
-  const enhancedSchema = await enhanceSchema(file)
+  const [enhancedSchema, transformedNames] = await enhanceSchema(file)
 
-  await fs.writeFile(absoluteSchemaWritePath, enhancedSchema)
+  await fs.writeFile(absoluteSchemaWritePath, enhancedSchema as string)
+
   console.log('done enhancing schema!')
+  return [enhancedSchema, transformedNames] as [string, [string, string][]]
 }
 
 // begin: schema helpers
@@ -82,7 +86,7 @@ export const DBColumns = {
   }
 }
 `
-  return newFileContents
+  return [newFileContents, transformedNames] as [string, [string, string][]]
 }
 
 function replaceTimestampWithLuxonVariant(file: string) {
