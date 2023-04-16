@@ -993,3 +993,8 @@ export type DreamModel<
   TableName extends keyof DB & string,
   IdColumnName extends keyof DB[TableName] & string
 > = ReturnType<typeof dream<TableName, IdColumnName>>
+
+export type DreamModelInstance<
+  TableName extends keyof DB & string,
+  IdColumnName extends keyof DB[TableName] & string
+> = InstanceType<ReturnType<typeof dream<TableName, IdColumnName>>>
