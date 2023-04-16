@@ -57,7 +57,7 @@ program
   .option('--core', 'sets core to true')
   .action(async () => {
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(`yarn dream sync:existing ${!!coreDevFlag ? '--core' : ''}`)
+    // await sspawn(`yarn dream sync:existing ${!!coreDevFlag ? '--core' : ''}`)
     await sspawn(`yarn dream build:schema ${!!coreDevFlag ? '--core' : ''}`)
     await sspawn(`yarn dream build:associations ${!!coreDevFlag ? '--core' : ''}`)
     await sspawn(`${coreDevFlag}yarn build`)
