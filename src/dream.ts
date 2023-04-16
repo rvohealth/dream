@@ -101,6 +101,10 @@ export default function dream<
       return tableName as TableName
     }
 
+    public static get columns(): string[] {
+      return columns
+    }
+
     public static get associationMap() {
       const allAssociations = [
         ...this.associations.belongsTo,
