@@ -57,6 +57,7 @@ program
   .option('--core', 'sets core to true')
   .action(async () => {
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
+    await sspawn(`yarn dream sync:existing ${!!coreDevFlag ? '--core' : ''}`)
     await sspawn(`yarn dream build:schema ${!!coreDevFlag ? '--core' : ''}`)
     await sspawn(`yarn dream build:associations ${!!coreDevFlag ? '--core' : ''}`)
     await sspawn(`${coreDevFlag}yarn build`)
@@ -109,14 +110,14 @@ program
   })
 
 program
-  .command('copy:boilerplate')
+  .command('sync:existing')
   .description(
-    'copies a boilerplate template for schema.ts and dream.ts, which are both provided to the dream framework'
+    'syncs the current schema, associations, and db configuration (rather than generating a new one).'
   )
   .option('--core', 'sets core to true')
   .action(async () => {
     setCoreDevelopmentFlag(program.args)
-    await sspawn(`npx ts-node boot/copy-boilerplate.ts`)
+    await sspawn(`npx ts-node boot/sync-existing-or-create-boilerplate.ts`)
   })
 
 program

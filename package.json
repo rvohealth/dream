@@ -8,11 +8,10 @@
   "license": "MIT",
   "private": true,
   "scripts": {
+    "dream": "npx ts-node ./boot/cli.ts",
     "build": "rm -rf dist && npx tsc",
     "spec": "yarn dream spec --core",
-    "console": "yarn dream console --core",
-    "dream": "npx ts-node ./boot/cli.ts",
-    "postinstall": "yarn dream copy:boilerplate --core"
+    "console": "yarn dream console --core"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",

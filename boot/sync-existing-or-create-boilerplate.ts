@@ -2,7 +2,7 @@ import * as fs from 'fs/promises'
 import sspawn from '../src/helpers/sspawn'
 import { loadDreamYamlFile } from '../src/helpers/path'
 
-export default async function copyBoilerplate() {
+export default async function syncExistingOrCreateBoilerplate() {
   console.log('checking for sync folder compatibility...')
   const yamlConf = await loadDreamYamlFile()
 
@@ -53,4 +53,4 @@ export default async function copyBoilerplate() {
   }
 }
 
-copyBoilerplate()
+syncExistingOrCreateBoilerplate()
