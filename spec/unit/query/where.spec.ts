@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import User from '../../../test-app/app/models/user'
-import daterange from '../../../src/helpers/daterange'
+import range from '../../../src/helpers/range'
 import ops from '../../../src/ops'
 
 describe('Query#where', () => {
@@ -132,7 +132,7 @@ describe('Query#where', () => {
 
     it('is able to apply date ranges to where clause', async () => {
       const records = await User.order('id')
-        .where({ created_at: daterange(begin, end) })
+        .where({ created_at: range(begin, end) })
         .all()
 
       expect(records.length).toEqual(3)
@@ -142,7 +142,7 @@ describe('Query#where', () => {
     context('end is not passed', () => {
       it('finds all dates after the start', async () => {
         const records = await User.order('id')
-          .where({ created_at: daterange(begin.plus({ hour: 1 })) })
+          .where({ created_at: range(begin.plus({ hour: 1 })) })
           .all()
 
         expect(records.length).toEqual(3)
@@ -153,7 +153,7 @@ describe('Query#where', () => {
     context('start is not passed', () => {
       it('finds all dates after the start', async () => {
         const records = await User.order('id')
-          .where({ created_at: daterange(null, begin.plus({ hour: 1 })) })
+          .where({ created_at: range(null, begin.plus({ hour: 1 })) })
           .all()
 
         expect(records.length).toEqual(3)
@@ -164,7 +164,7 @@ describe('Query#where', () => {
     context('excludeEnd is passed', () => {
       it('omits a record landing exactly on the end date', async () => {
         const records = await User.order('id')
-          .where({ created_at: daterange(begin, end, true) })
+          .where({ created_at: range(begin, end, true) })
           .all()
 
         expect(records.length).toEqual(2)

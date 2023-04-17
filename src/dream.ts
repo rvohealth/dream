@@ -12,6 +12,7 @@ import {
   SelectType,
   Updateable,
 } from 'kysely'
+import { DateTime } from 'luxon'
 import { HasManyStatement } from './decorators/associations/has-many'
 import { BelongsToStatement } from './decorators/associations/belongs-to'
 import { HasOneStatement } from './decorators/associations/has-one'
@@ -22,7 +23,7 @@ import ValidationStatement, { ValidationType } from './decorators/validations/sh
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { marshalDBValue } from './helpers/marshalDBValue'
 import sqlAttributes from './helpers/sqlAttributes'
-import { DateRange } from './helpers/daterange'
+import { Range } from './helpers/range'
 import ValidationError from './exceptions/validation-error'
 import InStatement from './ops/in'
 import LikeStatement from './ops/like'
@@ -237,7 +238,7 @@ export default function dream<
         | Partial<
             Record<
               keyof Table,
-              | DateRange
+              | Range<DateTime>
               | OpsStatement
               | SelectQueryBuilder<DB, SubTable, Selection<DB, SubTable, DB[SubTable]>>
               | (string | number)[]
@@ -449,7 +450,7 @@ export default function dream<
       | Partial<
           Record<
             keyof Table,
-            DateRange | OpsStatement | (string | number)[] | SelectQueryBuilder<DB, TableName, {}>
+            Range<DateTime> | OpsStatement | (string | number)[] | SelectQueryBuilder<DB, TableName, {}>
           >
         >
       | null = null
@@ -486,7 +487,7 @@ export default function dream<
         | Partial<
             Record<
               keyof Table,
-              DateRange | OpsStatement | (string | number)[] | SelectQueryBuilder<DB, TableName, {}>
+              Range<DateTime> | OpsStatement | (string | number)[] | SelectQueryBuilder<DB, TableName, {}>
             >
           >
     ) {
@@ -815,7 +816,10 @@ export default function dream<
             query = query.where(attr as any, 'like', val.like)
           } else if (val.constructor === ILikeStatement) {
             query = query.where(attr as any, 'ilike', val.ilike)
-          } else if (val.constructor === DateRange) {
+          } else if (
+            val.constructor === Range &&
+            (val.begin?.constructor || val.end?.constructor) === DateTime
+          ) {
             const begin = val.begin?.toUTC()?.toSQL()
             const end = val.end?.toUTC()?.toSQL()
             const excludeEnd = val.excludeEnd
