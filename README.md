@@ -270,7 +270,7 @@ yarn dream db:migrate
 #     "db:migrate": "yarn --cwd=node_modules/dream db:migrate"
 # }
 
-yarn dream build:schema
+yarn dream sync:schema
 # syncs db schema from an app that is consuming the dream ORM. This is necessary, because in order to provide
 # deep integration with kysely, we must actually introspect the schema of your app and provide it
 # as part of the dream orm source code build. It essentially scans your database, examines all tables, outputs interfaces that kysely can consume, puts them into a file, and exports all the interfaces within that file.
@@ -286,22 +286,22 @@ yarn dream build:schema
 # e.g. within a different app's package.json:
 #
 #  "scripts": {
-#     "build:schema": "yarn --cwd=node_modules/dream build:schema"
+#     "sync:schema": "yarn --cwd=node_modules/dream sync:schema"
 # }
 
-yarn dream build:schema --core
+yarn dream sync:schema --core
 # runs the same sync script mentioned above, but for core development. You would run this if you were trying to
 # sync for the test-app, which is used to seed the local tests and provide models for use within the console.
 # Similar to above, a local copy of schema is kept within test-app/db/schema.ts, which is updated each time you
 # run yarn core:db:migrate.
 
-yarn dream build:associations
+yarn dream sync:associations
 # runs a script which analyzes your models, building a mapping of the associations into typescript interfaces
 # which will assist in providing enforced type completion mechanisms at the code composition level. This must be
 # this is used by the underlying `load` method, as well as includes and joins methods within the query
 # building layer. This is all copied to the file specified in the `.dream.yml#associations_path`. This is also automatically done whenever you run migrations, run specs, or open a console
 
-yarn dream build:associations --core
+yarn dream sync:associations --core
 # same as above, but copies the associations.ts file to test-app/db/associations.ts
 
 yarn dream copy:boilerplate --core
