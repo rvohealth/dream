@@ -1020,11 +1020,6 @@ type AssociationExpression<
 type JoinsWhereAssociationExpression<
   TB extends keyof DB & keyof SyncedAssociations,
   AE extends AssociationExpression<TB, any>,
-  // QueryAssociationExpression extends AssociationExpression<
-  //   TableName & keyof DB & keyof SyncedAssociations,
-  //   any
-  // > = AssociationExpression<TableName & keyof DB & keyof SyncedAssociations, any>
-
   Depth extends number = 0
 > = Depth extends 10
   ? never
