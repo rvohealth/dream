@@ -33,12 +33,8 @@ import Associations, { SyncedAssociations } from './sync/associations'
 import { Inc } from './helpers/typeutils'
 
 export default function dream<
-  TableName extends keyof DB & keyof SyncedAssociations & string,
-  IdColumnName extends keyof DB[TableName] & string,
-  QueryAssociationExpression extends AssociationExpression<
-    TableName & keyof SyncedAssociations,
-    any
-  > = AssociationExpression<TableName & keyof SyncedAssociations, any>
+  TableName extends keyof DB & keyof SyncedAssociations,
+  IdColumnName extends keyof DB[TableName] & string
 >(tableName: TableName, primaryKey: IdColumnName = 'id' as IdColumnName) {
   const columns = DBColumns[tableName]
 
@@ -177,7 +173,7 @@ export default function dream<
 
     public static includes<T extends Dream>(
       this: { new (): T } & typeof Dream,
-      ...associations: QueryAssociationExpression[]
+      ...associations: AssociationExpression<TableName & keyof DB & keyof SyncedAssociations, any>[]
     ) {
       const query: Query<T> = new Query<T>(this)
       return query.includes(...associations)
@@ -343,7 +339,7 @@ export default function dream<
 
     public async load<T extends Dream>(
       this: T,
-      ...associations: QueryAssociationExpression[]
+      ...associations: AssociationExpression<TableName & keyof DB & keyof SyncedAssociations, any>[]
     ): Promise<void> {
       const query: Query<T> = new Query<T>(this.constructor as typeof Dream)
       for (const association of associations) await query.applyIncludes(association, [this])
@@ -454,11 +450,17 @@ export default function dream<
           >
         >
       | null = null
+    public whereJoinStatement: JoinsWhereAssociationExpression<
+      TableName,
+      AssociationExpression<TableName, any>
+    > | null = null
     public limitStatement: { count: number } | null = null
     public orStatements: Query<DreamClass>[] = []
     public orderStatement: { column: keyof Table & string; direction: 'asc' | 'desc' } | null = null
     public selectStatement: SelectArg<DB, TableName, SelectExpression<DB, TableName>> | null = null
-    public includesStatements: QueryAssociationExpression[] = []
+    public includesStatements: AssociationExpression<TableName & keyof DB & keyof SyncedAssociations, any>[] =
+      []
+    public joinsStatements: AssociationExpression<TableName & keyof DB & keyof SyncedAssociations, any>[] = []
     public shouldBypassDefaultScopes: boolean = false
     public dreamClass: typeof Dream
 
@@ -471,7 +473,7 @@ export default function dream<
       return this
     }
 
-    public includes(...args: QueryAssociationExpression[]) {
+    public includes(...args: AssociationExpression<TableName & keyof DB & keyof SyncedAssociations, any>[]) {
       this.includesStatements = [...this.includesStatements, ...args]
       return this
     }
@@ -481,7 +483,13 @@ export default function dream<
       return this
     }
 
-    public where(
+    public joins(...args: AssociationExpression<TableName & keyof DB & keyof SyncedAssociations, any>[]) {
+      this.joinsStatements = [...this.joinsStatements, ...args]
+      return this
+    }
+
+    public where<T extends Query<DreamClass>>(
+      this: T,
       attributes:
         | Updateable<Table>
         | Partial<
@@ -490,8 +498,24 @@ export default function dream<
               Range<DateTime> | OpsStatement | (string | number)[] | SelectQueryBuilder<DB, TableName, {}>
             >
           >
+        | JoinsWhereAssociationExpression<
+            TableName & keyof DB & keyof SyncedAssociations,
+            T['joinsStatements'][number]
+          >
     ) {
-      this.whereStatement = { ...this.whereStatement, ...attributes }
+      Object.keys(attributes).forEach(key => {
+        if (columns.includes(key)) {
+          this.whereStatement ||= {}
+          // @ts-ignore
+          this.whereStatement[key] = attributes[key]
+        } else {
+          // @ts-ignore
+          this.whereJoinStatement ||= {}
+          // @ts-ignore
+          this.whereJoinStatement[key] = attributes[key]
+        }
+      })
+
       return this
     }
 
@@ -704,13 +728,19 @@ export default function dream<
       return dreams.flatMap(dream => (dream as any)[association.as])
     }
 
-    public async applyIncludes(includesStatement: QueryAssociationExpression, dream: Dream | Dream[]) {
+    public async applyIncludes(
+      includesStatement: AssociationExpression<TableName & keyof DB & keyof SyncedAssociations, any>,
+      dream: Dream | Dream[]
+    ) {
       switch (includesStatement.constructor) {
         case String:
           await this.applyOneInclude(includesStatement as string, dream)
           break
         case Array:
-          for (const str of includesStatement as QueryAssociationExpression[]) {
+          for (const str of includesStatement as AssociationExpression<
+            TableName & keyof DB & keyof SyncedAssociations,
+            any
+          >[]) {
             await this.applyIncludes(str, dream)
           }
           break
@@ -967,13 +997,13 @@ export default function dream<
 }
 
 type NestedAssociationExpression<
-  TB extends keyof SyncedAssociations & string,
+  TB extends keyof DB & keyof SyncedAssociations,
   Property extends keyof SyncedAssociations[TB],
   Next
-> = AssociationExpression<SyncedAssociations[TB][Property] & keyof SyncedAssociations, Next>
+> = AssociationExpression<SyncedAssociations[TB][Property] & keyof DB & keyof SyncedAssociations, Next>
 
 type AssociationExpression<
-  TB extends keyof SyncedAssociations & string,
+  TB extends keyof DB & keyof SyncedAssociations,
   AE = unknown,
   Depth extends number = 0
 > = Depth extends 10
@@ -987,6 +1017,36 @@ type AssociationExpression<
     }>
   ? Partial<{
       [Property in keyof SyncedAssociations[TB]]: NestedAssociationExpression<TB, Property, AE[Property]>
+    }>
+  : never
+
+type JoinsWhereAssociationExpression<
+  TB extends keyof DB & keyof SyncedAssociations,
+  AE extends AssociationExpression<TB, any>,
+  // QueryAssociationExpression extends AssociationExpression<
+  //   TableName & keyof DB & keyof SyncedAssociations,
+  //   any
+  // > = AssociationExpression<TableName & keyof DB & keyof SyncedAssociations, any>
+
+  Depth extends number = 0
+> = Depth extends 10
+  ? never
+  : AE extends any[]
+  ? JoinsWhereAssociationExpression<TB, AE[number], Inc<Depth>>[]
+  : AE extends keyof SyncedAssociations[TB]
+  ? Partial<{
+      [AssociationName in keyof SyncedAssociations[TB]]: Updateable<
+        DB[SyncedAssociations[TB][AssociationName] & keyof DB & keyof SyncedAssociations]
+      >
+    }>
+  : AE extends Partial<{
+      [AssociationName in keyof SyncedAssociations[TB]]: NestedAssociationExpression<TB, AssociationName, any>
+    }>
+  ? Partial<{
+      [AssociationName in keyof SyncedAssociations[TB]]: JoinsWhereAssociationExpression<
+        SyncedAssociations[TB][AssociationName] & keyof DB & keyof SyncedAssociations,
+        NestedAssociationExpression<TB, AssociationName, AE[AssociationName]>
+      >
     }>
   : never
 
