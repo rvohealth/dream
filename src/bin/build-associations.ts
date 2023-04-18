@@ -4,6 +4,7 @@ import { promises as fs } from 'fs'
 import loadModels from '../helpers/loadModels'
 import { DreamModel } from '../dream'
 import { loadDreamYamlFile } from '../helpers/path'
+import { DBColumns } from '../sync/schema'
 
 export default async function buildAssociations() {
   console.log('indexing dream associations...')
@@ -15,8 +16,12 @@ buildAssociations()
 async function writeAssociationsFile() {
   const models = Object.values(await loadModels()) as any[]
   const finalModels: { [key: string]: { [key: string]: string } } = {}
+
+  Object.keys(DBColumns).forEach(column => {
+    finalModels[column] = {}
+  })
+
   for (const model of models) {
-    finalModels[model.table] ||= {}
     for (const associationName of new model().associationNames) {
       finalModels[model.table][associationName] = new model().associationMap[associationName].to
     }
