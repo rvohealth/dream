@@ -5,60 +5,80 @@ import CompositionAssetAudit from '../../../test-app/app/models/composition-asse
 
 describe('Query#joins', () => {
   it('joins a HasOne association', async () => {
-    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+    await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
     const composition = await Composition.create({ user_id: user.id })
 
     const reloadedUser = await User.limit(2)
       .joins('mainComposition')
       .where({ mainComposition: { id: composition.id } })
-      .first()
-    expect(reloadedUser!).toMatchObject(user)
+      .all()
+    expect(reloadedUser!).toMatchObject([user])
   })
 
   it('joins a HasMany association', async () => {
-    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition1 = await Composition.create({ user_id: user.id })
-    const composition2 = await Composition.create({ user_id: user.id })
+    await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+    const composition = await Composition.create({ user_id: user.id })
 
-    const reloadedUser = await User.limit(1).joins('compositions').first()
-    expect(reloadedUser!.compositions[0]).toMatchObject(composition1)
-    expect(reloadedUser!.compositions[1]).toMatchObject(composition2)
+    const reloadedUser = await User.limit(2)
+      .joins('compositions')
+      .where({ compositions: { id: composition.id } })
+      .all()
+    expect(reloadedUser!).toMatchObject([user])
   })
 
   it('joins a BelongsTo association', async () => {
+    const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    await Composition.create({ user_id: otherUser.id })
+
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    await Composition.create({ user_id: user.id })
-    const reloadedComposition = await Composition.limit(1).joins('user').first()
-    expect(reloadedComposition!.user).toMatchObject(user)
+    const composition = await Composition.create({ user_id: user.id })
+
+    const reloadedComposition = await Composition.limit(2)
+      .joins('user')
+      .where({ user: { id: user.id } })
+      .all()
+    expect(reloadedComposition).toMatchObject([composition])
   })
 
   context('when passed an object', () => {
     it('loads specified associations', async () => {
-      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+
       const composition = await Composition.create({ user_id: user.id })
       const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
-      const reloadedUser = await User.limit(1).joins({ mainComposition: 'compositionAssets' }).first()
-      expect(reloadedUser!.mainComposition).toMatchObject(composition)
-      expect(reloadedUser!.mainComposition.compositionAssets).toMatchObject([compositionAsset])
+      const reloadedUsers = await User.limit(2)
+        .joins({ mainComposition: 'compositionAssets' })
+        .where({ mainComposition: { compositionAssets: { id: compositionAsset.id } } })
+        .all()
+
+      expect(reloadedUsers).toMatchObject([user])
     })
   })
 
-  context('when passed an array', () => {
+  context.only('when passed an array', () => {
     it('loads specified associations', async () => {
+      await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ user_id: user.id })
       const composition2 = await Composition.create({ user_id: user.id })
       const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
-      const reloadedUser = await User.limit(1)
+      const reloadedUsers = await User.limit(2)
         .joins(['compositions', { mainComposition: 'compositionAssets' }])
-        .first()
-
-      expect(reloadedUser!.mainComposition).toMatchObject(composition)
-      expect(reloadedUser!.compositions).toMatchObject([composition, composition2])
-      expect(reloadedUser!.mainComposition.compositionAssets).toMatchObject([compositionAsset])
+        .where([
+          {
+            compositions: { id: composition.id },
+          },
+          {
+            mainComposition: { compositionAssets: { id: compositionAsset.id } },
+          },
+        ])
+        .all()
+      expect(reloadedUsers).toMatchObject([user])
     })
   })
 

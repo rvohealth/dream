@@ -20,7 +20,7 @@ import { ScopeStatement } from './decorators/scope'
 import { HookStatement } from './decorators/hooks/shared'
 import * as pluralize from 'pluralize'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
-import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
+import { ExtractTableAlias, TableExpression } from 'kysely/dist/cjs/parser/table-parser'
 import { marshalDBValue } from './helpers/marshalDBValue'
 import sqlAttributes from './helpers/sqlAttributes'
 import { Range } from './helpers/range'
@@ -31,6 +31,7 @@ import ILikeStatement from './ops/ilike'
 import { OpsStatement } from './ops'
 import Associations, { SyncedAssociations } from './sync/associations'
 import { Inc } from './helpers/typeutils'
+import associations from './sync/associations'
 
 export default function dream<
   TableName extends keyof DB & keyof SyncedAssociations,
@@ -41,6 +42,7 @@ export default function dream<
   > = AssociationExpression<TableName & keyof DB & keyof SyncedAssociations, any>
 >(tableName: TableName, primaryKey: IdColumnName = 'id' as IdColumnName) {
   const columns = DBColumns[tableName]
+  const tableNames = Object.keys(DBColumns)
 
   type Table = DB[TableName]
   type IdColumn = Table[IdColumnName]
@@ -454,10 +456,9 @@ export default function dream<
           >
         >
       | null = null
-    public whereJoinStatement: JoinsWhereAssociationExpression<
-      TableName,
-      AssociationExpression<TableName, any>
-    > | null = null
+    public whereJoinStatement:
+      | JoinsWhereAssociationExpression<TableName, AssociationExpression<TableName, any>>[]
+      | null = null
     public limitStatement: { count: number } | null = null
     public orStatements: Query<DreamClass>[] = []
     public orderStatement: { column: keyof Table & string; direction: 'asc' | 'desc' } | null = null
@@ -506,18 +507,25 @@ export default function dream<
             T['joinsStatements'][number]
           >
     ) {
-      Object.keys(attributes).forEach(key => {
-        if (columns.includes(key)) {
-          this.whereStatement ||= {}
-          // @ts-ignore
-          this.whereStatement[key] = attributes[key]
-        } else {
-          // @ts-ignore
-          this.whereJoinStatement ||= {}
-          // @ts-ignore
-          this.whereJoinStatement[key] = attributes[key]
-        }
-      })
+      if (attributes.constructor === Array) {
+        // @ts-ignore
+        this.whereJoinStatement ||= []
+        // @ts-ignore
+        this.whereJoinStatement = [...this.whereJoinStatement, ...attributes]
+      } else {
+        Object.keys(attributes).forEach(key => {
+          if (columns.includes(key)) {
+            this.whereStatement ||= {}
+            // @ts-ignore
+            this.whereStatement[key] = attributes[key]
+          } else {
+            // @ts-ignore
+            this.whereJoinStatement ||= []
+            // @ts-ignore
+            this.whereJoinStatement.push({ [key]: attributes[key] })
+          }
+        })
+      }
 
       return this
     }
@@ -661,7 +669,7 @@ export default function dream<
       }
     }
 
-    public async bridgeThroughAssociations(
+    public async includesBridgeThroughAssociations(
       dreams: Dream[],
       association: HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any>
     ): Promise<{
@@ -699,7 +707,7 @@ export default function dream<
         // So that Comments may be properly hydrated with many CommentAuthors
         const newDreams = (dreams as any[]).flatMap(dream => dream[association.through!])
         const newAssociation = association.throughClass!().associationMap[association.as]
-        return await this.bridgeThroughAssociations(newDreams, newAssociation)
+        return await this.includesBridgeThroughAssociations(newDreams, newAssociation)
       }
     }
 
@@ -712,7 +720,7 @@ export default function dream<
       let association = dream.associationMap[associationString]
       let associationQuery
 
-      const results = await this.bridgeThroughAssociations(dreams, association)
+      const results = await this.includesBridgeThroughAssociations(dreams, association)
       dreams = results.dreams
       association = results.association
 
@@ -813,11 +821,96 @@ export default function dream<
       return query
     }
 
+    public recursivelyJoin<PreviousTableName extends keyof DB & keyof SyncedAssociations>({
+      query,
+      whereJoinStatement,
+      dreamClass,
+      previousTableName,
+      previousAlias,
+    }: {
+      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
+      whereJoinStatement:
+        | JoinsWhereAssociationExpression<PreviousTableName, AssociationExpression<PreviousTableName, any>>
+        | Updateable<DB[PreviousTableName]>
+      dreamClass: DreamModel<any, any>
+      previousTableName: PreviousTableName
+      previousAlias: string
+    }): AliasCondition<PreviousTableName> | SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}> {
+      for (const key of Object.keys(whereJoinStatement) as (
+        | keyof SyncedAssociations[PreviousTableName]
+        | keyof Updateable<DB[PreviousTableName]>
+      )[]) {
+        const columnValue = (whereJoinStatement as Updateable<DB[PreviousTableName]>)[
+          key as keyof Updateable<DB[PreviousTableName]>
+        ]
+
+        if (columnValue!.constructor !== Object) {
+          return {
+            conditionToExecute: true,
+            alias: previousAlias,
+            column: key,
+            columnValue: columnValue,
+          } as AliasCondition<PreviousTableName>
+        } else {
+          const associationString = key as keyof SyncedAssociations[PreviousTableName] & string
+          let association = dreamClass.associationMap[associationString]
+
+          // const results = await this.joinsBridgeThroughAssociations(dreams, association)
+          // dreams = results.dreams
+          // association = results.association
+
+          const joinTableExpression =
+            associationString === association.to
+              ? associationString
+              : `${association.to} as ${associationString}`
+
+          if (association.type === 'BelongsTo') {
+            // @ts-ignore
+            query = query.innerJoin(
+              // @ts-ignore
+              joinTableExpression,
+              // @ts-ignore
+              `${associationString}.${association.modelCB().primaryKey}`,
+              `${previousAlias}.${association.foreignKey()}`
+            )
+          } else {
+            // @ts-ignore
+            query = query.innerJoin(
+              // @ts-ignore
+              joinTableExpression,
+              // @ts-ignore
+              `${previousAlias}.${association.modelCB().primaryKey}`,
+              `${associationString}.${association.foreignKey()}`
+            )
+          }
+
+          const result = this.recursivelyJoin({
+            query,
+            // @ts-ignore
+            whereJoinStatement: whereJoinStatement[associationString],
+            dreamClass: association.modelCB(),
+            previousTableName: association.to,
+            previousAlias: associationString,
+          })
+
+          if ((result as any).conditionToExecute) {
+            // @ts-ignore
+            query = query.where(`${result.alias}.${result.column}`, '=', result.columnValue)
+          } else {
+            // @ts-ignore
+            query = result
+          }
+        }
+      }
+
+      return query
+    }
+
     public buildSelect({ bypassSelectAll = false }: { bypassSelectAll?: boolean } = {}) {
       this.conditionallyApplyScopes()
 
       let query = db.selectFrom(tableName)
-      if (!bypassSelectAll) query = query.selectAll()
+      if (!bypassSelectAll) query = query.selectAll(tableName as any)
 
       if (this.selectStatement) {
         query = query.select(this.selectStatement as any)
@@ -863,6 +956,22 @@ export default function dream<
           }
         })
       }
+
+      if (this.whereJoinStatement) {
+        this.whereJoinStatement.forEach(whereJoinStatement => {
+          // @ts-ignore
+          query = this.recursivelyJoin({
+            query,
+            // @ts-ignore
+            whereJoinStatement,
+            // @ts-ignore
+            dreamClass: this.dreamClass,
+            previousTableName: this.dreamClass.table,
+            previousAlias: this.dreamClass.table,
+          })
+        })
+      }
+
       if (this.limitStatement) query = query.limit(this.limitStatement.count)
       if (this.orderStatement)
         query = query.orderBy(this.orderStatement.column as any, this.orderStatement.direction)
@@ -1058,3 +1167,10 @@ export type DreamModelInstance<
   TableName extends keyof DB & string,
   IdColumnName extends keyof DB[TableName] & string
 > = InstanceType<ReturnType<typeof dream<TableName, IdColumnName>>>
+
+export interface AliasCondition<PreviousTableName extends keyof DB & keyof SyncedAssociations> {
+  conditionToExecute: boolean
+  alias: keyof SyncedAssociations[PreviousTableName]
+  column: keyof Updateable<DB[PreviousTableName]>
+  columnValue: any
+}
