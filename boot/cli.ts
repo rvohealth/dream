@@ -84,7 +84,7 @@ program
   .option('--core', 'sets core to true')
   .action(async () => {
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(`${coreDevFlag}npx ts-node src/bin/build-associations.ts`)
+    await sspawn(`${coreDevFlag}npx ts-node --transpile-only src/bin/build-associations.ts`)
   })
 
 program
