@@ -24,6 +24,10 @@ export default async function generateDream(
 
   const dreamBasePath = `${rootPath}/${ymlConfig.models_path}`
   const dreamPath = `${dreamBasePath}/${hyphenize(pluralize.singular(dreamName))}.ts`
+  const relativeDreamPath = dreamPath.replace(
+    new RegExp(`^.*${ymlConfig.models_path}`),
+    ymlConfig.models_path
+  )
   const dreamPathParts = dreamName.split('/')
   const thisfs = fs ? fs : await import('fs/promises')
 
@@ -58,9 +62,13 @@ export default async function generateDream(
   const migrationBasePath = `${rootPath}/${ymlConfig.migrations_path}`
   const timestamp = migrationTimestamp()
   const migrationPath = `${migrationBasePath}/${timestamp}-create-${pluralize(hyphenize(dreamName))}.ts`
+  const relativeMigrationPath = migrationPath.replace(
+    new RegExp(`^.*${ymlConfig.migrations_path}`),
+    ymlConfig.migrations_path
+  )
 
   try {
-    console.log(`generating migration: ${migrationPath}`)
+    console.log(`generating migration: ${relativeMigrationPath}`)
     await thisfs.writeFile(
       migrationPath,
       generateMigrationContent({
