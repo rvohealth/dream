@@ -117,7 +117,6 @@ program
   .option('--core', 'sets core to true')
   .action(async () => {
     setCoreDevelopmentFlag(program.args)
-    console.log('DEBUG!!!', program.args)
     await sspawn(`npx ts-node boot/sync-existing-or-create-boilerplate.ts`)
   })
 
