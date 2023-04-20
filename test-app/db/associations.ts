@@ -1,11 +1,4 @@
 export default {
-  "users": {
-    "mainComposition": "compositions",
-    "mainCompositionAsset": "composition_assets",
-    "compositions": "compositions",
-    "compositionAssets": "composition_assets",
-    "compositionAssetAudits": "composition_asset_audits"
-  },
   "composition_asset_audits": {
     "compositionAsset": "composition_assets",
     "composition": "compositions",
@@ -21,17 +14,18 @@ export default {
     "mainCompositionAsset": "composition_assets",
     "compositionAssets": "composition_assets",
     "compositionAssetAudits": "composition_asset_audits"
+  },
+  "users": {
+    "mainComposition": "compositions",
+    "mainCompositionAsset": "composition_assets",
+    "compositions": "compositions",
+    "compositionAssets": "composition_assets",
+    "compositionAssetAudits": "composition_asset_audits"
   }
 }
 
 export interface SyncedAssociations {
-    "users": {
-"mainComposition": "compositions"
-  "mainCompositionAsset": "composition_assets"
-  "compositions": "compositions"
-  "compositionAssets": "composition_assets"
-  "compositionAssetAudits": "composition_asset_audits"}
-  ,  "composition_asset_audits": {
+    "composition_asset_audits": {
 "compositionAsset": "composition_assets"
   "composition": "compositions"
   "user": "users"}
@@ -42,6 +36,12 @@ export interface SyncedAssociations {
   ,  "compositions": {
 "user": "users"
   "mainCompositionAsset": "composition_assets"
+  "compositionAssets": "composition_assets"
+  "compositionAssetAudits": "composition_asset_audits"}
+  ,  "users": {
+"mainComposition": "compositions"
+  "mainCompositionAsset": "composition_assets"
+  "compositions": "compositions"
   "compositionAssets": "composition_assets"
   "compositionAssetAudits": "composition_asset_audits"}
    
