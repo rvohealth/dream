@@ -1,3 +1,4 @@
+import { HasOne } from '../../../src'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
 import { Column } from '../../../src/decorators/column'
@@ -26,6 +27,9 @@ export default class Composition extends Dream {
 
   @HasMany('composition_assets', () => CompositionAsset)
   public compositionAssets: CompositionAsset[]
+
+  @HasOne('composition_assets', () => CompositionAsset)
+  public mainCompositionAsset: CompositionAsset
 
   @HasMany('composition_asset_audits', () => CompositionAssetAudit, {
     through: 'compositionAssets',

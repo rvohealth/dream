@@ -18,6 +18,7 @@ export default {
   },
   "compositions": {
     "user": "users",
+    "mainCompositionAsset": "composition_assets",
     "compositionAssets": "composition_assets",
     "compositionAssetAudits": "composition_asset_audits"
   }
@@ -40,6 +41,7 @@ export interface SyncedAssociations {
   "compositionAssetAudits": "composition_asset_audits"}
   ,  "compositions": {
 "user": "users"
+  "mainCompositionAsset": "composition_assets"
   "compositionAssets": "composition_assets"
   "compositionAssetAudits": "composition_asset_audits"}
    

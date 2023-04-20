@@ -50,7 +50,7 @@ export default class User extends Dream {
   public compositionAssets: CompositionAsset[]
 
   @HasOne('composition_assets', () => CompositionAsset, {
-    through: 'compositions',
+    through: 'mainComposition',
     throughClass: () => Composition,
   })
   public mainCompositionAsset: CompositionAsset
