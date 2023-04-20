@@ -53,13 +53,13 @@ program
 program
   .command('sync:types')
   .alias('sync:all')
-  .description('runs yarn dream sync:schema, then yarn dream sync:associations')
+  .description('runs yarn dream sync:schema, then yarn dream sync:models')
   .option('--core', 'sets core to true')
   .action(async () => {
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
     // await sspawn(`yarn dream sync:existing ${!!coreDevFlag ? '--core' : ''}`)
     await sspawn(`yarn dream sync:schema ${!!coreDevFlag ? '--core' : ''}`)
-    await sspawn(`yarn dream sync:associations ${!!coreDevFlag ? '--core' : ''}`)
+    await sspawn(`yarn dream sync:models ${!!coreDevFlag ? '--core' : ''}`)
     await sspawn(`${coreDevFlag}yarn build`)
   })
 
@@ -85,6 +85,26 @@ program
   .action(async () => {
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
     await sspawn(`${coreDevFlag}npx ts-node --transpile-only src/bin/build-associations.ts`)
+  })
+
+program
+  .command('sync:models')
+  .description('runs yarn dream sync:associations and yarn dream sync:model-indexes')
+  .option('--core', 'sets core to true')
+  .action(async () => {
+    const coreDevFlag = setCoreDevelopmentFlag(program.args)
+    await sspawn(`yarn dream sync:associations ${!!coreDevFlag ? '--core' : ''}`)
+    await sspawn(`yarn dream sync:model-indexes ${!!coreDevFlag ? '--core' : ''}`)
+  })
+
+program
+  .command('sync:model-indexes')
+  .alias('sync:all')
+  .description('runs yarn dream sync:schema, then yarn dream sync:associations')
+  .option('--core', 'sets core to true')
+  .action(async () => {
+    const coreDevFlag = setCoreDevelopmentFlag(program.args)
+    await sspawn(`${coreDevFlag}npx ts-node --transpile-only src/bin/build-model-indexes.ts`)
   })
 
 program

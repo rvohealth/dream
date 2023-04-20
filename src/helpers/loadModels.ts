@@ -1,15 +1,23 @@
 import * as path from 'path'
-import { promises as fs } from 'fs'
-import Dream from '../dream'
+import Dream, { DreamModel } from '../dream'
 import { loadDreamYamlFile, modelsPath } from './path'
+import pascalize from './pascalize'
+import getFiles from './getFiles'
 
 export default async function loadModels() {
   const pathToModels = await modelsPath()
   const yamlConf = await loadDreamYamlFile()
-  const modelPaths = await getFiles(pathToModels)
+  const modelPaths = (await getFiles(pathToModels)).filter(
+    path => /\.ts$/.test(path) && !/index\.ts$/.test(path)
+  )
+  const relativeModelPaths = modelPaths.map(path =>
+    path.replace(new RegExp(`^.*${yamlConf.models_path}\/`), '')
+  )
   const models: { [key: string]: typeof Dream } = {}
 
-  for (const modelPath of modelPaths.filter(path => /\.ts$/.test(path))) {
+  const modelsObj: { [key: string]: DreamModel<any, any> | { [key: string]: DreamModel<any, any> } } = {}
+  let currentRef: any = modelsObj
+  for (const modelPath of relativeModelPaths) {
     const fullPath = path.join(pathToModels, modelPath)
     const relativePath =
       `../../${process.env.CORE_DEVELOPMENT === '1' ? '' : '../../'}${yamlConf.models_path}/` +
@@ -22,19 +30,28 @@ export default async function loadModels() {
       throw `Failed to import the following file: ${fullPath}. Error: ${error}`
     }
 
-    models[modelPath.replace(/\.ts$/, '')] = ModelClass!
+    if (ModelClass) {
+      const modelKey = modelPath.replace(/\.ts$/, '')
+      const pathParts = modelKey.split('/')
+      pathParts.forEach((pathPart, index) => {
+        const pascalized = pascalize(pathPart)
+        if (index === pathParts.length - 1) {
+        } else {
+          currentRef[pascalized] ||= {}
+          currentRef = currentRef[pascalized]
+        }
+      })
+
+      if (pathParts.length > 1) {
+        currentRef[ModelClass!.name] = ModelClass!
+      }
+      currentRef = modelsObj
+
+      models[modelKey] = ModelClass!
+    } else {
+      console.log('Invalid Model found: ', relativePath)
+    }
   }
 
   return models
-}
-
-async function getFiles(dir: string): Promise<string[]> {
-  const dirents = await fs.readdir(dir, { withFileTypes: true })
-  const files = await Promise.all(
-    dirents.map(dirent => {
-      const res = path.resolve(dir, dirent.name)
-      return dirent.isDirectory() ? getFiles(res) : res
-    })
-  )
-  return Array.prototype.concat(...files)
 }
