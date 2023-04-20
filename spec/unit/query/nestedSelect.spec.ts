@@ -12,7 +12,7 @@ describe('Query#nestedSelect', () => {
       password: 'howyadoin',
     })
     await User.create({
-      email: 'frez@frewd',
+      email: 'frez@fishman',
       password: 'howyadoin',
     })
 

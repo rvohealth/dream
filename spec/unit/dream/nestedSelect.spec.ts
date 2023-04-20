@@ -11,7 +11,7 @@ describe('Dream#nestedSelect', () => {
       password: 'howyadoin',
     })
     const user3 = await User.create({
-      email: 'frez@frewd',
+      email: 'frez@fishman',
       password: 'howyadoin',
     })
 
