@@ -8,11 +8,6 @@ describe('Query#includes', () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ user_id: user.id })
 
-    // await User.limit(1)
-    //   .includes('mainComposition', { compositionAssetAudits: ['compositionAsset'] })
-    //   .first()
-    // expect(reloadedUser!.mainComposition).toMatchObject(composition)
-
     const reloadedUser = await User.limit(1).includes('mainComposition').first()
     expect(reloadedUser!.mainComposition).toMatchObject(composition)
   })

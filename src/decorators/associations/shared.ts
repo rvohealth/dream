@@ -4,8 +4,9 @@ import { SelectQueryBuilder, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
 import { Range } from '../../helpers/range'
 import { OpsStatement } from '../../ops'
+import { AssociationTableNames } from '../../db/reflections'
 
-export type WhereStatement<TableName extends keyof DB & string> =
+export type WhereStatement<TableName extends AssociationTableNames> =
   | Updateable<DB[TableName]>
   | Partial<
       Record<
@@ -15,14 +16,16 @@ export type WhereStatement<TableName extends keyof DB & string> =
     >
 
 export interface HasStatement<
-  ForeignTableName extends keyof DB & string,
+  ForeignTableName extends AssociationTableNames,
   HasType extends 'HasOne' | 'HasMany'
 > {
   modelCB: () => DreamModel<ForeignTableName, any>
   type: HasType
-  to: keyof DB & string
-  foreignKey: () => keyof DB[ForeignTableName] & string
+  to: AssociationTableNames
   as: string
+  foreignKey: () => keyof DB[ForeignTableName]
+  foreignKeyTypeField: () => keyof DB[TableName]
+  polymorphic: boolean
   throughClass?: () => DreamModel<ForeignTableName, any>
   through?: string
   where?: WhereStatement<ForeignTableName>

@@ -29,14 +29,15 @@ import { OpsStatement } from './ops'
 import { SyncedAssociations } from './sync/associations'
 import { Inc } from './helpers/typeutils'
 import { WhereStatement } from './decorators/associations/shared'
+import { AssociationTableNames } from './db/reflections'
 
 export default function dream<
-  TableName extends keyof DB & keyof SyncedAssociations,
+  TableName extends AssociationTableNames,
   IdColumnName extends keyof DB[TableName] & string,
   QueryAssociationExpression extends AssociationExpression<
-    TableName & keyof DB & keyof SyncedAssociations,
+    TableName & AssociationTableNames,
     any
-  > = AssociationExpression<TableName & keyof DB & keyof SyncedAssociations, any>
+  > = AssociationExpression<TableName & AssociationTableNames, any>
 >(tableName: TableName, primaryKey: IdColumnName = 'id' as IdColumnName) {
   const columns = DBColumns[tableName]
   const tableNames = Object.keys(DBColumns)
@@ -475,10 +476,7 @@ export default function dream<
       this: T,
       attributes:
         | WhereStatement<TableName>
-        | JoinsWhereAssociationExpression<
-            TableName & keyof DB & keyof SyncedAssociations,
-            T['joinsStatements'][number]
-          >
+        | JoinsWhereAssociationExpression<TableName & AssociationTableNames, T['joinsStatements'][number]>
     ) {
       if (attributes.constructor === Array) {
         // @ts-ignore
@@ -613,12 +611,26 @@ export default function dream<
       association: HasManyStatement<any> | HasOneStatement<any> | BelongsToStatement<any>,
       loadedAssociations: Dream[]
     ) {
+      // dreams is a Rating
+      // Rating belongs to: rateables (Posts / Compositions)
+      // loadedAssociations is an array of Posts and Compositions
+      // if rating.rateable_id === loadedAssociation.primaryKeyvalue
+      //  rating.rateable = loadedAssociation
       for (const loadedAssociation of loadedAssociations) {
         if (association.type === 'BelongsTo') {
           dreams
-            .filter(dream => (dream as any)[association.foreignKey()] === loadedAssociation.primaryKeyValue)
-            .forEach(dream => {
-              ;(dream as any)[association.as] = loadedAssociation
+            .filter((dream: any) => {
+              if (association.polymorphic) {
+                return (
+                  dream[association.foreignKeyTypeField()] === loadedAssociation.constructor.name &&
+                  dream[association.foreignKey()] === loadedAssociation.primaryKeyValue
+                )
+              } else {
+                return dream[association.foreignKey()] === loadedAssociation.primaryKeyValue
+              }
+            })
+            .forEach((dream: any) => {
+              dream[association.as] = loadedAssociation
               // TODO
               // if (association.reverseAsType === 'HasOne') {
               //   ;(loadedAssociation as any)[association.reverseAs] = dream
@@ -630,12 +642,12 @@ export default function dream<
         } else {
           dreams
             .filter(dream => (loadedAssociation as any)[association.foreignKey()] === dream.primaryKeyValue)
-            .forEach(dream => {
+            .forEach((dream: any) => {
               if (association.type === 'HasOne') {
-                ;(dream as any)[association.as] ||= loadedAssociation
+                dream[association.as] ||= loadedAssociation
               } else {
-                ;(dream as any)[association.as] ||= []
-                ;(dream as any)[association.as].push(loadedAssociation)
+                dream[association.as] ||= []
+                dream[association.as].push(loadedAssociation)
               }
             })
         }
@@ -698,18 +710,50 @@ export default function dream<
       association = results.association
 
       if (association.type === 'BelongsTo') {
-        associationQuery = association.modelCB().where({
-          [association.modelCB().primaryKey]: dreams.map(dream => (dream as any)[association.foreignKey()]),
-        })
+        if (association.polymorphic) {
+          // Rating polymorphically BelongsTo Composition and Post
+          // for each of Composition and Post
+          for (const associatedModel of association.modelCB() as DreamModel<any, any>[]) {
+            const relevantAssociatedModels = dreams.filter((dream: any) => {
+              return (dream as any)[association.foreignKeyTypeField()] === associatedModel.name
+            })
+
+            if (relevantAssociatedModels.length) {
+              associationQuery = associatedModel.where({
+                [associatedModel.primaryKey]: relevantAssociatedModels.map(
+                  (dream: any) => (dream as any)[association.foreignKey()]
+                ),
+              })
+
+              this.hydrateAssociation(dreams, association, await associationQuery.all())
+            }
+          }
+        } else {
+          const associatedModel = association.modelCB() as DreamModel<any, any>
+          associationQuery = associatedModel.where({
+            [associatedModel.primaryKey]: dreams.map(dream => (dream as any)[association.foreignKey()]),
+          })
+
+          this.hydrateAssociation(dreams, association, await associationQuery.all())
+        }
       } else {
-        associationQuery = association.modelCB().where({
-          [association.foreignKey()]: dreams.map(dream => dream.primaryKeyValue),
-        })
+        const associatedModel = association.modelCB() as DreamModel<any, any>
+
+        if (association.polymorphic) {
+          associationQuery = associatedModel.where({
+            [association.foreignKey()]: dreams.map(dream => dream.primaryKeyValue),
+            [association.foreignKeyTypeField()]: associatedModel.name,
+          })
+        } else {
+          associationQuery = associatedModel.where({
+            [association.foreignKey()]: dreams.map(dream => dream.primaryKeyValue),
+          })
+        }
 
         if (association.where) associationQuery = associationQuery.where(association.where)
-      }
 
-      this.hydrateAssociation(dreams, association, await associationQuery.all())
+        this.hydrateAssociation(dreams, association, await associationQuery.all())
+      }
 
       return dreams.flatMap(dream => (dream as any)[association.as])
     }
@@ -895,19 +939,19 @@ export default function dream<
 
       if (association.type === 'BelongsTo') {
         // @ts-ignore
-        query = query.innerJoin(
-          // @ts-ignore
-          joinTableExpression,
-          `${previousAssociationTableOrAlias}.${association.foreignKey()}`,
-          `${currentAssociationTableOrAlias as string}.${association.modelCB().primaryKey}`
-        )
+        // query = query.innerJoin(
+        //   // @ts-ignore
+        //   joinTableExpression,
+        //   `${previousAssociationTableOrAlias}.${association.foreignKey() as string}`,
+        //   `${currentAssociationTableOrAlias as string}.${association.modelCB().primaryKey}`
+        // )
       } else {
         // @ts-ignore
         query = query.innerJoin(
           // @ts-ignore
           joinTableExpression,
           `${previousAssociationTableOrAlias}.${association.modelCB().primaryKey}`,
-          `${currentAssociationTableOrAlias as string}.${association.foreignKey()}`
+          `${currentAssociationTableOrAlias as string}.${association.foreignKey() as string}`
         )
 
         if (association.where)
@@ -923,8 +967,8 @@ export default function dream<
     }
 
     public recursivelyJoin<
-      PreviousTableName extends keyof DB & keyof SyncedAssociations,
-      CurrentTableName extends keyof DB & keyof SyncedAssociations
+      PreviousTableName extends AssociationTableNames,
+      CurrentTableName extends AssociationTableNames
     >({
       query,
       whereJoinStatement,
@@ -995,10 +1039,7 @@ export default function dream<
       query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>,
       whereStatement:
         | WhereStatement<TableName>
-        | JoinsWhereAssociationExpression<
-            TableName & keyof DB & keyof SyncedAssociations,
-            T['joinsStatements'][number]
-          >
+        | JoinsWhereAssociationExpression<TableName & AssociationTableNames, T['joinsStatements'][number]>
     ) {
       Object.keys(whereStatement).forEach(attr => {
         const val = (whereStatement as any)[attr]
@@ -1201,13 +1242,13 @@ export default function dream<
 }
 
 type NestedAssociationExpression<
-  TB extends keyof DB & keyof SyncedAssociations,
+  TB extends AssociationTableNames,
   Property extends keyof SyncedAssociations[TB],
   Next
-> = AssociationExpression<SyncedAssociations[TB][Property] & keyof DB & keyof SyncedAssociations, Next>
+> = AssociationExpression<SyncedAssociations[TB][Property] & AssociationTableNames, Next>
 
 type AssociationExpression<
-  TB extends keyof DB & keyof SyncedAssociations,
+  TB extends AssociationTableNames,
   AE = unknown,
   Depth extends number = 0
 > = Depth extends 10
@@ -1225,7 +1266,7 @@ type AssociationExpression<
   : never
 
 type JoinsWhereAssociationExpression<
-  TB extends keyof DB & keyof SyncedAssociations,
+  TB extends AssociationTableNames,
   AE extends AssociationExpression<TB, any>,
   Depth extends number = 0
 > = Depth extends 10
@@ -1235,7 +1276,7 @@ type JoinsWhereAssociationExpression<
   : AE extends keyof SyncedAssociations[TB]
   ? Partial<{
       [AssociationName in keyof SyncedAssociations[TB]]: Updateable<
-        DB[SyncedAssociations[TB][AssociationName] & keyof DB & keyof SyncedAssociations]
+        DB[SyncedAssociations[TB][AssociationName] & AssociationTableNames]
       >
     }>
   : AE extends Partial<{
@@ -1243,7 +1284,7 @@ type JoinsWhereAssociationExpression<
     }>
   ? Partial<{
       [AssociationName in keyof SyncedAssociations[TB]]: JoinsWhereAssociationExpression<
-        SyncedAssociations[TB][AssociationName] & keyof DB & keyof SyncedAssociations,
+        SyncedAssociations[TB][AssociationName] & AssociationTableNames,
         NestedAssociationExpression<TB, AssociationName, AE[AssociationName]>
       >
     }>
@@ -1257,16 +1298,16 @@ export interface IncludesStatement<
 }
 
 export type DreamModel<
-  TableName extends keyof DB & string,
+  TableName extends AssociationTableNames,
   IdColumnName extends keyof DB[TableName] & string
 > = ReturnType<typeof dream<TableName, IdColumnName>>
 
 export type DreamModelInstance<
-  TableName extends keyof DB & string,
+  TableName extends AssociationTableNames,
   IdColumnName extends keyof DB[TableName] & string
 > = InstanceType<ReturnType<typeof dream<TableName, IdColumnName>>>
 
-export interface AliasCondition<PreviousTableName extends keyof DB & keyof SyncedAssociations> {
+export interface AliasCondition<PreviousTableName extends AssociationTableNames> {
   conditionToExecute: boolean
   alias: keyof SyncedAssociations[PreviousTableName]
   column: keyof Updateable<DB[PreviousTableName]>

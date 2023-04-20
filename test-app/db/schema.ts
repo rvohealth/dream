@@ -35,6 +35,23 @@ export interface Compositions {
   updated_at: Generated<Timestamp>;
 }
 
+export interface Posts {
+  id: Generated<number>;
+  user_id: Generated<number>;
+  body: string | null;
+  created_at: Generated<Timestamp>;
+  updated_at: Generated<Timestamp>;
+}
+
+export interface Ratings {
+  id: Generated<number>;
+  rateable_id: Generated<number>;
+  rateable_type: string;
+  rating: number | null;
+  created_at: Generated<Timestamp>;
+  updated_at: Generated<Timestamp>;
+}
+
 export interface Users {
   id: Generated<number>;
   name: string | null;
@@ -50,6 +67,8 @@ export interface DB {
   composition_asset_audits: CompositionAssetAudits;
   composition_assets: CompositionAssets;
   compositions: Compositions;
+  posts: Posts;
+  ratings: Ratings;
   users: Users;
 }
 
@@ -57,11 +76,15 @@ export interface DB {
 export const CompositionAssetAuditColumns = ['id', 'composition_asset_id', 'approval', 'created_at', 'updated_at']
 export const CompositionAssetColumns = ['id', 'composition_id', 'src', 'primary', 'created_at', 'updated_at']
 export const CompositionColumns = ['id', 'user_id', 'content', 'flexible_id', 'flexible_type', 'created_at', 'updated_at']
+export const PostColumns = ['id', 'user_id', 'body', 'created_at', 'updated_at']
+export const RatingColumns = ['id', 'rateable_id', 'rateable_type', 'rating', 'created_at', 'updated_at']
 export const UserColumns = ['id', 'name', 'type', 'email', 'password', 'created_at', 'updated_at', 'deleted_at']
 
 export const DBColumns = {
   composition_asset_audits: CompositionAssetAuditColumns,
   composition_assets: CompositionAssetColumns,
   compositions: CompositionColumns,
+  posts: PostColumns,
+  ratings: RatingColumns,
   users: UserColumns
 }

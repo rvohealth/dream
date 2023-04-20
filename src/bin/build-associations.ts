@@ -15,7 +15,7 @@ buildAssociations()
 
 async function writeAssociationsFile() {
   const models = Object.values(await loadModels()) as any[]
-  const finalModels: { [key: string]: { [key: string]: string } } = {}
+  const finalModels: { [key: string]: { [key: string]: string[] } } = {}
 
   Object.keys(DBColumns).forEach(column => {
     finalModels[column] = {}
@@ -23,7 +23,12 @@ async function writeAssociationsFile() {
 
   for (const model of models) {
     for (const associationName of new model().associationNames) {
-      finalModels[model.table][associationName] = new model().associationMap[associationName].to
+      const toClause = new model().associationMap[associationName].to
+      if (toClause.constructor === Array) {
+        finalModels[model.table][associationName] = toClause
+      } else {
+        finalModels[model.table][associationName] = [toClause]
+      }
     }
   }
   const filePath = path.join(__dirname, '..', 'sync', 'associations.ts')
@@ -37,14 +42,7 @@ async function writeAssociationsFile() {
   const str = `\
 export default ${JSON.stringify(finalModels, null, 2)}
 
-export interface SyncedAssociations {
-  ${Object.keys(finalModels).map(
-    table => `\
-  "${table}": {\n${Object.keys(finalModels[table])
-      .map(association => `"${association}": "${finalModels[table][association]}"`)
-      .join('\n  ')}}\n  `
-  )} 
-}
+export interface SyncedAssociations ${JSON.stringify(finalModels, null, 2)}
   `
   await fs.writeFile(filePath, str)
   await fs.writeFile(clientFilePath, str)
