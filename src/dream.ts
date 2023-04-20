@@ -230,19 +230,9 @@ export default function dream<
       return query.sql()
     }
 
-    public static where<T extends Dream, SubTable extends keyof DB>(
+    public static where<T extends Dream>(
       this: { new (): T } & typeof Dream,
-      attributes:
-        | Updateable<Table>
-        | Partial<
-            Record<
-              keyof Table,
-              | Range<DateTime>
-              | OpsStatement
-              | SelectQueryBuilder<DB, SubTable, Selection<DB, SubTable, DB[SubTable]>>
-              | (string | number)[]
-            >
-          >
+      attributes: WhereStatement<TableName>
     ) {
       const query: Query<T> = new Query<T>(this)
       // @ts-ignore
@@ -444,15 +434,7 @@ export default function dream<
   }
 
   class Query<DreamClass extends Dream> {
-    public whereStatement:
-      | Updateable<Table>
-      | Partial<
-          Record<
-            keyof Table,
-            Range<DateTime> | OpsStatement | (string | number)[] | SelectQueryBuilder<DB, TableName, {}>
-          >
-        >
-      | null = null
+    public whereStatement: WhereStatement<TableName> | null = null
     public whereJoinStatement:
       | JoinsWhereAssociationExpression<TableName, AssociationExpression<TableName, any>>[]
       | null = null
