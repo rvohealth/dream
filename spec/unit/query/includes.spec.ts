@@ -67,7 +67,11 @@ describe('Query#includes', () => {
     it('loads a HasOne through HasOne association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ user_id: user.id })
-      const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+      await CompositionAsset.create({ composition_id: composition.id })
+      const compositionAsset = await CompositionAsset.create({
+        composition_id: composition.id,
+        primary: true,
+      })
 
       const reloadedUser = await User.limit(1).includes('mainCompositionAsset').first()
       expect(reloadedUser!.mainCompositionAsset).toMatchObject(compositionAsset)

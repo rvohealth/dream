@@ -32,7 +32,7 @@ describe('Query#joins', () => {
     const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     await Composition.create({ user_id: otherUser.id })
 
-    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
     const composition = await Composition.create({ user_id: user.id })
 
     const reloadedComposition = await Composition.limit(2)
@@ -62,7 +62,7 @@ describe('Query#joins', () => {
   context('when passed an array', () => {
     it('loads specified associations', async () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
       const composition = await Composition.create({ user_id: user.id })
       const composition2 = await Composition.create({ user_id: user.id })
       const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
@@ -87,13 +87,31 @@ describe('Query#joins', () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
       const composition = await Composition.create({ user_id: user.id })
-      const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+      const compositionAsset = await CompositionAsset.create({
+        composition_id: composition.id,
+        primary: true,
+      })
 
       const reloadedUsers = await User.limit(2)
         .joins('mainCompositionAsset')
         .where({ mainCompositionAsset: { id: compositionAsset.id } })
         .all()
       expect(reloadedUsers).toMatchObject([user])
+    })
+
+    it('when an intermediary condition doesn’t match it doesn’t find', async () => {
+      await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+      const composition = await Composition.create({ user_id: user.id })
+      const compositionAsset = await CompositionAsset.create({
+        composition_id: composition.id,
+      })
+
+      const reloadedUsers = await User.limit(2)
+        .joins('mainCompositionAsset')
+        .where({ mainCompositionAsset: { id: compositionAsset.id } })
+        .all()
+      expect(reloadedUsers).toMatchObject([])
     })
 
     it('joins a HasOne through BelongsTo association', async () => {

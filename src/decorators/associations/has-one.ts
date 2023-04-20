@@ -1,6 +1,7 @@
 import pluralize = require('pluralize')
 import dream from '../../dream'
 import { DB } from '../../sync/schema'
+import { HasStatement, WhereStatement } from './shared'
 
 export default function HasOne<TableName extends keyof DB & string>(
   tableName: TableName,
@@ -8,9 +9,11 @@ export default function HasOne<TableName extends keyof DB & string>(
   {
     through,
     throughClass,
+    where,
   }: {
     through?: string
     throughClass?: () => ReturnType<typeof dream<any, any>>
+    where?: WhereStatement<TableName>
   } = {}
 ): any {
   return function (target: any, key: string, _: any) {
@@ -36,18 +39,11 @@ export default function HasOne<TableName extends keyof DB & string>(
           as: key,
           through,
           throughClass,
+          where,
         } as HasOneStatement<any>,
       ] as HasOneStatement<any>[],
     })
   }
 }
-
-export interface HasOneStatement<ForeignTablename extends keyof DB & string> {
-  modelCB: () => ReturnType<typeof dream<ForeignTablename, any>>
-  type: 'HasOne'
-  to: keyof DB & string
-  foreignKey: () => keyof DB[ForeignTablename] & string
-  as: string
-  through?: string
-  throughClass?: () => ReturnType<typeof dream<ForeignTablename, any>>
-}
+export interface HasOneStatement<ForeignTableName extends keyof DB & string>
+  extends HasStatement<ForeignTableName, 'HasOne'> {}

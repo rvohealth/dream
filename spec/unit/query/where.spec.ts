@@ -24,7 +24,7 @@ describe('Query#where', () => {
         password: 'howyadoin',
       })
       const user3 = await User.create({
-        email: 'frez@frewd',
+        email: 'frez@fishman',
         password: 'howyadoin',
       })
 
@@ -44,7 +44,7 @@ describe('Query#where', () => {
         password: 'howyadoin',
       })
       await User.create({
-        email: 'frez@frewd',
+        email: 'frez@fishman',
         password: 'howyadoin',
       })
 

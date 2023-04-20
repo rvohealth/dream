@@ -21,6 +21,9 @@ export default class CompositionAsset extends Dream {
   @Column('string')
   public src: string | null
 
+  @Column('boolean')
+  public primary: boolean
+
   @BelongsTo('compositions', () => Composition)
   public composition: Composition
 

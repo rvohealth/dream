@@ -28,7 +28,9 @@ export default class Composition extends Dream {
   @HasMany('composition_assets', () => CompositionAsset)
   public compositionAssets: CompositionAsset[]
 
-  @HasOne('composition_assets', () => CompositionAsset)
+  @HasOne('composition_assets', () => CompositionAsset, {
+    where: { primary: true },
+  })
   public mainCompositionAsset: CompositionAsset
 
   @HasMany('composition_asset_audits', () => CompositionAssetAudit, {

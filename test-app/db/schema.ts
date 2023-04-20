@@ -20,6 +20,7 @@ export interface CompositionAssets {
   id: Generated<number>;
   composition_id: Generated<number>;
   src: string | null;
+  primary: Generated<boolean | null>;
   created_at: Generated<Timestamp>;
   updated_at: Generated<Timestamp>;
 }
@@ -54,7 +55,7 @@ export interface DB {
 
 
 export const CompositionAssetAuditColumns = ['id', 'composition_asset_id', 'approval', 'created_at', 'updated_at']
-export const CompositionAssetColumns = ['id', 'composition_id', 'src', 'created_at', 'updated_at']
+export const CompositionAssetColumns = ['id', 'composition_id', 'src', 'primary', 'created_at', 'updated_at']
 export const CompositionColumns = ['id', 'user_id', 'content', 'flexible_id', 'flexible_type', 'created_at', 'updated_at']
 export const UserColumns = ['id', 'name', 'type', 'email', 'password', 'created_at', 'updated_at', 'deleted_at']
 

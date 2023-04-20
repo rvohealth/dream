@@ -14,7 +14,7 @@ describe('Dream STI', () => {
   it('auto-applies the type field for STI classes upon insertion', async () => {
     const user = await User.create({ email: 'how@ya0', password: 'doin', deleted_at: DateTime.now() })
     const adminUser = await AdminUser.create({
-      email: 'how@ya0',
+      email: 'how@fishman',
       password: 'doin',
       deleted_at: DateTime.now(),
     })
@@ -25,7 +25,7 @@ describe('Dream STI', () => {
   it('auto-applies a default scope for classes implementing STI', async () => {
     const user = await User.create({ email: 'how@ya0', password: 'doin' })
     const adminUser = await AdminUser.create({
-      email: 'how@ya0',
+      email: 'how@fishman',
       password: 'doin',
     })
 
@@ -36,7 +36,7 @@ describe('Dream STI', () => {
   it('does not bleed scope to child class', async () => {
     const user = await User.create({ email: 'how@ya0', password: 'doin' })
     const adminUser = await AdminUser.create({
-      email: 'how@ya0',
+      email: 'how@fishman',
       password: 'doin',
     })
 

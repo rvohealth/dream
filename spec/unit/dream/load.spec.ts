@@ -90,6 +90,21 @@ describe('Dream#load', () => {
     })
 
     describe('nested through associations', () => {
+      it('loads a HasOne through HasOne association', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user_id: user.id })
+        await CompositionAsset.create({ composition_id: composition.id })
+        const compositionAsset = await CompositionAsset.create({
+          composition_id: composition.id,
+          primary: true,
+        })
+
+        await user.load('mainCompositionAsset')
+        expect(user!.mainCompositionAsset).toMatchObject(compositionAsset)
+        expect(user!.mainComposition).toMatchObject(composition)
+        expect(user!.mainComposition.mainCompositionAsset).toMatchObject(compositionAsset)
+      })
+
       it('loads a HasMany through a HasMany through a HasMany', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user_id: user.id })

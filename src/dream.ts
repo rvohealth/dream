@@ -1,6 +1,4 @@
-import { Tables } from './db/reflections'
 import db from './db'
-import camelize from './helpers/camelize'
 import { DB, DBColumns } from './sync/schema'
 import {
   CompiledQuery,
@@ -18,9 +16,8 @@ import { BelongsToStatement } from './decorators/associations/belongs-to'
 import { HasOneStatement } from './decorators/associations/has-one'
 import { ScopeStatement } from './decorators/scope'
 import { HookStatement } from './decorators/hooks/shared'
-import * as pluralize from 'pluralize'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
-import { ExtractTableAlias, TableExpression } from 'kysely/dist/cjs/parser/table-parser'
+import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { marshalDBValue } from './helpers/marshalDBValue'
 import sqlAttributes from './helpers/sqlAttributes'
 import { Range } from './helpers/range'
@@ -29,9 +26,9 @@ import InStatement from './ops/in'
 import LikeStatement from './ops/like'
 import ILikeStatement from './ops/ilike'
 import { OpsStatement } from './ops'
-import Associations, { SyncedAssociations } from './sync/associations'
+import { SyncedAssociations } from './sync/associations'
 import { Inc } from './helpers/typeutils'
-import associations from './sync/associations'
+import { WhereStatement } from './decorators/associations/shared'
 
 export default function dream<
   TableName extends keyof DB & keyof SyncedAssociations,
@@ -495,13 +492,7 @@ export default function dream<
     public where<T extends Query<DreamClass>>(
       this: T,
       attributes:
-        | Updateable<Table>
-        | Partial<
-            Record<
-              keyof Table,
-              Range<DateTime> | OpsStatement | (string | number)[] | SelectQueryBuilder<DB, TableName, {}>
-            >
-          >
+        | WhereStatement<TableName>
         | JoinsWhereAssociationExpression<
             TableName & keyof DB & keyof SyncedAssociations,
             T['joinsStatements'][number]
@@ -732,6 +723,8 @@ export default function dream<
         associationQuery = association.modelCB().where({
           [association.foreignKey()]: dreams.map(dream => dream.primaryKeyValue),
         })
+
+        if (association.where) associationQuery = associationQuery.where(association.where)
       }
 
       this.hydrateAssociation(dreams, association, await associationQuery.all())
@@ -934,6 +927,9 @@ export default function dream<
           `${previousAssociationTableOrAlias}.${association.modelCB().primaryKey}`,
           `${currentAssociationTableOrAlias as string}.${association.foreignKey()}`
         )
+
+        if (association.where)
+          query = this.applyWhereStatement(query, association.where as WhereStatement<TableName>)
       }
 
       return {
@@ -1012,6 +1008,54 @@ export default function dream<
       return query
     }
 
+    public applyWhereStatement<T extends Query<DreamClass>>(
+      this: T,
+      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>,
+      whereStatement:
+        | WhereStatement<TableName>
+        | JoinsWhereAssociationExpression<
+            TableName & keyof DB & keyof SyncedAssociations,
+            T['joinsStatements'][number]
+          >
+    ) {
+      Object.keys(whereStatement).forEach(attr => {
+        const val = (whereStatement as any)[attr]
+
+        if (val === null) {
+          query = query.where(attr as any, 'is', val)
+        } else if (val.constructor === SelectQueryBuilder) {
+          query = query.where(attr as any, 'in', val)
+        } else if (val.constructor === Array) {
+          query = query.where(attr as any, 'in', val)
+        } else if (val.constructor === InStatement) {
+          query = query.where(attr as any, 'in', val.in)
+        } else if (val.constructor === LikeStatement) {
+          query = query.where(attr as any, 'like', val.like)
+        } else if (val.constructor === ILikeStatement) {
+          query = query.where(attr as any, 'ilike', val.ilike)
+        } else if (
+          val.constructor === Range &&
+          (val.begin?.constructor || val.end?.constructor) === DateTime
+        ) {
+          const begin = val.begin?.toUTC()?.toSQL()
+          const end = val.end?.toUTC()?.toSQL()
+          const excludeEnd = val.excludeEnd
+
+          if (begin && end) {
+            query = query.where(attr as any, '>=', begin).where(attr as any, excludeEnd ? '<' : '<=', end)
+          } else if (begin) {
+            query = query.where(attr as any, '>=', begin)
+          } else {
+            query = query.where(attr as any, excludeEnd ? '<' : '<=', end)
+          }
+        } else {
+          query = query.where(attr as any, '=', val)
+        }
+      })
+
+      return query
+    }
+
     public buildSelect({ bypassSelectAll = false }: { bypassSelectAll?: boolean } = {}) {
       this.conditionallyApplyScopes()
 
@@ -1027,40 +1071,7 @@ export default function dream<
       })
 
       if (this.whereStatement) {
-        Object.keys(this.whereStatement).forEach(attr => {
-          const val = (this.whereStatement as any)[attr]
-
-          if (val === null) {
-            query = query.where(attr as any, 'is', val)
-          } else if (val.constructor === SelectQueryBuilder) {
-            query = query.where(attr as any, 'in', val)
-          } else if (val.constructor === Array) {
-            query = query.where(attr as any, 'in', val)
-          } else if (val.constructor === InStatement) {
-            query = query.where(attr as any, 'in', val.in)
-          } else if (val.constructor === LikeStatement) {
-            query = query.where(attr as any, 'like', val.like)
-          } else if (val.constructor === ILikeStatement) {
-            query = query.where(attr as any, 'ilike', val.ilike)
-          } else if (
-            val.constructor === Range &&
-            (val.begin?.constructor || val.end?.constructor) === DateTime
-          ) {
-            const begin = val.begin?.toUTC()?.toSQL()
-            const end = val.end?.toUTC()?.toSQL()
-            const excludeEnd = val.excludeEnd
-
-            if (begin && end) {
-              query = query.where(attr as any, '>=', begin).where(attr as any, excludeEnd ? '<' : '<=', end)
-            } else if (begin) {
-              query = query.where(attr as any, '>=', begin)
-            } else {
-              query = query.where(attr as any, excludeEnd ? '<' : '<=', end)
-            }
-          } else {
-            query = query.where(attr as any, '=', val)
-          }
-        })
+        query = this.applyWhereStatement(query, this.whereStatement)
       }
 
       if (this.whereJoinStatement) {

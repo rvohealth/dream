@@ -1,16 +1,19 @@
 import pluralize = require('pluralize')
 import dream from '../../dream'
 import { DB } from '../../sync/schema'
+import { HasStatement, WhereStatement } from './shared'
 
 export default function HasMany<TableName extends keyof DB & string>(
-  tableName: TableName,
+  TableName: TableName,
   modelCB: () => ReturnType<typeof dream<TableName, any>>,
   {
     throughClass,
     through,
+    where,
   }: {
     throughClass?: () => ReturnType<typeof dream<any, any>>
     through?: string
+    where?: WhereStatement<TableName>
   } = {}
 ): any {
   return function (target: any, key: string, _: any) {
@@ -27,7 +30,7 @@ export default function HasMany<TableName extends keyof DB & string>(
         {
           modelCB,
           type: 'HasMany',
-          to: tableName,
+          to: TableName,
           // TODO: abstract foreign key capture to helper, with optional override provided by the api
           foreignKey: () =>
             throughClass
@@ -36,18 +39,12 @@ export default function HasMany<TableName extends keyof DB & string>(
           as: key,
           throughClass,
           through,
+          where,
         } as HasManyStatement<any>,
       ] as HasManyStatement<any>[],
     })
   }
 }
 
-export interface HasManyStatement<ForeignTablename extends keyof DB & string> {
-  modelCB: () => ReturnType<typeof dream<ForeignTablename, any>>
-  type: 'HasMany'
-  to: keyof DB & string
-  foreignKey: () => keyof DB[ForeignTablename] & string
-  as: string
-  throughClass?: () => ReturnType<typeof dream<ForeignTablename, any>>
-  through?: string
-}
+export interface HasManyStatement<ForeignTableName extends keyof DB & string>
+  extends HasStatement<ForeignTableName, 'HasMany'> {}
