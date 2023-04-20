@@ -150,7 +150,7 @@ program
     setCoreDevelopmentFlag(program.args)
     const files = program.args.filter(arg => /\.spec\.ts$/.test(arg))
     if (process.env.CORE_DEVELOPMENT === '1') {
-      await sspawn(`yarn dream sync:all --core`)
+      await sspawn(`yarn dream sync:models --core`)
       await sspawn(`CORE_DEVELOPMENT=1 jest --runInBand --forceExit ${files.join(' ')}`)
     } else {
       throw 'this command is not meant for use outside core development'
