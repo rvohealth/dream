@@ -711,13 +711,13 @@ export default function dream<
       }
     }
 
-    public async applyOneInclude(associationString: string, dreams: Dream | Dream[]) {
+    public async applyOneInclude(currentAssociationTableOrAlias: string, dreams: Dream | Dream[]) {
       if (dreams.constructor !== Array) dreams = [dreams as Dream]
 
       const dream = dreams[0]
       if (!dream) return
 
-      let association = dream.associationMap[associationString]
+      let association = dream.associationMap[currentAssociationTableOrAlias]
       let associationQuery
 
       const results = await this.includesBridgeThroughAssociations(dreams, association)
@@ -821,20 +821,144 @@ export default function dream<
       return query
     }
 
-    public recursivelyJoin<PreviousTableName extends keyof DB & keyof SyncedAssociations>({
+    public joinsBridgeThroughAssociations({
+      query,
+      dreamClass,
+      association,
+      previousAssociationTableOrAlias,
+    }: {
+      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
+      dreamClass: DreamModel<any, any>
+      association: HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any>
+      previousAssociationTableOrAlias: string
+    }): {
+      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
+      dreamClass: DreamModel<any, any>
+      association: HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any>
+      previousAssociationTableOrAlias: string
+    } {
+      if (association.type === 'BelongsTo' || !association.through) {
+        return {
+          query,
+          dreamClass,
+          association,
+          previousAssociationTableOrAlias,
+        }
+      } else {
+        // Post has many Commenters through Comments
+        //  Comments,
+        //  the Comments -> CommentAuthors hasMany association
+        // dreamClass is Post
+        // newDreamClass is Comment
+        const results = this.applyOneJoin({
+          query,
+          dreamClass,
+          previousAssociationTableOrAlias,
+          currentAssociationTableOrAlias: association.through,
+        })
+
+        return this.joinsBridgeThroughAssociations({
+          query: results.query,
+          dreamClass: association.modelCB(),
+          association: association.throughClass!().associationMap[association.as],
+          previousAssociationTableOrAlias: association.through,
+        })
+      }
+    }
+
+    public applyOneJoin({
+      query,
+      dreamClass,
+      previousAssociationTableOrAlias,
+      currentAssociationTableOrAlias,
+    }: {
+      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
+      dreamClass: DreamModel<any, any>
+      previousAssociationTableOrAlias: string
+      currentAssociationTableOrAlias: string
+    }): {
+      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
+      association: any
+      previousAssociationTableOrAlias: string
+      currentAssociationTableOrAlias: string
+    } {
+      // Given:
+      // dreamClass: Post
+      // previousAssociationTableOrAlias: posts
+      // currentAssociationTableOrAlias: commenters
+      // Post has many Commenters through Comments
+      // whereJoinStatement: { commenters: { id: <some commenter id> } }
+      // association = Post.associationMap[commenters]
+      // which gives association = {
+      //   through: 'comments',
+      //   throughClass: () => Comment,
+      //   as: 'commenters',
+      //   modelCB: () => Commenter,
+      // }
+      //
+      // We want joinsBridgeThroughAssociations to add to the query:
+      // INNER JOINS comments ON posts.id = comments.post_id
+      // and update dreamClass to be
+
+      let association = dreamClass.associationMap[currentAssociationTableOrAlias]
+
+      const results = this.joinsBridgeThroughAssociations({
+        query,
+        dreamClass,
+        association,
+        previousAssociationTableOrAlias,
+      })
+      query = results.query
+      dreamClass = results.dreamClass
+      association = results.association
+      previousAssociationTableOrAlias = results.previousAssociationTableOrAlias
+
+      const joinTableExpression =
+        currentAssociationTableOrAlias === association.to
+          ? currentAssociationTableOrAlias
+          : `${association.to} as ${currentAssociationTableOrAlias as string}`
+
+      if (association.type === 'BelongsTo') {
+        // @ts-ignore
+        query = query.innerJoin(
+          // @ts-ignore
+          joinTableExpression,
+          `${previousAssociationTableOrAlias}.${association.foreignKey()}`,
+          `${currentAssociationTableOrAlias as string}.${association.modelCB().primaryKey}`
+        )
+      } else {
+        // @ts-ignore
+        query = query.innerJoin(
+          // @ts-ignore
+          joinTableExpression,
+          `${previousAssociationTableOrAlias}.${association.modelCB().primaryKey}`,
+          `${currentAssociationTableOrAlias as string}.${association.foreignKey()}`
+        )
+      }
+
+      return {
+        query,
+        association,
+        previousAssociationTableOrAlias,
+        currentAssociationTableOrAlias,
+      }
+    }
+
+    public recursivelyJoin<
+      PreviousTableName extends keyof DB & keyof SyncedAssociations,
+      CurrentTableName extends keyof DB & keyof SyncedAssociations
+    >({
       query,
       whereJoinStatement,
       dreamClass,
-      previousTableName,
-      previousAlias,
+      previousAssociationTableOrAlias,
     }: {
       query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
       whereJoinStatement:
         | JoinsWhereAssociationExpression<PreviousTableName, AssociationExpression<PreviousTableName, any>>
         | Updateable<DB[PreviousTableName]>
       dreamClass: DreamModel<any, any>
-      previousTableName: PreviousTableName
-      previousAlias: string
+      previousAssociationTableOrAlias: string
     }): AliasCondition<PreviousTableName> | SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}> {
       for (const key of Object.keys(whereJoinStatement) as (
         | keyof SyncedAssociations[PreviousTableName]
@@ -847,50 +971,32 @@ export default function dream<
         if (columnValue!.constructor !== Object) {
           return {
             conditionToExecute: true,
-            alias: previousAlias,
+            alias: previousAssociationTableOrAlias,
             column: key,
             columnValue: columnValue,
           } as AliasCondition<PreviousTableName>
         } else {
-          const associationString = key as keyof SyncedAssociations[PreviousTableName] & string
-          let association = dreamClass.associationMap[associationString]
+          let currentAssociationTableOrAlias = key as
+            | (keyof SyncedAssociations[PreviousTableName] & string)
+            | string
 
-          // const results = await this.joinsBridgeThroughAssociations(dreams, association)
-          // dreams = results.dreams
-          // association = results.association
+          const results = this.applyOneJoin({
+            query,
+            dreamClass,
+            previousAssociationTableOrAlias,
+            currentAssociationTableOrAlias:
+              currentAssociationTableOrAlias as keyof SyncedAssociations[PreviousTableName] & string,
+          })
 
-          const joinTableExpression =
-            associationString === association.to
-              ? associationString
-              : `${association.to} as ${associationString}`
+          query = results.query
+          const association = results.association
 
-          if (association.type === 'BelongsTo') {
-            // @ts-ignore
-            query = query.innerJoin(
-              // @ts-ignore
-              joinTableExpression,
-              // @ts-ignore
-              `${associationString}.${association.modelCB().primaryKey}`,
-              `${previousAlias}.${association.foreignKey()}`
-            )
-          } else {
-            // @ts-ignore
-            query = query.innerJoin(
-              // @ts-ignore
-              joinTableExpression,
-              // @ts-ignore
-              `${previousAlias}.${association.modelCB().primaryKey}`,
-              `${associationString}.${association.foreignKey()}`
-            )
-          }
-
-          const result = this.recursivelyJoin({
+          const result = this.recursivelyJoin<any, any>({
             query,
             // @ts-ignore
-            whereJoinStatement: whereJoinStatement[associationString],
+            whereJoinStatement: whereJoinStatement[currentAssociationTableOrAlias],
             dreamClass: association.modelCB(),
-            previousTableName: association.to,
-            previousAlias: associationString,
+            previousAssociationTableOrAlias: currentAssociationTableOrAlias,
           })
 
           if ((result as any).conditionToExecute) {
@@ -960,14 +1066,13 @@ export default function dream<
       if (this.whereJoinStatement) {
         this.whereJoinStatement.forEach(whereJoinStatement => {
           // @ts-ignore
-          query = this.recursivelyJoin({
+          query = this.recursivelyJoin<any, any>({
             query,
             // @ts-ignore
             whereJoinStatement,
             // @ts-ignore
             dreamClass: this.dreamClass,
-            previousTableName: this.dreamClass.table,
-            previousAlias: this.dreamClass.table,
+            previousAssociationTableOrAlias: this.dreamClass.table,
           })
         })
       }

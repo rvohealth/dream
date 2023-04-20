@@ -59,7 +59,7 @@ describe('Query#joins', () => {
     })
   })
 
-  context.only('when passed an array', () => {
+  context('when passed an array', () => {
     it('loads specified associations', async () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
@@ -105,14 +105,16 @@ describe('Query#joins', () => {
     //   })
 
     it('joins a HasMany through HasMany association', async () => {
+      await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ user_id: user.id })
       const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
-      const reloadedUser = await User.limit(1).joins('compositionAssets').first()
-      expect(reloadedUser!.compositions).toMatchObject([composition])
-      expect(reloadedUser!.compositions[0].compositionAssets).toEqual([compositionAsset])
-      expect(reloadedUser!.compositionAssets).toEqual([compositionAsset])
+      const reloadedUsers = await User.limit(2)
+        .joins('compositionAssets')
+        .where({ compositionAssets: { id: compositionAsset.id } })
+        .all()
+      expect(reloadedUsers).toMatchObject([user])
     })
 
     //   describe('nested through associations', () => {
