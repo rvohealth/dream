@@ -436,13 +436,13 @@ export default function dream<
 
   class Query<DreamClass extends Dream> {
     public whereStatement: WhereStatement<TableName> | null = null
-    public whereJoinStatement:
-      | JoinsWhereAssociationExpression<TableName, AssociationExpression<TableName, any>>[]
-      | null = null
+    public whereJoinsStatement: JoinsWhereAssociationExpression<
+      TableName,
+      AssociationExpression<TableName, any>
+    >[] = []
     public limitStatement: { count: number } | null = null
     public orStatements: Query<DreamClass>[] = []
     public orderStatement: { column: keyof Table & string; direction: 'asc' | 'desc' } | null = null
-    public selectStatement: SelectArg<DB, TableName, SelectExpression<DB, TableName>> | null = null
     public includesStatements: QueryAssociationExpression[] = []
     public joinsStatements: QueryAssociationExpression[] = []
     public shouldBypassDefaultScopes: boolean = false
@@ -480,9 +480,7 @@ export default function dream<
     ) {
       if (attributes.constructor === Array) {
         // @ts-ignore
-        this.whereJoinStatement ||= []
-        // @ts-ignore
-        this.whereJoinStatement = [...this.whereJoinStatement, ...attributes]
+        this.whereJoinsStatement = [...this.whereJoinsStatement, ...attributes]
       } else {
         Object.keys(attributes).forEach(key => {
           if (columns.includes(key)) {
@@ -491,9 +489,7 @@ export default function dream<
             this.whereStatement[key] = attributes[key]
           } else {
             // @ts-ignore
-            this.whereJoinStatement ||= []
-            // @ts-ignore
-            this.whereJoinStatement.push({ [key]: attributes[key] })
+            this.whereJoinsStatement.push({ [key]: attributes[key] })
           }
         })
       }
@@ -906,7 +902,7 @@ export default function dream<
       // previousAssociationTableOrAlias: posts
       // currentAssociationTableOrAlias: commenters
       // Post has many Commenters through Comments
-      // whereJoinStatement: { commenters: { id: <some commenter id> } }
+      // whereJoinsStatement: { commenters: { id: <some commenter id> } }
       // association = Post.associationMap[commenters]
       // which gives association = {
       //   through: 'comments',
@@ -938,13 +934,17 @@ export default function dream<
           : `${association.to} as ${currentAssociationTableOrAlias as string}`
 
       if (association.type === 'BelongsTo') {
+        if (association.modelCB().constructor === Array) throw 'Cannot join on a polymorphic BelongsTo'
+
         // @ts-ignore
-        // query = query.innerJoin(
-        //   // @ts-ignore
-        //   joinTableExpression,
-        //   `${previousAssociationTableOrAlias}.${association.foreignKey() as string}`,
-        //   `${currentAssociationTableOrAlias as string}.${association.modelCB().primaryKey}`
-        // )
+        query = query.innerJoin(
+          // @ts-ignore
+          joinTableExpression,
+          `${previousAssociationTableOrAlias}.${association.foreignKey() as string}`,
+          `${currentAssociationTableOrAlias as string}.${
+            (association.modelCB() as DreamModel<any, any>).primaryKey
+          }`
+        )
       } else {
         // @ts-ignore
         query = query.innerJoin(
@@ -966,69 +966,59 @@ export default function dream<
       }
     }
 
-    public recursivelyJoin<
-      PreviousTableName extends AssociationTableNames,
-      CurrentTableName extends AssociationTableNames
-    >({
+    public recursivelyJoin<PreviousTableName extends AssociationTableNames>({
       query,
-      whereJoinStatement,
+      joinsStatement,
       dreamClass,
       previousAssociationTableOrAlias,
     }: {
       query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
-      whereJoinStatement:
+      joinsStatement:
         | JoinsWhereAssociationExpression<PreviousTableName, AssociationExpression<PreviousTableName, any>>
         | Updateable<DB[PreviousTableName]>
       dreamClass: DreamModel<any, any>
       previousAssociationTableOrAlias: string
-    }): AliasCondition<PreviousTableName> | SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}> {
-      for (const key of Object.keys(whereJoinStatement) as (
-        | keyof SyncedAssociations[PreviousTableName]
-        | keyof Updateable<DB[PreviousTableName]>
-      )[]) {
-        const columnValue = (whereJoinStatement as Updateable<DB[PreviousTableName]>)[
-          key as keyof Updateable<DB[PreviousTableName]>
-        ]
-
-        if (columnValue!.constructor !== Object) {
-          return {
-            conditionToExecute: true,
-            alias: previousAssociationTableOrAlias,
-            column: key,
-            columnValue: columnValue,
-          } as AliasCondition<PreviousTableName>
-        } else {
-          let currentAssociationTableOrAlias = key as
-            | (keyof SyncedAssociations[PreviousTableName] & string)
-            | string
-
-          const results = this.applyOneJoin({
+    }): SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}> {
+      if (joinsStatement.constructor === Array) {
+        joinsStatement.forEach(oneJoinsStatement => {
+          query = this.recursivelyJoin({
             query,
+            joinsStatement: oneJoinsStatement,
             dreamClass,
             previousAssociationTableOrAlias,
-            currentAssociationTableOrAlias:
-              currentAssociationTableOrAlias as keyof SyncedAssociations[PreviousTableName] & string,
-          })
+          }) as SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
+        })
 
-          query = results.query
-          const association = results.association
+        return query
+      } else if (joinsStatement.constructor === String) {
+        const results = this.applyOneJoin({
+          query,
+          dreamClass,
+          previousAssociationTableOrAlias,
+          currentAssociationTableOrAlias: joinsStatement,
+        })
 
-          const result = this.recursivelyJoin<any, any>({
-            query,
-            // @ts-ignore
-            whereJoinStatement: whereJoinStatement[currentAssociationTableOrAlias],
-            dreamClass: association.modelCB(),
-            previousAssociationTableOrAlias: currentAssociationTableOrAlias,
-          })
+        return results.query
+      }
 
-          if ((result as any).conditionToExecute) {
-            // @ts-ignore
-            query = query.where(`${result.alias}.${result.column}`, '=', result.columnValue)
-          } else {
-            // @ts-ignore
-            query = result
-          }
-        }
+      for (const currentAssociationTableOrAlias of Object.keys(joinsStatement) as string[]) {
+        const results = this.applyOneJoin({
+          query,
+          dreamClass,
+          previousAssociationTableOrAlias,
+          currentAssociationTableOrAlias,
+        })
+
+        query = results.query
+        const association = results.association
+
+        query = this.recursivelyJoin<any>({
+          query,
+          // @ts-ignore
+          joinsStatement: joinsStatement[currentAssociationTableOrAlias],
+          dreamClass: association.modelCB(),
+          previousAssociationTableOrAlias: currentAssociationTableOrAlias,
+        })
       }
 
       return query
@@ -1079,14 +1069,55 @@ export default function dream<
       return query
     }
 
+    public recursivelyApplyJoinWhereStatement<PreviousTableName extends AssociationTableNames>(
+      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>,
+      whereJoinsStatement:
+        | JoinsWhereAssociationExpression<PreviousTableName, AssociationExpression<PreviousTableName, any>>
+        | Updateable<DB[PreviousTableName]>,
+      previousAssociationTableOrAlias: string
+    ) {
+      for (const key of Object.keys(whereJoinsStatement) as (
+        | keyof SyncedAssociations[PreviousTableName]
+        | keyof Updateable<DB[PreviousTableName]>
+      )[]) {
+        const columnValue = (whereJoinsStatement as Updateable<DB[PreviousTableName]>)[
+          key as keyof Updateable<DB[PreviousTableName]>
+        ]
+
+        if (columnValue!.constructor !== Object) {
+          // @ts-ignore
+          query = query.where(`${previousAssociationTableOrAlias}.${key}`, '=', columnValue)
+        } else {
+          let currentAssociationTableOrAlias = key as
+            | (keyof SyncedAssociations[PreviousTableName] & string)
+            | string
+
+          query = this.recursivelyApplyJoinWhereStatement<any>(
+            query,
+            // @ts-ignore
+            whereJoinsStatement[currentAssociationTableOrAlias],
+            currentAssociationTableOrAlias
+          )
+        }
+      }
+
+      return query
+    }
+
     public buildSelect({ bypassSelectAll = false }: { bypassSelectAll?: boolean } = {}) {
       this.conditionallyApplyScopes()
 
       let query = db.selectFrom(tableName)
       if (!bypassSelectAll) query = query.selectAll(tableName as any)
 
-      if (this.selectStatement) {
-        query = query.select(this.selectStatement as any)
+      if (this.joinsStatements.length) {
+        query = this.recursivelyJoin<any>({
+          query,
+          joinsStatement: this.joinsStatements,
+          // @ts-ignore
+          dreamClass: this.dreamClass,
+          previousAssociationTableOrAlias: this.dreamClass.table,
+        })
       }
 
       this.orStatements.forEach(orStatement => {
@@ -1097,17 +1128,10 @@ export default function dream<
         query = this.applyWhereStatement(query, this.whereStatement)
       }
 
-      if (this.whereJoinStatement) {
-        this.whereJoinStatement.forEach(whereJoinStatement => {
+      if (this.whereJoinsStatement.length) {
+        this.whereJoinsStatement.forEach(whereJoinsStatement => {
           // @ts-ignore
-          query = this.recursivelyJoin<any, any>({
-            query,
-            // @ts-ignore
-            whereJoinStatement,
-            // @ts-ignore
-            dreamClass: this.dreamClass,
-            previousAssociationTableOrAlias: this.dreamClass.table,
-          })
+          query = this.recursivelyApplyJoinWhereStatement<any>(query, whereJoinsStatement)
         })
       }
 

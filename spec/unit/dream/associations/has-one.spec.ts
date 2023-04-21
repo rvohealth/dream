@@ -11,7 +11,7 @@ describe('Dream HasOne association', () => {
     expect(userAssociations[0].modelCB()).toEqual(Composition)
     expect(userAssociations[0].to).toEqual('compositions')
 
-    expect(userAssociations[1].foreignKey()).toEqual('composition_id')
+    expect(userAssociations[1].foreignKey()).toEqual('user_id')
     expect(userAssociations[1].modelCB()).toEqual(CompositionAsset)
     expect(userAssociations[1].to).toEqual('composition_assets')
 

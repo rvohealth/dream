@@ -141,7 +141,7 @@ describe('Dream#includes', () => {
       expect(reloaded!.ratings).toMatchObject([rating])
     })
 
-    it.only('loads a BelongsTo association', async () => {
+    it('loads a BelongsTo association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ user_id: user.id })
       const post = await Post.create({ user_id: user.id })

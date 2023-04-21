@@ -7,6 +7,6 @@ describe('Dream BelongsTo association', () => {
     expect(compositionAssociations.length).toEqual(1)
     expect(compositionAssociations[0].foreignKey()).toEqual('user_id')
     expect(compositionAssociations[0].modelCB()).toEqual(User)
-    expect(compositionAssociations[0].to).toEqual('users')
+    expect(compositionAssociations[0].to).toEqual(['users'])
   })
 })
