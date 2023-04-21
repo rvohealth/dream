@@ -64,7 +64,6 @@ program
 
 program
   .command('sync:schema')
-  .alias('sync')
   .alias('introspect')
   .description(
     'sync introspects your database, updating your schema to reflect, and then syncs the new schema with the installed dream node module, allowing it provide your schema to the underlying kysely integration'
@@ -98,7 +97,6 @@ program
 
 program
   .command('sync:model-indexes')
-  .alias('sync:all')
   .description('runs yarn dream sync:schema, then yarn dream sync:associations')
   .option('--core', 'sets core to true')
   .action(async () => {
