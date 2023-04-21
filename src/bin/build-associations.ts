@@ -24,6 +24,7 @@ async function writeAssociationsFile() {
   for (const model of models) {
     for (const associationName of new model().associationNames) {
       const toClause = new model().associationMap[associationName].to
+      finalModels[model.table] ||= {}
       if (toClause.constructor === Array) {
         finalModels[model.table][associationName] = toClause
       } else {
