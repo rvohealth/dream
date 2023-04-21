@@ -9,7 +9,6 @@
   "private": true,
   "scripts": {
     "dream": "npx ts-node ./boot/cli.ts",
-    "safedream": "npx ts-node --transpile-only ./boot/cli.ts",
     "build": "rm -rf dist && npx tsc",
     "spec": "yarn dream spec --core",
     "console": "yarn dream console --core"
