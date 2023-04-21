@@ -45,6 +45,7 @@ export interface Posts {
 
 export interface Ratings {
   id: Generated<number>;
+  user_id: Generated<number>;
   rateable_id: Generated<number>;
   rateable_type: string;
   rating: number | null;
@@ -77,7 +78,7 @@ export const CompositionAssetAuditColumns = ['id', 'composition_asset_id', 'appr
 export const CompositionAssetColumns = ['id', 'composition_id', 'src', 'primary', 'created_at', 'updated_at']
 export const CompositionColumns = ['id', 'user_id', 'content', 'flexible_id', 'flexible_type', 'created_at', 'updated_at']
 export const PostColumns = ['id', 'user_id', 'body', 'created_at', 'updated_at']
-export const RatingColumns = ['id', 'rateable_id', 'rateable_type', 'rating', 'created_at', 'updated_at']
+export const RatingColumns = ['id', 'user_id', 'rateable_id', 'rateable_type', 'rating', 'created_at', 'updated_at']
 export const UserColumns = ['id', 'name', 'type', 'email', 'password', 'created_at', 'updated_at', 'deleted_at']
 
 export const DBColumns = {

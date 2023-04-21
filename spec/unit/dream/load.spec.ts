@@ -89,7 +89,7 @@ describe('Dream#load', () => {
       expect(user.compositionAssets[0]!).toMatchObject(compositionAsset)
     })
 
-    describe('nested through associations', () => {
+    context('nested through associations', () => {
       it('loads a HasOne through HasOne association', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user_id: user.id })

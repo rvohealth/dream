@@ -19,6 +19,9 @@ export default class Rating extends Dream {
   public id: number
 
   @Column('number')
+  public user_id: number
+
+  @Column('number')
   public rateable_id: number
 
   @Column('string')

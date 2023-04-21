@@ -21,6 +21,7 @@ import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { marshalDBValue } from './helpers/marshalDBValue'
 import sqlAttributes from './helpers/sqlAttributes'
 import { Range } from './helpers/range'
+import CannotJoinPolymorphicBelongsToError from './exceptions/cannot-join-polymorphic-belongs-to-error'
 import ValidationError from './exceptions/validation-error'
 import InStatement from './ops/in'
 import LikeStatement from './ops/like'
@@ -181,6 +182,14 @@ export default function dream<
     ) {
       const query: Query<T> = new Query<T>(this)
       return query.includes(...associations)
+    }
+
+    public static joins<T extends Dream>(
+      this: { new (): T } & typeof Dream,
+      ...associations: QueryAssociationExpression[]
+    ) {
+      const query: Query<T> = new Query<T>(this)
+      return query.joins(...associations)
     }
 
     public static async last<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T | null> {
@@ -934,7 +943,12 @@ export default function dream<
           : `${association.to} as ${currentAssociationTableOrAlias as string}`
 
       if (association.type === 'BelongsTo') {
-        if (association.modelCB().constructor === Array) throw 'Cannot join on a polymorphic BelongsTo'
+        if (association.modelCB().constructor === Array)
+          throw new CannotJoinPolymorphicBelongsToError({
+            dreamClass,
+            association,
+            joinsStatements: this.joinsStatements,
+          })
 
         // @ts-ignore
         query = query.innerJoin(

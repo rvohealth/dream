@@ -24,7 +24,7 @@ export interface HasStatement<
   to: AssociationTableNames
   as: string
   foreignKey: () => keyof DB[ForeignTableName]
-  foreignKeyTypeField: () => keyof DB[TableName]
+  foreignKeyTypeField: () => keyof DB[ForeignTableName]
   polymorphic: boolean
   throughClass?: () => DreamModel<ForeignTableName, any>
   through?: string
