@@ -3,8 +3,8 @@ import { DB } from '../../sync/schema'
 import { SelectQueryBuilder, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
 import { Range } from '../../helpers/range'
-import { OpsStatement } from '../../ops'
 import { AssociationTableNames } from '../../db/reflections'
+import OpsStatement from '../../ops/ops-statement'
 
 export type WhereStatement<TableName extends AssociationTableNames> =
   | Updateable<DB[TableName]>
