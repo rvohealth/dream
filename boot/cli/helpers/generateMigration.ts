@@ -7,10 +7,8 @@ export default async function generateMigration(
   migrationName: string,
   {
     rootPath = process.cwd(),
-    allowExit = true,
   }: {
     rootPath?: string
-    allowExit?: boolean
   } = {}
 ) {
   const migrationBasePath =
@@ -38,8 +36,7 @@ export default async function generateMigration(
     throw err
   }
 
-  if (process.env.NODE_ENV !== 'test' && allowExit) {
+  if (process.env.NODE_ENV !== 'test') {
     console.log('done!')
-    process.exit()
   }
 }

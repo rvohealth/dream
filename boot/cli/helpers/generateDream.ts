@@ -12,10 +12,8 @@ export default async function generateDream(
   attributes: string[],
   {
     rootPath = process.env.CORE_DEVELOPMENT === '1' ? process.cwd() : process.cwd() + '/../..',
-    allowExit = true,
   }: {
     rootPath?: string
-    allowExit?: boolean
   } = {}
 ) {
   const ymlConfig = await loadDreamYamlFile()
@@ -89,8 +87,7 @@ export default async function generateDream(
     throw err
   }
 
-  if (process.env.NODE_ENV !== 'test' && allowExit) {
+  if (process.env.NODE_ENV !== 'test') {
     console.log('done!')
-    process.exit()
   }
 }
