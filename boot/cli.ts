@@ -60,7 +60,6 @@ program
     // await sspawn(`yarn dream sync:existing ${!!coreDevFlag ? '--core' : ''}`)
     await sspawn(`yarn dream sync:schema ${!!coreDevFlag ? '--core' : ''}`)
     await sspawn(`yarn dream sync:models ${!!coreDevFlag ? '--core' : ''}`)
-    await sspawn(`${coreDevFlag}yarn build`)
   })
 
 program
