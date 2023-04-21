@@ -3,7 +3,7 @@ import Composition from '../../../test-app/app/models/composition'
 import CompositionAsset from '../../../test-app/app/models/composition-asset'
 import CompositionAssetAudit from '../../../test-app/app/models/composition-asset-audit'
 
-describe('Dream#includes', () => {
+describe('Dream.includes', () => {
   it('loads a HasOne association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ user_id: user.id })
