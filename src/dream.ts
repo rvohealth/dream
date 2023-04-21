@@ -1140,12 +1140,10 @@ export default function dream<
         query = this.applyWhereStatement(query, this.whereStatement)
       }
 
-      if (this.whereJoinsStatement.length) {
-        this.whereJoinsStatement.forEach(whereJoinsStatement => {
-          // @ts-ignore
-          query = this.recursivelyApplyJoinWhereStatement<any>(query, whereJoinsStatement)
-        })
-      }
+      this.whereJoinsStatement.forEach(whereJoinsStatement => {
+        // @ts-ignore
+        query = this.recursivelyApplyJoinWhereStatement<any>(query, whereJoinsStatement)
+      })
 
       if (this.limitStatement) query = query.limit(this.limitStatement.count)
       if (this.orderStatement)
