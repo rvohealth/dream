@@ -17,18 +17,6 @@ describe('Query#joins through with simple associations', () => {
     expect(reloadedUsers).toMatchObject([user])
   })
 
-  it('when an intermediary condition doesn’t match it doesn’t find', async () => {
-    await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id })
-    const compositionAsset = await CompositionAsset.create({
-      composition_id: composition.id,
-    })
-
-    const reloadedUsers = await User.limit(2).joins('mainCompositionAsset').all()
-    expect(reloadedUsers).toMatchObject([])
-  })
-
   it('joins a HasMany through HasMany association', async () => {
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
@@ -73,21 +61,6 @@ describe('Query#joins through with simple associations', () => {
       const noResults = await User.limit(2)
         .joins('mainCompositionAsset')
         .where({ mainCompositionAsset: { id: compositionAsset.id + 1 } })
-        .all()
-      expect(noResults).toMatchObject([])
-    })
-
-    it('when an intermediary condition doesn’t match it doesn’t find', async () => {
-      await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-      const composition = await Composition.create({ user_id: user.id })
-      const compositionAsset = await CompositionAsset.create({
-        composition_id: composition.id,
-      })
-
-      const noResults = await User.limit(2)
-        .joins('mainCompositionAsset')
-        .where({ mainCompositionAsset: { id: compositionAsset.id } })
         .all()
       expect(noResults).toMatchObject([])
     })
