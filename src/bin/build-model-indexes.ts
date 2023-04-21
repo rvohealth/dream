@@ -7,9 +7,9 @@ import { modelsPath } from '../helpers/path'
 import pascalize from '../helpers/pascalize'
 
 export default async function buildModelIndexes() {
-  console.log('indexing dream model indexes...')
+  console.log('building dream indexes...')
   await writeModelIndexes()
-  console.log('dream model indexing complete!')
+  console.log('dream indexes built!')
 }
 buildModelIndexes()
 
@@ -52,6 +52,7 @@ async function recursivelyWriteIndexes(obj: any) {
         const indexFilePath = path.join(currentPath, 'index.ts')
 
         const indexStr = generateIndexContent(obj[key])
+        console.log(`writing model index: ${indexFilePath}`)
         await fs.writeFile(indexFilePath, indexStr)
         doRecursiveWrite(obj[key])
       } else {
