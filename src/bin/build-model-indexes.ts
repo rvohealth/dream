@@ -7,9 +7,9 @@ import { modelsPath } from '../helpers/path'
 import pascalize from '../helpers/pascalize'
 
 export default async function buildModelIndexes() {
-  console.log('indexing dream associations...')
+  console.log('indexing dream model indexes...')
   await writeModelIndexes()
-  console.log('dream association indexing complete!')
+  console.log('dream model indexing complete!')
 }
 buildModelIndexes()
 
