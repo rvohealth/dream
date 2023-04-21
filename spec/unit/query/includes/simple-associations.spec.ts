@@ -67,7 +67,7 @@ describe('Query#includes with simple associations', () => {
     expect(reloaded!.user).toMatchObject(user)
   })
 
-  context('with matching where clause on the association', () => {
+  context('with matching where-clause-on-the-association', () => {
     it('loads the associated object', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ user_id: user.id })
@@ -82,7 +82,7 @@ describe('Query#includes with simple associations', () => {
     })
   })
 
-  context('with NON-matching where clause on the association', () => {
+  context('with NON-matching where-clause-on-the-association', () => {
     it('does not load the associated object', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ user_id: user.id })

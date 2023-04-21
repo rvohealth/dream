@@ -10,7 +10,7 @@ describe('Query#joins with simple associations', () => {
     const composition = await Composition.create({ user_id: user.id })
 
     const reloadedUsers = await User.limit(2).joins('mainComposition').all()
-    expect(reloadedUsers!).toMatchObject([user])
+    expect(reloadedUsers).toMatchObject([user])
   })
 
   it('joins a HasMany association', async () => {
@@ -19,7 +19,7 @@ describe('Query#joins with simple associations', () => {
     const composition = await Composition.create({ user_id: user.id })
 
     const reloadedUsers = await User.limit(2).joins('compositions').all()
-    expect(reloadedUsers!).toMatchObject([user])
+    expect(reloadedUsers).toMatchObject([user])
   })
 
   context('when passed an object', () => {
@@ -60,7 +60,7 @@ describe('Query#joins with simple associations', () => {
         .joins('mainComposition')
         .where({ mainComposition: { id: composition.id } })
         .all()
-      expect(reloadedUsers!).toMatchObject([user])
+      expect(reloadedUsers).toMatchObject([user])
 
       const noResults = await User.limit(2)
         .joins('mainComposition')
@@ -78,7 +78,7 @@ describe('Query#joins with simple associations', () => {
         .joins('compositions')
         .where({ compositions: { id: composition.id } })
         .all()
-      expect(reloadedUsers!).toMatchObject([user])
+      expect(reloadedUsers).toMatchObject([user])
 
       const noResults = await User.limit(2)
         .joins('compositions')
@@ -175,6 +175,36 @@ describe('Query#joins with simple associations', () => {
           .all()
         expect(noResults2).toMatchObject([])
       })
+    })
+  })
+
+  context('with matching where-clause-on-the-association', () => {
+    it('loads the associated object', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ user_id: user.id })
+      await CompositionAsset.create({ composition_id: composition.id })
+      const compositionAsset = await CompositionAsset.create({
+        composition_id: composition.id,
+        primary: true,
+      })
+
+      const reloadedComposition = await Composition.limit(1).joins('mainCompositionAsset').first()
+      expect(reloadedComposition).toMatchObject(composition)
+    })
+  })
+
+  context('with NON-matching where-clause-on-the-association', () => {
+    it('does not load the object', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ user_id: user.id })
+      await CompositionAsset.create({ composition_id: composition.id })
+      const compositionAsset = await CompositionAsset.create({
+        composition_id: composition.id,
+        primary: false,
+      })
+
+      const reloadedComposition = await Composition.limit(1).joins('mainCompositionAsset').first()
+      expect(reloadedComposition).toBeNull()
     })
   })
 })

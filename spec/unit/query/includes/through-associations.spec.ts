@@ -19,7 +19,7 @@ describe('Query#includes through with simple associations', () => {
     expect(reloadedUser!.mainComposition.mainCompositionAsset).toMatchObject(compositionAsset)
   })
 
-  context('with NON-matching where clause on the association', () => {
+  context('with NON-matching where-clause-on-the-association', () => {
     it('does not load the associated object', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ user_id: user.id })

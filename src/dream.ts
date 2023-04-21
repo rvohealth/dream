@@ -743,15 +743,13 @@ export default function dream<
         }
       } else {
         const associatedModel = association.modelCB() as DreamModel<any, any>
+        associationQuery = associatedModel.where({
+          [association.foreignKey()]: dreams.map(dream => dream.primaryKeyValue),
+        })
 
         if (association.polymorphic) {
-          associationQuery = associatedModel.where({
-            [association.foreignKey()]: dreams.map(dream => dream.primaryKeyValue),
+          associationQuery = associationQuery.where({
             [association.foreignKeyTypeField()]: associatedModel.name,
-          })
-        } else {
-          associationQuery = associatedModel.where({
-            [association.foreignKey()]: dreams.map(dream => dream.primaryKeyValue),
           })
         }
 

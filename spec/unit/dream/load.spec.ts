@@ -22,8 +22,8 @@ describe('Dream#load', () => {
     const composition2 = await Composition.create({ user_id: user.id })
 
     await user.load('compositions')
-    expect(user.compositions[0]!).toMatchObject(composition1)
-    expect(user.compositions[1]!).toMatchObject(composition2)
+    expect(user.compositions[0]).toMatchObject(composition1)
+    expect(user.compositions[1]).toMatchObject(composition2)
   })
 
   it('can sideload multiple associations at once', async () => {
@@ -77,7 +77,7 @@ describe('Dream#load', () => {
       const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
       await compositionAsset.load('user')
-      expect(compositionAsset.user!).toMatchObject(user)
+      expect(compositionAsset.user).toMatchObject(user)
     })
 
     it('loads a HasMany through HasMany association', async () => {
@@ -86,7 +86,7 @@ describe('Dream#load', () => {
       const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
       await user.load('compositionAssets')
-      expect(user.compositionAssets[0]!).toMatchObject(compositionAsset)
+      expect(user.compositionAssets[0]).toMatchObject(compositionAsset)
     })
 
     context('nested through associations', () => {
