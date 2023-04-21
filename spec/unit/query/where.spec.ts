@@ -13,7 +13,27 @@ describe('Query#where', () => {
     expect(records[0].id).toEqual(user1.id)
   })
 
-  context('an InStatement is passed', () => {
+  context('a generic expression is passed', () => {
+    it('uses an "in" operator for comparison', async () => {
+      const user1 = await User.create({
+        email: 'fred@frewd',
+        password: 'howyadoin',
+      })
+      const user2 = await User.create({
+        email: 'frez@frewd',
+        password: 'howyadoin',
+      })
+      const user3 = await User.create({
+        email: 'frez@fishman',
+        password: 'howyadoin',
+      })
+
+      const records = await User.where({ id: ops.expression('in', [user1.id, user2.id]) }).pluck('id')
+      expect(records).toEqual([user1.id, user2.id])
+    })
+  })
+
+  context('ops.in is passed', () => {
     it('uses an "in" operator for comparison', async () => {
       const user1 = await User.create({
         email: 'fred@frewd',
@@ -53,7 +73,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('a Like statement is passed', () => {
+  context('ops.like statement is passed', () => {
     it('uses an "in" operator for comparison', async () => {
       const user1 = await User.create({
         email: 'aaa@aaa',
@@ -73,7 +93,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('an ilike statement is passed', () => {
+  context('ops.ilike statement is passed', () => {
     it('uses an "ilike" operator for comparison', async () => {
       const user1 = await User.create({
         email: 'aaa@aaa',

@@ -23,14 +23,11 @@ import sqlAttributes from './helpers/sqlAttributes'
 import { Range } from './helpers/range'
 import CannotJoinPolymorphicBelongsToError from './exceptions/cannot-join-polymorphic-belongs-to-error'
 import ValidationError from './exceptions/validation-error'
-import InStatement from './ops/in'
-import LikeStatement from './ops/like'
-import ILikeStatement from './ops/ilike'
-import { OpsStatement } from './ops'
 import { SyncedAssociations } from './sync/associations'
 import { Inc } from './helpers/typeutils'
 import { WhereStatement } from './decorators/associations/shared'
 import { AssociationTableNames } from './db/reflections'
+import OpsStatement from './ops/ops-statement'
 
 export default function dream<
   TableName extends AssociationTableNames,
@@ -1052,12 +1049,8 @@ export default function dream<
           query = query.where(attr as any, 'in', val)
         } else if (val.constructor === Array) {
           query = query.where(attr as any, 'in', val)
-        } else if (val.constructor === InStatement) {
-          query = query.where(attr as any, 'in', val.in)
-        } else if (val.constructor === LikeStatement) {
-          query = query.where(attr as any, 'like', val.like)
-        } else if (val.constructor === ILikeStatement) {
-          query = query.where(attr as any, 'ilike', val.ilike)
+        } else if (val.constructor === OpsStatement) {
+          query = query.where(attr as any, val.operator, val.value)
         } else if (
           val.constructor === Range &&
           (val.begin?.constructor || val.end?.constructor) === DateTime

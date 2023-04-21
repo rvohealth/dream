@@ -1,13 +1,11 @@
-import InStatement from './in'
-import ILikeStatement from './ilike'
-import LikeStatement from './like'
+import { ComparisonOperatorExpression } from 'kysely'
+import OpsStatement from './ops-statement'
 
 const ops = {
-  in: (arr: any[]) => new InStatement(arr),
-  like: (like: string) => new LikeStatement(like),
-  ilike: (ilike: string) => new ILikeStatement(ilike),
+  in: (arr: any[]) => new OpsStatement('in', arr),
+  like: (like: string) => new OpsStatement('like', like),
+  ilike: (ilike: string) => new OpsStatement('ilike', ilike),
+  expression: (operator: ComparisonOperatorExpression, value: any) => new OpsStatement(operator, value),
 }
-
-export type OpsStatement = LikeStatement | ILikeStatement | InStatement
 
 export default ops
