@@ -10,8 +10,9 @@ describe('Query#joins with polymorphic associations', () => {
   it('joins a HasMany association', async () => {
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
     await Composition.create({ user_id: user.id })
+    await Post.create({ user_id: user.id })
     const post = await Post.create({ user_id: user.id })
-    const rating = await Rating.create({ user_id: user.id, rateable_id: post.id, rateable_type: 'Post' })
+    await Rating.create({ user_id: user.id, rateable_id: post.id, rateable_type: 'Post' })
 
     const reloaded = await Post.limit(3).joins('ratings').first()
     expect(reloaded).toMatchObject(post)
