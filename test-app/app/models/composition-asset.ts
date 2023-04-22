@@ -27,7 +27,7 @@ export default class CompositionAsset extends Dream {
   @BelongsTo(() => Composition)
   public composition: Composition
 
-  @HasOne('users', () => User, {
+  @HasOne(() => User, {
     through: 'composition',
     throughClass: () => Composition,
   })

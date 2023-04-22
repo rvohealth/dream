@@ -4,9 +4,8 @@ import { DB } from '../../sync/schema'
 import { HasStatement, WhereStatement } from './shared'
 import { AssociationTableNames } from '../../db/reflections'
 
-export default function HasOne<TableName extends AssociationTableNames>(
-  tableName: TableName,
-  modelCB: () => ReturnType<typeof dream<TableName, any>>,
+export default function HasOne<AssociationDreamClass extends ReturnType<typeof dream<any, any>>>(
+  modelCB: () => AssociationDreamClass,
   {
     foreignKey,
     polymorphic = false,
@@ -18,7 +17,7 @@ export default function HasOne<TableName extends AssociationTableNames>(
     polymorphic?: boolean
     through?: string
     throughClass?: () => ReturnType<typeof dream<any, any>>
-    where?: WhereStatement<TableName>
+    where?: WhereStatement<AssociationDreamClass['table']>
   } = {}
 ): any {
   return function (target: any, key: string, _: any) {
@@ -35,7 +34,6 @@ export default function HasOne<TableName extends AssociationTableNames>(
         {
           modelCB,
           type: 'HasOne',
-          to: tableName,
           // TODO: abstract foreign key capture to helper, with optional override provided by the api
           foreignKey() {
             return foreignKey || pluralize.singular(target.constructor.table) + '_id'

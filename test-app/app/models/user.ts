@@ -40,7 +40,7 @@ export default class User extends Dream {
   @HasMany(() => Composition)
   public compositions: Composition[]
 
-  @HasOne('compositions', () => Composition)
+  @HasOne(() => Composition)
   public mainComposition: Composition
 
   @HasMany(() => CompositionAsset, {
@@ -49,7 +49,7 @@ export default class User extends Dream {
   })
   public compositionAssets: CompositionAsset[]
 
-  @HasOne('composition_assets', () => CompositionAsset, {
+  @HasOne(() => CompositionAsset, {
     through: 'mainComposition',
     throughClass: () => Composition,
   })
