@@ -940,10 +940,11 @@ export default function dream<
             joinsStatements: this.joinsStatements,
           })
 
+        const to = (association.modelCB() as DreamModel<any, any>).table
         const joinTableExpression =
-          currentAssociationTableOrAlias === (association.modelCB() as DreamModel<any, any>).table
+          currentAssociationTableOrAlias === to
             ? currentAssociationTableOrAlias
-            : `${association.to} as ${currentAssociationTableOrAlias as string}`
+            : `${to} as ${currentAssociationTableOrAlias as string}`
 
         // @ts-ignore
         query = query.innerJoin(
@@ -955,10 +956,11 @@ export default function dream<
           }`
         )
       } else {
+        const to = association.modelCB().table
         const joinTableExpression =
-          currentAssociationTableOrAlias === association.modelCB().table
+          currentAssociationTableOrAlias === to
             ? currentAssociationTableOrAlias
-            : `${association.to} as ${currentAssociationTableOrAlias as string}`
+            : `${to} as ${currentAssociationTableOrAlias as string}`
 
         // @ts-ignore
         query = query.innerJoin(
