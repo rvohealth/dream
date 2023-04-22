@@ -25,7 +25,7 @@ export default class Composition extends Dream {
   @BelongsTo(() => User)
   public user: User
 
-  @HasMany('composition_assets', () => CompositionAsset)
+  @HasMany(() => CompositionAsset)
   public compositionAssets: CompositionAsset[]
 
   @HasOne('composition_assets', () => CompositionAsset, {
@@ -33,7 +33,7 @@ export default class Composition extends Dream {
   })
   public mainCompositionAsset: CompositionAsset
 
-  @HasMany('composition_asset_audits', () => CompositionAssetAudit, {
+  @HasMany(() => CompositionAssetAudit, {
     through: 'compositionAssets',
     throughClass: () => CompositionAsset,
   })

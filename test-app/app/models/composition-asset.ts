@@ -33,7 +33,7 @@ export default class CompositionAsset extends Dream {
   })
   public user: User
 
-  @HasMany('composition_asset_audits', () => CompositionAssetAudit)
+  @HasMany(() => CompositionAssetAudit)
   public compositionAssetAudits: CompositionAssetAudit[]
 
   @BeforeSave()

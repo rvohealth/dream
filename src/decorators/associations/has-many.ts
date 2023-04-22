@@ -1,12 +1,10 @@
 import pluralize = require('pluralize')
 import dream from '../../dream'
-import { DB } from '../../sync/schema'
 import { HasStatement, WhereStatement } from './shared'
 import { AssociationTableNames } from '../../db/reflections'
 
-export default function HasMany<TableName extends AssociationTableNames>(
-  TableName: TableName,
-  modelCB: () => ReturnType<typeof dream<TableName, any>>,
+export default function HasMany<AssociationDreamClass extends ReturnType<typeof dream<any, any>>>(
+  modelCB: () => AssociationDreamClass,
   {
     foreignKey,
     polymorphic = false,
@@ -18,7 +16,7 @@ export default function HasMany<TableName extends AssociationTableNames>(
     polymorphic?: boolean
     throughClass?: () => ReturnType<typeof dream<any, any>>
     through?: string
-    where?: WhereStatement<TableName>
+    where?: WhereStatement<AssociationDreamClass['table']>
   } = {}
 ): any {
   return function (target: any, key: string, _: any) {
@@ -35,7 +33,6 @@ export default function HasMany<TableName extends AssociationTableNames>(
         {
           modelCB,
           type: 'HasMany',
-          to: TableName,
           // TODO: abstract foreign key capture to helper, with optional override provided by the api
           foreignKey() {
             return foreignKey || pluralize.singular(target.constructor.table) + '_id'

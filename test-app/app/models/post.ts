@@ -20,7 +20,7 @@ export default class Post extends Dream {
   @BelongsTo(() => User)
   public user: User
 
-  @HasMany('ratings', () => Rating, {
+  @HasMany(() => Rating, {
     foreignKey: 'rateable_id',
     polymorphic: true,
   })

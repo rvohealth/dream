@@ -21,7 +21,6 @@ export interface HasStatement<
 > {
   modelCB: () => DreamModel<ForeignTableName, any>
   type: HasType
-  to: AssociationTableNames
   as: string
   foreignKey: () => keyof DB[ForeignTableName]
   foreignKeyTypeField: () => keyof DB[ForeignTableName]
