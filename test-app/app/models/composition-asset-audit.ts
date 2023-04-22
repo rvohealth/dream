@@ -18,7 +18,7 @@ export default class CompositionAssetAudit extends Dream {
   @Column('boolean')
   public approval: boolean | null
 
-  @BelongsTo('composition_assets', () => CompositionAsset)
+  @BelongsTo(() => CompositionAsset)
   public compositionAsset: CompositionAsset
 
   @HasOne('compositions', () => Composition, {

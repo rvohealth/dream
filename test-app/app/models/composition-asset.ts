@@ -24,7 +24,7 @@ export default class CompositionAsset extends Dream {
   @Column('boolean')
   public primary: boolean
 
-  @BelongsTo('compositions', () => Composition)
+  @BelongsTo(() => Composition)
   public composition: Composition
 
   @HasOne('users', () => User, {

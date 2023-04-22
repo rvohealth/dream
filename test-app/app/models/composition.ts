@@ -22,7 +22,7 @@ export default class Composition extends Dream {
   @Column('string')
   public content: string | null
 
-  @BelongsTo('users', () => User)
+  @BelongsTo(() => User)
   public user: User
 
   @HasMany('composition_assets', () => CompositionAsset)

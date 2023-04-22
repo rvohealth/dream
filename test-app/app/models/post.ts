@@ -17,7 +17,7 @@ export default class Post extends Dream {
   @Column('string')
   public body: string | null
 
-  @BelongsTo('users', () => User)
+  @BelongsTo(() => User)
   public user: User
 
   @HasMany('ratings', () => Rating, {

@@ -27,7 +27,6 @@ async function writeAssociationsFile() {
 
       const dreamClassOrClasses = new model().associationMap[associationName].modelCB()
       if (dreamClassOrClasses.constructor === Array) {
-        console.log('ARRAY FOUND!', dreamClassOrClasses)
         finalModels[model.table][associationName] = (dreamClassOrClasses as any[]).map(
           dreamClass => dreamClass.table
         )
