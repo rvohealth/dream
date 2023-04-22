@@ -1,9 +1,7 @@
 import pluralize = require('pluralize')
-import dream, { DreamModel, DreamModelInstance } from '../../dream'
+import dream, { DreamModel } from '../../dream'
 import { DB } from '../../sync/schema'
 import { AssociationTableNames } from '../../db/reflections'
-
-type TableNameOrNames = AssociationTableNames | AssociationTableNames[]
 
 export default function BelongsTo(
   modelCB: () => ReturnType<typeof dream<any, any>> | ReturnType<typeof dream<any, any>>[],
@@ -40,7 +38,6 @@ export default function BelongsTo(
 export interface BelongsToStatement<TableName extends AssociationTableNames> {
   modelCB: () => DreamModel<TableName, any> | DreamModel<TableName, any>[]
   type: 'BelongsTo'
-  to: AssociationTableNames[]
   as: string
   foreignKey: () => keyof DB[TableName]
   foreignKeyTypeField: () => keyof DB[TableName]
