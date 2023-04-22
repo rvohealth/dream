@@ -2,7 +2,7 @@ import '../helpers/loadEnv'
 import * as path from 'path'
 import { promises as fs } from 'fs'
 import loadModels from '../helpers/loadModels'
-import { DreamModel } from '../dream'
+import dream, { DreamModel } from '../dream'
 import { loadDreamYamlFile } from '../helpers/path'
 import { DBColumns } from '../sync/schema'
 
@@ -23,12 +23,16 @@ async function writeAssociationsFile() {
 
   for (const model of models) {
     for (const associationName of new model().associationNames) {
-      const toClause = new model().associationMap[associationName].to
       finalModels[model.table] ||= {}
-      if (toClause.constructor === Array) {
-        finalModels[model.table][associationName] = toClause
+
+      const dreamClassOrClasses = new model().associationMap[associationName].modelCB()
+      if (dreamClassOrClasses.constructor === Array) {
+        console.log('ARRAY FOUND!', dreamClassOrClasses)
+        finalModels[model.table][associationName] = (dreamClassOrClasses as any[]).map(
+          dreamClass => dreamClass.table
+        )
       } else {
-        finalModels[model.table][associationName] = [toClause]
+        finalModels[model.table][associationName] = [dreamClassOrClasses.table]
       }
     }
   }
