@@ -6,7 +6,7 @@ import generateMigrationContent from '../../../src/helpers/cli/generateMigration
 export default async function generateMigration(
   migrationName: string,
   {
-    rootPath = process.cwd(),
+    rootPath = process.env.CORE_DEVELOPMENT === '1' ? process.cwd() : process.cwd() + '/../..',
   }: {
     rootPath?: string
   } = {}

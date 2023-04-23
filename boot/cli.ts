@@ -14,6 +14,16 @@ import setCoreDevelopmentFlag from './cli/helpers/setCoreDevelopmentFlag'
 const program = new Command()
 
 program
+  .command('generate:migration')
+  .alias('g:migration')
+  .description('g:migration <name> create a new dream migration')
+  .argument('<name>', 'name of the migration')
+  .action(async () => {
+    const [_, name] = program.args
+    await generateMigration(name)
+  })
+
+program
   .command('generate')
   .alias('g')
   .alias('generate:dream')
@@ -25,16 +35,6 @@ program
   .action(async () => {
     const [_, name, ...attributes] = program.args
     await generateDream(name, attributes)
-  })
-
-program
-  .command('generate:migration')
-  .alias('g:migration')
-  .description('g:migration <name> create a new dream migration')
-  .argument('<name>', 'name of the migration')
-  .action(async () => {
-    const [_, name] = program.args
-    await generateMigration(name)
   })
 
 program
