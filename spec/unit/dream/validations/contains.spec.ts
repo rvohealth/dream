@@ -12,7 +12,7 @@ describe('Dream contains validation', () => {
     const user = new User({ email: 'noatsign', password: 'howyadoin' })
     expect(user.isInvalid).toEqual(true)
 
-    expect(async () => {
+    await expect(async () => {
       await user.save()
     }).rejects.toThrowError(ValidationError)
 

@@ -7,6 +7,7 @@ import Composition from './composition'
 import CompositionAsset from './composition-asset'
 import CompositionAssetAudit from './composition-asset-audit'
 import Validates from '../../../src/decorators/validations/validates'
+import UserSettings from './user-settings'
 
 const Dream = dream('users')
 export default class User extends Dream {
@@ -36,6 +37,9 @@ export default class User extends Dream {
 
   @Column('datetime')
   public updated_at: Date
+
+  @HasOne(() => UserSettings)
+  public userSettings: UserSettings
 
   @HasMany(() => Composition)
   public compositions: Composition[]

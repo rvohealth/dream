@@ -1,4 +1,3 @@
-import { HasOne } from '../../../src'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
 import { Column } from '../../../src/decorators/column'

@@ -19,7 +19,7 @@ describe('Dream length validation', () => {
     const user = new User({ email: 'fred@', password: 'how' })
     expect(user.isInvalid).toEqual(true)
 
-    expect(async () => {
+    await expect(async () => {
       await user.save()
     }).rejects.toThrowError(ValidationError)
 
@@ -32,7 +32,7 @@ describe('Dream length validation', () => {
     const user = new User({ email: 'fred@', password: 'sdjkfhsdjkfhjkshdfkjshdfkjhsdjkfhksjdhfksdjfhkjh' })
     expect(user.isInvalid).toEqual(true)
 
-    expect(async () => {
+    await expect(async () => {
       await user.save()
     }).rejects.toThrowError(ValidationError)
 

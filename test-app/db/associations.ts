@@ -53,6 +53,9 @@ export default {
     ]
   },
   "users": {
+    "userSettings": [
+      "user_settings"
+    ],
     "mainComposition": [
       "compositions"
     ],
@@ -67,6 +70,11 @@ export default {
     ],
     "compositionAssetAudits": [
       "composition_asset_audits"
+    ]
+  },
+  "user_settings": {
+    "user": [
+      "users"
     ]
   }
 }
@@ -126,6 +134,9 @@ export interface SyncedAssociations {
     ]
   },
   "users": {
+    "userSettings": [
+      "user_settings"
+    ],
     "mainComposition": [
       "compositions"
     ],
@@ -140,6 +151,49 @@ export interface SyncedAssociations {
     ],
     "compositionAssetAudits": [
       "composition_asset_audits"
+    ]
+  },
+  "user_settings": {
+    "user": [
+      "users"
+    ]
+  }
+}
+
+export interface SyncedBelongsToAssociations {
+  "composition_asset_audits": {
+    "compositionAsset": [
+      "composition_assets"
+    ]
+  },
+  "composition_assets": {
+    "composition": [
+      "compositions"
+    ]
+  },
+  "compositions": {
+    "user": [
+      "users"
+    ]
+  },
+  "posts": {
+    "user": [
+      "users"
+    ]
+  },
+  "ratings": {
+    "user": [
+      "users"
+    ],
+    "rateable": [
+      "compositions",
+      "posts"
+    ]
+  },
+  "users": false,
+  "user_settings": {
+    "user": [
+      "users"
     ]
   }
 }

@@ -24,7 +24,7 @@ describe('Query#joins with polymorphic associations', () => {
     const post = await Post.create({ user_id: user.id })
     const rating = await Rating.create({ user_id: user.id, rateable_id: post.id, rateable_type: 'Post' })
 
-    expect(async () => await Rating.limit(2).joins('rateable').first()).rejects.toThrowError(
+    await expect(async () => await Rating.limit(2).joins('rateable').first()).rejects.toThrowError(
       CannotJoinPolymorphicBelongsToError
     )
   })

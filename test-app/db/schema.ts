@@ -64,12 +64,21 @@ export interface Users {
   deleted_at: Timestamp | null;
 }
 
+export interface UserSettings {
+  id: Generated<number>;
+  user_id: Generated<number>;
+  likes_chalupas: Generated<boolean>;
+  created_at: Generated<Timestamp>;
+  updated_at: Generated<Timestamp>;
+}
+
 export interface DB {
   composition_asset_audits: CompositionAssetAudits;
   composition_assets: CompositionAssets;
   compositions: Compositions;
   posts: Posts;
   ratings: Ratings;
+  user_settings: UserSettings;
   users: Users;
 }
 
@@ -80,6 +89,7 @@ export const CompositionColumns = ['id', 'user_id', 'content', 'flexible_id', 'f
 export const PostColumns = ['id', 'user_id', 'body', 'created_at', 'updated_at']
 export const RatingColumns = ['id', 'user_id', 'rateable_id', 'rateable_type', 'rating', 'created_at', 'updated_at']
 export const UserColumns = ['id', 'name', 'type', 'email', 'password', 'created_at', 'updated_at', 'deleted_at']
+export const UserSettingColumns = ['id', 'user_id', 'likes_chalupas', 'created_at', 'updated_at']
 
 export const DBColumns = {
   composition_asset_audits: CompositionAssetAuditColumns,
@@ -87,5 +97,6 @@ export const DBColumns = {
   compositions: CompositionColumns,
   posts: PostColumns,
   ratings: RatingColumns,
-  users: UserColumns
+  users: UserColumns,
+  user_settings: UserSettingColumns
 }

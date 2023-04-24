@@ -23,11 +23,12 @@ import sqlAttributes from './helpers/sqlAttributes'
 import { Range } from './helpers/range'
 import CannotJoinPolymorphicBelongsToError from './exceptions/cannot-join-polymorphic-belongs-to-error'
 import ValidationError from './exceptions/validation-error'
-import { SyncedAssociations } from './sync/associations'
+import { SyncedAssociations, SyncedBelongsToAssociations } from './sync/associations'
 import { Inc } from './helpers/typeutils'
 import { WhereStatement } from './decorators/associations/shared'
 import { AssociationTableNames } from './db/reflections'
 import OpsStatement from './ops/ops-statement'
+import CanOnlyPassBelongsToModelParam from './exceptions/can-only-pass-belongs-to-model-param'
 
 export default function dream<
   TableName extends AssociationTableNames,
@@ -35,7 +36,8 @@ export default function dream<
   QueryAssociationExpression extends AssociationExpression<
     TableName & AssociationTableNames,
     any
-  > = AssociationExpression<TableName & AssociationTableNames, any>
+  > = AssociationExpression<TableName & AssociationTableNames, any>,
+  BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[TableName] = keyof SyncedBelongsToAssociations[TableName]
 >(tableName: TableName, primaryKey: IdColumnName = 'id' as IdColumnName) {
   const columns = DBColumns[tableName]
   const tableNames = Object.keys(DBColumns)
@@ -44,6 +46,17 @@ export default function dream<
   type IdColumn = Table[IdColumnName]
   type Data = Selectable<Table>
   type Id = Readonly<SelectType<IdColumn>>
+  type AssociationModelParam = Partial<
+    Record<
+      BelongsToModelAssociationNames,
+      DreamModelInstance<
+        SyncedBelongsToAssociations[TableName][BelongsToModelAssociationNames][keyof SyncedBelongsToAssociations[TableName][BelongsToModelAssociationNames]] &
+          AssociationTableNames,
+        any
+      >
+    >
+  >
+  type ModelParams = Updateable<Table> | AssociationModelParam
 
   class Dream {
     public static primaryKey: IdColumnName = primaryKey
@@ -112,7 +125,7 @@ export default function dream<
       ]
 
       const map = {} as {
-        [key: typeof allAssociations[number]['as']]:
+        [key: (typeof allAssociations)[number]['as']]:
           | BelongsToStatement<any>
           | HasManyStatement<any>
           | HasOneStatement<any>
@@ -125,6 +138,17 @@ export default function dream<
       return map
     }
 
+    public static get associationNames() {
+      const allAssociations = [
+        ...this.associations.belongsTo,
+        ...this.associations.hasOne,
+        ...this.associations.hasMany,
+      ]
+      return allAssociations.map(association => {
+        return association.as
+      })
+    }
+
     public static async all<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T[]> {
       const query: Query<T> = new Query<T>(this)
       return await query.all()
@@ -135,11 +159,8 @@ export default function dream<
       return await query.count()
     }
 
-    public static async create<T extends Dream>(
-      this: { new (): T } & typeof Dream,
-      opts?: Updateable<Table>
-    ) {
-      return (await new this(opts).save()) as T
+    public static async create<T extends Dream>(this: { new (): T } & typeof Dream, opts?: ModelParams) {
+      return (await new this(opts as any).save()) as T
     }
 
     public static async destroyAll<T extends Dream>(this: { new (): T } & typeof Dream) {
@@ -249,6 +270,7 @@ export default function dream<
 
     public errors: { [key: string]: ValidationType[] } = {}
     public frozenAttributes: Updateable<Table> = {}
+
     constructor(opts?: Updateable<Table>) {
       if (opts) {
         this.setAttributes(opts)
@@ -323,14 +345,7 @@ export default function dream<
     }
 
     public get associationNames() {
-      const allAssociations = [
-        ...this.associations.belongsTo,
-        ...this.associations.hasOne,
-        ...this.associations.hasMany,
-      ]
-      return allAssociations.map(association => {
-        return association.as
-      })
+      return (this.constructor as typeof Dream).associationNames
     }
 
     public get table(): TableName {
@@ -364,9 +379,25 @@ export default function dream<
     }
 
     public setAttributes(attributes: Updateable<Table>) {
+      const self = this as any
       Object.keys(attributes).forEach(attr => {
-        // TODO: cleanup type chaos
-        ;(this as any)[attr] = marshalDBValue((attributes as any)[attr])
+        const associationMetaData = this.associationMap[attr]
+
+        if (associationMetaData) {
+          const associatedObject = (attributes as any)[attr]
+          self[attr] = associatedObject
+
+          if (associationMetaData.type === 'BelongsTo') {
+            self[associationMetaData.foreignKey()] = associatedObject.primaryKeyValue
+            if (associationMetaData.polymorphic)
+              self[associationMetaData.foreignKeyTypeField()] = associatedObject.constructor.name
+          } else {
+            throw new CanOnlyPassBelongsToModelParam(self.constructor, associationMetaData)
+          }
+        } else {
+          // TODO: cleanup type chaos
+          self[attr] = marshalDBValue((attributes as any)[attr])
+        }
       })
     }
 
@@ -1323,13 +1354,6 @@ type JoinsWhereAssociationExpression<
       >
     }>
   : never
-
-export interface IncludesStatement<
-  TableName extends keyof DB,
-  IncludesExpression = SyncedAssociations[TableName]
-> {
-  expression: IncludesExpression
-}
 
 export type DreamModel<
   TableName extends AssociationTableNames,
