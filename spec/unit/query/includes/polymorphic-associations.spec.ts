@@ -11,7 +11,7 @@ describe('Query#includes with polymorphic associations', () => {
     const rating = await Rating.create({ user_id: user.id, rateable_id: post.id, rateable_type: 'Rating' })
 
     const reloaded = await Post.limit(3).includes('ratings').first()
-    expect(reloaded!.ratings).toMatchObject([rating])
+    expect(reloaded!.ratings).toMatchDreamModels([rating])
   })
 
   it('loads a HasOne association', async () => {

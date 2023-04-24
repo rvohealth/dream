@@ -35,8 +35,8 @@ describe('Query#includes with simple associations', () => {
     const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
     const reloaded = await User.limit(3).includes({ compositions: 'compositionAssets' }).first()
-    expect(reloaded!.compositions).toMatchObject([composition])
-    expect(reloaded!.compositions[0].compositionAssets).toMatchObject([compositionAsset])
+    expect(reloaded!.compositions).toMatchDreamModels([composition])
+    expect(reloaded!.compositions[0].compositionAssets).toMatchDreamModels([compositionAsset])
   })
 
   it('can handle array notation', async () => {
@@ -50,8 +50,8 @@ describe('Query#includes with simple associations', () => {
       .first()
 
     expect(reloadedUser!.mainComposition).toMatchObject(composition)
-    expect(reloadedUser!.compositions).toMatchObject([composition, composition2])
-    expect(reloadedUser!.mainComposition.compositionAssets).toMatchObject([compositionAsset])
+    expect(reloadedUser!.compositions).toMatchDreamModels([composition, composition2])
+    expect(reloadedUser!.mainComposition.compositionAssets).toMatchDreamModels([compositionAsset])
   })
 
   it('can sideload multiple associations at once', async () => {

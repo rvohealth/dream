@@ -10,7 +10,7 @@ describe('Query#joins with simple associations', () => {
     const composition = await Composition.create({ user_id: user.id })
 
     const reloadedUsers = await User.limit(2).joins('mainComposition').all()
-    expect(reloadedUsers).toMatchObject([user])
+    expect(reloadedUsers).toMatchDreamModels([user])
   })
 
   it('joins a HasMany association', async () => {
@@ -19,7 +19,7 @@ describe('Query#joins with simple associations', () => {
     const composition = await Composition.create({ user_id: user.id })
 
     const reloadedUsers = await User.limit(2).joins('compositions').all()
-    expect(reloadedUsers).toMatchObject([user])
+    expect(reloadedUsers).toMatchDreamModels([user])
   })
 
   context('when passed an object', () => {
@@ -32,7 +32,7 @@ describe('Query#joins with simple associations', () => {
 
       const reloadedUsers = await User.limit(2).joins({ mainComposition: 'compositionAssets' }).all()
 
-      expect(reloadedUsers).toMatchObject([user])
+      expect(reloadedUsers).toMatchDreamModels([user])
     })
   })
 
@@ -46,7 +46,7 @@ describe('Query#joins with simple associations', () => {
       const reloadedUsers = await User.limit(2)
         .joins(['compositions', { mainComposition: 'compositionAssets' }])
         .all()
-      expect(reloadedUsers).toMatchObject([user])
+      expect(reloadedUsers).toMatchDreamModels([user])
     })
   })
 
@@ -60,13 +60,13 @@ describe('Query#joins with simple associations', () => {
         .joins('mainComposition')
         .where({ mainComposition: { id: composition.id } })
         .all()
-      expect(reloadedUsers).toMatchObject([user])
+      expect(reloadedUsers).toMatchDreamModels([user])
 
       const noResults = await User.limit(2)
         .joins('mainComposition')
         .where({ mainComposition: { id: composition.id + 1 } })
         .all()
-      expect(noResults).toMatchObject([])
+      expect(noResults).toMatchDreamModels([])
     })
 
     it('joins a HasMany association', async () => {
@@ -78,13 +78,13 @@ describe('Query#joins with simple associations', () => {
         .joins('compositions')
         .where({ compositions: { id: composition.id } })
         .all()
-      expect(reloadedUsers).toMatchObject([user])
+      expect(reloadedUsers).toMatchDreamModels([user])
 
       const noResults = await User.limit(2)
         .joins('compositions')
         .where({ compositions: { id: composition.id + 1 } })
         .all()
-      expect(noResults).toMatchObject([])
+      expect(noResults).toMatchDreamModels([])
     })
 
     it('joins a BelongsTo association', async () => {
@@ -98,13 +98,13 @@ describe('Query#joins with simple associations', () => {
         .joins('user')
         .where({ user: { id: user.id } })
         .all()
-      expect(reloadedComposition).toMatchObject([composition])
+      expect(reloadedComposition).toMatchDreamModels([composition])
 
       const noResults = await Composition.limit(2)
         .joins('user')
         .where({ user: { id: user.id + 1 } })
         .all()
-      expect(noResults).toMatchObject([])
+      expect(noResults).toMatchDreamModels([])
     })
 
     context('when passed an object', () => {
@@ -119,13 +119,13 @@ describe('Query#joins with simple associations', () => {
           .joins({ mainComposition: 'compositionAssets' })
           .where({ mainComposition: { compositionAssets: { id: compositionAsset.id } } })
           .all()
-        expect(reloadedUsers).toMatchObject([user])
+        expect(reloadedUsers).toMatchDreamModels([user])
 
         const noResults = await User.limit(2)
           .joins({ mainComposition: 'compositionAssets' })
           .where({ mainComposition: { compositionAssets: { id: compositionAsset.id + 1 } } })
           .all()
-        expect(noResults).toMatchObject([])
+        expect(noResults).toMatchDreamModels([])
       })
     })
 
@@ -147,7 +147,7 @@ describe('Query#joins with simple associations', () => {
             },
           ])
           .all()
-        expect(reloadedUsers).toMatchObject([user])
+        expect(reloadedUsers).toMatchDreamModels([user])
 
         const noResults1 = await User.limit(2)
           .joins(['compositions', { mainComposition: 'compositionAssets' }])
@@ -160,7 +160,7 @@ describe('Query#joins with simple associations', () => {
             },
           ])
           .all()
-        expect(noResults1).toMatchObject([])
+        expect(noResults1).toMatchDreamModels([])
 
         const noResults2 = await User.limit(2)
           .joins(['compositions', { mainComposition: 'compositionAssets' }])
@@ -173,7 +173,7 @@ describe('Query#joins with simple associations', () => {
             },
           ])
           .all()
-        expect(noResults2).toMatchObject([])
+        expect(noResults2).toMatchDreamModels([])
       })
     })
   })

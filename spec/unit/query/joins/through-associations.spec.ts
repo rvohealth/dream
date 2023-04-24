@@ -14,7 +14,7 @@ describe('Query#joins through with simple associations', () => {
     })
 
     const reloadedUsers = await User.limit(2).joins('mainCompositionAsset').all()
-    expect(reloadedUsers).toMatchObject([user])
+    expect(reloadedUsers).toMatchDreamModels([user])
   })
 
   it('joins a HasMany through HasMany association', async () => {
@@ -24,7 +24,7 @@ describe('Query#joins through with simple associations', () => {
     await CompositionAsset.create({ composition_id: composition.id })
 
     const reloadedUsers = await User.limit(2).joins('compositionAssets').all()
-    expect(reloadedUsers).toMatchObject([user])
+    expect(reloadedUsers).toMatchDreamModels([user])
   })
 
   context('nested through associations', () => {
@@ -38,7 +38,7 @@ describe('Query#joins through with simple associations', () => {
       })
 
       const reloadedUsers = await User.limit(2).joins('compositionAssetAudits').all()
-      expect(reloadedUsers).toMatchObject([user])
+      expect(reloadedUsers).toMatchDreamModels([user])
     })
   })
 
@@ -56,13 +56,13 @@ describe('Query#joins through with simple associations', () => {
         .joins('mainCompositionAsset')
         .where({ mainCompositionAsset: { id: compositionAsset.id } })
         .all()
-      expect(reloadedUsers).toMatchObject([user])
+      expect(reloadedUsers).toMatchDreamModels([user])
 
       const noResults = await User.limit(2)
         .joins('mainCompositionAsset')
         .where({ mainCompositionAsset: { id: compositionAsset.id + 1 } })
         .all()
-      expect(noResults).toMatchObject([])
+      expect(noResults).toMatchDreamModels([])
     })
 
     it('joins a HasOne through BelongsTo association', async () => {
@@ -78,13 +78,13 @@ describe('Query#joins through with simple associations', () => {
         .joins('user')
         .where({ user: { id: user.id } })
         .all()
-      expect(reloadedCompositionAssets).toMatchObject([compositionAsset])
+      expect(reloadedCompositionAssets).toMatchDreamModels([compositionAsset])
 
       const noResults = await CompositionAsset.limit(2)
         .joins('user')
         .where({ user: { id: user.id + 1 } })
         .all()
-      expect(noResults).toMatchObject([])
+      expect(noResults).toMatchDreamModels([])
     })
 
     it('joins a HasMany through HasMany association', async () => {
@@ -97,13 +97,13 @@ describe('Query#joins through with simple associations', () => {
         .joins('compositionAssets')
         .where({ compositionAssets: { id: compositionAsset.id } })
         .all()
-      expect(reloadedUsers).toMatchObject([user])
+      expect(reloadedUsers).toMatchDreamModels([user])
 
       const noResults = await User.limit(2)
         .joins('compositionAssets')
         .where({ compositionAssets: { id: compositionAsset.id + 1 } })
         .all()
-      expect(noResults).toMatchObject([])
+      expect(noResults).toMatchDreamModels([])
     })
 
     context('nested through associations', () => {
@@ -120,13 +120,13 @@ describe('Query#joins through with simple associations', () => {
           .joins('compositionAssetAudits')
           .where({ compositionAssetAudits: { id: compositionAssetAudit.id } })
           .all()
-        expect(reloadedUsers).toMatchObject([user])
+        expect(reloadedUsers).toMatchDreamModels([user])
 
         const noResults = await User.limit(2)
           .joins('compositionAssetAudits')
           .where({ compositionAssetAudits: { id: compositionAssetAudit.id + 1 } })
           .all()
-        expect(noResults).toMatchObject([])
+        expect(noResults).toMatchDreamModels([])
       })
     })
   })

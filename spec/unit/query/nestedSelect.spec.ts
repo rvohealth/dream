@@ -19,6 +19,6 @@ describe('Query#nestedSelect', () => {
     const records = await User.where({
       id: User.where({ id: [user1.id, user2.id] }).nestedSelect('id'),
     }).all()
-    expect(records).toMatchObject([user1, user2])
+    expect(records).toMatchDreamModels([user1, user2])
   })
 })

@@ -35,8 +35,8 @@ describe('Dream#load with simple associations', () => {
     const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
     await user.load({ compositions: 'compositionAssets' })
-    expect(user.compositions).toMatchObject([composition])
-    expect(user.compositions[0].compositionAssets).toMatchObject([compositionAsset])
+    expect(user.compositions).toMatchDreamModels([composition])
+    expect(user.compositions[0].compositionAssets).toMatchDreamModels([compositionAsset])
   })
 
   it('can handle array notation', async () => {
@@ -48,8 +48,8 @@ describe('Dream#load with simple associations', () => {
     await user.load(['compositions', { mainComposition: ['compositionAssets'] }])
 
     expect(user.mainComposition).toMatchObject(composition)
-    expect(user.compositions).toMatchObject([composition, composition2])
-    expect(user.mainComposition.compositionAssets).toMatchObject([compositionAsset])
+    expect(user.compositions).toMatchDreamModels([composition, composition2])
+    expect(user.mainComposition.compositionAssets).toMatchDreamModels([compositionAsset])
   })
 
   it('can sideload multiple associations at once', async () => {

@@ -9,6 +9,6 @@ describe('Query#or', () => {
     const records = await User.where({ email: 'fred@frewd' })
       .or(User.where({ id: user2.id }))
       .all()
-    expect(records).toMatchObject([user1, user2])
+    expect(records).toMatchDreamModels([user1, user2])
   })
 })

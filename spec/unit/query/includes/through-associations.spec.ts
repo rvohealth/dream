@@ -51,7 +51,7 @@ describe('Query#includes through with simple associations', () => {
     const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
     const reloadedUser = await User.limit(1).includes('compositionAssets').first()
-    expect(reloadedUser!.compositions).toMatchObject([composition])
+    expect(reloadedUser!.compositions).toMatchDreamModels([composition])
     expect(reloadedUser!.compositions[0].compositionAssets).toEqual([compositionAsset])
     expect(reloadedUser!.compositionAssets).toEqual([compositionAsset])
   })
@@ -66,7 +66,7 @@ describe('Query#includes through with simple associations', () => {
       })
 
       const reloadedUser = await User.limit(3).includes('compositionAssetAudits').first()
-      expect(reloadedUser!.compositionAssetAudits).toMatchObject([compositionAssetAudit])
+      expect(reloadedUser!.compositionAssetAudits).toMatchDreamModels([compositionAssetAudit])
     })
 
     it('loads a HasOne through a HasOne through a BelongsTo', async () => {

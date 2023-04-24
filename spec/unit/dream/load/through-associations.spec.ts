@@ -51,7 +51,7 @@ describe('Dream#load through with simple associations', () => {
     const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
     await user.load('compositionAssets')
-    expect(user.compositions).toMatchObject([composition])
+    expect(user.compositions).toMatchDreamModels([composition])
     expect(user.compositions[0].compositionAssets).toEqual([compositionAsset])
     expect(user.compositionAssets).toEqual([compositionAsset])
   })
@@ -66,7 +66,7 @@ describe('Dream#load through with simple associations', () => {
       })
 
       await user.load('compositionAssetAudits')
-      expect(user.compositionAssetAudits).toMatchObject([compositionAssetAudit])
+      expect(user.compositionAssetAudits).toMatchDreamModels([compositionAssetAudit])
     })
 
     it('loads a HasOne through a HasOne through a BelongsTo', async () => {

@@ -11,7 +11,7 @@ describe('Dream#load with polymorphic associations', () => {
     const rating = await Rating.create({ user_id: user.id, rateable_id: post.id, rateable_type: 'Rating' })
 
     await post.load('ratings')
-    expect(post.ratings).toMatchObject([rating])
+    expect(post.ratings).toMatchDreamModels([rating])
   })
 
   it('loads a HasOne association', async () => {
