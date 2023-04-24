@@ -24,16 +24,16 @@ export default class CompositionAsset extends Dream {
   @Column('boolean')
   public primary: boolean
 
-  @BelongsTo('compositions', () => Composition)
+  @BelongsTo(() => Composition)
   public composition: Composition
 
-  @HasOne('users', () => User, {
+  @HasOne(() => User, {
     through: 'composition',
     throughClass: () => Composition,
   })
   public user: User
 
-  @HasMany('composition_asset_audits', () => CompositionAssetAudit)
+  @HasMany(() => CompositionAssetAudit)
   public compositionAssetAudits: CompositionAssetAudit[]
 
   @BeforeSave()

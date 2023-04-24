@@ -37,25 +37,25 @@ export default class User extends Dream {
   @Column('datetime')
   public updated_at: Date
 
-  @HasMany('compositions', () => Composition)
+  @HasMany(() => Composition)
   public compositions: Composition[]
 
-  @HasOne('compositions', () => Composition)
+  @HasOne(() => Composition)
   public mainComposition: Composition
 
-  @HasMany('composition_assets', () => CompositionAsset, {
+  @HasMany(() => CompositionAsset, {
     through: 'compositions',
     throughClass: () => Composition,
   })
   public compositionAssets: CompositionAsset[]
 
-  @HasOne('composition_assets', () => CompositionAsset, {
+  @HasOne(() => CompositionAsset, {
     through: 'mainComposition',
     throughClass: () => Composition,
   })
   public mainCompositionAsset: CompositionAsset
 
-  @HasMany('composition_asset_audits', () => CompositionAssetAudit, {
+  @HasMany(() => CompositionAssetAudit, {
     through: 'compositionAssets',
     throughClass: () => CompositionAsset,
   })

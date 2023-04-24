@@ -19,10 +19,10 @@ export default class Rating extends Dream {
   @Column('string')
   public body: string | null
 
-  @BelongsTo('users', () => User)
+  @BelongsTo(() => User)
   public user: User
 
-  @BelongsTo(['compositions', 'posts'], () => [Composition, Post], {
+  @BelongsTo(() => [Composition, Post], {
     foreignKey: 'rateable_id',
     polymorphic: true,
   })

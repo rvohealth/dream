@@ -22,18 +22,18 @@ export default class Composition extends Dream {
   @Column('string')
   public content: string | null
 
-  @BelongsTo('users', () => User)
+  @BelongsTo(() => User)
   public user: User
 
-  @HasMany('composition_assets', () => CompositionAsset)
+  @HasMany(() => CompositionAsset)
   public compositionAssets: CompositionAsset[]
 
-  @HasOne('composition_assets', () => CompositionAsset, {
+  @HasOne(() => CompositionAsset, {
     where: { primary: true },
   })
   public mainCompositionAsset: CompositionAsset
 
-  @HasMany('composition_asset_audits', () => CompositionAssetAudit, {
+  @HasMany(() => CompositionAssetAudit, {
     through: 'compositionAssets',
     throughClass: () => CompositionAsset,
   })

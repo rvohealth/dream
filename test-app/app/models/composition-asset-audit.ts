@@ -18,16 +18,16 @@ export default class CompositionAssetAudit extends Dream {
   @Column('boolean')
   public approval: boolean | null
 
-  @BelongsTo('composition_assets', () => CompositionAsset)
+  @BelongsTo(() => CompositionAsset)
   public compositionAsset: CompositionAsset
 
-  @HasOne('compositions', () => Composition, {
+  @HasOne(() => Composition, {
     through: 'compositionAsset',
     throughClass: () => CompositionAsset,
   })
   public composition: Composition
 
-  @HasOne('users', () => User, {
+  @HasOne(() => User, {
     through: 'compositionAsset',
     throughClass: () => CompositionAsset,
   })

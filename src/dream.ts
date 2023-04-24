@@ -932,11 +932,6 @@ export default function dream<
       association = results.association
       previousAssociationTableOrAlias = results.previousAssociationTableOrAlias
 
-      const joinTableExpression =
-        currentAssociationTableOrAlias === association.to
-          ? currentAssociationTableOrAlias
-          : `${association.to} as ${currentAssociationTableOrAlias as string}`
-
       if (association.type === 'BelongsTo') {
         if (association.modelCB().constructor === Array)
           throw new CannotJoinPolymorphicBelongsToError({
@@ -944,6 +939,12 @@ export default function dream<
             association,
             joinsStatements: this.joinsStatements,
           })
+
+        const to = (association.modelCB() as DreamModel<any, any>).table
+        const joinTableExpression =
+          currentAssociationTableOrAlias === to
+            ? currentAssociationTableOrAlias
+            : `${to} as ${currentAssociationTableOrAlias as string}`
 
         // @ts-ignore
         query = query.innerJoin(
@@ -955,6 +956,12 @@ export default function dream<
           }`
         )
       } else {
+        const to = association.modelCB().table
+        const joinTableExpression =
+          currentAssociationTableOrAlias === to
+            ? currentAssociationTableOrAlias
+            : `${to} as ${currentAssociationTableOrAlias as string}`
+
         // @ts-ignore
         query = query.innerJoin(
           // @ts-ignore
