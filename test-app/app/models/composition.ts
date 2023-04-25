@@ -1,7 +1,6 @@
 import { HasOne } from '../../../src'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
-import { Column } from '../../../src/decorators/column'
 import AfterCreate from '../../../src/decorators/hooks/after-create'
 import AfterSave from '../../../src/decorators/hooks/after-save'
 import AfterUpdate from '../../../src/decorators/hooks/after-update'
@@ -16,17 +15,12 @@ export default class Composition extends Dream {
     return 'compositions' as const
   }
 
-  @Column('number')
   public id: number
-
-  @Column('number')
-  public user_id: number
-
-  @Column('string')
   public content: string | null
 
   @BelongsTo(() => User)
   public user: User
+  public user_id: number
 
   @HasMany(() => CompositionAsset)
   public compositionAssets: CompositionAsset[]

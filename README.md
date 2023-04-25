@@ -108,11 +108,9 @@ export default class User extends Dream {
   ...
   @Validates('contains', '@')
   @Validates('presence')
-  @Column('string')
   public email: string
 
   @Validates('length', { min: 4, max: 18 })
-  @Column('string')
   public password: string
   ...
 }

@@ -1,6 +1,5 @@
 import HasMany from '../../../src/decorators/associations/has-many'
 import HasOne from '../../../src/decorators/associations/has-one'
-import { Column } from '../../../src/decorators/column'
 import Scope from '../../../src/decorators/scope'
 import Composition from './composition'
 import CompositionAsset from './composition-asset'
@@ -14,32 +13,19 @@ export default class User extends Dream {
     return 'users' as const
   }
 
-  @Column('number')
   public id: number
+  public type: string
+  public deleted_at: Date
+  public created_at: Date
+  public updated_at: Date
 
   @Validates('contains', '@')
   @Validates('presence')
-  @Column('string')
   public email: string
-
-  @Column('string')
   public name: string
 
   @Validates('length', { min: 4, max: 18 })
-  @Column('string')
   public password: string
-
-  @Column('string')
-  public type: string
-
-  @Column('datetime')
-  public deleted_at: Date
-
-  @Column('datetime')
-  public created_at: Date
-
-  @Column('datetime')
-  public updated_at: Date
 
   @HasOne(() => UserSettings)
   public userSettings: UserSettings

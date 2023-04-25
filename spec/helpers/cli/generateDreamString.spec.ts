@@ -7,20 +7,15 @@ describe('howl generate:model <name> [...attributes]', () => {
       expect(res).toEqual(
         `\
 import { DateTime } from 'luxon'
-import { Dream, Column } from 'dream'
+import { Dream } from 'dream'
 
 export default class MealType extends Dream {
   public get table() {
     return 'meal_types' as const
   }
 
-  @Column('integer')
   public id: number
-
-  @Column('datetime')
   public created_at: DateTime
-
-  @Column('datetime')
   public updated_at: DateTime
 }\
 `
@@ -37,26 +32,17 @@ export default class MealType extends Dream {
         expect(res).toEqual(
           `\
 import { DateTime } from 'luxon'
-import { Dream, Column } from 'dream'
+import { Dream } from 'dream'
 
 export default class User extends Dream {
   public get table() {
     return 'users' as const
   }
 
-  @Column('integer')
   public id: number
-
-  @Column('string')
   public email: string
-
-  @Column('string')
   public password_digest: string
-
-  @Column('datetime')
   public created_at: DateTime
-
-  @Column('datetime')
   public updated_at: DateTime
 }\
 `
@@ -136,7 +122,7 @@ export default class User extends Dream {
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { Dream, Column, BelongsTo } from 'dream'
+import { Dream, BelongsTo } from 'dream'
 import GraphNode from './graph-node'
 
 export default class Composition extends Dream {
@@ -144,20 +130,13 @@ export default class Composition extends Dream {
     return 'compositions' as const
   }
 
-  @Column('integer')
   public id: number
-
-  @Column('integer')
-  public graph_node_id: number
+  public created_at: DateTime
+  public updated_at: DateTime
 
   @BelongsTo(() => GraphNode)
   public graphNode: GraphNode
-
-  @Column('datetime')
-  public created_at: DateTime
-
-  @Column('datetime')
-  public updated_at: DateTime
+  public graph_node_id: number
 }\
 `
           )
@@ -170,7 +149,7 @@ export default class Composition extends Dream {
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { Dream, Column, BelongsTo } from 'dream'
+import { Dream, BelongsTo } from 'dream'
 import User from './user'
 import Chalupa from './chalupa'
 
@@ -179,26 +158,17 @@ export default class Composition extends Dream {
     return 'compositions' as const
   }
 
-  @Column('integer')
   public id: number
-
-  @Column('integer')
-  public user_id: number
+  public created_at: DateTime
+  public updated_at: DateTime
 
   @BelongsTo(() => User)
   public user: User
-
-  @Column('integer')
-  public chalupa_id: number
+  public user_id: number
 
   @BelongsTo(() => Chalupa)
   public chalupa: Chalupa
-
-  @Column('datetime')
-  public created_at: DateTime
-
-  @Column('datetime')
-  public updated_at: DateTime
+  public chalupa_id: number
 }\
 `
           )
@@ -213,7 +183,7 @@ export default class Composition extends Dream {
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { Dream, Column, HasOne } from 'dream'
+import { Dream, HasOne } from 'dream'
 import User from './user'
 
 export default class Composition extends Dream {
@@ -221,17 +191,12 @@ export default class Composition extends Dream {
     return 'compositions' as const
   }
 
-  @Column('integer')
   public id: number
+  public created_at: DateTime
+  public updated_at: DateTime
 
   @HasOne(() => User)
   public user: User
-
-  @Column('datetime')
-  public created_at: DateTime
-
-  @Column('datetime')
-  public updated_at: DateTime
 }\
 `
           )
@@ -246,7 +211,7 @@ export default class Composition extends Dream {
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { Dream, Column, HasMany } from 'dream'
+import { Dream, HasMany } from 'dream'
 import Composition from './composition'
 
 export default class User extends Dream {
@@ -254,17 +219,12 @@ export default class User extends Dream {
     return 'users' as const
   }
 
-  @Column('integer')
   public id: number
+  public created_at: DateTime
+  public updated_at: DateTime
 
   @HasMany(() => Composition)
   public compositions: Composition[]
-
-  @Column('datetime')
-  public created_at: DateTime
-
-  @Column('datetime')
-  public updated_at: DateTime
 }\
 `
           )
@@ -279,7 +239,7 @@ export default class User extends Dream {
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { Dream, Column, BelongsTo } from 'dream'
+import { Dream, BelongsTo } from 'dream'
 import User from './user'
 
 export default class Composition extends Dream {
@@ -287,20 +247,13 @@ export default class Composition extends Dream {
     return 'compositions' as const
   }
 
-  @Column('uuid')
   public id: string
-
-  @Column('uuid')
-  public user_id: string
+  public created_at: DateTime
+  public updated_at: DateTime
 
   @BelongsTo(() => User)
   public user: User
-
-  @Column('datetime')
-  public created_at: DateTime
-
-  @Column('datetime')
-  public updated_at: DateTime
+  public user_id: string
 }\
 `
           )
@@ -314,23 +267,16 @@ function expectSingleColumnWithType(response: string, name: string, type: string
   expect(response).toEqual(
     `\
 import { DateTime } from 'luxon'
-import { Dream, Column } from 'dream'
+import { Dream } from 'dream'
 
 export default class User extends Dream {
   public get table() {
     return 'users' as const
   }
 
-  @Column('integer')
   public id: number
-
-  @Column('${dbType}')
   public ${name}: ${type}
-
-  @Column('datetime')
   public created_at: DateTime
-
-  @Column('datetime')
   public updated_at: DateTime
 }\
 `

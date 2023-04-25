@@ -1,7 +1,6 @@
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
 import HasOne from '../../../src/decorators/associations/has-one'
-import { Column } from '../../../src/decorators/column'
 import AfterDestroy from '../../../src/decorators/hooks/after-destroy'
 import BeforeDestroy from '../../../src/decorators/hooks/before-destroy'
 import BeforeSave from '../../../src/decorators/hooks/before-save'
@@ -15,20 +14,13 @@ export default class CompositionAsset extends Dream {
     return 'composition_assets' as const
   }
 
-  @Column('number')
   public id: number
-
-  @Column('number')
-  public composition_id: number
-
-  @Column('string')
   public src: string | null
-
-  @Column('boolean')
   public primary: boolean
 
   @BelongsTo(() => Composition)
   public composition: Composition
+  public composition_id: number
 
   @HasOne(() => User, {
     through: 'composition',

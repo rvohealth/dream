@@ -58,7 +58,7 @@ export default function generateDreamContent(
     useUUID?: boolean
   } = {}
 ) {
-  const dreamImports: string[] = ['Dream', 'Column']
+  const dreamImports: string[] = ['Dream']
 
   const idDBType = useUUID ? 'uuid' : 'integer'
   const idTypescriptType = useUUID ? 'string' : 'number'
@@ -77,44 +77,39 @@ export default function generateDreamContent(
         dreamImports.push('BelongsTo')
         additionalImports.push(associationImportStatement)
         let belongsToOptions = descriptors.includes('many_to_one') ? ", { mode: 'many_to_one' }" : ''
-        return `\
-@Column('${idDBType}')
-public ${attributeName}_id: ${idTypescriptType}
-
+        return `
 @BelongsTo(() => ${pascalize(attributeName)}${belongsToOptions})
-public ${camelize(attributeName)}: ${pascalize(attributeName)}\
+public ${camelize(attributeName)}: ${pascalize(attributeName)}
+public ${attributeName}_id: ${idTypescriptType}
 `
 
       case 'has_one':
         dreamImports.push('HasOne')
         additionalImports.push(associationImportStatement)
-        return `\
+        return `
 @HasOne(() => ${pascalize(attributeName)})
-public ${attributeName}: ${pascalize(attributeName)}\
+public ${attributeName}: ${pascalize(attributeName)}
 `
 
       case 'has_many':
         dreamImports.push('HasMany')
         additionalImports.push(associationImportStatement)
-        return `\
+        return `
 @HasMany(() => ${pascalize(attributeName)})
-public ${pluralize(attributeName)}: ${pascalize(attributeName)}[]\
+public ${pluralize(attributeName)}: ${pascalize(attributeName)}[]
 `
 
       default:
-        return `\
-${columnStatement(attributeType)}
+        return `
 public ${attributeName}: ${(cooercedTypes as any)[attributeType] || attributeType}\
 `
     }
   })
 
   const timestamps = `
-  @Column('datetime')
   public created_at: DateTime
-
-  @Column('datetime')
-  public updated_at: DateTime`
+  public updated_at: DateTime
+`
 
   const tableName = snakeify(pluralize(modelName))
   const uniqueSequelizeImports = [...new Set(dreamImports)]
@@ -130,26 +125,14 @@ export default class ${pascalize(pluralize.singular(modelName))} extends Dream {
     return '${tableName}' as const
   }
 
-  @Column('${idDBType}')
-  public id: ${idTypescriptType}
-
-  ${attributeStatements.map(s => s.split('\n').join('\n  ')).join('\n\n  ')}
-${timestamps}
-}\
-`.replace(/^\s*$/gm, '')
-}
-
-function columnStatement(attributeType: string) {
-  switch (attributeType) {
-    case 'datetime':
-    case 'date':
-    case 'timestamp':
-      return "@Column('datetime')"
-
-    case 'citext':
-      return "@Column('citext')"
-
-    default:
-      return `@Column('${attributeType}')`
-  }
+  public id: ${idTypescriptType}${attributeStatements
+    .filter(attr => !/^\n@/.test(attr))
+    .map(s => s.split('\n').join('\n  '))
+    .join('')}${timestamps}${attributeStatements
+    .filter(attr => /^\n@/.test(attr))
+    .map(s => s.split('\n').join('\n  '))
+    .join('\n  ')}\
+}`
+    .replace(/^\s*$/gm, '')
+    .replace(/  }$/, '}')
 }
