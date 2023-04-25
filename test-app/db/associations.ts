@@ -35,6 +35,11 @@ export default {
       "composition_asset_audits"
     ]
   },
+  "pets": {
+    "user": [
+      "users"
+    ]
+  },
   "posts": {
     "user": [
       "users"
@@ -116,6 +121,11 @@ export interface SyncedAssociations {
       "composition_asset_audits"
     ]
   },
+  "pets": {
+    "user": [
+      "users"
+    ]
+  },
   "posts": {
     "user": [
       "users"
@@ -172,6 +182,11 @@ export interface SyncedBelongsToAssociations {
     ]
   },
   "compositions": {
+    "user": [
+      "users"
+    ]
+  },
+  "pets": {
     "user": [
       "users"
     ]

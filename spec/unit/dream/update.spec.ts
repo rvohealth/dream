@@ -4,6 +4,8 @@ import Rating from '../../../test-app/app/models/rating'
 import User from '../../../test-app/app/models/user'
 import UserSettings from '../../../test-app/app/models/user-settings'
 import CanOnlyPassBelongsToModelParam from '../../../src/exceptions/can-only-pass-belongs-to-model-param'
+import { DateTime } from 'luxon'
+import Pet from '../../../test-app/app/models/pet'
 
 describe('Dream#update', () => {
   it('updates the underlying model in the db', async () => {
@@ -14,6 +16,28 @@ describe('Dream#update', () => {
     expect(user.name).toEqual('Snoopy')
     const reloadedUser = await User.find(user.id)
     expect(reloadedUser!.name).toEqual('Snoopy')
+  })
+
+  it('updates the updated_at field', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'Charlie Brown' })
+    expect(user.created_at).toEqual(user.updated_at)
+
+    await user.update({ email: 'how@yadoin' })
+    expect(user.updated_at).not.toEqual(user.created_at)
+    expect(user.updated_at).toBeInstanceOf(DateTime)
+  })
+
+  context('the model does not have an updated_at field', () => {
+    it('does not raise an exception', async () => {
+      const user = await User.create({ email: 'fred@dred', password: 'howyadoin' })
+      const pet = await Pet.create({ user, name: 'pal', species: 'cat' })
+
+      // this is really checking that updating a stray attribute does not
+      // raise an exception, since the Pet model was configured intentionally
+      // to be missing an updated_at field.
+      await pet.update({ name: 'pal mcjones' })
+      expect(pet.name).toEqual('pal mcjones')
+    })
   })
 
   context('passed a model to a BelongsTo association', () => {

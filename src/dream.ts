@@ -461,6 +461,10 @@ export default function dream<
       await runHooksFor('beforeUpdate', this)
 
       if (attributes) this.setAttributes(attributes)
+      if (columns.includes('updated_at')) {
+        ;(this as any).updated_at = DateTime.now().toUTC()
+      }
+
       await this.saveUnsavedAssociations()
 
       let query = db.updateTable(tableName)
