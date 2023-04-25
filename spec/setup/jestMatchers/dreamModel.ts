@@ -13,6 +13,7 @@ import {
 
 const EXPECTED_LABEL = 'Expected'
 const RECEIVED_LABEL = 'Received'
+const ERROR_COLOR = RECEIVED_COLOR
 const isExpand = (expand?: boolean): boolean => expand !== false
 
 declare global {
@@ -103,61 +104,63 @@ expect.extend({
   },
 })
 
-function attributes(object: any) {
-  return { instanceof: object.constructor.name, ...object.attributes }
-}
-
-function attributesMatch(received: any, expected: any) {
-  return attributes(received) !== attributes(expected)
+function attributes(obj: any) {
+  return { instanceof: obj.constructor.name, ...obj.attributes }
 }
 
 export function expectMatchingDreamModels(
-  received: object,
-  expected: object,
+  received: any,
+  expected: any,
   matcherName: string
 ): jest.CustomMatcherResult {
-  if (typeof received !== 'object' || received === null) {
-    throw new Error(
-      matcherErrorMessage(
-        matcherHint(matcherName),
-        `${RECEIVED_COLOR('received')} value must be a non-null object`,
-        printWithType('Received', received, printReceived)
-      )
-    )
+  let pass: boolean = false
+  let message: () => string
+
+  if (expected === undefined) {
+    message = () => ERROR_COLOR('expected is undefined but must be an instance of Dream')
+  } else if (expected === null) {
+    message = () => ERROR_COLOR('expected is null but must be an instance of Dream')
+  } else if (typeof expected !== 'object') {
+    message = () =>
+      ERROR_COLOR(`expected is ${ERROR_COLOR(expected.constructor.name)} but must be an instance of Dream`)
+  } else if (received === undefined) {
+    message = () => ERROR_COLOR('received is undefined but must be an instance of Dream')
+  } else if (received === null) {
+    message = () => ERROR_COLOR('received is null but must be an instance of Dream')
+  } else if (typeof received !== 'object') {
+    message = () =>
+      ERROR_COLOR(`received is ${ERROR_COLOR(received.constructor.name)} but must be an instance of Dream`)
+  } else if (expected.constructor !== received.constructor) {
+    message = () =>
+      EXPECTED_COLOR(`expected ${EXPECTED_COLOR(expected.constructor.name)}, `) +
+      RECEIVED_COLOR(`received ${RECEIVED_COLOR(received.constructor.name)}`)
+  } else {
+    const comparableReceived = attributes(received)
+    const comparableExpected = attributes(expected)
+
+    pass = JSON.stringify(comparableReceived) === JSON.stringify(comparableExpected)
+
+    message = pass
+      ? () =>
+          // eslint-disable-next-line prefer-template
+          matcherHint(matcherName) +
+          '\n\n' +
+          `Expected: not ${printExpected(comparableExpected)}` +
+          (stringify(comparableExpected) !== stringify(comparableReceived)
+            ? `\nReceived:     ${printReceived(comparableReceived)}`
+            : '')
+      : () =>
+          // eslint-disable-next-line prefer-template
+          matcherHint(matcherName) +
+          '\n\n' +
+          printDiffOrStringify(
+            comparableExpected,
+            getObjectSubset(comparableReceived, comparableExpected),
+            EXPECTED_LABEL,
+            RECEIVED_LABEL,
+            false
+          )
   }
-
-  if (typeof expected !== 'object' || expected === null) {
-    throw new Error(
-      matcherErrorMessage(
-        matcherHint(matcherName),
-        `${EXPECTED_COLOR('expected')} value must be a non-null object`,
-        printWithType('Expected', expected, printExpected)
-      )
-    )
-  }
-
-  const pass = attributesMatch(received, expected)
-
-  const message = pass
-    ? () =>
-        // eslint-disable-next-line prefer-template
-        matcherHint(matcherName) +
-        '\n\n' +
-        `Expected: not ${printExpected(expected)}` +
-        (stringify(attributes(expected)) !== stringify(attributes(received))
-          ? `\nReceived:     ${printReceived(attributes(received))}`
-          : '')
-    : () =>
-        // eslint-disable-next-line prefer-template
-        matcherHint(matcherName) +
-        '\n\n' +
-        printDiffOrStringify(
-          expected,
-          getObjectSubset(attributes(received), attributes(expected)),
-          EXPECTED_LABEL,
-          RECEIVED_LABEL,
-          false
-        )
 
   return { message, pass }
 }
