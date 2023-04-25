@@ -316,3 +316,31 @@ Though the spec framework isn't entirely comprehensive, this application was bui
 Though the specs are not technically unit tests in the traditional sense, they are all located under `spec/unit`, and resemble unit tests in their file structure, since there is generally a file for each method on a class. If you are contributing to this project, it will probably in the form of either adding or augmenting the functionality of existing methods, so it should be relatively easy to jump in and not make a mess. If you are adding a new method, you should be adding a new file for it. If it is new behavior on an existing method, you can add context blocks within that method spec file to expand on the behavior of that method. Static and instance methods with the same name should be in the same file, but contextualized differently, though this should rarely happen.
 
 I am not writing tests for internal functions for the most part, though if you find yourself writing something particularly complex, feel free to find a home in the `spec/unit` folder somewhere for it (probably in the `spec/unit/helpers` folder, since that is where I will put specs for helpers I have written when I feel the need to test them).
+
+In terms of setup, you will need to run a few commands to get the environment set up. The commands are the same as those used when you are developing in a real dream app, but you have to pass the `--core` suffix to get the correct behavior. After installing dream on your machine, you will need to first set up a .env and .env.test file (same as in a real dream app), and you will need to make sure to add an extra flag called `CORE_DEVELOPMENT`, setting it to `1`.
+
+```
+CORE_DEVELOPMENT=1
+DB_USER=YOUR_LOCAL_DB_USERNAME
+DB_NAME=dream_core_dev
+DB_PORT=5432
+DB_HOST=localhost
+```
+
+Once done, you can run the following commands to get up and running:
+
+```bash
+psy db:create --core
+NODE_ENV=test psy db:create --core
+
+psy db:migrate --core
+NODE_ENV=test psy db:migrate --core
+```
+
+#### Generating type docs:
+
+```bash
+# first, you will need to update package.json version, in order to keep
+# docs generated on a per-version basis
+yarn build:docs
+```

@@ -10,6 +10,7 @@
   "scripts": {
     "dream": "npx ts-node ./boot/cli.ts",
     "build": "rm -rf dist && npx tsc",
+    "build:docs": "npx ts-node ./boot/build-docs.ts",
     "spec": "yarn dream spec --core",
     "console": "yarn dream console --core"
   },
@@ -34,6 +35,7 @@
   },
   "devDependencies": {
     "@types/jest-plugin-context": "^2.9.5",
-    "jest-plugin-context": "^2.9.0"
+    "jest-plugin-context": "^2.9.0",
+    "typedoc": "^0.24.6"
   }
 }
