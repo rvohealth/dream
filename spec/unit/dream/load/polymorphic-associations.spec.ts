@@ -21,7 +21,7 @@ describe('Dream#load with polymorphic associations', () => {
     const rating = await Rating.create({ user_id: user.id, rateable_id: post.id, rateable_type: 'Post' })
 
     await rating.load('rateable')
-    expect(rating.rateable).toMatchObject(post)
+    expect(rating.rateable).toMatchDreamModel(post)
   })
 
   it('loads a BelongsTo association', async () => {
@@ -31,6 +31,6 @@ describe('Dream#load with polymorphic associations', () => {
     const rating = await Rating.create({ user_id: user.id, rateable_id: post.id, rateable_type: 'Post' })
 
     await rating.load('rateable')
-    expect(rating.rateable).toMatchObject(post)
+    expect(rating.rateable).toMatchDreamModel(post)
   })
 })

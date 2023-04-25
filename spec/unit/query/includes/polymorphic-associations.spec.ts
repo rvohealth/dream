@@ -21,7 +21,7 @@ describe('Query#includes with polymorphic associations', () => {
     await Rating.create({ user_id: user.id, rateable_id: post.id, rateable_type: 'Post' })
 
     const reloaded = await Rating.limit(3).includes('rateable').first()
-    expect(reloaded!.rateable).toMatchObject(post)
+    expect(reloaded!.rateable).toMatchDreamModel(post)
   })
 
   it('loads a BelongsTo association', async () => {
@@ -31,6 +31,6 @@ describe('Query#includes with polymorphic associations', () => {
     await Rating.create({ user_id: user.id, rateable_id: post.id, rateable_type: 'Post' })
 
     const reloaded = await Rating.limit(3).includes('rateable').first()
-    expect(reloaded!.rateable).toMatchObject(post)
+    expect(reloaded!.rateable).toMatchDreamModel(post)
   })
 })

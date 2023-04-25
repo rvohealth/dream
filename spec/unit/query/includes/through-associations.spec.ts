@@ -14,9 +14,9 @@ describe('Query#includes through with simple associations', () => {
     })
 
     const reloadedUser = await User.limit(1).includes('mainCompositionAsset').first()
-    expect(reloadedUser!.mainCompositionAsset).toMatchObject(compositionAsset)
-    expect(reloadedUser!.mainComposition).toMatchObject(composition)
-    expect(reloadedUser!.mainComposition.mainCompositionAsset).toMatchObject(compositionAsset)
+    expect(reloadedUser!.mainCompositionAsset).toMatchDreamModel(compositionAsset)
+    expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
+    expect(reloadedUser!.mainComposition.mainCompositionAsset).toMatchDreamModel(compositionAsset)
   })
 
   context('with NON-matching where-clause-on-the-association', () => {
@@ -31,7 +31,7 @@ describe('Query#includes through with simple associations', () => {
 
       const reloadedUser = await User.limit(1).includes('mainCompositionAsset').first()
       expect(reloadedUser!.mainCompositionAsset).toBeUndefined()
-      expect(reloadedUser!.mainComposition).toMatchObject(composition)
+      expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
     })
   })
 
@@ -41,8 +41,8 @@ describe('Query#includes through with simple associations', () => {
     await CompositionAsset.create({ composition_id: composition.id })
 
     const reloadedCompositionAsset = await CompositionAsset.limit(2).includes('user').first()
-    expect(reloadedCompositionAsset!.composition).toMatchObject(composition)
-    expect(reloadedCompositionAsset!.user).toMatchObject(user)
+    expect(reloadedCompositionAsset!.composition).toMatchDreamModel(composition)
+    expect(reloadedCompositionAsset!.user).toMatchDreamModel(user)
   })
 
   it('loads a HasMany through HasMany association', async () => {
@@ -78,7 +78,7 @@ describe('Query#includes through with simple associations', () => {
       })
 
       const reloaded = await CompositionAssetAudit.limit(3).includes('user').first()
-      expect(reloaded!.user).toMatchObject(user)
+      expect(reloaded!.user).toMatchDreamModel(user)
     })
   })
 })

@@ -15,7 +15,7 @@ describe('Query#joins with polymorphic associations', () => {
     await Rating.create({ user_id: user.id, rateable_id: post.id, rateable_type: 'Post' })
 
     const reloaded = await Post.limit(3).joins('ratings').first()
-    expect(reloaded).toMatchObject(post)
+    expect(reloaded).toMatchDreamModel(post)
   })
 
   it('from a BelongsTo association', async () => {
@@ -40,7 +40,7 @@ describe('Query#joins with polymorphic associations', () => {
         .joins('ratings')
         .where({ ratings: { id: rating.id } })
         .first()
-      expect(reloaded).toMatchObject(post)
+      expect(reloaded).toMatchDreamModel(post)
 
       const noResults = await Post.limit(3)
         .joins('ratings')

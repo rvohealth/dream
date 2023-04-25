@@ -14,9 +14,9 @@ describe('Dream#load through with simple associations', () => {
     })
 
     await user.load('mainCompositionAsset')
-    expect(user.mainCompositionAsset).toMatchObject(compositionAsset)
-    expect(user.mainComposition).toMatchObject(composition)
-    expect(user.mainComposition.mainCompositionAsset).toMatchObject(compositionAsset)
+    expect(user.mainCompositionAsset).toMatchDreamModel(compositionAsset)
+    expect(user.mainComposition).toMatchDreamModel(composition)
+    expect(user.mainComposition.mainCompositionAsset).toMatchDreamModel(compositionAsset)
   })
 
   context('with NON-matching where-clause-on-the-association', () => {
@@ -31,7 +31,7 @@ describe('Dream#load through with simple associations', () => {
 
       await user.load('mainCompositionAsset')
       expect(user.mainCompositionAsset).toBeUndefined()
-      expect(user.mainComposition).toMatchObject(composition)
+      expect(user.mainComposition).toMatchDreamModel(composition)
     })
   })
 
@@ -41,8 +41,8 @@ describe('Dream#load through with simple associations', () => {
     const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
     await compositionAsset.load('user')
-    expect(compositionAsset.composition).toMatchObject(composition)
-    expect(compositionAsset.user).toMatchObject(user)
+    expect(compositionAsset.composition).toMatchDreamModel(composition)
+    expect(compositionAsset.user).toMatchDreamModel(user)
   })
 
   it('loads a HasMany through HasMany association', async () => {
@@ -78,7 +78,7 @@ describe('Dream#load through with simple associations', () => {
       })
 
       await compositionAssetAudit.load('user')
-      expect(compositionAssetAudit.user).toMatchObject(user)
+      expect(compositionAssetAudit.user).toMatchDreamModel(user)
     })
   })
 })

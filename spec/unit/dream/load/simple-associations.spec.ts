@@ -9,7 +9,7 @@ describe('Dream#load with simple associations', () => {
     const composition = await Composition.create({ user_id: user.id })
 
     await user.load('mainComposition')
-    expect(user.mainComposition).toMatchObject(composition)
+    expect(user.mainComposition).toMatchDreamModel(composition)
   })
 
   it('loads a HasMany association', async () => {
@@ -18,15 +18,15 @@ describe('Dream#load with simple associations', () => {
     const composition2 = await Composition.create({ user_id: user.id })
 
     await user.load('compositions')
-    expect(user.compositions[0]).toMatchObject(composition1)
-    expect(user.compositions[1]).toMatchObject(composition2)
+    expect(user.compositions[0]).toMatchDreamModel(composition1)
+    expect(user.compositions[1]).toMatchDreamModel(composition2)
   })
 
   it('loads a BelongsTo association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ user_id: user.id })
     await composition.load('user')
-    expect(composition.user).toMatchObject(user)
+    expect(composition.user).toMatchDreamModel(user)
   })
 
   it('can handle object notation', async () => {
@@ -47,7 +47,7 @@ describe('Dream#load with simple associations', () => {
 
     await user.load(['compositions', { mainComposition: ['compositionAssets'] }])
 
-    expect(user.mainComposition).toMatchObject(composition)
+    expect(user.mainComposition).toMatchDreamModel(composition)
     expect(user.compositions).toMatchDreamModels([composition, composition2])
     expect(user.mainComposition.compositionAssets).toMatchDreamModels([compositionAsset])
   })
@@ -61,8 +61,8 @@ describe('Dream#load with simple associations', () => {
     })
 
     await compositionAssetAudit.load('composition', 'user')
-    expect(compositionAssetAudit.composition).toMatchObject(composition)
-    expect(compositionAssetAudit.user).toMatchObject(user)
+    expect(compositionAssetAudit.composition).toMatchDreamModel(composition)
+    expect(compositionAssetAudit.user).toMatchDreamModel(user)
   })
 
   context('with matching where-clause-on-the-association', () => {
@@ -76,7 +76,7 @@ describe('Dream#load with simple associations', () => {
       })
 
       await composition.load('mainCompositionAsset')
-      expect(composition.mainCompositionAsset).toMatchObject(compositionAsset)
+      expect(composition.mainCompositionAsset).toMatchDreamModel(compositionAsset)
     })
   })
 

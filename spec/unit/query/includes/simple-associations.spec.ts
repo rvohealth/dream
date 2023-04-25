@@ -9,7 +9,7 @@ describe('Query#includes with simple associations', () => {
     const composition = await Composition.create({ user_id: user.id })
 
     const reloadedUser = await User.limit(1).includes('mainComposition').first()
-    expect(reloadedUser!.mainComposition).toMatchObject(composition)
+    expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
   })
 
   it('loads a HasMany association', async () => {
@@ -18,15 +18,15 @@ describe('Query#includes with simple associations', () => {
     const composition2 = await Composition.create({ user_id: user.id })
 
     const reloadedUser = await User.limit(1).includes('compositions').first()
-    expect(reloadedUser!.compositions[0]).toMatchObject(composition1)
-    expect(reloadedUser!.compositions[1]).toMatchObject(composition2)
+    expect(reloadedUser!.compositions[0]).toMatchDreamModel(composition1)
+    expect(reloadedUser!.compositions[1]).toMatchDreamModel(composition2)
   })
 
   it('loads a BelongsTo association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     await Composition.create({ user_id: user.id })
     const reloadedComposition = await Composition.limit(1).includes('user').first()
-    expect(reloadedComposition!.user).toMatchObject(user)
+    expect(reloadedComposition!.user).toMatchDreamModel(user)
   })
 
   it('can handle object notation', async () => {
@@ -49,7 +49,7 @@ describe('Query#includes with simple associations', () => {
       .includes(['compositions', { mainComposition: ['compositionAssets'] }])
       .first()
 
-    expect(reloadedUser!.mainComposition).toMatchObject(composition)
+    expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
     expect(reloadedUser!.compositions).toMatchDreamModels([composition, composition2])
     expect(reloadedUser!.mainComposition.compositionAssets).toMatchDreamModels([compositionAsset])
   })
@@ -63,8 +63,8 @@ describe('Query#includes with simple associations', () => {
     })
 
     const reloaded = await CompositionAssetAudit.limit(3).includes('composition', 'user').first()
-    expect(reloaded!.composition).toMatchObject(composition)
-    expect(reloaded!.user).toMatchObject(user)
+    expect(reloaded!.composition).toMatchDreamModel(composition)
+    expect(reloaded!.user).toMatchDreamModel(user)
   })
 
   context('with matching where-clause-on-the-association', () => {
@@ -78,7 +78,7 @@ describe('Query#includes with simple associations', () => {
       })
 
       const reloadedComposition = await Composition.limit(1).includes('mainCompositionAsset').first()
-      expect(reloadedComposition!.mainCompositionAsset).toMatchObject(compositionAsset)
+      expect(reloadedComposition!.mainCompositionAsset).toMatchDreamModel(compositionAsset)
     })
   })
 

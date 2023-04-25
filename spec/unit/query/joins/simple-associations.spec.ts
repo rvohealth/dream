@@ -189,7 +189,7 @@ describe('Query#joins with simple associations', () => {
       })
 
       const reloadedComposition = await Composition.limit(1).joins('mainCompositionAsset').first()
-      expect(reloadedComposition).toMatchObject(composition)
+      expect(reloadedComposition).toMatchDreamModel(composition)
     })
   })
 

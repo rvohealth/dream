@@ -13,6 +13,6 @@ describe('Dream.includes', () => {
     })
 
     const reloaded = await CompositionAssetAudit.includes('compositionAsset').first()
-    expect(reloaded!.compositionAsset).toMatchObject(compositionAsset)
+    expect(reloaded!.compositionAsset).toMatchDreamModel(compositionAsset)
   })
 })
