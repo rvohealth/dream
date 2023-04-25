@@ -29,5 +29,5 @@ export default class Rating extends Dream {
     foreignKey: 'rateable_id',
     polymorphic: true,
   })
-  public rateable: Rating
+  public rateable: Composition | Post
 }

@@ -332,6 +332,15 @@ export default function dream<
       return obj
     }
 
+    public get changedAttributes(): Updateable<Table> {
+      const obj: Updateable<Table> = {}
+
+      Object.keys(this.dirtyAttributes).forEach(column => {
+        ;(obj as any)[column] = (this.frozenAttributes as any)[column]
+      })
+      return obj
+    }
+
     public freezeAttributes() {
       this.frozenAttributes = { ...this.attributes }
     }
