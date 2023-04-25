@@ -1,5 +1,13 @@
 import { expectMatchingDreamModels } from './dreamModel'
 
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      toMatchDreamModels(expected: any): CustomMatcherResult
+    }
+  }
+}
+
 expect.extend({
   toMatchDreamModels(received: any, expected: any) {
     if (received?.constructor !== Array) {

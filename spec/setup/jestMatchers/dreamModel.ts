@@ -1,5 +1,4 @@
 import { getObjectSubset } from '@jest/expect-utils'
-import '../globals'
 import {
   EXPECTED_COLOR,
   RECEIVED_COLOR,
@@ -15,6 +14,14 @@ import {
 const EXPECTED_LABEL = 'Expected'
 const RECEIVED_LABEL = 'Received'
 const isExpand = (expand?: boolean): boolean => expand !== false
+
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      toMatchDreamModel(expected: any): CustomMatcherResult
+    }
+  }
+}
 
 expect.extend({
   toMatchDreamModel(received: any, expected: any) {
