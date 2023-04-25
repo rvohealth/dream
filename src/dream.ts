@@ -378,7 +378,7 @@ export default function dream<
       return this
     }
 
-    public setAttributes(attributes: Updateable<Table>) {
+    public setAttributes(attributes: ModelParams) {
       const self = this as any
       Object.keys(attributes).forEach(attr => {
         const associationMetaData = this.associationMap[attr]
@@ -434,7 +434,7 @@ export default function dream<
       return this
     }
 
-    public async update<T extends Dream>(this: T, attributes?: Updateable<Table>): Promise<T> {
+    public async update<T extends Dream>(this: T, attributes?: ModelParams): Promise<T> {
       await runHooksFor('beforeSave', this)
       await runHooksFor('beforeUpdate', this)
 
