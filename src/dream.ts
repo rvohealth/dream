@@ -416,6 +416,8 @@ export default function dream<
       await runHooksFor('beforeSave', this)
       await runHooksFor('beforeCreate', this)
 
+      await this.saveUnsavedAssociations()
+
       const sqlifiedAttributes = sqlAttributes(this.dirtyAttributes)
 
       let query = db.insertInto(tableName)
@@ -441,6 +443,17 @@ export default function dream<
       await runHooksFor('afterCreate', this)
 
       return this
+    }
+
+    public async saveUnsavedAssociations() {
+      for (const associationName in this.associationMap) {
+        const associationMetadata = this.associationMap[associationName]
+        const associationRecord = (this as any)[associationName] as DreamModelInstance<any, any> | undefined
+        if (associationRecord?.isDreamInstance && !associationRecord?.isPersisted) {
+          await associationRecord.save()
+          ;(this as any)[associationMetadata.foreignKey()] = associationRecord.primaryKeyValue
+        }
+      }
     }
 
     public async update<T extends Dream>(this: T, attributes?: ModelParams): Promise<T> {

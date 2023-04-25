@@ -1,3 +1,4 @@
+import Composition from '../../../test-app/app/models/composition'
 import User from '../../../test-app/app/models/user'
 
 describe('Dream#save', () => {

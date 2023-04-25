@@ -49,6 +49,31 @@ describe('Dream.create', () => {
         expect(rating.rateable).toEqual(post)
       })
     })
+
+    context('the associated model is unsaved', () => {
+      it('saves the associated record, then captures the primary key and stores it as the foreign key against the saving model', async () => {
+        const user = new User({ email: 'fred@fred', password: 'howyadoin' })
+        const composition = await Composition.create({ content: 'howyadoin', user })
+
+        expect(typeof composition.user_id).toBe('number')
+        expect(composition.user.isPersisted).toBe(true)
+        expect(composition.user.email).toEqual('fred@fred')
+      })
+
+      context('the associated model is polymorphic', () => {
+        it('stores the foreign key type as well as the foreign key id', async () => {
+          const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+          const post = new Post({ user_id: user.id })
+          const rating = await Rating.create({ user, rateable: post })
+
+          expect(rating.rateable_id).toEqual(post.id)
+          expect(rating.rateable_type).toEqual('Post')
+          const reloadedRating = await Rating.find(rating.id)
+          expect(reloadedRating!.rateable_id).toEqual(post.id)
+          expect(reloadedRating!.rateable_type).toEqual('Post')
+        })
+      })
+    })
   })
 
   context('passed a model to a HasOne association', () => {
