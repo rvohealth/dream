@@ -302,9 +302,6 @@ yarn dream sync:associations
 yarn dream sync:associations --core
 # same as above, but copies the associations.ts file to test-app/db/associations.ts
 
-yarn dream copy:boilerplate --core
-# copies default templated files to sit in place of real schema files. This is generally only done on installation, since In the beginning you have no migrations and the app still needs to import something.
-
 yarn dream db:drop --core
 # drops the db for either the core app or a consuming app (which is why there is no "core:db:drop" variant)
 
