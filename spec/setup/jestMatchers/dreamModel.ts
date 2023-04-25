@@ -1,4 +1,5 @@
 import { getObjectSubset } from '@jest/expect-utils'
+import '../globals'
 import {
   EXPECTED_COLOR,
   RECEIVED_COLOR,
