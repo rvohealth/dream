@@ -460,8 +460,10 @@ export default function dream<
       await runHooksFor('beforeSave', this)
       await runHooksFor('beforeUpdate', this)
 
-      let query = db.updateTable(tableName)
       if (attributes) this.setAttributes(attributes)
+      await this.saveUnsavedAssociations()
+
+      let query = db.updateTable(tableName)
       const sqlifiedAttributes = sqlAttributes(this.dirtyAttributes)
 
       if (Object.keys(sqlifiedAttributes).length === 0) return this

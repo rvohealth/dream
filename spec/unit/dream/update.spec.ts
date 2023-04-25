@@ -64,6 +64,35 @@ describe('Dream#update', () => {
     })
   })
 
+  context('when passed an unsaved association', () => {
+    it('saves the associated record, then captures the primary key and stores it as the foreign key against the saving model', async () => {
+      const user = new User({ email: 'fred@fred', password: 'howyadoin' })
+      const user2 = new User({ email: 'fred2@fred', password: 'howyadoin' })
+      const composition = await Composition.create({ content: 'howyadoin', user })
+
+      await composition.update({ user: user2 })
+      expect(user2.isPersisted).toEqual(true)
+      expect(composition.user_id).toEqual(user2.id)
+    })
+
+    context('the associated model is polymorphic', () => {
+      it('stores the foreign key type as well as the foreign key id', async () => {
+        const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+        const post = new Post({ user_id: user.id })
+        const post2 = new Post({ user_id: user.id })
+        const rating = await Rating.create({ user, rateable: post })
+
+        await rating.update({ rateable: post2 })
+        expect(rating.rateable_id).toEqual(post2.id)
+        expect(rating.rateable_type).toEqual('Post')
+
+        const reloadedRating = await Rating.find(rating.id)
+        expect(reloadedRating!.rateable_id).toEqual(post2.id)
+        expect(reloadedRating!.rateable_type).toEqual('Post')
+      })
+    })
+  })
+
   context('passed a model to a HasOne association', () => {
     it('raises an exception', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
