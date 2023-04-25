@@ -18,7 +18,9 @@ program
   .alias('g:migration')
   .description('g:migration <name> create a new dream migration')
   .argument('<name>', 'name of the migration')
+  .option('--core', 'sets core to true')
   .action(async () => {
+    const coreDevFlag = setCoreDevelopmentFlag(program.args)
     const [_, name] = program.args
     await generateMigration(name)
   })
@@ -32,9 +34,14 @@ program
   .alias('g:dream')
   .description('generate <name> [...attributes] create a new dream')
   .argument('<name>', 'name of the dream')
+  .option('--core', 'sets core to true')
   .action(async () => {
+    setCoreDevelopmentFlag(program.args)
     const [_, name, ...attributes] = program.args
-    await generateDream(name, attributes)
+    await generateDream(
+      name,
+      attributes.filter(attr => !['--core'].includes(attr))
+    )
   })
 
 program
