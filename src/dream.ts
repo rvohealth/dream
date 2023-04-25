@@ -673,26 +673,25 @@ export default function dream<
             })
             .forEach((dream: any) => {
               dream[association.as] = loadedAssociation
-              // TODO
-              // if (association.reverseAsType === 'HasOne') {
-              //   ;(loadedAssociation as any)[association.reverseAs] = dream
-              // } else {
-              //   ;(loadedAssociation as any)[association.reverseAs] ||= []
-              //   ;(loadedAssociation as any)[association.reverseAs].push(dream)
-              // }
             })
         } else {
           dreams
             .filter(dream => (loadedAssociation as any)[association.foreignKey()] === dream.primaryKeyValue)
             .forEach((dream: any) => {
-              if (association.type === 'HasOne') {
-                dream[association.as] ||= loadedAssociation
-              } else {
+              if (association.type === 'HasMany') {
                 dream[association.as] ||= []
                 dream[association.as].push(loadedAssociation)
+              } else {
+                dream[association.as] = loadedAssociation
               }
             })
         }
+      }
+
+      if (association.type === 'HasMany') {
+        dreams.forEach((dream: any) => {
+          if (dream[association.as]) Object.freeze(dream[association.as])
+        })
       }
     }
 
@@ -711,18 +710,20 @@ export default function dream<
         await this.applyOneInclude(association.through, dreams)
 
         dreams.forEach(dream => {
-          if (association.type === 'HasOne') {
+          if (association.type === 'HasMany') {
             Object.defineProperty(dream, association.as, {
               get() {
-                return (dream as any)[association.through!]![association.as]
+                return Object.freeze(
+                  ((dream as any)[association.through!] as any[]).flatMap(
+                    record => (record as any)![association.as]
+                  )
+                )
               },
             })
           } else {
             Object.defineProperty(dream, association.as, {
               get() {
-                return ((dream as any)[association.through!] as any[]).flatMap(
-                  record => (record as any)![association.as]
-                )
+                return (dream as any)[association.through!]![association.as]
               },
             })
           }
@@ -1010,8 +1011,15 @@ export default function dream<
           `${currentAssociationTableOrAlias as string}.${association.foreignKey() as string}`
         )
 
-        if (association.where)
-          query = this.applyWhereStatement(query, association.where as WhereStatement<TableName>)
+        if (association.where) {
+          const aliasedWhere: any = {}
+          Object.keys(association.where).forEach((key: any) => {
+            aliasedWhere[`${currentAssociationTableOrAlias as string}.${key}`] = (association as any).where[
+              key
+            ]
+          })
+          query = this.applyWhereStatement(query, aliasedWhere as WhereStatement<TableName>)
+        }
       }
 
       return {

@@ -6,7 +6,7 @@ import CompositionAssetAudit from '../../../../test-app/app/models/composition-a
 describe('Dream#load through with simple associations', () => {
   it('loads a HasOne through HasOne association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id })
+    const composition = await Composition.create({ user_id: user.id, primary: true })
     await CompositionAsset.create({ composition_id: composition.id })
     const compositionAsset = await CompositionAsset.create({
       composition_id: composition.id,
@@ -22,7 +22,7 @@ describe('Dream#load through with simple associations', () => {
   context('with NON-matching where-clause-on-the-association', () => {
     it('does not load the associated object', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const composition = await Composition.create({ user_id: user.id })
+      const composition = await Composition.create({ user_id: user.id, primary: true })
       await CompositionAsset.create({ composition_id: composition.id })
       const compositionAsset = await CompositionAsset.create({
         composition_id: composition.id,

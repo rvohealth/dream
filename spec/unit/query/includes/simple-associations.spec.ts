@@ -6,7 +6,7 @@ import CompositionAssetAudit from '../../../../test-app/app/models/composition-a
 describe('Query#includes with simple associations', () => {
   it('loads a HasOne association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id })
+    const composition = await Composition.create({ user_id: user.id, primary: true })
 
     const reloadedUser = await User.limit(1).includes('mainComposition').first()
     expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
@@ -41,7 +41,7 @@ describe('Query#includes with simple associations', () => {
 
   it('can handle array notation', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id })
+    const composition = await Composition.create({ user_id: user.id, primary: true })
     const composition2 = await Composition.create({ user_id: user.id })
     const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 

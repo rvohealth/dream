@@ -121,19 +121,23 @@ export function expectMatchingDreamModels(
   } else if (expected === null) {
     message = () => ERROR_COLOR('expected is null but must be an instance of Dream')
   } else if (typeof expected !== 'object') {
-    message = () =>
-      ERROR_COLOR(`expected is ${ERROR_COLOR(expected.constructor.name)} but must be an instance of Dream`)
+    message = () => ERROR_COLOR(`expected is ${expected.constructor.name} but must be an instance of Dream`)
   } else if (received === undefined) {
     message = () => ERROR_COLOR('received is undefined but must be an instance of Dream')
   } else if (received === null) {
     message = () => ERROR_COLOR('received is null but must be an instance of Dream')
   } else if (typeof received !== 'object') {
-    message = () =>
-      ERROR_COLOR(`received is ${ERROR_COLOR(received.constructor.name)} but must be an instance of Dream`)
+    message = () => ERROR_COLOR(`received is ${received.constructor.name} but must be an instance of Dream`)
   } else if (expected.constructor !== received.constructor) {
     message = () =>
-      EXPECTED_COLOR(`expected ${EXPECTED_COLOR(expected.constructor.name)}, `) +
-      RECEIVED_COLOR(`received ${RECEIVED_COLOR(received.constructor.name)}`)
+      EXPECTED_COLOR(`expected ${expected.constructor.name}, `) +
+      RECEIVED_COLOR(`received ${received.constructor.name}`)
+  } else if (expected.id !== received.id) {
+    message = () =>
+      EXPECTED_COLOR(
+        `expected is ${expected.constructor.name} with primary key ${expected.primaryKeyValue}\n`
+      ) +
+      RECEIVED_COLOR(`received is ${received.constructor.name} with primary key ${received.primaryKeyValue}`)
   } else {
     const comparableReceived = attributes(received)
     const comparableExpected = attributes(expected)
@@ -154,8 +158,8 @@ export function expectMatchingDreamModels(
           matcherHint(matcherName) +
           '\n\n' +
           printDiffOrStringify(
-            comparableExpected,
-            getObjectSubset(comparableReceived, comparableExpected),
+            stringify(comparableExpected),
+            getObjectSubset(stringify(comparableReceived), stringify(comparableExpected)),
             EXPECTED_LABEL,
             RECEIVED_LABEL,
             false

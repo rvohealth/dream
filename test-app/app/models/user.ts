@@ -44,7 +44,9 @@ export default class User extends Dream {
   @HasMany(() => Composition)
   public compositions: Composition[]
 
-  @HasOne(() => Composition)
+  @HasOne(() => Composition, {
+    where: { primary: true },
+  })
   public mainComposition: Composition
 
   @HasMany(() => CompositionAsset, {

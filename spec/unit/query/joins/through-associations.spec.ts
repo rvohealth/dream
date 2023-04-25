@@ -7,7 +7,7 @@ describe('Query#joins through with simple associations', () => {
   it('joins a HasOne through HasOne association', async () => {
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id })
+    const composition = await Composition.create({ user_id: user.id, primary: true })
     const compositionAsset = await CompositionAsset.create({
       composition_id: composition.id,
       primary: true,
@@ -46,7 +46,7 @@ describe('Query#joins through with simple associations', () => {
     it('joins a HasOne through HasOne association', async () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-      const composition = await Composition.create({ user_id: user.id })
+      const composition = await Composition.create({ user_id: user.id, primary: true })
       const compositionAsset = await CompositionAsset.create({
         composition_id: composition.id,
         primary: true,
