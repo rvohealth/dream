@@ -2,7 +2,7 @@ import '../helpers/loadEnv'
 import * as path from 'path'
 import { promises as fs } from 'fs'
 import loadModels from '../helpers/loadModels'
-import { DreamModel } from '../dream'
+import Dream from '../dream'
 import { modelsPath } from '../helpers/path'
 import pascalize from '../helpers/pascalize'
 
@@ -16,9 +16,9 @@ buildModelIndexes()
 async function writeModelIndexes() {
   const models = await loadModels()
 
-  const modelsObj: { [key: string]: DreamModel<any, any> | { [key: string]: DreamModel<any, any> } } = {}
+  const modelsObj: { [key: string]: typeof Dream | { [key: string]: typeof Dream } } = {}
   let currentRef: any = modelsObj
-  const finalModelsObj: { [key: string]: DreamModel<any, any> | { [key: string]: DreamModel<any, any> } } = {}
+  const finalModelsObj: { [key: string]: typeof Dream | { [key: string]: typeof Dream } } = {}
   let currentFinalRef: any = finalModelsObj
   Object.keys(models).forEach(modelKey => {
     const pathParts = modelKey.split('/')

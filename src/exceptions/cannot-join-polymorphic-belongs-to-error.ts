@@ -1,8 +1,8 @@
 import { BelongsToStatement } from '../decorators/associations/belongs-to'
-import { DreamModel } from '../dream'
+import Dream from '../dream'
 
 export default class CannotJoinPolymorphicBelongsToError extends Error {
-  public dreamClass: DreamModel<any, any>
+  public dreamClass: typeof Dream
   public association: BelongsToStatement<any>
   public joinsStatements: any
 
@@ -11,7 +11,7 @@ export default class CannotJoinPolymorphicBelongsToError extends Error {
     association,
     joinsStatements,
   }: {
-    dreamClass: DreamModel<any, any>
+    dreamClass: typeof Dream
     association: BelongsToStatement<any>
     joinsStatements: any
   }) {

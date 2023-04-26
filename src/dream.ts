@@ -30,610 +30,790 @@ import { AssociationTableNames } from './db/reflections'
 import OpsStatement from './ops/ops-statement'
 import CanOnlyPassBelongsToModelParam from './exceptions/can-only-pass-belongs-to-model-param'
 
-export default function dream<
-  TableName extends AssociationTableNames,
-  IdColumnName extends keyof DB[TableName] & string,
-  QueryAssociationExpression extends AssociationExpression<
-    TableName & AssociationTableNames,
-    any
-  > = AssociationExpression<TableName & AssociationTableNames, any>,
-  BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[TableName] = keyof SyncedBelongsToAssociations[TableName]
->(tableName: TableName, primaryKey: IdColumnName = 'id' as IdColumnName) {
-  const columns = DBColumns[tableName]
-  const tableNames = Object.keys(DBColumns)
+// export default function dream<
+//   TableName extends AssociationTableNames,
+//   IdColumnName extends keyof DB[TableName] & string,
+//   QueryAssociationExpression extends AssociationExpression<
+//     TableName & AssociationTableNames,
+//     any
+//   > = AssociationExpression<TableName & AssociationTableNames, any>,
+//   BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[TableName] = keyof SyncedBelongsToAssociations[TableName]
+// >(tableName: TableName, primaryKey: IdColumnName = 'id' as IdColumnName) {
+//   const columns = DBColumns[tableName]
+//   const tableNames = Object.keys(DBColumns)
 
-  type Table = DB[TableName]
-  type IdColumn = Table[IdColumnName]
-  type Data = Selectable<Table>
-  type Id = Readonly<SelectType<IdColumn>>
-  type AssociationModelParam = Partial<
-    Record<
-      BelongsToModelAssociationNames,
-      DreamModelInstance<
-        SyncedBelongsToAssociations[TableName][BelongsToModelAssociationNames][keyof SyncedBelongsToAssociations[TableName][BelongsToModelAssociationNames]] &
-          AssociationTableNames,
-        any
+//   type Table = DB[TableName]
+//   type IdColumn = Table[IdColumnName]
+//   type Data = Selectable<Table>
+//   type Id = Readonly<SelectType<IdColumn>>
+//   type AssociationModelParam = Partial<
+//     Record<
+//       BelongsToModelAssociationNames,
+//       DreamModelInstance<
+//         SyncedBelongsToAssociations[TableName][BelongsToModelAssociationNames][keyof SyncedBelongsToAssociations[TableName][BelongsToModelAssociationNames]] &
+//           AssociationTableNames,
+//         any
+//       >
+//     >
+//   >
+//   type ModelParams = Updateable<Table> | AssociationModelParam
+
+export default class Dream {
+  // public static primaryKey<
+  //   T extends typeof Dream,
+  //   TableName extends keyof DB = T['table'] & keyof DB,
+  //   Table extends DB[keyof DB] = DB[TableName]
+  // >(this: T): keyof Table {
+  //   return 'id' as keyof Table
+  // }
+  public static get primaryKey(): string {
+    return 'id'
+  }
+
+  public static createdAtField = 'createdAt'
+  public static associations: {
+    belongsTo: BelongsToStatement<any>[]
+    hasMany: HasManyStatement<any>[]
+    hasOne: HasOneStatement<any>[]
+  } = {
+    belongsTo: [],
+    hasMany: [],
+    hasOne: [],
+  }
+  public static scopes: {
+    default: ScopeStatement[]
+    named: ScopeStatement[]
+  } = {
+    default: [],
+    named: [],
+  }
+  public static sti: {
+    column: string | null
+    value: string | null
+  } = {
+    column: null,
+    value: null,
+  }
+  public static hooks: {
+    beforeCreate: HookStatement[]
+    beforeUpdate: HookStatement[]
+    beforeSave: HookStatement[]
+    beforeDestroy: HookStatement[]
+    afterCreate: HookStatement[]
+    afterUpdate: HookStatement[]
+    afterSave: HookStatement[]
+    afterDestroy: HookStatement[]
+  } = {
+    beforeCreate: [],
+    beforeUpdate: [],
+    beforeSave: [],
+    beforeDestroy: [],
+    afterCreate: [],
+    afterUpdate: [],
+    afterSave: [],
+    afterDestroy: [],
+  }
+  public static validations: ValidationStatement[] = []
+
+  public static get isDream() {
+    return true
+  }
+
+  public static get table(): string {
+    return 'users' as const
+    // throw 'override in child'
+  }
+
+  public static columns<
+    T extends typeof Dream,
+    TableName extends keyof DB = T['table'] & keyof DB,
+    Table extends DB[keyof DB] = DB[TableName]
+  >(): (keyof Table)[] {
+    return (DBColumns as any)[this.table]
+  }
+
+  public static get associationMap() {
+    const allAssociations = [
+      ...this.associations.belongsTo,
+      ...this.associations.hasOne,
+      ...this.associations.hasMany,
+    ]
+
+    const map = {} as {
+      [key: (typeof allAssociations)[number]['as']]:
+        | BelongsToStatement<AssociationTableNames>
+        | HasManyStatement<AssociationTableNames>
+        | HasOneStatement<AssociationTableNames>
+    }
+
+    for (const association of allAssociations) {
+      map[association.as] = association
+    }
+
+    return map
+  }
+
+  public static get associationNames() {
+    const allAssociations = [
+      ...this.associations.belongsTo,
+      ...this.associations.hasOne,
+      ...this.associations.hasMany,
+    ]
+    return allAssociations.map(association => {
+      return association.as
+    })
+  }
+
+  public static async all<
+    T extends typeof Dream,
+    TableName extends keyof DB = T['table'] & keyof DB,
+    Table extends DB[keyof DB] = DB[TableName],
+    IdColumn = T['primaryKey'] & keyof Table
+  >(this: T): Promise<InstanceType<T>[]> {
+    const query: Query<TableName> = new Query<TableName>(this)
+    return await query.all()
+  }
+
+  public static async count<T extends typeof Dream, TableName extends keyof DB = T['table'] & keyof DB>(
+    this: T
+  ): Promise<number> {
+    const query: Query<TableName> = new Query<TableName>(this)
+    return await query.count()
+  }
+
+  public static async create<
+    T extends typeof Dream,
+    TableName extends keyof DB = T['table'] & keyof DB,
+    Table extends DB[keyof DB] = DB[TableName],
+    BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[TableName] = keyof SyncedBelongsToAssociations[TableName],
+    AssociationModelParam = Partial<
+      Record<
+        BelongsToModelAssociationNames,
+        ReturnType<T['associationMap'][keyof T['associationMap']]['modelCB']> extends () => (typeof Dream)[]
+          ? InstanceType<
+              ReturnType<
+                T['associationMap'][keyof T['associationMap']]['modelCB'] & (() => (typeof Dream)[])
+              >[number]
+            >
+          : InstanceType<
+              ReturnType<T['associationMap'][keyof T['associationMap']]['modelCB'] & (() => typeof Dream)>
+            >
       >
     >
-  >
-  type ModelParams = Updateable<Table> | AssociationModelParam
-
-  class Dream {
-    public static primaryKey: IdColumnName = primaryKey
-    public static createdAtField = 'createdAt'
-    public static associations: {
-      belongsTo: BelongsToStatement<any>[]
-      hasMany: HasManyStatement<any>[]
-      hasOne: HasOneStatement<any>[]
-    } = {
-      belongsTo: [],
-      hasMany: [],
-      hasOne: [],
-    }
-    public static scopes: {
-      default: ScopeStatement[]
-      named: ScopeStatement[]
-    } = {
-      default: [],
-      named: [],
-    }
-    public static sti: {
-      column: string | null
-      value: string | null
-    } = {
-      column: null,
-      value: null,
-    }
-    public static hooks: {
-      beforeCreate: HookStatement[]
-      beforeUpdate: HookStatement[]
-      beforeSave: HookStatement[]
-      beforeDestroy: HookStatement[]
-      afterCreate: HookStatement[]
-      afterUpdate: HookStatement[]
-      afterSave: HookStatement[]
-      afterDestroy: HookStatement[]
-    } = {
-      beforeCreate: [],
-      beforeUpdate: [],
-      beforeSave: [],
-      beforeDestroy: [],
-      afterCreate: [],
-      afterUpdate: [],
-      afterSave: [],
-      afterDestroy: [],
-    }
-    public static validations: ValidationStatement[] = []
-
-    public static get isDream() {
-      return true
-    }
-
-    public static get table(): TableName {
-      return tableName as TableName
-    }
-
-    public static get columns(): string[] {
-      return columns
-    }
-
-    public static get associationMap() {
-      const allAssociations = [
-        ...this.associations.belongsTo,
-        ...this.associations.hasOne,
-        ...this.associations.hasMany,
-      ]
-
-      const map = {} as {
-        [key: (typeof allAssociations)[number]['as']]:
-          | BelongsToStatement<any>
-          | HasManyStatement<any>
-          | HasOneStatement<any>
-      }
-
-      for (const association of allAssociations) {
-        map[association.as] = association
-      }
-
-      return map
-    }
-
-    public static get associationNames() {
-      const allAssociations = [
-        ...this.associations.belongsTo,
-        ...this.associations.hasOne,
-        ...this.associations.hasMany,
-      ]
-      return allAssociations.map(association => {
-        return association.as
-      })
-    }
-
-    public static async all<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T[]> {
-      const query: Query<T> = new Query<T>(this)
-      return await query.all()
-    }
-
-    public static async count<T extends Dream>(this: { new (): T } & typeof Dream): Promise<number> {
-      const query: Query<T> = new Query<T>(this)
-      return await query.count()
-    }
-
-    public static async create<T extends Dream>(this: { new (): T } & typeof Dream, opts?: ModelParams) {
-      return (await new this(opts as any).save()) as T
-    }
-
-    public static async destroyAll<T extends Dream>(this: { new (): T } & typeof Dream) {
-      const query: Query<T> = new Query<T>(this)
-      return await query.destroy()
-    }
-
-    public static async destroyBy<T extends Dream>(
-      this: { new (): T } & typeof Dream,
-      opts?: Updateable<Table>
-    ) {
-      const query: Query<T> = new Query<T>(this)
-      return await query.destroyBy(opts as any)
-    }
-
-    public static async find<T extends Dream>(this: { new (): T } & typeof Dream, id: Id): Promise<T | null> {
-      const query: Query<T> = new Query<T>(this)
-      return await query.where({ [Dream.primaryKey]: id } as any).first()
-    }
-
-    public static async findBy<T extends Dream>(
-      this: { new (): T } & typeof Dream,
-      attributes: Updateable<Table>
-    ): Promise<T | null> {
-      const query: Query<T> = new Query<T>(this)
-      return await query.where(attributes).first()
-    }
-
-    public static async first<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T | null> {
-      const query: Query<T> = new Query<T>(this)
-      return await query.first()
-    }
-
-    public static includes<T extends Dream>(
-      this: { new (): T } & typeof Dream,
-      ...associations: QueryAssociationExpression[]
-    ) {
-      const query: Query<T> = new Query<T>(this)
-      return query.includes(...associations)
-    }
-
-    public static joins<T extends Dream>(
-      this: { new (): T } & typeof Dream,
-      ...associations: QueryAssociationExpression[]
-    ) {
-      const query: Query<T> = new Query<T>(this)
-      return query.joins(...associations)
-    }
-
-    public static async last<T extends Dream>(this: { new (): T } & typeof Dream): Promise<T | null> {
-      const query: Query<T> = new Query<T>(this)
-      return await query.last()
-    }
-
-    public static limit<T extends Dream>(this: { new (): T } & typeof Dream, count: number) {
-      let query: Query<T> = new Query<T>(this)
-      query = query.limit(count)
-      return query
-    }
-
-    public static order<T extends Dream, ColumnName extends keyof Table & string>(
-      this: { new (): T } & typeof Dream,
-      column: ColumnName,
-      direction: 'asc' | 'desc' = 'asc'
-    ) {
-      let query: Query<T> = new Query<T>(this)
-      query = query.order(column, direction)
-      return query
-    }
-
-    public static async pluck<
-      T extends Dream,
-      SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>
-    >(this: { new (): T } & typeof Dream, ...fields: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>[]) {
-      let query: Query<T> = new Query<T>(this)
-      return await query.pluck(...fields)
-    }
-
-    public static nestedSelect<
-      T extends Dream,
-      SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>
-    >(this: { new (): T } & typeof Dream, selection: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>) {
-      let query: Query<T> = new Query<T>(this)
-      return query.nestedSelect(selection)
-    }
-
-    public static scope<T extends Dream>(this: { new (): T } & typeof Dream, scopeName: string) {
-      let query: Query<T> = new Query<T>(this)
-      query = (this as any)[scopeName](query) as Query<T>
-      return query
-    }
-
-    public static sql<T extends Dream>(this: { new (): T } & typeof Dream): CompiledQuery<{}> {
-      const query: Query<T> = new Query<T>(this)
-      return query.sql()
-    }
-
-    public static where<T extends Dream>(
-      this: { new (): T } & typeof Dream,
-      attributes: WhereStatement<TableName>
-    ) {
-      const query: Query<T> = new Query<T>(this)
-      // @ts-ignore
-      query.where(attributes)
-      return query
-    }
-
-    public errors: { [key: string]: ValidationType[] } = {}
-    public frozenAttributes: Updateable<Table> = {}
-
-    constructor(opts?: Updateable<Table>) {
-      if (opts) {
-        this.setAttributes(opts)
-
-        // if id is set, then we freeze attributes after setting them, so that
-        // any modifications afterwards will indicate updates.
-        if (this.isPersisted) this.freezeAttributes()
-      }
-    }
-
-    public get primaryKey() {
-      return (this.constructor as typeof Dream).primaryKey
-    }
-
-    public get primaryKeyValue(): string | number | null {
-      return (this as any)[this.primaryKey] || null
-    }
-
-    public get isDirty() {
-      return !!Object.keys(this.dirtyAttributes).length
-    }
-
-    public get isDreamInstance() {
-      return true
-    }
-
-    public get isPersisted() {
-      // todo: clean up types here
-      return !!(this as any)[this.primaryKey]
-    }
-
-    public get isValid(): boolean {
-      const validationErrors = checkValidationsFor(this)
-      return !Object.keys(validationErrors).filter(key => !!validationErrors[key].length).length
-    }
-
-    public get isInvalid(): boolean {
-      return !this.isValid
-    }
-
-    public get attributes(): Updateable<Table> {
-      const obj: Updateable<Table> = {}
-      columns.forEach(column => {
-        ;(obj as any)[column] = (this as any)[column]
-      })
-      return obj
-    }
-
-    public get dirtyAttributes(): Updateable<Table> {
-      const obj: Updateable<Table> = {}
-      Object.keys(this.attributes).forEach(column => {
-        // TODO: clean up types
-        if (
-          (this.frozenAttributes as any)[column] === undefined ||
-          (this.frozenAttributes as any)[column] !== (this.attributes as any)[column]
-        )
-          (obj as any)[column] = (this.attributes as any)[column]
-      })
-      return obj
-    }
-
-    public get changedAttributes(): Updateable<Table> {
-      const obj: Updateable<Table> = {}
-
-      Object.keys(this.dirtyAttributes).forEach(column => {
-        ;(obj as any)[column] = (this.frozenAttributes as any)[column]
-      })
-      return obj
-    }
-
-    public freezeAttributes() {
-      this.frozenAttributes = { ...this.attributes }
-    }
-
-    public get associationMap() {
-      return (this.constructor as typeof Dream).associationMap
-    }
-
-    public get associations() {
-      return (this.constructor as typeof Dream).associations
-    }
-
-    public get associationNames() {
-      return (this.constructor as typeof Dream).associationNames
-    }
-
-    public get table(): TableName {
-      return (this.constructor as typeof Dream).table as TableName
-    }
-
-    public async load<T extends Dream>(
-      this: T,
-      ...associations: QueryAssociationExpression[]
-    ): Promise<void> {
-      const query: Query<T> = new Query<T>(this.constructor as typeof Dream)
-      for (const association of associations) await query.applyIncludes(association, [this])
-    }
-
-    public async reload<T extends Dream>(this: T) {
-      const base = this.constructor as typeof Dream
-
-      const query: Query<T> = new Query<T>(base)
-      query
-        .bypassDefaultScopes()
-        // @ts-ignore
-        .where({ [base.primaryKey as any]: this[base.primaryKey] } as Updateable<Table>)
-
-      // TODO: cleanup type chaos
-      // @ts-ignore
-      const newRecord = (await query.first()) as T
-      this.setAttributes(newRecord.attributes)
-      this.freezeAttributes()
-
-      return this
-    }
-
-    public setAttributes(attributes: ModelParams) {
-      const self = this as any
-      Object.keys(attributes).forEach(attr => {
-        const associationMetaData = this.associationMap[attr]
-
-        if (associationMetaData) {
-          const associatedObject = (attributes as any)[attr]
-          self[attr] = associatedObject
-
-          if (associationMetaData.type === 'BelongsTo') {
-            self[associationMetaData.foreignKey()] = associatedObject.primaryKeyValue
-            if (associationMetaData.polymorphic)
-              self[associationMetaData.foreignKeyTypeField()] = associatedObject.constructor.name
-          } else {
-            throw new CanOnlyPassBelongsToModelParam(self.constructor, associationMetaData)
-          }
-        } else {
-          // TODO: cleanup type chaos
-          self[attr] = marshalDBValue((attributes as any)[attr])
-        }
-      })
-    }
-
-    public async save<T extends Dream>(this: T): Promise<T> {
-      if (this.isPersisted) return await this.update()
-
-      await runHooksFor('beforeSave', this)
-      await runHooksFor('beforeCreate', this)
-
-      await this.saveUnsavedAssociations()
-
-      const sqlifiedAttributes = sqlAttributes(this.dirtyAttributes)
-
-      let query = db.insertInto(tableName)
-      if (Object.keys(sqlifiedAttributes).length) {
-        query = query.values(sqlifiedAttributes as any)
-      } else {
-        query = query.values({ id: 0 } as any)
-      }
-
-      await runValidationsFor(this)
-      if (this.isInvalid) throw new ValidationError(this.constructor.name, this.errors)
-
-      const data = await query.returning(columns as any).executeTakeFirstOrThrow()
-      const base = this.constructor as typeof Dream
-
-      // sets the id before reloading, since this is a new record
-      // TODO: cleanup type chaos
-      ;(this as any)[base.primaryKey as any] = data[base.primaryKey]
-
-      await this.reload()
-
-      await runHooksFor('afterSave', this)
-      await runHooksFor('afterCreate', this)
-
-      return this
-    }
-
-    public async saveUnsavedAssociations() {
-      for (const associationName in this.associationMap) {
-        const associationMetadata = this.associationMap[associationName]
-        const associationRecord = (this as any)[associationName] as DreamModelInstance<any, any> | undefined
-        if (associationRecord?.isDreamInstance && !associationRecord?.isPersisted) {
-          await associationRecord.save()
-          ;(this as any)[associationMetadata.foreignKey()] = associationRecord.primaryKeyValue
-        }
-      }
-    }
-
-    public async update<T extends Dream>(this: T, attributes?: ModelParams): Promise<T> {
-      await runHooksFor('beforeSave', this)
-      await runHooksFor('beforeUpdate', this)
-
-      if (attributes) this.setAttributes(attributes)
-      if (columns.includes('updated_at')) {
-        ;(this as any).updated_at = DateTime.now().toUTC()
-      }
-
-      await this.saveUnsavedAssociations()
-
-      let query = db.updateTable(tableName)
-      const sqlifiedAttributes = sqlAttributes(this.dirtyAttributes)
-
-      if (Object.keys(sqlifiedAttributes).length === 0) return this
-      query = query.set(sqlifiedAttributes as any)
-
-      await runValidationsFor(this)
-
-      await query.executeTakeFirstOrThrow()
-
-      await this.reload()
-
-      await runHooksFor('afterSave', this)
-      await runHooksFor('afterUpdate', this)
-
-      return this
-    }
-
-    public async destroy<T extends Dream>(this: T): Promise<T> {
-      await runHooksFor('beforeDestroy', this)
-
-      const base = this.constructor as typeof Dream
-      await db
-        .deleteFrom(tableName)
-        .where(base.primaryKey as any, '=', (this as any)[base.primaryKey])
-        .execute()
-
-      await runHooksFor('afterDestroy', this)
-      return this
+  >(this: T, opts?: Updateable<Table> | AssociationModelParam) {
+    return (await new (this as any)(opts as any).save()) as InstanceType<T>
+  }
+
+  public static async destroyAll<T extends typeof Dream, TableName extends keyof DB = T['table'] & keyof DB>(
+    this: typeof Dream
+  ) {
+    const query: Query<TableName> = new Query<TableName>(this)
+    return await query.destroy()
+  }
+
+  public static async destroyBy<
+    T extends typeof Dream,
+    TableName extends keyof DB = T['table'] & keyof DB,
+    Table extends DB[keyof DB] = DB[TableName]
+  >(this: T, opts?: Updateable<Table>) {
+    const query: Query<TableName> = new Query<TableName>(this)
+    return await query.destroyBy(opts as any)
+  }
+
+  public static async find<
+    T extends typeof Dream,
+    TableName extends keyof DB = T['table'] & keyof DB,
+    Table extends DB[keyof DB] = DB[TableName],
+    IdColumn = T['primaryKey'] & keyof Table,
+    Id = Readonly<SelectType<IdColumn>>
+  >(this: T, id: Id): Promise<InstanceType<T> | null> {
+    const query: Query<TableName> = new Query<TableName>(this)
+    return await query.where({ [this.primaryKey]: id } as any).first()
+  }
+
+  public static async findBy<
+    T extends typeof Dream,
+    TableName extends keyof DB = T['table'] & keyof DB,
+    Table extends DB[keyof DB] = DB[TableName],
+    IdColumn = T['primaryKey'] & keyof Table
+  >(this: T, attributes: Updateable<Table>): Promise<T | null> {
+    const query: Query<TableName> = new Query<TableName>(this)
+    return await query.where(attributes).first()
+  }
+
+  public static async first<T extends typeof Dream, TableName extends keyof DB = T['table'] & keyof DB>(
+    this: typeof Dream
+  ): Promise<InstanceType<T> | null> {
+    const query: Query<TableName> = new Query<TableName>(this)
+    return await query.first()
+  }
+
+  public static includes<
+    T extends typeof Dream,
+    TableName extends AssociationTableNames = T['table'] & AssociationTableNames,
+    QueryAssociationExpression extends AssociationExpression<
+      TableName & AssociationTableNames,
+      any
+    > = AssociationExpression<TableName & AssociationTableNames, any>
+  >(this: T, ...associations: QueryAssociationExpression[]) {
+    const query: Query<TableName> = new Query<TableName>(this)
+
+    // @ts-ignore
+    return query.includes(...associations)
+  }
+
+  public static joins<
+    T extends typeof Dream,
+    TableName extends AssociationTableNames = T['table'] & AssociationTableNames,
+    QueryAssociationExpression extends AssociationExpression<
+      TableName & AssociationTableNames,
+      any
+    > = AssociationExpression<TableName & AssociationTableNames, any>
+  >(this: T, ...associations: QueryAssociationExpression[]) {
+    const query: Query<TableName> = new Query<TableName>(this)
+    return query.joins(...associations)
+  }
+
+  public static async last<
+    T extends typeof Dream,
+    TableName extends AssociationTableNames = T['table'] & AssociationTableNames
+  >(this: T): Promise<InstanceType<T> | null> {
+    const query: Query<TableName> = new Query<TableName>(this)
+    return await query.last()
+  }
+
+  public static limit<
+    T extends typeof Dream,
+    TableName extends AssociationTableNames = T['table'] & AssociationTableNames
+  >(this: T, count: number) {
+    let query: Query<TableName> = new Query<TableName>(this)
+    query = query.limit(count)
+    return query
+  }
+
+  public static order<
+    T extends typeof Dream,
+    ColumnName extends keyof Table & string,
+    TableName extends AssociationTableNames = T['table'] & AssociationTableNames,
+    Table extends DB[keyof DB] = DB[TableName]
+  >(this: T, column: ColumnName, direction: 'asc' | 'desc' = 'asc') {
+    let query: Query<TableName> = new Query<TableName>(this)
+    query = query.order(column as any, direction)
+    return query
+  }
+
+  public static async pluck<
+    T extends typeof Dream,
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>,
+    TableName extends AssociationTableNames = T['table'] & AssociationTableNames
+  >(this: { new (): T } & typeof Dream, ...fields: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>[]) {
+    let query: Query<TableName> = new Query<TableName>(this)
+    return await query.pluck(...fields)
+  }
+
+  public static nestedSelect<
+    T extends typeof Dream,
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>,
+    TableName extends AssociationTableNames = T['table'] & AssociationTableNames
+  >(this: { new (): T } & typeof Dream, selection: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>) {
+    let query: Query<TableName> = new Query<TableName>(this)
+    return query.nestedSelect(selection)
+  }
+
+  public static scope<
+    T extends typeof Dream,
+    TableName extends AssociationTableNames = T['table'] & AssociationTableNames
+  >(this: T, scopeName: string) {
+    let query: Query<TableName> = new Query<TableName>(this)
+    query = (this as any)[scopeName](query) as Query<TableName>
+    return query
+  }
+
+  public static sql<
+    T extends typeof Dream,
+    TableName extends AssociationTableNames = T['table'] & AssociationTableNames
+  >(this: T): CompiledQuery<{}> {
+    const query: Query<TableName> = new Query<TableName>(this)
+    return query.sql()
+  }
+
+  public static where<
+    T extends typeof Dream,
+    TableName extends AssociationTableNames = T['table'] & AssociationTableNames
+  >(this: T, attributes: WhereStatement<TableName>) {
+    const query: Query<TableName> = new Query<TableName>(this)
+    // @ts-ignore
+    query.where(attributes)
+    return query
+  }
+
+  public static new<
+    T extends typeof Dream,
+    TableName extends AssociationTableNames = T['table'] & AssociationTableNames,
+    Table extends DB[keyof DB] = DB[TableName]
+  >(this: T, opts?: Updateable<Table>) {
+    return new this(opts)
+  }
+
+  public errors: { [key: string]: ValidationType[] } = {}
+  public frozenAttributes: { [key: string]: any } = {}
+  constructor(opts?: Updateable<DB[keyof DB]>) {
+    if (opts) {
+      this.setAttributes(opts)
+
+      // if id is set, then we freeze attributes after setting them, so that
+      // any modifications afterwards will indicate updates.
+      if (this.isPersisted) this.freezeAttributes()
     }
   }
 
-  class Query<DreamClass extends Dream> {
-    public whereStatement: WhereStatement<TableName> | null = null
-    public whereJoinsStatement: JoinsWhereAssociationExpression<
-      TableName,
-      AssociationExpression<TableName, any>
-    >[] = []
-    public limitStatement: { count: number } | null = null
-    public orStatements: Query<DreamClass>[] = []
-    public orderStatement: { column: keyof Table & string; direction: 'asc' | 'desc' } | null = null
-    public includesStatements: QueryAssociationExpression[] = []
-    public joinsStatements: QueryAssociationExpression[] = []
-    public shouldBypassDefaultScopes: boolean = false
-    public dreamClass: typeof Dream
+  public get primaryKey() {
+    return (this.constructor as typeof Dream).primaryKey
+  }
 
-    constructor(DreamClass: typeof Dream) {
-      this.dreamClass = DreamClass
-    }
+  public get primaryKeyValue(): string | number | null {
+    return (this as any)[this.primaryKey] || null
+  }
 
-    public bypassDefaultScopes() {
-      this.shouldBypassDefaultScopes = true
-      return this
-    }
+  public get isDirty() {
+    return !!Object.keys(this.dirtyAttributes).length
+  }
 
-    public includes(...args: QueryAssociationExpression[]) {
-      this.includesStatements = [...this.includesStatements, ...args]
-      return this
-    }
+  public get isDreamInstance() {
+    return true
+  }
 
-    public or(orStatement: Query<DreamClass>) {
-      this.orStatements = [...this.orStatements, orStatement]
-      return this
-    }
+  public get isPersisted() {
+    // todo: clean up types here
+    return !!(this as any)[this.primaryKey]
+  }
 
-    public joins(...args: QueryAssociationExpression[]) {
-      this.joinsStatements = [...this.joinsStatements, ...args]
-      return this
-    }
+  public get isValid(): boolean {
+    const validationErrors = checkValidationsFor(this)
+    return !Object.keys(validationErrors).filter(key => !!validationErrors[key].length).length
+  }
 
-    public where<T extends Query<DreamClass>>(
-      this: T,
-      attributes:
-        | WhereStatement<TableName>
-        | JoinsWhereAssociationExpression<TableName & AssociationTableNames, T['joinsStatements'][number]>
-    ) {
-      if (attributes.constructor === Array) {
-        // @ts-ignore
-        this.whereJoinsStatement = [...this.whereJoinsStatement, ...attributes]
+  public get isInvalid(): boolean {
+    return !this.isValid
+  }
+
+  public attributes<
+    T extends Dream,
+    TableName extends AssociationTableNames = T['table'] & AssociationTableNames,
+    Table extends DB[keyof DB] = DB[TableName]
+  >(): Updateable<Table> {
+    const obj: Updateable<Table> = {}
+    ;(this.constructor as typeof Dream).columns().forEach(column => {
+      ;(obj as any)[column] = (this as any)[column]
+    })
+    return obj
+  }
+
+  public dirtyAttributes<
+    T extends Dream,
+    TableName extends AssociationTableNames = T['table'] & AssociationTableNames,
+    Table extends DB[keyof DB] = DB[TableName]
+  >(): Updateable<Table> {
+    const obj: Updateable<Table> = {}
+    Object.keys(this.attributes).forEach(column => {
+      // TODO: clean up types
+      if (
+        (this.frozenAttributes as any)[column] === undefined ||
+        (this.frozenAttributes as any)[column] !== (this.attributes as any)[column]
+      )
+        (obj as any)[column] = (this.attributes as any)[column]
+    })
+    return obj
+  }
+
+  public changedAttributes<
+    T extends Dream,
+    TableName extends AssociationTableNames = T['table'] & AssociationTableNames,
+    Table extends DB[keyof DB] = DB[TableName]
+  >(): Updateable<Table> {
+    const obj: Updateable<Table> = {}
+
+    Object.keys(this.dirtyAttributes).forEach(column => {
+      ;(obj as any)[column] = (this.frozenAttributes as any)[column]
+    })
+    return obj
+  }
+
+  public freezeAttributes() {
+    this.frozenAttributes = { ...this.attributes }
+  }
+
+  public get associationMap() {
+    return (this.constructor as typeof Dream).associationMap
+  }
+
+  public get associations() {
+    return (this.constructor as typeof Dream).associations
+  }
+
+  public get associationNames() {
+    return (this.constructor as typeof Dream).associationNames
+  }
+
+  public get table(): string {
+    return (this.constructor as typeof Dream).table
+  }
+
+  public columns<
+    T extends Dream,
+    TableName extends keyof DB = T['table'] & keyof DB,
+    Table extends DB[keyof DB] = DB[TableName]
+  >(): (keyof Table)[] {
+    return (this.constructor as typeof Dream).columns()
+  }
+
+  public async load<
+    I extends Dream,
+    TableName extends AssociationTableNames = I['table'] & AssociationTableNames,
+    QueryAssociationExpression extends AssociationExpression<
+      TableName & AssociationTableNames,
+      any
+    > = AssociationExpression<TableName & AssociationTableNames, any>
+  >(this: I, ...associations: QueryAssociationExpression[]): Promise<void> {
+    const query: Query<TableName> = new Query<TableName>(this.constructor as typeof Dream)
+    for (const association of associations) await query.applyIncludes(association, [this])
+  }
+
+  public async reload<
+    I extends Dream,
+    TableName extends AssociationTableNames = I['table'] & AssociationTableNames
+  >(this: I) {
+    const base = this.constructor as typeof Dream
+
+    const query: Query<TableName> = new Query<TableName>(base)
+    query
+      .bypassDefaultScopes()
+      // @ts-ignore
+      .where({ [base.primaryKey as any]: this[base.primaryKey] } as Updateable<Table>)
+
+    // TODO: cleanup type chaos
+    // @ts-ignore
+    const newRecord = (await query.first()) as I
+    this.setAttributes(newRecord.attributes)
+    this.freezeAttributes()
+
+    return this
+  }
+
+  public setAttributes<
+    I extends Dream,
+    TableName extends keyof DB = I['table'] & keyof DB,
+    Table extends DB[keyof DB] = DB[TableName],
+    BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[TableName] = keyof SyncedBelongsToAssociations[TableName],
+    AssociationModelParam = Partial<
+      Record<
+        BelongsToModelAssociationNames,
+        ReturnType<I['associationMap'][keyof I['associationMap']]['modelCB']> extends () => (typeof Dream)[]
+          ? InstanceType<
+              ReturnType<
+                I['associationMap'][keyof I['associationMap']]['modelCB'] & (() => (typeof Dream)[])
+              >[number]
+            >
+          : InstanceType<
+              ReturnType<I['associationMap'][keyof I['associationMap']]['modelCB'] & (() => typeof Dream)>
+            >
+      >
+    >
+  >(attributes: Updateable<Table> | AssociationModelParam) {
+    const self = this as any
+    Object.keys(attributes as any).forEach(attr => {
+      const associationMetaData = this.associationMap[attr]
+
+      if (associationMetaData) {
+        const associatedObject = (attributes as any)[attr]
+        self[attr] = associatedObject
+
+        if (associationMetaData.type === 'BelongsTo') {
+          self[associationMetaData.foreignKey()] = associatedObject.primaryKeyValue
+          if (associationMetaData.polymorphic)
+            self[associationMetaData.foreignKeyTypeField()] = associatedObject.constructor.name
+        } else {
+          throw new CanOnlyPassBelongsToModelParam(self.constructor, associationMetaData)
+        }
       } else {
-        Object.keys(attributes).forEach(key => {
-          if (columns.includes(key)) {
-            this.whereStatement ||= {}
-            // @ts-ignore
-            this.whereStatement[key] = attributes[key]
-          } else {
-            // @ts-ignore
-            this.whereJoinsStatement.push({ [key]: attributes[key] })
-          }
-        })
+        // TODO: cleanup type chaos
+        self[attr] = marshalDBValue((attributes as any)[attr])
       }
+    })
+  }
 
-      return this
+  public async save<T extends Dream, TableName extends keyof DB = T['table'] & keyof DB>(
+    this: T
+  ): Promise<T> {
+    if (this.isPersisted) return await this.update()
+
+    await runHooksFor('beforeSave', this)
+    await runHooksFor('beforeCreate', this)
+
+    await this.saveUnsavedAssociations()
+
+    const sqlifiedAttributes = sqlAttributes(this.dirtyAttributes)
+
+    let query = db.insertInto(this.table as TableName)
+    if (Object.keys(sqlifiedAttributes).length) {
+      query = query.values(sqlifiedAttributes as any)
+    } else {
+      query = query.values({ id: 0 } as any)
     }
 
-    public nestedSelect<SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>>(
-      selection: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>
-    ) {
-      const query = this.buildSelect({ bypassSelectAll: true })
-      return query.select(selection)
-    }
+    await runValidationsFor(this)
+    if (this.isInvalid) throw new ValidationError(this.constructor.name, this.errors)
 
-    public order<ColumnName extends keyof Table & string>(
-      column: ColumnName,
-      direction: 'asc' | 'desc' = 'asc'
-    ) {
-      this.orderStatement = { column, direction }
-      return this
-    }
+    const data = await query.returning(this.columns() as any).executeTakeFirstOrThrow()
+    const base = this.constructor as typeof Dream
 
-    public limit(count: number) {
-      this.limitStatement = { count }
-      return this
-    }
+    // sets the id before reloading, since this is a new record
+    // TODO: cleanup type chaos
+    ;(this as any)[base.primaryKey as any] = data[base.primaryKey]
 
-    public sql() {
-      const query = this.buildSelect()
-      return query.compile()
-    }
+    await this.reload()
 
-    public toKysely(type: 'select' | 'update' | 'delete' = 'select') {
-      switch (type) {
-        case 'select':
-          return this.buildSelect()
+    await runHooksFor('afterSave', this)
+    await runHooksFor('afterCreate', this)
 
-        case 'delete':
-          return this.buildDelete()
+    return this
+  }
 
-        case 'update':
-          return this.buildUpdate({})
+  public async saveUnsavedAssociations() {
+    for (const associationName in this.associationMap) {
+      const associationMetadata = this.associationMap[associationName]
+      const associationRecord = (this as any)[associationName] as Dream | undefined
+      if (associationRecord?.isDreamInstance && !associationRecord?.isPersisted) {
+        await associationRecord.save()
+        ;(this as any)[associationMetadata.foreignKey()] = associationRecord.primaryKeyValue
       }
     }
+  }
 
-    public async count() {
-      const { count } = db.fn
-      let query = this.buildSelect({ bypassSelectAll: true })
+  public async update<
+    I extends Dream,
+    TableName extends keyof DB = I['table'] & keyof DB,
+    Table extends DB[keyof DB] = DB[TableName],
+    BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[TableName] = keyof SyncedBelongsToAssociations[TableName],
+    AssociationModelParam = Partial<
+      Record<
+        BelongsToModelAssociationNames,
+        ReturnType<I['associationMap'][keyof I['associationMap']]['modelCB']> extends () => (typeof Dream)[]
+          ? InstanceType<
+              ReturnType<
+                I['associationMap'][keyof I['associationMap']]['modelCB'] & (() => (typeof Dream)[])
+              >[number]
+            >
+          : InstanceType<
+              ReturnType<I['associationMap'][keyof I['associationMap']]['modelCB'] & (() => typeof Dream)>
+            >
+      >
+    >
+  >(this: I, attributes?: Updateable<Table> | AssociationModelParam): Promise<I> {
+    await runHooksFor('beforeSave', this)
+    await runHooksFor('beforeUpdate', this)
 
-      query = query.select(count(`${Dream.table}.${Dream.primaryKey}` as any).as('tablecount'))
-      const data = (await query.executeTakeFirstOrThrow()) as any
-
-      return parseInt(data.tablecount.toString())
+    if (attributes) this.setAttributes(attributes)
+    if (this.columns().includes('updated_at' as any)) {
+      ;(this as any).updated_at = DateTime.now().toUTC()
     }
 
-    public async pluck<SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>>(
-      ...fields: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>[]
-    ) {
-      let query = this.buildSelect({ bypassSelectAll: true })
-      fields.forEach(field => {
-        query = query.select(field)
+    await this.saveUnsavedAssociations()
+
+    let query = db.updateTable(this.table as TableName)
+    const sqlifiedAttributes = sqlAttributes(this.dirtyAttributes)
+
+    if (Object.keys(sqlifiedAttributes).length === 0) return this
+    query = query.set(sqlifiedAttributes as any)
+
+    await runValidationsFor(this)
+
+    await query.executeTakeFirstOrThrow()
+
+    await this.reload()
+
+    await runHooksFor('afterSave', this)
+    await runHooksFor('afterUpdate', this)
+
+    return this
+  }
+
+  public async destroy<I extends Dream, TableName extends keyof DB = I['table'] & keyof DB>(
+    this: I
+  ): Promise<I> {
+    await runHooksFor('beforeDestroy', this)
+
+    const base = this.constructor as typeof Dream
+    await db
+      .deleteFrom(this.table as TableName)
+      .where(base.primaryKey as any, '=', (this as any)[base.primaryKey])
+      .execute()
+
+    await runHooksFor('afterDestroy', this)
+    return this
+  }
+}
+
+// DreamClass extends typeof Dream,
+// TableName extends AssociationTableNames = DreamClass['table'] & AssociationTableNames,
+// Table = DB[TableName],
+// QueryAssociationExpression extends AssociationExpression<
+//   TableName & AssociationTableNames,
+//   any
+// > = AssociationExpression<TableName & AssociationTableNames, any>
+class Query<
+  TableName extends AssociationTableNames,
+  Table extends DB[TableName] = DB[TableName],
+  QueryAssociationExpression = AssociationExpression<TableName & AssociationTableNames, any>
+> {
+  public whereStatement: WhereStatement<any> | null = null
+  public whereJoinsStatement: JoinsWhereAssociationExpression<
+    TableName,
+    AssociationExpression<TableName, any>
+  >[] = []
+  public limitStatement: { count: number } | null = null
+  public orStatements: Query<TableName>[] = []
+  public orderStatement: { column: keyof DB[keyof DB] & string; direction: 'asc' | 'desc' } | null = null
+  public includesStatements: QueryAssociationExpression[] = []
+  public joinsStatements: QueryAssociationExpression[] = []
+  public shouldBypassDefaultScopes: boolean = false
+  public dreamClass: typeof Dream
+
+  constructor(DreamClass: typeof Dream) {
+    this.dreamClass = DreamClass
+  }
+
+  public bypassDefaultScopes() {
+    this.shouldBypassDefaultScopes = true
+    return this
+  }
+
+  public includes<
+    T extends Query<TableName>,
+    DreamClass extends typeof Dream = T['dreamClass'],
+    TableName extends AssociationTableNames = DreamClass['table'] & AssociationTableNames,
+    QueryAssociationExpression extends AssociationExpression<
+      TableName & AssociationTableNames,
+      any
+    > = AssociationExpression<TableName & AssociationTableNames, any>
+  >(this: T, ...args: QueryAssociationExpression[]) {
+    this.includesStatements = [...(this.includesStatements as any), ...args]
+    return this
+  }
+
+  public or(orStatement: Query<TableName>) {
+    this.orStatements = [...this.orStatements, orStatement]
+    return this
+  }
+
+  public joins<
+    T extends Query<TableName>,
+    QueryAssociationExpression extends AssociationExpression<
+      TableName & AssociationTableNames,
+      any
+    > = AssociationExpression<TableName & AssociationTableNames, any>
+  >(this: T, ...args: QueryAssociationExpression[]) {
+    ;(this as any).joinsStatements = [...this.joinsStatements, ...args]
+    return this
+  }
+
+  public where<T extends Query<TableName>>(
+    this: T,
+    attributes:
+      | WhereStatement<TableName>
+      | JoinsWhereAssociationExpression<TableName & AssociationTableNames, T['joinsStatements'][number]>
+  ) {
+    if (attributes.constructor === Array) {
+      // @ts-ignore
+      this.whereJoinsStatement = [...(this.whereJoinsStatement as any), ...attributes]
+    } else {
+      Object.keys(attributes).forEach(key => {
+        if (this.dreamClass.columns().includes(key as any)) {
+          this.whereStatement ||= {}
+          // @ts-ignore
+          this.whereStatement[key] = attributes[key]
+        } else {
+          // @ts-ignore
+          this.whereJoinsStatement.push({ [key]: attributes[key] })
+        }
       })
-
-      const vals = (await query.execute()).map(result => Object.values(result))
-
-      if (fields.length > 1) {
-        return vals.map(arr => arr.map(val => marshalDBValue(val)))
-      } else {
-        return vals.flat().map(val => marshalDBValue(val))
-      }
     }
 
-    public async all() {
-      const query = this.buildSelect()
-      let results: any[]
-      try {
-        results = await query.execute()
-      } catch (error) {
-        throw `
+    return this
+  }
+
+  public nestedSelect<SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>>(
+    selection: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>
+  ) {
+    const query = this.buildSelect({ bypassSelectAll: true })
+    return query.select(selection)
+  }
+
+  public order<ColumnName extends keyof Table & string>(
+    column: ColumnName,
+    direction: 'asc' | 'desc' = 'asc'
+  ) {
+    this.orderStatement = { column: column as any, direction }
+    return this
+  }
+
+  public limit(count: number) {
+    this.limitStatement = { count }
+    return this
+  }
+
+  public sql() {
+    const query = this.buildSelect()
+    return query.compile()
+  }
+
+  public toKysely(type: 'select' | 'update' | 'delete' = 'select') {
+    switch (type) {
+      case 'select':
+        return this.buildSelect()
+
+      case 'delete':
+        return this.buildDelete()
+
+      case 'update':
+        return this.buildUpdate({})
+    }
+  }
+
+  public async count<T extends Query<TableName>>(this: T) {
+    const { count } = db.fn
+    let query = this.buildSelect({ bypassSelectAll: true })
+
+    query = query.select(count(`${Dream.table}.${Dream.primaryKey}` as any).as('tablecount'))
+    const data = (await query.executeTakeFirstOrThrow()) as any
+
+    return parseInt(data.tablecount.toString())
+  }
+
+  public async pluck<SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>>(
+    ...fields: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>[]
+  ) {
+    let query = this.buildSelect({ bypassSelectAll: true })
+    fields.forEach(field => {
+      query = query.select(field)
+    })
+
+    const vals = (await query.execute()).map(result => Object.values(result))
+
+    if (fields.length > 1) {
+      return vals.map(arr => arr.map(val => marshalDBValue(val)))
+    } else {
+      return vals.flat().map(val => marshalDBValue(val))
+    }
+  }
+
+  public async all<T extends Query<TableName>>(this: T) {
+    const query = this.buildSelect()
+    let results: any[]
+    try {
+      results = await query.execute()
+    } catch (error) {
+      throw `
           Error executing SQL:
           ${error}
 
@@ -641,415 +821,420 @@ export default function dream<
           ${query.compile().sql}
           [ ${query.compile().parameters.join(', ')} ]
         `
-      }
-
-      const theAll = results.map(r => new this.dreamClass(r as Updateable<Table>) as DreamClass)
-      await this.applyThisDotIncludes(theAll)
-      return theAll
     }
 
-    public async first() {
-      if (!this.orderStatement) this.order(Dream.primaryKey as keyof Table & string, 'asc')
+    const theAll = results.map(r => new this.dreamClass(r as Updateable<Table>))
+    await this.applyThisDotIncludes(theAll)
+    return theAll
+  }
 
-      const query = this.buildSelect()
-      const results = await query.executeTakeFirst()
+  public async first<T extends Query<TableName>>(this: T) {
+    if (!this.orderStatement) this.order(this.dreamClass.primaryKey as any, 'asc')
 
-      if (results) {
-        const theFirst = new this.dreamClass(results as any) as DreamClass
-        await this.applyThisDotIncludes([theFirst])
-        return theFirst
-      } else return null
+    const query = this.buildSelect()
+    const results = await query.executeTakeFirst()
+
+    if (results) {
+      const theFirst = new this.dreamClass(results as any)
+      await this.applyThisDotIncludes([theFirst])
+      return theFirst
+    } else return null
+  }
+
+  public async applyThisDotIncludes(dreams: Dream[]) {
+    for (const includesStatement of this.includesStatements) {
+      await this.applyIncludes(includesStatement, dreams)
     }
+  }
 
-    public async applyThisDotIncludes(dreams: DreamClass[]) {
-      for (const includesStatement of this.includesStatements) {
-        await this.applyIncludes(includesStatement, dreams)
-      }
-    }
-
-    public hydrateAssociation(
-      dreams: Dream[],
-      association: HasManyStatement<any> | HasOneStatement<any> | BelongsToStatement<any>,
-      loadedAssociations: Dream[]
-    ) {
-      // dreams is a Rating
-      // Rating belongs to: rateables (Posts / Compositions)
-      // loadedAssociations is an array of Posts and Compositions
-      // if rating.rateable_id === loadedAssociation.primaryKeyvalue
-      //  rating.rateable = loadedAssociation
-      for (const loadedAssociation of loadedAssociations) {
-        if (association.type === 'BelongsTo') {
-          dreams
-            .filter((dream: any) => {
-              if (association.polymorphic) {
-                return (
-                  dream[association.foreignKeyTypeField()] === loadedAssociation.constructor.name &&
-                  dream[association.foreignKey()] === loadedAssociation.primaryKeyValue
-                )
-              } else {
-                return dream[association.foreignKey()] === loadedAssociation.primaryKeyValue
-              }
-            })
-            .forEach((dream: any) => {
-              dream[association.as] = loadedAssociation
-            })
-        } else {
-          dreams
-            .filter(dream => (loadedAssociation as any)[association.foreignKey()] === dream.primaryKeyValue)
-            .forEach((dream: any) => {
-              if (association.type === 'HasMany') {
-                dream[association.as] ||= []
-                dream[association.as].push(loadedAssociation)
-              } else {
-                dream[association.as] = loadedAssociation
-              }
-            })
-        }
-      }
-
-      if (association.type === 'HasMany') {
-        dreams.forEach((dream: any) => {
-          if (dream[association.as]) Object.freeze(dream[association.as])
-        })
-      }
-    }
-
-    public async includesBridgeThroughAssociations(
-      dreams: Dream[],
-      association: HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any>
-    ): Promise<{
-      dreams: Dream[]
-      association: HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any>
-    }> {
-      if (association.type === 'BelongsTo' || !association.through) {
-        return { dreams, association }
-      } else {
-        // Post has many Commenters through Comments
-        // hydrate Post Comments
-        await this.applyOneInclude(association.through, dreams)
-
-        dreams.forEach(dream => {
-          if (association.type === 'HasMany') {
-            Object.defineProperty(dream, association.as, {
-              get() {
-                return Object.freeze(
-                  ((dream as any)[association.through!] as any[]).flatMap(
-                    record => (record as any)![association.as]
-                  )
-                )
-              },
-            })
-          } else {
-            Object.defineProperty(dream, association.as, {
-              get() {
-                return (dream as any)[association.through!]![association.as]
-              },
-            })
-          }
-        })
-
-        // return:
-        //  Comments,
-        //  the Comments -> CommentAuthors hasMany association
-        // So that Comments may be properly hydrated with many CommentAuthors
-        const newDreams = (dreams as any[]).flatMap(dream => dream[association.through!])
-        const newAssociation = association.throughClass!().associationMap[association.as]
-        return await this.includesBridgeThroughAssociations(newDreams, newAssociation)
-      }
-    }
-
-    public async applyOneInclude(currentAssociationTableOrAlias: string, dreams: Dream | Dream[]) {
-      if (dreams.constructor !== Array) dreams = [dreams as Dream]
-
-      const dream = dreams[0]
-      if (!dream) return
-
-      let association = dream.associationMap[currentAssociationTableOrAlias]
-      let associationQuery
-
-      const results = await this.includesBridgeThroughAssociations(dreams, association)
-      dreams = results.dreams
-      association = results.association
-
+  public hydrateAssociation(
+    dreams: Dream[],
+    association: HasManyStatement<any> | HasOneStatement<any> | BelongsToStatement<any>,
+    loadedAssociations: Dream[]
+  ) {
+    // dreams is a Rating
+    // Rating belongs to: rateables (Posts / Compositions)
+    // loadedAssociations is an array of Posts and Compositions
+    // if rating.rateable_id === loadedAssociation.primaryKeyvalue
+    //  rating.rateable = loadedAssociation
+    for (const loadedAssociation of loadedAssociations) {
       if (association.type === 'BelongsTo') {
-        if (association.polymorphic) {
-          // Rating polymorphically BelongsTo Composition and Post
-          // for each of Composition and Post
-          for (const associatedModel of association.modelCB() as DreamModel<any, any>[]) {
-            const relevantAssociatedModels = dreams.filter((dream: any) => {
-              return (dream as any)[association.foreignKeyTypeField()] === associatedModel.name
+        dreams
+          .filter((dream: any) => {
+            if (association.polymorphic) {
+              return (
+                dream[association.foreignKeyTypeField()] === loadedAssociation.constructor.name &&
+                dream[association.foreignKey()] === loadedAssociation.primaryKeyValue
+              )
+            } else {
+              return dream[association.foreignKey()] === loadedAssociation.primaryKeyValue
+            }
+          })
+          .forEach((dream: any) => {
+            dream[association.as] = loadedAssociation
+          })
+      } else {
+        dreams
+          .filter(dream => (loadedAssociation as any)[association.foreignKey()] === dream.primaryKeyValue)
+          .forEach((dream: any) => {
+            if (association.type === 'HasMany') {
+              dream[association.as] ||= []
+              dream[association.as].push(loadedAssociation)
+            } else {
+              dream[association.as] = loadedAssociation
+            }
+          })
+      }
+    }
+
+    if (association.type === 'HasMany') {
+      dreams.forEach((dream: any) => {
+        if (dream[association.as]) Object.freeze(dream[association.as])
+      })
+    }
+  }
+
+  public async includesBridgeThroughAssociations(
+    dreams: Dream[],
+    association: HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any>
+  ): Promise<{
+    dreams: Dream[]
+    association: HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any>
+  }> {
+    if (association.type === 'BelongsTo' || !association.through) {
+      return { dreams, association }
+    } else {
+      // Post has many Commenters through Comments
+      // hydrate Post Comments
+      await this.applyOneInclude(association.through, dreams)
+
+      dreams.forEach(dream => {
+        if (association.type === 'HasMany') {
+          Object.defineProperty(dream, association.as, {
+            get() {
+              return Object.freeze(
+                ((dream as any)[association.through!] as any[]).flatMap(
+                  record => (record as any)![association.as]
+                )
+              )
+            },
+          })
+        } else {
+          Object.defineProperty(dream, association.as, {
+            get() {
+              return (dream as any)[association.through!]![association.as]
+            },
+          })
+        }
+      })
+
+      // return:
+      //  Comments,
+      //  the Comments -> CommentAuthors hasMany association
+      // So that Comments may be properly hydrated with many CommentAuthors
+      const newDreams = (dreams as any[]).flatMap(dream => dream[association.through!])
+      const newAssociation = association.throughClass!().associationMap[association.as]
+      return await this.includesBridgeThroughAssociations(newDreams, newAssociation)
+    }
+  }
+
+  public async applyOneInclude(currentAssociationTableOrAlias: string, dreams: Dream | Dream[]) {
+    if (dreams.constructor !== Array) dreams = [dreams as Dream]
+
+    const dream = dreams[0]
+    if (!dream) return
+
+    let association = dream.associationMap[currentAssociationTableOrAlias]
+    let associationQuery
+
+    const results = await this.includesBridgeThroughAssociations(dreams, association)
+    dreams = results.dreams
+    association = results.association
+
+    if (association.type === 'BelongsTo') {
+      if (association.polymorphic) {
+        // Rating polymorphically BelongsTo Composition and Post
+        // for each of Composition and Post
+        for (const associatedModel of association.modelCB() as (typeof Dream)[]) {
+          const relevantAssociatedModels = dreams.filter((dream: any) => {
+            return (dream as any)[association.foreignKeyTypeField()] === associatedModel.name
+          })
+
+          if (relevantAssociatedModels.length) {
+            associationQuery = associatedModel.where({
+              [associatedModel.primaryKey]: relevantAssociatedModels.map(
+                (dream: any) => (dream as any)[association.foreignKey()]
+              ),
             })
 
-            if (relevantAssociatedModels.length) {
-              associationQuery = associatedModel.where({
-                [associatedModel.primaryKey]: relevantAssociatedModels.map(
-                  (dream: any) => (dream as any)[association.foreignKey()]
-                ),
-              })
-
-              this.hydrateAssociation(dreams, association, await associationQuery.all())
-            }
+            this.hydrateAssociation(dreams, association, await associationQuery.all())
           }
-        } else {
-          const associatedModel = association.modelCB() as DreamModel<any, any>
-          associationQuery = associatedModel.where({
-            [associatedModel.primaryKey]: dreams.map(dream => (dream as any)[association.foreignKey()]),
-          })
-
-          this.hydrateAssociation(dreams, association, await associationQuery.all())
         }
       } else {
-        const associatedModel = association.modelCB() as DreamModel<any, any>
+        const associatedModel = association.modelCB() as typeof Dream
         associationQuery = associatedModel.where({
-          [association.foreignKey()]: dreams.map(dream => dream.primaryKeyValue),
+          [associatedModel.primaryKey]: dreams.map(dream => (dream as any)[association.foreignKey()]),
         })
-
-        if (association.polymorphic) {
-          associationQuery = associationQuery.where({
-            [association.foreignKeyTypeField()]: associatedModel.name,
-          })
-        }
-
-        if (association.where) associationQuery = associationQuery.where(association.where)
 
         this.hydrateAssociation(dreams, association, await associationQuery.all())
       }
+    } else {
+      const associatedModel = association.modelCB() as typeof Dream
+      associationQuery = associatedModel.where({
+        [association.foreignKey()]: dreams.map(dream => dream.primaryKeyValue),
+      })
 
-      return dreams.flatMap(dream => (dream as any)[association.as])
-    }
-
-    public async applyIncludes(includesStatement: QueryAssociationExpression, dream: Dream | Dream[]) {
-      switch (includesStatement.constructor) {
-        case String:
-          await this.applyOneInclude(includesStatement as string, dream)
-          break
-        case Array:
-          for (const str of includesStatement as QueryAssociationExpression[]) {
-            await this.applyIncludes(str, dream)
-          }
-          break
-        default:
-          for (const key of Object.keys(includesStatement)) {
-            const nestedDream = await this.applyOneInclude(key, dream)
-            if (nestedDream) {
-              await this.applyIncludes((includesStatement as any)[key], nestedDream)
-            }
-          }
-      }
-    }
-
-    public async last() {
-      if (!this.orderStatement) this.order(Dream.primaryKey, 'desc')
-
-      const query = this.buildSelect()
-      const results = await query.executeTakeFirst()
-
-      if (results) {
-        const theLast = new Dream(results) as DreamClass
-        await this.applyThisDotIncludes([theLast])
-        return theLast
-      } else return null
-    }
-
-    public async destroy() {
-      const query = this.buildDelete()
-      const selectQuery = this.buildSelect()
-      const results = await selectQuery.execute()
-      await query.execute()
-      return results.length
-    }
-
-    public async destroyBy(attributes: Updateable<Table>) {
-      this.where(attributes)
-      const query = this.buildDelete()
-      const selectQuery = this.buildSelect()
-      const results = await selectQuery.execute()
-      await query.execute()
-      return results.length
-    }
-
-    public async update(attributes: Updateable<Table>) {
-      const query = this.buildUpdate(attributes)
-      await query.execute()
-
-      const selectQuery = this.buildSelect()
-      const results = await selectQuery.execute()
-
-      const DreamClass = Dream
-      return results.map(r => new DreamClass(r as any) as DreamClass)
-    }
-
-    // private
-
-    public conditionallyApplyScopes() {
-      if (this.shouldBypassDefaultScopes) return
-
-      const thisScopes = this.dreamClass.scopes.default.filter(s => s.className === this.dreamClass.name)
-      for (const scope of thisScopes) {
-        ;(this.dreamClass as any)[scope.method](this)
-      }
-    }
-
-    public buildDelete() {
-      let query = db.deleteFrom(tableName as TableName)
-      if (this.whereStatement) {
-        Object.keys(this.whereStatement).forEach(attr => {
-          query = query.where(attr as any, '=', (this.whereStatement as any)[attr])
+      if (association.polymorphic) {
+        associationQuery = associationQuery.where({
+          [association.foreignKeyTypeField()]: associatedModel.name,
         })
       }
-      return query
+
+      if (association.where) associationQuery = associationQuery.where(association.where)
+
+      this.hydrateAssociation(dreams, association, await associationQuery.all())
     }
 
-    public joinsBridgeThroughAssociations({
+    return dreams.flatMap(dream => (dream as any)[association.as])
+  }
+
+  public async applyIncludes(includesStatement: QueryAssociationExpression, dream: Dream | Dream[]) {
+    switch ((includesStatement as any).constructor) {
+      case String:
+        await this.applyOneInclude(includesStatement as string, dream)
+        break
+      case Array:
+        for (const str of includesStatement as QueryAssociationExpression[]) {
+          await this.applyIncludes(str, dream)
+        }
+        break
+      default:
+        for (const key of Object.keys(includesStatement as any)) {
+          const nestedDream = await this.applyOneInclude(key, dream)
+          if (nestedDream) {
+            await this.applyIncludes((includesStatement as any)[key], nestedDream)
+          }
+        }
+    }
+  }
+
+  public async last() {
+    if (!this.orderStatement)
+      this.order((this.dreamClass.constructor as typeof Dream).primaryKey as any, 'desc')
+
+    const query = this.buildSelect()
+    const results = await query.executeTakeFirst()
+
+    if (results) {
+      const theLast = new this.dreamClass(results)
+      await this.applyThisDotIncludes([theLast])
+      return theLast
+    } else return null
+  }
+
+  public async destroy() {
+    const query = this.buildDelete()
+    const selectQuery = this.buildSelect()
+    const results = await selectQuery.execute()
+    await query.execute()
+    return results.length
+  }
+
+  public async destroyBy<T extends Query<TableName>>(this: T, attributes: Updateable<DB[TableName]>) {
+    this.where(attributes)
+    const query = this.buildDelete()
+    const selectQuery = this.buildSelect()
+    const results = await selectQuery.execute()
+    await query.execute()
+    return results.length
+  }
+
+  public async update(attributes: Updateable<Table>) {
+    const query = this.buildUpdate(attributes)
+    await query.execute()
+
+    const selectQuery = this.buildSelect()
+    const results = await selectQuery.execute()
+
+    const DreamClass = Dream
+    return results.map(r => new DreamClass(r as any))
+  }
+
+  // private
+
+  public conditionallyApplyScopes() {
+    if (this.shouldBypassDefaultScopes) return
+
+    const thisScopes = this.dreamClass.scopes.default.filter(s => s.className === this.dreamClass.name)
+    for (const scope of thisScopes) {
+      ;(this.dreamClass as any)[scope.method](this)
+    }
+  }
+
+  public buildDelete() {
+    let query = db.deleteFrom(this.dreamClass.table as TableName)
+    if (this.whereStatement) {
+      Object.keys(this.whereStatement).forEach(attr => {
+        query = query.where(attr as any, '=', (this.whereStatement as any)[attr])
+      })
+    }
+    return query
+  }
+
+  public joinsBridgeThroughAssociations<T extends Query<TableName>>(
+    this: T,
+    {
       query,
       dreamClass,
       association,
       previousAssociationTableOrAlias,
     }: {
       query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
-      dreamClass: DreamModel<any, any>
+      dreamClass: typeof Dream
       association: HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any>
       previousAssociationTableOrAlias: string
-    }): {
-      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
-      dreamClass: DreamModel<any, any>
-      association: HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any>
-      previousAssociationTableOrAlias: string
-    } {
-      if (association.type === 'BelongsTo' || !association.through) {
-        return {
-          query,
-          dreamClass,
-          association,
-          previousAssociationTableOrAlias,
-        }
-      } else {
-        // Post has many Commenters through Comments
-        //  Comments,
-        //  the Comments -> CommentAuthors hasMany association
-        // dreamClass is Post
-        // newDreamClass is Comment
-        const results = this.applyOneJoin({
-          query,
-          dreamClass,
-          previousAssociationTableOrAlias,
-          currentAssociationTableOrAlias: association.through,
-        })
-
-        return this.joinsBridgeThroughAssociations({
-          query: results.query,
-          dreamClass: association.modelCB(),
-          association: association.throughClass!().associationMap[association.as],
-          previousAssociationTableOrAlias: association.through,
-        })
-      }
     }
+  ): {
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
+    dreamClass: typeof Dream
+    association: HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any>
+    previousAssociationTableOrAlias: string
+  } {
+    if (association.type === 'BelongsTo' || !association.through) {
+      return {
+        query,
+        dreamClass,
+        association,
+        previousAssociationTableOrAlias,
+      }
+    } else {
+      // Post has many Commenters through Comments
+      //  Comments,
+      //  the Comments -> CommentAuthors hasMany association
+      // dreamClass is Post
+      // newDreamClass is Comment
+      const results = this.applyOneJoin({
+        query,
+        dreamClass,
+        previousAssociationTableOrAlias,
+        currentAssociationTableOrAlias: association.through,
+      })
 
-    public applyOneJoin({
+      return this.joinsBridgeThroughAssociations({
+        query: results.query,
+        dreamClass: association.modelCB(),
+        association: association.throughClass!().associationMap[association.as],
+        previousAssociationTableOrAlias: association.through,
+      })
+    }
+  }
+
+  public applyOneJoin<T extends Query<TableName>>(
+    this: T,
+    {
       query,
       dreamClass,
       previousAssociationTableOrAlias,
       currentAssociationTableOrAlias,
     }: {
       query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
-      dreamClass: DreamModel<any, any>
+      dreamClass: typeof Dream
       previousAssociationTableOrAlias: string
       currentAssociationTableOrAlias: string
-    }): {
-      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
-      association: any
-      previousAssociationTableOrAlias: string
-      currentAssociationTableOrAlias: string
-    } {
-      // Given:
-      // dreamClass: Post
-      // previousAssociationTableOrAlias: posts
-      // currentAssociationTableOrAlias: commenters
-      // Post has many Commenters through Comments
-      // whereJoinsStatement: { commenters: { id: <some commenter id> } }
-      // association = Post.associationMap[commenters]
-      // which gives association = {
-      //   through: 'comments',
-      //   throughClass: () => Comment,
-      //   as: 'commenters',
-      //   modelCB: () => Commenter,
-      // }
-      //
-      // We want joinsBridgeThroughAssociations to add to the query:
-      // INNER JOINS comments ON posts.id = comments.post_id
-      // and update dreamClass to be
+    }
+  ): {
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
+    association: any
+    previousAssociationTableOrAlias: string
+    currentAssociationTableOrAlias: string
+  } {
+    // Given:
+    // dreamClass: Post
+    // previousAssociationTableOrAlias: posts
+    // currentAssociationTableOrAlias: commenters
+    // Post has many Commenters through Comments
+    // whereJoinsStatement: { commenters: { id: <some commenter id> } }
+    // association = Post.associationMap[commenters]
+    // which gives association = {
+    //   through: 'comments',
+    //   throughClass: () => Comment,
+    //   as: 'commenters',
+    //   modelCB: () => Commenter,
+    // }
+    //
+    // We want joinsBridgeThroughAssociations to add to the query:
+    // INNER JOINS comments ON posts.id = comments.post_id
+    // and update dreamClass to be
 
-      let association = dreamClass.associationMap[currentAssociationTableOrAlias]
+    let association = dreamClass.associationMap[currentAssociationTableOrAlias]
 
-      const results = this.joinsBridgeThroughAssociations({
-        query,
-        dreamClass,
-        association,
-        previousAssociationTableOrAlias,
-      })
-      query = results.query
-      dreamClass = results.dreamClass
-      association = results.association
-      previousAssociationTableOrAlias = results.previousAssociationTableOrAlias
+    const results = this.joinsBridgeThroughAssociations({
+      query,
+      dreamClass,
+      association,
+      previousAssociationTableOrAlias,
+    })
+    query = results.query
+    dreamClass = results.dreamClass
+    association = results.association
+    previousAssociationTableOrAlias = results.previousAssociationTableOrAlias
 
-      if (association.type === 'BelongsTo') {
-        if (association.modelCB().constructor === Array)
-          throw new CannotJoinPolymorphicBelongsToError({
-            dreamClass,
-            association,
-            joinsStatements: this.joinsStatements,
-          })
+    if (association.type === 'BelongsTo') {
+      if (association.modelCB().constructor === Array)
+        throw new CannotJoinPolymorphicBelongsToError({
+          dreamClass,
+          association,
+          joinsStatements: this.joinsStatements,
+        })
 
-        const to = (association.modelCB() as DreamModel<any, any>).table
-        const joinTableExpression =
-          currentAssociationTableOrAlias === to
-            ? currentAssociationTableOrAlias
-            : `${to} as ${currentAssociationTableOrAlias as string}`
+      const to = (association.modelCB() as typeof Dream).table
+      const joinTableExpression =
+        currentAssociationTableOrAlias === to
+          ? currentAssociationTableOrAlias
+          : `${to} as ${currentAssociationTableOrAlias as string}`
 
+      // @ts-ignore
+      query = query.innerJoin(
         // @ts-ignore
-        query = query.innerJoin(
-          // @ts-ignore
-          joinTableExpression,
-          `${previousAssociationTableOrAlias}.${association.foreignKey() as string}`,
-          `${currentAssociationTableOrAlias as string}.${
-            (association.modelCB() as DreamModel<any, any>).primaryKey
-          }`
-        )
-      } else {
-        const to = association.modelCB().table
-        const joinTableExpression =
-          currentAssociationTableOrAlias === to
-            ? currentAssociationTableOrAlias
-            : `${to} as ${currentAssociationTableOrAlias as string}`
+        joinTableExpression,
+        `${previousAssociationTableOrAlias}.${association.foreignKey() as string}`,
+        `${currentAssociationTableOrAlias as string}.${(association.modelCB() as typeof Dream).primaryKey}`
+      )
+    } else {
+      const to = association.modelCB().table
+      const joinTableExpression =
+        currentAssociationTableOrAlias === to
+          ? currentAssociationTableOrAlias
+          : `${to} as ${currentAssociationTableOrAlias as string}`
 
+      // @ts-ignore
+      query = query.innerJoin(
         // @ts-ignore
-        query = query.innerJoin(
-          // @ts-ignore
-          joinTableExpression,
-          `${previousAssociationTableOrAlias}.${association.modelCB().primaryKey}`,
-          `${currentAssociationTableOrAlias as string}.${association.foreignKey() as string}`
-        )
+        joinTableExpression,
+        `${previousAssociationTableOrAlias}.${association.modelCB().primaryKey}`,
+        `${currentAssociationTableOrAlias as string}.${association.foreignKey() as string}`
+      )
 
-        if (association.where) {
-          const aliasedWhere: any = {}
-          Object.keys(association.where).forEach((key: any) => {
-            aliasedWhere[`${currentAssociationTableOrAlias as string}.${key}`] = (association as any).where[
-              key
-            ]
-          })
-          query = this.applyWhereStatement(query, aliasedWhere as WhereStatement<TableName>)
-        }
-      }
-
-      return {
-        query,
-        association,
-        previousAssociationTableOrAlias,
-        currentAssociationTableOrAlias,
+      if (association.where) {
+        const aliasedWhere: any = {}
+        Object.keys(association.where).forEach((key: any) => {
+          aliasedWhere[`${currentAssociationTableOrAlias as string}.${key}`] = (association as any).where[key]
+        })
+        query = this.applyWhereStatement(query, aliasedWhere as WhereStatement<TableName>)
       }
     }
 
-    public recursivelyJoin<PreviousTableName extends AssociationTableNames>({
+    return {
+      query,
+      association,
+      previousAssociationTableOrAlias,
+      currentAssociationTableOrAlias,
+    }
+  }
+
+  public recursivelyJoin<T extends Query<TableName>, PreviousTableName extends AssociationTableNames>(
+    this: T,
+    {
       query,
       joinsStatement,
       dreamClass,
@@ -1059,288 +1244,287 @@ export default function dream<
       joinsStatement:
         | JoinsWhereAssociationExpression<PreviousTableName, AssociationExpression<PreviousTableName, any>>
         | Updateable<DB[PreviousTableName]>
-      dreamClass: DreamModel<any, any>
+      dreamClass: typeof Dream
       previousAssociationTableOrAlias: string
-    }): SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}> {
-      if (joinsStatement.constructor === Array) {
-        joinsStatement.forEach(oneJoinsStatement => {
-          query = this.recursivelyJoin({
-            query,
-            joinsStatement: oneJoinsStatement,
-            dreamClass,
-            previousAssociationTableOrAlias,
-          }) as SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
-        })
-
-        return query
-      } else if (joinsStatement.constructor === String) {
-        const results = this.applyOneJoin({
-          query,
-          dreamClass,
-          previousAssociationTableOrAlias,
-          currentAssociationTableOrAlias: joinsStatement,
-        })
-
-        return results.query
-      }
-
-      for (const currentAssociationTableOrAlias of Object.keys(joinsStatement) as string[]) {
-        const results = this.applyOneJoin({
-          query,
-          dreamClass,
-          previousAssociationTableOrAlias,
-          currentAssociationTableOrAlias,
-        })
-
-        query = results.query
-        const association = results.association
-
-        query = this.recursivelyJoin<any>({
-          query,
-          // @ts-ignore
-          joinsStatement: joinsStatement[currentAssociationTableOrAlias],
-          dreamClass: association.modelCB(),
-          previousAssociationTableOrAlias: currentAssociationTableOrAlias,
-        })
-      }
-
-      return query
     }
-
-    public applyWhereStatement<T extends Query<DreamClass>>(
-      this: T,
-      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>,
-      whereStatement:
-        | WhereStatement<TableName>
-        | JoinsWhereAssociationExpression<TableName & AssociationTableNames, T['joinsStatements'][number]>
-    ) {
-      Object.keys(whereStatement).forEach(attr => {
-        const val = (whereStatement as any)[attr]
-
-        if (val === null) {
-          query = query.where(attr as any, 'is', val)
-        } else if (val.constructor === SelectQueryBuilder) {
-          query = query.where(attr as any, 'in', val)
-        } else if (val.constructor === Array) {
-          query = query.where(attr as any, 'in', val)
-        } else if (val.constructor === OpsStatement) {
-          query = query.where(attr as any, val.operator, val.value)
-        } else if (
-          val.constructor === Range &&
-          (val.begin?.constructor || val.end?.constructor) === DateTime
-        ) {
-          const begin = val.begin?.toUTC()?.toSQL()
-          const end = val.end?.toUTC()?.toSQL()
-          const excludeEnd = val.excludeEnd
-
-          if (begin && end) {
-            query = query.where(attr as any, '>=', begin).where(attr as any, excludeEnd ? '<' : '<=', end)
-          } else if (begin) {
-            query = query.where(attr as any, '>=', begin)
-          } else {
-            query = query.where(attr as any, excludeEnd ? '<' : '<=', end)
-          }
-        } else {
-          query = query.where(attr as any, '=', val)
-        }
+  ): SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}> {
+    if (joinsStatement.constructor === Array) {
+      joinsStatement.forEach(oneJoinsStatement => {
+        query = this.recursivelyJoin({
+          query,
+          joinsStatement: oneJoinsStatement,
+          dreamClass,
+          previousAssociationTableOrAlias,
+        }) as SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
       })
 
       return query
-    }
-
-    public recursivelyApplyJoinWhereStatement<PreviousTableName extends AssociationTableNames>(
-      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>,
-      whereJoinsStatement:
-        | JoinsWhereAssociationExpression<PreviousTableName, AssociationExpression<PreviousTableName, any>>
-        | Updateable<DB[PreviousTableName]>,
-      previousAssociationTableOrAlias: string
-    ) {
-      for (const key of Object.keys(whereJoinsStatement) as (
-        | keyof SyncedAssociations[PreviousTableName]
-        | keyof Updateable<DB[PreviousTableName]>
-      )[]) {
-        const columnValue = (whereJoinsStatement as Updateable<DB[PreviousTableName]>)[
-          key as keyof Updateable<DB[PreviousTableName]>
-        ]
-
-        if (columnValue!.constructor !== Object) {
-          // @ts-ignore
-          query = query.where(`${previousAssociationTableOrAlias}.${key}`, '=', columnValue)
-        } else {
-          let currentAssociationTableOrAlias = key as
-            | (keyof SyncedAssociations[PreviousTableName] & string)
-            | string
-
-          query = this.recursivelyApplyJoinWhereStatement<any>(
-            query,
-            // @ts-ignore
-            whereJoinsStatement[currentAssociationTableOrAlias],
-            currentAssociationTableOrAlias
-          )
-        }
-      }
-
-      return query
-    }
-
-    public buildSelect({ bypassSelectAll = false }: { bypassSelectAll?: boolean } = {}) {
-      this.conditionallyApplyScopes()
-
-      let query = db.selectFrom(tableName)
-      if (!bypassSelectAll) query = query.selectAll(tableName as any)
-
-      if (this.joinsStatements.length) {
-        query = this.recursivelyJoin<any>({
-          query,
-          joinsStatement: this.joinsStatements,
-          // @ts-ignore
-          dreamClass: this.dreamClass,
-          previousAssociationTableOrAlias: this.dreamClass.table,
-        })
-      }
-
-      this.orStatements.forEach(orStatement => {
-        query = query.union(orStatement.toKysely() as any)
+    } else if (joinsStatement.constructor === String) {
+      const results = this.applyOneJoin({
+        query,
+        dreamClass,
+        previousAssociationTableOrAlias,
+        currentAssociationTableOrAlias: joinsStatement,
       })
 
-      if (this.whereStatement) {
-        query = this.applyWhereStatement(query, this.whereStatement)
-      }
+      return results.query
+    }
 
-      this.whereJoinsStatement.forEach(whereJoinsStatement => {
+    for (const currentAssociationTableOrAlias of Object.keys(joinsStatement) as string[]) {
+      const results = this.applyOneJoin({
+        query,
+        dreamClass,
+        previousAssociationTableOrAlias,
+        currentAssociationTableOrAlias,
+      })
+
+      query = results.query
+      const association = results.association
+
+      query = this.recursivelyJoin({
+        query,
         // @ts-ignore
-        query = this.recursivelyApplyJoinWhereStatement<any>(query, whereJoinsStatement)
+        joinsStatement: joinsStatement[currentAssociationTableOrAlias],
+        dreamClass: association.modelCB(),
+        previousAssociationTableOrAlias: currentAssociationTableOrAlias,
       })
-
-      if (this.limitStatement) query = query.limit(this.limitStatement.count)
-      if (this.orderStatement)
-        query = query.orderBy(this.orderStatement.column as any, this.orderStatement.direction)
-
-      return query
     }
 
-    public buildUpdate(attributes: Updateable<Table>) {
-      let query = db.updateTable(this.dreamClass.table).set(attributes as any)
-      if (this.whereStatement) {
-        Object.keys(this.whereStatement).forEach(attr => {
-          query = query.where(attr as any, '=', (this.whereStatement as any)[attr])
-        })
+    return query
+  }
+
+  public applyWhereStatement<T extends Query<TableName>>(
+    this: T,
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>,
+    whereStatement:
+      | WhereStatement<TableName>
+      | JoinsWhereAssociationExpression<TableName & AssociationTableNames, T['joinsStatements'][number]>
+  ) {
+    Object.keys(whereStatement).forEach(attr => {
+      const val = (whereStatement as any)[attr]
+
+      if (val === null) {
+        query = query.where(attr as any, 'is', val)
+      } else if (val.constructor === SelectQueryBuilder) {
+        query = query.where(attr as any, 'in', val)
+      } else if (val.constructor === Array) {
+        query = query.where(attr as any, 'in', val)
+      } else if (val.constructor === OpsStatement) {
+        query = query.where(attr as any, val.operator, val.value)
+      } else if (val.constructor === Range && (val.begin?.constructor || val.end?.constructor) === DateTime) {
+        const begin = val.begin?.toUTC()?.toSQL()
+        const end = val.end?.toUTC()?.toSQL()
+        const excludeEnd = val.excludeEnd
+
+        if (begin && end) {
+          query = query.where(attr as any, '>=', begin).where(attr as any, excludeEnd ? '<' : '<=', end)
+        } else if (begin) {
+          query = query.where(attr as any, '>=', begin)
+        } else {
+          query = query.where(attr as any, excludeEnd ? '<' : '<=', end)
+        }
+      } else {
+        query = query.where(attr as any, '=', val)
       }
-      return query
-    }
+    })
+
+    return query
   }
 
-  // internal
-  function ensureSTITypeFieldIsSet<T extends Dream>(dream: T) {
-    // todo: turn STI logic here into before create applied by decorator
-    const Base = dream.constructor as typeof Dream
-    if (Base.sti.value && Base.sti.column) {
-      ;(dream as any)[Base.sti.column] = Base.sti.value
+  public recursivelyApplyJoinWhereStatement<PreviousTableName extends AssociationTableNames>(
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>,
+    whereJoinsStatement:
+      | JoinsWhereAssociationExpression<PreviousTableName, AssociationExpression<PreviousTableName, any>>
+      | Updateable<DB[PreviousTableName]>,
+    previousAssociationTableOrAlias: string
+  ) {
+    for (const key of Object.keys(whereJoinsStatement) as (
+      | keyof SyncedAssociations[PreviousTableName]
+      | keyof Updateable<DB[PreviousTableName]>
+    )[]) {
+      const columnValue = (whereJoinsStatement as Updateable<DB[PreviousTableName]>)[
+        key as keyof Updateable<DB[PreviousTableName]>
+      ]
+
+      if (columnValue!.constructor !== Object) {
+        // @ts-ignore
+        query = query.where(`${previousAssociationTableOrAlias}.${key}`, '=', columnValue)
+      } else {
+        let currentAssociationTableOrAlias = key as
+          | (keyof SyncedAssociations[PreviousTableName] & string)
+          | string
+
+        query = this.recursivelyApplyJoinWhereStatement<any>(
+          query,
+          // @ts-ignore
+          whereJoinsStatement[currentAssociationTableOrAlias],
+          currentAssociationTableOrAlias
+        )
+      }
     }
+
+    return query
   }
 
-  async function runHooksFor<T extends Dream>(
-    key:
-      | 'beforeCreate'
-      | 'beforeSave'
-      | 'beforeUpdate'
-      | 'beforeDestroy'
-      | 'afterCreate'
-      | 'afterSave'
-      | 'afterUpdate'
-      | 'afterDestroy',
-    dream: T
-  ): Promise<void> {
-    if (['beforeCreate', 'beforeSave', 'beforeUpdate'].includes(key)) {
-      ensureSTITypeFieldIsSet(dream)
+  public buildSelect<T extends Query<TableName>>(
+    this: T,
+    { bypassSelectAll = false }: { bypassSelectAll?: boolean } = {}
+  ) {
+    this.conditionallyApplyScopes()
+
+    let query = db.selectFrom(this.dreamClass.table as TableName)
+    if (!bypassSelectAll) query = query.selectAll(this.dreamClass.table as any)
+
+    if (this.joinsStatements.length) {
+      query = this.recursivelyJoin({
+        query,
+        joinsStatement: this.joinsStatements as any,
+        // @ts-ignore
+        dreamClass: this.dreamClass,
+        previousAssociationTableOrAlias: this.dreamClass.table,
+      })
     }
 
-    const Base = dream.constructor as typeof Dream
-    for (const statement of Base.hooks[key]) {
-      try {
-        await (dream as any)[statement.method]()
-      } catch (error) {
-        throw `
+    this.orStatements.forEach(orStatement => {
+      query = query.union(orStatement.toKysely() as any)
+    })
+
+    if (this.whereStatement) {
+      query = this.applyWhereStatement(query, this.whereStatement)
+    }
+
+    this.whereJoinsStatement.forEach(whereJoinsStatement => {
+      // @ts-ignore
+      query = this.recursivelyApplyJoinWhereStatement<any>(query, whereJoinsStatement)
+    })
+
+    if (this.limitStatement) query = query.limit(this.limitStatement.count)
+    if (this.orderStatement)
+      query = query.orderBy(this.orderStatement.column as any, this.orderStatement.direction)
+
+    return query
+  }
+
+  public buildUpdate(attributes: Updateable<Table>) {
+    let query = db.updateTable(this.dreamClass.table as TableName).set(attributes as any)
+    if (this.whereStatement) {
+      Object.keys(this.whereStatement).forEach(attr => {
+        query = query.where(attr as any, '=', (this.whereStatement as any)[attr])
+      })
+    }
+    return query
+  }
+}
+
+// internal
+function ensureSTITypeFieldIsSet<T extends Dream>(dream: T) {
+  // todo: turn STI logic here into before create applied by decorator
+  const Base = dream.constructor as typeof Dream
+  if (Base.sti.value && Base.sti.column) {
+    ;(dream as any)[Base.sti.column] = Base.sti.value
+  }
+}
+
+async function runHooksFor<T extends Dream>(
+  key:
+    | 'beforeCreate'
+    | 'beforeSave'
+    | 'beforeUpdate'
+    | 'beforeDestroy'
+    | 'afterCreate'
+    | 'afterSave'
+    | 'afterUpdate'
+    | 'afterDestroy',
+  dream: T
+): Promise<void> {
+  if (['beforeCreate', 'beforeSave', 'beforeUpdate'].includes(key)) {
+    ensureSTITypeFieldIsSet(dream)
+  }
+
+  const Base = dream.constructor as typeof Dream
+  for (const statement of Base.hooks[key]) {
+    try {
+      await (dream as any)[statement.method]()
+    } catch (error) {
+      throw `
           Error running ${key} on ${Base.name}
           ${error}
           statement.method: ${statement.method}
         `
-      }
     }
   }
-
-  function checkValidationsFor(dream: Dream) {
-    const Base = dream.constructor as typeof Dream
-    const validationErrors: { [key: string]: ValidationType[] } = {}
-
-    columns.forEach(column => {
-      Base.validations
-        .filter(
-          // @ts-ignore
-          validation => validation.column === column
-        )
-        .forEach(validation => {
-          if (!isValid(dream, validation)) {
-            validationErrors[validation.column] ||= []
-            validationErrors[validation.column].push(validation.type)
-          }
-        })
-    })
-
-    return validationErrors
-  }
-
-  function runValidationsFor(dream: Dream) {
-    const Base = dream.constructor as typeof Dream
-
-    columns.forEach(column => {
-      Base.validations
-        .filter(
-          // @ts-ignore
-          validation => validation.column === column
-        )
-        .forEach(validation => runValidation(dream, validation))
-    })
-  }
-
-  function runValidation(dream: Dream, validation: ValidationStatement) {
-    if (!isValid(dream, validation)) addValidationError(dream, validation)
-  }
-
-  function isValid(dream: Dream, validation: ValidationStatement) {
-    switch (validation.type) {
-      case 'presence':
-        return ![undefined, null, ''].includes((dream as any)[validation.column])
-
-      case 'contains':
-        switch (validation.options!.contains!.value.constructor) {
-          case String:
-            return new RegExp(validation.options!.contains!.value).test((dream as any)[validation.column])
-          case RegExp:
-            return (validation.options!.contains!.value as RegExp).test((dream as any)[validation.column])
-        }
-
-      case 'length':
-        const length = (dream as any)[validation.column]?.length
-        return (
-          length &&
-          length >= validation.options!.length!.min &&
-          validation.options!.length!.max &&
-          length <= validation.options!.length!.max
-        )
-
-      default:
-        throw `Unhandled validation type found while running validations: ${validation.type}`
-    }
-  }
-
-  function addValidationError(dream: Dream, validation: ValidationStatement) {
-    dream.errors[validation.column] ||= []
-    dream.errors[validation.column].push(validation.type)
-  }
-
-  return Dream
 }
+
+function checkValidationsFor(dream: Dream) {
+  const Base = dream.constructor as typeof Dream
+  const validationErrors: { [key: string]: ValidationType[] } = {}
+  dream.columns().forEach(column => {
+    Base.validations
+      .filter(
+        // @ts-ignore
+        validation => validation.column === column
+      )
+      .forEach(validation => {
+        if (!isValid(dream, validation)) {
+          validationErrors[validation.column] ||= []
+          validationErrors[validation.column].push(validation.type)
+        }
+      })
+  })
+
+  return validationErrors
+}
+
+function runValidationsFor(dream: Dream) {
+  const Base = dream.constructor as typeof Dream
+  dream.columns().forEach(column => {
+    Base.validations
+      .filter(
+        // @ts-ignore
+        validation => validation.column === column
+      )
+      .forEach(validation => runValidation(dream, validation))
+  })
+}
+
+function runValidation(dream: Dream, validation: ValidationStatement) {
+  if (!isValid(dream, validation)) addValidationError(dream, validation)
+}
+
+function isValid(dream: Dream, validation: ValidationStatement) {
+  switch (validation.type) {
+    case 'presence':
+      return ![undefined, null, ''].includes((dream as any)[validation.column])
+
+    case 'contains':
+      switch (validation.options!.contains!.value.constructor) {
+        case String:
+          return new RegExp(validation.options!.contains!.value).test((dream as any)[validation.column])
+        case RegExp:
+          return (validation.options!.contains!.value as RegExp).test((dream as any)[validation.column])
+      }
+
+    case 'length':
+      const length = (dream as any)[validation.column]?.length
+      return (
+        length &&
+        length >= validation.options!.length!.min &&
+        validation.options!.length!.max &&
+        length <= validation.options!.length!.max
+      )
+
+    default:
+      throw `Unhandled validation type found while running validations: ${validation.type}`
+  }
+}
+
+function addValidationError(dream: Dream, validation: ValidationStatement) {
+  dream.errors[validation.column] ||= []
+  dream.errors[validation.column].push(validation.type)
+}
+
+//   return Dream
+// }
 
 type NestedAssociationExpression<
   TB extends AssociationTableNames,
@@ -1390,16 +1574,6 @@ type JoinsWhereAssociationExpression<
       >
     }>
   : never
-
-export type DreamModel<
-  TableName extends AssociationTableNames,
-  IdColumnName extends keyof DB[TableName] & string
-> = ReturnType<typeof dream<TableName, IdColumnName>>
-
-export type DreamModelInstance<
-  TableName extends AssociationTableNames,
-  IdColumnName extends keyof DB[TableName] & string
-> = InstanceType<ReturnType<typeof dream<TableName, IdColumnName>>>
 
 export interface AliasCondition<PreviousTableName extends AssociationTableNames> {
   conditionToExecute: boolean

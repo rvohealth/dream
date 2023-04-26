@@ -1,4 +1,4 @@
-import { DreamModel } from '../../dream'
+import Dream from '../../dream'
 import { DB } from '../../sync/schema'
 import { SelectQueryBuilder, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
@@ -19,13 +19,13 @@ export interface HasStatement<
   ForeignTableName extends AssociationTableNames,
   HasType extends 'HasOne' | 'HasMany'
 > {
-  modelCB: () => DreamModel<ForeignTableName, any>
+  modelCB: () => typeof Dream
   type: HasType
   as: string
   foreignKey: () => keyof DB[ForeignTableName]
   foreignKeyTypeField: () => keyof DB[ForeignTableName]
   polymorphic: boolean
-  throughClass?: () => DreamModel<ForeignTableName, any>
+  throughClass?: () => typeof Dream
   through?: string
   where?: WhereStatement<ForeignTableName>
 }

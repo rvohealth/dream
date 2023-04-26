@@ -1,12 +1,12 @@
 import { HasManyStatement } from '../decorators/associations/has-many'
 import { HasOneStatement } from '../decorators/associations/has-one'
-import { DreamModel } from '../dream'
+import Dream from '../dream'
 
 export default class CanOnlyPassBelongsToModelParam extends Error {
-  public dreamClass: DreamModel<any, any>
+  public dreamClass: typeof Dream
   public association: HasManyStatement<any> | HasOneStatement<any>
 
-  constructor(dreamClass: DreamModel<any, any>, association: HasManyStatement<any> | HasOneStatement<any>) {
+  constructor(dreamClass: typeof Dream, association: HasManyStatement<any> | HasOneStatement<any>) {
     super()
     this.dreamClass = dreamClass
     this.association = association

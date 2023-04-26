@@ -1,5 +1,5 @@
 import * as path from 'path'
-import Dream, { DreamModel } from '../dream'
+import Dream from '../dream'
 import { loadDreamYamlFile, modelsPath } from './path'
 import pascalize from './pascalize'
 import getFiles from './getFiles'
@@ -15,7 +15,7 @@ export default async function loadModels() {
   )
   const models: { [key: string]: typeof Dream } = {}
 
-  const modelsObj: { [key: string]: DreamModel<any, any> | { [key: string]: DreamModel<any, any> } } = {}
+  const modelsObj: { [key: string]: typeof Dream | { [key: string]: typeof Dream } } = {}
   let currentRef: any = modelsObj
   for (const modelPath of relativeModelPaths) {
     const fullPath = path.join(pathToModels, modelPath)

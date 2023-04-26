@@ -1,9 +1,9 @@
 import pluralize = require('pluralize')
-import dream from '../../dream'
+import Dream from '../../dream'
 import { HasStatement, WhereStatement } from './shared'
 import { AssociationTableNames } from '../../db/reflections'
 
-export default function HasMany<AssociationDreamClass extends ReturnType<typeof dream<any, any>>>(
+export default function HasMany<AssociationDreamClass extends typeof Dream>(
   modelCB: () => AssociationDreamClass,
   {
     foreignKey,
@@ -14,9 +14,9 @@ export default function HasMany<AssociationDreamClass extends ReturnType<typeof 
   }: {
     foreignKey?: string
     polymorphic?: boolean
-    throughClass?: () => ReturnType<typeof dream<any, any>>
+    throughClass?: () => typeof Dream
     through?: string
-    where?: WhereStatement<AssociationDreamClass['table']>
+    where?: WhereStatement<AssociationDreamClass['table'] & AssociationTableNames>
   } = {}
 ): any {
   return function (target: any, key: string, _: any) {
