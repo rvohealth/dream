@@ -2,13 +2,16 @@ import { HasOne } from '../../../src'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import { Column } from '../../../src/decorators/column'
 import BeforeUpdate from '../../../src/decorators/hooks/before-update'
-import dream from '../../../src/dream'
+import Dream from '../../../src/dream'
 import Composition from './composition'
 import CompositionAsset from './composition-asset'
 import User from './user'
 
-const Dream = dream('composition_asset_audits')
 export default class CompositionAssetAudit extends Dream {
+  public static get table() {
+    return 'composition_asset_audits' as const
+  }
+
   @Column('number')
   public id: number
 

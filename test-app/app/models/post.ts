@@ -1,12 +1,16 @@
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
 import { Column } from '../../../src/decorators/column'
+import Dream from '../../../src/dream'
 import dream from '../../../src/dream'
 import Rating from './rating'
 import User from './user'
 
-const Dream = dream('posts')
 export default class Post extends Dream {
+  public static get table() {
+    return 'posts' as const
+  }
+
   @Column('number')
   public id: number
 

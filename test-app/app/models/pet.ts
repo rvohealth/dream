@@ -2,9 +2,13 @@ import { DateTime } from 'luxon'
 import dream from '../../../src/dream'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import User from './user'
+import Dream from '../../../src/dream'
 
-const Dream = dream('pets')
 export default class Pet extends Dream {
+  public static get table() {
+    return 'pets' as const
+  }
+
   public id: number
   public species: string
   public name: string

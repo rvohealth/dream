@@ -5,13 +5,16 @@ import { Column } from '../../../src/decorators/column'
 import AfterDestroy from '../../../src/decorators/hooks/after-destroy'
 import BeforeDestroy from '../../../src/decorators/hooks/before-destroy'
 import BeforeSave from '../../../src/decorators/hooks/before-save'
-import dream from '../../../src/dream'
+import Dream from '../../../src/dream'
 import Composition from './composition'
 import CompositionAssetAudit from './composition-asset-audit'
 import User from './user'
 
-const Dream = dream('composition_assets')
 export default class CompositionAsset extends Dream {
+  public static get table() {
+    return 'composition_assets' as const
+  }
+
   @Column('number')
   public id: number
 

@@ -2,15 +2,18 @@ import HasMany from '../../../src/decorators/associations/has-many'
 import HasOne from '../../../src/decorators/associations/has-one'
 import { Column } from '../../../src/decorators/column'
 import Scope from '../../../src/decorators/scope'
-import dream from '../../../src/dream'
 import Composition from './composition'
 import CompositionAsset from './composition-asset'
 import CompositionAssetAudit from './composition-asset-audit'
 import Validates from '../../../src/decorators/validations/validates'
 import UserSettings from './user-settings'
+import Dream from '../../../src/dream'
 
-const Dream = dream('users')
 export default class User extends Dream {
+  public static get table() {
+    return 'users' as const
+  }
+
   @Column('number')
   public id: number
 

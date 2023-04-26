@@ -2,7 +2,6 @@ import '../helpers/loadEnv'
 import * as path from 'path'
 import { promises as fs } from 'fs'
 import loadModels from '../helpers/loadModels'
-import dream, { DreamModel } from '../dream'
 import { loadDreamYamlFile } from '../helpers/path'
 import { DBColumns } from '../sync/schema'
 

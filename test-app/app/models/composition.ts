@@ -6,13 +6,16 @@ import AfterCreate from '../../../src/decorators/hooks/after-create'
 import AfterSave from '../../../src/decorators/hooks/after-save'
 import AfterUpdate from '../../../src/decorators/hooks/after-update'
 import BeforeCreate from '../../../src/decorators/hooks/before-create'
-import dream from '../../../src/dream'
+import Dream from '../../../src/dream'
 import CompositionAsset from './composition-asset'
 import CompositionAssetAudit from './composition-asset-audit'
 import User from './user'
 
-const Dream = dream('compositions')
 export default class Composition extends Dream {
+  public static get table() {
+    return 'compositions' as const
+  }
+
   @Column('number')
   public id: number
 

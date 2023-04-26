@@ -119,9 +119,8 @@ export default class Dream {
     return true
   }
 
-  public static get table(): string {
-    return 'users' as const
-    // throw 'override in child'
+  public static get table(): AssociationTableNames {
+    throw 'override in child'
   }
 
   public static columns<
@@ -171,6 +170,8 @@ export default class Dream {
     IdColumn = T['primaryKey'] & keyof Table
   >(this: T): Promise<InstanceType<T>[]> {
     const query: Query<TableName> = new Query<TableName>(this)
+
+    // @ts-ignore
     return await query.all()
   }
 
@@ -228,6 +229,7 @@ export default class Dream {
     Id = Readonly<SelectType<IdColumn>>
   >(this: T, id: Id): Promise<InstanceType<T> | null> {
     const query: Query<TableName> = new Query<TableName>(this)
+    // @ts-ignore
     return await query.where({ [this.primaryKey]: id } as any).first()
   }
 
@@ -238,6 +240,7 @@ export default class Dream {
     IdColumn = T['primaryKey'] & keyof Table
   >(this: T, attributes: Updateable<Table>): Promise<T | null> {
     const query: Query<TableName> = new Query<TableName>(this)
+    // @ts-ignore
     return await query.where(attributes).first()
   }
 
@@ -245,6 +248,7 @@ export default class Dream {
     this: typeof Dream
   ): Promise<InstanceType<T> | null> {
     const query: Query<TableName> = new Query<TableName>(this)
+    // @ts-ignore
     return await query.first()
   }
 
@@ -279,6 +283,8 @@ export default class Dream {
     TableName extends AssociationTableNames = T['table'] & AssociationTableNames
   >(this: T): Promise<InstanceType<T> | null> {
     const query: Query<TableName> = new Query<TableName>(this)
+
+    // @ts-ignore
     return await query.last()
   }
 
