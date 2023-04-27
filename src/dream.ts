@@ -169,14 +169,14 @@ export default class Dream {
     Table extends DB[keyof DB] = DB[TableName],
     IdColumn = T['primaryKey'] & keyof Table
   >(this: T): Promise<InstanceType<T>[]> {
-    const query: Query<TableName> = new Query<TableName>(this)
+    const query: Query<T> = new Query<T>(this)
     return await query.all()
   }
 
   public static async count<T extends typeof Dream, TableName extends keyof DB = T['table'] & keyof DB>(
     this: T
   ): Promise<number> {
-    const query: Query<TableName> = new Query<TableName>(this)
+    const query: Query<T> = new Query<T>(this)
     return await query.count()
   }
 
@@ -203,10 +203,8 @@ export default class Dream {
     return (await new (this as any)(opts as any).save()) as InstanceType<T>
   }
 
-  public static async destroyAll<T extends typeof Dream, TableName extends keyof DB = T['table'] & keyof DB>(
-    this: typeof Dream
-  ) {
-    const query: Query<TableName> = new Query<TableName>(this)
+  public static async destroyAll<T extends typeof Dream>(this: T) {
+    const query: Query<T> = new Query<T>(this)
     return await query.destroy()
   }
 
@@ -215,7 +213,7 @@ export default class Dream {
     TableName extends keyof DB = T['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
   >(this: T, opts?: Updateable<Table>) {
-    const query: Query<TableName> = new Query<TableName>(this)
+    const query: Query<T> = new Query<T>(this)
     return await query.destroyBy(opts as any)
   }
 
@@ -225,9 +223,9 @@ export default class Dream {
     Table extends DB[keyof DB] = DB[TableName],
     IdColumn = T['primaryKey'] & keyof Table,
     Id = Readonly<SelectType<IdColumn>>
-  >(this: T, id: Id): Promise<InstanceType<T> | null> {
-    const query: Query<TableName> = new Query<TableName>(this)
-    return await query.where({ [this.primaryKey]: id } as any).first()
+  >(this: T, id: Id): Promise<(InstanceType<T> & Dream) | null> {
+    const query: Query<T> = new Query<T>(this)
+    return (await query.where({ [this.primaryKey]: id } as any).first()) as (InstanceType<T> & Dream) | null
   }
 
   public static async findBy<
@@ -235,16 +233,16 @@ export default class Dream {
     TableName extends keyof DB = T['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName],
     IdColumn = T['primaryKey'] & keyof Table
-  >(this: T, attributes: Updateable<Table>): Promise<T | null> {
-    const query: Query<TableName> = new Query<TableName>(this)
-    return await query.where(attributes).first()
+  >(this: T, attributes: Updateable<DB[T['table']]>): Promise<(InstanceType<T> & Dream) | null> {
+    const query: Query<T> = new Query<T>(this)
+    return (await query.where(attributes as any).first()) as (InstanceType<T> & Dream) | null
   }
 
   public static async first<T extends typeof Dream, TableName extends keyof DB = T['table'] & keyof DB>(
-    this: typeof Dream
+    this: T
   ): Promise<InstanceType<T> | null> {
-    const query: Query<TableName> = new Query<TableName>(this)
-    return await query.first()
+    const query: Query<T> = new Query<T>(this)
+    return (await query.first()) as (InstanceType<T> & Dream) | null
   }
 
   public static includes<
@@ -255,7 +253,7 @@ export default class Dream {
       any
     > = AssociationExpression<TableName & AssociationTableNames, any>
   >(this: T, ...associations: QueryAssociationExpression[]) {
-    const query: Query<TableName> = new Query<TableName>(this)
+    const query: Query<T> = new Query<T>(this)
 
     // @ts-ignore
     return query.includes(...associations)
@@ -265,27 +263,21 @@ export default class Dream {
     T extends typeof Dream,
     TableName extends AssociationTableNames = T['table'] & AssociationTableNames,
     QueryAssociationExpression extends AssociationExpression<
-      TableName & AssociationTableNames,
+      T['table'] & AssociationTableNames,
       any
-    > = AssociationExpression<TableName & AssociationTableNames, any>
+    > = AssociationExpression<T['table'] & AssociationTableNames, any>
   >(this: T, ...associations: QueryAssociationExpression[]) {
-    const query: Query<TableName> = new Query<TableName>(this)
+    const query: Query<T> = new Query<T>(this)
     return query.joins(...associations)
   }
 
-  public static async last<
-    T extends typeof Dream,
-    TableName extends AssociationTableNames = T['table'] & AssociationTableNames
-  >(this: T): Promise<InstanceType<T> | null> {
-    const query: Query<TableName> = new Query<TableName>(this)
-    return await query.last()
+  public static async last<T extends typeof Dream>(this: T): Promise<InstanceType<T> | null> {
+    const query: Query<T> = new Query<T>(this)
+    return (await query.last()) as InstanceType<T> | null
   }
 
-  public static limit<
-    T extends typeof Dream,
-    TableName extends AssociationTableNames = T['table'] & AssociationTableNames
-  >(this: T, count: number) {
-    let query: Query<TableName> = new Query<TableName>(this)
+  public static limit<T extends typeof Dream>(this: T, count: number) {
+    let query: Query<T> = new Query<T>(this)
     query = query.limit(count)
     return query
   }
@@ -296,43 +288,37 @@ export default class Dream {
     TableName extends AssociationTableNames = T['table'] & AssociationTableNames,
     Table extends DB[keyof DB] = DB[TableName]
   >(this: T, column: ColumnName, direction: 'asc' | 'desc' = 'asc') {
-    let query: Query<TableName> = new Query<TableName>(this)
+    let query: Query<T> = new Query<T>(this)
     query = query.order(column as any, direction)
     return query
   }
 
   public static async pluck<
     T extends typeof Dream,
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>,
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, T['table'] & AssociationTableNames>>,
     TableName extends AssociationTableNames = T['table'] & AssociationTableNames
-  >(this: { new (): T } & typeof Dream, ...fields: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>[]) {
-    let query: Query<TableName> = new Query<TableName>(this)
+  >(this: T, ...fields: SelectArg<DB, ExtractTableAlias<DB, T['table'] & AssociationTableNames>, SE>[]) {
+    let query: Query<T> = new Query<T>(this)
     return await query.pluck(...fields)
   }
 
   public static nestedSelect<
     T extends typeof Dream,
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>,
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, T['table'] & AssociationTableNames>>,
     TableName extends AssociationTableNames = T['table'] & AssociationTableNames
-  >(this: { new (): T } & typeof Dream, selection: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>) {
-    let query: Query<TableName> = new Query<TableName>(this)
+  >(this: T, selection: SelectArg<DB, ExtractTableAlias<DB, T['table'] & AssociationTableNames>, SE>) {
+    let query: Query<T> = new Query<T>(this)
     return query.nestedSelect(selection)
   }
 
-  public static scope<
-    T extends typeof Dream,
-    TableName extends AssociationTableNames = T['table'] & AssociationTableNames
-  >(this: T, scopeName: string) {
-    let query: Query<TableName> = new Query<TableName>(this)
-    query = (this as any)[scopeName](query) as Query<TableName>
+  public static scope<T extends typeof Dream>(this: T, scopeName: string) {
+    let query: Query<T> = new Query<T>(this)
+    query = (this as any)[scopeName](query) as Query<T>
     return query
   }
 
-  public static sql<
-    T extends typeof Dream,
-    TableName extends AssociationTableNames = T['table'] & AssociationTableNames
-  >(this: T): CompiledQuery<{}> {
-    const query: Query<TableName> = new Query<TableName>(this)
+  public static sql<T extends typeof Dream>(this: T): CompiledQuery<{}> {
+    const query: Query<T> = new Query<T>(this)
     return query.sql()
   }
 
@@ -340,7 +326,7 @@ export default class Dream {
     T extends typeof Dream,
     TableName extends AssociationTableNames = T['table'] & AssociationTableNames
   >(this: T, attributes: WhereStatement<TableName>) {
-    const query: Query<TableName> = new Query<TableName>(this)
+    const query: Query<T> = new Query<T>(this)
     // @ts-ignore
     query.where(attributes)
     return query
@@ -470,11 +456,12 @@ export default class Dream {
     I extends Dream,
     TableName extends AssociationTableNames = I['table'] & AssociationTableNames,
     QueryAssociationExpression extends AssociationExpression<
-      TableName & AssociationTableNames,
+      ConstructorType<I>['table'] & AssociationTableNames,
       any
-    > = AssociationExpression<TableName & AssociationTableNames, any>
+    > = AssociationExpression<ConstructorType<I>['table'] & AssociationTableNames, any>
   >(this: I, ...associations: QueryAssociationExpression[]): Promise<void> {
-    const query: Query<TableName> = new Query<TableName>(this.constructor as typeof Dream)
+    const base = this.constructor as ConstructorType<I>
+    const query: Query<ConstructorType<I>> = new Query<ConstructorType<I>>(base)
     for (const association of associations) await query.applyIncludes(association, [this])
   }
 
@@ -482,9 +469,8 @@ export default class Dream {
     I extends Dream,
     TableName extends AssociationTableNames = I['table'] & AssociationTableNames
   >(this: I) {
-    const base = this.constructor as typeof Dream
-
-    const query: Query<TableName> = new Query<TableName>(base)
+    const base = this.constructor as ConstructorType<I>
+    const query: Query<ConstructorType<I>> = new Query<ConstructorType<I>>(base)
     query
       .bypassDefaultScopes()
       // @ts-ignore
@@ -661,9 +647,10 @@ export default class Dream {
 //   any
 // > = AssociationExpression<TableName & AssociationTableNames, any>
 class Query<
-  TableName extends AssociationTableNames,
+  DreamClass extends typeof Dream,
+  TableName extends AssociationTableNames = DreamClass['table'] & AssociationTableNames,
   Table extends DB[TableName] = DB[TableName],
-  QueryAssociationExpression = AssociationExpression<TableName & AssociationTableNames, any>
+  QueryAssociationExpression = AssociationExpression<DreamClass['table'] & AssociationTableNames, any>
 > {
   public whereStatement: WhereStatement<any> | null = null
   public whereJoinsStatement: JoinsWhereAssociationExpression<
@@ -671,14 +658,14 @@ class Query<
     AssociationExpression<TableName, any>
   >[] = []
   public limitStatement: { count: number } | null = null
-  public orStatements: Query<TableName>[] = []
+  public orStatements: Query<DreamClass>[] = []
   public orderStatement: { column: keyof DB[keyof DB] & string; direction: 'asc' | 'desc' } | null = null
-  public includesStatements: QueryAssociationExpression[] = []
-  public joinsStatements: QueryAssociationExpression[] = []
+  public includesStatements: AssociationExpression<DreamClass['table'] & AssociationTableNames, any>[] = []
+  public joinsStatements: AssociationExpression<DreamClass['table'] & AssociationTableNames, any>[] = []
   public shouldBypassDefaultScopes: boolean = false
-  public dreamClass: typeof Dream
+  public dreamClass: DreamClass
 
-  constructor(DreamClass: typeof Dream) {
+  constructor(DreamClass: DreamClass) {
     this.dreamClass = DreamClass
   }
 
@@ -688,9 +675,7 @@ class Query<
   }
 
   public includes<
-    T extends Query<TableName>,
-    DreamClass extends typeof Dream = T['dreamClass'],
-    TableName extends AssociationTableNames = DreamClass['table'] & AssociationTableNames,
+    T extends Query<DreamClass>,
     QueryAssociationExpression extends AssociationExpression<
       TableName & AssociationTableNames,
       any
@@ -700,27 +685,30 @@ class Query<
     return this
   }
 
-  public or(orStatement: Query<TableName>) {
+  public or(orStatement: Query<DreamClass>) {
     this.orStatements = [...this.orStatements, orStatement]
     return this
   }
 
   public joins<
-    T extends Query<TableName>,
+    T extends Query<DreamClass>,
     QueryAssociationExpression extends AssociationExpression<
-      TableName & AssociationTableNames,
+      DreamClass['table'] & AssociationTableNames,
       any
-    > = AssociationExpression<TableName & AssociationTableNames, any>
+    > = AssociationExpression<DreamClass['table'] & AssociationTableNames, any>
   >(this: T, ...args: QueryAssociationExpression[]) {
     ;(this as any).joinsStatements = [...this.joinsStatements, ...args]
     return this
   }
 
-  public where<T extends Query<TableName>>(
+  public where<T extends Query<DreamClass>>(
     this: T,
     attributes:
-      | WhereStatement<TableName>
-      | JoinsWhereAssociationExpression<TableName & AssociationTableNames, T['joinsStatements'][number]>
+      | WhereStatement<DreamClass['table'] & AssociationTableNames>
+      | JoinsWhereAssociationExpression<
+          DreamClass['table'] & AssociationTableNames,
+          T['joinsStatements'][number]
+        >
   ) {
     if (attributes.constructor === Array) {
       // @ts-ignore
@@ -741,8 +729,12 @@ class Query<
     return this
   }
 
-  public nestedSelect<SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>>(
-    selection: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>
+  public nestedSelect<
+    T extends Query<DreamClass>,
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, DreamClass['table'] & AssociationTableNames>>
+  >(
+    this: T,
+    selection: SelectArg<DB, ExtractTableAlias<DB, DreamClass['table'] & AssociationTableNames>, SE>
   ) {
     const query = this.buildSelect({ bypassSelectAll: true })
     return query.select(selection)
@@ -779,7 +771,7 @@ class Query<
     }
   }
 
-  public async count<T extends Query<TableName>>(this: T) {
+  public async count<T extends Query<DreamClass>>(this: T) {
     const { count } = db.fn
     let query = this.buildSelect({ bypassSelectAll: true })
 
@@ -789,8 +781,12 @@ class Query<
     return parseInt(data.tablecount.toString())
   }
 
-  public async pluck<SE extends SelectExpression<DB, ExtractTableAlias<DB, TableName>>>(
-    ...fields: SelectArg<DB, ExtractTableAlias<DB, TableName>, SE>[]
+  public async pluck<
+    T extends Query<DreamClass>,
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, DreamClass['table'] & AssociationTableNames>>
+  >(
+    this: T,
+    ...fields: SelectArg<DB, ExtractTableAlias<DB, DreamClass['table'] & AssociationTableNames>, SE>[]
   ) {
     let query = this.buildSelect({ bypassSelectAll: true })
     fields.forEach(field => {
@@ -806,7 +802,7 @@ class Query<
     }
   }
 
-  public async all<T extends Query<TableName>>(this: T) {
+  public async all<T extends Query<DreamClass>>(this: T) {
     const query = this.buildSelect()
     let results: any[]
     try {
@@ -822,12 +818,12 @@ class Query<
         `
     }
 
-    const theAll = results.map(r => new this.dreamClass(r as Updateable<Table>))
+    const theAll = results.map(r => new this.dreamClass(r as Updateable<Table>)) as InstanceType<DreamClass>[]
     await this.applyThisDotIncludes(theAll)
     return theAll
   }
 
-  public async first<T extends Query<TableName>>(this: T) {
+  public async first<T extends Query<DreamClass>>(this: T) {
     if (!this.orderStatement) this.order(this.dreamClass.primaryKey as any, 'asc')
 
     const query = this.buildSelect()
@@ -840,7 +836,7 @@ class Query<
     } else return null
   }
 
-  public async applyThisDotIncludes(dreams: Dream[]) {
+  public async applyThisDotIncludes<T extends Query<DreamClass>>(this: T, dreams: Dream[]) {
     for (const includesStatement of this.includesStatements) {
       await this.applyIncludes(includesStatement, dreams)
     }
@@ -1017,7 +1013,7 @@ class Query<
     }
   }
 
-  public async last() {
+  public async last<T extends Query<DreamClass>>(this: T) {
     if (!this.orderStatement)
       this.order((this.dreamClass.constructor as typeof Dream).primaryKey as any, 'desc')
 
@@ -1031,7 +1027,7 @@ class Query<
     } else return null
   }
 
-  public async destroy() {
+  public async destroy<T extends Query<DreamClass>>(this: T) {
     const query = this.buildDelete()
     const selectQuery = this.buildSelect()
     const results = await selectQuery.execute()
@@ -1039,8 +1035,8 @@ class Query<
     return results.length
   }
 
-  public async destroyBy<T extends Query<TableName>>(this: T, attributes: Updateable<DB[TableName]>) {
-    this.where(attributes)
+  public async destroyBy<T extends Query<DreamClass>>(this: T, attributes: Updateable<TableName>) {
+    this.where(attributes as any)
     const query = this.buildDelete()
     const selectQuery = this.buildSelect()
     const results = await selectQuery.execute()
@@ -1080,7 +1076,7 @@ class Query<
     return query
   }
 
-  public joinsBridgeThroughAssociations<T extends Query<TableName>>(
+  public joinsBridgeThroughAssociations<T extends Query<DreamClass>>(
     this: T,
     {
       query,
@@ -1088,13 +1084,13 @@ class Query<
       association,
       previousAssociationTableOrAlias,
     }: {
-      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
+      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamClass['table'] & AssociationTableNames>, {}>
       dreamClass: typeof Dream
       association: HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any>
       previousAssociationTableOrAlias: string
     }
   ): {
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamClass['table'] & AssociationTableNames>, {}>
     dreamClass: typeof Dream
     association: HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any>
     previousAssociationTableOrAlias: string
@@ -1128,7 +1124,7 @@ class Query<
     }
   }
 
-  public applyOneJoin<T extends Query<TableName>>(
+  public applyOneJoin<T extends Query<DreamClass>>(
     this: T,
     {
       query,
@@ -1136,13 +1132,13 @@ class Query<
       previousAssociationTableOrAlias,
       currentAssociationTableOrAlias,
     }: {
-      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
+      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamClass['table'] & AssociationTableNames>, {}>
       dreamClass: typeof Dream
       previousAssociationTableOrAlias: string
       currentAssociationTableOrAlias: string
     }
   ): {
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamClass['table'] & AssociationTableNames>, {}>
     association: any
     previousAssociationTableOrAlias: string
     currentAssociationTableOrAlias: string
@@ -1219,7 +1215,10 @@ class Query<
         Object.keys(association.where).forEach((key: any) => {
           aliasedWhere[`${currentAssociationTableOrAlias as string}.${key}`] = (association as any).where[key]
         })
-        query = this.applyWhereStatement(query, aliasedWhere as WhereStatement<TableName>)
+        query = this.applyWhereStatement(
+          query,
+          aliasedWhere as WhereStatement<DreamClass['table'] & AssociationTableNames>
+        )
       }
     }
 
@@ -1231,7 +1230,7 @@ class Query<
     }
   }
 
-  public recursivelyJoin<T extends Query<TableName>, PreviousTableName extends AssociationTableNames>(
+  public recursivelyJoin<T extends Query<DreamClass>, PreviousTableName extends AssociationTableNames>(
     this: T,
     {
       query,
@@ -1239,14 +1238,14 @@ class Query<
       dreamClass,
       previousAssociationTableOrAlias,
     }: {
-      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
+      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamClass['table'] & AssociationTableNames>, {}>
       joinsStatement:
         | JoinsWhereAssociationExpression<PreviousTableName, AssociationExpression<PreviousTableName, any>>
         | Updateable<DB[PreviousTableName]>
       dreamClass: typeof Dream
       previousAssociationTableOrAlias: string
     }
-  ): SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}> {
+  ): SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamClass['table'] & AssociationTableNames>, {}> {
     if (joinsStatement.constructor === Array) {
       joinsStatement.forEach(oneJoinsStatement => {
         query = this.recursivelyJoin({
@@ -1254,7 +1253,7 @@ class Query<
           joinsStatement: oneJoinsStatement,
           dreamClass,
           previousAssociationTableOrAlias,
-        }) as SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>
+        }) as SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamClass['table'] & AssociationTableNames>, {}>
       })
 
       return query
@@ -1292,12 +1291,15 @@ class Query<
     return query
   }
 
-  public applyWhereStatement<T extends Query<TableName>>(
+  public applyWhereStatement<T extends Query<DreamClass>>(
     this: T,
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>,
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamClass['table'] & AssociationTableNames>, {}>,
     whereStatement:
       | WhereStatement<TableName>
-      | JoinsWhereAssociationExpression<TableName & AssociationTableNames, T['joinsStatements'][number]>
+      | JoinsWhereAssociationExpression<
+          DreamClass['table'] & AssociationTableNames,
+          T['joinsStatements'][number]
+        >
   ) {
     Object.keys(whereStatement).forEach(attr => {
       const val = (whereStatement as any)[attr]
@@ -1365,13 +1367,13 @@ class Query<
     return query
   }
 
-  public buildSelect<T extends Query<TableName>>(
+  public buildSelect<T extends Query<DreamClass>>(
     this: T,
     { bypassSelectAll = false }: { bypassSelectAll?: boolean } = {}
   ) {
     this.conditionallyApplyScopes()
 
-    let query = db.selectFrom(this.dreamClass.table as TableName)
+    let query = db.selectFrom(this.dreamClass.table as DreamClass['table'] & AssociationTableNames)
     if (!bypassSelectAll) query = query.selectAll(this.dreamClass.table as any)
 
     if (this.joinsStatements.length) {
@@ -1580,3 +1582,5 @@ export interface AliasCondition<PreviousTableName extends AssociationTableNames>
   column: keyof Updateable<DB[PreviousTableName]>
   columnValue: any
 }
+
+export type ConstructorType<T extends Dream> = (new (...arguments_: any[]) => T) & typeof Dream
