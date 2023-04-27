@@ -648,14 +648,13 @@ export default class Dream {
 // > = AssociationExpression<TableName & AssociationTableNames, any>
 class Query<
   DreamClass extends typeof Dream,
-  TableName extends AssociationTableNames = DreamClass['table'] & AssociationTableNames,
-  Table extends DB[TableName] = DB[TableName],
+  Table = DB[DreamClass['table'] & AssociationTableNames],
   QueryAssociationExpression = AssociationExpression<DreamClass['table'] & AssociationTableNames, any>
 > {
   public whereStatement: WhereStatement<any> | null = null
   public whereJoinsStatement: JoinsWhereAssociationExpression<
-    TableName,
-    AssociationExpression<TableName, any>
+    DreamClass['table'] & AssociationTableNames,
+    AssociationExpression<DreamClass['table'] & AssociationTableNames, any>
   >[] = []
   public limitStatement: { count: number } | null = null
   public orStatements: Query<DreamClass>[] = []
@@ -677,9 +676,9 @@ class Query<
   public includes<
     T extends Query<DreamClass>,
     QueryAssociationExpression extends AssociationExpression<
-      TableName & AssociationTableNames,
+      DreamClass['table'] & AssociationTableNames,
       any
-    > = AssociationExpression<TableName & AssociationTableNames, any>
+    > = AssociationExpression<DreamClass['table'] & AssociationTableNames, any>
   >(this: T, ...args: QueryAssociationExpression[]) {
     this.includesStatements = [...(this.includesStatements as any), ...args]
     return this
@@ -1035,7 +1034,10 @@ class Query<
     return results.length
   }
 
-  public async destroyBy<T extends Query<DreamClass>>(this: T, attributes: Updateable<TableName>) {
+  public async destroyBy<T extends Query<DreamClass>>(
+    this: T,
+    attributes: Updateable<DreamClass['table'] & AssociationTableNames>
+  ) {
     this.where(attributes as any)
     const query = this.buildDelete()
     const selectQuery = this.buildSelect()
@@ -1067,7 +1069,7 @@ class Query<
   }
 
   public buildDelete() {
-    let query = db.deleteFrom(this.dreamClass.table as TableName)
+    let query = db.deleteFrom(this.dreamClass.table as DreamClass['table'] & AssociationTableNames)
     if (this.whereStatement) {
       Object.keys(this.whereStatement).forEach(attr => {
         query = query.where(attr as any, '=', (this.whereStatement as any)[attr])
@@ -1295,7 +1297,7 @@ class Query<
     this: T,
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamClass['table'] & AssociationTableNames>, {}>,
     whereStatement:
-      | WhereStatement<TableName>
+      | WhereStatement<DreamClass['table'] & AssociationTableNames>
       | JoinsWhereAssociationExpression<
           DreamClass['table'] & AssociationTableNames,
           T['joinsStatements'][number]
@@ -1333,7 +1335,7 @@ class Query<
   }
 
   public recursivelyApplyJoinWhereStatement<PreviousTableName extends AssociationTableNames>(
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, TableName>, {}>,
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamClass['table'] & AssociationTableNames>, {}>,
     whereJoinsStatement:
       | JoinsWhereAssociationExpression<PreviousTableName, AssociationExpression<PreviousTableName, any>>
       | Updateable<DB[PreviousTableName]>,
@@ -1407,7 +1409,9 @@ class Query<
   }
 
   public buildUpdate(attributes: Updateable<Table>) {
-    let query = db.updateTable(this.dreamClass.table as TableName).set(attributes as any)
+    let query = db
+      .updateTable(this.dreamClass.table as DreamClass['table'] & AssociationTableNames)
+      .set(attributes as any)
     if (this.whereStatement) {
       Object.keys(this.whereStatement).forEach(attr => {
         query = query.where(attr as any, '=', (this.whereStatement as any)[attr])
