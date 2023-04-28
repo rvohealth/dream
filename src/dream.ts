@@ -459,17 +459,15 @@ export default class Dream {
     Object.keys(attributes as any).forEach(attr => {
       const associationMetaData = this.associationMap[attr]
 
-      if (associationMetaData) {
+      if (associationMetaData && associationMetaData.type !== 'BelongsTo') {
+        throw new CanOnlyPassBelongsToModelParam(self.constructor, associationMetaData)
+      } else if (associationMetaData) {
         const associatedObject = (attributes as any)[attr]
         self[attr] = associatedObject
 
-        if (associationMetaData.type === 'BelongsTo') {
-          self[associationMetaData.foreignKey()] = associatedObject.primaryKeyValue
-          if (associationMetaData.polymorphic)
-            self[associationMetaData.foreignKeyTypeField()] = associatedObject.constructor.name
-        } else {
-          throw new CanOnlyPassBelongsToModelParam(self.constructor, associationMetaData)
-        }
+        self[associationMetaData.foreignKey()] = associatedObject.primaryKeyValue
+        if (associationMetaData.polymorphic)
+          self[associationMetaData.foreignKeyTypeField()] = associatedObject.constructor.name
       } else {
         // TODO: cleanup type chaos
         self[attr] = marshalDBValue((attributes as any)[attr])
