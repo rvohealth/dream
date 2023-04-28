@@ -128,7 +128,4 @@ describe('Dream#update', () => {
       ).rejects.toThrowError(CanOnlyPassBelongsToModelParam)
     })
   })
-
-  // context('passed a model to a HasOne through association', () => {
-  // })
 })
