@@ -3,9 +3,9 @@ import User from '../../../test-app/app/models/user'
 
 describe('Dream initialization', () => {
   it('sets attributes', () => {
-    const user = new User({ email: 'fred' })
+    const user = User.new({ email: 'fred' })
     expect(user.email).toEqual('fred')
-    expect(user.attributes.email).toEqual('fred')
+    expect(user.attributes().email).toEqual('fred')
   })
 
   context('an object is marshaled as a date by kysely', () => {

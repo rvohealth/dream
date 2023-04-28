@@ -9,7 +9,7 @@ describe('Dream contains validation', () => {
   })
 
   it('prevents saving when a field when the field does not match the clause specified by the contains validation', async () => {
-    const user = new User({ email: 'noatsign', password: 'howyadoin' })
+    const user = User.new({ email: 'noatsign', password: 'howyadoin' })
     expect(user.isInvalid).toEqual(true)
 
     await expect(async () => {
@@ -22,7 +22,7 @@ describe('Dream contains validation', () => {
   })
 
   it('does not raise an error when the field matches the validation', async () => {
-    const user = new User({ email: 'hi@', password: 'howyadoin' })
+    const user = User.new({ email: 'hi@', password: 'howyadoin' })
     expect(user.isInvalid).toEqual(false)
     await user.save()
     expect(user.isPersisted).toEqual(true)

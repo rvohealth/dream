@@ -1,6 +1,6 @@
 import pluralize = require('pluralize')
 import dream from '../../dream'
-import { HasStatement, WhereStatement } from './shared'
+import { HasStatement, WhereStatement, blankAssociationsFactory } from './shared'
 import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../dream'
 
@@ -28,27 +28,25 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
     // TODO: add better validation on through associations
     // TODO: add type guards to through associations if possible
 
-    Object.defineProperty(target.constructor.associations, 'hasOne', {
-      value: [
-        ...(target.constructor.associations.hasOne as HasOneStatement<any>[]),
-        {
-          modelCB,
-          type: 'HasOne',
-          // TODO: abstract foreign key capture to helper, with optional override provided by the api
-          foreignKey() {
-            return foreignKey || pluralize.singular(target.constructor.table) + '_id'
-          },
-          foreignKeyTypeField() {
-            return (this.foreignKey() as string).replace(/_id$/, '_type')
-          },
+    if (!Object.getOwnPropertyDescriptor(target.constructor, 'associations'))
+      target.constructor.associations = blankAssociationsFactory()
 
-          as: key,
-          polymorphic,
-          through,
-          throughClass,
-          where,
-        } as HasOneStatement<any>,
-      ] as HasOneStatement<any>[],
+    target.constructor.associations['hasOne'].push({
+      modelCB,
+      type: 'HasOne',
+      // TODO: abstract foreign key capture to helper, with optional override provided by the api
+      foreignKey() {
+        return foreignKey || pluralize.singular(target.constructor.table) + '_id'
+      },
+      foreignKeyTypeField() {
+        return (this.foreignKey() as string).replace(/_id$/, '_type')
+      },
+
+      as: key,
+      polymorphic,
+      through,
+      throughClass,
+      where,
     })
   }
 }

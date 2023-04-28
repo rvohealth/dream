@@ -1,14 +1,12 @@
-import { HookStatement } from './shared'
+import { blankHooksFactory } from './shared'
 
 export default function AfterSave(): any {
   return function (target: any, key: string, _: any) {
-    Object.defineProperty(target.constructor.hooks, 'afterSave', {
-      value: [
-        ...(target.constructor.hooks.afterSave as HookStatement[]),
-        {
-          method: key,
-        },
-      ],
+    if (!Object.getOwnPropertyDescriptor(target.constructor, 'hooks'))
+      target.constructor.hooks = blankHooksFactory()
+
+    target.constructor.hooks['afterSave'].push({
+      method: key,
     })
   }
 }

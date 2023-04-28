@@ -2,6 +2,7 @@ import pluralize = require('pluralize')
 import Dream from '../../dream'
 import { DB } from '../../sync/schema'
 import { AssociationTableNames } from '../../db/reflections'
+import { blankAssociationsFactory } from './shared'
 
 export default function BelongsTo(
   modelCB: () => typeof Dream | (typeof Dream)[],
@@ -14,23 +15,21 @@ export default function BelongsTo(
   } = {}
 ): any {
   return function (target: any, key: string, _: any) {
-    Object.defineProperty((target.constructor as any).associations, 'belongsTo', {
-      value: [
-        ...((target.constructor as any).associations.belongsTo as BelongsToStatement<any>[]),
-        {
-          modelCB,
-          type: 'BelongsTo',
-          polymorphic,
-          // TODO: abstract foreign key capture to helper, with optional override provided by the api
-          foreignKey() {
-            return finalForeignKey(foreignKey, modelCB)
-          },
-          foreignKeyTypeField() {
-            return foreignKeyTypeField(foreignKey, modelCB)
-          },
-          as: key,
-        } as BelongsToStatement<any>,
-      ] as BelongsToStatement<any>[],
+    if (!Object.getOwnPropertyDescriptor(target.constructor, 'associations'))
+      target.constructor.associations = blankAssociationsFactory()
+
+    target.constructor.associations['belongsTo'].push({
+      modelCB,
+      type: 'BelongsTo',
+      polymorphic,
+      // TODO: abstract foreign key capture to helper, with optional override provided by the api
+      foreignKey() {
+        return finalForeignKey(foreignKey, modelCB)
+      },
+      foreignKeyTypeField() {
+        return foreignKeyTypeField(foreignKey, modelCB)
+      },
+      as: key,
     })
 
     Object.defineProperty(target, key, {

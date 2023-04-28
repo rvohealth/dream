@@ -2,7 +2,7 @@ import User from '../../../test-app/app/models/user'
 
 describe('Dream#isDirty', () => {
   it('reflects being dirty when dirty', async () => {
-    const user = new User({ email: 'ham@', password: 'chalupas' })
+    const user = User.new({ email: 'ham@', password: 'chalupas' })
     expect(user.isDirty).toEqual(true)
 
     await user.save()

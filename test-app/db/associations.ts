@@ -8,283 +8,78 @@ export default {
     ],
     "user": [
       "users"
-    ],
-    "rateable": [
-      "compositions",
-      "posts"
-    ],
-    "mainCompositionAsset": [
-      "composition_assets"
-    ],
-    "userSettings": [
-      "user_settings"
-    ],
-    "mainComposition": [
-      "compositions"
-    ],
-    "compositionAssetAudits": [
-      "composition_asset_audits"
-    ],
-    "compositionAssets": [
-      "composition_assets"
-    ],
-    "compositions": [
-      "compositions"
-    ],
-    "ratings": [
-      "ratings"
     ]
   },
   "composition_assets": {
-    "compositionAsset": [
-      "composition_assets"
-    ],
     "composition": [
       "compositions"
     ],
     "user": [
       "users"
     ],
-    "rateable": [
-      "compositions",
-      "posts"
-    ],
-    "mainCompositionAsset": [
-      "composition_assets"
-    ],
-    "userSettings": [
-      "user_settings"
-    ],
-    "mainComposition": [
-      "compositions"
-    ],
     "compositionAssetAudits": [
       "composition_asset_audits"
-    ],
-    "compositionAssets": [
-      "composition_assets"
-    ],
-    "compositions": [
-      "compositions"
-    ],
-    "ratings": [
-      "ratings"
     ]
   },
   "compositions": {
-    "compositionAsset": [
-      "composition_assets"
-    ],
-    "composition": [
-      "compositions"
-    ],
     "user": [
       "users"
-    ],
-    "rateable": [
-      "compositions",
-      "posts"
     ],
     "mainCompositionAsset": [
       "composition_assets"
     ],
-    "userSettings": [
-      "user_settings"
-    ],
-    "mainComposition": [
-      "compositions"
-    ],
-    "compositionAssetAudits": [
-      "composition_asset_audits"
-    ],
     "compositionAssets": [
       "composition_assets"
     ],
-    "compositions": [
-      "compositions"
-    ],
-    "ratings": [
-      "ratings"
+    "compositionAssetAudits": [
+      "composition_asset_audits"
     ]
   },
   "pets": {
-    "compositionAsset": [
-      "composition_assets"
-    ],
-    "composition": [
-      "compositions"
-    ],
     "user": [
       "users"
-    ],
-    "rateable": [
-      "compositions",
-      "posts"
-    ],
-    "mainCompositionAsset": [
-      "composition_assets"
-    ],
-    "userSettings": [
-      "user_settings"
-    ],
-    "mainComposition": [
-      "compositions"
-    ],
-    "compositionAssetAudits": [
-      "composition_asset_audits"
-    ],
-    "compositionAssets": [
-      "composition_assets"
-    ],
-    "compositions": [
-      "compositions"
-    ],
-    "ratings": [
-      "ratings"
     ]
   },
   "posts": {
-    "compositionAsset": [
-      "composition_assets"
-    ],
-    "composition": [
-      "compositions"
-    ],
     "user": [
       "users"
-    ],
-    "rateable": [
-      "compositions",
-      "posts"
-    ],
-    "mainCompositionAsset": [
-      "composition_assets"
-    ],
-    "userSettings": [
-      "user_settings"
-    ],
-    "mainComposition": [
-      "compositions"
-    ],
-    "compositionAssetAudits": [
-      "composition_asset_audits"
-    ],
-    "compositionAssets": [
-      "composition_assets"
-    ],
-    "compositions": [
-      "compositions"
     ],
     "ratings": [
       "ratings"
     ]
   },
   "ratings": {
-    "compositionAsset": [
-      "composition_assets"
-    ],
-    "composition": [
-      "compositions"
-    ],
     "user": [
       "users"
     ],
     "rateable": [
       "compositions",
       "posts"
-    ],
-    "mainCompositionAsset": [
-      "composition_assets"
-    ],
-    "userSettings": [
-      "user_settings"
-    ],
-    "mainComposition": [
-      "compositions"
-    ],
-    "compositionAssetAudits": [
-      "composition_asset_audits"
-    ],
-    "compositionAssets": [
-      "composition_assets"
-    ],
-    "compositions": [
-      "compositions"
-    ],
-    "ratings": [
-      "ratings"
     ]
   },
   "users": {
-    "compositionAsset": [
-      "composition_assets"
-    ],
-    "composition": [
-      "compositions"
-    ],
-    "user": [
-      "users"
-    ],
-    "rateable": [
-      "compositions",
-      "posts"
-    ],
-    "mainCompositionAsset": [
-      "composition_assets"
-    ],
     "userSettings": [
       "user_settings"
     ],
     "mainComposition": [
       "compositions"
     ],
-    "compositionAssetAudits": [
-      "composition_asset_audits"
-    ],
-    "compositionAssets": [
+    "mainCompositionAsset": [
       "composition_assets"
     ],
     "compositions": [
       "compositions"
     ],
-    "ratings": [
-      "ratings"
+    "compositionAssets": [
+      "composition_assets"
+    ],
+    "compositionAssetAudits": [
+      "composition_asset_audits"
     ]
   },
   "user_settings": {
-    "compositionAsset": [
-      "composition_assets"
-    ],
-    "composition": [
-      "compositions"
-    ],
     "user": [
       "users"
-    ],
-    "rateable": [
-      "compositions",
-      "posts"
-    ],
-    "mainCompositionAsset": [
-      "composition_assets"
-    ],
-    "userSettings": [
-      "user_settings"
-    ],
-    "mainComposition": [
-      "compositions"
-    ],
-    "compositionAssetAudits": [
-      "composition_asset_audits"
-    ],
-    "compositionAssets": [
-      "composition_assets"
-    ],
-    "compositions": [
-      "compositions"
-    ],
-    "ratings": [
-      "ratings"
     ]
   }
 }
@@ -299,283 +94,78 @@ export interface SyncedAssociations {
     ],
     "user": [
       "users"
-    ],
-    "rateable": [
-      "compositions",
-      "posts"
-    ],
-    "mainCompositionAsset": [
-      "composition_assets"
-    ],
-    "userSettings": [
-      "user_settings"
-    ],
-    "mainComposition": [
-      "compositions"
-    ],
-    "compositionAssetAudits": [
-      "composition_asset_audits"
-    ],
-    "compositionAssets": [
-      "composition_assets"
-    ],
-    "compositions": [
-      "compositions"
-    ],
-    "ratings": [
-      "ratings"
     ]
   },
   "composition_assets": {
-    "compositionAsset": [
-      "composition_assets"
-    ],
     "composition": [
       "compositions"
     ],
     "user": [
       "users"
     ],
-    "rateable": [
-      "compositions",
-      "posts"
-    ],
-    "mainCompositionAsset": [
-      "composition_assets"
-    ],
-    "userSettings": [
-      "user_settings"
-    ],
-    "mainComposition": [
-      "compositions"
-    ],
     "compositionAssetAudits": [
       "composition_asset_audits"
-    ],
-    "compositionAssets": [
-      "composition_assets"
-    ],
-    "compositions": [
-      "compositions"
-    ],
-    "ratings": [
-      "ratings"
     ]
   },
   "compositions": {
-    "compositionAsset": [
-      "composition_assets"
-    ],
-    "composition": [
-      "compositions"
-    ],
     "user": [
       "users"
-    ],
-    "rateable": [
-      "compositions",
-      "posts"
     ],
     "mainCompositionAsset": [
       "composition_assets"
     ],
-    "userSettings": [
-      "user_settings"
-    ],
-    "mainComposition": [
-      "compositions"
-    ],
-    "compositionAssetAudits": [
-      "composition_asset_audits"
-    ],
     "compositionAssets": [
       "composition_assets"
     ],
-    "compositions": [
-      "compositions"
-    ],
-    "ratings": [
-      "ratings"
+    "compositionAssetAudits": [
+      "composition_asset_audits"
     ]
   },
   "pets": {
-    "compositionAsset": [
-      "composition_assets"
-    ],
-    "composition": [
-      "compositions"
-    ],
     "user": [
       "users"
-    ],
-    "rateable": [
-      "compositions",
-      "posts"
-    ],
-    "mainCompositionAsset": [
-      "composition_assets"
-    ],
-    "userSettings": [
-      "user_settings"
-    ],
-    "mainComposition": [
-      "compositions"
-    ],
-    "compositionAssetAudits": [
-      "composition_asset_audits"
-    ],
-    "compositionAssets": [
-      "composition_assets"
-    ],
-    "compositions": [
-      "compositions"
-    ],
-    "ratings": [
-      "ratings"
     ]
   },
   "posts": {
-    "compositionAsset": [
-      "composition_assets"
-    ],
-    "composition": [
-      "compositions"
-    ],
     "user": [
       "users"
-    ],
-    "rateable": [
-      "compositions",
-      "posts"
-    ],
-    "mainCompositionAsset": [
-      "composition_assets"
-    ],
-    "userSettings": [
-      "user_settings"
-    ],
-    "mainComposition": [
-      "compositions"
-    ],
-    "compositionAssetAudits": [
-      "composition_asset_audits"
-    ],
-    "compositionAssets": [
-      "composition_assets"
-    ],
-    "compositions": [
-      "compositions"
     ],
     "ratings": [
       "ratings"
     ]
   },
   "ratings": {
-    "compositionAsset": [
-      "composition_assets"
-    ],
-    "composition": [
-      "compositions"
-    ],
     "user": [
       "users"
     ],
     "rateable": [
       "compositions",
       "posts"
-    ],
-    "mainCompositionAsset": [
-      "composition_assets"
-    ],
-    "userSettings": [
-      "user_settings"
-    ],
-    "mainComposition": [
-      "compositions"
-    ],
-    "compositionAssetAudits": [
-      "composition_asset_audits"
-    ],
-    "compositionAssets": [
-      "composition_assets"
-    ],
-    "compositions": [
-      "compositions"
-    ],
-    "ratings": [
-      "ratings"
     ]
   },
   "users": {
-    "compositionAsset": [
-      "composition_assets"
-    ],
-    "composition": [
-      "compositions"
-    ],
-    "user": [
-      "users"
-    ],
-    "rateable": [
-      "compositions",
-      "posts"
-    ],
-    "mainCompositionAsset": [
-      "composition_assets"
-    ],
     "userSettings": [
       "user_settings"
     ],
     "mainComposition": [
       "compositions"
     ],
-    "compositionAssetAudits": [
-      "composition_asset_audits"
-    ],
-    "compositionAssets": [
+    "mainCompositionAsset": [
       "composition_assets"
     ],
     "compositions": [
       "compositions"
     ],
-    "ratings": [
-      "ratings"
+    "compositionAssets": [
+      "composition_assets"
+    ],
+    "compositionAssetAudits": [
+      "composition_asset_audits"
     ]
   },
   "user_settings": {
-    "compositionAsset": [
-      "composition_assets"
-    ],
-    "composition": [
-      "compositions"
-    ],
     "user": [
       "users"
-    ],
-    "rateable": [
-      "compositions",
-      "posts"
-    ],
-    "mainCompositionAsset": [
-      "composition_assets"
-    ],
-    "userSettings": [
-      "user_settings"
-    ],
-    "mainComposition": [
-      "compositions"
-    ],
-    "compositionAssetAudits": [
-      "composition_asset_audits"
-    ],
-    "compositionAssets": [
-      "composition_assets"
-    ],
-    "compositions": [
-      "compositions"
-    ],
-    "ratings": [
-      "ratings"
     ]
   }
 }
@@ -584,73 +174,41 @@ export interface SyncedBelongsToAssociations {
   "composition_asset_audits": {
     "compositionAsset": [
       "composition_assets"
-    ],
-    "rateable": [
-      "compositions",
-      "posts"
     ]
   },
   "composition_assets": {
-    "compositionAsset": [
-      "composition_assets"
-    ],
-    "rateable": [
-      "compositions",
-      "posts"
+    "composition": [
+      "compositions"
     ]
   },
   "compositions": {
-    "compositionAsset": [
-      "composition_assets"
-    ],
-    "rateable": [
-      "compositions",
-      "posts"
+    "user": [
+      "users"
     ]
   },
   "pets": {
-    "compositionAsset": [
-      "composition_assets"
-    ],
-    "rateable": [
-      "compositions",
-      "posts"
+    "user": [
+      "users"
     ]
   },
   "posts": {
-    "compositionAsset": [
-      "composition_assets"
-    ],
-    "rateable": [
-      "compositions",
-      "posts"
+    "user": [
+      "users"
     ]
   },
   "ratings": {
-    "compositionAsset": [
-      "composition_assets"
+    "user": [
+      "users"
     ],
     "rateable": [
       "compositions",
       "posts"
     ]
   },
-  "users": {
-    "compositionAsset": [
-      "composition_assets"
-    ],
-    "rateable": [
-      "compositions",
-      "posts"
-    ]
-  },
+  "users": false,
   "user_settings": {
-    "compositionAsset": [
-      "composition_assets"
-    ],
-    "rateable": [
-      "compositions",
-      "posts"
+    "user": [
+      "users"
     ]
   }
 }

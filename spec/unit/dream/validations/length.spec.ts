@@ -11,12 +11,12 @@ describe('Dream length validation', () => {
   })
 
   it('permits saving a record that passes length validations', async () => {
-    const user = new User({ email: 'fred@', password: 'morethan4' })
+    const user = User.new({ email: 'fred@', password: 'morethan4' })
     expect(user.isInvalid).toEqual(false)
   })
 
   it('prevents saving when a field requiring min length is less than the min length', async () => {
-    const user = new User({ email: 'fred@', password: 'how' })
+    const user = User.new({ email: 'fred@', password: 'how' })
     expect(user.isInvalid).toEqual(true)
 
     await expect(async () => {
@@ -29,7 +29,7 @@ describe('Dream length validation', () => {
   })
 
   it('prevents saving when a field requiring max length is greater than the max length', async () => {
-    const user = new User({ email: 'fred@', password: 'sdjkfhsdjkfhjkshdfkjshdfkjhsdjkfhksjdhfksdjfhkjh' })
+    const user = User.new({ email: 'fred@', password: 'sdjkfhsdjkfhjkshdfkjshdfkjhsdjkfhksjdhfksdjfhkjh' })
     expect(user.isInvalid).toEqual(true)
 
     await expect(async () => {

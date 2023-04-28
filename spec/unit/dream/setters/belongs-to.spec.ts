@@ -28,7 +28,7 @@ describe('BelongsTo setters', () => {
     const composition = await Composition.create({ user })
     composition.user = otherUser
 
-    expect(composition.changedAttributes).toEqual({ user_id: user.id })
+    expect(composition.changedAttributes()).toEqual({ user_id: user.id })
   })
 
   context('polymorphic', () => {
@@ -50,7 +50,7 @@ describe('BelongsTo setters', () => {
       const rating = await Rating.create({ user, rateable: composition })
       rating.rateable = post
 
-      expect(rating.changedAttributes).toEqual({
+      expect(rating.changedAttributes()).toEqual({
         rateable_id: composition.id,
         rateable_type: 'Composition',
       })

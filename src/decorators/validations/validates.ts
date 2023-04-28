@@ -2,14 +2,14 @@ import ValidationStatement, { ValidationType } from './shared'
 
 export default function Validates(type: ValidationType, args?: any): any {
   return function (target: any, key: string, _: any) {
-    target.constructor.validations = [
-      ...target.constructor.validations,
-      {
-        type,
-        column: key,
-        options: extractValidationOptionsFromArgs(type, args),
-      } as ValidationStatement,
-    ]
+    if (!Object.getOwnPropertyDescriptor(target.constructor, 'validations'))
+      target.constructor.validations = [] as ValidationStatement[]
+
+    target.constructor.validations.push({
+      type,
+      column: key,
+      options: extractValidationOptionsFromArgs(type, args),
+    })
   }
 }
 

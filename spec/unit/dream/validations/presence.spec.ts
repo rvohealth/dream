@@ -9,7 +9,7 @@ describe('Dream presence validation', () => {
   })
 
   it('prevents saving when a field requiring presence is blank', async () => {
-    const user = new User({ password: 'howyadoin' })
+    const user = User.new({ password: 'howyadoin' })
     expect(user.isInvalid).toEqual(true)
 
     await expect(async () => {
