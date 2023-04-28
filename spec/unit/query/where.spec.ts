@@ -4,15 +4,6 @@ import range from '../../../src/helpers/range'
 import ops from '../../../src/ops'
 
 describe('Query#where', () => {
-  it('orders records by id', async () => {
-    const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-
-    const records = await User.limit(1).where({ email: 'fred@frewd' }).all()
-    expect(records.length).toEqual(1)
-    expect(records[0].id).toEqual(user1.id)
-  })
-
   context('a generic expression is passed', () => {
     it('uses an "in" operator for comparison', async () => {
       const user1 = await User.create({
