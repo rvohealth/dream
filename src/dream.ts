@@ -1,4 +1,3 @@
-import db from './db'
 import { DB, DBColumns } from './sync/schema'
 import {
   CompiledQuery,
@@ -31,6 +30,10 @@ import OpsStatement from './ops/ops-statement'
 import CanOnlyPassBelongsToModelParam from './exceptions/can-only-pass-belongs-to-model-param'
 import { AssociationExpression, DreamConstructorType } from './dream/types'
 import Query from './dream/query'
+import runHooksFor from './dream/internal/runHooksFor'
+import db from './db'
+import runValidationsFor from './dream/internal/runValidationsFor'
+import checkValidationsFor from './dream/internal/checkValidationsFor'
 
 // export default function dream<
 //   TableName extends AssociationTableNames,
@@ -623,111 +626,4 @@ export default class Dream {
     await runHooksFor('afterDestroy', this)
     return this
   }
-}
-
-// internal
-function ensureSTITypeFieldIsSet<T extends Dream>(dream: T) {
-  // todo: turn STI logic here into before create applied by decorator
-  const Base = dream.constructor as typeof Dream
-  if (Base.sti.value && Base.sti.column) {
-    ;(dream as any)[Base.sti.column] = Base.sti.value
-  }
-}
-
-async function runHooksFor<T extends Dream>(
-  key:
-    | 'beforeCreate'
-    | 'beforeSave'
-    | 'beforeUpdate'
-    | 'beforeDestroy'
-    | 'afterCreate'
-    | 'afterSave'
-    | 'afterUpdate'
-    | 'afterDestroy',
-  dream: T
-): Promise<void> {
-  if (['beforeCreate', 'beforeSave', 'beforeUpdate'].includes(key)) {
-    ensureSTITypeFieldIsSet(dream)
-  }
-
-  const Base = dream.constructor as typeof Dream
-  for (const statement of Base.hooks[key]) {
-    try {
-      await (dream as any)[statement.method]()
-    } catch (error) {
-      throw `
-          Error running ${key} on ${Base.name}
-          ${error}
-          statement.method: ${statement.method}
-        `
-    }
-  }
-}
-
-function checkValidationsFor(dream: Dream) {
-  const Base = dream.constructor as typeof Dream
-  const validationErrors: { [key: string]: ValidationType[] } = {}
-  dream.columns().forEach(column => {
-    Base.validations
-      .filter(
-        // @ts-ignore
-        validation => validation.column === column
-      )
-      .forEach(validation => {
-        if (!isValid(dream, validation)) {
-          validationErrors[validation.column] ||= []
-          validationErrors[validation.column].push(validation.type)
-        }
-      })
-  })
-
-  return validationErrors
-}
-
-function runValidationsFor(dream: Dream) {
-  const Base = dream.constructor as typeof Dream
-  dream.columns().forEach(column => {
-    Base.validations
-      .filter(
-        // @ts-ignore
-        validation => validation.column === column
-      )
-      .forEach(validation => runValidation(dream, validation))
-  })
-}
-
-function runValidation(dream: Dream, validation: ValidationStatement) {
-  if (!isValid(dream, validation)) addValidationError(dream, validation)
-}
-
-function isValid(dream: Dream, validation: ValidationStatement) {
-  switch (validation.type) {
-    case 'presence':
-      return ![undefined, null, ''].includes((dream as any)[validation.column])
-
-    case 'contains':
-      switch (validation.options!.contains!.value.constructor) {
-        case String:
-          return new RegExp(validation.options!.contains!.value).test((dream as any)[validation.column])
-        case RegExp:
-          return (validation.options!.contains!.value as RegExp).test((dream as any)[validation.column])
-      }
-
-    case 'length':
-      const length = (dream as any)[validation.column]?.length
-      return (
-        length &&
-        length >= validation.options!.length!.min &&
-        validation.options!.length!.max &&
-        length <= validation.options!.length!.max
-      )
-
-    default:
-      throw `Unhandled validation type found while running validations: ${validation.type}`
-  }
-}
-
-function addValidationError(dream: Dream, validation: ValidationStatement) {
-  dream.errors[validation.column] ||= []
-  dream.errors[validation.column].push(validation.type)
 }
