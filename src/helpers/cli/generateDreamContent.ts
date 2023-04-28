@@ -58,7 +58,7 @@ export default function generateDreamContent(
     useUUID?: boolean
   } = {}
 ) {
-  const dreamImports: string[] = ['dream', 'Column']
+  const dreamImports: string[] = ['Dream', 'Column']
 
   const idDBType = useUUID ? 'uuid' : 'integer'
   const idTypescriptType = useUUID ? 'string' : 'number'
@@ -125,8 +125,11 @@ import { ${[...new Set(dreamImports)].join(', ')} } from 'dream'${
     !!additionalImports.length ? '\n' + additionalImports.join('\n') : ''
   }
 
-const Dream = dream('${tableName}')
 export default class ${pascalize(pluralize.singular(modelName))} extends Dream {
+  public get table() {
+    return '${tableName}' as const
+  }
+
   @Column('${idDBType}')
   public id: ${idTypescriptType}
 

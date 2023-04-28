@@ -7,10 +7,13 @@ describe('howl generate:model <name> [...attributes]', () => {
       expect(res).toEqual(
         `\
 import { DateTime } from 'luxon'
-import { dream, Column } from 'dream'
+import { Dream, Column } from 'dream'
 
-const Dream = dream('meal_types')
 export default class MealType extends Dream {
+  public get table() {
+    return 'meal_types' as const
+  }
+
   @Column('integer')
   public id: number
 
@@ -34,10 +37,13 @@ export default class MealType extends Dream {
         expect(res).toEqual(
           `\
 import { DateTime } from 'luxon'
-import { dream, Column } from 'dream'
+import { Dream, Column } from 'dream'
 
-const Dream = dream('users')
 export default class User extends Dream {
+  public get table() {
+    return 'users' as const
+  }
+
   @Column('integer')
   public id: number
 
@@ -130,11 +136,14 @@ export default class User extends Dream {
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { dream, Column, BelongsTo } from 'dream'
+import { Dream, Column, BelongsTo } from 'dream'
 import GraphNode from './graph-node'
 
-const Dream = dream('compositions')
 export default class Composition extends Dream {
+  public get table() {
+    return 'compositions' as const
+  }
+
   @Column('integer')
   public id: number
 
@@ -161,12 +170,15 @@ export default class Composition extends Dream {
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { dream, Column, BelongsTo } from 'dream'
+import { Dream, Column, BelongsTo } from 'dream'
 import User from './user'
 import Chalupa from './chalupa'
 
-const Dream = dream('compositions')
 export default class Composition extends Dream {
+  public get table() {
+    return 'compositions' as const
+  }
+
   @Column('integer')
   public id: number
 
@@ -201,11 +213,14 @@ export default class Composition extends Dream {
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { dream, Column, HasOne } from 'dream'
+import { Dream, Column, HasOne } from 'dream'
 import User from './user'
 
-const Dream = dream('compositions')
 export default class Composition extends Dream {
+  public get table() {
+    return 'compositions' as const
+  }
+
   @Column('integer')
   public id: number
 
@@ -231,11 +246,14 @@ export default class Composition extends Dream {
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { dream, Column, HasMany } from 'dream'
+import { Dream, Column, HasMany } from 'dream'
 import Composition from './composition'
 
-const Dream = dream('users')
 export default class User extends Dream {
+  public get table() {
+    return 'users' as const
+  }
+
   @Column('integer')
   public id: number
 
@@ -261,11 +279,14 @@ export default class User extends Dream {
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { dream, Column, BelongsTo } from 'dream'
+import { Dream, Column, BelongsTo } from 'dream'
 import User from './user'
 
-const Dream = dream('compositions')
 export default class Composition extends Dream {
+  public get table() {
+    return 'compositions' as const
+  }
+
   @Column('uuid')
   public id: string
 
@@ -293,10 +314,13 @@ function expectSingleColumnWithType(response: string, name: string, type: string
   expect(response).toEqual(
     `\
 import { DateTime } from 'luxon'
-import { dream, Column } from 'dream'
+import { Dream, Column } from 'dream'
 
-const Dream = dream('users')
 export default class User extends Dream {
+  public get table() {
+    return 'users' as const
+  }
+
   @Column('integer')
   public id: number
 
