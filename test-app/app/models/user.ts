@@ -10,7 +10,7 @@ import UserSettings from './user-settings'
 import Dream from '../../../src/dream'
 
 export default class User extends Dream {
-  public static get table() {
+  public get table() {
     return 'users' as const
   }
 

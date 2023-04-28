@@ -16,7 +16,7 @@ export default function HasMany<AssociationDreamClass extends typeof Dream>(
     polymorphic?: boolean
     throughClass?: () => typeof Dream
     through?: string
-    where?: WhereStatement<AssociationDreamClass['table'] & AssociationTableNames>
+    where?: WhereStatement<InstanceType<AssociationDreamClass>['table'] & AssociationTableNames>
   } = {}
 ): any {
   return function (target: any, key: string, _: any) {
@@ -34,7 +34,7 @@ export default function HasMany<AssociationDreamClass extends typeof Dream>(
       type: 'HasMany',
       // TODO: abstract foreign key capture to helper, with optional override provided by the api
       foreignKey() {
-        return foreignKey || pluralize.singular(target.constructor.table) + '_id'
+        return foreignKey || pluralize.singular(target.table) + '_id'
       },
       foreignKeyTypeField() {
         return (this.foreignKey() as string).replace(/_id$/, '_type')

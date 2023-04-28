@@ -51,7 +51,7 @@ export default function BelongsTo(
 }
 
 function finalForeignKey(foreignKey: any, modelCB: any): string {
-  return foreignKey || pluralize.singular(modelCB().table) + '_id'
+  return foreignKey || pluralize.singular(modelCB().prototype.table) + '_id'
 }
 
 function foreignKeyTypeField(foreignKey: any, modelCB: any): string {

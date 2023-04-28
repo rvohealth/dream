@@ -25,15 +25,15 @@ async function fleshOut(targetAssociationType?: string) {
       const associationMetaData = model.associationMap[associationName]
       if (targetAssociationType && associationMetaData.type !== targetAssociationType) continue
 
-      finalModels[model.table] ||= {}
+      finalModels[model.prototype.table] ||= {}
 
       const dreamClassOrClasses = associationMetaData.modelCB()
       if (dreamClassOrClasses.constructor === Array) {
-        finalModels[model.table][associationName] = (dreamClassOrClasses as any[]).map(
-          dreamClass => dreamClass.table
+        finalModels[model.prototype.table][associationName] = (dreamClassOrClasses as any[]).map(
+          dreamClass => dreamClass.prototype.table
         )
       } else {
-        finalModels[model.table][associationName] = [dreamClassOrClasses.table]
+        finalModels[model.prototype.table][associationName] = [dreamClassOrClasses.prototype.table]
       }
     }
   }

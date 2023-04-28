@@ -7,7 +7,7 @@ import Rating from './rating'
 import User from './user'
 
 export default class Post extends Dream {
-  public static get table() {
+  public get table() {
     return 'posts' as const
   }
 

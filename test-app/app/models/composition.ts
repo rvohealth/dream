@@ -12,7 +12,7 @@ import CompositionAssetAudit from './composition-asset-audit'
 import User from './user'
 
 export default class Composition extends Dream {
-  public static get table() {
+  public get table() {
     return 'compositions' as const
   }
 

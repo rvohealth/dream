@@ -5,7 +5,7 @@ import User from './user'
 import Dream from '../../../src/dream'
 
 export default class Pet extends Dream {
-  public static get table() {
+  public get table() {
     return 'pets' as const
   }
 
