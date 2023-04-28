@@ -2,7 +2,15 @@ import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { AssociationTableNames } from '../db/reflections'
 import { WhereStatement } from '../decorators/associations/shared'
 import { AssociationExpression, JoinsWhereAssociationExpression } from './types'
-import { SelectArg, SelectExpression, SelectQueryBuilder, Transaction, Updateable } from 'kysely'
+import {
+  ComparisonOperator,
+  ComparisonOperatorExpression,
+  SelectArg,
+  SelectExpression,
+  SelectQueryBuilder,
+  Transaction,
+  Updateable,
+} from 'kysely'
 import { DB } from '../sync/schema'
 import { marshalDBValue } from '../helpers/marshalDBValue'
 import Dream from '../dream'
@@ -16,12 +24,48 @@ import { Range } from '../helpers/range'
 import { DateTime } from 'luxon'
 import { SyncedAssociations } from '../sync/associations'
 
+const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
+  '=': '!=',
+  '==': '!=',
+  '!=': '==',
+  '<>': '==',
+  '>': '<=',
+  '>=': '<',
+  '<': '>=',
+  '<=': '>',
+  in: 'not in',
+  'not in': 'in',
+  is: 'is not',
+  'is not': 'is',
+  like: 'not like',
+  'not like': 'like',
+  // 'match',
+  ilike: 'not ilike',
+  'not ilike': 'ilike',
+  // '@>',
+  // '<@',
+  // '?',
+  // '?&',
+  '!<': '<',
+  '!>': '>',
+  // '<=>',
+  '!~': '~',
+  '~': '!~',
+  '~*': '!~*',
+  '!~*': '~*',
+  // '@@',
+  // '@@@',
+  // '!!',
+  // '<->',
+}
+
 export default class Query<
   DreamClass extends typeof Dream,
   Table = DB[InstanceType<DreamClass>['table']],
   QueryAssociationExpression = AssociationExpression<InstanceType<DreamClass>['table'], any>
 > {
-  public whereStatement: WhereStatement<any> | null = null
+  public whereStatement: WhereStatement<any> = {}
+  public whereNotStatement: WhereStatement<any> = {}
   public whereJoinsStatement: JoinsWhereAssociationExpression<
     InstanceType<DreamClass>['table'],
     AssociationExpression<InstanceType<DreamClass>['table'], any>
@@ -79,17 +123,17 @@ export default class Query<
     this: T,
     attributes:
       | WhereStatement<InstanceType<DreamClass>['table']>
-      | JoinsWhereAssociationExpression<InstanceType<DreamClass>['table'], T['joinsStatements'][number]>
-  ) {
+      | JoinsWhereAssociationExpression<InstanceType<DreamClass>['table'], T['joinsStatements'][number]>,
+    whereStatement: WhereStatement<any> = this.whereStatement
+  ): T {
     if (attributes.constructor === Array) {
       // @ts-ignore
       this.whereJoinsStatement = [...(this.whereJoinsStatement as any), ...attributes]
     } else {
       Object.keys(attributes).forEach(key => {
         if (this.dreamClass.columns().includes(key as any)) {
-          this.whereStatement ||= {}
           // @ts-ignore
-          this.whereStatement[key] = attributes[key]
+          whereStatement[key] = attributes[key]
         } else {
           // @ts-ignore
           this.whereJoinsStatement.push({ [key]: attributes[key] })
@@ -98,6 +142,13 @@ export default class Query<
     }
 
     return this
+  }
+
+  public whereNot<T extends Query<DreamClass>>(
+    this: T,
+    attributes: WhereStatement<InstanceType<DreamClass>['table']>
+  ): T {
+    return this.where(attributes, this.whereNotStatement)
   }
 
   public nestedSelect<
@@ -448,11 +499,9 @@ export default class Query<
 
   public buildDelete() {
     let query = this.db.deleteFrom(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
-    if (this.whereStatement) {
-      Object.keys(this.whereStatement).forEach(attr => {
-        query = query.where(attr as any, '=', (this.whereStatement as any)[attr])
-      })
-    }
+    Object.keys(this.whereStatement).forEach(attr => {
+      query = query.where(attr as any, '=', (this.whereStatement as any)[attr])
+    })
     return query
   }
 
@@ -676,33 +725,79 @@ export default class Query<
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
     whereStatement:
       | WhereStatement<InstanceType<DreamClass>['table']>
-      | JoinsWhereAssociationExpression<InstanceType<DreamClass>['table'], T['joinsStatements'][number]>
+      | JoinsWhereAssociationExpression<InstanceType<DreamClass>['table'], T['joinsStatements'][number]>,
+    {
+      negate = false,
+    }: {
+      negate?: boolean
+    } = {}
   ) {
     Object.keys(whereStatement).forEach(attr => {
       const val = (whereStatement as any)[attr]
+      let a: any
+      let b: ComparisonOperatorExpression
+      let c: any
+      let a2: any | null = null
+      let b2: ComparisonOperatorExpression | null = null
+      let c2: any | null = null
 
       if (val === null) {
-        query = query.where(attr as any, 'is', val)
+        a = attr
+        b = 'is'
+        c = val
       } else if (val.constructor === SelectQueryBuilder) {
-        query = query.where(attr as any, 'in', val)
+        a = attr
+        b = 'in'
+        c = val
       } else if (val.constructor === Array) {
-        query = query.where(attr as any, 'in', val)
+        a = attr
+        b = 'in'
+        c = val
       } else if (val.constructor === OpsStatement) {
-        query = query.where(attr as any, val.operator, val.value)
+        a = attr
+        b = val.operator
+        c = val.value
       } else if (val.constructor === Range && (val.begin?.constructor || val.end?.constructor) === DateTime) {
-        const begin = val.begin?.toUTC()?.toSQL()
-        const end = val.end?.toUTC()?.toSQL()
+        const rangeStart = val.begin?.toUTC()?.toSQL()
+        const rangeEnd = val.end?.toUTC()?.toSQL()
         const excludeEnd = val.excludeEnd
 
-        if (begin && end) {
-          query = query.where(attr as any, '>=', begin).where(attr as any, excludeEnd ? '<' : '<=', end)
-        } else if (begin) {
-          query = query.where(attr as any, '>=', begin)
+        if (rangeStart && rangeEnd) {
+          a = attr
+          b = '>='
+          c = rangeStart
+          a2 = attr
+          b2 = excludeEnd ? '<' : '<='
+          c2 = rangeEnd
+        } else if (rangeStart) {
+          a = attr
+          b = '>='
+          c = rangeStart
         } else {
-          query = query.where(attr as any, excludeEnd ? '<' : '<=', end)
+          a = attr
+          b = excludeEnd ? '<' : '<='
+          c = rangeEnd
         }
       } else {
-        query = query.where(attr as any, '=', val)
+        a = attr
+        b = '='
+        c = val
+      }
+
+      if (negate) {
+        // @ts-ignore
+        const negatedB = OPERATION_NEGATION_MAP[b]
+        if (!negatedB) throw `no negation available for comparison operator ${b}`
+        query = query.where(a, negatedB, c)
+
+        if (b2) {
+          const negatedB2 = OPERATION_NEGATION_MAP[b2]
+          if (!negatedB2) throw `no negation available for comparison operator ${b2}`
+          query.where(a2, negatedB2, c2)
+        }
+      } else {
+        query = query.where(a, b, c)
+        if (b2) query = query.where(a2, b2, c2)
       }
     })
 
@@ -769,8 +864,14 @@ export default class Query<
       query = query.union(orStatement.toKysely() as any)
     })
 
-    if (this.whereStatement) {
+    if (Object.keys(this.whereStatement).length) {
       query = this.applyWhereStatement(query, this.whereStatement)
+    }
+
+    if (Object.keys(this.whereNotStatement).length) {
+      query = this.applyWhereStatement(query, this.whereNotStatement, {
+        negate: true,
+      })
     }
 
     this.whereJoinsStatement.forEach(whereJoinsStatement => {
