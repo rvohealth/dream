@@ -22,7 +22,6 @@ export default function BelongsTo(
       modelCB,
       type: 'BelongsTo',
       polymorphic,
-      // TODO: abstract foreign key capture to helper, with optional override provided by the api
       foreignKey() {
         return finalForeignKey(foreignKey, modelCB)
       },
@@ -36,12 +35,7 @@ export default function BelongsTo(
       get: function (this: any) {
         return this[`__${key}__`]
       },
-      set: function (
-        this: any,
-        associatedModel: any
-        // this: InstanceType<ReturnType<typeof dream<any, any>>>,
-        // associatedModel: InstanceType<ReturnType<typeof dream<any, any>>>
-      ) {
+      set: function (this: any, associatedModel: any) {
         this[`__${key}__`] = associatedModel
         this[finalForeignKey(foreignKey, modelCB)] = associatedModel.primaryKeyValue
         if (polymorphic) this[foreignKeyTypeField(foreignKey, modelCB)] = associatedModel.constructor.name

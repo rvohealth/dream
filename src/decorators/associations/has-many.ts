@@ -32,7 +32,6 @@ export default function HasMany<AssociationDreamClass extends typeof Dream>(
     target.constructor.associations['hasMany'].push({
       modelCB,
       type: 'HasMany',
-      // TODO: abstract foreign key capture to helper, with optional override provided by the api
       foreignKey() {
         return foreignKey || pluralize.singular(target.table) + '_id'
       },

@@ -7,18 +7,13 @@ export default function STI({ value, column }: { value?: string; column?: string
   return function (target: any) {
     const t = target as typeof Dream
 
-    Object.defineProperty(t, 'sti', {
-      value: {
-        value: value || t.name,
-        column: column || 'type',
-      },
-    })
-
-    Object.defineProperty(t, 'applySTIScope', {
-      value: (query: any) => {
-        return query.where({ [t.sti.column as string]: t.sti.value })
-      },
-    })
+    t.sti = {
+      column: column || 'type',
+      value: value || t.name,
+    }
+    ;(t as any)['applySTIScope'] = function (query: any) {
+      return query.where({ [t.sti.column as string]: t.sti.value })
+    }
     Scope({ default: true })(t, 'applySTIScope')
   }
 }

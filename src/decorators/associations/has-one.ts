@@ -27,14 +27,12 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
     `
     // TODO: add better validation on through associations
     // TODO: add type guards to through associations if possible
-
     if (!Object.getOwnPropertyDescriptor(target.constructor, 'associations'))
       target.constructor.associations = blankAssociationsFactory()
 
     target.constructor.associations['hasOne'].push({
       modelCB,
       type: 'HasOne',
-      // TODO: abstract foreign key capture to helper, with optional override provided by the api
       foreignKey() {
         return foreignKey || pluralize.singular(target.table) + '_id'
       },
