@@ -123,8 +123,24 @@ export default class Query<
     this: T,
     attributes:
       | WhereStatement<InstanceType<DreamClass>['table']>
+      | JoinsWhereAssociationExpression<InstanceType<DreamClass>['table'], T['joinsStatements'][number]>
+  ): T {
+    return this._where(attributes, this.whereStatement)
+  }
+
+  public whereNot<T extends Query<DreamClass>>(
+    this: T,
+    attributes: WhereStatement<InstanceType<DreamClass>['table']>
+  ): T {
+    return this._where(attributes, this.whereNotStatement)
+  }
+
+  private _where<T extends Query<DreamClass>>(
+    this: T,
+    attributes:
+      | WhereStatement<InstanceType<DreamClass>['table']>
       | JoinsWhereAssociationExpression<InstanceType<DreamClass>['table'], T['joinsStatements'][number]>,
-    whereStatement: WhereStatement<any> = this.whereStatement
+    whereStatement: WhereStatement<any>
   ): T {
     if (attributes.constructor === Array) {
       // @ts-ignore
@@ -142,13 +158,6 @@ export default class Query<
     }
 
     return this
-  }
-
-  public whereNot<T extends Query<DreamClass>>(
-    this: T,
-    attributes: WhereStatement<InstanceType<DreamClass>['table']>
-  ): T {
-    return this.where(attributes, this.whereNotStatement)
   }
 
   public nestedSelect<
