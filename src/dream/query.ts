@@ -99,8 +99,12 @@ export default class Query<
     T extends Query<DreamClass>,
     SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>>
   >(this: T, selection: SelectArg<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, SE>) {
-    const query = this.buildSelect({ bypassSelectAll: true })
-    return query.select(selection as any)
+    const query = this.buildSelect({ bypassSelectAll: true }) as SelectQueryBuilder<
+      DB,
+      ExtractTableAlias<DB, InstanceType<DreamClass>['table']>,
+      {}
+    >
+    return query.select(selection)
   }
 
   public order<ColumnName extends keyof Table & string>(
