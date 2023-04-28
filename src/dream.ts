@@ -1,15 +1,7 @@
-import { DB, DBColumns } from './sync/schema'
-import {
-  CompiledQuery,
-  Selectable,
-  SelectArg,
-  SelectExpression,
-  Selection,
-  SelectQueryBuilder,
-  SelectType,
-  Updateable,
-} from 'kysely'
+import { CompiledQuery, SelectArg, SelectExpression, SelectType, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
+import db from './db'
+import { DB, DBColumns } from './sync/schema'
 import { HasManyStatement } from './decorators/associations/has-many'
 import { BelongsToStatement } from './decorators/associations/belongs-to'
 import { HasOneStatement } from './decorators/associations/has-one'
@@ -19,49 +11,16 @@ import ValidationStatement, { ValidationType } from './decorators/validations/sh
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { marshalDBValue } from './helpers/marshalDBValue'
 import sqlAttributes from './helpers/sqlAttributes'
-import { Range } from './helpers/range'
-import CannotJoinPolymorphicBelongsToError from './exceptions/cannot-join-polymorphic-belongs-to-error'
 import ValidationError from './exceptions/validation-error'
-import { SyncedAssociations, SyncedBelongsToAssociations } from './sync/associations'
-import { Inc } from './helpers/typeutils'
+import { SyncedBelongsToAssociations } from './sync/associations'
 import { WhereStatement } from './decorators/associations/shared'
 import { AssociationTableNames } from './db/reflections'
-import OpsStatement from './ops/ops-statement'
 import CanOnlyPassBelongsToModelParam from './exceptions/can-only-pass-belongs-to-model-param'
 import { AssociationExpression, DreamConstructorType } from './dream/types'
 import Query from './dream/query'
 import runHooksFor from './dream/internal/runHooksFor'
-import db from './db'
 import runValidationsFor from './dream/internal/runValidationsFor'
 import checkValidationsFor from './dream/internal/checkValidationsFor'
-
-// export default function dream<
-//   TableName extends AssociationTableNames,
-//   IdColumnName extends keyof DB[TableName] & string,
-//   QueryAssociationExpression extends AssociationExpression<
-//     TableName & AssociationTableNames,
-//     any
-//   > = AssociationExpression<TableName & AssociationTableNames, any>,
-//   BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[TableName] = keyof SyncedBelongsToAssociations[TableName]
-// >(tableName: TableName, primaryKey: IdColumnName = 'id' as IdColumnName) {
-//   const columns = DBColumns[tableName]
-//   const tableNames = Object.keys(DBColumns)
-
-//   type Table = DB[TableName]
-//   type IdColumn = Table[IdColumnName]
-//   type Data = Selectable<Table>
-//   type Id = Readonly<SelectType<IdColumn>>
-//   type AssociationModelParam = Partial<
-//     Record<
-//       BelongsToModelAssociationNames,
-//       DreamModelInstance<
-//         SyncedBelongsToAssociations[TableName][BelongsToModelAssociationNames][keyof SyncedBelongsToAssociations[TableName][BelongsToModelAssociationNames]] &
-//           AssociationTableNames,
-//         any
-//       >
-//     >
-//   >
-//   type ModelParams = Updateable<Table> | AssociationModelParam
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -519,36 +478,51 @@ export default class Dream {
   }
 
   public async save<I extends Dream>(this: I): Promise<I> {
-    if (this.isPersisted) return await this.update()
+    runValidationsFor(this)
+    if (this.isInvalid) throw new ValidationError(this.constructor.name, this.errors)
+
+    const alreadyPersisted = this.isPersisted
 
     await runHooksFor('beforeSave', this)
-    await runHooksFor('beforeCreate', this)
+    if (alreadyPersisted) await runHooksFor('beforeUpdate', this)
+    else await runHooksFor('beforeCreate', this)
 
     await this.saveUnsavedAssociations()
 
     const sqlifiedAttributes = sqlAttributes(this.dirtyAttributes())
+    const hasChanges = !!Object.keys(sqlifiedAttributes).length
+    if (alreadyPersisted && !hasChanges) return this
 
-    let query = db.insertInto(this.table)
-    if (Object.keys(sqlifiedAttributes).length) {
-      query = query.values(sqlifiedAttributes as any)
+    let query: any
+
+    if (alreadyPersisted) {
+      if (this.columns().includes('updated_at' as any)) {
+        ;(this as any).updated_at = DateTime.now().toUTC()
+      }
+      query = db.updateTable(this.table).set(sqlifiedAttributes as any)
     } else {
-      query = query.values({ id: 0 } as any)
+      query = db.insertInto(this.table)
+      if (hasChanges) {
+        query = query.values(sqlifiedAttributes as any)
+      } else {
+        // TODO: this is an attempt to allow saving of empty models (assuming validation passes)
+        query = query.values({ id: 0 } as any)
+      }
     }
 
-    await runValidationsFor(this)
-    if (this.isInvalid) throw new ValidationError(this.constructor.name, this.errors)
+    if (alreadyPersisted) {
+      await query.executeTakeFirstOrThrow()
+    } else {
+      const data = await query.returning(this.columns()).executeTakeFirstOrThrow()
+      this.setAttributes(data)
+    }
 
-    const data = await query.returning(this.columns() as any).executeTakeFirstOrThrow()
-    const base = this.constructor as typeof Dream
-
-    // sets the id before reloading, since this is a new record
-    // TODO: cleanup type chaos
-    ;(this as any)[base.primaryKey as any] = data[base.primaryKey]
-
-    await this.reload()
+    // set frozen attributes to what has already been saved
+    this.freezeAttributes()
 
     await runHooksFor('afterSave', this)
-    await runHooksFor('afterCreate', this)
+    if (alreadyPersisted) await runHooksFor('afterUpdate', this)
+    else await runHooksFor('afterCreate', this)
 
     return this
   }
@@ -584,32 +558,9 @@ export default class Dream {
       >
     >
   >(this: I, attributes?: Updateable<Table> | AssociationModelParam): Promise<I> {
-    await runHooksFor('beforeSave', this)
-    await runHooksFor('beforeUpdate', this)
-
-    if (attributes) this.setAttributes(attributes)
-    if (this.columns().includes('updated_at' as any)) {
-      ;(this as any).updated_at = DateTime.now().toUTC()
-    }
-
-    await this.saveUnsavedAssociations()
-
-    let query = db.updateTable(this.table as TableName)
-    const sqlifiedAttributes = sqlAttributes(this.dirtyAttributes())
-
-    if (Object.keys(sqlifiedAttributes).length === 0) return this
-    query = query.set(sqlifiedAttributes as any)
-
-    await runValidationsFor(this)
-
-    await query.executeTakeFirstOrThrow()
-
-    await this.reload()
-
-    await runHooksFor('afterSave', this)
-    await runHooksFor('afterUpdate', this)
-
-    return this
+    if (!attributes) return this
+    this.setAttributes(attributes)
+    return await this.save()
   }
 
   public async destroy<I extends Dream, TableName extends keyof DB = I['table'] & keyof DB>(
