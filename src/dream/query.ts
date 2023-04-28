@@ -2,14 +2,14 @@ import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { AssociationTableNames } from '../db/reflections'
 import { WhereStatement } from '../decorators/associations/shared'
 import { AssociationExpression, JoinsWhereAssociationExpression } from './types'
-import { SelectArg, SelectExpression, SelectQueryBuilder, Updateable } from 'kysely'
+import { SelectArg, SelectExpression, SelectQueryBuilder, Transaction, Updateable } from 'kysely'
 import { DB } from '../sync/schema'
 import { marshalDBValue } from '../helpers/marshalDBValue'
 import Dream from '../dream'
 import { HasManyStatement } from '../decorators/associations/has-many'
 import { HasOneStatement } from '../decorators/associations/has-one'
 import { BelongsToStatement } from '../decorators/associations/belongs-to'
-import db from '../db'
+import _db from '../db'
 import CannotJoinPolymorphicBelongsToError from '../exceptions/cannot-join-polymorphic-belongs-to-error'
 import OpsStatement from '../ops/ops-statement'
 import { Range } from '../helpers/range'
@@ -33,6 +33,11 @@ export default class Query<
   public joinsStatements: AssociationExpression<InstanceType<DreamClass>['table'], any>[] = []
   public shouldBypassDefaultScopes: boolean = false
   public dreamClass: DreamClass
+  public txn: Transaction<DB> | null = null
+
+  public get db() {
+    return this.txn || _db
+  }
 
   constructor(DreamClass: DreamClass) {
     this.dreamClass = DreamClass
@@ -138,8 +143,13 @@ export default class Query<
     }
   }
 
+  public async transaction(txn: Transaction<DB>) {
+    this.txn = txn
+    return this
+  }
+
   public async count<T extends Query<DreamClass>>(this: T) {
-    const { count } = db.fn
+    const { count } = this.db.fn
     let query = this.buildSelect({ bypassSelectAll: true })
 
     query = query.select(
@@ -437,7 +447,7 @@ export default class Query<
   }
 
   public buildDelete() {
-    let query = db.deleteFrom(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
+    let query = this.db.deleteFrom(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
     if (this.whereStatement) {
       Object.keys(this.whereStatement).forEach(attr => {
         query = query.where(attr as any, '=', (this.whereStatement as any)[attr])
@@ -740,7 +750,7 @@ export default class Query<
   ): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
     this.conditionallyApplyScopes()
 
-    let query = db.selectFrom(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
+    let query = this.db.selectFrom(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
     if (!bypassSelectAll)
       query = query.selectAll(
         this.dreamClass.prototype.table as ExtractTableAlias<DB, InstanceType<DreamClass>['table']>
@@ -775,7 +785,7 @@ export default class Query<
   }
 
   public buildUpdate<T extends Query<DreamClass>>(this: T, attributes: Updateable<Table>) {
-    let query = db
+    let query = this.db
       .updateTable(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
       .set(attributes as any)
     if (this.whereStatement) {

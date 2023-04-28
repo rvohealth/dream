@@ -1,6 +1,6 @@
-import { CompiledQuery, SelectArg, SelectExpression, SelectType, Updateable } from 'kysely'
+import { CompiledQuery, SelectArg, SelectExpression, SelectType, Transaction, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
-import db from './db'
+import _db from './db'
 import { DB, DBColumns } from './sync/schema'
 import { HasManyStatement } from './decorators/associations/has-many'
 import { BelongsToStatement } from './decorators/associations/belongs-to'
@@ -150,9 +150,10 @@ export default class Dream {
                   ReturnType<T['associationMap'][keyof T['associationMap']]['modelCB'] & (() => typeof Dream)>
                 >
           >
-        >
+        >,
+    txn?: Transaction<DB>
   ) {
-    return (await new (this as any)(opts as any).save()) as InstanceType<T>
+    return (await new (this as any)(opts as any).save(txn)) as InstanceType<T>
   }
 
   public static async destroyAll<T extends typeof Dream>(this: T) {
@@ -234,6 +235,18 @@ export default class Dream {
     return query
   }
 
+  public static nestedSelect<
+    T extends typeof Dream,
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<T>['table'] & AssociationTableNames>>,
+    TableName extends AssociationTableNames = InstanceType<T>['table'] & AssociationTableNames
+  >(
+    this: T,
+    selection: SelectArg<DB, ExtractTableAlias<DB, InstanceType<T>['table'] & AssociationTableNames>, SE>
+  ) {
+    let query: Query<T> = new Query<T>(this)
+    return query.nestedSelect(selection as any)
+  }
+
   public static order<
     T extends typeof Dream,
     ColumnName extends keyof Table & string,
@@ -257,18 +270,6 @@ export default class Dream {
     return await query.pluck(...(fields as any[]))
   }
 
-  public static nestedSelect<
-    T extends typeof Dream,
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<T>['table'] & AssociationTableNames>>,
-    TableName extends AssociationTableNames = InstanceType<T>['table'] & AssociationTableNames
-  >(
-    this: T,
-    selection: SelectArg<DB, ExtractTableAlias<DB, InstanceType<T>['table'] & AssociationTableNames>, SE>
-  ) {
-    let query: Query<T> = new Query<T>(this)
-    return query.nestedSelect(selection as any)
-  }
-
   public static scope<T extends typeof Dream>(this: T, scopeName: string) {
     let query: Query<T> = new Query<T>(this)
     query = (this as any)[scopeName](query) as Query<T>
@@ -278,6 +279,19 @@ export default class Dream {
   public static sql<T extends typeof Dream>(this: T): CompiledQuery<{}> {
     const query: Query<T> = new Query<T>(this)
     return query.sql()
+  }
+
+  public static async transaction<T extends typeof Dream>(
+    this: T,
+    transactionOrCallback: Transaction<DB> | ((txn: Transaction<DB>) => any)
+  ) {
+    if (transactionOrCallback.constructor === Transaction) {
+      return new Query<T>(this).transaction(transactionOrCallback as Transaction<DB>)
+    } else {
+      await _db
+        .transaction()
+        .execute(async txn => (transactionOrCallback as (txn: Transaction<DB>) => void)(txn))
+    }
   }
 
   public static where<
@@ -475,7 +489,7 @@ export default class Dream {
     })
   }
 
-  public async save<I extends Dream>(this: I): Promise<I> {
+  public async save<I extends Dream>(this: I, txn?: Transaction<DB>): Promise<I> {
     runValidationsFor(this)
     if (this.isInvalid) throw new ValidationError(this.constructor.name, this.errors)
 
@@ -492,6 +506,7 @@ export default class Dream {
     if (alreadyPersisted && !hasChanges) return this
 
     let query: any
+    const db = txn || _db
 
     if (alreadyPersisted) {
       if (this.columns().includes('updated_at' as any)) {
@@ -555,18 +570,21 @@ export default class Dream {
             >
       >
     >
-  >(this: I, attributes?: Updateable<Table> | AssociationModelParam): Promise<I> {
+  >(this: I, attributes?: Updateable<Table> | AssociationModelParam, txn?: Transaction<DB>): Promise<I> {
     if (!attributes) return this
     this.setAttributes(attributes)
-    return await this.save()
+    return await this.save(txn)
   }
 
   public async destroy<I extends Dream, TableName extends keyof DB = I['table'] & keyof DB>(
-    this: I
+    this: I,
+    txn?: Transaction<DB>
   ): Promise<I> {
     await runHooksFor('beforeDestroy', this)
 
+    const db = txn || _db
     const base = this.constructor as typeof Dream
+
     await db
       .deleteFrom(this.table as TableName)
       .where(base.primaryKey as any, '=', (this as any)[base.primaryKey])

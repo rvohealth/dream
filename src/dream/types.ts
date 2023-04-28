@@ -15,7 +15,7 @@ export type AssociationExpression<
   TB extends AssociationTableNames,
   AE = unknown,
   Depth extends number = 0
-> = Depth extends 10
+> = Depth extends 5
   ? never
   : AE extends string
   ? keyof SyncedAssociations[TB]
@@ -33,7 +33,7 @@ export type JoinsWhereAssociationExpression<
   TB extends AssociationTableNames,
   AE extends AssociationExpression<TB, any>,
   Depth extends number = 0
-> = Depth extends 10
+> = Depth extends 5
   ? never
   : AE extends any[]
   ? JoinsWhereAssociationExpression<TB, AE[number], Inc<Depth>>[]
