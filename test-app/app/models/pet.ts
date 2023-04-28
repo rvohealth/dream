@@ -14,7 +14,9 @@ export default class Pet extends Dream {
   public name: string
   public created_at: DateTime
 
-  @BelongsTo(() => User)
+  @BelongsTo(() => User, {
+    optional: true,
+  })
   public user: User
   public user_id: number
 }

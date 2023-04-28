@@ -9,7 +9,7 @@ export default function Validates(type: ValidationType, args?: any): any {
       type,
       column: key,
       options: extractValidationOptionsFromArgs(type, args),
-    })
+    } as ValidationStatement)
   }
 }
 
@@ -38,6 +38,7 @@ function extractValidationOptionsFromArgs(type: ValidationType, args: any) {
         `
       }
 
-      return { contains: { value: args as string | RegExp } }
+    case 'requiredBelongsTo':
+      return {}
   }
 }

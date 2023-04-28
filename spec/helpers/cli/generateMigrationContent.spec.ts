@@ -60,7 +60,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('compositions')
     .addColumn('id', 'serial', col => col.primaryKey())
-    .addColumn('user_id', 'serial', col => col.references('users.id').onDelete('cascade').notNull())
+    .addColumn('user_id', 'bigint', col => col.references('users.id').onDelete('cascade').notNull())
     .addColumn('created_at', 'timestamp', col => col.defaultTo(sql\`now()\`).notNull())
     .addColumn('updated_at', 'timestamp', col => col.defaultTo(sql\`now()\`).notNull())
     .execute()

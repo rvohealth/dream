@@ -124,7 +124,7 @@ describe('Dream#update', () => {
 
       await expect(
         // @ts-ignore
-        async () => await user.update({ userSettings })
+        user.update({ userSettings })
       ).rejects.toThrowError(CanOnlyPassBelongsToModelParam)
     })
   })

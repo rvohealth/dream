@@ -13,4 +13,4 @@ export default interface ValidationStatement {
   }
 }
 
-export type ValidationType = 'presence' | 'contains' | 'length'
+export type ValidationType = 'presence' | 'contains' | 'length' | 'requiredBelongsTo'

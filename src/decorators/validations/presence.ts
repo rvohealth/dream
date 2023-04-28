@@ -8,6 +8,6 @@ export default function Presence(): any {
     target.constructor.validations.push({
       type: 'presence',
       column: key,
-    })
+    } as ValidationStatement)
   }
 }

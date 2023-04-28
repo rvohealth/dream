@@ -23,12 +23,10 @@ describe('Dream.transaction', () => {
 
       await expect(
         // @ts-ignore
-        async () => {
-          await Dream.transaction(async txn => {
-            await Composition.create({ user }, txn)
-            await user.update({ email: null }, txn)
-          })
-        }
+        Dream.transaction(async txn => {
+          await Composition.create({ user }, txn)
+          await user.update({ email: null }, txn)
+        })
       ).rejects.toThrowError(ValidationError)
 
       expect(await Composition.count()).toEqual(0)

@@ -81,7 +81,7 @@ describe('Dream.create', () => {
       const userSettings = UserSettings.new({ likes_chalupas: true })
       await expect(
         // @ts-ignore
-        async () => await User.create({ email: 'fred@fishman', password: 'howyadoin', userSettings })
+        User.create({ email: 'fred@fishman', password: 'howyadoin', userSettings })
       ).rejects.toThrowError(CanOnlyPassBelongsToModelParam)
     })
   })

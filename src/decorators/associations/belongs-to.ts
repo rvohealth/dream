@@ -3,14 +3,17 @@ import Dream from '../../dream'
 import { DB } from '../../sync/schema'
 import { AssociationTableNames } from '../../db/reflections'
 import { blankAssociationsFactory } from './shared'
+import Validates from '../validations/validates'
 
 export default function BelongsTo(
   modelCB: () => typeof Dream | (typeof Dream)[],
   {
     foreignKey,
+    optional = false,
     polymorphic = false,
   }: {
     foreignKey?: string
+    optional?: boolean
     polymorphic?: boolean
   } = {}
 ): any {
@@ -21,6 +24,7 @@ export default function BelongsTo(
     target.constructor.associations['belongsTo'].push({
       modelCB,
       type: 'BelongsTo',
+      optional,
       polymorphic,
       foreignKey() {
         return finalForeignKey(foreignKey, modelCB)
@@ -41,6 +45,8 @@ export default function BelongsTo(
         if (polymorphic) this[foreignKeyTypeField(foreignKey, modelCB)] = associatedModel.constructor.name
       },
     })
+
+    if (!optional) Validates('requiredBelongsTo')(target, key)
   }
 }
 
@@ -58,5 +64,6 @@ export interface BelongsToStatement<TableName extends AssociationTableNames> {
   as: string
   foreignKey: () => keyof DB[TableName]
   foreignKeyTypeField: () => keyof DB[TableName]
+  optional: boolean
   polymorphic: boolean
 }

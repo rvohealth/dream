@@ -10,7 +10,7 @@ export type Timestamp = ColumnType<DateTime>;
 
 export interface CompositionAssetAudits {
   id: Generated<number>;
-  composition_asset_id: Generated<number>;
+  composition_asset_id: number;
   approval: boolean | null;
   created_at: Generated<Timestamp>;
   updated_at: Generated<Timestamp>;
@@ -18,7 +18,7 @@ export interface CompositionAssetAudits {
 
 export interface CompositionAssets {
   id: Generated<number>;
-  composition_id: Generated<number>;
+  composition_id: number;
   src: string | null;
   primary: Generated<boolean | null>;
   created_at: Generated<Timestamp>;
@@ -27,7 +27,7 @@ export interface CompositionAssets {
 
 export interface Compositions {
   id: Generated<number>;
-  user_id: Generated<number>;
+  user_id: number;
   content: string | null;
   primary: Generated<boolean | null>;
   created_at: Generated<Timestamp>;
@@ -38,13 +38,13 @@ export interface Pets {
   id: Generated<number>;
   species: string | null;
   name: string | null;
-  user_id: Generated<number>;
+  user_id: number | null;
   created_at: Generated<Timestamp>;
 }
 
 export interface Posts {
   id: Generated<number>;
-  user_id: Generated<number>;
+  user_id: number;
   body: string | null;
   created_at: Generated<Timestamp>;
   updated_at: Generated<Timestamp>;
@@ -52,8 +52,8 @@ export interface Posts {
 
 export interface Ratings {
   id: Generated<number>;
-  user_id: Generated<number>;
-  rateable_id: Generated<number>;
+  user_id: number;
+  rateable_id: number;
   rateable_type: string;
   rating: number | null;
   created_at: Generated<Timestamp>;
@@ -73,7 +73,7 @@ export interface Users {
 
 export interface UserSettings {
   id: Generated<number>;
-  user_id: Generated<number>;
+  user_id: number;
   likes_chalupas: Generated<boolean>;
   created_at: Generated<Timestamp>;
   updated_at: Generated<Timestamp>;

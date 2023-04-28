@@ -13,13 +13,12 @@ import { marshalDBValue } from './helpers/marshalDBValue'
 import sqlAttributes from './helpers/sqlAttributes'
 import ValidationError from './exceptions/validation-error'
 import { SyncedBelongsToAssociations } from './sync/associations'
-import { WhereStatement } from './decorators/associations/shared'
+import { AssociatedModelParam, WhereStatement } from './decorators/associations/shared'
 import { AssociationTableNames } from './db/reflections'
 import CanOnlyPassBelongsToModelParam from './exceptions/can-only-pass-belongs-to-model-param'
 import { AssociationExpression, DreamConstructorType } from './dream/types'
 import Query from './dream/query'
 import runHooksFor from './dream/internal/runHooksFor'
-import runValidationsFor from './dream/internal/runValidationsFor'
 import checkValidationsFor from './dream/internal/checkValidationsFor'
 
 export default class Dream {
@@ -133,24 +132,7 @@ export default class Dream {
 
   public static async create<T extends typeof Dream>(
     this: T,
-    opts?:
-      | Updateable<DB[InstanceType<T>['table']]>
-      | Partial<
-          Record<
-            keyof SyncedBelongsToAssociations[InstanceType<T>['table']],
-            ReturnType<
-              T['associationMap'][keyof T['associationMap']]['modelCB']
-            > extends () => (typeof Dream)[]
-              ? InstanceType<
-                  ReturnType<
-                    T['associationMap'][keyof T['associationMap']]['modelCB'] & (() => (typeof Dream)[])
-                  >[number]
-                >
-              : InstanceType<
-                  ReturnType<T['associationMap'][keyof T['associationMap']]['modelCB'] & (() => typeof Dream)>
-                >
-          >
-        >,
+    opts?: Updateable<DB[InstanceType<T>['table']]> | AssociatedModelParam<T>,
     txn?: Transaction<DB>
   ) {
     return (await new (this as any)(opts as any).save(txn)) as InstanceType<T>
@@ -308,7 +290,7 @@ export default class Dream {
     T extends typeof Dream,
     TableName extends AssociationTableNames = InstanceType<T>['table'] & AssociationTableNames,
     Table extends DB[keyof DB] = DB[TableName]
-  >(this: T, opts?: Updateable<Table>) {
+  >(this: T, opts?: Updateable<Table> | AssociatedModelParam<T>) {
     return new this(opts) as InstanceType<T>
   }
 
@@ -342,8 +324,8 @@ export default class Dream {
   }
 
   public get isValid(): boolean {
-    const validationErrors = checkValidationsFor(this)
-    return !Object.keys(validationErrors).filter(key => !!validationErrors[key].length).length
+    this.errors = checkValidationsFor(this)
+    return !Object.keys(this.errors).filter(key => !!this.errors[key].length).length
   }
 
   public get primaryKey() {
@@ -490,7 +472,6 @@ export default class Dream {
   }
 
   public async save<I extends Dream>(this: I, txn?: Transaction<DB>): Promise<I> {
-    runValidationsFor(this)
     if (this.isInvalid) throw new ValidationError(this.constructor.name, this.errors)
 
     const alreadyPersisted = this.isPersisted

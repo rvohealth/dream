@@ -81,7 +81,7 @@ function generateColumnStr(attributeName: string, attributeType: string, descrip
 }
 
 function generateBelongsToStr(attributeName: string, { useUUID }: { useUUID: boolean }) {
-  const dataType = `${useUUID ? 'uuid' : 'serial'}`
+  const dataType = `${useUUID ? 'uuid' : 'bigint'}`
   const references = pluralize(attributeName.replace(/_id$/, ''))
   return `.addColumn('${attributeName.replace(
     /_id$/,

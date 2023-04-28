@@ -23,6 +23,12 @@ export default function isValid(dream: Dream, validation: ValidationStatement) {
         length <= validation.options!.length!.max
       )
 
+    case 'requiredBelongsTo':
+      return !!(
+        (dream as any)[validation.column] ||
+        (dream as any)[dream.associationMap[validation.column].foreignKey()]
+      )
+
     default:
       throw `Unhandled validation type found while running validations: ${validation.type}`
   }

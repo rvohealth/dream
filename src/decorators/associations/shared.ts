@@ -8,6 +8,22 @@ import OpsStatement from '../../ops/ops-statement'
 import { BelongsToStatement } from './belongs-to'
 import { HasManyStatement } from './has-many'
 import { HasOneStatement } from './has-one'
+import { SyncedBelongsToAssociations } from '../../sync/associations'
+
+export type AssociatedModelParam<T extends typeof Dream> = Partial<
+  Record<
+    keyof SyncedBelongsToAssociations[InstanceType<T>['table']],
+    ReturnType<T['associationMap'][keyof T['associationMap']]['modelCB']> extends () => (typeof Dream)[]
+      ? InstanceType<
+          ReturnType<
+            T['associationMap'][keyof T['associationMap']]['modelCB'] & (() => (typeof Dream)[])
+          >[number]
+        >
+      : InstanceType<
+          ReturnType<T['associationMap'][keyof T['associationMap']]['modelCB'] & (() => typeof Dream)>
+        >
+  >
+>
 
 export type WhereStatement<TableName extends AssociationTableNames> =
   | Updateable<DB[TableName]>
