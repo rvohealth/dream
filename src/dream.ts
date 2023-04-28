@@ -280,20 +280,16 @@ export default class Dream {
     T extends typeof Dream,
     TableName extends AssociationTableNames = InstanceType<T>['table'] & AssociationTableNames
   >(this: T, attributes: WhereStatement<TableName>) {
-    const query: Query<T> = new Query<T>(this)
     // @ts-ignore
-    query.where(attributes)
-    return query
+    return new Query<T>(this).where(attributes)
   }
 
   public static whereNot<
     T extends typeof Dream,
     TableName extends AssociationTableNames = InstanceType<T>['table'] & AssociationTableNames
   >(this: T, attributes: WhereStatement<TableName>) {
-    const query: Query<T> = new Query<T>(this)
     // @ts-ignore
-    query.whereNot(attributes)
-    return query
+    return new Query<T>(this).whereNot(attributes)
   }
 
   public static new<
