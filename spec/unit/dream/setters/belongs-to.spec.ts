@@ -4,7 +4,7 @@ import Rating from '../../../../test-app/app/models/rating'
 import User from '../../../../test-app/app/models/user'
 
 describe('BelongsTo setters', () => {
-  it.only('the getter is updated to the new model', async () => {
+  it('the getter is updated to the new model', async () => {
     const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
     const otherUser = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
     const composition = await Composition.create({ user })
