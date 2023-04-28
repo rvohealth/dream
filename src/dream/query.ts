@@ -5,10 +5,12 @@ import { AssociationExpression, JoinsWhereAssociationExpression } from './types'
 import {
   ComparisonOperator,
   ComparisonOperatorExpression,
+  DeleteQueryBuilder,
   SelectArg,
   SelectExpression,
   SelectQueryBuilder,
   Transaction,
+  UpdateQueryBuilder,
   Updateable,
 } from 'kysely'
 import { DB } from '../sync/schema'
@@ -486,7 +488,7 @@ export default class Query<
     this: T,
     attributes: Updateable<InstanceType<DreamClass>['table']>
   ) {
-    const query = this.buildUpdate(attributes as any)
+    const query = this.buildUpdate(attributes)
     await query.execute()
 
     const selectQuery = this.buildSelect()
@@ -495,9 +497,7 @@ export default class Query<
     return results.map(r => new this.dreamClass(r as any) as InstanceType<DreamClass>)
   }
 
-  // private
-
-  public conditionallyApplyScopes() {
+  private conditionallyApplyScopes() {
     if (this.shouldBypassDefaultScopes) return
 
     const thisScopes = this.dreamClass.scopes.default.filter(s => s.className === this.dreamClass.name)
@@ -506,15 +506,7 @@ export default class Query<
     }
   }
 
-  public buildDelete() {
-    let query = this.db.deleteFrom(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
-    Object.keys(this.whereStatement).forEach(attr => {
-      query = query.where(attr as any, '=', (this.whereStatement as any)[attr])
-    })
-    return query
-  }
-
-  public joinsBridgeThroughAssociations<T extends Query<DreamClass>>(
+  private joinsBridgeThroughAssociations<T extends Query<DreamClass>>(
     this: T,
     {
       query,
@@ -562,7 +554,7 @@ export default class Query<
     }
   }
 
-  public applyOneJoin<T extends Query<DreamClass>>(
+  private applyOneJoin<T extends Query<DreamClass>>(
     this: T,
     {
       query,
@@ -668,7 +660,7 @@ export default class Query<
     }
   }
 
-  public recursivelyJoin<T extends Query<DreamClass>, PreviousTableName extends AssociationTableNames>(
+  private recursivelyJoin<T extends Query<DreamClass>, PreviousTableName extends AssociationTableNames>(
     this: T,
     {
       query,
@@ -729,7 +721,7 @@ export default class Query<
     return query
   }
 
-  public applyWhereStatement<T extends Query<DreamClass>>(
+  private applyWhereStatement<T extends Query<DreamClass>>(
     this: T,
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
     whereStatement:
@@ -813,7 +805,7 @@ export default class Query<
     return query
   }
 
-  public recursivelyApplyJoinWhereStatement<PreviousTableName extends AssociationTableNames>(
+  private recursivelyApplyJoinWhereStatement<PreviousTableName extends AssociationTableNames>(
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
     whereJoinsStatement:
       | JoinsWhereAssociationExpression<PreviousTableName, AssociationExpression<PreviousTableName, any>>
@@ -848,17 +840,8 @@ export default class Query<
     return query
   }
 
-  public buildSelect<T extends Query<DreamClass>>(
-    this: T,
-    { bypassSelectAll = false }: { bypassSelectAll?: boolean } = {}
-  ): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
+  private buildCommon<T extends Query<DreamClass>>(this: T, query: any) {
     this.conditionallyApplyScopes()
-
-    let query = this.db.selectFrom(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
-    if (!bypassSelectAll)
-      query = query.selectAll(
-        this.dreamClass.prototype.table as ExtractTableAlias<DB, InstanceType<DreamClass>['table']>
-      )
 
     if (this.joinsStatements.length) {
       query = this.recursivelyJoin({
@@ -887,22 +870,44 @@ export default class Query<
       query = this.recursivelyApplyJoinWhereStatement(query, whereJoinsStatement, '')
     })
 
-    if (this.limitStatement) query = query.limit(this.limitStatement.count)
+    return query
+  }
+
+  private buildDelete<T extends Query<DreamClass>>(
+    this: T
+  ): DeleteQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
+    let query = this.db.deleteFrom(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
+    return this.buildCommon(query)
+  }
+
+  private buildSelect<T extends Query<DreamClass>>(
+    this: T,
+    { bypassSelectAll = false }: { bypassSelectAll?: boolean } = {}
+  ): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
+    let query = this.db.selectFrom(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
+
+    query = this.buildCommon(query)
+
     if (this.orderStatement)
       query = query.orderBy(this.orderStatement.column as any, this.orderStatement.direction)
+
+    if (this.limitStatement) query = query.limit(this.limitStatement.count)
+
+    if (!bypassSelectAll)
+      query = query.selectAll(
+        this.dreamClass.prototype.table as ExtractTableAlias<DB, InstanceType<DreamClass>['table']>
+      )
 
     return query
   }
 
-  public buildUpdate<T extends Query<DreamClass>>(this: T, attributes: Updateable<Table>) {
+  public buildUpdate<T extends Query<DreamClass>>(
+    this: T,
+    attributes: Updateable<InstanceType<DreamClass>['table']>
+  ): UpdateQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, any, {}> {
     let query = this.db
       .updateTable(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
       .set(attributes as any)
-    if (this.whereStatement) {
-      Object.keys(this.whereStatement).forEach(attr => {
-        query = query.where(attr as any, '=', (this.whereStatement as any)[attr])
-      })
-    }
-    return query
+    return this.buildCommon(query)
   }
 }

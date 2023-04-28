@@ -143,15 +143,6 @@ export default class Dream {
     return await query.destroy()
   }
 
-  public static async destroyBy<
-    T extends typeof Dream,
-    TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName]
-  >(this: T, opts?: Updateable<Table>) {
-    const query: Query<T> = new Query<T>(this)
-    return await query.destroyBy(opts as any)
-  }
-
   public static async find<
     T extends typeof Dream,
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
