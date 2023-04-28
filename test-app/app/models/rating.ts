@@ -22,5 +22,5 @@ export default class Rating extends Dream {
   })
   public rateable: Composition | Post
   public rateable_id: number
-  public rateable_type: number
+  public rateable_type: string
 }
