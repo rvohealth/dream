@@ -298,6 +298,48 @@ export default class Dream {
     return new this(opts) as InstanceType<T>
   }
 
+  public get associationMap() {
+    return (this.constructor as typeof Dream).associationMap
+  }
+
+  public get associations() {
+    return (this.constructor as typeof Dream).associations
+  }
+
+  public get associationNames() {
+    return (this.constructor as typeof Dream).associationNames
+  }
+
+  public get isDirty() {
+    return !!Object.keys(this.dirtyAttributes()).length
+  }
+
+  public get isDreamInstance() {
+    return true
+  }
+
+  public get isInvalid(): boolean {
+    return !this.isValid
+  }
+
+  public get isPersisted() {
+    // todo: clean up types here
+    return !!(this as any)[this.primaryKey]
+  }
+
+  public get isValid(): boolean {
+    const validationErrors = checkValidationsFor(this)
+    return !Object.keys(validationErrors).filter(key => !!validationErrors[key].length).length
+  }
+
+  public get primaryKey() {
+    return (this.constructor as typeof Dream).primaryKey
+  }
+
+  public get primaryKeyValue(): string | number | null {
+    return (this as any)[this.primaryKey] || null
+  }
+
   public get table(): AssociationTableNames {
     throw 'override table method in child'
   }
@@ -312,36 +354,6 @@ export default class Dream {
       // any modifications afterwards will indicate updates.
       if (this.isPersisted) this.freezeAttributes()
     }
-  }
-
-  public get primaryKey() {
-    return (this.constructor as typeof Dream).primaryKey
-  }
-
-  public get primaryKeyValue(): string | number | null {
-    return (this as any)[this.primaryKey] || null
-  }
-
-  public get isDirty() {
-    return !!Object.keys(this.dirtyAttributes()).length
-  }
-
-  public get isDreamInstance() {
-    return true
-  }
-
-  public get isPersisted() {
-    // todo: clean up types here
-    return !!(this as any)[this.primaryKey]
-  }
-
-  public get isValid(): boolean {
-    const validationErrors = checkValidationsFor(this)
-    return !Object.keys(validationErrors).filter(key => !!validationErrors[key].length).length
-  }
-
-  public get isInvalid(): boolean {
-    return !this.isValid
   }
 
   public attributes<I extends Dream>(this: I): Updateable<DB[I['table']]> {
@@ -384,18 +396,6 @@ export default class Dream {
 
   public freezeAttributes() {
     this.frozenAttributes = { ...this.attributes() }
-  }
-
-  public get associationMap() {
-    return (this.constructor as typeof Dream).associationMap
-  }
-
-  public get associations() {
-    return (this.constructor as typeof Dream).associations
-  }
-
-  public get associationNames() {
-    return (this.constructor as typeof Dream).associationNames
   }
 
   public columns<
