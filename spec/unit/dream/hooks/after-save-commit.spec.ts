@@ -7,8 +7,6 @@ describe('Dream AfterSaveCommit decorator', () => {
     it('runs the query after the transactions have been commited', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-      // setting the content field to "override on commit" will cause the composition model to set
-      // different content on this record on both AfterSave, and AfterSaveCommit.
       const composition = await Composition.create({
         user_id: user.id,
         content: 'change me after save commit',
@@ -22,8 +20,6 @@ describe('Dream AfterSaveCommit decorator', () => {
         await Dream.transaction(async txn => {
           const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' }, txn)
 
-          // setting the content field to "override on commit" will cause the composition model to set
-          // different content on this record on both AfterSave, and AfterSaveCommit.
           composition = await Composition.create(
             { user_id: user.id, content: 'change me after save commit' },
             txn
@@ -38,8 +34,6 @@ describe('Dream AfterSaveCommit decorator', () => {
     it('runs the query after the transactions have been commited', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-      // setting the content field to "override on commit" will cause the composition model to set
-      // different content on this record on both AfterUpdate, and AfterUpdateCommit.
       const composition = await Composition.create({
         user_id: user.id,
       })
@@ -55,8 +49,6 @@ describe('Dream AfterSaveCommit decorator', () => {
         await Dream.transaction(async txn => {
           const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' }, txn)
 
-          // setting the content field to "override on commit" will cause the composition model to set
-          // different content on this record on both AfterUpdate, and AfterUpdateCommit.
           composition = await Composition.create({ user_id: user.id }, txn)
           await composition.update({
             content: 'change me after save commit',
