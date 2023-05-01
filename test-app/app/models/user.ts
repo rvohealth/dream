@@ -7,6 +7,7 @@ import CompositionAssetAudit from './composition-asset-audit'
 import Validates from '../../../src/decorators/validations/validates'
 import UserSettings from './user-settings'
 import Dream from '../../../src/dream'
+import { DateTime } from 'luxon'
 
 export default class User extends Dream {
   public get table() {
@@ -15,9 +16,9 @@ export default class User extends Dream {
 
   public id: number
   public type: string
-  public deleted_at: Date
-  public created_at: Date
-  public updated_at: Date
+  public deleted_at: DateTime
+  public created_at: DateTime
+  public updated_at: DateTime
 
   @Validates('contains', '@')
   @Validates('presence')

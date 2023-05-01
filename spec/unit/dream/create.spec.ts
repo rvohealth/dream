@@ -4,6 +4,8 @@ import Rating from '../../../test-app/app/models/rating'
 import User from '../../../test-app/app/models/user'
 import UserSettings from '../../../test-app/app/models/user-settings'
 import CanOnlyPassBelongsToModelParam from '../../../src/exceptions/can-only-pass-belongs-to-model-param'
+import Pet from '../../../test-app/app/models/pet'
+import { DateTime } from 'luxon'
 
 describe('Dream.create', () => {
   it('creates the underlying model in the db', async () => {
@@ -11,6 +13,28 @@ describe('Dream.create', () => {
     const user = await User.find(u.id)
     expect(user!.email).toEqual('fred@frewd')
     expect(typeof user!.id).toBe('number')
+  })
+
+  it('sets created_at', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    expect(user!.created_at.toSeconds()).toBeWithin(1, DateTime.now().toUTC().toSeconds())
+    const reloadedUser = await User.find(user.id)
+    expect(reloadedUser!.created_at.toSeconds()).toBeWithin(1, DateTime.now().toUTC().toSeconds())
+  })
+
+  it('sets updated_at', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const now = DateTime.now().toUTC()
+    expect(user!.updated_at.toSeconds()).toBeWithin(1, now.toSeconds())
+    const reloadedUser = await User.find(user.id)
+    expect(reloadedUser!.updated_at.toSeconds()).toBeWithin(1, DateTime.now().toUTC().toSeconds())
+  })
+
+  it('allows saving of valid blank objects', async () => {
+    const pet = await Pet.create()
+    expect(typeof pet!.id).toBe('number')
+    const reloadedPet = await Pet.find(pet.id)
+    expect(typeof reloadedPet!.id).toBe('number')
   })
 
   context('passed a model to a BelongsTo association', () => {

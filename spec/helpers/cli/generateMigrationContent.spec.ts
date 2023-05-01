@@ -31,8 +31,8 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('chalupified_at', 'timestamp')
     .addColumn('finished_chalupa_on', 'date')
     .addColumn('finished_chalupa_at', 'timestamp')
-    .addColumn('created_at', 'timestamp', col => col.defaultTo(sql\`now()\`).notNull())
-    .addColumn('updated_at', 'timestamp', col => col.defaultTo(sql\`now()\`).notNull())
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
 }
 
@@ -61,8 +61,8 @@ export async function up(db: Kysely<any>): Promise<void> {
     .createTable('compositions')
     .addColumn('id', 'serial', col => col.primaryKey())
     .addColumn('user_id', 'bigint', col => col.references('users.id').onDelete('cascade').notNull())
-    .addColumn('created_at', 'timestamp', col => col.defaultTo(sql\`now()\`).notNull())
-    .addColumn('updated_at', 'timestamp', col => col.defaultTo(sql\`now()\`).notNull())
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
 }
 
@@ -91,8 +91,8 @@ export async function up(db: Kysely<any>): Promise<void> {
     .createTable('compositions')
     .addColumn('id', 'uuid', col => col.primaryKey())
     .addColumn('user_id', 'uuid', col => col.references('users.id').onDelete('cascade').notNull())
-    .addColumn('created_at', 'timestamp', col => col.defaultTo(sql\`now()\`).notNull())
-    .addColumn('updated_at', 'timestamp', col => col.defaultTo(sql\`now()\`).notNull())
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
 }
 
@@ -120,8 +120,8 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('compositions')
     .addColumn('id', 'uuid', col => col.primaryKey())
-    .addColumn('created_at', 'timestamp', col => col.defaultTo(sql\`now()\`).notNull())
-    .addColumn('updated_at', 'timestamp', col => col.defaultTo(sql\`now()\`).notNull())
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
 }
 
@@ -149,8 +149,8 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('compositions')
     .addColumn('id', 'uuid', col => col.primaryKey())
-    .addColumn('created_at', 'timestamp', col => col.defaultTo(sql\`now()\`).notNull())
-    .addColumn('updated_at', 'timestamp', col => col.defaultTo(sql\`now()\`).notNull())
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
 }
 

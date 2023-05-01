@@ -479,26 +479,23 @@ export default class Dream {
 
     await this.saveUnsavedAssociations()
 
-    const sqlifiedAttributes = sqlAttributes(this.dirtyAttributes())
-    const hasChanges = !!Object.keys(sqlifiedAttributes).length
-    if (alreadyPersisted && !hasChanges) return this
+    if (alreadyPersisted && !this.isDirty) return this
 
     let query: any
     const db = txn || _db
 
+    const now = DateTime.now().toUTC()
+    if (!alreadyPersisted && !(this as any).created_at && (this.columns() as any[]).includes('created_at'))
+      (this as any).created_at = now
+    if (!(this.dirtyAttributes() as any).updated_at && (this.columns() as any[]).includes('updated_at'))
+      (this as any).updated_at = now
+
+    const sqlifiedAttributes = sqlAttributes(this.dirtyAttributes())
+
     if (alreadyPersisted) {
-      if (this.columns().includes('updated_at' as any)) {
-        ;(this as any).updated_at = DateTime.now().toUTC()
-      }
       query = db.updateTable(this.table).set(sqlifiedAttributes as any)
     } else {
-      query = db.insertInto(this.table)
-      if (hasChanges) {
-        query = query.values(sqlifiedAttributes as any)
-      } else {
-        // TODO: this is an attempt to allow saving of empty models (assuming validation passes)
-        query = query.values({ id: 0 } as any)
-      }
+      query = db.insertInto(this.table).values(sqlifiedAttributes as any)
     }
 
     if (alreadyPersisted) {

@@ -1,18 +1,81 @@
+import { DateTime } from 'luxon'
 import User from '../../../test-app/app/models/user'
 
 describe('Dream#save', () => {
-  it('saves a new record', async () => {
-    const u = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const user = await User.find(u.id)
-    expect(user!.email).toEqual('fred@frewd')
+  context('a new record', () => {
+    let user: User
+
+    beforeEach(async () => {
+      user = await User.new({ email: 'fred@frewd', password: 'howyadoin' })
+    })
+
+    it('saves', async () => {
+      await user.save()
+      const reloadedUser = await User.find(user.id)
+      expect(reloadedUser!.email).toEqual('fred@frewd')
+    })
+
+    it('sets created_at', async () => {
+      await user.save()
+      expect(user!.created_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+      const reloadedUser = await User.find(user.id)
+      expect(reloadedUser!.created_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+    })
+
+    context('when created_at is passed', () => {
+      it('doesn’t override created_at', async () => {
+        const createdAt = DateTime.now().minus({ day: 1 })
+        user.created_at = createdAt
+        await user.save()
+        expect(user!.created_at.toSeconds()).toBeWithin(1, createdAt.toSeconds())
+        const reloadedUser = await User.find(user.id)
+        expect(reloadedUser!.created_at.toSeconds()).toBeWithin(1, createdAt.toSeconds())
+      })
+    })
+
+    it('sets updated_at', async () => {
+      await user.save()
+      expect(user!.updated_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+      const reloadedUser = await User.find(user.id)
+      expect(reloadedUser!.updated_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+    })
+
+    context('when updated_at is passed', () => {
+      it('doesn’t override updated_at', async () => {
+        const updatedAt = DateTime.now().minus({ day: 1 })
+        user.updated_at = updatedAt
+        await user.save()
+        expect(user!.updated_at.toSeconds()).toBeWithin(1, updatedAt.toSeconds())
+        const reloadedUser = await User.find(user.id)
+        expect(reloadedUser!.updated_at.toSeconds()).toBeWithin(1, updatedAt.toSeconds())
+      })
+    })
   })
 
-  it('saves an existing record', async () => {
-    const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    user1.name = 'cheese'
-    await user1.save()
+  context('a persisted record', () => {
+    let user: User
 
-    const user1Reloaded = await User.find(user1.id)
-    expect(user1Reloaded!.name).toEqual('cheese')
+    beforeEach(async () => {
+      user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      user.name = 'cheese'
+      await user.save()
+    })
+
+    it('saves', async () => {
+      const reloadedUser = await User.find(user.id)
+      expect(reloadedUser!.name).toEqual('cheese')
+    })
+
+    it('sets created_at', async () => {
+      expect(user!.created_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+      const reloadedUser = await User.find(user.id)
+      expect(reloadedUser!.created_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+    })
+
+    it('sets updated_at', async () => {
+      expect(user!.updated_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+      const reloadedUser = await User.find(user.id)
+      expect(reloadedUser!.updated_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+    })
   })
 })

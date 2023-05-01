@@ -21,45 +21,26 @@ declare global {
     interface Matchers<R> {
       toMatchDreamModel(expected: any): CustomMatcherResult
       toMatchDreamModels(expected: any): CustomMatcherResult
+      toBeWithin(precision: number, expected: number): CustomMatcherResult
     }
   }
 }
 
 expect.extend({
+  // https://stackoverflow.com/questions/50896753/jest-tobeclosetos-precision-not-working-as-expected#answer-75639525
+  toBeWithin(received: number, precision: number, expected: number) {
+    const pass = Math.abs(received - expected) < precision
+    return {
+      pass,
+      message: () =>
+        pass
+          ? `expected ${received} NOT to be within ${precision} of ${expected}`
+          : `expected ${received} to be within ${precision} of ${expected}`,
+    }
+  },
+
   toMatchDreamModel(received: any, expected: any) {
     return expectMatchingDreamModels(received, expected, 'toMatchDreamModel')
-
-    //     if (!received?.isDreamInstance) {
-    //       return {
-    //         pass: false,
-    //         message: () =>
-    //           `Expected received object to be a Dream instance, but was ${received?.constructor?.name}`,
-    //       }
-    //     } else if (!expected?.isDreamInstance) {
-    //       return {
-    //         pass: false,
-    //         message: () =>
-    //           `Expected expected object to be a Dream instance, but was ${expected?.constructor?.name}`,
-    //       }
-    //     } else if (!attributesMatch(received, expected)) {
-    //       return {
-    //         pass: false,
-    //         message: () => `
-    // Expected
-    // ${JSON.stringify(attributes(received), null, 2)}
-    // to match
-    // ${JSON.stringify(attributes(expected), null, 2)}`,
-    //       }
-    //     }
-
-    //     return {
-    //       pass: true,
-    //       message: () => `
-    // Expected
-    // ${JSON.stringify(attributes(received), null, 2)}
-    // NOT to match
-    // ${JSON.stringify(attributes(expected), null, 2)}`,
-    //     }
   },
 
   toMatchDreamModels(received: any, expected: any) {

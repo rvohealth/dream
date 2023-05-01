@@ -9,8 +9,8 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('rateable_id', 'integer', col => col.notNull())
     .addColumn('rateable_type', 'varchar', col => col.notNull())
     .addColumn('rating', 'integer')
-    .addColumn('created_at', 'timestamp', col => col.defaultTo(sql`now()`).notNull())
-    .addColumn('updated_at', 'timestamp', col => col.defaultTo(sql`now()`).notNull())
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
 }
 

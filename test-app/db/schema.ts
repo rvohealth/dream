@@ -12,8 +12,8 @@ export interface CompositionAssetAudits {
   id: Generated<number>;
   composition_asset_id: number;
   approval: boolean | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: Timestamp;
+  updated_at: Timestamp;
 }
 
 export interface CompositionAssets {
@@ -21,8 +21,8 @@ export interface CompositionAssets {
   composition_id: number;
   src: string | null;
   primary: Generated<boolean | null>;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: Timestamp;
+  updated_at: Timestamp;
 }
 
 export interface Compositions {
@@ -30,8 +30,8 @@ export interface Compositions {
   user_id: number;
   content: string | null;
   primary: Generated<boolean | null>;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: Timestamp;
+  updated_at: Timestamp;
 }
 
 export interface Pets {
@@ -39,15 +39,15 @@ export interface Pets {
   species: string | null;
   name: string | null;
   user_id: number | null;
-  created_at: Generated<Timestamp>;
+  created_at: Timestamp;
 }
 
 export interface Posts {
   id: Generated<number>;
   user_id: number;
   body: string | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: Timestamp;
+  updated_at: Timestamp;
 }
 
 export interface Ratings {
@@ -56,8 +56,8 @@ export interface Ratings {
   rateable_id: number;
   rateable_type: string;
   rating: number | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: Timestamp;
+  updated_at: Timestamp;
 }
 
 export interface Users {
@@ -66,8 +66,8 @@ export interface Users {
   type: string | null;
   email: string;
   password: string;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: Timestamp;
+  updated_at: Timestamp;
   deleted_at: Timestamp | null;
 }
 
@@ -75,8 +75,8 @@ export interface UserSettings {
   id: Generated<number>;
   user_id: number;
   likes_chalupas: Generated<boolean>;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: Timestamp;
+  updated_at: Timestamp;
 }
 
 export interface DB {

@@ -1,5 +1,5 @@
 import truncate from '../helpers/truncate'
-import './jestMatchers/dreamModel'
+import './jestMatchers'
 
 beforeEach(async () => {
   await truncate()

@@ -54,8 +54,8 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('${table}')
     ${generateIdStr({ useUUID })}${columnDefs.length ? '\n    ' + columnDefs.join('\n    ') : ''}
-    .addColumn('created_at', 'timestamp', col => col.defaultTo(sql\`now()\`).notNull())
-    .addColumn('updated_at', 'timestamp', col => col.defaultTo(sql\`now()\`).notNull())
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
 }
 

@@ -19,12 +19,19 @@ describe('Dream#update', () => {
   })
 
   it('updates the updated_at field', async () => {
-    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'Charlie Brown' })
-    expect(user.created_at).toEqual(user.updated_at)
+    const updatedAt = DateTime.now().minus({ day: 1 })
+    const user = await User.create({
+      email: 'fred@frewd',
+      password: 'howyadoin',
+      name: 'Charlie Brown',
+      updated_at: updatedAt,
+    })
+    expect(user!.updated_at.toSeconds()).toBeWithin(1, updatedAt.toSeconds())
 
     await user.update({ email: 'how@yadoin' })
-    expect(user.updated_at).not.toEqual(user.created_at)
-    expect(user.updated_at).toBeInstanceOf(DateTime)
+    expect(user!.updated_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+    const reloadedUser = await User.find(user.id)
+    expect(reloadedUser!.updated_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
   })
 
   context('the model does not have an updated_at field', () => {
