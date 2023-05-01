@@ -6,8 +6,6 @@ describe('Dream AfterCreateCommit decorator', () => {
   it('runs the query after the transactions have been commited', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-    // setting the content field to "override on commit" will cause the composition model to set
-    // different content on this record on both AfterCreate, and AfterCreateCommit.
     const composition = await Composition.create({
       user_id: user.id,
       content: 'change me after create commit',
@@ -21,8 +19,6 @@ describe('Dream AfterCreateCommit decorator', () => {
       await Dream.transaction(async txn => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' }, txn)
 
-        // setting the content field to "override on commit" will cause the composition model to set
-        // different content on this record on both AfterCreate, and AfterCreateCommit.
         composition = await Composition.create(
           { user_id: user.id, content: 'change me after create commit' },
           txn
