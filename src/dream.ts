@@ -550,10 +550,11 @@ export default class Dream {
 
     const commitHookType = alreadyPersisted ? 'afterUpdateCommit' : 'afterCreateCommit'
     if (txn) {
-      Base.hooks[commitHookType].forEach(hook => {
+      ;[...Base.hooks.afterSaveCommit, ...Base.hooks[commitHookType]].forEach(hook => {
         txn.addCommitHook(hook, this)
       })
     } else {
+      await runHooksFor('afterSaveCommit', this)
       await runHooksFor(commitHookType, this)
     }
 
