@@ -469,6 +469,20 @@ export default class Dream {
   }
 
   public async save<I extends Dream>(this: I, txn?: Transaction<DB>): Promise<I> {
+    if (txn) {
+      return await this._save(txn)
+    } else if (this.hasUnsavedAssociations) {
+      const base = this.constructor as DreamConstructorType<I>
+      await base.transaction(async txn => {
+        await this._save(txn)
+      })
+      return this
+    } else {
+      return await this._save()
+    }
+  }
+
+  public async _save<I extends Dream>(this: I, txn?: Transaction<DB>): Promise<I> {
     if (this.isInvalid) throw new ValidationError(this.constructor.name, this.errors)
 
     const alreadyPersisted = this.isPersisted
@@ -477,7 +491,7 @@ export default class Dream {
     if (alreadyPersisted) await runHooksFor('beforeUpdate', this)
     else await runHooksFor('beforeCreate', this)
 
-    await this.saveUnsavedAssociations()
+    await this.saveUnsavedAssociations(txn)
 
     if (alreadyPersisted && !this.isDirty) return this
 
@@ -515,14 +529,31 @@ export default class Dream {
     return this
   }
 
-  public async saveUnsavedAssociations() {
+  public get unsavedAssociations(): (
+    | BelongsToStatement<any>
+    | HasOneStatement<any>
+    | HasManyStatement<any>
+  )[] {
+    const unsaved: (BelongsToStatement<any> | HasOneStatement<any> | HasManyStatement<any>)[] = []
     for (const associationName in this.associationMap) {
       const associationMetadata = this.associationMap[associationName]
       const associationRecord = (this as any)[associationName] as Dream | undefined
-      if (associationRecord?.isDreamInstance && !associationRecord?.isPersisted) {
-        await associationRecord.save()
-        ;(this as any)[associationMetadata.foreignKey()] = associationRecord.primaryKeyValue
+      if (associationRecord?.isDreamInstance && associationRecord?.isDirty) {
+        unsaved.push(associationMetadata)
       }
+    }
+    return unsaved
+  }
+
+  public get hasUnsavedAssociations() {
+    return !!this.unsavedAssociations.length
+  }
+
+  public async saveUnsavedAssociations(txn?: Transaction<DB>) {
+    for (const associationMetadata of this.unsavedAssociations) {
+      const associationRecord = (this as any)[associationMetadata.as] as Dream
+      await associationRecord.save(txn)
+      ;(this as any)[associationMetadata.foreignKey()] = associationRecord.primaryKeyValue
     }
   }
 

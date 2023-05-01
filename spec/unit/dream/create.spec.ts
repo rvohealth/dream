@@ -6,6 +6,7 @@ import UserSettings from '../../../test-app/app/models/user-settings'
 import CanOnlyPassBelongsToModelParam from '../../../src/exceptions/can-only-pass-belongs-to-model-param'
 import Pet from '../../../test-app/app/models/pet'
 import { DateTime } from 'luxon'
+import PostVisibility from '../../../test-app/app/models/post-visibility'
 
 describe('Dream.create', () => {
   it('creates the underlying model in the db', async () => {
@@ -71,6 +72,22 @@ describe('Dream.create', () => {
         const rating = await Rating.create({ user, rateable: post })
 
         expect(rating.rateable).toEqual(post)
+      })
+
+      context('saving the associated model fails', () => {
+        it('does not persist the original record, nor any other associated models', async () => {
+          // the PostVisibility model is set up to raise an exception whenever
+          // its "notes" field is set to "raise exception if notes set to this"
+          const postVisibility = PostVisibility.new({ notes: 'raise exception if notes set to this' })
+
+          const user = User.new({ email: 'fred@fishman', password: 'howyadoin' })
+          const post = Post.new({ user, postVisibility })
+
+          await expect(post.save()).rejects.toThrow()
+          expect(await PostVisibility.count()).toEqual(0)
+          expect(await User.count()).toEqual(0)
+          expect(await Post.count()).toEqual(0)
+        })
       })
     })
 

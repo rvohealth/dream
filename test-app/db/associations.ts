@@ -44,8 +44,16 @@ export default {
     "user": [
       "users"
     ],
+    "postVisibility": [
+      "post_visibilities"
+    ],
     "ratings": [
       "ratings"
+    ]
+  },
+  "post_visibilities": {
+    "post": [
+      "posts"
     ]
   },
   "ratings": {
@@ -130,8 +138,16 @@ export interface SyncedAssociations {
     "user": [
       "users"
     ],
+    "postVisibility": [
+      "post_visibilities"
+    ],
     "ratings": [
       "ratings"
+    ]
+  },
+  "post_visibilities": {
+    "post": [
+      "posts"
     ]
   },
   "ratings": {
@@ -194,6 +210,14 @@ export interface SyncedBelongsToAssociations {
   "posts": {
     "user": [
       "users"
+    ],
+    "postVisibility": [
+      "post_visibilities"
+    ]
+  },
+  "post_visibilities": {
+    "post": [
+      "posts"
     ]
   },
   "ratings": {

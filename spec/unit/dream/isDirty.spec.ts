@@ -17,4 +17,12 @@ describe('Dream#isDirty', () => {
     user.email = 'ham@'
     expect(user.isDirty).toEqual(false)
   })
+
+  context('with a blank record', () => {
+    it('considers record to be dirty, even though no new attributes are being set explicitly', () => {
+      const user = User.new()
+      console.log(user.dirtyAttributes(), user.isDirty)
+      expect(user.isDirty).toEqual(true)
+    })
+  })
 })

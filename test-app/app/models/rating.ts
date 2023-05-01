@@ -11,6 +11,7 @@ export default class Rating extends Dream {
 
   public id: number
   public body: string | null
+  public rating: number | null
 
   @BelongsTo(() => User)
   public user: User

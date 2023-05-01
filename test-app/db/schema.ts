@@ -6,6 +6,8 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
+export type Int8 = ColumnType<string, string | number | bigint, string | number | bigint>;
+
 export type Timestamp = ColumnType<DateTime>;
 
 export interface CompositionAssetAudits {
@@ -50,6 +52,15 @@ export interface Posts {
   updated_at: Timestamp;
 }
 
+export interface PostVisibilities {
+  id: Generated<number>;
+  post_id: Int8;
+  visibility: boolean | null;
+  notes: string | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
 export interface Ratings {
   id: Generated<number>;
   user_id: number;
@@ -84,6 +95,7 @@ export interface DB {
   composition_assets: CompositionAssets;
   compositions: Compositions;
   pets: Pets;
+  post_visibilities: PostVisibilities;
   posts: Posts;
   ratings: Ratings;
   user_settings: UserSettings;
@@ -96,6 +108,7 @@ export const CompositionAssetColumns = ['id', 'composition_id', 'src', 'primary'
 export const CompositionColumns = ['id', 'user_id', 'content', 'primary', 'created_at', 'updated_at']
 export const PetColumns = ['id', 'species', 'name', 'user_id', 'created_at']
 export const PostColumns = ['id', 'user_id', 'body', 'created_at', 'updated_at']
+export const PostVisibilityColumns = ['id', 'post_id', 'visibility', 'notes', 'created_at', 'updated_at']
 export const RatingColumns = ['id', 'user_id', 'rateable_id', 'rateable_type', 'rating', 'created_at', 'updated_at']
 export const UserColumns = ['id', 'name', 'type', 'email', 'password', 'created_at', 'updated_at', 'deleted_at']
 export const UserSettingColumns = ['id', 'user_id', 'likes_chalupas', 'created_at', 'updated_at']
@@ -106,6 +119,7 @@ export const DBColumns = {
   compositions: CompositionColumns,
   pets: PetColumns,
   posts: PostColumns,
+  post_visibilities: PostVisibilityColumns,
   ratings: RatingColumns,
   users: UserColumns,
   user_settings: UserSettingColumns

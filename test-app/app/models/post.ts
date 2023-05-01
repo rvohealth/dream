@@ -1,6 +1,7 @@
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
 import Dream from '../../../src/dream'
+import PostVisibility from './post-visibility'
 import Rating from './rating'
 import User from './user'
 
@@ -15,6 +16,10 @@ export default class Post extends Dream {
   @BelongsTo(() => User)
   public user: User
   public user_id: number
+
+  @BelongsTo(() => PostVisibility)
+  public postVisibility: PostVisibility | null
+  public post_visibility_id: number | null
 
   @HasMany(() => Rating, {
     foreignKey: 'rateable_id',
