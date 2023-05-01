@@ -318,6 +318,10 @@ export default class Dream {
     return (this.constructor as typeof Dream).associationNames
   }
 
+  public get hasUnsavedAssociations() {
+    return !!this.unsavedAssociations.length
+  }
+
   public get isDirty() {
     return !!Object.keys(this.dirtyAttributes()).length
   }
@@ -350,6 +354,22 @@ export default class Dream {
 
   public get table(): AssociationTableNames {
     throw 'override table method in child'
+  }
+
+  public get unsavedAssociations(): (
+    | BelongsToStatement<any>
+    | HasOneStatement<any>
+    | HasManyStatement<any>
+  )[] {
+    const unsaved: (BelongsToStatement<any> | HasOneStatement<any> | HasManyStatement<any>)[] = []
+    for (const associationName in this.associationMap) {
+      const associationMetadata = this.associationMap[associationName]
+      const associationRecord = (this as any)[associationName] as Dream | undefined
+      if (associationRecord?.isDreamInstance && associationRecord?.isDirty) {
+        unsaved.push(associationMetadata)
+      }
+    }
+    return unsaved
   }
 
   public errors: { [key: string]: ValidationType[] } = {}
@@ -400,6 +420,27 @@ export default class Dream {
       ;(obj as any)[column] = (this.frozenAttributes as any)[column]
     })
     return obj
+  }
+
+  public async destroy<I extends Dream, TableName extends keyof DB = I['table'] & keyof DB>(
+    this: I,
+    txn?: DreamTransaction
+  ): Promise<I> {
+    await runHooksFor('beforeDestroy', this)
+
+    const db = txn?.kyselyTransaction || _db
+    const Base = this.constructor as DreamConstructorType<I>
+
+    await db
+      .deleteFrom(this.table as TableName)
+      .where(Base.primaryKey as any, '=', (this as any)[Base.primaryKey])
+      .execute()
+
+    await runHooksFor('afterDestroy', this)
+
+    await this.safelyRunCommitHooks('afterDestroyCommit', txn)
+
+    return this
   }
 
   public freezeAttributes() {
@@ -497,6 +538,31 @@ export default class Dream {
     }
   }
 
+  public async update<
+    I extends Dream,
+    TableName extends keyof DB = I['table'] & keyof DB,
+    Table extends DB[keyof DB] = DB[TableName],
+    BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[TableName] = keyof SyncedBelongsToAssociations[TableName],
+    AssociationModelParam = Partial<
+      Record<
+        BelongsToModelAssociationNames,
+        ReturnType<I['associationMap'][keyof I['associationMap']]['modelCB']> extends () => (typeof Dream)[]
+          ? InstanceType<
+              ReturnType<
+                I['associationMap'][keyof I['associationMap']]['modelCB'] & (() => (typeof Dream)[])
+              >[number]
+            >
+          : InstanceType<
+              ReturnType<I['associationMap'][keyof I['associationMap']]['modelCB'] & (() => typeof Dream)>
+            >
+      >
+    >
+  >(this: I, attributes?: Updateable<Table> | AssociationModelParam, txn?: DreamTransaction): Promise<I> {
+    if (!attributes) return this
+    this.setAttributes(attributes)
+    return await this.save(txn)
+  }
+
   private async _save<I extends Dream>(this: I, txn?: DreamTransaction): Promise<I> {
     if (this.isInvalid) throw new ValidationError(this.constructor.name, this.errors)
 
@@ -548,78 +614,12 @@ export default class Dream {
     return this
   }
 
-  public get unsavedAssociations(): (
-    | BelongsToStatement<any>
-    | HasOneStatement<any>
-    | HasManyStatement<any>
-  )[] {
-    const unsaved: (BelongsToStatement<any> | HasOneStatement<any> | HasManyStatement<any>)[] = []
-    for (const associationName in this.associationMap) {
-      const associationMetadata = this.associationMap[associationName]
-      const associationRecord = (this as any)[associationName] as Dream | undefined
-      if (associationRecord?.isDreamInstance && associationRecord?.isDirty) {
-        unsaved.push(associationMetadata)
-      }
-    }
-    return unsaved
-  }
-
-  public get hasUnsavedAssociations() {
-    return !!this.unsavedAssociations.length
-  }
-
-  public async saveUnsavedAssociations(txn?: DreamTransaction) {
+  private async saveUnsavedAssociations(txn?: DreamTransaction) {
     for (const associationMetadata of this.unsavedAssociations) {
       const associationRecord = (this as any)[associationMetadata.as] as Dream
       await associationRecord.save(txn)
       ;(this as any)[associationMetadata.foreignKey()] = associationRecord.primaryKeyValue
     }
-  }
-
-  public async update<
-    I extends Dream,
-    TableName extends keyof DB = I['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName],
-    BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[TableName] = keyof SyncedBelongsToAssociations[TableName],
-    AssociationModelParam = Partial<
-      Record<
-        BelongsToModelAssociationNames,
-        ReturnType<I['associationMap'][keyof I['associationMap']]['modelCB']> extends () => (typeof Dream)[]
-          ? InstanceType<
-              ReturnType<
-                I['associationMap'][keyof I['associationMap']]['modelCB'] & (() => (typeof Dream)[])
-              >[number]
-            >
-          : InstanceType<
-              ReturnType<I['associationMap'][keyof I['associationMap']]['modelCB'] & (() => typeof Dream)>
-            >
-      >
-    >
-  >(this: I, attributes?: Updateable<Table> | AssociationModelParam, txn?: DreamTransaction): Promise<I> {
-    if (!attributes) return this
-    this.setAttributes(attributes)
-    return await this.save(txn)
-  }
-
-  public async destroy<I extends Dream, TableName extends keyof DB = I['table'] & keyof DB>(
-    this: I,
-    txn?: DreamTransaction
-  ): Promise<I> {
-    await runHooksFor('beforeDestroy', this)
-
-    const db = txn?.kyselyTransaction || _db
-    const Base = this.constructor as DreamConstructorType<I>
-
-    await db
-      .deleteFrom(this.table as TableName)
-      .where(Base.primaryKey as any, '=', (this as any)[Base.primaryKey])
-      .execute()
-
-    await runHooksFor('afterDestroy', this)
-
-    await this.safelyRunCommitHooks('afterDestroyCommit', txn)
-
-    return this
   }
 
   private async safelyRunCommitHooks<I extends Dream>(
