@@ -2,6 +2,7 @@ import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
 import HasOne from '../../../src/decorators/associations/has-one'
 import AfterDestroy from '../../../src/decorators/hooks/after-destroy'
+import AfterDestroyCommit from '../../../src/decorators/hooks/after-destroy-commit'
 import BeforeDestroy from '../../../src/decorators/hooks/before-destroy'
 import BeforeSave from '../../../src/decorators/hooks/before-save'
 import Dream from '../../../src/dream'
@@ -48,5 +49,12 @@ export default class CompositionAsset extends Dream {
     if (!this.composition) await this.load('composition')
     if (this.src === 'mark after destroy')
       await this.composition!.update({ content: 'changed after destroying composition asset' })
+  }
+
+  @AfterDestroyCommit()
+  public async updateCompositionContentAfterDestroyCommit(this: CompositionAsset) {
+    if (!this.composition) await this.load('composition')
+    if (this.src === 'mark after destroy commit')
+      await this.composition!.update({ content: 'changed after destroy commit of composition asset' })
   }
 }

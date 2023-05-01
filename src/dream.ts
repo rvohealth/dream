@@ -621,14 +621,23 @@ export default class Dream {
     await runHooksFor('beforeDestroy', this)
 
     const db = txn?.kyselyTransaction || _db
-    const base = this.constructor as typeof Dream
+    const Base = this.constructor as DreamConstructorType<I>
 
     await db
       .deleteFrom(this.table as TableName)
-      .where(base.primaryKey as any, '=', (this as any)[base.primaryKey])
+      .where(Base.primaryKey as any, '=', (this as any)[Base.primaryKey])
       .execute()
 
     await runHooksFor('afterDestroy', this)
+
+    if (txn) {
+      Base.hooks.afterDestroyCommit.forEach(hook => {
+        txn.addCommitHook(hook, this)
+      })
+    } else {
+      await runHooksFor('afterDestroyCommit', this)
+    }
+
     return this
   }
 }
