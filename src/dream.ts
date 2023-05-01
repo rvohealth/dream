@@ -290,7 +290,7 @@ export default class Dream {
     TableName extends AssociationTableNames = InstanceType<T>['table'] & AssociationTableNames,
     Table extends DB[keyof DB] = DB[TableName]
   >(this: T, opts?: Updateable<Table> | AssociatedModelParam<T>) {
-    return new this(opts) as InstanceType<T>
+    return new this(opts as any) as InstanceType<T>
   }
 
   public get associationMap() {
