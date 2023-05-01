@@ -2,14 +2,17 @@ import { Transaction } from 'kysely'
 import { DB } from '../sync/schema'
 import { HookStatement } from '../decorators/hooks/shared'
 import Dream from '../dream'
-import runHooksFor, { runHook } from './internal/runHooksFor'
-import db from '../db'
+import { runHook } from './internal/runHooksFor'
 
 export interface TransactionCommitHookStatement {
   hookStatement: HookStatement
   dreamInstance: Dream
 }
 
+// though this class is called `DreamTransaction`, it is not itself
+// a transaction class, as much as a collector for various callbacks
+// that must be run after the underlying transaction is commited (i.e.
+// AfterCreateCommit, AfterUpdateCommit, etc...).
 export default class DreamTransaction {
   private _kyselyTransaction: Transaction<DB>
   private commitHooks: TransactionCommitHookStatement[] = []
@@ -25,14 +28,6 @@ export default class DreamTransaction {
   public addCommitHook(hookStatement: HookStatement, dreamInstance: Dream) {
     this.commitHooks.push({ dreamInstance, hookStatement })
   }
-
-  // public async execute(callback: (txn: DreamTransaction) => Promise<void>) {
-  //   let kyselyTransaction: Transaction<DB>
-  //   await db.transaction().execute(async txn => {
-  //     kyselyTransaction = txn
-  //     callback(this)
-  //   })
-  // }
 
   public async runAfterCommitHooks() {
     for (const hook of this.commitHooks) {

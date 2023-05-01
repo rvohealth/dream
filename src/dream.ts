@@ -267,12 +267,6 @@ export default class Dream {
     this: T,
     transactionOrCallback: DreamTransaction | ((txn: DreamTransaction) => any)
   ) {
-    // if (transactionOrCallback.constructor === DreamTransaction) {
-    //   return new Query<T>(this).transaction(transactionOrCallback as DreamTransaction)
-    // } else {
-    //   const cb = transactionOrCallback as (txn: DreamTransaction) => any
-    //   return await new DreamTransaction().execute(cb)
-    // }
     if (transactionOrCallback.constructor === DreamTransaction) {
       return new Query<T>(this).transaction(transactionOrCallback as DreamTransaction)
     } else {
@@ -504,7 +498,6 @@ export default class Dream {
   }
 
   private async _save<I extends Dream>(this: I, txn?: DreamTransaction): Promise<I> {
-    const Base = this.constructor as DreamConstructorType<I>
     if (this.isInvalid) throw new ValidationError(this.constructor.name, this.errors)
 
     const alreadyPersisted = this.isPersisted
