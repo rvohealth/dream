@@ -17,7 +17,7 @@ export default class Post extends Dream {
   public user: User
   public user_id: number
 
-  @BelongsTo(() => PostVisibility)
+  @BelongsTo(() => PostVisibility, { optional: true })
   public postVisibility: PostVisibility | null
   public post_visibility_id: number | null
 

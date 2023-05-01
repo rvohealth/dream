@@ -1,4 +1,4 @@
-import { blankHooksFactory } from './shared'
+import { HookStatement, blankHooksFactory } from './shared'
 
 export default function BeforeDestroy(): any {
   return function (target: any, key: string, _: any) {
@@ -7,6 +7,7 @@ export default function BeforeDestroy(): any {
 
     target.constructor.hooks['beforeDestroy'].push({
       method: key,
-    })
+      type: 'beforeDestroy',
+    } as HookStatement)
   }
 }

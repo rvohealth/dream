@@ -1,4 +1,4 @@
-import { blankHooksFactory } from './shared'
+import { HookStatement, blankHooksFactory } from './shared'
 
 export default function BeforeSave(): any {
   return function (target: any, key: string, _: any) {
@@ -7,6 +7,7 @@ export default function BeforeSave(): any {
 
     target.constructor.hooks['beforeSave'].push({
       method: key,
-    })
+      type: 'beforeSave',
+    } as HookStatement)
   }
 }

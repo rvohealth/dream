@@ -103,7 +103,11 @@ describe('Dream#update', () => {
 
       await composition.update({ user: user2 })
       expect(user2.isPersisted).toEqual(true)
+      expect(typeof composition.user_id).toEqual('number')
       expect(composition.user_id).toEqual(user2.id)
+
+      const reloadedComposition = await Composition.find(composition.id)
+      expect(reloadedComposition!.user_id).toEqual(user2.id)
     })
 
     context('the associated model is polymorphic', () => {

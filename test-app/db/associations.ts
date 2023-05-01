@@ -215,11 +215,7 @@ export interface SyncedBelongsToAssociations {
       "post_visibilities"
     ]
   },
-  "post_visibilities": {
-    "post": [
-      "posts"
-    ]
-  },
+  "post_visibilities": false,
   "ratings": {
     "user": [
       "users"

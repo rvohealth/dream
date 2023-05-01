@@ -83,7 +83,17 @@ describe('Dream.create', () => {
           const user = User.new({ email: 'fred@fishman', password: 'howyadoin' })
           const post = Post.new({ user, postVisibility })
 
-          await expect(post.save()).rejects.toThrow()
+          // TODO: make this work with expect(...).rejects.toThrow
+          // eg:
+          //    await expect(post.save()).rejects.toThrow()
+          let hasError = false
+          try {
+            await post.save()
+          } catch (err) {
+            hasError = true
+          }
+          expect(hasError).toEqual(true)
+
           expect(await PostVisibility.count()).toEqual(0)
           expect(await User.count()).toEqual(0)
           expect(await Post.count()).toEqual(0)

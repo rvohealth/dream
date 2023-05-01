@@ -47,6 +47,7 @@ export interface Pets {
 export interface Posts {
   id: Generated<number>;
   user_id: number;
+  post_visibility_id: Int8 | null;
   body: string | null;
   created_at: Timestamp;
   updated_at: Timestamp;
@@ -54,7 +55,6 @@ export interface Posts {
 
 export interface PostVisibilities {
   id: Generated<number>;
-  post_id: Int8;
   visibility: boolean | null;
   notes: string | null;
   created_at: Timestamp;
@@ -107,8 +107,8 @@ export const CompositionAssetAuditColumns = ['id', 'composition_asset_id', 'appr
 export const CompositionAssetColumns = ['id', 'composition_id', 'src', 'primary', 'created_at', 'updated_at']
 export const CompositionColumns = ['id', 'user_id', 'content', 'primary', 'created_at', 'updated_at']
 export const PetColumns = ['id', 'species', 'name', 'user_id', 'created_at']
-export const PostColumns = ['id', 'user_id', 'body', 'created_at', 'updated_at']
-export const PostVisibilityColumns = ['id', 'post_id', 'visibility', 'notes', 'created_at', 'updated_at']
+export const PostColumns = ['id', 'user_id', 'post_visibility_id', 'body', 'created_at', 'updated_at']
+export const PostVisibilityColumns = ['id', 'visibility', 'notes', 'created_at', 'updated_at']
 export const RatingColumns = ['id', 'user_id', 'rateable_id', 'rateable_type', 'rating', 'created_at', 'updated_at']
 export const UserColumns = ['id', 'name', 'type', 'email', 'password', 'created_at', 'updated_at', 'deleted_at']
 export const UserSettingColumns = ['id', 'user_id', 'likes_chalupas', 'created_at', 'updated_at']

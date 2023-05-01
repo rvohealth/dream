@@ -1,4 +1,4 @@
-import { blankHooksFactory } from './shared'
+import { HookStatement, blankHooksFactory } from './shared'
 
 export default function AfterCreate(): any {
   return function (target: any, key: string, _: any) {
@@ -7,6 +7,7 @@ export default function AfterCreate(): any {
 
     target.constructor.hooks['afterCreate'].push({
       method: key,
-    })
+      type: 'afterCreate',
+    } as HookStatement)
   }
 }

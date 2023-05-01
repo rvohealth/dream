@@ -25,6 +25,7 @@ import OpsStatement from '../ops/ops-statement'
 import { Range } from '../helpers/range'
 import { DateTime } from 'luxon'
 import { SyncedAssociations } from '../sync/associations'
+import DreamTransaction from './transaction'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -79,10 +80,10 @@ export default class Query<
   public joinsStatements: AssociationExpression<InstanceType<DreamClass>['table'], any>[] = []
   public shouldBypassDefaultScopes: boolean = false
   public dreamClass: DreamClass
-  public txn: Transaction<DB> | null = null
+  public txn: DreamTransaction | null = null
 
   public get db() {
-    return this.txn || _db
+    return this.txn?.kyselyTransaction || _db
   }
 
   constructor(DreamClass: DreamClass) {
@@ -205,7 +206,7 @@ export default class Query<
     }
   }
 
-  public async transaction(txn: Transaction<DB>) {
+  public async transaction(txn: DreamTransaction) {
     this.txn = txn
     return this
   }

@@ -2,6 +2,7 @@ import { HasOne } from '../../../src'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
 import AfterCreate from '../../../src/decorators/hooks/after-create'
+import AfterCreateCommit from '../../../src/decorators/hooks/after-create-commit'
 import AfterSave from '../../../src/decorators/hooks/after-save'
 import AfterUpdate from '../../../src/decorators/hooks/after-update'
 import BeforeCreate from '../../../src/decorators/hooks/before-create'
@@ -44,6 +45,14 @@ export default class Composition extends Dream {
   @AfterCreate()
   public conditionallyChangeContentOnCreate() {
     if (this.content === 'change me after create') this.content = 'changed after create'
+    if (this.content === 'change me after commit')
+      this.content = 'changed after create, but should change after commit'
+  }
+
+  @AfterCreateCommit()
+  public conditionallyChangeContentOnCreateCommit() {
+    if (this.content === 'changed after create, but should change after commit')
+      this.content = 'changed after create commit'
   }
 
   @AfterUpdate()

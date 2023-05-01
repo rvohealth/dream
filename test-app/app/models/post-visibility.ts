@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { Dream, BelongsTo, BeforeCreate } from '../../../src'
+import { Dream, BeforeCreate, HasOne } from '../../../src'
 import Post from './post'
 
 export default class PostVisibility extends Dream {
@@ -13,13 +13,11 @@ export default class PostVisibility extends Dream {
   public created_at: DateTime
   public updated_at: DateTime
 
-  @BelongsTo(() => Post)
+  @HasOne(() => Post)
   public post: Post
-  public post_id: number
 
   @BeforeCreate()
   public conditionallyRaise() {
-    console.log('BEFORE CREATE', this.notes)
     if (this.notes === 'raise exception if notes set to this')
       throw `intentionally raising exception because PostVisibility#notes is set to '${this.notes}'`
   }

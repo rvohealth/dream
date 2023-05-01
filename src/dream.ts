@@ -20,6 +20,7 @@ import { AssociationExpression, DreamConstructorType } from './dream/types'
 import Query from './dream/query'
 import runHooksFor from './dream/internal/runHooksFor'
 import checkValidationsFor from './dream/internal/checkValidationsFor'
+import DreamTransaction from './dream/transaction'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -56,18 +57,26 @@ export default class Dream {
     beforeSave: HookStatement[]
     beforeDestroy: HookStatement[]
     afterCreate: HookStatement[]
+    afterCreateCommit: HookStatement[]
     afterUpdate: HookStatement[]
+    afterUpdateCommit: HookStatement[]
     afterSave: HookStatement[]
+    afterSaveCommit: HookStatement[]
     afterDestroy: HookStatement[]
+    afterDestroyCommit: HookStatement[]
   } = {
     beforeCreate: [],
     beforeUpdate: [],
     beforeSave: [],
     beforeDestroy: [],
     afterCreate: [],
+    afterCreateCommit: [],
     afterUpdate: [],
+    afterUpdateCommit: [],
     afterSave: [],
+    afterSaveCommit: [],
     afterDestroy: [],
+    afterDestroyCommit: [],
   }
   public static validations: ValidationStatement[] = []
 
@@ -133,7 +142,7 @@ export default class Dream {
   public static async create<T extends typeof Dream>(
     this: T,
     opts?: Updateable<DB[InstanceType<T>['table']]> | AssociatedModelParam<T>,
-    txn?: Transaction<DB>
+    txn?: DreamTransaction
   ) {
     return (await new (this as any)(opts as any).save(txn)) as InstanceType<T>
   }
@@ -256,14 +265,26 @@ export default class Dream {
 
   public static async transaction<T extends typeof Dream>(
     this: T,
-    transactionOrCallback: Transaction<DB> | ((txn: Transaction<DB>) => any)
+    transactionOrCallback: DreamTransaction | ((txn: DreamTransaction) => any)
   ) {
-    if (transactionOrCallback.constructor === Transaction) {
-      return new Query<T>(this).transaction(transactionOrCallback as Transaction<DB>)
+    // if (transactionOrCallback.constructor === DreamTransaction) {
+    //   return new Query<T>(this).transaction(transactionOrCallback as DreamTransaction)
+    // } else {
+    //   const cb = transactionOrCallback as (txn: DreamTransaction) => any
+    //   return await new DreamTransaction().execute(cb)
+    // }
+    if (transactionOrCallback.constructor === DreamTransaction) {
+      return new Query<T>(this).transaction(transactionOrCallback as DreamTransaction)
     } else {
-      await _db
-        .transaction()
-        .execute(async txn => (transactionOrCallback as (txn: Transaction<DB>) => void)(txn))
+      const transaction = new DreamTransaction()
+      const res = await _db.transaction().execute(async txn => {
+        transaction.kyselyTransaction = txn
+        await (transactionOrCallback as (txn: DreamTransaction) => void)(transaction)
+      })
+
+      await transaction.runAfterCommitHooks()
+
+      return res
     }
   }
 
@@ -468,7 +489,7 @@ export default class Dream {
     })
   }
 
-  public async save<I extends Dream>(this: I, txn?: Transaction<DB>): Promise<I> {
+  public async save<I extends Dream>(this: I, txn?: DreamTransaction): Promise<I> {
     if (txn) {
       return await this._save(txn)
     } else if (this.hasUnsavedAssociations) {
@@ -482,7 +503,8 @@ export default class Dream {
     }
   }
 
-  public async _save<I extends Dream>(this: I, txn?: Transaction<DB>): Promise<I> {
+  private async _save<I extends Dream>(this: I, txn?: DreamTransaction): Promise<I> {
+    const Base = this.constructor as DreamConstructorType<I>
     if (this.isInvalid) throw new ValidationError(this.constructor.name, this.errors)
 
     const alreadyPersisted = this.isPersisted
@@ -496,7 +518,7 @@ export default class Dream {
     if (alreadyPersisted && !this.isDirty) return this
 
     let query: any
-    const db = txn || _db
+    const db = txn?.kyselyTransaction || _db
 
     const now = DateTime.now().toUTC()
     if (!alreadyPersisted && !(this as any).created_at && (this.columns() as any[]).includes('created_at'))
@@ -526,6 +548,15 @@ export default class Dream {
     if (alreadyPersisted) await runHooksFor('afterUpdate', this)
     else await runHooksFor('afterCreate', this)
 
+    const commitHookType = alreadyPersisted ? 'afterUpdateCommit' : 'afterCreateCommit'
+    if (txn) {
+      Base.hooks[commitHookType].forEach(hook => {
+        txn.addCommitHook(hook, this)
+      })
+    } else {
+      await runHooksFor(commitHookType, this)
+    }
+
     return this
   }
 
@@ -549,7 +580,7 @@ export default class Dream {
     return !!this.unsavedAssociations.length
   }
 
-  public async saveUnsavedAssociations(txn?: Transaction<DB>) {
+  public async saveUnsavedAssociations(txn?: DreamTransaction) {
     for (const associationMetadata of this.unsavedAssociations) {
       const associationRecord = (this as any)[associationMetadata.as] as Dream
       await associationRecord.save(txn)
@@ -576,7 +607,7 @@ export default class Dream {
             >
       >
     >
-  >(this: I, attributes?: Updateable<Table> | AssociationModelParam, txn?: Transaction<DB>): Promise<I> {
+  >(this: I, attributes?: Updateable<Table> | AssociationModelParam, txn?: DreamTransaction): Promise<I> {
     if (!attributes) return this
     this.setAttributes(attributes)
     return await this.save(txn)
@@ -584,11 +615,11 @@ export default class Dream {
 
   public async destroy<I extends Dream, TableName extends keyof DB = I['table'] & keyof DB>(
     this: I,
-    txn?: Transaction<DB>
+    txn?: DreamTransaction
   ): Promise<I> {
     await runHooksFor('beforeDestroy', this)
 
-    const db = txn || _db
+    const db = txn?.kyselyTransaction || _db
     const base = this.constructor as typeof Dream
 
     await db

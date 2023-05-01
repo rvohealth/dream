@@ -1,32 +1,27 @@
+import { HookStatement, HookType } from '../../decorators/hooks/shared'
 import Dream from '../../dream'
 
-export default async function runHooksFor<T extends Dream>(
-  key:
-    | 'beforeCreate'
-    | 'beforeSave'
-    | 'beforeUpdate'
-    | 'beforeDestroy'
-    | 'afterCreate'
-    | 'afterSave'
-    | 'afterUpdate'
-    | 'afterDestroy',
-  dream: T
-): Promise<void> {
+export default async function runHooksFor<T extends Dream>(key: HookType, dream: T): Promise<void> {
   if (['beforeCreate', 'beforeSave', 'beforeUpdate'].includes(key)) {
     ensureSTITypeFieldIsSet(dream)
   }
 
   const Base = dream.constructor as typeof Dream
   for (const statement of Base.hooks[key]) {
-    try {
-      await (dream as any)[statement.method]()
-    } catch (error) {
-      throw `
-          Error running ${key} on ${Base.name}
-          ${error}
-          statement.method: ${statement.method}
-        `
-    }
+    await runHook(statement, dream)
+  }
+}
+
+export async function runHook<T extends Dream>(statement: HookStatement, dream: T) {
+  const Base = dream.constructor as typeof Dream
+  try {
+    await (dream as any)[statement.method]()
+  } catch (error) {
+    throw `
+        Error running ${statement.type} on ${Base.name}
+        ${error}
+        statement.method: ${statement.method}
+      `
   }
 }
 
