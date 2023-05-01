@@ -6,7 +6,7 @@ import { HasManyStatement } from './decorators/associations/has-many'
 import { BelongsToStatement } from './decorators/associations/belongs-to'
 import { HasOneStatement } from './decorators/associations/has-one'
 import { ScopeStatement } from './decorators/scope'
-import { HookStatement } from './decorators/hooks/shared'
+import { CommitHookType, HookStatement } from './decorators/hooks/shared'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { marshalDBValue } from './helpers/marshalDBValue'
@@ -549,14 +549,8 @@ export default class Dream {
     else await runHooksFor('afterCreate', this)
 
     const commitHookType = alreadyPersisted ? 'afterUpdateCommit' : 'afterCreateCommit'
-    if (txn) {
-      ;[...Base.hooks.afterSaveCommit, ...Base.hooks[commitHookType]].forEach(hook => {
-        txn.addCommitHook(hook, this)
-      })
-    } else {
-      await runHooksFor('afterSaveCommit', this)
-      await runHooksFor(commitHookType, this)
-    }
+    await this.safelyRunCommitHooks('afterSaveCommit', txn)
+    await this.safelyRunCommitHooks(commitHookType, txn)
 
     return this
   }
@@ -630,14 +624,23 @@ export default class Dream {
 
     await runHooksFor('afterDestroy', this)
 
+    await this.safelyRunCommitHooks('afterDestroyCommit', txn)
+
+    return this
+  }
+
+  private async safelyRunCommitHooks<I extends Dream>(
+    this: I,
+    hookType: CommitHookType,
+    txn?: DreamTransaction
+  ) {
+    const Base = this.constructor as DreamConstructorType<I>
     if (txn) {
-      Base.hooks.afterDestroyCommit.forEach(hook => {
+      Base.hooks[hookType].forEach(hook => {
         txn.addCommitHook(hook, this)
       })
     } else {
-      await runHooksFor('afterDestroyCommit', this)
+      await runHooksFor(hookType, this)
     }
-
-    return this
   }
 }

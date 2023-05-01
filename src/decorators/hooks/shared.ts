@@ -4,13 +4,17 @@ export type HookType =
   | 'beforeUpdate'
   | 'beforeDestroy'
   | 'afterCreate'
-  | 'afterCreateCommit'
   | 'afterSave'
-  | 'afterSaveCommit'
   | 'afterUpdate'
-  | 'afterUpdateCommit'
   | 'afterDestroy'
+  | CommitHookType
+
+export type CommitHookType =
+  | 'afterCreateCommit'
+  | 'afterSaveCommit'
+  | 'afterUpdateCommit'
   | 'afterDestroyCommit'
+
 export interface HookStatement {
   type: HookType
   className: string
