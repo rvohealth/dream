@@ -543,8 +543,7 @@ export default class Dream {
             >
       >
     >
-  >(this: I, attributes?: Updateable<Table> | AssociationModelParam, txn?: DreamTransaction): Promise<I> {
-    if (!attributes) return this
+  >(this: I, attributes: Updateable<Table> | AssociationModelParam, txn?: DreamTransaction): Promise<I> {
     this.setAttributes(attributes)
     return await this.save(txn)
   }
