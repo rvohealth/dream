@@ -794,6 +794,7 @@ export default class Query<
         query = query.where(a, negatedB, c)
 
         if (b2) {
+          // @ts-ignore
           const negatedB2 = OPERATION_NEGATION_MAP[b2]
           if (!negatedB2) throw `no negation available for comparison operator ${b2}`
           query.where(a2, negatedB2, c2)
