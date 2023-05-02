@@ -50,9 +50,12 @@ describe('Dream AfterSaveCommit decorator', () => {
           const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' }, txn)
 
           composition = await Composition.create({ user_id: user.id }, txn)
-          await composition.update({
-            content: 'change me after save commit',
-          })
+          await composition.update(
+            {
+              content: 'change me after save commit',
+            },
+            txn
+          )
         })
         expect(composition!.content).toEqual('changed after save commit')
       })
