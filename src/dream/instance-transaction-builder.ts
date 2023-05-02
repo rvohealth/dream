@@ -33,8 +33,6 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     > = AssociationModelParam<DreamInstance, BelongsToModelAssociationNames>
   >(this: I, attributes: Updateable<Table> | AssociatedModelParam): Promise<DreamInstance> {
     this.dreamInstance.setAttributes(attributes)
-    // call save rather than _save so that any unsaved associations in the
-    // attributes are saved with this model in a transaction
     return saveDream(this.dreamInstance, this.dreamTransaction)
   }
 
