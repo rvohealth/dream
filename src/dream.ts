@@ -20,7 +20,7 @@ import {
 } from './decorators/associations/shared'
 import { AssociationTableNames } from './db/reflections'
 import CanOnlyPassBelongsToModelParam from './exceptions/can-only-pass-belongs-to-model-param'
-import { AssociationExpression, DreamConstructorType } from './dream/types'
+import { AssociationExpression, AssociationModelParam, DreamConstructorType } from './dream/types'
 import Query from './dream/query'
 import runHooksFor from './dream/internal/runHooksFor'
 import checkValidationsFor from './dream/internal/checkValidationsFor'
@@ -528,22 +528,12 @@ export default class Dream {
     I extends Dream,
     TableName extends keyof DB = I['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName],
-    BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[TableName] = keyof SyncedBelongsToAssociations[TableName],
-    AssociationModelParam = Partial<
-      Record<
-        BelongsToModelAssociationNames,
-        ReturnType<I['associationMap'][keyof I['associationMap']]['modelCB']> extends () => (typeof Dream)[]
-          ? InstanceType<
-              ReturnType<
-                I['associationMap'][keyof I['associationMap']]['modelCB'] & (() => (typeof Dream)[])
-              >[number]
-            >
-          : InstanceType<
-              ReturnType<I['associationMap'][keyof I['associationMap']]['modelCB'] & (() => typeof Dream)>
-            >
-      >
-    >
-  >(this: I, attributes: Updateable<Table> | AssociationModelParam): Promise<I> {
+    BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[I['table']] = keyof SyncedBelongsToAssociations[I['table']],
+    AssociatedModelParam extends AssociationModelParam<
+      I,
+      BelongsToModelAssociationNames
+    > = AssociationModelParam<I, BelongsToModelAssociationNames>
+  >(this: I, attributes: Updateable<Table> | AssociatedModelParam): Promise<I> {
     this.setAttributes(attributes)
     // call save rather than _save so that any unsaved associations in the
     // attributes are saved with this model in a transaction

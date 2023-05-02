@@ -22,9 +22,9 @@ describe('Dream.transaction', () => {
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
 
       await expect(
-        // @ts-ignore
         Dream.transaction(async txn => {
           await Composition.txn(txn).create({ user })
+          // @ts-ignore
           await user.txn(txn).update({ email: null })
         })
       ).rejects.toThrowError(ValidationError)
