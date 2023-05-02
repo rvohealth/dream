@@ -522,8 +522,6 @@ export default class Dream {
 
   public txn<I extends Dream>(this: I, txn: DreamTransaction): DreamInstanceTransactionBuilder<I> {
     return new DreamInstanceTransactionBuilder<I>(this, txn)
-    // this.dreamTransaction = txn
-    // return this
   }
 
   public async update<
