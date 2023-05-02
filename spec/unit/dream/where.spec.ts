@@ -22,8 +22,7 @@ describe('Dream.where', () => {
 
         records = await User.txn(txn).where({ email: 'fred@frewd' }).all()
       })
-      expect(records.length).toEqual(1)
-      expect(records[0].id).toEqual(user1!.id)
+      expect(records).toMatchDreamModels([user1])
     })
   })
 })
