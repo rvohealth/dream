@@ -8,6 +8,7 @@ import Query from './query'
 import { AssociationTableNames } from '../db/reflections'
 import { AssociationExpression } from './types'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
+import saveDream from './internal/saveDream'
 
 export default class DreamClassTransactionBuilder<DreamClass extends typeof Dream> {
   public dreamClass: DreamClass
@@ -37,7 +38,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     opts?: Updateable<DB[TableName]> | AssociatedModelParam<DreamClass>
   ): Promise<InstanceType<DreamClass>> {
     const dream = this.dreamClass.new(opts) as InstanceType<DreamClass>
-    return dream.txn(this.dreamTransaction).save()
+    return saveDream(dream, this.dreamTransaction)
   }
 
   public async find<

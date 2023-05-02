@@ -28,6 +28,7 @@ import DreamTransaction from './dream/transaction'
 import DreamClassTransactionBuilder from './dream/class-transaction-builder'
 import safelyRunCommitHooks from './dream/internal/safelyRunCommitHooks'
 import saveDream from './dream/internal/saveDream'
+import DreamInstanceTransactionBuilder from './dream/instance-transaction-builder'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -519,14 +520,10 @@ export default class Dream {
     }
   }
 
-  // public txn<I extends Dream>(this: I, txn: DreamTransaction): DreamInstanceTransactionBuilder<I> {
-  //   return new DreamInstanceTransactionBuilder<I>(this, txn)
-  //   // this.dreamTransaction = txn
-  //   // return this
-  // }
-  public txn<I extends Dream>(this: I, txn: DreamTransaction | null): I {
-    this.dreamTransaction = txn
-    return this
+  public txn<I extends Dream>(this: I, txn: DreamTransaction): DreamInstanceTransactionBuilder<I> {
+    return new DreamInstanceTransactionBuilder<I>(this, txn)
+    // this.dreamTransaction = txn
+    // return this
   }
 
   public async update<

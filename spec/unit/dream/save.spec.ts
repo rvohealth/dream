@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
 import User from '../../../test-app/app/models/user'
+import { Dream } from '../../../src'
 
 describe('Dream#save', () => {
   context('a new record', () => {
@@ -12,7 +13,18 @@ describe('Dream#save', () => {
     it('saves', async () => {
       await user.save()
       const reloadedUser = await User.find(user.id)
-      expect(reloadedUser!.email).toEqual('fred@frewd')
+      expect(reloadedUser).toMatchDreamModel(user)
+    })
+
+    context('when encased in a transaction', () => {
+      it('updates the underlying model in the db', async () => {
+        await Dream.transaction(async txn => {
+          await user.txn(txn).save()
+        })
+
+        const reloadedUser = await User.find(user.id)
+        expect(reloadedUser).toMatchDreamModel(user)
+      })
     })
 
     it('sets created_at', async () => {
