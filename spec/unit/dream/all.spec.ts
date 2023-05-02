@@ -21,11 +21,12 @@ describe('Dream.all', () => {
   context('when passed a transaction', () => {
     it('can find records', async () => {
       let users: User[] = []
+      let user: User | null = null
       await Dream.transaction(async txn => {
-        await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
+        user = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
         users = await User.txn(txn).all()
       })
-      expect(users.map(u => u.email)).toEqual(['fred@frewd'])
+      expect(users).toMatchDreamModels([user])
     })
   })
 })
