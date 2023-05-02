@@ -17,12 +17,8 @@ describe('Dream AfterCreateCommit decorator', () => {
     it('runs commit hooks after transaction commits', async () => {
       let composition: Composition | null = null
       await Dream.transaction(async txn => {
-        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' }, txn)
-
-        composition = await Composition.create(
-          { user_id: user.id, content: 'change me after create commit' },
-          txn
-        )
+        const user = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
+        composition = await Composition.txn(txn).create({ user, content: 'change me after create commit' })
       })
       expect(composition!.content).toEqual('changed after create commit')
     })

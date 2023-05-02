@@ -81,10 +81,10 @@ export default class Query<
   public joinsStatements: AssociationExpression<InstanceType<DreamClass>['table'], any>[] = []
   public shouldBypassDefaultScopes: boolean = false
   public dreamClass: DreamClass
-  public txn: DreamTransaction | null = null
+  public dreamTransaction: DreamTransaction | null = null
 
   public get db() {
-    return this.txn?.kyselyTransaction || _db
+    return this.dreamTransaction?.kyselyTransaction || _db
   }
 
   constructor(DreamClass: DreamClass) {
@@ -207,8 +207,8 @@ export default class Query<
     }
   }
 
-  public async transaction(txn: DreamTransaction) {
-    this.txn = txn
+  public async txn(dreamTransaction: DreamTransaction) {
+    this.dreamTransaction = dreamTransaction
     return this
   }
 
@@ -486,7 +486,7 @@ export default class Query<
     return results.length
   }
 
-  public async update<T extends Query<DreamClass>>(
+  public async updateWithoutModelMaintenance<T extends Query<DreamClass>>(
     this: T,
     attributes: Updateable<InstanceType<DreamClass>['table']>
   ) {

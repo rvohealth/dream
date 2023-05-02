@@ -8,8 +8,8 @@ describe('Dream.transaction', () => {
     const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
 
     await Dream.transaction(async txn => {
-      await Composition.create({ user }, txn)
-      await user.update({ email: 'fred@fishman' }, txn)
+      await Composition.txn(txn).create({ user })
+      await user.txn(txn).update({ email: 'fred@fishman' })
     })
 
     expect(await Composition.count()).toEqual(1)
@@ -24,8 +24,8 @@ describe('Dream.transaction', () => {
       await expect(
         // @ts-ignore
         Dream.transaction(async txn => {
-          await Composition.create({ user }, txn)
-          await user.update({ email: null }, txn)
+          await Composition.txn(txn).create({ user })
+          await user.txn(txn).update({ email: null })
         })
       ).rejects.toThrowError(ValidationError)
 

@@ -7,6 +7,7 @@ import CanOnlyPassBelongsToModelParam from '../../../src/exceptions/can-only-pas
 import Pet from '../../../test-app/app/models/pet'
 import { DateTime } from 'luxon'
 import PostVisibility from '../../../test-app/app/models/post-visibility'
+import { Dream } from '../../../src'
 
 describe('Dream.create', () => {
   it('creates the underlying model in the db', async () => {
@@ -134,6 +135,24 @@ describe('Dream.create', () => {
         // @ts-ignore
         User.create({ email: 'fred@fishman', password: 'howyadoin', userSettings })
       ).rejects.toThrowError(CanOnlyPassBelongsToModelParam)
+    })
+  })
+})
+
+describe.only('Dream#create', () => {
+  it('creates the underlying model in the db', async () => {
+    const u = await new User().create({ email: 'fred@frewd', password: 'howyadoin' })
+    const user = await User.find(u.id)
+    expect(user!.email).toEqual('fred@frewd')
+    expect(typeof user!.id).toBe('number')
+  })
+
+  it('accepts a transaction', async () => {
+    Dream.transaction(async txn => {
+      const u = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
+      const user = await User.find(u.id)
+      expect(user!.email).toEqual('fred@frewd')
+      expect(typeof user!.id).toBe('number')
     })
   })
 })

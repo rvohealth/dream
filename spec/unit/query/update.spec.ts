@@ -1,11 +1,11 @@
 import User from '../../../test-app/app/models/user'
 
-describe('Query#update', () => {
+describe('Query#updateWithoutModelMaintenance', () => {
   it('takes passed params and sends them through to all models matchin query', async () => {
     const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
-    const records = await User.limit(2).update({
+    const records = await User.limit(2).updateWithoutModelMaintenance({
       name: 'cool',
     })
     expect(records.length).toEqual(2)

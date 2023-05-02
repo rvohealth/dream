@@ -22,17 +22,14 @@ describe('Dream AfterDestroyCommit decorator', () => {
     it('runs commit hooks after transaction commits', async () => {
       let composition: Composition | null = null
       await Dream.transaction(async txn => {
-        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' }, txn)
-        composition = await Composition.create({ user, content: 'howyadoin' }, txn)
-        const compositionAsset = await CompositionAsset.create(
-          {
-            composition,
-            src: 'mark after destroy commit',
-          },
-          txn
-        )
+        const user = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
+        composition = await Composition.txn(txn).create({ user, content: 'howyadoin' })
+        const compositionAsset = await CompositionAsset.txn(txn).create({
+          composition,
+          src: 'mark after destroy commit',
+        })
 
-        await compositionAsset.destroy(txn)
+        await compositionAsset.txn(txn).destroy()
       })
       await composition!.reload()
       expect(composition!.content).toEqual('changed after destroy commit of composition asset')
