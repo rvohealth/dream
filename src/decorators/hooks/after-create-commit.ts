@@ -6,8 +6,8 @@ export default function AfterCreateCommit(): any {
       target.constructor.hooks = blankHooksFactory()
 
     target.constructor.hooks['afterCreateCommit'].push({
-      type: 'afterCreateCommit',
       method: key,
+      type: 'afterCreateCommit',
     } as HookStatement)
   }
 }
