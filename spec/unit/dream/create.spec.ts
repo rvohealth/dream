@@ -32,6 +32,20 @@ describe('Dream.create', () => {
     expect(reloadedUser!.updated_at.toSeconds()).toBeWithin(1, DateTime.now().toUTC().toSeconds())
   })
 
+  context('given a transaction', () => {
+    it('saves the record', async () => {
+      let user: User | null = null
+
+      await Dream.transaction(async txn => {
+        user = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
+      })
+
+      const reloadedUser = await User.find(user!.id)
+      expect(reloadedUser!.email).toEqual('fred@frewd')
+      expect(typeof reloadedUser!.id).toBe('number')
+    })
+  })
+
   it('allows saving of valid blank objects', async () => {
     const pet = await Pet.create()
     expect(typeof pet!.id).toBe('number')
@@ -136,26 +150,5 @@ describe('Dream.create', () => {
         User.create({ email: 'fred@fishman', password: 'howyadoin', userSettings })
       ).rejects.toThrowError(CanOnlyPassBelongsToModelParam)
     })
-  })
-})
-
-describe('Dream#create', () => {
-  it('creates the underlying model in the db', async () => {
-    const u = await new User().create({ email: 'fred@frewd', password: 'howyadoin' })
-    const user = await User.find(u.id)
-    expect(user!.email).toEqual('fred@frewd')
-    expect(typeof user!.id).toBe('number')
-  })
-
-  it('accepts a transaction', async () => {
-    let user: User | null = null
-
-    await Dream.transaction(async txn => {
-      user = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
-    })
-
-    const reloadedUser = await User.find(user!.id)
-    expect(reloadedUser!.email).toEqual('fred@frewd')
-    expect(typeof reloadedUser!.id).toBe('number')
   })
 })

@@ -1,3 +1,4 @@
+import { Dream } from '../../../src'
 import User from '../../../test-app/app/models/user'
 
 describe('Dream.first', () => {
@@ -6,5 +7,16 @@ describe('Dream.first', () => {
     await User.create({ email: 'fred@fishman', password: 'howyadoin' })
     const results = await User.first()
     expect(results!.id).toEqual(u1.id)
+  })
+
+  context('when passed a transaction', () => {
+    it('can find the first record within a transaction', async () => {
+      let user: User | null = null
+      await Dream.transaction(async txn => {
+        const u = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
+        user = await User.txn(txn).first()
+      })
+      expect(user!.email).toEqual('fred@frewd')
+    })
   })
 })

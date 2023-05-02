@@ -1,5 +1,6 @@
 import User from '../../../test-app/app/models/user'
 import Composition from '../../../test-app/app/models/composition'
+import { Dream } from '../../../src'
 
 describe('Dream.all', () => {
   it('finds all records for a given model', async () => {
@@ -15,5 +16,16 @@ describe('Dream.all', () => {
     // const otherResults = await Composition.all()
     // expect(otherResults.length).toEqual(1)
     // expect(otherResults[0].id).toEqual(composition.id)
+  })
+
+  context('when passed a transaction', () => {
+    it('can find records', async () => {
+      let users: User[] = []
+      await Dream.transaction(async txn => {
+        await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
+        users = await User.txn(txn).all()
+      })
+      expect(users.map(u => u.email)).toEqual(['fred@frewd'])
+    })
   })
 })

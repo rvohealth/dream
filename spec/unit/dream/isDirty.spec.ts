@@ -1,3 +1,4 @@
+import Post from '../../../test-app/app/models/post'
 import User from '../../../test-app/app/models/user'
 
 describe('Dream#isDirty', () => {

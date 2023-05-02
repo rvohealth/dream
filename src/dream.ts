@@ -1,4 +1,4 @@
-import { CompiledQuery, SelectArg, SelectExpression, SelectType, Transaction, Updateable } from 'kysely'
+import { CompiledQuery, SelectArg, SelectExpression, SelectType, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
 import _db from './db'
 import { DB, DBColumns } from './sync/schema'
@@ -25,6 +25,7 @@ import Query from './dream/query'
 import runHooksFor from './dream/internal/runHooksFor'
 import checkValidationsFor from './dream/internal/checkValidationsFor'
 import DreamTransaction from './dream/transaction'
+import DreamClassTransactionBuilder from './dream/class-transaction-builder'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -133,11 +134,6 @@ export default class Dream {
     return (await new (this as any)(opts as any).save()) as InstanceType<T>
   }
 
-  public static async destroyAll<T extends typeof Dream>(this: T) {
-    const query: Query<T> = new Query<T>(this)
-    return await query.destroy()
-  }
-
   public static async find<
     T extends typeof Dream,
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
@@ -205,8 +201,7 @@ export default class Dream {
 
   public static nestedSelect<
     T extends typeof Dream,
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<T>['table'] & AssociationTableNames>>,
-    TableName extends AssociationTableNames = InstanceType<T>['table'] & AssociationTableNames
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<T>['table'] & AssociationTableNames>>
   >(
     this: T,
     selection: SelectArg<DB, ExtractTableAlias<DB, InstanceType<T>['table'] & AssociationTableNames>, SE>
@@ -249,8 +244,8 @@ export default class Dream {
     return query.sql()
   }
 
-  public static txn<T extends typeof Dream>(this: T, txn: DreamTransaction): InstanceType<T> {
-    return (new this() as InstanceType<T>).txn(txn as DreamTransaction)
+  public static txn<T extends typeof Dream>(this: T, txn: DreamTransaction): DreamClassTransactionBuilder<T> {
+    return new DreamClassTransactionBuilder<T>(this, txn)
   }
 
   public static async transaction<T extends typeof Dream>(
@@ -444,13 +439,6 @@ export default class Dream {
     Table extends DB[keyof DB] = DB[TableName]
   >(): (keyof Table)[] {
     return (this.constructor as typeof Dream).columns()
-  }
-
-  public async create<I extends Dream, TableName extends keyof DB = I['table'] & keyof DB>(
-    this: I,
-    opts?: Updateable<DB[TableName]> | AssociatedModelParam<DreamConstructorType<I>>
-  ): Promise<I> {
-    return this.update(opts)
   }
 
   public async load<

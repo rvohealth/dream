@@ -1,3 +1,4 @@
+import { Dream } from '../../../src'
 import User from '../../../test-app/app/models/user'
 
 describe('Dream.last', () => {
@@ -6,5 +7,17 @@ describe('Dream.last', () => {
     const u2 = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
     const results = await User.last()
     expect(results!.id).toEqual(u2.id)
+  })
+
+  context('when passed a transaction', () => {
+    it('can find the last record within a transaction', async () => {
+      let user: User | null = null
+      await Dream.transaction(async txn => {
+        await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
+        await User.txn(txn).create({ email: 'fred@frewd2', password: 'howyadoin' })
+        user = await User.txn(txn).last()
+      })
+      expect(user!.email).toEqual('fred@frewd2')
+    })
   })
 })

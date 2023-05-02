@@ -207,7 +207,7 @@ export default class Query<
     }
   }
 
-  public async txn(dreamTransaction: DreamTransaction) {
+  public txn(dreamTransaction: DreamTransaction) {
     this.dreamTransaction = dreamTransaction
     return this
   }
@@ -226,8 +226,9 @@ export default class Query<
 
   public async pluck<
     T extends Query<DreamClass>,
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>>
-  >(this: T, ...fields: SelectArg<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, SE>[]) {
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>>,
+    FieldTypes extends SelectArg<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, SE>
+  >(this: T, ...fields: FieldTypes[]): Promise<any[]> {
     let query = this.buildSelect({ bypassSelectAll: true })
     fields.forEach(field => {
       query = query.select(field as any)
@@ -236,9 +237,9 @@ export default class Query<
     const vals = (await query.execute()).map(result => Object.values(result))
 
     if (fields.length > 1) {
-      return vals.map(arr => arr.map(val => marshalDBValue(val)))
+      return vals.map(arr => arr.map(val => marshalDBValue(val))) as any[]
     } else {
-      return vals.flat().map(val => marshalDBValue(val))
+      return vals.flat().map(val => marshalDBValue(val)) as any[]
     }
   }
 
@@ -396,7 +397,12 @@ export default class Query<
           })
 
           if (relevantAssociatedModels.length) {
-            associationQuery = associatedModel.where({
+            associationQuery = this.dreamTransaction
+              ? associatedModel.txn(this.dreamTransaction)
+              : associatedModel
+
+            // @ts-ignore
+            associationQuery = associationQuery.where({
               [associatedModel.primaryKey]: relevantAssociatedModels.map(
                 (dream: any) => (dream as any)[association.foreignKey()]
               ),
@@ -407,7 +413,12 @@ export default class Query<
         }
       } else {
         const associatedModel = association.modelCB() as typeof Dream
-        associationQuery = associatedModel.where({
+        associationQuery = this.dreamTransaction
+          ? associatedModel.txn(this.dreamTransaction)
+          : associatedModel
+
+        // @ts-ignore
+        associationQuery = associationQuery.where({
           [associatedModel.primaryKey]: dreams.map(dream => (dream as any)[association.foreignKey()]),
         })
 
@@ -415,7 +426,9 @@ export default class Query<
       }
     } else {
       const associatedModel = association.modelCB() as typeof Dream
-      associationQuery = associatedModel.where({
+      associationQuery = this.dreamTransaction ? associatedModel.txn(this.dreamTransaction) : associatedModel
+      // @ts-ignore
+      associationQuery = associationQuery.where({
         [association.foreignKey()]: dreams.map(dream => dream.primaryKeyValue),
       })
 
