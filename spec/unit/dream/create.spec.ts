@@ -139,7 +139,7 @@ describe('Dream.create', () => {
   })
 })
 
-describe.only('Dream#create', () => {
+describe('Dream#create', () => {
   it('creates the underlying model in the db', async () => {
     const u = await new User().create({ email: 'fred@frewd', password: 'howyadoin' })
     const user = await User.find(u.id)
@@ -148,11 +148,14 @@ describe.only('Dream#create', () => {
   })
 
   it('accepts a transaction', async () => {
+    let user: User | null = null
+
     Dream.transaction(async txn => {
-      const u = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
-      const user = await User.find(u.id)
-      expect(user!.email).toEqual('fred@frewd')
-      expect(typeof user!.id).toBe('number')
+      user = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
     })
+
+    const reloadedUser = await User.find(user!.id)
+    expect(reloadedUser!.email).toEqual('fred@frewd')
+    expect(typeof reloadedUser!.id).toBe('number')
   })
 })
