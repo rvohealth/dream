@@ -6,6 +6,7 @@ import UserSettings from '../../../test-app/app/models/user-settings'
 import CanOnlyPassBelongsToModelParam from '../../../src/exceptions/can-only-pass-belongs-to-model-param'
 import { DateTime } from 'luxon'
 import Pet from '../../../test-app/app/models/pet'
+import { Dream } from '../../../src'
 
 describe('Dream#update', () => {
   it('updates the underlying model in the db', async () => {
@@ -16,6 +17,26 @@ describe('Dream#update', () => {
     expect(user.name).toEqual('Snoopy')
     const reloadedUser = await User.find(user.id)
     expect(reloadedUser!.name).toEqual('Snoopy')
+  })
+
+  context('when encased in a transaction', () => {
+    it('updates the underlying model in the db', async () => {
+      let user: User | null = null
+      await Dream.transaction(async txn => {
+        user = await User.txn(txn).create({
+          email: 'fred@frewd',
+          password: 'howyadoin',
+          name: 'Charlie Brown',
+        })
+
+        expect(user.name).toEqual('Charlie Brown')
+        await user.txn(txn).update({ name: 'Snoopy' })
+      })
+
+      expect(user!.name).toEqual('Snoopy')
+      const reloadedUser = await User.find(user!.id)
+      expect(reloadedUser!.name).toEqual('Snoopy')
+    })
   })
 
   it('updates the updated_at field', async () => {
