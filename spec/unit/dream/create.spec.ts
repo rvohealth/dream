@@ -150,7 +150,7 @@ describe('Dream#create', () => {
   it('accepts a transaction', async () => {
     let user: User | null = null
 
-    Dream.transaction(async txn => {
+    await Dream.transaction(async txn => {
       user = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
     })
 
