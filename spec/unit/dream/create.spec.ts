@@ -41,8 +41,7 @@ describe('Dream.create', () => {
       })
 
       const reloadedUser = await User.find(user!.id)
-      expect(reloadedUser!.email).toEqual('fred@frewd')
-      expect(typeof reloadedUser!.id).toBe('number')
+      expect(reloadedUser).toMatchDreamModel(user)
     })
   })
 
@@ -123,7 +122,7 @@ describe('Dream.create', () => {
 
         expect(typeof composition.user_id).toBe('number')
         expect(composition.user.isPersisted).toBe(true)
-        expect(composition.user.email).toEqual('fred@fred')
+        expect(composition.user).toMatchDreamModel(user)
       })
 
       context('the associated model is polymorphic', () => {
