@@ -65,7 +65,8 @@ const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: Compar
 export default class Query<
   DreamClass extends typeof Dream,
   Table = DB[InstanceType<DreamClass>['table']],
-  QueryAssociationExpression = AssociationExpression<InstanceType<DreamClass>['table'], any>
+  QueryAssociationExpression = AssociationExpression<InstanceType<DreamClass>['table'], any>,
+  ColumnType = keyof DB[keyof DB] extends never ? unknown : keyof DB[keyof DB]
 > {
   public whereStatement: WhereStatement<any> = {}
   public whereNotStatement: WhereStatement<any> = {}
@@ -75,7 +76,7 @@ export default class Query<
   >[] = []
   public limitStatement: { count: number } | null = null
   public orStatements: Query<DreamClass>[] = []
-  public orderStatement: { column: keyof DB[keyof DB] & string; direction: 'asc' | 'desc' } | null = null
+  public orderStatement: { column: ColumnType & string; direction: 'asc' | 'desc' } | null = null
   public includesStatements: AssociationExpression<InstanceType<DreamClass>['table'], any>[] = []
   public joinsStatements: AssociationExpression<InstanceType<DreamClass>['table'], any>[] = []
   public shouldBypassDefaultScopes: boolean = false
@@ -150,7 +151,7 @@ export default class Query<
       this.whereJoinsStatement = [...(this.whereJoinsStatement as any), ...attributes]
     } else {
       Object.keys(attributes).forEach(key => {
-        if (this.dreamClass.columns().includes(key as any)) {
+        if ((this.dreamClass.columns() as any[]).includes(key)) {
           // @ts-ignore
           whereStatement[key] = attributes[key]
         } else {
