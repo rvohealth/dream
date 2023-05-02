@@ -6,14 +6,18 @@ import { HasManyStatement } from './decorators/associations/has-many'
 import { BelongsToStatement } from './decorators/associations/belongs-to'
 import { HasOneStatement } from './decorators/associations/has-one'
 import { ScopeStatement } from './decorators/scope'
-import { CommitHookType, HookStatement } from './decorators/hooks/shared'
+import { CommitHookType, HookStatement, blankHooksFactory } from './decorators/hooks/shared'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { marshalDBValue } from './helpers/marshalDBValue'
 import sqlAttributes from './helpers/sqlAttributes'
 import ValidationError from './exceptions/validation-error'
 import { SyncedBelongsToAssociations } from './sync/associations'
-import { AssociatedModelParam, WhereStatement } from './decorators/associations/shared'
+import {
+  AssociatedModelParam,
+  WhereStatement,
+  blankAssociationsFactory,
+} from './decorators/associations/shared'
 import { AssociationTableNames } from './db/reflections'
 import CanOnlyPassBelongsToModelParam from './exceptions/can-only-pass-belongs-to-model-param'
 import { AssociationExpression, DreamConstructorType } from './dream/types'
@@ -32,11 +36,7 @@ export default class Dream {
     belongsTo: BelongsToStatement<any>[]
     hasMany: HasManyStatement<any>[]
     hasOne: HasOneStatement<any>[]
-  } = {
-    belongsTo: [],
-    hasMany: [],
-    hasOne: [],
-  }
+  } = blankAssociationsFactory()
   public static scopes: {
     default: ScopeStatement[]
     named: ScopeStatement[]
@@ -64,20 +64,7 @@ export default class Dream {
     afterSaveCommit: HookStatement[]
     afterDestroy: HookStatement[]
     afterDestroyCommit: HookStatement[]
-  } = {
-    beforeCreate: [],
-    beforeUpdate: [],
-    beforeSave: [],
-    beforeDestroy: [],
-    afterCreate: [],
-    afterCreateCommit: [],
-    afterUpdate: [],
-    afterUpdateCommit: [],
-    afterSave: [],
-    afterSaveCommit: [],
-    afterDestroy: [],
-    afterDestroyCommit: [],
-  }
+  } = blankHooksFactory()
   public static validations: ValidationStatement[] = []
 
   public static get isDream() {
@@ -528,8 +515,7 @@ export default class Dream {
     if (txn) {
       return await this._save(txn)
     } else if (this.hasUnsavedAssociations) {
-      const base = this.constructor as DreamConstructorType<I>
-      await base.transaction(async txn => {
+      await Dream.transaction(async txn => {
         await this._save(txn)
       })
       return this
