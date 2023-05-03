@@ -1,6 +1,8 @@
 import { DateTime } from 'luxon'
 import User from '../../../test-app/app/models/user'
 import { Dream } from '../../../src'
+import Post from '../../../test-app/app/models/post'
+import Rating from '../../../test-app/app/models/rating'
 
 describe('Dream#save', () => {
   context('a new record', () => {
@@ -24,6 +26,35 @@ describe('Dream#save', () => {
 
         const reloadedUser = await User.find(user.id)
         expect(reloadedUser).toMatchDreamModel(user)
+      })
+    })
+
+    context('saving associations', () => {
+      context('with an unsaved association', () => {
+        it('saves the unsaved association', async () => {
+          const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+          const post = await Post.create({ user })
+          user.email = 'calvin@coolidge'
+          await post.save()
+
+          const reloadedUser = await User.find(user.id)
+          expect(reloadedUser!.email).toEqual('calvin@coolidge')
+        })
+      })
+
+      context('with an unsaved nested association', () => {
+        it('saves the unsaved nested association', async () => {
+          const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+          const post = await Post.create({ user })
+          const rating = await Rating.create({ rateable: post, rating: 10, user })
+          await rating.load({ rateable: ['user'] })
+
+          rating.rateable.user.email = 'calvin@coolidge'
+          await rating.save()
+
+          const reloadedUser = await User.find(user.id)
+          expect(reloadedUser!.email).toEqual('calvin@coolidge')
+        })
       })
     })
 

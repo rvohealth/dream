@@ -303,12 +303,16 @@ export default class Dream {
     return (this.constructor as typeof Dream).associationNames
   }
 
+  public get hasDirtyAttributes() {
+    return !!Object.keys(this.dirtyAttributes()).length
+  }
+
   public get hasUnsavedAssociations() {
     return !!this.unsavedAssociations.length
   }
 
   public get isDirty() {
-    return !!Object.keys(this.dirtyAttributes()).length
+    return this.hasDirtyAttributes || this.hasUnsavedAssociations
   }
 
   public get isDreamInstance() {
