@@ -74,7 +74,7 @@ export default function generateDreamContent(
     if (!attributeType) throw `must pass a column type for ${attributeName} (i.e. ${attributeName}:string)`
 
     if (attributeType === 'enum') {
-      const enumName = descriptors[0].split('(')[0] + '_enum'
+      const enumName = descriptors[0] + '_enum'
       enumImports.push(pascalize(enumName))
     }
 
@@ -113,7 +113,8 @@ public ${attributeName}: ${getAttributeType(attribute)}\
   })
 
   if (!!enumImports.length) {
-    const enumImport = `import { ${enumImports.join(', ')} } from '../../db/schema'`
+    const relativePath = relativePathToRoot(modelName).replace(/^\.\//, '')
+    const enumImport = `import { ${enumImports.join(', ')} } from '${relativePath}../../db/schema'`
     additionalImports.push(enumImport)
   }
 
@@ -148,19 +149,24 @@ export default class ${pascalize(modelName.split('/').pop()!)} extends Dream {
 }
 
 function buildImportStatement(modelName: string, attribute: string) {
-  const [attributeName, attributeType, ...descriptors] = attribute.split(':')
-  const numNestedDirsForModel = modelName.split('/').length - 1
+  const relativePath = relativePathToRoot(modelName)
+
+  const [attributeName] = attribute.split(':')
   const rootAssociationImport = attributeName.split('/')[0]
+  const associationImportStatement = `import ${pascalize(
+    rootAssociationImport
+  )} from '${relativePath}${hyphenize(rootAssociationImport)}'`
+  return associationImportStatement
+}
+
+function relativePathToRoot(modelName: string) {
+  const numNestedDirsForModel = modelName.split('/').length - 1
   let updirs = ''
   for (let i = 0; i < numNestedDirsForModel; i++) {
     updirs += '../'
   }
   const relativePath = numNestedDirsForModel > 0 ? updirs : './'
-
-  const associationImportStatement = `import ${pascalize(
-    rootAssociationImport
-  )} from '${relativePath}${hyphenize(rootAssociationImport)}'`
-  return associationImportStatement
+  return relativePath
 }
 
 function getAttributeType(attribute: string) {

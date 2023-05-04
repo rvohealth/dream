@@ -49,12 +49,13 @@ export async function down(db: Kysely<any>): Promise<void> {
         const res = generateMigrationContent({
           table: 'chalupas',
           attributes: [
-            'topping:enum:topping(lettuce, cheese,baja sauce)',
-            'protein_type:enum:protein(beef, nonbeef)',
+            'topping:enum:topping:lettuce,cheese,baja_sauce',
+            'protein_type:enum:protein:beef,nonbeef',
             'existing_enum:enum:my_existing_enum',
           ],
           useUUID: false,
         })
+        console.log(res)
         expect(res).toEqual(
           `\
 import { Kysely, sql } from 'kysely'
@@ -65,7 +66,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .asEnum([
       'lettuce',
       'cheese',
-      'baja sauce'
+      'baja_sauce'
     ])
     .execute()
 

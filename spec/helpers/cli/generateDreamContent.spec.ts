@@ -55,8 +55,8 @@ export default class User extends Dream {
         const res = generateDreamContent(
           'chalupa',
           [
-            'topping:enum:topping(cheese, baja sauce)',
-            'protein:enum:protein(beef, non beef)',
+            'topping:enum:topping:cheese,baja_sauce',
+            'protein:enum:protein:beef,non_beef',
             'existing_enum:enum:my_existing_enum',
           ],
           {
