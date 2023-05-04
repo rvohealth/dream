@@ -50,6 +50,42 @@ export default class User extends Dream {
       })
     })
 
+    context('with enum attributes', () => {
+      it('generates a dream model with multiple enum fields', async () => {
+        const res = generateDreamContent(
+          'chalupas',
+          [
+            'topping:enum:topping(cheese, baja sauce)',
+            'protein:enum:protein(beef, non beef)',
+            'existing_enum:enum:my_existing_enum',
+          ],
+          {
+            useUUID: false,
+          }
+        )
+        expect(res).toEqual(
+          `\
+import { DateTime } from 'luxon'
+import { Dream } from 'dream'
+import { ToppingEnum, ProteinEnum, MyExistingEnumEnum } from '../../db/schema'
+
+export default class Chalupa extends Dream {
+  public get table() {
+    return 'chalupas' as const
+  }
+
+  public id: number
+  public topping: ToppingEnum
+  public protein: ProteinEnum
+  public existing_enum: MyExistingEnumEnum
+  public created_at: DateTime
+  public updated_at: DateTime
+}\
+`
+        )
+      })
+    })
+
     context('with an integer attribute', () => {
       it('generates a dream model with a number field', async () => {
         const res = generateDreamContent('users', ['chalupa_count:integer'], {

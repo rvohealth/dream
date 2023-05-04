@@ -64,6 +64,7 @@ export default function generateDreamContent(
   const idTypescriptType = useUUID ? 'string' : 'number'
 
   const additionalImports: string[] = []
+  const enumImports: string[] = []
   const attributeStatements = attributes.map(attribute => {
     const [attributeName, attributeType, ...descriptors] = attribute.split(':')
     const associationImportStatement = `import ${pascalize(attributeName)} from './${hyphenize(
@@ -71,6 +72,11 @@ export default function generateDreamContent(
     )}'`
 
     if (!attributeType) throw `must pass a column type for ${attributeName} (i.e. ${attributeName}:string)`
+
+    if (attributeType === 'enum') {
+      const enumName = descriptors[0].split('(')[0] + '_enum'
+      enumImports.push(pascalize(enumName))
+    }
 
     switch (attributeType) {
       case 'belongs_to':
@@ -101,10 +107,15 @@ public ${pluralize(attributeName)}: ${pascalize(attributeName)}[]
 
       default:
         return `
-public ${attributeName}: ${(cooercedTypes as any)[attributeType] || attributeType}\
+public ${attributeName}: ${getAttributeType(attribute)}\
 `
     }
   })
+
+  if (!!enumImports.length) {
+    const enumImport = `import { ${enumImports.join(', ')} } from '../../db/schema'`
+    additionalImports.push(enumImport)
+  }
 
   const timestamps = `
   public created_at: DateTime
@@ -112,7 +123,6 @@ public ${attributeName}: ${(cooercedTypes as any)[attributeType] || attributeTyp
 `
 
   const tableName = snakeify(pluralize(modelName))
-  const uniqueSequelizeImports = [...new Set(dreamImports)]
 
   return `\
 import { DateTime } from 'luxon'
@@ -135,4 +145,11 @@ export default class ${pascalize(pluralize.singular(modelName))} extends Dream {
 }`
     .replace(/^\s*$/gm, '')
     .replace(/  }$/, '}')
+}
+
+function getAttributeType(attribute: string) {
+  const [_, attributeType, ...descriptors] = attribute.split(':')
+
+  if (attributeType === 'enum') return pascalize(descriptors[0].split('(')[0] + '_enum')
+  else return (cooercedTypes as any)[attributeType] || attributeType
 }

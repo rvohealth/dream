@@ -55,14 +55,13 @@ export async function down(db: Kysely<any>): Promise<void> {
           ],
           useUUID: false,
         })
-        console.log(res)
         expect(res).toEqual(
           `\
 import { Kysely, sql } from 'kysely'
 
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
-    .createType('topping')
+    .createType('topping_enum')
     .asEnum([
       'lettuce',
       'cheese',
@@ -71,7 +70,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 
   await db.schema
-    .createType('protein')
+    .createType('protein_enum')
     .asEnum([
       'beef',
       'nonbeef'
@@ -81,9 +80,9 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('chalupas')
     .addColumn('id', 'serial', col => col.primaryKey())
-    .addColumn('topping', sql\`topping\`)
-    .addColumn('protein_type', sql\`protein\`)
-    .addColumn('existing_enum', sql\`my_existing_enum\`)
+    .addColumn('topping', sql\`topping_enum\`)
+    .addColumn('protein_type', sql\`protein_enum\`)
+    .addColumn('existing_enum', sql\`my_existing_enum_enum\`)
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()

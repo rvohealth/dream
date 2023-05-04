@@ -84,13 +84,8 @@ function getAttributeType(attribute: string) {
 }
 
 function enumAttributeType(attribute: string) {
-  const [attributeName, attributeType, ...descriptors] = attribute.split(':')
-  const enumName = descriptors[0]
-  // if (/\(/.test(enumName)) {
-  //   return descriptors[0].split('(')[0]
-  // } else {
-  return `sql\`${descriptors[0].split('(')[0]}\``
-  // }
+  const [_, __, ...descriptors] = attribute.split(':')
+  return `sql\`${descriptors[0].split('(')[0]}_enum\``
 }
 
 function generateEnumStatements(attributes: string[]) {
@@ -102,7 +97,7 @@ function generateEnumStatements(attributes: string[]) {
       .replace(')', '')
       .split(/,\s{0,}/)
     return `await db.schema
-    .createType('${enumName}')
+    .createType('${enumName}_enum')
     .asEnum([
       ${attributes.map(attr => `'${attr}'`).join(',\n      ')}
     ])
