@@ -57,6 +57,7 @@ async function recursivelyWriteIndexes(obj: any) {
         await fs.writeFile(indexFilePath, indexStr)
         doRecursiveWrite(obj[key])
       } else {
+        currentPath = rootPath
       }
     }
   }
