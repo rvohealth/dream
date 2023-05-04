@@ -7,9 +7,9 @@ import { DB } from '../sync/schema'
 
 export type NestedAssociationExpression<
   TB extends AssociationTableNames,
-  Property extends keyof SyncedAssociations[TB],
+  AssociationName extends keyof SyncedAssociations[TB],
   Next
-> = AssociationExpression<(SyncedAssociations[TB][Property] & AssociationTableNames[])[number], Next>
+> = AssociationExpression<(SyncedAssociations[TB][AssociationName] & AssociationTableNames[])[number], Next>
 
 export type AssociationExpression<
   TB extends AssociationTableNames,
@@ -49,7 +49,10 @@ export type JoinsWhereAssociationExpression<
   ? Partial<{
       [AssociationName in keyof SyncedAssociations[TB]]: JoinsWhereAssociationExpression<
         (SyncedAssociations[TB][AssociationName] & AssociationTableNames[])[number],
-        NestedAssociationExpression<TB, AssociationName, AE[AssociationName]>
+        AssociationExpression<
+          (SyncedAssociations[TB][AssociationName] & AssociationTableNames[])[number],
+          AE[AssociationName]
+        >
       >
     }>
   : never
