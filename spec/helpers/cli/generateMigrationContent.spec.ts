@@ -7,7 +7,7 @@ describe('dream generate:model <name> [...attributes]', () => {
         const res = generateMigrationContent({
           table: 'users',
           attributes: [
-            'email:string',
+            'email:string:128',
             'name:citext',
             'password_digest:string',
             'chalupified_at:datetime',
@@ -25,9 +25,9 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('users')
     .addColumn('id', 'serial', col => col.primaryKey())
-    .addColumn('email', 'text')
+    .addColumn('email', 'varchar(128)')
     .addColumn('name', 'citext')
-    .addColumn('password_digest', 'text')
+    .addColumn('password_digest', 'varchar(255)')
     .addColumn('chalupified_at', 'timestamp')
     .addColumn('finished_chalupa_on', 'date')
     .addColumn('finished_chalupa_at', 'timestamp')

@@ -72,11 +72,8 @@ function getAttributeType(attribute: string) {
     case 'datetime':
       return 'timestamp'
 
-    case 'datetime':
-      return 'timestamp'
-
     case 'string':
-      return 'text'
+      return `varchar(${descriptors[0] || 255})`
 
     default:
       return attributeType
