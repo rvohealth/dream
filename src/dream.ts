@@ -12,7 +12,7 @@ import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { marshalDBValue } from './helpers/marshalDBValue'
 import sqlAttributes from './helpers/sqlAttributes'
 import ValidationError from './exceptions/validation-error'
-import { SyncedBelongsToAssociations } from './sync/associations'
+import { SyncedAssociations, SyncedBelongsToAssociations } from './sync/associations'
 import {
   AssociatedModelParam,
   WhereStatement,
@@ -183,9 +183,9 @@ export default class Dream {
   public static joins<
     T extends typeof Dream,
     QueryAssociationExpression extends AssociationExpression<
-      InstanceType<T>['table'],
+      InstanceType<T>['table'] & AssociationTableNames,
       any
-    > = AssociationExpression<InstanceType<T>['table'], any>
+    > = AssociationExpression<InstanceType<T>['table'] & AssociationTableNames, any>
   >(this: T, ...associations: QueryAssociationExpression[]) {
     const query: Query<T> = new Query<T>(this)
     return query.joins(...associations)
