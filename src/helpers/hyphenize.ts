@@ -1,5 +1,5 @@
 import snakeify from './snakeify'
 
 export default function hyphenize(str: string) {
-  return snakeify(str).replace(/_/g, '-')
+  return snakeify(str).replace(/_/g, '-').replace(/\//g, '-')
 }
