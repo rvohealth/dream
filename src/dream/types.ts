@@ -9,7 +9,7 @@ export type NestedAssociationExpression<
   TB extends AssociationTableNames,
   Property extends keyof SyncedAssociations[TB],
   Next
-> = AssociationExpression<SyncedAssociations[TB][Property] & AssociationTableNames, Next>
+> = AssociationExpression<(SyncedAssociations[TB][Property] & AssociationTableNames[])[number], Next>
 
 export type AssociationExpression<
   TB extends AssociationTableNames,
@@ -40,7 +40,7 @@ export type JoinsWhereAssociationExpression<
   : AE extends keyof SyncedAssociations[TB]
   ? Partial<{
       [AssociationName in keyof SyncedAssociations[TB]]: Updateable<
-        DB[SyncedAssociations[TB][AssociationName] & AssociationTableNames]
+        DB[(SyncedAssociations[TB][AssociationName] & AssociationTableNames[])[number]]
       >
     }>
   : AE extends Partial<{
@@ -48,7 +48,7 @@ export type JoinsWhereAssociationExpression<
     }>
   ? Partial<{
       [AssociationName in keyof SyncedAssociations[TB]]: JoinsWhereAssociationExpression<
-        SyncedAssociations[TB][AssociationName] & AssociationTableNames,
+        (SyncedAssociations[TB][AssociationName] & AssociationTableNames[])[number],
         NestedAssociationExpression<TB, AssociationName, AE[AssociationName]>
       >
     }>

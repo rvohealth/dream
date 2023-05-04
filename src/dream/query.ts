@@ -115,9 +115,9 @@ export default class Query<
   public joins<
     T extends Query<DreamClass>,
     QueryAssociationExpression extends AssociationExpression<
-      InstanceType<DreamClass>['table'],
+      InstanceType<DreamClass>['table'] & AssociationTableNames,
       any
-    > = AssociationExpression<InstanceType<DreamClass>['table'], any>
+    > = AssociationExpression<InstanceType<DreamClass>['table'] & AssociationTableNames, any>
   >(this: T, ...args: QueryAssociationExpression[]) {
     ;(this as any).joinsStatements = [...this.joinsStatements, ...args]
     return this

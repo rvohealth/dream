@@ -116,7 +116,7 @@ describe('Query#joins with simple associations', () => {
         const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
         const reloadedUsers = await User.limit(2)
-          .joins({ mainComposition: 'compositionAssets' })
+          .joins({ mainComposition: 'compositionAssetz' })
           .where({ mainComposition: { compositionAssets: { id: compositionAsset.id } } })
           .all()
         expect(reloadedUsers).toMatchDreamModels([user])
