@@ -3,7 +3,7 @@ import generateMigrationContent from '../../../src/helpers/cli/generateMigration
 describe('dream generate:model <name> [...attributes]', () => {
   context('when provided attributes', () => {
     context('string attributes', () => {
-      it('generates a sequelize migration with multiple text fields', async () => {
+      it('generates a kysely migration with multiple text fields', async () => {
         const res = generateMigrationContent({
           table: 'users',
           attributes: [
@@ -44,8 +44,58 @@ export async function down(db: Kysely<any>): Promise<void> {
       })
     })
 
+    context('enum attributes', () => {
+      it('generates a kysely migration with enum', async () => {
+        const res = generateMigrationContent({
+          table: 'chalupas',
+          attributes: [
+            'topping:enum:topping(lettuce, cheese,baja sauce)',
+            'protein_type:enum:protein(beef, nonbeef)',
+          ],
+          useUUID: false,
+        })
+        expect(res).toEqual(
+          `\
+import { Kysely, sql } from 'kysely'
+
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createType('topping')
+    .asEnum([
+      'lettuce',
+      'cheese',
+      'baja sauce'
+    ])
+    .execute()
+
+  await db.schema
+    .createType('protein')
+    .asEnum([
+      'beef',
+      'nonbeef'
+    ])
+    .execute()
+
+  await db.schema
+    .createTable('chalupas')
+    .addColumn('id', 'serial', col => col.primaryKey())
+    .addColumn('topping', 'topping')
+    .addColumn('protein_type', 'protein')
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+}
+
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropTable('chalupas').execute()
+}\
+`
+        )
+      })
+    })
+
     context('belongs_to attribute is passed', () => {
-      it('generates a sequelize model with the belongs_to association', async () => {
+      it('generates a kysely model with the belongs_to association', async () => {
         const res = generateMigrationContent({
           table: 'compositions',
           attributes: ['user:belongs_to'],
@@ -75,7 +125,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     })
 
     context('belongs_to attribute is passed AND useUUID=false', () => {
-      it('generates a sequelize model with the belongs_to association', async () => {
+      it('generates a kysely model with the belongs_to association', async () => {
         const res = generateMigrationContent({
           table: 'compositions',
           attributes: ['user:belongs_to'],

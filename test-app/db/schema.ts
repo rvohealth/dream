@@ -8,6 +8,8 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
 
 export type Int8 = ColumnType<string, string | number | bigint, string | number | bigint>;
 
+export type Species = "cat" | "dog" | "frog";
+
 export type Timestamp = ColumnType<DateTime>;
 
 export interface CompositionAssetAudits {
@@ -38,7 +40,7 @@ export interface Compositions {
 
 export interface Pets {
   id: Generated<number>;
-  species: string | null;
+  species: Species | null;
   name: string | null;
   user_id: number | null;
   created_at: Timestamp;

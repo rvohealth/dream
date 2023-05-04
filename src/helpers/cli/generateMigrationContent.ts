@@ -1,14 +1,6 @@
 import * as pluralize from 'pluralize'
 import pascalize from '../../../src/helpers/pascalize'
 
-const typeCoersions = {
-  citext: 'citext',
-  date: 'date',
-  datetime: 'timestamp',
-  string: 'text',
-  timestamp: 'timestamp',
-}
-
 export default function generateMigrationContent({
   table,
   attributes = [],
@@ -22,12 +14,17 @@ export default function generateMigrationContent({
   const columnDefs = attributes
     .map(attribute => {
       const [attributeName, attributeType, ...descriptors] = attribute.split(':')
-      let coercedAttributeType = (typeCoersions as any)[attributeType] || attributeType
       if (['has_one', 'has_many'].includes(attributeType)) return null
       if (attributeType === 'belongs_to') return generateBelongsToStr(attributeName, { useUUID })
-      else if (attributeType === 'citext') requireCitextExtension = true
 
-      return generateColumnStr(attributeName, coercedAttributeType, descriptors)
+      if (attributeType === 'citext') requireCitextExtension = true
+
+      let coercedAttributeType = getAttributeType(attribute)
+      if (attributeType === 'enum') {
+        return generateEnumStr(attribute)
+      } else {
+        return generateColumnStr(attributeName, coercedAttributeType, descriptors)
+      }
     })
     .filter(str => str !== null)
 
@@ -51,7 +48,7 @@ export async function down(db: Kysely<any>): Promise<void> {
 import { Kysely, sql } from 'kysely'
 
 export async function up(db: Kysely<any>): Promise<void> {
-  await db.schema
+  ${generateEnumStatements(attributes)}await db.schema
     .createTable('${table}')
     ${generateIdStr({ useUUID })}${columnDefs.length ? '\n    ' + columnDefs.join('\n    ') : ''}
     .addColumn('created_at', 'timestamp', col => col.notNull())
@@ -63,6 +60,48 @@ export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable('${table}').execute()
 }\
 `
+}
+
+function getAttributeType(attribute: string) {
+  const [attributeName, attributeType, ...descriptors] = attribute.split(':')
+  if (attributeType === 'enum') return descriptors[0].split('(')[0]
+
+  switch (attributeType) {
+    case 'datetime':
+      return 'timestamp'
+
+    case 'datetime':
+      return 'timestamp'
+
+    case 'string':
+      return 'text'
+
+    default:
+      return attributeType
+  }
+}
+
+function generateEnumStatements(attributes: string[]) {
+  const enumStatements = attributes.filter(attribute => /enum:.*\(/.test(attribute))
+  const finalStatements = enumStatements.map(statement => {
+    const enumName = statement.split(':')[2].split('(')[0]
+    const attributes = statement
+      .split('(')[1]
+      .replace(')', '')
+      .split(/,\s{0,}/)
+    return `await db.schema
+    .createType('${enumName}')
+    .asEnum([
+      ${attributes.map(attr => `'${attr}'`).join(',\n      ')}
+    ])
+    .execute()`
+  })
+  // .join('\n\n  ')
+  return finalStatements.length ? finalStatements.join('\n\n  ') + '\n\n  ' : ''
+}
+
+function generateEnumStr(attribute: string) {
+  return `.addColumn('${attribute.split(':')[0]}', '${getAttributeType(attribute)}')`
 }
 
 function generateColumnStr(attributeName: string, attributeType: string, descriptors: string[]) {
