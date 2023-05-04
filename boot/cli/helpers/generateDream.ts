@@ -2,7 +2,7 @@ import * as pluralize from 'pluralize'
 import * as fs from 'fs/promises'
 import generateDreamContent from '../../../src/helpers/cli/generateDreamContent'
 import generateMigrationContent from '../../../src/helpers/cli/generateMigrationContent'
-import migrationTimestamp from './migrationTimestamp'
+import migrationVersion from './migrationVersion'
 import { loadDreamYamlFile } from '../../../src/helpers/path'
 import hyphenize from '../../../src/helpers/hyphenize'
 import snakeify from '../../../src/helpers/snakeify'
@@ -63,8 +63,8 @@ export default async function generateDream(
   }
 
   const migrationBasePath = `${rootPath}/${ymlConfig.migrations_path}`
-  const timestamp = migrationTimestamp()
-  const migrationPath = `${migrationBasePath}/${timestamp}-create-${pluralize(hyphenize(dreamName))}.ts`
+  const version = migrationVersion()
+  const migrationPath = `${migrationBasePath}/${version}-create-${pluralize(hyphenize(dreamName))}.ts`
   const relativeMigrationPath = migrationPath.replace(
     new RegExp(`^.*${ymlConfig.migrations_path}`),
     ymlConfig.migrations_path
