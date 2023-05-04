@@ -12,7 +12,7 @@ import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { marshalDBValue } from './helpers/marshalDBValue'
 import sqlAttributes from './helpers/sqlAttributes'
 import ValidationError from './exceptions/validation-error'
-import { SyncedAssociations, SyncedBelongsToAssociations } from './sync/associations'
+import { SyncedBelongsToAssociations } from './sync/associations'
 import {
   AssociatedModelParam,
   WhereStatement,
