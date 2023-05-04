@@ -21,7 +21,12 @@ export default async function generateDream(
   const useUUID = false
 
   const dreamBasePath = `${rootPath}/${ymlConfig.models_path}`
-  const dreamPath = `${dreamBasePath}/${hyphenize(pluralize.singular(dreamName))}.ts`
+  const formattedDreamName = pluralize
+    .singular(dreamName)
+    .split('/')
+    .map(pathName => hyphenize(pathName))
+    .join('/')
+  const dreamPath = `${dreamBasePath}/${formattedDreamName}.ts`
   const relativeDreamPath = dreamPath.replace(
     new RegExp(`^.*${ymlConfig.models_path}`),
     ymlConfig.models_path
