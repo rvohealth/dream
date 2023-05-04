@@ -36,6 +36,7 @@ async function writeModelIndexes() {
       currentRef[pathParts[pathParts.length - 1]] = models[modelKey]
       currentFinalRef[pascalize(pathParts[pathParts.length - 1])] = models[modelKey]
       currentRef = modelsObj
+      currentFinalRef = finalModelsObj
     }
   })
 
