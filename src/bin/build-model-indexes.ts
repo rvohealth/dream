@@ -59,6 +59,7 @@ async function recursivelyWriteIndexes(obj: any) {
       }
     }
   }
+  doRecursiveWrite(obj)
 }
 
 function generateIndexContent(obj: any) {
