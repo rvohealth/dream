@@ -51,6 +51,7 @@ export async function down(db: Kysely<any>): Promise<void> {
           attributes: [
             'topping:enum:topping(lettuce, cheese,baja sauce)',
             'protein_type:enum:protein(beef, nonbeef)',
+            'existing_enum:enum:my_existing_enum',
           ],
           useUUID: false,
         })
@@ -81,6 +82,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('id', 'serial', col => col.primaryKey())
     .addColumn('topping', 'topping')
     .addColumn('protein_type', 'protein')
+    .addColumn('existing_enum', sql\`my_existing_enum\`)
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()

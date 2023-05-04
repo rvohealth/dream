@@ -64,7 +64,9 @@ export async function down(db: Kysely<any>): Promise<void> {
 
 function getAttributeType(attribute: string) {
   const [attributeName, attributeType, ...descriptors] = attribute.split(':')
-  if (attributeType === 'enum') return descriptors[0].split('(')[0]
+  if (attributeType === 'enum') {
+    return enumAttributeType(attribute)[0] as string
+  }
 
   switch (attributeType) {
     case 'datetime':
@@ -78,6 +80,16 @@ function getAttributeType(attribute: string) {
 
     default:
       return attributeType
+  }
+}
+
+function enumAttributeType(attribute: string): [string, boolean] {
+  const [attributeName, attributeType, ...descriptors] = attribute.split(':')
+  const enumName = descriptors[0]
+  if (/\(/.test(enumName)) {
+    return [descriptors[0].split('(')[0], false]
+  } else {
+    return [`sql\`${descriptors[0].split('(')[0]}\``, true]
   }
 }
 
@@ -96,12 +108,14 @@ function generateEnumStatements(attributes: string[]) {
     ])
     .execute()`
   })
-  // .join('\n\n  ')
+
   return finalStatements.length ? finalStatements.join('\n\n  ') + '\n\n  ' : ''
 }
 
 function generateEnumStr(attribute: string) {
-  return `.addColumn('${attribute.split(':')[0]}', '${getAttributeType(attribute)}')`
+  const [computedAttributeType, isSql] = enumAttributeType(attribute)
+  const finalAttributeType = isSql ? computedAttributeType : `'${computedAttributeType}'`
+  return `.addColumn('${attribute.split(':')[0]}', ${finalAttributeType})`
 }
 
 function generateColumnStr(attributeName: string, attributeType: string, descriptors: string[]) {
