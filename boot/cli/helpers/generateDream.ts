@@ -35,12 +35,16 @@ export default async function generateDream(
   //    howl g:controller api/v1/users
   const dreamActualFilename = dreamPathParts.pop()
 
-  // if they are generating a nested controller path,
+  // if they are generating a nested model path,
   // we need to make sure the nested directories exist
-  if (!!dreamPathParts.length) {
-    const fullPath = [...dreamBasePath.split('/'), ...dreamPathParts].join('/')
-    await thisfs.mkdir(fullPath, { recursive: true })
-  }
+  //
+  // begin: TODO: uncomment the following once we have our generators
+  // updated to comprehend directory structures when building imports.
+  // if (!!dreamPathParts.length) {
+  //   const fullPath = [...dreamBasePath.split('/'), ...dreamPathParts].join('/')
+  //   await thisfs.mkdir(fullPath, { recursive: true })
+  // }
+  // end: TODO
 
   try {
     console.log(`generating dream: ${relativeDreamPath}`)
