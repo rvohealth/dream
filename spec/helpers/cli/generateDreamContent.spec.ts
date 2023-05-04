@@ -3,7 +3,7 @@ import generateDreamContent from '../../../src/helpers/cli/generateDreamContent'
 describe('howl generate:model <name> [...attributes]', () => {
   context('when provided with a pascalized table name', () => {
     it('generates a dream model with multiple string fields', async () => {
-      const res = generateDreamContent('MealTypes', [], { useUUID: false })
+      const res = generateDreamContent('MealType', [], { useUUID: false })
       expect(res).toEqual(
         `\
 import { DateTime } from 'luxon'
@@ -26,7 +26,7 @@ export default class MealType extends Dream {
   context('when provided attributes', () => {
     context('with a string attribute', () => {
       it('generates a dream model with multiple string fields', async () => {
-        const res = generateDreamContent('users', ['email:string', 'password_digest:string'], {
+        const res = generateDreamContent('user', ['email:string', 'password_digest:string'], {
           useUUID: false,
         })
         expect(res).toEqual(
@@ -53,7 +53,7 @@ export default class User extends Dream {
     context('with enum attributes', () => {
       it('generates a dream model with multiple enum fields', async () => {
         const res = generateDreamContent(
-          'chalupas',
+          'chalupa',
           [
             'topping:enum:topping(cheese, baja sauce)',
             'protein:enum:protein(beef, non beef)',
@@ -88,7 +88,7 @@ export default class Chalupa extends Dream {
 
     context('with an integer attribute', () => {
       it('generates a dream model with a number field', async () => {
-        const res = generateDreamContent('users', ['chalupa_count:integer'], {
+        const res = generateDreamContent('user', ['chalupa_count:integer'], {
           useUUID: false,
         })
         expectSingleColumnWithType(res, 'chalupa_count', 'number', 'integer')
@@ -97,7 +97,7 @@ export default class Chalupa extends Dream {
 
     context('with a float attribute', () => {
       it('generates a dream model with a number field', async () => {
-        const res = generateDreamContent('users', ['chalupa_count:float'], {
+        const res = generateDreamContent('user', ['chalupa_count:float'], {
           useUUID: false,
         })
         expectSingleColumnWithType(res, 'chalupa_count', 'number', 'float')
@@ -106,7 +106,7 @@ export default class Chalupa extends Dream {
 
     context('with a datetime attribute', () => {
       it('generates a dream model with a timestamp field', async () => {
-        const res = generateDreamContent('users', ['chalupafied_at:datetime'], {
+        const res = generateDreamContent('user', ['chalupafied_at:datetime'], {
           useUUID: false,
         })
         expectSingleColumnWithType(res, 'chalupafied_at', 'DateTime', 'datetime')
@@ -115,7 +115,7 @@ export default class Chalupa extends Dream {
 
     context('with a timestamp attribute', () => {
       it('generates a dream model with a timestamp field', async () => {
-        const res = generateDreamContent('users', ['chalupafied_at:timestamp'], {
+        const res = generateDreamContent('user', ['chalupafied_at:timestamp'], {
           useUUID: false,
         })
         expectSingleColumnWithType(res, 'chalupafied_at', 'DateTime', 'datetime')
@@ -124,7 +124,7 @@ export default class Chalupa extends Dream {
 
     context('with a citext attribute', () => {
       it('generates a dream model with a citext field', async () => {
-        const res = generateDreamContent('users', ['name:citext'], {
+        const res = generateDreamContent('user', ['name:citext'], {
           useUUID: false,
         })
         expectSingleColumnWithType(res, 'name', 'string', 'citext')
@@ -133,7 +133,7 @@ export default class Chalupa extends Dream {
 
     context('with a json attribute', () => {
       it('generates a dream model with a string field', async () => {
-        const res = generateDreamContent('users', ['chalupa_data:json'], {
+        const res = generateDreamContent('user', ['chalupa_data:json'], {
           useUUID: false,
         })
         expectSingleColumnWithType(res, 'chalupa_data', 'string', 'json')
@@ -142,7 +142,7 @@ export default class Chalupa extends Dream {
 
     context('with a jsonb attribute', () => {
       it('generates a dream model with a string field', async () => {
-        const res = generateDreamContent('users', ['chalupa_data:jsonb'], {
+        const res = generateDreamContent('user', ['chalupa_data:jsonb'], {
           useUUID: false,
         })
         expectSingleColumnWithType(res, 'chalupa_data', 'string', 'jsonb')
@@ -152,7 +152,7 @@ export default class Chalupa extends Dream {
     context('relationships', () => {
       context('when provided with a belongs_to relationship', () => {
         it('generates a BelongsTo relationship in model', () => {
-          const res = generateDreamContent('compositions', ['graph_node:belongs_to'], {
+          const res = generateDreamContent('composition', ['graph_node:belongs_to'], {
             useUUID: false,
           })
           expect(res).toEqual(
@@ -178,8 +178,118 @@ export default class Composition extends Dream {
           )
         })
 
+        context('namespaced relationships', () => {
+          it('can handle associations with nested paths', () => {
+            const res = generateDreamContent('cat_toy', ['pet/domestic/cat:belongs_to'], {
+              useUUID: false,
+            })
+            expect(res).toEqual(
+              `\
+import { DateTime } from 'luxon'
+import { Dream, BelongsTo } from 'dream'
+import Pet from './pet'
+
+export default class CatToy extends Dream {
+  public get table() {
+    return 'cat_toys' as const
+  }
+
+  public id: number
+  public created_at: DateTime
+  public updated_at: DateTime
+
+  @BelongsTo(() => Pet.Domestic.Cat)
+  public cat: Pet.Domestic.Cat
+  public cat_id: number
+}\
+`
+            )
+          })
+
+          it('produces valid association paths when the model being generated is namespaced', () => {
+            const res = generateDreamContent('pet/domestic/cat', ['graph_node:belongs_to'], {
+              useUUID: false,
+            })
+            expect(res).toEqual(
+              `\
+import { DateTime } from 'luxon'
+import { Dream, BelongsTo } from 'dream'
+import GraphNode from '../../graph-node'
+
+export default class Cat extends Dream {
+  public get table() {
+    return 'pet_domestic_cats' as const
+  }
+
+  public id: number
+  public created_at: DateTime
+  public updated_at: DateTime
+
+  @BelongsTo(() => GraphNode)
+  public graphNode: GraphNode
+  public graph_node_id: number
+}\
+`
+            )
+          })
+
+          it('produces valid association paths when both the model being generated and the associated model are namespaced', () => {
+            const res = generateDreamContent('pet/domestic/cat', ['pet/domestic/dog:belongs_to'], {
+              useUUID: false,
+            })
+            expect(res).toEqual(
+              `\
+import { DateTime } from 'luxon'
+import { Dream, BelongsTo } from 'dream'
+import Pet from '../../pet'
+
+export default class Cat extends Dream {
+  public get table() {
+    return 'pet_domestic_cats' as const
+  }
+
+  public id: number
+  public created_at: DateTime
+  public updated_at: DateTime
+
+  @BelongsTo(() => Pet.Domestic.Dog)
+  public dog: Pet.Domestic.Dog
+  public dog_id: number
+}\
+`
+            )
+          })
+
+          it('produces valid association paths when both the model being generated and the associated model are namespaced', () => {
+            const res = generateDreamContent('pet/wild/cat', ['pet/domestic/dog:belongs_to'], {
+              useUUID: false,
+            })
+            expect(res).toEqual(
+              `\
+import { DateTime } from 'luxon'
+import { Dream, BelongsTo } from 'dream'
+import Pet from '../../pet'
+
+export default class Cat extends Dream {
+  public get table() {
+    return 'pet_wild_cats' as const
+  }
+
+  public id: number
+  public created_at: DateTime
+  public updated_at: DateTime
+
+  @BelongsTo(() => Pet.Domestic.Dog)
+  public dog: Pet.Domestic.Dog
+  public dog_id: number
+}\
+`
+            )
+          })
+        })
+
         it('can handle multiple associations without duplicate imports', () => {
-          const res = generateDreamContent('compositions', ['user:belongs_to', 'chalupa:belongs_to'], {
+          const res = generateDreamContent('composition', ['user:belongs_to', 'chalupa:belongs_to'], {
             useUUID: false,
           })
           expect(res).toEqual(
@@ -213,7 +323,7 @@ export default class Composition extends Dream {
 
       context('when provided with a has_one relationship', () => {
         it('generates a HasOne relationship in model', () => {
-          const res = generateDreamContent('compositions', ['user:has_one'], {
+          const res = generateDreamContent('composition', ['user:has_one'], {
             useUUID: false,
           })
           expect(res).toEqual(
@@ -241,7 +351,7 @@ export default class Composition extends Dream {
 
       context('when provided with a has_many relationship', () => {
         it('generates a HasMany relationship in model', () => {
-          const res = generateDreamContent('users', ['composition:has_many'], {
+          const res = generateDreamContent('user', ['composition:has_many'], {
             useUUID: false,
           })
           expect(res).toEqual(
@@ -269,7 +379,7 @@ export default class User extends Dream {
 
       context('when provided with a relationship and using uuids', () => {
         it('generates a uuid id field for relations relationship in model', () => {
-          const res = generateDreamContent('compositions', ['user:belongs_to'], {
+          const res = generateDreamContent('composition', ['user:belongs_to'], {
             useUUID: true,
           })
           expect(res).toEqual(

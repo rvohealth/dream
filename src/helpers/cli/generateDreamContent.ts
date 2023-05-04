@@ -67,9 +67,9 @@ export default function generateDreamContent(
   const enumImports: string[] = []
   const attributeStatements = attributes.map(attribute => {
     const [attributeName, attributeType, ...descriptors] = attribute.split(':')
-    const associationImportStatement = `import ${pascalize(attributeName)} from './${hyphenize(
-      attributeName
-    )}'`
+    const associationImportStatement = buildImportStatement(modelName, attribute)
+    const attributeNameParts = attributeName.split('/')
+    const associationName = attributeNameParts[attributeNameParts.length - 1]
 
     if (!attributeType) throw `must pass a column type for ${attributeName} (i.e. ${attributeName}:string)`
 
@@ -84,9 +84,9 @@ export default function generateDreamContent(
         additionalImports.push(associationImportStatement)
         let belongsToOptions = descriptors.includes('many_to_one') ? ", { mode: 'many_to_one' }" : ''
         return `
-@BelongsTo(() => ${pascalize(attributeName)}${belongsToOptions})
-public ${camelize(attributeName)}: ${pascalize(attributeName)}
-public ${attributeName}_id: ${idTypescriptType}
+@BelongsTo(() => ${namespacedClassName(attributeName)}${belongsToOptions})
+public ${camelize(associationName)}: ${namespacedClassName(attributeName)}
+public ${snakeify(associationName)}_id: ${idTypescriptType}
 `
 
       case 'has_one':
@@ -122,7 +122,7 @@ public ${attributeName}: ${getAttributeType(attribute)}\
   public updated_at: DateTime
 `
 
-  const tableName = snakeify(pluralize(modelName))
+  const tableName = snakeify(pluralize(modelName.replace(/\//g, '_')))
 
   return `\
 import { DateTime } from 'luxon'
@@ -130,7 +130,7 @@ import { ${[...new Set(dreamImports)].join(', ')} } from 'dream'${
     !!additionalImports.length ? '\n' + additionalImports.join('\n') : ''
   }
 
-export default class ${pascalize(pluralize.singular(modelName))} extends Dream {
+export default class ${pascalize(modelName.split('/').pop()!)} extends Dream {
   public get table() {
     return '${tableName}' as const
   }
@@ -147,9 +147,32 @@ export default class ${pascalize(pluralize.singular(modelName))} extends Dream {
     .replace(/  }$/, '}')
 }
 
+function buildImportStatement(modelName: string, attribute: string) {
+  const [attributeName, attributeType, ...descriptors] = attribute.split(':')
+  const numNestedDirsForModel = modelName.split('/').length - 1
+  const rootAssociationImport = attributeName.split('/')[0]
+  let updirs = ''
+  for (let i = 0; i < numNestedDirsForModel; i++) {
+    updirs += '../'
+  }
+  const relativePath = numNestedDirsForModel > 0 ? updirs : './'
+
+  const associationImportStatement = `import ${pascalize(
+    rootAssociationImport
+  )} from '${relativePath}${hyphenize(rootAssociationImport)}'`
+  return associationImportStatement
+}
+
 function getAttributeType(attribute: string) {
   const [_, attributeType, ...descriptors] = attribute.split(':')
 
   if (attributeType === 'enum') return pascalize(descriptors[0].split('(')[0] + '_enum')
   else return (cooercedTypes as any)[attributeType] || attributeType
+}
+
+function namespacedClassName(attributeName: string) {
+  return attributeName
+    .split('/')
+    .map(attributePart => pascalize(attributePart))
+    .join('.')
 }
