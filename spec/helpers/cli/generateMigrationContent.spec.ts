@@ -55,6 +55,7 @@ export async function down(db: Kysely<any>): Promise<void> {
           ],
           useUUID: false,
         })
+        console.log(res)
         expect(res).toEqual(
           `\
 import { Kysely, sql } from 'kysely'
@@ -80,8 +81,8 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('chalupas')
     .addColumn('id', 'serial', col => col.primaryKey())
-    .addColumn('topping', 'topping')
-    .addColumn('protein_type', 'protein')
+    .addColumn('topping', sql\`topping\`)
+    .addColumn('protein_type', sql\`protein\`)
     .addColumn('existing_enum', sql\`my_existing_enum\`)
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())

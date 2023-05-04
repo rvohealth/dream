@@ -83,14 +83,14 @@ function getAttributeType(attribute: string) {
   }
 }
 
-function enumAttributeType(attribute: string): [string, boolean] {
+function enumAttributeType(attribute: string) {
   const [attributeName, attributeType, ...descriptors] = attribute.split(':')
   const enumName = descriptors[0]
-  if (/\(/.test(enumName)) {
-    return [descriptors[0].split('(')[0], false]
-  } else {
-    return [`sql\`${descriptors[0].split('(')[0]}\``, true]
-  }
+  // if (/\(/.test(enumName)) {
+  //   return descriptors[0].split('(')[0]
+  // } else {
+  return `sql\`${descriptors[0].split('(')[0]}\``
+  // }
 }
 
 function generateEnumStatements(attributes: string[]) {
@@ -113,9 +113,8 @@ function generateEnumStatements(attributes: string[]) {
 }
 
 function generateEnumStr(attribute: string) {
-  const [computedAttributeType, isSql] = enumAttributeType(attribute)
-  const finalAttributeType = isSql ? computedAttributeType : `'${computedAttributeType}'`
-  return `.addColumn('${attribute.split(':')[0]}', ${finalAttributeType})`
+  const computedAttributeType = enumAttributeType(attribute)
+  return `.addColumn('${attribute.split(':')[0]}', ${computedAttributeType})`
 }
 
 function generateColumnStr(attributeName: string, attributeType: string, descriptors: string[]) {
