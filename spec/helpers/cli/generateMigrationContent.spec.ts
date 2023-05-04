@@ -55,7 +55,6 @@ export async function down(db: Kysely<any>): Promise<void> {
           ],
           useUUID: false,
         })
-        console.log(res)
         expect(res).toEqual(
           `\
 import { Kysely, sql } from 'kysely'

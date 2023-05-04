@@ -88,18 +88,8 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
 
   public nestedSelect<
     I extends DreamClassTransactionBuilder<DreamClass>,
-    SE extends SelectExpression<
-      DB,
-      ExtractTableAlias<DB, InstanceType<DreamClass>['table'] & AssociationTableNames>
-    >
-  >(
-    this: I,
-    selection: SelectArg<
-      DB,
-      ExtractTableAlias<DB, InstanceType<DreamClass>['table'] & AssociationTableNames>,
-      SE
-    >
-  ) {
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>>
+  >(this: I, selection: SelectArg<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, SE>) {
     const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
     return query.nestedSelect(selection as any)
   }
@@ -107,7 +97,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
   public order<
     I extends DreamClassTransactionBuilder<DreamClass>,
     ColumnName extends keyof Table & string,
-    TableName extends AssociationTableNames = InstanceType<DreamClass>['table'] & AssociationTableNames,
+    TableName extends AssociationTableNames = InstanceType<DreamClass>['table'],
     Table extends DB[keyof DB] = DB[TableName]
   >(this: I, column: ColumnName, direction: 'asc' | 'desc' = 'asc') {
     const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
@@ -116,18 +106,8 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
 
   public async pluck<
     I extends DreamClassTransactionBuilder<DreamClass>,
-    SE extends SelectExpression<
-      DB,
-      ExtractTableAlias<DB, InstanceType<DreamClass>['table'] & AssociationTableNames>
-    >
-  >(
-    this: I,
-    ...fields: SelectArg<
-      DB,
-      ExtractTableAlias<DB, InstanceType<DreamClass>['table'] & AssociationTableNames>,
-      SE
-    >[]
-  ) {
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>>
+  >(this: I, ...fields: SelectArg<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, SE>[]) {
     const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
     return await query.pluck(...(fields as any[]))
   }

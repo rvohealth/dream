@@ -165,7 +165,7 @@ export default class Dream {
 
   public static includes<
     T extends typeof Dream,
-    TableName extends AssociationTableNames = InstanceType<T>['table'] & AssociationTableNames,
+    TableName extends AssociationTableNames = InstanceType<T>['table'],
     QueryAssociationExpression extends AssociationExpression<
       TableName & AssociationTableNames,
       any
@@ -180,9 +180,9 @@ export default class Dream {
   public static joins<
     T extends typeof Dream,
     QueryAssociationExpression extends AssociationExpression<
-      InstanceType<T>['table'] & AssociationTableNames,
+      InstanceType<T>['table'],
       any
-    > = AssociationExpression<InstanceType<T>['table'] & AssociationTableNames, any>
+    > = AssociationExpression<InstanceType<T>['table'], any>
   >(this: T, ...associations: QueryAssociationExpression[]) {
     const query: Query<T> = new Query<T>(this)
     return query.joins(...associations)
@@ -201,11 +201,8 @@ export default class Dream {
 
   public static nestedSelect<
     T extends typeof Dream,
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<T>['table'] & AssociationTableNames>>
-  >(
-    this: T,
-    selection: SelectArg<DB, ExtractTableAlias<DB, InstanceType<T>['table'] & AssociationTableNames>, SE>
-  ) {
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<T>['table']>>
+  >(this: T, selection: SelectArg<DB, ExtractTableAlias<DB, InstanceType<T>['table']>, SE>) {
     let query: Query<T> = new Query<T>(this)
     return query.nestedSelect(selection as any)
   }
@@ -213,7 +210,7 @@ export default class Dream {
   public static order<
     T extends typeof Dream,
     ColumnName extends keyof Table & string,
-    TableName extends AssociationTableNames = InstanceType<T>['table'] & AssociationTableNames,
+    TableName extends AssociationTableNames = InstanceType<T>['table'],
     Table extends DB[keyof DB] = DB[TableName]
   >(this: T, column: ColumnName, direction: 'asc' | 'desc' = 'asc') {
     let query: Query<T> = new Query<T>(this)
@@ -223,12 +220,9 @@ export default class Dream {
 
   public static async pluck<
     T extends typeof Dream,
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<T>['table'] & AssociationTableNames>>,
-    TableName extends AssociationTableNames = InstanceType<T>['table'] & AssociationTableNames
-  >(
-    this: T,
-    ...fields: SelectArg<DB, ExtractTableAlias<DB, InstanceType<T>['table'] & AssociationTableNames>, SE>[]
-  ) {
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<T>['table']>>,
+    TableName extends AssociationTableNames = InstanceType<T>['table']
+  >(this: T, ...fields: SelectArg<DB, ExtractTableAlias<DB, InstanceType<T>['table']>, SE>[]) {
     let query: Query<T> = new Query<T>(this)
     return await query.pluck(...(fields as any[]))
   }
@@ -266,7 +260,7 @@ export default class Dream {
 
   public static where<
     T extends typeof Dream,
-    TableName extends AssociationTableNames = InstanceType<T>['table'] & AssociationTableNames
+    TableName extends AssociationTableNames = InstanceType<T>['table']
   >(this: T, attributes: WhereStatement<TableName>) {
     // @ts-ignore
     return new Query<T>(this).where(attributes)
@@ -274,7 +268,7 @@ export default class Dream {
 
   public static whereNot<
     T extends typeof Dream,
-    TableName extends AssociationTableNames = InstanceType<T>['table'] & AssociationTableNames
+    TableName extends AssociationTableNames = InstanceType<T>['table']
   >(this: T, attributes: WhereStatement<TableName>) {
     // @ts-ignore
     return new Query<T>(this).whereNot(attributes)
@@ -282,7 +276,7 @@ export default class Dream {
 
   public static new<
     T extends typeof Dream,
-    TableName extends AssociationTableNames = InstanceType<T>['table'] & AssociationTableNames,
+    TableName extends AssociationTableNames = InstanceType<T>['table'],
     Table extends DB[keyof DB] = DB[TableName]
   >(this: T, opts?: Updateable<Table> | AssociatedModelParam<T>) {
     return new this(opts as any) as InstanceType<T>
