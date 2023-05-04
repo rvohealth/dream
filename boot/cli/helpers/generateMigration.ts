@@ -18,7 +18,7 @@ export default async function generateMigration(
   const timestamp = migrationTimestamp()
   const migrationFilename = `${hyphenize(migrationName)}`
   const timestampedMigrationFilename = `${timestamp}-${migrationFilename}`
-  const migrationPath = `${migrationBasePath}/${timestampedMigrationFilename}.ts`
+  const migrationPath = `${migrationBasePath}/${timestampedMigrationFilename.replace(/\//g, '-')}.ts`
   const thisfs = fs ? fs : await import('fs/promises')
 
   try {
