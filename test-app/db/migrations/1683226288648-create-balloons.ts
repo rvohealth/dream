@@ -4,7 +4,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema.createType('balloon_color_enum').asEnum(['red', 'green', 'blue']).execute()
 
   await db.schema
-    .createTable('balloon_bases')
+    .createTable('balloons')
     .addColumn('id', 'serial', col => col.primaryKey())
     .addColumn('type', 'varchar(255)')
     .addColumn('user_id', 'integer', col => col.references('users.id').onDelete('cascade').notNull())
@@ -15,5 +15,5 @@ export async function up(db: Kysely<any>): Promise<void> {
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropTable('balloon_bases').execute()
+  await db.schema.dropTable('balloons').execute()
 }

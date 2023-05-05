@@ -14,7 +14,7 @@ export type Species = "cat" | "dog" | "frog";
 
 export type Timestamp = ColumnType<DateTime>;
 
-export interface BalloonBases {
+export interface Balloons {
   id: Generated<number>;
   type: string | null;
   user_id: number;
@@ -103,7 +103,7 @@ export interface UserSettings {
 }
 
 export interface DB {
-  balloon_bases: BalloonBases;
+  balloons: Balloons;
   composition_asset_audits: CompositionAssetAudits;
   composition_assets: CompositionAssets;
   compositions: Compositions;
@@ -116,7 +116,7 @@ export interface DB {
 }
 
 
-export const BalloonBaseColumns = ['id', 'type', 'user_id', 'color', 'created_at', 'updated_at']
+export const BalloonColumns = ['id', 'type', 'user_id', 'color', 'created_at', 'updated_at']
 export const CompositionAssetAuditColumns = ['id', 'composition_asset_id', 'approval', 'created_at', 'updated_at']
 export const CompositionAssetColumns = ['id', 'composition_id', 'src', 'primary', 'created_at', 'updated_at']
 export const CompositionColumns = ['id', 'user_id', 'content', 'primary', 'created_at', 'updated_at']
@@ -128,7 +128,7 @@ export const UserColumns = ['id', 'name', 'email', 'password', 'created_at', 'up
 export const UserSettingColumns = ['id', 'user_id', 'likes_chalupas', 'created_at', 'updated_at']
 
 export const DBColumns = {
-  balloon_bases: BalloonBaseColumns,
+  balloons: BalloonColumns,
   composition_asset_audits: CompositionAssetAuditColumns,
   composition_assets: CompositionAssetColumns,
   compositions: CompositionColumns,

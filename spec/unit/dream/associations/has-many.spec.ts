@@ -1,4 +1,4 @@
-import BalloonBase from '../../../../test-app/app/models/balloon/base'
+import Balloon from '../../../../test-app/app/models/balloon'
 import Composition from '../../../../test-app/app/models/composition'
 import CompositionAsset from '../../../../test-app/app/models/composition-asset'
 import CompositionAssetAudit from '../../../../test-app/app/models/composition-asset-audit'
@@ -26,7 +26,7 @@ describe('Dream HasMany association', () => {
 
     // balloons
     expect(userAssociations[3].foreignKey()).toEqual('user_id')
-    expect(userAssociations[3].modelCB()).toEqual(BalloonBase)
+    expect(userAssociations[3].modelCB()).toEqual(Balloon)
 
     // ensure that other model associations have not
     // accidentally overwritten this one

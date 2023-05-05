@@ -1,5 +1,5 @@
 import { STI } from '../../../../src'
-import Base from './base'
+import Balloon from '../balloon'
 
-@STI(Base)
-export default class Latex extends Base {}
+@STI(Balloon)
+export default class Latex extends Balloon {}

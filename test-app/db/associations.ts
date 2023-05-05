@@ -1,5 +1,5 @@
 export default {
-  "balloon_bases": {
+  "balloons": {
     "user": [
       "users"
     ]
@@ -90,7 +90,7 @@ export default {
       "composition_asset_audits"
     ],
     "balloons": [
-      "balloon_bases"
+      "balloons"
     ]
   },
   "user_settings": {
@@ -101,7 +101,7 @@ export default {
 }
 
 export interface SyncedAssociations {
-  "balloon_bases": {
+  "balloons": {
     "user": [
       "users"
     ]
@@ -192,7 +192,7 @@ export interface SyncedAssociations {
       "composition_asset_audits"
     ],
     "balloons": [
-      "balloon_bases"
+      "balloons"
     ]
   },
   "user_settings": {
@@ -203,7 +203,7 @@ export interface SyncedAssociations {
 }
 
 export interface SyncedBelongsToAssociations {
-  "balloon_bases": {
+  "balloons": {
     "user": [
       "users"
     ]

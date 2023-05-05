@@ -1,12 +1,12 @@
 import { DateTime } from 'luxon'
-import Dream from '../../../../src/dream'
-import BelongsTo from '../../../../src/decorators/associations/belongs-to'
-import User from '../user'
-import { BalloonColorEnum } from '../../../db/schema'
+import Dream from '../../../src/dream'
+import BelongsTo from '../../../src/decorators/associations/belongs-to'
+import User from './user'
+import { BalloonColorEnum } from '../../db/schema'
 
 export default class Base extends Dream {
   public get table() {
-    return 'balloon_bases' as const
+    return 'balloons' as const
   }
 
   public id: number

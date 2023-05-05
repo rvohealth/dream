@@ -8,7 +8,7 @@ import Validates from '../../../src/decorators/validations/validates'
 import UserSettings from './user-settings'
 import Dream from '../../../src/dream'
 import { DateTime } from 'luxon'
-import BalloonBase from './balloon/base'
+import Balloon from './balloon'
 
 export default class User extends Dream {
   public get table() {
@@ -58,8 +58,8 @@ export default class User extends Dream {
   })
   public compositionAssetAudits: CompositionAssetAudit[]
 
-  @HasMany(() => BalloonBase)
-  public balloons: BalloonBase[]
+  @HasMany(() => Balloon)
+  public balloons: Balloon[]
 
   @Scope()
   public static withFunnyName(query: any) {
