@@ -40,7 +40,7 @@ describe('Dream.includes', () => {
   })
 
   context('STI associations are loaded', () => {
-    it.only('correctly marshals each association to its respective dream class based on type', async () => {
+    it('correctly marshals each association to its respective dream class based on type', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const mylar = await Balloon.Mylar.create({ user, color: 'red' })
       const latex = await Balloon.Latex.create({ user, color: 'blue' })
