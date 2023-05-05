@@ -1,5 +1,5 @@
 import { Dream } from '../../../src'
-import User from '../../../test-app/app/models/user'
+import User from '../../../test-app/app/models/User'
 
 describe('Dream.whereNot', () => {
   it('negates a query', async () => {

@@ -1,4 +1,4 @@
-import User from '../../../test-app/app/models/user'
+import User from '../../../test-app/app/models/User'
 
 describe('Query#first', () => {
   it('returns first record found', async () => {

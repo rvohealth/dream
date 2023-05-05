@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import Dream from '../../../src/dream'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
-import User from './user'
+import User from './User'
 import { BalloonColorEnum } from '../../db/schema'
 
 export default class Balloon extends Dream {

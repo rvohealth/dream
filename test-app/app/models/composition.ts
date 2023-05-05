@@ -9,9 +9,9 @@ import AfterUpdate from '../../../src/decorators/hooks/after-update'
 import AfterUpdateCommit from '../../../src/decorators/hooks/after-update-commit'
 import BeforeCreate from '../../../src/decorators/hooks/before-create'
 import Dream from '../../../src/dream'
-import CompositionAsset from './composition-asset'
-import CompositionAssetAudit from './composition-asset-audit'
-import User from './user'
+import CompositionAsset from './CompositionAsset'
+import CompositionAssetAudit from './CompositionAssetAudit'
+import User from './User'
 
 export default class Composition extends Dream {
   public get table() {

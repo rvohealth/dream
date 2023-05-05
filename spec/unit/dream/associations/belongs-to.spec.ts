@@ -1,5 +1,5 @@
-import Composition from '../../../../test-app/app/models/composition'
-import User from '../../../../test-app/app/models/user'
+import Composition from '../../../../test-app/app/models/Composition'
+import User from '../../../../test-app/app/models/User'
 
 describe('Dream BelongsTo association', () => {
   it('builds association mapping', async () => {

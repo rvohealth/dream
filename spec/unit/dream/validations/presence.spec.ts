@@ -1,5 +1,5 @@
 import ValidationError from '../../../../src/exceptions/validation-error'
-import User from '../../../../test-app/app/models/user'
+import User from '../../../../test-app/app/models/User'
 
 describe('Dream presence validation', () => {
   it('builds scope mapping', async () => {

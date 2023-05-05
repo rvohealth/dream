@@ -1,8 +1,8 @@
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import Dream from '../../../src/dream'
-import Composition from './composition'
-import Post from './post'
-import User from './user'
+import Composition from './Composition'
+import Post from './Post'
+import User from './User'
 
 export default class Rating extends Dream {
   public get table() {

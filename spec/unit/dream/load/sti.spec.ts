@@ -1,6 +1,6 @@
-import User from '../../../../test-app/app/models/user'
-import Mylar from '../../../../test-app/app/models/balloon/mylar'
-import Latex from '../../../../test-app/app/models/balloon/latex'
+import User from '../../../../test-app/app/models/User'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
+import Latex from '../../../../test-app/app/models/Balloon/Latex'
 
 describe('Dream#load with sti associations', () => {
   context('HasMany associations', () => {

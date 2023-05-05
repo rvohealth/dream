@@ -1,6 +1,6 @@
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import Dream from '../../../src/dream'
-import User from './user'
+import User from './User'
 
 export default class UserSettings extends Dream {
   public get table() {

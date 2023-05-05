@@ -1,7 +1,7 @@
-import User from '../../../../test-app/app/models/user'
-import Composition from '../../../../test-app/app/models/composition'
-import CompositionAsset from '../../../../test-app/app/models/composition-asset'
-import CompositionAssetAudit from '../../../../test-app/app/models/composition-asset-audit'
+import User from '../../../../test-app/app/models/User'
+import Composition from '../../../../test-app/app/models/Composition'
+import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
+import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
 
 describe('Query#joins with simple associations', () => {
   it('joins a HasOne association', async () => {

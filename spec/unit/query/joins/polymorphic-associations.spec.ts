@@ -1,9 +1,9 @@
-import User from '../../../../test-app/app/models/user'
-import Composition from '../../../../test-app/app/models/composition'
-import CompositionAsset from '../../../../test-app/app/models/composition-asset'
-import CompositionAssetAudit from '../../../../test-app/app/models/composition-asset-audit'
-import Rating from '../../../../test-app/app/models/rating'
-import Post from '../../../../test-app/app/models/post'
+import User from '../../../../test-app/app/models/User'
+import Composition from '../../../../test-app/app/models/Composition'
+import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
+import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
+import Rating from '../../../../test-app/app/models/Rating'
+import Post from '../../../../test-app/app/models/Post'
 import CannotJoinPolymorphicBelongsToError from '../../../../src/exceptions/cannot-join-polymorphic-belongs-to-error'
 
 describe('Query#joins with polymorphic associations', () => {

@@ -1,6 +1,6 @@
 import { Dream } from '../../../../src'
-import Composition from '../../../../test-app/app/models/composition'
-import User from '../../../../test-app/app/models/user'
+import Composition from '../../../../test-app/app/models/Composition'
+import User from '../../../../test-app/app/models/User'
 
 describe('Dream AfterUpdateCommit decorator', () => {
   it('runs the query after the transactions have been commited', async () => {

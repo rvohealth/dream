@@ -6,9 +6,9 @@ import AfterDestroyCommit from '../../../src/decorators/hooks/after-destroy-comm
 import BeforeDestroy from '../../../src/decorators/hooks/before-destroy'
 import BeforeSave from '../../../src/decorators/hooks/before-save'
 import Dream from '../../../src/dream'
-import Composition from './composition'
-import CompositionAssetAudit from './composition-asset-audit'
-import User from './user'
+import Composition from './Composition'
+import CompositionAssetAudit from './CompositionAssetAudit'
+import User from './User'
 
 export default class CompositionAsset extends Dream {
   public get table() {

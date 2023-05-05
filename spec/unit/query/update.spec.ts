@@ -1,4 +1,4 @@
-import User from '../../../test-app/app/models/user'
+import User from '../../../test-app/app/models/User'
 
 describe('Query#updateWithoutModelMaintenance', () => {
   it('takes passed params and sends them through to all models matchin query', async () => {

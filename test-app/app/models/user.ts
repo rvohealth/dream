@@ -1,15 +1,15 @@
 import HasMany from '../../../src/decorators/associations/has-many'
 import HasOne from '../../../src/decorators/associations/has-one'
 import Scope from '../../../src/decorators/scope'
-import Composition from './composition'
-import CompositionAsset from './composition-asset'
-import CompositionAssetAudit from './composition-asset-audit'
+import Composition from './Composition'
+import CompositionAsset from './CompositionAsset'
+import CompositionAssetAudit from './CompositionAssetAudit'
 import Validates from '../../../src/decorators/validations/validates'
-import UserSettings from './user-settings'
+import UserSettings from './UserSettings'
 import Dream from '../../../src/dream'
 import { DateTime } from 'luxon'
-import Balloon from './balloon'
-import IncompatibleForeignKeyTypeExample from './incompatible-foreign-key-type-example'
+import Balloon from './Balloon'
+import IncompatibleForeignKeyTypeExample from './IncompatibleForeignKeyTypeExample'
 
 export default class User extends Dream {
   public get table() {

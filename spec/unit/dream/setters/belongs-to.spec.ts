@@ -1,7 +1,7 @@
-import Composition from '../../../../test-app/app/models/composition'
-import Post from '../../../../test-app/app/models/post'
-import Rating from '../../../../test-app/app/models/rating'
-import User from '../../../../test-app/app/models/user'
+import Composition from '../../../../test-app/app/models/Composition'
+import Post from '../../../../test-app/app/models/Post'
+import Rating from '../../../../test-app/app/models/Rating'
+import User from '../../../../test-app/app/models/User'
 
 describe('BelongsTo setters', () => {
   it('the getter is updated to the new model', async () => {

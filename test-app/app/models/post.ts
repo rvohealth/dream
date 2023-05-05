@@ -1,9 +1,9 @@
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
 import Dream from '../../../src/dream'
-import PostVisibility from './post-visibility'
-import Rating from './rating'
-import User from './user'
+import PostVisibility from './PostVisibility'
+import Rating from './Rating'
+import User from './User'
 
 export default class Post extends Dream {
   public get table() {

@@ -1,4 +1,4 @@
-import User from '../../../test-app/app/models/user'
+import User from '../../../test-app/app/models/User'
 
 describe('Dream#isInvalid', () => {
   it('returns true when the dream does have errors', async () => {

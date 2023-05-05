@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import Dream from '../../../src/dream'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
-import User from './user'
+import User from './User'
 
 export default class IncompatibleForeignKeyTypeExample extends Dream {
   public get table() {

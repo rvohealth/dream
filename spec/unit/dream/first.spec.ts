@@ -1,5 +1,5 @@
 import { Dream } from '../../../src'
-import User from '../../../test-app/app/models/user'
+import User from '../../../test-app/app/models/User'
 
 describe('Dream.first', () => {
   it('finds the first record in the db, sorting by id', async () => {

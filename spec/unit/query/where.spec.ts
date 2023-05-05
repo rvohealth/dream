@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import User from '../../../test-app/app/models/user'
+import User from '../../../test-app/app/models/User'
 import range from '../../../src/helpers/range'
 import ops from '../../../src/ops'
 

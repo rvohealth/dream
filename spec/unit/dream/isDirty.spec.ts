@@ -1,6 +1,6 @@
-import Post from '../../../test-app/app/models/post'
-import Rating from '../../../test-app/app/models/rating'
-import User from '../../../test-app/app/models/user'
+import Post from '../../../test-app/app/models/Post'
+import Rating from '../../../test-app/app/models/Rating'
+import User from '../../../test-app/app/models/User'
 
 describe('Dream#isDirty', () => {
   it('reflects being dirty when dirty', async () => {

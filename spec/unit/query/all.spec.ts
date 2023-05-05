@@ -1,5 +1,5 @@
-import Balloon from '../../../test-app/app/models/balloon'
-import User from '../../../test-app/app/models/user'
+import Balloon from '../../../test-app/app/models/Balloon'
+import User from '../../../test-app/app/models/User'
 
 describe('Query#all', () => {
   it('returns multiple records', async () => {

@@ -1,7 +1,7 @@
-import Composition from '../../../../test-app/app/models/composition'
-import CompositionAsset from '../../../../test-app/app/models/composition-asset'
-import User from '../../../../test-app/app/models/user'
-import UserSettings from '../../../../test-app/app/models/user-settings'
+import Composition from '../../../../test-app/app/models/Composition'
+import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
+import User from '../../../../test-app/app/models/User'
+import UserSettings from '../../../../test-app/app/models/UserSettings'
 
 describe('Dream HasOne association', () => {
   it('builds association mapping', async () => {

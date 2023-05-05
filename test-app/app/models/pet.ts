@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import dream from '../../../src/dream'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
-import User from './user'
+import User from './User'
 import Dream from '../../../src/dream'
 
 export default class Pet extends Dream {

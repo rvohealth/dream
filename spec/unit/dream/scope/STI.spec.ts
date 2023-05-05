@@ -1,7 +1,7 @@
-import Balloon from '../../../../test-app/app/models/balloon'
-import Latex from '../../../../test-app/app/models/balloon/latex'
-import Mylar from '../../../../test-app/app/models/balloon/mylar'
-import User from '../../../../test-app/app/models/user'
+import Balloon from '../../../../test-app/app/models/Balloon'
+import Latex from '../../../../test-app/app/models/Balloon/Latex'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
+import User from '../../../../test-app/app/models/User'
 import { DateTime } from 'luxon'
 
 describe('Dream STI', () => {

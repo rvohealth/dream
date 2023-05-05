@@ -2,9 +2,9 @@ import { HasOne } from '../../../src'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import BeforeUpdate from '../../../src/decorators/hooks/before-update'
 import Dream from '../../../src/dream'
-import Composition from './composition'
-import CompositionAsset from './composition-asset'
-import User from './user'
+import Composition from './Composition'
+import CompositionAsset from './CompositionAsset'
+import User from './User'
 
 export default class CompositionAssetAudit extends Dream {
   public get table() {

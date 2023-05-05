@@ -1,10 +1,10 @@
-import User from '../../../test-app/app/models/user'
-import Composition from '../../../test-app/app/models/composition'
-import CompositionAsset from '../../../test-app/app/models/composition-asset'
-import CompositionAssetAudit from '../../../test-app/app/models/composition-asset-audit'
+import User from '../../../test-app/app/models/User'
+import Composition from '../../../test-app/app/models/Composition'
+import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
+import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit'
 import { Dream } from '../../../src'
-import Mylar from '../../../test-app/app/models/balloon/mylar'
-import Latex from '../../../test-app/app/models/balloon/latex'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar'
+import Latex from '../../../test-app/app/models/Balloon/Latex'
 
 describe('Dream.includes', () => {
   it('loads a HasOne association', async () => {

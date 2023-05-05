@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import User from '../../../../test-app/app/models/user'
+import User from '../../../../test-app/app/models/User'
 
 describe('Dream Scope (default variant)', () => {
   it('builds scope mapping', async () => {

@@ -1,8 +1,8 @@
-import User from '../../../../test-app/app/models/user'
-import Composition from '../../../../test-app/app/models/composition'
-import CompositionAsset from '../../../../test-app/app/models/composition-asset'
-import CompositionAssetAudit from '../../../../test-app/app/models/composition-asset-audit'
-import IncompatibleForeignKeyTypeExample from '../../../../test-app/app/models/incompatible-foreign-key-type-example'
+import User from '../../../../test-app/app/models/User'
+import Composition from '../../../../test-app/app/models/Composition'
+import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
+import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
+import IncompatibleForeignKeyTypeExample from '../../../../test-app/app/models/IncompatibleForeignKeyTypeExample'
 import ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase from '../../../../src/exceptions/foreign-key-on-association-does-not-match-primary-key-on-base'
 
 describe('Query#includes with simple associations', () => {

@@ -1,6 +1,6 @@
 import { Updateable } from 'kysely'
-import Composition from '../../../../test-app/app/models/composition'
-import User from '../../../../test-app/app/models/user'
+import Composition from '../../../../test-app/app/models/Composition'
+import User from '../../../../test-app/app/models/User'
 import { DB, Users } from '../../../../src/sync/schema'
 
 describe('Dream AfterCreate decorator', () => {

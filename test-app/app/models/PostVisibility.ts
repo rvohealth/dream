@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import { Dream, BeforeCreate, HasOne } from '../../../src'
-import Post from './post'
+import Post from './Post'
 
 export default class PostVisibility extends Dream {
   public get table() {

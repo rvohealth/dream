@@ -1,11 +1,11 @@
-import Composition from '../../../test-app/app/models/composition'
-import Post from '../../../test-app/app/models/post'
-import Rating from '../../../test-app/app/models/rating'
-import User from '../../../test-app/app/models/user'
-import UserSettings from '../../../test-app/app/models/user-settings'
+import Composition from '../../../test-app/app/models/Composition'
+import Post from '../../../test-app/app/models/Post'
+import Rating from '../../../test-app/app/models/Rating'
+import User from '../../../test-app/app/models/User'
+import UserSettings from '../../../test-app/app/models/UserSettings'
 import CanOnlyPassBelongsToModelParam from '../../../src/exceptions/can-only-pass-belongs-to-model-param'
 import { DateTime } from 'luxon'
-import Pet from '../../../test-app/app/models/pet'
+import Pet from '../../../test-app/app/models/Pet'
 import { Dream } from '../../../src'
 
 describe('Dream#update', () => {

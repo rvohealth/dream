@@ -1,5 +1,5 @@
 import Dream from '../../../src/dream'
-import User from '../../../test-app/app/models/user'
+import User from '../../../test-app/app/models/User'
 
 describe('Dream.find', () => {
   it('is able to locate records in the database', async () => {

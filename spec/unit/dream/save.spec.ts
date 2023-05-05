@@ -1,8 +1,8 @@
 import { DateTime } from 'luxon'
-import User from '../../../test-app/app/models/user'
+import User from '../../../test-app/app/models/User'
 import { Dream } from '../../../src'
-import Post from '../../../test-app/app/models/post'
-import Rating from '../../../test-app/app/models/rating'
+import Post from '../../../test-app/app/models/Post'
+import Rating from '../../../test-app/app/models/Rating'
 
 describe('Dream#save', () => {
   context('a new record', () => {
