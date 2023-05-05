@@ -2,31 +2,36 @@ import Balloon from '../../../../test-app/app/models/balloon'
 import Composition from '../../../../test-app/app/models/composition'
 import CompositionAsset from '../../../../test-app/app/models/composition-asset'
 import CompositionAssetAudit from '../../../../test-app/app/models/composition-asset-audit'
+import IncompatibleForeignKeyTypeExample from '../../../../test-app/app/models/incompatible-foreign-key-type-example'
 import User from '../../../../test-app/app/models/user'
 
 describe('Dream HasMany association', () => {
   it('builds association mapping', async () => {
     const userAssociations = User.associations.hasMany
-    expect(userAssociations.length).toEqual(4)
+    expect(userAssociations.length).toEqual(5)
 
     // compositions
     expect(userAssociations[0].foreignKey()).toEqual('user_id')
     expect(userAssociations[0].modelCB()).toEqual(Composition)
 
-    // composition assets
-    expect(userAssociations[1].through).toEqual('compositions')
+    // Invalid foreign key type examples
     expect(userAssociations[1].foreignKey()).toEqual('user_id')
-    expect(userAssociations[1].modelCB()).toEqual(CompositionAsset)
-    expect(userAssociations[1].throughClass!()).toEqual(Composition)
+    expect(userAssociations[1].modelCB()).toEqual(IncompatibleForeignKeyTypeExample)
+
+    // composition assets
+    expect(userAssociations[2].through).toEqual('compositions')
+    expect(userAssociations[2].foreignKey()).toEqual('user_id')
+    expect(userAssociations[2].modelCB()).toEqual(CompositionAsset)
+    expect(userAssociations[2].throughClass!()).toEqual(Composition)
 
     // composition asset audits
-    expect(userAssociations[2].through).toEqual('compositionAssets')
-    expect(userAssociations[2].modelCB()).toEqual(CompositionAssetAudit)
-    expect(userAssociations[2].throughClass!()).toEqual(CompositionAsset)
+    expect(userAssociations[3].through).toEqual('compositionAssets')
+    expect(userAssociations[3].modelCB()).toEqual(CompositionAssetAudit)
+    expect(userAssociations[3].throughClass!()).toEqual(CompositionAsset)
 
     // balloons
-    expect(userAssociations[3].foreignKey()).toEqual('user_id')
-    expect(userAssociations[3].modelCB()).toEqual(Balloon)
+    expect(userAssociations[4].foreignKey()).toEqual('user_id')
+    expect(userAssociations[4].modelCB()).toEqual(Balloon)
 
     // ensure that other model associations have not
     // accidentally overwritten this one

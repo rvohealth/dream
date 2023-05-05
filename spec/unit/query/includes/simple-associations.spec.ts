@@ -2,7 +2,7 @@ import User from '../../../../test-app/app/models/user'
 import Composition from '../../../../test-app/app/models/composition'
 import CompositionAsset from '../../../../test-app/app/models/composition-asset'
 import CompositionAssetAudit from '../../../../test-app/app/models/composition-asset-audit'
-import IncompatibleForeignKeyType from '../../../../test-app/app/models/incompatible-foreign-key-type'
+import IncompatibleForeignKeyTypeExample from '../../../../test-app/app/models/incompatible-foreign-key-type-example'
 import ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase from '../../../../src/exceptions/foreign-key-on-association-does-not-match-primary-key-on-base'
 
 describe('Query#includes with simple associations', () => {
@@ -102,11 +102,11 @@ describe('Query#includes with simple associations', () => {
   context('when an association has a mismatched type on the foreign key', () => {
     it('throws an exception alerting the user to the mismatched types', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      await IncompatibleForeignKeyType.create({ user })
+      await IncompatibleForeignKeyTypeExample.create({ user })
 
       let error: Error | null = null
       try {
-        await User.includes('incompatibleForeignKeyTypes').all()
+        await User.includes('incompatibleForeignKeyTypeExamples').all()
       } catch (err: any) {
         error = err
       }

@@ -40,7 +40,7 @@ export default {
       "composition_asset_audits"
     ]
   },
-  "incompatible_foreign_key_types": {
+  "incompatible_foreign_key_type_examples": {
     "user": [
       "users"
     ]
@@ -88,8 +88,8 @@ export default {
     "compositions": [
       "compositions"
     ],
-    "incompatibleForeignKeyTypes": [
-      "incompatible_foreign_key_types"
+    "incompatibleForeignKeyTypeExamples": [
+      "incompatible_foreign_key_type_examples"
     ],
     "compositionAssets": [
       "composition_assets"
@@ -150,7 +150,7 @@ export interface SyncedAssociations {
       "composition_asset_audits"
     ]
   },
-  "incompatible_foreign_key_types": {
+  "incompatible_foreign_key_type_examples": {
     "user": [
       "users"
     ]
@@ -198,8 +198,8 @@ export interface SyncedAssociations {
     "compositions": [
       "compositions"
     ],
-    "incompatibleForeignKeyTypes": [
-      "incompatible_foreign_key_types"
+    "incompatibleForeignKeyTypeExamples": [
+      "incompatible_foreign_key_type_examples"
     ],
     "compositionAssets": [
       "composition_assets"
@@ -239,7 +239,7 @@ export interface SyncedBelongsToAssociations {
       "users"
     ]
   },
-  "incompatible_foreign_key_types": {
+  "incompatible_foreign_key_type_examples": {
     "user": [
       "users"
     ]

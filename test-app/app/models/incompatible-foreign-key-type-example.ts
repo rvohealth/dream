@@ -3,9 +3,9 @@ import Dream from '../../../src/dream'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import User from './user'
 
-export default class IncompatibleForeignKeyType extends Dream {
+export default class IncompatibleForeignKeyTypeExample extends Dream {
   public get table() {
-    return 'incompatible_foreign_key_types' as const
+    return 'incompatible_foreign_key_type_examples' as const
   }
 
   public id: number

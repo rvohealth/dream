@@ -49,7 +49,7 @@ export interface Compositions {
   updated_at: Timestamp;
 }
 
-export interface IncompatibleForeignKeyTypes {
+export interface IncompatibleForeignKeyTypeExamples {
   id: Generated<number>;
   user_id: Int8;
   created_at: Timestamp;
@@ -114,7 +114,7 @@ export interface DB {
   composition_asset_audits: CompositionAssetAudits;
   composition_assets: CompositionAssets;
   compositions: Compositions;
-  incompatible_foreign_key_types: IncompatibleForeignKeyTypes;
+  incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples;
   pets: Pets;
   post_visibilities: PostVisibilities;
   posts: Posts;
@@ -128,7 +128,7 @@ export const BalloonColumns = ['id', 'type', 'user_id', 'color', 'created_at', '
 export const CompositionAssetAuditColumns = ['id', 'composition_asset_id', 'approval', 'created_at', 'updated_at']
 export const CompositionAssetColumns = ['id', 'composition_id', 'src', 'primary', 'created_at', 'updated_at']
 export const CompositionColumns = ['id', 'user_id', 'content', 'primary', 'created_at', 'updated_at']
-export const IncompatibleForeignKeyTypeColumns = ['id', 'user_id', 'created_at', 'updated_at']
+export const IncompatibleForeignKeyTypeExampleColumns = ['id', 'user_id', 'created_at', 'updated_at']
 export const PetColumns = ['id', 'species', 'name', 'user_id', 'created_at']
 export const PostColumns = ['id', 'user_id', 'post_visibility_id', 'body', 'created_at', 'updated_at']
 export const PostVisibilityColumns = ['id', 'visibility', 'notes', 'created_at', 'updated_at']
@@ -141,7 +141,7 @@ export const DBColumns = {
   composition_asset_audits: CompositionAssetAuditColumns,
   composition_assets: CompositionAssetColumns,
   compositions: CompositionColumns,
-  incompatible_foreign_key_types: IncompatibleForeignKeyTypeColumns,
+  incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExampleColumns,
   pets: PetColumns,
   posts: PostColumns,
   post_visibilities: PostVisibilityColumns,
