@@ -100,7 +100,7 @@ export async function down(db: Kysely<any>): Promise<void> {
       it('generates a kysely model with the belongs_to association', async () => {
         const res = generateMigrationContent({
           table: 'compositions',
-          attributes: ['user:belongs_to'],
+          attributes: ['admin/user:belongs_to'],
           useUUID: false,
         })
 
@@ -112,7 +112,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('compositions')
     .addColumn('id', 'serial', col => col.primaryKey())
-    .addColumn('user_id', 'bigint', col => col.references('users.id').onDelete('cascade').notNull())
+    .addColumn('admin_user_id', 'bigint', col => col.references('admin_users.id').onDelete('cascade').notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
