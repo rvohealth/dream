@@ -2,6 +2,8 @@
 import { DateTime } from 'luxon'
 import type { ColumnType } from "kysely";
 
+export type BalloonColorEnum = "blue" | "green" | "red";
+
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
@@ -11,6 +13,15 @@ export type Int8 = ColumnType<string, string | number | bigint, string | number 
 export type Species = "cat" | "dog" | "frog";
 
 export type Timestamp = ColumnType<DateTime>;
+
+export interface BalloonBases {
+  id: Generated<number>;
+  type: string | null;
+  user_id: Int8;
+  color: BalloonColorEnum | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
 
 export interface CompositionAssetAudits {
   id: Generated<number>;
@@ -93,6 +104,7 @@ export interface UserSettings {
 }
 
 export interface DB {
+  balloon_bases: BalloonBases;
   composition_asset_audits: CompositionAssetAudits;
   composition_assets: CompositionAssets;
   compositions: Compositions;
@@ -105,6 +117,7 @@ export interface DB {
 }
 
 
+export const BalloonBaseColumns = ['id', 'type', 'user_id', 'color', 'created_at', 'updated_at']
 export const CompositionAssetAuditColumns = ['id', 'composition_asset_id', 'approval', 'created_at', 'updated_at']
 export const CompositionAssetColumns = ['id', 'composition_id', 'src', 'primary', 'created_at', 'updated_at']
 export const CompositionColumns = ['id', 'user_id', 'content', 'primary', 'created_at', 'updated_at']
@@ -116,6 +129,7 @@ export const UserColumns = ['id', 'name', 'type', 'email', 'password', 'created_
 export const UserSettingColumns = ['id', 'user_id', 'likes_chalupas', 'created_at', 'updated_at']
 
 export const DBColumns = {
+  balloon_bases: BalloonBaseColumns,
   composition_asset_audits: CompositionAssetAuditColumns,
   composition_assets: CompositionAssetColumns,
   compositions: CompositionColumns,

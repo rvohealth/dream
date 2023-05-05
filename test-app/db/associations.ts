@@ -1,4 +1,9 @@
 export default {
+  "balloon_bases": {
+    "user": [
+      "users"
+    ]
+  },
   "composition_asset_audits": {
     "compositionAsset": [
       "composition_assets"
@@ -83,6 +88,10 @@ export default {
     ],
     "compositionAssetAudits": [
       "composition_asset_audits"
+    ],
+    "balloons": [
+      "balloon_bases",
+      "balloon_bases"
     ]
   },
   "user_settings": {
@@ -93,6 +102,11 @@ export default {
 }
 
 export interface SyncedAssociations {
+  "balloon_bases": {
+    "user": [
+      "users"
+    ]
+  },
   "composition_asset_audits": {
     "compositionAsset": [
       "composition_assets"
@@ -177,6 +191,10 @@ export interface SyncedAssociations {
     ],
     "compositionAssetAudits": [
       "composition_asset_audits"
+    ],
+    "balloons": [
+      "balloon_bases",
+      "balloon_bases"
     ]
   },
   "user_settings": {
@@ -187,6 +205,11 @@ export interface SyncedAssociations {
 }
 
 export interface SyncedBelongsToAssociations {
+  "balloon_bases": {
+    "user": [
+      "users"
+    ]
+  },
   "composition_asset_audits": {
     "compositionAsset": [
       "composition_assets"
