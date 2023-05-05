@@ -46,9 +46,11 @@ export default class Dream {
     named: [],
   }
   public static sti: {
+    active: boolean
     column: string | null
     value: string | null
   } = {
+    active: false,
     column: null,
     value: null,
   }

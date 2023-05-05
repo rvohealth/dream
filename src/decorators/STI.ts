@@ -8,6 +8,7 @@ export default function STI({ value, column }: { value?: string; column?: string
     const t = target as typeof Dream
 
     t.sti = {
+      active: true,
       column: column || 'type',
       value: value || t.name,
     }
