@@ -92,16 +92,16 @@ public ${snakeify(associationName)}_id: ${idTypescriptType}
         dreamImports.push('HasOne')
         additionalImports.push(associationImportStatement)
         return `
-@HasOne(() => ${pascalize(attributeName)})
-public ${attributeName}: ${pascalize(attributeName)}
+@HasOne(() => ${dreamClassNameFromAttributeName(attributeName)})
+public ${camelize(attributeName)}: ${dreamClassNameFromAttributeName(attributeName)}
 `
 
       case 'has_many':
         dreamImports.push('HasMany')
         additionalImports.push(associationImportStatement)
         return `
-@HasMany(() => ${pascalize(attributeName)})
-public ${pluralize(attributeName)}: ${pascalize(attributeName)}[]
+@HasMany(() => ${dreamClassNameFromAttributeName(attributeName)})
+public ${pluralize(camelize(attributeName))}: ${dreamClassNameFromAttributeName(attributeName)}[]
 `
 
       default:
