@@ -4,7 +4,7 @@ import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import User from './user'
 import { BalloonColorEnum } from '../../db/schema'
 
-export default class Base extends Dream {
+export default class Balloon extends Dream {
   public get table() {
     return 'balloons' as const
   }
