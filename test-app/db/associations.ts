@@ -40,6 +40,11 @@ export default {
       "composition_asset_audits"
     ]
   },
+  "incompatible_foreign_key_types": {
+    "user": [
+      "users"
+    ]
+  },
   "pets": {
     "user": [
       "users"
@@ -142,6 +147,11 @@ export interface SyncedAssociations {
       "composition_asset_audits"
     ]
   },
+  "incompatible_foreign_key_types": {
+    "user": [
+      "users"
+    ]
+  },
   "pets": {
     "user": [
       "users"
@@ -219,6 +229,11 @@ export interface SyncedBelongsToAssociations {
     ]
   },
   "compositions": {
+    "user": [
+      "users"
+    ]
+  },
+  "incompatible_foreign_key_types": {
     "user": [
       "users"
     ]
