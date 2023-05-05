@@ -2,7 +2,6 @@ import * as pluralize from 'pluralize'
 import pascalize from '../../../src/helpers/pascalize'
 import camelize from '../../../src/helpers/camelize'
 import snakeify from '../../../src/helpers/snakeify'
-import hyphenize from '../../../src/helpers/hyphenize'
 
 const cooercedTypes = {
   bigint: 'number',
@@ -157,7 +156,7 @@ function buildImportStatement(modelName: string, attribute: string) {
     rootAssociationImport
   )} from '${relativePath}${attributeName
     .split('/')
-    .map(name => hyphenize(name))
+    .map(name => pascalize(name))
     .join('/')}'`
   return associationImportStatement
 }

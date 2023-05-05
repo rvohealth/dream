@@ -159,7 +159,7 @@ export default class Chalupa extends Dream {
             `\
 import { DateTime } from 'luxon'
 import { Dream, BelongsTo } from 'dream'
-import GraphNode from './graph-node'
+import GraphNode from './GraphNode'
 
 export default class Composition extends Dream {
   public get table() {
@@ -187,7 +187,7 @@ export default class Composition extends Dream {
               `\
 import { DateTime } from 'luxon'
 import { Dream, BelongsTo } from 'dream'
-import Cat from './pet/domestic/cat'
+import Cat from './Pet/Domestic/Cat'
 
 export default class CatToy extends Dream {
   public get table() {
@@ -214,7 +214,7 @@ export default class CatToy extends Dream {
               `\
 import { DateTime } from 'luxon'
 import { Dream, BelongsTo } from 'dream'
-import GraphNode from '../../graph-node'
+import GraphNode from '../../GraphNode'
 
 export default class Cat extends Dream {
   public get table() {
@@ -241,7 +241,7 @@ export default class Cat extends Dream {
               `\
 import { DateTime } from 'luxon'
 import { Dream, BelongsTo } from 'dream'
-import Dog from '../../pet/domestic/dog'
+import Dog from '../../Pet/Domestic/Dog'
 
 export default class Cat extends Dream {
   public get table() {
@@ -268,7 +268,7 @@ export default class Cat extends Dream {
               `\
 import { DateTime } from 'luxon'
 import { Dream, BelongsTo } from 'dream'
-import Dog from '../../pet/domestic/dog'
+import Dog from '../../Pet/Domestic/Dog'
 
 export default class Cat extends Dream {
   public get table() {
@@ -296,8 +296,8 @@ export default class Cat extends Dream {
             `\
 import { DateTime } from 'luxon'
 import { Dream, BelongsTo } from 'dream'
-import User from './user'
-import Chalupa from './chalupa'
+import User from './User'
+import Chalupa from './Chalupa'
 
 export default class Composition extends Dream {
   public get table() {
@@ -330,7 +330,7 @@ export default class Composition extends Dream {
             `\
 import { DateTime } from 'luxon'
 import { Dream, HasOne } from 'dream'
-import User from './user'
+import User from './User'
 
 export default class Composition extends Dream {
   public get table() {
@@ -358,7 +358,7 @@ export default class Composition extends Dream {
             `\
 import { DateTime } from 'luxon'
 import { Dream, HasMany } from 'dream'
-import Composition from './composition'
+import Composition from './Composition'
 
 export default class User extends Dream {
   public get table() {
@@ -386,7 +386,7 @@ export default class User extends Dream {
             `\
 import { DateTime } from 'luxon'
 import { Dream, BelongsTo } from 'dream'
-import User from './user'
+import User from './User'
 
 export default class Composition extends Dream {
   public get table() {
