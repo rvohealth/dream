@@ -3,14 +3,7 @@ import Dream from '../../dream'
 import { HasStatement, WhereStatement, blankAssociationsFactory } from './shared'
 import { AssociationTableNames } from '../../db/reflections'
 
-export default function HasMany<
-  AssociationDreamClass extends typeof Dream | (typeof Dream)[],
-  AssociationTableName extends AssociationDreamClass extends (typeof Dream)[]
-    ? InstanceType<AssociationDreamClass[number]>['table']
-    : AssociationDreamClass extends typeof Dream
-    ? InstanceType<AssociationDreamClass>['table']
-    : never
->(
+export default function HasMany<AssociationDreamClass extends typeof Dream>(
   modelCB: () => AssociationDreamClass,
   {
     foreignKey,
@@ -23,7 +16,7 @@ export default function HasMany<
     polymorphic?: boolean
     throughClass?: () => typeof Dream
     through?: string
-    where?: WhereStatement<AssociationTableName & AssociationTableNames>
+    where?: WhereStatement<InstanceType<AssociationDreamClass>['table'] & AssociationTableNames>
   } = {}
 ): any {
   return function (target: any, key: string, _: any) {
