@@ -6,6 +6,7 @@ import migrationVersion from './migrationVersion'
 import { loadDreamYamlFile } from '../../../src/helpers/path'
 import hyphenize from '../../../src/helpers/hyphenize'
 import snakeify from '../../../src/helpers/snakeify'
+import pascalize from '../../../src/helpers/pascalize'
 
 export default async function generateDream(
   dreamName: string,
@@ -24,14 +25,14 @@ export default async function generateDream(
   const formattedDreamName = pluralize
     .singular(dreamName)
     .split('/')
-    .map(pathName => hyphenize(pathName))
+    .map(pathName => pascalize(pathName))
     .join('/')
   const dreamPath = `${dreamBasePath}/${formattedDreamName}.ts`
   const relativeDreamPath = dreamPath.replace(
     new RegExp(`^.*${ymlConfig.models_path}`),
     ymlConfig.models_path
   )
-  const dreamPathParts = dreamName.split('/')
+  const dreamPathParts = formattedDreamName.split('/')
   const thisfs = fs ? fs : await import('fs/promises')
 
   // we don't need this value, just doing it so we can discard the file name and
