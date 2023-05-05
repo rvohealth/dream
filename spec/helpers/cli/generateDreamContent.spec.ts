@@ -187,7 +187,7 @@ export default class Composition extends Dream {
               `\
 import { DateTime } from 'luxon'
 import { Dream, BelongsTo } from 'dream'
-import Pet from './pet'
+import Cat from './pet/domestic/cat'
 
 export default class CatToy extends Dream {
   public get table() {
@@ -198,8 +198,8 @@ export default class CatToy extends Dream {
   public created_at: DateTime
   public updated_at: DateTime
 
-  @BelongsTo(() => Pet.Domestic.Cat)
-  public cat: Pet.Domestic.Cat
+  @BelongsTo(() => Cat)
+  public cat: Cat
   public cat_id: number
 }\
 `
@@ -241,7 +241,7 @@ export default class Cat extends Dream {
               `\
 import { DateTime } from 'luxon'
 import { Dream, BelongsTo } from 'dream'
-import Pet from '../../pet'
+import Dog from '../../pet/domestic/dog'
 
 export default class Cat extends Dream {
   public get table() {
@@ -252,8 +252,8 @@ export default class Cat extends Dream {
   public created_at: DateTime
   public updated_at: DateTime
 
-  @BelongsTo(() => Pet.Domestic.Dog)
-  public dog: Pet.Domestic.Dog
+  @BelongsTo(() => Dog)
+  public dog: Dog
   public dog_id: number
 }\
 `
@@ -268,7 +268,7 @@ export default class Cat extends Dream {
               `\
 import { DateTime } from 'luxon'
 import { Dream, BelongsTo } from 'dream'
-import Pet from '../../pet'
+import Dog from '../../pet/domestic/dog'
 
 export default class Cat extends Dream {
   public get table() {
@@ -279,8 +279,8 @@ export default class Cat extends Dream {
   public created_at: DateTime
   public updated_at: DateTime
 
-  @BelongsTo(() => Pet.Domestic.Dog)
-  public dog: Pet.Domestic.Dog
+  @BelongsTo(() => Dog)
+  public dog: Dog
   public dog_id: number
 }\
 `

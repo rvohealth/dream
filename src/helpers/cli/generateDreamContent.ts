@@ -84,8 +84,8 @@ export default function generateDreamContent(
         additionalImports.push(associationImportStatement)
         let belongsToOptions = descriptors.includes('many_to_one') ? ", { mode: 'many_to_one' }" : ''
         return `
-@BelongsTo(() => ${namespacedClassName(attributeName)}${belongsToOptions})
-public ${camelize(associationName)}: ${namespacedClassName(attributeName)}
+@BelongsTo(() => ${dreamClassNameFromAttributeName(attributeName)}${belongsToOptions})
+public ${camelize(associationName)}: ${dreamClassNameFromAttributeName(attributeName)}
 public ${snakeify(associationName)}_id: ${idTypescriptType}
 `
 
@@ -152,10 +152,13 @@ function buildImportStatement(modelName: string, attribute: string) {
   const relativePath = relativePathToRoot(modelName)
 
   const [attributeName] = attribute.split(':')
-  const rootAssociationImport = attributeName.split('/')[0]
+  const rootAssociationImport = attributeName.split('/').pop()!
   const associationImportStatement = `import ${pascalize(
     rootAssociationImport
-  )} from '${relativePath}${hyphenize(rootAssociationImport)}'`
+  )} from '${relativePath}${attributeName
+    .split('/')
+    .map(name => hyphenize(name))
+    .join('/')}'`
   return associationImportStatement
 }
 
@@ -176,9 +179,6 @@ function getAttributeType(attribute: string) {
   else return (cooercedTypes as any)[attributeType] || attributeType
 }
 
-function namespacedClassName(attributeName: string) {
-  return attributeName
-    .split('/')
-    .map(attributePart => pascalize(attributePart))
-    .join('.')
+function dreamClassNameFromAttributeName(attributeName: string) {
+  return pascalize(attributeName.split('/').pop()!)
 }
