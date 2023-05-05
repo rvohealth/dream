@@ -88,6 +88,9 @@ export default {
     "compositions": [
       "compositions"
     ],
+    "incompatibleForeignKeyTypes": [
+      "incompatible_foreign_key_types"
+    ],
     "compositionAssets": [
       "composition_assets"
     ],
@@ -194,6 +197,9 @@ export interface SyncedAssociations {
     ],
     "compositions": [
       "compositions"
+    ],
+    "incompatibleForeignKeyTypes": [
+      "incompatible_foreign_key_types"
     ],
     "compositionAssets": [
       "composition_assets"

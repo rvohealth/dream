@@ -27,6 +27,7 @@ import { DateTime } from 'luxon'
 import { SyncedAssociations } from '../sync/associations'
 import DreamTransaction from './transaction'
 import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance'
+import ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase from '../exceptions/foreign-key-on-association-does-not-match-primary-key-on-base'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -313,6 +314,18 @@ export default class Query<
             dream[association.as] = loadedAssociation
           })
       } else {
+        dreams.forEach(dream => {
+          if (
+            (loadedAssociation as any)[association.foreignKey()].constructor !==
+            dream.primaryKeyValue!.constructor
+          )
+            throw new ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase({
+              baseDreamClass: dream.constructor as typeof Dream,
+              associationDreamClass: loadedAssociation.constructor as typeof Dream,
+              foreignKeyColumnName: association.foreignKey() as string,
+            })
+        })
+
         dreams
           .filter(dream => (loadedAssociation as any)[association.foreignKey()] === dream.primaryKeyValue)
           .forEach((dream: any) => {

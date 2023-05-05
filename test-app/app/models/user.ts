@@ -9,6 +9,7 @@ import UserSettings from './user-settings'
 import Dream from '../../../src/dream'
 import { DateTime } from 'luxon'
 import Balloon from './balloon'
+import IncompatibleForeignKeyType from './incompatible-foreign-key-type'
 
 export default class User extends Dream {
   public get table() {
@@ -39,6 +40,9 @@ export default class User extends Dream {
     where: { primary: true },
   })
   public mainComposition: Composition
+
+  @HasMany(() => IncompatibleForeignKeyType)
+  public incompatibleForeignKeyTypes: IncompatibleForeignKeyType[]
 
   @HasMany(() => CompositionAsset, {
     through: 'compositions',
