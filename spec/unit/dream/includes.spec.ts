@@ -3,6 +3,7 @@ import Composition from '../../../test-app/app/models/composition'
 import CompositionAsset from '../../../test-app/app/models/composition-asset'
 import CompositionAssetAudit from '../../../test-app/app/models/composition-asset-audit'
 import { Dream } from '../../../src'
+import Balloon from '../../../test-app/app/models/balloon'
 
 describe('Dream.includes', () => {
   it('loads a HasOne association', async () => {
@@ -35,6 +36,17 @@ describe('Dream.includes', () => {
       })
 
       expect(reloadedCompositionAssetAudit!.compositionAsset).toMatchDreamModel(compositionAsset)
+    })
+  })
+
+  context('STI associations are loaded', () => {
+    it.only('correctly marshals each association to its respective dream class based on type', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const mylar = await Balloon.Mylar.create({ user, color: 'red' })
+      const latex = await Balloon.Latex.create({ user, color: 'blue' })
+
+      const users = await User.includes('balloons').all()
+      expect(users[0].balloons).toMatchDreamModels([mylar, latex])
     })
   })
 })

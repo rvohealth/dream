@@ -17,7 +17,7 @@ export type Timestamp = ColumnType<DateTime>;
 export interface BalloonBases {
   id: Generated<number>;
   type: string | null;
-  user_id: Int8;
+  user_id: number;
   color: BalloonColorEnum | null;
   created_at: Timestamp;
   updated_at: Timestamp;
@@ -87,7 +87,6 @@ export interface Ratings {
 export interface Users {
   id: Generated<number>;
   name: string | null;
-  type: string | null;
   email: string;
   password: string;
   created_at: Timestamp;
@@ -125,7 +124,7 @@ export const PetColumns = ['id', 'species', 'name', 'user_id', 'created_at']
 export const PostColumns = ['id', 'user_id', 'post_visibility_id', 'body', 'created_at', 'updated_at']
 export const PostVisibilityColumns = ['id', 'visibility', 'notes', 'created_at', 'updated_at']
 export const RatingColumns = ['id', 'user_id', 'rateable_id', 'rateable_type', 'rating', 'created_at', 'updated_at']
-export const UserColumns = ['id', 'name', 'type', 'email', 'password', 'created_at', 'updated_at', 'deleted_at']
+export const UserColumns = ['id', 'name', 'email', 'password', 'created_at', 'updated_at', 'deleted_at']
 export const UserSettingColumns = ['id', 'user_id', 'likes_chalupas', 'created_at', 'updated_at']
 
 export const DBColumns = {

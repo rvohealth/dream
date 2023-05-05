@@ -90,7 +90,6 @@ export default {
       "composition_asset_audits"
     ],
     "balloons": [
-      "balloon_bases",
       "balloon_bases"
     ]
   },
@@ -193,7 +192,6 @@ export interface SyncedAssociations {
       "composition_asset_audits"
     ],
     "balloons": [
-      "balloon_bases",
       "balloon_bases"
     ]
   },

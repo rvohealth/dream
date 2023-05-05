@@ -1,5 +1,5 @@
 import { STI } from '../../../../src'
 import Base from './base'
 
-@STI()
+@STI(Base)
 export default class Latex extends Base {}

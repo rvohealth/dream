@@ -26,6 +26,7 @@ import { Range } from '../helpers/range'
 import { DateTime } from 'luxon'
 import { SyncedAssociations } from '../sync/associations'
 import DreamTransaction from './transaction'
+import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -259,7 +260,9 @@ export default class Query<
         `
     }
 
-    const theAll = results.map(r => new this.dreamClass(r as Updateable<Table>)) as InstanceType<DreamClass>[]
+    const theAll = results.map(r =>
+      sqlResultToDreamInstance(this.dreamClass, r)
+    ) as InstanceType<DreamClass>[]
     await this.applyThisDotIncludes(theAll)
     return theAll
   }
@@ -310,32 +313,14 @@ export default class Query<
             dream[association.as] = loadedAssociation
           })
       } else {
-        const isSTI = (loadedAssociation.constructor as typeof Dream).sti.active
-
-        // TODO: resolve awkward loose comparison below using == instead of ===
-        // this shouldn't be necessary, but somehow is.
         dreams
-          .filter(dream => (loadedAssociation as any)[association.foreignKey()] == dream.primaryKeyValue)
+          .filter(dream => (loadedAssociation as any)[association.foreignKey()] === dream.primaryKeyValue)
           .forEach((dream: any) => {
-            if (isSTI) {
-              if (association.type === 'HasMany') {
-                dream[association.as] ||= []
-
-                // this line is forcing me to break out this logic based on STI or not,
-                // and is problematic for 2 reasons:
-                //   1. I have had to reverse the order here
-                //   2. I cannot seem to use push, I get a type error, so have to rebuild the array manually
-                dream[association.as] = [loadedAssociation, ...dream[association.as]]
-              } else {
-                dream[association.as] = loadedAssociation
-              }
+            if (association.type === 'HasMany') {
+              dream[association.as] ||= []
+              dream[association.as].push(loadedAssociation)
             } else {
-              if (association.type === 'HasMany') {
-                dream[association.as] ||= []
-                dream[association.as].push(loadedAssociation)
-              } else {
-                dream[association.as] = loadedAssociation
-              }
+              dream[association.as] = loadedAssociation
             }
           })
       }
@@ -443,59 +428,22 @@ export default class Query<
         this.hydrateAssociation(dreams, association, await associationQuery.all())
       }
     } else {
-      const associatedModelOrModels = association.modelCB() as typeof Dream | (typeof Dream)[]
-      if (associatedModelOrModels.constructor === Array) {
-        if (!!associatedModelOrModels.filter(m => !m.sti.active).length)
-          throw `
-            If you want to pass an array of dream classes to a HasOne or HasMany
-            association, The classes must be implementing STI. The problematic classes in
-            question are:
-              ${associatedModelOrModels.filter(m => !m.sti.active).map(m => m.name)}
-          `
+      const associatedModel = association.modelCB() as typeof Dream
+      associationQuery = this.dreamTransaction ? associatedModel.txn(this.dreamTransaction) : associatedModel
+      // @ts-ignore
+      associationQuery = associationQuery.where({
+        [association.foreignKey()]: dreams.map(dream => dream.primaryKeyValue),
+      })
 
-        const associatedModels = associatedModelOrModels as (typeof Dream)[]
-        for (const associatedModel of associatedModels) {
-          associationQuery = this.dreamTransaction
-            ? associatedModel.txn(this.dreamTransaction)
-            : associatedModel
-
-          // @ts-ignore
-          associationQuery = associationQuery.where({
-            [association.foreignKey()]: dreams.map(dream => dream.primaryKeyValue),
-            [associatedModel.sti.column!]: associatedModel.name,
-          })
-
-          if (association.polymorphic) {
-            associationQuery = associationQuery.where({
-              [association.foreignKeyTypeField()]: associatedModel.name,
-            })
-          }
-
-          if (association.where) associationQuery = associationQuery.where(association.where)
-
-          this.hydrateAssociation(dreams, association, await associationQuery.all())
-        }
-      } else {
-        const associatedModel = associatedModelOrModels as typeof Dream
-        associationQuery = this.dreamTransaction
-          ? associatedModel.txn(this.dreamTransaction)
-          : associatedModel
-
-        // @ts-ignore
+      if (association.polymorphic) {
         associationQuery = associationQuery.where({
-          [association.foreignKey()]: dreams.map(dream => dream.primaryKeyValue),
+          [association.foreignKeyTypeField()]: associatedModel.name,
         })
-
-        if (association.polymorphic) {
-          associationQuery = associationQuery.where({
-            [association.foreignKeyTypeField()]: associatedModel.name,
-          })
-        }
-
-        if (association.where) associationQuery = associationQuery.where(association.where)
-
-        this.hydrateAssociation(dreams, association, await associationQuery.all())
       }
+
+      if (association.where) associationQuery = associationQuery.where(association.where)
+
+      this.hydrateAssociation(dreams, association, await associationQuery.all())
     }
 
     return dreams.flatMap(dream => (dream as any)[association.as])

@@ -1,46 +1,48 @@
+import Balloon from '../../../../test-app/app/models/balloon'
 import User from '../../../../test-app/app/models/user'
-import AdminUser from '../../../../test-app/app/models/admin-user'
 import { DateTime } from 'luxon'
 
 describe('Dream STI', () => {
-  it('builds scope mapping', async () => {
-    expect(User.sti.value).toEqual(null)
-    expect(User.sti.column).toEqual(null)
+  let user: User | null = null
 
-    expect(AdminUser.sti.value).toEqual('AdminUser')
-    expect(AdminUser.sti.column).toEqual('type')
+  beforeEach(async () => {
+    user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+  })
+
+  it('builds scope mapping', async () => {
+    expect(Balloon.Base.sti.value).toEqual(null)
+
+    expect(Balloon.Mylar.sti.value).toEqual('Mylar')
+    expect(Balloon.Latex.sti.value).toEqual('Latex')
   })
 
   it('auto-applies the type field for STI classes upon insertion', async () => {
-    const user = await User.create({ email: 'how@ya0', password: 'doin', deleted_at: DateTime.now() })
-    const adminUser = await AdminUser.create({
-      email: 'how@fishman',
-      password: 'doin',
-      deleted_at: DateTime.now(),
+    const mylarBalloon = await Balloon.Mylar.create({
+      user: user!,
+      color: 'blue',
     })
-    expect(user.type).toEqual(null)
-    expect(adminUser.type).toEqual('AdminUser')
+    expect(mylarBalloon.type).toEqual('Mylar')
   })
 
   it('auto-applies a default scope for classes implementing STI', async () => {
-    const user = await User.create({ email: 'how@ya0', password: 'doin' })
-    const adminUser = await AdminUser.create({
-      email: 'how@fishman',
-      password: 'doin',
+    const mylarBalloon = await Balloon.Mylar.create({
+      user: user!,
+      color: 'blue',
+    })
+    await Balloon.Latex.create({
+      user: user!,
+      color: 'red',
     })
 
-    const results = await AdminUser.all()
-    expect(results.map(r => r.id)).toEqual([adminUser.id])
+    const balloons = await Balloon.Mylar.all()
+    expect(balloons).toMatchDreamModels([mylarBalloon])
   })
 
-  it('does not bleed scope to child class', async () => {
-    const user = await User.create({ email: 'how@ya0', password: 'doin' })
-    const adminUser = await AdminUser.create({
-      email: 'how@fishman',
-      password: 'doin',
-    })
+  it('correctly marshals each association to its respective dream class based on type', async () => {
+    const mylar = await Balloon.Mylar.create({ user: user!, color: 'red' })
+    const latex = await Balloon.Latex.create({ user: user!, color: 'blue' })
 
-    const results = await User.all()
-    expect(results.map(r => r.id)).toEqual([user.id, adminUser.id])
+    const balloons = await Balloon.Base.all()
+    expect(balloons).toMatchDreamModels([mylar, latex])
   })
 })

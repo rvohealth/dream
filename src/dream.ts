@@ -33,11 +33,13 @@ export default class Dream {
   }
 
   public static createdAtField = 'createdAt'
+
   public static associations: {
     belongsTo: BelongsToStatement<any>[]
     hasMany: HasManyStatement<any>[]
     hasOne: HasOneStatement<any>[]
   } = blankAssociationsFactory()
+
   public static scopes: {
     default: ScopeStatement[]
     named: ScopeStatement[]
@@ -45,15 +47,17 @@ export default class Dream {
     default: [],
     named: [],
   }
+
+  public static extendedBy: (typeof Dream)[] | null
+
   public static sti: {
     active: boolean
-    column: string | null
     value: string | null
   } = {
     active: false,
-    column: null,
     value: null,
   }
+
   public static hooks: {
     beforeCreate: HookStatement[]
     beforeUpdate: HookStatement[]
@@ -68,6 +72,7 @@ export default class Dream {
     afterDestroy: HookStatement[]
     afterDestroyCommit: HookStatement[]
   } = blankHooksFactory()
+
   public static validations: ValidationStatement[] = []
 
   public static get isDream() {

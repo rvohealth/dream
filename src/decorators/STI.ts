@@ -1,19 +1,19 @@
-import dream from '../dream'
-import { Tables } from '../db/reflections'
 import Scope from './scope'
 import Dream from '../dream'
 
-export default function STI({ value, column }: { value?: string; column?: string } = {}): ClassDecorator {
+export default function STI(dreamClass: typeof Dream, { value }: { value?: string } = {}): ClassDecorator {
   return function (target: any) {
     const t = target as typeof Dream
 
+    dreamClass.extendedBy ||= []
+    dreamClass.extendedBy.push(t)
+
     t.sti = {
       active: true,
-      column: column || 'type',
       value: value || t.name,
     }
     ;(t as any)['applySTIScope'] = function (query: any) {
-      return query.where({ [t.sti.column as string]: t.sti.value })
+      return query.where({ type: t.sti.value })
     }
     Scope({ default: true })(t, 'applySTIScope')
   }
