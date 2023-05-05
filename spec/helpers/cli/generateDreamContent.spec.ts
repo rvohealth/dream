@@ -179,7 +179,7 @@ export default class Composition extends Dream {
         })
 
         context('namespaced relationships', () => {
-          it('can handle associations with nested paths', () => {
+          it('can handle belongs to associations with nested paths', () => {
             const res = generateDreamContent('cat_toy', ['pet/domestic/cat:belongs_to'], {
               useUUID: false,
             })
@@ -201,6 +201,58 @@ export default class CatToy extends Dream {
   @BelongsTo(() => Cat)
   public cat: Cat
   public cat_id: number
+}\
+`
+            )
+          })
+
+          it('can handle has many associations with nested paths', () => {
+            const res = generateDreamContent('cat_toy', ['pet/domestic/cat:has_many'], {
+              useUUID: false,
+            })
+            expect(res).toEqual(
+              `\
+import { DateTime } from 'luxon'
+import { Dream, HasMany } from 'dream'
+import Cat from './Pet/Domestic/Cat'
+
+export default class CatToy extends Dream {
+  public get table() {
+    return 'cat_toys' as const
+  }
+
+  public id: number
+  public created_at: DateTime
+  public updated_at: DateTime
+
+  @HasMany(() => Cat)
+  public cats: Cat[]
+}\
+`
+            )
+          })
+
+          it('can handle has one associations with nested paths', () => {
+            const res = generateDreamContent('cat_toy', ['pet/domestic/cat:has_one'], {
+              useUUID: false,
+            })
+            expect(res).toEqual(
+              `\
+import { DateTime } from 'luxon'
+import { Dream, HasOne } from 'dream'
+import Cat from './Pet/Domestic/Cat'
+
+export default class CatToy extends Dream {
+  public get table() {
+    return 'cat_toys' as const
+  }
+
+  public id: number
+  public created_at: DateTime
+  public updated_at: DateTime
+
+  @HasOne(() => Cat)
+  public cat: Cat
 }\
 `
             )

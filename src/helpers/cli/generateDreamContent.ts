@@ -93,7 +93,7 @@ public ${snakeify(associationName)}_id: ${idTypescriptType}
         additionalImports.push(associationImportStatement)
         return `
 @HasOne(() => ${dreamClassNameFromAttributeName(attributeName)})
-public ${camelize(attributeName)}: ${dreamClassNameFromAttributeName(attributeName)}
+public ${camelize(associationName)}: ${dreamClassNameFromAttributeName(attributeName)}
 `
 
       case 'has_many':
@@ -101,7 +101,7 @@ public ${camelize(attributeName)}: ${dreamClassNameFromAttributeName(attributeNa
         additionalImports.push(associationImportStatement)
         return `
 @HasMany(() => ${dreamClassNameFromAttributeName(attributeName)})
-public ${pluralize(camelize(attributeName))}: ${dreamClassNameFromAttributeName(attributeName)}[]
+public ${pluralize(camelize(associationName))}: ${dreamClassNameFromAttributeName(attributeName)}[]
 `
 
       default:
