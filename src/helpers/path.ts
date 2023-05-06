@@ -79,6 +79,8 @@ export interface DreamYamlFile {
   migrations_path: string
   schema_path: string
   dream_config_path: string
+  unit_spec_path: string
+  feature_spec_path: string
 }
 
 export interface DreamConfig {

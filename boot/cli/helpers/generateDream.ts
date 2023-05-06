@@ -7,6 +7,7 @@ import { loadDreamYamlFile } from '../../../src/helpers/path'
 import hyphenize from '../../../src/helpers/hyphenize'
 import snakeify from '../../../src/helpers/snakeify'
 import pascalize from '../../../src/helpers/pascalize'
+import generateUnitSpec from './generateUnitSpec'
 
 export default async function generateDream(
   dreamName: string,
@@ -62,6 +63,8 @@ export default async function generateDream(
     console.log(err)
     throw err
   }
+
+  await generateUnitSpec(dreamName, 'models', { rootPath })
 
   const migrationBasePath = `${rootPath}/${ymlConfig.migrations_path}`
   const version = migrationVersion()
