@@ -12,6 +12,7 @@ export default async function generateUnitSpec(
 ) {
   const ymlConfig = await loadDreamYamlFile()
   const specPath = `${rootPath}/${ymlConfig.unit_spec_path}/${specSubpath}/${dreamName}.spec.ts`
+  const specDirPath = specPath.split('/').slice(0, -1).join('/')
   const relativeSpecPath = specPath.replace(
     new RegExp(`^.*${ymlConfig.unit_spec_path}`),
     ymlConfig.unit_spec_path
@@ -20,6 +21,7 @@ export default async function generateUnitSpec(
 
   try {
     console.log(`generating spec: ${relativeSpecPath}`)
+    await thisfs.mkdir(specDirPath, { recursive: true })
     await thisfs.writeFile(specPath, generateBlankSpecContent(dreamName))
   } catch (error) {
     const err = `

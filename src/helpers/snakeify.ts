@@ -18,5 +18,6 @@ export default function snakeify(str: any): any {
     .replace(/^_/, '')
     .replace(/\//g, '_')
     .replace(/-/g, '_')
+    .replace(/_+/g, '_')
     .toLowerCase()
 }
