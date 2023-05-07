@@ -2,19 +2,19 @@ import * as fs from 'fs/promises'
 import migrationVersion from './migrationVersion'
 import hyphenize from '../../../src/helpers/hyphenize'
 import generateMigrationContent from '../../../src/helpers/cli/generateMigrationContent'
+import absoluteFilePath from '../../../src/helpers/absoluteFilePath'
+import { loadDreamYamlFile } from '../../../src/helpers/path'
 
 export default async function generateMigration(
   migrationName: string,
   {
-    rootPath = process.env.DREAM_CORE_DEVELOPMENT === '1' ? process.cwd() : process.cwd() + '/../..',
+    rootPath = absoluteFilePath(''),
   }: {
     rootPath?: string
   } = {}
 ) {
-  const migrationBasePath =
-    process.env.DREAM_CORE_DEVELOPMENT === '1'
-      ? `${rootPath}/test-app/db/migrations`
-      : `${rootPath}/src/db/migrations`
+  const yamlConf = await loadDreamYamlFile()
+  const migrationBasePath = absoluteFilePath(yamlConf.migrations_path)
   const version = migrationVersion()
   const migrationFilename = `${hyphenize(migrationName)}`
   const versionedMigrationFilename = `${version}-${migrationFilename}`

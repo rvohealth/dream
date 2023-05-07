@@ -7,13 +7,14 @@ import { loadDreamYamlFile } from '../../../src/helpers/path'
 import hyphenize from '../../../src/helpers/hyphenize'
 import snakeify from '../../../src/helpers/snakeify'
 import pascalize from '../../../src/helpers/pascalize'
+import absoluteFilePath from '../../../src/helpers/absoluteFilePath'
 import generateUnitSpec from './generateUnitSpec'
 
 export default async function generateDream(
   dreamName: string,
   attributes: string[],
   {
-    rootPath = process.env.DREAM_CORE_DEVELOPMENT === '1' ? process.cwd() : process.cwd() + '/../..',
+    rootPath = absoluteFilePath(''),
   }: {
     rootPath?: string
   } = {}

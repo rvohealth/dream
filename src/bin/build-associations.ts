@@ -4,6 +4,7 @@ import { promises as fs } from 'fs'
 import loadModels from '../helpers/loadModels'
 import { loadDreamYamlFile } from '../helpers/path'
 import { DBColumns } from '../sync/schema'
+import absoluteFilePath from '../helpers/absoluteFilePath'
 
 export default async function buildAssociations() {
   console.log('indexing dream associations...')
@@ -50,10 +51,7 @@ async function writeAssociationsFile() {
   const filePath = path.join(__dirname, '..', 'sync', 'associations.ts')
 
   const yamlConf = await loadDreamYamlFile()
-  const clientFilePath =
-    process.env.DREAM_CORE_DEVELOPMENT === '1'
-      ? path.join(__dirname, '..', '..', yamlConf.associations_path)
-      : path.join(__dirname, '..', '..', '..', '..', yamlConf.associations_path)
+  const clientFilePath = absoluteFilePath(yamlConf.associations_path)
 
   const str = `\
 export default ${JSON.stringify(finalModels, null, 2)}

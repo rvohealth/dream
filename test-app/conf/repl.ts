@@ -2,13 +2,12 @@ import * as repl from 'node:repl'
 import * as fs from 'fs/promises'
 import * as path from 'path'
 import { loadDreamYamlFile } from '../../src/helpers/path'
+import absoluteFilePath from '../../src/helpers/absoluteFilePath'
 
 const replServer = repl.start('> ')
 export default (async function () {
   const yamlConf = await loadDreamYamlFile()
-  const dreamPaths = await getFiles(
-    process.env.DREAM_CORE_DEVELOPMENT === '1' ? `./${yamlConf.models_path}` : `../../${yamlConf.models_path}`
-  )
+  const dreamPaths = await getFiles(absoluteFilePath(yamlConf.models_path))
   for (const dreamPath of dreamPaths) {
     const DreamClass = (await import(dreamPath)).default
     replServer.context[(DreamClass as any).name] = DreamClass
