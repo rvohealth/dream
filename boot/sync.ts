@@ -50,7 +50,7 @@ async function writeSchema() {
 
   // intentionally bypassing helpers here, since they often end up referencing
   // from the dist folder, whereas dirname here is pointing to true src folder.
-  const file = await (await fs.readFile(absoluteSchemaPath)).toString()
+  const file = (await fs.readFile(absoluteSchemaPath)).toString()
   const [enhancedSchema, transformedNames] = await enhanceSchema(file)
 
   await fs.writeFile(absoluteSchemaWritePath, enhancedSchema as string)
