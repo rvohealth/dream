@@ -6,3 +6,7 @@ export default function setCoreDevelopmentFlag(programArgs: string[]) {
     return ''
   }
 }
+
+export function coreSuffix(programArgs: string[]) {
+  return programArgs.includes('--core') ? ' --core' : ''
+}

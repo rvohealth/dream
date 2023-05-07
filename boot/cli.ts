@@ -9,7 +9,7 @@ import { Command } from 'commander'
 import generateDream from './cli/helpers/generateDream'
 import generateMigration from './cli/helpers/generateMigration'
 import sspawn from '../src/helpers/sspawn'
-import setCoreDevelopmentFlag from './cli/helpers/setCoreDevelopmentFlag'
+import setCoreDevelopmentFlag, { coreSuffix } from './cli/helpers/setCoreDevelopmentFlag'
 
 const program = new Command()
 
@@ -41,19 +41,6 @@ program
     await generateDream(
       name,
       attributes.filter(attr => !['--core'].includes(attr))
-    )
-  })
-
-program
-  .command('db:migrate')
-  .description('db:migrate runs any outstanding database migrations')
-  .option('--core', 'sets core to true')
-  .action(async () => {
-    const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(
-      `${coreDevFlag}npx ts-node src/bin/migrate.ts && ${
-        process.env.CORE_DEVELOPMENT === '1' ? 'yarn dream sync:types --core' : 'yarn dream sync:types'
-      }`
     )
   })
 
@@ -104,6 +91,19 @@ program
   })
 
 program
+  .command('db:migrate')
+  .description('db:migrate runs any outstanding database migrations')
+  .option('--core', 'sets core to true')
+  .action(async () => {
+    const coreDevFlag = setCoreDevelopmentFlag(program.args)
+    await sspawn(
+      `${coreDevFlag}npx ts-node src/bin/migrate.ts && ${
+        process.env.CORE_DEVELOPMENT === '1' ? 'yarn dream sync:types --core' : 'yarn dream sync:types'
+      }`
+    )
+  })
+
+program
   .command('db:drop')
   .description(
     'drops the database, seeding from local .env or .env.test if NODE_ENV=test is set for env vars'
@@ -112,6 +112,19 @@ program
   .action(async () => {
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
     await sspawn(`${coreDevFlag}npx ts-node src/bin/db-drop.ts`)
+  })
+
+program
+  .command('db:reset')
+  .description('db:reset runs db:drop (safely), then db:create, then db:migrate')
+  .option('--core', 'sets core to true')
+  .action(async () => {
+    const coreSuffixFlag = coreSuffix(program.args)
+    const coreDevFlag = setCoreDevelopmentFlag(program.args)
+
+    await sspawn(`yarn dream db:drop${coreSuffixFlag}`)
+    await sspawn(`yarn dream db:create${coreSuffixFlag}`)
+    await sspawn(`yarn dream db:migrate${coreSuffixFlag}`)
   })
 
 program
