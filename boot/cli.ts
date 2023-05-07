@@ -97,7 +97,23 @@ program
   .action(async () => {
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
     await sspawn(
-      `${coreDevFlag}npx ts-node src/bin/migrate.ts && ${
+      `${coreDevFlag}npx ts-node src/bin/db-migrate.ts && ${
+        process.env.CORE_DEVELOPMENT === '1' ? 'yarn dream sync:types --core' : 'yarn dream sync:types'
+      }`
+    )
+  })
+
+program
+  .command('db:rollback')
+  .description('db:rollback rolls back the migration')
+  .option('--step <integer>', '--step <integer> number of steps back to travel')
+  .option('--core', 'sets core to true')
+  .action(async () => {
+    const coreDevFlag = setCoreDevelopmentFlag(program.args)
+    const stepArg = program.args.find(arg => /step=\d+/.test(arg))
+    const step = stepArg ? parseInt(stepArg!.replace('--step=', '')) : 1
+    await sspawn(
+      `${coreDevFlag}npx ts-node src/bin/db-rollback.ts ${step} && ${
         process.env.CORE_DEVELOPMENT === '1' ? 'yarn dream sync:types --core' : 'yarn dream sync:types'
       }`
     )
@@ -170,4 +186,4 @@ program
     }
   })
 
-program.parse()
+program.parse(process.argv)
