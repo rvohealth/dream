@@ -2,6 +2,7 @@ import * as pluralize from 'pluralize'
 import pascalize from '../../../src/helpers/pascalize'
 import camelize from '../../../src/helpers/camelize'
 import snakeify from '../../../src/helpers/snakeify'
+import uniq from '../uniq'
 
 const cooercedTypes = {
   bigint: 'string',
@@ -126,8 +127,8 @@ public ${attributeName}: ${getAttributeType(attribute)}\
 
   return `\
 import { DateTime } from 'luxon'
-import { ${[...new Set(dreamImports)].join(', ')} } from 'dream'${
-    !!additionalImports.length ? '\n' + additionalImports.join('\n') : ''
+import { ${uniq(dreamImports).join(', ')} } from 'dream'${
+    !!additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
   }
 
 export default class ${pascalize(modelName.split('/').pop()!)} extends Dream {
