@@ -1,5 +1,6 @@
 export { default as Dream } from './dream'
 export { default as db } from './db'
+export { IdType } from './db/reflections'
 export { default as BelongsTo } from './decorators/associations/belongs-to'
 export { default as HasMany } from './decorators/associations/has-many'
 export { default as HasOne } from './decorators/associations/has-one'

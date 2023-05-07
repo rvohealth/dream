@@ -5,9 +5,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   await db.schema
     .createTable('balloons')
-    .addColumn('id', 'serial', col => col.primaryKey())
+    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('user_id', 'bigint', col => col.references('users.id').onDelete('cascade').notNull())
     .addColumn('type', 'varchar(255)')
-    .addColumn('user_id', 'integer', col => col.references('users.id').onDelete('cascade').notNull())
     .addColumn('color', sql`balloon_color_enum`)
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())

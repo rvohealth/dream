@@ -44,7 +44,7 @@ describe('Query#joins with polymorphic associations', () => {
 
       const noResults = await Post.limit(3)
         .joins('ratings')
-        .where({ ratings: { id: rating.id + 1 } })
+        .where({ ratings: { id: parseInt(rating.id!.toString()) + 1 } })
         .first()
       expect(noResults).toBeNull()
     })

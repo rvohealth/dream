@@ -64,7 +64,7 @@ describe('Query#joins with simple associations', () => {
 
       const noResults = await User.limit(2)
         .joins('mainComposition')
-        .where({ mainComposition: { id: composition.id + 1 } })
+        .where({ mainComposition: { id: parseInt(composition.id!.toString()) + 1 } })
         .all()
       expect(noResults).toMatchDreamModels([])
     })
@@ -82,7 +82,7 @@ describe('Query#joins with simple associations', () => {
 
       const noResults = await User.limit(2)
         .joins('compositions')
-        .where({ compositions: { id: composition.id + 1 } })
+        .where({ compositions: { id: parseInt(composition.id!.toString() + 1) } })
         .all()
       expect(noResults).toMatchDreamModels([])
     })
@@ -102,7 +102,7 @@ describe('Query#joins with simple associations', () => {
 
       const noResults = await Composition.limit(2)
         .joins('user')
-        .where({ user: { id: user.id + 1 } })
+        .where({ user: { id: parseInt(user.id!.toString()) + 1 } })
         .all()
       expect(noResults).toMatchDreamModels([])
     })
@@ -123,7 +123,9 @@ describe('Query#joins with simple associations', () => {
 
         const noResults = await User.limit(2)
           .joins({ mainComposition: 'compositionAssets' })
-          .where({ mainComposition: { compositionAssets: { id: compositionAsset.id + 1 } } })
+          .where({
+            mainComposition: { compositionAssets: { id: parseInt(compositionAsset.id!.toString() + 1) } },
+          })
           .all()
         expect(noResults).toMatchDreamModels([])
       })
@@ -153,7 +155,7 @@ describe('Query#joins with simple associations', () => {
           .joins(['compositions', { mainComposition: 'compositionAssets' }])
           .where([
             {
-              compositions: { id: composition.id + 1 },
+              compositions: { id: parseInt(composition.id!.toString() + 1) },
             },
             {
               mainComposition: { compositionAssets: { id: compositionAsset.id } },
@@ -169,7 +171,7 @@ describe('Query#joins with simple associations', () => {
               compositions: { id: composition.id },
             },
             {
-              mainComposition: { compositionAssets: { id: compositionAsset.id + 1 } },
+              mainComposition: { compositionAssets: { id: parseInt(compositionAsset.id!.toString() + 1) } },
             },
           ])
           .all()

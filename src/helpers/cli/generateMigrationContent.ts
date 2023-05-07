@@ -133,5 +133,5 @@ function generateBelongsToStr(attributeName: string, { useUUID }: { useUUID: boo
 
 function generateIdStr({ useUUID }: { useUUID: boolean }) {
   if (useUUID) return `.addColumn('id', 'uuid', col => col.primaryKey())`
-  return `.addColumn('id', 'serial', col => col.primaryKey())`
+  return `.addColumn('id', 'bigserial', col => col.primaryKey())`
 }

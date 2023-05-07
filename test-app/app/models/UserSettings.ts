@@ -1,5 +1,6 @@
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import Dream from '../../../src/dream'
+import { IdType } from '../../../src/db/reflections'
 import User from './User'
 
 export default class UserSettings extends Dream {
@@ -7,10 +8,10 @@ export default class UserSettings extends Dream {
     return 'user_settings' as const
   }
 
-  public id: number
+  public id: IdType
   public likes_chalupas: boolean
 
   @BelongsTo(() => User)
   public user: User
-  public user_id: number
+  public user_id: IdType
 }

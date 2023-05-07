@@ -9,6 +9,7 @@ import AfterUpdate from '../../../src/decorators/hooks/after-update'
 import AfterUpdateCommit from '../../../src/decorators/hooks/after-update-commit'
 import BeforeCreate from '../../../src/decorators/hooks/before-create'
 import Dream from '../../../src/dream'
+import { IdType } from '../../../src/db/reflections'
 import CompositionAsset from './CompositionAsset'
 import CompositionAssetAudit from './CompositionAssetAudit'
 import User from './User'
@@ -18,12 +19,12 @@ export default class Composition extends Dream {
     return 'compositions' as const
   }
 
-  public id: number
+  public id: IdType
   public content: string | null
 
   @BelongsTo(() => User)
   public user: User
-  public user_id: number
+  public user_id: IdType
 
   @HasMany(() => CompositionAsset)
   public compositionAssets: CompositionAsset[]

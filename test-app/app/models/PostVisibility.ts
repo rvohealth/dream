@@ -1,5 +1,8 @@
 import { DateTime } from 'luxon'
-import { Dream, BeforeCreate, HasOne } from '../../../src'
+import Dream from '../../../src/dream'
+import BeforeCreate from '../../../src/decorators/hooks/before-create'
+import HasOne from '../../../src/decorators/associations/has-one'
+import { IdType } from '../../../src/db/reflections'
 import Post from './Post'
 
 export default class PostVisibility extends Dream {
@@ -7,7 +10,7 @@ export default class PostVisibility extends Dream {
     return 'post_visibilities' as const
   }
 
-  public id: number
+  public id: IdType
   public visibility: boolean
   public notes: string
   public created_at: DateTime

@@ -14,7 +14,7 @@ export default class MealType extends Dream {
     return 'meal_types' as const
   }
 
-  public id: number
+  public id: IdType
   public created_at: DateTime
   public updated_at: DateTime
 }\
@@ -39,7 +39,7 @@ export default class User extends Dream {
     return 'users' as const
   }
 
-  public id: number
+  public id: IdType
   public email: string
   public password_digest: string
   public created_at: DateTime
@@ -74,7 +74,7 @@ export default class Chalupa extends Dream {
     return 'chalupas' as const
   }
 
-  public id: number
+  public id: IdType
   public topping: ToppingEnum
   public protein: ProteinEnum
   public existing_enum: MyExistingEnumEnum
@@ -158,7 +158,7 @@ export default class Chalupa extends Dream {
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { Dream, BelongsTo } from 'dream'
+import { Dream, IdType, BelongsTo } from 'dream'
 import GraphNode from './GraphNode'
 
 export default class Composition extends Dream {
@@ -166,13 +166,13 @@ export default class Composition extends Dream {
     return 'compositions' as const
   }
 
-  public id: number
+  public id: IdType
   public created_at: DateTime
   public updated_at: DateTime
 
   @BelongsTo(() => GraphNode)
   public graphNode: GraphNode
-  public graph_node_id: number
+  public graph_node_id: IdType
 }\
 `
           )
@@ -186,7 +186,7 @@ export default class Composition extends Dream {
             expect(res).toEqual(
               `\
 import { DateTime } from 'luxon'
-import { Dream, BelongsTo } from 'dream'
+import { Dream, IdType, BelongsTo } from 'dream'
 import Cat from './Pet/Domestic/Cat'
 
 export default class CatToy extends Dream {
@@ -194,13 +194,13 @@ export default class CatToy extends Dream {
     return 'cat_toys' as const
   }
 
-  public id: number
+  public id: IdType
   public created_at: DateTime
   public updated_at: DateTime
 
   @BelongsTo(() => Cat)
   public cat: Cat
-  public cat_id: number
+  public cat_id: IdType
 }\
 `
             )
@@ -221,7 +221,7 @@ export default class CatToy extends Dream {
     return 'cat_toys' as const
   }
 
-  public id: number
+  public id: IdType
   public created_at: DateTime
   public updated_at: DateTime
 
@@ -247,7 +247,7 @@ export default class CatToy extends Dream {
     return 'cat_toys' as const
   }
 
-  public id: number
+  public id: IdType
   public created_at: DateTime
   public updated_at: DateTime
 
@@ -265,7 +265,7 @@ export default class CatToy extends Dream {
             expect(res).toEqual(
               `\
 import { DateTime } from 'luxon'
-import { Dream, BelongsTo } from 'dream'
+import { Dream, IdType, BelongsTo } from 'dream'
 import GraphNode from '../../GraphNode'
 
 export default class Cat extends Dream {
@@ -273,13 +273,13 @@ export default class Cat extends Dream {
     return 'pet_domestic_cats' as const
   }
 
-  public id: number
+  public id: IdType
   public created_at: DateTime
   public updated_at: DateTime
 
   @BelongsTo(() => GraphNode)
   public graphNode: GraphNode
-  public graph_node_id: number
+  public graph_node_id: IdType
 }\
 `
             )
@@ -292,7 +292,7 @@ export default class Cat extends Dream {
             expect(res).toEqual(
               `\
 import { DateTime } from 'luxon'
-import { Dream, BelongsTo } from 'dream'
+import { Dream, IdType, BelongsTo } from 'dream'
 import Dog from '../../Pet/Domestic/Dog'
 
 export default class Cat extends Dream {
@@ -300,13 +300,13 @@ export default class Cat extends Dream {
     return 'pet_domestic_cats' as const
   }
 
-  public id: number
+  public id: IdType
   public created_at: DateTime
   public updated_at: DateTime
 
   @BelongsTo(() => Dog)
   public dog: Dog
-  public dog_id: number
+  public dog_id: IdType
 }\
 `
             )
@@ -319,7 +319,7 @@ export default class Cat extends Dream {
             expect(res).toEqual(
               `\
 import { DateTime } from 'luxon'
-import { Dream, BelongsTo } from 'dream'
+import { Dream, IdType, BelongsTo } from 'dream'
 import Dog from '../../Pet/Domestic/Dog'
 
 export default class Cat extends Dream {
@@ -327,13 +327,13 @@ export default class Cat extends Dream {
     return 'pet_wild_cats' as const
   }
 
-  public id: number
+  public id: IdType
   public created_at: DateTime
   public updated_at: DateTime
 
   @BelongsTo(() => Dog)
   public dog: Dog
-  public dog_id: number
+  public dog_id: IdType
 }\
 `
             )
@@ -347,7 +347,7 @@ export default class Cat extends Dream {
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { Dream, BelongsTo } from 'dream'
+import { Dream, IdType, BelongsTo } from 'dream'
 import User from './User'
 import Chalupa from './Chalupa'
 
@@ -356,17 +356,17 @@ export default class Composition extends Dream {
     return 'compositions' as const
   }
 
-  public id: number
+  public id: IdType
   public created_at: DateTime
   public updated_at: DateTime
 
   @BelongsTo(() => User)
   public user: User
-  public user_id: number
+  public user_id: IdType
 
   @BelongsTo(() => Chalupa)
   public chalupa: Chalupa
-  public chalupa_id: number
+  public chalupa_id: IdType
 }\
 `
           )
@@ -389,7 +389,7 @@ export default class Composition extends Dream {
     return 'compositions' as const
   }
 
-  public id: number
+  public id: IdType
   public created_at: DateTime
   public updated_at: DateTime
 
@@ -417,7 +417,7 @@ export default class User extends Dream {
     return 'users' as const
   }
 
-  public id: number
+  public id: IdType
   public created_at: DateTime
   public updated_at: DateTime
 
@@ -437,7 +437,7 @@ export default class User extends Dream {
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { Dream, BelongsTo } from 'dream'
+import { Dream, IdType, BelongsTo } from 'dream'
 import User from './User'
 
 export default class Composition extends Dream {
@@ -445,13 +445,13 @@ export default class Composition extends Dream {
     return 'compositions' as const
   }
 
-  public id: string
+  public id: IdType
   public created_at: DateTime
   public updated_at: DateTime
 
   @BelongsTo(() => User)
   public user: User
-  public user_id: string
+  public user_id: IdType
 }\
 `
           )
@@ -472,7 +472,7 @@ export default class User extends Dream {
     return 'users' as const
   }
 
-  public id: number
+  public id: IdType
   public ${name}: ${type}
   public created_at: DateTime
   public updated_at: DateTime

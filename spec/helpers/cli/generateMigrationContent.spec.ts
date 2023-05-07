@@ -24,7 +24,7 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('users')
-    .addColumn('id', 'serial', col => col.primaryKey())
+    .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('email', 'varchar(128)')
     .addColumn('name', 'citext')
     .addColumn('password_digest', 'varchar(255)')
@@ -79,7 +79,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   await db.schema
     .createTable('chalupas')
-    .addColumn('id', 'serial', col => col.primaryKey())
+    .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('topping', sql\`topping_enum\`)
     .addColumn('protein_type', sql\`protein_enum\`)
     .addColumn('existing_enum', sql\`my_existing_enum_enum\`)
@@ -111,7 +111,7 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('compositions')
-    .addColumn('id', 'serial', col => col.primaryKey())
+    .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('admin_user_id', 'bigint', col => col.references('admin_users.id').onDelete('cascade').notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())

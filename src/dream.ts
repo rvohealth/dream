@@ -15,7 +15,7 @@ import {
   WhereStatement,
   blankAssociationsFactory,
 } from './decorators/associations/shared'
-import { AssociationTableNames } from './db/reflections'
+import { AssociationTableNames, IdType } from './db/reflections'
 import CanOnlyPassBelongsToModelParam from './exceptions/can-only-pass-belongs-to-model-param'
 import { AssociationExpression, AssociationModelParam, DreamConstructorType } from './dream/types'
 import Query from './dream/query'
@@ -335,7 +335,7 @@ export default class Dream {
     return (this.constructor as typeof Dream).primaryKey
   }
 
-  public get primaryKeyValue(): string | number | null {
+  public get primaryKeyValue(): IdType | IdType | string | number | null {
     return (this as any)[this.primaryKey] || null
   }
 

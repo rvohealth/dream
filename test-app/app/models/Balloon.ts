@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
 import Dream from '../../../src/dream'
+import { IdType } from '../../../src/db/reflections'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import User from './User'
 import { BalloonColorEnum } from '../../db/schema'
@@ -9,7 +10,7 @@ export default class Balloon extends Dream {
     return 'balloons' as const
   }
 
-  public id: number
+  public id: IdType
   public type: string
   public color: BalloonColorEnum
   public created_at: DateTime
@@ -17,5 +18,5 @@ export default class Balloon extends Dream {
 
   @BelongsTo(() => User)
   public user: User
-  public user_id: number
+  public user_id: IdType
 }

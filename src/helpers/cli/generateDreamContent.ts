@@ -4,8 +4,8 @@ import camelize from '../../../src/helpers/camelize'
 import snakeify from '../../../src/helpers/snakeify'
 
 const cooercedTypes = {
-  bigint: 'number',
-  bigserial: 'number',
+  bigint: 'string',
+  bigserial: 'IdType',
   bit: 'string',
   boolean: 'boolean',
   box: 'string',
@@ -59,8 +59,7 @@ export default function generateDreamContent(
 ) {
   const dreamImports: string[] = ['Dream']
 
-  const idDBType = useUUID ? 'uuid' : 'integer'
-  const idTypescriptType = useUUID ? 'string' : 'number'
+  const idTypescriptType = 'IdType'
 
   const additionalImports: string[] = []
   const enumImports: string[] = []
@@ -79,6 +78,7 @@ export default function generateDreamContent(
 
     switch (attributeType) {
       case 'belongs_to':
+        dreamImports.push('IdType')
         dreamImports.push('BelongsTo')
         additionalImports.push(associationImportStatement)
         let belongsToOptions = descriptors.includes('many_to_one') ? ", { mode: 'many_to_one' }" : ''

@@ -15,25 +15,25 @@ export type Species = "cat" | "dog" | "frog";
 export type Timestamp = ColumnType<DateTime>;
 
 export interface Balloons {
-  id: Generated<number>;
+  id: Generated<Int8>;
+  user_id: Int8;
   type: string | null;
-  user_id: number;
   color: BalloonColorEnum | null;
   created_at: Timestamp;
   updated_at: Timestamp;
 }
 
 export interface CompositionAssetAudits {
-  id: Generated<number>;
-  composition_asset_id: number;
+  id: Generated<Int8>;
+  composition_asset_id: Int8;
   approval: boolean | null;
   created_at: Timestamp;
   updated_at: Timestamp;
 }
 
 export interface CompositionAssets {
-  id: Generated<number>;
-  composition_id: number;
+  id: Generated<Int8>;
+  composition_id: Int8;
   src: string | null;
   primary: Generated<boolean | null>;
   created_at: Timestamp;
@@ -41,8 +41,8 @@ export interface CompositionAssets {
 }
 
 export interface Compositions {
-  id: Generated<number>;
-  user_id: number;
+  id: Generated<Int8>;
+  user_id: Int8;
   content: string | null;
   primary: Generated<boolean | null>;
   created_at: Timestamp;
@@ -50,23 +50,23 @@ export interface Compositions {
 }
 
 export interface IncompatibleForeignKeyTypeExamples {
-  id: Generated<number>;
-  user_id: Int8;
+  id: Generated<Int8>;
+  user_id: number;
   created_at: Timestamp;
   updated_at: Timestamp;
 }
 
 export interface Pets {
-  id: Generated<number>;
+  id: Generated<Int8>;
+  user_id: Int8 | null;
   species: Species | null;
   name: string | null;
-  user_id: number | null;
   created_at: Timestamp;
 }
 
 export interface Posts {
-  id: Generated<number>;
-  user_id: number;
+  id: Generated<Int8>;
+  user_id: Int8;
   post_visibility_id: Int8 | null;
   body: string | null;
   created_at: Timestamp;
@@ -74,7 +74,7 @@ export interface Posts {
 }
 
 export interface PostVisibilities {
-  id: Generated<number>;
+  id: Generated<Int8>;
   visibility: boolean | null;
   notes: string | null;
   created_at: Timestamp;
@@ -82,9 +82,9 @@ export interface PostVisibilities {
 }
 
 export interface Ratings {
-  id: Generated<number>;
-  user_id: number;
-  rateable_id: number;
+  id: Generated<Int8>;
+  user_id: Int8;
+  rateable_id: Int8;
   rateable_type: string;
   rating: number | null;
   created_at: Timestamp;
@@ -92,7 +92,7 @@ export interface Ratings {
 }
 
 export interface Users {
-  id: Generated<number>;
+  id: Generated<Int8>;
   name: string | null;
   email: string;
   password: string;
@@ -102,8 +102,8 @@ export interface Users {
 }
 
 export interface UserSettings {
-  id: Generated<number>;
-  user_id: number;
+  id: Generated<Int8>;
+  user_id: Int8;
   likes_chalupas: Generated<boolean>;
   created_at: Timestamp;
   updated_at: Timestamp;
@@ -124,12 +124,12 @@ export interface DB {
 }
 
 
-export const BalloonColumns = ['id', 'type', 'user_id', 'color', 'created_at', 'updated_at']
+export const BalloonColumns = ['id', 'user_id', 'type', 'color', 'created_at', 'updated_at']
 export const CompositionAssetAuditColumns = ['id', 'composition_asset_id', 'approval', 'created_at', 'updated_at']
 export const CompositionAssetColumns = ['id', 'composition_id', 'src', 'primary', 'created_at', 'updated_at']
 export const CompositionColumns = ['id', 'user_id', 'content', 'primary', 'created_at', 'updated_at']
 export const IncompatibleForeignKeyTypeExampleColumns = ['id', 'user_id', 'created_at', 'updated_at']
-export const PetColumns = ['id', 'species', 'name', 'user_id', 'created_at']
+export const PetColumns = ['id', 'user_id', 'species', 'name', 'created_at']
 export const PostColumns = ['id', 'user_id', 'post_visibility_id', 'body', 'created_at', 'updated_at']
 export const PostVisibilityColumns = ['id', 'visibility', 'notes', 'created_at', 'updated_at']
 export const RatingColumns = ['id', 'user_id', 'rateable_id', 'rateable_type', 'rating', 'created_at', 'updated_at']

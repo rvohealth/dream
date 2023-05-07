@@ -7,6 +7,7 @@ import CompositionAssetAudit from './CompositionAssetAudit'
 import Validates from '../../../src/decorators/validations/validates'
 import UserSettings from './UserSettings'
 import Dream from '../../../src/dream'
+import { IdType } from '../../../src/db/reflections'
 import { DateTime } from 'luxon'
 import Balloon from './Balloon'
 import IncompatibleForeignKeyTypeExample from './IncompatibleForeignKeyTypeExample'
@@ -16,7 +17,7 @@ export default class User extends Dream {
     return 'users' as const
   }
 
-  public id: number
+  public id: IdType
   public type: string
   public deleted_at: DateTime
   public created_at: DateTime

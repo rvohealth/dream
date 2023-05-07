@@ -14,7 +14,7 @@ describe('Dream.create', () => {
     const u = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user = await User.find(u.id)
     expect(user!.email).toEqual('fred@frewd')
-    expect(typeof user!.id).toBe('number')
+    expect(typeof user!.id).toBe('string')
   })
 
   it('sets created_at', async () => {
@@ -47,9 +47,9 @@ describe('Dream.create', () => {
 
   it('allows saving of valid blank objects', async () => {
     const pet = await Pet.create()
-    expect(typeof pet!.id).toBe('number')
+    expect(typeof pet!.id).toBe('string')
     const reloadedPet = await Pet.find(pet.id)
-    expect(typeof reloadedPet!.id).toBe('number')
+    expect(typeof reloadedPet!.id).toBe('string')
   })
 
   context('passed a model to a BelongsTo association', () => {
@@ -120,7 +120,7 @@ describe('Dream.create', () => {
         const user = User.new({ email: 'fred@fred', password: 'howyadoin' })
         const composition = await Composition.create({ content: 'howyadoin', user })
 
-        expect(typeof composition.user_id).toBe('number')
+        expect(typeof composition.user_id).toBe('string')
         expect(composition.user.isPersisted).toBe(true)
         expect(composition.user).toMatchDreamModel(user)
       })

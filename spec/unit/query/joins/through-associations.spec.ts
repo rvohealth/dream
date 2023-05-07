@@ -60,7 +60,7 @@ describe('Query#joins through with simple associations', () => {
 
       const noResults = await User.limit(2)
         .joins('mainCompositionAsset')
-        .where({ mainCompositionAsset: { id: compositionAsset.id + 1 } })
+        .where({ mainCompositionAsset: { id: parseInt(compositionAsset.id!.toString()) + 1 } })
         .all()
       expect(noResults).toMatchDreamModels([])
     })
@@ -82,7 +82,7 @@ describe('Query#joins through with simple associations', () => {
 
       const noResults = await CompositionAsset.limit(2)
         .joins('user')
-        .where({ user: { id: user.id + 1 } })
+        .where({ user: { id: parseInt(user.id!.toString()) + 1 } })
         .all()
       expect(noResults).toMatchDreamModels([])
     })
@@ -101,7 +101,7 @@ describe('Query#joins through with simple associations', () => {
 
       const noResults = await User.limit(2)
         .joins('compositionAssets')
-        .where({ compositionAssets: { id: compositionAsset.id + 1 } })
+        .where({ compositionAssets: { id: parseInt(compositionAsset.id!.toString()) + 1 } })
         .all()
       expect(noResults).toMatchDreamModels([])
     })
@@ -124,7 +124,7 @@ describe('Query#joins through with simple associations', () => {
 
         const noResults = await User.limit(2)
           .joins('compositionAssetAudits')
-          .where({ compositionAssetAudits: { id: compositionAssetAudit.id + 1 } })
+          .where({ compositionAssetAudits: { id: parseInt(compositionAssetAudit.id!.toString()) + 1 } })
           .all()
         expect(noResults).toMatchDreamModels([])
       })

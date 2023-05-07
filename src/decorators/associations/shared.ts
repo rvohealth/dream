@@ -3,7 +3,7 @@ import { DB } from '../../sync/schema'
 import { SelectQueryBuilder, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
 import { Range } from '../../helpers/range'
-import { AssociationTableNames } from '../../db/reflections'
+import { AssociationTableNames, IdType } from '../../db/reflections'
 import OpsStatement from '../../ops/ops-statement'
 import { BelongsToStatement } from './belongs-to'
 import { HasManyStatement } from './has-many'
@@ -30,7 +30,10 @@ export type WhereStatement<TableName extends AssociationTableNames> =
   | Partial<
       Record<
         keyof DB[TableName],
-        Range<DateTime> | OpsStatement | (string | number)[] | SelectQueryBuilder<DB, TableName, {}>
+        | Range<DateTime>
+        | OpsStatement
+        | (IdType | IdType | string | number)[]
+        | SelectQueryBuilder<DB, TableName, {}>
       >
     >
 
