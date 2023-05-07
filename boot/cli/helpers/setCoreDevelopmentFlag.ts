@@ -1,7 +1,7 @@
 export default function setCoreDevelopmentFlag(programArgs: string[]) {
   if (programArgs.includes('--core')) {
-    process.env.CORE_DEVELOPMENT = '1'
-    return 'CORE_DEVELOPMENT=1 '
+    process.env.DREAM_CORE_DEVELOPMENT = '1'
+    return 'DREAM_CORE_DEVELOPMENT=1 '
   } else {
     return ''
   }

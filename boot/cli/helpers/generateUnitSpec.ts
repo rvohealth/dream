@@ -5,7 +5,7 @@ export default async function generateUnitSpec(
   dreamName: string,
   specSubpath: 'models' | 'controllers',
   {
-    rootPath = process.env.CORE_DEVELOPMENT === '1' ? process.cwd() : process.cwd() + '/../..',
+    rootPath = process.env.DREAM_CORE_DEVELOPMENT === '1' ? process.cwd() : process.cwd() + '/../..',
   }: {
     rootPath?: string
   } = {}

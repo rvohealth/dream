@@ -20,7 +20,7 @@ export default async function loadModels() {
   for (const modelPath of relativeModelPaths) {
     const fullPath = path.join(pathToModels, modelPath)
     const relativePath =
-      `../../${process.env.CORE_DEVELOPMENT === '1' ? '' : '../../'}${yamlConf.models_path}/` +
+      `../../${process.env.DREAM_CORE_DEVELOPMENT === '1' ? '' : '../../'}${yamlConf.models_path}/` +
       fullPath.replace(new RegExp(`^.*${yamlConf.models_path}\/`), '')
 
     let ModelClass: typeof Dream | null = null

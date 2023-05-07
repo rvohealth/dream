@@ -98,7 +98,7 @@ program
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
     await sspawn(
       `${coreDevFlag}npx ts-node src/bin/db-migrate.ts && ${
-        process.env.CORE_DEVELOPMENT === '1' ? 'yarn dream sync:types --core' : 'yarn dream sync:types'
+        process.env.DREAM_CORE_DEVELOPMENT === '1' ? 'yarn dream sync:types --core' : 'yarn dream sync:types'
       }`
     )
   })
@@ -114,7 +114,7 @@ program
     const step = stepArg ? parseInt(stepArg!.replace('--step=', '')) : 1
     await sspawn(
       `${coreDevFlag}npx ts-node src/bin/db-rollback.ts ${step} && ${
-        process.env.CORE_DEVELOPMENT === '1' ? 'yarn dream sync:types --core' : 'yarn dream sync:types'
+        process.env.DREAM_CORE_DEVELOPMENT === '1' ? 'yarn dream sync:types --core' : 'yarn dream sync:types'
       }`
     )
   })
@@ -163,9 +163,9 @@ program
   .action(async () => {
     setCoreDevelopmentFlag(program.args)
     const files = program.args.filter(arg => /\.spec\.ts$/.test(arg))
-    if (process.env.CORE_DEVELOPMENT === '1') {
+    if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
       await sspawn(`yarn dream sync:associations --core`)
-      await sspawn(`CORE_DEVELOPMENT=1 jest --runInBand --forceExit ${files.join(' ')}`)
+      await sspawn(`DREAM_CORE_DEVELOPMENT=1 jest --runInBand --forceExit ${files.join(' ')}`)
     } else {
       throw 'this command is not meant for use outside core development'
     }
@@ -177,9 +177,9 @@ program
   .option('--core', 'sets core to true')
   .action(async () => {
     setCoreDevelopmentFlag(program.args)
-    if (process.env.CORE_DEVELOPMENT === '1') {
+    if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
       await sspawn(
-        `yarn dream sync:types --core && CORE_DEVELOPMENT=1 NODE_ENV=development npx ts-node --project ./tsconfig.json ./test-app/conf/repl.ts`
+        `yarn dream sync:types --core && DREAM_CORE_DEVELOPMENT=1 NODE_ENV=development npx ts-node --project ./tsconfig.json ./test-app/conf/repl.ts`
       )
     } else {
       throw 'this command is not meant for use outside core development'

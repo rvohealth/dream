@@ -12,7 +12,7 @@ make sure to add the following files to the root of the project:
 
 ```
 # .env
-CORE_DEVELOPMENT=1
+DREAM_CORE_DEVELOPMENT=1
 DB_USER=YOUR_PG_USERNAME
 DB_NAME=dream_core_dev
 DB_PORT=5432
@@ -21,7 +21,7 @@ DB_HOST=localhost
 
 ```
 # .env.test
-CORE_DEVELOPMENT=1
+DREAM_CORE_DEVELOPMENT=1
 DB_USER=YOUR_PG_USERNAME
 DB_NAME=dream_core_test
 DB_PORT=5432
@@ -317,10 +317,10 @@ Though the specs are not technically unit tests in the traditional sense, they a
 
 I am not writing tests for internal functions for the most part, though if you find yourself writing something particularly complex, feel free to find a home in the `spec/unit` folder somewhere for it (probably in the `spec/unit/helpers` folder, since that is where I will put specs for helpers I have written when I feel the need to test them).
 
-In terms of setup, you will need to run a few commands to get the environment set up. The commands are the same as those used when you are developing in a real dream app, but you have to pass the `--core` suffix to get the correct behavior. After installing dream on your machine, you will need to first set up a .env and .env.test file (same as in a real dream app), and you will need to make sure to add an extra flag called `CORE_DEVELOPMENT`, setting it to `1`.
+In terms of setup, you will need to run a few commands to get the environment set up. The commands are the same as those used when you are developing in a real dream app, but you have to pass the `--core` suffix to get the correct behavior. After installing dream on your machine, you will need to first set up a .env and .env.test file (same as in a real dream app), and you will need to make sure to add an extra flag called `DREAM_CORE_DEVELOPMENT`, setting it to `1`.
 
 ```
-CORE_DEVELOPMENT=1
+DREAM_CORE_DEVELOPMENT=1
 DB_USER=YOUR_LOCAL_DB_USERNAME
 DB_NAME=dream_core_dev
 DB_PORT=5432

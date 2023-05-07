@@ -51,7 +51,7 @@ async function writeAssociationsFile() {
 
   const yamlConf = await loadDreamYamlFile()
   const clientFilePath =
-    process.env.CORE_DEVELOPMENT === '1'
+    process.env.DREAM_CORE_DEVELOPMENT === '1'
       ? path.join(__dirname, '..', '..', yamlConf.associations_path)
       : path.join(__dirname, '..', '..', '..', '..', yamlConf.associations_path)
 

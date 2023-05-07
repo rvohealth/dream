@@ -13,7 +13,7 @@ export default async function generateDream(
   dreamName: string,
   attributes: string[],
   {
-    rootPath = process.env.CORE_DEVELOPMENT === '1' ? process.cwd() : process.cwd() + '/../..',
+    rootPath = process.env.DREAM_CORE_DEVELOPMENT === '1' ? process.cwd() : process.cwd() + '/../..',
   }: {
     rootPath?: string
   } = {}

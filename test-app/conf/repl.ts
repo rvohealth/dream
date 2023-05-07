@@ -7,7 +7,7 @@ const replServer = repl.start('> ')
 export default (async function () {
   const yamlConf = await loadDreamYamlFile()
   const dreamPaths = await getFiles(
-    process.env.CORE_DEVELOPMENT === '1' ? `./${yamlConf.models_path}` : `../../${yamlConf.models_path}`
+    process.env.DREAM_CORE_DEVELOPMENT === '1' ? `./${yamlConf.models_path}` : `../../${yamlConf.models_path}`
   )
   for (const dreamPath of dreamPaths) {
     const DreamClass = (await import(dreamPath)).default
