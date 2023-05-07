@@ -30,10 +30,7 @@ export type WhereStatement<TableName extends AssociationTableNames> =
   | Partial<
       Record<
         keyof DB[TableName],
-        | Range<DateTime>
-        | OpsStatement
-        | (IdType | IdType | string | number)[]
-        | SelectQueryBuilder<DB, TableName, {}>
+        Range<DateTime> | OpsStatement | (IdType | string | number)[] | SelectQueryBuilder<DB, TableName, {}>
       >
     >
 
