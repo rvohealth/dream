@@ -335,7 +335,7 @@ export default class Dream {
     return (this.constructor as typeof Dream).primaryKey
   }
 
-  public get primaryKeyValue(): IdType | IdType | string | number | null {
+  public get primaryKeyValue(): IdType | string | number | null {
     return (this as any)[this.primaryKey] || null
   }
 
