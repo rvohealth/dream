@@ -11,6 +11,7 @@ import generateMigration from './cli/helpers/generateMigration'
 import sspawn from '../src/helpers/sspawn'
 import setCoreDevelopmentFlag, { coreSuffix } from './cli/helpers/setCoreDevelopmentFlag'
 import yarncmdRunByAppConsumer from './cli/helpers/yarncmdRunByAppConsumer'
+import maybeSyncExisting from './cli/helpers/maybeSyncExisting'
 
 const program = new Command()
 
@@ -108,7 +109,7 @@ program
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
     const stepArg = program.args.find(arg => /--step=\d+/.test(arg))
     const step = stepArg ? parseInt(stepArg!.replace('--step=', '')) : 1
-    await sspawn(yarncmdRunByAppConsumer('dream sync:existing', program.args))
+    await maybeSyncExisting(program.args)
     await sspawn(`${coreDevFlag}npx ts-node src/bin/db-rollback.ts ${step}`)
     await sspawn(yarncmdRunByAppConsumer('dream sync:types', program.args))
   })
