@@ -136,6 +136,7 @@ program
   .description('db:reset runs db:drop (safely), then db:create, then db:migrate')
   .option('--core', 'sets core to true')
   .action(async () => {
+    await sspawn(yarncmdRunByAppConsumer('dream sync:existing', program.args))
     await sspawn(yarncmdRunByAppConsumer('dream db:drop', program.args))
     await sspawn(yarncmdRunByAppConsumer('dream db:create', program.args))
     await sspawn(yarncmdRunByAppConsumer('dream db:migrate', program.args))
