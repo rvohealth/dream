@@ -22,7 +22,7 @@ program
   .argument('<name>', 'name of the migration')
   .option('--core', 'sets core to true')
   .action(async () => {
-    const coreDevFlag = setCoreDevelopmentFlag(program.args)
+    await maybeSyncExisting(program.args)
     const [_, name] = program.args
     await generateMigration(name)
   })
@@ -38,6 +38,7 @@ program
   .argument('<name>', 'name of the dream')
   .option('--core', 'sets core to true')
   .action(async () => {
+    await maybeSyncExisting(program.args)
     setCoreDevelopmentFlag(program.args)
     const [_, name, ...attributes] = program.args
     await generateDream(
@@ -52,6 +53,7 @@ program
   .description('runs yarn dream sync:schema, then yarn dream sync:associations')
   .option('--core', 'sets core to true')
   .action(async () => {
+    await maybeSyncExisting(program.args)
     await sspawn(yarncmdRunByAppConsumer('dream sync:schema', program.args))
     await sspawn(yarncmdRunByAppConsumer('dream sync:associations', program.args))
   })
@@ -64,6 +66,7 @@ program
   )
   .option('--core', 'sets core to true')
   .action(async () => {
+    await maybeSyncExisting(program.args)
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
     await sspawn(`${coreDevFlag}npx ts-node boot/sync.ts`)
   })
@@ -75,6 +78,7 @@ program
   )
   .option('--core', 'sets core to true')
   .action(async () => {
+    await maybeSyncExisting(program.args)
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
     await sspawn(`${coreDevFlag}npx ts-node --transpile-only src/bin/build-associations.ts`)
   })
@@ -86,6 +90,7 @@ program
   )
   .option('--core', 'sets core to true')
   .action(async () => {
+    await maybeSyncExisting(program.args)
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
     await sspawn(`${coreDevFlag}npx ts-node src/bin/db-create.ts`)
   })
@@ -95,6 +100,7 @@ program
   .description('db:migrate runs any outstanding database migrations')
   .option('--core', 'sets core to true')
   .action(async () => {
+    await maybeSyncExisting(program.args)
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
     await sspawn(`${coreDevFlag}npx ts-node src/bin/db-migrate.ts`)
     await sspawn(yarncmdRunByAppConsumer('dream sync:types', program.args))
@@ -106,10 +112,10 @@ program
   .option('--step <integer>', '--step <integer> number of steps back to travel')
   .option('--core', 'sets core to true')
   .action(async () => {
+    await maybeSyncExisting(program.args)
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
     const stepArg = program.args.find(arg => /--step=\d+/.test(arg))
     const step = stepArg ? parseInt(stepArg!.replace('--step=', '')) : 1
-    await maybeSyncExisting(program.args)
     await sspawn(`${coreDevFlag}npx ts-node src/bin/db-rollback.ts ${step}`)
     await sspawn(yarncmdRunByAppConsumer('dream sync:types', program.args))
   })
@@ -121,6 +127,7 @@ program
   )
   .option('--core', 'sets core to true')
   .action(async () => {
+    await maybeSyncExisting(program.args)
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
     await sspawn(`${coreDevFlag}npx ts-node src/bin/db-drop.ts`)
   })
@@ -130,7 +137,7 @@ program
   .description('db:reset runs db:drop (safely), then db:create, then db:migrate')
   .option('--core', 'sets core to true')
   .action(async () => {
-    await sspawn(yarncmdRunByAppConsumer('dream sync:existing', program.args))
+    await maybeSyncExisting(program.args)
     await sspawn(yarncmdRunByAppConsumer('dream db:drop', program.args))
     await sspawn(yarncmdRunByAppConsumer('dream db:create', program.args))
     await sspawn(yarncmdRunByAppConsumer('dream db:migrate', program.args))
