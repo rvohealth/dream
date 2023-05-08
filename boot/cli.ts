@@ -106,18 +106,11 @@ program
   .option('--core', 'sets core to true')
   .action(async () => {
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    const stepArg = program.args.find(arg => /step=\d+/.test(arg))
+    const stepArg = program.args.find(arg => /--step=\d+/.test(arg))
     const step = stepArg ? parseInt(stepArg!.replace('--step=', '')) : 1
-    console.log('RUNNING: ', `${coreDevFlag}npx ts-node src/bin/db-rollback.ts ${step}`)
-    // await sspawn(`${coreDevFlag}npx ts-node src/bin/db-rollback.ts ${step}`)
-    // await sspawn(yarncmdRunByAppConsumer('dream sync:types', program.args))
-
     await sspawn(yarncmdRunByAppConsumer('dream sync:existing', program.args))
-    await sspawn(
-      `${coreDevFlag}npx ts-node src/bin/db-rollback.ts ${step} && ${
-        process.env.DREAM_CORE_DEVELOPMENT === '1' ? 'yarn dream sync:types --core' : 'yarn dream sync:types'
-      }`
-    )
+    await sspawn(`${coreDevFlag}npx ts-node src/bin/db-rollback.ts ${step}`)
+    await sspawn(yarncmdRunByAppConsumer('dream sync:types', program.args))
   })
 
 program
