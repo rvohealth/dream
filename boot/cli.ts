@@ -112,6 +112,7 @@ program
     // await sspawn(`${coreDevFlag}npx ts-node src/bin/db-rollback.ts ${step}`)
     // await sspawn(yarncmdRunByAppConsumer('dream sync:types', program.args))
 
+    await sspawn(yarncmdRunByAppConsumer('dream sync:existing', program.args))
     await sspawn(
       `${coreDevFlag}npx ts-node src/bin/db-rollback.ts ${step} && ${
         process.env.DREAM_CORE_DEVELOPMENT === '1' ? 'yarn dream sync:types --core' : 'yarn dream sync:types'
