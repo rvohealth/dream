@@ -1,3 +1,4 @@
+import InvalidDecimalFieldPassedToGenerator from '../../../src/exceptions/invalid-decimal-field-passed-to-generator'
 import generateMigrationContent from '../../../src/helpers/cli/generateMigrationContent'
 
 describe('dream generate:model <name> [...attributes]', () => {
@@ -41,6 +42,60 @@ export async function down(db: Kysely<any>): Promise<void> {
 }\
 `
         )
+      })
+    })
+
+    context('decimal attributes', () => {
+      it('generates a kysely migration with decimal field', async () => {
+        const res = generateMigrationContent({
+          table: 'chalupas',
+          attributes: ['deliciousness:decimal:4,2'],
+          useUUID: false,
+        })
+
+        expect(res).toEqual(
+          `\
+import { Kysely, sql } from 'kysely'
+
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createTable('chalupas')
+    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('deliciousness', 'decimal(4, 2)')
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+}
+
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropTable('chalupas').execute()
+}\
+`
+        )
+      })
+
+      context('scale and precision are missing', () => {
+        it('raises an exception', () => {
+          expect(() => {
+            generateMigrationContent({
+              table: 'chalupas',
+              attributes: ['deliciousness:decimal'],
+              useUUID: false,
+            })
+          }).toThrowError(InvalidDecimalFieldPassedToGenerator)
+        })
+      })
+
+      context('only precision is missing', () => {
+        it('raises an exception', () => {
+          expect(() => {
+            generateMigrationContent({
+              table: 'chalupas',
+              attributes: ['deliciousness:decimal:4'],
+              useUUID: false,
+            })
+          }).toThrowError(InvalidDecimalFieldPassedToGenerator)
+        })
       })
     })
 

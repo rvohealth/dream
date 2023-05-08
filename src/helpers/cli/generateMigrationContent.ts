@@ -1,6 +1,7 @@
 import * as pluralize from 'pluralize'
 import pascalize from '../../../src/helpers/pascalize'
 import snakeify from '../snakeify'
+import InvalidDecimalFieldPassedToGenerator from '../../exceptions/invalid-decimal-field-passed-to-generator'
 
 export default function generateMigrationContent({
   table,
@@ -21,10 +22,15 @@ export default function generateMigrationContent({
       if (attributeType === 'citext') requireCitextExtension = true
 
       let coercedAttributeType = getAttributeType(attribute)
-      if (attributeType === 'enum') {
-        return generateEnumStr(attribute)
-      } else {
-        return generateColumnStr(attributeName, coercedAttributeType, descriptors)
+      switch (attributeType) {
+        case 'enum':
+          return generateEnumStr(attribute)
+
+        case 'decimal':
+          return generateDecimalStr(attribute)
+
+        default:
+          return generateColumnStr(attributeName, coercedAttributeType, descriptors)
       }
     })
     .filter(str => str !== null)
@@ -116,6 +122,14 @@ function generateEnumDropStatements(attributes: string[]) {
 function generateEnumStr(attribute: string) {
   const computedAttributeType = enumAttributeType(attribute)
   return `.addColumn('${attribute.split(':')[0]}', ${computedAttributeType})`
+}
+
+function generateDecimalStr(attribute: string) {
+  const [attributeName, attributeType, ...descriptors] = attribute.split(':')
+  const [scale, precision] = descriptors[0]?.split(',') || [null, null]
+  if (!scale || !precision) throw new InvalidDecimalFieldPassedToGenerator(attribute)
+
+  return `.addColumn('${attribute.split(':')[0]}', 'decimal(${scale}, ${precision})')`
 }
 
 function generateColumnStr(attributeName: string, attributeType: string, descriptors: string[]) {
