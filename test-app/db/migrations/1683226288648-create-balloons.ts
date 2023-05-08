@@ -16,7 +16,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropTable('balloons').execute()
   await db.schema.dropType('balloon_colors_enum').execute()
   await db.schema.dropType('balloon_types_enum').execute()
-  await db.schema.dropTable('balloons').execute()
 }

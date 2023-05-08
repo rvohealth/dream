@@ -64,7 +64,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-  ${generateEnumDropStatements(attributes)}await db.schema.dropTable('${table}').execute()
+  await db.schema.dropTable('${table}').execute()${generateEnumDropStatements(attributes)}
 }\
 `
 }
@@ -116,7 +116,7 @@ function generateEnumDropStatements(attributes: string[]) {
     return `await db.schema.dropType('${enumName}_enum').execute()`
   })
 
-  return finalStatements.length ? finalStatements.join('\n  ') + '\n  ' : ''
+  return finalStatements.length ? '\n  ' + finalStatements.join('\n  ') : ''
 }
 
 function generateEnumStr(attribute: string) {

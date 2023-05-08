@@ -144,9 +144,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropTable('chalupas').execute()
   await db.schema.dropType('topping_enum').execute()
   await db.schema.dropType('protein_enum').execute()
-  await db.schema.dropTable('chalupas').execute()
 }\
 `
         )
