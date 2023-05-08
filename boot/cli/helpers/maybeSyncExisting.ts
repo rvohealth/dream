@@ -8,8 +8,11 @@ import absoluteFilePath from '../../../src/helpers/absoluteFilePath'
 export default async function maybeSyncExisting(programArgs: string[]) {
   const yamlConf = await loadDreamYamlFile()
   try {
-    console.log('DEBUGGING', absoluteFilePath(yamlConf.schema_path))
-    await fs.statfs(absoluteFilePath(yamlConf.schema_path))
+    const pathToCheck = programArgs.includes('--core')
+      ? process.cwd() + '/src/sync/schema.ts'
+      : process.cwd() + '/../../node_modules/dream/src/sync/schema.ts'
+    console.log('PATH', pathToCheck)
+    await fs.statfs(pathToCheck)
   } catch (_) {
     console.log('Missing schema file, resyncing app')
     await sspawn(yarncmdRunByAppConsumer('dream sync:existing', programArgs))
