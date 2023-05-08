@@ -4,7 +4,10 @@ import { loadDreamYamlFile, modelsPath } from './path'
 import pascalize from './pascalize'
 import getFiles from './getFiles'
 
+let models: { [key: string]: typeof Dream } | null = null
 export default async function loadModels() {
+  if (models) return models!
+
   const pathToModels = await modelsPath()
   const yamlConf = await loadDreamYamlFile()
   const modelPaths = (await getFiles(pathToModels)).filter(
@@ -13,7 +16,7 @@ export default async function loadModels() {
   const relativeModelPaths = modelPaths.map(path =>
     path.replace(new RegExp(`^.*${yamlConf.models_path}\/`), '')
   )
-  const models: { [key: string]: typeof Dream } = {}
+  models = {}
 
   const modelsObj: { [key: string]: typeof Dream | { [key: string]: typeof Dream } } = {}
   let currentRef: any = modelsObj

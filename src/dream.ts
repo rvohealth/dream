@@ -26,6 +26,9 @@ import DreamClassTransactionBuilder from './dream/class-transaction-builder'
 import safelyRunCommitHooks from './dream/internal/safelyRunCommitHooks'
 import saveDream from './dream/internal/saveDream'
 import DreamInstanceTransactionBuilder from './dream/instance-transaction-builder'
+import pascalize from './helpers/pascalize'
+import loadModels from './helpers/loadModels'
+import getModelKey from './helpers/getModelKey'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -77,6 +80,11 @@ export default class Dream {
 
   public static get isDream() {
     return true
+  }
+
+  public static async globalName<T extends typeof Dream>(this: T) {
+    const modelKey = await getModelKey(this)
+    return pascalize(modelKey!)
   }
 
   public static columns<
