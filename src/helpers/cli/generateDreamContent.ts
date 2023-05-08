@@ -15,6 +15,7 @@ const cooercedTypes = {
   cidr: 'string',
   circle: 'string',
   citext: 'string',
+  decimal: 'number',
   date: 'DateTime',
   datetime: 'DateTime',
   double: 'string',

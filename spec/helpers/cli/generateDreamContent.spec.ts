@@ -95,6 +95,15 @@ export default class Chalupa extends Dream {
       })
     })
 
+    context('with a decimal attribute', () => {
+      it('generates a dream model with a number field', async () => {
+        const res = generateDreamContent('user', ['chalupa_count:decimal'], {
+          useUUID: false,
+        })
+        expectSingleColumnWithType(res, 'chalupa_count', 'number', 'decimal')
+      })
+    })
+
     context('with a float attribute', () => {
       it('generates a dream model with a number field', async () => {
         const res = generateDreamContent('user', ['chalupa_count:float'], {
