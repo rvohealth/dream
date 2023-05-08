@@ -51,10 +51,8 @@ program
   .description('runs yarn dream sync:schema, then yarn dream sync:associations')
   .option('--core', 'sets core to true')
   .action(async () => {
-    const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    // await sspawn(`yarn dream sync:existing ${!!coreDevFlag ? '--core' : ''}`)
-    await sspawn(`yarn dream sync:schema ${!!coreDevFlag ? '--core' : ''}`)
-    await sspawn(`yarn dream sync:associations ${!!coreDevFlag ? '--core' : ''}`)
+    await sspawn(yarncmdRunByAppConsumer('dream sync:schema', program.args))
+    await sspawn(yarncmdRunByAppConsumer('dream sync:associations', program.args))
   })
 
 program
@@ -97,11 +95,8 @@ program
   .option('--core', 'sets core to true')
   .action(async () => {
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(
-      `${coreDevFlag}npx ts-node src/bin/db-migrate.ts && ${
-        process.env.DREAM_CORE_DEVELOPMENT === '1' ? 'yarn dream sync:types --core' : 'yarn dream sync:types'
-      }`
-    )
+    await sspawn(`${coreDevFlag}npx ts-node src/bin/db-migrate.ts`)
+    await sspawn(yarncmdRunByAppConsumer('dream sync:types', program.args))
   })
 
 program
@@ -113,11 +108,8 @@ program
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
     const stepArg = program.args.find(arg => /step=\d+/.test(arg))
     const step = stepArg ? parseInt(stepArg!.replace('--step=', '')) : 1
-    await sspawn(
-      `${coreDevFlag}npx ts-node src/bin/db-rollback.ts ${step} && ${
-        process.env.DREAM_CORE_DEVELOPMENT === '1' ? 'yarn dream sync:types --core' : 'yarn dream sync:types'
-      }`
-    )
+    await sspawn(`${coreDevFlag}npx ts-node src/bin/db-rollback.ts ${step}`)
+    await sspawn(yarncmdRunByAppConsumer('dream sync:types', program.args))
   })
 
 program
@@ -136,7 +128,6 @@ program
   .description('db:reset runs db:drop (safely), then db:create, then db:migrate')
   .option('--core', 'sets core to true')
   .action(async () => {
-    console.log('DEBUG', yarncmdRunByAppConsumer('dream sync:existing', program.args))
     await sspawn(yarncmdRunByAppConsumer('dream sync:existing', program.args))
     await sspawn(yarncmdRunByAppConsumer('dream db:drop', program.args))
     await sspawn(yarncmdRunByAppConsumer('dream db:create', program.args))
@@ -164,7 +155,7 @@ program
     setCoreDevelopmentFlag(program.args)
     const files = program.args.filter(arg => /\.spec\.ts$/.test(arg))
     if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-      await sspawn(`yarn dream sync:associations --core`)
+      await sspawn(yarncmdRunByAppConsumer('dream sync:associations', program.args))
       await sspawn(`DREAM_CORE_DEVELOPMENT=1 jest --runInBand --forceExit ${files.join(' ')}`)
     } else {
       throw 'this command is not meant for use outside core development'
