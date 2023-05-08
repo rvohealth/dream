@@ -2,7 +2,9 @@
 import { DateTime } from 'luxon'
 import type { ColumnType } from "kysely";
 
-export type BalloonColorEnum = "blue" | "green" | "red";
+export type BalloonColorsEnum = "blue" | "green" | "red";
+
+export type BalloonTypesEnum = "Latex" | "Mylar";
 
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
@@ -17,8 +19,8 @@ export type Timestamp = ColumnType<DateTime>;
 export interface Balloons {
   id: Generated<Int8>;
   user_id: Int8;
-  type: string | null;
-  color: BalloonColorEnum | null;
+  type: BalloonTypesEnum | null;
+  color: BalloonColorsEnum | null;
   created_at: Timestamp;
   updated_at: Timestamp;
 }
