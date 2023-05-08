@@ -1,3 +1,3 @@
 export default function yarnCwd(programArgs: string[]) {
-  return programArgs.includes('--core') ? '' : ' --cwd=../../'
+  return programArgs.includes('--core') ? '' : ' --cwd=../../ '
 }
