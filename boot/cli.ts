@@ -10,6 +10,7 @@ import generateDream from './cli/helpers/generateDream'
 import generateMigration from './cli/helpers/generateMigration'
 import sspawn from '../src/helpers/sspawn'
 import setCoreDevelopmentFlag, { coreSuffix } from './cli/helpers/setCoreDevelopmentFlag'
+import yarncmdRunByAppConsumer from './cli/helpers/yarncmdRunByAppConsumer'
 
 const program = new Command()
 
@@ -135,12 +136,9 @@ program
   .description('db:reset runs db:drop (safely), then db:create, then db:migrate')
   .option('--core', 'sets core to true')
   .action(async () => {
-    const coreSuffixFlag = coreSuffix(program.args)
-    const coreDevFlag = setCoreDevelopmentFlag(program.args)
-
-    await sspawn(`yarn dream db:drop${coreSuffixFlag}`)
-    await sspawn(`yarn dream db:create${coreSuffixFlag}`)
-    await sspawn(`yarn dream db:migrate${coreSuffixFlag}`)
+    await sspawn(yarncmdRunByAppConsumer('dream db:drop', program.args))
+    await sspawn(yarncmdRunByAppConsumer('dream db:create', program.args))
+    await sspawn(yarncmdRunByAppConsumer('dream db:migrate', program.args))
   })
 
 program
