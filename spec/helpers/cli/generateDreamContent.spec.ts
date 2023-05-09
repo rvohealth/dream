@@ -7,7 +7,7 @@ describe('howl generate:model <name> [...attributes]', () => {
       expect(res).toEqual(
         `\
 import { DateTime } from 'luxon'
-import { Dream } from 'dream'
+import { Dream, IdType } from 'dream'
 
 export default class MealType extends Dream {
   public get table() {
@@ -32,7 +32,7 @@ export default class MealType extends Dream {
         expect(res).toEqual(
           `\
 import { DateTime } from 'luxon'
-import { Dream } from 'dream'
+import { Dream, IdType } from 'dream'
 
 export default class User extends Dream {
   public get table() {
@@ -66,7 +66,7 @@ export default class User extends Dream {
         expect(res).toEqual(
           `\
 import { DateTime } from 'luxon'
-import { Dream } from 'dream'
+import { Dream, IdType } from 'dream'
 import { ToppingEnum, ProteinEnum, MyExistingEnumEnum } from '../../db/schema'
 
 export default class Chalupa extends Dream {
@@ -222,7 +222,7 @@ export default class CatToy extends Dream {
             expect(res).toEqual(
               `\
 import { DateTime } from 'luxon'
-import { Dream, HasMany } from 'dream'
+import { Dream, IdType, HasMany } from 'dream'
 import Cat from './Pet/Domestic/Cat'
 
 export default class CatToy extends Dream {
@@ -248,7 +248,7 @@ export default class CatToy extends Dream {
             expect(res).toEqual(
               `\
 import { DateTime } from 'luxon'
-import { Dream, HasOne } from 'dream'
+import { Dream, IdType, HasOne } from 'dream'
 import Cat from './Pet/Domestic/Cat'
 
 export default class CatToy extends Dream {
@@ -390,7 +390,7 @@ export default class Composition extends Dream {
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { Dream, HasOne } from 'dream'
+import { Dream, IdType, HasOne } from 'dream'
 import User from './User'
 
 export default class Composition extends Dream {
@@ -418,7 +418,7 @@ export default class Composition extends Dream {
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { Dream, HasMany } from 'dream'
+import { Dream, IdType, HasMany } from 'dream'
 import Composition from './Composition'
 
 export default class User extends Dream {
@@ -474,7 +474,7 @@ function expectSingleColumnWithType(response: string, name: string, type: string
   expect(response).toEqual(
     `\
 import { DateTime } from 'luxon'
-import { Dream } from 'dream'
+import { Dream, IdType } from 'dream'
 
 export default class User extends Dream {
   public get table() {

@@ -59,7 +59,7 @@ export default function generateDreamContent(
     useUUID?: boolean
   } = {}
 ) {
-  const dreamImports: string[] = ['Dream']
+  const dreamImports: string[] = ['Dream', 'IdType']
 
   const idTypescriptType = 'IdType'
 
@@ -80,7 +80,6 @@ export default function generateDreamContent(
 
     switch (attributeType) {
       case 'belongs_to':
-        dreamImports.push('IdType')
         dreamImports.push('BelongsTo')
         additionalImports.push(associationImportStatement)
         let belongsToOptions = descriptors.includes('many_to_one') ? ", { mode: 'many_to_one' }" : ''
