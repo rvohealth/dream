@@ -3,6 +3,7 @@ import User from '../../../test-app/app/models/User'
 import { Dream } from '../../../src'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
+import FailedToSaveDream from '../../../src/exceptions/failed-to-save-dream'
 
 describe('Dream#save', () => {
   context('a new record', () => {
@@ -119,6 +120,15 @@ describe('Dream#save', () => {
       expect(user!.updated_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
       const reloadedUser = await User.find(user.id)
       expect(reloadedUser!.updated_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+    })
+  })
+
+  context('when saving fails', () => {
+    it('throws an explicit error which can be rescued by a routing mechanism like the one within psychic', async () => {
+      await expect(() =>
+        // @ts-ignore
+        User.create({ email: 'how@yadoin', password: 'howyadoin', created_at: 'invalid date' })
+      ).rejects.toThrowError(FailedToSaveDream)
     })
   })
 })

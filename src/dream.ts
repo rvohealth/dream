@@ -29,6 +29,7 @@ import DreamInstanceTransactionBuilder from './dream/instance-transaction-builde
 import pascalize from './helpers/pascalize'
 import loadModels from './helpers/loadModels'
 import getModelKey from './helpers/getModelKey'
+import FailedToSaveDream from './exceptions/failed-to-save-dream'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -520,13 +521,17 @@ export default class Dream {
   }
 
   public async save<I extends Dream>(this: I): Promise<I> {
-    if (this.hasUnsavedAssociations) {
-      await Dream.transaction(async txn => {
-        await saveDream(this, txn)
-      })
-      return this
-    } else {
-      return await saveDream(this, null)
+    try {
+      if (this.hasUnsavedAssociations) {
+        await Dream.transaction(async txn => {
+          await saveDream(this, txn)
+        })
+        return this
+      } else {
+        return await saveDream(this, null)
+      }
+    } catch (error) {
+      throw new FailedToSaveDream(this.constructor as typeof Dream, error as Error)
     }
   }
 
