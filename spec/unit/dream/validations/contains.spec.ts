@@ -20,7 +20,7 @@ describe('Dream contains validation', () => {
   })
 
   it('does not raise an error when the field matches the validation', async () => {
-    const user = User.new({ email: 'hi@', password: 'howyadoin' })
+    const user = User.new({ email: 'hi@hi', password: 'howyadoin' })
     expect(user.isInvalid).toEqual(false)
     await user.save()
     expect(user.isPersisted).toEqual(true)

@@ -13,7 +13,6 @@ export default async function saveDream<DreamInstance extends Dream>(
   dream: DreamInstance,
   txn: DreamTransaction | null = null
 ) {
-  if (dream.isInvalid) throw new ValidationError(dream.constructor.name, dream.errors)
   const db = txn?.kyselyTransaction || _db
 
   const alreadyPersisted = dream.isPersisted
@@ -21,6 +20,10 @@ export default async function saveDream<DreamInstance extends Dream>(
   await runHooksFor('beforeSave', dream)
   if (alreadyPersisted) await runHooksFor('beforeUpdate', dream)
   else await runHooksFor('beforeCreate', dream)
+
+  // need to check validations running before hooks, or else
+  // model hooks that might make a model valid cannot run
+  if (dream.isInvalid) throw new ValidationError(dream.constructor.name, dream.errors)
 
   await saveUnsavedAssociations(dream, txn)
 

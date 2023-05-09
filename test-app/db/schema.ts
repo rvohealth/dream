@@ -97,7 +97,7 @@ export interface Users {
   id: Generated<Int8>;
   name: string | null;
   email: string;
-  password: string;
+  password_digest: string;
   created_at: Timestamp;
   updated_at: Timestamp;
   deleted_at: Timestamp | null;
@@ -135,7 +135,7 @@ export const PetColumns = ['id', 'user_id', 'species', 'name', 'created_at']
 export const PostColumns = ['id', 'user_id', 'post_visibility_id', 'body', 'created_at', 'updated_at']
 export const PostVisibilityColumns = ['id', 'visibility', 'notes', 'created_at', 'updated_at']
 export const RatingColumns = ['id', 'user_id', 'rateable_id', 'rateable_type', 'rating', 'created_at', 'updated_at']
-export const UserColumns = ['id', 'name', 'email', 'password', 'created_at', 'updated_at', 'deleted_at']
+export const UserColumns = ['id', 'name', 'email', 'password_digest', 'created_at', 'updated_at', 'deleted_at']
 export const UserSettingColumns = ['id', 'user_id', 'likes_chalupas', 'created_at', 'updated_at']
 
 export const DBColumns = {

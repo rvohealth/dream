@@ -35,7 +35,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     TableName extends keyof DB = InstanceType<I['dreamClass']>['table'] & keyof DB
   >(
     this: I,
-    opts?: Updateable<DB[TableName]> | AssociatedModelParam<DreamClass>
+    opts?: Updateable<DB[TableName]> | AssociatedModelParam<DreamClass> | any
   ): Promise<InstanceType<DreamClass>> {
     const dream = this.dreamClass.new(opts) as InstanceType<DreamClass>
     return saveDream(dream, this.dreamTransaction)

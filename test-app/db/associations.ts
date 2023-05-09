@@ -275,3 +275,19 @@ export interface SyncedBelongsToAssociations {
   }
 }
   
+
+export interface VirtualColumns {
+  "balloons": [],
+  "composition_asset_audits": [],
+  "composition_assets": [],
+  "compositions": [],
+  "incompatible_foreign_key_type_examples": [],
+  "pets": [],
+  "posts": [],
+  "post_visibilities": [],
+  "ratings": [],
+  "users": [
+    "password"
+  ],
+  "user_settings": []
+}

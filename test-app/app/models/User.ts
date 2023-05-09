@@ -1,3 +1,4 @@
+import * as bcrypt from 'bcrypt'
 import HasMany from '../../../src/decorators/associations/has-many'
 import HasOne from '../../../src/decorators/associations/has-one'
 import Scope from '../../../src/decorators/scope'
@@ -11,6 +12,8 @@ import { IdType } from '../../../src/db/reflections'
 import { DateTime } from 'luxon'
 import Balloon from './Balloon'
 import IncompatibleForeignKeyTypeExample from './IncompatibleForeignKeyTypeExample'
+import { BeforeSave } from '../../../src'
+import Virtual from '../../../src/decorators/virtual'
 
 export default class User extends Dream {
   public get table() {
@@ -23,13 +26,15 @@ export default class User extends Dream {
   public created_at: DateTime
   public updated_at: DateTime
 
+  @Virtual()
+  public password: string | undefined
+  public password_digest: string
+
   @Validates('contains', '@')
   @Validates('presence')
+  @Validates('length', { min: 4, max: 18 })
   public email: string
   public name: string
-
-  @Validates('length', { min: 4, max: 18 })
-  public password: string
 
   @HasOne(() => UserSettings)
   public userSettings: UserSettings
@@ -74,5 +79,16 @@ export default class User extends Dream {
   @Scope({ default: true })
   public static hideDeleted(query: any) {
     return query.where({ deleted_at: null })
+  }
+
+  @BeforeSave()
+  public async hashPass() {
+    if (this.password) this.password_digest = await bcrypt.hash(this.password, 4)
+    this.password = undefined
+  }
+
+  public async checkPassword(password: string) {
+    if (!this.password_digest) return false
+    return await bcrypt.compare(password, this.password_digest)
   }
 }

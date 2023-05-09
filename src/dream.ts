@@ -9,7 +9,7 @@ import { HookStatement, blankHooksFactory } from './decorators/hooks/shared'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { marshalDBValue } from './helpers/marshalDBValue'
-import { SyncedBelongsToAssociations } from './sync/associations'
+import { SyncedBelongsToAssociations, VirtualColumns } from './sync/associations'
 import {
   AssociatedModelParam,
   WhereStatement,
@@ -30,6 +30,8 @@ import pascalize from './helpers/pascalize'
 import loadModels from './helpers/loadModels'
 import getModelKey from './helpers/getModelKey'
 import FailedToSaveDream from './exceptions/failed-to-save-dream'
+import { VirtualAttributeStatement } from './decorators/virtual'
+import ValidationError from './exceptions/validation-error'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -51,6 +53,8 @@ export default class Dream {
     default: [],
     named: [],
   }
+
+  public static virtualAttributes: VirtualAttributeStatement[] = []
 
   public static extendedBy: (typeof Dream)[] | null
 
@@ -143,10 +147,7 @@ export default class Dream {
     return await query.count()
   }
 
-  public static async create<T extends typeof Dream>(
-    this: T,
-    opts?: Updateable<DB[InstanceType<T>['table']]> | AssociatedModelParam<T>
-  ) {
+  public static async create<T extends typeof Dream>(this: T, opts?: UpdateableFields<T>) {
     return (await new (this as any)(opts as any).save()) as InstanceType<T>
   }
 
@@ -294,7 +295,7 @@ export default class Dream {
     T extends typeof Dream,
     TableName extends AssociationTableNames = InstanceType<T>['table'],
     Table extends DB[keyof DB] = DB[TableName]
-  >(this: T, opts?: Updateable<Table> | AssociatedModelParam<T>) {
+  >(this: T, opts?: UpdateableFields<T>) {
     return new this(opts as any) as InstanceType<T>
   }
 
@@ -531,7 +532,13 @@ export default class Dream {
         return await saveDream(this, null)
       }
     } catch (error) {
-      throw new FailedToSaveDream(this.constructor as typeof Dream, error as Error)
+      switch ((error as Error).constructor) {
+        case ValidationError:
+          throw error
+
+        default:
+          throw new FailedToSaveDream(this.constructor as typeof Dream, error as Error)
+      }
     }
   }
 
@@ -555,3 +562,12 @@ export default class Dream {
     return await this.save()
   }
 }
+
+type UpdateableFields<
+  DreamClass extends typeof Dream,
+  TableName extends InstanceType<DreamClass>['table'] = InstanceType<DreamClass>['table'],
+  Table extends DB[TableName] = DB[TableName]
+> =
+  | Updateable<Table>
+  | Partial<{ [Property in VirtualColumns[TableName][number]]: any }>
+  | AssociatedModelParam<DreamClass>

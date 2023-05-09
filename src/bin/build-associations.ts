@@ -5,15 +5,60 @@ import loadModels from '../helpers/loadModels'
 import { loadDreamYamlFile } from '../helpers/path'
 import { DBColumns } from '../sync/schema'
 import absoluteFilePath from '../helpers/absoluteFilePath'
+import Dream from '../dream'
 
 export default async function buildAssociations() {
-  console.log('indexing dream associations...')
-  await writeAssociationsFile()
-  console.log('dream association indexing complete!')
+  console.log('writing dream type metadata...')
+  let fileStr = await writeAssociationsFile()
+  fileStr = await writeVirtualColumns(fileStr)
+
+  const filePath = path.join(__dirname, '..', 'sync', 'associations.ts')
+  const yamlConf = await loadDreamYamlFile()
+  const clientFilePath = absoluteFilePath(yamlConf.associations_path)
+  await fs.writeFile(filePath, fileStr)
+  await fs.writeFile(clientFilePath, fileStr)
 }
 buildAssociations()
 
-async function fleshOut(targetAssociationType?: string) {
+async function writeVirtualColumns(fileStr: string) {
+  const models = Object.values(await loadModels()) as (typeof Dream)[]
+  const finalModels: { [key: string]: string[] } = {}
+
+  Object.keys(DBColumns).forEach(column => {
+    finalModels[column] = []
+  })
+
+  for (const model of models) {
+    finalModels[model.prototype.table] ||= []
+    finalModels[model.prototype.table] = [
+      ...finalModels[model.prototype.table],
+      ...model.virtualAttributes.map(vc => vc.property),
+    ]
+  }
+
+  return `\
+${fileStr}
+
+export interface VirtualColumns ${JSON.stringify(finalModels, null, 2)}
+`
+}
+
+async function writeAssociationsFile() {
+  const finalModels = await fleshOutAssociations()
+  const finalBelongsToModels = await fleshOutAssociations('BelongsTo')
+
+  setEmptyObjectsToFalse(finalBelongsToModels)
+
+  return `\
+export default ${JSON.stringify(finalModels, null, 2)}
+
+export interface SyncedAssociations ${JSON.stringify(finalModels, null, 2)}
+
+export interface SyncedBelongsToAssociations ${JSON.stringify(finalBelongsToModels, null, 2)}
+  `
+}
+
+async function fleshOutAssociations(targetAssociationType?: string) {
   const models = Object.values(await loadModels()) as any[]
   const finalModels: { [key: string]: { [key: string]: string[] } } = {}
 
@@ -40,28 +85,6 @@ async function fleshOut(targetAssociationType?: string) {
   }
 
   return finalModels
-}
-
-async function writeAssociationsFile() {
-  const finalModels = await fleshOut()
-  const finalBelongsToModels = await fleshOut('BelongsTo')
-
-  setEmptyObjectsToFalse(finalBelongsToModels)
-
-  const filePath = path.join(__dirname, '..', 'sync', 'associations.ts')
-
-  const yamlConf = await loadDreamYamlFile()
-  const clientFilePath = absoluteFilePath(yamlConf.associations_path)
-
-  const str = `\
-export default ${JSON.stringify(finalModels, null, 2)}
-
-export interface SyncedAssociations ${JSON.stringify(finalModels, null, 2)}
-
-export interface SyncedBelongsToAssociations ${JSON.stringify(finalBelongsToModels, null, 2)}
-  `
-  await fs.writeFile(filePath, str)
-  await fs.writeFile(clientFilePath, str)
 }
 
 function setEmptyObjectsToFalse(models: { [key: string]: { [key: string]: string[] } | boolean }) {

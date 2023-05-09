@@ -3,9 +3,9 @@ import User from '../../../../test-app/app/models/User'
 
 describe('Dream length validation', () => {
   it('builds scope mapping', async () => {
-    const validation = User.validations.find(v => v.column === 'password' && v.type === 'length')!
+    const validation = User.validations.find(v => v.column === 'email' && v.type === 'length')!
     expect(validation.type).toEqual('length')
-    expect(validation.column).toEqual('password')
+    expect(validation.column).toEqual('email')
     expect(validation.options!.length!.min).toEqual(4)
     expect(validation.options!.length!.max).toEqual(18)
   })
@@ -16,24 +16,27 @@ describe('Dream length validation', () => {
   })
 
   it('prevents saving when a field requiring min length is less than the min length', async () => {
-    const user = User.new({ email: 'fred@', password: 'how' })
+    const user = User.new({ email: 'f@f', password: 'howyadoin' })
     expect(user.isInvalid).toEqual(true)
 
     await expect(user.save()).rejects.toThrowError(ValidationError)
 
     expect(user.isPersisted).toEqual(false)
     expect(await User.count()).toEqual(0)
-    expect(user.errors.password).toContain('length')
+    expect(user.errors.email).toContain('length')
   })
 
   it('prevents saving when a field requiring max length is greater than the max length', async () => {
-    const user = User.new({ email: 'fred@', password: 'sdjkfhsdjkfhjkshdfkjshdfkjhsdjkfhksjdhfksdjfhkjh' })
+    const user = User.new({
+      email: 'fred@lskdjfklsdjfklsjdfkljsdfkljsdklfjskldjfklsjfklsjdfklsjdkfljsdklfj',
+      password: 'howyadoin',
+    })
     expect(user.isInvalid).toEqual(true)
 
     await expect(user.save()).rejects.toThrowError(ValidationError)
 
     expect(user.isPersisted).toEqual(false)
     expect(await User.count()).toEqual(0)
-    expect(user.errors.password).toContain('length')
+    expect(user.errors.email).toContain('length')
   })
 })

@@ -34,7 +34,9 @@
     "yaml": "^2.2.1"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
     "@types/jest-plugin-context": "^2.9.5",
+    "bcrypt": "^5.1.0",
     "jest-plugin-context": "^2.9.0",
     "typedoc": "^0.24.6"
   }
