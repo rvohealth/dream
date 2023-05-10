@@ -29,9 +29,7 @@ import safelyRunCommitHooks from './dream/internal/safelyRunCommitHooks'
 import saveDream from './dream/internal/saveDream'
 import DreamInstanceTransactionBuilder from './dream/instance-transaction-builder'
 import pascalize from './helpers/pascalize'
-import loadModels from './helpers/loadModels'
 import getModelKey from './helpers/getModelKey'
-import FailedToSaveDream from './exceptions/failed-to-save-dream'
 import { VirtualAttributeStatement } from './decorators/virtual'
 import ValidationError from './exceptions/validation-error'
 
@@ -506,23 +504,13 @@ export default class Dream {
   }
 
   public async save<I extends Dream>(this: I): Promise<I> {
-    try {
-      if (this.hasUnsavedAssociations) {
-        await Dream.transaction(async txn => {
-          await saveDream(this, txn)
-        })
-        return this
-      } else {
-        return await saveDream(this, null)
-      }
-    } catch (error) {
-      switch ((error as Error).constructor) {
-        case ValidationError:
-          throw error
-
-        default:
-          throw new FailedToSaveDream(this.constructor as typeof Dream, error as Error)
-      }
+    if (this.hasUnsavedAssociations) {
+      await Dream.transaction(async txn => {
+        await saveDream(this, txn)
+      })
+      return this
+    } else {
+      return await saveDream(this, null)
     }
   }
 

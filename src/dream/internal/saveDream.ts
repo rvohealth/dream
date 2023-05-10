@@ -7,7 +7,6 @@ import saveUnsavedAssociations from './saveUnsavedAssociations'
 import sqlAttributes from '../../helpers/sqlAttributes'
 import safelyRunCommitHooks from './safelyRunCommitHooks'
 import _db from '../../db'
-import FailedToSaveDream from '../../exceptions/failed-to-save-dream'
 
 export default async function saveDream<DreamInstance extends Dream>(
   dream: DreamInstance,
@@ -45,15 +44,11 @@ export default async function saveDream<DreamInstance extends Dream>(
     query = db.insertInto(dream.table).values(sqlifiedAttributes as any)
   }
 
-  try {
-    if (alreadyPersisted) {
-      await query.executeTakeFirstOrThrow()
-    } else {
-      const data = await query.returning(dream.columns()).executeTakeFirstOrThrow()
-      dream.setAttributes(data)
-    }
-  } catch (error) {
-    throw new FailedToSaveDream(dream.constructor as typeof Dream, error as Error)
+  if (alreadyPersisted) {
+    await query.executeTakeFirstOrThrow()
+  } else {
+    const data = await query.returning(dream.columns()).executeTakeFirstOrThrow()
+    dream.setAttributes(data)
   }
 
   // set frozen attributes to what has already been saved
