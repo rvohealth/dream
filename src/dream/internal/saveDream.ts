@@ -21,7 +21,7 @@ export default async function saveDream<DreamInstance extends Dream>(
   if (alreadyPersisted) await runHooksFor('beforeUpdate', dream)
   else await runHooksFor('beforeCreate', dream)
 
-  // need to check validations running before hooks, or else
+  // need to check validations after running before hooks, or else
   // model hooks that might make a model valid cannot run
   if (dream.isInvalid) throw new ValidationError(dream.constructor.name, dream.errors)
 
