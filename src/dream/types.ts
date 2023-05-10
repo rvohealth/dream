@@ -1,9 +1,10 @@
 import { Updateable } from 'kysely'
 import { AssociationTableNames } from '../db/reflections'
-import { SyncedAssociations, SyncedBelongsToAssociations } from '../sync/associations'
+import { SyncedAssociations, SyncedBelongsToAssociations, VirtualColumns } from '../sync/associations'
 import Dream from '../dream'
 import { Inc } from '../helpers/typeutils'
 import { DB } from '../sync/schema'
+import { AssociatedModelParam } from '../decorators/associations/shared'
 
 export type NestedAssociationExpression<
   TB extends AssociationTableNames,
@@ -86,5 +87,22 @@ export interface AliasCondition<PreviousTableName extends AssociationTableNames>
   column: keyof Updateable<DB[PreviousTableName]>
   columnValue: any
 }
+
+export type UpdateableFields<DreamClass extends typeof Dream> =
+  | Updateable<DB[InstanceType<DreamClass>['table'] & AssociationTableNames]>
+  | AssociatedModelParam<DreamClass>
+  | (VirtualColumns[InstanceType<DreamClass>['table'] & keyof VirtualColumns] extends any[]
+      ? Record<VirtualColumns[InstanceType<DreamClass>['table'] & keyof VirtualColumns][number], any>
+      : never)
+
+export type UpdateableInstanceFields<
+  I extends Dream,
+  BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[I['table']]
+> =
+  | Updateable<DB[I['table'] & AssociationTableNames]>
+  | AssociationModelParam<I, BelongsToModelAssociationNames>
+  | (VirtualColumns[I['table'] & keyof VirtualColumns] extends any[]
+      ? Record<VirtualColumns[I['table'] & keyof VirtualColumns][number], any>
+      : never)
 
 export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) => T) & typeof Dream

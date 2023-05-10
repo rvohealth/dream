@@ -9,15 +9,17 @@ import { HookStatement, blankHooksFactory } from './decorators/hooks/shared'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { marshalDBValue } from './helpers/marshalDBValue'
-import { SyncedBelongsToAssociations, VirtualColumns } from './sync/associations'
-import {
-  AssociatedModelParam,
-  WhereStatement,
-  blankAssociationsFactory,
-} from './decorators/associations/shared'
+import { SyncedBelongsToAssociations } from './sync/associations'
+import { WhereStatement, blankAssociationsFactory } from './decorators/associations/shared'
 import { AssociationTableNames, IdType } from './db/reflections'
 import CanOnlyPassBelongsToModelParam from './exceptions/can-only-pass-belongs-to-model-param'
-import { AssociationExpression, AssociationModelParam, DreamConstructorType } from './dream/types'
+import {
+  AssociationExpression,
+  AssociationModelParam,
+  DreamConstructorType,
+  UpdateableFields,
+  UpdateableInstanceFields,
+} from './dream/types'
 import Query from './dream/query'
 import runHooksFor from './dream/internal/runHooksFor'
 import checkValidationsFor from './dream/internal/checkValidationsFor'
@@ -291,11 +293,7 @@ export default class Dream {
     return new Query<T>(this).whereNot(attributes)
   }
 
-  public static new<
-    T extends typeof Dream,
-    TableName extends AssociationTableNames = InstanceType<T>['table'],
-    Table extends DB[keyof DB] = DB[TableName]
-  >(this: T, opts?: UpdateableFields<T>) {
+  public static new<T extends typeof Dream>(this: T, opts?: UpdateableFields<T>) {
     return new this(opts as any) as InstanceType<T>
   }
 
@@ -485,22 +483,8 @@ export default class Dream {
     I extends Dream,
     TableName extends keyof DB = I['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName],
-    BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[TableName] = keyof SyncedBelongsToAssociations[TableName],
-    AssociationModelParam = Partial<
-      Record<
-        BelongsToModelAssociationNames,
-        ReturnType<I['associationMap'][keyof I['associationMap']]['modelCB']> extends () => (typeof Dream)[]
-          ? InstanceType<
-              ReturnType<
-                I['associationMap'][keyof I['associationMap']]['modelCB'] & (() => (typeof Dream)[])
-              >[number]
-            >
-          : InstanceType<
-              ReturnType<I['associationMap'][keyof I['associationMap']]['modelCB'] & (() => typeof Dream)>
-            >
-      >
-    >
-  >(attributes: Updateable<Table> | AssociationModelParam) {
+    BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[I['table']] = keyof SyncedBelongsToAssociations[I['table']]
+  >(this: I, attributes: Updateable<Table> | AssociationModelParam<I, BelongsToModelAssociationNames>) {
     const self = this as any
     Object.keys(attributes as any).forEach(attr => {
       const associationMetaData = this.associationMap[attr]
@@ -548,26 +532,11 @@ export default class Dream {
 
   public async update<
     I extends Dream,
-    TableName extends keyof DB = I['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName],
-    BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[I['table']] = keyof SyncedBelongsToAssociations[I['table']],
-    AssociatedModelParam extends AssociationModelParam<
-      I,
-      BelongsToModelAssociationNames
-    > = AssociationModelParam<I, BelongsToModelAssociationNames>
-  >(this: I, attributes: Updateable<Table> | AssociatedModelParam): Promise<I> {
+    BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[I['table']] = keyof SyncedBelongsToAssociations[I['table']]
+  >(this: I, attributes: UpdateableInstanceFields<I, BelongsToModelAssociationNames>): Promise<I> {
     this.setAttributes(attributes)
     // call save rather than _save so that any unsaved associations in the
     // attributes are saved with this model in a transaction
     return await this.save()
   }
 }
-
-type UpdateableFields<
-  DreamClass extends typeof Dream,
-  TableName extends InstanceType<DreamClass>['table'] = InstanceType<DreamClass>['table'],
-  Table extends DB[TableName] = DB[TableName]
-> =
-  | Updateable<Table>
-  | Partial<{ [Property in VirtualColumns[TableName][number]]: any }>
-  | AssociatedModelParam<DreamClass>

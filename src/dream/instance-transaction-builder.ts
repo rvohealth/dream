@@ -5,7 +5,7 @@ import { DB } from '../sync/schema'
 import DreamTransaction from './transaction'
 import saveDream from './internal/saveDream'
 import destroyDream from './internal/destroyDream'
-import { AssociationModelParam } from './types'
+import { AssociationModelParam, UpdateableInstanceFields } from './types'
 
 export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream> {
   public dreamInstance: DreamInstance
@@ -24,14 +24,11 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
 
   public async update<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    TableName extends keyof DB = DreamInstance['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName],
-    BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[DreamInstance['table']] = keyof SyncedBelongsToAssociations[DreamInstance['table']],
-    AssociatedModelParam extends AssociationModelParam<
-      DreamInstance,
-      BelongsToModelAssociationNames
-    > = AssociationModelParam<DreamInstance, BelongsToModelAssociationNames>
-  >(this: I, attributes: Updateable<Table> | AssociatedModelParam): Promise<DreamInstance> {
+    BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[DreamInstance['table']] = keyof SyncedBelongsToAssociations[DreamInstance['table']]
+  >(
+    this: I,
+    attributes: UpdateableInstanceFields<DreamInstance, BelongsToModelAssociationNames>
+  ): Promise<DreamInstance> {
     this.dreamInstance.setAttributes(attributes)
     return saveDream(this.dreamInstance, this.dreamTransaction)
   }

@@ -277,17 +277,17 @@ export interface SyncedBelongsToAssociations {
   
 
 export interface VirtualColumns {
-  "balloons": [],
-  "composition_asset_audits": [],
-  "composition_assets": [],
-  "compositions": [],
-  "incompatible_foreign_key_type_examples": [],
-  "pets": [],
-  "posts": [],
-  "post_visibilities": [],
-  "ratings": [],
+  "balloons": false,
+  "composition_asset_audits": false,
+  "composition_assets": false,
+  "compositions": false,
+  "incompatible_foreign_key_type_examples": false,
+  "pets": false,
+  "posts": false,
+  "post_visibilities": false,
+  "ratings": false,
   "users": [
     "password"
   ],
-  "user_settings": []
+  "user_settings": false
 }

@@ -22,19 +22,20 @@ buildAssociations()
 
 async function writeVirtualColumns(fileStr: string) {
   const models = Object.values(await loadModels()) as (typeof Dream)[]
-  const finalModels: { [key: string]: string[] } = {}
+  const modelsBeforeAdaption: { [key: string]: string[] } = {}
 
   Object.keys(DBColumns).forEach(column => {
-    finalModels[column] = []
+    modelsBeforeAdaption[column] = []
   })
 
   for (const model of models) {
-    finalModels[model.prototype.table] ||= []
-    finalModels[model.prototype.table] = [
-      ...finalModels[model.prototype.table],
+    modelsBeforeAdaption[model.prototype.table] ||= []
+    modelsBeforeAdaption[model.prototype.table] = [
+      ...modelsBeforeAdaption[model.prototype.table],
       ...model.virtualAttributes.map(vc => vc.property),
     ]
   }
+  const finalModels = setEmptyVirtualObjectsToFalse(modelsBeforeAdaption)
 
   return `\
 ${fileStr}
@@ -47,7 +48,7 @@ async function writeAssociationsFile() {
   const finalModels = await fleshOutAssociations()
   const finalBelongsToModels = await fleshOutAssociations('BelongsTo')
 
-  setEmptyObjectsToFalse(finalBelongsToModels)
+  setEmptyAssociationObjectsToFalse(finalBelongsToModels)
 
   return `\
 export default ${JSON.stringify(finalModels, null, 2)}
@@ -87,8 +88,16 @@ async function fleshOutAssociations(targetAssociationType?: string) {
   return finalModels
 }
 
-function setEmptyObjectsToFalse(models: { [key: string]: { [key: string]: string[] } | boolean }) {
+function setEmptyAssociationObjectsToFalse(models: { [key: string]: { [key: string]: string[] } | boolean }) {
   Object.keys(DBColumns).forEach(column => {
     if (Object.keys(models[column]).length === 0) models[column] = false
   })
+}
+
+function setEmptyVirtualObjectsToFalse(models: { [key: string]: string[] }) {
+  const newObj: { [key: string]: string[] | false } = { ...models }
+  Object.keys(models).forEach(column => {
+    if (models[column].length === 0) newObj[column] = false
+  })
+  return newObj
 }

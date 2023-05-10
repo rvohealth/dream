@@ -6,7 +6,7 @@ import DreamTransaction from './transaction'
 import db from '../db'
 import Query from './query'
 import { AssociationTableNames } from '../db/reflections'
-import { AssociationExpression } from './types'
+import { AssociationExpression, UpdateableFields } from './types'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import saveDream from './internal/saveDream'
 
@@ -30,12 +30,9 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     return query.count()
   }
 
-  public async create<
-    I extends DreamClassTransactionBuilder<DreamClass>,
-    TableName extends keyof DB = InstanceType<I['dreamClass']>['table'] & keyof DB
-  >(
+  public async create<I extends DreamClassTransactionBuilder<DreamClass>>(
     this: I,
-    opts?: Updateable<DB[TableName]> | AssociatedModelParam<DreamClass> | any
+    opts?: UpdateableFields<DreamClass> | any
   ): Promise<InstanceType<DreamClass>> {
     const dream = this.dreamClass.new(opts) as InstanceType<DreamClass>
     return saveDream(dream, this.dreamTransaction)
