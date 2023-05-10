@@ -105,8 +105,8 @@ describe('Query#where', () => {
   })
 
   context('a date range is passed', () => {
-    const begin = DateTime.now().toUTC()
-    const end = DateTime.now().toUTC().plus({ day: 1 })
+    const begin = DateTime.now()
+    const end = DateTime.now().plus({ day: 1 })
 
     let user0: User
     let user1: User

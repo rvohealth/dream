@@ -790,8 +790,8 @@ export default class Query<
         b = val.operator
         c = val.value
       } else if (val.constructor === Range && (val.begin?.constructor || val.end?.constructor) === DateTime) {
-        const rangeStart = val.begin?.toUTC()?.toJSDate()
-        const rangeEnd = val.end?.toUTC()?.toJSDate()
+        const rangeStart = val.begin?.toJSDate()
+        const rangeEnd = val.end?.toJSDate()
         const excludeEnd = val.excludeEnd
 
         if (rangeStart && rangeEnd) {

@@ -30,7 +30,7 @@ export default async function saveDream<DreamInstance extends Dream>(
 
   let query: any
 
-  const now = DateTime.now().toUTC()
+  const now = DateTime.now()
   if (!alreadyPersisted && !(dream as any).created_at && (dream.columns() as any[]).includes('created_at'))
     (dream as any).created_at = now
   if (!(dream.dirtyAttributes() as any).updated_at && (dream.columns() as any[]).includes('updated_at'))

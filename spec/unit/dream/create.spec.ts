@@ -19,17 +19,17 @@ describe('Dream.create', () => {
 
   it('sets created_at', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    expect(user!.created_at.toSeconds()).toBeWithin(1, DateTime.now().toUTC().toSeconds())
+    expect(user!.created_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
     const reloadedUser = await User.find(user.id)
-    expect(reloadedUser!.created_at.toSeconds()).toBeWithin(1, DateTime.now().toUTC().toSeconds())
+    expect(reloadedUser!.created_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
   })
 
   it('sets updated_at', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const now = DateTime.now().toUTC()
+    const now = DateTime.now()
     expect(user!.updated_at.toSeconds()).toBeWithin(1, now.toSeconds())
     const reloadedUser = await User.find(user.id)
-    expect(reloadedUser!.updated_at.toSeconds()).toBeWithin(1, DateTime.now().toUTC().toSeconds())
+    expect(reloadedUser!.updated_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
   })
 
   context('given a transaction', () => {

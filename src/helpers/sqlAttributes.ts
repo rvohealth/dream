@@ -5,7 +5,7 @@ export default function sqlAttributes(attributes: { [key: string]: any }) {
     const val = attributes[key]
 
     if (val?.constructor === DateTime) {
-      result[key] = val.toUTC().toJSDate()
+      result[key] = val.toJSDate()
     } else {
       result[key] = val
     }
