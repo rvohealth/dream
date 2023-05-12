@@ -107,6 +107,13 @@ export default class Query<
     }).first()
   }
 
+  public async findBy<T extends Query<DreamClass>>(
+    this: T,
+    attributes: Updateable<DB[InstanceType<DreamClass>['table']]>
+  ): Promise<(InstanceType<DreamClass> & Dream) | null> {
+    return await this.where(attributes).first()
+  }
+
   public includes<
     T extends Query<DreamClass>,
     QueryAssociationExpression extends AssociationExpression<
