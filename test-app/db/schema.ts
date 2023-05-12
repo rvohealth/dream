@@ -17,7 +17,8 @@ export type Numeric = ColumnType<string, string | number, string | number>;
 
 export type Species = "cat" | "dog" | "frog";
 
-export type Timestamp = ColumnType<DateTime>;
+export type Timestamp = ColumnType<DateTime>
+export type IdType = string | number | bigint | undefined;
 
 export interface Balloons {
   id: Generated<Int8>;
@@ -131,6 +132,7 @@ export interface DB {
 }
 
 
+
 export const BalloonColumns = ['id', 'user_id', 'type', 'volume', 'color', 'created_at', 'updated_at']
 export const CompositionAssetAuditColumns = ['id', 'composition_asset_id', 'approval', 'created_at', 'updated_at']
 export const CompositionAssetColumns = ['id', 'composition_id', 'src', 'primary', 'created_at', 'updated_at']
@@ -142,6 +144,104 @@ export const PostVisibilityColumns = ['id', 'visibility', 'notes', 'created_at',
 export const RatingColumns = ['id', 'user_id', 'rateable_id', 'rateable_type', 'rating', 'created_at', 'updated_at']
 export const UserColumns = ['id', 'name', 'email', 'password_digest', 'created_at', 'updated_at', 'deleted_at']
 export const UserSettingColumns = ['id', 'user_id', 'likes_chalupas', 'created_at', 'updated_at']
+
+export interface BalloonAttributes {
+  id: IdType,
+  user_id: IdType,
+  type: BalloonTypesEnum | null,
+  volume: number | null,
+  color: BalloonColorsEnum | null,
+  created_at: Timestamp,
+  updated_at: Timestamp
+}  
+
+export interface CompositionAssetAuditAttributes {
+  id: IdType,
+  composition_asset_id: IdType,
+  approval: boolean | null,
+  created_at: Timestamp,
+  updated_at: Timestamp
+}  
+
+export interface CompositionAssetAttributes {
+  id: IdType,
+  composition_id: IdType,
+  src: string | null,
+  primary: boolean | null,
+  created_at: Timestamp,
+  updated_at: Timestamp
+}  
+
+export interface CompositionAttributes {
+  id: IdType,
+  user_id: IdType,
+  content: string | null,
+  primary: boolean | null,
+  created_at: Timestamp,
+  updated_at: Timestamp
+}  
+
+export interface IncompatibleForeignKeyTypeExampleAttributes {
+  id: IdType,
+  user_id: number,
+  created_at: Timestamp,
+  updated_at: Timestamp
+}  
+
+export interface PetAttributes {
+  id: IdType,
+  user_id: IdType | null,
+  species: Species | null,
+  name: string | null,
+  deleted_at: Timestamp | null,
+  created_at: Timestamp
+}  
+
+export interface PostAttributes {
+  id: IdType,
+  user_id: IdType,
+  post_visibility_id: IdType | null,
+  body: string | null,
+  created_at: Timestamp,
+  updated_at: Timestamp
+}  
+
+export interface PostVisibilityAttributes {
+  id: IdType,
+  visibility: boolean | null,
+  notes: string | null,
+  created_at: Timestamp,
+  updated_at: Timestamp
+}  
+
+export interface RatingAttributes {
+  id: IdType,
+  user_id: IdType,
+  rateable_id: IdType,
+  rateable_type: string,
+  rating: number | null,
+  created_at: Timestamp,
+  updated_at: Timestamp
+}  
+
+export interface UserAttributes {
+  id: IdType,
+  name: string | null,
+  email: string,
+  password_digest: string,
+  created_at: Timestamp,
+  updated_at: Timestamp,
+  deleted_at: Timestamp | null
+}  
+
+export interface UserSettingAttributes {
+  id: IdType,
+  user_id: IdType,
+  likes_chalupas: boolean,
+  created_at: Timestamp,
+  updated_at: Timestamp
+}  
+
 
 export const BalloonsTypeCache = {
   id: 'Generated<Int8>',
@@ -241,18 +341,6 @@ export const UserSettingsTypeCache = {
 }  
 
 
-
-export type BalloonAttributes = Updateable<DB['balloons']>
-export type CompositionAssetAuditAttributes = Updateable<DB['composition_asset_audits']>
-export type CompositionAssetAttributes = Updateable<DB['composition_assets']>
-export type CompositionAttributes = Updateable<DB['compositions']>
-export type IncompatibleForeignKeyTypeExampleAttributes = Updateable<DB['incompatible_foreign_key_type_examples']>
-export type PetAttributes = Updateable<DB['pets']>
-export type PostAttributes = Updateable<DB['posts']>
-export type PostVisibilityAttributes = Updateable<DB['post_visibilities']>
-export type RatingAttributes = Updateable<DB['ratings']>
-export type UserAttributes = Updateable<DB['users']>
-export type UserSettingAttributes = Updateable<DB['user_settings']>
 
 export const DBColumns = {
   balloons: BalloonColumns,

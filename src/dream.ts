@@ -1,6 +1,6 @@
 import { CompiledQuery, SelectArg, SelectExpression, SelectType, Updateable } from 'kysely'
 import db from './db'
-import { DB, DBColumns, DBTypeCache } from './sync/schema'
+import { DB, DBColumns, IdType } from './sync/schema'
 import { HasManyStatement } from './decorators/associations/has-many'
 import { BelongsToStatement } from './decorators/associations/belongs-to'
 import { HasOneStatement } from './decorators/associations/has-one'
@@ -11,7 +11,7 @@ import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { marshalDBValue } from './helpers/marshalDBValue'
 import { SyncedBelongsToAssociations } from './sync/associations'
 import { WhereStatement, blankAssociationsFactory } from './decorators/associations/shared'
-import { AssociationTableNames, IdType } from './db/reflections'
+import { AssociationTableNames } from './db/reflections'
 import CanOnlyPassBelongsToModelParam from './exceptions/can-only-pass-belongs-to-model-param'
 import {
   AssociationExpression,

@@ -62,7 +62,7 @@ async function writeSchema() {
 // begin: schema helpers
 
 async function enhanceSchema(file: string) {
-  file = replaceTimestampWithLuxonVariant(file)
+  file = AddCustomTypeExports(file)
   file = replaceBlankExport(file)
   file = addCustomImports(file)
 
@@ -70,19 +70,18 @@ async function enhanceSchema(file: string) {
   const results = interfaces.slice(1, interfaces.length)
 
   const interfaceKeyIndexes = compact(results.map(result => indexInterfaceKeys(result)))
+  const dreamCoercedInterfaces = results.map(result => buildDreamCoercedInterfaces(result))
   const cachedInterfaces = results.map(result => buildCachedInterfaces(result))
   let transformedNames = compact(results.map(result => transformName(result))) as [string, string][]
 
   const newFileContents = `
 ${file}
 
+
 ${interfaceKeyIndexes.join('\n')}
 
+${dreamCoercedInterfaces.join('\n\n')}
 ${cachedInterfaces.join('\n\n')}
-
-${transformedNames
-  .map(([name]) => `export type ${pluralize.singular(name)}Attributes = Updateable<DB['${snakeify(name)}']>`)
-  .join('\n')}
 
 export const DBColumns = {
   ${
@@ -105,11 +104,13 @@ export const DBTypeCache = {
   return [newFileContents, transformedNames] as [string, [string, string][]]
 }
 
-function replaceTimestampWithLuxonVariant(file: string) {
+function AddCustomTypeExports(file: string) {
   return `\
 ${file.replace(
   'export type Timestamp = ColumnType<Date, Date | string, Date | string>',
-  'export type Timestamp = ColumnType<DateTime>'
+  `\
+export type Timestamp = ColumnType<DateTime>
+export type IdType = string | number | bigint | undefined`
 )}`
 }
 
@@ -156,6 +157,43 @@ function buildCachedInterfaces(str: string) {
   ${keysAndValues.map(([key, value]) => `${key}: '${value}'`).join(',\n  ')}
 }\
   `
+}
+
+function buildDreamCoercedInterfaces(str: string) {
+  const name = str.split(' {')[0].replace(/\s/g, '')
+  if (name === 'DB') return null
+
+  const keysAndValues = str
+    .split('{')[1]
+    .split('\n')
+    .filter(str => !['', '}'].includes(str.replace(/\s/g, '')))
+    .map(attr => [attr.split(':')[0].replace(/\s/g, ''), attr.split(':')[1].replace(/;$/, '')])
+
+  return `export interface ${pluralize.singular(name)}Attributes {
+  ${keysAndValues.map(([key, value]) => `${key}: ${coercedTypeString(value)}`).join(',\n  ')}
+}\
+  `
+}
+
+function coercedTypeString(typeString: string) {
+  return typeString
+    .replace(/\s/g, '')
+    .replace(/Generated<(.*)>/, '$1')
+    .split('|')
+    .map(individualType => {
+      const withoutGenerated = individualType.replace(/Generated<(.*)>/, '$1')
+      switch (withoutGenerated) {
+        case 'Numeric':
+          return 'number'
+
+        case 'Int8':
+          return 'IdType'
+
+        default:
+          return withoutGenerated
+      }
+    })
+    .join(' | ')
 }
 
 function transformName(str: string): [string, string] | null {
