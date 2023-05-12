@@ -64,6 +64,7 @@ async function writeSchema() {
 async function enhanceSchema(file: string) {
   file = replaceTimestampWithLuxonVariant(file)
   file = replaceBlankExport(file)
+  file = addCustomImports(file)
 
   const interfaces = file.split(/export interface/g)
   const results = interfaces.slice(1, interfaces.length)
@@ -78,6 +79,10 @@ ${file}
 ${interfaceKeyIndexes.join('\n')}
 
 ${cachedInterfaces.join('\n')}
+
+${transformedNames
+  .map(([name]) => `export type ${pluralize.singular(name)}Attributes = Updateable<DB['${snakeify(name)}']>`)
+  .join('\n')}
 
 export const DBColumns = {
   ${
@@ -102,11 +107,17 @@ export const DBTypeCache = {
 
 function replaceTimestampWithLuxonVariant(file: string) {
   return `\
-import { DateTime } from 'luxon'
 ${file.replace(
   'export type Timestamp = ColumnType<Date, Date | string, Date | string>',
   'export type Timestamp = ColumnType<DateTime>'
 )}`
+}
+
+function addCustomImports(file: string) {
+  return `\
+import { DateTime } from 'luxon'
+import type { Updateable } from 'kysely'
+${file}`
 }
 
 function replaceBlankExport(str: string) {
@@ -140,7 +151,6 @@ function buildCachedInterfaces(str: string) {
       attr.split(':')[0].replace(/\s/g, ''),
       attr.split(':')[1].replace(/\s/g, '').replace(/;$/, ''),
     ])
-  console.log(keysAndValues)
 
   return `export const ${name}TypeCache = {
   ${keysAndValues.map(([key, value]) => `${key}: '${value}'`).join(',\n  ')}

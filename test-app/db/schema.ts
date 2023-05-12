@@ -1,5 +1,6 @@
 
 import { DateTime } from 'luxon'
+import type { Updateable } from 'kysely'
 import type { ColumnType } from "kysely";
 
 export type BalloonColorsEnum = "blue" | "green" | "red";
@@ -229,6 +230,18 @@ export const UserSettingsTypeCache = {
   updated_at: 'Timestamp'
 }  
 
+
+export type BalloonAttributes = Updateable<DB['balloons']>
+export type CompositionAssetAuditAttributes = Updateable<DB['composition_asset_audits']>
+export type CompositionAssetAttributes = Updateable<DB['composition_assets']>
+export type CompositionAttributes = Updateable<DB['compositions']>
+export type IncompatibleForeignKeyTypeExampleAttributes = Updateable<DB['incompatible_foreign_key_type_examples']>
+export type PetAttributes = Updateable<DB['pets']>
+export type PostAttributes = Updateable<DB['posts']>
+export type PostVisibilityAttributes = Updateable<DB['post_visibilities']>
+export type RatingAttributes = Updateable<DB['ratings']>
+export type UserAttributes = Updateable<DB['users']>
+export type UserSettingAttributes = Updateable<DB['user_settings']>
 
 export const DBColumns = {
   balloons: BalloonColumns,
