@@ -1,6 +1,5 @@
 
 import { DateTime } from 'luxon'
-import type { Updateable } from 'kysely'
 import type { ColumnType } from "kysely";
 
 export type BalloonColorsEnum = "blue" | "green" | "red";
@@ -151,16 +150,16 @@ export interface BalloonAttributes {
   type: BalloonTypesEnum | null
   volume: number | null
   color: BalloonColorsEnum | null
-  created_at: Timestamp
-  updated_at: Timestamp
+  created_at: DateTime
+  updated_at: DateTime
 }  
 
 export interface CompositionAssetAuditAttributes {
   id: IdType
   composition_asset_id: IdType
   approval: boolean | null
-  created_at: Timestamp
-  updated_at: Timestamp
+  created_at: DateTime
+  updated_at: DateTime
 }  
 
 export interface CompositionAssetAttributes {
@@ -168,8 +167,8 @@ export interface CompositionAssetAttributes {
   composition_id: IdType
   src: string | null
   primary: boolean | null
-  created_at: Timestamp
-  updated_at: Timestamp
+  created_at: DateTime
+  updated_at: DateTime
 }  
 
 export interface CompositionAttributes {
@@ -177,15 +176,15 @@ export interface CompositionAttributes {
   user_id: IdType
   content: string | null
   primary: boolean | null
-  created_at: Timestamp
-  updated_at: Timestamp
+  created_at: DateTime
+  updated_at: DateTime
 }  
 
 export interface IncompatibleForeignKeyTypeExampleAttributes {
   id: IdType
   user_id: number
-  created_at: Timestamp
-  updated_at: Timestamp
+  created_at: DateTime
+  updated_at: DateTime
 }  
 
 export interface PetAttributes {
@@ -193,8 +192,8 @@ export interface PetAttributes {
   user_id: IdType | null
   species: Species | null
   name: string | null
-  deleted_at: Timestamp | null
-  created_at: Timestamp
+  deleted_at: DateTime | null
+  created_at: DateTime
 }  
 
 export interface PostAttributes {
@@ -202,16 +201,16 @@ export interface PostAttributes {
   user_id: IdType
   post_visibility_id: IdType | null
   body: string | null
-  created_at: Timestamp
-  updated_at: Timestamp
+  created_at: DateTime
+  updated_at: DateTime
 }  
 
 export interface PostVisibilityAttributes {
   id: IdType
   visibility: boolean | null
   notes: string | null
-  created_at: Timestamp
-  updated_at: Timestamp
+  created_at: DateTime
+  updated_at: DateTime
 }  
 
 export interface RatingAttributes {
@@ -220,8 +219,8 @@ export interface RatingAttributes {
   rateable_id: IdType
   rateable_type: string
   rating: number | null
-  created_at: Timestamp
-  updated_at: Timestamp
+  created_at: DateTime
+  updated_at: DateTime
 }  
 
 export interface UserAttributes {
@@ -229,17 +228,17 @@ export interface UserAttributes {
   name: string | null
   email: string
   password_digest: string
-  created_at: Timestamp
-  updated_at: Timestamp
-  deleted_at: Timestamp | null
+  created_at: DateTime
+  updated_at: DateTime
+  deleted_at: DateTime | null
 }  
 
 export interface UserSettingAttributes {
   id: IdType
   user_id: IdType
   likes_chalupas: boolean
-  created_at: Timestamp
-  updated_at: Timestamp
+  created_at: DateTime
+  updated_at: DateTime
 }  
 
 

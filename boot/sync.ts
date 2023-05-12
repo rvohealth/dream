@@ -185,6 +185,9 @@ function coercedTypeString(typeString: string) {
         case 'Numeric':
           return 'number'
 
+        case 'Timestamp':
+          return 'DateTime'
+
         case 'Int8':
           return 'IdType'
 
