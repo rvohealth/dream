@@ -20,4 +20,28 @@ describe('Dream presence numericality', () => {
     expect(await Mylar.count()).toEqual(0)
     expect(balloon.errors.volume).toContain('numericality')
   })
+
+  it('prevents saving when a field requiring numericality exceeds max threshold', async () => {
+    const user = await User.create({ email: 'fred@', password: 'howyadoin' })
+    const balloon = Mylar.new({ user, volume: 101 })
+    expect(balloon.isInvalid).toEqual(true)
+
+    await expect(balloon.save()).rejects.toThrowError(ValidationError)
+
+    expect(balloon.isPersisted).toEqual(false)
+    expect(await Mylar.count()).toEqual(0)
+    expect(balloon.errors.volume).toContain('numericality')
+  })
+
+  it('prevents saving when a field requiring numericality is less than the min threshold', async () => {
+    const user = await User.create({ email: 'fred@', password: 'howyadoin' })
+    const balloon = Mylar.new({ user, volume: -1 })
+    expect(balloon.isInvalid).toEqual(true)
+
+    await expect(balloon.save()).rejects.toThrowError(ValidationError)
+
+    expect(balloon.isPersisted).toEqual(false)
+    expect(await Mylar.count()).toEqual(0)
+    expect(balloon.errors.volume).toContain('numericality')
+  })
 })

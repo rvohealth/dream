@@ -3,7 +3,10 @@ export default interface ValidationStatement {
   column: string
   options?: {
     presence?: {}
-    numericality?: {}
+    numericality?: {
+      max?: number
+      min?: number
+    }
     contains?: {
       value: string | RegExp
     }

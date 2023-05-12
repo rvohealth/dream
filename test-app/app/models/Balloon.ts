@@ -17,7 +17,7 @@ export default class Balloon extends Dream {
   public created_at: DateTime
   public updated_at: DateTime
 
-  @Validates('numericality')
+  @Validates('numericality', { min: 0, max: 100 })
   public volume: number
 
   @BelongsTo(() => User)

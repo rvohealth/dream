@@ -1,6 +1,15 @@
 import ValidationStatement, { ValidationType } from './shared'
 
-export default function Validates(type: ValidationType, args?: any): any {
+export default function Validates<
+  VT extends ValidationType,
+  VTArgs extends VT extends 'numericality'
+    ? { min?: number; max?: number }
+    : VT extends 'length'
+    ? { min: number; max?: number }
+    : VT extends 'contains'
+    ? string | RegExp
+    : never
+>(type: VT, args?: VTArgs): any {
   return function (target: any, key: string, _: any) {
     if (!Object.getOwnPropertyDescriptor(target.constructor, 'validations'))
       target.constructor.validations = [] as ValidationStatement[]
@@ -19,7 +28,12 @@ function extractValidationOptionsFromArgs(type: ValidationType, args: any) {
       return { presence: {} }
 
     case 'numericality':
-      return { numericality: {} }
+      return {
+        numericality: {
+          max: args?.max,
+          min: args?.min,
+        },
+      }
 
     case 'contains':
       if (!['String', 'RegExp'].includes(args.constructor.name))
