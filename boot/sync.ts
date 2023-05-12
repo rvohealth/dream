@@ -117,7 +117,6 @@ export type IdType = string | number | bigint | undefined`
 function addCustomImports(file: string) {
   return `\
 import { DateTime } from 'luxon'
-import type { Updateable } from 'kysely'
 ${file}`
 }
 
