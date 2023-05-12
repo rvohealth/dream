@@ -19,6 +19,15 @@ describe('Dream#update', () => {
     expect(reloadedUser!.name).toEqual('Snoopy')
   })
 
+  it('does not update neighboring records', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'Charlie Brown' })
+    const user2 = await User.create({ email: 'fred@fred', password: 'howyadoin', name: 'Blues jr' })
+
+    await user.update({ email: 'how@yadoin' })
+    await user2.reload()
+    expect(user2.email).toEqual('fred@fred')
+  })
+
   context('when encased in a transaction', () => {
     it('updates the underlying model in the db', async () => {
       let user: User | null = null
