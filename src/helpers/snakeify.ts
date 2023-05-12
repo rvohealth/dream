@@ -1,6 +1,15 @@
-export default function snakeify(str: any): any {
+export default function snakeify<
+  T extends string | { [key: string]: any } | (string | { [key: string]: any })[],
+  RT extends T extends string
+    ? string
+    : T extends { [key: string]: any }
+    ? { [key: string]: any }
+    : T extends (string | { [key: string]: any })[]
+    ? (string | { [key: string]: any })[]
+    : never
+>(str: T): RT {
   if (Array.isArray(str)) {
-    return str.map(s => snakeify(s))
+    return str.map(s => snakeify(s)) as RT
   }
 
   if (typeof str === 'object') {
@@ -10,7 +19,7 @@ export default function snakeify(str: any): any {
 
       agg[snakeify(s) as string] = str[s]
       return agg
-    }, agg)
+    }, agg) as RT
   }
 
   return str
@@ -19,5 +28,5 @@ export default function snakeify(str: any): any {
     .replace(/\//g, '_')
     .replace(/-/g, '_')
     .replace(/_+/g, '_')
-    .toLowerCase()
+    .toLowerCase() as RT
 }
