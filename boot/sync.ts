@@ -69,6 +69,7 @@ async function enhanceSchema(file: string) {
   const results = interfaces.slice(1, interfaces.length)
 
   const interfaceKeyIndexes = compact(results.map(result => indexInterfaceKeys(result)))
+  const cachedInterfaces = results.map(result => buildCachedInterfaces(result))
   let transformedNames = compact(results.map(result => transformName(result))) as [string, string][]
 
   const newFileContents = `
@@ -76,12 +77,22 @@ ${file}
 
 ${interfaceKeyIndexes.join('\n')}
 
+${cachedInterfaces.join('\n')}
+
 export const DBColumns = {
   ${
     transformedNames.length
       ? transformedNames
           .map(([name, newName]) => `${snakeify(name)}: ${pluralize.singular(name)}Columns`)
           .join(',\n  ')
+      : 'placeholder: []'
+  }
+}
+
+export const DBTypeCache = {
+  ${
+    transformedNames.length
+      ? transformedNames.map(([name, newName]) => `${snakeify(name)}: ${name}TypeCache`).join(',\n  ')
       : 'placeholder: []'
   }
 }
@@ -115,6 +126,26 @@ function indexInterfaceKeys(str: string) {
   return `export const ${pluralize.singular(name)}Columns = [\
 ${keys.map(key => `'${key}'`).join(', ')}]\
 `
+}
+
+function buildCachedInterfaces(str: string) {
+  const name = str.split(' {')[0].replace(/\s/g, '')
+  if (name === 'DB') return null
+
+  const keysAndValues = str
+    .split('{')[1]
+    .split('\n')
+    .filter(str => !['', '}'].includes(str.replace(/\s/g, '')))
+    .map(attr => [
+      attr.split(':')[0].replace(/\s/g, ''),
+      attr.split(':')[1].replace(/\s/g, '').replace(/;$/, ''),
+    ])
+  console.log(keysAndValues)
+
+  return `export const ${name}TypeCache = {
+  ${keysAndValues.map(([key, value]) => `${key}: '${value}'`).join(',\n  ')}
+}\
+  `
 }
 
 function transformName(str: string): [string, string] | null {

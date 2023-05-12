@@ -13,6 +13,7 @@ export default class Balloon extends Dream {
   public id: IdType
   public type: BalloonTypesEnum
   public color: BalloonColorsEnum
+  public volume: number
   public created_at: DateTime
   public updated_at: DateTime
 

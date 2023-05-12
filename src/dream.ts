@@ -1,6 +1,6 @@
 import { CompiledQuery, SelectArg, SelectExpression, SelectType, Updateable } from 'kysely'
 import db from './db'
-import { DB, DBColumns } from './sync/schema'
+import { DB, DBColumns, DBTypeCache } from './sync/schema'
 import { HasManyStatement } from './decorators/associations/has-many'
 import { BelongsToStatement } from './decorators/associations/belongs-to'
 import { HasOneStatement } from './decorators/associations/has-one'
@@ -32,6 +32,8 @@ import pascalize from './helpers/pascalize'
 import getModelKey from './helpers/getModelKey'
 import { VirtualAttributeStatement } from './decorators/virtual'
 import ValidationError from './exceptions/validation-error'
+import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
+import isDecimal from './helpers/db/isDecimal'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -504,9 +506,25 @@ export default class Dream {
           self[associationMetaData.foreignKeyTypeField()] = associatedObject.constructor.name
       } else {
         // TODO: cleanup type chaos
-        self[attr] = marshalDBValue((attributes as any)[attr])
+        self[attr] = marshalDBValue((attributes as any)[attr], { column: attr as any, table: this.table })
       }
     })
+  }
+
+  public cachedTypeFor<
+    I extends Dream,
+    TableName extends keyof DB = I['table'] & keyof DB,
+    Table extends DB[keyof DB] = DB[TableName]
+  >(this: I, attribute: keyof Table): string {
+    return cachedTypeForAttribute(attribute, { table: this.table })
+  }
+
+  public isDecimal<
+    I extends Dream,
+    TableName extends keyof DB = I['table'] & keyof DB,
+    Table extends DB[keyof DB] = DB[TableName]
+  >(this: I, attribute: keyof Table): boolean {
+    return isDecimal(attribute, { table: this.table })
   }
 
   public async save<I extends Dream>(this: I): Promise<I> {

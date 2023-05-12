@@ -9,6 +9,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('user_id', 'bigint', col => col.references('users.id').onDelete('cascade').notNull())
     .addColumn('type', sql`balloon_types_enum`)
+    .addColumn('volume', 'decimal(6, 3)')
     .addColumn('color', sql`balloon_colors_enum`)
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())

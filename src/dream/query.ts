@@ -260,9 +260,17 @@ export default class Query<
     const vals = (await query.execute()).map(result => Object.values(result))
 
     if (fields.length > 1) {
-      return vals.map(arr => arr.map(val => marshalDBValue(val))) as any[]
+      return vals.map(arr =>
+        arr.map((val, index) =>
+          marshalDBValue(val, { table: this.dreamClass.prototype.table, column: fields[index] as any })
+        )
+      ) as any[]
     } else {
-      return vals.flat().map(val => marshalDBValue(val)) as any[]
+      return vals
+        .flat()
+        .map((val, index) =>
+          marshalDBValue(val, { table: this.dreamClass.prototype.table, column: fields[index] as any })
+        ) as any[]
     }
   }
 
