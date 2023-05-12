@@ -2,7 +2,7 @@ import User from '../../../test-app/app/models/User'
 import Pet from '../../../test-app/app/models/Pet'
 import { IdType } from '../../../src'
 
-describe('Dream#cancel', () => {
+describe('Dream#unscoped', () => {
   let user: User
   let pet: Pet
   let petId: IdType | null = null
@@ -12,7 +12,7 @@ describe('Dream#cancel', () => {
     petId = pet.id
   })
 
-  it('cancels the deleting of a record, allowing hooks to carefully implement a paranoid pattern', async () => {
+  it('returns an unscoped query', async () => {
     await pet.destroy()
     const reloadedPet = await Pet.unscoped().find(petId)
     expect(reloadedPet!.deleted_at).not.toBeNull()
