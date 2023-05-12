@@ -52,5 +52,5 @@ export default function isValid(dream: Dream, validation: ValidationStatement) {
 }
 
 function isBlank(value: any) {
-  return value === undefined || [null, ''].includes(value)
+  return [undefined, null, ''].includes(value)
 }
