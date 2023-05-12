@@ -18,6 +18,9 @@ function extractValidationOptionsFromArgs(type: ValidationType, args: any) {
     case 'presence':
       return { presence: {} }
 
+    case 'numericality':
+      return { numericality: {} }
+
     case 'contains':
       if (!['String', 'RegExp'].includes(args.constructor.name))
         throw `When validating using "contains", the second argument must be a string or regular expression`

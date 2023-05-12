@@ -3,6 +3,7 @@ export default interface ValidationStatement {
   column: string
   options?: {
     presence?: {}
+    numericality?: {}
     contains?: {
       value: string | RegExp
     }
@@ -13,4 +14,4 @@ export default interface ValidationStatement {
   }
 }
 
-export type ValidationType = 'presence' | 'contains' | 'length' | 'requiredBelongsTo'
+export type ValidationType = 'presence' | 'numericality' | 'contains' | 'length' | 'requiredBelongsTo'

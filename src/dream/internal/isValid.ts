@@ -6,6 +6,9 @@ export default function isValid(dream: Dream, validation: ValidationStatement) {
     case 'presence':
       return ![undefined, null, ''].includes((dream as any)[validation.column])
 
+    case 'numericality':
+      return !isNaN((dream as any)[validation.column])
+
     case 'contains':
       switch (validation.options!.contains!.value.constructor) {
         case String:
