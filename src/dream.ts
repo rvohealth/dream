@@ -426,7 +426,7 @@ export default class Dream {
     this: I
   ): Promise<I> {
     await runHooksFor('beforeDestroy', this)
-    if (this._cancelSave) return this.uncancel()
+    if (this._preventDeletion) return this.unpreventDeletion()
 
     const Base = this.constructor as DreamConstructorType<I>
 
@@ -534,13 +534,13 @@ export default class Dream {
     return await this.save()
   }
 
-  public _cancelSave: boolean = false
-  public cancel() {
-    this._cancelSave = true
+  public _preventDeletion: boolean = false
+  public preventDeletion() {
+    this._preventDeletion = true
   }
 
-  public uncancel() {
-    this._cancelSave = false
+  public unpreventDeletion() {
+    this._preventDeletion = false
     return this
   }
 }

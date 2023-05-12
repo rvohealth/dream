@@ -1,7 +1,7 @@
 import User from '../../../test-app/app/models/User'
 import Pet from '../../../test-app/app/models/Pet'
 
-describe('Dream#cancel', () => {
+describe('Dream#preventDeletion', () => {
   let user: User
   let pet: Pet
   beforeEach(async () => {

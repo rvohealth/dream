@@ -25,6 +25,6 @@ export default class Pet extends Dream {
   @BeforeDestroy()
   public async doSoftDelete() {
     await (this as Pet).update({ deleted_at: DateTime.now() })
-    this.cancel()
+    this.preventDeletion()
   }
 }
