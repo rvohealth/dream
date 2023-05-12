@@ -146,99 +146,99 @@ export const UserColumns = ['id', 'name', 'email', 'password_digest', 'created_a
 export const UserSettingColumns = ['id', 'user_id', 'likes_chalupas', 'created_at', 'updated_at']
 
 export interface BalloonAttributes {
-  id: IdType,
-  user_id: IdType,
-  type: BalloonTypesEnum | null,
-  volume: number | null,
-  color: BalloonColorsEnum | null,
-  created_at: Timestamp,
+  id: IdType
+  user_id: IdType
+  type: BalloonTypesEnum | null
+  volume: number | null
+  color: BalloonColorsEnum | null
+  created_at: Timestamp
   updated_at: Timestamp
 }  
 
 export interface CompositionAssetAuditAttributes {
-  id: IdType,
-  composition_asset_id: IdType,
-  approval: boolean | null,
-  created_at: Timestamp,
+  id: IdType
+  composition_asset_id: IdType
+  approval: boolean | null
+  created_at: Timestamp
   updated_at: Timestamp
 }  
 
 export interface CompositionAssetAttributes {
-  id: IdType,
-  composition_id: IdType,
-  src: string | null,
-  primary: boolean | null,
-  created_at: Timestamp,
+  id: IdType
+  composition_id: IdType
+  src: string | null
+  primary: boolean | null
+  created_at: Timestamp
   updated_at: Timestamp
 }  
 
 export interface CompositionAttributes {
-  id: IdType,
-  user_id: IdType,
-  content: string | null,
-  primary: boolean | null,
-  created_at: Timestamp,
+  id: IdType
+  user_id: IdType
+  content: string | null
+  primary: boolean | null
+  created_at: Timestamp
   updated_at: Timestamp
 }  
 
 export interface IncompatibleForeignKeyTypeExampleAttributes {
-  id: IdType,
-  user_id: number,
-  created_at: Timestamp,
+  id: IdType
+  user_id: number
+  created_at: Timestamp
   updated_at: Timestamp
 }  
 
 export interface PetAttributes {
-  id: IdType,
-  user_id: IdType | null,
-  species: Species | null,
-  name: string | null,
-  deleted_at: Timestamp | null,
+  id: IdType
+  user_id: IdType | null
+  species: Species | null
+  name: string | null
+  deleted_at: Timestamp | null
   created_at: Timestamp
 }  
 
 export interface PostAttributes {
-  id: IdType,
-  user_id: IdType,
-  post_visibility_id: IdType | null,
-  body: string | null,
-  created_at: Timestamp,
+  id: IdType
+  user_id: IdType
+  post_visibility_id: IdType | null
+  body: string | null
+  created_at: Timestamp
   updated_at: Timestamp
 }  
 
 export interface PostVisibilityAttributes {
-  id: IdType,
-  visibility: boolean | null,
-  notes: string | null,
-  created_at: Timestamp,
+  id: IdType
+  visibility: boolean | null
+  notes: string | null
+  created_at: Timestamp
   updated_at: Timestamp
 }  
 
 export interface RatingAttributes {
-  id: IdType,
-  user_id: IdType,
-  rateable_id: IdType,
-  rateable_type: string,
-  rating: number | null,
-  created_at: Timestamp,
+  id: IdType
+  user_id: IdType
+  rateable_id: IdType
+  rateable_type: string
+  rating: number | null
+  created_at: Timestamp
   updated_at: Timestamp
 }  
 
 export interface UserAttributes {
-  id: IdType,
-  name: string | null,
-  email: string,
-  password_digest: string,
-  created_at: Timestamp,
-  updated_at: Timestamp,
+  id: IdType
+  name: string | null
+  email: string
+  password_digest: string
+  created_at: Timestamp
+  updated_at: Timestamp
   deleted_at: Timestamp | null
 }  
 
 export interface UserSettingAttributes {
-  id: IdType,
-  user_id: IdType,
-  likes_chalupas: boolean,
-  created_at: Timestamp,
+  id: IdType
+  user_id: IdType
+  likes_chalupas: boolean
+  created_at: Timestamp
   updated_at: Timestamp
 }  
 

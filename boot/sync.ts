@@ -170,7 +170,7 @@ function buildDreamCoercedInterfaces(str: string) {
     .map(attr => [attr.split(':')[0].replace(/\s/g, ''), attr.split(':')[1].replace(/;$/, '')])
 
   return `export interface ${pluralize.singular(name)}Attributes {
-  ${keysAndValues.map(([key, value]) => `${key}: ${coercedTypeString(value)}`).join(',\n  ')}
+  ${keysAndValues.map(([key, value]) => `${key}: ${coercedTypeString(value)}`).join('\n  ')}
 }\
   `
 }
