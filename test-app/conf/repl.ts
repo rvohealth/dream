@@ -1,6 +1,6 @@
-import * as repl from 'node:repl'
-import * as fs from 'fs/promises'
-import * as path from 'path'
+import repl from 'node:repl'
+import fs from 'fs/promises'
+import path from 'path'
 import { loadDreamYamlFile } from '../../src/helpers/path'
 import absoluteFilePath from '../../src/helpers/absoluteFilePath'
 

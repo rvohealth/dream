@@ -1,4 +1,4 @@
-import * as path from 'path'
+import path from 'path'
 import Dream from '../dream'
 import { loadDreamYamlFile, modelsPath } from './path'
 import pascalize from './pascalize'

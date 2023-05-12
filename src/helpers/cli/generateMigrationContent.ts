@@ -1,4 +1,4 @@
-import * as pluralize from 'pluralize'
+import pluralize from 'pluralize'
 import pascalize from '../../../src/helpers/pascalize'
 import snakeify from '../snakeify'
 import InvalidDecimalFieldPassedToGenerator from '../../exceptions/invalid-decimal-field-passed-to-generator'

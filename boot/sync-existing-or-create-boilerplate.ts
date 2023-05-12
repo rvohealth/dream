@@ -1,4 +1,4 @@
-import * as fs from 'fs/promises'
+import fs from 'fs/promises'
 import sspawn from '../src/helpers/sspawn'
 import { loadDreamYamlFile } from '../src/helpers/path'
 

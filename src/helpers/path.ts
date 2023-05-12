@@ -1,5 +1,5 @@
-import * as path from 'path'
-import * as YAML from 'yaml'
+import path from 'path'
+import YAML from 'yaml'
 import { promises as fs } from 'fs'
 import compact from './compact'
 

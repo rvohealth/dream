@@ -1,5 +1,5 @@
 import '../helpers/loadEnv'
-import * as path from 'path'
+import path from 'path'
 import { promises as fs } from 'fs'
 import loadModels from '../helpers/loadModels'
 import { loadDreamYamlFile } from '../helpers/path'

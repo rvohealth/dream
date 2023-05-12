@@ -1,4 +1,4 @@
-import * as fs from 'fs/promises'
+import fs from 'fs/promises'
 import migrationVersion from './migrationVersion'
 import hyphenize from '../../../src/helpers/hyphenize'
 import generateMigrationContent from '../../../src/helpers/cli/generateMigrationContent'

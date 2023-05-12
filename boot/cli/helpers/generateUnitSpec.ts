@@ -1,4 +1,4 @@
-import * as fs from 'fs/promises'
+import fs from 'fs/promises'
 import { loadDreamYamlFile } from '../../../src/helpers/path'
 import absoluteFilePath from '../../../src/helpers/absoluteFilePath'
 

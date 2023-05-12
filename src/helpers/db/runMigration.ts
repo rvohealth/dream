@@ -1,7 +1,7 @@
 import { FileMigrationProvider, Migrator } from 'kysely'
 import { loadDreamYamlFile } from '../path'
 import { promises as fs } from 'fs'
-import * as path from 'path'
+import path from 'path'
 import db from '../../db'
 import absoluteFilePath from '../absoluteFilePath'
 

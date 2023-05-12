@@ -1,5 +1,5 @@
-import * as pluralize from 'pluralize'
-import * as fs from 'fs/promises'
+import pluralize from 'pluralize'
+import fs from 'fs/promises'
 import generateDreamContent from '../../../src/helpers/cli/generateDreamContent'
 import generateMigrationContent from '../../../src/helpers/cli/generateMigrationContent'
 import migrationVersion from './migrationVersion'

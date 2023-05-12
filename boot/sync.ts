@@ -1,6 +1,6 @@
 import '../src/helpers/loadEnv'
-import * as pluralize from 'pluralize'
-import * as path from 'path'
+import pluralize from 'pluralize'
+import path from 'path'
 import { promises as fs } from 'fs'
 import sspawn from '../src/helpers/sspawn'
 import { loadDreamYamlFile } from '../src/helpers/path'
