@@ -18,10 +18,12 @@ export default function BelongsTo(
   } = {}
 ): any {
   return function (target: any, key: string, _: any) {
-    if (!Object.getOwnPropertyDescriptor(target.constructor, 'associations'))
-      target.constructor.associations = blankAssociationsFactory()
+    const dreamClass: typeof Dream = target.constructor
 
-    target.constructor.associations['belongsTo'].push({
+    if (!Object.getOwnPropertyDescriptor(dreamClass, 'associations'))
+      dreamClass.associations = blankAssociationsFactory(dreamClass)
+
+    dreamClass.associations['belongsTo'].push({
       modelCB,
       type: 'BelongsTo',
       optional,

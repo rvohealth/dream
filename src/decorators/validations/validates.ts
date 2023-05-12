@@ -1,3 +1,4 @@
+import Dream from '../../dream'
 import ValidationStatement, { ValidationType } from './shared'
 
 export default function Validates<
@@ -11,10 +12,11 @@ export default function Validates<
     : never
 >(type: VT, args?: VTArgs): any {
   return function (target: any, key: string, _: any) {
-    if (!Object.getOwnPropertyDescriptor(target.constructor, 'validations'))
-      target.constructor.validations = [] as ValidationStatement[]
+    const t = target.constructor as typeof Dream
+    if (!Object.getOwnPropertyDescriptor(t, 'validations'))
+      t.validations = [...(t.validations || [])] as ValidationStatement[]
 
-    target.constructor.validations.push({
+    t.validations.push({
       type,
       column: key,
       options: extractValidationOptionsFromArgs(type, args),

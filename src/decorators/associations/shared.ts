@@ -49,14 +49,14 @@ export interface HasStatement<
   where?: WhereStatement<ForeignTableName>
 }
 
-export function blankAssociationsFactory(): {
+export function blankAssociationsFactory(dreamClass: typeof Dream): {
   belongsTo: BelongsToStatement<any>[]
   hasMany: HasManyStatement<any>[]
   hasOne: HasOneStatement<any>[]
 } {
   return {
-    belongsTo: [],
-    hasMany: [],
-    hasOne: [],
+    belongsTo: [...(dreamClass.associations?.belongsTo || [])],
+    hasMany: [...(dreamClass.associations?.hasMany || [])],
+    hasOne: [...(dreamClass.associations?.hasOne || [])],
   }
 }

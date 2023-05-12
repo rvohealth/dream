@@ -1,5 +1,4 @@
 import pluralize = require('pluralize')
-import dream from '../../dream'
 import { HasStatement, WhereStatement, blankAssociationsFactory } from './shared'
 import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../dream'
@@ -21,16 +20,18 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
   } = {}
 ): any {
   return function (target: any, key: string, _: any) {
+    const dreamClass: typeof Dream = target.constructor
+
     if ((through && !throughClass) || (throughClass && !through))
       throw `
       Must pass both 'through' and 'throughKey' to through associations
     `
     // TODO: add better validation on through associations
     // TODO: add type guards to through associations if possible
-    if (!Object.getOwnPropertyDescriptor(target.constructor, 'associations'))
-      target.constructor.associations = blankAssociationsFactory()
+    if (!Object.getOwnPropertyDescriptor(dreamClass, 'associations'))
+      dreamClass.associations = blankAssociationsFactory(dreamClass)
 
-    target.constructor.associations['hasOne'].push({
+    dreamClass.associations['hasOne'].push({
       modelCB,
       type: 'HasOne',
       foreignKey() {

@@ -1,3 +1,5 @@
+import Dream from '../../dream'
+
 export type HookType =
   | 'beforeCreate'
   | 'beforeSave'
@@ -21,7 +23,7 @@ export interface HookStatement {
   method: string
 }
 
-export function blankHooksFactory(): {
+export function blankHooksFactory(dreamClass: typeof Dream): {
   beforeCreate: HookStatement[]
   beforeUpdate: HookStatement[]
   beforeSave: HookStatement[]
@@ -36,17 +38,17 @@ export function blankHooksFactory(): {
   afterDestroyCommit: HookStatement[]
 } {
   return {
-    beforeCreate: [],
-    beforeUpdate: [],
-    beforeSave: [],
-    beforeDestroy: [],
-    afterCreate: [],
-    afterCreateCommit: [],
-    afterUpdate: [],
-    afterUpdateCommit: [],
-    afterSave: [],
-    afterSaveCommit: [],
-    afterDestroy: [],
-    afterDestroyCommit: [],
+    beforeCreate: [...(dreamClass.hooks?.beforeCreate || [])],
+    beforeUpdate: [...(dreamClass.hooks?.beforeUpdate || [])],
+    beforeSave: [...(dreamClass.hooks?.beforeSave || [])],
+    beforeDestroy: [...(dreamClass.hooks?.beforeDestroy || [])],
+    afterCreate: [...(dreamClass.hooks?.afterCreate || [])],
+    afterCreateCommit: [...(dreamClass.hooks?.afterCreateCommit || [])],
+    afterUpdate: [...(dreamClass.hooks?.afterUpdate || [])],
+    afterUpdateCommit: [...(dreamClass.hooks?.afterUpdateCommit || [])],
+    afterSave: [...(dreamClass.hooks?.afterSave || [])],
+    afterSaveCommit: [...(dreamClass.hooks?.afterSaveCommit || [])],
+    afterDestroy: [...(dreamClass.hooks?.afterDestroy || [])],
+    afterDestroyCommit: [...(dreamClass.hooks?.afterDestroyCommit || [])],
   }
 }

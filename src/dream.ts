@@ -46,7 +46,7 @@ export default class Dream {
     belongsTo: BelongsToStatement<any>[]
     hasMany: HasManyStatement<any>[]
     hasOne: HasOneStatement<any>[]
-  } = blankAssociationsFactory()
+  } = blankAssociationsFactory(this)
 
   public static scopes: {
     default: ScopeStatement[]
@@ -81,12 +81,20 @@ export default class Dream {
     afterSaveCommit: HookStatement[]
     afterDestroy: HookStatement[]
     afterDestroyCommit: HookStatement[]
-  } = blankHooksFactory()
+  } = blankHooksFactory(this)
 
   public static validations: ValidationStatement[] = []
 
   public static get isDream() {
     return true
+  }
+
+  public static get isSTIBase() {
+    return !!this.extendedBy?.length
+  }
+
+  public static get isSTIChild() {
+    return !!this.sti?.active
   }
 
   public static async globalName<T extends typeof Dream>(this: T) {

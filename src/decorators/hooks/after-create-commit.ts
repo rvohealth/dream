@@ -1,11 +1,14 @@
+import Dream from '../../dream'
 import { HookStatement, blankHooksFactory } from './shared'
 
 export default function AfterCreateCommit(): any {
   return function (target: any, key: string, _: any) {
-    if (!Object.getOwnPropertyDescriptor(target.constructor, 'hooks'))
-      target.constructor.hooks = blankHooksFactory()
+    const dreamClass: typeof Dream = target.constructor
 
-    target.constructor.hooks['afterCreateCommit'].push({
+    if (!Object.getOwnPropertyDescriptor(dreamClass, 'hooks'))
+      dreamClass.hooks = blankHooksFactory(dreamClass)
+
+    dreamClass.hooks['afterCreateCommit'].push({
       method: key,
       type: 'afterCreateCommit',
     } as HookStatement)

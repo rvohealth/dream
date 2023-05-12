@@ -1,9 +1,13 @@
+import Dream from '../dream'
+
 export default function Virtual(): any {
   return function (target: any, key: string, _: any) {
-    if (!Object.getOwnPropertyDescriptor(target.constructor, 'virtualAttributes'))
-      target.constructor['virtualAttributes'] = []
+    const t: typeof Dream = target.constructor
 
-    target.constructor.virtualAttributes.push({
+    if (!Object.getOwnPropertyDescriptor(t, 'virtualAttributes'))
+      t['virtualAttributes'] = [...(t.virtualAttributes || [])]
+
+    t.virtualAttributes.push({
       property: key,
     } as VirtualAttributeStatement)
   }

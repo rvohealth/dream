@@ -1,11 +1,14 @@
+import Dream from '../../dream'
 import { HookStatement, blankHooksFactory } from './shared'
 
 export default function BeforeDestroy(): any {
   return function (target: any, key: string, _: any) {
-    if (!Object.getOwnPropertyDescriptor(target.constructor, 'hooks'))
-      target.constructor.hooks = blankHooksFactory()
+    const dreamClass: typeof Dream = target.constructor
 
-    target.constructor.hooks['beforeDestroy'].push({
+    if (!Object.getOwnPropertyDescriptor(dreamClass, 'hooks'))
+      dreamClass.hooks = blankHooksFactory(dreamClass)
+
+    dreamClass.hooks['beforeDestroy'].push({
       method: key,
       type: 'beforeDestroy',
     } as HookStatement)
