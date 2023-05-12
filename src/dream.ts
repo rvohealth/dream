@@ -132,6 +132,11 @@ export default class Dream {
     })
   }
 
+  public static unscoped<T extends typeof Dream>(this: T) {
+    const query: Query<T> = new Query<T>(this)
+    return query.unscoped()
+  }
+
   public static async all<
     T extends typeof Dream,
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
@@ -421,6 +426,7 @@ export default class Dream {
     this: I
   ): Promise<I> {
     await runHooksFor('beforeDestroy', this)
+    if (this._cancelSave) return this.uncancel()
 
     const Base = this.constructor as DreamConstructorType<I>
 
@@ -464,7 +470,7 @@ export default class Dream {
     const base = this.constructor as DreamConstructorType<I>
     const query: Query<DreamConstructorType<I>> = new Query<DreamConstructorType<I>>(base)
     query
-      .bypassDefaultScopes()
+      .unscoped()
       // @ts-ignore
       .where({ [base.primaryKey as any]: this[base.primaryKey] } as Updateable<Table>)
 
@@ -526,5 +532,15 @@ export default class Dream {
     // call save rather than _save so that any unsaved associations in the
     // attributes are saved with this model in a transaction
     return await this.save()
+  }
+
+  public _cancelSave: boolean = false
+  public cancel() {
+    this._cancelSave = true
+  }
+
+  public uncancel() {
+    this._cancelSave = false
+    return this
   }
 }

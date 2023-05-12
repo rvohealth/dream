@@ -9,6 +9,7 @@ import {
   SelectArg,
   SelectExpression,
   SelectQueryBuilder,
+  SelectType,
   Transaction,
   UpdateQueryBuilder,
   Updateable,
@@ -93,9 +94,17 @@ export default class Query<
     this.dreamClass = DreamClass
   }
 
-  public bypassDefaultScopes() {
-    this.shouldBypassDefaultScopes = true
-    return this
+  public async find<
+    T extends Query<DreamClass>,
+    TableName extends keyof DB = InstanceType<DreamClass>['table'] & keyof DB,
+    Table extends DB[keyof DB] = DB[TableName],
+    IdColumn = DreamClass['primaryKey'] & keyof Table,
+    Id = Readonly<SelectType<IdColumn>>
+  >(this: T, id: Id): Promise<(InstanceType<DreamClass> & Dream) | null> {
+    // @ts-ignore
+    return await this.where({
+      [this.dreamClass.primaryKey]: id,
+    }).first()
   }
 
   public includes<
@@ -122,6 +131,11 @@ export default class Query<
     > = AssociationExpression<InstanceType<DreamClass>['table'], any>
   >(this: T, ...args: QueryAssociationExpression[]) {
     ;(this as any).joinsStatements = [...this.joinsStatements, ...args]
+    return this
+  }
+
+  public unscoped<T extends Query<DreamClass>>(this: T): T {
+    this.shouldBypassDefaultScopes = true
     return this
   }
 
@@ -764,75 +778,80 @@ export default class Query<
       negate?: boolean
     } = {}
   ) {
-    Object.keys(whereStatement).forEach(attr => {
-      const val = (whereStatement as any)[attr]
-      let a: any
-      let b: ComparisonOperatorExpression
-      let c: any
-      let a2: any | null = null
-      let b2: ComparisonOperatorExpression | null = null
-      let c2: any | null = null
+    Object.keys(whereStatement)
+      .filter(key => (whereStatement as any)[key] !== undefined)
+      .forEach(attr => {
+        const val = (whereStatement as any)[attr]
+        let a: any
+        let b: ComparisonOperatorExpression
+        let c: any
+        let a2: any | null = null
+        let b2: ComparisonOperatorExpression | null = null
+        let c2: any | null = null
 
-      if (val === null) {
-        a = attr
-        b = 'is'
-        c = val
-      } else if (val.constructor === SelectQueryBuilder) {
-        a = attr
-        b = 'in'
-        c = val
-      } else if (val.constructor === Array) {
-        a = attr
-        b = 'in'
-        c = val
-      } else if (val.constructor === OpsStatement) {
-        a = attr
-        b = val.operator
-        c = val.value
-      } else if (val.constructor === Range && (val.begin?.constructor || val.end?.constructor) === DateTime) {
-        const rangeStart = val.begin?.toJSDate()
-        const rangeEnd = val.end?.toJSDate()
-        const excludeEnd = val.excludeEnd
+        if (val === null) {
+          a = attr
+          b = 'is'
+          c = val
+        } else if (val.constructor === SelectQueryBuilder) {
+          a = attr
+          b = 'in'
+          c = val
+        } else if (val.constructor === Array) {
+          a = attr
+          b = 'in'
+          c = val
+        } else if (val.constructor === OpsStatement) {
+          a = attr
+          b = val.operator
+          c = val.value
+        } else if (
+          val.constructor === Range &&
+          (val.begin?.constructor || val.end?.constructor) === DateTime
+        ) {
+          const rangeStart = val.begin?.toJSDate()
+          const rangeEnd = val.end?.toJSDate()
+          const excludeEnd = val.excludeEnd
 
-        if (rangeStart && rangeEnd) {
-          a = attr
-          b = '>='
-          c = rangeStart
-          a2 = attr
-          b2 = excludeEnd ? '<' : '<='
-          c2 = rangeEnd
-        } else if (rangeStart) {
-          a = attr
-          b = '>='
-          c = rangeStart
+          if (rangeStart && rangeEnd) {
+            a = attr
+            b = '>='
+            c = rangeStart
+            a2 = attr
+            b2 = excludeEnd ? '<' : '<='
+            c2 = rangeEnd
+          } else if (rangeStart) {
+            a = attr
+            b = '>='
+            c = rangeStart
+          } else {
+            a = attr
+            b = excludeEnd ? '<' : '<='
+            c = rangeEnd
+          }
         } else {
           a = attr
-          b = excludeEnd ? '<' : '<='
-          c = rangeEnd
+          b = '='
+          c = val
         }
-      } else {
-        a = attr
-        b = '='
-        c = val
-      }
 
-      if (negate) {
-        // @ts-ignore
-        const negatedB = OPERATION_NEGATION_MAP[b]
-        if (!negatedB) throw `no negation available for comparison operator ${b}`
-        query = query.where(a, negatedB, c)
-
-        if (b2) {
+        if (negate) {
           // @ts-ignore
-          const negatedB2 = OPERATION_NEGATION_MAP[b2]
-          if (!negatedB2) throw `no negation available for comparison operator ${b2}`
-          query.where(a2, negatedB2, c2)
+          const negatedB = OPERATION_NEGATION_MAP[b]
+          if (!negatedB) throw `no negation available for comparison operator ${b}`
+          query = query.where(a, negatedB, c)
+
+          if (b2) {
+            // @ts-ignore
+            const negatedB2 = OPERATION_NEGATION_MAP[b2]
+            if (!negatedB2) throw `no negation available for comparison operator ${b2}`
+            query.where(a2, negatedB2, c2)
+          }
+        } else {
+          query = query.where(a, b, c)
+          if (b2) query = query.where(a2, b2, c2)
         }
-      } else {
-        query = query.where(a, b, c)
-        if (b2) query = query.where(a2, b2, c2)
-      }
-    })
+      })
 
     return query
   }

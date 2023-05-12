@@ -63,6 +63,7 @@ export interface Pets {
   user_id: Int8 | null;
   species: Species | null;
   name: string | null;
+  deleted_at: Timestamp | null;
   created_at: Timestamp;
 }
 
@@ -131,7 +132,7 @@ export const CompositionAssetAuditColumns = ['id', 'composition_asset_id', 'appr
 export const CompositionAssetColumns = ['id', 'composition_id', 'src', 'primary', 'created_at', 'updated_at']
 export const CompositionColumns = ['id', 'user_id', 'content', 'primary', 'created_at', 'updated_at']
 export const IncompatibleForeignKeyTypeExampleColumns = ['id', 'user_id', 'created_at', 'updated_at']
-export const PetColumns = ['id', 'user_id', 'species', 'name', 'created_at']
+export const PetColumns = ['id', 'user_id', 'species', 'name', 'deleted_at', 'created_at']
 export const PostColumns = ['id', 'user_id', 'post_visibility_id', 'body', 'created_at', 'updated_at']
 export const PostVisibilityColumns = ['id', 'visibility', 'notes', 'created_at', 'updated_at']
 export const RatingColumns = ['id', 'user_id', 'rateable_id', 'rateable_type', 'rating', 'created_at', 'updated_at']
