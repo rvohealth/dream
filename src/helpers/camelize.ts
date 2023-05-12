@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon'
 import uncapitalize from './uncapitalize'
 
 export default function camelize<
@@ -9,22 +10,28 @@ export default function camelize<
     : T extends (string | { [key: string]: any })[]
     ? (string | { [key: string]: any })[]
     : never
->(str: T): RT {
-  if (Array.isArray(str)) {
-    return str.map(s => camelize(s)) as RT
+>(target: T): RT {
+  if (Array.isArray(target)) {
+    return target.map(s => camelize(s)) as RT
   }
 
-  if (typeof str === 'object') {
+  if (typeof target === 'object') {
     const agg: { [key: string]: any } = {}
-    return Object.keys(str).reduce((agg, s) => {
-      if (typeof str[s] === 'object') return camelize(str[s])
+    return Object.keys(target).reduce((agg, s) => {
+      switch (target[s]?.constructor) {
+        case DateTime:
+          agg[camelize(s) as string] = target[s]
+          break
 
-      agg[camelize(s) as string] = str[s]
+        default:
+          if (typeof target[s] === 'object') return camelize(target[s])
+          agg[camelize(s) as string] = target[s]
+      }
       return agg
     }, agg) as RT
   }
 
   return uncapitalize(
-    str.replace(/([-_][a-z])/g, group => group.toUpperCase().replace('-', '').replace('_', ''))
+    target.replace(/([-_][a-z])/g, group => group.toUpperCase().replace('-', '').replace('_', ''))
   ) as RT
 }
