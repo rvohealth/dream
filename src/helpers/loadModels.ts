@@ -3,6 +3,7 @@ import Dream from '../dream'
 import { loadDreamYamlFile, modelsPath } from './path'
 import pascalize from './pascalize'
 import getFiles from './getFiles'
+import importFileWithDefault from './importFileWithDefault'
 
 let models: { [key: string]: typeof Dream } | null = null
 export default async function loadModels() {
@@ -28,7 +29,7 @@ export default async function loadModels() {
 
     let ModelClass: typeof Dream | null = null
     try {
-      ModelClass = (await import(relativePath)).default
+      ModelClass = await importFileWithDefault(relativePath)
     } catch (error) {
       throw `Failed to import the following file: ${fullPath}. Error: ${error}`
     }
