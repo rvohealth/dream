@@ -78,7 +78,7 @@ ${file}
 
 ${interfaceKeyIndexes.join('\n')}
 
-${cachedInterfaces.join('\n')}
+${cachedInterfaces.join('\n\n')}
 
 ${transformedNames
   .map(([name]) => `export type ${pluralize.singular(name)}Attributes = Updateable<DB['${snakeify(name)}']>`)

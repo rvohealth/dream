@@ -152,6 +152,7 @@ export const BalloonsTypeCache = {
   created_at: 'Timestamp',
   updated_at: 'Timestamp'
 }  
+
 export const CompositionAssetAuditsTypeCache = {
   id: 'Generated<Int8>',
   composition_asset_id: 'Int8',
@@ -159,6 +160,7 @@ export const CompositionAssetAuditsTypeCache = {
   created_at: 'Timestamp',
   updated_at: 'Timestamp'
 }  
+
 export const CompositionAssetsTypeCache = {
   id: 'Generated<Int8>',
   composition_id: 'Int8',
@@ -167,6 +169,7 @@ export const CompositionAssetsTypeCache = {
   created_at: 'Timestamp',
   updated_at: 'Timestamp'
 }  
+
 export const CompositionsTypeCache = {
   id: 'Generated<Int8>',
   user_id: 'Int8',
@@ -175,12 +178,14 @@ export const CompositionsTypeCache = {
   created_at: 'Timestamp',
   updated_at: 'Timestamp'
 }  
+
 export const IncompatibleForeignKeyTypeExamplesTypeCache = {
   id: 'Generated<Int8>',
   user_id: 'number',
   created_at: 'Timestamp',
   updated_at: 'Timestamp'
 }  
+
 export const PetsTypeCache = {
   id: 'Generated<Int8>',
   user_id: 'Int8|null',
@@ -189,6 +194,7 @@ export const PetsTypeCache = {
   deleted_at: 'Timestamp|null',
   created_at: 'Timestamp'
 }  
+
 export const PostsTypeCache = {
   id: 'Generated<Int8>',
   user_id: 'Int8',
@@ -197,6 +203,7 @@ export const PostsTypeCache = {
   created_at: 'Timestamp',
   updated_at: 'Timestamp'
 }  
+
 export const PostVisibilitiesTypeCache = {
   id: 'Generated<Int8>',
   visibility: 'boolean|null',
@@ -204,6 +211,7 @@ export const PostVisibilitiesTypeCache = {
   created_at: 'Timestamp',
   updated_at: 'Timestamp'
 }  
+
 export const RatingsTypeCache = {
   id: 'Generated<Int8>',
   user_id: 'Int8',
@@ -213,6 +221,7 @@ export const RatingsTypeCache = {
   created_at: 'Timestamp',
   updated_at: 'Timestamp'
 }  
+
 export const UsersTypeCache = {
   id: 'Generated<Int8>',
   name: 'string|null',
@@ -222,6 +231,7 @@ export const UsersTypeCache = {
   updated_at: 'Timestamp',
   deleted_at: 'Timestamp|null'
 }  
+
 export const UserSettingsTypeCache = {
   id: 'Generated<Int8>',
   user_id: 'Int8',
@@ -229,6 +239,7 @@ export const UserSettingsTypeCache = {
   created_at: 'Timestamp',
   updated_at: 'Timestamp'
 }  
+
 
 
 export type BalloonAttributes = Updateable<DB['balloons']>
