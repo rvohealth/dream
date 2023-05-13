@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
 import camelize from '../../../src/helpers/camelize'
+import User from '../../../test-app/app/models/User'
 
 describe('camelize', () => {
   context('when passed a string', () => {
@@ -11,6 +12,13 @@ describe('camelize', () => {
   context('when passed an object', () => {
     it('undercases keys', () => {
       expect(camelize({ hello_world: 'HowAreYou' })).toEqual({ helloWorld: 'HowAreYou' })
+    })
+
+    context('when passed a dream', () => {
+      it('parsed the dreams attributes', async () => {
+        const user = await User.create({ email: 'fred@', password: 'howyadoin' })
+        expect(camelize(user)).toEqual(expect.objectContaining({ email: 'fred@' }))
+      })
     })
 
     context('when passed a key with a date time value', () => {

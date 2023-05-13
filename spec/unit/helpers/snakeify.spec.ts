@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
 import snakeify from '../../../src/helpers/snakeify'
+import User from '../../../test-app/app/models/User'
 
 describe('snakeify', () => {
   context('when passed a string', () => {
@@ -11,6 +12,13 @@ describe('snakeify', () => {
   context('when passed an object', () => {
     it('undercases keys', () => {
       expect(snakeify({ HelloWorld: 'HowAreYou' })).toEqual({ hello_world: 'HowAreYou' })
+    })
+
+    context('when passed a dream', () => {
+      it('parsed the dreams attributes', async () => {
+        const user = await User.create({ email: 'fred@', password: 'howyadoin' })
+        expect(snakeify(user)).toEqual(expect.objectContaining({ email: 'fred@' }))
+      })
     })
 
     context('when passed a key with a date time value', () => {
