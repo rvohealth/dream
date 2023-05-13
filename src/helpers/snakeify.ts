@@ -23,8 +23,9 @@ export default function snakeify<
           break
 
         default:
-          if (typeof target[s] === 'object') return snakeify(target[s])
-          agg[snakeify(s) as string] = target[s]
+          if ([null, undefined].includes(target[s])) agg[snakeify(s) as string] = target[s]
+          else if (typeof target[s] === 'object') return snakeify(target[s])
+          else agg[snakeify(s) as string] = target[s]
       }
 
       return agg

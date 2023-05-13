@@ -24,8 +24,9 @@ export default function camelize<
           break
 
         default:
-          if (typeof target[s] === 'object') return camelize(target[s])
-          agg[camelize(s) as string] = target[s]
+          if ([null, undefined].includes(target[s])) agg[camelize(s) as string] = target[s]
+          else if (typeof target[s] === 'object') return camelize(target[s])
+          else agg[camelize(s) as string] = target[s]
       }
       return agg
     }, agg) as RT
