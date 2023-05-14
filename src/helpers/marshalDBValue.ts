@@ -6,7 +6,7 @@ export function marshalDBValue<TableName extends keyof DB>(
   value: any,
   { table, column }: { table: TableName; column: keyof DB[TableName] }
 ) {
-  if (isDecimal(column, { table })) return parseFloat(value)
+  if (value !== null && value !== undefined && isDecimal(column, { table })) return parseFloat(value)
   if (value?.constructor === Date) return DateTime.fromJSDate(value)
   return value
 }

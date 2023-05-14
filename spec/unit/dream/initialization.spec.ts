@@ -18,11 +18,31 @@ describe('Dream initialization', () => {
   })
 
   context('a decimal is marshaled as a string by kysely', () => {
-    it('converts the string to a number', async () => {
+    it('converts the string to a number limited to the number of decimal places in the schema', async () => {
       const user = await User.create({ email: 'fred@', password: 'howyadoin' })
-      const balloon = await Mylar.create({ color: 'blue', volume: 1.43, user })
+      const balloon = await Mylar.create({ color: 'blue', volume: 1.4343666, user })
       const b = await Mylar.find(balloon.id)
-      expect(b!.volume.constructor).toEqual(Number)
+      expect(b!.volume).toEqual(1.434)
+    })
+
+    it('when initializing without a save, it does not truncate the decimal', () => {
+      const balloon = Mylar.new({ volume: 4.34343434 })
+      expect(balloon.volume).toEqual(4.34343434)
+    })
+
+    it('the decimal value is set to null', () => {
+      const balloon = Mylar.new({ volume: null })
+      expect(balloon.volume).toBeNull()
+    })
+
+    it('the decimal value is set to undefined', () => {
+      const balloon = Mylar.new({ volume: undefined })
+      expect(balloon.volume).toBeUndefined()
+    })
+
+    it('the decimal value is set to 0', () => {
+      const balloon = Mylar.new({ volume: 0 })
+      expect(balloon.volume).toEqual(0)
     })
   })
 })
