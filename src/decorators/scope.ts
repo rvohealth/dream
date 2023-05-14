@@ -18,7 +18,6 @@ export default function Scope(
       }
 
     t.scopes[branch].push({
-      className: target.name,
       method: key,
       default: opts.default || false,
     })
@@ -26,7 +25,6 @@ export default function Scope(
 }
 
 export interface ScopeStatement {
-  className: string
   method: string
   default: boolean
 }

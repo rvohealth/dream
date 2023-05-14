@@ -560,7 +560,7 @@ export default class Query<
   private conditionallyApplyScopes() {
     if (this.shouldBypassDefaultScopes) return
 
-    const thisScopes = this.dreamClass.scopes.default.filter(s => s.className === this.dreamClass.name)
+    const thisScopes = this.dreamClass.scopes.default
     for (const scope of thisScopes) {
       ;(this.dreamClass as any)[scope.method](this)
     }

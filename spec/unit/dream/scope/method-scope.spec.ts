@@ -1,3 +1,4 @@
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import User from '../../../../test-app/app/models/User'
 
 describe('Dream Scope (method variant)', () => {
@@ -13,5 +14,14 @@ describe('Dream Scope (method variant)', () => {
     const user3 = await User.create({ email: 'how@ya2', password: 'doin', name: 'Chalupas sr' })
     const results = await User.scope('withFunnyName').all()
     expect(results.map(r => r.id)).toEqual([user1.id, user2.id])
+  })
+
+  context('from child class', () => {
+    it('allows scopes to be applied', async () => {
+      const user = await User.create({ email: 'how@ya', password: 'howyadoin' })
+      const mylar = await Mylar.create({ user, color: 'red' })
+      const mylar2 = await Mylar.create({ user, color: 'blue' })
+      expect(await Mylar.scope('red').all()).toMatchDreamModels([mylar])
+    })
   })
 })
