@@ -507,18 +507,19 @@ export default class Dream {
       if (associationMetaData && associationMetaData.type !== 'BelongsTo') {
         throw new CanOnlyPassBelongsToModelParam(self.constructor, associationMetaData)
       } else if (associationMetaData) {
+        const belongsToAssociationMetaData = associationMetaData as BelongsToStatement<any>
         const associatedObject = (attributes as any)[attr]
         self[attr] = associatedObject
 
-        if (!associationMetaData.optional && !associatedObject)
+        if (!belongsToAssociationMetaData.optional && !associatedObject)
           throw new CannotPassNullOrUndefinedToRequiredBelongsTo(
             this.constructor as typeof Dream,
-            associationMetaData
+            belongsToAssociationMetaData
           )
 
-        self[associationMetaData.foreignKey()] = associatedObject?.primaryKeyValue
-        if (associationMetaData.polymorphic)
-          self[associationMetaData.foreignKeyTypeField()] = associatedObject?.constructor?.name
+        self[belongsToAssociationMetaData.foreignKey()] = associatedObject?.primaryKeyValue
+        if (belongsToAssociationMetaData.polymorphic)
+          self[belongsToAssociationMetaData.foreignKeyTypeField()] = associatedObject?.constructor?.name
       } else {
         // TODO: cleanup type chaos
         self[attr] = marshalDBValue((attributes as any)[attr], { column: attr as any, table: this.table })
