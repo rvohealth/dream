@@ -18,10 +18,10 @@ export type AssociatedModelParam<T extends typeof Dream> = Partial<
           ReturnType<
             T['associationMap'][keyof T['associationMap']]['modelCB'] & (() => (typeof Dream)[])
           >[number]
-        >
+        > | null
       : InstanceType<
           ReturnType<T['associationMap'][keyof T['associationMap']]['modelCB'] & (() => typeof Dream)>
-        >
+        > | null
   >
 >
 

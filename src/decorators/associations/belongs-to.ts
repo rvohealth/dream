@@ -43,8 +43,8 @@ export default function BelongsTo(
       },
       set: function (this: any, associatedModel: any) {
         this[`__${key}__`] = associatedModel
-        this[finalForeignKey(foreignKey, modelCB)] = associatedModel.primaryKeyValue
-        if (polymorphic) this[foreignKeyTypeField(foreignKey, modelCB)] = associatedModel.constructor.name
+        this[finalForeignKey(foreignKey, modelCB)] = associatedModel?.primaryKeyValue
+        if (polymorphic) this[foreignKeyTypeField(foreignKey, modelCB)] = associatedModel?.constructor?.name
       },
     })
 

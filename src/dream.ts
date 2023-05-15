@@ -34,6 +34,7 @@ import { VirtualAttributeStatement } from './decorators/virtual'
 import ValidationError from './exceptions/validation-error'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
 import isDecimal from './helpers/db/isDecimal'
+import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/can-only-pass-belongs-to-model-param copy'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -509,9 +510,15 @@ export default class Dream {
         const associatedObject = (attributes as any)[attr]
         self[attr] = associatedObject
 
-        self[associationMetaData.foreignKey()] = associatedObject.primaryKeyValue
+        if (!associationMetaData.optional && !associatedObject)
+          throw new CannotPassNullOrUndefinedToRequiredBelongsTo(
+            this.constructor as typeof Dream,
+            associationMetaData
+          )
+
+        self[associationMetaData.foreignKey()] = associatedObject?.primaryKeyValue
         if (associationMetaData.polymorphic)
-          self[associationMetaData.foreignKeyTypeField()] = associatedObject.constructor.name
+          self[associationMetaData.foreignKeyTypeField()] = associatedObject?.constructor?.name
       } else {
         // TODO: cleanup type chaos
         self[attr] = marshalDBValue((attributes as any)[attr], { column: attr as any, table: this.table })

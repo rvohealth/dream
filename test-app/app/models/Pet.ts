@@ -19,7 +19,7 @@ export default class Pet extends Dream {
   @BelongsTo(() => User, {
     optional: true,
   })
-  public user: User
+  public user: User | null
   public user_id: IdType
 
   @BeforeDestroy()
