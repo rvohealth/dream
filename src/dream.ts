@@ -34,7 +34,7 @@ import { VirtualAttributeStatement } from './decorators/virtual'
 import ValidationError from './exceptions/validation-error'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
 import isDecimal from './helpers/db/isDecimal'
-import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/can-only-pass-belongs-to-model-param copy'
+import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/cannot-pass-null-or-undefined-to-required-belongs-to'
 
 export default class Dream {
   public static get primaryKey(): string {

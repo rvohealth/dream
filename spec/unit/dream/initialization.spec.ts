@@ -2,7 +2,7 @@ import { DateTime } from 'luxon'
 import User from '../../../test-app/app/models/User'
 import Pet from '../../../test-app/app/models/Pet'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar'
-import CannotPassNullOrUndefinedToRequiredBelongsTo from '../../../src/exceptions/can-only-pass-belongs-to-model-param copy'
+import CannotPassNullOrUndefinedToRequiredBelongsTo from '../../../src/exceptions/cannot-pass-null-or-undefined-to-required-belongs-to'
 
 describe('Dream initialization', () => {
   it('sets attributes', () => {
