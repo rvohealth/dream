@@ -35,6 +35,9 @@ import ValidationError from './exceptions/validation-error'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
 import isDecimal from './helpers/db/isDecimal'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/cannot-pass-null-or-undefined-to-required-belongs-to'
+import DreamSerializer from './serializer'
+import MissingSerializer from './exceptions/missing-serializer'
+import MissingTable from './exceptions/missing-table'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -362,7 +365,11 @@ export default class Dream {
   }
 
   public get table(): AssociationTableNames {
-    throw 'override table method in child'
+    throw new MissingTable(this.constructor as typeof Dream)
+  }
+
+  public get serializer(): typeof DreamSerializer {
+    throw new MissingSerializer(this.constructor as typeof Dream)
   }
 
   public get unsavedAssociations(): (
@@ -433,6 +440,14 @@ export default class Dream {
     return obj
   }
 
+  public columns<
+    I extends Dream,
+    TableName extends keyof DB = I['table'] & keyof DB,
+    Table extends DB[keyof DB] = DB[TableName]
+  >(): (keyof Table)[] {
+    return (this.constructor as typeof Dream).columns()
+  }
+
   public async destroy<I extends Dream, TableName extends keyof DB = I['table'] & keyof DB>(
     this: I
   ): Promise<I> {
@@ -455,14 +470,6 @@ export default class Dream {
 
   public freezeAttributes() {
     this.frozenAttributes = { ...this.attributes() }
-  }
-
-  public columns<
-    I extends Dream,
-    TableName extends keyof DB = I['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName]
-  >(): (keyof Table)[] {
-    return (this.constructor as typeof Dream).columns()
   }
 
   public async load<
@@ -492,6 +499,12 @@ export default class Dream {
     this.freezeAttributes()
 
     return this
+  }
+
+  public serialize<I extends Dream>(this: I, { casing = null }: { casing?: 'camel' | 'snake' | null } = {}) {
+    const serializer = new this.serializer(this)
+    if (casing) serializer.casing(casing)
+    return serializer.render()
   }
 
   public setAttributes<
