@@ -14,6 +14,7 @@ import Balloon from './Balloon'
 import IncompatibleForeignKeyTypeExample from './IncompatibleForeignKeyTypeExample'
 import { BeforeSave } from '../../../src'
 import Virtual from '../../../src/decorators/virtual'
+import Pet from './Pet'
 
 export default class User extends Dream {
   public get table() {
@@ -70,6 +71,9 @@ export default class User extends Dream {
 
   @HasMany(() => Balloon)
   public balloons: Balloon[]
+
+  @HasMany(() => Pet)
+  public pets: Pet[]
 
   @Scope()
   public static withFunnyName(query: any) {

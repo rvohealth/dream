@@ -99,6 +99,9 @@ export default {
     ],
     "balloons": [
       "balloons"
+    ],
+    "pets": [
+      "pets"
     ]
   },
   "user_settings": {
@@ -209,6 +212,9 @@ export interface SyncedAssociations {
     ],
     "balloons": [
       "balloons"
+    ],
+    "pets": [
+      "pets"
     ]
   },
   "user_settings": {
