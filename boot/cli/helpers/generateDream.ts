@@ -2,6 +2,7 @@ import pluralize from 'pluralize'
 import fs from 'fs/promises'
 import generateDreamContent from '../../../src/helpers/cli/generateDreamContent'
 import generateMigrationContent from '../../../src/helpers/cli/generateMigrationContent'
+import generateSerializerContent from '../../../src/helpers/cli/generateSerializerContent'
 import migrationVersion from './migrationVersion'
 import { loadDreamYamlFile } from '../../../src/helpers/path'
 import hyphenize from '../../../src/helpers/hyphenize'
@@ -89,6 +90,37 @@ export default async function generateDream(
     const err = `
       Something happened while trying to create the migration file:
         ${migrationPath}
+
+      Does this file already exist? Here is the error that was raised:
+        ${error}
+    `
+    console.log(err)
+    throw err
+  }
+
+  const serializerBasePath = `${rootPath}/${ymlConfig.serializers_path}`
+  const formattedSerializerPath =
+    pluralize
+      .singular(dreamName)
+      .split('/')
+      .map(pathName => pascalize(pathName))
+      .join('/') + 'Serializer'
+  const serializerPath = `${serializerBasePath}/${formattedSerializerPath}.ts`
+  const relativeSerializerPath = serializerPath.replace(
+    new RegExp(`^.*${ymlConfig.serializers_path}`),
+    ymlConfig.serializers_path
+  )
+  const serializerClassName = formattedSerializerPath.split('/').join('')
+  try {
+    console.log(`generating serializer: ${relativeSerializerPath}`)
+    await thisfs.writeFile(
+      serializerPath,
+      await generateSerializerContent(serializerClassName, dreamName, attributes)
+    )
+  } catch (error) {
+    const err = `
+      Something happened while trying to create the serializer file:
+        ${dreamPath}
 
       Does this file already exist? Here is the error that was raised:
         ${error}
