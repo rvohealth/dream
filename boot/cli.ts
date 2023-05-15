@@ -12,6 +12,7 @@ import sspawn from '../src/helpers/sspawn'
 import setCoreDevelopmentFlag, { coreSuffix } from './cli/helpers/setCoreDevelopmentFlag'
 import yarncmdRunByAppConsumer from './cli/helpers/yarncmdRunByAppConsumer'
 import maybeSyncExisting from './cli/helpers/maybeSyncExisting'
+import generateSerializer from './cli/helpers/generateSerializer'
 
 const program = new Command()
 
@@ -42,6 +43,22 @@ program
     setCoreDevelopmentFlag(program.args)
     const [_, name, ...attributes] = program.args
     await generateDream(
+      name,
+      attributes.filter(attr => !['--core'].includes(attr))
+    )
+  })
+
+program
+  .command('generate:serializer')
+  .alias('g:serializer')
+  .description('generate:serializer <name> [...attributes] create a new serializer')
+  .argument('<name>', 'name of the serializer')
+  .option('--core', 'sets core to true')
+  .action(async () => {
+    const [_, name, ...attributes] = program.args
+
+    setCoreDevelopmentFlag(program.args)
+    await generateSerializer(
       name,
       attributes.filter(attr => !['--core'].includes(attr))
     )
