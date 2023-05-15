@@ -1,8 +1,10 @@
+import path from 'path'
 import pluralize from 'pluralize'
 import pascalize from '../../../src/helpers/pascalize'
 import camelize from '../../../src/helpers/camelize'
 import snakeify from '../../../src/helpers/snakeify'
 import uniq from '../uniq'
+import { loadDreamYamlFile } from '../path'
 
 const cooercedTypes = {
   bigint: 'string',
@@ -50,7 +52,7 @@ const cooercedTypes = {
   xml: 'string',
 }
 
-export default function generateDreamContent(
+export default async function generateDreamContent(
   modelName: string,
   attributes: string[],
   {
@@ -65,6 +67,10 @@ export default function generateDreamContent(
 
   const additionalImports: string[] = []
   const enumImports: string[] = []
+
+  const serializerImport = await buildSerializerImportStatement(modelName)
+  additionalImports.push(serializerImport)
+
   const attributeStatements = attributes.map(attribute => {
     const [attributeName, attributeType, ...descriptors] = attribute.split(':')
     const associationImportStatement = buildImportStatement(modelName, attribute)
@@ -112,9 +118,13 @@ public ${attributeName}: ${getAttributeType(attribute)}\
     }
   })
 
+  const yamlConf = await loadDreamYamlFile()
   if (!!enumImports.length) {
-    const relativePath = relativePathToRoot(modelName).replace(/^\.\//, '')
-    const enumImport = `import { ${enumImports.join(', ')} } from '${relativePath}../../db/schema'`
+    const relativePath = path.join(
+      await relativePathToSrcRoot(modelName),
+      yamlConf.schema_path.replace(/\.ts$/, '')
+    )
+    const enumImport = `import { ${enumImports.join(', ')} } from '${relativePath}'`
     additionalImports.push(enumImport)
   }
 
@@ -136,6 +146,10 @@ export default class ${pascalize(modelName.split('/').pop()!)} extends Dream {
     return '${tableName}' as const
   }
 
+  public get serializer() {
+    return ${serializerNameFromModelName(modelName)}
+  }
+
   public id: ${idTypescriptType}${attributeStatements
     .filter(attr => !/^\n@/.test(attr))
     .map(s => s.split('\n').join('\n  '))
@@ -149,7 +163,7 @@ export default class ${pascalize(modelName.split('/').pop()!)} extends Dream {
 }
 
 function buildImportStatement(modelName: string, attribute: string) {
-  const relativePath = relativePathToRoot(modelName)
+  const relativePath = relativePathToModelRoot(modelName)
 
   const [attributeName] = attribute.split(':')
   const rootAssociationImport = attributeName.split('/').pop()!
@@ -162,14 +176,57 @@ function buildImportStatement(modelName: string, attribute: string) {
   return associationImportStatement
 }
 
-function relativePathToRoot(modelName: string) {
+async function buildSerializerImportStatement(modelName: string) {
+  const yamlConf = await loadDreamYamlFile()
+  const relativePath = await relativePathToSrcRoot(modelName)
+
+  const serializerPath = path.join(
+    relativePath,
+    yamlConf.serializers_path,
+    relativeSerializerPathFromModelName(modelName)
+  )
+  const serializerClassName = serializerNameFromModelName(modelName)
+  const importStatement = `import ${serializerClassName} from '${serializerPath}'`
+  return importStatement
+}
+
+function serializerNameFromModelName(modelName: string) {
+  return (
+    modelName
+      .split('/')
+      .map(part => pascalize(part))
+      .join('') + 'Serializer'
+  )
+}
+
+function relativeSerializerPathFromModelName(modelName: string) {
+  return (
+    modelName
+      .split('/')
+      .map(part => pascalize(part))
+      .join('/') + 'Serializer'
+  )
+}
+
+function relativePathToModelRoot(modelName: string) {
   const numNestedDirsForModel = modelName.split('/').length - 1
   let updirs = ''
   for (let i = 0; i < numNestedDirsForModel; i++) {
     updirs += '../'
   }
-  const relativePath = numNestedDirsForModel > 0 ? updirs : './'
-  return relativePath
+  return numNestedDirsForModel > 0 ? updirs : './'
+}
+
+async function relativePathToSrcRoot(modelName: string) {
+  const yamlConf = await loadDreamYamlFile()
+  const rootPath = relativePathToModelRoot(modelName)
+  const numUpdirsInRootPath = yamlConf.models_path.split('/').length
+  let updirs = ''
+  for (let i = 0; i < numUpdirsInRootPath; i++) {
+    updirs += '../'
+  }
+
+  return rootPath === './' ? updirs : path.join(rootPath, updirs)
 }
 
 function getAttributeType(attribute: string) {

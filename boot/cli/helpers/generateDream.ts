@@ -53,7 +53,7 @@ export default async function generateDream(
 
   try {
     console.log(`generating dream: ${relativeDreamPath}`)
-    await thisfs.writeFile(dreamPath, generateDreamContent(dreamName, attributes, { useUUID }))
+    await thisfs.writeFile(dreamPath, await generateDreamContent(dreamName, attributes, { useUUID }))
   } catch (error) {
     const err = `
       Something happened while trying to create the dream file:

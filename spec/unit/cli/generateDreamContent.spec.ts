@@ -3,15 +3,20 @@ import generateDreamContent from '../../../src/helpers/cli/generateDreamContent'
 describe('howl generate:model <name> [...attributes]', () => {
   context('when provided with a pascalized table name', () => {
     it('generates a dream model with multiple string fields', async () => {
-      const res = generateDreamContent('MealType', [], { useUUID: false })
+      const res = await generateDreamContent('MealType', [], { useUUID: false })
       expect(res).toEqual(
         `\
 import { DateTime } from 'luxon'
 import { Dream, IdType } from 'dream'
+import MealTypeSerializer from '../../../test-app/app/serializers/MealTypeSerializer'
 
 export default class MealType extends Dream {
   public get table() {
     return 'meal_types' as const
+  }
+
+  public get serializer() {
+    return MealTypeSerializer
   }
 
   public id: IdType
@@ -26,17 +31,22 @@ export default class MealType extends Dream {
   context('when provided attributes', () => {
     context('with a string attribute', () => {
       it('generates a dream model with multiple string fields', async () => {
-        const res = generateDreamContent('user', ['email:string', 'password_digest:string'], {
+        const res = await generateDreamContent('user', ['email:string', 'password_digest:string'], {
           useUUID: false,
         })
         expect(res).toEqual(
           `\
 import { DateTime } from 'luxon'
 import { Dream, IdType } from 'dream'
+import UserSerializer from '../../../test-app/app/serializers/UserSerializer'
 
 export default class User extends Dream {
   public get table() {
     return 'users' as const
+  }
+
+  public get serializer() {
+    return UserSerializer
   }
 
   public id: IdType
@@ -52,7 +62,7 @@ export default class User extends Dream {
 
     context('with enum attributes', () => {
       it('generates a dream model with multiple enum fields', async () => {
-        const res = generateDreamContent(
+        const res = await generateDreamContent(
           'chalupa',
           [
             'topping:enum:topping:cheese,baja_sauce',
@@ -67,11 +77,16 @@ export default class User extends Dream {
           `\
 import { DateTime } from 'luxon'
 import { Dream, IdType } from 'dream'
-import { ToppingEnum, ProteinEnum, MyExistingEnumEnum } from '../../db/schema'
+import ChalupaSerializer from '../../../test-app/app/serializers/ChalupaSerializer'
+import { ToppingEnum, ProteinEnum, MyExistingEnumEnum } from '../../../test-app/db/schema'
 
 export default class Chalupa extends Dream {
   public get table() {
     return 'chalupas' as const
+  }
+
+  public get serializer() {
+    return ChalupaSerializer
   }
 
   public id: IdType
@@ -88,7 +103,7 @@ export default class Chalupa extends Dream {
 
     context('with an integer attribute', () => {
       it('generates a dream model with a number field', async () => {
-        const res = generateDreamContent('user', ['chalupa_count:integer'], {
+        const res = await generateDreamContent('user', ['chalupa_count:integer'], {
           useUUID: false,
         })
         expectSingleColumnWithType(res, 'chalupa_count', 'number', 'integer')
@@ -97,7 +112,7 @@ export default class Chalupa extends Dream {
 
     context('with a decimal attribute', () => {
       it('generates a dream model with a number field', async () => {
-        const res = generateDreamContent('user', ['chalupa_count:decimal'], {
+        const res = await generateDreamContent('user', ['chalupa_count:decimal'], {
           useUUID: false,
         })
         expectSingleColumnWithType(res, 'chalupa_count', 'number', 'decimal')
@@ -106,7 +121,7 @@ export default class Chalupa extends Dream {
 
     context('with a float attribute', () => {
       it('generates a dream model with a number field', async () => {
-        const res = generateDreamContent('user', ['chalupa_count:float'], {
+        const res = await generateDreamContent('user', ['chalupa_count:float'], {
           useUUID: false,
         })
         expectSingleColumnWithType(res, 'chalupa_count', 'number', 'float')
@@ -115,7 +130,7 @@ export default class Chalupa extends Dream {
 
     context('with a datetime attribute', () => {
       it('generates a dream model with a timestamp field', async () => {
-        const res = generateDreamContent('user', ['chalupafied_at:datetime'], {
+        const res = await generateDreamContent('user', ['chalupafied_at:datetime'], {
           useUUID: false,
         })
         expectSingleColumnWithType(res, 'chalupafied_at', 'DateTime', 'datetime')
@@ -124,7 +139,7 @@ export default class Chalupa extends Dream {
 
     context('with a timestamp attribute', () => {
       it('generates a dream model with a timestamp field', async () => {
-        const res = generateDreamContent('user', ['chalupafied_at:timestamp'], {
+        const res = await generateDreamContent('user', ['chalupafied_at:timestamp'], {
           useUUID: false,
         })
         expectSingleColumnWithType(res, 'chalupafied_at', 'DateTime', 'datetime')
@@ -133,7 +148,7 @@ export default class Chalupa extends Dream {
 
     context('with a citext attribute', () => {
       it('generates a dream model with a citext field', async () => {
-        const res = generateDreamContent('user', ['name:citext'], {
+        const res = await generateDreamContent('user', ['name:citext'], {
           useUUID: false,
         })
         expectSingleColumnWithType(res, 'name', 'string', 'citext')
@@ -142,7 +157,7 @@ export default class Chalupa extends Dream {
 
     context('with a json attribute', () => {
       it('generates a dream model with a string field', async () => {
-        const res = generateDreamContent('user', ['chalupa_data:json'], {
+        const res = await generateDreamContent('user', ['chalupa_data:json'], {
           useUUID: false,
         })
         expectSingleColumnWithType(res, 'chalupa_data', 'string', 'json')
@@ -151,7 +166,7 @@ export default class Chalupa extends Dream {
 
     context('with a jsonb attribute', () => {
       it('generates a dream model with a string field', async () => {
-        const res = generateDreamContent('user', ['chalupa_data:jsonb'], {
+        const res = await generateDreamContent('user', ['chalupa_data:jsonb'], {
           useUUID: false,
         })
         expectSingleColumnWithType(res, 'chalupa_data', 'string', 'jsonb')
@@ -160,19 +175,24 @@ export default class Chalupa extends Dream {
 
     context('relationships', () => {
       context('when provided with a belongs_to relationship', () => {
-        it('generates a BelongsTo relationship in model', () => {
-          const res = generateDreamContent('composition', ['graph_node:belongs_to'], {
+        it('generates a BelongsTo relationship in model', async () => {
+          const res = await generateDreamContent('composition', ['graph_node:belongs_to'], {
             useUUID: false,
           })
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
 import { Dream, IdType, BelongsTo } from 'dream'
+import CompositionSerializer from '../../../test-app/app/serializers/CompositionSerializer'
 import GraphNode from './GraphNode'
 
 export default class Composition extends Dream {
   public get table() {
     return 'compositions' as const
+  }
+
+  public get serializer() {
+    return CompositionSerializer
   }
 
   public id: IdType
@@ -188,19 +208,24 @@ export default class Composition extends Dream {
         })
 
         context('namespaced relationships', () => {
-          it('can handle belongs to associations with nested paths', () => {
-            const res = generateDreamContent('cat_toy', ['pet/domestic/cat:belongs_to'], {
+          it('can handle belongs to associations with nested paths', async () => {
+            const res = await generateDreamContent('cat_toy', ['pet/domestic/cat:belongs_to'], {
               useUUID: false,
             })
             expect(res).toEqual(
               `\
 import { DateTime } from 'luxon'
 import { Dream, IdType, BelongsTo } from 'dream'
+import CatToySerializer from '../../../test-app/app/serializers/CatToySerializer'
 import Cat from './Pet/Domestic/Cat'
 
 export default class CatToy extends Dream {
   public get table() {
     return 'cat_toys' as const
+  }
+
+  public get serializer() {
+    return CatToySerializer
   }
 
   public id: IdType
@@ -215,19 +240,24 @@ export default class CatToy extends Dream {
             )
           })
 
-          it('can handle has many associations with nested paths', () => {
-            const res = generateDreamContent('cat_toy', ['pet/domestic/cat:has_many'], {
+          it('can handle has many associations with nested paths', async () => {
+            const res = await generateDreamContent('cat_toy', ['pet/domestic/cat:has_many'], {
               useUUID: false,
             })
             expect(res).toEqual(
               `\
 import { DateTime } from 'luxon'
 import { Dream, IdType, HasMany } from 'dream'
+import CatToySerializer from '../../../test-app/app/serializers/CatToySerializer'
 import Cat from './Pet/Domestic/Cat'
 
 export default class CatToy extends Dream {
   public get table() {
     return 'cat_toys' as const
+  }
+
+  public get serializer() {
+    return CatToySerializer
   }
 
   public id: IdType
@@ -241,19 +271,24 @@ export default class CatToy extends Dream {
             )
           })
 
-          it('can handle has one associations with nested paths', () => {
-            const res = generateDreamContent('cat_toy', ['pet/domestic/cat:has_one'], {
+          it('can handle has one associations with nested paths', async () => {
+            const res = await generateDreamContent('cat_toy', ['pet/domestic/cat:has_one'], {
               useUUID: false,
             })
             expect(res).toEqual(
               `\
 import { DateTime } from 'luxon'
 import { Dream, IdType, HasOne } from 'dream'
+import CatToySerializer from '../../../test-app/app/serializers/CatToySerializer'
 import Cat from './Pet/Domestic/Cat'
 
 export default class CatToy extends Dream {
   public get table() {
     return 'cat_toys' as const
+  }
+
+  public get serializer() {
+    return CatToySerializer
   }
 
   public id: IdType
@@ -267,19 +302,24 @@ export default class CatToy extends Dream {
             )
           })
 
-          it('produces valid association paths when the model being generated is namespaced', () => {
-            const res = generateDreamContent('pet/domestic/cat', ['graph_node:belongs_to'], {
+          it('produces valid association paths when the model being generated is namespaced', async () => {
+            const res = await generateDreamContent('pet/domestic/cat', ['graph_node:belongs_to'], {
               useUUID: false,
             })
             expect(res).toEqual(
               `\
 import { DateTime } from 'luxon'
 import { Dream, IdType, BelongsTo } from 'dream'
+import PetDomesticCatSerializer from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
 import GraphNode from '../../GraphNode'
 
 export default class Cat extends Dream {
   public get table() {
     return 'pet_domestic_cats' as const
+  }
+
+  public get serializer() {
+    return PetDomesticCatSerializer
   }
 
   public id: IdType
@@ -294,19 +334,24 @@ export default class Cat extends Dream {
             )
           })
 
-          it('produces valid association paths when both the model being generated and the associated model are namespaced', () => {
-            const res = generateDreamContent('pet/domestic/cat', ['pet/domestic/dog:belongs_to'], {
+          it('produces valid association paths when both the model being generated and the associated model are namespaced', async () => {
+            const res = await generateDreamContent('pet/domestic/cat', ['pet/domestic/dog:belongs_to'], {
               useUUID: false,
             })
             expect(res).toEqual(
               `\
 import { DateTime } from 'luxon'
 import { Dream, IdType, BelongsTo } from 'dream'
+import PetDomesticCatSerializer from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
 import Dog from '../../Pet/Domestic/Dog'
 
 export default class Cat extends Dream {
   public get table() {
     return 'pet_domestic_cats' as const
+  }
+
+  public get serializer() {
+    return PetDomesticCatSerializer
   }
 
   public id: IdType
@@ -321,19 +366,24 @@ export default class Cat extends Dream {
             )
           })
 
-          it('produces valid association paths when both the model being generated and the associated model are namespaced', () => {
-            const res = generateDreamContent('pet/wild/cat', ['pet/domestic/dog:belongs_to'], {
+          it('produces valid association paths when both the model being generated and the associated model are namespaced', async () => {
+            const res = await generateDreamContent('pet/wild/cat', ['pet/domestic/dog:belongs_to'], {
               useUUID: false,
             })
             expect(res).toEqual(
               `\
 import { DateTime } from 'luxon'
 import { Dream, IdType, BelongsTo } from 'dream'
+import PetWildCatSerializer from '../../../../../test-app/app/serializers/Pet/Wild/CatSerializer'
 import Dog from '../../Pet/Domestic/Dog'
 
 export default class Cat extends Dream {
   public get table() {
     return 'pet_wild_cats' as const
+  }
+
+  public get serializer() {
+    return PetWildCatSerializer
   }
 
   public id: IdType
@@ -349,20 +399,25 @@ export default class Cat extends Dream {
           })
         })
 
-        it('can handle multiple associations without duplicate imports', () => {
-          const res = generateDreamContent('composition', ['user:belongs_to', 'chalupa:belongs_to'], {
+        it('can handle multiple associations without duplicate imports', async () => {
+          const res = await generateDreamContent('composition', ['user:belongs_to', 'chalupa:belongs_to'], {
             useUUID: false,
           })
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
 import { Dream, IdType, BelongsTo } from 'dream'
+import CompositionSerializer from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
 import Chalupa from './Chalupa'
 
 export default class Composition extends Dream {
   public get table() {
     return 'compositions' as const
+  }
+
+  public get serializer() {
+    return CompositionSerializer
   }
 
   public id: IdType
@@ -383,19 +438,24 @@ export default class Composition extends Dream {
       })
 
       context('when provided with a has_one relationship', () => {
-        it('generates a HasOne relationship in model', () => {
-          const res = generateDreamContent('composition', ['user:has_one'], {
+        it('generates a HasOne relationship in model', async () => {
+          const res = await generateDreamContent('composition', ['user:has_one'], {
             useUUID: false,
           })
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
 import { Dream, IdType, HasOne } from 'dream'
+import CompositionSerializer from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
 
 export default class Composition extends Dream {
   public get table() {
     return 'compositions' as const
+  }
+
+  public get serializer() {
+    return CompositionSerializer
   }
 
   public id: IdType
@@ -411,19 +471,24 @@ export default class Composition extends Dream {
       })
 
       context('when provided with a has_many relationship', () => {
-        it('generates a HasMany relationship in model', () => {
-          const res = generateDreamContent('user', ['composition:has_many'], {
+        it('generates a HasMany relationship in model', async () => {
+          const res = await generateDreamContent('user', ['composition:has_many'], {
             useUUID: false,
           })
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
 import { Dream, IdType, HasMany } from 'dream'
+import UserSerializer from '../../../test-app/app/serializers/UserSerializer'
 import Composition from './Composition'
 
 export default class User extends Dream {
   public get table() {
     return 'users' as const
+  }
+
+  public get serializer() {
+    return UserSerializer
   }
 
   public id: IdType
@@ -439,19 +504,24 @@ export default class User extends Dream {
       })
 
       context('when provided with a relationship and using uuids', () => {
-        it('generates a uuid id field for relations relationship in model', () => {
-          const res = generateDreamContent('composition', ['user:belongs_to'], {
+        it('generates a uuid id field for relations relationship in model', async () => {
+          const res = await generateDreamContent('composition', ['user:belongs_to'], {
             useUUID: true,
           })
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
 import { Dream, IdType, BelongsTo } from 'dream'
+import CompositionSerializer from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
 
 export default class Composition extends Dream {
   public get table() {
     return 'compositions' as const
+  }
+
+  public get serializer() {
+    return CompositionSerializer
   }
 
   public id: IdType
@@ -475,10 +545,15 @@ function expectSingleColumnWithType(response: string, name: string, type: string
     `\
 import { DateTime } from 'luxon'
 import { Dream, IdType } from 'dream'
+import UserSerializer from '../../../test-app/app/serializers/UserSerializer'
 
 export default class User extends Dream {
   public get table() {
     return 'users' as const
+  }
+
+  public get serializer() {
+    return UserSerializer
   }
 
   public id: IdType
