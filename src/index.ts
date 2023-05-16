@@ -1,4 +1,5 @@
 export { default as Dream } from './dream'
+export { default as DreamSerializer } from './serializer'
 export { default as db } from './db'
 export { IdType } from './db/reflections'
 export { default as BelongsTo } from './decorators/associations/belongs-to'
