@@ -83,6 +83,7 @@ export interface DreamYamlFile {
   dream_config_path: string
   unit_spec_path: string
   feature_spec_path: string
+  serializer_casing: 'camel' | 'snake'
 }
 
 export interface DreamConfig {

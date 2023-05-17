@@ -5,6 +5,7 @@ import { DateTime } from 'luxon'
 import { AttributeStatement } from './decorators/attribute'
 import { AssociationStatement } from './decorators/associations/shared'
 import { DelegateStatement } from './decorators/delegate'
+import { loadDreamYamlFile } from '../helpers/path'
 
 export default class DreamSerializer {
   public static attributeStatements: AttributeStatement[] = []
@@ -39,16 +40,25 @@ export default class DreamSerializer {
     return this
   }
 
-  public render(): { [key: string]: any } {
-    if (Array.isArray(this.data)) return this.renderMany()
-    else return this.renderOne()
+  public async render(): Promise<{ [key: string]: any }> {
+    if (!this._casing) {
+      const yamlConf = await loadDreamYamlFile()
+      if (yamlConf.serializer_casing) this._casing = yamlConf.serializer_casing
+    }
+
+    if (Array.isArray(this.data)) return await this.renderMany()
+    else return await this.renderOne()
   }
 
-  public renderMany(): { [key: string]: any }[] {
-    return (this.data as any[]).map(d => new (this.constructor as typeof DreamSerializer)(d).render())
+  public async renderMany(): Promise<{ [key: string]: any }[]> {
+    const results: any[] = []
+    for (const d of this.data as any[]) {
+      results.push(await new (this.constructor as typeof DreamSerializer)(d).render())
+    }
+    return results
   }
 
-  public renderOne() {
+  public async renderOne() {
     const returnObj: { [key: string]: any } = {}
     this.attributes.forEach(attr => {
       const attributeStatement = (this.constructor as typeof DreamSerializer).attributeStatements.find(
@@ -74,16 +84,17 @@ export default class DreamSerializer {
     ;(this.constructor as typeof DreamSerializer).delegateStatements.forEach(delegateStatement => {
       returnObj[this.applyCasingToField(delegateStatement.field)] = this.applyDelegation(delegateStatement)
     })
-    ;(this.constructor as typeof DreamSerializer).associationStatements.forEach(associationStatement => {
-      returnObj[this.applyCasingToField(associationStatement.field)] =
-        this.applyAssociation(associationStatement)
-    })
+    for (const associationStatement of (this.constructor as typeof DreamSerializer).associationStatements) {
+      returnObj[this.applyCasingToField(associationStatement.field)] = await this.applyAssociation(
+        associationStatement
+      )
+    }
     return returnObj
   }
 
-  private applyAssociation(associationStatement: AssociationStatement) {
+  private async applyAssociation(associationStatement: AssociationStatement) {
     const serializerClass = associationStatement.serializerClassCB()
-    return new serializerClass((this._data as any)[associationStatement.field]).render()
+    return await new serializerClass((this._data as any)[associationStatement.field]).render()
   }
 
   private applyDelegation(delegateStatement: DelegateStatement) {
