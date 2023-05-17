@@ -18,13 +18,13 @@ describe('Dream#serialize', () => {
     }
 
     const user = MyDream.new({ email: 'how@yadoin', password: 'howyadoin' })
-    expect(user.serialize()).toEqual({ email: 'how@yadoin' })
+    expect(await user.serialize()).toEqual({ email: 'how@yadoin' })
   })
 
   context('a serializer is not defined on the model', () => {
-    it('raises a targeted exception', () => {
+    it('raises a targeted exception', async () => {
       const user = User.new({ email: 'how@yadoin', password: 'howyadoin' })
-      expect(() => user.serialize()).toThrowError(MissingSerializer)
+      await expect(async () => await user.serialize()).rejects.toThrowError(MissingSerializer)
     })
   })
 })
