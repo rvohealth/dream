@@ -527,7 +527,7 @@ export default class Dream {
         if (!(associationMetaData as BelongsToStatement<any>).optional && !associatedObject)
           throw new CannotPassNullOrUndefinedToRequiredBelongsTo(
             this.constructor as typeof Dream,
-            belongsToAssociationMetaData
+            associationMetaData as BelongsToStatement<any>
           )
 
         self[belongsToAssociationMetaData.foreignKey()] = associatedObject?.primaryKeyValue
