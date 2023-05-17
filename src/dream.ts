@@ -524,7 +524,7 @@ export default class Dream {
         const associatedObject = (attributes as any)[attr]
         self[attr] = associatedObject
 
-        if (!belongsToAssociationMetaData.optional && !associatedObject)
+        if (!(associationMetaData as BelongsToStatement<any>).optional && !associatedObject)
           throw new CannotPassNullOrUndefinedToRequiredBelongsTo(
             this.constructor as typeof Dream,
             belongsToAssociationMetaData
