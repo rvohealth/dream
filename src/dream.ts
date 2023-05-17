@@ -39,6 +39,7 @@ import DreamSerializer from './serializer'
 import MissingSerializer from './exceptions/missing-serializer'
 import MissingTable from './exceptions/missing-table'
 import CannotCastToNonSTIChild from './exceptions/cannot-cast-to-non-sti-child'
+import CannotCastNonSTIModelToChild from './exceptions/cannot-cast-non-sti-model-to-child'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -409,6 +410,19 @@ export default class Dream {
 
     const extendedBy = construct.extendedBy!
     if (!extendedBy.includes(dreamClass)) throw new CannotCastToNonSTIChild(construct, dreamClass)
+
+    return dreamClass.new(this.attributes() as any)
+  }
+
+  public asChild<I extends Dream, T extends typeof Dream>(this: I) {
+    const construct = this.constructor as typeof Dream
+    if (!construct.isSTIBase) throw new CannotCastNonSTIModelToChild(construct)
+
+    const extendedBy = construct.extendedBy!
+    if (!extendedBy) throw new CannotCastNonSTIModelToChild(construct)
+
+    const dreamClass = extendedBy.find(d => d.name === (this as any).type) as typeof Dream | null
+    if (!dreamClass) throw new CannotCastNonSTIModelToChild(construct)
 
     return dreamClass.new(this.attributes() as any)
   }
