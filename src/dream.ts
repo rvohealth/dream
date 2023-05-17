@@ -38,6 +38,7 @@ import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/cannot-pa
 import DreamSerializer from './serializer'
 import MissingSerializer from './exceptions/missing-serializer'
 import MissingTable from './exceptions/missing-table'
+import CannotCastToNonSTIChild from './exceptions/cannot-cast-to-non-sti-child'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -402,6 +403,16 @@ export default class Dream {
     }
   }
 
+  public as<T extends typeof Dream>(dreamClass: T): InstanceType<T> {
+    const construct = this.constructor as typeof Dream
+    if (!construct.isSTIBase) throw new CannotCastToNonSTIChild(construct, dreamClass)
+
+    const extendedBy = construct.extendedBy!
+    if (!extendedBy.includes(dreamClass)) throw new CannotCastToNonSTIChild(construct, dreamClass)
+
+    return dreamClass.new(this.attributes() as any)
+  }
+
   public attributes<I extends Dream>(this: I): Updateable<DB[I['table']]> {
     const obj: Updateable<DB[I['table']]> = {}
     ;(this.constructor as typeof Dream).columns().forEach(column => {
@@ -410,21 +421,12 @@ export default class Dream {
     return obj
   }
 
-  public dirtyAttributes<
+  public cachedTypeFor<
     I extends Dream,
-    TableName extends AssociationTableNames = I['table'] & AssociationTableNames,
+    TableName extends keyof DB = I['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
-  >(): Updateable<Table> {
-    const obj: Updateable<Table> = {}
-    Object.keys(this.attributes()).forEach(column => {
-      // TODO: clean up types
-      if (
-        (this.frozenAttributes as any)[column] === undefined ||
-        (this.frozenAttributes as any)[column] !== (this.attributes() as any)[column]
-      )
-        (obj as any)[column] = (this.attributes() as any)[column]
-    })
-    return obj
+  >(this: I, attribute: keyof Table): string {
+    return cachedTypeForAttribute(attribute, { table: this.table })
   }
 
   public changedAttributes<
@@ -446,6 +448,23 @@ export default class Dream {
     Table extends DB[keyof DB] = DB[TableName]
   >(): (keyof Table)[] {
     return (this.constructor as typeof Dream).columns()
+  }
+
+  public dirtyAttributes<
+    I extends Dream,
+    TableName extends AssociationTableNames = I['table'] & AssociationTableNames,
+    Table extends DB[keyof DB] = DB[TableName]
+  >(): Updateable<Table> {
+    const obj: Updateable<Table> = {}
+    Object.keys(this.attributes()).forEach(column => {
+      // TODO: clean up types
+      if (
+        (this.frozenAttributes as any)[column] === undefined ||
+        (this.frozenAttributes as any)[column] !== (this.attributes() as any)[column]
+      )
+        (obj as any)[column] = (this.attributes() as any)[column]
+    })
+    return obj
   }
 
   public async destroy<I extends Dream, TableName extends keyof DB = I['table'] & keyof DB>(
@@ -470,6 +489,14 @@ export default class Dream {
 
   public freezeAttributes() {
     this.frozenAttributes = { ...this.attributes() }
+  }
+
+  public isDecimal<
+    I extends Dream,
+    TableName extends keyof DB = I['table'] & keyof DB,
+    Table extends DB[keyof DB] = DB[TableName]
+  >(this: I, attribute: keyof Table): boolean {
+    return isDecimal(attribute, { table: this.table })
   }
 
   public async load<
@@ -538,22 +565,6 @@ export default class Dream {
         self[attr] = marshalDBValue((attributes as any)[attr], { column: attr as any, table: this.table })
       }
     })
-  }
-
-  public cachedTypeFor<
-    I extends Dream,
-    TableName extends keyof DB = I['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName]
-  >(this: I, attribute: keyof Table): string {
-    return cachedTypeForAttribute(attribute, { table: this.table })
-  }
-
-  public isDecimal<
-    I extends Dream,
-    TableName extends keyof DB = I['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName]
-  >(this: I, attribute: keyof Table): boolean {
-    return isDecimal(attribute, { table: this.table })
   }
 
   public async save<I extends Dream>(this: I): Promise<I> {
