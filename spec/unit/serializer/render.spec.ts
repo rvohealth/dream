@@ -14,7 +14,7 @@ describe('DreamSerializer#render', () => {
       public email: string
     }
     const serializer = new MySerializer({ email: 'abc', password: '123' })
-    expect(await serializer.render()).toEqual({ email: 'abc' })
+    expect(serializer.render()).toEqual({ email: 'abc' })
   })
 
   it('renders multiple attributes', async () => {
@@ -26,7 +26,7 @@ describe('DreamSerializer#render', () => {
       public name: string
     }
     const serializer = new MySerializer({ email: 'abc', name: 'james' })
-    expect(await serializer.render()).toEqual({ email: 'abc', name: 'james' })
+    expect(serializer.render()).toEqual({ email: 'abc', name: 'james' })
   })
 
   it('excludes hidden attributes', async () => {
@@ -38,7 +38,7 @@ describe('DreamSerializer#render', () => {
       public name: string
     }
     const serializer = new MySerializer({ email: 'abc', password: 'james' })
-    expect(await serializer.render()).toEqual({ email: 'abc' })
+    expect(serializer.render()).toEqual({ email: 'abc' })
   })
 
   context('with decorated attributes', () => {
@@ -49,7 +49,7 @@ describe('DreamSerializer#render', () => {
           public created_at: string
         }
         const serializer = new MySerializer({ created_at: DateTime.fromFormat('2002-10-02', 'yyyy-MM-dd') })
-        expect(await serializer.render()).toEqual({ createdAt: '2002-10-02' })
+        expect(serializer.render()).toEqual({ createdAt: '2002-10-02' })
       })
     })
   })
@@ -62,7 +62,7 @@ describe('DreamSerializer#render', () => {
           public createdAt: string
         }
         const serializer = new MySerializer({ createdAt: DateTime.fromFormat('2002-10-02', 'yyyy-MM-dd') })
-        expect(await serializer.casing('snake').render()).toEqual({ created_at: '2002-10-02' })
+        expect(serializer.casing('snake').render()).toEqual({ created_at: '2002-10-02' })
       })
     })
 
@@ -73,7 +73,7 @@ describe('DreamSerializer#render', () => {
           public created_at: string
         }
         const serializer = new MySerializer({ created_at: DateTime.fromFormat('2002-10-02', 'yyyy-MM-dd') })
-        expect(await serializer.casing('camel').render()).toEqual({ createdAt: '2002-10-02' })
+        expect(serializer.casing('camel').render()).toEqual({ createdAt: '2002-10-02' })
       })
     })
   })
@@ -87,14 +87,14 @@ describe('DreamSerializer#render', () => {
     it('serializes the attributes of the dream', async () => {
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
       const serializer = new MySerializer(user)
-      expect(await serializer.render()).toEqual({ email: 'how@yadoin' })
+      expect(serializer.render()).toEqual({ email: 'how@yadoin' })
     })
 
     context('given an array of dream instances', () => {
       it('renders all passed dreams to the shape specified by the serializer', async () => {
         const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
         const serializer = new MySerializer([user])
-        expect(await serializer.render()).toEqual([{ email: 'how@yadoin' }])
+        expect(serializer.render()).toEqual([{ email: 'how@yadoin' }])
       })
     })
   })
@@ -109,7 +109,7 @@ describe('DreamSerializer#render', () => {
 
     it('serializes the attributes of the dream', async () => {
       const serializer = new MySerializer({ email: 'fish@fish' })
-      expect(await serializer.render()).toEqual({ email: 'fish#fish' })
+      expect(serializer.render()).toEqual({ email: 'fish#fish' })
     })
   })
 
@@ -134,7 +134,7 @@ describe('DreamSerializer#render', () => {
         await user.load('pets')
 
         const serializer = new UserSerializer(user)
-        expect(await serializer.render()).toEqual({ pets: [{ name: 'aster', species: 'cat' }] })
+        expect(serializer.render()).toEqual({ pets: [{ name: 'aster', species: 'cat' }] })
       })
     })
 
@@ -155,7 +155,7 @@ describe('DreamSerializer#render', () => {
         await pet.load('user')
 
         const serializer = new PetSerializer(pet)
-        expect(await serializer.render()).toEqual({ user: { email: 'how@yadoin' } })
+        expect(serializer.render()).toEqual({ user: { email: 'how@yadoin' } })
       })
     })
 
@@ -171,7 +171,7 @@ describe('DreamSerializer#render', () => {
         await pet.load('user')
 
         const serializer = new PetSerializer(pet)
-        expect(await serializer.render()).toEqual({ email: 'how@yadoin' })
+        expect(serializer.render()).toEqual({ email: 'how@yadoin' })
       })
 
       context('with casing', () => {
@@ -186,7 +186,7 @@ describe('DreamSerializer#render', () => {
           await pet.load('user')
 
           const serializer = new PetSerializer(pet)
-          expect(await serializer.casing('camel').render()).toEqual({ updatedAt: user.updated_at })
+          expect(serializer.casing('camel').render()).toEqual({ updatedAt: user.updated_at })
         })
       })
     })

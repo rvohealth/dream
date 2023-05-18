@@ -40,25 +40,24 @@ export default class DreamSerializer {
     return this
   }
 
-  public async render(): Promise<{ [key: string]: any }> {
+  public render(): { [key: string]: any } {
     if (!this._casing) {
-      const yamlConf = await loadDreamYamlFile()
-      if (yamlConf.serializer_casing) this._casing = yamlConf.serializer_casing
+      this._casing = (process.env['SERIALIZER_CASING'] as 'camel' | 'snake') || 'camel'
     }
 
-    if (Array.isArray(this.data)) return await this.renderMany()
-    else return await this.renderOne()
+    if (Array.isArray(this.data)) return this.renderMany()
+    else return this.renderOne()
   }
 
-  public async renderMany(): Promise<{ [key: string]: any }[]> {
+  public renderMany(): { [key: string]: any }[] {
     const results: any[] = []
     for (const d of this.data as any[]) {
-      results.push(await new (this.constructor as typeof DreamSerializer)(d).render())
+      results.push(new (this.constructor as typeof DreamSerializer)(d).render())
     }
     return results
   }
 
-  public async renderOne() {
+  public renderOne() {
     const returnObj: { [key: string]: any } = {}
     this.attributes.forEach(attr => {
       const attributeStatement = (this.constructor as typeof DreamSerializer).attributeStatements.find(
@@ -85,16 +84,15 @@ export default class DreamSerializer {
       returnObj[this.applyCasingToField(delegateStatement.field)] = this.applyDelegation(delegateStatement)
     })
     for (const associationStatement of (this.constructor as typeof DreamSerializer).associationStatements) {
-      returnObj[this.applyCasingToField(associationStatement.field)] = await this.applyAssociation(
-        associationStatement
-      )
+      returnObj[this.applyCasingToField(associationStatement.field)] =
+        this.applyAssociation(associationStatement)
     }
     return returnObj
   }
 
-  private async applyAssociation(associationStatement: AssociationStatement) {
+  private applyAssociation(associationStatement: AssociationStatement) {
     const serializerClass = associationStatement.serializerClassCB()
-    return await new serializerClass((this._data as any)[associationStatement.field]).render()
+    return new serializerClass((this._data as any)[associationStatement.field]).render()
   }
 
   private applyDelegation(delegateStatement: DelegateStatement) {
