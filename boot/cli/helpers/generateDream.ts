@@ -111,6 +111,13 @@ export default async function generateDream(
     ymlConfig.serializers_path
   )
   const serializerClassName = formattedSerializerPath.split('/').join('')
+  const serializerPathParts = formattedSerializerPath.split('/')
+
+  if (!!serializerPathParts.length) {
+    const fullSerializerPath = [...serializerBasePath.split('/'), ...serializerPathParts].join('/')
+    await thisfs.mkdir(fullSerializerPath, { recursive: true })
+  }
+
   try {
     console.log(`generating serializer: ${relativeSerializerPath}`)
     await thisfs.writeFile(
