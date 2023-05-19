@@ -28,7 +28,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .createTable('users')
     .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('email', 'varchar(128)')
-    .addColumn('name', 'citext')
+    .addColumn('name', sql\`citext\`)
     .addColumn('password_digest', 'varchar(255)')
     .addColumn('chalupified_at', 'timestamp')
     .addColumn('finished_chalupa_on', 'date')

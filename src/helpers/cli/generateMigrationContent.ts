@@ -135,7 +135,10 @@ function generateDecimalStr(attribute: string) {
 }
 
 function generateColumnStr(attributeName: string, attributeType: string, descriptors: string[]) {
-  let returnStr = `.addColumn('${attributeName}', '${attributeType}'`
+  const attributeStatement = ['citext'].includes(attributeType)
+    ? `sql\`${attributeType}\``
+    : `'${attributeType}'`
+  let returnStr = `.addColumn('${attributeName}', ${attributeStatement}`
 
   const providedDefaultArg = descriptors.find(d => /^default\(/.test(d))
   const providedDefault = providedDefaultArg?.replace(/^default\(/, '')?.replace(/\)$/, '')
