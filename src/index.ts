@@ -29,3 +29,4 @@ export { default as RendersOne } from './serializer/decorators/associations/rend
 export { default as RendersMany } from './serializer/decorators/associations/renders-many'
 export { default as Attribute } from './serializer/decorators/attribute'
 export { default as Delegate } from './serializer/decorators/delegate'
+export { default as Range } from './helpers/range'
