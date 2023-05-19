@@ -20,9 +20,10 @@ describe('dream generate:model <name> [...attributes]', () => {
 
         expect(res).toEqual(
           `\
-import { Kysely, sql } from 'kysely'
+import { Kysely, sql, CompiledQuery } from 'kysely'
 
 export async function up(db: Kysely<any>): Promise<void> {
+  await db.executeQuery(CompiledQuery.raw('CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;'))
   await db.schema
     .createTable('users')
     .addColumn('id', 'bigserial', col => col.primaryKey())

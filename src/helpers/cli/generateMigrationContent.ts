@@ -48,14 +48,16 @@ export async function down(db: Kysely<any>): Promise<void> {
   }
 
   const citextExtension = requireCitextExtension
-    ? `await queryInterface.sequelize.query('CREATE EXTENSION IF NOT EXISTS "citext";')\n    `
+    ? `await db.executeQuery(CompiledQuery.raw('CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;'))\n  `
     : ''
+  const kyselyImports = ['Kysely', 'sql']
+  if (requireCitextExtension) kyselyImports.push('CompiledQuery')
 
   return `\
-import { Kysely, sql } from 'kysely'
+import { ${kyselyImports.join(', ')} } from 'kysely'
 
 export async function up(db: Kysely<any>): Promise<void> {
-  ${generateEnumStatements(attributes)}await db.schema
+  ${citextExtension}${generateEnumStatements(attributes)}await db.schema
     .createTable('${table}')
     ${generateIdStr({ useUUID })}${columnDefs.length ? '\n    ' + columnDefs.join('\n    ') : ''}
     .addColumn('created_at', 'timestamp', col => col.notNull())
