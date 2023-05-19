@@ -105,13 +105,20 @@ export const DBTypeCache = {
 }
 
 function AddCustomTypeExports(file: string) {
-  return `\
+  if (/export type Timestamp/.test(file)) {
+    return `\
 ${file.replace(
   'export type Timestamp = ColumnType<Date, Date | string, Date | string>',
   `\
 export type Timestamp = ColumnType<DateTime>
 export type IdType = string | number | bigint | undefined`
 )}`
+  } else {
+    return `\
+${file}
+export type Timestamp = ColumnType<DateTime>
+export type IdType = string | number | bigint | undefined`
+  }
 }
 
 function addCustomImports(file: string) {
