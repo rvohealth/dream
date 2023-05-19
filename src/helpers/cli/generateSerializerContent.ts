@@ -20,7 +20,7 @@ export default class ${serializerClassName} extends DreamSerializer {
       return `@Attribute(${attributeSpecifier(type)})
   public ${name}: ${jsType(type)}`
     })
-    .join(',\n  ')}
+    .join('\n\n  ')}
 }\
 `
 }
