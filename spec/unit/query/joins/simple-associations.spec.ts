@@ -2,6 +2,9 @@ import User from '../../../../test-app/app/models/User'
 import Composition from '../../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
+import Pet from '../../../../test-app/app/models/Pet'
+import { DateTime } from 'luxon'
+import range from '../../../../src/helpers/range'
 
 describe('Query#joins with simple associations', () => {
   it('joins a HasOne association', async () => {
@@ -107,6 +110,42 @@ describe('Query#joins with simple associations', () => {
       expect(noResults).toMatchDreamModels([])
     })
 
+    context('when the where clause attribute exists on both models', () => {
+      it('namespaces the attribute in the BelongsTo direction', async () => {
+        const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+        const composition = await Composition.create({ user_id: user.id })
+
+        const reloadedComposition = await Composition.limit(2)
+          .joins('user')
+          .where({ created_at: range(DateTime.now().minus({ day: 1 })) })
+          .first()
+        expect(reloadedComposition).toMatchDreamModel(composition)
+
+        const noResults = await Composition.limit(2)
+          .joins('user')
+          .where({ created_at: range(DateTime.now().plus({ day: 1 })) })
+          .first()
+        expect(noResults).toBeNull()
+      })
+
+      it('namespaces the attribute in the HasMany direction', async () => {
+        const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+        await Composition.create({ user_id: user.id })
+
+        const reloadedUser = await User.limit(2)
+          .joins('compositions')
+          .where({ created_at: range(DateTime.now().minus({ day: 1 })) })
+          .first()
+        expect(reloadedUser).toMatchDreamModel(user)
+
+        const noResults = await User.limit(2)
+          .joins('compositions')
+          .where({ created_at: range(DateTime.now().plus({ day: 1 })) })
+          .first()
+        expect(noResults).toBeNull()
+      })
+    })
+
     context('when passed an object', () => {
       it('loads specified associations', async () => {
         await User.create({ email: 'fred@frewd', password: 'howyadoin' })
@@ -207,6 +246,27 @@ describe('Query#joins with simple associations', () => {
 
       const reloadedComposition = await Composition.limit(1).joins('mainCompositionAsset').first()
       expect(reloadedComposition).toBeNull()
+    })
+  })
+
+  context('when the model and its association have a default scope with the same attribute name', () => {
+    it('namespaces the scope', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await Pet.create({ user })
+      const reloadedUser = await User.where({ email: user.email }).joins('pets').first()
+      // prior to fixing, this line would throw:
+      //   error: column reference "deleted_at" is ambiguous
+      expect(reloadedUser).toMatchDreamModel(user)
+    })
+
+    it.only('takes the nested scope into account', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await Pet.create({ user, name: 'Snoopy', deleted_at: DateTime.now() })
+      const reloadedUser = await User.where({ email: user.email })
+        .joins('pets')
+        .where({ pets: { name: 'Snoopy' } })
+        .first()
+      expect(reloadedUser).toBeNull()
     })
   })
 })

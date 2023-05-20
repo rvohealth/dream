@@ -701,13 +701,12 @@ export default class Query<
       )
 
       if (association.where) {
-        const aliasedWhere: any = {}
-        Object.keys(association.where).forEach((key: any) => {
-          aliasedWhere[`${currentAssociationTableOrAlias as string}.${key}`] = (association as any).where[key]
-        })
         query = this.applyWhereStatement(
           query,
-          aliasedWhere as WhereStatement<InstanceType<DreamClass>['table']>
+          this.aliasWhereStatement(
+            association.where as WhereStatement<InstanceType<DreamClass>['table']>,
+            currentAssociationTableOrAlias
+          )
         )
       }
     }
@@ -923,13 +922,20 @@ export default class Query<
     })
 
     if (Object.keys(this.whereStatement).length) {
-      query = this.applyWhereStatement(query, this.whereStatement)
+      query = this.applyWhereStatement(
+        query,
+        this.aliasWhereStatement(this.whereStatement, this.dreamClass.prototype.table)
+      )
     }
 
     if (Object.keys(this.whereNotStatement).length) {
-      query = this.applyWhereStatement(query, this.whereNotStatement, {
-        negate: true,
-      })
+      query = this.applyWhereStatement(
+        query,
+        this.aliasWhereStatement(this.whereNotStatement, this.dreamClass.prototype.table),
+        {
+          negate: true,
+        }
+      )
     }
 
     this.whereJoinsStatement.forEach(whereJoinsStatement => {
@@ -937,6 +943,19 @@ export default class Query<
     })
 
     return query
+  }
+
+  private aliasWhereStatement(
+    whereStatement: WhereStatement<InstanceType<DreamClass>['table']>,
+    alias: string
+  ) {
+    const aliasedWhere: any = {}
+
+    Object.keys(whereStatement).forEach((key: any) => {
+      aliasedWhere[`${alias}.${key}`] = (whereStatement as any)[key]
+    })
+
+    return aliasedWhere
   }
 
   private buildDelete<T extends Query<DreamClass>>(
