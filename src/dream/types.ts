@@ -4,7 +4,7 @@ import { SyncedAssociations, SyncedBelongsToAssociations, VirtualColumns } from 
 import Dream from '../dream'
 import { Inc } from '../helpers/typeutils'
 import { DB } from '../sync/schema'
-import { AssociatedModelParam } from '../decorators/associations/shared'
+import { AssociatedModelParam, WhereStatement } from '../decorators/associations/shared'
 
 export type NestedAssociationExpression<
   TB extends AssociationTableNames,
@@ -40,8 +40,8 @@ export type JoinsWhereAssociationExpression<
   ? JoinsWhereAssociationExpression<TB, AE[number], Inc<Depth>>[]
   : AE extends keyof SyncedAssociations[TB]
   ? Partial<{
-      [AssociationName in keyof SyncedAssociations[TB]]: Updateable<
-        DB[(SyncedAssociations[TB][AssociationName] & AssociationTableNames[])[number]]
+      [AssociationName in keyof SyncedAssociations[TB]]: WhereStatement<
+        (SyncedAssociations[TB][AssociationName] & AssociationTableNames[])[number]
       >
     }>
   : AE extends Partial<{

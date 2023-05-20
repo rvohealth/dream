@@ -269,4 +269,37 @@ describe('Query#joins with simple associations', () => {
       expect(reloadedUser).toBeNull()
     })
   })
+
+  context('date range condition', () => {
+    const begin = DateTime.now()
+
+    let user0: User
+    let user1: User
+    let pet0: Pet
+    let pet1: Pet
+
+    beforeEach(async () => {
+      user0 = await User.create({
+        email: 'fred@frewd',
+        password: 'howyadoin',
+        created_at: begin,
+      })
+      user1 = await User.create({
+        email: 'fred@frezd',
+        password: 'howyadoin',
+        created_at: begin.plus({ day: 1 }),
+      })
+
+      pet0 = await Pet.create({ user: user0 })
+      pet1 = await Pet.create({ user: user1 })
+    })
+
+    it('is able to apply date ranges to where clause', async () => {
+      const pets = await Pet.joins('user')
+        .where({ user: { created_at: range(begin.plus({ hour: 1 })) } })
+        .all()
+
+      expect(pets).toMatchDreamModels([pet1])
+    })
+  })
 })

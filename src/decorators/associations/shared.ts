@@ -26,18 +26,21 @@ export type AssociatedModelParam<T extends typeof Dream> = Partial<
   >
 >
 
+export type DreamUpdateable<TableName extends AssociationTableNames> = Partial<
+  Record<
+    keyof DB[TableName],
+    | Range<DateTime>
+    | Range<number>
+    | OpsStatement
+    | CurriedOpsStatement<any, any>
+    | (IdType | string | number)[]
+    | SelectQueryBuilder<DB, TableName, {}>
+  >
+>
+
 export type WhereStatement<TableName extends AssociationTableNames> =
   | Updateable<DB[TableName]>
-  | Partial<
-      Record<
-        keyof DB[TableName],
-        | Range<DateTime>
-        | OpsStatement
-        | CurriedOpsStatement<any, any>
-        | (IdType | string | number)[]
-        | SelectQueryBuilder<DB, TableName, {}>
-      >
-    >
+  | DreamUpdateable<TableName>
 
 export interface HasStatement<
   ForeignTableName extends AssociationTableNames,

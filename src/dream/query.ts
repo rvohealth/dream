@@ -840,12 +840,18 @@ export default class Query<
           a = attr
           b = val.operator
           c = val.value
-        } else if (
-          val.constructor === Range &&
-          (val.begin?.constructor || val.end?.constructor) === DateTime
-        ) {
-          const rangeStart = val.begin?.toJSDate()
-          const rangeEnd = val.end?.toJSDate()
+        } else if (val.constructor === Range) {
+          let rangeStart = null
+          let rangeEnd = null
+
+          if ((val.begin?.constructor || val.end?.constructor) === DateTime) {
+            rangeStart = val.begin?.toJSDate()
+            rangeEnd = val.end?.toJSDate()
+          } else if ((val.begin?.constructor || val.end?.constructor) === Number) {
+            rangeStart = val.begin
+            rangeEnd = val.end
+          }
+
           const excludeEnd = val.excludeEnd
 
           if (rangeStart && rangeEnd) {
@@ -907,8 +913,9 @@ export default class Query<
       ]
 
       if (columnValue!.constructor !== Object) {
-        // @ts-ignore
-        query = query.where(`${previousAssociationTableOrAlias}.${key}`, '=', columnValue)
+        query = (this as any).applyWhereStatement(query, {
+          [`${previousAssociationTableOrAlias}.${String(key)}`]: columnValue,
+        })
       } else {
         let currentAssociationTableOrAlias = key as
           | (keyof SyncedAssociations[PreviousTableName] & string)
