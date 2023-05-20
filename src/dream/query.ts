@@ -700,6 +700,21 @@ export default class Query<
         `${currentAssociationTableOrAlias as string}.${association.foreignKey() as string}`
       )
 
+      if (!this.shouldBypassDefaultScopes) {
+        const tempQuery = new Query<DreamClass>(this.dreamClass)
+
+        const associationClass = association.modelCB() as any
+        const associationScopes = associationClass.scopes.default
+        for (const scope of associationScopes) {
+          associationClass[scope.method](tempQuery)
+        }
+
+        query = this.applyWhereStatement(
+          query,
+          this.aliasWhereStatement(tempQuery.whereStatement, currentAssociationTableOrAlias)
+        )
+      }
+
       if (association.where) {
         query = this.applyWhereStatement(
           query,

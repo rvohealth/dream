@@ -4,6 +4,8 @@ import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
 import IncompatibleForeignKeyTypeExample from '../../../../test-app/app/models/IncompatibleForeignKeyTypeExample'
 import ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase from '../../../../src/exceptions/foreign-key-on-association-does-not-match-primary-key-on-base'
+import { DateTime } from 'luxon'
+import Pet from '../../../../test-app/app/models/Pet'
 
 describe('Query#includes with simple associations', () => {
   it('loads a HasOne association', async () => {
@@ -111,6 +113,16 @@ describe('Query#includes with simple associations', () => {
         error = err
       }
       expect(error!.constructor).toEqual(ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase)
+    })
+  })
+
+  context('default scopes on the included models', () => {
+    it('applies the default scope to the included models', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const snoopy = await Pet.create({ user, name: 'Snoopy' })
+      await Pet.create({ user, name: 'Woodstock', deleted_at: DateTime.now() })
+      const reloadedUser = await User.where({ email: user.email }).includes('pets').first()
+      expect(reloadedUser!.pets).toMatchDreamModels([snoopy])
     })
   })
 })

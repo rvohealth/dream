@@ -15,6 +15,7 @@ import IncompatibleForeignKeyTypeExample from './IncompatibleForeignKeyTypeExamp
 import { BeforeSave } from '../../../src'
 import Virtual from '../../../src/decorators/virtual'
 import Pet from './Pet'
+import Query from '../../../src/dream/query'
 
 export default class User extends Dream {
   public get table() {
@@ -76,12 +77,12 @@ export default class User extends Dream {
   public pets: Pet[]
 
   @Scope()
-  public static withFunnyName(query: any) {
+  public static withFunnyName(query: Query<typeof User>) {
     return query.where({ name: 'Chalupas jr' })
   }
 
   @Scope({ default: true })
-  public static hideDeleted(query: any) {
+  public static hideDeleted(query: Query<typeof User>) {
     return query.where({ deleted_at: null })
   }
 

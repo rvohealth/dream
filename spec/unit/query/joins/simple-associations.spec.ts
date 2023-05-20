@@ -113,7 +113,7 @@ describe('Query#joins with simple associations', () => {
     context('when the where clause attribute exists on both models', () => {
       it('namespaces the attribute in the BelongsTo direction', async () => {
         const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-        const composition = await Composition.create({ user_id: user.id })
+        const composition = await Composition.create({ user })
 
         const reloadedComposition = await Composition.limit(2)
           .joins('user')
@@ -130,7 +130,7 @@ describe('Query#joins with simple associations', () => {
 
       it('namespaces the attribute in the HasMany direction', async () => {
         const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-        await Composition.create({ user_id: user.id })
+        await Composition.create({ user })
 
         const reloadedUser = await User.limit(2)
           .joins('compositions')
@@ -259,7 +259,7 @@ describe('Query#joins with simple associations', () => {
       expect(reloadedUser).toMatchDreamModel(user)
     })
 
-    it.only('takes the nested scope into account', async () => {
+    it('takes the nested scope into account', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       await Pet.create({ user, name: 'Snoopy', deleted_at: DateTime.now() })
       const reloadedUser = await User.where({ email: user.email })
