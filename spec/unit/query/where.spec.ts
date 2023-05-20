@@ -2,6 +2,8 @@ import { DateTime } from 'luxon'
 import User from '../../../test-app/app/models/User'
 import range from '../../../src/helpers/range'
 import ops from '../../../src/ops'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar'
+import Balloon from '../../../test-app/app/models/Balloon'
 
 describe('Query#where', () => {
   context('a generic expression is passed', () => {
@@ -41,6 +43,29 @@ describe('Query#where', () => {
 
       const records = await User.where({ id: ops.in([user1.id, user2.id]) }).pluck('id')
       expect(records).toEqual([user1.id, user2.id])
+    })
+  })
+
+  context('ops.any is passed', () => {
+    it('uses an "@>" operator for comparison', async () => {
+      const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      const multicolorBalloon = await Mylar.create({
+        user,
+        multicolor: ['red', 'green'],
+      })
+
+      const greenBalloon = await Mylar.create({
+        user,
+        multicolor: ['green'],
+      })
+
+      const blueBalloon = await Mylar.create({
+        user,
+        multicolor: ['blue'],
+      })
+
+      const balloons = await Balloon.where({ multicolor: ops.any('green') }).all()
+      expect(balloons).toMatchDreamModels([multicolorBalloon, greenBalloon])
     })
   })
 

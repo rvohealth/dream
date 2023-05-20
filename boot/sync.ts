@@ -99,7 +99,7 @@ export const DBTypeCache = {
       ? transformedNames.map(([name, newName]) => `${snakeify(name)}: ${name}TypeCache`).join(',\n  ')
       : 'placeholder: []'
   }
-}
+} as Partial<Record<keyof DB, any>>
 `
   return [newFileContents, transformedNames] as [string, [string, string][]]
 }

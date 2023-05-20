@@ -9,6 +9,7 @@ import { BelongsToStatement } from './belongs-to'
 import { HasManyStatement } from './has-many'
 import { HasOneStatement } from './has-one'
 import { SyncedBelongsToAssociations } from '../../sync/associations'
+import CurriedOpsStatement from '../../ops/curried-ops-statement'
 
 export type AssociatedModelParam<T extends typeof Dream> = Partial<
   Record<
@@ -30,7 +31,11 @@ export type WhereStatement<TableName extends AssociationTableNames> =
   | Partial<
       Record<
         keyof DB[TableName],
-        Range<DateTime> | OpsStatement | (IdType | string | number)[] | SelectQueryBuilder<DB, TableName, {}>
+        | Range<DateTime>
+        | OpsStatement
+        | CurriedOpsStatement<any, any>
+        | (IdType | string | number)[]
+        | SelectQueryBuilder<DB, TableName, {}>
       >
     >
 

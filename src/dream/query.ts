@@ -29,6 +29,7 @@ import { SyncedAssociations } from '../sync/associations'
 import DreamTransaction from './transaction'
 import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance'
 import ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase from '../exceptions/foreign-key-on-association-does-not-match-primary-key-on-base'
+import CurriedOpsStatement from '../ops/curried-ops-statement'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -810,7 +811,7 @@ export default class Query<
     Object.keys(whereStatement)
       .filter(key => (whereStatement as any)[key] !== undefined)
       .forEach(attr => {
-        const val = (whereStatement as any)[attr]
+        let val = (whereStatement as any)[attr]
         let a: any
         let b: ComparisonOperatorExpression
         let c: any
@@ -830,6 +831,11 @@ export default class Query<
           a = attr
           b = 'in'
           c = val
+        } else if (val.constructor === CurriedOpsStatement) {
+          val = val.toOpsStatement(this.dreamClass, attr)
+          a = attr
+          b = val.operator
+          c = val.value
         } else if (val.constructor === OpsStatement) {
           a = attr
           b = val.operator

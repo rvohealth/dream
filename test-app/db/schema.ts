@@ -25,6 +25,7 @@ export interface Balloons {
   type: BalloonTypesEnum | null;
   volume: Numeric | null;
   color: BalloonColorsEnum | null;
+  multicolor: BalloonColorsEnum[] | null;
   deleted_at: Timestamp | null;
   created_at: Timestamp;
   updated_at: Timestamp;
@@ -133,7 +134,7 @@ export interface DB {
 
 
 
-export const BalloonColumns = ['id', 'user_id', 'type', 'volume', 'color', 'deleted_at', 'created_at', 'updated_at']
+export const BalloonColumns = ['id', 'user_id', 'type', 'volume', 'color', 'multicolor', 'deleted_at', 'created_at', 'updated_at']
 export const CompositionAssetAuditColumns = ['id', 'composition_asset_id', 'approval', 'created_at', 'updated_at']
 export const CompositionAssetColumns = ['id', 'composition_id', 'src', 'primary', 'created_at', 'updated_at']
 export const CompositionColumns = ['id', 'user_id', 'content', 'primary', 'created_at', 'updated_at']
@@ -151,6 +152,7 @@ export interface BalloonAttributes {
   type: BalloonTypesEnum | null
   volume: number | null
   color: BalloonColorsEnum | null
+  multicolor: BalloonColorsEnum[] | null
   deleted_at: DateTime | null
   created_at: DateTime
   updated_at: DateTime
@@ -250,6 +252,7 @@ export const BalloonsTypeCache = {
   type: 'BalloonTypesEnum|null',
   volume: 'Numeric|null',
   color: 'BalloonColorsEnum|null',
+  multicolor: 'BalloonColorsEnum[]|null',
   deleted_at: 'Timestamp|null',
   created_at: 'Timestamp',
   updated_at: 'Timestamp'
@@ -370,4 +373,4 @@ export const DBTypeCache = {
   ratings: RatingsTypeCache,
   users: UsersTypeCache,
   user_settings: UserSettingsTypeCache
-}
+} as Partial<Record<keyof DB, any>>

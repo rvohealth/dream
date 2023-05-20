@@ -1,8 +1,20 @@
-import { ComparisonOperatorExpression } from 'kysely'
+import { ComparisonOperatorExpression, sql } from 'kysely'
 import OpsStatement from './ops-statement'
+import CurriedOpsStatement from './curried-ops-statement'
+import Dream from '../dream'
+import cachedFieldType from '../helpers/cachedFieldType'
+import { DB } from '../sync/schema'
 
 const ops = {
   in: (arr: any[]) => new OpsStatement('in', arr),
+  any: (value: any) =>
+    new CurriedOpsStatement(function <
+      T extends typeof Dream,
+      FN extends keyof DB[InstanceType<T>['table']] & string
+    >(dreamClass: T, fieldName: FN) {
+      const castType: string = cachedFieldType(dreamClass, fieldName)
+      return new OpsStatement('@>', sql`ARRAY[${sql.join([value])}]::${sql.raw(castType)}`)
+    }),
   like: (like: string) => new OpsStatement('like', like),
   ilike: (ilike: string) => new OpsStatement('ilike', ilike),
   expression: (operator: ComparisonOperatorExpression, value: any) => new OpsStatement(operator, value),

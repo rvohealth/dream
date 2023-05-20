@@ -11,6 +11,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('type', sql`balloon_types_enum`)
     .addColumn('volume', 'decimal(6, 3)')
     .addColumn('color', sql`balloon_colors_enum`)
+    .addColumn('multicolor', sql`balloon_colors_enum[]`)
     .addColumn('deleted_at', 'timestamp')
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
