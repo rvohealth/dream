@@ -15,6 +15,22 @@ export default class DreamSerializer {
   private _casing: 'snake' | 'camel' | null = null
   constructor(data: any) {
     this._data = data
+
+    const attributeStatements = [...(this.constructor as typeof DreamSerializer).attributeStatements]
+
+    attributeStatements.forEach(attributeStatement => {
+      if (!attributeStatement.functional) {
+        Object.defineProperty(this, attributeStatement.field, {
+          get() {
+            return this._data[attributeStatement.field]
+          },
+
+          set(val: any) {
+            this._data[attributeStatement.field] = val
+          },
+        })
+      }
+    })
   }
 
   public get data() {
