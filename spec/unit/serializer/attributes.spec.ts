@@ -11,7 +11,7 @@ describe('DreamSerializer attribute accessors', () => {
     expect(serializer.email).toEqual('abc')
   })
 
-  it.only('allows setting of attributes from serializer', async () => {
+  it('allows setting of attributes from serializer', async () => {
     class MySerializer extends DreamSerializer {
       @Attribute()
       public email: string
