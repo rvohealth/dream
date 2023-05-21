@@ -819,6 +819,10 @@ export default class Query<
         let b2: ComparisonOperatorExpression | null = null
         let c2: any | null = null
 
+        if (val instanceof Function) {
+          val = val()
+        }
+
         if (val === null) {
           a = attr
           b = 'is'

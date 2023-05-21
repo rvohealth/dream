@@ -211,6 +211,41 @@ describe('Query#where', () => {
     })
   })
 
+  context('a function returning a date range is passed', () => {
+    const begin = DateTime.now()
+    const end = DateTime.now().plus({ day: 1 })
+
+    let user1: User
+    let user2: User
+    let user3: User
+
+    beforeEach(async () => {
+      user1 = await User.create({
+        email: 'fred@frewd',
+        password: 'howyadoin',
+        created_at: begin.minus({ hour: 1 }),
+      })
+      user2 = await User.create({
+        email: 'fred@frwwd',
+        password: 'howyadoin',
+        created_at: begin.plus({ hour: 1 }),
+      })
+      user3 = await User.create({
+        email: 'fred@frwewdzsd',
+        password: 'howyadoin',
+        created_at: end.plus({ hour: 1 }),
+      })
+    })
+
+    it('is able to apply date ranges to where clause', async () => {
+      const users = await User.order('id')
+        .where({ created_at: () => range(begin, end) })
+        .all()
+
+      expect(users).toMatchDreamModels([user2])
+    })
+  })
+
   context('a number range is passed', () => {
     const begin = 3
     const end = 7
