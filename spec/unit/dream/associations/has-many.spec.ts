@@ -22,12 +22,10 @@ describe('Dream HasMany association', () => {
     expect(userAssociations[2].through).toEqual('compositions')
     expect(userAssociations[2].foreignKey()).toEqual('user_id')
     expect(userAssociations[2].modelCB()).toEqual(CompositionAsset)
-    expect(userAssociations[2].throughClass!()).toEqual(Composition)
 
     // composition asset audits
     expect(userAssociations[3].through).toEqual('compositionAssets')
     expect(userAssociations[3].modelCB()).toEqual(CompositionAssetAudit)
-    expect(userAssociations[3].throughClass!()).toEqual(CompositionAsset)
 
     // balloons
     expect(userAssociations[4].foreignKey()).toEqual('user_id')

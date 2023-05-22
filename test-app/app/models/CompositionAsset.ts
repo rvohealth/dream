@@ -27,7 +27,6 @@ export default class CompositionAsset extends Dream {
 
   @HasOne(() => User, {
     through: 'composition',
-    throughClass: () => Composition,
   })
   public user: User
 

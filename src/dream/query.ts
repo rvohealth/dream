@@ -30,6 +30,7 @@ import DreamTransaction from './transaction'
 import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance'
 import ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase from '../exceptions/foreign-key-on-association-does-not-match-primary-key-on-base'
 import CurriedOpsStatement from '../ops/curried-ops-statement'
+import CannotAssociateThroughPolymorphic from '../exceptions/cannot-associate-through-polymorphic'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -377,6 +378,7 @@ export default class Query<
   }
 
   public async includesBridgeThroughAssociations(
+    dreamClass: typeof Dream,
     dreams: Dream[],
     association: HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any>
   ): Promise<{
@@ -415,8 +417,16 @@ export default class Query<
       //  the Comments -> CommentAuthors hasMany association
       // So that Comments may be properly hydrated with many CommentAuthors
       const newDreams = (dreams as any[]).flatMap(dream => dream[association.through!])
-      const newAssociation = association.throughClass!().associationMap[association.to || association.as]
-      return await this.includesBridgeThroughAssociations(newDreams, newAssociation)
+
+      const throughClass = dreamClass.associationMap[association.through].modelCB()
+      if (throughClass.constructor === Array)
+        throw new CannotAssociateThroughPolymorphic({
+          dreamClass,
+          association,
+        })
+
+      const newAssociation = (throughClass as typeof Dream).associationMap[association.to || association.as]
+      return await this.includesBridgeThroughAssociations(dreamClass, newDreams, newAssociation)
     }
   }
 
@@ -429,7 +439,11 @@ export default class Query<
     let association = dream.associationMap[currentAssociationTableOrAlias]
     let associationQuery
 
-    const results = await this.includesBridgeThroughAssociations(dreams, association)
+    const results = await this.includesBridgeThroughAssociations(
+      dream.constructor as typeof Dream,
+      dreams,
+      association
+    )
     dreams = results.dreams
     association = results.association
 
@@ -606,10 +620,18 @@ export default class Query<
         currentAssociationTableOrAlias: association.through,
       })
 
+      const throughClass = dreamClass.associationMap[association.through].modelCB()
+
+      if (throughClass.constructor === Array)
+        throw new CannotAssociateThroughPolymorphic({
+          dreamClass,
+          association,
+        })
+
       return this.joinsBridgeThroughAssociations({
         query: results.query,
         dreamClass: association.modelCB(),
-        association: association.throughClass!().associationMap[association.to || association.as],
+        association: (throughClass as typeof Dream).associationMap[association.to || association.as],
         previousAssociationTableOrAlias: association.through,
       })
     }
@@ -643,7 +665,6 @@ export default class Query<
     // association = Post.associationMap[commenters]
     // which gives association = {
     //   through: 'comments',
-    //   throughClass: () => Comment,
     //   as: 'commenters',
     //   modelCB: () => Commenter,
     // }

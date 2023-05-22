@@ -138,7 +138,6 @@ class User {
 
   @HasMany('composition_assets', () => CompositionAsset, {
     through: 'compositions',
-    throughClass: () => Composition,
   })
   public compositionAssets: CompositionAsset[]
 }

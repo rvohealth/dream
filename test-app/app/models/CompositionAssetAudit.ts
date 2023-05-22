@@ -21,13 +21,11 @@ export default class CompositionAssetAudit extends Dream {
 
   @HasOne(() => Composition, {
     through: 'compositionAsset',
-    throughClass: () => CompositionAsset,
   })
   public composition: Composition
 
   @HasOne(() => User, {
     through: 'compositionAsset',
-    throughClass: () => CompositionAsset,
   })
   public user: User
 

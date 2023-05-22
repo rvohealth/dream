@@ -54,19 +54,16 @@ export default class User extends Dream {
 
   @HasMany(() => CompositionAsset, {
     through: 'compositions',
-    throughClass: () => Composition,
   })
   public compositionAssets: CompositionAsset[]
 
   @HasOne(() => CompositionAsset, {
     through: 'mainComposition',
-    throughClass: () => Composition,
   })
   public mainCompositionAsset: CompositionAsset
 
   @HasMany(() => CompositionAssetAudit, {
     through: 'compositionAssets',
-    throughClass: () => CompositionAsset,
   })
   public compositionAssetAudits: CompositionAssetAudit[]
 
@@ -78,7 +75,6 @@ export default class User extends Dream {
 
   @HasMany(() => CompositionAsset, {
     through: 'recentCompositions',
-    throughClass: () => Composition,
     to: 'compositionAssets',
   })
   public recentCompositionAssets: CompositionAsset[]

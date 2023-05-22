@@ -9,14 +9,12 @@ export default function HasMany<AssociationDreamClass extends typeof Dream>(
     foreignKey,
     polymorphic = false,
     through,
-    throughClass,
     to,
     where,
   }: {
     foreignKey?: string
     polymorphic?: boolean
     through?: string
-    throughClass?: () => typeof Dream
     to?: string
     where?: WhereStatement<InstanceType<AssociationDreamClass>['table'] & AssociationTableNames>
   } = {}
@@ -24,10 +22,6 @@ export default function HasMany<AssociationDreamClass extends typeof Dream>(
   return function (target: any, key: string, _: any) {
     const dreamClass: typeof Dream = target.constructor
 
-    if ((through && !throughClass) || (throughClass && !through))
-      throw `
-      Must pass 'through' and 'throughClass' to through associations
-    `
     // TODO: add better validation on through associations
     // TODO: add type guards to through associations if possible
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'associations'))
@@ -46,7 +40,6 @@ export default function HasMany<AssociationDreamClass extends typeof Dream>(
       as: key,
       polymorphic,
       through,
-      throughClass,
       to,
       where,
     })
