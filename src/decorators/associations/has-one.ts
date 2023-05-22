@@ -8,14 +8,14 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
   {
     foreignKey,
     polymorphic = false,
+    source,
     through,
-    to,
     where,
   }: {
     foreignKey?: string
     polymorphic?: boolean
+    source?: string
     through?: string
-    to?: string
     where?: WhereStatement<InstanceType<AssociationDreamClass>['table'] & AssociationTableNames>
   } = {}
 ): any {
@@ -39,8 +39,8 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
 
       as: key,
       polymorphic,
+      source,
       through,
-      to,
       where,
     })
   }

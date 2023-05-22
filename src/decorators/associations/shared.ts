@@ -53,8 +53,8 @@ export interface HasStatement<
   foreignKey: () => keyof DB[ForeignTableName]
   foreignKeyTypeField: () => keyof DB[ForeignTableName]
   polymorphic: boolean
+  source?: string
   through?: string
-  to?: string
   where?: WhereStatement<ForeignTableName>
 }
 

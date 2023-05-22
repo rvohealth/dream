@@ -75,7 +75,7 @@ export default class User extends Dream {
 
   @HasMany(() => CompositionAsset, {
     through: 'recentCompositions',
-    to: 'compositionAssets',
+    source: 'compositionAssets',
   })
   public recentCompositionAssets: CompositionAsset[]
   // recent
