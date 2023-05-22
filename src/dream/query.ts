@@ -396,7 +396,7 @@ export default class Query<
             get() {
               return Object.freeze(
                 ((dream as any)[association.through!] as any[]).flatMap(
-                  record => (record as any)![association.as]
+                  record => (record as any)![association.to || association.as]
                 )
               )
             },
@@ -404,7 +404,7 @@ export default class Query<
         } else {
           Object.defineProperty(dream, association.as, {
             get() {
-              return (dream as any)[association.through!]![association.as]
+              return (dream as any)[association.through!]![association.to || association.as]
             },
           })
         }
@@ -415,7 +415,7 @@ export default class Query<
       //  the Comments -> CommentAuthors hasMany association
       // So that Comments may be properly hydrated with many CommentAuthors
       const newDreams = (dreams as any[]).flatMap(dream => dream[association.through!])
-      const newAssociation = association.throughClass!().associationMap[association.as]
+      const newAssociation = association.throughClass!().associationMap[association.to || association.as]
       return await this.includesBridgeThroughAssociations(newDreams, newAssociation)
     }
   }
@@ -609,7 +609,7 @@ export default class Query<
       return this.joinsBridgeThroughAssociations({
         query: results.query,
         dreamClass: association.modelCB(),
-        association: association.throughClass!().associationMap[association.as],
+        association: association.throughClass!().associationMap[association.to || association.as],
         previousAssociationTableOrAlias: association.through,
       })
     }

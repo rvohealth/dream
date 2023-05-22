@@ -8,7 +8,7 @@ import User from '../../../../test-app/app/models/User'
 describe('Dream HasMany association', () => {
   it('builds association mapping', async () => {
     const userAssociations = User.associations.hasMany
-    expect(userAssociations.length).toEqual(6)
+    expect(userAssociations.length).toEqual(8)
 
     // compositions
     expect(userAssociations[0].foreignKey()).toEqual('user_id')
@@ -31,7 +31,7 @@ describe('Dream HasMany association', () => {
 
     // balloons
     expect(userAssociations[4].foreignKey()).toEqual('user_id')
-    expect(userAssociations[4].modelCB()).toEqual(Balloon)
+    expect(userAssociations[4].modelCB()).toEqual(Composition)
 
     // ensure that other model associations have not
     // accidentally overwritten this one

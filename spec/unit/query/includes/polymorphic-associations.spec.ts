@@ -2,6 +2,7 @@ import User from '../../../../test-app/app/models/User'
 import Composition from '../../../../test-app/app/models/Composition'
 import Post from '../../../../test-app/app/models/Post'
 import Rating from '../../../../test-app/app/models/Rating'
+import Query from '../../../../src/dream/query'
 
 describe('Query#includes with polymorphic associations', () => {
   it('loads a HasMany association', async () => {
@@ -10,7 +11,7 @@ describe('Query#includes with polymorphic associations', () => {
     const post = await Post.create({ user_id: user.id })
     const rating = await Rating.create({ user_id: user.id, rateable_id: post.id, rateable_type: 'Rating' })
 
-    const reloaded = await Post.limit(3).includes('ratings').first()
+    const reloaded = await new Query(Post).includes('ratings').first()
     expect(reloaded!.ratings).toMatchDreamModels([rating])
   })
 
@@ -20,7 +21,7 @@ describe('Query#includes with polymorphic associations', () => {
     const post = await Post.create({ user_id: user.id })
     await Rating.create({ user_id: user.id, rateable_id: post.id, rateable_type: 'Post' })
 
-    const reloaded = await Rating.limit(3).includes('rateable').first()
+    const reloaded = await new Query(Rating).includes('rateable').first()
     expect(reloaded!.rateable).toMatchDreamModel(post)
   })
 
@@ -30,7 +31,7 @@ describe('Query#includes with polymorphic associations', () => {
     const post = await Post.create({ user_id: user.id })
     await Rating.create({ user_id: user.id, rateable_id: post.id, rateable_type: 'Post' })
 
-    const reloaded = await Rating.limit(3).includes('rateable').first()
+    const reloaded = await new Query(Rating).includes('rateable').first()
     expect(reloaded!.rateable).toMatchDreamModel(post)
   })
 })

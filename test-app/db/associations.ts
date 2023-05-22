@@ -97,6 +97,12 @@ export default {
     "compositionAssetAudits": [
       "composition_asset_audits"
     ],
+    "recentCompositions": [
+      "compositions"
+    ],
+    "recentCompositionAssets": [
+      "composition_assets"
+    ],
     "balloons": [
       "balloons"
     ],
@@ -209,6 +215,12 @@ export interface SyncedAssociations {
     ],
     "compositionAssetAudits": [
       "composition_asset_audits"
+    ],
+    "recentCompositions": [
+      "compositions"
+    ],
+    "recentCompositionAssets": [
+      "composition_assets"
     ],
     "balloons": [
       "balloons"

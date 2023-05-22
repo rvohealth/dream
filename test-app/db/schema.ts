@@ -42,6 +42,7 @@ export interface CompositionAssetAudits {
 export interface CompositionAssets {
   id: Generated<Int8>;
   composition_id: Int8;
+  name: string | null;
   src: string | null;
   primary: Generated<boolean | null>;
   created_at: Timestamp;
@@ -136,7 +137,7 @@ export interface DB {
 
 export const BalloonColumns = ['id', 'user_id', 'type', 'volume', 'color', 'multicolor', 'deleted_at', 'created_at', 'updated_at']
 export const CompositionAssetAuditColumns = ['id', 'composition_asset_id', 'approval', 'created_at', 'updated_at']
-export const CompositionAssetColumns = ['id', 'composition_id', 'src', 'primary', 'created_at', 'updated_at']
+export const CompositionAssetColumns = ['id', 'composition_id', 'name', 'src', 'primary', 'created_at', 'updated_at']
 export const CompositionColumns = ['id', 'user_id', 'content', 'primary', 'created_at', 'updated_at']
 export const IncompatibleForeignKeyTypeExampleColumns = ['id', 'user_id', 'created_at', 'updated_at']
 export const PetColumns = ['id', 'user_id', 'species', 'name', 'deleted_at', 'created_at']
@@ -169,6 +170,7 @@ export interface CompositionAssetAuditAttributes {
 export interface CompositionAssetAttributes {
   id: IdType
   composition_id: IdType
+  name: string | null
   src: string | null
   primary: boolean | null
   created_at: DateTime
@@ -269,6 +271,7 @@ export const CompositionAssetAuditsTypeCache = {
 export const CompositionAssetsTypeCache = {
   id: 'Generated<Int8>',
   composition_id: 'Int8',
+  name: 'string|null',
   src: 'string|null',
   primary: 'Generated<boolean|null>',
   created_at: 'Timestamp',

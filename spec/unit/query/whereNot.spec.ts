@@ -1,4 +1,5 @@
 import User from '../../../test-app/app/models/User'
+import Query from '../../../src/dream/query'
 
 describe('Query#whereNot', () => {
   it('negates a query', async () => {
@@ -6,7 +7,7 @@ describe('Query#whereNot', () => {
     const user2 = await User.create({ email: 'danny@nelso', password: 'howyadoin' })
     const user3 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
-    const records = await User.limit(3).whereNot({ email: 'fred@frewd' }).all()
+    const records = await new Query(User).whereNot({ email: 'fred@frewd' }).all()
     expect(records).toMatchDreamModels([user2, user3])
   })
 })

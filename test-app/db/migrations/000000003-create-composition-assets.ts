@@ -5,6 +5,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .createTable('composition_assets')
     .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('composition_id', 'bigint', col => col.notNull())
+    .addColumn('name', 'varchar')
     .addColumn('src', 'text')
     .addColumn('primary', 'boolean', col => col.defaultTo(false))
     .addColumn('created_at', 'timestamp', col => col.notNull())

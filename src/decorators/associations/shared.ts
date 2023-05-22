@@ -30,6 +30,7 @@ export type DreamUpdateable<TableName extends AssociationTableNames> = Partial<
   Record<
     keyof DB[TableName],
     | Range<DateTime>
+    | (() => Range<DateTime>)
     | Range<number>
     | OpsStatement
     | CurriedOpsStatement<any, any>
@@ -54,6 +55,7 @@ export interface HasStatement<
   polymorphic: boolean
   throughClass?: () => typeof Dream
   through?: string
+  to?: string
   where?: WhereStatement<ForeignTableName>
 }
 

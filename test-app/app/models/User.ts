@@ -12,7 +12,7 @@ import { IdType } from '../../../src/db/reflections'
 import { DateTime } from 'luxon'
 import Balloon from './Balloon'
 import IncompatibleForeignKeyTypeExample from './IncompatibleForeignKeyTypeExample'
-import { BeforeSave } from '../../../src'
+import { BeforeSave, range } from '../../../src'
 import Virtual from '../../../src/decorators/virtual'
 import Pet from './Pet'
 import Query from '../../../src/dream/query'
@@ -69,6 +69,20 @@ export default class User extends Dream {
     throughClass: () => CompositionAsset,
   })
   public compositionAssetAudits: CompositionAssetAudit[]
+
+  // recent associations
+  @HasMany(() => Composition, {
+    where: { created_at: () => range(DateTime.now().minus({ week: 1 })) },
+  })
+  public recentCompositions: Composition[]
+
+  @HasMany(() => CompositionAsset, {
+    through: 'recentCompositions',
+    throughClass: () => Composition,
+    to: 'compositionAssets',
+  })
+  public recentCompositionAssets: CompositionAsset[]
+  // recent
 
   @HasMany(() => Balloon)
   public balloons: Balloon[]

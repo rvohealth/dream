@@ -18,6 +18,7 @@ export default class CompositionAsset extends Dream {
 
   public id: IdType
   public src: string | null
+  public name: string | null
   public primary: boolean
 
   @BelongsTo(() => Composition)

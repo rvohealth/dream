@@ -5,6 +5,7 @@ import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAs
 import Rating from '../../../../test-app/app/models/Rating'
 import Post from '../../../../test-app/app/models/Post'
 import CannotJoinPolymorphicBelongsToError from '../../../../src/exceptions/cannot-join-polymorphic-belongs-to-error'
+import Query from '../../../../src/dream/query'
 
 describe('Query#joins with polymorphic associations', () => {
   it('joins a HasMany association', async () => {
@@ -14,7 +15,7 @@ describe('Query#joins with polymorphic associations', () => {
     const post = await Post.create({ user_id: user.id })
     await Rating.create({ user_id: user.id, rateable_id: post.id, rateable_type: 'Post' })
 
-    const reloaded = await Post.limit(3).joins('ratings').first()
+    const reloaded = await new Query(Post).joins('ratings').first()
     expect(reloaded).toMatchDreamModel(post)
   })
 
@@ -36,13 +37,13 @@ describe('Query#joins with polymorphic associations', () => {
       const post = await Post.create({ user_id: user.id })
       const rating = await Rating.create({ user_id: user.id, rateable_id: post.id, rateable_type: 'Post' })
 
-      const reloaded = await Post.limit(3)
+      const reloaded = await new Query(Post)
         .joins('ratings')
         .where({ ratings: { id: rating.id } })
         .first()
       expect(reloaded).toMatchDreamModel(post)
 
-      const noResults = await Post.limit(3)
+      const noResults = await new Query(Post)
         .joins('ratings')
         .where({ ratings: { id: parseInt(rating.id!.toString()) + 1 } })
         .first()

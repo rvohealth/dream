@@ -6,13 +6,14 @@ import IncompatibleForeignKeyTypeExample from '../../../../test-app/app/models/I
 import ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase from '../../../../src/exceptions/foreign-key-on-association-does-not-match-primary-key-on-base'
 import { DateTime } from 'luxon'
 import Pet from '../../../../test-app/app/models/Pet'
+import Query from '../../../../src/dream/query'
 
 describe('Query#includes with simple associations', () => {
   it('loads a HasOne association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ user_id: user.id, primary: true })
 
-    const reloadedUser = await User.limit(1).includes('mainComposition').first()
+    const reloadedUser = await new Query(User).includes('mainComposition').first()
     expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
   })
 
@@ -21,7 +22,7 @@ describe('Query#includes with simple associations', () => {
     const composition1 = await Composition.create({ user_id: user.id })
     const composition2 = await Composition.create({ user_id: user.id })
 
-    const reloadedUser = await User.limit(1).includes('compositions').first()
+    const reloadedUser = await new Query(User).includes('compositions').first()
     expect(reloadedUser!.compositions[0]).toMatchDreamModel(composition1)
     expect(reloadedUser!.compositions[1]).toMatchDreamModel(composition2)
   })
@@ -29,7 +30,7 @@ describe('Query#includes with simple associations', () => {
   it('loads a BelongsTo association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     await Composition.create({ user_id: user.id })
-    const reloadedComposition = await Composition.limit(1).includes('user').first()
+    const reloadedComposition = await new Query(Composition).includes('user').first()
     expect(reloadedComposition!.user).toMatchDreamModel(user)
   })
 
@@ -38,7 +39,7 @@ describe('Query#includes with simple associations', () => {
     const composition = await Composition.create({ user_id: user.id })
     const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
-    const reloaded = await User.limit(3).includes({ compositions: 'compositionAssets' }).first()
+    const reloaded = await new Query(User).includes({ compositions: 'compositionAssets' }).first()
     expect(reloaded!.compositions).toMatchDreamModels([composition])
     expect(reloaded!.compositions[0].compositionAssets).toMatchDreamModels([compositionAsset])
   })
@@ -49,7 +50,7 @@ describe('Query#includes with simple associations', () => {
     const composition2 = await Composition.create({ user_id: user.id })
     const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
-    const reloadedUser = await User.limit(1)
+    const reloadedUser = await new Query(User)
       .includes(['compositions', { mainComposition: ['compositionAssets'] }])
       .first()
 
@@ -66,7 +67,7 @@ describe('Query#includes with simple associations', () => {
       composition_asset_id: compositionAsset.id,
     })
 
-    const reloaded = await CompositionAssetAudit.limit(3).includes('composition', 'user').first()
+    const reloaded = await new Query(CompositionAssetAudit).includes('composition', 'user').first()
     expect(reloaded!.composition).toMatchDreamModel(composition)
     expect(reloaded!.user).toMatchDreamModel(user)
   })
@@ -74,30 +75,26 @@ describe('Query#includes with simple associations', () => {
   context('with matching where-clause-on-the-association', () => {
     it('loads the associated object', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const composition = await Composition.create({ user_id: user.id })
-      await CompositionAsset.create({ composition_id: composition.id })
-      const compositionAsset = await CompositionAsset.create({
-        composition_id: composition.id,
-        primary: true,
+      const composition = await Composition.create({
+        user,
+        created_at: DateTime.now().minus({ day: 1 }),
       })
 
-      const reloadedComposition = await Composition.limit(1).includes('mainCompositionAsset').first()
-      expect(reloadedComposition!.mainCompositionAsset).toMatchDreamModel(compositionAsset)
+      const reloadedUser = await new Query(User).includes('recentCompositions').first()
+      expect(reloadedUser!.recentCompositions).toMatchDreamModels([composition])
     })
   })
 
   context('with NON-matching where-clause-on-the-association', () => {
-    it('does not load the associated object', async () => {
+    it('does not load the object', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const composition = await Composition.create({ user_id: user.id })
-      await CompositionAsset.create({ composition_id: composition.id })
-      const compositionAsset = await CompositionAsset.create({
-        composition_id: composition.id,
-        primary: false,
+      await Composition.create({
+        user,
+        created_at: DateTime.now().minus({ year: 1 }),
       })
 
-      const reloadedComposition = await Composition.limit(1).includes('mainCompositionAsset').first()
-      expect(reloadedComposition!.mainCompositionAsset).toBeUndefined()
+      const reloadedUser = await new Query(User).includes('recentCompositions').first()
+      expect(reloadedUser!.recentCompositions).toBeUndefined()
     })
   })
 
@@ -108,7 +105,7 @@ describe('Query#includes with simple associations', () => {
 
       let error: Error | null = null
       try {
-        await User.includes('incompatibleForeignKeyTypeExamples').all()
+        await new Query(User).includes('incompatibleForeignKeyTypeExamples').all()
       } catch (err: any) {
         error = err
       }
