@@ -94,14 +94,8 @@ describe('Query#includes through with simple associations', () => {
           created_at: DateTime.now().minus({ year: 1 }),
         })
 
-        const compositionAsset1 = await CompositionAsset.create({
-          name: 'Hello',
-          composition: recentComposition,
-        })
-        const compositionAsset2 = await CompositionAsset.create({
-          name: 'World',
-          composition: olderComposition,
-        })
+        const compositionAsset1 = await CompositionAsset.create({ composition: recentComposition })
+        const compositionAsset2 = await CompositionAsset.create({ composition: olderComposition })
 
         const reloadedUser = await new Query(User)
           .includes({ recentCompositions: 'compositionAssets' })
