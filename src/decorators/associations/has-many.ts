@@ -2,6 +2,8 @@ import pluralize = require('pluralize')
 import Dream from '../../dream'
 import { HasStatement, WhereStatement, blankAssociationsFactory } from './shared'
 import { AssociationTableNames } from '../../db/reflections'
+import Query from '../../dream/query'
+import { HasOneStatement } from './has-one'
 
 export default function HasMany<AssociationDreamClass extends typeof Dream>(
   modelCB: () => AssociationDreamClass,
@@ -39,10 +41,21 @@ export default function HasMany<AssociationDreamClass extends typeof Dream>(
 
       as: key,
       polymorphic,
-      source,
+      source: source || key,
       through,
       where,
     })
+
+    // Object.defineProperty(target, `${key}Query`, {
+    //   get: function (this: Dream) {
+    //     const association = this.associationMap[key] as HasManyStatement<any>
+    //     const associationClass = association.modelCB()
+    //     const nestedSelect = (this.constructor as typeof Dream)
+    //       .joins(association.as)
+    //       .nestedSelect(`${association.as}.${associationClass.primaryKey}` as any)
+    //     return associationClass.where({ [associationClass.primaryKey]: nestedSelect })
+    //   },
+    // })
   }
 }
 

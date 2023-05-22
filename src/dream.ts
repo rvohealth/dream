@@ -9,7 +9,7 @@ import { HookStatement, blankHooksFactory } from './decorators/hooks/shared'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { marshalDBValue } from './helpers/marshalDBValue'
-import { SyncedBelongsToAssociations } from './sync/associations'
+import { SyncedAssociations, SyncedBelongsToAssociations } from './sync/associations'
 import { WhereStatement, blankAssociationsFactory } from './decorators/associations/shared'
 import { AssociationTableNames } from './db/reflections'
 import CanOnlyPassBelongsToModelParam from './exceptions/can-only-pass-belongs-to-model-param'
@@ -511,6 +511,15 @@ export default class Dream {
     Table extends DB[keyof DB] = DB[TableName]
   >(this: I, attribute: keyof Table): boolean {
     return isDecimal(attribute, { table: this.table })
+  }
+
+  public query<I extends Dream>(this: I, associationName: keyof SyncedAssociations[I['table']]) {
+    const association = this.associationMap[associationName] as HasManyStatement<any>
+    const associationClass = association.modelCB()
+    const nestedSelect = (this.constructor as typeof Dream)
+      .joins(association.as)
+      .nestedSelect(`${association.as}.${associationClass.primaryKey}` as any)
+    return associationClass.where({ [associationClass.primaryKey]: nestedSelect })
   }
 
   public async load<

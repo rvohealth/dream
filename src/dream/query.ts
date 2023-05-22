@@ -398,7 +398,7 @@ export default class Query<
             get() {
               return Object.freeze(
                 ((dream as any)[association.through!] as any[]).flatMap(
-                  record => (record as any)![association.source || association.as]
+                  record => (record as any)![association.source]
                 )
               )
             },
@@ -406,7 +406,7 @@ export default class Query<
         } else {
           Object.defineProperty(dream, association.as, {
             get() {
-              return (dream as any)[association.through!]![association.source || association.as]
+              return (dream as any)[association.through!]![association.source]
             },
           })
         }
@@ -425,9 +425,7 @@ export default class Query<
           association,
         })
 
-      const newAssociation = (throughClass as typeof Dream).associationMap[
-        association.source || association.as
-      ]
+      const newAssociation = (throughClass as typeof Dream).associationMap[association.source]
       return await this.includesBridgeThroughAssociations(dreamClass, newDreams, newAssociation)
     }
   }
@@ -633,7 +631,7 @@ export default class Query<
       return this.joinsBridgeThroughAssociations({
         query: results.query,
         dreamClass: association.modelCB(),
-        association: (throughClass as typeof Dream).associationMap[association.source || association.as],
+        association: (throughClass as typeof Dream).associationMap[association.source],
         previousAssociationTableOrAlias: association.through,
       })
     }

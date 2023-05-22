@@ -39,7 +39,7 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
 
       as: key,
       polymorphic,
-      source,
+      source: source || key,
       through,
       where,
     })
