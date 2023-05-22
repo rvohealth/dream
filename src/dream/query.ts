@@ -31,6 +31,7 @@ import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance'
 import ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase from '../exceptions/foreign-key-on-association-does-not-match-primary-key-on-base'
 import CurriedOpsStatement from '../ops/curried-ops-statement'
 import CannotAssociateThroughPolymorphic from '../exceptions/cannot-associate-through-polymorphic'
+import MissingThroughAssociation from '../exceptions/missing-through-association'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -418,14 +419,22 @@ export default class Query<
       // So that Comments may be properly hydrated with many CommentAuthors
       const newDreams = (dreams as any[]).flatMap(dream => dream[association.through!])
 
-      const throughClass = dreamClass.associationMap[association.through].modelCB()
+      const throughClass = dreamClass.associationMap[association.through].modelCB() as typeof Dream
       if (throughClass.constructor === Array)
         throw new CannotAssociateThroughPolymorphic({
           dreamClass,
           association,
         })
 
-      const newAssociation = (throughClass as typeof Dream).associationMap[association.source]
+      const newAssociation = throughClass.associationMap[association.source]
+
+      if (!newAssociation)
+        throw new MissingThroughAssociation({
+          dreamClass,
+          throughClass,
+          association,
+        })
+
       return await this.includesBridgeThroughAssociations(dreamClass, newDreams, newAssociation)
     }
   }
@@ -620,7 +629,7 @@ export default class Query<
         currentAssociationTableOrAlias: association.through,
       })
 
-      const throughClass = dreamClass.associationMap[association.through].modelCB()
+      const throughClass = dreamClass.associationMap[association.through].modelCB() as typeof Dream
 
       if (throughClass.constructor === Array)
         throw new CannotAssociateThroughPolymorphic({
@@ -628,10 +637,19 @@ export default class Query<
           association,
         })
 
+      const newAssociation = throughClass.associationMap[association.source]
+
+      if (!newAssociation)
+        throw new MissingThroughAssociation({
+          dreamClass,
+          throughClass,
+          association,
+        })
+
       return this.joinsBridgeThroughAssociations({
         query: results.query,
         dreamClass: association.modelCB(),
-        association: (throughClass as typeof Dream).associationMap[association.source],
+        association: newAssociation,
         previousAssociationTableOrAlias: association.through,
       })
     }

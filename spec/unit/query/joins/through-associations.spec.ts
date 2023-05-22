@@ -4,6 +4,7 @@ import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
 import { DateTime } from 'luxon'
 import Query from '../../../../src/dream/query'
+import MissingThroughAssociation from '../../../../src/exceptions/missing-through-association'
 
 describe('Query#joins through with simple associations', () => {
   it('joins a HasOne through HasOne association', async () => {
@@ -199,6 +200,26 @@ describe('Query#joins through with simple associations', () => {
             .first()
           expect(reloadedUser).toMatchDreamModel(user)
         })
+
+        context('HasMany through a HasMany that HasOne', () => {
+          it('are included in the join', async () => {
+            const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+            const recentComposition = await Composition.create({ user })
+
+            const compositionAsset1 = await CompositionAsset.create({
+              name: 'Hello',
+              composition: recentComposition,
+              primary: true,
+            })
+
+            const reloadedUser = await User.joins('recentCompositionAssets')
+              .where({
+                recentCompositionAssets: { name: 'Hello' },
+              })
+              .first()
+            expect(reloadedUser).toMatchDreamModel(user)
+          })
+        })
       })
 
       context('join models that DO NOT match the where clause', () => {
@@ -221,7 +242,40 @@ describe('Query#joins through with simple associations', () => {
             .first()
           expect(reloadedUser).toBeNull()
         })
+
+        context('HasMany through a HasMany that HasOne', () => {
+          it('are omitted from the join', async () => {
+            const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+            const olderComposition = await Composition.create({
+              user,
+              created_at: DateTime.now().minus({ year: 1 }),
+            })
+
+            const compositionAsset2 = await CompositionAsset.create({
+              name: 'World',
+              composition: olderComposition,
+              primary: true,
+            })
+
+            const reloadedUser = await User.joins('recentCompositionAssets')
+              .where({
+                recentCompositionAssets: { name: 'World' },
+              })
+              .first()
+            expect(reloadedUser).toBeNull()
+          })
+        })
       })
+    })
+  })
+
+  context('with a missing source', () => {
+    it('throws MissingThroughAssociation', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+
+      const query = new Query(User).joins('nonExtantCompositionAssets').first()
+
+      await expect(query).rejects.toThrow(MissingThroughAssociation)
     })
   })
 })

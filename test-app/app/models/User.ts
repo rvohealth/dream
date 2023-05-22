@@ -78,7 +78,19 @@ export default class User extends Dream {
     source: 'compositionAssets',
   })
   public recentCompositionAssets: CompositionAsset[]
-  // recent
+
+  @HasMany(() => CompositionAsset, {
+    through: 'recentCompositions',
+    source: 'mainCompositionAsset',
+  })
+  public recentMainCompositionAssets: CompositionAsset[]
+
+  // end:recent associations
+
+  // missing through association source
+  @HasMany(() => CompositionAsset, { through: 'compositions' })
+  public nonExtantCompositionAssets: CompositionAsset[]
+  // end: missing through association source
 
   @HasMany(() => Balloon)
   public balloons: Balloon[]

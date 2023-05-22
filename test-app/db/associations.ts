@@ -103,6 +103,12 @@ export default {
     "recentCompositionAssets": [
       "composition_assets"
     ],
+    "recentMainCompositionAssets": [
+      "composition_assets"
+    ],
+    "nonExtantCompositionAssets": [
+      "composition_assets"
+    ],
     "balloons": [
       "balloons"
     ],
@@ -220,6 +226,12 @@ export interface SyncedAssociations {
       "compositions"
     ],
     "recentCompositionAssets": [
+      "composition_assets"
+    ],
+    "recentMainCompositionAssets": [
+      "composition_assets"
+    ],
+    "nonExtantCompositionAssets": [
       "composition_assets"
     ],
     "balloons": [

@@ -4,6 +4,7 @@ import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
 import { DateTime } from 'luxon'
 import Query from '../../../../src/dream/query'
+import MissingThroughAssociation from '../../../../src/exceptions/missing-through-association'
 
 describe('Query#includes through with simple associations', () => {
   it('loads a HasOne through HasOne association', async () => {
@@ -120,6 +121,40 @@ describe('Query#includes through with simple associations', () => {
         expect(reloadedUser).toMatchDreamModel(user)
         expect(reloadedUser!.recentCompositionAssets).toMatchDreamModels([compositionAsset1])
       })
+
+      context('HasMany through a HasMany that HasOne', () => {
+        it('loads objects matching the where clause', async () => {
+          const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+          const recentComposition = await Composition.create({ user })
+          const olderComposition = await Composition.create({
+            user,
+            created_at: DateTime.now().minus({ year: 1 }),
+          })
+
+          const compositionAsset1 = await CompositionAsset.create({
+            composition: recentComposition,
+            primary: true,
+          })
+          const compositionAsset2 = await CompositionAsset.create({
+            composition: olderComposition,
+            primary: true,
+          })
+
+          const reloadedUser = await new Query(User).includes('recentCompositionAssets').first()
+          expect(reloadedUser).toMatchDreamModel(user)
+          expect(reloadedUser!.recentCompositionAssets).toMatchDreamModels([compositionAsset1])
+        })
+      })
+    })
+  })
+
+  context('with a missing source', () => {
+    it('throws MissingThroughAssociation', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+
+      const query = new Query(User).includes('nonExtantCompositionAssets').first()
+
+      await expect(query).rejects.toThrow(MissingThroughAssociation)
     })
   })
 })
