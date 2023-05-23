@@ -1,4 +1,5 @@
 export { default as Dream } from './dream'
+export { default as Query } from './dream/query'
 export { default as db } from './db'
 export { IdType } from './db/reflections'
 export { default as ops } from './ops'
