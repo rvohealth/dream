@@ -6,27 +6,39 @@ import { Inc } from '../helpers/typeutils'
 import { DB } from '../sync/schema'
 import { AssociatedModelParam, WhereStatement } from '../decorators/associations/shared'
 
+type MAX_DEPTH = 5
+
 export type NestedAssociationExpression<
   TB extends AssociationTableNames,
   AssociationName extends keyof SyncedAssociations[TB],
-  Next
-> = AssociationExpression<(SyncedAssociations[TB][AssociationName] & AssociationTableNames[])[number], Next>
+  Next,
+  Depth extends number
+> = AssociationExpression<
+  (SyncedAssociations[TB][AssociationName] & AssociationTableNames[])[number],
+  Next,
+  Depth
+>
 
 export type AssociationExpression<
   TB extends AssociationTableNames,
   AE = unknown,
   Depth extends number = 0
-> = Depth extends 5
+> = Depth extends MAX_DEPTH
   ? never
   : AE extends string
   ? keyof SyncedAssociations[TB]
   : AE extends any[]
   ? AssociationExpression<TB, AE[number], Inc<Depth>>[]
   : AE extends Partial<{
-      [Property in keyof SyncedAssociations[TB]]: NestedAssociationExpression<TB, Property, any>
+      [Property in keyof SyncedAssociations[TB]]: NestedAssociationExpression<TB, Property, any, Inc<Depth>>
     }>
   ? Partial<{
-      [Property in keyof SyncedAssociations[TB]]: NestedAssociationExpression<TB, Property, AE[Property]>
+      [Property in keyof SyncedAssociations[TB]]: NestedAssociationExpression<
+        TB,
+        Property,
+        AE[Property],
+        Inc<Depth>
+      >
     }>
   : never
 
@@ -34,18 +46,23 @@ export type JoinsWhereAssociationExpression<
   TB extends AssociationTableNames,
   AE extends AssociationExpression<TB, any>,
   Depth extends number = 0
-> = Depth extends 5
+> = Depth extends MAX_DEPTH
   ? never
-  : AE extends any[]
-  ? JoinsWhereAssociationExpression<TB, AE[number], Inc<Depth>>[]
   : AE extends keyof SyncedAssociations[TB]
   ? Partial<{
       [AssociationName in keyof SyncedAssociations[TB]]: WhereStatement<
         (SyncedAssociations[TB][AssociationName] & AssociationTableNames[])[number]
       >
     }>
+  : AE extends any[]
+  ? JoinsWhereAssociationExpression<TB, AE[number], Inc<Depth>>[]
   : AE extends Partial<{
-      [AssociationName in keyof SyncedAssociations[TB]]: NestedAssociationExpression<TB, AssociationName, any>
+      [AssociationName in keyof SyncedAssociations[TB]]: NestedAssociationExpression<
+        TB,
+        AssociationName,
+        any,
+        Inc<Depth>
+      >
     }>
   ? Partial<{
       [AssociationName in keyof SyncedAssociations[TB]]: JoinsWhereAssociationExpression<
@@ -53,10 +70,72 @@ export type JoinsWhereAssociationExpression<
         AssociationExpression<
           (SyncedAssociations[TB][AssociationName] & AssociationTableNames[])[number],
           AE[AssociationName]
-        >
+        >,
+        Inc<Depth>
       >
     }>
   : never
+
+type PluckTypeFromAssociationName<
+  TB extends AssociationTableNames,
+  AssociationName extends keyof SyncedAssociations[TB]
+> = SyncedAssociations[TB][AssociationName] extends (keyof DB)[]
+  ? `${AssociationName & string}.${keyof DB[SyncedAssociations[TB][AssociationName][number]] & string}`
+  : SyncedAssociations[TB][AssociationName] extends keyof DB
+  ? `${AssociationName & string}.${keyof DB[SyncedAssociations[TB][AssociationName]] & string}`
+  : never
+
+type NestedPluckTypeFromAssociationExpression<
+  TB extends AssociationTableNames,
+  AssociationName extends keyof SyncedAssociations[TB],
+  AE extends Partial<{
+    [AssociationName in keyof SyncedAssociations[TB]]: NestedAssociationExpression<
+      TB,
+      AssociationName,
+      any,
+      Inc<Depth>
+    >
+  }>,
+  Depth extends number
+> = SyncedAssociations[TB][AssociationName] extends (keyof DB)[]
+  ? JoinsPluckAssociationExpression<
+      SyncedAssociations[TB][AssociationName][number],
+      AssociationExpression<SyncedAssociations[TB][AssociationName][number], AE[AssociationName]>,
+      Inc<Depth>
+    >
+  : SyncedAssociations[TB][AssociationName] extends keyof DB
+  ? JoinsPluckAssociationExpression<
+      SyncedAssociations[TB][AssociationName],
+      AssociationExpression<SyncedAssociations[TB][AssociationName], AE[AssociationName]>,
+      Inc<Depth>
+    >
+  : never
+
+export type JoinsPluckAssociationExpression<
+  TB extends AssociationTableNames,
+  AE extends AssociationExpression<TB, any>,
+  Depth extends number = 0
+> = Depth extends MAX_DEPTH
+  ? never
+  : AE extends keyof SyncedAssociations[TB]
+  ? PluckTypeFromAssociationName<TB, AE>
+  : AE extends any[]
+  ? JoinsPluckAssociationExpression<TB, AE[number], Inc<Depth>>[]
+  : AE extends Partial<{
+      [AssociationName in keyof SyncedAssociations[TB]]: NestedAssociationExpression<
+        TB,
+        AssociationName,
+        any,
+        Inc<Depth>
+      >
+    }>
+  ?
+      | PluckTypeFromAssociationName<TB, keyof SyncedAssociations[TB]>
+      | NestedPluckTypeFromAssociationExpression<TB, keyof SyncedAssociations[TB], AE, Inc<Depth>>
+  : never
+
+type FieldType = JoinsPluckAssociationExpression<'graph_nodes', 'edges'>
+export type hello = PluckTypeFromAssociationName<'graph_edges', 'nodes'>
 
 export type AssociationModelParam<
   DreamInstance extends Dream,

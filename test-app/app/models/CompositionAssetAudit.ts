@@ -1,4 +1,4 @@
-import { HasOne } from '../../../src'
+import HasOne from '../../../src/decorators/associations/has-one'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import BeforeUpdate from '../../../src/decorators/hooks/before-update'
 import Dream from '../../../src/dream'

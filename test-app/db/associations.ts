@@ -40,6 +40,30 @@ export default {
       "composition_asset_audits"
     ]
   },
+  "graph_edge_nodes": {
+    "edge": [
+      "graph_edges"
+    ],
+    "node": [
+      "graph_nodes"
+    ]
+  },
+  "graph_edges": {
+    "edgeNodes": [
+      "graph_edge_nodes"
+    ],
+    "nodes": [
+      "graph_nodes"
+    ]
+  },
+  "graph_nodes": {
+    "edgeNodes": [
+      "graph_edge_nodes"
+    ],
+    "edges": [
+      "graph_edges"
+    ]
+  },
   "incompatible_foreign_key_type_examples": {
     "user": [
       "users"
@@ -165,6 +189,30 @@ export interface SyncedAssociations {
       "composition_asset_audits"
     ]
   },
+  "graph_edge_nodes": {
+    "edge": [
+      "graph_edges"
+    ],
+    "node": [
+      "graph_nodes"
+    ]
+  },
+  "graph_edges": {
+    "edgeNodes": [
+      "graph_edge_nodes"
+    ],
+    "nodes": [
+      "graph_nodes"
+    ]
+  },
+  "graph_nodes": {
+    "edgeNodes": [
+      "graph_edge_nodes"
+    ],
+    "edges": [
+      "graph_edges"
+    ]
+  },
   "incompatible_foreign_key_type_examples": {
     "user": [
       "users"
@@ -269,6 +317,16 @@ export interface SyncedBelongsToAssociations {
       "users"
     ]
   },
+  "graph_edge_nodes": {
+    "edge": [
+      "graph_edges"
+    ],
+    "node": [
+      "graph_nodes"
+    ]
+  },
+  "graph_edges": false,
+  "graph_nodes": false,
   "incompatible_foreign_key_type_examples": {
     "user": [
       "users"
@@ -311,6 +369,9 @@ export interface VirtualColumns {
   "composition_asset_audits": false,
   "composition_assets": false,
   "compositions": false,
+  "graph_edge_nodes": false,
+  "graph_edges": false,
+  "graph_nodes": false,
   "incompatible_foreign_key_type_examples": false,
   "pets": false,
   "posts": false,

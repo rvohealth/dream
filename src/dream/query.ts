@@ -1,7 +1,11 @@
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { AssociationTableNames } from '../db/reflections'
 import { WhereStatement } from '../decorators/associations/shared'
-import { AssociationExpression, JoinsWhereAssociationExpression } from './types'
+import {
+  AssociationExpression,
+  JoinsPluckAssociationExpression,
+  JoinsWhereAssociationExpression,
+} from './types'
 import {
   ComparisonOperator,
   ComparisonOperatorExpression,
@@ -252,9 +256,13 @@ export default class Query<
 
   public async pluck<
     T extends Query<DreamClass>,
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>>,
-    FieldTypes extends SelectArg<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, SE>
-  >(this: T, ...fields: FieldTypes[]): Promise<any[]> {
+    TableName extends InstanceType<DreamClass>['table'],
+    SimpleFieldType extends keyof Updateable<DB[TableName]>,
+    JoinsFieldType extends JoinsPluckAssociationExpression<
+      InstanceType<DreamClass>['table'],
+      T['joinsStatements'][number]
+    >
+  >(this: T, ...fields: (SimpleFieldType | JoinsFieldType)[]): Promise<any[]> {
     let query = this.buildSelect({ bypassSelectAll: true })
     fields.forEach(field => {
       query = query.select(field as any)
@@ -794,7 +802,7 @@ export default class Query<
       joinsStatement.forEach(oneJoinsStatement => {
         query = this.recursivelyJoin({
           query,
-          joinsStatement: oneJoinsStatement,
+          joinsStatement: oneJoinsStatement as AssociationExpression<AssociationTableNames>,
           dreamClass,
           previousAssociationTableOrAlias,
         }) as SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>

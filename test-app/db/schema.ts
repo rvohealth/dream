@@ -58,6 +58,28 @@ export interface Compositions {
   updated_at: Timestamp;
 }
 
+export interface GraphEdgeNodes {
+  id: Generated<Int8>;
+  edge_id: Int8;
+  node_id: Int8;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+export interface GraphEdges {
+  id: Generated<Int8>;
+  name: string | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+export interface GraphNodes {
+  id: Generated<Int8>;
+  name: string | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
 export interface IncompatibleForeignKeyTypeExamples {
   id: Generated<Int8>;
   user_id: number;
@@ -124,6 +146,9 @@ export interface DB {
   composition_asset_audits: CompositionAssetAudits;
   composition_assets: CompositionAssets;
   compositions: Compositions;
+  graph_edge_nodes: GraphEdgeNodes;
+  graph_edges: GraphEdges;
+  graph_nodes: GraphNodes;
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples;
   pets: Pets;
   post_visibilities: PostVisibilities;
@@ -139,6 +164,9 @@ export const BalloonColumns = ['id', 'user_id', 'type', 'volume', 'color', 'mult
 export const CompositionAssetAuditColumns = ['id', 'composition_asset_id', 'approval', 'created_at', 'updated_at']
 export const CompositionAssetColumns = ['id', 'composition_id', 'name', 'src', 'primary', 'created_at', 'updated_at']
 export const CompositionColumns = ['id', 'user_id', 'content', 'primary', 'created_at', 'updated_at']
+export const GraphEdgeNodeColumns = ['id', 'edge_id', 'node_id', 'created_at', 'updated_at']
+export const GraphEdgeColumns = ['id', 'name', 'created_at', 'updated_at']
+export const GraphNodeColumns = ['id', 'name', 'created_at', 'updated_at']
 export const IncompatibleForeignKeyTypeExampleColumns = ['id', 'user_id', 'created_at', 'updated_at']
 export const PetColumns = ['id', 'user_id', 'species', 'name', 'deleted_at', 'created_at']
 export const PostColumns = ['id', 'user_id', 'post_visibility_id', 'body', 'created_at', 'updated_at']
@@ -182,6 +210,28 @@ export interface CompositionAttributes {
   user_id: IdType
   content: string | null
   primary: boolean | null
+  created_at: DateTime
+  updated_at: DateTime
+}  
+
+export interface GraphEdgeNodeAttributes {
+  id: IdType
+  edge_id: IdType
+  node_id: IdType
+  created_at: DateTime
+  updated_at: DateTime
+}  
+
+export interface GraphEdgeAttributes {
+  id: IdType
+  name: string | null
+  created_at: DateTime
+  updated_at: DateTime
+}  
+
+export interface GraphNodeAttributes {
+  id: IdType
+  name: string | null
   created_at: DateTime
   updated_at: DateTime
 }  
@@ -287,6 +337,28 @@ export const CompositionsTypeCache = {
   updated_at: 'Timestamp'
 }  
 
+export const GraphEdgeNodesTypeCache = {
+  id: 'Generated<Int8>',
+  edge_id: 'Int8',
+  node_id: 'Int8',
+  created_at: 'Timestamp',
+  updated_at: 'Timestamp'
+}  
+
+export const GraphEdgesTypeCache = {
+  id: 'Generated<Int8>',
+  name: 'string|null',
+  created_at: 'Timestamp',
+  updated_at: 'Timestamp'
+}  
+
+export const GraphNodesTypeCache = {
+  id: 'Generated<Int8>',
+  name: 'string|null',
+  created_at: 'Timestamp',
+  updated_at: 'Timestamp'
+}  
+
 export const IncompatibleForeignKeyTypeExamplesTypeCache = {
   id: 'Generated<Int8>',
   user_id: 'number',
@@ -355,6 +427,9 @@ export const DBColumns = {
   composition_asset_audits: CompositionAssetAuditColumns,
   composition_assets: CompositionAssetColumns,
   compositions: CompositionColumns,
+  graph_edge_nodes: GraphEdgeNodeColumns,
+  graph_edges: GraphEdgeColumns,
+  graph_nodes: GraphNodeColumns,
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExampleColumns,
   pets: PetColumns,
   posts: PostColumns,
@@ -369,6 +444,9 @@ export const DBTypeCache = {
   composition_asset_audits: CompositionAssetAuditsTypeCache,
   composition_assets: CompositionAssetsTypeCache,
   compositions: CompositionsTypeCache,
+  graph_edge_nodes: GraphEdgeNodesTypeCache,
+  graph_edges: GraphEdgesTypeCache,
+  graph_nodes: GraphNodesTypeCache,
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamplesTypeCache,
   pets: PetsTypeCache,
   posts: PostsTypeCache,
