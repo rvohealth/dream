@@ -134,9 +134,6 @@ export type JoinsPluckAssociationExpression<
       | NestedPluckTypeFromAssociationExpression<TB, keyof SyncedAssociations[TB], AE, Inc<Depth>>
   : never
 
-type FieldType = JoinsPluckAssociationExpression<'graph_nodes', 'edges'>
-export type hello = PluckTypeFromAssociationName<'graph_edges', 'nodes'>
-
 export type AssociationModelParam<
   DreamInstance extends Dream,
   BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[DreamInstance['table']]
