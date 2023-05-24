@@ -6,7 +6,7 @@ import { Inc } from '../helpers/typeutils'
 import { DB } from '../sync/schema'
 import { AssociatedModelParam, WhereStatement } from '../decorators/associations/shared'
 
-type MAX_DEPTH = 5
+type MAX_DEPTH = 3
 
 export type NestedAssociationExpression<
   TB extends AssociationTableNames,
@@ -24,7 +24,7 @@ export type AssociationExpression<
   AE = unknown,
   Depth extends number = 0
 > = Depth extends MAX_DEPTH
-  ? never
+  ? any
   : AE extends string
   ? keyof SyncedAssociations[TB]
   : AE extends any[]
@@ -47,7 +47,7 @@ export type JoinsWhereAssociationExpression<
   AE extends AssociationExpression<TB, any>,
   Depth extends number = 0
 > = Depth extends MAX_DEPTH
-  ? never
+  ? any
   : AE extends keyof SyncedAssociations[TB]
   ? Partial<{
       [AssociationName in keyof SyncedAssociations[TB]]: WhereStatement<
@@ -116,7 +116,7 @@ export type JoinsPluckAssociationExpression<
   AE extends AssociationExpression<TB, any>,
   Depth extends number = 0
 > = Depth extends MAX_DEPTH
-  ? never
+  ? any
   : AE extends keyof SyncedAssociations[TB]
   ? PluckTypeFromAssociationName<TB, AE>
   : AE extends any[]
