@@ -196,14 +196,19 @@ export default class Query<
 
   public nestedSelect<
     T extends Query<DreamClass>,
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>>
-  >(this: T, selection: SelectArg<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, SE>) {
+    TableName extends InstanceType<DreamClass>['table'],
+    SimpleFieldType extends keyof Updateable<DB[TableName]>,
+    JoinsFieldType extends JoinsPluckAssociationExpression<
+      InstanceType<DreamClass>['table'],
+      T['joinsStatements'][number]
+    >
+  >(this: T, selection: SimpleFieldType | JoinsFieldType) {
     const query = this.buildSelect({ bypassSelectAll: true }) as SelectQueryBuilder<
       DB,
       ExtractTableAlias<DB, InstanceType<DreamClass>['table']>,
       {}
     >
-    return query.select(selection)
+    return query.select(selection as any)
   }
 
   public order<ColumnName extends keyof Table & string>(
