@@ -114,7 +114,9 @@ export default async function generateDream(
   const serializerPathParts = formattedSerializerPath.split('/')
 
   if (!!serializerPathParts.length) {
-    const fullSerializerPath = [...serializerBasePath.split('/'), ...serializerPathParts].join('/')
+    const fullSerializerPath = [...serializerBasePath.split('/'), ...serializerPathParts.slice(0, -1)].join(
+      '/'
+    )
     await thisfs.mkdir(fullSerializerPath, { recursive: true })
   }
 
