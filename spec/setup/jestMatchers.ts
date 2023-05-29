@@ -1,4 +1,5 @@
 import { getObjectSubset } from '@jest/expect-utils'
+import sortBy from 'lodash.sortby'
 import {
   EXPECTED_COLOR,
   RECEIVED_COLOR,
@@ -10,6 +11,7 @@ import {
   printWithType,
   stringify,
 } from 'jest-matcher-utils'
+import Dream from '../../src/dream'
 
 const EXPECTED_LABEL = 'Expected'
 const RECEIVED_LABEL = 'Received'
@@ -69,7 +71,10 @@ expect.extend({
 
     let results: jest.CustomMatcherResult
 
-    received.forEach((receivedElement, i) => {
+    received = sortBy(received, received[0]?.primaryKey)
+    expected = sortBy(expected, expected[0]?.primaryKey)
+
+    received.forEach((receivedElement: Dream, i: number) => {
       results = expectMatchingDreamModels(receivedElement, expected[i], 'toMatchDreamModels')
       if (!results.pass) return
     })
