@@ -1,6 +1,6 @@
-import { CompiledQuery, SelectArg, SelectExpression, SelectType, Updateable } from 'kysely'
+import { CompiledQuery, SelectArg, SelectExpression, Updateable } from 'kysely'
 import db from './db'
-import { DB, DBColumns, IdType } from './sync/schema'
+import { DB, DBColumns, IdType, InterpretedDB } from './sync/schema'
 import { HasManyStatement } from './decorators/associations/has-many'
 import { BelongsToStatement } from './decorators/associations/belongs-to'
 import { HasOneStatement } from './decorators/associations/has-one'
@@ -174,21 +174,16 @@ export default class Dream {
 
   public static async find<
     T extends typeof Dream,
-    TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName],
-    IdColumn = T['primaryKey'] & keyof Table,
-    Id = Readonly<SelectType<IdColumn>>
-  >(this: T, id: Id): Promise<(InstanceType<T> & Dream) | null> {
+    TableName extends keyof InterpretedDB = InstanceType<T>['table'] & keyof InterpretedDB
+  >(
+    this: T,
+    id: InterpretedDB[TableName][T['primaryKey'] & keyof InterpretedDB[TableName]]
+  ): Promise<(InstanceType<T> & Dream) | null> {
     const query: Query<T> = new Query<T>(this)
     return (await query.where({ [this.primaryKey]: id } as any).first()) as (InstanceType<T> & Dream) | null
   }
 
-  public static async findBy<
-    T extends typeof Dream,
-    TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName],
-    IdColumn = T['primaryKey'] & keyof Table
-  >(
+  public static async findBy<T extends typeof Dream>(
     this: T,
     attributes: Updateable<DB[InstanceType<T>['table']]>
   ): Promise<(InstanceType<T> & Dream) | null> {
@@ -499,6 +494,10 @@ export default class Dream {
     await safelyRunCommitHooks(this, 'afterDestroyCommit', null)
 
     return this
+  }
+
+  public equals(other: any): boolean {
+    return other?.constructor === this.constructor && other.primaryKeyValue === this.primaryKeyValue
   }
 
   public freezeAttributes() {

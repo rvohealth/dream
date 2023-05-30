@@ -83,6 +83,16 @@ ${interfaceKeyIndexes.join('\n')}
 ${dreamCoercedInterfaces.join('\n\n')}
 ${cachedInterfaces.join('\n\n')}
 
+export interface InterpretedDB {
+  ${
+    transformedNames.length
+      ? transformedNames
+          .map(([name, newName]) => `${snakeify(name)}: ${pluralize.singular(name)}Attributes`)
+          .join(',\n  ')
+      : 'placeholder: []'
+  }
+}
+
 export const DBColumns = {
   ${
     transformedNames.length

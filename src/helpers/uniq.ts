@@ -12,5 +12,5 @@ export default function uniq<T extends Dream | any>(
 }
 
 function dreamComparator(a: Dream, b: Dream) {
-  return a.primaryKeyValue === b.primaryKeyValue && a.constructor === b.constructor
+  return a.equals(b)
 }

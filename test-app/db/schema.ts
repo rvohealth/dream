@@ -422,6 +422,23 @@ export const UserSettingsTypeCache = {
 
 
 
+export interface InterpretedDB {
+  balloons: BalloonAttributes,
+  composition_asset_audits: CompositionAssetAuditAttributes,
+  composition_assets: CompositionAssetAttributes,
+  compositions: CompositionAttributes,
+  graph_edge_nodes: GraphEdgeNodeAttributes,
+  graph_edges: GraphEdgeAttributes,
+  graph_nodes: GraphNodeAttributes,
+  incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExampleAttributes,
+  pets: PetAttributes,
+  posts: PostAttributes,
+  post_visibilities: PostVisibilityAttributes,
+  ratings: RatingAttributes,
+  users: UserAttributes,
+  user_settings: UserSettingAttributes
+}
+
 export const DBColumns = {
   balloons: BalloonColumns,
   composition_asset_audits: CompositionAssetAuditColumns,
