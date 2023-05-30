@@ -18,7 +18,7 @@ import {
   UpdateQueryBuilder,
   Updateable,
 } from 'kysely'
-import { DB } from '../sync/schema'
+import { DB, InterpretedDB } from '../sync/schema'
 import { marshalDBValue } from '../helpers/marshalDBValue'
 import Dream from '../dream'
 import { HasManyStatement } from '../decorators/associations/has-many'
@@ -103,11 +103,11 @@ export default class Query<
 
   public async find<
     T extends Query<DreamClass>,
-    TableName extends keyof DB = InstanceType<DreamClass>['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName],
-    IdColumn = DreamClass['primaryKey'] & keyof Table,
-    Id = Readonly<SelectType<IdColumn>>
-  >(this: T, id: Id): Promise<(InstanceType<DreamClass> & Dream) | null> {
+    TableName extends keyof InterpretedDB = InstanceType<DreamClass>['table'] & keyof InterpretedDB
+  >(
+    this: T,
+    id: InterpretedDB[TableName][DreamClass['primaryKey'] & keyof InterpretedDB[TableName]]
+  ): Promise<(InstanceType<DreamClass> & Dream) | null> {
     // @ts-ignore
     return await this.where({
       [this.dreamClass.primaryKey]: id,

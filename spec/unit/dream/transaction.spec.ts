@@ -24,6 +24,7 @@ describe('Dream.transaction', () => {
       await expect(
         Dream.transaction(async txn => {
           await Composition.txn(txn).create({ user })
+          // ts-ignore because we are setting this to a disallowed type intentionally to force the transaction to fail
           // @ts-ignore
           await user.txn(txn).update({ email: null })
         })
