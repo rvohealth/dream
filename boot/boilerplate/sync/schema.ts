@@ -1,5 +1,17 @@
-export interface DB {}
+export type IdType = string | number | bigint | undefined
 
-export interface DBOpts {}
+export interface DB {
+  placeholder: false
+}
 
-export const DBColumns = {}
+export interface InterpretedDB {
+  placeholder: false
+}
+
+export const DBColumns = {
+  placeholder: false,
+}
+
+export const DBTypeCache = {
+  placeholder: false,
+} as Partial<Record<keyof DB, any>>
