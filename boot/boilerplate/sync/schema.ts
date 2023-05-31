@@ -1,17 +1,17 @@
 export type IdType = string | number | bigint | undefined
 
 export interface DB {
-  placeholder: false
+  _placeholder_: false
 }
 
 export interface InterpretedDB {
-  placeholder: false
+  _placeholder_: false
 }
 
 export const DBColumns = {
-  placeholder: false,
+  _placeholder_: false,
 }
 
 export const DBTypeCache = {
-  placeholder: false,
+  _placeholder_: false,
 } as Partial<Record<keyof DB, any>>
