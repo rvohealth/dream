@@ -516,7 +516,7 @@ export default class Dream {
     const association = this.associationMap[associationName] as HasManyStatement<any>
     const associationClass = association.modelCB()
     const nestedSelect = (this.constructor as typeof Dream)
-      .joins(association.as)
+      .joins(association.as as any)
       .nestedSelect(`${association.as}.${associationClass.primaryKey}` as any)
     return associationClass.where({ [associationClass.primaryKey]: nestedSelect })
   }
