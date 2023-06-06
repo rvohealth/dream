@@ -24,9 +24,9 @@ export default async function sync() {
   } else {
     await sspawn(
       'rm -f src/sync/schema.ts && rm -f src/sync/dream.ts && ' +
-        `cp ../../${yamlConf.schema_path} ./src/sync && ` +
-        `cp ../../${yamlConf.dream_config_path} ./src/sync && ` +
-        `cp ../../${yamlConf.associations_path} ./src/sync`
+        `cp ../../${yamlConf.schema_path} ./src/sync/schema.ts && ` +
+        `cp ../../${yamlConf.dream_config_path} ./src/sync/dream.ts && ` +
+        `cp ../../${yamlConf.associations_path} ./src/sync/associations.ts`
     )
   }
 
