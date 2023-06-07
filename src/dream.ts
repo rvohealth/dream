@@ -168,6 +168,24 @@ export default class Dream {
     return await query.count()
   }
 
+  public static async max<
+    DreamClass extends typeof Dream,
+    TableName extends InstanceType<DreamClass>['table'],
+    SimpleFieldType extends keyof Updateable<DB[TableName]>
+  >(this: DreamClass, field: SimpleFieldType): Promise<number> {
+    const query: Query<DreamClass> = new Query<DreamClass>(this)
+    return await query.max(field as any)
+  }
+
+  public static async min<
+    DreamClass extends typeof Dream,
+    TableName extends InstanceType<DreamClass>['table'],
+    SimpleFieldType extends keyof Updateable<DB[TableName]>
+  >(this: DreamClass, field: SimpleFieldType): Promise<number> {
+    const query: Query<DreamClass> = new Query<DreamClass>(this)
+    return await query.min(field as any)
+  }
+
   public static async create<T extends typeof Dream>(this: T, opts?: UpdateableFields<T>) {
     return (await new (this as any)(opts as any).save()) as InstanceType<T>
   }
@@ -512,13 +530,19 @@ export default class Dream {
     return isDecimal(attribute, { table: this.table })
   }
 
-  public query<I extends Dream>(this: I, associationName: keyof SyncedAssociations[I['table']]) {
+  public queryAssociation<I extends Dream, AssociationTable extends keyof SyncedAssociations[I['table']]>(
+    this: I,
+    associationName: AssociationTable
+  ) {
     const association = this.associationMap[associationName] as HasManyStatement<any>
     const associationClass = association.modelCB()
     const nestedSelect = (this.constructor as typeof Dream)
       .joins(association.as as any)
+      .where({ [this.primaryKey]: this.primaryKeyValue })
       .nestedSelect(`${association.as}.${associationClass.primaryKey}` as any)
-    return associationClass.where({ [associationClass.primaryKey]: nestedSelect })
+    return associationClass.where({
+      [associationClass.primaryKey]: nestedSelect,
+    }) as any
   }
 
   public async load<

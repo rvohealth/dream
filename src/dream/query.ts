@@ -254,9 +254,46 @@ export default class Query<
     query = query.select(
       count(`${this.dreamClass.prototype.table}.${this.dreamClass.primaryKey}` as any).as('tablecount')
     )
+
     const data = (await query.executeTakeFirstOrThrow()) as any
 
     return parseInt(data.tablecount.toString())
+  }
+
+  public async max<
+    T extends Query<DreamClass>,
+    TableName extends InstanceType<DreamClass>['table'],
+    SimpleFieldType extends keyof Updateable<DB[TableName]>,
+    JoinsFieldType extends JoinsPluckAssociationExpression<
+      InstanceType<DreamClass>['table'],
+      T['joinsStatements'][number]
+    >
+  >(this: T, field: SimpleFieldType | JoinsFieldType) {
+    const { max } = this.db.fn
+    let query = this.buildSelect({ bypassSelectAll: true })
+
+    query = query.select(max(field as any) as any)
+    const data = (await query.executeTakeFirstOrThrow()) as any
+
+    return data.max
+  }
+
+  public async min<
+    T extends Query<DreamClass>,
+    TableName extends InstanceType<DreamClass>['table'],
+    SimpleFieldType extends keyof Updateable<DB[TableName]>,
+    JoinsFieldType extends JoinsPluckAssociationExpression<
+      InstanceType<DreamClass>['table'],
+      T['joinsStatements'][number]
+    >
+  >(this: T, field: SimpleFieldType | JoinsFieldType) {
+    const { min } = this.db.fn
+    let query = this.buildSelect({ bypassSelectAll: true })
+
+    query = query.select(min(field as any) as any)
+    const data = (await query.executeTakeFirstOrThrow()) as any
+
+    return data.min
   }
 
   public async pluck<

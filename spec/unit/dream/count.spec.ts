@@ -1,18 +1,13 @@
 import User from '../../../test-app/app/models/User'
-import Composition from '../../../test-app/app/models/Composition'
 import { Dream } from '../../../src'
 
 describe('Dream.count', () => {
-  it('finds all records for a given model', async () => {
-    // await Composition.create()
+  it('counts all records for a given model', async () => {
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
     const results = await User.count()
     expect(results).toEqual(2)
-
-    // const otherResults = await Composition.count()
-    // expect(otherResults).toEqual(1)
   })
 
   context('when passed a transaction', () => {

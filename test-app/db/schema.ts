@@ -45,6 +45,7 @@ export interface CompositionAssets {
   name: string | null;
   src: string | null;
   primary: Generated<boolean | null>;
+  score: Generated<number | null>;
   created_at: Timestamp;
   updated_at: Timestamp;
 }
@@ -162,7 +163,7 @@ export interface DB {
 
 export const BalloonColumns = ['id', 'user_id', 'type', 'volume', 'color', 'multicolor', 'deleted_at', 'created_at', 'updated_at']
 export const CompositionAssetAuditColumns = ['id', 'composition_asset_id', 'approval', 'created_at', 'updated_at']
-export const CompositionAssetColumns = ['id', 'composition_id', 'name', 'src', 'primary', 'created_at', 'updated_at']
+export const CompositionAssetColumns = ['id', 'composition_id', 'name', 'src', 'primary', 'score', 'created_at', 'updated_at']
 export const CompositionColumns = ['id', 'user_id', 'content', 'primary', 'created_at', 'updated_at']
 export const GraphEdgeNodeColumns = ['id', 'edge_id', 'node_id', 'created_at', 'updated_at']
 export const GraphEdgeColumns = ['id', 'name', 'created_at', 'updated_at']
@@ -201,6 +202,7 @@ export interface CompositionAssetAttributes {
   name: string | null
   src: string | null
   primary: boolean | null
+  score: number | null
   created_at: DateTime
   updated_at: DateTime
 }  
@@ -324,6 +326,7 @@ export const CompositionAssetsTypeCache = {
   name: 'string|null',
   src: 'string|null',
   primary: 'Generated<boolean|null>',
+  score: 'Generated<number|null>',
   created_at: 'Timestamp',
   updated_at: 'Timestamp'
 }  

@@ -30,6 +30,24 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     return query.count()
   }
 
+  public async max<
+    I extends DreamClassTransactionBuilder<DreamClass>,
+    TableName extends InstanceType<DreamClass>['table'],
+    SimpleFieldType extends keyof Updateable<DB[TableName]>
+  >(this: I, field: SimpleFieldType): Promise<number> {
+    const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
+    return query.max(field as any)
+  }
+
+  public async min<
+    I extends DreamClassTransactionBuilder<DreamClass>,
+    TableName extends InstanceType<DreamClass>['table'],
+    SimpleFieldType extends keyof Updateable<DB[TableName]>
+  >(this: I, field: SimpleFieldType): Promise<number> {
+    const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
+    return query.min(field as any)
+  }
+
   public async create<I extends DreamClassTransactionBuilder<DreamClass>>(
     this: I,
     opts?: UpdateableFields<DreamClass>
