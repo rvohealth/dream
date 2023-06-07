@@ -530,10 +530,15 @@ export default class Dream {
     return isDecimal(attribute, { table: this.table })
   }
 
-  public queryAssociation<I extends Dream, AssociationTable extends keyof SyncedAssociations[I['table']]>(
-    this: I,
-    associationName: AssociationTable
-  ) {
+  public queryAssociation<
+    I extends Dream,
+    AssociationName extends keyof SyncedAssociations[I['table']],
+    PossibleArrayAssociationType = I[AssociationName & keyof I],
+    AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
+      ? ElementType
+      : PossibleArrayAssociationType,
+    AssociationQuery = Query<DreamConstructorType<AssociationType & Dream>>
+  >(this: I, associationName: AssociationName) {
     const association = this.associationMap[associationName] as HasManyStatement<any>
     const associationClass = association.modelCB()
     const nestedSelect = (this.constructor as typeof Dream)
@@ -542,7 +547,7 @@ export default class Dream {
       .nestedSelect(`${association.as}.${associationClass.primaryKey}` as any)
     return associationClass.where({
       [associationClass.primaryKey]: nestedSelect,
-    }) as any
+    }) as AssociationQuery
   }
 
   public async load<

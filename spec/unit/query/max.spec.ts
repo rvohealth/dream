@@ -14,8 +14,7 @@ describe('Query#max', () => {
       const compositionAsset1 = await CompositionAsset.create({ composition, score: 7 })
       const compositionAsset2 = await CompositionAsset.create({ composition, score: 3 })
 
-      const query = composition.queryAssociation('compositionAssets') as Query<typeof CompositionAsset>
-      const max = await query.max('score')
+      const max = await composition.queryAssociation('compositionAssets').max('score')
 
       expect(max).toEqual(7)
     })
@@ -30,8 +29,7 @@ describe('Query#max', () => {
       const compositionAsset1 = await CompositionAsset.create({ composition: composition1, score: 7 })
       const compositionAsset2 = await CompositionAsset.create({ composition: composition2, score: 3 })
 
-      const query = user.queryAssociation('compositionAssets') as Query<typeof CompositionAsset>
-      const max = await query.max('score')
+      const max = await user.queryAssociation('compositionAssets').max('score')
 
       expect(max).toEqual(7)
     })
@@ -48,8 +46,7 @@ describe('Query#max', () => {
     const rating3 = await Rating.create({ user, rateable: post2, rating: 5 })
     const rating4 = await Rating.create({ user, rateable: post1, rating: 2 })
 
-    const query = post1.queryAssociation('ratings') as Query<typeof Rating>
-    const max = await query.max('rating')
+    const max = await post1.queryAssociation('ratings').max('rating')
 
     expect(max).toEqual(4)
   })
