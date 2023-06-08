@@ -2,10 +2,8 @@ import { DateTime } from 'luxon'
 import Composition from '../../../../test-app/app/models/Composition'
 import User from '../../../../test-app/app/models/User'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
-import Post from '../../../../test-app/app/models/Post'
-import Rating from '../../../../test-app/app/models/Rating'
 
-describe('Dream#query', () => {
+describe('Dream#queryAssociation', () => {
   context('with a HasMany association', () => {
     it('returns a chainable query encapsulating that association', async () => {
       const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
