@@ -11,20 +11,14 @@ import { HasOneStatement } from './has-one'
 import { SyncedBelongsToAssociations } from '../../sync/associations'
 import CurriedOpsStatement from '../../ops/curried-ops-statement'
 
-export type AssociatedModelParam<T extends typeof Dream> = Partial<
-  Record<
-    keyof SyncedBelongsToAssociations[InstanceType<T>['table']],
-    ReturnType<T['associationMap'][keyof T['associationMap']]['modelCB']> extends () => (typeof Dream)[]
-      ? InstanceType<
-          ReturnType<
-            T['associationMap'][keyof T['associationMap']]['modelCB'] & (() => (typeof Dream)[])
-          >[number]
-        > | null
-      : InstanceType<
-          ReturnType<T['associationMap'][keyof T['associationMap']]['modelCB'] & (() => typeof Dream)>
-        > | null
-  >
->
+export type AssociatedModelParam<
+  I extends Dream,
+  AssociationName = keyof SyncedBelongsToAssociations[I['table'] & keyof SyncedBelongsToAssociations],
+  PossibleArrayAssociationType = I[AssociationName & keyof I],
+  AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
+    ? ElementType
+    : PossibleArrayAssociationType
+> = Partial<Record<AssociationName & string, AssociationType>>
 
 export type DreamUpdateable<TableName extends AssociationTableNames> = Partial<
   Record<

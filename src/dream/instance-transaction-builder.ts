@@ -1,11 +1,10 @@
 import { Updateable } from 'kysely'
 import Dream from '../dream'
-import { SyncedBelongsToAssociations } from '../sync/associations'
 import { DB } from '../sync/schema'
 import DreamTransaction from './transaction'
 import saveDream from './internal/saveDream'
 import destroyDream from './internal/destroyDream'
-import { AssociationModelParam, UpdateableInstanceFields } from './types'
+import { UpdateableInstanceFields } from './types'
 
 export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream> {
   public dreamInstance: DreamInstance
@@ -22,12 +21,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     return destroyDream(this.dreamInstance, this.dreamTransaction)
   }
 
-  public async update<
-    I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[DreamInstance['table']] = keyof SyncedBelongsToAssociations[DreamInstance['table']]
-  >(
+  public async update<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I,
-    attributes: UpdateableInstanceFields<DreamInstance, BelongsToModelAssociationNames>
+    attributes: UpdateableInstanceFields<DreamInstance>
   ): Promise<DreamInstance> {
     this.dreamInstance.setAttributes(attributes)
     return saveDream(this.dreamInstance, this.dreamTransaction)

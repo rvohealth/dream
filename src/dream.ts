@@ -9,13 +9,16 @@ import { HookStatement, blankHooksFactory } from './decorators/hooks/shared'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { marshalDBValue } from './helpers/marshalDBValue'
-import { SyncedAssociations, SyncedBelongsToAssociations } from './sync/associations'
-import { WhereStatement, blankAssociationsFactory } from './decorators/associations/shared'
+import { SyncedAssociations } from './sync/associations'
+import {
+  AssociatedModelParam,
+  WhereStatement,
+  blankAssociationsFactory,
+} from './decorators/associations/shared'
 import { AssociationTableNames } from './db/reflections'
 import CanOnlyPassBelongsToModelParam from './exceptions/can-only-pass-belongs-to-model-param'
 import {
   AssociationExpression,
-  AssociationModelParam,
   DreamConstructorType,
   UpdateableFields,
   UpdateableInstanceFields,
@@ -588,9 +591,8 @@ export default class Dream {
   public setAttributes<
     I extends Dream,
     TableName extends keyof DB = I['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName],
-    BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[I['table']] = keyof SyncedBelongsToAssociations[I['table']]
-  >(this: I, attributes: Updateable<Table> | AssociationModelParam<I, BelongsToModelAssociationNames>) {
+    Table extends DB[keyof DB] = DB[TableName]
+  >(this: I, attributes: Updateable<Table> | AssociatedModelParam<I>) {
     const self = this as any
     Object.keys(attributes as any).forEach(attr => {
       const associationMetaData = this.associationMap[attr]
@@ -633,10 +635,7 @@ export default class Dream {
     return new DreamInstanceTransactionBuilder<I>(this, txn)
   }
 
-  public async update<
-    I extends Dream,
-    BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[I['table']] = keyof SyncedBelongsToAssociations[I['table']]
-  >(this: I, attributes: UpdateableInstanceFields<I, BelongsToModelAssociationNames>): Promise<I> {
+  public async update<I extends Dream>(this: I, attributes: UpdateableInstanceFields<I>): Promise<I> {
     this.setAttributes(attributes)
     // call save rather than _save so that any unsaved associations in the
     // attributes are saved with this model in a transaction

@@ -7,6 +7,7 @@ import CanOnlyPassBelongsToModelParam from '../../../src/exceptions/can-only-pas
 import { DateTime } from 'luxon'
 import Pet from '../../../test-app/app/models/Pet'
 import { Dream } from '../../../src'
+import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 
 describe('Dream#update', () => {
   it('updates the underlying model in the db', async () => {

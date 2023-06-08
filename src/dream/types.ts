@@ -1,6 +1,6 @@
 import { Updateable } from 'kysely'
 import { AssociationTableNames } from '../db/reflections'
-import { SyncedAssociations, SyncedBelongsToAssociations, VirtualColumns } from '../sync/associations'
+import { SyncedAssociations, VirtualColumns } from '../sync/associations'
 import Dream from '../dream'
 import { Inc } from '../helpers/typeutils'
 import { DB } from '../sync/schema'
@@ -134,29 +134,6 @@ export type JoinsPluckAssociationExpression<
       | NestedPluckTypeFromAssociationExpression<TB, keyof SyncedAssociations[TB], AE, Inc<Depth>>
   : never
 
-export type AssociationModelParam<
-  DreamInstance extends Dream,
-  BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[DreamInstance['table']]
-> = Partial<
-  Record<
-    BelongsToModelAssociationNames,
-    ReturnType<
-      DreamInstance['associationMap'][keyof DreamInstance['associationMap']]['modelCB']
-    > extends () => (typeof Dream)[]
-      ? InstanceType<
-          ReturnType<
-            DreamInstance['associationMap'][keyof DreamInstance['associationMap']]['modelCB'] &
-              (() => (typeof Dream)[])
-          >[number]
-        >
-      : InstanceType<
-          ReturnType<
-            DreamInstance['associationMap'][keyof DreamInstance['associationMap']]['modelCB'] &
-              (() => typeof Dream)
-          >
-        >
-  >
->
 export interface AliasCondition<PreviousTableName extends AssociationTableNames> {
   conditionToExecute: boolean
   alias: keyof SyncedAssociations[PreviousTableName]
@@ -166,17 +143,14 @@ export interface AliasCondition<PreviousTableName extends AssociationTableNames>
 
 export type UpdateableFields<DreamClass extends typeof Dream> =
   | Updateable<DB[InstanceType<DreamClass>['table'] & AssociationTableNames]>
-  | AssociatedModelParam<DreamClass>
+  | AssociatedModelParam<InstanceType<DreamClass>>
   | (VirtualColumns[InstanceType<DreamClass>['table'] & keyof VirtualColumns] extends any[]
       ? Record<VirtualColumns[InstanceType<DreamClass>['table'] & keyof VirtualColumns][number], any>
       : never)
 
-export type UpdateableInstanceFields<
-  I extends Dream,
-  BelongsToModelAssociationNames extends keyof SyncedBelongsToAssociations[I['table']]
-> =
+export type UpdateableInstanceFields<I extends Dream> =
   | Updateable<DB[I['table'] & AssociationTableNames]>
-  | AssociationModelParam<I, BelongsToModelAssociationNames>
+  | AssociatedModelParam<I>
   | (VirtualColumns[I['table'] & keyof VirtualColumns] extends any[]
       ? Record<VirtualColumns[I['table'] & keyof VirtualColumns][number], any>
       : never)
