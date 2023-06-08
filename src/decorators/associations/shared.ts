@@ -18,7 +18,7 @@ export type AssociatedModelParam<
   AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
     ? ElementType
     : PossibleArrayAssociationType
-> = Partial<Record<AssociationName & string, AssociationType>>
+> = Partial<Record<AssociationName & string, AssociationType | null>>
 
 export type DreamUpdateable<TableName extends AssociationTableNames> = Partial<
   Record<
