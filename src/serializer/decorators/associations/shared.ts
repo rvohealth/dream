@@ -8,4 +8,5 @@ export interface AssociationStatement {
   field: string
   serializerClassCB: DreamSerializerClassCB
   type: SerializableAssociationType
+  flatten: boolean
 }

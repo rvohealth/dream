@@ -74,7 +74,7 @@ export default class DreamSerializer {
   }
 
   public renderOne() {
-    const returnObj: { [key: string]: any } = {}
+    let returnObj: { [key: string]: any } = {}
     this.attributes.forEach(attr => {
       const attributeStatement = (this.constructor as typeof DreamSerializer).attributeStatements.find(
         s =>
@@ -99,9 +99,17 @@ export default class DreamSerializer {
     ;(this.constructor as typeof DreamSerializer).delegateStatements.forEach(delegateStatement => {
       returnObj[this.applyCasingToField(delegateStatement.field)] = this.applyDelegation(delegateStatement)
     })
+
     for (const associationStatement of (this.constructor as typeof DreamSerializer).associationStatements) {
-      returnObj[this.applyCasingToField(associationStatement.field)] =
-        this.applyAssociation(associationStatement)
+      if (associationStatement.flatten) {
+        returnObj = {
+          ...returnObj,
+          ...this.applyAssociation(associationStatement),
+        }
+      } else {
+        returnObj[this.applyCasingToField(associationStatement.field)] =
+          this.applyAssociation(associationStatement)
+      }
     }
     return returnObj
   }

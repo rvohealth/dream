@@ -157,6 +157,22 @@ describe('DreamSerializer#render', () => {
         const serializer = new PetSerializer(pet)
         expect(serializer.render()).toEqual({ user: { email: 'how@yadoin' } })
       })
+
+      context('with flatten set on RendersOne', () => {
+        class PetSerializerFlattened extends DreamSerializer {
+          @RendersOne(() => UserSerializer, { flatten: true })
+          public user: User
+        }
+
+        it('flattens association attributes into parent serializer', async () => {
+          const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+          const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+          await pet.load('user')
+
+          const serializer = new PetSerializerFlattened(pet)
+          expect(serializer.render()).toEqual({ email: 'how@yadoin' })
+        })
+      })
     })
 
     context('with attribute delegations', () => {
