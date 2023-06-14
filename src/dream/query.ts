@@ -330,17 +330,35 @@ export default class Query<
   public async all<T extends Query<DreamClass>>(this: T) {
     const query = this.buildSelect()
     let results: any[]
+
+    const sqlString = query.compile().sql
+    const paramsString = query.compile().parameters.join(', ')
+    const sqlDebugMessage = `
+      ${sqlString}
+      [ ${paramsString} ]
+      NOTE: to turn this message off, remove the DEBUG=1 env variable
+    `
     try {
+      if (process.env.DEBUG === '1') {
+        console.log(
+          `
+            About to execute the following SQL:
+            ${sqlDebugMessage}
+          `
+        )
+      }
       results = await query.execute()
     } catch (error) {
-      throw `
-          Error executing SQL:
+      if (process.env.DEBUG === '1') {
+        console.error(`
+          Error executing the following SQL:
           ${error}
 
-          SQL:
-          ${query.compile().sql}
-          [ ${query.compile().parameters.join(', ')} ]
-        `
+          ${sqlDebugMessage}
+        `)
+      }
+      // throw the original error to maintain stack trace
+      throw error
     }
 
     const theAll = results.map(r =>
