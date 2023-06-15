@@ -578,7 +578,7 @@ export default class Query<
       if (process.env.DEBUG === '1' && association.where) {
         console.log(`
 applying where clause for association:
-  ${JSON.stringify(association, null, 2)}
+${JSON.stringify(association, null, 2)}
         `)
       }
       if (association.where) associationQuery = associationQuery.where(association.where)
