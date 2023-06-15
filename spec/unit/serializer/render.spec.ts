@@ -136,6 +136,16 @@ describe('DreamSerializer#render', () => {
         const serializer = new UserSerializer(user)
         expect(serializer.render()).toEqual({ pets: [{ name: 'aster', species: 'cat' }] })
       })
+
+      context('when the field is undefined', () => {
+        it('adds a blank array', async () => {
+          const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+          await Pet.create({ user, name: 'aster', species: 'cat' })
+
+          const serializer = new UserSerializer(user)
+          expect(serializer.render()).toEqual({ pets: [] })
+        })
+      })
     })
 
     context('RendersOne', () => {
@@ -156,6 +166,19 @@ describe('DreamSerializer#render', () => {
 
         const serializer = new PetSerializer(pet)
         expect(serializer.render()).toEqual({ user: { email: 'how@yadoin' } })
+      })
+
+      context('when the field is undefined', () => {
+        it('sets to null', async () => {
+          const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+          const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+
+          // @ts-ignore: this is intentional to simulate a miscasted var
+          pet.user = undefined
+
+          const serializer = new PetSerializer(pet)
+          expect(serializer.render()).toEqual({ user: null })
+        })
       })
 
       context('with flatten set on RendersOne', () => {
