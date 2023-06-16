@@ -36,6 +36,7 @@ import ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase from '../exceptions/f
 import CurriedOpsStatement from '../ops/curried-ops-statement'
 import CannotAssociateThroughPolymorphic from '../exceptions/cannot-associate-through-polymorphic'
 import MissingThroughAssociation from '../exceptions/missing-through-association'
+import compact from '../helpers/compact'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -455,7 +456,7 @@ export default class Query<
     association: HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any>
   }> {
     if (association.type === 'BelongsTo' || !association.through) {
-      return { dreams, association }
+      return { dreams: compact(dreams), association }
     } else {
       // Post has many Commenters through Comments
       // hydrate Post Comments
