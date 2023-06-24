@@ -18,6 +18,7 @@ const ops = {
   like: (like: string) => new OpsStatement('like', like),
   ilike: (ilike: string) => new OpsStatement('ilike', ilike),
   equal: (equal: any) => new OpsStatement('=', equal),
+  notEqual: (notEqual: any) => new OpsStatement('!=', notEqual),
   lessThan: (lessThan: number) => new OpsStatement('<', lessThan),
   lessThanOrEqualTo: (lessThanOrEqualTo: number) => new OpsStatement('<=', lessThanOrEqualTo),
   greaterThan: (greaterThan: number) => new OpsStatement('>', greaterThan),
