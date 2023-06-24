@@ -17,6 +17,7 @@ const ops = {
       return new OpsStatement('@>', sql`ARRAY[${sql.join([value])}]::${sql.raw(castType)}`)
     }),
   like: (like: string) => new OpsStatement('like', like),
+  notLike: (notLike: string) => new OpsStatement('not like', notLike),
   ilike: (ilike: string) => new OpsStatement('ilike', ilike),
   equal: (equal: any) => new OpsStatement('=', equal),
   notEqual: (notEqual: any) => new OpsStatement('!=', notEqual),
