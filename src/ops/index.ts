@@ -6,8 +6,8 @@ import cachedFieldType from '../helpers/cachedFieldType'
 import { DB } from '../sync/schema'
 
 const ops = {
+  expression: (operator: ComparisonOperatorExpression, value: any) => new OpsStatement(operator, value),
   in: (arr: any[]) => new OpsStatement('in', arr),
-  notIn: (arr: any[]) => new OpsStatement('not in', arr),
   any: (value: any) =>
     new CurriedOpsStatement(function <
       T extends typeof Dream,
@@ -17,15 +17,17 @@ const ops = {
       return new OpsStatement('@>', sql`ARRAY[${sql.join([value])}]::${sql.raw(castType)}`)
     }),
   like: (like: string) => new OpsStatement('like', like),
-  notLike: (notLike: string) => new OpsStatement('not like', notLike),
   ilike: (ilike: string) => new OpsStatement('ilike', ilike),
   equal: (equal: any) => new OpsStatement('=', equal),
-  notEqual: (notEqual: any) => new OpsStatement('!=', notEqual),
   lessThan: (lessThan: number) => new OpsStatement('<', lessThan),
   lessThanOrEqualTo: (lessThanOrEqualTo: number) => new OpsStatement('<=', lessThanOrEqualTo),
   greaterThan: (greaterThan: number) => new OpsStatement('>', greaterThan),
   greaterThanOrEqualTo: (greaterThanOrEqualTo: number) => new OpsStatement('>=', greaterThanOrEqualTo),
-  expression: (operator: ComparisonOperatorExpression, value: any) => new OpsStatement(operator, value),
+  not: {
+    in: (arr: any[]) => new OpsStatement('not in', arr),
+    like: (like: string) => new OpsStatement('not like', like),
+    equal: (equal: any) => new OpsStatement('!=', equal),
+  },
 }
 
 export default ops

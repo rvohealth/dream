@@ -48,7 +48,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('ops.notIn is passed', () => {
+  context('ops.not.in is passed', () => {
     it('uses a "not in" operator for comparison', async () => {
       const user1 = await User.create({
         email: 'fred@frewd',
@@ -63,7 +63,7 @@ describe('Query#where', () => {
         password: 'howyadoin',
       })
 
-      const records = await User.where({ id: ops.notIn([user1.id, user2.id]) }).pluck('id')
+      const records = await User.where({ id: ops.not.in([user1.id, user2.id]) }).pluck('id')
       expect(records).toEqual([user3.id])
     })
   })
@@ -84,7 +84,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('ops.notEqual is passed', () => {
+  context('ops.not.equal is passed', () => {
     it('uses an "!=" operator for comparison', async () => {
       const user1 = await User.create({
         email: 'fred@frewd',
@@ -99,7 +99,7 @@ describe('Query#where', () => {
         password: 'howyadoin',
       })
 
-      const records = await User.where({ id: ops.notEqual([user1.id]) }).pluck('id')
+      const records = await User.where({ id: ops.not.equal([user1.id]) }).pluck('id')
       expect(records).toEqual([user2.id, user3.id])
     })
   })
@@ -217,7 +217,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('ops.notLike statement is passed', () => {
+  context('ops.not.like statement is passed', () => {
     it('uses a "not like" operator for comparison', async () => {
       const user1 = await User.create({
         email: 'aaa@aaa',
@@ -232,7 +232,7 @@ describe('Query#where', () => {
         password: 'howyadoin',
       })
 
-      const records = await User.where({ email: ops.notLike('%aaa@%') }).pluck('id')
+      const records = await User.where({ email: ops.not.like('%aaa@%') }).pluck('id')
       expect(records).toEqual([user2.id, user3.id])
     })
   })
