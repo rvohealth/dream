@@ -61,7 +61,7 @@ describe('Query#where', () => {
   })
 
   context('ops.greaterThan is passed', () => {
-    it.only('uses a ">" operator for comparison', async () => {
+    it('uses a ">" operator for comparison', async () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
       const post = await Post.create({ user })
       const rating5 = await Rating.create({ user, rateable: post, rating: 5 })
