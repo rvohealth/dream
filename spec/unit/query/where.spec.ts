@@ -48,6 +48,22 @@ describe('Query#where', () => {
     })
   })
 
+  context('ops.equal is passed', () => {
+    it('uses an "=" operator for comparison', async () => {
+      const user1 = await User.create({
+        email: 'fred@frewd',
+        password: 'howyadoin',
+      })
+      const user2 = await User.create({
+        email: 'frez@frewd',
+        password: 'howyadoin',
+      })
+
+      const records = await User.where({ id: ops.equal([user2.id]) }).pluck('id')
+      expect(records).toEqual([user2.id])
+    })
+  })
+
   context('ops.lessThan is passed', () => {
     it('uses a "<" operator for comparison', async () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
