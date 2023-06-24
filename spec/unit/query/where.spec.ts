@@ -278,7 +278,7 @@ describe('Query#where', () => {
   })
 
   context('ops.match statement is passed', () => {
-    it('uses a "match" operator for comparison', async () => {
+    it('uses a "~" operator for comparison', async () => {
       const user1 = await User.create({
         email: 'aaa@aaa',
         password: 'howyadoin',
@@ -297,7 +297,7 @@ describe('Query#where', () => {
     })
 
     context('case insensitive option passed', () => {
-      it('captures records with case insensitive matches', async () => {
+      it('uses a "~*" operator for comparison', async () => {
         const user1 = await User.create({
           email: 'aaa@aaa',
           password: 'howyadoin',
@@ -313,6 +313,46 @@ describe('Query#where', () => {
 
         const records = await User.where({ email: ops.match('aaa.*', { caseInsensitive: true }) }).pluck('id')
         expect(records).toEqual([user1.id, user2.id])
+      })
+    })
+  })
+
+  context('ops.not.match statement is passed', () => {
+    it('uses a "!~" operator for comparison', async () => {
+      const user1 = await User.create({
+        email: 'aaa@aaa',
+        password: 'howyadoin',
+      })
+      const user2 = await User.create({
+        email: 'Aaa@zzz',
+        password: 'howyadoin',
+      })
+      const user3 = await User.create({
+        email: 'zzz@zzz',
+        password: 'howyadoin',
+      })
+
+      const records = await User.where({ email: ops.not.match('aaa.*') }).pluck('id')
+      expect(records).toEqual([user2.id, user3.id])
+    })
+
+    context('case insensitive option passed', () => {
+      it('uses a "!~*" operator for comparison', async () => {
+        const user1 = await User.create({
+          email: 'aaa@aaa',
+          password: 'howyadoin',
+        })
+        const user2 = await User.create({
+          email: 'Aaa@zzz',
+          password: 'howyadoin',
+        })
+        const user3 = await User.create({
+          email: 'zzz@zzz',
+          password: 'howyadoin',
+        })
+
+        const records = await User.where({ email: ops.not.match('aaa.*', { caseInsensitive: true }) }).pluck('id')
+        expect(records).toEqual([user3.id])
       })
     })
   })

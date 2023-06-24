@@ -28,6 +28,7 @@ const ops = {
     in: (arr: any[]) => new OpsStatement('not in', arr),
     like: (like: string) => new OpsStatement('not like', like),
     ilike: (ilike: string) => new OpsStatement('not ilike', ilike),
+    match: (match: string, { caseInsensitive = false }: { caseInsensitive?: boolean } = {}) => new OpsStatement(caseInsensitive ? '!~*' : '!~', match),
     equal: (equal: any) => new OpsStatement('!=', equal),
     lessThan: (lessThan: number) => new OpsStatement('!<', lessThan),
   },
