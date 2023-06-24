@@ -18,6 +18,7 @@ const ops = {
     }),
   like: (like: string) => new OpsStatement('like', like),
   ilike: (ilike: string) => new OpsStatement('ilike', ilike),
+  match: (match: string, { caseInsensitive = false }: { caseInsensitive?: boolean } = {}) => new OpsStatement(caseInsensitive ? '~*' : '~', match),
   equal: (equal: any) => new OpsStatement('=', equal),
   lessThan: (lessThan: number) => new OpsStatement('<', lessThan),
   lessThanOrEqualTo: (lessThanOrEqualTo: number) => new OpsStatement('<=', lessThanOrEqualTo),
@@ -28,6 +29,7 @@ const ops = {
     like: (like: string) => new OpsStatement('not like', like),
     ilike: (ilike: string) => new OpsStatement('not ilike', ilike),
     equal: (equal: any) => new OpsStatement('!=', equal),
+    lessThan: (lessThan: number) => new OpsStatement('!<', lessThan),
   },
 }
 
