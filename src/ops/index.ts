@@ -26,6 +26,7 @@ const ops = {
   not: {
     in: (arr: any[]) => new OpsStatement('not in', arr),
     like: (like: string) => new OpsStatement('not like', like),
+    ilike: (ilike: string) => new OpsStatement('not ilike', ilike),
     equal: (equal: any) => new OpsStatement('!=', equal),
   },
 }

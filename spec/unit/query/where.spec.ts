@@ -257,6 +257,26 @@ describe('Query#where', () => {
     })
   })
 
+  context('ops.not.ilike statement is passed', () => {
+    it('uses a "not ilike" operator for comparison', async () => {
+      const user1 = await User.create({
+        email: 'aaa@aaa',
+        password: 'howyadoin',
+      })
+      const user2 = await User.create({
+        email: 'Aaa@zzz',
+        password: 'howyadoin',
+      })
+      const user3 = await User.create({
+        email: 'zzz@zzz',
+        password: 'howyadoin',
+      })
+
+      const records = await User.where({ email: ops.not.ilike('%aaa@%') }).pluck('id')
+      expect(records).toEqual([user3.id])
+    })
+  })
+
   context('a date range is passed', () => {
     const begin = DateTime.now()
     const end = DateTime.now().plus({ day: 1 })
