@@ -85,6 +85,19 @@ describe('Query#where', () => {
     })
   })
 
+  context('ops.greaterThanOrEqualTo is passed', () => {
+    it('uses a ">=" operator for comparison', async () => {
+      const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+      const post = await Post.create({ user })
+      const rating5 = await Rating.create({ user, rateable: post, rating: 5 })
+      const rating4 = await Rating.create({ user, rateable: post, rating: 4 })
+      const rating3 = await Rating.create({ user, rateable: post, rating: 3 })
+
+      const records = await Rating.where({ rating: ops.greaterThanOrEqualTo(4) }).pluck('id')
+      expect(records).toEqual([rating5.id, rating4.id])
+    })
+  })
+
   context('ops.any is passed', () => {
     it('uses an "@>" operator for comparison', async () => {
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })

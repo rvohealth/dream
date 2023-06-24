@@ -20,6 +20,7 @@ const ops = {
   lessThan: (lessThan: number) => new OpsStatement('<', lessThan),
   lessThanOrEqualTo: (lessThanOrEqualTo: number) => new OpsStatement('<=', lessThanOrEqualTo),
   greaterThan: (greaterThan: number) => new OpsStatement('>', greaterThan),
+  greaterThanOrEqualTo: (greaterThanOrEqualTo: number) => new OpsStatement('>=', greaterThanOrEqualTo),
   expression: (operator: ComparisonOperatorExpression, value: any) => new OpsStatement(operator, value),
 }
 
