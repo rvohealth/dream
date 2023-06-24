@@ -60,6 +60,19 @@ describe('Query#where', () => {
     })
   })
 
+  context('ops.lessThanOrEqualTo is passed', () => {
+    it('uses a "<=" operator for comparison', async () => {
+      const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+      const post = await Post.create({ user })
+      const rating5 = await Rating.create({ user, rateable: post, rating: 5 })
+      const rating4 = await Rating.create({ user, rateable: post, rating: 4 })
+      const rating3 = await Rating.create({ user, rateable: post, rating: 3 })
+
+      const records = await Rating.where({ rating: ops.lessThanOrEqualTo(4) }).pluck('id')
+      expect(records).toEqual([rating4.id, rating3.id])
+    })
+  })
+
   context('ops.greaterThan is passed', () => {
     it('uses a ">" operator for comparison', async () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
