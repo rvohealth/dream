@@ -79,7 +79,7 @@ describe('Query#where', () => {
         password: 'howyadoin',
       })
 
-      const records = await User.where({ id: ops.equal([user2.id]) }).pluck('id')
+      const records = await User.where({ id: ops.equal(user2.id) }).pluck('id')
       expect(records).toEqual([user2.id])
     })
   })
@@ -99,7 +99,7 @@ describe('Query#where', () => {
         password: 'howyadoin',
       })
 
-      const records = await User.where({ id: ops.not.equal([user1.id]) }).pluck('id')
+      const records = await User.where({ id: ops.not.equal(user1.id) }).pluck('id')
       expect(records).toEqual([user2.id, user3.id])
     })
   })
