@@ -6,6 +6,10 @@ Using this library as our query building engine, we have stacked a comprehensive
 
 ## Getting started
 
+### Install `nodenv`
+
+In order to use dream, you must be using node = 18.15.0. A `.node-version` file exists at the root of this repo to flag the node version, but it will not work unless `nodenv` has been correctly installed on your machine.
+
 ### Add ENV files
 
 make sure to add the following files to the root of the project:
