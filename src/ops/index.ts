@@ -17,6 +17,7 @@ const ops = {
     }),
   like: (like: string) => new OpsStatement('like', like),
   ilike: (ilike: string) => new OpsStatement('ilike', ilike),
+  lessThan: (lessThan: number) => new OpsStatement('<', lessThan),
   expression: (operator: ComparisonOperatorExpression, value: any) => new OpsStatement(operator, value),
 }
 
