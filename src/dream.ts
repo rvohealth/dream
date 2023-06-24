@@ -533,6 +533,51 @@ export default class Dream {
     return isDecimal(attribute, { table: this.table })
   }
 
+  public async createAssociation<
+    I extends Dream,
+    AssociationName extends keyof SyncedAssociations[I['table']],
+    PossibleArrayAssociationType = I[AssociationName & keyof I],
+    AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
+      ? ElementType
+      : PossibleArrayAssociationType
+  >(
+    this: I,
+    associationName: AssociationName,
+    opts: UpdateableFields<AssociationType & typeof Dream> = {}
+  ): Promise<Required<NonNullable<AssociationType>>> {
+    const association = this.associationMap[associationName] as
+      | HasManyStatement<any>
+      | HasOneStatement<any>
+      | BelongsToStatement<any>
+
+    if (association.modelCB().constructor === Array) {
+      throw `
+        Cannot create polymorphic associations using createAssociation
+      `
+    }
+    const associationClass = association.modelCB() as typeof Dream
+
+    switch (association.type) {
+      case 'HasMany':
+      case 'HasOne':
+        const hasresult = await associationClass.create({
+          [association.foreignKey()]: this.primaryKeyValue,
+          ...opts,
+        })
+        return hasresult! as unknown as Required<NonNullable<AssociationType>>
+
+      case 'BelongsTo':
+        let belongstoresult: Required<NonNullable<AssociationType>>
+        await Dream.transaction(async txn => {
+          belongstoresult = await (associationClass as any).create({
+            ...opts,
+          })
+          await this.update({ [association.foreignKey() as any]: (belongstoresult as any).primaryKeyValue })
+        })
+        return belongstoresult! as unknown as Required<NonNullable<AssociationType>>
+    }
+  }
+
   public queryAssociation<
     I extends Dream,
     AssociationName extends keyof SyncedAssociations[I['table']],
