@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon'
 import HasOne from '../../../src/decorators/associations/has-one'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
@@ -21,6 +22,8 @@ export default class Composition extends Dream {
 
   public id: IdType
   public content: string | null
+  public created_at: DateTime
+  public updated_at: DateTime
 
   @BelongsTo(() => User)
   public user: User

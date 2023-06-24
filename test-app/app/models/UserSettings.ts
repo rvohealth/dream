@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import Dream from '../../../src/dream'
 import { IdType } from '../../../src/db/reflections'
@@ -10,6 +11,8 @@ export default class UserSettings extends Dream {
 
   public id: IdType
   public likes_chalupas: boolean
+  public created_at: DateTime
+  public updated_at: DateTime
 
   @BelongsTo(() => User)
   public user: User
