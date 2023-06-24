@@ -48,6 +48,26 @@ describe('Query#where', () => {
     })
   })
 
+  context('ops.notIn is passed', () => {
+    it('uses a "not in" operator for comparison', async () => {
+      const user1 = await User.create({
+        email: 'fred@frewd',
+        password: 'howyadoin',
+      })
+      const user2 = await User.create({
+        email: 'frez@frewd',
+        password: 'howyadoin',
+      })
+      const user3 = await User.create({
+        email: 'frez@fishman',
+        password: 'howyadoin',
+      })
+
+      const records = await User.where({ id: ops.notIn([user1.id, user2.id]) }).pluck('id')
+      expect(records).toEqual([user3.id])
+    })
+  })
+
   context('ops.equal is passed', () => {
     it('uses an "=" operator for comparison', async () => {
       const user1 = await User.create({

@@ -7,6 +7,7 @@ import { DB } from '../sync/schema'
 
 const ops = {
   in: (arr: any[]) => new OpsStatement('in', arr),
+  notIn: (arr: any[]) => new OpsStatement('not in', arr),
   any: (value: any) =>
     new CurriedOpsStatement(function <
       T extends typeof Dream,
