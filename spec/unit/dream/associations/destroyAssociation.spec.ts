@@ -13,10 +13,10 @@ describe('Dream#destroyAssociation', () => {
       const composition2 = await user2.createAssociation('compositions')
 
       expect(await Composition.all()).toMatchDreamModels([composition, composition2])
-      expect(await user.queryAssociation('compositions').all()).toMatchDreamModels([composition])
+      expect(await user.associationQuery('compositions').all()).toMatchDreamModels([composition])
       await user.destroyAssociation('compositions')
 
-      expect(await user.queryAssociation('compositions').all()).toEqual([])
+      expect(await user.associationQuery('compositions').all()).toEqual([])
       expect(await Composition.all()).toMatchDreamModels([composition2])
     })
   })
@@ -35,10 +35,10 @@ describe('Dream#destroyAssociation', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const createdAt = DateTime.now().minus({ days: 1 })
       const userSettings = await user.createAssociation('userSettings', { created_at: createdAt })
-      expect(await user.queryAssociation('userSettings').all()).toMatchDreamModels([userSettings])
+      expect(await user.associationQuery('userSettings').all()).toMatchDreamModels([userSettings])
 
       await user.destroyAssociation('userSettings')
-      expect(await user.queryAssociation('userSettings').all()).toMatchDreamModels([])
+      expect(await user.associationQuery('userSettings').all()).toMatchDreamModels([])
     })
   })
 
@@ -57,11 +57,11 @@ describe('Dream#destroyAssociation', () => {
       const post = await Post.create({ user, body: 'howyadoin' })
       const createdAt = DateTime.now().minus({ days: 1 })
       const postVisibility = await post.createAssociation('postVisibility', { created_at: createdAt })
-      expect(await post.queryAssociation('postVisibility').first()).toMatchDreamModel(postVisibility)
+      expect(await post.associationQuery('postVisibility').first()).toMatchDreamModel(postVisibility)
 
       await post.destroyAssociation('postVisibility')
 
-      expect(await post.queryAssociation('postVisibility').first()).toBeNull()
+      expect(await post.associationQuery('postVisibility').first()).toBeNull()
     })
   })
 })

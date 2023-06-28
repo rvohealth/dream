@@ -11,7 +11,7 @@ describe('Dream#createAssociation', () => {
       const composition = await user.createAssociation('compositions', { created_at: createdAt })
 
       expect(composition.created_at).toEqual(createdAt)
-      expect(await user.queryAssociation('compositions').all()).toMatchDreamModels([composition])
+      expect(await user.associationQuery('compositions').all()).toMatchDreamModels([composition])
     })
   })
 
@@ -31,7 +31,7 @@ describe('Dream#createAssociation', () => {
       const userSettings = await user.createAssociation('userSettings', { created_at: createdAt })
 
       expect(userSettings.created_at).toEqual(createdAt)
-      expect(await user.queryAssociation('userSettings').all()).toMatchDreamModels([userSettings])
+      expect(await user.associationQuery('userSettings').all()).toMatchDreamModels([userSettings])
     })
   })
 
@@ -52,7 +52,7 @@ describe('Dream#createAssociation', () => {
       const postVisibility = await post.createAssociation('postVisibility', { created_at: createdAt })
 
       expect(postVisibility.created_at).toEqual(createdAt)
-      expect(await post.queryAssociation('postVisibility').first()).toMatchDreamModel(postVisibility)
+      expect(await post.associationQuery('postVisibility').first()).toMatchDreamModel(postVisibility)
     })
   })
 })

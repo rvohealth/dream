@@ -3,7 +3,7 @@ import Composition from '../../../../test-app/app/models/Composition'
 import User from '../../../../test-app/app/models/User'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 
-describe('Dream#queryAssociation', () => {
+describe('Dream#associationQuery', () => {
   context('with a HasMany association', () => {
     it('returns a chainable query encapsulating that association', async () => {
       const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
@@ -16,7 +16,7 @@ describe('Dream#queryAssociation', () => {
         created_at: DateTime.now().minus({ year: 1 }),
       })
 
-      expect(await user.queryAssociation('recentCompositions').all()).toMatchDreamModels([recentComposition])
+      expect(await user.associationQuery('recentCompositions').all()).toMatchDreamModels([recentComposition])
     })
 
     context('hasMany through', () => {
@@ -34,7 +34,7 @@ describe('Dream#queryAssociation', () => {
         const compositionAsset1 = await CompositionAsset.create({ composition: recentComposition })
         const compositionAsset2 = await CompositionAsset.create({ composition: olderComposition })
 
-        expect(await user.queryAssociation('recentCompositionAssets').all()).toMatchDreamModels([
+        expect(await user.associationQuery('recentCompositionAssets').all()).toMatchDreamModels([
           compositionAsset1,
         ])
       })

@@ -24,7 +24,7 @@ describe('Query#count', () => {
       const rating3 = await Rating.create({ user, rateable: post2, rating: 5 })
       const rating4 = await Rating.create({ user, rateable: post1, rating: 2 })
 
-      const count = await post1.queryAssociation('ratings').count()
+      const count = await post1.associationQuery('ratings').count()
 
       expect(count).toEqual(3)
     })

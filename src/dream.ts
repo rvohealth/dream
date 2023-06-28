@@ -635,7 +635,7 @@ export default class Dream {
     }
   }
 
-  public queryAssociation<
+  public associationQuery<
     I extends Dream,
     AssociationName extends keyof SyncedAssociations[I['table']],
     PossibleArrayAssociationType = I[AssociationName & keyof I],

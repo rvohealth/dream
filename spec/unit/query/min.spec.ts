@@ -14,7 +14,7 @@ describe('Query#min', () => {
       const compositionAsset1 = await CompositionAsset.create({ composition, score: 7 })
       const compositionAsset2 = await CompositionAsset.create({ composition, score: 3 })
 
-      const min = await composition.queryAssociation('compositionAssets').min('score')
+      const min = await composition.associationQuery('compositionAssets').min('score')
 
       expect(min).toEqual(3)
     })
@@ -29,7 +29,7 @@ describe('Query#min', () => {
       const compositionAsset1 = await CompositionAsset.create({ composition: composition1, score: 7 })
       const compositionAsset2 = await CompositionAsset.create({ composition: composition2, score: 3 })
 
-      const min = await user.queryAssociation('compositionAssets').min('score')
+      const min = await user.associationQuery('compositionAssets').min('score')
 
       expect(min).toEqual(3)
     })
@@ -46,7 +46,7 @@ describe('Query#min', () => {
     const rating3 = await Rating.create({ user, rateable: post2, rating: 1 })
     const rating4 = await Rating.create({ user, rateable: post1, rating: 2 })
 
-    const min = await post1.queryAssociation('ratings').min('rating')
+    const min = await post1.associationQuery('ratings').min('rating')
 
     expect(min).toEqual(2)
   })
