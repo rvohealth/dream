@@ -43,6 +43,8 @@ import MissingSerializer from './exceptions/missing-serializer'
 import MissingTable from './exceptions/missing-table'
 import CannotCastToNonSTIChild from './exceptions/cannot-cast-to-non-sti-child'
 import CannotCastNonSTIModelToChild from './exceptions/cannot-cast-non-sti-model-to-child'
+import CannotCreateAssociationWithThroughContext from './exceptions/cannot-create-association-with-through-context'
+import CannotDestroyAssociationWithThroughContext from './exceptions/cannot-destroy-association-with-through-context'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -560,6 +562,12 @@ export default class Dream {
     switch (association.type) {
       case 'HasMany':
       case 'HasOne':
+        if ((association as HasManyStatement<any>).through)
+          throw new CannotCreateAssociationWithThroughContext({
+            dreamClass: this.constructor as typeof Dream,
+            association,
+          })
+
         const hasresult = await associationClass.create({
           [association.foreignKey()]: this.primaryKeyValue,
           ...opts,
@@ -575,6 +583,55 @@ export default class Dream {
           await this.update({ [association.foreignKey() as any]: (belongstoresult as any).primaryKeyValue })
         })
         return belongstoresult! as unknown as Required<NonNullable<AssociationType>>
+    }
+  }
+
+  public async destroyAssociation<
+    I extends Dream,
+    AssociationName extends keyof SyncedAssociations[I['table']],
+    PossibleArrayAssociationType = I[AssociationName & keyof I],
+    AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
+      ? ElementType
+      : PossibleArrayAssociationType
+  >(
+    this: I,
+    associationName: AssociationName,
+    opts: UpdateableFields<AssociationType & typeof Dream> = {}
+  ): Promise<number> {
+    const association = this.associationMap[associationName] as
+      | HasManyStatement<any>
+      | HasOneStatement<any>
+      | BelongsToStatement<any>
+
+    if (association.modelCB().constructor === Array) {
+      throw `
+      Cannot destroy polymorphic associations using destroyAssociation
+    `
+    }
+    const associationClass = association.modelCB() as typeof Dream
+
+    switch (association.type) {
+      case 'HasMany':
+      case 'HasOne':
+        if ((association as HasManyStatement<any>).through)
+          throw new CannotDestroyAssociationWithThroughContext({
+            dreamClass: this.constructor as typeof Dream,
+            association,
+          })
+
+        return await associationClass
+          .where({
+            [association.foreignKey()]: this.primaryKeyValue,
+            ...opts,
+          })
+          .destroy()
+
+      case 'BelongsTo':
+        return await (associationClass as any)
+          .where({
+            [associationClass.primaryKey]: (this as any)[association.foreignKey()],
+          })
+          .destroy()
     }
   }
 
