@@ -44,8 +44,8 @@ export interface HasStatement<
   modelCB: () => typeof Dream
   type: HasType
   as: string
-  foreignKey: () => keyof DB[ForeignTableName]
-  foreignKeyTypeField: () => keyof DB[ForeignTableName]
+  foreignKey: () => keyof DB[ForeignTableName] & string
+  foreignKeyTypeField: () => keyof DB[ForeignTableName] & string
   polymorphic: boolean
   source: string
   through?: string
