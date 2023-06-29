@@ -546,7 +546,7 @@ export default class Dream {
     this: I,
     associationName: AssociationName,
     opts: UpdateableFields<AssociationType & typeof Dream> = {}
-  ): Promise<Required<NonNullable<AssociationType>>> {
+  ): Promise<NonNullable<AssociationType>> {
     const association = this.associationMap[associationName] as
       | HasManyStatement<any>
       | HasOneStatement<any>
@@ -572,10 +572,10 @@ export default class Dream {
           [association.foreignKey()]: this.primaryKeyValue,
           ...opts,
         })
-        return hasresult! as unknown as Required<NonNullable<AssociationType>>
+        return hasresult! as unknown as NonNullable<AssociationType>
 
       case 'BelongsTo':
-        let belongstoresult: Required<NonNullable<AssociationType>>
+        let belongstoresult: AssociationType
         await Dream.transaction(async txn => {
           belongstoresult = await (associationClass as any).txn(txn).create({
             ...opts,
@@ -584,7 +584,7 @@ export default class Dream {
             [association.foreignKey() as any]: (belongstoresult as any).primaryKeyValue,
           })
         })
-        return belongstoresult! as unknown as Required<NonNullable<AssociationType>>
+        return belongstoresult! as unknown as NonNullable<AssociationType>
     }
   }
 
