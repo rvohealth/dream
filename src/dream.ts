@@ -577,10 +577,12 @@ export default class Dream {
       case 'BelongsTo':
         let belongstoresult: Required<NonNullable<AssociationType>>
         await Dream.transaction(async txn => {
-          belongstoresult = await (associationClass as any).create({
+          belongstoresult = await (associationClass as any).txn(txn).create({
             ...opts,
           })
-          await this.update({ [association.foreignKey() as any]: (belongstoresult as any).primaryKeyValue })
+          await this.txn(txn).update({
+            [association.foreignKey() as any]: (belongstoresult as any).primaryKeyValue,
+          })
         })
         return belongstoresult! as unknown as Required<NonNullable<AssociationType>>
     }
