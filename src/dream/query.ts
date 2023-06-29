@@ -79,8 +79,8 @@ export default class Query<
   QueryAssociationExpression = AssociationExpression<InstanceType<DreamClass>['table'], any>,
   ColumnType = keyof DB[keyof DB] extends never ? unknown : keyof DB[keyof DB]
 > {
-  public whereStatement: WhereStatement<any> = {}
-  public whereNotStatement: WhereStatement<any> = {}
+  public whereStatement: WhereStatement<any>[] = []
+  public whereNotStatement: WhereStatement<any>[] = []
   public whereJoinsStatement: JoinsWhereAssociationExpression<
     InstanceType<DreamClass>['table'],
     AssociationExpression<InstanceType<DreamClass>['table'], any>
@@ -181,10 +181,13 @@ export default class Query<
       // @ts-ignore
       this.whereJoinsStatement = [...(this.whereJoinsStatement as any), ...attributes]
     } else {
+      const chainableWhereStatement: WhereStatement<any> = {}
+      whereStatement.push(chainableWhereStatement)
+
       Object.keys(attributes).forEach(key => {
         if ((this.dreamClass.columns() as any[]).includes(key)) {
           // @ts-ignore
-          whereStatement[key] = attributes[key]
+          chainableWhereStatement[key] = attributes[key]
         } else {
           // @ts-ignore
           this.whereJoinsStatement.push({ [key]: attributes[key] })
@@ -834,7 +837,7 @@ ${JSON.stringify(association, null, 2)}
         query = this.applyWhereStatement(
           query,
           this.aliasWhereStatement(
-            association.where as WhereStatement<InstanceType<DreamClass>['table']>,
+            [association.where as WhereStatement<InstanceType<DreamClass>['table']>],
             currentAssociationTableOrAlias
           )
         )
@@ -910,7 +913,29 @@ ${JSON.stringify(association, null, 2)}
     return query
   }
 
-  private applyWhereStatement<T extends Query<DreamClass>>(
+  private applyWhereStatement<
+    T extends Query<DreamClass>,
+    WS extends
+      | WhereStatement<InstanceType<DreamClass>['table']>
+      | JoinsWhereAssociationExpression<InstanceType<DreamClass>['table'], T['joinsStatements'][number]>
+  >(
+    this: T,
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
+    whereStatements: WS | WS[],
+    {
+      negate = false,
+    }: {
+      negate?: boolean
+    } = {}
+  ) {
+    ;([whereStatements].flat() as WS[]).forEach(statement => {
+      query = this.applySingleWhereStatement(query, statement, { negate })
+    })
+
+    return query
+  }
+
+  private applySingleWhereStatement<T extends Query<DreamClass>>(
     this: T,
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
     whereStatement:
@@ -1092,16 +1117,16 @@ ${JSON.stringify(association, null, 2)}
   }
 
   private aliasWhereStatement(
-    whereStatement: WhereStatement<InstanceType<DreamClass>['table']>,
+    whereStatements: WhereStatement<InstanceType<DreamClass>['table']>[],
     alias: string
   ) {
-    const aliasedWhere: any = {}
-
-    Object.keys(whereStatement).forEach((key: any) => {
-      aliasedWhere[`${alias}.${key}`] = (whereStatement as any)[key]
+    return whereStatements.map(whereStatement => {
+      const aliasedWhere: any = {}
+      Object.keys(whereStatement).forEach((key: any) => {
+        aliasedWhere[`${alias}.${key}`] = (whereStatement as any)[key]
+      })
+      return aliasedWhere
     })
-
-    return aliasedWhere
   }
 
   private buildDelete<T extends Query<DreamClass>>(

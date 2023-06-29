@@ -39,5 +39,22 @@ describe('Dream#associationQuery', () => {
         ])
       })
     })
+
+    context('where clause chaining', () => {
+      it('permits chaining of multiple attributes with same key (i.e. id)', async () => {
+        const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+
+        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        const composition = await Composition.create({ user, content: 'howyadoin' })
+        const compositionAsset = await CompositionAsset.create({
+          composition,
+          name: 'asset 1',
+        })
+
+        expect(
+          await otherUser.associationQuery('compositionAssets').findBy({ id: compositionAsset.id })
+        ).toBeNull()
+      })
+    })
   })
 })
