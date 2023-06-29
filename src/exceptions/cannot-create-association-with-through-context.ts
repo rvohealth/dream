@@ -20,8 +20,7 @@ export default class CannotCreateAssociationWithThroughContext extends Error {
 
   public get message() {
     return `
-Cannot call 'createAssociation' for through associations, since it is impossible to know the foreign key
-you are attempting to use to couple them.
+'createAssociation' for through associations is not supported.
 Dream class: ${this.dreamClass.name}
 Association: ${this.association.as}
     `
