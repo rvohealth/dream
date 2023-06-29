@@ -629,6 +629,8 @@ export default class Dream {
           .destroy()
 
       case 'BelongsTo':
+        // NOTE: this relies on the database being properly set up with cascade deletion on the foreign key.
+        // Our dream generators automatically handle this in the migration layer by setting col.onDelete('cascade')
         return await (associationClass as any)
           .where({
             [associationClass.primaryKey]: (this as any)[association.foreignKey()],
