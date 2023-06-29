@@ -20,7 +20,7 @@ export default class CannotDestroyAssociationWithThroughContext extends Error {
 
   public get message() {
     return `
-Cannot call 'destroyAssociation' for through associations.
+'destroyAssociation' is not supported for through associations.
 Dream class: ${this.dreamClass.name}
 Association: ${this.association.as}
     `

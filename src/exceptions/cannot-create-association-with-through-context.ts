@@ -20,7 +20,7 @@ export default class CannotCreateAssociationWithThroughContext extends Error {
 
   public get message() {
     return `
-'createAssociation' for through associations is not supported.
+'createAssociation' is not supported for through associations.
 Dream class: ${this.dreamClass.name}
 Association: ${this.association.as}
     `
