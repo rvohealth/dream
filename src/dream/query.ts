@@ -575,7 +575,7 @@ export default class Query<
 
       if (association.polymorphic) {
         associationQuery = associationQuery.where({
-          [association.foreignKeyTypeField()]: associatedModel.name,
+          [association.foreignKeyTypeField()]: dream.constructor.name,
         })
       }
 

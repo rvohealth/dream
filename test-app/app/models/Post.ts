@@ -5,6 +5,8 @@ import { IdType } from '../../../src/db/reflections'
 import PostVisibility from './PostVisibility'
 import Rating from './Rating'
 import User from './User'
+import StarRating from './ExtraRating/StarRating'
+import HeartRating from './ExtraRating/HeartRating'
 
 export default class Post extends Dream {
   public get table() {
@@ -27,4 +29,10 @@ export default class Post extends Dream {
     polymorphic: true,
   })
   public ratings: Rating[]
+
+  @HasMany(() => HeartRating, {
+    foreignKey: 'extra_rateable_id',
+    polymorphic: true,
+  })
+  public heartRatings: HeartRating[]
 }

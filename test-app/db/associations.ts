@@ -40,6 +40,19 @@ export default {
       "composition_asset_audits"
     ]
   },
+  "extra_ratings": {
+    "user": [
+      "users"
+    ],
+    "extraRateable": [
+      "compositions",
+      "posts"
+    ],
+    "extra_rateable": [
+      "compositions",
+      "posts"
+    ]
+  },
   "graph_edge_nodes": {
     "edge": [
       "graph_edges"
@@ -83,6 +96,9 @@ export default {
     ],
     "ratings": [
       "ratings"
+    ],
+    "heartRatings": [
+      "extra_ratings"
     ]
   },
   "post_visibilities": {
@@ -189,6 +205,19 @@ export interface SyncedAssociations {
       "composition_asset_audits"
     ]
   },
+  "extra_ratings": {
+    "user": [
+      "users"
+    ],
+    "extraRateable": [
+      "compositions",
+      "posts"
+    ],
+    "extra_rateable": [
+      "compositions",
+      "posts"
+    ]
+  },
   "graph_edge_nodes": {
     "edge": [
       "graph_edges"
@@ -232,6 +261,9 @@ export interface SyncedAssociations {
     ],
     "ratings": [
       "ratings"
+    ],
+    "heartRatings": [
+      "extra_ratings"
     ]
   },
   "post_visibilities": {
@@ -317,6 +349,19 @@ export interface SyncedBelongsToAssociations {
       "users"
     ]
   },
+  "extra_ratings": {
+    "user": [
+      "users"
+    ],
+    "extraRateable": [
+      "compositions",
+      "posts"
+    ],
+    "extra_rateable": [
+      "compositions",
+      "posts"
+    ]
+  },
   "graph_edge_nodes": {
     "edge": [
       "graph_edges"
@@ -369,6 +414,7 @@ export interface VirtualColumns {
   "composition_asset_audits": false,
   "composition_assets": false,
   "compositions": false,
+  "extra_ratings": false,
   "graph_edge_nodes": false,
   "graph_edges": false,
   "graph_nodes": false,

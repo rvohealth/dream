@@ -6,6 +6,8 @@ export type BalloonColorsEnum = "blue" | "green" | "red";
 
 export type BalloonTypesEnum = "Latex" | "Mylar";
 
+export type ExtraRatingTypesEnum = "HeartRating" | "StarRating";
+
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
@@ -55,6 +57,17 @@ export interface Compositions {
   user_id: Int8;
   content: string | null;
   primary: Generated<boolean | null>;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+export interface ExtraRatings {
+  type: ExtraRatingTypesEnum | null;
+  id: Generated<Int8>;
+  user_id: Int8;
+  extra_rateable_id: Int8;
+  extra_rateable_type: string;
+  rating: number | null;
   created_at: Timestamp;
   updated_at: Timestamp;
 }
@@ -147,6 +160,7 @@ export interface DB {
   composition_asset_audits: CompositionAssetAudits;
   composition_assets: CompositionAssets;
   compositions: Compositions;
+  extra_ratings: ExtraRatings;
   graph_edge_nodes: GraphEdgeNodes;
   graph_edges: GraphEdges;
   graph_nodes: GraphNodes;
@@ -165,6 +179,7 @@ export const BalloonColumns = ['id', 'user_id', 'type', 'volume', 'color', 'mult
 export const CompositionAssetAuditColumns = ['id', 'composition_asset_id', 'approval', 'created_at', 'updated_at']
 export const CompositionAssetColumns = ['id', 'composition_id', 'name', 'src', 'primary', 'score', 'created_at', 'updated_at']
 export const CompositionColumns = ['id', 'user_id', 'content', 'primary', 'created_at', 'updated_at']
+export const ExtraRatingColumns = ['type', 'id', 'user_id', 'extra_rateable_id', 'extra_rateable_type', 'rating', 'created_at', 'updated_at']
 export const GraphEdgeNodeColumns = ['id', 'edge_id', 'node_id', 'created_at', 'updated_at']
 export const GraphEdgeColumns = ['id', 'name', 'created_at', 'updated_at']
 export const GraphNodeColumns = ['id', 'name', 'created_at', 'updated_at']
@@ -212,6 +227,17 @@ export interface CompositionAttributes {
   user_id: IdType
   content: string | null
   primary: boolean | null
+  created_at: DateTime
+  updated_at: DateTime
+}  
+
+export interface ExtraRatingAttributes {
+  type: ExtraRatingTypesEnum | null
+  id: IdType
+  user_id: IdType
+  extra_rateable_id: IdType
+  extra_rateable_type: string
+  rating: number | null
   created_at: DateTime
   updated_at: DateTime
 }  
@@ -340,6 +366,17 @@ export const CompositionsTypeCache = {
   updated_at: 'Timestamp'
 }  
 
+export const ExtraRatingsTypeCache = {
+  type: 'ExtraRatingTypesEnum|null',
+  id: 'Generated<Int8>',
+  user_id: 'Int8',
+  extra_rateable_id: 'Int8',
+  extra_rateable_type: 'string',
+  rating: 'number|null',
+  created_at: 'Timestamp',
+  updated_at: 'Timestamp'
+}  
+
 export const GraphEdgeNodesTypeCache = {
   id: 'Generated<Int8>',
   edge_id: 'Int8',
@@ -430,6 +467,7 @@ export interface InterpretedDB {
   composition_asset_audits: CompositionAssetAuditAttributes,
   composition_assets: CompositionAssetAttributes,
   compositions: CompositionAttributes,
+  extra_ratings: ExtraRatingAttributes,
   graph_edge_nodes: GraphEdgeNodeAttributes,
   graph_edges: GraphEdgeAttributes,
   graph_nodes: GraphNodeAttributes,
@@ -447,6 +485,7 @@ export const DBColumns = {
   composition_asset_audits: CompositionAssetAuditColumns,
   composition_assets: CompositionAssetColumns,
   compositions: CompositionColumns,
+  extra_ratings: ExtraRatingColumns,
   graph_edge_nodes: GraphEdgeNodeColumns,
   graph_edges: GraphEdgeColumns,
   graph_nodes: GraphNodeColumns,
@@ -464,6 +503,7 @@ export const DBTypeCache = {
   composition_asset_audits: CompositionAssetAuditsTypeCache,
   composition_assets: CompositionAssetsTypeCache,
   compositions: CompositionsTypeCache,
+  extra_ratings: ExtraRatingsTypeCache,
   graph_edge_nodes: GraphEdgeNodesTypeCache,
   graph_edges: GraphEdgesTypeCache,
   graph_nodes: GraphNodesTypeCache,
