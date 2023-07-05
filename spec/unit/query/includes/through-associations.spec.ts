@@ -48,15 +48,26 @@ describe('Query#includes through with simple associations', () => {
     expect(reloadedCompositionAsset!.user).toMatchDreamModel(user)
   })
 
-  it('loads a HasMany through HasMany association', async () => {
-    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition = await Composition.create({ user, primary: true })
-    const compositionAsset = await CompositionAsset.create({ composition })
+  context('HasMany through HasMany association', () => {
+    it('loads the included association', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ user, primary: true })
+      const compositionAsset = await CompositionAsset.create({ composition })
 
-    const reloadedUser = await new Query(User).includes('compositionAssets').first()
-    expect(reloadedUser!.compositions).toMatchDreamModels([composition])
-    expect(reloadedUser!.compositionAssets).toMatchDreamModels([compositionAsset])
-    expect(reloadedUser!.compositions[0].compositionAssets).toMatchDreamModels([compositionAsset])
+      const reloadedUser = await new Query(User).includes('compositionAssets').first()
+      expect(reloadedUser!.compositions).toMatchDreamModels([composition])
+      expect(reloadedUser!.compositionAssets).toMatchDreamModels([compositionAsset])
+      expect(reloadedUser!.compositions[0].compositionAssets).toMatchDreamModels([compositionAsset])
+    })
+
+    context('when there are no associated models', () => {
+      it('does not raise an exception', async () => {
+        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        // const recentComposition = await Composition.create({ user })
+        const users = await new Query(User).includes('compositionAssets').all()
+        expect(users).toMatchDreamModels([user])
+      })
+    })
   })
 
   context('nested through associations', () => {

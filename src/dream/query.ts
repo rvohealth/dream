@@ -514,8 +514,8 @@ export default class Query<
   public async applyOneInclude(currentAssociationTableOrAlias: string, dreams: Dream | Dream[]) {
     if (dreams.constructor !== Array) dreams = [dreams as Dream]
 
+    if (dreams.length === 0) return
     const dream = dreams[0]
-    if (!dream) return
 
     let association = dream.associationMap[currentAssociationTableOrAlias]
     let associationQuery
@@ -526,6 +526,7 @@ export default class Query<
       association
     )
     dreams = results.dreams
+    if (dreams.length === 0) return
     association = results.association
 
     if (association.type === 'BelongsTo') {
