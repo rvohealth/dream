@@ -102,7 +102,7 @@ describe('Query#includes with simple associations', () => {
       })
 
       const reloadedUser = await new Query(User).includes('recentCompositions').first()
-      expect(reloadedUser!.recentCompositions).toBeUndefined()
+      expect(reloadedUser!.recentCompositions).toEqual([])
     })
   })
 
