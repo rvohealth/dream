@@ -70,7 +70,7 @@ describe('Query#joins with simple associations', () => {
         .joins('mainComposition')
         .where({ mainComposition: { id: parseInt(composition.id!.toString()) + 1 } })
         .all()
-      expect(noResults).toMatchDreamModels([])
+      expect(noResults).toEqual([])
     })
 
     it('joins a HasMany association', async () => {
@@ -88,7 +88,7 @@ describe('Query#joins with simple associations', () => {
         .joins('compositions')
         .where({ compositions: { id: parseInt(composition.id!.toString()) + 1 } })
         .all()
-      expect(noResults).toMatchDreamModels([])
+      expect(noResults).toEqual([])
     })
 
     it('joins a BelongsTo association', async () => {
@@ -108,7 +108,7 @@ describe('Query#joins with simple associations', () => {
         .joins('user')
         .where({ user: { id: parseInt(user.id!.toString()) + 1 } })
         .all()
-      expect(noResults).toMatchDreamModels([])
+      expect(noResults).toEqual([])
     })
 
     context('when the where clause attribute exists on both models', () => {
@@ -167,7 +167,7 @@ describe('Query#joins with simple associations', () => {
             mainComposition: { compositionAssets: { id: parseInt(compositionAsset.id!.toString()) + 1 } },
           })
           .all()
-        expect(noResults).toMatchDreamModels([])
+        expect(noResults).toEqual([])
       })
     })
 
@@ -202,7 +202,7 @@ describe('Query#joins with simple associations', () => {
             },
           ])
           .all()
-        expect(noResults1).toMatchDreamModels([])
+        expect(noResults1).toEqual([])
 
         const noResults2 = await new Query(User)
           .joins(['compositions', { mainComposition: 'compositionAssets' }])
@@ -215,7 +215,7 @@ describe('Query#joins with simple associations', () => {
             },
           ])
           .all()
-        expect(noResults2).toMatchDreamModels([])
+        expect(noResults2).toEqual([])
       })
     })
   })

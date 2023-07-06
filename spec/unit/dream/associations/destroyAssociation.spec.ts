@@ -38,7 +38,7 @@ describe('Dream#destroyAssociation', () => {
       expect(await user.associationQuery('userSettings').all()).toMatchDreamModels([userSettings])
 
       await user.destroyAssociation('userSettings')
-      expect(await user.associationQuery('userSettings').all()).toMatchDreamModels([])
+      expect(await user.associationQuery('userSettings').all()).toEqual([])
     })
   })
 

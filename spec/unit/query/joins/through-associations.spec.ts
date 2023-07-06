@@ -65,7 +65,7 @@ describe('Query#joins through with simple associations', () => {
         .joins('mainCompositionAsset')
         .where({ mainCompositionAsset: { id: parseInt(compositionAsset.id!.toString()) + 1 } })
         .all()
-      expect(noResults).toMatchDreamModels([])
+      expect(noResults).toEqual([])
     })
 
     it('joins a HasOne through BelongsTo association', async () => {
@@ -87,7 +87,7 @@ describe('Query#joins through with simple associations', () => {
         .joins('user')
         .where({ user: { id: parseInt(user.id!.toString()) + 1 } })
         .all()
-      expect(noResults).toMatchDreamModels([])
+      expect(noResults).toEqual([])
     })
 
     it('joins a HasMany through HasMany association', async () => {
@@ -106,7 +106,7 @@ describe('Query#joins through with simple associations', () => {
         .joins('compositionAssets')
         .where({ compositionAssets: { id: parseInt(compositionAsset.id!.toString()) + 1 } })
         .all()
-      expect(noResults).toMatchDreamModels([])
+      expect(noResults).toEqual([])
     })
 
     context('nested through associations', () => {
@@ -129,7 +129,7 @@ describe('Query#joins through with simple associations', () => {
           .joins('compositionAssetAudits')
           .where({ compositionAssetAudits: { id: parseInt(compositionAssetAudit.id!.toString()) + 1 } })
           .all()
-        expect(noResults).toMatchDreamModels([])
+        expect(noResults).toEqual([])
       })
     })
   })
