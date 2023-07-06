@@ -469,11 +469,15 @@ export default class Query<
         if (association.type === 'HasMany') {
           Object.defineProperty(dream, association.as, {
             get() {
-              return Object.freeze(
-                ((dream as any)[association.through!] as any[]).flatMap(
-                  record => (record as any)![association.source]
+              const throughAssociation = (dream as any)[association.through!]
+
+              if (throughAssociation) {
+                return Object.freeze(
+                  (throughAssociation as any[]).flatMap(record => (record as any)![association.source])
                 )
-              )
+              } else {
+                return []
+              }
             },
           })
         } else {

@@ -61,11 +61,11 @@ describe('Query#includes through with simple associations', () => {
     })
 
     context('when there are no associated models', () => {
-      it('does not raise an exception', async () => {
+      it('sets the association to an empty array', async () => {
         const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
         // const recentComposition = await Composition.create({ user })
         const users = await new Query(User).includes('compositionAssets').all()
-        expect(users).toMatchDreamModels([user])
+        expect(users[0].compositionAssets).toEqual([])
       })
     })
   })
