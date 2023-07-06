@@ -23,8 +23,16 @@ describe('Query#includes with simple associations', () => {
     const composition2 = await Composition.create({ user_id: user.id })
 
     const reloadedUser = await new Query(User).includes('compositions').first()
-    expect(reloadedUser!.compositions[0]).toMatchDreamModel(composition1)
-    expect(reloadedUser!.compositions[1]).toMatchDreamModel(composition2)
+    expect(reloadedUser!.compositions).toMatchDreamModels([composition1, composition2])
+  })
+
+  context('when there are HasMany results', () => {
+    it('sets the association to an empty array', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+
+      const reloadedUser = await new Query(User).includes('compositions').first()
+      expect(reloadedUser!.compositions).toEqual([])
+    })
   })
 
   it('loads a BelongsTo association', async () => {

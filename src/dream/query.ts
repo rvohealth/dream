@@ -396,6 +396,10 @@ export default class Query<
     association: HasManyStatement<any> | HasOneStatement<any> | BelongsToStatement<any>,
     loadedAssociations: Dream[]
   ) {
+    if (association.type === 'HasMany') {
+      dreams.forEach((dream: any) => (dream[association.as] = []))
+    }
+
     // dreams is a Rating
     // Rating belongs to: rateables (Posts / Compositions)
     // loadedAssociations is an array of Posts and Compositions
@@ -434,7 +438,6 @@ export default class Query<
           .filter(dream => (loadedAssociation as any)[association.foreignKey()] === dream.primaryKeyValue)
           .forEach((dream: any) => {
             if (association.type === 'HasMany') {
-              dream[association.as] ||= []
               dream[association.as].push(loadedAssociation)
             } else {
               dream[association.as] = loadedAssociation
