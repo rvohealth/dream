@@ -479,7 +479,7 @@ export default class Query<
                   (throughAssociation as any[]).flatMap(record => (record as any)![association.source])
                 )
               } else {
-                return []
+                return Object.freeze([])
               }
             },
           })
