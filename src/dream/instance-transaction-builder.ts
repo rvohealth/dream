@@ -4,7 +4,13 @@ import { DB } from '../sync/schema'
 import DreamTransaction from './transaction'
 import saveDream from './internal/saveDream'
 import destroyDream from './internal/destroyDream'
-import { UpdateableInstanceFields } from './types'
+import { DreamConstructorType, UpdateableFields, UpdateableInstanceFields } from './types'
+import { SyncedAssociations } from '../sync/associations'
+import Query from './query'
+import associationQuery from './internal/associations/associationQuery'
+import createAssociation from './internal/associations/createAssociation'
+import reload from './internal/reload'
+import destroyAssociation from './internal/associations/destroyAssociation'
 
 export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream> {
   public dreamInstance: DreamInstance
@@ -29,7 +35,48 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     return saveDream(this.dreamInstance, this.dreamTransaction)
   }
 
+  public async reload<I extends DreamInstanceTransactionBuilder<DreamInstance>>(this: I) {
+    return reload(this.dreamInstance, this.dreamTransaction)
+  }
+
   public async save<I extends DreamInstanceTransactionBuilder<DreamInstance>>(this: I) {
     return saveDream(this.dreamInstance, this.dreamTransaction)
+  }
+
+  public associationQuery<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    AssociationName extends keyof SyncedAssociations[DreamInstance['table']]
+  >(this: I, associationName: AssociationName) {
+    return associationQuery(this.dreamInstance, this.dreamTransaction, associationName)
+  }
+
+  public async createAssociation<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    AssociationName extends keyof SyncedAssociations[DreamInstance['table']],
+    PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
+    AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
+      ? ElementType
+      : PossibleArrayAssociationType
+  >(
+    this: I,
+    associationName: AssociationName,
+    opts: UpdateableFields<AssociationType & typeof Dream> = {}
+  ): Promise<NonNullable<AssociationType>> {
+    return await createAssociation(this.dreamInstance, this.dreamTransaction, associationName, opts)
+  }
+
+  public async destroyAssociation<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    AssociationName extends keyof SyncedAssociations[DreamInstance['table']],
+    PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
+    AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
+      ? ElementType
+      : PossibleArrayAssociationType
+  >(
+    this: I,
+    associationName: AssociationName,
+    opts: UpdateableFields<AssociationType & typeof Dream> = {}
+  ): Promise<number> {
+    return await destroyAssociation(this.dreamInstance, this.dreamTransaction, associationName, opts)
   }
 }

@@ -45,6 +45,11 @@ import CannotCastToNonSTIChild from './exceptions/cannot-cast-to-non-sti-child'
 import CannotCastNonSTIModelToChild from './exceptions/cannot-cast-non-sti-model-to-child'
 import CannotCreateAssociationWithThroughContext from './exceptions/cannot-create-association-with-through-context'
 import CannotDestroyAssociationWithThroughContext from './exceptions/cannot-destroy-association-with-through-context'
+import associationQuery from './dream/internal/associations/associationQuery'
+import createAssociation from './dream/internal/associations/createAssociation'
+import reload from './dream/internal/reload'
+import destroyDream from './dream/internal/destroyDream'
+import destroyAssociation from './dream/internal/associations/destroyAssociation'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -229,8 +234,7 @@ export default class Dream {
   >(this: T, ...associations: QueryAssociationExpression[]) {
     const query: Query<T> = new Query<T>(this)
 
-    // @ts-ignore
-    return query.includes(...associations)
+    return query.includes(...(associations as any))
   }
 
   public static joins<
@@ -502,21 +506,7 @@ export default class Dream {
   public async destroy<I extends Dream, TableName extends keyof DB = I['table'] & keyof DB>(
     this: I
   ): Promise<I> {
-    await runHooksFor('beforeDestroy', this)
-    if (this._preventDeletion) return this.unpreventDeletion()
-
-    const Base = this.constructor as DreamConstructorType<I>
-
-    await db
-      .deleteFrom(this.table as TableName)
-      .where(Base.primaryKey as any, '=', (this as any)[Base.primaryKey])
-      .execute()
-
-    await runHooksFor('afterDestroy', this)
-
-    await safelyRunCommitHooks(this, 'afterDestroyCommit', null)
-
-    return this
+    return destroyDream(this)
   }
 
   public equals(other: any): boolean {
@@ -547,45 +537,7 @@ export default class Dream {
     associationName: AssociationName,
     opts: UpdateableFields<AssociationType & typeof Dream> = {}
   ): Promise<NonNullable<AssociationType>> {
-    const association = this.associationMap[associationName] as
-      | HasManyStatement<any>
-      | HasOneStatement<any>
-      | BelongsToStatement<any>
-
-    if (association.modelCB().constructor === Array) {
-      throw `
-        Cannot create polymorphic associations using createAssociation
-      `
-    }
-    const associationClass = association.modelCB() as typeof Dream
-
-    switch (association.type) {
-      case 'HasMany':
-      case 'HasOne':
-        if ((association as HasManyStatement<any>).through)
-          throw new CannotCreateAssociationWithThroughContext({
-            dreamClass: this.constructor as typeof Dream,
-            association,
-          })
-
-        const hasresult = await associationClass.create({
-          [association.foreignKey()]: this.primaryKeyValue,
-          ...opts,
-        })
-        return hasresult! as unknown as NonNullable<AssociationType>
-
-      case 'BelongsTo':
-        let belongstoresult: AssociationType
-        await Dream.transaction(async txn => {
-          belongstoresult = await (associationClass as any).txn(txn).create({
-            ...opts,
-          })
-          await this.txn(txn).update({
-            [association.foreignKey() as any]: (belongstoresult as any).primaryKeyValue,
-          })
-        })
-        return belongstoresult! as unknown as NonNullable<AssociationType>
-    }
+    return createAssociation(this, null, associationName, opts)
   }
 
   public async destroyAssociation<
@@ -600,43 +552,7 @@ export default class Dream {
     associationName: AssociationName,
     opts: UpdateableFields<AssociationType & typeof Dream> = {}
   ): Promise<number> {
-    const association = this.associationMap[associationName] as
-      | HasManyStatement<any>
-      | HasOneStatement<any>
-      | BelongsToStatement<any>
-
-    if (association.modelCB().constructor === Array) {
-      throw `
-      Cannot destroy polymorphic associations using destroyAssociation
-    `
-    }
-    const associationClass = association.modelCB() as typeof Dream
-
-    switch (association.type) {
-      case 'HasMany':
-      case 'HasOne':
-        if ((association as HasManyStatement<any>).through)
-          throw new CannotDestroyAssociationWithThroughContext({
-            dreamClass: this.constructor as typeof Dream,
-            association,
-          })
-
-        return await associationClass
-          .where({
-            [association.foreignKey()]: this.primaryKeyValue,
-            ...opts,
-          })
-          .destroy()
-
-      case 'BelongsTo':
-        // NOTE: this relies on the database being properly set up with cascade deletion on the foreign key.
-        // Our dream generators automatically handle this in the migration layer by setting col.onDelete('cascade')
-        return await (associationClass as any)
-          .where({
-            [associationClass.primaryKey]: (this as any)[association.foreignKey()],
-          })
-          .destroy()
-    }
+    return destroyAssociation(this, null, associationName, opts)
   }
 
   public associationQuery<
@@ -648,15 +564,7 @@ export default class Dream {
       : PossibleArrayAssociationType,
     AssociationQuery = Query<DreamConstructorType<AssociationType & Dream>>
   >(this: I, associationName: AssociationName) {
-    const association = this.associationMap[associationName] as HasManyStatement<any>
-    const associationClass = association.modelCB()
-    const nestedSelect = (this.constructor as typeof Dream)
-      .joins(association.as as any)
-      .where({ [this.primaryKey]: this.primaryKeyValue })
-      .nestedSelect(`${association.as}.${associationClass.primaryKey}` as any)
-    return associationClass.where({
-      [associationClass.primaryKey]: nestedSelect,
-    }) as AssociationQuery
+    return associationQuery(this, null, associationName)
   }
 
   public async load<
@@ -672,20 +580,7 @@ export default class Dream {
   }
 
   public async reload<I extends Dream>(this: I) {
-    const base = this.constructor as DreamConstructorType<I>
-    const query: Query<DreamConstructorType<I>> = new Query<DreamConstructorType<I>>(base)
-    query
-      .unscoped()
-      // @ts-ignore
-      .where({ [base.primaryKey as any]: this[base.primaryKey] } as Updateable<Table>)
-
-    // TODO: cleanup type chaos
-    // @ts-ignore
-    const newRecord = (await query.first()) as I
-    this.setAttributes(newRecord.attributes())
-    this.freezeAttributes()
-
-    return this
+    return reload(this)
   }
 
   public serialize<I extends Dream>(this: I, { casing = null }: { casing?: 'camel' | 'snake' | null } = {}) {

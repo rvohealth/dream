@@ -94,6 +94,17 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     return query.includes(...(associations as any))
   }
 
+  public joins<
+    I extends DreamClassTransactionBuilder<DreamClass>,
+    QueryAssociationExpression extends AssociationExpression<
+      InstanceType<I['dreamClass']>['table'],
+      any
+    > = AssociationExpression<InstanceType<I['dreamClass']>['table'], any>
+  >(this: I, ...associations: QueryAssociationExpression[]) {
+    const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
+    return query.joins(...(associations as any))
+  }
+
   public async last<I extends DreamClassTransactionBuilder<DreamClass>>(
     this: I
   ): Promise<InstanceType<DreamClass> | null> {
