@@ -11,7 +11,7 @@ export default class ValidationError extends Error {
 
   public get message() {
     return `\
-Failed to same ${this.dreamClassName}. The following validation errors occurred while trying to save:
+Failed to save ${this.dreamClassName}. The following validation errors occurred while trying to save:
 
 ${JSON.stringify(this.errors, null, 2)}
 `
