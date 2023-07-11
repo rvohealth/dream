@@ -38,6 +38,10 @@ export default class DreamSerializer {
     return { ...this._data }
   }
 
+  public get originalData() {
+    return this._data
+  }
+
   public get attributes() {
     const attributes = [...(this.constructor as typeof DreamSerializer).attributeStatements.map(s => s.field)]
 
