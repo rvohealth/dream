@@ -116,7 +116,7 @@ export default class DreamSerializer {
 
   private applyAssociation(associationStatement: AssociationStatement) {
     const serializerClass = associationStatement.serializerClassCB()
-    const associatedData = (this._data as any)[associationStatement.field]
+    const associatedData = (this._data as any)[associationStatement.source]
     if (associatedData) return new serializerClass(associatedData).render()
     else {
       if (associationStatement.type === 'RendersMany') return []

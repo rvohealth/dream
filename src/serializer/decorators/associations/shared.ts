@@ -9,4 +9,5 @@ export interface AssociationStatement {
   serializerClassCB: DreamSerializerClassCB
   type: SerializableAssociationType
   flatten: boolean
+  source: string
 }

@@ -1,7 +1,10 @@
 import DreamSerializer from '../..'
 import { AssociationStatement, DreamSerializerClassCB } from './shared'
 
-export default function RendersMany(serializerClassCB: DreamSerializerClassCB): any {
+export default function RendersMany(
+  serializerClassCB: DreamSerializerClassCB,
+  opts: RendersManyOpts = {}
+): any {
   return function (target: any, key: string, def: any) {
     const serializerClass: typeof DreamSerializer = target.constructor
 
@@ -14,7 +17,12 @@ export default function RendersMany(serializerClassCB: DreamSerializerClassCB): 
         type: 'RendersMany',
         field: key,
         serializerClassCB,
+        source: opts.source || key,
       } as AssociationStatement,
     ]
   }
+}
+
+export interface RendersManyOpts {
+  source?: string
 }

@@ -137,6 +137,22 @@ describe('DreamSerializer#render', () => {
         expect(serializer.render()).toEqual({ pets: [{ name: 'aster', species: 'cat' }] })
       })
 
+      context('when the source option is passed', () => {
+        class UserSerializerWithSource extends DreamSerializer {
+          @RendersMany(() => PetSerializer, { source: 'pets' })
+          public hooligans: Pet[]
+        }
+
+        it('correctly serializes based on source', async () => {
+          const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+          await Pet.create({ user, name: 'aster', species: 'cat' })
+          await user.load('pets')
+
+          const serializer = new UserSerializerWithSource(user)
+          expect(serializer.render()).toEqual({ hooligans: [{ name: 'aster', species: 'cat' }] })
+        })
+      })
+
       context('when the field is undefined', () => {
         it('adds a blank array', async () => {
           const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
@@ -178,6 +194,21 @@ describe('DreamSerializer#render', () => {
 
           const serializer = new PetSerializer(pet)
           expect(serializer.render()).toEqual({ user: null })
+        })
+      })
+
+      context('when the source option is passed', () => {
+        class PetSerializer extends DreamSerializer {
+          @RendersOne(() => UserSerializer, { source: 'user' })
+          public owner: User
+        }
+
+        it('correctly serializes based on source', async () => {
+          const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+          const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+
+          const serializer = new PetSerializer(pet)
+          expect(serializer.render()).toEqual({ owner: { email: 'how@yadoin' } })
         })
       })
 
