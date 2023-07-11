@@ -56,6 +56,15 @@ export default class DreamSerializer {
     return this
   }
 
+  protected passthroughData: { [key: string]: any } = {}
+  public passthrough(obj: { [key: string]: any }) {
+    this.passthroughData = {
+      ...this.passthroughData,
+      ...obj,
+    }
+    return this
+  }
+
   public render(): { [key: string]: any } {
     if (!this._casing) {
       this._casing = (process.env['SERIALIZER_CASING'] as 'camel' | 'snake') || 'camel'
@@ -117,7 +126,7 @@ export default class DreamSerializer {
   private applyAssociation(associationStatement: AssociationStatement) {
     const serializerClass = associationStatement.serializerClassCB()
     const associatedData = (this._data as any)[associationStatement.source]
-    if (associatedData) return new serializerClass(associatedData).render()
+    if (associatedData) return new serializerClass(associatedData).passthrough(this.passthroughData).render()
     else {
       if (associationStatement.type === 'RendersMany') return []
       return null

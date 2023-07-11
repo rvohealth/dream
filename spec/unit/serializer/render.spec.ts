@@ -261,4 +261,37 @@ describe('DreamSerializer#render', () => {
       })
     })
   })
+
+  context('with passthrough data applied', () => {
+    class ParentSerializer extends DreamSerializer {
+      @RendersOne(() => IntermediateSerilizer)
+      public child: any
+    }
+
+    class IntermediateSerilizer extends DreamSerializer {
+      @RendersOne(() => ChildSerializer)
+      public child: any
+
+      @Attribute()
+      public howyadoin() {
+        return this.passthroughData.howyadoin
+      }
+    }
+
+    class ChildSerializer extends DreamSerializer {
+      @Attribute()
+      public howyadoin() {
+        return this.passthroughData.howyadoin
+      }
+    }
+
+    it('correctly sends passthrough data to child serializers', () => {
+      const serializer = new ParentSerializer({ child: { child: {} } }).passthrough({
+        howyadoin: 'howyadoin',
+      })
+      expect(serializer.render()).toEqual({
+        child: { howyadoin: 'howyadoin', child: { howyadoin: 'howyadoin' } },
+      })
+    })
+  })
 })
