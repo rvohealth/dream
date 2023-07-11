@@ -109,6 +109,7 @@ export default class Query<
     this: T,
     id: InterpretedDB[TableName][DreamClass['primaryKey'] & keyof InterpretedDB[TableName]]
   ): Promise<(InstanceType<DreamClass> & Dream) | null> {
+    if (!id) return null
     // @ts-ignore
     return await this.where({
       [this.dreamClass.primaryKey]: id,

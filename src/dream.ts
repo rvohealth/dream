@@ -208,7 +208,7 @@ export default class Dream {
     id: InterpretedDB[TableName][T['primaryKey'] & keyof InterpretedDB[TableName]]
   ): Promise<(InstanceType<T> & Dream) | null> {
     const query: Query<T> = new Query<T>(this)
-    return (await query.where({ [this.primaryKey]: id } as any).first()) as (InstanceType<T> & Dream) | null
+    return await query.find(id)
   }
 
   public static async findBy<T extends typeof Dream>(
@@ -216,7 +216,7 @@ export default class Dream {
     attributes: Updateable<DB[InstanceType<T>['table']]>
   ): Promise<(InstanceType<T> & Dream) | null> {
     const query: Query<T> = new Query<T>(this)
-    return (await query.where(attributes as any).first()) as (InstanceType<T> & Dream) | null
+    return await query.findBy(attributes)
   }
 
   public static async first<T extends typeof Dream>(this: T): Promise<InstanceType<T> | null> {
