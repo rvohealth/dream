@@ -184,6 +184,49 @@ describe('DreamSerializer#render', () => {
         })
       })
 
+      context('when the through option is passed', () => {
+        class PersonSerializer extends DreamSerializer {
+          @RendersMany(() => ChalupaSerializer, { through: 'chalupatown' })
+          public chalupas: any[]
+        }
+
+        class ChalupaSerializer extends DreamSerializer {
+          @Attribute()
+          public deliciousness: number
+        }
+
+        it('correctly serializes based on source', () => {
+          const serializer = new PersonSerializer({
+            chalupatown: { chalupas: [{ deliciousness: 5000 }, { deliciousness: 7000 }] },
+          })
+          expect(serializer.render()).toEqual({
+            chalupas: [{ deliciousness: 5000 }, { deliciousness: 7000 }],
+          })
+        })
+
+        context('with nested fields to traverse', () => {
+          class PersonSerializer2 extends DreamSerializer {
+            @RendersMany(() => ChalupaSerializer, { through: 'chalupatowns.greatest.hits' })
+            public chalupas: any[]
+          }
+
+          it('correctly traverses nested objects to reach through target', () => {
+            const serializer = new PersonSerializer2({
+              chalupatowns: {
+                greatest: {
+                  hits: {
+                    chalupas: [{ deliciousness: 5000 }, { deliciousness: 7000 }],
+                  },
+                },
+              },
+            })
+            expect(serializer.render()).toEqual({
+              chalupas: [{ deliciousness: 5000 }, { deliciousness: 7000 }],
+            })
+          })
+        })
+      })
+
       context('when the field is undefined', () => {
         it('adds a blank array', async () => {
           const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
@@ -240,6 +283,58 @@ describe('DreamSerializer#render', () => {
 
           const serializer = new PetSerializer(pet)
           expect(serializer.render()).toEqual({ owner: { email: 'how@yadoin' } })
+        })
+      })
+
+      context('when the through option is passed', () => {
+        class PersonSerializer extends DreamSerializer {
+          @RendersOne(() => HappinessSerializer, { through: 'cat' })
+          public happiness: any
+        }
+
+        class HappinessSerializer extends DreamSerializer {
+          @Attribute()
+          public level: number
+        }
+
+        it('correctly serializes based on source', () => {
+          const serializer = new PersonSerializer({
+            cat: {
+              happiness: {
+                id: 1,
+                level: 5000,
+              },
+            },
+          })
+          expect(serializer.render()).toEqual({ happiness: { level: 5000 } })
+        })
+
+        context('with nested fields to traverse', () => {
+          class PersonSerializer2 extends DreamSerializer {
+            @RendersOne(() => HappinessSerializer2, { through: 'double.nested.cat' })
+            public happiness: any
+          }
+
+          class HappinessSerializer2 extends DreamSerializer {
+            @Attribute()
+            public level: number
+          }
+
+          it('correctly traverses nested objects to reach through target', () => {
+            const serializer = new PersonSerializer2({
+              double: {
+                nested: {
+                  cat: {
+                    happiness: {
+                      id: 1,
+                      level: 5000,
+                    },
+                  },
+                },
+              },
+            })
+            expect(serializer.render()).toEqual({ happiness: { level: 5000 } })
+          })
         })
       })
 

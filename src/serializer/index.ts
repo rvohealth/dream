@@ -129,12 +129,23 @@ export default class DreamSerializer {
 
   private applyAssociation(associationStatement: AssociationStatement) {
     const serializerClass = associationStatement.serializerClassCB()
-    const associatedData = (this._data as any)[associationStatement.source]
+    const associatedData = this.associatedData(associationStatement)
+
     if (associatedData) return new serializerClass(associatedData).passthrough(this.passthroughData).render()
     else {
       if (associationStatement.type === 'RendersMany') return []
       return null
     }
+  }
+
+  private associatedData(associationStatement: AssociationStatement) {
+    let self = this._data as any
+    if (associationStatement.through) {
+      associationStatement.through.split('.').forEach(throughField => {
+        self = self[throughField]
+      })
+    }
+    return self[associationStatement.source]
   }
 
   private applyDelegation(delegateStatement: DelegateStatement) {

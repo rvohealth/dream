@@ -19,6 +19,7 @@ export default function RendersOne(
         serializerClassCB,
         flatten: opts.flatten || false,
         source: opts.source || key,
+        through: opts.through || null,
       } as AssociationStatement,
     ]
   }
@@ -27,4 +28,5 @@ export default function RendersOne(
 export interface RendersOneOpts {
   flatten?: boolean
   source?: string
+  through?: string
 }

@@ -18,6 +18,7 @@ export default function RendersMany(
         field: key,
         serializerClassCB,
         source: opts.source || key,
+        through: opts.through || null,
       } as AssociationStatement,
     ]
   }
@@ -25,4 +26,5 @@ export default function RendersMany(
 
 export interface RendersManyOpts {
   source?: string
+  through?: string
 }

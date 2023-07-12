@@ -10,4 +10,5 @@ export interface AssociationStatement {
   type: SerializableAssociationType
   flatten: boolean
   source: string
+  through: string | null
 }
