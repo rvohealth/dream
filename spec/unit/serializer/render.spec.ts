@@ -43,13 +43,44 @@ describe('DreamSerializer#render', () => {
 
   context('with decorated attributes', () => {
     context('one of the fields is a date', () => {
-      it('renders unique format for dates', async () => {
-        class MySerializer extends DreamSerializer {
-          @Attribute('date')
-          public created_at: string
-        }
-        const serializer = new MySerializer({ created_at: DateTime.fromFormat('2002-10-02', 'yyyy-MM-dd') })
-        expect(serializer.render()).toEqual({ createdAt: '2002-10-02' })
+      let subject = () => new MySerializer({ created_at: createdAt }).render()
+      let createdAt: DateTime | null | undefined
+
+      beforeEach(() => {
+        createdAt = null
+      })
+      class MySerializer extends DreamSerializer {
+        @Attribute('date')
+        public created_at: string
+      }
+
+      context('the date field is a valid luxon date', () => {
+        beforeEach(() => {
+          createdAt = DateTime.fromFormat('2002-10-02', 'yyyy-MM-dd')
+        })
+
+        it('renders unique format for dates', async () => {
+          expect(subject()).toEqual({ createdAt: '2002-10-02' })
+        })
+      })
+
+      context('the date field is null', () => {
+        it('sets the field to null on the serializer', () => {
+          expect(subject()).toEqual({ createdAt: null })
+        })
+      })
+
+      context('the date field is undefined', () => {
+        beforeEach(() => {
+          createdAt = undefined
+        })
+
+        it('sets the field to null on the serializer', () => {
+          const serializer = new MySerializer({
+            created_at: undefined,
+          })
+          expect(serializer.render()).toEqual({ createdAt: null })
+        })
       })
     })
   })

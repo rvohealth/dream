@@ -101,7 +101,7 @@ export default class DreamSerializer {
         switch (renderAs) {
           case 'date':
             const fieldValue: DateTime | undefined = this.getAttributeValue(attributeStatement)
-            returnObj[fieldWithCasing] = fieldValue?.toFormat('yyyy-MM-dd')
+            returnObj[fieldWithCasing] = fieldValue?.toFormat('yyyy-MM-dd') || null
             break
 
           default:
