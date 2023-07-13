@@ -40,6 +40,19 @@ export default {
       "composition_asset_audits"
     ]
   },
+  "extra_ratings": {
+    "user": [
+      "users"
+    ],
+    "extraRateable": [
+      "compositions",
+      "posts"
+    ],
+    "extra_rateable": [
+      "compositions",
+      "posts"
+    ]
+  },
   "graph_edge_nodes": {
     "edge": [
       "graph_edges"
@@ -146,19 +159,6 @@ export default {
   "user_settings": {
     "user": [
       "users"
-    ]
-  },
-  "extra_ratings": {
-    "user": [
-      "users"
-    ],
-    "extraRateable": [
-      "compositions",
-      "posts"
-    ],
-    "extra_rateable": [
-      "compositions",
-      "posts"
     ]
   }
 }
@@ -205,6 +205,19 @@ export interface SyncedAssociations {
       "composition_asset_audits"
     ]
   },
+  "extra_ratings": {
+    "user": [
+      "users"
+    ],
+    "extraRateable": [
+      "compositions",
+      "posts"
+    ],
+    "extra_rateable": [
+      "compositions",
+      "posts"
+    ]
+  },
   "graph_edge_nodes": {
     "edge": [
       "graph_edges"
@@ -312,19 +325,6 @@ export interface SyncedAssociations {
     "user": [
       "users"
     ]
-  },
-  "extra_ratings": {
-    "user": [
-      "users"
-    ],
-    "extraRateable": [
-      "compositions",
-      "posts"
-    ],
-    "extra_rateable": [
-      "compositions",
-      "posts"
-    ]
   }
 }
 
@@ -347,6 +347,19 @@ export interface SyncedBelongsToAssociations {
   "compositions": {
     "user": [
       "users"
+    ]
+  },
+  "extra_ratings": {
+    "user": [
+      "users"
+    ],
+    "extraRateable": [
+      "compositions",
+      "posts"
+    ],
+    "extra_rateable": [
+      "compositions",
+      "posts"
     ]
   },
   "graph_edge_nodes": {
@@ -392,19 +405,6 @@ export interface SyncedBelongsToAssociations {
     "user": [
       "users"
     ]
-  },
-  "extra_ratings": {
-    "user": [
-      "users"
-    ],
-    "extraRateable": [
-      "compositions",
-      "posts"
-    ],
-    "extra_rateable": [
-      "compositions",
-      "posts"
-    ]
   }
 }
   
@@ -414,6 +414,7 @@ export interface VirtualColumns {
   "composition_asset_audits": false,
   "composition_assets": false,
   "compositions": false,
+  "extra_ratings": false,
   "graph_edge_nodes": false,
   "graph_edges": false,
   "graph_nodes": false,
@@ -425,6 +426,5 @@ export interface VirtualColumns {
   "users": [
     "password"
   ],
-  "user_settings": false,
-  "extra_ratings": false
+  "user_settings": false
 }

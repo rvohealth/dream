@@ -17,6 +17,7 @@ import {
   Transaction,
   UpdateQueryBuilder,
   Updateable,
+  sql,
 } from 'kysely'
 import { DB, InterpretedDB } from '../sync/schema'
 import { marshalDBValue } from '../helpers/marshalDBValue'
@@ -315,7 +316,36 @@ export default class Query<
       query = query.select(field as any)
     })
 
-    const vals = (await query.execute()).map(result => Object.values(result))
+    const sqlString = query.compile().sql
+    const paramsString = query.compile().parameters.join(', ')
+    const sqlDebugMessage = `
+      ${sqlString}
+      [ ${paramsString} ]
+      NOTE: to turn this message off, remove the DEBUG=1 env variable
+    `
+    let vals: any[][]
+    try {
+      if (process.env.DEBUG === '1') {
+        console.log(
+          `
+            About to execute the following SQL:
+            ${sqlDebugMessage}
+          `
+        )
+      }
+      vals = (await query.execute()).map(result => Object.values(result))
+    } catch (error) {
+      if (process.env.DEBUG === '1') {
+        console.error(`
+          Error executing the following SQL:
+          ${error}
+
+          ${sqlDebugMessage}
+        `)
+      }
+      // throw the original error to maintain stack trace
+      throw error
+    }
 
     if (fields.length > 1) {
       return vals.map(arr =>
@@ -1028,7 +1058,19 @@ ${JSON.stringify(association, null, 2)}
           c = val
         }
 
-        if (negate) {
+        // postgres is unable to handle WHERE IN statements with blank arrays, such as in
+        // "WHERE id IN ()", meaning that:
+        // 1. If we receive a blank array during a IN comparison,
+        //    then we need to simply regurgitate a where statement which
+        //    guarantees no records.
+        // 2. If we receive a blank array during a NOT IN comparison,
+        //    then it is the same as the where statement not being present at all,
+        //    resulting in a noop on our end
+        if (b === 'in' && c.constructor === Array && c.length === 0) {
+          query = query.where(sql`1=0`)
+        } else if (b === 'not in' && c.constructor === Array && c.length === 0) {
+          query = query.where(sql`1=1`)
+        } else if (negate) {
           // @ts-ignore
           const negatedB = OPERATION_NEGATION_MAP[b]
           if (!negatedB) throw `no negation available for comparison operator ${b}`

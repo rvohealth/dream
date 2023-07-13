@@ -29,22 +29,41 @@ describe('Query#where', () => {
   })
 
   context('ops.in is passed', () => {
-    it('uses an "in" operator for comparison', async () => {
-      const user1 = await User.create({
+    let user1: User
+    let user2: User
+    let user3: User
+    beforeEach(async () => {
+      user1 = await User.create({
         email: 'fred@frewd',
         password: 'howyadoin',
       })
-      const user2 = await User.create({
+      user2 = await User.create({
         email: 'frez@frewd',
         password: 'howyadoin',
       })
-      const user3 = await User.create({
+      user3 = await User.create({
         email: 'frez@fishman',
         password: 'howyadoin',
       })
+    })
 
+    it('uses an "in" operator for comparison', async () => {
       const records = await User.where({ id: ops.in([user1.id, user2.id]) }).pluck('id')
       expect(records).toEqual([user1.id, user2.id])
+    })
+
+    context('with a blank array', () => {
+      it('does not find any results', async () => {
+        const records = await User.where({ id: ops.in([]) }).pluck('id')
+        expect(records).toEqual([])
+      })
+
+      context('with a negated blank array', () => {
+        it('finds all results', async () => {
+          const records = await User.where({ id: ops.not.in([]) }).pluck('id')
+          expect(records).toEqual([user1.id, user2.id, user3.id])
+        })
+      })
     })
   })
 
@@ -351,7 +370,9 @@ describe('Query#where', () => {
           password: 'howyadoin',
         })
 
-        const records = await User.where({ email: ops.not.match('aaa.*', { caseInsensitive: true }) }).pluck('id')
+        const records = await User.where({ email: ops.not.match('aaa.*', { caseInsensitive: true }) }).pluck(
+          'id'
+        )
         expect(records).toEqual([user3.id])
       })
     })
