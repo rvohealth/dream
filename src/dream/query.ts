@@ -415,7 +415,7 @@ export default class Query<
 
     if (results) {
       const theFirst = new this.dreamClass(results as any) as InstanceType<DreamClass>
-      await this.applyThisDotIncludes([theFirst])
+      if (theFirst) await this.applyThisDotIncludes([theFirst])
       return theFirst
     } else return null
   }
@@ -431,8 +431,19 @@ export default class Query<
     association: HasManyStatement<any> | HasOneStatement<any> | BelongsToStatement<any>,
     loadedAssociations: Dream[]
   ) {
-    if (association.type === 'HasMany') {
-      dreams.forEach((dream: any) => (dream[association.as] = []))
+    switch (association.type) {
+      case 'HasMany':
+        dreams.forEach((dream: any) => (dream[association.as] = []))
+        break
+      default:
+        dreams.forEach((dream: any) => {
+          Object.defineProperty(dream, association.as, {
+            configurable: true,
+            get() {
+              return null
+            },
+          })
+        })
     }
 
     // dreams is a Rating
@@ -454,7 +465,11 @@ export default class Query<
             }
           })
           .forEach((dream: any) => {
-            dream[association.as] = loadedAssociation
+            Object.defineProperty(dream, association.as, {
+              get() {
+                return loadedAssociation
+              },
+            })
           })
       } else {
         dreams.forEach(dream => {
@@ -475,7 +490,11 @@ export default class Query<
             if (association.type === 'HasMany') {
               dream[association.as].push(loadedAssociation)
             } else {
-              dream[association.as] = loadedAssociation
+              Object.defineProperty(dream, association.as, {
+                get() {
+                  return loadedAssociation
+                },
+              })
             }
           })
       }
@@ -672,7 +691,7 @@ ${JSON.stringify(association, null, 2)}
 
     if (results) {
       const theLast = new this.dreamClass(results) as InstanceType<DreamClass>
-      await this.applyThisDotIncludes([theLast])
+      if (theLast) await this.applyThisDotIncludes([theLast])
       return theLast
     } else return null
   }

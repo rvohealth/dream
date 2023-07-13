@@ -80,55 +80,110 @@ describe('Query#includes with simple associations', () => {
     expect(reloaded!.user).toMatchDreamModel(user)
   })
 
-  context('with matching where-clause-on-the-association', () => {
-    it('loads the associated object', async () => {
-      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const composition = await Composition.create({
-        user,
-        created_at: DateTime.now().minus({ day: 1 }),
-      })
+  context('HasMany', () => {
+    context('with matching where-clause-on-the-association', () => {
+      it('loads the associated object', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({
+          user,
+          created_at: DateTime.now().minus({ day: 1 }),
+        })
 
-      const reloadedUser = await new Query(User).includes('recentCompositions').first()
-      expect(reloadedUser!.recentCompositions).toMatchDreamModels([composition])
+        const reloadedUser = await new Query(User).includes('recentCompositions').first()
+        expect(reloadedUser!.recentCompositions).toMatchDreamModels([composition])
+      })
+    })
+
+    context('with NON-matching where-clause-on-the-association', () => {
+      it('does not load the object', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        await Composition.create({
+          user,
+          created_at: DateTime.now().minus({ year: 1 }),
+        })
+
+        const reloadedUser = await new Query(User).includes('recentCompositions').first()
+        expect(reloadedUser!.recentCompositions).toEqual([])
+      })
+    })
+
+    context('with matching whereNot-clause-on-the-association', () => {
+      it('does not load the object', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        await Composition.create({
+          user,
+          created_at: DateTime.now().minus({ day: 1 }),
+        })
+
+        const reloadedUser = await new Query(User).includes('notRecentCompositions').first()
+        expect(reloadedUser!.notRecentCompositions).toEqual([])
+      })
+    })
+
+    context('with NON-matching whereNot-clause-on-the-association', () => {
+      it('loads the associated object', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({
+          user,
+          created_at: DateTime.now().minus({ year: 1 }),
+        })
+
+        const reloadedUser = await new Query(User).includes('notRecentCompositions').first()
+        expect(reloadedUser!.notRecentCompositions).toMatchDreamModels([composition])
+      })
     })
   })
 
-  context('with NON-matching where-clause-on-the-association', () => {
-    it('does not load the object', async () => {
-      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      await Composition.create({
-        user,
-        created_at: DateTime.now().minus({ year: 1 }),
-      })
+  context('HasOne', () => {
+    context('with matching where-clause-on-the-association', () => {
+      it('loads the associated object', async () => {
+        const pet = await Pet.create()
+        const lostCollar = await pet.createAssociation('collars', {
+          lost: true,
+        })
+        const currentCollar = await pet.createAssociation('collars', {
+          lost: false,
+        })
 
-      const reloadedUser = await new Query(User).includes('recentCompositions').first()
-      expect(reloadedUser!.recentCompositions).toEqual([])
+        const reloaded = await Pet.includes('currentCollar').first()
+        expect(reloaded?.currentCollar).toMatchDreamModel(currentCollar)
+      })
     })
-  })
 
-  context('with matching whereNot-clause-on-the-association', () => {
-    it('does not load the object', async () => {
-      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      await Composition.create({
-        user,
-        created_at: DateTime.now().minus({ day: 1 }),
+    context('with NON-matching where-clause-on-the-association', () => {
+      it('does not load the object', async () => {
+        const pet = await Pet.create()
+        await pet.createAssociation('collars', {
+          lost: true,
+        })
+
+        const reloaded = await Pet.includes('currentCollar').first()
+        expect(reloaded?.currentCollar).toBeNull()
       })
-
-      const reloadedUser = await new Query(User).includes('notRecentCompositions').first()
-      expect(reloadedUser!.notRecentCompositions).toEqual([])
     })
-  })
 
-  context('with NON-matching whereNot-clause-on-the-association', () => {
-    it('loads the associated object', async () => {
-      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const composition = await Composition.create({
-        user,
-        created_at: DateTime.now().minus({ year: 1 }),
+    context('with matching whereNot-clause-on-the-association', () => {
+      it('does not load the associated object', async () => {
+        const pet = await Pet.create()
+        await pet.createAssociation('collars', {
+          lost: true,
+        })
+
+        const reloaded = await Pet.includes('notLostCollar').first()
+        expect(reloaded?.notLostCollar).toBeNull()
       })
+    })
 
-      const reloadedUser = await new Query(User).includes('notRecentCompositions').first()
-      expect(reloadedUser!.notRecentCompositions).toMatchDreamModels([composition])
+    context('with NON-matching whereNot-clause-on-the-association', () => {
+      it('loads the associated object', async () => {
+        const pet = await Pet.create()
+        const notLostCollar = await pet.createAssociation('collars', {
+          lost: false,
+        })
+
+        const reloaded = await Pet.includes('notLostCollar').first()
+        expect(reloaded?.notLostCollar).toMatchDreamModel(notLostCollar)
+      })
     })
   })
 

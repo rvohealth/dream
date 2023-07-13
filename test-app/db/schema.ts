@@ -33,6 +33,14 @@ export interface Balloons {
   updated_at: Timestamp;
 }
 
+export interface Collars {
+  id: Generated<Int8>;
+  pet_id: Int8;
+  lost: boolean | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
 export interface CompositionAssetAudits {
   id: Generated<Int8>;
   composition_asset_id: Int8;
@@ -157,6 +165,7 @@ export interface UserSettings {
 
 export interface DB {
   balloons: Balloons;
+  collars: Collars;
   composition_asset_audits: CompositionAssetAudits;
   composition_assets: CompositionAssets;
   compositions: Compositions;
@@ -176,6 +185,7 @@ export interface DB {
 
 
 export const BalloonColumns = ['id', 'user_id', 'type', 'volume', 'color', 'multicolor', 'deleted_at', 'created_at', 'updated_at']
+export const CollarColumns = ['id', 'pet_id', 'lost', 'created_at', 'updated_at']
 export const CompositionAssetAuditColumns = ['id', 'composition_asset_id', 'approval', 'created_at', 'updated_at']
 export const CompositionAssetColumns = ['id', 'composition_id', 'name', 'src', 'primary', 'score', 'created_at', 'updated_at']
 export const CompositionColumns = ['id', 'user_id', 'content', 'primary', 'created_at', 'updated_at']
@@ -199,6 +209,14 @@ export interface BalloonAttributes {
   color: BalloonColorsEnum | null
   multicolor: BalloonColorsEnum[] | null
   deleted_at: DateTime | null
+  created_at: DateTime
+  updated_at: DateTime
+}  
+
+export interface CollarAttributes {
+  id: IdType
+  pet_id: IdType
+  lost: boolean | null
   created_at: DateTime
   updated_at: DateTime
 }  
@@ -338,6 +356,14 @@ export const BalloonsTypeCache = {
   updated_at: 'Timestamp'
 }  
 
+export const CollarsTypeCache = {
+  id: 'Generated<Int8>',
+  pet_id: 'Int8',
+  lost: 'boolean|null',
+  created_at: 'Timestamp',
+  updated_at: 'Timestamp'
+}  
+
 export const CompositionAssetAuditsTypeCache = {
   id: 'Generated<Int8>',
   composition_asset_id: 'Int8',
@@ -464,6 +490,7 @@ export const UserSettingsTypeCache = {
 
 export interface InterpretedDB {
   balloons: BalloonAttributes,
+  collars: CollarAttributes,
   composition_asset_audits: CompositionAssetAuditAttributes,
   composition_assets: CompositionAssetAttributes,
   compositions: CompositionAttributes,
@@ -482,6 +509,7 @@ export interface InterpretedDB {
 
 export const DBColumns = {
   balloons: BalloonColumns,
+  collars: CollarColumns,
   composition_asset_audits: CompositionAssetAuditColumns,
   composition_assets: CompositionAssetColumns,
   compositions: CompositionColumns,
@@ -500,6 +528,7 @@ export const DBColumns = {
 
 export const DBTypeCache = {
   balloons: BalloonsTypeCache,
+  collars: CollarsTypeCache,
   composition_asset_audits: CompositionAssetAuditsTypeCache,
   composition_assets: CompositionAssetsTypeCache,
   compositions: CompositionsTypeCache,

@@ -11,7 +11,7 @@ describe('Dream BeforeUpdate decorator', () => {
     const compositionAssetAudit = await CompositionAssetAudit.create({
       composition_asset_id: compositionAsset.id,
     })
-    expect(compositionAssetAudit.approval).toEqual(null)
+    expect(compositionAssetAudit.approval).toBeNull()
 
     await compositionAssetAudit.save()
     expect(compositionAssetAudit.approval).toEqual(false)

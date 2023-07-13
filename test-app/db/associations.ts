@@ -4,6 +4,11 @@ export default {
       "users"
     ]
   },
+  "collars": {
+    "pet": [
+      "pets"
+    ]
+  },
   "composition_asset_audits": {
     "compositionAsset": [
       "composition_assets"
@@ -85,6 +90,15 @@ export default {
   "pets": {
     "user": [
       "users"
+    ],
+    "currentCollar": [
+      "collars"
+    ],
+    "notLostCollar": [
+      "collars"
+    ],
+    "collars": [
+      "collars"
     ]
   },
   "posts": {
@@ -172,6 +186,11 @@ export interface SyncedAssociations {
       "users"
     ]
   },
+  "collars": {
+    "pet": [
+      "pets"
+    ]
+  },
   "composition_asset_audits": {
     "compositionAsset": [
       "composition_assets"
@@ -253,6 +272,15 @@ export interface SyncedAssociations {
   "pets": {
     "user": [
       "users"
+    ],
+    "currentCollar": [
+      "collars"
+    ],
+    "notLostCollar": [
+      "collars"
+    ],
+    "collars": [
+      "collars"
     ]
   },
   "posts": {
@@ -340,6 +368,11 @@ export interface SyncedBelongsToAssociations {
       "users"
     ]
   },
+  "collars": {
+    "pet": [
+      "pets"
+    ]
+  },
   "composition_asset_audits": {
     "compositionAsset": [
       "composition_assets"
@@ -417,6 +450,7 @@ export interface SyncedBelongsToAssociations {
 
 export interface VirtualColumns {
   "balloons": false,
+  "collars": false,
   "composition_asset_audits": false,
   "composition_assets": false,
   "compositions": false,

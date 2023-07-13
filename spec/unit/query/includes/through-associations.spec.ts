@@ -23,7 +23,7 @@ describe('Query#includes through with simple associations', () => {
   })
 
   context('with NON-matching where-clause-on-the-association', () => {
-    it('does not load the associated object', async () => {
+    it('sets the association to null', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ user_id: user.id, primary: true })
       await CompositionAsset.create({ composition_id: composition.id })
@@ -33,7 +33,7 @@ describe('Query#includes through with simple associations', () => {
       })
 
       const reloadedUser = await new Query(User).includes('mainCompositionAsset').first()
-      expect(reloadedUser!.mainCompositionAsset).toBeUndefined()
+      expect(reloadedUser!.mainCompositionAsset).toBeNull()
       expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
     })
   })

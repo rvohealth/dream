@@ -12,7 +12,7 @@ describe('Dream STI', () => {
   })
 
   it('builds scope mapping', async () => {
-    expect(Balloon.sti.value).toEqual(null)
+    expect(Balloon.sti.value).toBeNull()
 
     expect(Mylar.sti.value).toEqual('Mylar')
     expect(Latex.sti.value).toEqual('Latex')
