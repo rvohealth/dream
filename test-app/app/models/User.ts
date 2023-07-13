@@ -73,6 +73,12 @@ export default class User extends Dream {
   })
   public recentCompositions: Composition[]
 
+  // not recent associations (contrived so that we can test whereNot)
+  @HasMany(() => Composition, {
+    whereNot: { created_at: () => range(DateTime.now().minus({ week: 1 })) },
+  })
+  public notRecentCompositions: Composition[]
+
   @HasMany(() => CompositionAsset, {
     through: 'recentCompositions',
     source: 'compositionAssets',

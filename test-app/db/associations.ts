@@ -140,6 +140,9 @@ export default {
     "recentCompositions": [
       "compositions"
     ],
+    "notRecentCompositions": [
+      "compositions"
+    ],
     "recentCompositionAssets": [
       "composition_assets"
     ],
@@ -303,6 +306,9 @@ export interface SyncedAssociations {
       "composition_asset_audits"
     ],
     "recentCompositions": [
+      "compositions"
+    ],
+    "notRecentCompositions": [
       "compositions"
     ],
     "recentCompositionAssets": [

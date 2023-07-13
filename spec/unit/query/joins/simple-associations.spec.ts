@@ -246,6 +246,32 @@ describe('Query#joins with simple associations', () => {
     })
   })
 
+  context('with matching whereNot-clause-on-the-association', () => {
+    it('does not load the object', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await Composition.create({
+        user,
+        created_at: DateTime.now().minus({ day: 1 }),
+      })
+
+      const reloadedUser = await User.joins('notRecentCompositions').first()
+      expect(reloadedUser).toBeNull()
+    })
+  })
+
+  context('with NON-matching whereNot-clause-on-the-association', () => {
+    it('loads the associated object', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await Composition.create({
+        user,
+        created_at: DateTime.now().minus({ year: 1 }),
+      })
+
+      const reloadedUser = await User.joins('notRecentCompositions').first()
+      expect(reloadedUser).toMatchDreamModel(user)
+    })
+  })
+
   context('when the model and its association have a default scope with the same attribute name', () => {
     it('namespaces the scope', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })

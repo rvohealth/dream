@@ -13,12 +13,14 @@ export default function HasMany<AssociationDreamClass extends typeof Dream>(
     source,
     through,
     where,
+    whereNot,
   }: {
     foreignKey?: string
     polymorphic?: boolean
     source?: string
     through?: string
     where?: WhereStatement<InstanceType<AssociationDreamClass>['table'] & AssociationTableNames>
+    whereNot?: WhereStatement<InstanceType<AssociationDreamClass>['table'] & AssociationTableNames>
   } = {}
 ): any {
   return function (target: any, key: string, _: any) {
@@ -44,6 +46,7 @@ export default function HasMany<AssociationDreamClass extends typeof Dream>(
       source: source || key,
       through,
       where,
+      whereNot,
     })
 
     // Object.defineProperty(target, `${key}Query`, {

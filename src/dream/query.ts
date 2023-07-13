@@ -630,6 +630,14 @@ ${JSON.stringify(association, null, 2)}
       }
       if (association.where) associationQuery = associationQuery.where(association.where)
 
+      if (process.env.DEBUG === '1' && association.whereNot) {
+        console.log(`
+applying whereNot clause for association:
+${JSON.stringify(association, null, 2)}
+        `)
+      }
+      if (association.whereNot) associationQuery = associationQuery.whereNot(association.whereNot)
+
       this.hydrateAssociation(dreams, association, await associationQuery.all())
     }
 
@@ -883,6 +891,17 @@ ${JSON.stringify(association, null, 2)}
             [association.where as WhereStatement<InstanceType<DreamClass>['table']>],
             currentAssociationTableOrAlias
           )
+        )
+      }
+
+      if (association.whereNot) {
+        query = this.applyWhereStatement(
+          query,
+          this.aliasWhereStatement(
+            [association.whereNot as WhereStatement<InstanceType<DreamClass>['table']>],
+            currentAssociationTableOrAlias
+          ),
+          { negate: true }
         )
       }
     }

@@ -50,6 +50,7 @@ export interface HasStatement<
   source: string
   through?: string
   where?: WhereStatement<ForeignTableName>
+  whereNot?: WhereStatement<ForeignTableName>
 }
 
 export function blankAssociationsFactory(dreamClass: typeof Dream): {

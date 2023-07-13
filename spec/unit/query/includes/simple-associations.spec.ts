@@ -106,6 +106,32 @@ describe('Query#includes with simple associations', () => {
     })
   })
 
+  context('with matching whereNot-clause-on-the-association', () => {
+    it('does not load the object', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await Composition.create({
+        user,
+        created_at: DateTime.now().minus({ day: 1 }),
+      })
+
+      const reloadedUser = await new Query(User).includes('notRecentCompositions').first()
+      expect(reloadedUser!.notRecentCompositions).toEqual([])
+    })
+  })
+
+  context('with NON-matching whereNot-clause-on-the-association', () => {
+    it('loads the associated object', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({
+        user,
+        created_at: DateTime.now().minus({ year: 1 }),
+      })
+
+      const reloadedUser = await new Query(User).includes('notRecentCompositions').first()
+      expect(reloadedUser!.notRecentCompositions).toMatchDreamModels([composition])
+    })
+  })
+
   context('when an association has a mismatched type on the foreign key', () => {
     it('throws an exception alerting the user to the mismatched types', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
