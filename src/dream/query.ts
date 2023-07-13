@@ -540,7 +540,7 @@ export default class Query<
         } else {
           Object.defineProperty(dream, association.as, {
             get() {
-              return (dream as any)[association.through!]![association.source]
+              return (dream as any)[association.through!]?.[association.source] || null
             },
           })
         }

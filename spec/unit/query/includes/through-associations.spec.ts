@@ -7,19 +7,35 @@ import Query from '../../../../src/dream/query'
 import MissingThroughAssociation from '../../../../src/exceptions/missing-through-association'
 
 describe('Query#includes through with simple associations', () => {
-  it('loads a HasOne through HasOne association', async () => {
-    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id, primary: true })
-    await CompositionAsset.create({ composition_id: composition.id })
-    const compositionAsset = await CompositionAsset.create({
-      composition_id: composition.id,
-      primary: true,
-    })
+  context('HasOne through HasOne association', () => {
+    it(
+      'sets the association property and the association property on the through association to the ' +
+        'loaded model, and the join association property to the loaded join model',
+      async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user_id: user.id, primary: true })
+        await CompositionAsset.create({ composition_id: composition.id })
+        const compositionAsset = await CompositionAsset.create({
+          composition_id: composition.id,
+          primary: true,
+        })
 
-    const reloadedUser = await new Query(User).includes('mainCompositionAsset').first()
-    expect(reloadedUser!.mainCompositionAsset).toMatchDreamModel(compositionAsset)
-    expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
-    expect(reloadedUser!.mainComposition.mainCompositionAsset).toMatchDreamModel(compositionAsset)
+        const reloadedUser = await new Query(User).includes('mainCompositionAsset').first()
+        expect(reloadedUser!.mainCompositionAsset).toMatchDreamModel(compositionAsset)
+        expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
+        expect(reloadedUser!.mainComposition.mainCompositionAsset).toMatchDreamModel(compositionAsset)
+      }
+    )
+
+    context('when there is no associated model', () => {
+      it('sets the association property and the join association property to null', async () => {
+        await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+
+        const reloadedUser = await new Query(User).includes('mainCompositionAsset').first()
+        expect(reloadedUser!.mainCompositionAsset).toBeNull()
+        expect(reloadedUser!.mainComposition).toBeNull()
+      })
+    })
   })
 
   context('with NON-matching where-clause-on-the-association', () => {
