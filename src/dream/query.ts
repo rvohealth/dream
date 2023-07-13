@@ -403,6 +403,10 @@ export default class Query<
     return theAll
   }
 
+  public async exists<T extends Query<DreamClass>>(this: T): Promise<boolean> {
+    return (await this.limit(1).all()).length > 0
+  }
+
   public async first<T extends Query<DreamClass>>(this: T) {
     if (!this.orderStatement) this.order(this.dreamClass.primaryKey as any, 'asc')
 
