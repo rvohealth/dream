@@ -1,3 +1,4 @@
+import Query from '../../../src/dream/query'
 import { DateTime } from 'luxon'
 import User from '../../../test-app/app/models/User'
 import range from '../../../src/helpers/range'
@@ -23,7 +24,9 @@ describe('Query#where', () => {
         password: 'howyadoin',
       })
 
-      const records = await User.where({ id: ops.expression('in', [user1.id, user2.id]) }).pluck('id')
+      const records = await new Query(User)
+        .where({ id: ops.expression('in', [user1.id, user2.id]) })
+        .pluck('id')
       expect(records).toEqual([user1.id, user2.id])
     })
   })
@@ -48,19 +51,19 @@ describe('Query#where', () => {
     })
 
     it('uses an "in" operator for comparison', async () => {
-      const records = await User.where({ id: ops.in([user1.id, user2.id]) }).pluck('id')
+      const records = await new Query(User).where({ id: ops.in([user1.id, user2.id]) }).pluck('id')
       expect(records).toEqual([user1.id, user2.id])
     })
 
     context('with a blank array', () => {
       it('does not find any results', async () => {
-        const records = await User.where({ id: ops.in([]) }).pluck('id')
+        const records = await new Query(User).where({ id: ops.in([]) }).pluck('id')
         expect(records).toEqual([])
       })
 
       context('with a negated blank array', () => {
         it('finds all results', async () => {
-          const records = await User.where({ id: ops.not.in([]) }).pluck('id')
+          const records = await new Query(User).where({ id: ops.not.in([]) }).pluck('id')
           expect(records).toEqual([user1.id, user2.id, user3.id])
         })
       })
@@ -82,7 +85,7 @@ describe('Query#where', () => {
         password: 'howyadoin',
       })
 
-      const records = await User.where({ id: ops.not.in([user1.id, user2.id]) }).pluck('id')
+      const records = await new Query(User).where({ id: ops.not.in([user1.id, user2.id]) }).pluck('id')
       expect(records).toEqual([user3.id])
     })
   })
@@ -98,7 +101,7 @@ describe('Query#where', () => {
         password: 'howyadoin',
       })
 
-      const records = await User.where({ id: ops.equal(user2.id) }).pluck('id')
+      const records = await new Query(User).where({ id: ops.equal(user2.id) }).pluck('id')
       expect(records).toEqual([user2.id])
     })
   })
@@ -118,7 +121,7 @@ describe('Query#where', () => {
         password: 'howyadoin',
       })
 
-      const records = await User.where({ id: ops.not.equal(user1.id) }).pluck('id')
+      const records = await new Query(User).where({ id: ops.not.equal(user1.id) }).pluck('id')
       expect(records).toEqual([user2.id, user3.id])
     })
   })
@@ -130,7 +133,7 @@ describe('Query#where', () => {
       const rating5 = await Rating.create({ user, rateable: post, rating: 5 })
       const rating3 = await Rating.create({ user, rateable: post, rating: 3 })
 
-      const records = await Rating.where({ rating: ops.lessThan(4) }).pluck('id')
+      const records = await new Query(Rating).where({ rating: ops.lessThan(4) }).pluck('id')
       expect(records).toEqual([rating3.id])
     })
   })
@@ -143,7 +146,7 @@ describe('Query#where', () => {
       const rating4 = await Rating.create({ user, rateable: post, rating: 4 })
       const rating3 = await Rating.create({ user, rateable: post, rating: 3 })
 
-      const records = await Rating.where({ rating: ops.lessThanOrEqualTo(4) }).pluck('id')
+      const records = await new Query(Rating).where({ rating: ops.lessThanOrEqualTo(4) }).pluck('id')
       expect(records).toEqual([rating4.id, rating3.id])
     })
   })
@@ -155,7 +158,7 @@ describe('Query#where', () => {
       const rating5 = await Rating.create({ user, rateable: post, rating: 5 })
       const rating3 = await Rating.create({ user, rateable: post, rating: 3 })
 
-      const records = await Rating.where({ rating: ops.greaterThan(4) }).pluck('id')
+      const records = await new Query(Rating).where({ rating: ops.greaterThan(4) }).pluck('id')
       expect(records).toEqual([rating5.id])
     })
   })
@@ -168,7 +171,7 @@ describe('Query#where', () => {
       const rating4 = await Rating.create({ user, rateable: post, rating: 4 })
       const rating3 = await Rating.create({ user, rateable: post, rating: 3 })
 
-      const records = await Rating.where({ rating: ops.greaterThanOrEqualTo(4) }).pluck('id')
+      const records = await new Query(Rating).where({ rating: ops.greaterThanOrEqualTo(4) }).pluck('id')
       expect(records).toEqual([rating5.id, rating4.id])
     })
   })
@@ -191,7 +194,7 @@ describe('Query#where', () => {
         multicolor: ['blue'],
       })
 
-      const balloons = await Balloon.where({ multicolor: ops.any('green') }).all()
+      const balloons = await new Query(Balloon).where({ multicolor: ops.any('green') }).all()
       expect(balloons).toMatchDreamModels([multicolorBalloon, greenBalloon])
     })
   })
@@ -211,7 +214,7 @@ describe('Query#where', () => {
         password: 'howyadoin',
       })
 
-      const records = await User.where({ id: [user1.id, user2.id] }).pluck('id')
+      const records = await new Query(User).where({ id: [user1.id, user2.id] }).pluck('id')
       expect(records).toEqual([user1.id, user2.id])
     })
   })
@@ -231,7 +234,7 @@ describe('Query#where', () => {
         password: 'howyadoin',
       })
 
-      const records = await User.where({ email: ops.like('%aaa@%') }).pluck('id')
+      const records = await new Query(User).where({ email: ops.like('%aaa@%') }).pluck('id')
       expect(records).toEqual([user1.id])
     })
   })
@@ -251,7 +254,7 @@ describe('Query#where', () => {
         password: 'howyadoin',
       })
 
-      const records = await User.where({ email: ops.not.like('%aaa@%') }).pluck('id')
+      const records = await new Query(User).where({ email: ops.not.like('%aaa@%') }).pluck('id')
       expect(records).toEqual([user2.id, user3.id])
     })
   })
@@ -271,7 +274,7 @@ describe('Query#where', () => {
         password: 'howyadoin',
       })
 
-      const records = await User.where({ email: ops.ilike('%aaa@%') }).pluck('id')
+      const records = await new Query(User).where({ email: ops.ilike('%aaa@%') }).pluck('id')
       expect(records).toEqual([user1.id, user2.id])
     })
   })
@@ -291,7 +294,7 @@ describe('Query#where', () => {
         password: 'howyadoin',
       })
 
-      const records = await User.where({ email: ops.not.ilike('%aaa@%') }).pluck('id')
+      const records = await new Query(User).where({ email: ops.not.ilike('%aaa@%') }).pluck('id')
       expect(records).toEqual([user3.id])
     })
   })
@@ -311,7 +314,7 @@ describe('Query#where', () => {
         password: 'howyadoin',
       })
 
-      const records = await User.where({ email: ops.match('aaa.*') }).pluck('id')
+      const records = await new Query(User).where({ email: ops.match('aaa.*') }).pluck('id')
       expect(records).toEqual([user1.id])
     })
 
@@ -330,7 +333,9 @@ describe('Query#where', () => {
           password: 'howyadoin',
         })
 
-        const records = await User.where({ email: ops.match('aaa.*', { caseInsensitive: true }) }).pluck('id')
+        const records = await new Query(User)
+          .where({ email: ops.match('aaa.*', { caseInsensitive: true }) })
+          .pluck('id')
         expect(records).toEqual([user1.id, user2.id])
       })
     })
@@ -351,7 +356,7 @@ describe('Query#where', () => {
         password: 'howyadoin',
       })
 
-      const records = await User.where({ email: ops.not.match('aaa.*') }).pluck('id')
+      const records = await new Query(User).where({ email: ops.not.match('aaa.*') }).pluck('id')
       expect(records).toEqual([user2.id, user3.id])
     })
 
@@ -370,9 +375,9 @@ describe('Query#where', () => {
           password: 'howyadoin',
         })
 
-        const records = await User.where({ email: ops.not.match('aaa.*', { caseInsensitive: true }) }).pluck(
-          'id'
-        )
+        const records = await new Query(User)
+          .where({ email: ops.not.match('aaa.*', { caseInsensitive: true }) })
+          .pluck('id')
         expect(records).toEqual([user3.id])
       })
     })
@@ -519,27 +524,27 @@ describe('Query#where', () => {
     })
 
     it('is able to apply number ranges to where clause', async () => {
-      const records = await Rating.where({ rating: range(begin, end) }).all()
+      const records = await new Query(Rating).where({ rating: range(begin, end) }).all()
       expect(records).toMatchDreamModels([ratingBeginning, ratingWithin, ratingEnd])
     })
 
     context('end is not passed', () => {
       it('matches all numbers greater than or equal to the start', async () => {
-        const records = await Rating.where({ rating: range(begin) }).all()
+        const records = await new Query(Rating).where({ rating: range(begin) }).all()
         expect(records).toMatchDreamModels([ratingBeginning, ratingWithin, ratingEnd, ratingAfter])
       })
     })
 
     context('start is not passed', () => {
       it('matches all numbers less than or equal to the end', async () => {
-        const records = await Rating.where({ rating: range(null, end) }).all()
+        const records = await new Query(Rating).where({ rating: range(null, end) }).all()
         expect(records).toMatchDreamModels([ratingBefore, ratingBeginning, ratingWithin, ratingEnd])
       })
     })
 
     context('excludeEnd is passed', () => {
       it('omits numbers matching the end', async () => {
-        const records = await Rating.where({ rating: range(null, end, true) }).all()
+        const records = await new Query(Rating).where({ rating: range(null, end, true) }).all()
         expect(records).toMatchDreamModels([ratingBefore, ratingBeginning, ratingWithin])
       })
     })

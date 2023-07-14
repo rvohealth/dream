@@ -42,8 +42,8 @@ import compact from '../helpers/compact'
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
   '==': '!=',
-  '!=': '==',
-  '<>': '==',
+  '!=': '=',
+  '<>': '=',
   '>': '<=',
   '>=': '<',
   '<': '>=',
@@ -1109,9 +1109,9 @@ ${JSON.stringify(association, null, 2)}
         //    then it is the same as the where statement not being present at all,
         //    resulting in a noop on our end
         if (b === 'in' && c.constructor === Array && c.length === 0) {
-          query = query.where(sql`FALSE`)
+          query = negate ? query.where(sql`TRUE`) : query.where(sql`FALSE`)
         } else if (b === 'not in' && c.constructor === Array && c.length === 0) {
-          query = query.where(sql`TRUE`)
+          query = negate ? query.where(sql`FALSE`) : query.where(sql`TRUE`)
         } else if (negate) {
           // @ts-ignore
           const negatedB = OPERATION_NEGATION_MAP[b]
