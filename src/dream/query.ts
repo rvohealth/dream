@@ -253,8 +253,8 @@ export default class Query<
   }
 
   public sql() {
-    const query = this.buildSelect()
-    return query.compile()
+    const kyselyQuery = this.buildSelect()
+    return kyselyQuery.compile()
   }
 
   public toKysely(type: 'select' | 'update' | 'delete' = 'select') {
@@ -277,13 +277,13 @@ export default class Query<
 
   public async count<T extends Query<DreamClass>>(this: T) {
     const { count } = this.db.fn
-    let query = this.buildSelect({ bypassSelectAll: true })
+    let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
 
-    query = query.select(
+    kyselyQuery = kyselyQuery.select(
       count(`${this.dreamClass.prototype.table}.${this.dreamClass.primaryKey}` as any).as('tablecount')
     )
 
-    const data = (await query.executeTakeFirstOrThrow()) as any
+    const data = (await kyselyQuery.executeTakeFirstOrThrow()) as any
 
     return parseInt(data.tablecount.toString())
   }
@@ -298,10 +298,10 @@ export default class Query<
     >
   >(this: T, field: SimpleFieldType | JoinsFieldType) {
     const { max } = this.db.fn
-    let query = this.buildSelect({ bypassSelectAll: true })
+    let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
 
-    query = query.select(max(field as any) as any)
-    const data = (await query.executeTakeFirstOrThrow()) as any
+    kyselyQuery = kyselyQuery.select(max(field as any) as any)
+    const data = (await kyselyQuery.executeTakeFirstOrThrow()) as any
 
     return data.max
   }
@@ -316,10 +316,10 @@ export default class Query<
     >
   >(this: T, field: SimpleFieldType | JoinsFieldType) {
     const { min } = this.db.fn
-    let query = this.buildSelect({ bypassSelectAll: true })
+    let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
 
-    query = query.select(min(field as any) as any)
-    const data = (await query.executeTakeFirstOrThrow()) as any
+    kyselyQuery = kyselyQuery.select(min(field as any) as any)
+    const data = (await kyselyQuery.executeTakeFirstOrThrow()) as any
 
     return data.min
   }
@@ -333,13 +333,13 @@ export default class Query<
       T['joinsStatements'][number]
     >
   >(this: T, ...fields: (SimpleFieldType | JoinsFieldType)[]): Promise<any[]> {
-    let query = this.buildSelect({ bypassSelectAll: true })
+    let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
     fields.forEach(field => {
-      query = query.select(field as any)
+      kyselyQuery = kyselyQuery.select(field as any)
     })
 
-    const sqlString = query.compile().sql
-    const paramsString = query.compile().parameters.join(', ')
+    const sqlString = kyselyQuery.compile().sql
+    const paramsString = kyselyQuery.compile().parameters.join(', ')
     const sqlDebugMessage = `
       ${sqlString}
       [ ${paramsString} ]
@@ -355,7 +355,7 @@ export default class Query<
           `
         )
       }
-      vals = (await query.execute()).map(result => Object.values(result))
+      vals = (await kyselyQuery.execute()).map(result => Object.values(result))
     } catch (error) {
       if (process.env.DEBUG === '1') {
         console.error(`
@@ -385,11 +385,11 @@ export default class Query<
   }
 
   public async all<T extends Query<DreamClass>>(this: T) {
-    const query = this.buildSelect()
+    const kyselyQuery = this.buildSelect()
     let results: any[]
 
-    const sqlString = query.compile().sql
-    const paramsString = query.compile().parameters.join(', ')
+    const sqlString = kyselyQuery.compile().sql
+    const paramsString = kyselyQuery.compile().parameters.join(', ')
     const sqlDebugMessage = `
       ${sqlString}
       [ ${paramsString} ]
@@ -404,7 +404,7 @@ export default class Query<
           `
         )
       }
-      results = await query.execute()
+      results = await kyselyQuery.execute()
     } catch (error) {
       if (process.env.DEBUG === '1') {
         console.error(`
@@ -721,10 +721,10 @@ ${JSON.stringify(association, null, 2)}
   }
 
   public async destroy<T extends Query<DreamClass>>(this: T): Promise<number> {
-    const query = this.buildDelete()
-    const selectQuery = this.buildSelect()
-    const results = await selectQuery.execute()
-    await query.execute()
+    const kyselyQuery = this.buildDelete()
+    const selectKyselyQuery = this.buildSelect()
+    const results = await selectKyselyQuery.execute()
+    await kyselyQuery.execute()
     return results.length
   }
 
@@ -733,10 +733,10 @@ ${JSON.stringify(association, null, 2)}
     attributes: Updateable<InstanceType<DreamClass>['table']>
   ) {
     this.where(attributes as any)
-    const query = this.buildDelete()
+    const kyselyQuery = this.buildDelete()
     const selectQuery = this.buildSelect()
     const results = await selectQuery.execute()
-    await query.execute()
+    await kyselyQuery.execute()
     return results.length
   }
 
@@ -744,11 +744,11 @@ ${JSON.stringify(association, null, 2)}
     this: T,
     attributes: Updateable<InstanceType<DreamClass>['table']>
   ) {
-    const query = this.buildUpdate(attributes)
-    await query.execute()
+    const kyselyQuery = this.buildUpdate(attributes)
+    await kyselyQuery.execute()
 
-    const selectQuery = this.buildSelect()
-    const results = await selectQuery.execute()
+    const selectKyselyQuery = this.buildSelect()
+    const results = await selectKyselyQuery.execute()
 
     return results.map(r => new this.dreamClass(r as any) as InstanceType<DreamClass>)
   }
@@ -1249,39 +1249,39 @@ ${JSON.stringify(association, null, 2)}
   private buildDelete<T extends Query<DreamClass>>(
     this: T
   ): DeleteQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
-    let query = this.db.deleteFrom(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
-    return this.buildCommon(query)
+    let kyselyQuery = this.db.deleteFrom(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
+    return this.buildCommon(kyselyQuery)
   }
 
   private buildSelect<T extends Query<DreamClass>>(
     this: T,
     { bypassSelectAll = false }: { bypassSelectAll?: boolean } = {}
   ): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
-    let query = this.db.selectFrom(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
+    let kyselyQuery = this.db.selectFrom(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
 
-    query = this.buildCommon(query)
+    kyselyQuery = this.buildCommon(kyselyQuery)
 
     if (this.orderStatement)
-      query = query.orderBy(this.orderStatement.column as any, this.orderStatement.direction)
+      kyselyQuery = kyselyQuery.orderBy(this.orderStatement.column as any, this.orderStatement.direction)
 
-    if (this.limitStatement) query = query.limit(this.limitStatement.count)
+    if (this.limitStatement) kyselyQuery = kyselyQuery.limit(this.limitStatement.count)
 
     if (!bypassSelectAll)
-      query = query.selectAll(
+      kyselyQuery = kyselyQuery.selectAll(
         this.dreamClass.prototype.table as ExtractTableAlias<DB, InstanceType<DreamClass>['table']>
       )
 
-    return query
+    return kyselyQuery
   }
 
   public buildUpdate<T extends Query<DreamClass>>(
     this: T,
     attributes: Updateable<InstanceType<DreamClass>['table']>
   ): UpdateQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, any, {}> {
-    let query = this.db
+    let kyselyQuery = this.db
       .updateTable(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
       .set(attributes as any)
-    return this.buildCommon(query)
+    return this.buildCommon(kyselyQuery)
   }
 }
 
