@@ -159,8 +159,7 @@ export default class Query<
       any
     > = AssociationExpression<InstanceType<DreamClass>['table'], any>
   >(this: T, ...args: QueryAssociationExpression[]) {
-    this.includesStatements = [...(this.includesStatements as any), ...args]
-    return this
+    return this.clone({ includes: args })
   }
 
   public or(orStatement: Query<DreamClass>) {
