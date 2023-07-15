@@ -245,8 +245,7 @@ export default class Query<
     column: ColumnName,
     direction: 'asc' | 'desc' = 'asc'
   ) {
-    this.orderStatement = { column: column as any, direction }
-    return this
+    return this.clone({ order: { column: column as any, direction } })
   }
 
   public limit(count: number) {
@@ -432,10 +431,9 @@ export default class Query<
   }
 
   public async first<T extends Query<DreamClass>>(this: T) {
-    if (!this.orderStatement) this.order(this.dreamClass.primaryKey as any, 'asc')
-
-    const query = this.buildSelect()
-    const results = await query.executeTakeFirst()
+    const query = this.orderStatement ? this : this.order(this.dreamClass.primaryKey as any, 'asc')
+    const kyselyQuery = query.buildSelect()
+    const results = await kyselyQuery.executeTakeFirst()
 
     if (results) {
       const theFirst = new this.dreamClass(results as any) as InstanceType<DreamClass>
@@ -710,10 +708,11 @@ ${JSON.stringify(association, null, 2)}
   }
 
   public async last<T extends Query<DreamClass>>(this: T) {
-    if (!this.orderStatement) this.order((this.dreamClass as typeof Dream).primaryKey as any, 'desc')
-
-    const query = this.buildSelect()
-    const results = await query.executeTakeFirst()
+    const query = this.orderStatement
+      ? this
+      : this.order((this.dreamClass as typeof Dream).primaryKey as any, 'desc')
+    const kyselyQuery = query.buildSelect()
+    const results = await kyselyQuery.executeTakeFirst()
 
     if (results) {
       const theLast = new this.dreamClass(results) as InstanceType<DreamClass>
