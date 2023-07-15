@@ -185,30 +185,17 @@ export default class Query<
     attributes:
       | WhereStatement<InstanceType<DreamClass>['table']>
       | JoinsWhereAssociationExpression<InstanceType<DreamClass>['table'], T['joinsStatements'][number]>
-  ): T {
-    return this._where(attributes, this.whereStatement)
-  }
+  ): Query<DreamClass> {
+    // return this._where(attributes, this.whereStatement)
 
-  public whereNot<T extends Query<DreamClass>>(
-    this: T,
-    attributes: WhereStatement<InstanceType<DreamClass>['table']>
-  ): T {
-    return this._where(attributes, this.whereNotStatement)
-  }
-
-  private _where<T extends Query<DreamClass>>(
-    this: T,
-    attributes:
-      | WhereStatement<InstanceType<DreamClass>['table']>
-      | JoinsWhereAssociationExpression<InstanceType<DreamClass>['table'], T['joinsStatements'][number]>,
-    whereStatement: WhereStatement<any>
-  ): T {
     if (attributes.constructor === Array) {
-      // @ts-ignore
-      this.whereJoinsStatement = [...(this.whereJoinsStatement as any), ...attributes]
+      return this.clone({ whereJoins: attributes as any })
     } else {
       const chainableWhereStatement: WhereStatement<any> = {}
-      whereStatement.push(chainableWhereStatement)
+      const whereJoinsStatements: JoinsWhereAssociationExpression<
+        InstanceType<DreamClass>['table'],
+        T['joinsStatements'][number]
+      >[] = []
 
       Object.keys(attributes).forEach(key => {
         if ((this.dreamClass.columns() as any[]).includes(key)) {
@@ -216,12 +203,46 @@ export default class Query<
           chainableWhereStatement[key] = attributes[key]
         } else {
           // @ts-ignore
-          this.whereJoinsStatement.push({ [key]: attributes[key] })
+          whereJoinsStatements.push({ [key]: attributes[key] })
         }
       })
-    }
 
-    return this
+      return this.clone({
+        where: [chainableWhereStatement],
+        whereJoins: whereJoinsStatements,
+      })
+    }
+  }
+
+  public whereNot<T extends Query<DreamClass>>(
+    this: T,
+    attributes: WhereStatement<InstanceType<DreamClass>['table']>
+  ): Query<DreamClass> {
+    if (attributes.constructor === Array) {
+      // @ts-ignore
+      return this.clone({ whereJoins: attributes as any })
+    } else {
+      const chainableWhereNotStatement: WhereStatement<any> = {}
+      const whereJoinsStatements: JoinsWhereAssociationExpression<
+        InstanceType<DreamClass>['table'],
+        T['joinsStatements'][number]
+      >[] = []
+
+      Object.keys(attributes).forEach(key => {
+        if ((this.dreamClass.columns() as any[]).includes(key)) {
+          // @ts-ignore
+          chainableWhereNotStatement[key] = attributes[key]
+        } else {
+          // @ts-ignore
+          whereJoinsStatements.push({ [key]: attributes[key] })
+        }
+      })
+
+      return this.clone({
+        whereNot: [chainableWhereNotStatement],
+        whereJoins: whereJoinsStatements,
+      })
+    }
   }
 
   public nestedSelect<
@@ -434,8 +455,8 @@ export default class Query<
     const results = await kyselyQuery.executeTakeFirst()
 
     if (results) {
-      const theFirst = new this.dreamClass(results as any) as InstanceType<DreamClass>
-      if (theFirst) await this.applyThisDotIncludes([theFirst])
+      const theFirst = new query.dreamClass(results as any) as InstanceType<DreamClass>
+      if (theFirst) await query.applyThisDotIncludes([theFirst])
       return theFirst
     } else return null
   }
@@ -731,9 +752,9 @@ ${JSON.stringify(association, null, 2)}
     this: T,
     attributes: Updateable<InstanceType<DreamClass>['table']>
   ) {
-    this.where(attributes as any)
-    const kyselyQuery = this.buildDelete()
-    const selectQuery = this.buildSelect()
+    const query = this.where(attributes as any)
+    const kyselyQuery = query.buildDelete()
+    const selectQuery = query.buildSelect()
     const results = await selectQuery.execute()
     await kyselyQuery.execute()
     return results.length
@@ -752,13 +773,16 @@ ${JSON.stringify(association, null, 2)}
     return results.map(r => new this.dreamClass(r as any) as InstanceType<DreamClass>)
   }
 
-  private conditionallyApplyScopes() {
-    if (this.shouldBypassDefaultScopes) return
+  private conditionallyApplyScopes(this: Query<DreamClass>): Query<DreamClass> {
+    if (this.shouldBypassDefaultScopes) return this
 
     const thisScopes = this.dreamClass.scopes.default
+    let query: Query<DreamClass> = this
     for (const scope of thisScopes) {
-      ;(this.dreamClass as any)[scope.method](this)
+      query = (this.dreamClass as any)[scope.method](query)
     }
+
+    return query
   }
 
   private joinsBridgeThroughAssociations<T extends Query<DreamClass>>(
@@ -1193,40 +1217,41 @@ ${JSON.stringify(association, null, 2)}
   }
 
   private buildCommon<T extends Query<DreamClass>>(this: T, kyselyQuery: any) {
-    this.conditionallyApplyScopes()
+    let query = this.conditionallyApplyScopes()
 
-    if (this.joinsStatements.length) {
-      kyselyQuery = this.recursivelyJoin({
+    if (query.joinsStatements.length) {
+      kyselyQuery = query.recursivelyJoin({
         query: kyselyQuery,
-        joinsStatement: this.joinsStatements as any,
-        dreamClass: this.dreamClass,
-        previousAssociationTableOrAlias: this.dreamClass.prototype.table as InstanceType<DreamClass>['table'],
+        joinsStatement: query.joinsStatements as any,
+        dreamClass: query.dreamClass,
+        previousAssociationTableOrAlias: query.dreamClass.prototype
+          .table as InstanceType<DreamClass>['table'],
       })
     }
 
-    this.orStatements.forEach(orStatement => {
+    query.orStatements.forEach(orStatement => {
       kyselyQuery = kyselyQuery.union(orStatement.toKysely() as any)
     })
 
-    if (Object.keys(this.whereStatement).length) {
-      kyselyQuery = this.applyWhereStatement(
+    if (Object.keys(query.whereStatement).length) {
+      kyselyQuery = query.applyWhereStatement(
         kyselyQuery,
-        this.aliasWhereStatement(this.whereStatement, this.dreamClass.prototype.table)
+        query.aliasWhereStatement(query.whereStatement, query.dreamClass.prototype.table)
       )
     }
 
-    if (Object.keys(this.whereNotStatement).length) {
-      kyselyQuery = this.applyWhereStatement(
+    if (Object.keys(query.whereNotStatement).length) {
+      kyselyQuery = query.applyWhereStatement(
         kyselyQuery,
-        this.aliasWhereStatement(this.whereNotStatement, this.dreamClass.prototype.table),
+        query.aliasWhereStatement(query.whereNotStatement, query.dreamClass.prototype.table),
         {
           negate: true,
         }
       )
     }
 
-    this.whereJoinsStatement.forEach(whereJoinsStatement => {
-      kyselyQuery = this.recursivelyApplyJoinWhereStatement(kyselyQuery, whereJoinsStatement, '')
+    query.whereJoinsStatement.forEach(whereJoinsStatement => {
+      kyselyQuery = query.recursivelyApplyJoinWhereStatement(kyselyQuery, whereJoinsStatement, '')
     })
 
     return kyselyQuery
