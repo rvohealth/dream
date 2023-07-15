@@ -249,8 +249,7 @@ export default class Query<
   }
 
   public limit(count: number) {
-    this.limitStatement = { count }
-    return this
+    return this.clone({ limit: { count } })
   }
 
   public sql() {
