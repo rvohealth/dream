@@ -176,9 +176,8 @@ export default class Query<
     return this.clone({ joins: args })
   }
 
-  public unscoped<T extends Query<DreamClass>>(this: T): T {
-    this.shouldBypassDefaultScopes = true
-    return this
+  public unscoped<T extends Query<DreamClass>>(this: T): Query<DreamClass> {
+    return this.clone({ shouldBypassDefaultScopes: true })
   }
 
   public where<T extends Query<DreamClass>>(
