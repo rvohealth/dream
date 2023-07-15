@@ -163,8 +163,7 @@ export default class Query<
   }
 
   public or(orStatement: Query<DreamClass>) {
-    this.orStatements = [...this.orStatements, orStatement]
-    return this
+    return this.clone({ or: [orStatement] })
   }
 
   public joins<
