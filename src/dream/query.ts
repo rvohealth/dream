@@ -174,8 +174,7 @@ export default class Query<
       any
     > = AssociationExpression<InstanceType<DreamClass>['table'], any>
   >(this: T, ...args: QueryAssociationExpression[]) {
-    ;(this as any).joinsStatements = [...this.joinsStatements, ...args]
-    return this
+    return this.clone({ joins: args })
   }
 
   public unscoped<T extends Query<DreamClass>>(this: T): T {
