@@ -271,8 +271,7 @@ export default class Query<
   }
 
   public txn(dreamTransaction: DreamTransaction) {
-    this.dreamTransaction = dreamTransaction
-    return this
+    return this.clone({ transaction: dreamTransaction })
   }
 
   public async count<T extends Query<DreamClass>>(this: T) {
