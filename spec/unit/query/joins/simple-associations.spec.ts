@@ -1,12 +1,10 @@
 import User from '../../../../test-app/app/models/User'
 import Composition from '../../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
-import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
 import Pet from '../../../../test-app/app/models/Pet'
 import { DateTime } from 'luxon'
 import range from '../../../../src/helpers/range'
 import Query from '../../../../src/dream/query'
-import Collar from '../../../../test-app/app/models/Collar'
 
 describe('Query#joins with simple associations', () => {
   it('joins a HasOne association', async () => {
@@ -342,7 +340,13 @@ describe('Query#joins with simple associations', () => {
         .joins('pets')
         .where({ pets: { name: 'Snoopy' } })
         .first()
-      expect(reloadedUser).toBeNull()
+      const notFoundUser = await User.where({ email: user.email })
+        .joins('pets')
+        .where({ pets: { name: 'Znoopy' } })
+        .first()
+
+      expect(reloadedUser).toMatchDreamModel(user)
+      expect(notFoundUser).toBeNull()
     })
   })
 
