@@ -37,6 +37,8 @@ export type WhereStatement<TableName extends AssociationTableNames> =
   | Updateable<DB[TableName]>
   | DreamUpdateable<TableName>
 
+export type LimitStatement = { count: number }
+
 export interface HasStatement<
   ForeignTableName extends AssociationTableNames,
   HasType extends 'HasOne' | 'HasMany'

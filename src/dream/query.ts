@@ -1,6 +1,6 @@
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { AssociationTableNames } from '../db/reflections'
-import { WhereStatement } from '../decorators/associations/shared'
+import { LimitStatement, WhereStatement } from '../decorators/associations/shared'
 import {
   AssociationExpression,
   JoinsPluckAssociationExpression,
@@ -86,7 +86,7 @@ export default class Query<
     InstanceType<DreamClass>['table'],
     AssociationExpression<InstanceType<DreamClass>['table'], any>
   >[] = []
-  public limitStatement: { count: number } | null = null
+  public limitStatement: LimitStatement | null = null
   public orStatements: Query<DreamClass>[] = []
   public orderStatement: { column: ColumnType & string; direction: 'asc' | 'desc' } | null = null
   public includesStatements: AssociationExpression<InstanceType<DreamClass>['table'], any>[] = []
@@ -99,8 +99,36 @@ export default class Query<
     return this.dreamTransaction?.kyselyTransaction || _db
   }
 
-  constructor(DreamClass: DreamClass) {
+  constructor(DreamClass: DreamClass, opts: QueryOpts<DreamClass, ColumnType> = {}) {
     this.dreamClass = DreamClass
+    this.whereStatement = opts.where || []
+    this.whereNotStatement = opts.whereNot || []
+    this.whereJoinsStatement = opts.whereJoins || []
+    this.limitStatement = opts.limit || null
+    this.orStatements = opts.or || []
+    this.orderStatement = opts.order || null
+    this.includesStatements = opts.includes || []
+    this.joinsStatements = opts.joins || []
+    this.shouldBypassDefaultScopes = opts.shouldBypassDefaultScopes || false
+    this.dreamTransaction = opts.transaction || null
+  }
+
+  public clone(opts: QueryOpts<DreamClass, ColumnType> = {}): Query<DreamClass> {
+    return new Query(this.dreamClass, {
+      where: [...this.whereStatement, ...(opts.where || [])],
+      whereNot: [...this.whereNotStatement, ...(opts.whereNot || [])],
+      whereJoins: [...this.whereJoinsStatement, ...(opts.whereJoins || [])],
+      limit: opts.limit || this.limitStatement,
+      or: [...this.orStatements, ...(opts.or || [])],
+      order: opts.order || this.orderStatement || null,
+      includes: [...this.includesStatements, ...(opts.includes || [])],
+      joins: [...this.joinsStatements, ...(opts.joins || [])],
+      shouldBypassDefaultScopes:
+        opts.shouldBypassDefaultScopes !== undefined
+          ? opts.shouldBypassDefaultScopes
+          : this.shouldBypassDefaultScopes,
+      transaction: opts.transaction || this.dreamTransaction,
+    }) as Query<DreamClass>
   }
 
   public async find<
@@ -1261,4 +1289,23 @@ ${JSON.stringify(association, null, 2)}
       .set(attributes as any)
     return this.buildCommon(query)
   }
+}
+
+export interface QueryOpts<
+  DreamClass extends typeof Dream,
+  ColumnType = keyof DB[keyof DB] extends never ? unknown : keyof DB[keyof DB]
+> {
+  where?: WhereStatement<any>[]
+  whereNot?: WhereStatement<any>[]
+  whereJoins?: JoinsWhereAssociationExpression<
+    InstanceType<DreamClass>['table'],
+    AssociationExpression<InstanceType<DreamClass>['table'], any>
+  >[]
+  limit?: LimitStatement | null
+  or?: Query<DreamClass>[]
+  order?: { column: ColumnType & string; direction: 'asc' | 'desc' } | null
+  includes?: AssociationExpression<InstanceType<DreamClass>['table'], any>[]
+  joins?: AssociationExpression<InstanceType<DreamClass>['table'], any>[]
+  shouldBypassDefaultScopes?: boolean
+  transaction?: DreamTransaction | null
 }
