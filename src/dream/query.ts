@@ -80,19 +80,23 @@ export default class Query<
   QueryAssociationExpression = AssociationExpression<InstanceType<DreamClass>['table'], any>,
   ColumnType = keyof DB[keyof DB] extends never ? unknown : keyof DB[keyof DB]
 > {
-  public whereStatement: WhereStatement<any>[] = []
-  public whereNotStatement: WhereStatement<any>[] = []
-  public whereJoinsStatement: JoinsWhereAssociationExpression<
+  public readonly whereStatement: readonly WhereStatement<any>[] = []
+  public readonly whereNotStatement: readonly WhereStatement<any>[] = []
+  public readonly whereJoinsStatement: readonly JoinsWhereAssociationExpression<
     InstanceType<DreamClass>['table'],
     AssociationExpression<InstanceType<DreamClass>['table'], any>
   >[] = []
-  public limitStatement: LimitStatement | null = null
-  public orStatements: Query<DreamClass>[] = []
-  public orderStatement: { column: ColumnType & string; direction: 'asc' | 'desc' } | null = null
-  public includesStatements: AssociationExpression<InstanceType<DreamClass>['table'], any>[] = []
-  public joinsStatements: AssociationExpression<InstanceType<DreamClass>['table'], any>[] = []
-  public shouldBypassDefaultScopes: boolean = false
-  public dreamClass: DreamClass
+  public readonly limitStatement: LimitStatement | null
+  public readonly orStatements: readonly Query<DreamClass>[] = []
+  public readonly orderStatement: { column: ColumnType & string; direction: 'asc' | 'desc' } | null = null
+  public readonly includesStatements: readonly AssociationExpression<
+    InstanceType<DreamClass>['table'],
+    any
+  >[] = []
+  public readonly joinsStatements: readonly AssociationExpression<InstanceType<DreamClass>['table'], any>[] =
+    []
+  public readonly shouldBypassDefaultScopes: boolean = false
+  public readonly dreamClass: DreamClass
   public dreamTransaction: DreamTransaction | null = null
 
   public get db() {
@@ -101,15 +105,15 @@ export default class Query<
 
   constructor(DreamClass: DreamClass, opts: QueryOpts<DreamClass, ColumnType> = {}) {
     this.dreamClass = DreamClass
-    this.whereStatement = opts.where || []
-    this.whereNotStatement = opts.whereNot || []
-    this.whereJoinsStatement = opts.whereJoins || []
-    this.limitStatement = opts.limit || null
-    this.orStatements = opts.or || []
-    this.orderStatement = opts.order || null
-    this.includesStatements = opts.includes || []
-    this.joinsStatements = opts.joins || []
-    this.shouldBypassDefaultScopes = opts.shouldBypassDefaultScopes || false
+    this.whereStatement = Object.freeze(opts.where || [])
+    this.whereNotStatement = Object.freeze(opts.whereNot || [])
+    this.whereJoinsStatement = Object.freeze(opts.whereJoins || [])
+    this.limitStatement = Object.freeze(opts.limit || null)
+    this.orStatements = Object.freeze(opts.or || [])
+    this.orderStatement = Object.freeze(opts.order || null)
+    this.includesStatements = Object.freeze(opts.includes || [])
+    this.joinsStatements = Object.freeze(opts.joins || [])
+    this.shouldBypassDefaultScopes = Object.freeze(opts.shouldBypassDefaultScopes || false)
     this.dreamTransaction = opts.transaction || null
   }
 
@@ -1258,7 +1262,7 @@ ${JSON.stringify(association, null, 2)}
   }
 
   private aliasWhereStatement(
-    whereStatements: WhereStatement<InstanceType<DreamClass>['table']>[],
+    whereStatements: Readonly<WhereStatement<InstanceType<DreamClass>['table']>[]>,
     alias: string
   ) {
     return whereStatements.map(whereStatement => {
@@ -1325,5 +1329,5 @@ export interface QueryOpts<
   includes?: AssociationExpression<InstanceType<DreamClass>['table'], any>[]
   joins?: AssociationExpression<InstanceType<DreamClass>['table'], any>[]
   shouldBypassDefaultScopes?: boolean
-  transaction?: DreamTransaction | null
+  transaction?: DreamTransaction | null | undefined
 }
