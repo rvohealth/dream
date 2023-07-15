@@ -1192,12 +1192,12 @@ ${JSON.stringify(association, null, 2)}
     return query
   }
 
-  private buildCommon<T extends Query<DreamClass>>(this: T, query: any) {
+  private buildCommon<T extends Query<DreamClass>>(this: T, kyselyQuery: any) {
     this.conditionallyApplyScopes()
 
     if (this.joinsStatements.length) {
-      query = this.recursivelyJoin({
-        query,
+      kyselyQuery = this.recursivelyJoin({
+        query: kyselyQuery,
         joinsStatement: this.joinsStatements as any,
         dreamClass: this.dreamClass,
         previousAssociationTableOrAlias: this.dreamClass.prototype.table as InstanceType<DreamClass>['table'],
@@ -1205,19 +1205,19 @@ ${JSON.stringify(association, null, 2)}
     }
 
     this.orStatements.forEach(orStatement => {
-      query = query.union(orStatement.toKysely() as any)
+      kyselyQuery = kyselyQuery.union(orStatement.toKysely() as any)
     })
 
     if (Object.keys(this.whereStatement).length) {
-      query = this.applyWhereStatement(
-        query,
+      kyselyQuery = this.applyWhereStatement(
+        kyselyQuery,
         this.aliasWhereStatement(this.whereStatement, this.dreamClass.prototype.table)
       )
     }
 
     if (Object.keys(this.whereNotStatement).length) {
-      query = this.applyWhereStatement(
-        query,
+      kyselyQuery = this.applyWhereStatement(
+        kyselyQuery,
         this.aliasWhereStatement(this.whereNotStatement, this.dreamClass.prototype.table),
         {
           negate: true,
@@ -1226,10 +1226,10 @@ ${JSON.stringify(association, null, 2)}
     }
 
     this.whereJoinsStatement.forEach(whereJoinsStatement => {
-      query = this.recursivelyApplyJoinWhereStatement(query, whereJoinsStatement, '')
+      kyselyQuery = this.recursivelyApplyJoinWhereStatement(kyselyQuery, whereJoinsStatement, '')
     })
 
-    return query
+    return kyselyQuery
   }
 
   private aliasWhereStatement(
