@@ -13,10 +13,10 @@ describe('Query#includes through with simple associations', () => {
         'loaded model, and the join association property to the loaded join model',
       async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-        const composition = await Composition.create({ user_id: user.id, primary: true })
-        await CompositionAsset.create({ composition_id: composition.id })
+        const composition = await Composition.create({ user, primary: true })
+        await CompositionAsset.create({ composition })
         const compositionAsset = await CompositionAsset.create({
-          composition_id: composition.id,
+          composition,
           primary: true,
         })
 
@@ -38,13 +38,102 @@ describe('Query#includes through with simple associations', () => {
     })
   })
 
+  context('HasMany via HasOne association', () => {
+    it('sets HasOne association property on the base model and the HasMany property on the assocaited model', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ user })
+      const compositionAsset = await CompositionAsset.create({
+        composition,
+        primary: true,
+      })
+      const compositionAssetAudit = await CompositionAssetAudit.create({
+        compositionAsset,
+      })
+
+      const reloadedComposition = await new Query(Composition)
+        .includes({ mainCompositionAsset: 'compositionAssetAudits' })
+        .first()
+      expect(reloadedComposition!.mainCompositionAsset).toMatchDreamModel(compositionAsset)
+      expect(reloadedComposition!.mainCompositionAsset.compositionAssetAudits).toMatchDreamModels([
+        compositionAssetAudit,
+      ])
+    })
+
+    context('when there are no models associated via the HasMany', () => {
+      it('sets HasOne association property on the base model and the HasMany property on the assocaited model to an empty array', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user })
+        const compositionAsset = await CompositionAsset.create({
+          composition,
+          primary: true,
+        })
+
+        const reloadedComposition = await new Query(Composition)
+          .includes({ mainCompositionAsset: 'compositionAssetAudits' })
+          .first()
+        expect(reloadedComposition!.mainCompositionAsset).toMatchDreamModel(compositionAsset)
+      })
+    })
+
+    context('when the join model doesn’t exist', () => {
+      it('sets HasOne association property on the base model to null', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user })
+
+        const reloadedComposition = await new Query(Composition)
+          .includes({ mainCompositionAsset: 'compositionAssetAudits' })
+          .first()
+        expect(reloadedComposition!.mainCompositionAsset).toBeNull()
+      })
+    })
+  })
+
+  context('HasMany through HasOne association', () => {
+    it('sets HasOne association property on the base model and the HasMany property on the assocaited model', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ user })
+      const compositionAsset = await CompositionAsset.create({
+        composition,
+        primary: true,
+      })
+      const compositionAssetAudit = await CompositionAssetAudit.create({
+        compositionAsset,
+      })
+
+      const reloadedComposition = await new Query(Composition).includes('mainCompositionAssetAudits').first()
+      expect(reloadedComposition!.mainCompositionAsset).toMatchDreamModel(compositionAsset)
+      expect(reloadedComposition!.mainCompositionAsset.compositionAssetAudits).toMatchDreamModels([
+        compositionAssetAudit,
+      ])
+      expect(reloadedComposition!.mainCompositionAssetAudits).toMatchDreamModels([compositionAssetAudit])
+    })
+
+    context('when there are no models associated via the HasMany', () => {
+      it('sets HasOne association property on the base model and the HasMany property on the assocaited model to an empty array', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user })
+        const compositionAsset = await CompositionAsset.create({
+          composition,
+          primary: true,
+        })
+
+        const reloadedComposition = await new Query(Composition)
+          .includes('mainCompositionAssetAudits')
+          .first()
+        expect(reloadedComposition!.mainCompositionAsset).toMatchDreamModel(compositionAsset)
+        expect(reloadedComposition!.mainCompositionAsset.compositionAssetAudits).toEqual([])
+        expect(reloadedComposition!.mainCompositionAssetAudits).toEqual([])
+      })
+    })
+  })
+
   context('with NON-matching where-clause-on-the-association', () => {
     it('sets the association to null', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const composition = await Composition.create({ user_id: user.id, primary: true })
-      await CompositionAsset.create({ composition_id: composition.id })
+      const composition = await Composition.create({ user, primary: true })
+      await CompositionAsset.create({ composition })
       const compositionAsset = await CompositionAsset.create({
-        composition_id: composition.id,
+        composition,
         primary: false,
       })
 
@@ -56,8 +145,8 @@ describe('Query#includes through with simple associations', () => {
 
   it('loads a HasOne through BelongsTo association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id })
-    await CompositionAsset.create({ composition_id: composition.id })
+    const composition = await Composition.create({ user })
+    await CompositionAsset.create({ composition })
 
     const reloadedCompositionAsset = await new Query(CompositionAsset).includes('user').first()
     expect(reloadedCompositionAsset!.composition).toMatchDreamModel(composition)
@@ -88,8 +177,8 @@ describe('Query#includes through with simple associations', () => {
   context('nested through associations', () => {
     it('loads a HasMany through a HasMany through a HasMany', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const composition = await Composition.create({ user_id: user.id })
-      const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+      const composition = await Composition.create({ user })
+      const compositionAsset = await CompositionAsset.create({ composition })
       const compositionAssetAudit = await CompositionAssetAudit.create({
         composition_asset_id: compositionAsset.id,
       })
@@ -100,8 +189,8 @@ describe('Query#includes through with simple associations', () => {
 
     it('loads a HasOne through a HasOne through a BelongsTo', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const composition = await Composition.create({ user_id: user.id })
-      const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+      const composition = await Composition.create({ user })
+      const compositionAsset = await CompositionAsset.create({ composition })
       await CompositionAssetAudit.create({
         composition_asset_id: compositionAsset.id,
       })

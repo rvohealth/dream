@@ -42,6 +42,12 @@ export default class Composition extends Dream {
   })
   public compositionAssetAudits: CompositionAssetAudit[]
 
+  @HasMany(() => CompositionAssetAudit, {
+    through: 'mainCompositionAsset',
+    source: 'compositionAssetAudits',
+  })
+  public mainCompositionAssetAudits: CompositionAssetAudit[]
+
   @BeforeCreate()
   public setDefaultContent() {
     if (!this.content) this.content = 'default content'

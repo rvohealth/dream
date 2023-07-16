@@ -9,21 +9,43 @@ import Pet from '../../../../test-app/app/models/Pet'
 import Query from '../../../../src/dream/query'
 
 describe('Query#includes with simple associations', () => {
-  it('loads a HasOne association', async () => {
-    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id, primary: true })
+  context('HasOne', () => {
+    it('loads the association', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ user_id: user.id, primary: true })
 
-    const reloadedUser = await new Query(User).includes('mainComposition').first()
-    expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
+      const reloadedUser = await new Query(User).includes('mainComposition').first()
+      expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
+    })
+
+    context('when the association does not exist', () => {
+      it('sets it to null', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+
+        const reloadedUser = await new Query(User).includes('mainComposition').first()
+        expect(reloadedUser!.mainComposition).toBeNull()
+      })
+    })
   })
 
-  it('loads a HasMany association', async () => {
-    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition1 = await Composition.create({ user_id: user.id })
-    const composition2 = await Composition.create({ user_id: user.id })
+  context('HasMany', () => {
+    it('loads the associations', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition1 = await Composition.create({ user_id: user.id })
+      const composition2 = await Composition.create({ user_id: user.id })
 
-    const reloadedUser = await new Query(User).includes('compositions').first()
-    expect(reloadedUser!.compositions).toMatchDreamModels([composition1, composition2])
+      const reloadedUser = await new Query(User).includes('compositions').first()
+      expect(reloadedUser!.compositions).toMatchDreamModels([composition1, composition2])
+    })
+
+    context('when no association exists', () => {
+      it('sets it to an empty array', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+
+        const reloadedUser = await new Query(User).includes('compositions').first()
+        expect(reloadedUser!.compositions).toEqual([])
+      })
+    })
   })
 
   context('when there are HasMany results', () => {

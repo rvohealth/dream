@@ -43,6 +43,9 @@ export default {
     ],
     "compositionAssetAudits": [
       "composition_asset_audits"
+    ],
+    "mainCompositionAssetAudits": [
+      "composition_asset_audits"
     ]
   },
   "extra_ratings": {
@@ -224,6 +227,9 @@ export interface SyncedAssociations {
       "composition_assets"
     ],
     "compositionAssetAudits": [
+      "composition_asset_audits"
+    ],
+    "mainCompositionAssetAudits": [
       "composition_asset_audits"
     ]
   },

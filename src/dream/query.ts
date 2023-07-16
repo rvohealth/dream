@@ -528,10 +528,12 @@ export default class Query<
             get() {
               const throughAssociation = (dream as any)[association.through!]
 
-              if (throughAssociation) {
+              if (throughAssociation && throughAssociation.constructor === Array) {
                 return Object.freeze(
                   (throughAssociation as any[]).flatMap(record => (record as any)![association.source])
                 )
+              } else if (throughAssociation) {
+                return (throughAssociation as any)![association.source]
               } else {
                 return Object.freeze([])
               }
@@ -660,7 +662,7 @@ ${JSON.stringify(association, null, 2)}
       this.hydrateAssociation(dreams, association, await associationQuery.all())
     }
 
-    return dreams.flatMap(dream => (dream as any)[association.as])
+    return compact(dreams.flatMap(dream => (dream as any)[association.as]))
   }
 
   public async applyIncludes(includesStatement: QueryAssociationExpression, dream: Dream | Dream[]) {
