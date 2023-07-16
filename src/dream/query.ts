@@ -190,8 +190,23 @@ export default class Query<
       | WhereStatement<InstanceType<DreamClass>['table']>
       | JoinsWhereAssociationExpression<InstanceType<DreamClass>['table'], T['joinsStatements'][number]>
   ): Query<DreamClass> {
-    // return this._where(attributes, this.whereStatement)
+    return this._where(attributes, 'where')
+  }
 
+  public whereNot<T extends Query<DreamClass>>(
+    this: T,
+    attributes: WhereStatement<InstanceType<DreamClass>['table']>
+  ): Query<DreamClass> {
+    return this._where(attributes, 'whereNot')
+  }
+
+  private _where<T extends Query<DreamClass>>(
+    this: T,
+    attributes:
+      | WhereStatement<InstanceType<DreamClass>['table']>
+      | JoinsWhereAssociationExpression<InstanceType<DreamClass>['table'], T['joinsStatements'][number]>,
+    typeOfWhere: 'where' | 'whereNot'
+  ): Query<DreamClass> {
     if (attributes.constructor === Array) {
       return this.clone({ whereJoins: attributes as any })
     } else {
@@ -212,38 +227,7 @@ export default class Query<
       })
 
       return this.clone({
-        where: [chainableWhereStatement],
-        whereJoins: whereJoinsStatements,
-      })
-    }
-  }
-
-  public whereNot<T extends Query<DreamClass>>(
-    this: T,
-    attributes: WhereStatement<InstanceType<DreamClass>['table']>
-  ): Query<DreamClass> {
-    if (attributes.constructor === Array) {
-      // @ts-ignore
-      return this.clone({ whereJoins: attributes as any })
-    } else {
-      const chainableWhereNotStatement: WhereStatement<any> = {}
-      const whereJoinsStatements: JoinsWhereAssociationExpression<
-        InstanceType<DreamClass>['table'],
-        T['joinsStatements'][number]
-      >[] = []
-
-      Object.keys(attributes).forEach(key => {
-        if ((this.dreamClass.columns() as any[]).includes(key)) {
-          // @ts-ignore
-          chainableWhereNotStatement[key] = attributes[key]
-        } else {
-          // @ts-ignore
-          whereJoinsStatements.push({ [key]: attributes[key] })
-        }
-      })
-
-      return this.clone({
-        whereNot: [chainableWhereNotStatement],
+        [typeOfWhere]: [chainableWhereStatement],
         whereJoins: whereJoinsStatements,
       })
     }
