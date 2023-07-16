@@ -10,6 +10,7 @@ import {
   ComparisonOperator,
   ComparisonOperatorExpression,
   DeleteQueryBuilder,
+  DeleteResult,
   SelectArg,
   SelectExpression,
   SelectQueryBuilder,
@@ -730,23 +731,15 @@ ${JSON.stringify(association, null, 2)}
   }
 
   public async destroy<T extends Query<DreamClass>>(this: T): Promise<number> {
-    const kyselyQuery = this.buildDelete()
-    const selectKyselyQuery = this.buildSelect()
-    const results = await selectKyselyQuery.execute()
-    await kyselyQuery.execute()
-    return results.length
+    const deletionResult = (await this.buildDelete().executeTakeFirst()) as DeleteResult
+    return Number(deletionResult?.numDeletedRows || 0)
   }
 
   public async destroyBy<T extends Query<DreamClass>>(
     this: T,
     attributes: Updateable<InstanceType<DreamClass>['table']>
   ) {
-    const query = this.where(attributes as any)
-    const kyselyQuery = query.buildDelete()
-    const selectQuery = query.buildSelect()
-    const results = await selectQuery.execute()
-    await kyselyQuery.execute()
-    return results.length
+    return await this.where(attributes as any).destroy()
   }
 
   public async updateWithoutModelMaintenance<T extends Query<DreamClass>>(
