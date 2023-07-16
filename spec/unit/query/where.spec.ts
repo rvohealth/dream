@@ -9,6 +9,38 @@ import Rating from '../../../test-app/app/models/Rating'
 import Post from '../../../test-app/app/models/Post'
 
 describe('Query#where', () => {
+  it('supports multiple clauses', async () => {
+    const user1 = await User.create({
+      name: 'Hello',
+      email: 'fred@frewd',
+      password: 'howyadoin',
+    })
+    await User.create({
+      name: 'World',
+      email: 'frez@frewd',
+      password: 'howyadoin',
+    })
+
+    const users = await User.where({ email: 'fred@frewd', name: 'Hello' }).all()
+    expect(users).toMatchDreamModels([user1])
+  })
+
+  it('supports chaining `where` clauses', async () => {
+    const user1 = await User.create({
+      name: 'Hello',
+      email: 'fred@frewd',
+      password: 'howyadoin',
+    })
+    await User.create({
+      name: 'World',
+      email: 'frez@frewd',
+      password: 'howyadoin',
+    })
+
+    const users = await User.where({ email: 'fred@frewd' }).where({ name: 'Hello' }).all()
+    expect(users).toMatchDreamModels([user1])
+  })
+
   context('a generic expression is passed', () => {
     it('uses an "in" operator for comparison', async () => {
       const user1 = await User.create({
