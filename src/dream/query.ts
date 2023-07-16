@@ -716,8 +716,9 @@ ${JSON.stringify(association, null, 2)}
 
   public async last<T extends Query<DreamClass>>(this: T) {
     const query = this.orderStatement
-      ? this
+      ? this.order(this.orderStatement.column, this.orderStatement.direction === 'asc' ? 'desc' : 'asc')
       : this.order((this.dreamClass as typeof Dream).primaryKey as any, 'desc')
+
     const kyselyQuery = query.buildSelect()
     const results = await kyselyQuery.executeTakeFirst()
 
