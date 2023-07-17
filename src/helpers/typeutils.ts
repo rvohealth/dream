@@ -37,3 +37,7 @@ type IncTable = {
   30: 31
   31: 32
 }
+
+export type MergeUnionOfRecordTypes<U extends Record<string, unknown>> = {
+  [K in U extends unknown ? keyof U : never]: U extends unknown ? (K extends keyof U ? U[K] : never) : never
+}

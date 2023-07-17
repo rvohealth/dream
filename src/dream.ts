@@ -213,7 +213,7 @@ export default class Dream {
 
   public static async findBy<T extends typeof Dream>(
     this: T,
-    attributes: Updateable<DB[InstanceType<T>['table']]>
+    attributes: WhereStatement<InstanceType<T>['table']>
   ): Promise<(InstanceType<T> & Dream) | null> {
     const query: Query<T> = new Query<T>(this)
     return await query.findBy(attributes)

@@ -10,6 +10,7 @@ import { HasManyStatement } from './has-many'
 import { HasOneStatement } from './has-one'
 import { SyncedBelongsToAssociations } from '../../sync/associations'
 import CurriedOpsStatement from '../../ops/curried-ops-statement'
+import { MergeUnionOfRecordTypes } from '../../helpers/typeutils'
 
 export type AssociatedModelParam<
   I extends Dream,
@@ -33,9 +34,9 @@ export type DreamUpdateable<TableName extends AssociationTableNames> = Partial<
   >
 >
 
-export type WhereStatement<TableName extends AssociationTableNames> =
-  | Updateable<DB[TableName]>
-  | DreamUpdateable<TableName>
+export type WhereStatement<TableName extends AssociationTableNames> = Partial<
+  MergeUnionOfRecordTypes<Updateable<DB[TableName]> | DreamUpdateable<TableName>>
+>
 
 export type LimitStatement = { count: number }
 

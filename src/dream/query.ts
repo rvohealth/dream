@@ -152,7 +152,7 @@ export default class Query<
 
   public async findBy<T extends Query<DreamClass>>(
     this: T,
-    attributes: Updateable<DB[InstanceType<DreamClass>['table']]>
+    attributes: WhereStatement<InstanceType<DreamClass>['table']>
   ): Promise<(InstanceType<DreamClass> & Dream) | null> {
     return await this.where(attributes).first()
   }
