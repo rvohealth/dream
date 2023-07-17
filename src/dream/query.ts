@@ -742,17 +742,14 @@ ${JSON.stringify(association, null, 2)}
     return await this.where(attributes as any).destroy()
   }
 
-  public async updateWithoutModelMaintenance<T extends Query<DreamClass>>(
+  public async updateAll<T extends Query<DreamClass>>(
     this: T,
     attributes: Updateable<InstanceType<DreamClass>['table']>
   ) {
     const kyselyQuery = this.buildUpdate(attributes)
-    await kyselyQuery.execute()
-
-    const selectKyselyQuery = this.buildSelect()
-    const results = await selectKyselyQuery.execute()
-
-    return results.map(r => new this.dreamClass(r as any) as InstanceType<DreamClass>)
+    const res = await kyselyQuery.execute()
+    const resultData = Array.from(res.entries())?.[0]?.[1]
+    return Number((resultData as any)?.numUpdatedRows || 0)
   }
 
   private conditionallyApplyScopes(this: Query<DreamClass>): Query<DreamClass> {
