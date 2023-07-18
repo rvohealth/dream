@@ -6,7 +6,7 @@ export type SerializableAssociationType = 'RendersOne' | 'RendersMany'
 
 export interface AssociationStatement {
   field: string
-  serializerClassCB: DreamSerializerClassCB
+  serializerClassCB: DreamSerializerClassCB | null
   type: SerializableAssociationType
   flatten: boolean
   source: string

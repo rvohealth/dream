@@ -8,10 +8,15 @@ import Dream from '../../../src/dream'
 import { IdType } from '../../../src/db/reflections'
 import { BeforeDestroy } from '../../../src'
 import Collar from './Collar'
+import PetSerializer from '../serializers/PetSerializer'
 
 export default class Pet extends Dream {
   public get table() {
     return 'pets' as const
+  }
+
+  public get serializer() {
+    return PetSerializer
   }
 
   public id: IdType

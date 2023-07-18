@@ -2,11 +2,15 @@ import DreamSerializer from '../..'
 import { AssociationStatement, DreamSerializerClassCB } from './shared'
 
 export default function RendersOne(
-  serializerClassCB: DreamSerializerClassCB,
-  opts: RendersOneOpts = {}
+  serializerClassCB: DreamSerializerClassCB | RendersOneOpts | null = null,
+  opts?: RendersOneOpts
 ): any {
   return function (target: any, key: string, def: any) {
     const serializerClass: typeof DreamSerializer = target.constructor
+    opts ||= (serializerClassCB || {}) as RendersOneOpts
+    if (typeof serializerClassCB !== 'function') {
+      serializerClassCB = null
+    }
 
     if (!Object.getOwnPropertyDescriptor(serializerClass, 'associationStatements'))
       serializerClass.associationStatements = [] as AssociationStatement[]

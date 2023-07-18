@@ -6,6 +6,7 @@ import RendersOne from '../../../src/serializer/decorators/associations/renders-
 import User from '../../../test-app/app/models/User'
 import Pet from '../../../test-app/app/models/Pet'
 import Delegate from '../../../src/serializer/decorators/delegate'
+import MissingSerializer from '../../../src/exceptions/missing-serializer'
 
 describe('DreamSerializer#render', () => {
   it('renders a single attribute', async () => {
@@ -228,6 +229,50 @@ describe('DreamSerializer#render', () => {
           expect(serializer.render()).toEqual({ pets: [] })
         })
       })
+
+      context('when nothing is passed', () => {
+        class UserSerializer extends DreamSerializer {
+          @RendersMany()
+          public pets: Pet[]
+        }
+
+        it('leverages the default serializer', async () => {
+          const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+          const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+
+          const serializer = new UserSerializer({ pets: [pet] })
+          expect(serializer.render()).toEqual({ pets: [{ id: pet.id, name: 'aster', species: 'cat' }] })
+        })
+
+        context('when a serializer is not present on the model', () => {
+          it('raises an exception on render', async () => {
+            const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+            const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+
+            Object.defineProperty(pet, 'serializer', {
+              get: () => undefined,
+            })
+
+            const serializer = new UserSerializer({ pets: [pet] })
+            expect(() => serializer.render()).toThrowError(MissingSerializer)
+          })
+        })
+      })
+
+      context('when a config is passed as the first argument', () => {
+        class UserSerializer extends DreamSerializer {
+          @RendersMany({ through: 'howyadoin' })
+          public pets: Pet[]
+        }
+
+        it('leverages the default serializer and applies the config', async () => {
+          const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+          const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+
+          const serializer = new UserSerializer({ howyadoin: { pets: [pet] } })
+          expect(serializer.render()).toEqual({ pets: [{ id: pet.id, name: 'aster', species: 'cat' }] })
+        })
+      })
     })
 
     context('RendersOne', () => {
@@ -376,6 +421,50 @@ describe('DreamSerializer#render', () => {
           const serializer = new PetSerializer(pet)
           expect(serializer.casing('camel').render()).toEqual({ updatedAt: user.updated_at })
         })
+      })
+    })
+
+    context('when nothing is passed', () => {
+      class UserSerializer extends DreamSerializer {
+        @RendersOne()
+        public pet: Pet
+      }
+
+      it('leverages the default serializer', async () => {
+        const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+        const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+
+        const serializer = new UserSerializer({ pet })
+        expect(serializer.render()).toEqual({ pet: { id: pet.id, name: 'aster', species: 'cat' } })
+      })
+
+      context('when a serializer is not present on the model', () => {
+        it('raises an exception on render', async () => {
+          const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+          const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+
+          Object.defineProperty(pet, 'serializer', {
+            get: () => undefined,
+          })
+
+          const serializer = new UserSerializer({ pet })
+          expect(() => serializer.render()).toThrowError(MissingSerializer)
+        })
+      })
+    })
+
+    context('when a config is passed as the first argument', () => {
+      class UserSerializer extends DreamSerializer {
+        @RendersOne({ through: 'howyadoin' })
+        public pet: Pet
+      }
+
+      it('leverages the default serializer and applies the config', async () => {
+        const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+        const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+
+        const serializer = new UserSerializer({ howyadoin: { pet } })
+        expect(serializer.render()).toEqual({ pet: { id: pet.id, name: 'aster', species: 'cat' } })
       })
     })
   })
