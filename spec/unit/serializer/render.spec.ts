@@ -120,14 +120,6 @@ describe('DreamSerializer#render', () => {
       const serializer = new MySerializer(user)
       expect(serializer.render()).toEqual({ email: 'how@yadoin' })
     })
-
-    context('given an array of dream instances', () => {
-      it('renders all passed dreams to the shape specified by the serializer', async () => {
-        const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-        const serializer = new MySerializer([user])
-        expect(serializer.render()).toEqual([{ email: 'how@yadoin' }])
-      })
-    })
   })
 
   context('when defined with a functional attribute', () => {

@@ -74,16 +74,7 @@ export default class DreamSerializer {
       this._casing = (process.env['SERIALIZER_CASING'] as 'camel' | 'snake') || 'camel'
     }
 
-    if (Array.isArray(this.data)) return this.renderMany()
-    else return this.renderOne()
-  }
-
-  public renderMany(): { [key: string]: any }[] {
-    const results: any[] = []
-    for (const d of this.data as any[]) {
-      results.push(new (this.constructor as typeof DreamSerializer)(d).render())
-    }
-    return results
+    return this.renderOne()
   }
 
   public renderOne() {
@@ -131,11 +122,14 @@ export default class DreamSerializer {
     const serializerClass = associationStatement.serializerClassCB()
     const associatedData = this.associatedData(associationStatement)
 
-    if (associatedData) return new serializerClass(associatedData).passthrough(this.passthroughData).render()
-    else {
-      if (associationStatement.type === 'RendersMany') return []
-      return null
-    }
+    if (associationStatement.type === 'RendersMany' && associatedData?.constructor === Array)
+      return associatedData.map(d => this.renderAssociation(d, serializerClass))
+    else if (associatedData) return this.renderAssociation(associatedData, serializerClass)
+    return associationStatement.type === 'RendersMany' ? [] : null
+  }
+
+  private renderAssociation(associatedData: any, serializerClass: typeof DreamSerializer) {
+    return new serializerClass(associatedData).passthrough(this.passthroughData).render()
   }
 
   private associatedData(associationStatement: AssociationStatement) {
