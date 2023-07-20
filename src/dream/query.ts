@@ -914,6 +914,16 @@ ${JSON.stringify(association, null, 2)}
         `${currentAssociationTableOrAlias as string}.${association.foreignKey() as string}`
       )
 
+      if (association.polymorphic) {
+        query = this.applyWhereStatement(
+          query,
+          this.aliasWhereStatement(
+            [{ [association.foreignKeyTypeField()]: dreamClass.name } as any],
+            currentAssociationTableOrAlias
+          )
+        )
+      }
+
       if (!this.shouldBypassDefaultScopes) {
         const tempQuery = new Query<DreamClass>(this.dreamClass)
 

@@ -5,33 +5,45 @@ import Post from '../../../../test-app/app/models/Post'
 import CannotJoinPolymorphicBelongsToError from '../../../../src/exceptions/cannot-join-polymorphic-belongs-to-error'
 import Query from '../../../../src/dream/query'
 import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating'
+import { sql } from 'kysely'
+import { db } from '../../../../src'
 
 describe('Query#joins with polymorphic associations', () => {
+  beforeEach(async () => {
+    await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(db)
+    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(db)
+  })
+
   it('joins a HasMany association', async () => {
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-    await Composition.create({ user })
+
+    const composition = await Composition.create({ user })
+    await Rating.create({ user, rateable: composition })
+
     await Post.create({ user })
     const post = await Post.create({ user })
     await Rating.create({ user, rateable: post })
 
-    const reloaded = await new Query(Post).joins('ratings').first()
-    expect(reloaded).toMatchDreamModel(post)
+    const reloaded = await new Query(Post).joins('ratings').all()
+    expect(reloaded).toMatchDreamModels([post])
   })
 
   it('joins a HasMany association with STI', async () => {
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-    await Composition.create({ user })
+
+    const composition = await Composition.create({ user })
+    await HeartRating.create({ user, extraRateable: composition })
+
     await Post.create({ user })
     const post = await Post.create({ user })
     await HeartRating.create({ user, extraRateable: post })
 
-    const reloaded = await new Query(Post).joins('heartRatings').first()
-    expect(reloaded).toMatchDreamModel(post)
+    const reloaded = await new Query(Post).joins('heartRatings').all()
+    expect(reloaded).toMatchDreamModels([post])
   })
 
   it('from a BelongsTo association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition = await Composition.create({ user })
     const post = await Post.create({ user })
     const rating = await Rating.create({ user, rateable: post })
 
@@ -43,7 +55,7 @@ describe('Query#joins with polymorphic associations', () => {
   context('with a where clause', () => {
     it('joins a HasMany association', async () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-      await Composition.create({ user })
+
       const post = await Post.create({ user })
       const rating = await Rating.create({ user, rateable: post })
 

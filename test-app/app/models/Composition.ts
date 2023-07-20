@@ -14,6 +14,7 @@ import { IdType } from '../../../src/db/reflections'
 import CompositionAsset from './CompositionAsset'
 import CompositionAssetAudit from './CompositionAssetAudit'
 import User from './User'
+import HeartRating from './ExtraRating/HeartRating'
 
 export default class Composition extends Dream {
   public get table() {
@@ -47,6 +48,12 @@ export default class Composition extends Dream {
     source: 'compositionAssetAudits',
   })
   public mainCompositionAssetAudits: CompositionAssetAudit[]
+
+  @HasMany(() => HeartRating, {
+    foreignKey: 'extra_rateable_id',
+    polymorphic: true,
+  })
+  public heartRatings: HeartRating[]
 
   @BeforeCreate()
   public setDefaultContent() {
