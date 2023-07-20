@@ -20,6 +20,9 @@ describe('Query#joins with polymorphic associations', () => {
     const composition = await Composition.create({ user })
     await Rating.create({ user, rateable: composition })
 
+    // Two posts are necessary to create the conditions that resulted in the bug,
+    // which happened because inner joining on an id is not aware of polyorphism,
+    // so we needed to add the type condition (https://github.com/avocadojesus/dream/pull/110/files#diff-bf6ad57910dc74e01f45329e9e52af3124ce75719673d048aa955841534de7d7)
     await Post.create({ user })
     const post = await Post.create({ user })
     await Rating.create({ user, rateable: post })
