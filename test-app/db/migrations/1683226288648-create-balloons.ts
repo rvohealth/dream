@@ -2,7 +2,7 @@ import { Kysely, sql } from 'kysely'
 
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema.createType('balloon_colors_enum').asEnum(['red', 'green', 'blue']).execute()
-  await db.schema.createType('balloon_types_enum').asEnum(['Mylar', 'Latex']).execute()
+  await db.schema.createType('balloon_types_enum').asEnum(['Mylar', 'Latex', 'Animal']).execute()
 
   await db.schema
     .createTable('balloons')

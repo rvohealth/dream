@@ -17,10 +17,14 @@ export default function Scope(
         named: [...(t.scopes?.named || [])] as ScopeStatement[],
       }
 
-    t.scopes[branch].push({
-      method: key,
-      default: opts.default || false,
-    })
+    const alreadyApplied = t.scopes[branch].find(scope => scope.method === key)
+
+    if (!alreadyApplied) {
+      t.scopes[branch].push({
+        method: key,
+        default: opts.default || false,
+      })
+    }
   }
 }
 

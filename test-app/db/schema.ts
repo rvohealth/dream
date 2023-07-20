@@ -4,7 +4,7 @@ import type { ColumnType } from "kysely";
 
 export type BalloonColorsEnum = "blue" | "green" | "red";
 
-export type BalloonTypesEnum = "Latex" | "Mylar";
+export type BalloonTypesEnum = "Animal" | "Latex" | "Mylar";
 
 export type ExtraRatingTypesEnum = "HeartRating" | "StarRating";
 

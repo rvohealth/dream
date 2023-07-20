@@ -1,5 +1,7 @@
+import { Query } from '../../../../src'
 import Balloon from '../../../../test-app/app/models/Balloon'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
+import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import User from '../../../../test-app/app/models/User'
 import { DateTime } from 'luxon'
@@ -38,6 +40,18 @@ describe('Dream STI', () => {
 
     const balloons = await Mylar.all()
     expect(balloons).toMatchDreamModels([mylarBalloon])
+  })
+
+  context('nested STI', () => {
+    it('applies the default scope one time', async () => {
+      const animal = await Animal.create({
+        user: user!,
+        color: 'blue',
+      })
+
+      const sql = new Query(Animal).sql().sql
+      expect([...sql.matchAll(/"balloons"\."type" = \$/g)].length).toEqual(1)
+    })
   })
 
   it('correctly marshals each association to its respective dream class based on type', async () => {
