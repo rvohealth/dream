@@ -30,7 +30,7 @@ export type DreamUpdateable<TableName extends AssociationTableNames> = Partial<
     | OpsStatement
     | CurriedOpsStatement<any, any>
     | (IdType | string | number)[]
-    | SelectQueryBuilder<DB, keyof DB, {}>
+    | SelectQueryBuilder<DB, keyof DB, any>
   >
 >
 

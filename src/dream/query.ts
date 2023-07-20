@@ -245,8 +245,8 @@ export default class Query<
   >(this: T, selection: SimpleFieldType | JoinsFieldType) {
     const query = this.buildSelect({ bypassSelectAll: true }) as SelectQueryBuilder<
       DB,
-      ExtractTableAlias<DB, InstanceType<DreamClass>['table']>,
-      {}
+      ExtractTableAlias<DB, TableName>,
+      any
     >
     return query.select(selection as any)
   }
