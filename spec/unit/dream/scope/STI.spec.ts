@@ -50,7 +50,7 @@ describe('Dream STI', () => {
       })
 
       const sql = new Query(Animal).sql().sql
-      expect([...sql.matchAll(/"balloons"\."type" = \$/g)].length).toEqual(1)
+      expect([...sql.matchAll(/"beautiful_balloons"\."type" = \$/g)].length).toEqual(1)
     })
   })
 

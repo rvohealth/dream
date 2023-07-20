@@ -1,7 +1,31 @@
 export default {
-  "balloons": {
+  "balloon_lines": {
+    "balloon": [
+      "beautiful_balloons"
+    ]
+  },
+  "balloon_spotter_balloons": {
+    "balloonSpotter": [
+      "balloon_spotters"
+    ],
+    "balloon": [
+      "beautiful_balloons"
+    ]
+  },
+  "balloon_spotters": {
+    "balloonSpotterBalloons": [
+      "balloon_spotter_balloons"
+    ],
+    "balloons": [
+      "beautiful_balloons"
+    ]
+  },
+  "beautiful_balloons": {
     "user": [
       "users"
+    ],
+    "balloonLine": [
+      "balloon_lines"
     ]
   },
   "collars": {
@@ -173,7 +197,7 @@ export default {
       "composition_assets"
     ],
     "balloons": [
-      "balloons"
+      "beautiful_balloons"
     ],
     "pets": [
       "pets"
@@ -187,9 +211,33 @@ export default {
 }
 
 export interface SyncedAssociations {
-  "balloons": {
+  "balloon_lines": {
+    "balloon": [
+      "beautiful_balloons"
+    ]
+  },
+  "balloon_spotter_balloons": {
+    "balloonSpotter": [
+      "balloon_spotters"
+    ],
+    "balloon": [
+      "beautiful_balloons"
+    ]
+  },
+  "balloon_spotters": {
+    "balloonSpotterBalloons": [
+      "balloon_spotter_balloons"
+    ],
+    "balloons": [
+      "beautiful_balloons"
+    ]
+  },
+  "beautiful_balloons": {
     "user": [
       "users"
+    ],
+    "balloonLine": [
+      "balloon_lines"
     ]
   },
   "collars": {
@@ -361,7 +409,7 @@ export interface SyncedAssociations {
       "composition_assets"
     ],
     "balloons": [
-      "balloons"
+      "beautiful_balloons"
     ],
     "pets": [
       "pets"
@@ -375,7 +423,21 @@ export interface SyncedAssociations {
 }
 
 export interface SyncedBelongsToAssociations {
-  "balloons": {
+  "balloon_lines": {
+    "balloon": [
+      "beautiful_balloons"
+    ]
+  },
+  "balloon_spotter_balloons": {
+    "balloonSpotter": [
+      "balloon_spotters"
+    ],
+    "balloon": [
+      "beautiful_balloons"
+    ]
+  },
+  "balloon_spotters": false,
+  "beautiful_balloons": {
     "user": [
       "users"
     ]
@@ -461,7 +523,10 @@ export interface SyncedBelongsToAssociations {
   
 
 export interface VirtualColumns {
-  "balloons": false,
+  "balloon_lines": false,
+  "balloon_spotter_balloons": false,
+  "balloon_spotters": false,
+  "beautiful_balloons": false,
   "collars": false,
   "composition_asset_audits": false,
   "composition_assets": false,

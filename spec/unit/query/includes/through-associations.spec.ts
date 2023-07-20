@@ -5,8 +5,36 @@ import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAs
 import { DateTime } from 'luxon'
 import Query from '../../../../src/dream/query'
 import MissingThroughAssociation from '../../../../src/exceptions/missing-through-association'
+import BalloonSpotter from '../../../../test-app/app/models/BalloonSpotter'
+import BalloonSpotterBalloon from '../../../../test-app/app/models/BalloonSpotterBalloon'
+import Latex from '../../../../test-app/app/models/Balloon/Latex'
 
 describe('Query#includes through with simple associations', () => {
+  context('HasMany via a join table', () => {
+    it('sets HasMany property on the model and BelongsToProperty on the associated model', async () => {
+      const balloon = await Latex.create()
+      const balloonSpotter = await BalloonSpotter.create()
+      const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
+
+      const reloaded = await new Query(BalloonSpotter).includes({ balloonSpotterBalloons: 'balloon' }).first()
+      expect(reloaded!.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon])
+      expect(reloaded!.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon)
+    })
+  })
+
+  context('HasMany through a join table', () => {
+    it('sets HasMany property and through property on the model and BelongsToProperty on the associated model', async () => {
+      const balloon = await Latex.create()
+      const balloonSpotter = await BalloonSpotter.create()
+      const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
+
+      const reloaded = await new Query(BalloonSpotter).includes('balloons').first()
+      expect(reloaded!.balloons).toMatchDreamModels([balloon])
+      expect(reloaded!.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon])
+      expect(reloaded!.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon)
+    })
+  })
+
   context('HasOne through HasOne association', () => {
     it(
       'sets the association property and the association property on the through association to the ' +

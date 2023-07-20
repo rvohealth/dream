@@ -4,6 +4,8 @@ import type { ColumnType } from "kysely";
 
 export type BalloonColorsEnum = "blue" | "green" | "red";
 
+export type BalloonLineMaterialsEnum = "nylon" | "ribbon" | "twine" | "yarn";
+
 export type BalloonTypesEnum = "Animal" | "Latex" | "Mylar";
 
 export type ExtraRatingTypesEnum = "HeartRating" | "StarRating";
@@ -21,10 +23,33 @@ export type Species = "cat" | "dog" | "frog";
 export type Timestamp = ColumnType<DateTime>
 export type IdType = string | number | bigint | undefined;
 
-export interface Balloons {
+export interface BalloonLines {
   id: Generated<Int8>;
-  user_id: Int8;
-  type: BalloonTypesEnum | null;
+  balloon_id: Int8;
+  material: BalloonLineMaterialsEnum | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+export interface BalloonSpotterBalloons {
+  id: Generated<Int8>;
+  balloon_spotter_id: Int8;
+  balloon_id: Int8;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+export interface BalloonSpotters {
+  id: Generated<Int8>;
+  name: string | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+export interface BeautifulBalloons {
+  id: Generated<Int8>;
+  user_id: Int8 | null;
+  type: BalloonTypesEnum;
   volume: Numeric | null;
   color: BalloonColorsEnum | null;
   multicolor: BalloonColorsEnum[] | null;
@@ -164,7 +189,10 @@ export interface UserSettings {
 }
 
 export interface DB {
-  balloons: Balloons;
+  balloon_lines: BalloonLines;
+  balloon_spotter_balloons: BalloonSpotterBalloons;
+  balloon_spotters: BalloonSpotters;
+  beautiful_balloons: BeautifulBalloons;
   collars: Collars;
   composition_asset_audits: CompositionAssetAudits;
   composition_assets: CompositionAssets;
@@ -184,7 +212,10 @@ export interface DB {
 
 
 
-export const BalloonColumns = ['id', 'user_id', 'type', 'volume', 'color', 'multicolor', 'deleted_at', 'created_at', 'updated_at']
+export const BalloonLineColumns = ['id', 'balloon_id', 'material', 'created_at', 'updated_at']
+export const BalloonSpotterBalloonColumns = ['id', 'balloon_spotter_id', 'balloon_id', 'created_at', 'updated_at']
+export const BalloonSpotterColumns = ['id', 'name', 'created_at', 'updated_at']
+export const BeautifulBalloonColumns = ['id', 'user_id', 'type', 'volume', 'color', 'multicolor', 'deleted_at', 'created_at', 'updated_at']
 export const CollarColumns = ['id', 'pet_id', 'lost', 'created_at', 'updated_at']
 export const CompositionAssetAuditColumns = ['id', 'composition_asset_id', 'approval', 'created_at', 'updated_at']
 export const CompositionAssetColumns = ['id', 'composition_id', 'name', 'src', 'primary', 'score', 'created_at', 'updated_at']
@@ -201,10 +232,33 @@ export const RatingColumns = ['id', 'user_id', 'rateable_id', 'rateable_type', '
 export const UserColumns = ['id', 'name', 'email', 'password_digest', 'created_at', 'updated_at', 'deleted_at']
 export const UserSettingColumns = ['id', 'user_id', 'likes_chalupas', 'created_at', 'updated_at']
 
-export interface BalloonAttributes {
+export interface BalloonLineAttributes {
   id: IdType
-  user_id: IdType
-  type: BalloonTypesEnum | null
+  balloon_id: IdType
+  material: BalloonLineMaterialsEnum | null
+  created_at: DateTime
+  updated_at: DateTime
+}  
+
+export interface BalloonSpotterBalloonAttributes {
+  id: IdType
+  balloon_spotter_id: IdType
+  balloon_id: IdType
+  created_at: DateTime
+  updated_at: DateTime
+}  
+
+export interface BalloonSpotterAttributes {
+  id: IdType
+  name: string | null
+  created_at: DateTime
+  updated_at: DateTime
+}  
+
+export interface BeautifulBalloonAttributes {
+  id: IdType
+  user_id: IdType | null
+  type: BalloonTypesEnum
   volume: number | null
   color: BalloonColorsEnum | null
   multicolor: BalloonColorsEnum[] | null
@@ -344,10 +398,33 @@ export interface UserSettingAttributes {
 }  
 
 
-export const BalloonsTypeCache = {
+export const BalloonLinesTypeCache = {
   id: 'Generated<Int8>',
-  user_id: 'Int8',
-  type: 'BalloonTypesEnum|null',
+  balloon_id: 'Int8',
+  material: 'BalloonLineMaterialsEnum|null',
+  created_at: 'Timestamp',
+  updated_at: 'Timestamp'
+}  
+
+export const BalloonSpotterBalloonsTypeCache = {
+  id: 'Generated<Int8>',
+  balloon_spotter_id: 'Int8',
+  balloon_id: 'Int8',
+  created_at: 'Timestamp',
+  updated_at: 'Timestamp'
+}  
+
+export const BalloonSpottersTypeCache = {
+  id: 'Generated<Int8>',
+  name: 'string|null',
+  created_at: 'Timestamp',
+  updated_at: 'Timestamp'
+}  
+
+export const BeautifulBalloonsTypeCache = {
+  id: 'Generated<Int8>',
+  user_id: 'Int8|null',
+  type: 'BalloonTypesEnum',
   volume: 'Numeric|null',
   color: 'BalloonColorsEnum|null',
   multicolor: 'BalloonColorsEnum[]|null',
@@ -489,7 +566,10 @@ export const UserSettingsTypeCache = {
 
 
 export interface InterpretedDB {
-  balloons: BalloonAttributes,
+  balloon_lines: BalloonLineAttributes,
+  balloon_spotter_balloons: BalloonSpotterBalloonAttributes,
+  balloon_spotters: BalloonSpotterAttributes,
+  beautiful_balloons: BeautifulBalloonAttributes,
   collars: CollarAttributes,
   composition_asset_audits: CompositionAssetAuditAttributes,
   composition_assets: CompositionAssetAttributes,
@@ -508,7 +588,10 @@ export interface InterpretedDB {
 }
 
 export const DBColumns = {
-  balloons: BalloonColumns,
+  balloon_lines: BalloonLineColumns,
+  balloon_spotter_balloons: BalloonSpotterBalloonColumns,
+  balloon_spotters: BalloonSpotterColumns,
+  beautiful_balloons: BeautifulBalloonColumns,
   collars: CollarColumns,
   composition_asset_audits: CompositionAssetAuditColumns,
   composition_assets: CompositionAssetColumns,
@@ -527,7 +610,10 @@ export const DBColumns = {
 }
 
 export const DBTypeCache = {
-  balloons: BalloonsTypeCache,
+  balloon_lines: BalloonLinesTypeCache,
+  balloon_spotter_balloons: BalloonSpotterBalloonsTypeCache,
+  balloon_spotters: BalloonSpottersTypeCache,
+  beautiful_balloons: BeautifulBalloonsTypeCache,
   collars: CollarsTypeCache,
   composition_asset_audits: CompositionAssetAuditsTypeCache,
   composition_assets: CompositionAssetsTypeCache,

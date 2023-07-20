@@ -1,16 +1,18 @@
 import { DateTime } from 'luxon'
 import Dream from '../../../src/dream'
 import { IdType } from '../../../src/db/reflections'
+import HasOne from '../../../src/decorators/associations/has-one'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import Scope from '../../../src/decorators/scope'
 import Validates from '../../../src/decorators/validations/validates'
 import User from './User'
 import { BalloonColorsEnum, BalloonTypesEnum } from '../../db/schema'
 import { BeforeDestroy } from '../../../src'
+import BalloonLine from './BalloonLine'
 
 export default class Balloon extends Dream {
   public get table() {
-    return 'balloons' as const
+    return 'beautiful_balloons' as const
   }
 
   public id: IdType
@@ -40,7 +42,10 @@ export default class Balloon extends Dream {
   @Validates('numericality', { min: 0, max: 100 })
   public volume: number
 
-  @BelongsTo(() => User)
+  @BelongsTo(() => User, { optional: true })
   public user: User
   public user_id: IdType
+
+  @HasOne(() => BalloonLine, { foreignKey: 'balloon_id' })
+  public balloonLine: BalloonLine
 }

@@ -7,6 +7,9 @@ import ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase from '../../../../src
 import { DateTime } from 'luxon'
 import Pet from '../../../../test-app/app/models/Pet'
 import Query from '../../../../src/dream/query'
+import Latex from '../../../../test-app/app/models/Balloon/Latex'
+import BalloonLine from '../../../../test-app/app/models/BalloonLine'
+import Balloon from '../../../../test-app/app/models/Balloon'
 
 describe('Query#includes with simple associations', () => {
   context('HasOne', () => {
@@ -24,6 +27,16 @@ describe('Query#includes with simple associations', () => {
 
         const reloadedUser = await new Query(User).includes('mainComposition').first()
         expect(reloadedUser!.mainComposition).toBeNull()
+      })
+    })
+
+    context('pointing to an STI model', () => {
+      it('loads the association', async () => {
+        const balloon = await Latex.create({ color: 'blue' })
+        const line = await BalloonLine.create({ balloon, material: 'ribbon' })
+
+        const reloaded = await new Query(Balloon).includes('balloonLine').first()
+        expect(reloaded!.balloonLine).toMatchDreamModel(line)
       })
     })
   })
@@ -46,6 +59,16 @@ describe('Query#includes with simple associations', () => {
         expect(reloadedUser!.compositions).toEqual([])
       })
     })
+
+    context('pointing to an STI model', () => {
+      it('loads the association', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const balloon = await Latex.create({ user, color: 'blue' })
+
+        const reloadedUser = await new Query(User).includes('balloons').first()
+        expect(reloadedUser!.balloons).toMatchDreamModels([balloon])
+      })
+    })
   })
 
   context('when there are HasMany results', () => {
@@ -57,11 +80,23 @@ describe('Query#includes with simple associations', () => {
     })
   })
 
-  it('loads a BelongsTo association', async () => {
-    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    await Composition.create({ user_id: user.id })
-    const reloadedComposition = await new Query(Composition).includes('user').first()
-    expect(reloadedComposition!.user).toMatchDreamModel(user)
+  context('BelongsTo', () => {
+    it('loads the association', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await Composition.create({ user_id: user.id })
+      const reloadedComposition = await new Query(Composition).includes('user').first()
+      expect(reloadedComposition!.user).toMatchDreamModel(user)
+    })
+
+    context('pointing to an STI model', () => {
+      it('loads the association', async () => {
+        const balloon = await Latex.create({ color: 'blue' })
+        const line = await BalloonLine.create({ balloon, material: 'ribbon' })
+
+        const reloaded = await new Query(BalloonLine).includes('balloon').first()
+        expect(reloaded!.balloon).toMatchDreamModel(balloon)
+      })
+    })
   })
 
   it('can handle object notation', async () => {

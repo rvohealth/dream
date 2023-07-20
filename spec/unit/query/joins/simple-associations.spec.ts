@@ -5,6 +5,7 @@ import Pet from '../../../../test-app/app/models/Pet'
 import { DateTime } from 'luxon'
 import range from '../../../../src/helpers/range'
 import Query from '../../../../src/dream/query'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 
 describe('Query#joins with simple associations', () => {
   it('joins a HasOne association', async () => {
@@ -268,6 +269,16 @@ describe('Query#joins with simple associations', () => {
         })
 
         const reloadedUser = await User.joins('notRecentCompositions').first()
+        expect(reloadedUser).toMatchDreamModel(user)
+      })
+    })
+
+    context('pointing to an STI model', () => {
+      it('loads the association', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        await Mylar.create({ user, color: 'blue' })
+
+        const reloadedUser = await new Query(User).joins('balloons').first()
         expect(reloadedUser).toMatchDreamModel(user)
       })
     })

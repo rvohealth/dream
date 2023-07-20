@@ -5,8 +5,35 @@ import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAs
 import { DateTime } from 'luxon'
 import Query from '../../../../src/dream/query'
 import MissingThroughAssociation from '../../../../src/exceptions/missing-through-association'
+import Latex from '../../../../test-app/app/models/Balloon/Latex'
+import BalloonSpotter from '../../../../test-app/app/models/BalloonSpotter'
+import BalloonSpotterBalloon from '../../../../test-app/app/models/BalloonSpotterBalloon'
 
 describe('Query#joins through with simple associations', () => {
+  context('HasMany via a join table', () => {
+    it('sets HasMany property on the model and BelongsToProperty on the associated model', async () => {
+      await BalloonSpotter.create()
+      const balloon = await Latex.create()
+      const balloonSpotter = await BalloonSpotter.create()
+      const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
+
+      const reloaded = await new Query(BalloonSpotter).joins({ balloonSpotterBalloons: 'balloon' }).all()
+      expect(reloaded).toMatchDreamModels([balloonSpotter])
+    })
+  })
+
+  context('HasMany through a join table', () => {
+    it('sets HasMany property and through property on the model and BelongsToProperty on the associated model', async () => {
+      await BalloonSpotter.create()
+      const balloon = await Latex.create()
+      const balloonSpotter = await BalloonSpotter.create()
+      const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
+
+      const reloaded = await new Query(BalloonSpotter).joins('balloons').all()
+      expect(reloaded).toMatchDreamModels([balloonSpotter])
+    })
+  })
+
   it('joins a HasOne through HasOne association', async () => {
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })

@@ -1,8 +1,12 @@
-import pluralize = require('pluralize')
 import Dream from '../../dream'
 import { DB } from '../../sync/schema'
 import { AssociationTableNames } from '../../db/reflections'
-import { blankAssociationsFactory } from './shared'
+import {
+  PartialAssociationStatement,
+  blankAssociationsFactory,
+  finalForeignKey,
+  foreignKeyTypeField,
+} from './shared'
 import Validates from '../validations/validates'
 
 export default function BelongsTo(
@@ -23,19 +27,25 @@ export default function BelongsTo(
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'associations'))
       dreamClass.associations = blankAssociationsFactory(dreamClass)
 
-    dreamClass.associations['belongsTo'].push({
+    const partialAssociation = {
       modelCB,
       type: 'BelongsTo',
+      as: key,
       optional,
       polymorphic,
+    } as PartialAssociationStatement
+
+    const association = {
+      ...partialAssociation,
       foreignKey() {
-        return finalForeignKey(foreignKey, modelCB)
+        return finalForeignKey(foreignKey, dreamClass, partialAssociation)
       },
       foreignKeyTypeField() {
-        return foreignKeyTypeField(foreignKey, modelCB)
+        return foreignKeyTypeField(foreignKey, dreamClass, partialAssociation)
       },
-      as: key,
-    })
+    } as BelongsToStatement<any>
+
+    dreamClass.associations['belongsTo'].push(association)
 
     Object.defineProperty(target, key, {
       get: function (this: any) {
@@ -43,21 +53,15 @@ export default function BelongsTo(
       },
       set: function (this: any, associatedModel: any) {
         this[`__${key}__`] = associatedModel
-        this[finalForeignKey(foreignKey, modelCB)] = associatedModel?.primaryKeyValue
-        if (polymorphic) this[foreignKeyTypeField(foreignKey, modelCB)] = associatedModel?.constructor?.name
+        this[finalForeignKey(foreignKey, dreamClass, partialAssociation)] = associatedModel?.primaryKeyValue
+        if (polymorphic)
+          this[foreignKeyTypeField(foreignKey, dreamClass, partialAssociation)] =
+            associatedModel?.constructor?.name
       },
     })
 
     if (!optional) Validates('requiredBelongsTo')(target, key)
   }
-}
-
-function finalForeignKey(foreignKey: any, modelCB: any): string {
-  return foreignKey || pluralize.singular(modelCB().prototype.table) + '_id'
-}
-
-function foreignKeyTypeField(foreignKey: any, modelCB: any): string {
-  return finalForeignKey(foreignKey, modelCB).replace(/_id$/, '_type')
 }
 
 export interface BelongsToStatement<TableName extends AssociationTableNames> {

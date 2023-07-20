@@ -1,4 +1,5 @@
 import Dream from '../../dream'
+import pluralize = require('pluralize')
 import { DB } from '../../sync/schema'
 import { SelectQueryBuilder, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
@@ -11,6 +12,7 @@ import { HasOneStatement } from './has-one'
 import { SyncedBelongsToAssociations } from '../../sync/associations'
 import CurriedOpsStatement from '../../ops/curried-ops-statement'
 import { MergeUnionOfRecordTypes } from '../../helpers/typeutils'
+import { checkForeignKey } from '../../exceptions/explicit-foreign-key'
 
 export type AssociatedModelParam<
   I extends Dream,
@@ -66,4 +68,53 @@ export function blankAssociationsFactory(dreamClass: typeof Dream): {
     hasMany: [...(dreamClass.associations?.hasMany || [])],
     hasOne: [...(dreamClass.associations?.hasOne || [])],
   }
+}
+
+type partialTypeFields = 'modelCB' | 'type' | 'polymorphic' | 'as'
+type hasOneManySpecificFields = 'source' | 'through' | 'where' | 'whereNot'
+type belongsToSpecificFields = 'optional'
+
+export type PartialAssociationStatement =
+  | Pick<HasManyStatement<any>, partialTypeFields | hasOneManySpecificFields>
+  | Pick<HasOneStatement<any>, partialTypeFields | hasOneManySpecificFields>
+  | Pick<BelongsToStatement<any>, partialTypeFields | belongsToSpecificFields>
+
+export function finalForeignKey(
+  foreignKey: string | undefined,
+  dreamClass: typeof Dream,
+  partialAssociation: PartialAssociationStatement
+): string {
+  let computedForeignKey = foreignKey
+
+  if (!computedForeignKey) {
+    const table =
+      partialAssociation.type === 'BelongsTo'
+        ? modelCBtoSingleDreamClass(dreamClass, partialAssociation).prototype.table
+        : dreamClass.prototype.table
+
+    computedForeignKey = pluralize.singular(table) + '_id'
+  }
+
+  if (partialAssociation.type === 'BelongsTo' || !partialAssociation.through)
+    checkForeignKey(foreignKey, computedForeignKey, dreamClass, partialAssociation)
+
+  return computedForeignKey
+}
+
+export function foreignKeyTypeField(
+  foreignKey: any,
+  dream: typeof Dream,
+  partialAssociation: PartialAssociationStatement
+): string {
+  return finalForeignKey(foreignKey, dream, partialAssociation).replace(/_id$/, '_type')
+}
+
+export function modelCBtoSingleDreamClass(
+  dreamClass: typeof Dream,
+  partialAssociation: PartialAssociationStatement
+): typeof Dream {
+  if (partialAssociation.modelCB().constructor === Array)
+    throw `${dreamClass.name} association ${partialAssociation.as} is incompatible with array of ${partialAssociation.type} Dream types`
+
+  return partialAssociation.modelCB() as typeof Dream
 }

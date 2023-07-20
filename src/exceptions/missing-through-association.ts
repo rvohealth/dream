@@ -37,6 +37,8 @@ class ${this.throughClass.name} {
   @HasMany(() => ${this.association.modelCB().name})
   public ${this.association.source}: ${this.association.modelCB().name}[]
 }
+
+Alternatively, provide an explicit \`source\` in addition to \`through\`.
     `
   }
 }

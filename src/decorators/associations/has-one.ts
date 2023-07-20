@@ -1,7 +1,13 @@
-import pluralize = require('pluralize')
-import { HasStatement, WhereStatement, blankAssociationsFactory } from './shared'
-import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../dream'
+import {
+  HasStatement,
+  PartialAssociationStatement,
+  WhereStatement,
+  blankAssociationsFactory,
+  finalForeignKey,
+  foreignKeyTypeField,
+} from './shared'
+import { AssociationTableNames } from '../../db/reflections'
 
 export default function HasOne<AssociationDreamClass extends typeof Dream>(
   modelCB: () => AssociationDreamClass,
@@ -24,28 +30,31 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
   return function (target: any, key: string, _: any) {
     const dreamClass: typeof Dream = target.constructor
 
-    // TODO: add better validation on through associations
-    // TODO: add type guards to through associations if possible
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'associations'))
       dreamClass.associations = blankAssociationsFactory(dreamClass)
 
-    dreamClass.associations['hasOne'].push({
+    const partialAssociation = {
       modelCB,
       type: 'HasOne',
-      foreignKey() {
-        return foreignKey || pluralize.singular(target.table) + '_id'
-      },
-      foreignKeyTypeField() {
-        return (this.foreignKey() as string).replace(/_id$/, '_type')
-      },
-
       as: key,
       polymorphic,
       source: source || key,
       through,
       where,
       whereNot,
-    })
+    } as PartialAssociationStatement
+
+    const association = {
+      ...partialAssociation,
+      foreignKey() {
+        return finalForeignKey(foreignKey, dreamClass, partialAssociation)
+      },
+      foreignKeyTypeField() {
+        return foreignKeyTypeField(foreignKey, dreamClass, partialAssociation)
+      },
+    } as HasOneStatement<any>
+
+    dreamClass.associations['hasOne'].push(association)
   }
 }
 
