@@ -27,14 +27,15 @@ export default async function loadModels() {
       `../../${process.env.DREAM_CORE_DEVELOPMENT === '1' ? '' : '../../'}${yamlConf.models_path}/` +
       fullPath.replace(new RegExp(`^.*${yamlConf.models_path}\/`), '')
 
-    let ModelClass: typeof Dream | null = null
+    let PossibleModelClass: typeof Dream | null = null
     try {
-      ModelClass = await importFileWithDefault(relativePath)
+      PossibleModelClass = await importFileWithDefault(relativePath)
     } catch (error) {
       throw `Failed to import the following file: ${fullPath}. Error: ${error}`
     }
 
-    if (ModelClass) {
+    if (PossibleModelClass?.isDream) {
+      const ModelClass: typeof Dream = PossibleModelClass
       const modelKey = modelPath.replace(/\.ts$/, '')
       const pathParts = modelKey.split('/')
       pathParts.forEach((pathPart, index) => {
