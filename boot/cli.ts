@@ -13,6 +13,7 @@ import setCoreDevelopmentFlag, { coreSuffix } from './cli/helpers/setCoreDevelop
 import yarncmdRunByAppConsumer from './cli/helpers/yarncmdRunByAppConsumer'
 import maybeSyncExisting from './cli/helpers/maybeSyncExisting'
 import generateSerializer from './cli/helpers/generateSerializer'
+import absoluteFilePath from '../src/helpers/absoluteFilePath'
 
 const program = new Command()
 
@@ -158,6 +159,22 @@ program
     await sspawn(yarncmdRunByAppConsumer('dream db:drop', program.args))
     await sspawn(yarncmdRunByAppConsumer('dream db:create', program.args))
     await sspawn(yarncmdRunByAppConsumer('dream db:migrate', program.args))
+    await sspawn(yarncmdRunByAppConsumer('dream db:seed', program.args))
+  })
+
+program
+  .command('db:seed')
+  .description('seeds the database using the file located in db/seed.ts')
+  .option('--core', 'sets core to true')
+  .action(async () => {
+    await maybeSyncExisting(program.args)
+    setCoreDevelopmentFlag(program.args)
+    const rootPath = program.args.includes('--core') ? 'test-app/' : 'src/'
+    const seed = await import(absoluteFilePath(`${rootPath}db/seed.ts`))
+
+    if (!seed.default) throw 'db/seed.ts file must have an async function as the default export'
+
+    await seed.default()
   })
 
 program
