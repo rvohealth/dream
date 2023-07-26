@@ -88,25 +88,6 @@ export default {
       "posts"
     ]
   },
-  "food_items": {
-    "primaryFoodItemWellnessTag": [
-      "food_item_wellness_tags"
-    ],
-    "foodItemWellnessTags": [
-      "food_item_wellness_tags"
-    ],
-    "wellnessTags": [
-      "wellness_tags"
-    ]
-  },
-  "food_item_wellness_tags": {
-    "foodItem": [
-      "food_items"
-    ],
-    "wellnessTag": [
-      "wellness_tags"
-    ]
-  },
   "graph_edge_nodes": {
     "edge": [
       "graph_edges"
@@ -226,8 +207,7 @@ export default {
     "user": [
       "users"
     ]
-  },
-  "wellness_tags": {}
+  }
 }
 
 export interface SyncedAssociations {
@@ -320,25 +300,6 @@ export interface SyncedAssociations {
       "posts"
     ]
   },
-  "food_items": {
-    "primaryFoodItemWellnessTag": [
-      "food_item_wellness_tags"
-    ],
-    "foodItemWellnessTags": [
-      "food_item_wellness_tags"
-    ],
-    "wellnessTags": [
-      "wellness_tags"
-    ]
-  },
-  "food_item_wellness_tags": {
-    "foodItem": [
-      "food_items"
-    ],
-    "wellnessTag": [
-      "wellness_tags"
-    ]
-  },
   "graph_edge_nodes": {
     "edge": [
       "graph_edges"
@@ -458,8 +419,7 @@ export interface SyncedAssociations {
     "user": [
       "users"
     ]
-  },
-  "wellness_tags": {}
+  }
 }
 
 export interface SyncedBelongsToAssociations {
@@ -515,15 +475,6 @@ export interface SyncedBelongsToAssociations {
       "posts"
     ]
   },
-  "food_items": false,
-  "food_item_wellness_tags": {
-    "foodItem": [
-      "food_items"
-    ],
-    "wellnessTag": [
-      "wellness_tags"
-    ]
-  },
   "graph_edge_nodes": {
     "edge": [
       "graph_edges"
@@ -567,8 +518,7 @@ export interface SyncedBelongsToAssociations {
     "user": [
       "users"
     ]
-  },
-  "wellness_tags": false
+  }
 }
   
 
@@ -582,8 +532,6 @@ export interface VirtualColumns {
   "composition_assets": false,
   "compositions": false,
   "extra_ratings": false,
-  "food_items": false,
-  "food_item_wellness_tags": false,
   "graph_edge_nodes": false,
   "graph_edges": false,
   "graph_nodes": false,
@@ -595,6 +543,5 @@ export interface VirtualColumns {
   "users": [
     "password"
   ],
-  "user_settings": false,
-  "wellness_tags": false
+  "user_settings": false
 }

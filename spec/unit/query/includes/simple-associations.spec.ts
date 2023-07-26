@@ -10,10 +10,6 @@ import Query from '../../../../src/dream/query'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import BalloonLine from '../../../../test-app/app/models/BalloonLine'
 import Balloon from '../../../../test-app/app/models/Balloon'
-import WellnessTag from '../../../../test-app/app/models/WellnessTag'
-import FoodItem from '../../../../test-app/app/models/FoodItem'
-import FoodItemWellnessTag from '../../../../test-app/app/models/FoodItemWellnessTag'
-import { getTokenSourceMapRange } from 'typescript'
 
 describe('Query#includes with simple associations', () => {
   context('HasOne', () => {
@@ -41,25 +37,6 @@ describe('Query#includes with simple associations', () => {
 
         const reloaded = await new Query(Balloon).includes('balloonLine').first()
         expect(reloaded!.balloonLine).toMatchDreamModel(line)
-      })
-    })
-
-    context('with primary key specified', () => {
-      it('loads the association', async () => {
-        const wellnessTag = await WellnessTag.create({ name: 'Atkins 40' })
-        const foodItem = await FoodItem.create({
-          name: 'Tuscan Chalupa',
-          calories: 50000000,
-          external_nutrition_id: 'abc123',
-        })
-        const foodItemWellnessTag = await FoodItemWellnessTag.create({
-          external_nutrition_id: 'abc123',
-          wellnessTag,
-          primary: true,
-        })
-
-        const reloaded = await new Query(FoodItem).includes('primaryFoodItemWellnessTag').first()
-        expect(reloaded!.primaryFoodItemWellnessTag).toMatchDreamModel(foodItemWellnessTag)
       })
     })
   })
@@ -92,24 +69,6 @@ describe('Query#includes with simple associations', () => {
         expect(reloadedUser!.balloons).toMatchDreamModels([balloon])
       })
     })
-
-    context('with primary key specified', () => {
-      it('loads the association', async () => {
-        const wellnessTag = await WellnessTag.create({ name: 'Atkins 40' })
-        const foodItem = await FoodItem.create({
-          name: 'Tuscan Chalupa',
-          calories: 50000000,
-          external_nutrition_id: 'abc123',
-        })
-        const foodItemWellnessTag = await FoodItemWellnessTag.create({
-          external_nutrition_id: 'abc123',
-          wellnessTag,
-        })
-
-        const reloaded = await new Query(FoodItem).includes('foodItemWellnessTags').first()
-        expect(reloaded!.foodItemWellnessTags).toMatchDreamModels([foodItemWellnessTag])
-      })
-    })
   })
 
   context('when there are HasMany results', () => {
@@ -136,25 +95,6 @@ describe('Query#includes with simple associations', () => {
 
         const reloaded = await new Query(BalloonLine).includes('balloon').first()
         expect(reloaded!.balloon).toMatchDreamModel(balloon)
-      })
-    })
-
-    context('with primary key specified', () => {
-      it('loads the association', async () => {
-        const wellnessTag = await WellnessTag.create({ name: 'Atkins 40' })
-        const foodItem = await FoodItem.create({
-          name: 'Tuscan Chalupa',
-          calories: 50000000,
-          external_nutrition_id: 'abc123',
-        })
-        const foodItemWellnessTag = await FoodItemWellnessTag.create({
-          external_nutrition_id: 'abc123',
-          wellnessTag,
-          primary: true,
-        })
-
-        const reloaded = await new Query(FoodItemWellnessTag).includes('foodItem').first()
-        expect(reloaded!.foodItem).toMatchDreamModel(foodItem)
       })
     })
   })

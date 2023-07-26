@@ -13,12 +13,10 @@ export default function BelongsTo(
   modelCB: () => typeof Dream | (typeof Dream)[],
   {
     foreignKey,
-    primaryKey,
     optional = false,
     polymorphic = false,
   }: {
     foreignKey?: string
-    primaryKey?: string | null
     optional?: boolean
     polymorphic?: boolean
   } = {}
@@ -33,7 +31,6 @@ export default function BelongsTo(
       modelCB,
       type: 'BelongsTo',
       as: key,
-      primaryKey,
       optional,
       polymorphic,
     } as PartialAssociationStatement
@@ -75,5 +72,4 @@ export interface BelongsToStatement<TableName extends AssociationTableNames> {
   foreignKeyTypeField: () => keyof DB[TableName]
   optional: boolean
   polymorphic: boolean
-  primaryKey: string | null
 }

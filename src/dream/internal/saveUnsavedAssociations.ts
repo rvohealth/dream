@@ -13,8 +13,6 @@ export default async function saveUnsavedAssociations<DreamInstance extends Drea
 
     await saveDream(associationRecord, txn)
 
-    self[associationMetadata.foreignKey()] = associationMetadata.primaryKey
-      ? (associationRecord as any)[associationMetadata.primaryKey!]
-      : associationRecord.primaryKeyValue
+    self[associationMetadata.foreignKey()] = associationRecord.primaryKeyValue
   }
 }
