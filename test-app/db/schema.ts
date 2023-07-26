@@ -105,6 +105,24 @@ export interface ExtraRatings {
   updated_at: Timestamp;
 }
 
+export interface FoodItems {
+  id: Generated<Int8>;
+  calories: number | null;
+  name: string;
+  external_nutrition_id: string;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+export interface FoodItemWellnessTags {
+  id: Generated<Int8>;
+  primary: Generated<boolean>;
+  external_nutrition_id: string;
+  wellness_tag_id: Int8;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
 export interface GraphEdgeNodes {
   id: Generated<Int8>;
   edge_id: Int8;
@@ -188,6 +206,13 @@ export interface UserSettings {
   updated_at: Timestamp;
 }
 
+export interface WellnessTags {
+  id: Generated<Int8>;
+  name: string;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
 export interface DB {
   balloon_lines: BalloonLines;
   balloon_spotter_balloons: BalloonSpotterBalloons;
@@ -198,6 +223,8 @@ export interface DB {
   composition_assets: CompositionAssets;
   compositions: Compositions;
   extra_ratings: ExtraRatings;
+  food_item_wellness_tags: FoodItemWellnessTags;
+  food_items: FoodItems;
   graph_edge_nodes: GraphEdgeNodes;
   graph_edges: GraphEdges;
   graph_nodes: GraphNodes;
@@ -208,6 +235,7 @@ export interface DB {
   ratings: Ratings;
   user_settings: UserSettings;
   users: Users;
+  wellness_tags: WellnessTags;
 }
 
 
@@ -221,6 +249,8 @@ export const CompositionAssetAuditColumns = ['id', 'composition_asset_id', 'appr
 export const CompositionAssetColumns = ['id', 'composition_id', 'name', 'src', 'primary', 'score', 'created_at', 'updated_at']
 export const CompositionColumns = ['id', 'user_id', 'content', 'primary', 'created_at', 'updated_at']
 export const ExtraRatingColumns = ['type', 'id', 'user_id', 'extra_rateable_id', 'extra_rateable_type', 'rating', 'created_at', 'updated_at']
+export const FoodItemColumns = ['id', 'calories', 'name', 'external_nutrition_id', 'created_at', 'updated_at']
+export const FoodItemWellnessTagColumns = ['id', 'primary', 'external_nutrition_id', 'wellness_tag_id', 'created_at', 'updated_at']
 export const GraphEdgeNodeColumns = ['id', 'edge_id', 'node_id', 'created_at', 'updated_at']
 export const GraphEdgeColumns = ['id', 'name', 'created_at', 'updated_at']
 export const GraphNodeColumns = ['id', 'name', 'created_at', 'updated_at']
@@ -231,6 +261,7 @@ export const PostVisibilityColumns = ['id', 'visibility', 'notes', 'created_at',
 export const RatingColumns = ['id', 'user_id', 'rateable_id', 'rateable_type', 'rating', 'created_at', 'updated_at']
 export const UserColumns = ['id', 'name', 'email', 'password_digest', 'created_at', 'updated_at', 'deleted_at']
 export const UserSettingColumns = ['id', 'user_id', 'likes_chalupas', 'created_at', 'updated_at']
+export const WellnessTagColumns = ['id', 'name', 'created_at', 'updated_at']
 
 export interface BalloonLineAttributes {
   id: IdType
@@ -310,6 +341,24 @@ export interface ExtraRatingAttributes {
   extra_rateable_id: IdType
   extra_rateable_type: string
   rating: number | null
+  created_at: DateTime
+  updated_at: DateTime
+}  
+
+export interface FoodItemAttributes {
+  id: IdType
+  calories: number | null
+  name: string
+  external_nutrition_id: string
+  created_at: DateTime
+  updated_at: DateTime
+}  
+
+export interface FoodItemWellnessTagAttributes {
+  id: IdType
+  primary: boolean
+  external_nutrition_id: string
+  wellness_tag_id: IdType
   created_at: DateTime
   updated_at: DateTime
 }  
@@ -397,6 +446,13 @@ export interface UserSettingAttributes {
   updated_at: DateTime
 }  
 
+export interface WellnessTagAttributes {
+  id: IdType
+  name: string
+  created_at: DateTime
+  updated_at: DateTime
+}  
+
 
 export const BalloonLinesTypeCache = {
   id: 'Generated<Int8>',
@@ -476,6 +532,24 @@ export const ExtraRatingsTypeCache = {
   extra_rateable_id: 'Int8',
   extra_rateable_type: 'string',
   rating: 'number|null',
+  created_at: 'Timestamp',
+  updated_at: 'Timestamp'
+}  
+
+export const FoodItemsTypeCache = {
+  id: 'Generated<Int8>',
+  calories: 'number|null',
+  name: 'string',
+  external_nutrition_id: 'string',
+  created_at: 'Timestamp',
+  updated_at: 'Timestamp'
+}  
+
+export const FoodItemWellnessTagsTypeCache = {
+  id: 'Generated<Int8>',
+  primary: 'Generated<boolean>',
+  external_nutrition_id: 'string',
+  wellness_tag_id: 'Int8',
   created_at: 'Timestamp',
   updated_at: 'Timestamp'
 }  
@@ -563,6 +637,13 @@ export const UserSettingsTypeCache = {
   updated_at: 'Timestamp'
 }  
 
+export const WellnessTagsTypeCache = {
+  id: 'Generated<Int8>',
+  name: 'string',
+  created_at: 'Timestamp',
+  updated_at: 'Timestamp'
+}  
+
 
 
 export interface InterpretedDB {
@@ -575,6 +656,8 @@ export interface InterpretedDB {
   composition_assets: CompositionAssetAttributes,
   compositions: CompositionAttributes,
   extra_ratings: ExtraRatingAttributes,
+  food_items: FoodItemAttributes,
+  food_item_wellness_tags: FoodItemWellnessTagAttributes,
   graph_edge_nodes: GraphEdgeNodeAttributes,
   graph_edges: GraphEdgeAttributes,
   graph_nodes: GraphNodeAttributes,
@@ -584,7 +667,8 @@ export interface InterpretedDB {
   post_visibilities: PostVisibilityAttributes,
   ratings: RatingAttributes,
   users: UserAttributes,
-  user_settings: UserSettingAttributes
+  user_settings: UserSettingAttributes,
+  wellness_tags: WellnessTagAttributes
 }
 
 export const DBColumns = {
@@ -597,6 +681,8 @@ export const DBColumns = {
   composition_assets: CompositionAssetColumns,
   compositions: CompositionColumns,
   extra_ratings: ExtraRatingColumns,
+  food_items: FoodItemColumns,
+  food_item_wellness_tags: FoodItemWellnessTagColumns,
   graph_edge_nodes: GraphEdgeNodeColumns,
   graph_edges: GraphEdgeColumns,
   graph_nodes: GraphNodeColumns,
@@ -606,7 +692,8 @@ export const DBColumns = {
   post_visibilities: PostVisibilityColumns,
   ratings: RatingColumns,
   users: UserColumns,
-  user_settings: UserSettingColumns
+  user_settings: UserSettingColumns,
+  wellness_tags: WellnessTagColumns
 }
 
 export const DBTypeCache = {
@@ -619,6 +706,8 @@ export const DBTypeCache = {
   composition_assets: CompositionAssetsTypeCache,
   compositions: CompositionsTypeCache,
   extra_ratings: ExtraRatingsTypeCache,
+  food_items: FoodItemsTypeCache,
+  food_item_wellness_tags: FoodItemWellnessTagsTypeCache,
   graph_edge_nodes: GraphEdgeNodesTypeCache,
   graph_edges: GraphEdgesTypeCache,
   graph_nodes: GraphNodesTypeCache,
@@ -628,5 +717,6 @@ export const DBTypeCache = {
   post_visibilities: PostVisibilitiesTypeCache,
   ratings: RatingsTypeCache,
   users: UsersTypeCache,
-  user_settings: UserSettingsTypeCache
+  user_settings: UserSettingsTypeCache,
+  wellness_tags: WellnessTagsTypeCache
 } as Partial<Record<keyof DB, any>>

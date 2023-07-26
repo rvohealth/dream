@@ -8,6 +8,9 @@ import MissingThroughAssociation from '../../../../src/exceptions/missing-throug
 import BalloonSpotter from '../../../../test-app/app/models/BalloonSpotter'
 import BalloonSpotterBalloon from '../../../../test-app/app/models/BalloonSpotterBalloon'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
+import WellnessTag from '../../../../test-app/app/models/WellnessTag'
+import FoodItem from '../../../../test-app/app/models/FoodItem'
+import FoodItemWellnessTag from '../../../../test-app/app/models/FoodItemWellnessTag'
 
 describe('Query#includes through with simple associations', () => {
   context('HasMany via a join table', () => {
@@ -32,6 +35,24 @@ describe('Query#includes through with simple associations', () => {
       expect(reloaded!.balloons).toMatchDreamModels([balloon])
       expect(reloaded!.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon])
       expect(reloaded!.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon)
+    })
+
+    context('with a primaryKey specified', () => {
+      it('sets HasMany property and through property on the model and BelongsToProperty on the associated model', async () => {
+        const wellnessTag = await WellnessTag.create({ name: 'Atkins 40' })
+        const foodItem = await FoodItem.create({
+          name: 'Tuscan Chalupa',
+          calories: 50000000,
+          external_nutrition_id: 'abc123',
+        })
+        const foodItemWellnessTag = await FoodItemWellnessTag.create({
+          external_nutrition_id: 'abc123',
+          wellnessTag,
+        })
+
+        const reloaded = await new Query(FoodItem).includes('wellnessTags').first()
+        expect(reloaded!.wellnessTags).toMatchDreamModels([wellnessTag])
+      })
     })
   })
 

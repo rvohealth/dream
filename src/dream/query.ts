@@ -485,13 +485,17 @@ export default class Query<
       if (association.type === 'BelongsTo') {
         dreams
           .filter((dream: any) => {
+            const primaryKeyValue = association.primaryKey
+              ? (loadedAssociation as any)[association.primaryKey!]
+              : loadedAssociation.primaryKeyValue
+
             if (association.polymorphic) {
               return (
                 dream[association.foreignKeyTypeField()] === loadedAssociation.constructor.name &&
-                dream[association.foreignKey()] === loadedAssociation.primaryKeyValue
+                dream[association.foreignKey()] === primaryKeyValue
               )
             } else {
-              return dream[association.foreignKey()] === loadedAssociation.primaryKeyValue
+              return dream[association.foreignKey()] === primaryKeyValue
             }
           })
           .forEach((dream: any) => {
@@ -515,7 +519,11 @@ export default class Query<
         })
 
         dreams
-          .filter(dream => (loadedAssociation as any)[association.foreignKey()] === dream.primaryKeyValue)
+          .filter(dream =>
+            (loadedAssociation as any)[association.foreignKey()] === association.primaryKey
+              ? (dream as any)[association.primaryKey!]
+              : dream.primaryKeyValue
+          )
           .forEach((dream: any) => {
             if (association.type === 'HasMany') {
               dream[association.as].push(loadedAssociation)
@@ -638,7 +646,7 @@ export default class Query<
 
             // @ts-ignore
             associationQuery = associationQuery.where({
-              [associatedModel.primaryKey]: relevantAssociatedModels.map(
+              [association.primaryKey || associatedModel.primaryKey]: relevantAssociatedModels.map(
                 (dream: any) => (dream as any)[association.foreignKey()]
               ),
             })
@@ -654,7 +662,9 @@ export default class Query<
 
         // @ts-ignore
         associationQuery = associationQuery.where({
-          [associatedModel.primaryKey]: dreams.map(dream => (dream as any)[association.foreignKey()]),
+          [association.primaryKey || associatedModel.primaryKey]: dreams.map(
+            dream => (dream as any)[association.foreignKey()]
+          ),
         })
 
         this.hydrateAssociation(dreams, association, await associationQuery.all())
@@ -664,7 +674,9 @@ export default class Query<
       associationQuery = this.dreamTransaction ? associatedModel.txn(this.dreamTransaction) : associatedModel
       // @ts-ignore
       associationQuery = associationQuery.where({
-        [association.foreignKey()]: dreams.map(dream => dream.primaryKeyValue),
+        [association.foreignKey()]: dreams.map(dream =>
+          association.primaryKey ? (dream as any)[association.primaryKey] : dream.primaryKeyValue
+        ),
       })
 
       if (association.polymorphic) {

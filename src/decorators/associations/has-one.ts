@@ -13,6 +13,7 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
   modelCB: () => AssociationDreamClass,
   {
     foreignKey,
+    primaryKey = null,
     polymorphic = false,
     source,
     through,
@@ -20,6 +21,7 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
     whereNot,
   }: {
     foreignKey?: string
+    primaryKey?: string | null
     polymorphic?: boolean
     source?: string
     through?: string
@@ -38,6 +40,7 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
       type: 'HasOne',
       as: key,
       polymorphic,
+      primaryKey,
       source: source || key,
       through,
       where,

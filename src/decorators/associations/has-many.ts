@@ -13,6 +13,7 @@ export default function HasMany<AssociationDreamClass extends typeof Dream>(
   modelCB: () => AssociationDreamClass,
   {
     foreignKey,
+    primaryKey = null,
     polymorphic = false,
     source,
     through,
@@ -20,6 +21,7 @@ export default function HasMany<AssociationDreamClass extends typeof Dream>(
     whereNot,
   }: {
     foreignKey?: string
+    primaryKey?: string | null
     polymorphic?: boolean
     source?: string
     through?: string
@@ -46,6 +48,7 @@ export default function HasMany<AssociationDreamClass extends typeof Dream>(
 
     const association = {
       ...partialAssociation,
+      primaryKey,
       foreignKey() {
         return finalForeignKey(foreignKey, dreamClass, partialAssociation)
       },

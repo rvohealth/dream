@@ -8,6 +8,9 @@ import Pet from '../../../test-app/app/models/Pet'
 import { DateTime } from 'luxon'
 import PostVisibility from '../../../test-app/app/models/PostVisibility'
 import { Dream } from '../../../src'
+import WellnessTag from '../../../test-app/app/models/WellnessTag'
+import FoodItem from '../../../test-app/app/models/FoodItem'
+import FoodItemWellnessTag from '../../../test-app/app/models/FoodItemWellnessTag'
 
 describe('Dream.create', () => {
   it('creates the underlying model in the db', async () => {
@@ -65,6 +68,23 @@ describe('Dream.create', () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
       const composition = await Composition.create({ user })
       expect(composition.user).toEqual(user)
+    })
+
+    context('primaryKey is set on the association', () => {
+      it('sets the reference to that model', async () => {
+        const wellnessTag = await WellnessTag.create({ name: 'Atkins 40' })
+        const foodItem = await FoodItem.create({
+          name: 'Tuscan Chalupa',
+          calories: 50000000,
+          external_nutrition_id: 'abc123',
+        })
+        const foodItemWellnessTag = await FoodItemWellnessTag.create({
+          foodItem,
+          wellnessTag,
+        })
+        expect(foodItemWellnessTag.foodItem).toEqual(foodItem)
+        expect(foodItemWellnessTag.external_nutrition_id).toEqual('abc123')
+      })
     })
 
     context('when the model is polymorphic', () => {

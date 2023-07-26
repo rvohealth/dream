@@ -611,7 +611,10 @@ export default class Dream {
             associationMetaData as BelongsToStatement<any>
           )
 
-        self[belongsToAssociationMetaData.foreignKey()] = associatedObject?.primaryKeyValue
+        self[belongsToAssociationMetaData.foreignKey()] = belongsToAssociationMetaData.primaryKey
+          ? (associatedObject as any)[belongsToAssociationMetaData.primaryKey!]
+          : associatedObject?.primaryKeyValue
+
         if (belongsToAssociationMetaData.polymorphic)
           self[belongsToAssociationMetaData.foreignKeyTypeField()] = associatedObject?.constructor?.name
       } else {
