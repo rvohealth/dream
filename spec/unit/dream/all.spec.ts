@@ -1,10 +1,12 @@
 import User from '../../../test-app/app/models/User'
 import Composition from '../../../test-app/app/models/Composition'
 import { Dream } from '../../../src'
+import Animal from '../../../test-app/app/models/Balloon/Latex/Animal'
+import Balloon from '../../../test-app/app/models/Balloon'
+import Latex from '../../../test-app/app/models/Balloon/Latex'
 
 describe('Dream.all', () => {
   it('finds all records for a given model', async () => {
-    // const composition = await Composition.create()
     const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
@@ -12,10 +14,15 @@ describe('Dream.all', () => {
     expect(results.length).toEqual(2)
     expect(results[0].id).toEqual(user1.id)
     expect(results[1].id).toEqual(user2.id)
+  })
 
-    // const otherResults = await Composition.all()
-    // expect(otherResults.length).toEqual(1)
-    // expect(otherResults[0].id).toEqual(composition.id)
+  context('STI models', () => {
+    it('are instantiated as the type specified in the type field', async () => {
+      const latexBalloon = await Latex.create({ color: 'green' })
+      const animalBalloon = await Animal.create({ color: 'red' })
+      const balloons = await Balloon.all()
+      expect(balloons).toMatchDreamModels([latexBalloon, animalBalloon])
+    })
   })
 
   context('when passed a transaction', () => {

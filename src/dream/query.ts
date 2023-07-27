@@ -444,7 +444,7 @@ export default class Query<
     const results = await kyselyQuery.executeTakeFirst()
 
     if (results) {
-      const theFirst = new query.dreamClass(results as any) as InstanceType<DreamClass>
+      const theFirst = sqlResultToDreamInstance(this.dreamClass, results) as InstanceType<DreamClass>
       if (theFirst) await query.applyThisDotIncludes([theFirst])
       return theFirst
     } else return null

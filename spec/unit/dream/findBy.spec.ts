@@ -1,4 +1,6 @@
 import { Dream } from '../../../src'
+import Balloon from '../../../test-app/app/models/Balloon'
+import Latex from '../../../test-app/app/models/Balloon/Latex'
 import User from '../../../test-app/app/models/User'
 
 describe('Dream.findBy', () => {
@@ -6,6 +8,14 @@ describe('Dream.findBy', () => {
     const u = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user = await User.findBy({ id: u.id, email: 'fred@frewd' })
     expect(user!.email).toEqual('fred@frewd')
+  })
+
+  context('STI model', () => {
+    it('is instantiated as the type specified in the type field', async () => {
+      const latexBalloon = await Latex.create({ color: 'green' })
+      const balloon = await Balloon.findBy({ color: 'green' })
+      expect(balloon).toMatchDreamModel(latexBalloon)
+    })
   })
 
   context('when passed a transaction', () => {

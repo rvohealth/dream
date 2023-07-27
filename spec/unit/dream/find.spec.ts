@@ -1,4 +1,6 @@
 import Dream from '../../../src/dream'
+import Balloon from '../../../test-app/app/models/Balloon'
+import Latex from '../../../test-app/app/models/Balloon/Latex'
 import User from '../../../test-app/app/models/User'
 
 describe('Dream.find', () => {
@@ -27,6 +29,14 @@ describe('Dream.find', () => {
   context('when passed the id of a nonextant User', () => {
     it('returns null', async () => {
       expect(await User.find(parseInt(user.id as string) + 1)).toBeNull()
+    })
+  })
+
+  context('STI model', () => {
+    it('is instantiated as the type specified in the type field', async () => {
+      const latexBalloon = await Latex.create({ color: 'green' })
+      const balloon = await Balloon.find(latexBalloon.id)
+      expect(balloon).toMatchDreamModel(latexBalloon)
     })
   })
 
