@@ -8,13 +8,13 @@ import { DelegateStatement } from './decorators/delegate'
 import { loadDreamYamlFile } from '../helpers/path'
 import MissingSerializer from '../exceptions/missing-serializer'
 
-export default class DreamSerializer {
+export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
   public static attributeStatements: AttributeStatement[] = []
   public static associationStatements: AssociationStatement[] = []
   public static delegateStatements: DelegateStatement[] = []
-  private _data: { [key: string]: any } | Dream | ({ [key: string]: any } | Dream)[]
+  private _data: DataType
   private _casing: 'snake' | 'camel' | null = null
-  constructor(data: any) {
+  constructor(data: DataType) {
     this._data = data
 
     const attributeStatements = [...(this.constructor as typeof DreamSerializer).attributeStatements]
@@ -61,8 +61,8 @@ export default class DreamSerializer {
     return this
   }
 
-  protected passthroughData: { [key: string]: any } = {}
-  public passthrough(obj: { [key: string]: any }) {
+  protected passthroughData: Partial<PassthroughDataType> = {}
+  public passthrough(obj: Partial<PassthroughDataType>) {
     this.passthroughData = {
       ...this.passthroughData,
       ...obj,

@@ -34,7 +34,7 @@ describe('DreamSerializer#render', () => {
     expect(serializer.render()).toEqual({ email: 'abc', name: 'Frodo' })
   })
 
-  it('renders a single attribute', async () => {
+  it('renders a single attribute with no neighboring attributes', async () => {
     class MySerializer extends DreamSerializer {
       @Attribute()
       public email: string
@@ -72,6 +72,20 @@ describe('DreamSerializer#render', () => {
     }
     const serializer = new MySerializer({ email: 'abc', password: 'james' })
     expect(serializer.render()).toEqual({ email: 'abc' })
+  })
+
+  it('provides type helping with custom data and passthrough types set', async () => {
+    class MySerializer extends DreamSerializer<{ email: string }, { howyadoin: string }> {
+      @Attribute()
+      public email: string
+
+      @Attribute()
+      public howyadoin() {
+        return this.passthroughData.howyadoin
+      }
+    }
+    const serializer = new MySerializer({ email: 'abc' }).passthrough({ howyadoin: 'yay' })
+    expect(serializer.render()).toEqual({ email: 'abc', howyadoin: 'yay' })
   })
 
   context('with decorated attributes', () => {
