@@ -13,7 +13,9 @@ export default function RendersOne(
     }
 
     if (!Object.getOwnPropertyDescriptor(serializerClass, 'associationStatements'))
-      serializerClass.associationStatements = [] as AssociationStatement[]
+      serializerClass.associationStatements = [
+        ...(serializerClass.associationStatements || []),
+      ] as AssociationStatement[]
 
     serializerClass.associationStatements = [
       ...serializerClass.associationStatements,

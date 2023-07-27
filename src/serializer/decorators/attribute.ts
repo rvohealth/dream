@@ -4,7 +4,9 @@ export default function Attribute(renderAs?: SerializableTypes): any {
   return function (target: any, key: string, def: any) {
     const serializerClass: typeof DreamSerializer = target.constructor
     if (!Object.getOwnPropertyDescriptor(serializerClass, 'attributeStatements'))
-      serializerClass.attributeStatements = [] as AttributeStatement[]
+      serializerClass.attributeStatements = [
+        ...(serializerClass.attributeStatements || []),
+      ] as AttributeStatement[]
 
     serializerClass.attributeStatements = [
       ...serializerClass.attributeStatements,

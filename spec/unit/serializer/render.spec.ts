@@ -7,6 +7,7 @@ import User from '../../../test-app/app/models/User'
 import Pet from '../../../test-app/app/models/Pet'
 import Delegate from '../../../src/serializer/decorators/delegate'
 import MissingSerializer from '../../../src/exceptions/missing-serializer'
+import Balloon from '../../../test-app/app/models/Balloon'
 
 describe('DreamSerializer#render', () => {
   it('renders a single attribute', async () => {
@@ -16,6 +17,21 @@ describe('DreamSerializer#render', () => {
     }
     const serializer = new MySerializer({ email: 'abc', password: '123' })
     expect(serializer.render()).toEqual({ email: 'abc' })
+  })
+
+  it('renders an attribute from this serializer and the ancestor', async () => {
+    class BaseSerializer extends DreamSerializer {
+      @Attribute()
+      public name: string
+    }
+
+    class MySerializer extends BaseSerializer {
+      @Attribute()
+      public email: string
+    }
+
+    const serializer = new MySerializer({ email: 'abc', name: 'Frodo', password: '123' })
+    expect(serializer.render()).toEqual({ email: 'abc', name: 'Frodo' })
   })
 
   it('renders multiple attributes', async () => {
@@ -161,6 +177,28 @@ describe('DreamSerializer#render', () => {
         expect(serializer.render()).toEqual({ pets: [{ name: 'aster', species: 'cat' }] })
       })
 
+      it('renders many from this serializer and the ancestor', async () => {
+        class ChildSerializer extends UserSerializer {
+          @RendersMany(() => BalloonSerializer)
+          public balloons: Balloon[]
+        }
+
+        class BalloonSerializer extends DreamSerializer {
+          @Attribute()
+          public color: string
+        }
+
+        const serializer = new ChildSerializer({
+          pets: [{ name: 'aster', species: 'cat' }],
+          balloons: [{ color: 'red' }],
+        })
+
+        expect(serializer.render()).toMatchObject({
+          pets: [{ name: 'aster', species: 'cat' }],
+          balloons: [{ color: 'red' }],
+        })
+      })
+
       context('when the source option is passed', () => {
         class UserSerializerWithSource extends DreamSerializer {
           @RendersMany(() => PetSerializer, { source: 'pets' })
@@ -293,6 +331,41 @@ describe('DreamSerializer#render', () => {
 
         const serializer = new PetSerializer(pet)
         expect(serializer.render()).toEqual({ user: { email: 'how@yadoin' } })
+      })
+
+      it('renders one from this serializer and the ancestor', async () => {
+        class UserSerializer extends DreamSerializer {
+          @RendersOne(() => PetSerializer)
+          public pet: Pet
+        }
+
+        class ChildSerializer extends UserSerializer {
+          @RendersOne(() => BalloonSerializer)
+          public balloon: Balloon
+        }
+
+        class PetSerializer extends DreamSerializer {
+          @Attribute()
+          public name: string
+
+          @Attribute()
+          public species: string
+        }
+
+        class BalloonSerializer extends DreamSerializer {
+          @Attribute()
+          public color: string
+        }
+
+        const serializer = new ChildSerializer({
+          pet: { name: 'aster', species: 'cat' },
+          balloon: { color: 'red' },
+        })
+
+        expect(serializer.render()).toMatchObject({
+          pet: { name: 'aster', species: 'cat' },
+          balloon: { color: 'red' },
+        })
       })
 
       context('when the field is undefined', () => {
