@@ -252,7 +252,7 @@ export default class Dream {
 
     return (await new (this as any)({
       ...opts,
-      ...extraOpts.with,
+      ...(extraOpts?.with || {}),
     }).save()) as InstanceType<T>
   }
 
