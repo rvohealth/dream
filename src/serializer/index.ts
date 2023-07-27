@@ -157,7 +157,7 @@ export default class DreamSerializer {
     if (attributeStatement.functional) {
       return (this as any)[field](this._data)
     } else {
-      return (this.data as any)[field]
+      return (this.originalData as any)[field]
     }
   }
 

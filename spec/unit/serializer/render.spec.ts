@@ -34,6 +34,22 @@ describe('DreamSerializer#render', () => {
     expect(serializer.render()).toEqual({ email: 'abc', name: 'Frodo' })
   })
 
+  it('renders a single attribute', async () => {
+    class MySerializer extends DreamSerializer {
+      @Attribute()
+      public email: string
+    }
+
+    class MyData {
+      public get email() {
+        return 'abc'
+      }
+    }
+
+    const serializer = new MySerializer(new MyData())
+    expect(serializer.render()).toEqual({ email: 'abc' })
+  })
+
   it('renders multiple attributes', async () => {
     class MySerializer extends DreamSerializer {
       @Attribute()
