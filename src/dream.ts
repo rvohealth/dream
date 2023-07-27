@@ -200,20 +200,6 @@ export default class Dream {
     return (await new (this as any)(opts as any).save()) as InstanceType<T>
   }
 
-  public static async findOrCreateBy<T extends typeof Dream>(
-    this: T,
-    opts: WhereStatement<InstanceType<T>['table']>,
-    extraOpts: CreateOrFindByExtraOps<T> = {}
-  ) {
-    const existingRecord = await this.findBy(opts)
-    if (existingRecord) return existingRecord
-
-    return (await new (this as any)({
-      ...opts,
-      ...extraOpts.with,
-    }).save()) as InstanceType<T>
-  }
-
   public static async createOrFindBy<T extends typeof Dream>(
     this: T,
     opts: WhereStatement<InstanceType<T>['table']>,
@@ -248,6 +234,20 @@ export default class Dream {
   ): Promise<(InstanceType<T> & Dream) | null> {
     const query: Query<T> = new Query<T>(this)
     return await query.findBy(attributes)
+  }
+
+  public static async findOrCreateBy<T extends typeof Dream>(
+    this: T,
+    opts: WhereStatement<InstanceType<T>['table']>,
+    extraOpts: CreateOrFindByExtraOps<T> = {}
+  ) {
+    const existingRecord = await this.findBy(opts)
+    if (existingRecord) return existingRecord
+
+    return (await new (this as any)({
+      ...opts,
+      ...extraOpts.with,
+    }).save()) as InstanceType<T>
   }
 
   public static async first<T extends typeof Dream>(this: T): Promise<InstanceType<T> | null> {
