@@ -210,7 +210,7 @@ export default class Dream {
     try {
       record = await new (this as any)({
         ...opts,
-        ...(extraOpts?.with || {}),
+        ...(extraOpts?.createWith || {}),
       }).save()
       return record
     } catch (err) {
@@ -252,7 +252,7 @@ export default class Dream {
 
     return (await new (this as any)({
       ...opts,
-      ...(extraOpts?.with || {}),
+      ...(extraOpts?.createWith || {}),
     }).save()) as InstanceType<T>
   }
 
@@ -692,5 +692,5 @@ export default class Dream {
 }
 
 export interface CreateOrFindByExtraOps<T extends typeof Dream> {
-  with?: WhereStatement<InstanceType<T>['table']> | UpdateableFields<T>
+  createWith?: WhereStatement<InstanceType<T>['table']> | UpdateableFields<T>
 }
