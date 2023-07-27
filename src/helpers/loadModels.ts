@@ -53,8 +53,6 @@ export default async function loadModels() {
       currentRef = modelsObj
 
       models[modelKey] = ModelClass!
-    } else {
-      console.log('Invalid Model found: ', relativePath)
     }
   }
 
