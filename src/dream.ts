@@ -200,6 +200,37 @@ export default class Dream {
     return (await new (this as any)(opts as any).save()) as InstanceType<T>
   }
 
+  public static async findOrCreateBy<T extends typeof Dream>(
+    this: T,
+    opts: WhereStatement<InstanceType<T>['table']>,
+    extraOpts: CreateOrFindByExtraOps<T> = {}
+  ) {
+    const existingRecord = await this.findBy(opts)
+    if (existingRecord) return existingRecord
+
+    return (await new (this as any)({
+      ...opts,
+      ...extraOpts.with,
+    }).save()) as InstanceType<T>
+  }
+
+  public static async createOrFindBy<T extends typeof Dream>(
+    this: T,
+    opts: WhereStatement<InstanceType<T>['table']>,
+    extraOpts: CreateOrFindByExtraOps<T> = {}
+  ): Promise<InstanceType<T> | null> {
+    let record: InstanceType<T>
+    try {
+      record = await new (this as any)({
+        ...opts,
+        ...(extraOpts?.with || {}),
+      }).save()
+      return record
+    } catch (err) {
+      return await this.findBy(opts)
+    }
+  }
+
   public static async find<
     T extends typeof Dream,
     TableName extends keyof InterpretedDB = InstanceType<T>['table'] & keyof InterpretedDB
@@ -652,4 +683,8 @@ export default class Dream {
     this._preventDeletion = false
     return this
   }
+}
+
+export interface CreateOrFindByExtraOps<T extends typeof Dream> {
+  with?: WhereStatement<InstanceType<T>['table']> | UpdateableFields<T>
 }
