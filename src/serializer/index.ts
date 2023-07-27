@@ -39,7 +39,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     return { ...this._data }
   }
 
-  public get originalData() {
+  public get originalData(): DataType {
     return this._data
   }
 
