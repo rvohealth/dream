@@ -26,6 +26,9 @@ export default {
     ],
     "balloonLine": [
       "balloon_lines"
+    ],
+    "sandbags": [
+      "sandbags"
     ]
   },
   "collars": {
@@ -157,6 +160,11 @@ export default {
     "rateable": [
       "compositions",
       "posts"
+    ]
+  },
+  "sandbags": {
+    "mylar": [
+      "beautiful_balloons"
     ]
   },
   "users": {
@@ -238,6 +246,9 @@ export interface SyncedAssociations {
     ],
     "balloonLine": [
       "balloon_lines"
+    ],
+    "sandbags": [
+      "sandbags"
     ]
   },
   "collars": {
@@ -369,6 +380,11 @@ export interface SyncedAssociations {
     "rateable": [
       "compositions",
       "posts"
+    ]
+  },
+  "sandbags": {
+    "mylar": [
+      "beautiful_balloons"
     ]
   },
   "users": {
@@ -513,6 +529,11 @@ export interface SyncedBelongsToAssociations {
       "posts"
     ]
   },
+  "sandbags": {
+    "mylar": [
+      "beautiful_balloons"
+    ]
+  },
   "users": false,
   "user_settings": {
     "user": [
@@ -540,6 +561,7 @@ export interface VirtualColumns {
   "posts": false,
   "post_visibilities": false,
   "ratings": false,
+  "sandbags": false,
   "users": [
     "password"
   ],

@@ -170,6 +170,14 @@ export interface Ratings {
   updated_at: Timestamp;
 }
 
+export interface Sandbags {
+  id: Generated<Int8>;
+  balloon_id: Int8;
+  weight: number | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
 export interface Users {
   id: Generated<Int8>;
   name: string | null;
@@ -206,6 +214,7 @@ export interface DB {
   post_visibilities: PostVisibilities;
   posts: Posts;
   ratings: Ratings;
+  sandbags: Sandbags;
   user_settings: UserSettings;
   users: Users;
 }
@@ -229,6 +238,7 @@ export const PetColumns = ['id', 'user_id', 'species', 'name', 'deleted_at', 'cr
 export const PostColumns = ['id', 'user_id', 'post_visibility_id', 'body', 'created_at', 'updated_at']
 export const PostVisibilityColumns = ['id', 'visibility', 'notes', 'created_at', 'updated_at']
 export const RatingColumns = ['id', 'user_id', 'rateable_id', 'rateable_type', 'rating', 'created_at', 'updated_at']
+export const SandbagColumns = ['id', 'balloon_id', 'weight', 'created_at', 'updated_at']
 export const UserColumns = ['id', 'name', 'email', 'password_digest', 'created_at', 'updated_at', 'deleted_at']
 export const UserSettingColumns = ['id', 'user_id', 'likes_chalupas', 'created_at', 'updated_at']
 
@@ -375,6 +385,14 @@ export interface RatingAttributes {
   rateable_id: IdType
   rateable_type: string
   rating: number | null
+  created_at: DateTime
+  updated_at: DateTime
+}  
+
+export interface SandbagAttributes {
+  id: IdType
+  balloon_id: IdType
+  weight: number | null
   created_at: DateTime
   updated_at: DateTime
 }  
@@ -545,6 +563,14 @@ export const RatingsTypeCache = {
   updated_at: 'Timestamp'
 }  
 
+export const SandbagsTypeCache = {
+  id: 'Generated<Int8>',
+  balloon_id: 'Int8',
+  weight: 'number|null',
+  created_at: 'Timestamp',
+  updated_at: 'Timestamp'
+}  
+
 export const UsersTypeCache = {
   id: 'Generated<Int8>',
   name: 'string|null',
@@ -583,6 +609,7 @@ export interface InterpretedDB {
   posts: PostAttributes,
   post_visibilities: PostVisibilityAttributes,
   ratings: RatingAttributes,
+  sandbags: SandbagAttributes,
   users: UserAttributes,
   user_settings: UserSettingAttributes
 }
@@ -605,6 +632,7 @@ export const DBColumns = {
   posts: PostColumns,
   post_visibilities: PostVisibilityColumns,
   ratings: RatingColumns,
+  sandbags: SandbagColumns,
   users: UserColumns,
   user_settings: UserSettingColumns
 }
@@ -627,6 +655,7 @@ export const DBTypeCache = {
   posts: PostsTypeCache,
   post_visibilities: PostVisibilitiesTypeCache,
   ratings: RatingsTypeCache,
+  sandbags: SandbagsTypeCache,
   users: UsersTypeCache,
   user_settings: UserSettingsTypeCache
 } as Partial<Record<keyof DB, any>>

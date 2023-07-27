@@ -347,3 +347,29 @@ NODE_ENV=test psy db:migrate --core
 # docs generated on a per-version basis
 yarn build:docs
 ```
+
+#### Hidden gotchas
+
+- STI descendants of the same root model that define the same association must define that association identically if they are used in joins, includes, or load. For example, the following will not work properly:
+
+```ts
+@STI(A)
+class B extends A {
+  @HasMany(() => X)
+  public xx: X[]
+}
+
+@STI(A)
+class C extends A {
+  @HasMany(() => X, { where: { something: true } })
+  public xx: X[]
+}
+
+class Z extends Dream {
+  @HasMany(() => A)
+  public aa: A[]
+}
+
+// this will not work as expected because the HasMany(() => X) are defined differently
+await z.load({ aa: 'xx' })
+```

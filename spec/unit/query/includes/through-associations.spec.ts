@@ -8,6 +8,8 @@ import MissingThroughAssociation from '../../../../src/exceptions/missing-throug
 import BalloonSpotter from '../../../../test-app/app/models/BalloonSpotter'
 import BalloonSpotterBalloon from '../../../../test-app/app/models/BalloonSpotterBalloon'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
+import Sandbag from '../../../../test-app/app/models/Sandbag'
 
 describe('Query#includes through with simple associations', () => {
   context('HasMany via a join table', () => {
@@ -112,6 +114,30 @@ describe('Query#includes through with simple associations', () => {
           .includes({ mainCompositionAsset: 'compositionAssetAudits' })
           .first()
         expect(reloadedComposition!.mainCompositionAsset).toBeNull()
+      })
+    })
+
+    context('when including an association that exists on one of the STI children and not the other', () => {
+      it('sets HasOne association property on the STI child that has the association', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const latex = await Latex.create({ color: 'blue', user })
+        const mylar = await Mylar.create({ color: 'red', user })
+        const sandbag = await Sandbag.create({ mylar })
+
+        const reloaded = await new Query(User).includes({ balloons: 'sandbags' }).order('id', 'asc').first()
+        expect(reloaded!.balloons[0]).toMatchDreamModel(latex)
+        expect(reloaded!.balloons[1]).toMatchDreamModel(mylar)
+        expect((reloaded!.balloons[1] as Mylar).sandbags).toMatchDreamModels([sandbag])
+      })
+
+      context("when the query doesn't include any STI child that has the association", () => {
+        it('the models without the association are loaded successfully', async () => {
+          const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+          const latex = await Latex.create({ color: 'blue', user })
+
+          const reloaded = await new Query(User).includes({ balloons: 'sandbags' }).order('id', 'asc').first()
+          expect(reloaded!.balloons[0]).toMatchDreamModel(latex)
+        })
       })
     })
   })
