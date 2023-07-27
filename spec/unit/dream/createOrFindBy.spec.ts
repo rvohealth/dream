@@ -1,3 +1,4 @@
+import { Dream } from '../../../src'
 import User from '../../../test-app/app/models/User'
 
 describe('Dream.createOrFindBy', () => {
@@ -21,6 +22,20 @@ describe('Dream.createOrFindBy', () => {
       const user = await User.find(u!.id)
       expect(user!.email).toEqual('fred@fred')
       expect(await user!.checkPassword('howyadoin')).toEqual(true)
+    })
+  })
+
+  context('when a non-foreign-key-constraint related issue crops up', () => {
+    beforeEach(() => {
+      jest
+        .spyOn(Dream.prototype, 'save')
+        .mockImplementation(() => new Promise((accept, reject) => reject(new Error('unexpected error!'))))
+    })
+
+    it('does not mask error', async () => {
+      expect(
+        async () => await User.createOrFindBy({ email: 'fred@fred' }, { with: { password: 'nothowyadoin' } })
+      ).rejects.toThrowError()
     })
   })
 })

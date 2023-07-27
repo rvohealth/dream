@@ -50,6 +50,7 @@ import createAssociation from './dream/internal/associations/createAssociation'
 import reload from './dream/internal/reload'
 import destroyDream from './dream/internal/destroyDream'
 import destroyAssociation from './dream/internal/associations/destroyAssociation'
+import { DatabaseError } from 'pg'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -213,7 +214,12 @@ export default class Dream {
       }).save()
       return record
     } catch (err) {
-      return await this.findBy(opts)
+      if (
+        (err as DatabaseError)?.constructor === DatabaseError &&
+        (err as DatabaseError)?.message?.includes('duplicate key value violates unique constraint')
+      )
+        return await this.findBy(opts)
+      throw err
     }
   }
 
