@@ -555,6 +555,7 @@ export default class Query<
       dreams.forEach(dream => {
         if (association.type === 'HasMany') {
           Object.defineProperty(dream, association.as, {
+            configurable: true,
             get() {
               const throughAssociation = (dream as any)[association.through!]
 
@@ -571,6 +572,7 @@ export default class Query<
           })
         } else {
           Object.defineProperty(dream, association.as, {
+            configurable: true,
             get() {
               return (dream as any)[association.through!]?.[association.source] || null
             },
