@@ -1,6 +1,6 @@
 import STI from '../../../../src/decorators/STI'
 import BelongsTo from '../../../../src/decorators/associations/belongs-to'
-import { IdType } from '../../../../src/db/reflections'
+import { IdType } from '../../../../src/dream/types'
 import BaseExtraRating from './Base'
 import Composition from '../Composition'
 import Post from '../Post'

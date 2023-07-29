@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import Dream from '../../../../src/dream'
-import { IdType } from '../../../../src/db/reflections'
+import { IdType } from '../../../../src/dream/types'
 import HasMany from '../../../../src/decorators/associations/has-many'
 import GraphNodeSerializer from '../../../../test-app/app/serializers/Graph/NodeSerializer'
 import EdgeNode from './EdgeNode'

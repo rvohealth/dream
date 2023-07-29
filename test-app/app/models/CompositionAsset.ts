@@ -6,7 +6,7 @@ import AfterDestroyCommit from '../../../src/decorators/hooks/after-destroy-comm
 import BeforeDestroy from '../../../src/decorators/hooks/before-destroy'
 import BeforeSave from '../../../src/decorators/hooks/before-save'
 import Dream from '../../../src/dream'
-import { IdType } from '../../../src/db/reflections'
+import { IdType } from '../../../src/dream/types'
 import Composition from './Composition'
 import CompositionAssetAudit from './CompositionAssetAudit'
 import User from './User'

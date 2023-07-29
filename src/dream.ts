@@ -1,6 +1,6 @@
 import { CompiledQuery, SelectArg, SelectExpression, Updateable } from 'kysely'
 import db from './db'
-import { DB, DBColumns, IdType, InterpretedDB } from './sync/schema'
+import { DB, DBColumns, InterpretedDB } from './sync/schema'
 import { HasManyStatement } from './decorators/associations/has-many'
 import { BelongsToStatement } from './decorators/associations/belongs-to'
 import { HasOneStatement } from './decorators/associations/has-one'
@@ -20,6 +20,7 @@ import CanOnlyPassBelongsToModelParam from './exceptions/can-only-pass-belongs-t
 import {
   AssociationExpression,
   DreamConstructorType,
+  IdType,
   UpdateableFields,
   UpdateableInstanceFields,
 } from './dream/types'

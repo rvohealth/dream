@@ -1,5 +1,5 @@
 import Dream from '../../../../src/dream'
-import { IdType } from '../../../../src/db/reflections'
+import { IdType } from '../../../../src/dream/types'
 
 export default class BaseExtraRating extends Dream {
   public get table() {

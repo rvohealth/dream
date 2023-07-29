@@ -1,7 +1,7 @@
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
 import Dream from '../../../src/dream'
-import { IdType } from '../../../src/db/reflections'
+import { IdType } from '../../../src/dream/types'
 import PostVisibility from './PostVisibility'
 import Rating from './Rating'
 import User from './User'

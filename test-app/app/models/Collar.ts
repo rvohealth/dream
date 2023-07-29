@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import Dream from '../../../src/dream'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
-import { IdType } from '../../../src/db/reflections'
+import { IdType } from '../../../src/dream/types'
 import CollarSerializer from '../../../test-app/app/serializers/CollarSerializer'
 import Pet from './Pet'
 

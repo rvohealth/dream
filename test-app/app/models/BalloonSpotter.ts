@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import Dream from '../../../src/dream'
-import { IdType } from '../../../src/db/reflections'
+import { IdType } from '../../../src/dream/types'
 import BalloonSpotterSerializer from '../../../test-app/app/serializers/BalloonSpotterSerializer'
 import { HasMany } from '../../../src'
 import BalloonSpotterBalloon from './BalloonSpotterBalloon'

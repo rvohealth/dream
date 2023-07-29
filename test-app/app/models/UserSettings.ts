@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import Dream from '../../../src/dream'
-import { IdType } from '../../../src/db/reflections'
+import { IdType } from '../../../src/dream/types'
 import User from './User'
 
 export default class UserSettings extends Dream {

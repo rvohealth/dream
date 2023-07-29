@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import Dream from '../../../src/dream'
-import { IdType } from '../../../src/db/reflections'
+import { IdType } from '../../../src/dream/types'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import BalloonLineSerializer from '../../../test-app/app/serializers/BalloonLineSerializer'
 import Balloon from './Balloon'

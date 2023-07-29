@@ -2,7 +2,7 @@ import { DateTime } from 'luxon'
 import Dream from '../../../src/dream'
 import BeforeCreate from '../../../src/decorators/hooks/before-create'
 import HasOne from '../../../src/decorators/associations/has-one'
-import { IdType } from '../../../src/db/reflections'
+import { IdType } from '../../../src/dream/types'
 import Post from './Post'
 
 export default class PostVisibility extends Dream {
