@@ -126,8 +126,7 @@ function addCustomImports(file: string) {
   }
 
   const customImports = `import { DateTime } from 'luxon'
-import { IdType, Timestamp } from '${dreamTypesSource}'
-`
+import { IdType, Timestamp } from '${dreamTypesSource}'`
 
   return `${customImports}
 ${file}`
