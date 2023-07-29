@@ -1,6 +1,6 @@
 import User from '../../../test-app/app/models/User'
 import Pet from '../../../test-app/app/models/Pet'
-import { IdType } from '../../../src/sync/schema'
+import { IdType } from '../../../src/dream/types'
 
 describe('Dream#unscoped', () => {
   let user: User
