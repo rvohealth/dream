@@ -1,4 +1,5 @@
-import { Updateable } from 'kysely'
+import { DateTime } from 'luxon'
+import { Updateable, ColumnType } from 'kysely'
 import { AssociationTableNames } from '../db/reflections'
 import { SyncedAssociations, VirtualColumns } from '../sync/associations'
 import Dream from '../dream'
@@ -7,6 +8,9 @@ import { DB } from '../sync/schema'
 import { AssociatedModelParam, WhereStatement } from '../decorators/associations/shared'
 
 type MAX_DEPTH = 3
+
+export type IdType = string | number | bigint | undefined
+export type Timestamp = ColumnType<DateTime>
 
 export type NestedAssociationExpression<
   TB extends AssociationTableNames,

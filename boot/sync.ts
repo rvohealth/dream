@@ -62,7 +62,7 @@ async function writeSchema() {
 // begin: schema helpers
 
 async function enhanceSchema(file: string) {
-  file = AddCustomTypeExports(file)
+  file = removeUnwantedExports(file)
   file = replaceBlankExport(file)
   file = addCustomImports(file)
 
@@ -74,9 +74,7 @@ async function enhanceSchema(file: string) {
   const cachedInterfaces = results.map(result => buildCachedInterfaces(result))
   let transformedNames = compact(results.map(result => transformName(result))) as [string, string][]
 
-  const newFileContents = `
-${file}
-
+  const newFileContents = `${file}
 
 ${interfaceKeyIndexes.join('\n')}
 
@@ -114,26 +112,24 @@ export const DBTypeCache = {
   return [newFileContents, transformedNames] as [string, [string, string][]]
 }
 
-function AddCustomTypeExports(file: string) {
-  if (/export type Timestamp/.test(file)) {
-    return `\
-${file.replace(
-  'export type Timestamp = ColumnType<Date, Date | string, Date | string>',
-  `\
-export type Timestamp = ColumnType<DateTime>
-export type IdType = string | number | bigint | undefined`
-)}`
-  } else {
-    return `\
-${file}
-export type Timestamp = ColumnType<DateTime>
-export type IdType = string | number | bigint | undefined`
-  }
+function removeUnwantedExports(file: string) {
+  return file.replace('\nexport type Timestamp = ColumnType<Date, Date | string, Date | string>;', '')
 }
 
 function addCustomImports(file: string) {
-  return `\
-import { DateTime } from 'luxon'
+  let dreamTypesSource: string
+
+  if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
+    dreamTypesSource = '../dream/types'
+  } else {
+    dreamTypesSource = 'dream'
+  }
+
+  const customImports = `import { DateTime } from 'luxon'
+import { IdType, Timestamp } from '${dreamTypesSource}'
+`
+
+  return `${customImports}
 ${file}`
 }
 

@@ -1,5 +1,6 @@
-
 import { DateTime } from 'luxon'
+import { IdType, Timestamp } from '../dream/types'
+
 import type { ColumnType } from "kysely";
 
 export type BalloonColorsEnum = "blue" | "green" | "red";
@@ -20,8 +21,6 @@ export type Numeric = ColumnType<string, string | number, string | number>;
 
 export type Species = "cat" | "dog" | "frog";
 
-export type Timestamp = ColumnType<DateTime>
-export type IdType = string | number | bigint | undefined;
 
 export interface BalloonLines {
   id: Generated<Int8>;
@@ -218,7 +217,6 @@ export interface DB {
   user_settings: UserSettings;
   users: Users;
 }
-
 
 
 export const BalloonLineColumns = ['id', 'balloon_id', 'material', 'created_at', 'updated_at']
