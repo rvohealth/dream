@@ -593,15 +593,10 @@ export default class Dream {
     return destroyAssociation(this, null, associationName, opts)
   }
 
-  public associationQuery<
-    I extends Dream,
-    AssociationName extends keyof SyncedAssociations[I['table']],
-    PossibleArrayAssociationType = I[AssociationName & keyof I],
-    AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
-      ? ElementType
-      : PossibleArrayAssociationType,
-    AssociationQuery = Query<DreamConstructorType<AssociationType & Dream>>
-  >(this: I, associationName: AssociationName) {
+  public associationQuery<I extends Dream, AssociationName extends keyof SyncedAssociations[I['table']]>(
+    this: I,
+    associationName: AssociationName
+  ) {
     return associationQuery(this, null, associationName)
   }
 
