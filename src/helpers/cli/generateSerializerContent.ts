@@ -88,6 +88,7 @@ function jsType(type?: string) {
   }
 }
 
+// Deprecate classNameFromRawStr once dream models have been rebuilt to use fully-qualified class names.
 function classNameFromRawStr(className: string) {
   const classNameParts = className.split('/')
   return classNameParts[classNameParts.length - 1]
