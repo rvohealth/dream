@@ -7,9 +7,11 @@ describe('psy generate:serializer <name> [...attributes]', () => {
 
       expect(res).toEqual(
         `\
-import { DreamSerializer } from 'dream'
+import { DreamSerializer, Attribute } from 'dream'
 
-export default class UserSerializer extends DreamSerializer {}`
+export default class UserSerializer extends DreamSerializer {
+  
+}`
       )
     })
 
@@ -57,10 +59,12 @@ export default class UserSerializer extends DreamSerializer<User> {
 
           expect(res).toEqual(
             `\
-import { DreamSerializer } from 'dream'
+import { DreamSerializer, Attribute } from 'dream'
 import Admin from '../../models/User/Admin'
 
-export default class AdminSerializer extends DreamSerializer<Admin> {}`
+export default class AdminSerializer extends DreamSerializer<Admin> {
+  
+}`
           )
         })
       })

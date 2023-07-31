@@ -6,7 +6,7 @@ export default async function generateSerializerContent(
   fullyQualifiedModelName?: string,
   attributes: string[] = []
 ) {
-  const serializerClassName = classNameFromRawStr(fullyQualifiedSerializerName)
+  const serializerClass = classNameFromRawStr(fullyQualifiedSerializerName)
   let relatedModelImport = ''
   let modelClass = ''
   let typeArgs = ''
@@ -15,12 +15,6 @@ export default async function generateSerializerContent(
     modelClass = classNameFromRawStr(fullyQualifiedModelName)
     typeArgs = `<${modelClass}>`
   }
-
-  if (!attributes.length)
-    return `\
-import { DreamSerializer } from 'dream'${relatedModelImport}
-
-export default class ${serializerClassName} extends DreamSerializer${typeArgs} {}`
 
   const luxonImport = hasDateTimeType(attributes) ? "import { DateTime } from 'luxon'\n" : ''
 
@@ -41,7 +35,7 @@ ${luxonImport}import { ${dreamImports.join(
     ', '
   )} } from 'dream'${relatedModelImport}${additionalModelImports.join('')}
 
-export default class ${serializerClassName} extends DreamSerializer${typeArgs} {
+export default class ${serializerClass} extends DreamSerializer${typeArgs} {
   ${attributes
     .map(attr => {
       const [name, type] = attr.split(':')
