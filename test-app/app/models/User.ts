@@ -24,6 +24,7 @@ export default class User extends Dream {
 
   public id: IdType
   public type: string
+  public name: string
   public deleted_at: DateTime
   public created_at: DateTime
   public updated_at: DateTime
@@ -36,7 +37,6 @@ export default class User extends Dream {
   @Validates('presence')
   @Validates('length', { min: 4, max: 18 })
   public email: string
-  public name: string
 
   @HasOne(() => UserSettings)
   public userSettings: UserSettings

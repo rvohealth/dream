@@ -1,16 +1,46 @@
 import generateSerializerContent from '../../../src/helpers/cli/generateSerializerContent'
 
 describe('psy generate:serializer <name> [...attributes]', () => {
-  context('when provided attributes', () => {
-    context('when serializer matches a pluralized version of a model', () => {
-      it('generates a serializer adding requested attributes, as well as those on the model discovered', async () => {
-        const res = await generateSerializerContent('UserSerializer', 'User', ['logged_in_at'])
+  context('when not provided with a dream class', () => {
+    it('renders a blank serializer with no types', async () => {
+      const res = await generateSerializerContent('UserSerializer')
+
+      expect(res).toEqual(
+        `\
+import { DreamSerializer } from 'dream'
+
+export default class UserSerializer extends DreamSerializer {}`
+      )
+    })
+
+    context('when passed attributes with no dream model', () => {
+      it('generates a serializer adding requested attributes', async () => {
+        const res = await generateSerializerContent('UserSerializer', undefined, ['logged_in_at'])
 
         expect(res).toEqual(
           `\
 import { DreamSerializer, Attribute } from 'dream'
 
 export default class UserSerializer extends DreamSerializer {
+  @Attribute()
+  public logged_in_at: any
+}\
+`
+        )
+      })
+    })
+  })
+
+  context('when provided attributes', () => {
+    context('when passed a dream class', () => {
+      it('generates a serializer adding requested attributes, and also type-casts the serializer to the specified model', async () => {
+        const res = await generateSerializerContent('UserSerializer', 'User', ['logged_in_at'])
+
+        expect(res).toEqual(
+          `\
+import { DreamSerializer, Attribute } from 'dream'
+
+export default class UserSerializer extends DreamSerializer<User> {
   @Attribute()
   public logged_in_at: any
 }\
@@ -28,7 +58,7 @@ export default class UserSerializer extends DreamSerializer {
             `\
 import { DreamSerializer, Attribute } from 'dream'
 
-export default class UserSerializer extends DreamSerializer {
+export default class UserSerializer extends DreamSerializer<User> {
   @Attribute()
   public howyadoin: string
 }\
@@ -45,7 +75,7 @@ export default class UserSerializer extends DreamSerializer {
             `\
 import { DreamSerializer, Attribute } from 'dream'
 
-export default class UserSerializer extends DreamSerializer {
+export default class UserSerializer extends DreamSerializer<User> {
   @Attribute()
   public howyadoin: number
 }\
@@ -62,7 +92,7 @@ export default class UserSerializer extends DreamSerializer {
             `\
 import { DreamSerializer, Attribute } from 'dream'
 
-export default class UserSerializer extends DreamSerializer {
+export default class UserSerializer extends DreamSerializer<User> {
   @Attribute()
   public howyadoin: number
 }\
@@ -80,7 +110,7 @@ export default class UserSerializer extends DreamSerializer {
 import { DateTime } from 'luxon'
 import { DreamSerializer, Attribute } from 'dream'
 
-export default class UserSerializer extends DreamSerializer {
+export default class UserSerializer extends DreamSerializer<User> {
   @Attribute()
   public logged_in_at: DateTime
 }\
@@ -98,7 +128,7 @@ export default class UserSerializer extends DreamSerializer {
 import { DateTime } from 'luxon'
 import { DreamSerializer, Attribute } from 'dream'
 
-export default class UserSerializer extends DreamSerializer {
+export default class UserSerializer extends DreamSerializer<User> {
   @Attribute('date')
   public logged_in_on: DateTime
 }\
