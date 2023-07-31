@@ -2,16 +2,16 @@ import pluralize from 'pluralize'
 import camelize from '../camelize'
 
 export default async function generateSerializerContent(
-  fullyQualifiedSerializerClassName: string,
+  fullyQualifiedSerializerName: string,
   fullyQualifiedModelName?: string,
   attributes: string[] = []
 ) {
-  const interpretedSerializerClassName = classNameFromRawStr(fullyQualifiedSerializerClassName)
+  const serializerClassName = classNameFromRawStr(fullyQualifiedSerializerName)
   let relatedModelImport = ''
   let modelClass = ''
   let typeArgs = ''
   if (fullyQualifiedModelName) {
-    relatedModelImport = importStatementForModel(fullyQualifiedSerializerClassName, fullyQualifiedModelName)
+    relatedModelImport = importStatementForModel(fullyQualifiedSerializerName, fullyQualifiedModelName)
     modelClass = classNameFromRawStr(fullyQualifiedModelName)
     typeArgs = `<${modelClass}>`
   }
@@ -20,7 +20,7 @@ export default async function generateSerializerContent(
     return `\
 import { DreamSerializer } from 'dream'${relatedModelImport}
 
-export default class ${interpretedSerializerClassName} extends DreamSerializer${typeArgs} {}`
+export default class ${serializerClassName} extends DreamSerializer${typeArgs} {}`
 
   const luxonImport = hasDateTimeType(attributes) ? "import { DateTime } from 'luxon'\n" : ''
 
@@ -32,7 +32,7 @@ export default class ${interpretedSerializerClassName} extends DreamSerializer${
   attributes.forEach(attr => {
     const [name, type] = attr.split(':')
     if (['belongs_to', 'has_one', 'has_many'].includes(type)) {
-      additionalModelImports.push(importStatementForModel(fullyQualifiedSerializerClassName, name))
+      additionalModelImports.push(importStatementForModel(fullyQualifiedSerializerName, name))
     }
   })
 
@@ -41,7 +41,7 @@ ${luxonImport}import { ${dreamImports.join(
     ', '
   )} } from 'dream'${relatedModelImport}${additionalModelImports.join('')}
 
-export default class ${interpretedSerializerClassName} extends DreamSerializer${typeArgs} {
+export default class ${serializerClassName} extends DreamSerializer${typeArgs} {
   ${attributes
     .map(attr => {
       const [name, type] = attr.split(':')
@@ -102,11 +102,8 @@ function hasDateTimeType(attributes: string[]) {
   return !!attributes.map(attr => jsType(attr.split(':')[1])).find(a => a === 'DateTime')
 }
 
-function pathToModelFromSerializer(
-  fullyQualifiedSerializerClassName: string,
-  fullyQualifiedModelName: string
-) {
-  const numAdditionalUpdirs = fullyQualifiedSerializerClassName.split('/').length - 1
+function pathToModelFromSerializer(fullyQualifiedSerializerName: string, fullyQualifiedModelName: string) {
+  const numAdditionalUpdirs = fullyQualifiedSerializerName.split('/').length - 1
   let modelPath = `models/${fullyQualifiedModelName}`
   for (let i = 0; i <= numAdditionalUpdirs; i++) {
     modelPath = `../${modelPath}`
@@ -114,9 +111,9 @@ function pathToModelFromSerializer(
   return modelPath
 }
 
-function importStatementForModel(fullyQualifiedSerializerClassName: string, fullyQualifiedModelName: string) {
+function importStatementForModel(fullyQualifiedSerializerName: string, fullyQualifiedModelName: string) {
   return `\nimport ${classNameFromRawStr(fullyQualifiedModelName)} from '${pathToModelFromSerializer(
-    fullyQualifiedSerializerClassName,
+    fullyQualifiedSerializerName,
     fullyQualifiedModelName
   )}'`
 }
