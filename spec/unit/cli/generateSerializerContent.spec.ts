@@ -197,7 +197,7 @@ export default class UserSerializer extends DreamSerializer<User> {
         })
 
         context('HasMany', () => {
-          it('correctly injects RendersOne decorator and imports for the model', async () => {
+          it('correctly injects RendersMany decorator and imports for the model', async () => {
             const res = await generateSerializerContent('UserSerializer', 'User', ['Organization:has_many'])
 
             expect(res).toEqual(
