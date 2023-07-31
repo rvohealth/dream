@@ -1,12 +1,13 @@
 import pluralize from 'pluralize'
 import camelize from '../camelize'
+import pascalize from '../pascalize'
 
 export default async function generateSerializerContent(
   fullyQualifiedSerializerName: string,
   fullyQualifiedModelName?: string,
   attributes: string[] = []
 ) {
-  const serializerClass = classNameFromRawStr(fullyQualifiedSerializerName)
+  const serializerClass = fullyQualifiedClassNameFromRawStr(fullyQualifiedSerializerName)
   let relatedModelImport = ''
   let modelClass = ''
   let typeArgs = ''
@@ -90,6 +91,13 @@ function jsType(type?: string) {
 function classNameFromRawStr(className: string) {
   const classNameParts = className.split('/')
   return classNameParts[classNameParts.length - 1]
+}
+
+function fullyQualifiedClassNameFromRawStr(className: string) {
+  return className
+    .split('/')
+    .map(name => pascalize(name))
+    .join('')
 }
 
 function hasDateTimeType(attributes: string[]) {

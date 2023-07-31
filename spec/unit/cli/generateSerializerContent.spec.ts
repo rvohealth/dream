@@ -62,7 +62,7 @@ export default class UserSerializer extends DreamSerializer<User> {
 import { DreamSerializer, Attribute } from 'dream'
 import Admin from '../../models/User/Admin'
 
-export default class AdminSerializer extends DreamSerializer<Admin> {
+export default class UserAdminSerializer extends DreamSerializer<Admin> {
   
 }`
           )
@@ -230,7 +230,7 @@ import { DreamSerializer, Attribute, RendersOne } from 'dream'
 import Admin from '../../models/User/Admin'
 import MyModel from '../../models/Double/Nested/MyModel'
 
-export default class AdminSerializer extends DreamSerializer<Admin> {
+export default class UserAdminSerializer extends DreamSerializer<Admin> {
   @RendersOne()
   public myModel: MyModel
 }`
