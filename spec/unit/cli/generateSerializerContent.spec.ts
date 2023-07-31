@@ -33,7 +33,7 @@ export default class UserSerializer extends DreamSerializer {
 
   context('when provided attributes', () => {
     context('when passed a dream class', () => {
-      it('generates a serializer adding requested attributes, and also type-casts the serializer to the specified model', async () => {
+      it('generates a serializer adding requested attributes, casting the serializer type to the specified model', async () => {
         const res = await generateSerializerContent('UserSerializer', 'User', ['logged_in_at'])
 
         expect(res).toEqual(
@@ -67,22 +67,6 @@ export default class AdminSerializer extends DreamSerializer<Admin> {}`
     })
 
     context('when passed type-decorated attributes', () => {
-      it("imports the model, uses it to provide a type signature for the serializer's data", async () => {
-        const res = await generateSerializerContent('UserSerializer', 'User', ['howyadoin:string'])
-
-        expect(res).toEqual(
-          `\
-import { DreamSerializer, Attribute } from 'dream'
-import User from '../models/User'
-
-export default class UserSerializer extends DreamSerializer<User> {
-  @Attribute()
-  public howyadoin: string
-}\
-`
-        )
-      })
-
       context('one of those attributes is a string', () => {
         it('adds a string type to the field', async () => {
           const res = await generateSerializerContent('UserSerializer', 'User', ['howyadoin:string'])
