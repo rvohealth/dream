@@ -23,11 +23,11 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
       if (!attributeStatement.functional) {
         Object.defineProperty(this, attributeStatement.field, {
           get() {
-            return this._data[attributeStatement.field]
+            return this.data[attributeStatement.field]
           },
 
           set(val: any) {
-            this._data[attributeStatement.field] = val
+            this.data[attributeStatement.field] = val
           },
         })
       }
@@ -35,11 +35,6 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   }
 
   public get data() {
-    if (Array.isArray(this._data)) return [...this._data]
-    return { ...this._data }
-  }
-
-  public get originalData(): DataType {
     return this._data
   }
 
@@ -138,7 +133,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   }
 
   private associatedData(associationStatement: AssociationStatement) {
-    let self = this._data as any
+    let self = this.data as any
     if (associationStatement.through) {
       associationStatement.through.split('.').forEach(throughField => {
         self = self[throughField]
@@ -148,16 +143,16 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   }
 
   private applyDelegation(delegateStatement: DelegateStatement) {
-    return (this._data as any)[delegateStatement.delegateTo][delegateStatement.field]
+    return (this.data as any)[delegateStatement.delegateTo][delegateStatement.field]
   }
 
   private getAttributeValue(attributeStatement: AttributeStatement) {
     const { field } = attributeStatement
 
     if (attributeStatement.functional) {
-      return (this as any)[field](this._data)
+      return (this as any)[field](this.data)
     } else {
-      return (this.originalData as any)[field]
+      return (this.data as any)[field]
     }
   }
 
