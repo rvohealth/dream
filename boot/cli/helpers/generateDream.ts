@@ -99,19 +99,18 @@ export default async function generateDream(
   }
 
   const serializerBasePath = `${rootPath}/${ymlConfig.serializers_path}`
-  const formattedSerializerPath =
+  const fullyQualifiedSerializerName =
     pluralize
       .singular(dreamName)
       .split('/')
       .map(pathName => pascalize(pathName))
       .join('/') + 'Serializer'
-  const serializerPath = `${serializerBasePath}/${formattedSerializerPath}.ts`
+  const serializerPath = `${serializerBasePath}/${fullyQualifiedSerializerName}.ts`
   const relativeSerializerPath = serializerPath.replace(
     new RegExp(`^.*${ymlConfig.serializers_path}`),
     ymlConfig.serializers_path
   )
-  const serializerClassName = formattedSerializerPath.split('/').join('')
-  const serializerPathParts = formattedSerializerPath.split('/')
+  const serializerPathParts = fullyQualifiedSerializerName.split('/')
 
   if (!!serializerPathParts.length) {
     const fullSerializerPath = [...serializerBasePath.split('/'), ...serializerPathParts.slice(0, -1)].join(
@@ -124,7 +123,7 @@ export default async function generateDream(
     console.log(`generating serializer: ${relativeSerializerPath}`)
     await thisfs.writeFile(
       serializerPath,
-      await generateSerializerContent(serializerClassName, dreamName, attributes)
+      await generateSerializerContent(fullyQualifiedSerializerName, dreamName, attributes)
     )
   } catch (error) {
     const err = `
