@@ -39,3 +39,4 @@ export { default as RendersMany } from './serializer/decorators/associations/ren
 export { default as Attribute } from './serializer/decorators/attribute'
 export { default as Delegate } from './serializer/decorators/delegate'
 export { default as range, Range } from './helpers/range'
+export { default as mixin } from './helpers/mixin'

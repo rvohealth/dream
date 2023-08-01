@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@alizurchik/ts-mixin@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@alizurchik/ts-mixin/-/ts-mixin-1.0.2.tgz#93bacb368246fdd5af59d0d1ab1d4b1da7664889"
+  integrity sha512-Saj9baiw4PsJuW70LXN/GvihhJ6vHfp9Al+M9Dt7CZAOWwgJja5c3kAJYbNvtEezSGerfKPmebAuKtgO4EW2YQ==
+
 "@ampproject/remapping@^2.2.0":
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/@ampproject/remapping/-/remapping-2.2.0.tgz#56c133824780de3174aed5ab6834f3026790154d"
@@ -2346,6 +2351,11 @@ readable-stream@^3.6.0:
     inherits "^2.0.3"
     string_decoder "^1.1.1"
     util-deprecate "^1.0.1"
+
+reflect-metadata@^0.1.13:
+  version "0.1.13"
+  resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.1.13.tgz#67ae3ca57c972a2aa1642b10fe363fe32d49dc08"
+  integrity sha512-Ts1Y/anZELhSsjMcU605fU9RE4Oi3p5ORujwbIKXfWa+0Zxs510Qrmrce5/Jowq3cHSZSJqBjypxmHarc+vEWg==
 
 require-directory@^2.1.1:
   version "2.1.1"
