@@ -3,51 +3,60 @@ import User from '../../../test-app/app/models/User'
 
 describe('mixin', () => {
   class A {
-    get a() {
-      return 'a'
+    public dataFromBaseClass: string
+    public a() {
+      return 'a: ' + this.dataFromBaseClass
     }
   }
 
   class B {
-    get b() {
-      return 'b'
+    public dataFromBaseClass: string
+    public b() {
+      return 'b: ' + this.dataFromBaseClass
     }
   }
 
   interface C extends A, B {}
   @mixin(A, B)
   class C {
-    public c: string
+    public dataFromBaseClass: string
     constructor(c: string) {
-      this.c = c
+      this.dataFromBaseClass = c
+    }
+
+    public c() {
+      return 'c: ' + this.dataFromBaseClass
     }
   }
 
   it('merges all classes together', () => {
-    const c = new C('c')
-    expect(c.c).toEqual('c')
-    expect(c.a).toEqual('a')
-    expect(c.b).toEqual('b')
+    const c = new C('mydata')
+    expect(c.c()).toEqual('c: mydata')
+    expect(c.a()).toEqual('a: mydata')
+    expect(c.b()).toEqual('b: mydata')
   })
 
   context('with static methods on the classes being mixed', () => {
     class A {
-      static get a() {
-        return 'a'
+      public static dataFromBaseClass: string
+      static a() {
+        return 'a: ' + this.dataFromBaseClass
       }
     }
 
     class B {
-      static get b() {
-        return 'b'
+      public static dataFromBaseClass: string
+      static b() {
+        return 'b: ' + this.dataFromBaseClass
       }
     }
 
     interface C extends A, B {}
     @mixin(A, B)
     class C {
-      static get c() {
-        return 'c'
+      public static dataFromBaseClass = 'mydata'
+      static c() {
+        return 'c: ' + this.dataFromBaseClass
       }
     }
 
@@ -60,11 +69,18 @@ describe('mixin', () => {
     // })
 
     it('maintains static methods the base class', () => {
-      expect(C.c).toEqual('c')
+      expect(C.c()).toEqual('c: mydata')
     })
   })
 
   context('with dream models', () => {
+    class A {
+      public email: string
+      public a() {
+        return 'a: ' + this.email
+      }
+    }
+
     interface ExtendedUser extends A, User {}
     @mixin(A)
     class ExtendedUser extends User {}
@@ -72,7 +88,7 @@ describe('mixin', () => {
     it('merges all properties of both classes, maintaining access to static methods', async () => {
       const u = ExtendedUser.new({ email: 'howyadoin' })
       expect(u.email).toEqual('howyadoin')
-      expect(u.a).toEqual('a')
+      expect(u.a()).toEqual('a: howyadoin')
       expect(u.constructor.name).toEqual('ExtendedUser')
     })
   })
