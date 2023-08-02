@@ -243,6 +243,64 @@ describe('DreamSerializer#render', () => {
           const serializer = new UserSerializerWithSource(user)
           expect(serializer.render()).toEqual({ hooligans: [{ name: 'aster', species: 'cat' }] })
         })
+
+        context('when the source option is "passthroughData"', () => {
+          class Howdy {
+            public greeting: string
+
+            constructor(greeting: string) {
+              this.greeting = greeting
+            }
+
+            public get serializer() {
+              return HowdySerializer
+            }
+          }
+
+          class UserSerializerWithSource extends DreamSerializer {
+            @RendersMany({ source: 'passthroughData' })
+            public howdys: Howdy[]
+          }
+
+          class HelloSerializer extends DreamSerializer {
+            @RendersMany({ source: 'passthroughData', through: 'hello' })
+            public howdys: Howdy[]
+          }
+
+          class WorldSerializer extends DreamSerializer {
+            @RendersMany({ source: 'passthroughData', through: 'hello.world' })
+            public howdys: Howdy[]
+          }
+
+          class HowdySerializer extends DreamSerializer {
+            @Attribute()
+            public greeting: string
+          }
+
+          it('serializes the passthrough data', async () => {
+            const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+            const howdys = [new Howdy('world')]
+
+            const serializer = new UserSerializerWithSource(user).passthrough({ howdys })
+            expect(serializer.render()).toEqual({ howdys: [{ greeting: 'world' }] })
+          })
+
+          it('supports "through"', async () => {
+            const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+            const howdys = [new Howdy('world')]
+
+            const serializer = new HelloSerializer(user).passthrough({ hello: { howdys } })
+            expect(serializer.render()).toEqual({ howdys: [{ greeting: 'world' }] })
+          })
+
+          it('supports "through" with dot notation', async () => {
+            const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+            const howdys = [new Howdy('world')]
+
+            const serializer = new WorldSerializer(user).passthrough({ hello: { world: { howdys } } })
+            expect(serializer.render()).toEqual({ howdys: [{ greeting: 'world' }] })
+          })
+        })
       })
 
       context('when the through option is passed', () => {
@@ -423,6 +481,64 @@ describe('DreamSerializer#render', () => {
 
           const serializer = new PetSerializer(pet)
           expect(serializer.render()).toEqual({ owner: { email: 'how@yadoin' } })
+        })
+
+        context('when the source option is "passthroughData"', () => {
+          class Howdy {
+            public greeting: string
+
+            constructor(greeting: string) {
+              this.greeting = greeting
+            }
+
+            public get serializer() {
+              return HowdySerializer
+            }
+          }
+
+          class UserSerializerWithSource extends DreamSerializer {
+            @RendersOne({ source: 'passthroughData' })
+            public howdy: Howdy
+          }
+
+          class HelloSerializer extends DreamSerializer {
+            @RendersOne({ source: 'passthroughData', through: 'hello' })
+            public howdy: Howdy
+          }
+
+          class WorldSerializer extends DreamSerializer {
+            @RendersOne({ source: 'passthroughData', through: 'hello.world' })
+            public howdy: Howdy
+          }
+
+          class HowdySerializer extends DreamSerializer {
+            @Attribute()
+            public greeting: string
+          }
+
+          it('serializes the passthrough data', async () => {
+            const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+            const howdy = new Howdy('world')
+
+            const serializer = new UserSerializerWithSource(user).passthrough({ howdy })
+            expect(serializer.render()).toEqual({ howdy: { greeting: 'world' } })
+          })
+
+          it('supports "through"', async () => {
+            const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+            const howdy = new Howdy('world')
+
+            const serializer = new HelloSerializer(user).passthrough({ hello: { howdy } })
+            expect(serializer.render()).toEqual({ howdy: { greeting: 'world' } })
+          })
+
+          it('supports "through" with dot notation', async () => {
+            const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+            const howdy = new Howdy('world')
+
+            const serializer = new WorldSerializer(user).passthrough({ hello: { world: { howdy } } })
+            expect(serializer.render()).toEqual({ howdy: { greeting: 'world' } })
+          })
         })
       })
 

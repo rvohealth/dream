@@ -133,12 +133,16 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   }
 
   private associatedData(associationStatement: AssociationStatement) {
-    let self = this.data as any
+    const delegateToPassthroughData = associationStatement.source === 'passthroughData'
+    let self = (delegateToPassthroughData ? this.passthroughData : this.data) as any
+
     if (associationStatement.through) {
       associationStatement.through.split('.').forEach(throughField => {
         self = self[throughField]
       })
     }
+
+    if (delegateToPassthroughData) return self[associationStatement.field]
     return self[associationStatement.source]
   }
 
