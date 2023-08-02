@@ -1,4 +1,4 @@
-import round, { RoundingPrecision } from '../../src/helpers/round'
+import round, { RoundingPrecision } from '../../../src/helpers/round'
 
 describe('round', () => {
   let subject = () => round(value, precision)
