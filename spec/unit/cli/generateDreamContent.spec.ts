@@ -16,7 +16,7 @@ export default class MealType extends Dream {
   }
 
   public get serializer() {
-    return MealTypeSerializer
+    return MealTypeSerializer<any>
   }
 
   public id: IdType
@@ -46,7 +46,7 @@ export default class User extends Dream {
   }
 
   public get serializer() {
-    return UserSerializer
+    return UserSerializer<any>
   }
 
   public id: IdType
@@ -86,7 +86,7 @@ export default class Chalupa extends Dream {
   }
 
   public get serializer() {
-    return ChalupaSerializer
+    return ChalupaSerializer<any>
   }
 
   public id: IdType
@@ -192,7 +192,7 @@ export default class Composition extends Dream {
   }
 
   public get serializer() {
-    return CompositionSerializer
+    return CompositionSerializer<any>
   }
 
   public id: IdType
@@ -225,7 +225,7 @@ export default class CatToy extends Dream {
   }
 
   public get serializer() {
-    return CatToySerializer
+    return CatToySerializer<any>
   }
 
   public id: IdType
@@ -257,7 +257,7 @@ export default class CatToy extends Dream {
   }
 
   public get serializer() {
-    return CatToySerializer
+    return CatToySerializer<any>
   }
 
   public id: IdType
@@ -288,7 +288,7 @@ export default class CatToy extends Dream {
   }
 
   public get serializer() {
-    return CatToySerializer
+    return CatToySerializer<any>
   }
 
   public id: IdType
@@ -319,7 +319,7 @@ export default class Cat extends Dream {
   }
 
   public get serializer() {
-    return PetDomesticCatSerializer
+    return PetDomesticCatSerializer<any>
   }
 
   public id: IdType
@@ -351,7 +351,7 @@ export default class Cat extends Dream {
   }
 
   public get serializer() {
-    return PetDomesticCatSerializer
+    return PetDomesticCatSerializer<any>
   }
 
   public id: IdType
@@ -383,7 +383,7 @@ export default class Cat extends Dream {
   }
 
   public get serializer() {
-    return PetWildCatSerializer
+    return PetWildCatSerializer<any>
   }
 
   public id: IdType
@@ -417,7 +417,7 @@ export default class Composition extends Dream {
   }
 
   public get serializer() {
-    return CompositionSerializer
+    return CompositionSerializer<any>
   }
 
   public id: IdType
@@ -455,7 +455,7 @@ export default class Composition extends Dream {
   }
 
   public get serializer() {
-    return CompositionSerializer
+    return CompositionSerializer<any>
   }
 
   public id: IdType
@@ -488,7 +488,7 @@ export default class User extends Dream {
   }
 
   public get serializer() {
-    return UserSerializer
+    return UserSerializer<any>
   }
 
   public id: IdType
@@ -521,7 +521,7 @@ export default class Composition extends Dream {
   }
 
   public get serializer() {
-    return CompositionSerializer
+    return CompositionSerializer<any>
   }
 
   public id: IdType
@@ -553,7 +553,7 @@ export default class User extends Dream {
   }
 
   public get serializer() {
-    return UserSerializer
+    return UserSerializer<any>
   }
 
   public id: IdType

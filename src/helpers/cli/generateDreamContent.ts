@@ -147,7 +147,7 @@ export default class ${pascalize(modelName.split('/').pop()!)} extends Dream {
   }
 
   public get serializer() {
-    return ${serializerNameFromModelName(modelName)}
+    return ${serializerNameFromModelName(modelName)}<any>
   }
 
   public id: ${idTypescriptType}${attributeStatements
