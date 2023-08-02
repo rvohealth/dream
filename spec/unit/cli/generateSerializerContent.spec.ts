@@ -43,7 +43,7 @@ export default class UserSerializer extends DreamSerializer {
 import { DreamSerializer, Attribute } from 'dream'
 import User from '../models/User'
 
-export default class UserSerializer extends DreamSerializer<User> {
+export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
   @Attribute()
   public logged_in_at: any
 }\
@@ -62,7 +62,7 @@ export default class UserSerializer extends DreamSerializer<User> {
 import { DreamSerializer, Attribute } from 'dream'
 import Admin from '../../models/User/Admin'
 
-export default class UserAdminSerializer extends DreamSerializer<Admin> {
+export default class UserAdminSerializer<DataType extends Admin> extends DreamSerializer<DataType> {
   
 }`
           )
@@ -80,7 +80,7 @@ export default class UserAdminSerializer extends DreamSerializer<Admin> {
 import { DreamSerializer, Attribute } from 'dream'
 import User from '../models/User'
 
-export default class UserSerializer extends DreamSerializer<User> {
+export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
   @Attribute()
   public howyadoin: string
 }\
@@ -98,7 +98,7 @@ export default class UserSerializer extends DreamSerializer<User> {
 import { DreamSerializer, Attribute } from 'dream'
 import User from '../models/User'
 
-export default class UserSerializer extends DreamSerializer<User> {
+export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
   @Attribute()
   public howyadoin: number
 }\
@@ -116,7 +116,7 @@ export default class UserSerializer extends DreamSerializer<User> {
 import { DreamSerializer, Attribute } from 'dream'
 import User from '../models/User'
 
-export default class UserSerializer extends DreamSerializer<User> {
+export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
   @Attribute()
   public howyadoin: number
 }\
@@ -135,7 +135,7 @@ import { DateTime } from 'luxon'
 import { DreamSerializer, Attribute } from 'dream'
 import User from '../models/User'
 
-export default class UserSerializer extends DreamSerializer<User> {
+export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
   @Attribute()
   public logged_in_at: DateTime
 }\
@@ -154,7 +154,7 @@ import { DateTime } from 'luxon'
 import { DreamSerializer, Attribute } from 'dream'
 import User from '../models/User'
 
-export default class UserSerializer extends DreamSerializer<User> {
+export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
   @Attribute('date')
   public logged_in_on: DateTime
 }\
@@ -174,7 +174,7 @@ import { DreamSerializer, Attribute, RendersOne } from 'dream'
 import User from '../models/User'
 import Organization from '../models/Organization'
 
-export default class UserSerializer extends DreamSerializer<User> {
+export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
   @RendersOne()
   public organization: Organization
 }`
@@ -192,7 +192,7 @@ import { DreamSerializer, Attribute, RendersOne } from 'dream'
 import User from '../models/User'
 import Organization from '../models/Organization'
 
-export default class UserSerializer extends DreamSerializer<User> {
+export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
   @RendersOne()
   public organization: Organization
 }`
@@ -210,7 +210,7 @@ import { DreamSerializer, Attribute, RendersMany } from 'dream'
 import User from '../models/User'
 import Organization from '../models/Organization'
 
-export default class UserSerializer extends DreamSerializer<User> {
+export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
   @RendersMany()
   public organizations: Organization[]
 }`
@@ -230,7 +230,7 @@ import { DreamSerializer, Attribute, RendersOne } from 'dream'
 import Admin from '../../models/User/Admin'
 import MyModel from '../../models/Double/Nested/MyModel'
 
-export default class UserAdminSerializer extends DreamSerializer<Admin> {
+export default class UserAdminSerializer<DataType extends Admin> extends DreamSerializer<DataType> {
   @RendersOne()
   public myModel: MyModel
 }`
