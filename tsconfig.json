@@ -8,6 +8,7 @@
     "emitDecoratorMetadata": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
+    "declaration": true,
 
     /* do not require all properties to be initialized in constructor */
     "strictPropertyInitialization": false,

@@ -9,7 +9,7 @@
   "private": true,
   "scripts": {
     "dream": "npx ts-node ./boot/cli.ts",
-    "build": "rm -rf dist && npx tsc",
+    "build": "rm -rf dist && npx tsc -p ./tsconfig.build.json",
     "build:docs": "npx ts-node ./boot/build-docs.ts",
     "spec": "yarn dream spec --core",
     "console": "yarn dream console --core"
