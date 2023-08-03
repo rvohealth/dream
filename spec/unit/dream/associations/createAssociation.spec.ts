@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import User from '../../../../test-app/app/models/User'
 import Post from '../../../../test-app/app/models/Post'
-import CannotCreateAssociationWithThroughContext from '../../../../src/exceptions/cannot-create-association-with-through-context'
+import CannotCreateAssociationWithThroughContext from '../../../../src/exceptions/associations/cannot-create-association-with-through-context'
 import { Dream } from '../../../../src'
 import PostVisibility from '../../../../test-app/app/models/PostVisibility'
 

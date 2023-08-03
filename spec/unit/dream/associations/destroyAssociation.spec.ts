@@ -2,7 +2,7 @@ import { DateTime } from 'luxon'
 import User from '../../../../test-app/app/models/User'
 import Post from '../../../../test-app/app/models/Post'
 import Composition from '../../../../test-app/app/models/Composition'
-import CannotDestroyAssociationWithThroughContext from '../../../../src/exceptions/cannot-destroy-association-with-through-context'
+import CannotDestroyAssociationWithThroughContext from '../../../../src/exceptions/associations/cannot-destroy-association-with-through-context'
 import { Dream } from '../../../../src'
 
 describe('Dream#destroyAssociation', () => {

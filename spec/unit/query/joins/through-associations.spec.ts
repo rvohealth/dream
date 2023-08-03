@@ -4,10 +4,11 @@ import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
 import { DateTime } from 'luxon'
 import Query from '../../../../src/dream/query'
-import MissingThroughAssociation from '../../../../src/exceptions/missing-through-association'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import BalloonSpotter from '../../../../test-app/app/models/BalloonSpotter'
 import BalloonSpotterBalloon from '../../../../test-app/app/models/BalloonSpotterBalloon'
+import MissingThroughAssociationSource from '../../../../src/exceptions/associations/missing-through-association-source'
+import JoinAttemptedOnMissingAssociation from '../../../../src/exceptions/associations/join-attempted-with-missing-association'
 
 describe('Query#joins through with simple associations', () => {
   context('HasMany via a join table', () => {
@@ -297,12 +298,22 @@ describe('Query#joins through with simple associations', () => {
   })
 
   context('with a missing source', () => {
-    it('throws MissingThroughAssociation', async () => {
+    it('throws MissingThroughAssociationSource', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-      const query = new Query(User).joins('nonExtantCompositionAssets').first()
+      const query = new Query(User).joins('nonExtantCompositionAssets1').first()
 
-      await expect(query).rejects.toThrow(MissingThroughAssociation)
+      await expect(query).rejects.toThrow(JoinAttemptedOnMissingAssociation)
+    })
+  })
+
+  context('with a missing source', () => {
+    it('throws MissingThroughAssociationSource', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+
+      const query = new Query(User).joins('nonExtantCompositionAssets2').first()
+
+      await expect(query).rejects.toThrow(MissingThroughAssociationSource)
     })
   })
 })

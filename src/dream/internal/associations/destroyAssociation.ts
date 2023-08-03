@@ -5,7 +5,7 @@ import { UpdateableFields } from '../../types'
 import { HasManyStatement } from '../../../decorators/associations/has-many'
 import { HasOneStatement } from '../../../decorators/associations/has-one'
 import { BelongsToStatement } from '../../../decorators/associations/belongs-to'
-import CannotDestroyAssociationWithThroughContext from '../../../exceptions/cannot-destroy-association-with-through-context'
+import CannotDestroyAssociationWithThroughContext from '../../../exceptions/associations/cannot-destroy-association-with-through-context'
 
 export default async function destroyAssociation<
   DreamInstance extends Dream,

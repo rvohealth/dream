@@ -1,8 +1,8 @@
-import { HasManyStatement } from '../decorators/associations/has-many'
-import { HasOneStatement } from '../decorators/associations/has-one'
-import Dream from '../dream'
+import { HasManyStatement } from '../../decorators/associations/has-many'
+import { HasOneStatement } from '../../decorators/associations/has-one'
+import Dream from '../../dream'
 
-export default class CannotAssociateThroughPolymorphic extends Error {
+export default class CannotCreateAssociationWithThroughContext extends Error {
   public dreamClass: typeof Dream
   public association: HasManyStatement<any> | HasOneStatement<any>
 
@@ -20,7 +20,7 @@ export default class CannotAssociateThroughPolymorphic extends Error {
 
   public get message() {
     return `
-Cannot join through a polymorphic association
+'createAssociation' is not supported for through associations.
 Dream class: ${this.dreamClass.name}
 Association: ${this.association.as}
     `

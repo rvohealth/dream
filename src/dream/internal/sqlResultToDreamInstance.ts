@@ -2,7 +2,7 @@ import { Updateable } from 'kysely'
 import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../dream'
 import { DB } from '../../sync/schema'
-import STIChildMissing from '../../exceptions/sti-child-missing'
+import STIChildMissing from '../../exceptions/sti/sti-child-missing'
 
 export default function sqlResultToDreamInstance<
   DreamClass extends typeof Dream,

@@ -27,18 +27,20 @@ import { HasManyStatement } from '../decorators/associations/has-many'
 import { HasOneStatement } from '../decorators/associations/has-one'
 import { BelongsToStatement } from '../decorators/associations/belongs-to'
 import _db from '../db'
-import CannotJoinPolymorphicBelongsToError from '../exceptions/cannot-join-polymorphic-belongs-to-error'
+import CannotJoinPolymorphicBelongsToError from '../exceptions/associations/cannot-join-polymorphic-belongs-to-error'
 import OpsStatement from '../ops/ops-statement'
 import { Range } from '../helpers/range'
 import { DateTime } from 'luxon'
 import { SyncedAssociations } from '../sync/associations'
 import DreamTransaction from './transaction'
 import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance'
-import ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase from '../exceptions/foreign-key-on-association-does-not-match-primary-key-on-base'
+import ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase from '../exceptions/associations/foreign-key-on-association-does-not-match-primary-key-on-base'
 import CurriedOpsStatement from '../ops/curried-ops-statement'
-import CannotAssociateThroughPolymorphic from '../exceptions/cannot-associate-through-polymorphic'
-import MissingThroughAssociation from '../exceptions/missing-through-association'
+import CannotAssociateThroughPolymorphic from '../exceptions/associations/cannot-associate-through-polymorphic'
+import MissingThroughAssociation from '../exceptions/associations/missing-through-association'
+import MissingThroughAssociationSource from '../exceptions/associations/missing-through-association-source'
 import compact from '../helpers/compact'
+import JoinAttemptedOnMissingAssociation from '../exceptions/associations/join-attempted-with-missing-association'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -585,25 +587,39 @@ export default class Query<
       //  the Comments -> CommentAuthors hasMany association
       // So that Comments may be properly hydrated with many CommentAuthors
       const newDreams = (dreams as any[]).flatMap(dream => dream[association.through!])
-
-      const throughClass = dreamClass.associationMap[association.through].modelCB() as typeof Dream
-      if (throughClass.constructor === Array)
-        throw new CannotAssociateThroughPolymorphic({
-          dreamClass,
-          association,
-        })
-
-      const newAssociation = throughClass.associationMap[association.source]
-
-      if (!newAssociation)
-        throw new MissingThroughAssociation({
-          dreamClass,
-          throughClass,
-          association,
-        })
+      const newAssociation = this.followThroughAssociation(dreamClass, association)
 
       return await this.includesBridgeThroughAssociations(dreamClass, newDreams, newAssociation)
     }
+  }
+
+  private followThroughAssociation(
+    dreamClass: typeof Dream,
+    association: HasOneStatement<any> | HasManyStatement<any>
+  ) {
+    const throughAssociation = association.through && dreamClass.associationMap[association.through]
+    if (!throughAssociation)
+      throw new MissingThroughAssociation({
+        dreamClass,
+        association,
+      })
+
+    const throughClass = throughAssociation.modelCB() as typeof Dream
+    if (throughClass.constructor === Array)
+      throw new CannotAssociateThroughPolymorphic({
+        dreamClass,
+        association,
+      })
+
+    const newAssociation = throughClass.associationMap[association.source]
+    if (!newAssociation)
+      throw new MissingThroughAssociationSource({
+        dreamClass,
+        throughClass,
+        association,
+      })
+
+    return newAssociation
   }
 
   public async applyOneInclude(currentAssociationTableOrAlias: string, dreams: Dream | Dream[]) {
@@ -804,23 +820,7 @@ ${JSON.stringify(association, null, 2)}
         previousAssociationTableOrAlias,
         currentAssociationTableOrAlias: association.through,
       })
-
-      const throughClass = dreamClass.associationMap[association.through].modelCB() as typeof Dream
-
-      if (throughClass.constructor === Array)
-        throw new CannotAssociateThroughPolymorphic({
-          dreamClass,
-          association,
-        })
-
-      const newAssociation = throughClass.associationMap[association.source]
-
-      if (!newAssociation)
-        throw new MissingThroughAssociation({
-          dreamClass,
-          throughClass,
-          association,
-        })
+      const newAssociation = this.followThroughAssociation(dreamClass, association)
 
       return this.joinsBridgeThroughAssociations({
         query: results.query,
@@ -868,6 +868,11 @@ ${JSON.stringify(association, null, 2)}
     // and update dreamClass to be
 
     let association = dreamClass.associationMap[currentAssociationTableOrAlias]
+    if (!association)
+      throw new JoinAttemptedOnMissingAssociation({
+        dreamClass,
+        associationName: currentAssociationTableOrAlias,
+      })
 
     const results = this.joinsBridgeThroughAssociations({
       query,

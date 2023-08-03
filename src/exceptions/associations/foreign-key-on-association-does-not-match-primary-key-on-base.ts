@@ -1,4 +1,4 @@
-import Dream from '../dream'
+import Dream from '../../dream'
 
 export default class ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase extends Error {
   public baseDreamClass: typeof Dream

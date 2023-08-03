@@ -1,5 +1,5 @@
-import { BelongsToStatement } from '../decorators/associations/belongs-to'
-import Dream from '../dream'
+import { BelongsToStatement } from '../../decorators/associations/belongs-to'
+import Dream from '../../dream'
 
 export default class CannotJoinPolymorphicBelongsToError extends Error {
   public dreamClass: typeof Dream

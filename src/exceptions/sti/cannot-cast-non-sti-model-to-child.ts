@@ -1,4 +1,4 @@
-import Dream from '../dream'
+import Dream from '../../dream'
 
 export default class CannotCastNonSTIModelToChild extends Error {
   public dreamClass: typeof Dream

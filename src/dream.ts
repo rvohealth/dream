@@ -16,7 +16,7 @@ import {
   blankAssociationsFactory,
 } from './decorators/associations/shared'
 import { AssociationTableNames } from './db/reflections'
-import CanOnlyPassBelongsToModelParam from './exceptions/can-only-pass-belongs-to-model-param'
+import CanOnlyPassBelongsToModelParam from './exceptions/associations/can-only-pass-belongs-to-model-param'
 import {
   AssociationExpression,
   DreamConstructorType,
@@ -38,14 +38,14 @@ import { VirtualAttributeStatement } from './decorators/virtual'
 import ValidationError from './exceptions/validation-error'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
 import isDecimal from './helpers/db/isDecimal'
-import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/cannot-pass-null-or-undefined-to-required-belongs-to'
+import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
 import DreamSerializer from './serializer'
 import MissingSerializer from './exceptions/missing-serializer'
 import MissingTable from './exceptions/missing-table'
-import CannotCastToNonSTIChild from './exceptions/cannot-cast-to-non-sti-child'
-import CannotCastNonSTIModelToChild from './exceptions/cannot-cast-non-sti-model-to-child'
-import CannotCreateAssociationWithThroughContext from './exceptions/cannot-create-association-with-through-context'
-import CannotDestroyAssociationWithThroughContext from './exceptions/cannot-destroy-association-with-through-context'
+import CannotCastToNonSTIChild from './exceptions/sti/cannot-cast-to-non-sti-child'
+import CannotCastNonSTIModelToChild from './exceptions/sti/cannot-cast-non-sti-model-to-child'
+import CannotCreateAssociationWithThroughContext from './exceptions/associations/cannot-create-association-with-through-context'
+import CannotDestroyAssociationWithThroughContext from './exceptions/associations/cannot-destroy-association-with-through-context'
 import associationQuery from './dream/internal/associations/associationQuery'
 import createAssociation from './dream/internal/associations/createAssociation'
 import reload from './dream/internal/reload'

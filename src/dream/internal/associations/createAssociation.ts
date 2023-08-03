@@ -6,7 +6,7 @@ import { DreamConstructorType, UpdateableFields } from '../../types'
 import { HasManyStatement } from '../../../decorators/associations/has-many'
 import { HasOneStatement } from '../../../decorators/associations/has-one'
 import { BelongsToStatement } from '../../../decorators/associations/belongs-to'
-import CannotCreateAssociationWithThroughContext from '../../../exceptions/cannot-create-association-with-through-context'
+import CannotCreateAssociationWithThroughContext from '../../../exceptions/associations/cannot-create-association-with-through-context'
 
 export default async function createAssociation<
   DreamInstance extends Dream,

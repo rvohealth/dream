@@ -4,7 +4,8 @@ import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
 import { DateTime } from 'luxon'
 import Query from '../../../../src/dream/query'
-import MissingThroughAssociation from '../../../../src/exceptions/missing-through-association'
+import MissingThroughAssociation from '../../../../src/exceptions/associations/missing-through-association'
+import MissingThroughAssociationSource from '../../../../src/exceptions/associations/missing-through-association-source'
 import BalloonSpotter from '../../../../test-app/app/models/BalloonSpotter'
 import BalloonSpotterBalloon from '../../../../test-app/app/models/BalloonSpotterBalloon'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
@@ -317,13 +318,23 @@ describe('Query#includes through with simple associations', () => {
     })
   })
 
-  context('with a missing source', () => {
+  context('with a missing association', () => {
     it('throws MissingThroughAssociation', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-      const query = new Query(User).includes('nonExtantCompositionAssets').first()
+      const query = new Query(User).includes('nonExtantCompositionAssets1').first()
 
       await expect(query).rejects.toThrow(MissingThroughAssociation)
+    })
+  })
+
+  context('with a missing source', () => {
+    it('throws MissingThroughAssociationSource', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+
+      const query = new Query(User).includes('nonExtantCompositionAssets2').first()
+
+      await expect(query).rejects.toThrow(MissingThroughAssociationSource)
     })
   })
 })

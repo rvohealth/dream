@@ -1,6 +1,6 @@
-import { HasManyStatement } from '../decorators/associations/has-many'
-import { HasOneStatement } from '../decorators/associations/has-one'
-import Dream from '../dream'
+import { HasManyStatement } from '../../decorators/associations/has-many'
+import { HasOneStatement } from '../../decorators/associations/has-one'
+import Dream from '../../dream'
 
 export default class CannotDestroyAssociationWithThroughContext extends Error {
   public dreamClass: typeof Dream

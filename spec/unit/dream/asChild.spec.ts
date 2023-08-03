@@ -2,7 +2,7 @@ import User from '../../../test-app/app/models/User'
 import Composition from '../../../test-app/app/models/Composition'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import Balloon from '../../../test-app/app/models/Balloon'
-import CannotCastNonSTIModelToChild from '../../../src/exceptions/cannot-cast-non-sti-model-to-child'
+import CannotCastNonSTIModelToChild from '../../../src/exceptions/sti/cannot-cast-non-sti-model-to-child'
 import { AssociatedModelParam } from '../../../src/decorators/associations/shared'
 
 describe('Dream#asChild', () => {

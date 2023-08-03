@@ -13,7 +13,7 @@ import { HasOneStatement } from './has-one'
 import { SyncedBelongsToAssociations } from '../../sync/associations'
 import CurriedOpsStatement from '../../ops/curried-ops-statement'
 import { MergeUnionOfRecordTypes } from '../../helpers/typeutils'
-import { checkForeignKey } from '../../exceptions/explicit-foreign-key'
+import { checkForeignKey } from '../../exceptions/associations/explicit-foreign-key'
 
 export type AssociatedModelParam<
   I extends Dream,

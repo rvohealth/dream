@@ -2,7 +2,7 @@ import User from '../../../test-app/app/models/User'
 import Composition from '../../../test-app/app/models/Composition'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import Balloon from '../../../test-app/app/models/Balloon'
-import CannotCastToNonSTIChild from '../../../src/exceptions/cannot-cast-to-non-sti-child'
+import CannotCastToNonSTIChild from '../../../src/exceptions/sti/cannot-cast-to-non-sti-child'
 
 describe('Dream#as', () => {
   it('recasts model as a different model', async () => {
