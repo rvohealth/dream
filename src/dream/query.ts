@@ -41,6 +41,7 @@ import MissingThroughAssociation from '../exceptions/associations/missing-throug
 import MissingThroughAssociationSource from '../exceptions/associations/missing-through-association-source'
 import compact from '../helpers/compact'
 import JoinAttemptedOnMissingAssociation from '../exceptions/associations/join-attempted-with-missing-association'
+import { singular } from 'pluralize'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -563,10 +564,12 @@ export default class Query<
 
               if (throughAssociation && throughAssociation.constructor === Array) {
                 return Object.freeze(
-                  (throughAssociation as any[]).flatMap(record => (record as any)![association.source])
+                  (throughAssociation as any[]).flatMap(record =>
+                    hydratedSourceValue(record, association.source)
+                  )
                 )
               } else if (throughAssociation) {
-                return (throughAssociation as any)![association.source]
+                return hydratedSourceValue(throughAssociation, association.source)
               } else {
                 return Object.freeze([])
               }
@@ -576,7 +579,7 @@ export default class Query<
           Object.defineProperty(dream, association.as, {
             configurable: true,
             get() {
-              return (dream as any)[association.through!]?.[association.source] || null
+              return hydratedSourceValue((dream as any)[association.through!], association.source) || null
             },
           })
         }
@@ -611,7 +614,7 @@ export default class Query<
         association,
       })
 
-    const newAssociation = throughClass.associationMap[association.source]
+    const newAssociation = getSourceAssociation(throughClass, association.source)
     if (!newAssociation)
       throw new MissingThroughAssociationSource({
         dreamClass,
@@ -1322,4 +1325,16 @@ export interface QueryOpts<
   joins?: AssociationExpression<InstanceType<DreamClass>['table'], any>[]
   shouldBypassDefaultScopes?: boolean
   transaction?: DreamTransaction | null | undefined
+}
+
+function getSourceAssociation(dream: Dream | typeof Dream | undefined, sourceName: string) {
+  if (!dream) return
+  if (!sourceName) return
+  return dream.associationMap[sourceName] || dream.associationMap[singular(sourceName)]
+}
+
+function hydratedSourceValue(dream: Dream | typeof Dream | undefined, sourceName: string) {
+  if (!dream) return
+  if (!sourceName) return
+  return (dream as any)[sourceName] || (dream as any)[singular(sourceName)]
 }

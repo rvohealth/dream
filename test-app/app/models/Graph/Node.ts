@@ -23,6 +23,6 @@ export default class Node extends Dream {
   @HasMany(() => EdgeNode, { foreignKey: 'node_id' })
   public edgeNodes: EdgeNode[]
 
-  @HasMany(() => GraphEdge, { through: 'edgeNodes', source: 'edge' })
+  @HasMany(() => GraphEdge, { through: 'edgeNodes' })
   public edges: GraphEdge[]
 }
