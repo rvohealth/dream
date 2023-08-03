@@ -13,7 +13,7 @@
     "build:docs": "npx ts-node ./boot/build-docs.ts",
     "spec": "yarn dream spec --core",
     "console": "yarn dream console --core",
-    "postinstall": "yarn build"
+    "postinstall": "yarn dream sync:existing && yarn build"
   },
   "dependencies": {
     "@types/jest": "^29.5.0",
