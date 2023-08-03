@@ -7,7 +7,7 @@ import { Inc } from '../helpers/typeutils'
 import { DB } from '../sync/schema'
 import { AssociatedModelParam, WhereStatement } from '../decorators/associations/shared'
 
-type MAX_DEPTH = 3
+type MAX_DEPTH = 2
 
 export type IdType = string | number | bigint | undefined
 export type Timestamp = ColumnType<DateTime>
