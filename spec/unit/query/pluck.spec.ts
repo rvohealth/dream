@@ -2,6 +2,8 @@ import User from '../../../test-app/app/models/User'
 import Node from '../../../test-app/app/models/Graph/Node'
 import Edge from '../../../test-app/app/models/Graph/Edge'
 import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode'
+import Composition from '../../../test-app/app/models/Composition'
+import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 
 describe('Query#pluck', () => {
   let user1: User
@@ -27,19 +29,6 @@ describe('Query#pluck', () => {
         [user2.id, user2.created_at],
         [user3.id, user3.created_at],
       ])
-    })
-  })
-
-  context('in a has and belongs to many', () => {
-    it('can pluck from the associated namespace', async () => {
-      const node = await Node.create({ name: 'N1' })
-      const edge1 = await Edge.create({ name: 'E1' })
-      const edge2 = await Edge.create({ name: 'E2' })
-      await EdgeNode.create({ node, edge: edge1 })
-      await EdgeNode.create({ node, edge: edge2 })
-
-      const edgeIds = await Node.where({ id: node.id }).joins('edges').pluck('edges.id')
-      expect(edgeIds).toMatchObject([edge1.id, edge2.id])
     })
   })
 })

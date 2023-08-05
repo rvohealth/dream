@@ -18,9 +18,12 @@ import {
 import { AssociationTableNames } from './db/reflections'
 import CanOnlyPassBelongsToModelParam from './exceptions/associations/can-only-pass-belongs-to-model-param'
 import {
-  AssociationExpression,
   DreamConstructorType,
   IdType,
+  IncludesArgumentTypeAssociatedTableNames,
+  JoinsArgumentTypeAssociatedTableNames,
+  NextJoinsWhereArgumentType,
+  NextIncludesArgumentType,
   UpdateableFields,
   UpdateableInstanceFields,
 } from './dream/types'
@@ -264,26 +267,54 @@ export default class Dream {
 
   public static includes<
     T extends typeof Dream,
-    TableName extends AssociationTableNames = InstanceType<T>['table'],
-    QueryAssociationExpression extends AssociationExpression<
-      TableName & AssociationTableNames,
-      any
-    > = AssociationExpression<TableName & AssociationTableNames, any>
-  >(this: T, ...associations: QueryAssociationExpression[]) {
+    TableName extends InstanceType<T>['table'],
+    //
+    A extends NextIncludesArgumentType<TableName>,
+    ATableName extends IncludesArgumentTypeAssociatedTableNames<TableName, A>,
+    B extends NextIncludesArgumentType<ATableName>,
+    BTableName extends IncludesArgumentTypeAssociatedTableNames<ATableName, B>,
+    C extends NextIncludesArgumentType<BTableName>,
+    CTableName extends IncludesArgumentTypeAssociatedTableNames<BTableName, C>,
+    D extends NextIncludesArgumentType<CTableName>,
+    DTableName extends IncludesArgumentTypeAssociatedTableNames<CTableName, D>,
+    E extends NextIncludesArgumentType<DTableName>,
+    ETableName extends IncludesArgumentTypeAssociatedTableNames<DTableName, E>,
+    F extends NextIncludesArgumentType<ETableName>,
+    FTableName extends IncludesArgumentTypeAssociatedTableNames<ETableName, F>,
+    //
+    G extends FTableName extends undefined
+      ? undefined
+      : (keyof SyncedAssociations[FTableName & keyof SyncedAssociations] & string)[]
+  >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     const query: Query<T> = new Query<T>(this)
 
-    return query.includes(...(associations as any))
+    return query.includes(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
 
   public static joins<
     T extends typeof Dream,
-    QueryAssociationExpression extends AssociationExpression<
-      InstanceType<T>['table'],
-      any
-    > = AssociationExpression<InstanceType<T>['table'], any>
-  >(this: T, ...associations: QueryAssociationExpression[]) {
+    TableName extends InstanceType<T>['table'],
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWhereArgumentType<ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<ATableName, B>,
+    C extends NextJoinsWhereArgumentType<BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<BTableName, C>,
+    D extends NextJoinsWhereArgumentType<CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<CTableName, D>,
+    E extends NextJoinsWhereArgumentType<DTableName>,
+    ETableName extends JoinsArgumentTypeAssociatedTableNames<DTableName, E>,
+    F extends NextJoinsWhereArgumentType<ETableName>,
+    FTableName extends JoinsArgumentTypeAssociatedTableNames<ETableName, F>,
+    //
+    G extends FTableName extends undefined ? undefined : WhereStatement<FTableName & AssociationTableNames>
+  >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     const query: Query<T> = new Query<T>(this)
-    return query.joins(...associations)
+
+    return query.joins(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
 
   public static async last<T extends typeof Dream>(this: T): Promise<InstanceType<T> | null> {
@@ -659,14 +690,36 @@ export default class Dream {
 
   public async load<
     I extends Dream,
-    QueryAssociationExpression extends AssociationExpression<I['table'], any> = AssociationExpression<
-      I['table'],
-      any
-    >
-  >(this: I, ...associations: QueryAssociationExpression[]): Promise<void> {
+    TableName extends I['table'],
+    //
+    A extends NextIncludesArgumentType<TableName>,
+    ATableName extends IncludesArgumentTypeAssociatedTableNames<TableName, A>,
+    B extends NextIncludesArgumentType<ATableName>,
+    BTableName extends IncludesArgumentTypeAssociatedTableNames<ATableName, B>,
+    C extends NextIncludesArgumentType<BTableName>,
+    CTableName extends IncludesArgumentTypeAssociatedTableNames<BTableName, C>,
+    D extends NextIncludesArgumentType<CTableName>,
+    DTableName extends IncludesArgumentTypeAssociatedTableNames<CTableName, D>,
+    E extends NextIncludesArgumentType<DTableName>,
+    ETableName extends IncludesArgumentTypeAssociatedTableNames<DTableName, E>,
+    F extends NextIncludesArgumentType<ETableName>,
+    FTableName extends IncludesArgumentTypeAssociatedTableNames<ETableName, F>,
+    //
+    G extends FTableName extends undefined
+      ? undefined
+      : (keyof SyncedAssociations[FTableName & keyof SyncedAssociations] & string)[]
+  >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G): Promise<void> {
     const base = this.constructor as DreamConstructorType<I>
-    const query: Query<DreamConstructorType<I>> = new Query<DreamConstructorType<I>>(base)
-    for (const association of associations) await query.applyIncludes(association as any, [this])
+    const query: Query<DreamConstructorType<I>> = new Query<DreamConstructorType<I>>(base).includes(
+      a as any,
+      b as any,
+      c as any,
+      d as any,
+      e as any,
+      f as any,
+      g as any
+    )
+    await query.hydrateIncludes(this)
   }
 
   public async reload<I extends Dream>(this: I) {

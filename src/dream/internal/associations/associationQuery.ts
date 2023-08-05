@@ -7,7 +7,8 @@ import { HasManyStatement } from '../../../decorators/associations/has-many'
 
 export default function associationQuery<
   DreamInstance extends Dream,
-  AssociationName extends keyof SyncedAssociations[DreamInstance['table']],
+  TableName extends DreamInstance['table'],
+  AssociationName extends keyof SyncedAssociations[TableName],
   PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
   AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
     ? ElementType
@@ -20,8 +21,10 @@ export default function associationQuery<
   const dreamClass = dream.constructor as typeof Dream
 
   const nestedScope = txn
-    ? dreamClass.txn(txn).joins(association.as as any)
-    : dreamClass.joins(association.as as any)
+    ? // @ts-ignore
+      dreamClass.txn(txn).joins(association.as as AssociationName & string)
+    : // @ts-ignore
+      dreamClass.joins(association.as as AssociationName & string)
 
   const nestedSelect = nestedScope
     .where({ [dream.primaryKey]: dream.primaryKeyValue })

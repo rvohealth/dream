@@ -547,6 +547,135 @@ export interface SyncedBelongsToAssociations {
     ]
   }
 }
+
+export interface SyncedAssociationsToTables {
+  "balloon": [
+    "beautiful_balloons"
+  ],
+  "balloonSpotter": [
+    "balloon_spotters"
+  ],
+  "balloonSpotterBalloons": [
+    "balloon_spotter_balloons"
+  ],
+  "balloons": [
+    "beautiful_balloons"
+  ],
+  "user": [
+    "users"
+  ],
+  "balloonLine": [
+    "balloon_lines"
+  ],
+  "sandbags": [
+    "sandbags"
+  ],
+  "pet": [
+    "pets"
+  ],
+  "compositionAsset": [
+    "composition_assets"
+  ],
+  "composition": [
+    "compositions"
+  ],
+  "compositionAssetAudits": [
+    "composition_asset_audits"
+  ],
+  "mainCompositionAsset": [
+    "composition_assets"
+  ],
+  "compositionAssets": [
+    "composition_assets"
+  ],
+  "mainCompositionAssetAudits": [
+    "composition_asset_audits"
+  ],
+  "heartRatings": [
+    "extra_ratings"
+  ],
+  "extraRateable": [
+    "compositions",
+    "posts"
+  ],
+  "extra_rateable": [
+    "compositions",
+    "posts"
+  ],
+  "edge": [
+    "graph_edges"
+  ],
+  "node": [
+    "graph_nodes"
+  ],
+  "edgeNodes": [
+    "graph_edge_nodes"
+  ],
+  "nodes": [
+    "graph_nodes"
+  ],
+  "edges": [
+    "graph_edges"
+  ],
+  "currentCollar": [
+    "collars"
+  ],
+  "notLostCollar": [
+    "collars"
+  ],
+  "collars": [
+    "collars"
+  ],
+  "postVisibility": [
+    "post_visibilities"
+  ],
+  "ratings": [
+    "ratings"
+  ],
+  "post": [
+    "posts"
+  ],
+  "rateable": [
+    "compositions",
+    "posts"
+  ],
+  "mylar": [
+    "beautiful_balloons"
+  ],
+  "userSettings": [
+    "user_settings"
+  ],
+  "mainComposition": [
+    "compositions"
+  ],
+  "compositions": [
+    "compositions"
+  ],
+  "incompatibleForeignKeyTypeExamples": [
+    "incompatible_foreign_key_type_examples"
+  ],
+  "recentCompositions": [
+    "compositions"
+  ],
+  "notRecentCompositions": [
+    "compositions"
+  ],
+  "recentCompositionAssets": [
+    "composition_assets"
+  ],
+  "recentMainCompositionAssets": [
+    "composition_assets"
+  ],
+  "nonExtantCompositionAssets1": [
+    "composition_assets"
+  ],
+  "nonExtantCompositionAssets2": [
+    "composition_assets"
+  ],
+  "pets": [
+    "pets"
+  ]
+}
   
 
 export interface VirtualColumns {

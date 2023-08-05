@@ -2,9 +2,13 @@ import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { AssociationTableNames } from '../db/reflections'
 import { LimitStatement, WhereStatement } from '../decorators/associations/shared'
 import {
-  AssociationExpression,
-  JoinsPluckAssociationExpression,
-  JoinsWhereAssociationExpression,
+  JoinsArgumentTypeAssociatedTableNames,
+  IncludesArgumentTypeAssociatedTableNames,
+  NextJoinsWhereArgumentType,
+  NextIncludesArgumentType,
+  RelaxedIncludesStatement,
+  RelaxedJoinsStatement,
+  RelaxedJoinsWhereStatement,
 } from './types'
 import {
   ComparisonOperator,
@@ -31,7 +35,7 @@ import CannotJoinPolymorphicBelongsToError from '../exceptions/associations/cann
 import OpsStatement from '../ops/ops-statement'
 import { Range } from '../helpers/range'
 import { DateTime } from 'luxon'
-import { SyncedAssociations } from '../sync/associations'
+import { SyncedAssociations, SyncedAssociationsToTables } from '../sync/associations'
 import DreamTransaction from './transaction'
 import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance'
 import ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase from '../exceptions/associations/foreign-key-on-association-does-not-match-primary-key-on-base'
@@ -42,6 +46,8 @@ import MissingThroughAssociationSource from '../exceptions/associations/missing-
 import compact from '../helpers/compact'
 import JoinAttemptedOnMissingAssociation from '../exceptions/associations/join-attempted-with-missing-association'
 import { singular } from 'pluralize'
+import isEmpty from 'lodash.isempty'
+import executeDatabaseQuery from './internal/executeDatabaseQuery'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -81,24 +87,17 @@ const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: Compar
 export default class Query<
   DreamClass extends typeof Dream,
   Table = DB[InstanceType<DreamClass>['table']],
-  QueryAssociationExpression = AssociationExpression<InstanceType<DreamClass>['table'], any>,
   ColumnType = keyof DB[keyof DB] extends never ? unknown : keyof DB[keyof DB]
 > {
-  public readonly whereStatement: readonly WhereStatement<any>[] = []
-  public readonly whereNotStatement: readonly WhereStatement<any>[] = []
-  public readonly whereJoinsStatement: readonly JoinsWhereAssociationExpression<
-    InstanceType<DreamClass>['table'],
-    AssociationExpression<InstanceType<DreamClass>['table'], any>
-  >[] = []
+  public readonly whereStatement: readonly WhereStatement<any>[] = Object.freeze([])
+  public readonly whereNotStatement: readonly WhereStatement<any>[] = Object.freeze([])
   public readonly limitStatement: LimitStatement | null
-  public readonly orStatements: readonly Query<DreamClass>[] = []
+  public readonly orStatements: readonly Query<DreamClass>[] = Object.freeze([])
   public readonly orderStatement: { column: ColumnType & string; direction: 'asc' | 'desc' } | null = null
-  public readonly includesStatements: readonly AssociationExpression<
-    InstanceType<DreamClass>['table'],
-    any
-  >[] = []
-  public readonly joinsStatements: readonly AssociationExpression<InstanceType<DreamClass>['table'], any>[] =
-    []
+  public readonly includesStatements: RelaxedIncludesStatement = Object.freeze({})
+  public readonly joinsStatements: RelaxedJoinsStatement = Object.freeze({})
+  public readonly joinsWhereStatements: RelaxedJoinsWhereStatement = Object.freeze({})
+
   public readonly shouldBypassDefaultScopes: boolean = false
   public readonly dreamClass: DreamClass
   public dreamTransaction: DreamTransaction | null = null
@@ -111,12 +110,12 @@ export default class Query<
     this.dreamClass = DreamClass
     this.whereStatement = Object.freeze(opts.where || [])
     this.whereNotStatement = Object.freeze(opts.whereNot || [])
-    this.whereJoinsStatement = Object.freeze(opts.whereJoins || [])
     this.limitStatement = Object.freeze(opts.limit || null)
     this.orStatements = Object.freeze(opts.or || [])
     this.orderStatement = Object.freeze(opts.order || null)
-    this.includesStatements = Object.freeze(opts.includes || [])
-    this.joinsStatements = Object.freeze(opts.joins || [])
+    this.includesStatements = Object.freeze(opts.includes || {})
+    this.joinsStatements = Object.freeze(opts.joins || {})
+    this.joinsWhereStatements = Object.freeze(opts.joinsWhere || {})
     this.shouldBypassDefaultScopes = Object.freeze(opts.shouldBypassDefaultScopes || false)
     this.dreamTransaction = opts.transaction || null
   }
@@ -125,12 +124,12 @@ export default class Query<
     return new Query(this.dreamClass, {
       where: [...this.whereStatement, ...(opts.where || [])],
       whereNot: [...this.whereNotStatement, ...(opts.whereNot || [])],
-      whereJoins: [...this.whereJoinsStatement, ...(opts.whereJoins || [])],
       limit: opts.limit || this.limitStatement,
       or: [...this.orStatements, ...(opts.or || [])],
       order: opts.order || this.orderStatement || null,
-      includes: [...this.includesStatements, ...(opts.includes || [])],
-      joins: [...this.joinsStatements, ...(opts.joins || [])],
+      includes: opts.includes || this.includesStatements,
+      joins: opts.joins || this.joinsStatements,
+      joinsWhere: opts.joinsWhere || this.joinsWhereStatements,
       shouldBypassDefaultScopes:
         opts.shouldBypassDefaultScopes !== undefined
           ? opts.shouldBypassDefaultScopes
@@ -160,28 +159,109 @@ export default class Query<
     return await this.where(attributes).first()
   }
 
-  public includes<
-    T extends Query<DreamClass>,
-    QueryAssociationExpression extends AssociationExpression<
-      InstanceType<DreamClass>['table'],
-      any
-    > = AssociationExpression<InstanceType<DreamClass>['table'], any>
-  >(this: T, ...args: QueryAssociationExpression[]) {
-    return this.clone({ includes: args })
-  }
-
   public or(orStatement: Query<DreamClass>) {
     return this.clone({ or: [orStatement] })
   }
 
+  public includes<
+    T extends Query<DreamClass>,
+    TableName extends InstanceType<DreamClass>['table'],
+    //
+    A extends NextIncludesArgumentType<TableName>,
+    ATableName extends IncludesArgumentTypeAssociatedTableNames<TableName, A>,
+    B extends NextIncludesArgumentType<ATableName>,
+    BTableName extends IncludesArgumentTypeAssociatedTableNames<ATableName, B>,
+    C extends NextIncludesArgumentType<BTableName>,
+    CTableName extends IncludesArgumentTypeAssociatedTableNames<BTableName, C>,
+    D extends NextIncludesArgumentType<CTableName>,
+    DTableName extends IncludesArgumentTypeAssociatedTableNames<CTableName, D>,
+    E extends NextIncludesArgumentType<DTableName>,
+    ETableName extends IncludesArgumentTypeAssociatedTableNames<DTableName, E>,
+    F extends NextIncludesArgumentType<ETableName>,
+    FTableName extends IncludesArgumentTypeAssociatedTableNames<ETableName, F>,
+    //
+    G extends FTableName extends undefined
+      ? undefined
+      : (keyof SyncedAssociations[FTableName & keyof SyncedAssociations] & string)[]
+  >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
+    const includes = { ...this.includesStatements }
+    this.fleshOutIncludesStatements(includes, [a, b, c, d, e, f, g])
+    return this.clone({ includes })
+  }
+
+  private fleshOutIncludesStatements(
+    includes: RelaxedIncludesStatement,
+    associationStatements: (string | string[] | undefined)[]
+  ) {
+    const nextAssociationStatement = associationStatements.shift()
+
+    if (nextAssociationStatement === undefined) {
+      // just satisfying typing
+    } else if (nextAssociationStatement.constructor === String) {
+      if (!includes[nextAssociationStatement]) includes[nextAssociationStatement] = {}
+      const nextIncludes = includes[nextAssociationStatement]
+      this.fleshOutIncludesStatements(nextIncludes, associationStatements)
+    } else if (nextAssociationStatement.constructor === Array) {
+      nextAssociationStatement.forEach(associationStatement => {
+        includes[associationStatement] = {}
+      })
+    }
+  }
+
   public joins<
     T extends Query<DreamClass>,
-    QueryAssociationExpression extends AssociationExpression<
-      InstanceType<DreamClass>['table'],
-      any
-    > = AssociationExpression<InstanceType<DreamClass>['table'], any>
-  >(this: T, ...args: QueryAssociationExpression[]) {
-    return this.clone({ joins: args })
+    TableName extends InstanceType<DreamClass>['table'],
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWhereArgumentType<ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<ATableName, B>,
+    C extends NextJoinsWhereArgumentType<BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<BTableName, C>,
+    D extends NextJoinsWhereArgumentType<CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<CTableName, D>,
+    E extends NextJoinsWhereArgumentType<DTableName>,
+    ETableName extends JoinsArgumentTypeAssociatedTableNames<DTableName, E>,
+    F extends NextJoinsWhereArgumentType<ETableName>,
+    FTableName extends JoinsArgumentTypeAssociatedTableNames<ETableName, F>,
+    //
+    G extends FTableName extends undefined ? undefined : WhereStatement<FTableName & AssociationTableNames>
+  >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
+    const joins = { ...this.joinsStatements }
+
+    const joinsWhere: RelaxedJoinsWhereStatement = { ...this.joinsWhereStatements }
+    this.fleshOutJoinsStatements(joins, joinsWhere, null, [a, b, c, d, e, f, g])
+    return this.clone({ joins, joinsWhere })
+  }
+
+  private fleshOutJoinsStatements(
+    joins: RelaxedIncludesStatement,
+    joinsWhere: RelaxedJoinsWhereStatement,
+    previousAssociationName: null | string,
+    associationStatements: (string | WhereStatement<any> | undefined)[]
+  ) {
+    const nextAssociationStatement = associationStatements.shift()
+
+    if (nextAssociationStatement === undefined) {
+      // just satisfying typing
+    } else if (nextAssociationStatement.constructor === String) {
+      if (!joins[nextAssociationStatement]) joins[nextAssociationStatement] = {}
+      if (!joinsWhere[nextAssociationStatement]) joinsWhere[nextAssociationStatement] = {}
+      const nextJoinsStatements = joins[nextAssociationStatement]
+      const nextJoinsWhereStatements = joinsWhere[nextAssociationStatement]
+      this.fleshOutJoinsStatements(
+        nextJoinsStatements,
+        nextJoinsWhereStatements,
+        nextAssociationStatement,
+        associationStatements
+      )
+    } else if (nextAssociationStatement.constructor === Object && previousAssociationName) {
+      Object.keys(nextAssociationStatement).forEach((key: string) => {
+        joinsWhere[key] = (nextAssociationStatement as any)[key]
+      })
+    }
   }
 
   public unscoped<T extends Query<DreamClass>>(this: T): Query<DreamClass> {
@@ -190,9 +270,7 @@ export default class Query<
 
   public where<T extends Query<DreamClass>>(
     this: T,
-    attributes:
-      | WhereStatement<InstanceType<DreamClass>['table']>
-      | JoinsWhereAssociationExpression<InstanceType<DreamClass>['table'], T['joinsStatements'][number]>
+    attributes: WhereStatement<InstanceType<DreamClass>['table']>
   ): Query<DreamClass> {
     return this._where(attributes, 'where')
   }
@@ -206,46 +284,32 @@ export default class Query<
 
   private _where<T extends Query<DreamClass>>(
     this: T,
-    attributes:
-      | WhereStatement<InstanceType<DreamClass>['table']>
-      | JoinsWhereAssociationExpression<InstanceType<DreamClass>['table'], T['joinsStatements'][number]>,
+    attributes: WhereStatement<InstanceType<DreamClass>['table']>,
     typeOfWhere: 'where' | 'whereNot'
   ): Query<DreamClass> {
-    if (attributes.constructor === Array) {
-      return this.clone({ whereJoins: attributes as any })
-    } else {
-      const chainableWhereStatement: WhereStatement<any> = {}
-      const whereJoinsStatements: JoinsWhereAssociationExpression<
-        InstanceType<DreamClass>['table'],
-        T['joinsStatements'][number]
-      >[] = []
+    const chainableWhereStatement: WhereStatement<any> = {}
 
-      Object.keys(attributes).forEach(key => {
-        if ((this.dreamClass.columns() as any[]).includes(key)) {
-          // @ts-ignore
-          chainableWhereStatement[key] = attributes[key]
-        } else {
-          // @ts-ignore
-          whereJoinsStatements.push({ [key]: attributes[key] })
-        }
-      })
+    Object.keys(attributes).forEach(
+      key =>
+        // @ts-ignore
+        (chainableWhereStatement[key] = attributes[key])
+    )
 
-      return this.clone({
-        [typeOfWhere]: [chainableWhereStatement],
-        whereJoins: whereJoinsStatements,
-      })
-    }
+    return this.clone({
+      [typeOfWhere]: [chainableWhereStatement],
+    })
   }
 
   public nestedSelect<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>,
-    JoinsFieldType extends JoinsPluckAssociationExpression<
-      InstanceType<DreamClass>['table'],
-      T['joinsStatements'][number]
-    >
-  >(this: T, selection: SimpleFieldType | JoinsFieldType) {
+    JoinsPluckFieldType extends any
+    // JoinsPluckFieldType extends JoinsPluckAssociationExpression<
+    //   InstanceType<DreamClass>['table'],
+    //   T['joinsStatements'][number]
+    // >
+  >(this: T, selection: SimpleFieldType | JoinsPluckFieldType) {
     const query = this.buildSelect({ bypassSelectAll: true }) as SelectQueryBuilder<
       DB,
       ExtractTableAlias<DB, TableName>,
@@ -295,7 +359,7 @@ export default class Query<
       count(`${this.dreamClass.prototype.table}.${this.dreamClass.primaryKey}` as any).as('tablecount')
     )
 
-    const data = (await kyselyQuery.executeTakeFirstOrThrow()) as any
+    const data = (await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')) as any
 
     return parseInt(data.tablecount.toString())
   }
@@ -304,16 +368,17 @@ export default class Query<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>,
-    JoinsFieldType extends JoinsPluckAssociationExpression<
-      InstanceType<DreamClass>['table'],
-      T['joinsStatements'][number]
-    >
-  >(this: T, field: SimpleFieldType | JoinsFieldType) {
+    JoinsPluckFieldType extends any
+    // JoinsPluckFieldType extends JoinsPluckAssociationExpression<
+    //   InstanceType<DreamClass>['table'],
+    //   T['joinsStatements'][number]
+    // >
+  >(this: T, field: SimpleFieldType | JoinsPluckFieldType) {
     const { max } = this.db.fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
 
     kyselyQuery = kyselyQuery.select(max(field as any) as any)
-    const data = (await kyselyQuery.executeTakeFirstOrThrow()) as any
+    const data = (await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')) as any
 
     return data.max
   }
@@ -322,16 +387,17 @@ export default class Query<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>,
-    JoinsFieldType extends JoinsPluckAssociationExpression<
-      InstanceType<DreamClass>['table'],
-      T['joinsStatements'][number]
-    >
-  >(this: T, field: SimpleFieldType | JoinsFieldType) {
+    JoinsPluckFieldType extends any
+    // JoinsPluckFieldType extends JoinsPluckAssociationExpression<
+    //   InstanceType<DreamClass>['table'],
+    //   T['joinsStatements'][number]
+    // >
+  >(this: T, field: SimpleFieldType | JoinsPluckFieldType) {
     const { min } = this.db.fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
 
     kyselyQuery = kyselyQuery.select(min(field as any) as any)
-    const data = (await kyselyQuery.executeTakeFirstOrThrow()) as any
+    const data = (await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')) as any
 
     return data.min
   }
@@ -339,47 +405,14 @@ export default class Query<
   public async pluck<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]>,
-    JoinsFieldType extends JoinsPluckAssociationExpression<
-      InstanceType<DreamClass>['table'],
-      T['joinsStatements'][number]
-    >
-  >(this: T, ...fields: (SimpleFieldType | JoinsFieldType)[]): Promise<any[]> {
+    SimpleFieldType extends keyof Updateable<DB[TableName]>
+  >(this: T, ...fields: SimpleFieldType[]): Promise<any[]> {
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
     fields.forEach(field => {
       kyselyQuery = kyselyQuery.select(field as any)
     })
 
-    const sqlString = kyselyQuery.compile().sql
-    const paramsString = kyselyQuery.compile().parameters.join(', ')
-    const sqlDebugMessage = `
-      ${sqlString}
-      [ ${paramsString} ]
-      NOTE: to turn this message off, remove the DEBUG=1 env variable
-    `
-    let vals: any[][]
-    try {
-      if (process.env.DEBUG === '1') {
-        console.log(
-          `
-            About to execute the following SQL:
-            ${sqlDebugMessage}
-          `
-        )
-      }
-      vals = (await kyselyQuery.execute()).map(result => Object.values(result))
-    } catch (error) {
-      if (process.env.DEBUG === '1') {
-        console.error(`
-          Error executing the following SQL:
-          ${error}
-
-          ${sqlDebugMessage}
-        `)
-      }
-      // throw the original error to maintain stack trace
-      throw error
-    }
+    const vals = (await executeDatabaseQuery(kyselyQuery, 'execute')).map(result => Object.values(result))
 
     if (fields.length > 1) {
       return vals.map(arr =>
@@ -398,42 +431,15 @@ export default class Query<
 
   public async all<T extends Query<DreamClass>>(this: T) {
     const kyselyQuery = this.buildSelect()
-    let results: any[]
 
-    const sqlString = kyselyQuery.compile().sql
-    const paramsString = kyselyQuery.compile().parameters.join(', ')
-    const sqlDebugMessage = `
-      ${sqlString}
-      [ ${paramsString} ]
-      NOTE: to turn this message off, remove the DEBUG=1 env variable
-    `
-    try {
-      if (process.env.DEBUG === '1') {
-        console.log(
-          `
-            About to execute the following SQL:
-            ${sqlDebugMessage}
-          `
-        )
-      }
-      results = await kyselyQuery.execute()
-    } catch (error) {
-      if (process.env.DEBUG === '1') {
-        console.error(`
-          Error executing the following SQL:
-          ${error}
-
-          ${sqlDebugMessage}
-        `)
-      }
-      // throw the original error to maintain stack trace
-      throw error
-    }
+    const results = await executeDatabaseQuery(kyselyQuery, 'execute')
 
     const theAll = results.map(r =>
       sqlResultToDreamInstance(this.dreamClass, r)
     ) as InstanceType<DreamClass>[]
-    await this.applyThisDotIncludes(theAll)
+
+    await this.applyIncludes(this.includesStatements as any, theAll)
+
     return theAll
   }
 
@@ -443,20 +449,18 @@ export default class Query<
 
   public async first<T extends Query<DreamClass>>(this: T) {
     const query = this.orderStatement ? this : this.order(this.dreamClass.primaryKey as any, 'asc')
-    const kyselyQuery = query.buildSelect()
-    const results = await kyselyQuery.executeTakeFirst()
+    return await query.takeOne()
+  }
+
+  private async takeOne<T extends Query<DreamClass>>(this: T) {
+    const kyselyQuery = this.buildSelect()
+    const results = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirst')
 
     if (results) {
       const theFirst = sqlResultToDreamInstance(this.dreamClass, results) as InstanceType<DreamClass>
-      if (theFirst) await query.applyThisDotIncludes([theFirst])
+      if (theFirst) await this.applyIncludes(this.includesStatements as any, [theFirst])
       return theFirst
     } else return null
-  }
-
-  public async applyThisDotIncludes<T extends Query<DreamClass>>(this: T, dreams: Dream[]) {
-    for (const includesStatement of this.includesStatements) {
-      await this.applyIncludes(includesStatement, dreams)
-    }
   }
 
   public hydrateAssociation(
@@ -716,23 +720,16 @@ ${JSON.stringify(association, null, 2)}
     return compact(dreams.flatMap(dream => (dream as any)[association.as]))
   }
 
-  public async applyIncludes(includesStatement: QueryAssociationExpression, dream: Dream | Dream[]) {
-    switch ((includesStatement as any).constructor) {
-      case String:
-        await this.applyOneInclude(includesStatement as string, dream)
-        break
-      case Array:
-        for (const str of includesStatement as QueryAssociationExpression[]) {
-          await this.applyIncludes(str, dream)
-        }
-        break
-      default:
-        for (const key of Object.keys(includesStatement as any)) {
-          const nestedDream = await this.applyOneInclude(key, dream)
-          if (nestedDream) {
-            await this.applyIncludes((includesStatement as any)[key], nestedDream)
-          }
-        }
+  public async hydrateIncludes(dream: Dream) {
+    await this.applyIncludes(this.includesStatements as any, dream)
+  }
+
+  private async applyIncludes(includesStatement: RelaxedIncludesStatement, dream: Dream | Dream[]) {
+    for (const key of Object.keys(includesStatement as any)) {
+      const nestedDream = await this.applyOneInclude(key, dream)
+      if (nestedDream) {
+        await this.applyIncludes((includesStatement as any)[key], nestedDream)
+      }
     }
   }
 
@@ -741,14 +738,7 @@ ${JSON.stringify(association, null, 2)}
       ? this.order(this.orderStatement.column, this.orderStatement.direction === 'desc' ? 'asc' : 'desc')
       : this.order((this.dreamClass as typeof Dream).primaryKey as any, 'desc')
 
-    const kyselyQuery = query.buildSelect()
-    const results = await kyselyQuery.executeTakeFirst()
-
-    if (results) {
-      const theLast = new this.dreamClass(results) as InstanceType<DreamClass>
-      if (theLast) await this.applyThisDotIncludes([theLast])
-      return theLast
-    } else return null
+    return await query.takeOne()
   }
 
   public async destroy<T extends Query<DreamClass>>(this: T): Promise<number> {
@@ -768,7 +758,7 @@ ${JSON.stringify(association, null, 2)}
     attributes: Updateable<InstanceType<DreamClass>['table']>
   ) {
     const kyselyQuery = this.buildUpdate(attributes)
-    const res = await kyselyQuery.execute()
+    const res = await executeDatabaseQuery(kyselyQuery, 'execute')
     const resultData = Array.from(res.entries())?.[0]?.[1]
     return Number((resultData as any)?.numUpdatedRows || 0)
   }
@@ -988,35 +978,11 @@ ${JSON.stringify(association, null, 2)}
       previousAssociationTableOrAlias,
     }: {
       query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
-      joinsStatement:
-        | JoinsWhereAssociationExpression<PreviousTableName, AssociationExpression<PreviousTableName, any>>
-        | Updateable<DB[PreviousTableName]>
+      joinsStatement: RelaxedJoinsWhereStatement
       dreamClass: typeof Dream
       previousAssociationTableOrAlias: string
     }
   ): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
-    if (joinsStatement.constructor === Array) {
-      joinsStatement.forEach(oneJoinsStatement => {
-        query = this.recursivelyJoin({
-          query,
-          joinsStatement: oneJoinsStatement as AssociationExpression<AssociationTableNames>,
-          dreamClass,
-          previousAssociationTableOrAlias,
-        }) as SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
-      })
-
-      return query
-    } else if (joinsStatement.constructor === String) {
-      const results = this.applyOneJoin({
-        query,
-        dreamClass,
-        previousAssociationTableOrAlias,
-        currentAssociationTableOrAlias: joinsStatement,
-      })
-
-      return results.query
-    }
-
     for (const currentAssociationTableOrAlias of Object.keys(joinsStatement) as string[]) {
       const results = this.applyOneJoin({
         query,
@@ -1042,9 +1008,7 @@ ${JSON.stringify(association, null, 2)}
 
   private applyWhereStatement<
     T extends Query<DreamClass>,
-    WS extends
-      | WhereStatement<InstanceType<DreamClass>['table']>
-      | JoinsWhereAssociationExpression<InstanceType<DreamClass>['table'], T['joinsStatements'][number]>
+    WS extends WhereStatement<InstanceType<DreamClass>['table']>
   >(
     this: T,
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
@@ -1065,9 +1029,7 @@ ${JSON.stringify(association, null, 2)}
   private applySingleWhereStatement<T extends Query<DreamClass>>(
     this: T,
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
-    whereStatement:
-      | WhereStatement<InstanceType<DreamClass>['table']>
-      | JoinsWhereAssociationExpression<InstanceType<DreamClass>['table'], T['joinsStatements'][number]>,
+    whereStatement: WhereStatement<InstanceType<DreamClass>['table']>,
     {
       negate = false,
     }: {
@@ -1181,9 +1143,7 @@ ${JSON.stringify(association, null, 2)}
 
   private recursivelyApplyJoinWhereStatement<PreviousTableName extends AssociationTableNames>(
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
-    whereJoinsStatement:
-      | JoinsWhereAssociationExpression<PreviousTableName, AssociationExpression<PreviousTableName, any>>
-      | Updateable<DB[PreviousTableName]>,
+    whereJoinsStatement: RelaxedJoinsWhereStatement,
     previousAssociationTableOrAlias: string
   ) {
     for (const key of Object.keys(whereJoinsStatement) as (
@@ -1218,10 +1178,10 @@ ${JSON.stringify(association, null, 2)}
   private buildCommon<T extends Query<DreamClass>>(this: T, kyselyQuery: any) {
     let query = this.conditionallyApplyScopes()
 
-    if (query.joinsStatements.length) {
+    if (!isEmpty(query.joinsStatements)) {
       kyselyQuery = query.recursivelyJoin({
         query: kyselyQuery,
-        joinsStatement: query.joinsStatements as any,
+        joinsStatement: query.joinsStatements,
         dreamClass: query.dreamClass,
         previousAssociationTableOrAlias: query.dreamClass.prototype
           .table as InstanceType<DreamClass>['table'],
@@ -1249,9 +1209,9 @@ ${JSON.stringify(association, null, 2)}
       )
     }
 
-    query.whereJoinsStatement.forEach(whereJoinsStatement => {
-      kyselyQuery = query.recursivelyApplyJoinWhereStatement(kyselyQuery, whereJoinsStatement, '')
-    })
+    if (!isEmpty(query.joinsWhereStatements)) {
+      kyselyQuery = query.recursivelyApplyJoinWhereStatement(kyselyQuery, query.joinsWhereStatements, '')
+    }
 
     return kyselyQuery
   }
@@ -1314,15 +1274,12 @@ export interface QueryOpts<
 > {
   where?: WhereStatement<any>[]
   whereNot?: WhereStatement<any>[]
-  whereJoins?: JoinsWhereAssociationExpression<
-    InstanceType<DreamClass>['table'],
-    AssociationExpression<InstanceType<DreamClass>['table'], any>
-  >[]
   limit?: LimitStatement | null
   or?: Query<DreamClass>[]
   order?: { column: ColumnType & string; direction: 'asc' | 'desc' } | null
-  includes?: AssociationExpression<InstanceType<DreamClass>['table'], any>[]
-  joins?: AssociationExpression<InstanceType<DreamClass>['table'], any>[]
+  includes?: RelaxedIncludesStatement
+  joins?: RelaxedJoinsStatement
+  joinsWhere?: RelaxedJoinsWhereStatement
   shouldBypassDefaultScopes?: boolean
   transaction?: DreamTransaction | null | undefined
 }

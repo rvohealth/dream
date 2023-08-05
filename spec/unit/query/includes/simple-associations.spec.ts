@@ -106,37 +106,25 @@ describe('Query#includes with simple associations', () => {
     const composition = await Composition.create({ user_id: user.id })
     const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
-    const reloaded = await new Query(User).includes({ compositions: 'compositionAssets' }).first()
+    const reloaded = await new Query(User).includes('compositions', 'compositionAssets').first()
     expect(reloaded!.compositions).toMatchDreamModels([composition])
     expect(reloaded!.compositions[0].compositionAssets).toMatchDreamModels([compositionAsset])
   })
 
-  it('can handle array notation', async () => {
+  it('can handle sibling includes', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ user_id: user.id, primary: true })
     const composition2 = await Composition.create({ user_id: user.id })
     const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
     const reloadedUser = await new Query(User)
-      .includes(['compositions', { mainComposition: ['compositionAssets'] }])
+      .includes('compositions')
+      .includes('mainComposition', 'compositionAssets')
       .first()
 
-    expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
     expect(reloadedUser!.compositions).toMatchDreamModels([composition, composition2])
+    expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
     expect(reloadedUser!.mainComposition.compositionAssets).toMatchDreamModels([compositionAsset])
-  })
-
-  it('can sideload multiple associations at once', async () => {
-    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id })
-    const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
-    const compositionAssetAudit = await CompositionAssetAudit.create({
-      composition_asset_id: compositionAsset.id,
-    })
-
-    const reloaded = await new Query(CompositionAssetAudit).includes('composition', 'user').first()
-    expect(reloaded!.composition).toMatchDreamModel(composition)
-    expect(reloaded!.user).toMatchDreamModel(user)
   })
 
   context('HasMany', () => {

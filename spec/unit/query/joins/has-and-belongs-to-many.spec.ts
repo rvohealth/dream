@@ -10,14 +10,10 @@ describe('Query#joins has and belongs to many', () => {
     await EdgeNode.create({ node, edge: edge1 })
     await EdgeNode.create({ node, edge: edge2 })
 
-    const reloadedNode = await Node.joins('edges')
-      .where({ edges: { name: 'E2' } })
-      .first()
+    const reloadedNode = await Node.joins('edges', { name: 'E2' }).first()
     expect(reloadedNode).toMatchDreamModel(node)
 
-    const reloadedNode2 = await Node.joins('edges')
-      .where({ edges: { name: 'E3' } })
-      .first()
+    const reloadedNode2 = await Node.joins('edges', { name: 'E3' }).first()
     expect(reloadedNode2).toBeNull()
   })
 })

@@ -11,6 +11,7 @@ import BalloonSpotterBalloon from '../../../../test-app/app/models/BalloonSpotte
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import Sandbag from '../../../../test-app/app/models/Sandbag'
+import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating'
 
 describe('Query#includes through with simple associations', () => {
   context('HasMany via a join table', () => {
@@ -19,7 +20,7 @@ describe('Query#includes through with simple associations', () => {
       const balloonSpotter = await BalloonSpotter.create()
       const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
 
-      const reloaded = await new Query(BalloonSpotter).includes({ balloonSpotterBalloons: 'balloon' }).first()
+      const reloaded = await new Query(BalloonSpotter).includes('balloonSpotterBalloons', 'balloon').first()
       expect(reloaded!.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon])
       expect(reloaded!.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon)
     })
@@ -82,12 +83,34 @@ describe('Query#includes through with simple associations', () => {
       })
 
       const reloadedComposition = await new Query(Composition)
-        .includes({ mainCompositionAsset: 'compositionAssetAudits' })
+        .includes('mainCompositionAsset', 'compositionAssetAudits')
         .first()
       expect(reloadedComposition!.mainCompositionAsset).toMatchDreamModel(compositionAsset)
       expect(reloadedComposition!.mainCompositionAsset.compositionAssetAudits).toMatchDreamModels([
         compositionAssetAudit,
       ])
+    })
+
+    context('multiple, final includes', () => {
+      it('includes all of the specified associations', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user })
+        const compositionAsset = await CompositionAsset.create({
+          composition,
+          primary: true,
+        })
+        const heartRating = await HeartRating.create({
+          user,
+          extraRateable: composition,
+        })
+
+        const reloaded = await new Query(User)
+          .includes('compositions', ['compositionAssets', 'heartRatings'])
+          .first()
+        expect(reloaded!.compositions).toMatchDreamModels([composition])
+        expect(reloaded!.compositions[0].compositionAssets).toMatchDreamModels([compositionAsset])
+        expect(reloaded!.compositions[0].heartRatings).toMatchDreamModels([heartRating])
+      })
     })
 
     context('when there are no models associated via the HasMany', () => {
@@ -100,7 +123,7 @@ describe('Query#includes through with simple associations', () => {
         })
 
         const reloadedComposition = await new Query(Composition)
-          .includes({ mainCompositionAsset: 'compositionAssetAudits' })
+          .includes('mainCompositionAsset', 'compositionAssetAudits')
           .first()
         expect(reloadedComposition!.mainCompositionAsset).toMatchDreamModel(compositionAsset)
       })
@@ -112,7 +135,7 @@ describe('Query#includes through with simple associations', () => {
         const composition = await Composition.create({ user })
 
         const reloadedComposition = await new Query(Composition)
-          .includes({ mainCompositionAsset: 'compositionAssetAudits' })
+          .includes('mainCompositionAsset', 'compositionAssetAudits')
           .first()
         expect(reloadedComposition!.mainCompositionAsset).toBeNull()
       })
@@ -125,7 +148,7 @@ describe('Query#includes through with simple associations', () => {
         const mylar = await Mylar.create({ color: 'red', user })
         const sandbag = await Sandbag.create({ mylar })
 
-        const reloaded = await new Query(User).includes({ balloons: 'sandbags' }).order('id', 'asc').first()
+        const reloaded = await new Query(User).includes('balloons', 'sandbags').order('id', 'asc').first()
         expect(reloaded!.balloons[0]).toMatchDreamModel(latex)
         expect(reloaded!.balloons[1]).toMatchDreamModel(mylar)
         expect((reloaded!.balloons[1] as Mylar).sandbags).toMatchDreamModels([sandbag])
@@ -136,7 +159,7 @@ describe('Query#includes through with simple associations', () => {
           const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
           const latex = await Latex.create({ color: 'blue', user })
 
-          const reloaded = await new Query(User).includes({ balloons: 'sandbags' }).order('id', 'asc').first()
+          const reloaded = await new Query(User).includes('balloons', 'sandbags').order('id', 'asc').first()
           expect(reloaded!.balloons[0]).toMatchDreamModel(latex)
         })
       })
@@ -268,9 +291,7 @@ describe('Query#includes through with simple associations', () => {
         const compositionAsset1 = await CompositionAsset.create({ composition: recentComposition })
         const compositionAsset2 = await CompositionAsset.create({ composition: olderComposition })
 
-        const reloadedUser = await new Query(User)
-          .includes({ recentCompositions: 'compositionAssets' })
-          .first()
+        const reloadedUser = await new Query(User).includes('recentCompositions', 'compositionAssets').first()
         expect(reloadedUser!.recentCompositions[0].compositionAssets).toMatchDreamModels([compositionAsset1])
       })
     })

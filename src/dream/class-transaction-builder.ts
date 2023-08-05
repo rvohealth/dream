@@ -1,14 +1,20 @@
-import { SelectArg, SelectExpression, SelectType, Updateable } from 'kysely'
-import { AssociatedModelParam, WhereStatement } from '../decorators/associations/shared'
+import { SelectArg, SelectExpression, Updateable } from 'kysely'
+import { WhereStatement } from '../decorators/associations/shared'
 import { DB, InterpretedDB } from '../sync/schema'
 import Dream from '../dream'
 import DreamTransaction from './transaction'
-import db from '../db'
 import Query from './query'
 import { AssociationTableNames } from '../db/reflections'
-import { AssociationExpression, UpdateableFields } from './types'
+import {
+  IncludesArgumentTypeAssociatedTableNames,
+  JoinsArgumentTypeAssociatedTableNames,
+  NextJoinsWhereArgumentType,
+  NextIncludesArgumentType,
+  UpdateableFields,
+} from './types'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import saveDream from './internal/saveDream'
+import { SyncedAssociations } from '../sync/associations'
 
 export default class DreamClassTransactionBuilder<DreamClass extends typeof Dream> {
   public dreamClass: DreamClass
@@ -21,13 +27,11 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
   public async all<I extends DreamClassTransactionBuilder<DreamClass>>(
     this: I
   ): Promise<InstanceType<DreamClass>[]> {
-    const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
-    return query.all()
+    return this.queryInstance().all()
   }
 
   public async count<I extends DreamClassTransactionBuilder<DreamClass>>(this: I): Promise<number> {
-    const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
-    return query.count()
+    return this.queryInstance().count()
   }
 
   public async max<
@@ -35,8 +39,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>
   >(this: I, field: SimpleFieldType): Promise<number> {
-    const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
-    return query.max(field as any)
+    return this.queryInstance().max(field as any)
   }
 
   public async min<
@@ -44,8 +47,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>
   >(this: I, field: SimpleFieldType): Promise<number> {
-    const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
-    return query.min(field as any)
+    return this.queryInstance().min(field as any)
   }
 
   public async create<I extends DreamClassTransactionBuilder<DreamClass>>(
@@ -63,61 +65,89 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     this: I,
     id: InterpretedDB[TableName][DreamClass['primaryKey'] & keyof InterpretedDB[TableName]]
   ): Promise<InstanceType<DreamClass> | null> {
-    const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
-    return await query.where({ [this.dreamClass.primaryKey]: id } as any).first()
+    return await this.queryInstance()
+      .where({ [this.dreamClass.primaryKey]: id } as any)
+      .first()
   }
 
   public async findBy<I extends DreamClassTransactionBuilder<DreamClass>>(
     this: I,
     attributes: Updateable<DB[InstanceType<DreamClass>['table']]>
   ): Promise<InstanceType<DreamClass> | null> {
-    const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
-    return await query.where(attributes as any).first()
+    return await this.queryInstance()
+      .where(attributes as any)
+      .first()
   }
 
   public async first<I extends DreamClassTransactionBuilder<DreamClass>>(
     this: I
   ): Promise<InstanceType<DreamClass> | null> {
-    const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
-    return query.first()
+    return this.queryInstance().first()
   }
 
   public includes<
     I extends DreamClassTransactionBuilder<DreamClass>,
-    TableName extends keyof DB = InstanceType<I['dreamClass']>['table'] & keyof DB,
-    QueryAssociationExpression extends AssociationExpression<
-      TableName & AssociationTableNames,
-      any
-    > = AssociationExpression<TableName & AssociationTableNames, any>
-  >(this: I, ...associations: QueryAssociationExpression[]) {
-    const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
-    return query.includes(...(associations as any))
+    TableName extends InstanceType<DreamClass>['table'],
+    //
+    A extends NextIncludesArgumentType<TableName>,
+    ATableName extends IncludesArgumentTypeAssociatedTableNames<TableName, A>,
+    B extends NextIncludesArgumentType<ATableName>,
+    BTableName extends IncludesArgumentTypeAssociatedTableNames<ATableName, B>,
+    C extends NextIncludesArgumentType<BTableName>,
+    CTableName extends IncludesArgumentTypeAssociatedTableNames<BTableName, C>,
+    D extends NextIncludesArgumentType<CTableName>,
+    DTableName extends IncludesArgumentTypeAssociatedTableNames<CTableName, D>,
+    E extends NextIncludesArgumentType<DTableName>,
+    ETableName extends IncludesArgumentTypeAssociatedTableNames<DTableName, E>,
+    F extends NextIncludesArgumentType<ETableName>,
+    FTableName extends IncludesArgumentTypeAssociatedTableNames<ETableName, F>,
+    //
+    G extends FTableName extends undefined
+      ? undefined
+      : (keyof SyncedAssociations[FTableName & keyof SyncedAssociations] & string)[]
+  >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
+    return this.queryInstance().includes(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
 
   public joins<
     I extends DreamClassTransactionBuilder<DreamClass>,
-    QueryAssociationExpression extends AssociationExpression<
-      InstanceType<I['dreamClass']>['table'],
-      any
-    > = AssociationExpression<InstanceType<I['dreamClass']>['table'], any>
-  >(this: I, ...associations: QueryAssociationExpression[]) {
-    const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
-    return query.joins(...(associations as any))
+    TableName extends InstanceType<DreamClass>['table'],
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWhereArgumentType<ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<ATableName, B>,
+    C extends NextJoinsWhereArgumentType<BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<BTableName, C>,
+    D extends NextJoinsWhereArgumentType<CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<CTableName, D>,
+    E extends NextJoinsWhereArgumentType<DTableName>,
+    ETableName extends JoinsArgumentTypeAssociatedTableNames<DTableName, E>,
+    F extends NextJoinsWhereArgumentType<ETableName>,
+    FTableName extends JoinsArgumentTypeAssociatedTableNames<ETableName, F>,
+    //
+    G extends FTableName extends undefined ? undefined : WhereStatement<FTableName & AssociationTableNames>
+  >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
+    return this.queryInstance().joins(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
+  }
+
+  private queryInstance<I extends DreamClassTransactionBuilder<DreamClass>>(this: I): Query<DreamClass> {
+    return new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
   }
 
   public async last<I extends DreamClassTransactionBuilder<DreamClass>>(
     this: I
   ): Promise<InstanceType<DreamClass> | null> {
-    const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
-    return query.last()
+    return this.queryInstance().last()
   }
 
   public nestedSelect<
     I extends DreamClassTransactionBuilder<DreamClass>,
     SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>>
   >(this: I, selection: SelectArg<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, SE>) {
-    const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
-    return query.nestedSelect(selection as any)
+    return this.queryInstance().nestedSelect(selection as any)
   }
 
   public order<
@@ -126,31 +156,27 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     TableName extends AssociationTableNames = InstanceType<DreamClass>['table'],
     Table extends DB[keyof DB] = DB[TableName]
   >(this: I, column: ColumnName, direction: 'asc' | 'desc' = 'asc') {
-    const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
-    return query.order(column as any, direction)
+    return this.queryInstance().order(column as any, direction)
   }
 
   public async pluck<
     I extends DreamClassTransactionBuilder<DreamClass>,
     SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>>
   >(this: I, ...fields: SelectArg<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, SE>[]) {
-    const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
-    return await query.pluck(...(fields as any[]))
+    return await this.queryInstance().pluck(...(fields as any[]))
   }
 
   public where<
     I extends DreamClassTransactionBuilder<DreamClass>,
     TableName extends keyof DB = InstanceType<I['dreamClass']>['table'] & keyof DB
   >(this: I, attributes: WhereStatement<TableName>) {
-    const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
-    return query.where(attributes as any)
+    return this.queryInstance().where(attributes as any)
   }
 
   public whereNot<
     I extends DreamClassTransactionBuilder<DreamClass>,
     TableName extends keyof DB = InstanceType<I['dreamClass']>['table'] & keyof DB
   >(this: I, attributes: WhereStatement<TableName>) {
-    const query: Query<DreamClass> = new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
-    return query.whereNot(attributes as any)
+    return this.queryInstance().whereNot(attributes as any)
   }
 }

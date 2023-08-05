@@ -62,15 +62,11 @@ describe('Query#joins with polymorphic associations', () => {
       const post = await Post.create({ user })
       const rating = await Rating.create({ user, rateable: post })
 
-      const reloaded = await new Query(Post)
-        .joins('ratings')
-        .where({ ratings: { id: rating.id } })
-        .first()
+      const reloaded = await new Query(Post).joins('ratings', { id: rating.id }).first()
       expect(reloaded).toMatchDreamModel(post)
 
       const noResults = await new Query(Post)
-        .joins('ratings')
-        .where({ ratings: { id: parseInt(rating.id!.toString()) + 1 } })
+        .joins('ratings', { id: parseInt(rating.id!.toString()) + 1 })
         .first()
       expect(noResults).toBeNull()
     })
