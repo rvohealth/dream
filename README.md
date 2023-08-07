@@ -299,7 +299,7 @@ yarn dream sync:schema --core
 yarn dream sync:associations
 # runs a script which analyzes your models, building a mapping of the associations into typescript interfaces
 # which will assist in providing enforced type completion mechanisms at the code composition level. This must be
-# this is used by the underlying `load` method, as well as includes and joins methods within the query
+# this is used by the underlying `load` method, as well as `preload` and `joins` methods within the query
 # building layer. This is all copied to the file specified in the `.dream.yml#associations_path`. This is also automatically done whenever you run migrations, run specs, or open a console
 
 yarn dream sync:associations --core
@@ -350,7 +350,7 @@ yarn build:docs
 
 #### Hidden gotchas
 
-- STI descendants of the same root model that define the same association must define that association identically if they are used in joins, includes, or load. For example, the following will not work properly:
+- STI descendants of the same root model that define the same association must define that association identically if they are used in joins, preload, or load. For example, the following will not work properly:
 
 ```ts
 @STI(A)

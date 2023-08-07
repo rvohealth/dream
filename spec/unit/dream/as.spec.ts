@@ -9,7 +9,7 @@ describe('Dream#as', () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const mylar = await Mylar.create({ user, color: 'red' })
 
-    const balloon = await Balloon.includes('user').first()
+    const balloon = await Balloon.preload('user').first()
     expect(balloon!.as(Mylar)).toMatchDreamModel(mylar)
   })
 
@@ -18,7 +18,7 @@ describe('Dream#as', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const mylar = await Mylar.create({ user, color: 'red' })
 
-      const balloon = await Balloon.includes('user').first()
+      const balloon = await Balloon.preload('user').first()
       expect(() => balloon!.as(User)).toThrowError(CannotCastToNonSTIChild)
     })
   })

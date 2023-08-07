@@ -4,14 +4,14 @@ import Post from '../../../../test-app/app/models/Post'
 import Rating from '../../../../test-app/app/models/Rating'
 import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating'
 
-describe('Query#includes with polymorphic associations', () => {
+describe('Query#preload with polymorphic associations', () => {
   it('loads a HasMany association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     await Composition.create({ user })
     const post = await Post.create({ user })
     const rating = await Rating.create({ user, rateable: post })
 
-    const reloaded = await Post.where({ id: post.id }).includes('ratings').first()
+    const reloaded = await Post.where({ id: post.id }).preload('ratings').first()
     expect(reloaded!.ratings).toMatchDreamModels([rating])
   })
 
@@ -21,7 +21,7 @@ describe('Query#includes with polymorphic associations', () => {
     const post = await Post.create({ user })
     const heartRating = await HeartRating.create({ user, extraRateable: post })
 
-    const reloaded = await Post.where({ id: post.id }).includes('heartRatings').first()
+    const reloaded = await Post.where({ id: post.id }).preload('heartRatings').first()
     expect(reloaded!.heartRatings).toMatchDreamModels([heartRating])
   })
 
@@ -31,7 +31,7 @@ describe('Query#includes with polymorphic associations', () => {
     const post = await Post.create({ user })
     const rating = await Rating.create({ user, rateable: post })
 
-    const reloaded = await Rating.where({ id: rating.id }).includes('rateable').first()
+    const reloaded = await Rating.where({ id: rating.id }).preload('rateable').first()
     expect(reloaded!.rateable).toMatchDreamModel(post)
   })
 })

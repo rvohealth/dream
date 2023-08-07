@@ -20,10 +20,10 @@ import CanOnlyPassBelongsToModelParam from './exceptions/associations/can-only-p
 import {
   DreamConstructorType,
   IdType,
-  IncludesArgumentTypeAssociatedTableNames,
+  PreloadArgumentTypeAssociatedTableNames,
   JoinsArgumentTypeAssociatedTableNames,
   NextJoinsWhereArgumentType,
-  NextIncludesArgumentType,
+  NextPreloadArgumentType,
   UpdateableFields,
   UpdateableInstanceFields,
 } from './dream/types'
@@ -265,22 +265,22 @@ export default class Dream {
     return (await query.first()) as (InstanceType<T> & Dream) | null
   }
 
-  public static includes<
+  public static preload<
     T extends typeof Dream,
     TableName extends InstanceType<T>['table'],
     //
-    A extends NextIncludesArgumentType<TableName>,
-    ATableName extends IncludesArgumentTypeAssociatedTableNames<TableName, A>,
-    B extends NextIncludesArgumentType<ATableName>,
-    BTableName extends IncludesArgumentTypeAssociatedTableNames<ATableName, B>,
-    C extends NextIncludesArgumentType<BTableName>,
-    CTableName extends IncludesArgumentTypeAssociatedTableNames<BTableName, C>,
-    D extends NextIncludesArgumentType<CTableName>,
-    DTableName extends IncludesArgumentTypeAssociatedTableNames<CTableName, D>,
-    E extends NextIncludesArgumentType<DTableName>,
-    ETableName extends IncludesArgumentTypeAssociatedTableNames<DTableName, E>,
-    F extends NextIncludesArgumentType<ETableName>,
-    FTableName extends IncludesArgumentTypeAssociatedTableNames<ETableName, F>,
+    A extends NextPreloadArgumentType<TableName>,
+    ATableName extends PreloadArgumentTypeAssociatedTableNames<TableName, A>,
+    B extends NextPreloadArgumentType<ATableName>,
+    BTableName extends PreloadArgumentTypeAssociatedTableNames<ATableName, B>,
+    C extends NextPreloadArgumentType<BTableName>,
+    CTableName extends PreloadArgumentTypeAssociatedTableNames<BTableName, C>,
+    D extends NextPreloadArgumentType<CTableName>,
+    DTableName extends PreloadArgumentTypeAssociatedTableNames<CTableName, D>,
+    E extends NextPreloadArgumentType<DTableName>,
+    ETableName extends PreloadArgumentTypeAssociatedTableNames<DTableName, E>,
+    F extends NextPreloadArgumentType<ETableName>,
+    FTableName extends PreloadArgumentTypeAssociatedTableNames<ETableName, F>,
     //
     G extends FTableName extends undefined
       ? undefined
@@ -288,7 +288,7 @@ export default class Dream {
   >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     const query: Query<T> = new Query<T>(this)
 
-    return query.includes(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
+    return query.preload(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
 
   public static joins<
@@ -692,25 +692,25 @@ export default class Dream {
     I extends Dream,
     TableName extends I['table'],
     //
-    A extends NextIncludesArgumentType<TableName>,
-    ATableName extends IncludesArgumentTypeAssociatedTableNames<TableName, A>,
-    B extends NextIncludesArgumentType<ATableName>,
-    BTableName extends IncludesArgumentTypeAssociatedTableNames<ATableName, B>,
-    C extends NextIncludesArgumentType<BTableName>,
-    CTableName extends IncludesArgumentTypeAssociatedTableNames<BTableName, C>,
-    D extends NextIncludesArgumentType<CTableName>,
-    DTableName extends IncludesArgumentTypeAssociatedTableNames<CTableName, D>,
-    E extends NextIncludesArgumentType<DTableName>,
-    ETableName extends IncludesArgumentTypeAssociatedTableNames<DTableName, E>,
-    F extends NextIncludesArgumentType<ETableName>,
-    FTableName extends IncludesArgumentTypeAssociatedTableNames<ETableName, F>,
+    A extends NextPreloadArgumentType<TableName>,
+    ATableName extends PreloadArgumentTypeAssociatedTableNames<TableName, A>,
+    B extends NextPreloadArgumentType<ATableName>,
+    BTableName extends PreloadArgumentTypeAssociatedTableNames<ATableName, B>,
+    C extends NextPreloadArgumentType<BTableName>,
+    CTableName extends PreloadArgumentTypeAssociatedTableNames<BTableName, C>,
+    D extends NextPreloadArgumentType<CTableName>,
+    DTableName extends PreloadArgumentTypeAssociatedTableNames<CTableName, D>,
+    E extends NextPreloadArgumentType<DTableName>,
+    ETableName extends PreloadArgumentTypeAssociatedTableNames<DTableName, E>,
+    F extends NextPreloadArgumentType<ETableName>,
+    FTableName extends PreloadArgumentTypeAssociatedTableNames<ETableName, F>,
     //
     G extends FTableName extends undefined
       ? undefined
       : (keyof SyncedAssociations[FTableName & keyof SyncedAssociations] & string)[]
   >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G): Promise<void> {
     const base = this.constructor as DreamConstructorType<I>
-    const query: Query<DreamConstructorType<I>> = new Query<DreamConstructorType<I>>(base).includes(
+    const query: Query<DreamConstructorType<I>> = new Query<DreamConstructorType<I>>(base).preload(
       a as any,
       b as any,
       c as any,
@@ -719,7 +719,7 @@ export default class Dream {
       f as any,
       g as any
     )
-    await query.hydrateIncludes(this)
+    await query.hydratePreload(this)
   }
 
   public async reload<I extends Dream>(this: I) {

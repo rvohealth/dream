@@ -6,10 +6,10 @@ import DreamTransaction from './transaction'
 import Query from './query'
 import { AssociationTableNames } from '../db/reflections'
 import {
-  IncludesArgumentTypeAssociatedTableNames,
+  PreloadArgumentTypeAssociatedTableNames,
   JoinsArgumentTypeAssociatedTableNames,
   NextJoinsWhereArgumentType,
-  NextIncludesArgumentType,
+  NextPreloadArgumentType,
   UpdateableFields,
 } from './types'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
@@ -85,28 +85,28 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     return this.queryInstance().first()
   }
 
-  public includes<
+  public preload<
     I extends DreamClassTransactionBuilder<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
     //
-    A extends NextIncludesArgumentType<TableName>,
-    ATableName extends IncludesArgumentTypeAssociatedTableNames<TableName, A>,
-    B extends NextIncludesArgumentType<ATableName>,
-    BTableName extends IncludesArgumentTypeAssociatedTableNames<ATableName, B>,
-    C extends NextIncludesArgumentType<BTableName>,
-    CTableName extends IncludesArgumentTypeAssociatedTableNames<BTableName, C>,
-    D extends NextIncludesArgumentType<CTableName>,
-    DTableName extends IncludesArgumentTypeAssociatedTableNames<CTableName, D>,
-    E extends NextIncludesArgumentType<DTableName>,
-    ETableName extends IncludesArgumentTypeAssociatedTableNames<DTableName, E>,
-    F extends NextIncludesArgumentType<ETableName>,
-    FTableName extends IncludesArgumentTypeAssociatedTableNames<ETableName, F>,
+    A extends NextPreloadArgumentType<TableName>,
+    ATableName extends PreloadArgumentTypeAssociatedTableNames<TableName, A>,
+    B extends NextPreloadArgumentType<ATableName>,
+    BTableName extends PreloadArgumentTypeAssociatedTableNames<ATableName, B>,
+    C extends NextPreloadArgumentType<BTableName>,
+    CTableName extends PreloadArgumentTypeAssociatedTableNames<BTableName, C>,
+    D extends NextPreloadArgumentType<CTableName>,
+    DTableName extends PreloadArgumentTypeAssociatedTableNames<CTableName, D>,
+    E extends NextPreloadArgumentType<DTableName>,
+    ETableName extends PreloadArgumentTypeAssociatedTableNames<DTableName, E>,
+    F extends NextPreloadArgumentType<ETableName>,
+    FTableName extends PreloadArgumentTypeAssociatedTableNames<ETableName, F>,
     //
     G extends FTableName extends undefined
       ? undefined
       : (keyof SyncedAssociations[FTableName & keyof SyncedAssociations] & string)[]
   >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
-    return this.queryInstance().includes(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
+    return this.queryInstance().preload(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
 
   public joins<

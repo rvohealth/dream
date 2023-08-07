@@ -13,13 +13,13 @@ import Balloon from '../../../../test-app/app/models/Balloon'
 import MissingThroughAssociation from '../../../../src/exceptions/associations/missing-through-association'
 import MissingThroughAssociationSource from '../../../../src/exceptions/associations/missing-through-association-source'
 
-describe('Query#includes with simple associations', () => {
+describe('Query#preload with simple associations', () => {
   context('HasOne', () => {
     it('loads the association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ user_id: user.id, primary: true })
 
-      const reloadedUser = await new Query(User).includes('mainComposition').first()
+      const reloadedUser = await new Query(User).preload('mainComposition').first()
       expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
     })
 
@@ -27,7 +27,7 @@ describe('Query#includes with simple associations', () => {
       it('sets it to null', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-        const reloadedUser = await new Query(User).includes('mainComposition').first()
+        const reloadedUser = await new Query(User).preload('mainComposition').first()
         expect(reloadedUser!.mainComposition).toBeNull()
       })
     })
@@ -37,7 +37,7 @@ describe('Query#includes with simple associations', () => {
         const balloon = await Latex.create({ color: 'blue' })
         const line = await BalloonLine.create({ balloon, material: 'ribbon' })
 
-        const reloaded = await new Query(Balloon).includes('balloonLine').first()
+        const reloaded = await new Query(Balloon).preload('balloonLine').first()
         expect(reloaded!.balloonLine).toMatchDreamModel(line)
       })
     })
@@ -49,7 +49,7 @@ describe('Query#includes with simple associations', () => {
       const composition1 = await Composition.create({ user_id: user.id })
       const composition2 = await Composition.create({ user_id: user.id })
 
-      const reloadedUser = await new Query(User).includes('compositions').first()
+      const reloadedUser = await new Query(User).preload('compositions').first()
       expect(reloadedUser!.compositions).toMatchDreamModels([composition1, composition2])
     })
 
@@ -57,7 +57,7 @@ describe('Query#includes with simple associations', () => {
       it('sets it to an empty array', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-        const reloadedUser = await new Query(User).includes('compositions').first()
+        const reloadedUser = await new Query(User).preload('compositions').first()
         expect(reloadedUser!.compositions).toEqual([])
       })
     })
@@ -67,7 +67,7 @@ describe('Query#includes with simple associations', () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const balloon = await Latex.create({ user, color: 'blue' })
 
-        const reloadedUser = await new Query(User).includes('balloons').first()
+        const reloadedUser = await new Query(User).preload('balloons').first()
         expect(reloadedUser!.balloons).toMatchDreamModels([balloon])
       })
     })
@@ -77,7 +77,7 @@ describe('Query#includes with simple associations', () => {
     it('sets the association to an empty array', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-      const reloadedUser = await new Query(User).includes('compositions').first()
+      const reloadedUser = await new Query(User).preload('compositions').first()
       expect(reloadedUser!.compositions).toEqual([])
     })
   })
@@ -86,7 +86,7 @@ describe('Query#includes with simple associations', () => {
     it('loads the association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       await Composition.create({ user_id: user.id })
-      const reloadedComposition = await new Query(Composition).includes('user').first()
+      const reloadedComposition = await new Query(Composition).preload('user').first()
       expect(reloadedComposition!.user).toMatchDreamModel(user)
     })
 
@@ -95,7 +95,7 @@ describe('Query#includes with simple associations', () => {
         const balloon = await Latex.create({ color: 'blue' })
         const line = await BalloonLine.create({ balloon, material: 'ribbon' })
 
-        const reloaded = await new Query(BalloonLine).includes('balloon').first()
+        const reloaded = await new Query(BalloonLine).preload('balloon').first()
         expect(reloaded!.balloon).toMatchDreamModel(balloon)
       })
     })
@@ -106,20 +106,20 @@ describe('Query#includes with simple associations', () => {
     const composition = await Composition.create({ user_id: user.id })
     const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
-    const reloaded = await new Query(User).includes('compositions', 'compositionAssets').first()
+    const reloaded = await new Query(User).preload('compositions', 'compositionAssets').first()
     expect(reloaded!.compositions).toMatchDreamModels([composition])
     expect(reloaded!.compositions[0].compositionAssets).toMatchDreamModels([compositionAsset])
   })
 
-  it('can handle sibling includes', async () => {
+  it('can handle sibling preload', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ user_id: user.id, primary: true })
     const composition2 = await Composition.create({ user_id: user.id })
     const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
 
     const reloadedUser = await new Query(User)
-      .includes('compositions')
-      .includes('mainComposition', 'compositionAssets')
+      .preload('compositions')
+      .preload('mainComposition', 'compositionAssets')
       .first()
 
     expect(reloadedUser!.compositions).toMatchDreamModels([composition, composition2])
@@ -136,7 +136,7 @@ describe('Query#includes with simple associations', () => {
           created_at: DateTime.now().minus({ day: 1 }),
         })
 
-        const reloadedUser = await new Query(User).includes('recentCompositions').first()
+        const reloadedUser = await new Query(User).preload('recentCompositions').first()
         expect(reloadedUser!.recentCompositions).toMatchDreamModels([composition])
       })
     })
@@ -149,7 +149,7 @@ describe('Query#includes with simple associations', () => {
           created_at: DateTime.now().minus({ year: 1 }),
         })
 
-        const reloadedUser = await new Query(User).includes('recentCompositions').first()
+        const reloadedUser = await new Query(User).preload('recentCompositions').first()
         expect(reloadedUser!.recentCompositions).toEqual([])
       })
     })
@@ -162,7 +162,7 @@ describe('Query#includes with simple associations', () => {
           created_at: DateTime.now().minus({ day: 1 }),
         })
 
-        const reloadedUser = await new Query(User).includes('notRecentCompositions').first()
+        const reloadedUser = await new Query(User).preload('notRecentCompositions').first()
         expect(reloadedUser!.notRecentCompositions).toEqual([])
       })
     })
@@ -175,7 +175,7 @@ describe('Query#includes with simple associations', () => {
           created_at: DateTime.now().minus({ year: 1 }),
         })
 
-        const reloadedUser = await new Query(User).includes('notRecentCompositions').first()
+        const reloadedUser = await new Query(User).preload('notRecentCompositions').first()
         expect(reloadedUser!.notRecentCompositions).toMatchDreamModels([composition])
       })
     })
@@ -192,7 +192,7 @@ describe('Query#includes with simple associations', () => {
           lost: false,
         })
 
-        const reloaded = await Pet.includes('currentCollar').first()
+        const reloaded = await Pet.preload('currentCollar').first()
         expect(reloaded?.currentCollar).toMatchDreamModel(currentCollar)
       })
     })
@@ -204,7 +204,7 @@ describe('Query#includes with simple associations', () => {
           lost: true,
         })
 
-        const reloaded = await Pet.includes('currentCollar').first()
+        const reloaded = await Pet.preload('currentCollar').first()
         expect(reloaded?.currentCollar).toBeNull()
       })
     })
@@ -216,7 +216,7 @@ describe('Query#includes with simple associations', () => {
           lost: true,
         })
 
-        const reloaded = await Pet.includes('notLostCollar').first()
+        const reloaded = await Pet.preload('notLostCollar').first()
         expect(reloaded?.notLostCollar).toBeNull()
       })
     })
@@ -228,7 +228,7 @@ describe('Query#includes with simple associations', () => {
           lost: false,
         })
 
-        const reloaded = await Pet.includes('notLostCollar').first()
+        const reloaded = await Pet.preload('notLostCollar').first()
         expect(reloaded?.notLostCollar).toMatchDreamModel(notLostCollar)
       })
     })
@@ -241,7 +241,7 @@ describe('Query#includes with simple associations', () => {
 
       let error: Error | null = null
       try {
-        await new Query(User).includes('incompatibleForeignKeyTypeExamples').all()
+        await new Query(User).preload('incompatibleForeignKeyTypeExamples').all()
       } catch (err: any) {
         error = err
       }
@@ -254,7 +254,7 @@ describe('Query#includes with simple associations', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const snoopy = await Pet.create({ user, name: 'Snoopy' })
       await Pet.create({ user, name: 'Woodstock', deleted_at: DateTime.now() })
-      const reloadedUser = await User.where({ email: user.email }).includes('pets').first()
+      const reloadedUser = await User.where({ email: user.email }).preload('pets').first()
       expect(reloadedUser!.pets).toMatchDreamModels([snoopy])
     })
   })

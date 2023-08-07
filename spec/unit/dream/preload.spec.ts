@@ -6,7 +6,7 @@ import { Dream } from '../../../src'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
 
-describe('Dream.includes', () => {
+describe('Dream.preload', () => {
   it('loads a HasOne association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ user_id: user.id })
@@ -15,7 +15,7 @@ describe('Dream.includes', () => {
       composition_asset_id: compositionAsset.id,
     })
 
-    const reloaded = await CompositionAssetAudit.includes('compositionAsset').first()
+    const reloaded = await CompositionAssetAudit.preload('compositionAsset').first()
     expect(reloaded!.compositionAsset).toMatchDreamModel(compositionAsset)
   })
 
@@ -32,7 +32,7 @@ describe('Dream.includes', () => {
         })
 
         reloadedCompositionAssetAudit = await CompositionAssetAudit.txn(txn)
-          .includes('compositionAsset')
+          .preload('compositionAsset')
           .first()
       })
 
@@ -46,7 +46,7 @@ describe('Dream.includes', () => {
       const mylar = await Mylar.create({ user, color: 'red' })
       const latex = await Latex.create({ user, color: 'blue' })
 
-      const users = await User.includes('balloons').all()
+      const users = await User.preload('balloons').all()
       expect(users[0].balloons).toMatchDreamModels([mylar, latex])
     })
   })

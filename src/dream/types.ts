@@ -33,8 +33,8 @@ export type UpdateableInstanceFields<I extends Dream> =
 
 export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) => T) & typeof Dream
 
-// includes
-export type NextIncludesArgumentType<
+// preload
+export type NextPreloadArgumentType<
   PreviousTableNames,
   PreviousSyncedAssociations = PreviousTableNames extends undefined
     ? undefined
@@ -43,7 +43,7 @@ export type NextIncludesArgumentType<
   ? undefined
   : (keyof PreviousSyncedAssociations & string) | (keyof PreviousSyncedAssociations & string)[]
 
-export type IncludesArgumentTypeAssociatedTableNames<
+export type PreloadArgumentTypeAssociatedTableNames<
   PreviousTableNames,
   ArgumentType,
   PreviousSyncedAssociations = PreviousTableNames extends undefined
@@ -53,7 +53,7 @@ export type IncludesArgumentTypeAssociatedTableNames<
   ? undefined
   : (PreviousSyncedAssociations[ArgumentType & (keyof PreviousSyncedAssociations & string)] &
       string[])[number]
-// end:includes
+// end:preload
 
 // joins
 export type NextJoinsWhereArgumentType<
@@ -120,9 +120,9 @@ export type AssociationNameToDotReference<
 //   : 'it doesn’t match'
 // type Y = NextJoinsWherePluckArgumentType<WhereStatement<any>, 'mylar', 'beautiful_balloons'>
 
-export type RelaxedIncludesStatement<Depth extends number = 0> = Depth extends 7
+export type RelaxedPreloadStatement<Depth extends number = 0> = Depth extends 7
   ? {}
-  : { [key: string]: RelaxedIncludesStatement<Inc<Depth>> | {} }
+  : { [key: string]: RelaxedPreloadStatement<Inc<Depth>> | {} }
 
 export type RelaxedJoinsStatement<Depth extends number = 0> = Depth extends 7
   ? {}
@@ -131,5 +131,5 @@ export type RelaxedJoinsStatement<Depth extends number = 0> = Depth extends 7
 export type RelaxedJoinsWhereStatement<Depth extends number = 0> = Depth extends 7
   ? {}
   : {
-      [key: string]: RelaxedIncludesStatement<Inc<Depth>> | {} | WhereStatement<any>
+      [key: string]: RelaxedPreloadStatement<Inc<Depth>> | {} | WhereStatement<any>
     }

@@ -3,10 +3,10 @@ import { AssociationTableNames } from '../db/reflections'
 import { LimitStatement, WhereStatement } from '../decorators/associations/shared'
 import {
   JoinsArgumentTypeAssociatedTableNames,
-  IncludesArgumentTypeAssociatedTableNames,
+  PreloadArgumentTypeAssociatedTableNames,
   NextJoinsWhereArgumentType,
-  NextIncludesArgumentType,
-  RelaxedIncludesStatement,
+  NextPreloadArgumentType,
+  RelaxedPreloadStatement,
   RelaxedJoinsStatement,
   RelaxedJoinsWhereStatement,
   NextJoinsWherePluckArgumentType,
@@ -96,7 +96,7 @@ export default class Query<
   public readonly limitStatement: LimitStatement | null
   public readonly orStatements: readonly Query<DreamClass>[] = Object.freeze([])
   public readonly orderStatement: { column: ColumnType & string; direction: 'asc' | 'desc' } | null = null
-  public readonly includesStatements: RelaxedIncludesStatement = Object.freeze({})
+  public readonly preloadStatements: RelaxedPreloadStatement = Object.freeze({})
   public readonly joinsStatements: RelaxedJoinsStatement = Object.freeze({})
   public readonly joinsWhereStatements: RelaxedJoinsWhereStatement = Object.freeze({})
 
@@ -115,9 +115,9 @@ export default class Query<
     this.limitStatement = Object.freeze(opts.limit || null)
     this.orStatements = Object.freeze(opts.or || [])
     this.orderStatement = Object.freeze(opts.order || null)
-    this.includesStatements = Object.freeze(opts.includes || {})
-    this.joinsStatements = Object.freeze(opts.joins || {})
-    this.joinsWhereStatements = Object.freeze(opts.joinsWhere || {})
+    this.preloadStatements = Object.freeze(opts.preloadStatements || {})
+    this.joinsStatements = Object.freeze(opts.joinsStatements || {})
+    this.joinsWhereStatements = Object.freeze(opts.joinsWhereStatements || {})
     this.shouldBypassDefaultScopes = Object.freeze(opts.shouldBypassDefaultScopes || false)
     this.dreamTransaction = opts.transaction || null
   }
@@ -129,9 +129,9 @@ export default class Query<
       limit: opts.limit || this.limitStatement,
       or: [...this.orStatements, ...(opts.or || [])],
       order: opts.order || this.orderStatement || null,
-      includes: opts.includes || this.includesStatements,
-      joins: opts.joins || this.joinsStatements,
-      joinsWhere: opts.joinsWhere || this.joinsWhereStatements,
+      preloadStatements: opts.preloadStatements || this.preloadStatements,
+      joinsStatements: opts.joinsStatements || this.joinsStatements,
+      joinsWhereStatements: opts.joinsWhereStatements || this.joinsWhereStatements,
       shouldBypassDefaultScopes:
         opts.shouldBypassDefaultScopes !== undefined
           ? opts.shouldBypassDefaultScopes
@@ -165,34 +165,34 @@ export default class Query<
     return this.clone({ or: [orStatement] })
   }
 
-  public includes<
+  public preload<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
     //
-    A extends NextIncludesArgumentType<TableName>,
-    ATableName extends IncludesArgumentTypeAssociatedTableNames<TableName, A>,
-    B extends NextIncludesArgumentType<ATableName>,
-    BTableName extends IncludesArgumentTypeAssociatedTableNames<ATableName, B>,
-    C extends NextIncludesArgumentType<BTableName>,
-    CTableName extends IncludesArgumentTypeAssociatedTableNames<BTableName, C>,
-    D extends NextIncludesArgumentType<CTableName>,
-    DTableName extends IncludesArgumentTypeAssociatedTableNames<CTableName, D>,
-    E extends NextIncludesArgumentType<DTableName>,
-    ETableName extends IncludesArgumentTypeAssociatedTableNames<DTableName, E>,
-    F extends NextIncludesArgumentType<ETableName>,
-    FTableName extends IncludesArgumentTypeAssociatedTableNames<ETableName, F>,
+    A extends NextPreloadArgumentType<TableName>,
+    ATableName extends PreloadArgumentTypeAssociatedTableNames<TableName, A>,
+    B extends NextPreloadArgumentType<ATableName>,
+    BTableName extends PreloadArgumentTypeAssociatedTableNames<ATableName, B>,
+    C extends NextPreloadArgumentType<BTableName>,
+    CTableName extends PreloadArgumentTypeAssociatedTableNames<BTableName, C>,
+    D extends NextPreloadArgumentType<CTableName>,
+    DTableName extends PreloadArgumentTypeAssociatedTableNames<CTableName, D>,
+    E extends NextPreloadArgumentType<DTableName>,
+    ETableName extends PreloadArgumentTypeAssociatedTableNames<DTableName, E>,
+    F extends NextPreloadArgumentType<ETableName>,
+    FTableName extends PreloadArgumentTypeAssociatedTableNames<ETableName, F>,
     //
     G extends FTableName extends undefined
       ? undefined
       : (keyof SyncedAssociations[FTableName & keyof SyncedAssociations] & string)[]
   >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
-    const includes = { ...this.includesStatements }
-    this.fleshOutIncludesStatements(includes, [a, b, c, d, e, f, g])
-    return this.clone({ includes })
+    const preloadStatements = { ...this.preloadStatements }
+    this.fleshOutPreloadStatements(preloadStatements, [a, b, c, d, e, f, g])
+    return this.clone({ preloadStatements })
   }
 
-  private fleshOutIncludesStatements(
-    includes: RelaxedIncludesStatement,
+  private fleshOutPreloadStatements(
+    preloadStatements: RelaxedPreloadStatement,
     associationStatements: (string | string[] | undefined)[]
   ) {
     const nextAssociationStatement = associationStatements.shift()
@@ -200,12 +200,12 @@ export default class Query<
     if (nextAssociationStatement === undefined) {
       // just satisfying typing
     } else if (nextAssociationStatement.constructor === String) {
-      if (!includes[nextAssociationStatement]) includes[nextAssociationStatement] = {}
-      const nextIncludes = includes[nextAssociationStatement]
-      this.fleshOutIncludesStatements(nextIncludes, associationStatements)
+      if (!preloadStatements[nextAssociationStatement]) preloadStatements[nextAssociationStatement] = {}
+      const nextPreload = preloadStatements[nextAssociationStatement]
+      this.fleshOutPreloadStatements(nextPreload, associationStatements)
     } else if (nextAssociationStatement.constructor === Array) {
       nextAssociationStatement.forEach(associationStatement => {
-        includes[associationStatement] = {}
+        preloadStatements[associationStatement] = {}
       })
     }
   }
@@ -231,16 +231,16 @@ export default class Query<
     //
     G extends FTableName extends undefined ? undefined : WhereStatement<FTableName & AssociationTableNames>
   >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
-    const joins = { ...this.joinsStatements }
+    const joinsStatements = { ...this.joinsStatements }
 
-    const joinsWhere: RelaxedJoinsWhereStatement = { ...this.joinsWhereStatements }
-    this.fleshOutJoinsStatements(joins, joinsWhere, null, [a, b, c, d, e, f, g])
-    return this.clone({ joins, joinsWhere })
+    const joinsWhereStatements: RelaxedJoinsWhereStatement = { ...this.joinsWhereStatements }
+    this.fleshOutJoinsStatements(joinsStatements, joinsWhereStatements, null, [a, b, c, d, e, f, g])
+    return this.clone({ joinsStatements, joinsWhereStatements })
   }
 
   private fleshOutJoinsStatements(
-    joins: RelaxedIncludesStatement,
-    joinsWhere: RelaxedJoinsWhereStatement,
+    joinsStatements: RelaxedPreloadStatement,
+    joinsWhereStatements: RelaxedJoinsWhereStatement,
     previousAssociationName: null | string,
     associationStatements: (string | WhereStatement<any> | undefined)[]
   ) {
@@ -249,10 +249,10 @@ export default class Query<
     if (nextAssociationStatement === undefined) {
       // just satisfying typing
     } else if (nextAssociationStatement.constructor === String) {
-      if (!joins[nextAssociationStatement]) joins[nextAssociationStatement] = {}
-      if (!joinsWhere[nextAssociationStatement]) joinsWhere[nextAssociationStatement] = {}
-      const nextJoinsStatements = joins[nextAssociationStatement]
-      const nextJoinsWhereStatements = joinsWhere[nextAssociationStatement]
+      if (!joinsStatements[nextAssociationStatement]) joinsStatements[nextAssociationStatement] = {}
+      if (!joinsWhereStatements[nextAssociationStatement]) joinsWhereStatements[nextAssociationStatement] = {}
+      const nextJoinsStatements = joinsStatements[nextAssociationStatement]
+      const nextJoinsWhereStatements = joinsWhereStatements[nextAssociationStatement]
       this.fleshOutJoinsStatements(
         nextJoinsStatements,
         nextJoinsWhereStatements,
@@ -261,9 +261,14 @@ export default class Query<
       )
     } else if (nextAssociationStatement.constructor === Object && previousAssociationName) {
       Object.keys(nextAssociationStatement).forEach((key: string) => {
-        joinsWhere[key] = (nextAssociationStatement as any)[key]
+        joinsWhereStatements[key] = (nextAssociationStatement as any)[key]
       })
-      this.fleshOutJoinsStatements(joins, joinsWhere, previousAssociationName, associationStatements)
+      this.fleshOutJoinsStatements(
+        joinsStatements,
+        joinsWhereStatements,
+        previousAssociationName,
+        associationStatements
+      )
     }
   }
 
@@ -292,10 +297,10 @@ export default class Query<
       ? AssociationNameToDotReference<E, ETableName> | AssociationNameToDotReference<E, ETableName>[]
       : AssociationNameToDotReference<F, FTableName> | AssociationNameToDotReference<F, FTableName>[]
   >(this: T, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
-    const joins = { ...this.joinsStatements }
+    const joinsStatements = { ...this.joinsStatements }
 
-    const joinsWhere: RelaxedJoinsWhereStatement = { ...this.joinsWhereStatements }
-    const pluckStatement = this.fleshOutJoinsPluckStatements(joins, joinsWhere, null, [
+    const joinsWhereStatements: RelaxedJoinsWhereStatement = { ...this.joinsWhereStatements }
+    const pluckStatement = this.fleshOutJoinsPluckStatements(joinsStatements, joinsWhereStatements, null, [
       a,
       b as any,
       c,
@@ -305,12 +310,14 @@ export default class Query<
       g,
     ])
 
-    return await this.clone({ joins, joinsWhere }).pluck(...([pluckStatement].flat() as any[]))
+    return await this.clone({ joinsStatements, joinsWhereStatements }).pluck(
+      ...([pluckStatement].flat() as any[])
+    )
   }
 
   private fleshOutJoinsPluckStatements(
-    joins: RelaxedIncludesStatement,
-    joinsWhere: RelaxedJoinsWhereStatement,
+    joinsStatements: RelaxedPreloadStatement,
+    joinsWhereStatements: RelaxedJoinsWhereStatement,
     previousAssociationName: null | string,
     associationStatements: (string | WhereStatement<any> | `${any}.${any}` | `${any}.${any}`[] | undefined)[]
   ): `${any}.${any}` | `${any}.${any}`[] | undefined {
@@ -323,10 +330,10 @@ export default class Query<
     } else if (nextAssociationStatement.constructor === String && nextAssociationStatement.includes('.')) {
       return nextAssociationStatement as `${any}.${any}`
     } else if (nextAssociationStatement.constructor === String) {
-      if (!joins[nextAssociationStatement]) joins[nextAssociationStatement] = {}
-      if (!joinsWhere[nextAssociationStatement]) joinsWhere[nextAssociationStatement] = {}
-      const nextJoinsStatements = joins[nextAssociationStatement]
-      const nextJoinsWhereStatements = joinsWhere[nextAssociationStatement]
+      if (!joinsStatements[nextAssociationStatement]) joinsStatements[nextAssociationStatement] = {}
+      if (!joinsWhereStatements[nextAssociationStatement]) joinsWhereStatements[nextAssociationStatement] = {}
+      const nextJoinsStatements = joinsStatements[nextAssociationStatement]
+      const nextJoinsWhereStatements = joinsWhereStatements[nextAssociationStatement]
 
       return this.fleshOutJoinsPluckStatements(
         nextJoinsStatements,
@@ -336,12 +343,12 @@ export default class Query<
       )
     } else if (nextAssociationStatement.constructor === Object && previousAssociationName) {
       Object.keys(nextAssociationStatement).forEach((key: string) => {
-        joinsWhere[key] = (nextAssociationStatement as any)[key]
+        joinsWhereStatements[key] = (nextAssociationStatement as any)[key]
       })
 
       return this.fleshOutJoinsPluckStatements(
-        joins,
-        joinsWhere,
+        joinsStatements,
+        joinsWhereStatements,
         previousAssociationName,
         associationStatements
       )
@@ -517,7 +524,7 @@ export default class Query<
       sqlResultToDreamInstance(this.dreamClass, r)
     ) as InstanceType<DreamClass>[]
 
-    await this.applyIncludes(this.includesStatements as any, theAll)
+    await this.applyPreload(this.preloadStatements as any, theAll)
 
     return theAll
   }
@@ -537,7 +544,7 @@ export default class Query<
 
     if (results) {
       const theFirst = sqlResultToDreamInstance(this.dreamClass, results) as InstanceType<DreamClass>
-      if (theFirst) await this.applyIncludes(this.includesStatements as any, [theFirst])
+      if (theFirst) await this.applyPreload(this.preloadStatements as any, [theFirst])
       return theFirst
     } else return null
   }
@@ -623,7 +630,7 @@ export default class Query<
     }
   }
 
-  public async includesBridgeThroughAssociations(
+  public async preloadBridgeThroughAssociations(
     dreamClass: typeof Dream,
     dreams: Dream[],
     association: HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any>
@@ -675,7 +682,7 @@ export default class Query<
       const newDreams = (dreams as any[]).flatMap(dream => dream[association.through!])
       const newAssociation = this.followThroughAssociation(dreamClass, association)
 
-      return await this.includesBridgeThroughAssociations(dreamClass, newDreams, newAssociation)
+      return await this.preloadBridgeThroughAssociations(dreamClass, newDreams, newAssociation)
     }
   }
 
@@ -717,7 +724,7 @@ export default class Query<
     let association = dream.associationMap[currentAssociationTableOrAlias]
     let associationQuery
 
-    const results = await this.includesBridgeThroughAssociations(
+    const results = await this.preloadBridgeThroughAssociations(
       dream.constructor as typeof Dream,
       dreams,
       association
@@ -799,15 +806,15 @@ ${JSON.stringify(association, null, 2)}
     return compact(dreams.flatMap(dream => (dream as any)[association.as]))
   }
 
-  public async hydrateIncludes(dream: Dream) {
-    await this.applyIncludes(this.includesStatements as any, dream)
+  public async hydratePreload(dream: Dream) {
+    await this.applyPreload(this.preloadStatements as any, dream)
   }
 
-  private async applyIncludes(includesStatement: RelaxedIncludesStatement, dream: Dream | Dream[]) {
-    for (const key of Object.keys(includesStatement as any)) {
+  private async applyPreload(preloadStatement: RelaxedPreloadStatement, dream: Dream | Dream[]) {
+    for (const key of Object.keys(preloadStatement as any)) {
       const nestedDream = await this.applyOneInclude(key, dream)
       if (nestedDream) {
-        await this.applyIncludes((includesStatement as any)[key], nestedDream)
+        await this.applyPreload((preloadStatement as any)[key], nestedDream)
       }
     }
   }
@@ -1356,9 +1363,9 @@ export interface QueryOpts<
   limit?: LimitStatement | null
   or?: Query<DreamClass>[]
   order?: { column: ColumnType & string; direction: 'asc' | 'desc' } | null
-  includes?: RelaxedIncludesStatement
-  joins?: RelaxedJoinsStatement
-  joinsWhere?: RelaxedJoinsWhereStatement
+  preloadStatements?: RelaxedPreloadStatement
+  joinsStatements?: RelaxedJoinsStatement
+  joinsWhereStatements?: RelaxedJoinsWhereStatement
   shouldBypassDefaultScopes?: boolean
   transaction?: DreamTransaction | null | undefined
 }
