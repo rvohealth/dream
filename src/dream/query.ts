@@ -9,6 +9,8 @@ import {
   RelaxedIncludesStatement,
   RelaxedJoinsStatement,
   RelaxedJoinsWhereStatement,
+  NextJoinsWherePluckArgumentType,
+  AssociationNameToDotReference,
 } from './types'
 import {
   ComparisonOperator,
@@ -35,7 +37,7 @@ import CannotJoinPolymorphicBelongsToError from '../exceptions/associations/cann
 import OpsStatement from '../ops/ops-statement'
 import { Range } from '../helpers/range'
 import { DateTime } from 'luxon'
-import { SyncedAssociations, SyncedAssociationsToTables } from '../sync/associations'
+import { SyncedAssociations } from '../sync/associations'
 import DreamTransaction from './transaction'
 import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance'
 import ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase from '../exceptions/associations/foreign-key-on-association-does-not-match-primary-key-on-base'
@@ -261,6 +263,88 @@ export default class Query<
       Object.keys(nextAssociationStatement).forEach((key: string) => {
         joinsWhere[key] = (nextAssociationStatement as any)[key]
       })
+      this.fleshOutJoinsStatements(joins, joinsWhere, previousAssociationName, associationStatements)
+    }
+  }
+
+  public async joinsPluck<
+    T extends Query<DreamClass>,
+    TableName extends InstanceType<DreamClass>['table'],
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWherePluckArgumentType<A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<ATableName, B>,
+    C extends NextJoinsWherePluckArgumentType<B, A, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<BTableName, C>,
+    D extends NextJoinsWherePluckArgumentType<C, B, CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<CTableName, D>,
+    E extends NextJoinsWherePluckArgumentType<D, C, DTableName>,
+    ETableName extends JoinsArgumentTypeAssociatedTableNames<DTableName, E>,
+    F extends NextJoinsWherePluckArgumentType<E, D, ETableName>,
+    FTableName extends JoinsArgumentTypeAssociatedTableNames<ETableName, F>,
+    //
+    G extends FTableName extends undefined
+      ? undefined
+      : F extends WhereStatement<any>
+      ? AssociationNameToDotReference<E, ETableName> | AssociationNameToDotReference<E, ETableName>[]
+      : AssociationNameToDotReference<F, FTableName> | AssociationNameToDotReference<F, FTableName>[]
+  >(this: T, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
+    const joins = { ...this.joinsStatements }
+
+    const joinsWhere: RelaxedJoinsWhereStatement = { ...this.joinsWhereStatements }
+    const pluckStatement = this.fleshOutJoinsPluckStatements(joins, joinsWhere, null, [
+      a,
+      b as any,
+      c,
+      d,
+      e,
+      f,
+      g,
+    ])
+
+    return await this.clone({ joins, joinsWhere }).pluck(...([pluckStatement].flat() as any[]))
+  }
+
+  private fleshOutJoinsPluckStatements(
+    joins: RelaxedIncludesStatement,
+    joinsWhere: RelaxedJoinsWhereStatement,
+    previousAssociationName: null | string,
+    associationStatements: (string | WhereStatement<any> | `${any}.${any}` | `${any}.${any}`[] | undefined)[]
+  ): `${any}.${any}` | `${any}.${any}`[] | undefined {
+    const nextAssociationStatement = associationStatements.shift()
+
+    if (nextAssociationStatement === undefined) {
+      // just satisfying typing
+    } else if (nextAssociationStatement.constructor === Array) {
+      return nextAssociationStatement
+    } else if (nextAssociationStatement.constructor === String && nextAssociationStatement.includes('.')) {
+      return nextAssociationStatement as `${any}.${any}`
+    } else if (nextAssociationStatement.constructor === String) {
+      if (!joins[nextAssociationStatement]) joins[nextAssociationStatement] = {}
+      if (!joinsWhere[nextAssociationStatement]) joinsWhere[nextAssociationStatement] = {}
+      const nextJoinsStatements = joins[nextAssociationStatement]
+      const nextJoinsWhereStatements = joinsWhere[nextAssociationStatement]
+
+      return this.fleshOutJoinsPluckStatements(
+        nextJoinsStatements,
+        nextJoinsWhereStatements,
+        nextAssociationStatement,
+        associationStatements
+      )
+    } else if (nextAssociationStatement.constructor === Object && previousAssociationName) {
+      Object.keys(nextAssociationStatement).forEach((key: string) => {
+        joinsWhere[key] = (nextAssociationStatement as any)[key]
+      })
+
+      return this.fleshOutJoinsPluckStatements(
+        joins,
+        joinsWhere,
+        previousAssociationName,
+        associationStatements
+      )
     }
   }
 
@@ -414,18 +498,13 @@ export default class Query<
 
     const vals = (await executeDatabaseQuery(kyselyQuery, 'execute')).map(result => Object.values(result))
 
+    const mapFn = (val: any, index: any) =>
+      marshalDBValue(val, { table: this.dreamClass.prototype.table, column: fields[index] as any })
+
     if (fields.length > 1) {
-      return vals.map(arr =>
-        arr.map((val, index) =>
-          marshalDBValue(val, { table: this.dreamClass.prototype.table, column: fields[index] as any })
-        )
-      ) as any[]
+      return vals.map(arr => arr.map(mapFn)) as any[]
     } else {
-      return vals
-        .flat()
-        .map((val, index) =>
-          marshalDBValue(val, { table: this.dreamClass.prototype.table, column: fields[index] as any })
-        ) as any[]
+      return vals.flat().map(mapFn) as any[]
     }
   }
 

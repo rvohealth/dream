@@ -6,6 +6,7 @@ import { loadDreamYamlFile } from '../helpers/path'
 import { DBColumns } from '../sync/schema'
 import absoluteFilePath from '../helpers/absoluteFilePath'
 import Dream from '../dream'
+import uniq from 'lodash.uniq'
 
 export default async function buildAssociations() {
   console.log('writing dream type metadata...')
@@ -46,13 +47,9 @@ export interface VirtualColumns ${JSON.stringify(finalModels, null, 2)}
 
 async function writeAssociationsFile() {
   const finalModels = await fleshOutAssociations()
-
-  const associationsAndTheirTables: { [key: string]: string[] } = {}
-  Object.values(finalModels).forEach(associationToTables => {
-    Object.keys(associationToTables).forEach(
-      associationName => (associationsAndTheirTables[associationName] = associationToTables[associationName])
-    )
-  })
+  const associationNames = uniq(
+    Object.values(finalModels).flatMap(associationToTables => Object.keys(associationToTables))
+  )
   const finalBelongsToModels = await fleshOutAssociations('BelongsTo')
 
   setEmptyAssociationObjectsToFalse(finalBelongsToModels)
@@ -64,8 +61,8 @@ export interface SyncedAssociations ${JSON.stringify(finalModels, null, 2)}
 
 export interface SyncedBelongsToAssociations ${JSON.stringify(finalBelongsToModels, null, 2)}
 
-export interface SyncedAssociationsToTables ${JSON.stringify(associationsAndTheirTables, null, 2)}
-  `
+export type SyncedAssociationNames = ${JSON.stringify(associationNames, null, 2)}
+`
 }
 
 async function fleshOutAssociations(targetAssociationType?: string) {

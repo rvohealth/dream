@@ -1,13 +1,11 @@
 import { DateTime } from 'luxon'
 import { Updateable, ColumnType } from 'kysely'
 import { AssociationTableNames } from '../db/reflections'
-import { SyncedAssociations, SyncedAssociationsToTables, VirtualColumns } from '../sync/associations'
+import { SyncedAssociations, SyncedAssociationNames, VirtualColumns } from '../sync/associations'
 import Dream from '../dream'
 import { Inc } from '../helpers/typeutils'
 import { DB } from '../sync/schema'
 import { AssociatedModelParam, WhereStatement } from '../decorators/associations/shared'
-
-type MAX_DEPTH = 2
 
 export type IdType = string | number | bigint | undefined
 export type Timestamp = ColumnType<DateTime>
@@ -35,6 +33,7 @@ export type UpdateableInstanceFields<I extends Dream> =
 
 export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) => T) & typeof Dream
 
+// includes
 export type NextIncludesArgumentType<
   PreviousTableNames,
   PreviousSyncedAssociations = PreviousTableNames extends undefined
@@ -54,7 +53,9 @@ export type IncludesArgumentTypeAssociatedTableNames<
   ? undefined
   : (PreviousSyncedAssociations[ArgumentType & (keyof PreviousSyncedAssociations & string)] &
       string[])[number]
+// end:includes
 
+// joins
 export type NextJoinsWhereArgumentType<
   PreviousTableNames,
   PreviousSyncedAssociations = PreviousTableNames extends undefined
@@ -70,10 +71,54 @@ export type JoinsArgumentTypeAssociatedTableNames<
   PreviousSyncedAssociations = PreviousTableNames extends undefined
     ? undefined
     : SyncedAssociations[PreviousTableNames & keyof SyncedAssociations]
-> = ArgumentType extends WhereStatement<any>
-  ? PreviousTableNames
-  : (PreviousSyncedAssociations[ArgumentType & (keyof PreviousSyncedAssociations & string)] &
+> = ArgumentType extends keyof PreviousSyncedAssociations & string
+  ? (PreviousSyncedAssociations[ArgumentType & (keyof PreviousSyncedAssociations & string)] &
       string[])[number]
+  : PreviousTableNames
+// end:joins
+
+// joinsPluck
+export type NextJoinsWherePluckArgumentType<
+  PreviousAssociationName,
+  PreviousPreviousAssociationName,
+  PreviousTableNames,
+  PreviousSyncedAssociations = PreviousTableNames extends undefined
+    ? undefined
+    : SyncedAssociations[PreviousTableNames & keyof SyncedAssociations]
+> = PreviousTableNames extends undefined
+  ? undefined
+  : PreviousAssociationName extends `${any}.${any}` | any[]
+  ? never
+  : PreviousAssociationName extends SyncedAssociationNames[number]
+  ?
+      | keyof PreviousSyncedAssociations
+      | WhereStatement<PreviousTableNames & AssociationTableNames>
+      | AssociationNameToDotReference<PreviousAssociationName, PreviousTableNames & AssociationTableNames>
+      | AssociationNameToDotReference<PreviousAssociationName, PreviousTableNames & AssociationTableNames>[]
+  : PreviousAssociationName extends WhereStatement<any>
+  ?
+      | keyof PreviousSyncedAssociations
+      | AssociationNameToDotReference<
+          PreviousPreviousAssociationName,
+          PreviousTableNames & AssociationTableNames
+        >
+      | AssociationNameToDotReference<
+          PreviousPreviousAssociationName,
+          PreviousTableNames & AssociationTableNames
+        >[]
+  : never
+// end:joinsPluck
+
+export type AssociationNameToDotReference<
+  AssociationName,
+  TableNames extends keyof SyncedAssociations & string
+> = `${AssociationName & string}.${keyof Updateable<DB[TableNames & keyof DB]> & string}`
+
+// type X = AssociationNameToDotReference<'mylar', 'beautiful_balloons'>
+// type Y = X extends `${any}.${any}`
+//   ? '`${any}.${any}` does match AssociationNameToDotReference'
+//   : 'it doesn’t match'
+// type Y = NextJoinsWherePluckArgumentType<WhereStatement<any>, 'mylar', 'beautiful_balloons'>
 
 export type RelaxedIncludesStatement<Depth extends number = 0> = Depth extends 7
   ? {}
