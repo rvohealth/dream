@@ -35,7 +35,6 @@
     "luxon": "^3.3.0",
     "pg": "^8.10.0",
     "pluralize": "^8.0.0",
-    "reflect-metadata": "^0.1.13",
     "ts-jest": "^29.0.5",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.3",
