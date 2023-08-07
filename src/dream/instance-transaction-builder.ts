@@ -1,12 +1,9 @@
-import { Updateable } from 'kysely'
 import Dream from '../dream'
-import { DB } from '../sync/schema'
 import DreamTransaction from './transaction'
 import saveDream from './internal/saveDream'
 import destroyDream from './internal/destroyDream'
-import { DreamConstructorType, UpdateableFields, UpdateableInstanceFields } from './types'
+import { UpdateableFields, UpdateableInstanceFields } from './types'
 import { SyncedAssociations } from '../sync/associations'
-import Query from './query'
 import associationQuery from './internal/associations/associationQuery'
 import createAssociation from './internal/associations/createAssociation'
 import reload from './internal/reload'
@@ -20,10 +17,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     this.dreamTransaction = txn
   }
 
-  public async destroy<
-    I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    TableName extends keyof DB = DreamInstance['table'] & keyof DB
-  >(this: I): Promise<DreamInstance> {
+  public async destroy<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
+    this: I
+  ): Promise<DreamInstance> {
     return destroyDream(this.dreamInstance, this.dreamTransaction)
   }
 

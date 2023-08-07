@@ -371,5 +371,5 @@ class Z extends Dream {
 }
 
 // this will not work as expected because the HasMany(() => X) are defined differently
-await z.load({ aa: 'xx' })
+await z.load({ aa: 'xx' }).execute()
 ```

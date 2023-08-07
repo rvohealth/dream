@@ -201,7 +201,7 @@ describe('DreamSerializer#render', () => {
       it('identifies associations and serializes them using respecting serializers', async () => {
         const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
         await Pet.create({ user, name: 'aster', species: 'cat' })
-        await user.load('pets')
+        await user.load('pets').execute()
 
         const serializer = new UserSerializer(user)
         expect(serializer.render()).toEqual({ pets: [{ name: 'aster', species: 'cat' }] })
@@ -238,7 +238,7 @@ describe('DreamSerializer#render', () => {
         it('correctly serializes based on source', async () => {
           const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
           await Pet.create({ user, name: 'aster', species: 'cat' })
-          await user.load('pets')
+          await user.load('pets').execute()
 
           const serializer = new UserSerializerWithSource(user)
           expect(serializer.render()).toEqual({ hooligans: [{ name: 'aster', species: 'cat' }] })
@@ -415,7 +415,7 @@ describe('DreamSerializer#render', () => {
       it('identifies associations and serializes them using respecting serializers', async () => {
         const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
         const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
-        await pet.load('user')
+        await pet.load('user').execute()
 
         const serializer = new PetSerializer(pet)
         expect(serializer.render()).toEqual({ user: { email: 'how@yadoin' } })
@@ -603,7 +603,7 @@ describe('DreamSerializer#render', () => {
         it('flattens association attributes into parent serializer', async () => {
           const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
           const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
-          await pet.load('user')
+          await pet.load('user').execute()
 
           const serializer = new PetSerializerFlattened(pet)
           expect(serializer.render()).toEqual({ email: 'how@yadoin' })
@@ -620,7 +620,7 @@ describe('DreamSerializer#render', () => {
 
         const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
         const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
-        await pet.load('user')
+        await pet.load('user').execute()
 
         const serializer = new PetSerializer(pet)
         expect(serializer.render()).toEqual({ email: 'how@yadoin' })
@@ -635,7 +635,7 @@ describe('DreamSerializer#render', () => {
 
           const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
           const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
-          await pet.load('user')
+          await pet.load('user').execute()
 
           const serializer = new PetSerializer(pet)
           expect(serializer.casing('camel').render()).toEqual({ updatedAt: user.updated_at })

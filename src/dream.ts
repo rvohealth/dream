@@ -55,6 +55,7 @@ import reload from './dream/internal/reload'
 import destroyDream from './dream/internal/destroyDream'
 import destroyAssociation from './dream/internal/associations/destroyAssociation'
 import { DatabaseError } from 'pg'
+import LoadBuilder from './dream/load-builder'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -688,7 +689,7 @@ export default class Dream {
     return associationQuery(this, null, associationName)
   }
 
-  public async load<
+  public load<
     I extends Dream,
     TableName extends I['table'],
     //
@@ -708,18 +709,8 @@ export default class Dream {
     G extends FTableName extends undefined
       ? undefined
       : (keyof SyncedAssociations[FTableName & keyof SyncedAssociations] & string)[]
-  >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G): Promise<void> {
-    const base = this.constructor as DreamConstructorType<I>
-    const query: Query<DreamConstructorType<I>> = new Query<DreamConstructorType<I>>(base).preload(
-      a as any,
-      b as any,
-      c as any,
-      d as any,
-      e as any,
-      f as any,
-      g as any
-    )
-    await query.hydratePreload(this)
+  >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
+    return new LoadBuilder<I>(this).load(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
 
   public async reload<I extends Dream>(this: I) {

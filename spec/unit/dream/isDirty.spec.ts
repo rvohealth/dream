@@ -43,7 +43,7 @@ describe('Dream#isDirty', () => {
         const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
         const post = await Post.create({ user })
         const rating = await Rating.create({ rateable: post, rating: 10, user })
-        await rating.load('rateable', 'user')
+        await rating.load('rateable', 'user').execute()
 
         expect(rating.isDirty).toEqual(false)
         rating.rateable.user.email = 'calvin@coolidge'
