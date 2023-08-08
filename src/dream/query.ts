@@ -292,7 +292,7 @@ export default class Query<
     F extends NextJoinsWherePluckArgumentType<E, D, ETableName>,
     FTableName extends JoinsArgumentTypeAssociatedTableNames<ETableName, F>,
     //
-    G extends FinalJoinsWherePluckArgumentType<F, FTableName>
+    G extends FinalJoinsWherePluckArgumentType<F, E, FTableName>
   >(this: T, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     const joinsStatements = { ...this.joinsStatements }
 

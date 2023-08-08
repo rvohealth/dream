@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import { Updateable, ColumnType } from 'kysely'
 import { AssociationTableNames } from '../db/reflections'
-import { SyncedAssociations, SyncedAssociationNames, VirtualColumns } from '../sync/associations'
+import { SyncedAssociations, VirtualColumns } from '../sync/associations'
 import Dream from '../dream'
 import { Inc } from '../helpers/typeutils'
 import { DB } from '../sync/schema'
@@ -116,16 +116,31 @@ export type NextJoinsWherePluckArgumentType<
 // type Y = ['pets.name', 'pets.id']
 // type Z = Y extends X ? 'yes' : 'no'
 
-export type FinalJoinsWherePluckArgumentType<PreviousAssociationName, PreviousTableNames> =
-  PreviousAssociationName extends undefined
-    ? undefined
-    : PreviousAssociationName extends `${any}.${any}`
-    ? undefined
-    : PreviousAssociationName extends any[]
-    ? undefined
-    :
-        | AssociationNameToDotReference<PreviousAssociationName, PreviousTableNames & AssociationTableNames>
-        | AssociationNameToDotReference<PreviousAssociationName, PreviousTableNames & AssociationTableNames>[]
+export type FinalJoinsWherePluckArgumentType<
+  PreviousAssociationName,
+  PreviousPreviousAssociationName,
+  PreviousTableNames
+> = PreviousAssociationName extends undefined
+  ? undefined
+  : PreviousAssociationName extends `${any}.${any}`
+  ? undefined
+  : PreviousAssociationName extends any[]
+  ? undefined
+  : PreviousAssociationName extends WhereStatement<any>
+  ?
+      | AssociationNameToDotReference<
+          PreviousPreviousAssociationName,
+          PreviousTableNames & AssociationTableNames
+        >
+      | AssociationNameToDotReference<
+          PreviousPreviousAssociationName,
+          PreviousTableNames & AssociationTableNames
+        >[]
+  :
+      | WhereStatement<PreviousTableNames & AssociationTableNames>
+      | AssociationNameToDotReference<PreviousAssociationName, PreviousTableNames & AssociationTableNames>
+      | AssociationNameToDotReference<PreviousAssociationName, PreviousTableNames & AssociationTableNames>[]
+
 // end:joinsPluck
 
 export type AssociationNameToDotReference<

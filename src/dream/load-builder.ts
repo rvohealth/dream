@@ -1,5 +1,4 @@
 import Dream from '../dream'
-import { SyncedAssociationNames, SyncedAssociations } from '../sync/associations'
 import Query from './query'
 import {
   DreamConstructorType,
@@ -34,9 +33,7 @@ export default class LoadBuilder<DreamInstance extends Dream> {
     F extends NextPreloadArgumentType<ETableName>,
     FTableName extends PreloadArgumentTypeAssociatedTableNames<ETableName, F>,
     //
-    G extends FTableName extends undefined
-      ? undefined
-      : (keyof SyncedAssociationNames[FTableName & keyof SyncedAssociations] & string)[]
+    G extends NextPreloadArgumentType<FTableName>
   >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     this.query = this.query.preload(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
     return this
