@@ -11,6 +11,7 @@ import {
   RelaxedJoinsWhereStatement,
   NextJoinsWherePluckArgumentType,
   AssociationNameToDotReference,
+  FinalJoinsWherePluckArgumentType,
 } from './types'
 import {
   ComparisonOperator,
@@ -291,11 +292,7 @@ export default class Query<
     F extends NextJoinsWherePluckArgumentType<E, D, ETableName>,
     FTableName extends JoinsArgumentTypeAssociatedTableNames<ETableName, F>,
     //
-    G extends FTableName extends undefined
-      ? undefined
-      : F extends WhereStatement<any>
-      ? AssociationNameToDotReference<E, ETableName> | AssociationNameToDotReference<E, ETableName>[]
-      : AssociationNameToDotReference<F, FTableName> | AssociationNameToDotReference<F, FTableName>[]
+    G extends FinalJoinsWherePluckArgumentType<F, FTableName>
   >(this: T, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     const joinsStatements = { ...this.joinsStatements }
 

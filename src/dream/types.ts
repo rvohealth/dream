@@ -71,10 +71,14 @@ export type JoinsArgumentTypeAssociatedTableNames<
   PreviousSyncedAssociations = PreviousTableNames extends undefined
     ? undefined
     : SyncedAssociations[PreviousTableNames & keyof SyncedAssociations]
-> = ArgumentType extends keyof PreviousSyncedAssociations & string
-  ? (PreviousSyncedAssociations[ArgumentType & (keyof PreviousSyncedAssociations & string)] &
+> = ArgumentType extends `${any}.${any}`
+  ? undefined
+  : ArgumentType extends any[]
+  ? undefined
+  : ArgumentType extends WhereStatement<any>
+  ? PreviousTableNames
+  : (PreviousSyncedAssociations[ArgumentType & (keyof PreviousSyncedAssociations & string)] &
       string[])[number]
-  : PreviousTableNames
 // end:joins
 
 // joinsPluck
@@ -85,16 +89,12 @@ export type NextJoinsWherePluckArgumentType<
   PreviousSyncedAssociations = PreviousTableNames extends undefined
     ? undefined
     : SyncedAssociations[PreviousTableNames & keyof SyncedAssociations]
-> = PreviousTableNames extends undefined
+> = PreviousAssociationName extends undefined
   ? undefined
-  : PreviousAssociationName extends `${any}.${any}` | any[]
-  ? never
-  : PreviousAssociationName extends SyncedAssociationNames[number]
-  ?
-      | keyof PreviousSyncedAssociations
-      | WhereStatement<PreviousTableNames & AssociationTableNames>
-      | AssociationNameToDotReference<PreviousAssociationName, PreviousTableNames & AssociationTableNames>
-      | AssociationNameToDotReference<PreviousAssociationName, PreviousTableNames & AssociationTableNames>[]
+  : PreviousAssociationName extends `${any}.${any}`
+  ? undefined
+  : PreviousAssociationName extends any[]
+  ? undefined
   : PreviousAssociationName extends WhereStatement<any>
   ?
       | keyof PreviousSyncedAssociations
@@ -106,7 +106,26 @@ export type NextJoinsWherePluckArgumentType<
           PreviousPreviousAssociationName,
           PreviousTableNames & AssociationTableNames
         >[]
-  : never
+  :
+      | keyof PreviousSyncedAssociations
+      | WhereStatement<PreviousTableNames & AssociationTableNames>
+      | AssociationNameToDotReference<PreviousAssociationName, PreviousTableNames & AssociationTableNames>
+      | AssociationNameToDotReference<PreviousAssociationName, PreviousTableNames & AssociationTableNames>[]
+
+// type X = NextJoinsWherePluckArgumentType<, 'pets'>
+// type Y = ['pets.name', 'pets.id']
+// type Z = Y extends X ? 'yes' : 'no'
+
+export type FinalJoinsWherePluckArgumentType<PreviousAssociationName, PreviousTableNames> =
+  PreviousAssociationName extends undefined
+    ? undefined
+    : PreviousAssociationName extends `${any}.${any}`
+    ? undefined
+    : PreviousAssociationName extends any[]
+    ? undefined
+    :
+        | AssociationNameToDotReference<PreviousAssociationName, PreviousTableNames & AssociationTableNames>
+        | AssociationNameToDotReference<PreviousAssociationName, PreviousTableNames & AssociationTableNames>[]
 // end:joinsPluck
 
 export type AssociationNameToDotReference<

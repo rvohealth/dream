@@ -28,6 +28,7 @@ import {
   UpdateableInstanceFields,
   NextJoinsWherePluckArgumentType,
   AssociationNameToDotReference,
+  FinalJoinsWherePluckArgumentType,
 } from './dream/types'
 import Query from './dream/query'
 import runHooksFor from './dream/internal/runHooksFor'
@@ -339,11 +340,7 @@ export default class Dream {
     F extends NextJoinsWherePluckArgumentType<E, D, ETableName>,
     FTableName extends JoinsArgumentTypeAssociatedTableNames<ETableName, F>,
     //
-    G extends FTableName extends undefined
-      ? undefined
-      : F extends WhereStatement<any>
-      ? AssociationNameToDotReference<E, ETableName> | AssociationNameToDotReference<E, ETableName>[]
-      : AssociationNameToDotReference<F, FTableName> | AssociationNameToDotReference<F, FTableName>[]
+    G extends FinalJoinsWherePluckArgumentType<F, FTableName>
   >(this: T, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     const query: Query<T> = new Query<T>(this)
 
@@ -703,11 +700,7 @@ export default class Dream {
     F extends NextJoinsWherePluckArgumentType<E, D, ETableName>,
     FTableName extends JoinsArgumentTypeAssociatedTableNames<ETableName, F>,
     //
-    G extends FTableName extends undefined
-      ? undefined
-      : F extends WhereStatement<any>
-      ? AssociationNameToDotReference<E, ETableName> | AssociationNameToDotReference<E, ETableName>[]
-      : AssociationNameToDotReference<F, FTableName> | AssociationNameToDotReference<F, FTableName>[]
+    G extends FinalJoinsWherePluckArgumentType<F, FTableName>
   >(this: I, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     const construct = this.constructor as typeof Dream
     return await construct
