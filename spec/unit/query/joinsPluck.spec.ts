@@ -1,9 +1,6 @@
-import User from '../../../test-app/app/models/User'
 import Node from '../../../test-app/app/models/Graph/Node'
 import Edge from '../../../test-app/app/models/Graph/Edge'
 import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode'
-import Composition from '../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 
 describe('Query#joinsPluck', () => {
   context('in a has and belongs to many', () => {

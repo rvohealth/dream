@@ -26,6 +26,8 @@ import {
   NextPreloadArgumentType,
   UpdateableFields,
   UpdateableInstanceFields,
+  NextJoinsWherePluckArgumentType,
+  AssociationNameToDotReference,
 } from './dream/types'
 import Query from './dream/query'
 import runHooksFor from './dream/internal/runHooksFor'
@@ -318,6 +320,36 @@ export default class Dream {
     return query.joins(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
 
+  public static async joinsPluck<
+    T extends typeof Dream,
+    TableName extends InstanceType<T>['table'],
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWherePluckArgumentType<A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<ATableName, B>,
+    C extends NextJoinsWherePluckArgumentType<B, A, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<BTableName, C>,
+    D extends NextJoinsWherePluckArgumentType<C, B, CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<CTableName, D>,
+    E extends NextJoinsWherePluckArgumentType<D, C, DTableName>,
+    ETableName extends JoinsArgumentTypeAssociatedTableNames<DTableName, E>,
+    F extends NextJoinsWherePluckArgumentType<E, D, ETableName>,
+    FTableName extends JoinsArgumentTypeAssociatedTableNames<ETableName, F>,
+    //
+    G extends FTableName extends undefined
+      ? undefined
+      : F extends WhereStatement<any>
+      ? AssociationNameToDotReference<E, ETableName> | AssociationNameToDotReference<E, ETableName>[]
+      : AssociationNameToDotReference<F, FTableName> | AssociationNameToDotReference<F, FTableName>[]
+  >(this: T, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
+    const query: Query<T> = new Query<T>(this)
+
+    return await query.joinsPluck(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
+  }
+
   public static async last<T extends typeof Dream>(this: T): Promise<InstanceType<T> | null> {
     const query: Query<T> = new Query<T>(this)
     return (await query.last()) as InstanceType<T> | null
@@ -516,7 +548,7 @@ export default class Dream {
     return dreamClass.new(this.attributes() as any)
   }
 
-  public asChild<I extends Dream, T extends typeof Dream>(this: I) {
+  public asChild<I extends Dream>(this: I) {
     const construct = this.constructor as typeof Dream
     if (!construct.isSTIBase) throw new CannotCastNonSTIModelToChild(construct)
 
@@ -650,6 +682,38 @@ export default class Dream {
     Table extends DB[keyof DB] = DB[TableName]
   >(this: I, attribute: keyof Table): boolean {
     return isDecimal(attribute, { table: this.table })
+  }
+
+  public async joinsPluck<
+    I extends Dream,
+    TableName extends I['table'],
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWherePluckArgumentType<A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<ATableName, B>,
+    C extends NextJoinsWherePluckArgumentType<B, A, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<BTableName, C>,
+    D extends NextJoinsWherePluckArgumentType<C, B, CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<CTableName, D>,
+    E extends NextJoinsWherePluckArgumentType<D, C, DTableName>,
+    ETableName extends JoinsArgumentTypeAssociatedTableNames<DTableName, E>,
+    F extends NextJoinsWherePluckArgumentType<E, D, ETableName>,
+    FTableName extends JoinsArgumentTypeAssociatedTableNames<ETableName, F>,
+    //
+    G extends FTableName extends undefined
+      ? undefined
+      : F extends WhereStatement<any>
+      ? AssociationNameToDotReference<E, ETableName> | AssociationNameToDotReference<E, ETableName>[]
+      : AssociationNameToDotReference<F, FTableName> | AssociationNameToDotReference<F, FTableName>[]
+  >(this: I, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
+    const construct = this.constructor as typeof Dream
+    return await construct
+      .where({ [this.primaryKey]: this.primaryKeyValue })
+      // @ts-ignore
+      .joinsPluck(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
 
   public async createAssociation<

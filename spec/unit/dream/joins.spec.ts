@@ -1,12 +1,8 @@
 import User from '../../../test-app/app/models/User'
 import Composition from '../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
-import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit'
 import { Dream } from '../../../src'
-import Mylar from '../../../test-app/app/models/Balloon/Mylar'
-import Latex from '../../../test-app/app/models/Balloon/Latex'
 
-describe('Dream.preload', () => {
+describe('Dream.joins', () => {
   it('joins a HasOne association', async () => {
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
