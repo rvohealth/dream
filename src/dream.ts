@@ -452,15 +452,23 @@ export default class Dream {
 
   public errors: { [key: string]: ValidationType[] } = {}
   public frozenAttributes: { [key: string]: any } = {}
+  public originalAttributes: { [key: string]: any } = {}
+  public attributesFromBeforeLastSave: { [key: string]: any } = {}
   private dreamTransaction: DreamTransaction | null = null
-
   constructor(opts?: Updateable<DB[keyof DB]>) {
     if (opts) {
       this.setAttributes(opts)
 
       // if id is set, then we freeze attributes after setting them, so that
       // any modifications afterwards will indicate updates.
-      if (this.isPersisted) this.freezeAttributes()
+      if (this.isPersisted) {
+        this.freezeAttributes()
+        this.originalAttributes = opts
+      } else {
+        ;(this.constructor as typeof Dream).columns().forEach(column => {
+          this.originalAttributes[column] = undefined
+        })
+      }
     }
   }
 
@@ -514,6 +522,47 @@ export default class Dream {
       ;(obj as any)[column] = (this.frozenAttributes as any)[column]
     })
     return obj
+  }
+
+  public changes<
+    I extends Dream,
+    TableName extends AssociationTableNames = I['table'] & AssociationTableNames,
+    Table extends DB[keyof DB] = DB[TableName],
+    RetType = Partial<
+      Record<
+        keyof Updateable<Table>,
+        { was: Updateable<Table>[keyof Updateable<Table>]; now: Updateable<Table>[keyof Updateable<Table>] }
+      >
+    >
+  >(): RetType {
+    const obj: RetType = {} as RetType
+
+    ;(this.constructor as typeof Dream).columns().forEach(column => {
+      const was = this.previousValueForAttribute(column as any)
+      const now = (this as any)[column]
+      if (was !== now) {
+        ;(obj as any)[column] = {
+          was,
+          now,
+        }
+      }
+    })
+    return obj
+  }
+
+  public previousValueForAttribute<
+    I extends Dream,
+    TableName extends AssociationTableNames = I['table'] & AssociationTableNames,
+    Table extends DB[keyof DB] = DB[TableName],
+    Attr extends keyof Updateable<Table> = keyof Updateable<Table>
+  >(this: I, attribute: Attr): Updateable<Table>[Attr] {
+    if (Object.keys(this.dirtyAttributes()).includes(attribute as string)) {
+      return (this.frozenAttributes as any)[attribute]
+    } else if (this.isPersisted) {
+      return (this.attributesFromBeforeLastSave as any)[attribute]
+    } else {
+      return (this.originalAttributes as any)[attribute]
+    }
   }
 
   public columns<
