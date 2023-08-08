@@ -547,51 +547,7 @@ export interface SyncedBelongsToAssociations {
     ]
   }
 }
-
-export type SyncedAssociationNames = [
-  "balloon",
-  "balloonSpotter",
-  "balloonSpotterBalloons",
-  "balloons",
-  "user",
-  "balloonLine",
-  "sandbags",
-  "pet",
-  "compositionAsset",
-  "composition",
-  "compositionAssetAudits",
-  "mainCompositionAsset",
-  "compositionAssets",
-  "mainCompositionAssetAudits",
-  "heartRatings",
-  "extraRateable",
-  "extra_rateable",
-  "edge",
-  "node",
-  "edgeNodes",
-  "nodes",
-  "edges",
-  "currentCollar",
-  "notLostCollar",
-  "collars",
-  "postVisibility",
-  "ratings",
-  "post",
-  "rateable",
-  "mylar",
-  "userSettings",
-  "mainComposition",
-  "compositions",
-  "incompatibleForeignKeyTypeExamples",
-  "recentCompositions",
-  "notRecentCompositions",
-  "recentCompositionAssets",
-  "recentMainCompositionAssets",
-  "nonExtantCompositionAssets1",
-  "nonExtantCompositionAssets2",
-  "pets"
-]
-
+  
 
 export interface VirtualColumns {
   "balloon_lines": false,
