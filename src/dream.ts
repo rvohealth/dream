@@ -526,15 +526,15 @@ export default class Dream {
 
   public changes<
     I extends Dream,
-    TableName extends AssociationTableNames = I['table'] & AssociationTableNames,
-    Table extends DB[keyof DB] = DB[TableName],
-    RetType = Partial<
+    TableName extends I['table'],
+    Table extends DB[TableName],
+    RetType extends Partial<
       Record<
         keyof Updateable<Table>,
         { was: Updateable<Table>[keyof Updateable<Table>]; now: Updateable<Table>[keyof Updateable<Table>] }
       >
     >
-  >(): RetType {
+  >(this: I): RetType {
     const obj: RetType = {} as RetType
 
     ;(this.constructor as typeof Dream).columns().forEach(column => {
