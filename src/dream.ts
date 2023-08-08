@@ -565,6 +565,16 @@ export default class Dream {
     }
   }
 
+  public savedChangeToAttribute<
+    I extends Dream,
+    TableName extends I['table'],
+    Attr extends keyof Updateable<TableName>
+  >(attribute: Attr) {
+    const now = this.changes()?.[attribute]?.now
+    const was = this.changes()?.[attribute]?.was
+    return this.isPersisted && now !== was
+  }
+
   public columns<
     I extends Dream,
     TableName extends keyof DB = I['table'] & keyof DB,
