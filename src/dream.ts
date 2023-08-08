@@ -552,9 +552,9 @@ export default class Dream {
 
   public previousValueForAttribute<
     I extends Dream,
-    TableName extends AssociationTableNames = I['table'] & AssociationTableNames,
-    Table extends DB[keyof DB] = DB[TableName],
-    Attr extends keyof Updateable<Table> = keyof Updateable<Table>
+    TableName extends I['table'],
+    Table extends DB[TableName],
+    Attr extends keyof Updateable<Table>
   >(this: I, attribute: Attr): Updateable<Table>[Attr] {
     if (Object.keys(this.dirtyAttributes()).includes(attribute as string)) {
       return (this.frozenAttributes as any)[attribute]
@@ -568,8 +568,9 @@ export default class Dream {
   public savedChangeToAttribute<
     I extends Dream,
     TableName extends I['table'],
-    Attr extends keyof Updateable<TableName>
-  >(attribute: Attr) {
+    Table extends DB[TableName],
+    Attr extends keyof Updateable<Table> & string
+  >(this: I, attribute: Attr): boolean {
     const now = this.changes()?.[attribute]?.now
     const was = this.changes()?.[attribute]?.was
     return this.isPersisted && now !== was
