@@ -554,7 +554,7 @@ export default class Dream {
     I extends Dream,
     TableName extends I['table'],
     Table extends DB[TableName],
-    Attr extends keyof Updateable<Table>
+    Attr extends keyof Updateable<Table> & string
   >(this: I, attribute: Attr): Updateable<Table>[Attr] {
     if (Object.keys(this.dirtyAttributes()).includes(attribute as string)) {
       return (this.frozenAttributes as any)[attribute]
@@ -571,8 +571,9 @@ export default class Dream {
     Table extends DB[TableName],
     Attr extends keyof Updateable<Table> & string
   >(this: I, attribute: Attr): boolean {
-    const now = this.changes()?.[attribute]?.now
-    const was = this.changes()?.[attribute]?.was
+    const changes = this.changes()
+    const now = (changes as any)?.[attribute]?.now
+    const was = (changes as any)?.[attribute]?.was
     return this.isPersisted && now !== was
   }
 
