@@ -192,6 +192,7 @@ program
   )
   .option('--core', 'sets core to true')
   .action(async () => {
+    console.log('NODE_ENV', process.env.NODE_ENV)
     if (!['development', 'test'].includes(process.env.NODE_ENV || '')) return
 
     setCoreDevelopmentFlag(program.args)
