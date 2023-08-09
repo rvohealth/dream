@@ -535,8 +535,8 @@ export default class Dream {
     }
   }
 
-  public as<T extends typeof Dream>(dreamClass: T): InstanceType<T> {
-    const construct = this.constructor as typeof Dream
+  public as<I extends Dream, T extends typeof Dream>(this: I, dreamClass: T): InstanceType<T> {
+    const construct = this.constructor as DreamConstructorType<I>
     if (!construct.isSTIBase) throw new CannotCastToNonSTIChild(construct, dreamClass)
 
     const extendedBy = construct.extendedBy!
@@ -546,7 +546,7 @@ export default class Dream {
   }
 
   public asChild<I extends Dream>(this: I) {
-    const construct = this.constructor as typeof Dream
+    const construct = this.constructor as DreamConstructorType<I>
     if (!construct.isSTIBase) throw new CannotCastNonSTIModelToChild(construct)
 
     const extendedBy = construct.extendedBy!
@@ -560,7 +560,7 @@ export default class Dream {
 
   public attributes<I extends Dream>(this: I): Updateable<DB[I['table']]> {
     const obj: Updateable<DB[I['table']]> = {}
-    ;(this.constructor as typeof Dream).columns().forEach(column => {
+    ;(this.constructor as DreamConstructorType<I>).columns().forEach(column => {
       ;(obj as any)[column] = (this as any)[column]
     })
     return obj
@@ -578,7 +578,7 @@ export default class Dream {
     I extends Dream,
     TableName extends AssociationTableNames = I['table'] & AssociationTableNames,
     Table extends DB[keyof DB] = DB[TableName]
-  >(): Updateable<Table> {
+  >(this: I): Updateable<Table> {
     const obj: Updateable<Table> = {}
 
     Object.keys(this.dirtyAttributes()).forEach(column => {
@@ -638,15 +638,15 @@ export default class Dream {
     I extends Dream,
     TableName extends keyof DB = I['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
-  >(): (keyof Table)[] {
-    return (this.constructor as typeof Dream).columns()
+  >(this: I): (keyof Table)[] {
+    return (this.constructor as DreamConstructorType<I>).columns()
   }
 
   public dirtyAttributes<
     I extends Dream,
     TableName extends AssociationTableNames = I['table'] & AssociationTableNames,
     Table extends DB[keyof DB] = DB[TableName]
-  >(): Updateable<Table> {
+  >(this: I): Updateable<Table> {
     const obj: Updateable<Table> = {}
     Object.keys(this.attributes()).forEach(column => {
       // TODO: clean up types
@@ -702,10 +702,9 @@ export default class Dream {
     //
     G extends FinalJoinsWherePluckArgumentType<F, E, FTableName>
   >(this: I, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
-    const construct = this.constructor as typeof Dream
+    const construct = this.constructor as DreamConstructorType<I>
     return await construct
-      .where({ [this.primaryKey]: this.primaryKeyValue })
-      // @ts-ignore
+      .where({ [this.primaryKey]: this.primaryKeyValue } as any)
       .joinsPluck(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
 
@@ -799,7 +798,7 @@ export default class Dream {
 
         if (!(associationMetaData as BelongsToStatement<any>).optional && !associatedObject)
           throw new CannotPassNullOrUndefinedToRequiredBelongsTo(
-            this.constructor as typeof Dream,
+            this.constructor as DreamConstructorType<I>,
             associationMetaData as BelongsToStatement<any>
           )
 
