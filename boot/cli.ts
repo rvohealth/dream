@@ -187,6 +187,8 @@ program
   )
   .option('--core', 'sets core to true')
   .action(async () => {
+    if (!['development', 'test'].includes(process.env.NODE_ENV || '')) return
+
     setCoreDevelopmentFlag(program.args)
     await sspawn(`npx ts-node boot/sync-existing-or-create-boilerplate.ts`)
   })
