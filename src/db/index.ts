@@ -3,6 +3,7 @@ import { Kysely, PostgresDialect } from 'kysely'
 import { Pool } from 'pg'
 import { DB } from '../sync/schema'
 
+console.log('ABOUT TO INITIALIZE DB:', process.env.DB_SSL)
 export default new Kysely<DB>({
   dialect: new PostgresDialect({
     pool: new Pool({
