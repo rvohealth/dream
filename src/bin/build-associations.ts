@@ -46,13 +46,6 @@ export interface VirtualColumns ${JSON.stringify(finalModels, null, 2)}
 
 async function writeAssociationsFile() {
   const finalModels = await fleshOutAssociations()
-
-  const associationsAndTheirTables: { [key: string]: string[] } = {}
-  Object.values(finalModels).forEach(associationToTables => {
-    Object.keys(associationToTables).forEach(
-      associationName => (associationsAndTheirTables[associationName] = associationToTables[associationName])
-    )
-  })
   const finalBelongsToModels = await fleshOutAssociations('BelongsTo')
 
   setEmptyAssociationObjectsToFalse(finalBelongsToModels)
@@ -63,8 +56,6 @@ export default ${JSON.stringify(finalModels, null, 2)}
 export interface SyncedAssociations ${JSON.stringify(finalModels, null, 2)}
 
 export interface SyncedBelongsToAssociations ${JSON.stringify(finalBelongsToModels, null, 2)}
-
-export interface SyncedAssociationsToTables ${JSON.stringify(associationsAndTheirTables, null, 2)}
   `
 }
 
