@@ -121,7 +121,10 @@ program
     await maybeSyncExisting(program.args)
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
     await sspawn(`${coreDevFlag}npx ts-node src/bin/db-migrate.ts`)
-    await sspawn(yarncmdRunByAppConsumer('dream sync:types', program.args))
+
+    if (['development', 'test'].includes(process.env.NODE_ENV || '')) {
+      await sspawn(yarncmdRunByAppConsumer('dream sync:types', program.args))
+    }
   })
 
 program
