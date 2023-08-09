@@ -34,70 +34,61 @@ export type UpdateableInstanceFields<I extends Dream> =
 export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) => T) & typeof Dream
 
 // preload
-export type NextPreloadArgumentType<
-  PreviousTableNames,
-  PreviousSyncedAssociations = PreviousTableNames extends undefined
-    ? undefined
-    : SyncedAssociations[PreviousTableNames & keyof SyncedAssociations]
-> = PreviousTableNames extends undefined
+export type NextPreloadArgumentType<PreviousTableNames> = PreviousTableNames extends undefined
   ? undefined
-  : (keyof PreviousSyncedAssociations & string) | (keyof PreviousSyncedAssociations & string)[]
+  : PreviousTableNames extends undefined
+  ? undefined
+  :
+      | (keyof SyncedAssociations[PreviousTableNames & keyof SyncedAssociations] & string)
+      | (keyof SyncedAssociations[PreviousTableNames & keyof SyncedAssociations] & string)[]
 
-export type PreloadArgumentTypeAssociatedTableNames<
-  PreviousTableNames,
-  ArgumentType,
-  PreviousSyncedAssociations = PreviousTableNames extends undefined
+export type PreloadArgumentTypeAssociatedTableNames<PreviousTableNames, ArgumentType> =
+  ArgumentType extends string[]
     ? undefined
-    : SyncedAssociations[PreviousTableNames & keyof SyncedAssociations]
-> = ArgumentType extends string[]
-  ? undefined
-  : (PreviousSyncedAssociations[ArgumentType & (keyof PreviousSyncedAssociations & string)] &
-      string[])[number]
+    : PreviousTableNames extends undefined
+    ? undefined
+    : (SyncedAssociations[PreviousTableNames & keyof SyncedAssociations][ArgumentType &
+        (keyof SyncedAssociations[PreviousTableNames & keyof SyncedAssociations] & string)] &
+        string[])[number]
 // end:preload
 
 // joins
-export type NextJoinsWhereArgumentType<
-  PreviousTableNames,
-  PreviousSyncedAssociations = PreviousTableNames extends undefined
-    ? undefined
-    : SyncedAssociations[PreviousTableNames & keyof SyncedAssociations]
-> = PreviousTableNames extends undefined
+export type NextJoinsWhereArgumentType<PreviousTableNames> = PreviousTableNames extends undefined
   ? undefined
-  : (keyof PreviousSyncedAssociations & string) | WhereStatement<PreviousTableNames & AssociationTableNames>
+  :
+      | (keyof SyncedAssociations[PreviousTableNames & keyof SyncedAssociations] & string)
+      | WhereStatement<PreviousTableNames & AssociationTableNames>
 
-export type JoinsArgumentTypeAssociatedTableNames<
-  PreviousTableNames,
-  ArgumentType,
-  PreviousSyncedAssociations = PreviousTableNames extends undefined
+export type JoinsArgumentTypeAssociatedTableNames<PreviousTableNames, ArgumentType> =
+  ArgumentType extends `${any}.${any}`
     ? undefined
-    : SyncedAssociations[PreviousTableNames & keyof SyncedAssociations]
-> = ArgumentType extends `${any}.${any}`
-  ? undefined
-  : ArgumentType extends any[]
-  ? undefined
-  : ArgumentType extends WhereStatement<any>
-  ? PreviousTableNames
-  : (PreviousSyncedAssociations[ArgumentType & (keyof PreviousSyncedAssociations & string)] &
-      string[])[number]
+    : ArgumentType extends any[]
+    ? undefined
+    : PreviousTableNames extends undefined
+    ? undefined
+    : ArgumentType extends WhereStatement<any>
+    ? PreviousTableNames
+    : (SyncedAssociations[PreviousTableNames & keyof SyncedAssociations][ArgumentType &
+        (keyof SyncedAssociations[PreviousTableNames & keyof SyncedAssociations] & string)] &
+        string[])[number]
 // end:joins
 
 // joinsPluck
 export type NextJoinsWherePluckArgumentType<
   PreviousAssociationName,
   PreviousPreviousAssociationName,
-  PreviousTableNames,
-  PreviousSyncedAssociations = PreviousTableNames extends undefined
-    ? undefined
-    : SyncedAssociations[PreviousTableNames & keyof SyncedAssociations]
+  PreviousTableNames
 > = PreviousAssociationName extends undefined
   ? undefined
   : PreviousAssociationName extends `${any}.${any}`
   ? undefined
   : PreviousAssociationName extends any[]
   ? undefined
+  : PreviousTableNames extends undefined
+  ? undefined
   : PreviousAssociationName extends WhereStatement<any>
   ?
-      | keyof PreviousSyncedAssociations
+      | keyof SyncedAssociations[PreviousTableNames & keyof SyncedAssociations]
       | AssociationNameToDotReference<
           PreviousPreviousAssociationName,
           PreviousTableNames & AssociationTableNames
@@ -107,7 +98,7 @@ export type NextJoinsWherePluckArgumentType<
           PreviousTableNames & AssociationTableNames
         >[]
   :
-      | keyof PreviousSyncedAssociations
+      | keyof SyncedAssociations[PreviousTableNames & keyof SyncedAssociations]
       | WhereStatement<PreviousTableNames & AssociationTableNames>
       | AssociationNameToDotReference<PreviousAssociationName, PreviousTableNames & AssociationTableNames>
       | AssociationNameToDotReference<PreviousAssociationName, PreviousTableNames & AssociationTableNames>[]
