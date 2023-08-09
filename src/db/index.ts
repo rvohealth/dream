@@ -11,6 +11,7 @@ export default new Kysely<DB>({
       database: process.env.DB_NAME,
       host: process.env.DB_HOST || 'localhost',
       port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 5432,
+      ssl: process.env.DB_SSL === '1',
     }),
   }),
 })
