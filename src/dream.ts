@@ -457,16 +457,18 @@ export default class Dream {
   private dreamTransaction: DreamTransaction | null = null
   constructor(opts?: Updateable<DB[keyof DB]>) {
     if (opts) {
-      this.setAttributes(opts)
+      const marshalledOpts = this.setAttributes(opts)
 
       // if id is set, then we freeze attributes after setting them, so that
       // any modifications afterwards will indicate updates.
       if (this.isPersisted) {
         this.freezeAttributes()
-        this.originalAttributes = opts
+        this.originalAttributes = { ...marshalledOpts }
+        this.attributesFromBeforeLastSave = { ...marshalledOpts }
       } else {
         ;(this.constructor as typeof Dream).columns().forEach(column => {
           this.originalAttributes[column] = undefined
+          this.attributesFromBeforeLastSave[column] = undefined
         })
       }
     }
@@ -556,11 +558,7 @@ export default class Dream {
     Table extends DB[TableName],
     Attr extends keyof Updateable<Table> & string
   >(this: I, attribute: Attr): Updateable<Table>[Attr] {
-    if (this.isPersisted) {
-      return (this.attributesFromBeforeLastSave as any)[attribute]
-    } else {
-      return (this.originalAttributes as any)[attribute]
-    }
+    return (this.attributesFromBeforeLastSave as any)[attribute]
   }
 
   public savedChangeToAttribute<
@@ -687,6 +685,7 @@ export default class Dream {
     Table extends DB[keyof DB] = DB[TableName]
   >(this: I, attributes: Updateable<Table> | AssociatedModelParam<I>) {
     const self = this as any
+    const marshalledOpts: any = {}
     Object.keys(attributes as any).forEach(attr => {
       const associationMetaData = this.associationMap[attr]
 
@@ -703,14 +702,23 @@ export default class Dream {
             associationMetaData as BelongsToStatement<any>
           )
 
-        self[belongsToAssociationMetaData.foreignKey()] = associatedObject?.primaryKeyValue
-        if (belongsToAssociationMetaData.polymorphic)
-          self[belongsToAssociationMetaData.foreignKeyTypeField()] = associatedObject?.constructor?.name
+        const foreignKey = belongsToAssociationMetaData.foreignKey()
+        self[foreignKey] = marshalledOpts[foreignKey] = associatedObject?.primaryKeyValue
+        if (belongsToAssociationMetaData.polymorphic) {
+          const foreignKeyTypeField = belongsToAssociationMetaData.foreignKeyTypeField()
+          self[foreignKeyTypeField] = marshalledOpts[foreignKeyTypeField] =
+            associatedObject?.constructor?.name
+        }
       } else {
         // TODO: cleanup type chaos
-        self[attr] = marshalDBValue((attributes as any)[attr], { column: attr as any, table: this.table })
+        self[attr] = marshalledOpts[attr] = marshalDBValue((attributes as any)[attr], {
+          column: attr as any,
+          table: this.table,
+        })
       }
     })
+
+    return marshalledOpts
   }
 
   public async save<I extends Dream>(this: I): Promise<I> {
