@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import { Updateable, ColumnType } from 'kysely'
 import { AssociationTableNames } from '../db/reflections'
-import { SyncedAssociations, VirtualColumns } from '../sync/associations'
+import { SyncedAssociations, SyncedAssociationsToTables, VirtualColumns } from '../sync/associations'
 import Dream from '../dream'
 import { Inc } from '../helpers/typeutils'
 import { DB } from '../sync/schema'
@@ -45,14 +45,15 @@ export type NextPreloadArgumentType<
 
 export type PreloadArgumentTypeAssociatedTableNames<
   PreviousTableNames,
-  ArgumentType,
-  PreviousSyncedAssociations = PreviousTableNames extends undefined
-    ? undefined
-    : SyncedAssociations[PreviousTableNames & keyof SyncedAssociations]
+  ArgumentType
+  // PreviousSyncedAssociations = PreviousTableNames extends undefined
+  //   ? undefined
+  //   : SyncedAssociations[PreviousTableNames & keyof SyncedAssociations]
 > = ArgumentType extends string[]
   ? undefined
-  : (PreviousSyncedAssociations[ArgumentType & (keyof PreviousSyncedAssociations & string)] &
-      string[])[number]
+  : SyncedAssociationsToTables[ArgumentType & keyof SyncedAssociationsToTables][number]
+// : (PreviousSyncedAssociations[ArgumentType & (keyof PreviousSyncedAssociations & string)] &
+//     string[])[number]
 // end:preload
 
 // joins
@@ -67,18 +68,19 @@ export type NextJoinsWhereArgumentType<
 
 export type JoinsArgumentTypeAssociatedTableNames<
   PreviousTableNames,
-  ArgumentType,
-  PreviousSyncedAssociations = PreviousTableNames extends undefined
-    ? undefined
-    : SyncedAssociations[PreviousTableNames & keyof SyncedAssociations]
+  ArgumentType
+  // PreviousSyncedAssociations = PreviousTableNames extends undefined
+  //   ? undefined
+  //   : SyncedAssociations[PreviousTableNames & keyof SyncedAssociations]
 > = ArgumentType extends `${any}.${any}`
   ? undefined
   : ArgumentType extends any[]
   ? undefined
   : ArgumentType extends WhereStatement<any>
   ? PreviousTableNames
-  : (PreviousSyncedAssociations[ArgumentType & (keyof PreviousSyncedAssociations & string)] &
-      string[])[number]
+  : SyncedAssociationsToTables[ArgumentType & keyof SyncedAssociationsToTables][number]
+// : (PreviousSyncedAssociations[ArgumentType & (keyof PreviousSyncedAssociations & string)] &
+//     string[])[number]
 // end:joins
 
 // joinsPluck
