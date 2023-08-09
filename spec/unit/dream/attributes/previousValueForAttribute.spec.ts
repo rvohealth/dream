@@ -10,13 +10,12 @@ describe('Dream#previousValueForAttribute', () => {
     expect(pet.previousValueForAttribute('species')).toEqual(undefined)
 
     pet.species = 'dog'
-    pet.species = 'frog'
-    expect(pet.previousValueForAttribute('species')).toEqual('cat')
+    expect(pet.previousValueForAttribute('species')).toEqual(undefined)
 
     await pet.save()
     expect(pet.previousValueForAttribute('species')).toEqual('cat')
 
-    pet.species = 'cat'
-    expect(pet.previousValueForAttribute('species')).toEqual('frog')
+    await pet.update({ species: 'cat' })
+    expect(pet.previousValueForAttribute('species')).toEqual('dog')
   })
 })

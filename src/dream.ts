@@ -556,9 +556,7 @@ export default class Dream {
     Table extends DB[TableName],
     Attr extends keyof Updateable<Table> & string
   >(this: I, attribute: Attr): Updateable<Table>[Attr] {
-    if (Object.keys(this.dirtyAttributes()).includes(attribute as string)) {
-      return (this.frozenAttributes as any)[attribute]
-    } else if (this.isPersisted) {
+    if (this.isPersisted) {
       return (this.attributesFromBeforeLastSave as any)[attribute]
     } else {
       return (this.originalAttributes as any)[attribute]
