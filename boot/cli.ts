@@ -14,6 +14,7 @@ import yarncmdRunByAppConsumer from './cli/helpers/yarncmdRunByAppConsumer'
 import maybeSyncExisting from './cli/helpers/maybeSyncExisting'
 import generateSerializer from './cli/helpers/generateSerializer'
 import absoluteFilePath from '../src/helpers/absoluteFilePath'
+import developmentOrTestEnv from './cli/helpers/developmentOrTestEnv'
 
 const program = new Command()
 
@@ -122,7 +123,7 @@ program
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
     await sspawn(`${coreDevFlag}npx ts-node src/bin/db-migrate.ts`)
 
-    if (['development', 'test'].includes(process.env.NODE_ENV || '')) {
+    if (developmentOrTestEnv()) {
       await sspawn(yarncmdRunByAppConsumer('dream sync:types', program.args))
     }
   })
@@ -187,7 +188,7 @@ program
   )
   .option('--core', 'sets core to true')
   .action(async () => {
-    if (!['development', 'test'].includes(process.env.NODE_ENV || '')) return
+    if (!developmentOrTestEnv()) return
 
     setCoreDevelopmentFlag(program.args)
     await sspawn(`npx ts-node boot/sync-existing-or-create-boilerplate.ts`)
