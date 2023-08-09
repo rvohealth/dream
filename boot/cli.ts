@@ -118,13 +118,18 @@ program
   .description('db:migrate runs any outstanding database migrations')
   .option('--core', 'sets core to true')
   .action(async () => {
+    console.log('NODE_ENV: ', process.env.NODE_ENV)
+    console.log('DEBUG 1: db:migrate called')
     await maybeSyncExisting(program.args)
+    console.log('DEBUG 2: passed sync:existing')
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
     await sspawn(`${coreDevFlag}npx ts-node src/bin/db-migrate.ts`)
+    console.log('DEBUG 3: passed bin/db-migrate.ts')
 
     if (['development', 'test'].includes(process.env.NODE_ENV || '')) {
       await sspawn(yarncmdRunByAppConsumer('dream sync:types', program.args))
     }
+    console.log('DEBUG 4: dream sync:types')
   })
 
 program
