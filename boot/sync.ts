@@ -3,7 +3,7 @@ import pluralize from 'pluralize'
 import path from 'path'
 import { promises as fs } from 'fs'
 import sspawn from '../src/helpers/sspawn'
-import { loadDreamYamlFile } from '../src/helpers/path'
+import { loadDbConfigYamlFile, loadDreamYamlFile } from '../src/helpers/path'
 import compact from '../src/helpers/compact'
 import camelize from '../src/helpers/camelize'
 import snakeify from '../src/helpers/snakeify'
@@ -18,14 +18,12 @@ export default async function sync() {
     await sspawn(
       'rm -f src/sync/schema.ts && rm -f src/sync/dream.ts && ' +
         'cp ./test-app/db/schema.ts ./src/sync && ' +
-        'cp ./test-app/conf/dream.ts ./src/sync && ' +
         'cp ./test-app/db/associations.ts ./src/sync'
     )
   } else {
     await sspawn(
       'rm -f src/sync/schema.ts && rm -f src/sync/dream.ts && ' +
         `cp ../../${yamlConf.schema_path} ./src/sync/schema.ts && ` +
-        `cp ../../${yamlConf.dream_config_path} ./src/sync/dream.ts && ` +
         `cp ../../${yamlConf.associations_path} ./src/sync/associations.ts`
     )
   }
@@ -36,6 +34,7 @@ sync()
 
 async function writeSchema() {
   const yamlConf = await loadDreamYamlFile()
+  const dbConf = await loadDbConfigYamlFile()
 
   let absoluteSchemaPath = path.join(__dirname, '..', yamlConf.schema_path)
   let absoluteSchemaWritePath = path.join(__dirname, '..', '..', '..', yamlConf.schema_path)
@@ -45,7 +44,9 @@ async function writeSchema() {
   }
 
   await sspawn(
-    `kysely-codegen --url=postgres://${process.env.DB_USER}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME} --out-file=${absoluteSchemaPath}`
+    `kysely-codegen --url=postgres://${process.env[dbConf.user]}@${process.env[dbConf.host]}:${
+      process.env[dbConf.port]
+    }/${process.env[dbConf.name]} --out-file=${absoluteSchemaPath}`
   )
 
   // intentionally bypassing helpers here, since they often end up referencing

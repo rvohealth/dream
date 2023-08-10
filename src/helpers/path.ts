@@ -29,16 +29,18 @@ export async function loadDreamYamlFile() {
   return config
 }
 
-let _dreamConfigCache: DreamConfig | null = null
-export async function loadDreamConfigFile() {
-  if (_dreamConfigCache) return _dreamConfigCache
+let _dbConfigCache: DbConfig | null = null
+export async function loadDbConfigYamlFile() {
+  if (_dbConfigCache) return _dbConfigCache
 
-  const dreamConfig = (await importFileWithDefault(await dreamsConfigPath())) as DreamConfig
+  const file = await loadFile(await dbConfigPath())
+  const dbConfig = (await YAML.parse(file.toString())) as DbConfig
+  // const dbConfig = (await importFileWithDefault(await dbConfigPath())) as DbConfig
 
   // TODO: validate shape of payload!
 
-  _dreamConfigCache = dreamConfig
-  return dreamConfig
+  _dbConfigCache = dbConfig
+  return dbConfig
 }
 
 export function projectRootPath({
@@ -69,9 +71,9 @@ export async function migrationsPath({ omitDirname }: { omitDirname?: boolean } 
   return projectRootPath({ filepath: yamlConfig.migrations_path, omitDirname })
 }
 
-export async function dreamsConfigPath({ omitDirname }: { omitDirname?: boolean } = {}) {
+export async function dbConfigPath({ omitDirname }: { omitDirname?: boolean } = {}) {
   const yamlConfig = await loadDreamYamlFile()
-  return projectRootPath({ filepath: yamlConfig.dream_config_path, omitDirname })
+  return projectRootPath({ filepath: yamlConfig.db_config_path, omitDirname })
 }
 
 export interface DreamYamlFile {
@@ -80,17 +82,19 @@ export interface DreamYamlFile {
   associations_path: string
   migrations_path: string
   schema_path: string
-  dream_config_path: string
+  db_config_path: string
   unit_spec_path: string
   feature_spec_path: string
 }
 
 export interface DreamConfig {
-  db: {
-    user: string
-    password: string
-    name: string
-    host: string
-    port: string | number
-  }
+  db: DbConfig
+}
+
+export interface DbConfig {
+  user: string
+  password: string
+  name: string
+  host: string
+  port: string | number
 }

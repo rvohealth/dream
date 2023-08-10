@@ -1,12 +1,11 @@
-import { loadDreamConfigFile } from './path'
+import configCache from '../sync/config-cache'
 
 export default async function loadDBConfig() {
-  const dbConfig = await loadDreamConfigFile()
   return {
-    host: dbConfig.db.host || 'localhost',
-    user: dbConfig.db.user || 'postgres',
-    password: dbConfig.db.password || '',
-    port: dbConfig.db.port ? parseInt(dbConfig.db.port as string) : 5432,
-    name: dbConfig.db.name || 'dream_app_dev',
+    host: process.env[configCache.db.host] || 'localhost',
+    user: process.env[configCache.db.user] || 'postgres',
+    password: process.env[configCache.db.password] || '',
+    port: process.env[configCache.db.port] ? parseInt(process.env[configCache.db.port] as string) : 5432,
+    name: process.env[configCache.db.name] || 'dream_app_dev',
   }
 }

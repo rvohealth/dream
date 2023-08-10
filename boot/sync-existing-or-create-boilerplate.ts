@@ -30,9 +30,9 @@ export default async function syncExistingOrCreateBoilerplate() {
     await fs.statfs('./src/sync/dream.ts')
   } catch (_) {
     try {
-      await fs.statfs(`../../${yamlConf.dream_config_path}`)
+      await fs.statfs(`../../${yamlConf.db_config_path}`)
       console.log('existing dream file found within project, copying to sync dir...')
-      await sspawn(`cp ../../${yamlConf.dream_config_path} ./src/sync/dream.ts`)
+      await sspawn(`cp ../../${yamlConf.db_config_path} ./src/sync/dream.ts`)
     } catch (_) {
       console.log('dream file missing, adding boilerplate dream file')
       await sspawn('cp ./boot/boilerplate/sync/dream.ts ./src/sync/dream.ts')

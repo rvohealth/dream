@@ -5,7 +5,9 @@ import yarncmdRunByAppConsumer from './yarncmdRunByAppConsumer'
 import developmentOrTestEnv from './developmentOrTestEnv'
 
 export default async function maybeSyncExisting(programArgs: string[]) {
-  if (!developmentOrTestEnv()) return
+  if (!developmentOrTestEnv() || programArgs.includes('--bypass-config-cache')) return
+
+  await sspawn(yarncmdRunByAppConsumer('dream sync:config-cache', programArgs))
 
   try {
     const pathToCheck = programArgs.includes('--core')
