@@ -133,12 +133,12 @@ program
   )
   .action(async () => {
     if (!developmentOrTestEnv()) return
+    setCoreDevelopmentFlag(program.args)
+    await sspawn(`npx ts-node boot/sync-existing-or-create-boilerplate.ts`)
+
     if (!program.args.includes('--bypass-config-cache')) {
       await sspawn(yarncmdRunByAppConsumer('dream sync:config-cache', program.args))
     }
-
-    setCoreDevelopmentFlag(program.args)
-    await sspawn(`npx ts-node boot/sync-existing-or-create-boilerplate.ts`)
   })
 
 program
