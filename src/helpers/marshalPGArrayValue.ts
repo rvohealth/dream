@@ -6,8 +6,13 @@ export default function marshalPGArrayValue<
   TableName extends AssociationTableNames,
   Table extends DB[TableName] = DB[TableName],
   Attr extends keyof Table = keyof Table
->(value: string | any[], column: Attr, { table }: { table: TableName }): Table[Attr] {
-  switch (value.constructor) {
+>(
+  value: string | any[] | null | undefined,
+  column: Attr,
+  { table }: { table: TableName }
+): Table[Attr] | null | undefined {
+  if ([null, undefined].includes(value as any)) return value as null | undefined
+  switch (value?.constructor) {
     case Array:
       return value as Table[Attr]
 
