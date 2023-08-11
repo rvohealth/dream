@@ -8,6 +8,8 @@ export type BalloonLineMaterialsEnum = "nylon" | "ribbon" | "twine" | "yarn";
 
 export type BalloonTypesEnum = "Animal" | "Latex" | "Mylar";
 
+export type CatTreats = "cat-safe chalupas (catlupas,supaloopas)" | "chicken" | "ocean fish" | "tuna";
+
 export type ExtraRatingTypesEnum = "HeartRating" | "StarRating";
 
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
@@ -135,6 +137,7 @@ export interface IncompatibleForeignKeyTypeExamples {
 export interface Pets {
   id: Generated<Int8>;
   user_id: Int8 | null;
+  favorite_treats: CatTreats[] | null;
   species: Species | null;
   name: string | null;
   deleted_at: Timestamp | null;
@@ -231,7 +234,7 @@ export const GraphEdgeNodeColumns = ['id', 'edge_id', 'node_id', 'created_at', '
 export const GraphEdgeColumns = ['id', 'name', 'created_at', 'updated_at']
 export const GraphNodeColumns = ['id', 'name', 'created_at', 'updated_at']
 export const IncompatibleForeignKeyTypeExampleColumns = ['id', 'user_id', 'created_at', 'updated_at']
-export const PetColumns = ['id', 'user_id', 'species', 'name', 'deleted_at', 'created_at']
+export const PetColumns = ['id', 'user_id', 'favorite_treats', 'species', 'name', 'deleted_at', 'created_at']
 export const PostColumns = ['id', 'user_id', 'post_visibility_id', 'body', 'created_at', 'updated_at']
 export const PostVisibilityColumns = ['id', 'visibility', 'notes', 'created_at', 'updated_at']
 export const RatingColumns = ['id', 'user_id', 'rateable_id', 'rateable_type', 'rating', 'created_at', 'updated_at']
@@ -353,6 +356,7 @@ export interface IncompatibleForeignKeyTypeExampleAttributes {
 export interface PetAttributes {
   id: IdType
   user_id: IdType | null
+  favorite_treats: CatTreats[] | null
   species: Species | null
   name: string | null
   deleted_at: DateTime | null
@@ -527,6 +531,7 @@ export const IncompatibleForeignKeyTypeExamplesTypeCache = {
 export const PetsTypeCache = {
   id: 'Generated<Int8>',
   user_id: 'Int8|null',
+  favorite_treats: 'CatTreats[]|null',
   species: 'Species|null',
   name: 'string|null',
   deleted_at: 'Timestamp|null',

@@ -5,9 +5,14 @@ export async function up(db: Kysely<any>): Promise<void> {
   // an updated_at field can be tested for regressions
   await db.schema.createType('species').asEnum(['cat', 'dog', 'frog']).execute()
   await db.schema
+    .createType('cat_treats')
+    .asEnum(['tuna', 'chicken', 'ocean fish', 'cat-safe chalupas (catlupas,supaloopas)'])
+    .execute()
+  await db.schema
     .createTable('pets')
     .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('user_id', 'bigint', col => col.references('users.id').onDelete('cascade'))
+    .addColumn('favorite_treats', sql`cat_treats[]`)
     .addColumn('species', sql`species`)
     .addColumn('name', 'text')
     .addColumn('deleted_at', 'timestamp')

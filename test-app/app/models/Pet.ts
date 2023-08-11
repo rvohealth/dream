@@ -9,6 +9,7 @@ import { IdType } from '../../../src/dream/types'
 import { BeforeDestroy } from '../../../src'
 import Collar from './Collar'
 import PetSerializer from '../serializers/PetSerializer'
+import { CatTreats } from '../../../src/sync/schema'
 
 export default class Pet extends Dream {
   public get table() {
@@ -22,6 +23,7 @@ export default class Pet extends Dream {
   public id: IdType
   public species: string
   public name: string
+  public favorite_treats: CatTreats[]
   public deleted_at: DateTime
   public created_at: DateTime
 
