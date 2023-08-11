@@ -133,7 +133,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     return this.queryInstance().joins(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
 
-  private queryInstance<I extends DreamClassTransactionBuilder<DreamClass>>(this: I): Query<DreamClass> {
+  public queryInstance<I extends DreamClassTransactionBuilder<DreamClass>>(this: I): Query<DreamClass> {
     return new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
   }
 

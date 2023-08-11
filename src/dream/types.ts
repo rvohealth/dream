@@ -166,3 +166,7 @@ export type RelaxedJoinsWhereStatement<Depth extends number = 0> = Depth extends
   : {
       [key: string]: RelaxedPreloadStatement<Inc<Depth>> | {} | WhereStatement<any>
     }
+
+export type TableOrAssociationName =
+  | keyof SyncedAssociations
+  | keyof SyncedAssociations[keyof SyncedAssociations]

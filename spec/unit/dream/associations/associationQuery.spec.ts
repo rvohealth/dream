@@ -47,14 +47,26 @@ describe('Dream#associationQuery', () => {
 
         const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
         const composition = await Composition.create({ user, content: 'howyadoin' })
+        const otherCompositionAsset = await CompositionAsset.create({
+          composition,
+          name: 'asset 0',
+          score: 1,
+        })
         const compositionAsset = await CompositionAsset.create({
           composition,
           name: 'asset 1',
+          score: 3,
         })
 
+        expect(await user.associationQuery('compositionAssets').findBy({ score: 3 })).toMatchDreamModel(
+          compositionAsset
+        )
+
         expect(
-          await otherUser.associationQuery('compositionAssets').findBy({ id: compositionAsset.id })
-        ).toBeNull()
+          await user.associationQuery('compositionAssets').where({ score: 3 }).first()
+        ).toMatchDreamModel(compositionAsset)
+
+        expect(await otherUser.associationQuery('compositionAssets').findBy({ score: 3 })).toBeNull()
       })
     })
   })

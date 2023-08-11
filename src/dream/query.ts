@@ -12,6 +12,7 @@ import {
   NextJoinsWherePluckArgumentType,
   AssociationNameToDotReference,
   FinalJoinsWherePluckArgumentType,
+  TableOrAssociationName,
 } from './types'
 import {
   ComparisonOperator,
@@ -100,6 +101,8 @@ export default class Query<
   public readonly preloadStatements: RelaxedPreloadStatement = Object.freeze({})
   public readonly joinsStatements: RelaxedJoinsStatement = Object.freeze({})
   public readonly joinsWhereStatements: RelaxedJoinsWhereStatement = Object.freeze({})
+  public baseSQLAlias: TableOrAssociationName
+  public associationQueryJoinsQuery: Query<any> | null
 
   public readonly shouldBypassDefaultScopes: boolean = false
   public readonly dreamClass: DreamClass
@@ -111,6 +114,8 @@ export default class Query<
 
   constructor(DreamClass: DreamClass, opts: QueryOpts<DreamClass, ColumnType> = {}) {
     this.dreamClass = DreamClass
+    this.baseSQLAlias = opts.baseSQLAlias || this.dreamClass.prototype['table']
+    this.associationQueryJoinsQuery = opts.associationQueryJoinsQuery || null
     this.whereStatement = Object.freeze(opts.where || [])
     this.whereNotStatement = Object.freeze(opts.whereNot || [])
     this.limitStatement = Object.freeze(opts.limit || null)
@@ -125,6 +130,8 @@ export default class Query<
 
   public clone(opts: QueryOpts<DreamClass, ColumnType> = {}): Query<DreamClass> {
     return new Query(this.dreamClass, {
+      baseSQLAlias: opts.baseSQLAlias || this.baseSQLAlias,
+      associationQueryJoinsQuery: opts.associationQueryJoinsQuery || this.associationQueryJoinsQuery,
       where: [...this.whereStatement, ...(opts.where || [])],
       whereNot: [...this.whereNotStatement, ...(opts.whereNot || [])],
       limit: opts.limit || this.limitStatement,
@@ -352,6 +359,14 @@ export default class Query<
     }
   }
 
+  public setBaseSQLAlias(baseSQLAlias: TableOrAssociationName) {
+    return this.clone({ baseSQLAlias })
+  }
+
+  public setAssociationQueryJoinsQuery(associationQueryJoinsQuery: Query<any> | null) {
+    return this.clone({ associationQueryJoinsQuery })
+  }
+
   public unscoped<T extends Query<DreamClass>>(this: T): Query<DreamClass> {
     return this.clone({ shouldBypassDefaultScopes: true })
   }
@@ -444,7 +459,7 @@ export default class Query<
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
 
     kyselyQuery = kyselyQuery.select(
-      count(`${this.dreamClass.prototype.table}.${this.dreamClass.primaryKey}` as any).as('tablecount')
+      count(`${this.baseSQLAlias as any}.${this.dreamClass.primaryKey}` as any).as('tablecount')
     )
 
     const data = (await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')) as any
@@ -869,13 +884,13 @@ ${JSON.stringify(association, null, 2)}
       query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
       dreamClass: typeof Dream
       association: HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any>
-      previousAssociationTableOrAlias: string
+      previousAssociationTableOrAlias: TableOrAssociationName
     }
   ): {
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
     dreamClass: typeof Dream
     association: HasOneStatement<any> | HasManyStatement<any> | BelongsToStatement<any>
-    previousAssociationTableOrAlias: string
+    previousAssociationTableOrAlias: TableOrAssociationName
   } {
     if (association.type === 'BelongsTo' || !association.through) {
       return {
@@ -894,7 +909,7 @@ ${JSON.stringify(association, null, 2)}
         query,
         dreamClass,
         previousAssociationTableOrAlias,
-        currentAssociationTableOrAlias: association.through,
+        currentAssociationTableOrAlias: association.through as TableOrAssociationName,
       })
       const newAssociation = this.followThroughAssociation(dreamClass, association)
 
@@ -902,7 +917,7 @@ ${JSON.stringify(association, null, 2)}
         query: results.query,
         dreamClass: association.modelCB(),
         association: newAssociation,
-        previousAssociationTableOrAlias: association.through,
+        previousAssociationTableOrAlias: association.through as TableOrAssociationName,
       })
     }
   }
@@ -917,14 +932,14 @@ ${JSON.stringify(association, null, 2)}
     }: {
       query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
       dreamClass: typeof Dream
-      previousAssociationTableOrAlias: string
-      currentAssociationTableOrAlias: string
+      previousAssociationTableOrAlias: TableOrAssociationName
+      currentAssociationTableOrAlias: TableOrAssociationName
     }
   ): {
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
     association: any
-    previousAssociationTableOrAlias: string
-    currentAssociationTableOrAlias: string
+    previousAssociationTableOrAlias: TableOrAssociationName
+    currentAssociationTableOrAlias: TableOrAssociationName
   } {
     // Given:
     // dreamClass: Post
@@ -1052,7 +1067,7 @@ ${JSON.stringify(association, null, 2)}
     }
   }
 
-  private recursivelyJoin<T extends Query<DreamClass>, PreviousTableName extends AssociationTableNames>(
+  private recursivelyJoin<T extends Query<DreamClass>>(
     this: T,
     {
       query,
@@ -1063,10 +1078,10 @@ ${JSON.stringify(association, null, 2)}
       query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
       joinsStatement: RelaxedJoinsWhereStatement
       dreamClass: typeof Dream
-      previousAssociationTableOrAlias: string
+      previousAssociationTableOrAlias: TableOrAssociationName
     }
   ): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
-    for (const currentAssociationTableOrAlias of Object.keys(joinsStatement) as string[]) {
+    for (const currentAssociationTableOrAlias of Object.keys(joinsStatement) as TableOrAssociationName[]) {
       const results = this.applyOneJoin({
         query,
         dreamClass,
@@ -1227,7 +1242,7 @@ ${JSON.stringify(association, null, 2)}
   private recursivelyApplyJoinWhereStatement<PreviousTableName extends AssociationTableNames>(
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
     whereJoinsStatement: RelaxedJoinsWhereStatement,
-    previousAssociationTableOrAlias: string
+    previousAssociationTableOrAlias: TableOrAssociationName
   ) {
     for (const key of Object.keys(whereJoinsStatement) as (
       | keyof SyncedAssociations[PreviousTableName]
@@ -1242,9 +1257,7 @@ ${JSON.stringify(association, null, 2)}
           [`${previousAssociationTableOrAlias}.${String(key)}`]: columnValue,
         })
       } else {
-        let currentAssociationTableOrAlias = key as
-          | (keyof SyncedAssociations[PreviousTableName] & string)
-          | string
+        let currentAssociationTableOrAlias = key as TableOrAssociationName
 
         query = this.recursivelyApplyJoinWhereStatement<any>(
           query,
@@ -1266,8 +1279,7 @@ ${JSON.stringify(association, null, 2)}
         query: kyselyQuery,
         joinsStatement: query.joinsStatements,
         dreamClass: query.dreamClass,
-        previousAssociationTableOrAlias: query.dreamClass.prototype
-          .table as InstanceType<DreamClass>['table'],
+        previousAssociationTableOrAlias: this.baseSQLAlias,
       })
     }
 
@@ -1278,14 +1290,14 @@ ${JSON.stringify(association, null, 2)}
     if (Object.keys(query.whereStatement).length) {
       kyselyQuery = query.applyWhereStatement(
         kyselyQuery,
-        query.aliasWhereStatement(query.whereStatement, query.dreamClass.prototype.table)
+        query.aliasWhereStatement(query.whereStatement, this.baseSQLAlias)
       )
     }
 
     if (Object.keys(query.whereNotStatement).length) {
       kyselyQuery = query.applyWhereStatement(
         kyselyQuery,
-        query.aliasWhereStatement(query.whereNotStatement, query.dreamClass.prototype.table),
+        query.aliasWhereStatement(query.whereNotStatement, this.baseSQLAlias),
         {
           negate: true,
         }
@@ -1293,7 +1305,11 @@ ${JSON.stringify(association, null, 2)}
     }
 
     if (!isEmpty(query.joinsWhereStatements)) {
-      kyselyQuery = query.recursivelyApplyJoinWhereStatement(kyselyQuery, query.joinsWhereStatements, '')
+      kyselyQuery = query.recursivelyApplyJoinWhereStatement(
+        kyselyQuery,
+        query.joinsWhereStatements,
+        this.baseSQLAlias
+      )
     }
 
     return kyselyQuery
@@ -1323,7 +1339,16 @@ ${JSON.stringify(association, null, 2)}
     this: T,
     { bypassSelectAll = false }: { bypassSelectAll?: boolean } = {}
   ): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
-    let kyselyQuery = this.db.selectFrom(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
+    const from =
+      this.baseSQLAlias === this.dreamClass.prototype.table
+        ? this.dreamClass.prototype.table
+        : `${this.dreamClass.prototype.table} as ${this.baseSQLAlias}`
+
+    let kyselyQuery: SelectQueryBuilder<DB, any, {}>
+
+    if (this.associationQueryJoinsQuery) {
+      kyselyQuery = this.associationQueryJoinsQuery.buildSelect({ bypassSelectAll: true })
+    } else kyselyQuery = this.db.selectFrom(from as InstanceType<DreamClass>['table'])
 
     kyselyQuery = this.buildCommon(kyselyQuery)
 
@@ -1334,7 +1359,7 @@ ${JSON.stringify(association, null, 2)}
 
     if (!bypassSelectAll)
       kyselyQuery = kyselyQuery.selectAll(
-        this.dreamClass.prototype.table as ExtractTableAlias<DB, InstanceType<DreamClass>['table']>
+        this.baseSQLAlias as ExtractTableAlias<DB, InstanceType<DreamClass>['table']>
       )
 
     return kyselyQuery
@@ -1355,6 +1380,8 @@ export interface QueryOpts<
   DreamClass extends typeof Dream,
   ColumnType = keyof DB[keyof DB] extends never ? unknown : keyof DB[keyof DB]
 > {
+  baseSQLAlias?: TableOrAssociationName
+  associationQueryJoinsQuery?: Query<any> | null
   where?: WhereStatement<any>[]
   whereNot?: WhereStatement<any>[]
   limit?: LimitStatement | null

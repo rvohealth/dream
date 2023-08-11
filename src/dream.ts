@@ -379,8 +379,7 @@ export default class Dream {
 
   public static async pluck<
     T extends typeof Dream,
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<T>['table']>>,
-    TableName extends AssociationTableNames = InstanceType<T>['table']
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<T>['table']>>
   >(this: T, ...fields: SelectArg<DB, ExtractTableAlias<DB, InstanceType<T>['table']>, SE>[]) {
     let query: Query<T> = new Query<T>(this)
     return await query.pluck(...(fields as any[]))

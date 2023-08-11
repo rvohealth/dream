@@ -2,7 +2,7 @@ import { SyncedAssociations } from '../../../sync/associations'
 import Dream from '../../../dream'
 import DreamTransaction from '../../transaction'
 import Query from '../../query'
-import { DreamConstructorType } from '../../types'
+import { DreamConstructorType, TableOrAssociationName } from '../../types'
 import { HasManyStatement } from '../../../decorators/associations/has-many'
 
 export default function associationQuery<
@@ -19,22 +19,16 @@ export default function associationQuery<
   const associationClass = association.modelCB()
 
   const dreamClass = dream.constructor as typeof Dream
+  const dreamClassOrTransaction = (txn ? dreamClass.txn(txn) : dreamClass) as any
 
-  const nestedScope = txn
-    ? // @ts-ignore
-      dreamClass.txn(txn).joins(association.as as AssociationName & string)
-    : // @ts-ignore
-      dreamClass.joins(association.as as AssociationName & string)
-
-  const nestedSelect = nestedScope
+  const associationQueryJoinsQuery = dreamClassOrTransaction
     .where({ [dream.primaryKey]: dream.primaryKeyValue })
-    .nestedSelect(`${association.as}.${associationClass.primaryKey}` as any)
+    // @ts-ignore
+    .joins(association.as as any)
 
-  const whereClause = {
-    [associationClass.primaryKey]: nestedSelect,
-  }
-
-  return txn
-    ? (associationClass.txn(txn).where(whereClause) as AssociationQuery)
-    : (associationClass.where(whereClause) as AssociationQuery)
+  return (txn ? associationClass.txn(txn).queryInstance() : new Query(associationClass))
+    .setBaseSQLAlias(association.as as TableOrAssociationName)
+    .setAssociationQueryJoinsQuery(associationQueryJoinsQuery as Query<any>) as Query<
+    DreamConstructorType<AssociationType & Dream>
+  >
 }
