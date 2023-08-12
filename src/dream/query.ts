@@ -10,7 +10,6 @@ import {
   RelaxedJoinsStatement,
   RelaxedJoinsWhereStatement,
   NextJoinsWherePluckArgumentType,
-  AssociationNameToDotReference,
   FinalJoinsWherePluckArgumentType,
   TableOrAssociationName,
 } from './types'
@@ -19,11 +18,7 @@ import {
   ComparisonOperatorExpression,
   DeleteQueryBuilder,
   DeleteResult,
-  SelectArg,
-  SelectExpression,
   SelectQueryBuilder,
-  SelectType,
-  Transaction,
   UpdateQueryBuilder,
   Updateable,
   sql,
@@ -1290,14 +1285,14 @@ ${JSON.stringify(association, null, 2)}
     if (Object.keys(query.whereStatement).length) {
       kyselyQuery = query.applyWhereStatement(
         kyselyQuery,
-        query.aliasWhereStatement(query.whereStatement, this.baseSQLAlias)
+        query.aliasWhereStatement(query.whereStatement, query.baseSQLAlias)
       )
     }
 
     if (Object.keys(query.whereNotStatement).length) {
       kyselyQuery = query.applyWhereStatement(
         kyselyQuery,
-        query.aliasWhereStatement(query.whereNotStatement, this.baseSQLAlias),
+        query.aliasWhereStatement(query.whereNotStatement, query.baseSQLAlias),
         {
           negate: true,
         }
@@ -1308,7 +1303,7 @@ ${JSON.stringify(association, null, 2)}
       kyselyQuery = query.recursivelyApplyJoinWhereStatement(
         kyselyQuery,
         query.joinsWhereStatements,
-        this.baseSQLAlias
+        query.baseSQLAlias
       )
     }
 
