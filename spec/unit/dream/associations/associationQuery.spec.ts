@@ -41,33 +41,63 @@ describe('Dream#associationQuery', () => {
       })
     })
 
-    context('where clause chaining', () => {
-      it('permits chaining of multiple attributes with same key (i.e. id)', async () => {
-        const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    it('supports chaining of where and findBy', async () => {
+      const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
-        const composition = await Composition.create({ user, content: 'howyadoin' })
-        const otherCompositionAsset = await CompositionAsset.create({
-          composition,
-          name: 'asset 0',
-          score: 1,
-        })
-        const compositionAsset = await CompositionAsset.create({
-          composition,
-          name: 'asset 1',
-          score: 3,
-        })
-
-        expect(await user.associationQuery('compositionAssets').findBy({ score: 3 })).toMatchDreamModel(
-          compositionAsset
-        )
-
-        expect(
-          await user.associationQuery('compositionAssets').where({ score: 3 }).first()
-        ).toMatchDreamModel(compositionAsset)
-
-        expect(await otherUser.associationQuery('compositionAssets').findBy({ score: 3 })).toBeNull()
+      const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      const composition = await Composition.create({ user, content: 'howyadoin' })
+      const otherCompositionAsset = await CompositionAsset.create({
+        composition,
+        name: 'asset 0',
+        score: 1,
       })
+      const compositionAsset = await CompositionAsset.create({
+        composition,
+        name: 'asset 1',
+        score: 3,
+      })
+
+      expect(await user.associationQuery('compositionAssets').findBy({ score: 3 })).toMatchDreamModel(
+        compositionAsset
+      )
+
+      expect(await user.associationQuery('compositionAssets').where({ score: 3 }).first()).toMatchDreamModel(
+        compositionAsset
+      )
+
+      expect(await otherUser.associationQuery('compositionAssets').findBy({ score: 3 })).toBeNull()
+    })
+
+    it('supports chaining of subsequent joins', async () => {
+      const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+
+      const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      const composition = await Composition.create({ user, content: 'howyadoin' })
+      const otherCompositionAsset = await CompositionAsset.create({
+        composition,
+        name: 'asset 0',
+        score: 1,
+      })
+      const compositionAsset = await CompositionAsset.create({
+        composition,
+        name: 'asset 1',
+        score: 3,
+      })
+
+      expect(
+        await user.associationQuery('compositions').joins('compositionAssets', { score: 3 }).first()
+      ).toMatchDreamModel(composition)
+
+      expect(
+        await user.associationQuery('compositions').joins('compositionAssets', { score: 7 }).first()
+      ).toBeNull()
+
+      expect(
+        await user
+          .associationQuery('compositions')
+          .joins('compositionAssets', 'compositionAssetAudits')
+          .first()
+      ).toBeNull()
     })
   })
 
