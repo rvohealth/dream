@@ -2,6 +2,7 @@ import ConnectionRetriever from '../../../src/db/connection-retriever'
 import ReplicaSafe from '../../../src/decorators/replica-safe'
 import Balloon from '../../../test-app/app/models/Balloon'
 import User from '../../../test-app/app/models/User'
+import Query from '../../../src/dream/query'
 
 describe('Query#all', () => {
   it('returns all records, ordered by id', async () => {
@@ -30,6 +31,7 @@ describe('Query#all', () => {
     it('uses primary connection', async () => {
       await User.all()
       expect(ConnectionRetriever.prototype.getConnection).toHaveBeenCalledWith('primary')
+      expect(ConnectionRetriever.prototype.getConnection).not.toHaveBeenCalledWith('replica')
     })
 
     context('with replica connection specified', () => {
@@ -37,8 +39,26 @@ describe('Query#all', () => {
       class CustomUser extends User {}
 
       it('uses the replica connection', async () => {
-        await CustomUser.all()
+        await new Query(CustomUser).all()
         expect(ConnectionRetriever.prototype.getConnection).toHaveBeenCalledWith('replica')
+      })
+
+      context('with a transaction specified', () => {
+        it('uses the primary connection, since all connections in transaction need to use the same connection', async () => {
+          await CustomUser.transaction(async txn => {
+            await new Query(CustomUser).txn(txn).connection('replica').all()
+          })
+          expect(ConnectionRetriever.prototype.getConnection).toHaveBeenCalledWith('primary')
+          expect(ConnectionRetriever.prototype.getConnection).not.toHaveBeenCalledWith('replica')
+        })
+      })
+
+      context('with explicit primary connection override', () => {
+        it('uses the primary connection, despite being ReplicaSafe', async () => {
+          await new Query(CustomUser).connection('primary').all()
+          expect(ConnectionRetriever.prototype.getConnection).toHaveBeenCalledWith('primary')
+          expect(ConnectionRetriever.prototype.getConnection).not.toHaveBeenCalledWith('replica')
+        })
       })
     })
   })

@@ -99,28 +99,12 @@ export default class Query<
   public readonly preloadStatements: RelaxedPreloadStatement = Object.freeze({})
   public readonly joinsStatements: RelaxedJoinsStatement = Object.freeze({})
   public readonly joinsWhereStatements: RelaxedJoinsWhereStatement = Object.freeze({})
-  public baseSQLAlias: TableOrAssociationName
-  public baseSelectQuery: Query<any> | null
-
   public readonly shouldBypassDefaultScopes: boolean = false
   public readonly dreamClass: DreamClass
+  public baseSQLAlias: TableOrAssociationName
+  public baseSelectQuery: Query<any> | null
   public dreamTransaction: DreamTransaction | null = null
-
-  public dbConnectionType(sqlCommandType: SqlCommandType): DbConnectionType {
-    switch (sqlCommandType) {
-      case 'select':
-        return this.dreamClass.replicaSafe ? 'replica' : 'primary'
-
-      default:
-        return 'primary'
-    }
-  }
-
-  public dbFor(sqlCommandType: SqlCommandType) {
-    if (this.dreamTransaction?.kyselyTransaction) return this.dreamTransaction?.kyselyTransaction
-    return _db(this.dbConnectionType(sqlCommandType))
-  }
-
+  public connectionOverride?: DbConnectionType
   constructor(DreamClass: DreamClass, opts: QueryOpts<DreamClass, ColumnType> = {}) {
     this.dreamClass = DreamClass
     this.baseSQLAlias = opts.baseSQLAlias || this.dreamClass.prototype['table']
@@ -135,6 +119,28 @@ export default class Query<
     this.joinsWhereStatements = Object.freeze(opts.joinsWhereStatements || {})
     this.shouldBypassDefaultScopes = Object.freeze(opts.shouldBypassDefaultScopes || false)
     this.dreamTransaction = opts.transaction || null
+    this.connectionOverride = opts.connection
+  }
+
+  public dbConnectionType(sqlCommandType: SqlCommandType): DbConnectionType {
+    if (this.dreamTransaction) return 'primary'
+
+    // TODO: possibly handle errors here if sqlCommandType is not select, but connection
+    // type is 'replica'
+    if (this.connectionOverride) return this.connectionOverride
+
+    switch (sqlCommandType) {
+      case 'select':
+        return this.dreamClass.replicaSafe ? 'replica' : 'primary'
+
+      default:
+        return 'primary'
+    }
+  }
+
+  public dbFor(sqlCommandType: SqlCommandType) {
+    if (this.dreamTransaction?.kyselyTransaction) return this.dreamTransaction?.kyselyTransaction
+    return _db(this.dbConnectionType(sqlCommandType))
   }
 
   public clone(opts: QueryOpts<DreamClass, ColumnType> = {}): Query<DreamClass> {
@@ -154,6 +160,7 @@ export default class Query<
           ? opts.shouldBypassDefaultScopes
           : this.shouldBypassDefaultScopes,
       transaction: opts.transaction || this.dreamTransaction,
+      connection: opts.connection,
     }) as Query<DreamClass>
   }
 
@@ -550,6 +557,10 @@ export default class Query<
     await this.applyPreload(this.preloadStatements as any, theAll)
 
     return theAll
+  }
+
+  public connection<T extends Query<DreamClass>>(this: T, connection: DbConnectionType): Query<DreamClass> {
+    return this.clone({ connection })
   }
 
   public async exists<T extends Query<DreamClass>>(this: T): Promise<boolean> {
@@ -1407,6 +1418,7 @@ export interface QueryOpts<
   joinsWhereStatements?: RelaxedJoinsWhereStatement
   shouldBypassDefaultScopes?: boolean
   transaction?: DreamTransaction | null | undefined
+  connection?: DbConnectionType
 }
 
 function getSourceAssociation(dream: Dream | typeof Dream | undefined, sourceName: string) {

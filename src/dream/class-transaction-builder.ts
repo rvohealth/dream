@@ -15,6 +15,7 @@ import {
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import saveDream from './internal/saveDream'
 import { SyncedAssociations } from '../sync/associations'
+import { DbConnectionType } from '../db/types'
 
 export default class DreamClassTransactionBuilder<DreamClass extends typeof Dream> {
   public dreamClass: DreamClass
@@ -32,6 +33,13 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
 
   public async count<I extends DreamClassTransactionBuilder<DreamClass>>(this: I): Promise<number> {
     return this.queryInstance().count()
+  }
+
+  public connection<I extends DreamClassTransactionBuilder<DreamClass>>(
+    this: I,
+    connection: DbConnectionType
+  ) {
+    return this.queryInstance().connection(connection)
   }
 
   public async max<

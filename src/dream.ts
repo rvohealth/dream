@@ -59,6 +59,7 @@ import destroyDream from './dream/internal/destroyDream'
 import destroyAssociation from './dream/internal/associations/destroyAssociation'
 import { DatabaseError } from 'pg'
 import LoadBuilder from './dream/load-builder'
+import { DbConnectionType } from './db/types'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -181,6 +182,11 @@ export default class Dream {
   >(this: T): Promise<InstanceType<T>[]> {
     const query: Query<T> = new Query<T>(this)
     return await query.all()
+  }
+
+  public static connection<T extends typeof Dream>(this: T, connection: DbConnectionType): Query<T> {
+    const query: Query<T> = new Query<T>(this, { connection })
+    return query
   }
 
   public static async count<T extends typeof Dream>(this: T): Promise<number> {
