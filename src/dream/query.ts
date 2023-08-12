@@ -1334,16 +1334,17 @@ ${JSON.stringify(association, null, 2)}
     this: T,
     { bypassSelectAll = false }: { bypassSelectAll?: boolean } = {}
   ): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
-    const from =
-      this.baseSQLAlias === this.dreamClass.prototype.table
-        ? this.dreamClass.prototype.table
-        : `${this.dreamClass.prototype.table} as ${this.baseSQLAlias}`
-
     let kyselyQuery: SelectQueryBuilder<DB, any, {}>
 
     if (this.associationQueryJoinsQuery) {
       kyselyQuery = this.associationQueryJoinsQuery.buildSelect({ bypassSelectAll: true })
-    } else kyselyQuery = this.db.selectFrom(from as InstanceType<DreamClass>['table'])
+    } else {
+      const from =
+        this.baseSQLAlias === this.dreamClass.prototype.table
+          ? this.dreamClass.prototype.table
+          : `${this.dreamClass.prototype.table} as ${this.baseSQLAlias}`
+      kyselyQuery = this.db.selectFrom(from as InstanceType<DreamClass>['table'])
+    }
 
     kyselyQuery = this.buildCommon(kyselyQuery)
 
