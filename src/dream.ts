@@ -109,6 +109,7 @@ export default class Dream {
   } = blankHooksFactory(this)
 
   public static validations: ValidationStatement[] = []
+  public static replicaSafe = false
 
   public static get isDream() {
     return true
@@ -406,8 +407,7 @@ export default class Dream {
   ) {
     const dreamTransaction = new DreamTransaction()
 
-    // TODO: add connection specifier
-    const res = await db()
+    const res = await db('primary')
       .transaction()
       .execute(async kyselyTransaction => {
         dreamTransaction.kyselyTransaction = kyselyTransaction

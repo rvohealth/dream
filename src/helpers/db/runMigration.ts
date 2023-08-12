@@ -13,7 +13,7 @@ export default async function runMigration({
   const migrationFolder = absoluteFilePath(yamlConf.migrations_path)
 
   const migrator = new Migrator({
-    db: db(),
+    db: db('primary'),
     provider: new FileMigrationProvider({
       fs,
       path,

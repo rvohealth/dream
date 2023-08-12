@@ -1,5 +1,7 @@
 import User from '../../../test-app/app/models/User'
 import Query from '../../../src/dream/query'
+import ConnectionRetriever from '../../../src/db/connection-retriever'
+import ReplicaSafe from '../../../src/decorators/replica-safe'
 
 describe('Query#updateAll', () => {
   it('takes passed params and sends them through to all models matchin query', async () => {
@@ -12,5 +14,29 @@ describe('Query#updateAll', () => {
     expect(numRecords).toEqual(2)
     const records = await User.all()
     expect(records.map(r => r.name)).toMatchObject(['cool', 'cool'])
+  })
+
+  context('regarding connections', () => {
+    beforeEach(async () => {
+      await User.create({ email: 'fred@fred', password: 'howyadoin' })
+
+      jest.spyOn(ConnectionRetriever.prototype, 'getConnection')
+    })
+
+    it('uses primary connection', async () => {
+      await User.where({ email: 'fred@fred' }).updateAll({ email: 'how@yadoin' })
+      expect(ConnectionRetriever.prototype.getConnection).toHaveBeenCalledWith('primary')
+    })
+
+    context('with replica connection specified', () => {
+      @ReplicaSafe()
+      class CustomUser extends User {}
+
+      it('uses the replica connection', async () => {
+        await CustomUser.where({ email: 'fred@fred' }).updateAll({ email: 'how@yadoin' })
+        // should always call to primary for update, regardless of replica-safe status
+        expect(ConnectionRetriever.prototype.getConnection).toHaveBeenCalledWith('primary')
+      })
+    })
   })
 })

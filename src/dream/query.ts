@@ -47,6 +47,7 @@ import JoinAttemptedOnMissingAssociation from '../exceptions/associations/join-a
 import { singular } from 'pluralize'
 import isEmpty from 'lodash.isempty'
 import executeDatabaseQuery from './internal/executeDatabaseQuery'
+import { DbConnectionType } from '../db/types'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -83,6 +84,8 @@ const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: Compar
   // '<->',
 }
 
+type SqlCommandType = 'select' | 'update' | 'delete' | 'insert'
+
 export default class Query<
   DreamClass extends typeof Dream,
   Table = DB[InstanceType<DreamClass>['table']],
@@ -103,8 +106,19 @@ export default class Query<
   public readonly dreamClass: DreamClass
   public dreamTransaction: DreamTransaction | null = null
 
-  public get db() {
-    return this.dreamTransaction?.kyselyTransaction || _db()
+  public dbConnectionType(sqlCommandType: SqlCommandType): DbConnectionType {
+    switch (sqlCommandType) {
+      case 'select':
+        return this.dreamClass.replicaSafe ? 'replica' : 'primary'
+
+      default:
+        return 'primary'
+    }
+  }
+
+  public dbFor(sqlCommandType: SqlCommandType) {
+    if (this.dreamTransaction?.kyselyTransaction) return this.dreamTransaction?.kyselyTransaction
+    return _db(this.dbConnectionType(sqlCommandType))
   }
 
   constructor(DreamClass: DreamClass, opts: QueryOpts<DreamClass, ColumnType> = {}) {
@@ -432,7 +446,9 @@ export default class Query<
     return kyselyQuery.compile()
   }
 
-  public toKysely(type: 'select' | 'update' | 'delete' = 'select') {
+  // TODO: in the future, we should support insert type, but don't yet, since inserts are done outside
+  // the query class for some reason.
+  public toKysely<T extends Query<DreamClass>>(this: T, type: Exclude<SqlCommandType, 'insert'> = 'select') {
     switch (type) {
       case 'select':
         return this.buildSelect()
@@ -450,7 +466,7 @@ export default class Query<
   }
 
   public async count<T extends Query<DreamClass>>(this: T) {
-    const { count } = this.db.fn
+    const { count } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
 
     kyselyQuery = kyselyQuery.select(
@@ -472,7 +488,7 @@ export default class Query<
     //   T['joinsStatements'][number]
     // >
   >(this: T, field: SimpleFieldType | JoinsPluckFieldType) {
-    const { max } = this.db.fn
+    const { max } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
 
     kyselyQuery = kyselyQuery.select(max(field as any) as any)
@@ -491,7 +507,7 @@ export default class Query<
     //   T['joinsStatements'][number]
     // >
   >(this: T, field: SimpleFieldType | JoinsPluckFieldType) {
-    const { min } = this.db.fn
+    const { min } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
 
     kyselyQuery = kyselyQuery.select(min(field as any) as any)
@@ -1326,7 +1342,9 @@ ${JSON.stringify(association, null, 2)}
   private buildDelete<T extends Query<DreamClass>>(
     this: T
   ): DeleteQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
-    let kyselyQuery = this.db.deleteFrom(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
+    let kyselyQuery = this.dbFor('delete').deleteFrom(
+      this.dreamClass.prototype.table as InstanceType<DreamClass>['table']
+    )
     return this.buildCommon(kyselyQuery)
   }
 
@@ -1335,6 +1353,7 @@ ${JSON.stringify(association, null, 2)}
     { bypassSelectAll = false }: { bypassSelectAll?: boolean } = {}
   ): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
     let kyselyQuery: SelectQueryBuilder<DB, any, {}>
+    const db = this.dbFor('select')
 
     if (this.baseSelectQuery) {
       kyselyQuery = this.baseSelectQuery.buildSelect({ bypassSelectAll: true })
@@ -1343,7 +1362,7 @@ ${JSON.stringify(association, null, 2)}
         this.baseSQLAlias === this.dreamClass.prototype.table
           ? this.dreamClass.prototype.table
           : `${this.dreamClass.prototype.table} as ${this.baseSQLAlias}`
-      kyselyQuery = this.db.selectFrom(from as InstanceType<DreamClass>['table'])
+      kyselyQuery = this.dbFor('select').selectFrom(from as InstanceType<DreamClass>['table'])
     }
 
     kyselyQuery = this.buildCommon(kyselyQuery)
@@ -1365,7 +1384,7 @@ ${JSON.stringify(association, null, 2)}
     this: T,
     attributes: Updateable<InstanceType<DreamClass>['table']>
   ): UpdateQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, any, {}> {
-    let kyselyQuery = this.db
+    let kyselyQuery = this.dbFor('update')
       .updateTable(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
       .set(attributes as any)
     return this.buildCommon(kyselyQuery)

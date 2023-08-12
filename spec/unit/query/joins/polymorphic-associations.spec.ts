@@ -10,8 +10,8 @@ import db from '../../../../src/db'
 
 describe('Query#joins with polymorphic associations', () => {
   beforeEach(async () => {
-    await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(db())
-    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(db())
+    await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(db('primary'))
+    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(db('primary'))
   })
 
   it('joins a HasMany association', async () => {

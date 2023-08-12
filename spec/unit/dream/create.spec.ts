@@ -8,6 +8,8 @@ import Pet from '../../../test-app/app/models/Pet'
 import { DateTime } from 'luxon'
 import PostVisibility from '../../../test-app/app/models/PostVisibility'
 import { Dream } from '../../../src'
+import ConnectionRetriever from '../../../src/db/connection-retriever'
+import ReplicaSafe from '../../../src/decorators/replica-safe'
 
 describe('Dream.create', () => {
   it('creates the underlying model in the db', async () => {
@@ -148,6 +150,28 @@ describe('Dream.create', () => {
         // @ts-ignore
         User.create({ email: 'fred@fishman', password: 'howyadoin', userSettings })
       ).rejects.toThrowError(CanOnlyPassBelongsToModelParam)
+    })
+  })
+
+  context('regarding connections', () => {
+    beforeEach(async () => {
+      jest.spyOn(ConnectionRetriever.prototype, 'getConnection')
+    })
+
+    it('uses primary connection', async () => {
+      await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      expect(ConnectionRetriever.prototype.getConnection).toHaveBeenCalledWith('primary')
+    })
+
+    context('with replica connection specified', () => {
+      @ReplicaSafe()
+      class CustomUser extends User {}
+
+      it('uses the replica connection', async () => {
+        await CustomUser.create({ email: 'how@yadoin', password: 'howyadoin' })
+        // should always call to primary for update, regardless of replica-safe status
+        expect(ConnectionRetriever.prototype.getConnection).toHaveBeenCalledWith('primary')
+      })
     })
   })
 })
