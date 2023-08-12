@@ -20,4 +20,9 @@ export default class ConnectionRetriever {
 
     return conf
   }
+
+  public hasReplicaConfig() {
+    const nodeEnv = process.env.NODE_ENV! as 'production' | 'development' | 'test'
+    return !!this.dbConfig[nodeEnv]?.replica
+  }
 }
