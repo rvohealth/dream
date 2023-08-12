@@ -92,9 +92,25 @@ export interface DreamConfig {
 }
 
 export interface DbConfig {
+  production: {
+    primary: DbConnectionConfig
+    replica?: DbConnectionConfig
+  }
+  development: {
+    primary: DbConnectionConfig
+    replica?: DbConnectionConfig
+  }
+  test: {
+    primary: DbConnectionConfig
+    replica?: DbConnectionConfig
+  }
+}
+
+export interface DbConnectionConfig {
   user: string
   password: string
   name: string
   host: string
-  port: string | number
+  port: string
+  use_ssl?: string
 }

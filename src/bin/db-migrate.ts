@@ -4,7 +4,7 @@ import runMigration from '../helpers/db/runMigration'
 
 async function migrateToLatest() {
   await runMigration({ mode: 'migrate' })
-  await db.destroy()
+  await db().destroy()
 }
 
 migrateToLatest()

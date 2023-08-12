@@ -104,7 +104,7 @@ export default class Query<
   public dreamTransaction: DreamTransaction | null = null
 
   public get db() {
-    return this.dreamTransaction?.kyselyTransaction || _db
+    return this.dreamTransaction?.kyselyTransaction || _db()
   }
 
   constructor(DreamClass: DreamClass, opts: QueryOpts<DreamClass, ColumnType> = {}) {

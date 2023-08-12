@@ -6,12 +6,12 @@ import CannotJoinPolymorphicBelongsToError from '../../../../src/exceptions/asso
 import Query from '../../../../src/dream/query'
 import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating'
 import { sql } from 'kysely'
-import { db } from '../../../../src'
+import db from '../../../../src/db'
 
 describe('Query#joins with polymorphic associations', () => {
   beforeEach(async () => {
-    await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(db)
-    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(db)
+    await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(db())
+    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(db())
   })
 
   it('joins a HasMany association', async () => {

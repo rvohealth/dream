@@ -406,10 +406,13 @@ export default class Dream {
   ) {
     const dreamTransaction = new DreamTransaction()
 
-    const res = await db.transaction().execute(async kyselyTransaction => {
-      dreamTransaction.kyselyTransaction = kyselyTransaction
-      await (callback as (txn: DreamTransaction) => Promise<unknown>)(dreamTransaction)
-    })
+    // TODO: add connection specifier
+    const res = await db()
+      .transaction()
+      .execute(async kyselyTransaction => {
+        dreamTransaction.kyselyTransaction = kyselyTransaction
+        await (callback as (txn: DreamTransaction) => Promise<unknown>)(dreamTransaction)
+      })
 
     await dreamTransaction.runAfterCommitHooks()
 

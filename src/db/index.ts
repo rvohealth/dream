@@ -2,17 +2,44 @@ import '../helpers/loadEnv'
 import { Kysely, PostgresDialect } from 'kysely'
 import { Pool } from 'pg'
 import { DB } from '../sync/schema'
-import configCache from '../sync/config-cache'
+import { DbConnectionType } from './types'
+import ConnectionRetriever from './connection-retriever'
 
-export default new Kysely<DB>({
-  dialect: new PostgresDialect({
-    pool: new Pool({
-      user: process.env[configCache.db.user] || '',
-      password: process.env[configCache.db.password] || '',
-      database: process.env[configCache.db.name],
-      host: process.env[configCache.db.host] || 'localhost',
-      port: process.env[configCache.db.port] ? parseInt(process.env[configCache.db.port]!) : 5432,
-      ssl: process.env[configCache.db.use_ssl] === '1',
+const connectionCache = {
+  production: {
+    primary: null,
+    replica: null,
+  },
+  development: {
+    primary: null,
+    replica: null,
+  },
+  test: {
+    primary: null,
+    replica: null,
+  },
+} as any
+
+export default (connection: DbConnectionType = 'primary'): Kysely<DB> => {
+  const connectionConf = new ConnectionRetriever().getConnection(connection)
+  const cachedConnection = connectionCache[process.env.NODE_ENV!]?.[connection]
+
+  if (cachedConnection) return cachedConnection
+
+  const dbConn = new Kysely<DB>({
+    dialect: new PostgresDialect({
+      pool: new Pool({
+        user: process.env[connectionConf.user] || '',
+        password: process.env[connectionConf.password] || '',
+        database: process.env[connectionConf.name],
+        host: process.env[connectionConf.host] || 'localhost',
+        port: process.env[connectionConf.port] ? parseInt(process.env[connectionConf.port]!) : 5432,
+        ssl: connectionConf.use_ssl ? process.env[connectionConf.use_ssl] === '1' : false,
+      }),
     }),
-  }),
-})
+  })
+
+  connectionCache[process.env.NODE_ENV!][connection] = dbConn
+
+  return dbConn
+}

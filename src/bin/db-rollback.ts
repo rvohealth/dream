@@ -9,7 +9,7 @@ async function dbRollback() {
     step -= 1
   }
 
-  await db.destroy()
+  await db().destroy()
 }
 
 dbRollback()
