@@ -97,7 +97,7 @@ export default class Query<
   public readonly joinsStatements: RelaxedJoinsStatement = Object.freeze({})
   public readonly joinsWhereStatements: RelaxedJoinsWhereStatement = Object.freeze({})
   public baseSQLAlias: TableOrAssociationName
-  public associationQueryJoinsQuery: Query<any> | null
+  public baseSelectQuery: Query<any> | null
 
   public readonly shouldBypassDefaultScopes: boolean = false
   public readonly dreamClass: DreamClass
@@ -110,7 +110,7 @@ export default class Query<
   constructor(DreamClass: DreamClass, opts: QueryOpts<DreamClass, ColumnType> = {}) {
     this.dreamClass = DreamClass
     this.baseSQLAlias = opts.baseSQLAlias || this.dreamClass.prototype['table']
-    this.associationQueryJoinsQuery = opts.associationQueryJoinsQuery || null
+    this.baseSelectQuery = opts.baseSelectQuery || null
     this.whereStatement = Object.freeze(opts.where || [])
     this.whereNotStatement = Object.freeze(opts.whereNot || [])
     this.limitStatement = Object.freeze(opts.limit || null)
@@ -126,7 +126,7 @@ export default class Query<
   public clone(opts: QueryOpts<DreamClass, ColumnType> = {}): Query<DreamClass> {
     return new Query(this.dreamClass, {
       baseSQLAlias: opts.baseSQLAlias || this.baseSQLAlias,
-      associationQueryJoinsQuery: opts.associationQueryJoinsQuery || this.associationQueryJoinsQuery,
+      baseSelectQuery: opts.baseSelectQuery || this.baseSelectQuery,
       where: [...this.whereStatement, ...(opts.where || [])],
       whereNot: [...this.whereNotStatement, ...(opts.whereNot || [])],
       limit: opts.limit || this.limitStatement,
@@ -358,8 +358,8 @@ export default class Query<
     return this.clone({ baseSQLAlias })
   }
 
-  public setAssociationQueryJoinsQuery(associationQueryJoinsQuery: Query<any> | null) {
-    return this.clone({ associationQueryJoinsQuery })
+  public setBaseSelectQuery(baseSelectQuery: Query<any> | null) {
+    return this.clone({ baseSelectQuery })
   }
 
   public unscoped<T extends Query<DreamClass>>(this: T): Query<DreamClass> {
@@ -1336,8 +1336,8 @@ ${JSON.stringify(association, null, 2)}
   ): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
     let kyselyQuery: SelectQueryBuilder<DB, any, {}>
 
-    if (this.associationQueryJoinsQuery) {
-      kyselyQuery = this.associationQueryJoinsQuery.buildSelect({ bypassSelectAll: true })
+    if (this.baseSelectQuery) {
+      kyselyQuery = this.baseSelectQuery.buildSelect({ bypassSelectAll: true })
     } else {
       const from =
         this.baseSQLAlias === this.dreamClass.prototype.table
@@ -1377,7 +1377,7 @@ export interface QueryOpts<
   ColumnType = keyof DB[keyof DB] extends never ? unknown : keyof DB[keyof DB]
 > {
   baseSQLAlias?: TableOrAssociationName
-  associationQueryJoinsQuery?: Query<any> | null
+  baseSelectQuery?: Query<any> | null
   where?: WhereStatement<any>[]
   whereNot?: WhereStatement<any>[]
   limit?: LimitStatement | null

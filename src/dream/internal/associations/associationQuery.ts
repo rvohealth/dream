@@ -21,14 +21,12 @@ export default function associationQuery<
   const dreamClass = dream.constructor as typeof Dream
   const dreamClassOrTransaction = (txn ? dreamClass.txn(txn) : dreamClass) as any
 
-  const associationQueryJoinsQuery = dreamClassOrTransaction
+  const baseSelectQuery = dreamClassOrTransaction
     .where({ [dream.primaryKey]: dream.primaryKeyValue })
     // @ts-ignore
     .joins(association.as as any)
 
   return (txn ? associationClass.txn(txn).queryInstance() : new Query(associationClass))
     .setBaseSQLAlias(association.as as TableOrAssociationName)
-    .setAssociationQueryJoinsQuery(associationQueryJoinsQuery as Query<any>) as Query<
-    DreamConstructorType<AssociationType & Dream>
-  >
+    .setBaseSelectQuery(baseSelectQuery as Query<any>) as Query<DreamConstructorType<AssociationType & Dream>>
 }
