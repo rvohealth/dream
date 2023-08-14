@@ -125,13 +125,9 @@ export default class Query<
   public dbConnectionType(sqlCommandType: SqlCommandType): DbConnectionType {
     if (this.dreamTransaction) return 'primary'
 
-    // TODO: possibly handle errors here if sqlCommandType is not select, but connection
-    // type is 'replica'
-    if (this.connectionOverride) return this.connectionOverride
-
     switch (sqlCommandType) {
       case 'select':
-        return this.dreamClass.replicaSafe ? 'replica' : 'primary'
+        return this.connectionOverride || (this.dreamClass.replicaSafe ? 'replica' : 'primary')
 
       default:
         return 'primary'
