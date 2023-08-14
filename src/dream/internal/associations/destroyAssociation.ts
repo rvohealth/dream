@@ -42,6 +42,9 @@ export default async function destroyAssociation<
         })
 
       return await associationClass
+        // NOTE: do not remove this ts-ignore. It only breaks when other apps
+        // load their schemas in.
+        // @ts-ignore
         .where({
           [association.foreignKey()]: dream.primaryKeyValue,
           ...opts,
