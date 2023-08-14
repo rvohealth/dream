@@ -30,7 +30,7 @@ describe('Query#destroy', () => {
       @ReplicaSafe()
       class CustomUser extends User {}
 
-      it('uses the replica connection', async () => {
+      it('uses the primary connection', async () => {
         await CustomUser.where({ email: 'fred@fred' }).destroy()
         // should always call to primary for update, regardless of replica-safe status
         expect(ConnectionRetriever.prototype.getConnection).toHaveBeenCalledWith('primary')

@@ -167,7 +167,7 @@ describe('Dream.create', () => {
       @ReplicaSafe()
       class CustomUser extends User {}
 
-      it('uses the replica connection', async () => {
+      it('uses the primary connection', async () => {
         await CustomUser.create({ email: 'how@yadoin', password: 'howyadoin' })
         // should always call to primary for update, regardless of replica-safe status
         expect(ConnectionRetriever.prototype.getConnection).toHaveBeenCalledWith('primary')
