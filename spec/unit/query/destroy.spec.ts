@@ -1,4 +1,4 @@
-import ConnectionRetriever from '../../../src/db/connection-retriever'
+import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import ReplicaSafe from '../../../src/decorators/replica-safe'
 import User from '../../../test-app/app/models/User'
 
@@ -18,12 +18,12 @@ describe('Query#destroy', () => {
     beforeEach(async () => {
       await User.create({ email: 'fred@fred', password: 'howyadoin' })
 
-      jest.spyOn(ConnectionRetriever.prototype, 'getConnection')
+      jest.spyOn(ConnectionConfRetriever.prototype, 'getConnectionConf')
     })
 
     it('uses primary connection', async () => {
       await User.where({ email: 'fred@fred' }).destroy()
-      expect(ConnectionRetriever.prototype.getConnection).toHaveBeenCalledWith('primary')
+      expect(ConnectionConfRetriever.prototype.getConnectionConf).toHaveBeenCalledWith('primary')
     })
 
     context('with replica connection specified', () => {
@@ -33,7 +33,7 @@ describe('Query#destroy', () => {
       it('uses the primary connection', async () => {
         await CustomUser.where({ email: 'fred@fred' }).destroy()
         // should always call to primary for update, regardless of replica-safe status
-        expect(ConnectionRetriever.prototype.getConnection).toHaveBeenCalledWith('primary')
+        expect(ConnectionConfRetriever.prototype.getConnectionConf).toHaveBeenCalledWith('primary')
       })
     })
   })

@@ -8,7 +8,7 @@ import Pet from '../../../test-app/app/models/Pet'
 import { DateTime } from 'luxon'
 import PostVisibility from '../../../test-app/app/models/PostVisibility'
 import { Dream } from '../../../src'
-import ConnectionRetriever from '../../../src/db/connection-retriever'
+import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import ReplicaSafe from '../../../src/decorators/replica-safe'
 
 describe('Dream.create', () => {
@@ -155,12 +155,12 @@ describe('Dream.create', () => {
 
   context('regarding connections', () => {
     beforeEach(async () => {
-      jest.spyOn(ConnectionRetriever.prototype, 'getConnection')
+      jest.spyOn(ConnectionConfRetriever.prototype, 'getConnectionConf')
     })
 
     it('uses primary connection', async () => {
       await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-      expect(ConnectionRetriever.prototype.getConnection).toHaveBeenCalledWith('primary')
+      expect(ConnectionConfRetriever.prototype.getConnectionConf).toHaveBeenCalledWith('primary')
     })
 
     context('with replica connection specified', () => {
@@ -170,7 +170,7 @@ describe('Dream.create', () => {
       it('uses the primary connection', async () => {
         await CustomUser.create({ email: 'how@yadoin', password: 'howyadoin' })
         // should always call to primary for update, regardless of replica-safe status
-        expect(ConnectionRetriever.prototype.getConnection).toHaveBeenCalledWith('primary')
+        expect(ConnectionConfRetriever.prototype.getConnectionConf).toHaveBeenCalledWith('primary')
       })
     })
   })

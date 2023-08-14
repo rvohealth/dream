@@ -1,8 +1,8 @@
-import ConnectionRetriever from '../../../src/db/connection-retriever'
+import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import { DbConnectionType } from '../../../src/db/types'
 import { DbConnectionConfig } from '../../../src/helpers/path'
 
-describe('ConnectionRetriever', () => {
+describe('ConnectionConfRetriever', () => {
   let getConfig = () => ({
     production: {
       primary: prodPrimaryConfig,
@@ -78,11 +78,11 @@ describe('ConnectionRetriever', () => {
     }
   })
 
-  describe('#getConnection', () => {
+  describe('#getConnectionConf', () => {
     let subject = () => {
-      const connectionRetriever = new ConnectionRetriever()
+      const connectionRetriever = new ConnectionConfRetriever()
       connectionRetriever.dbConfig = getConfig()
-      return connectionRetriever.getConnection(connection)
+      return connectionRetriever.getConnectionConf(connection)
     }
 
     context('with no connection passed', () => {
@@ -173,7 +173,7 @@ describe('ConnectionRetriever', () => {
 
   describe('#hasReplicaConfig', () => {
     let subject = () => {
-      const connectionRetriever = new ConnectionRetriever()
+      const connectionRetriever = new ConnectionConfRetriever()
       connectionRetriever.dbConfig = getConfig()
       return connectionRetriever.hasReplicaConfig()
     }

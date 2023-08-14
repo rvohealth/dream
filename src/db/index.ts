@@ -3,7 +3,7 @@ import { Kysely, PostgresDialect } from 'kysely'
 import { Pool } from 'pg'
 import { DB } from '../sync/schema'
 import { DbConnectionType } from './types'
-import ConnectionRetriever from './connection-retriever'
+import ConnectionConfRetriever from './connection-conf-retriever'
 
 const connectionCache = {} as any
 
@@ -11,7 +11,7 @@ export default (connection: DbConnectionType = 'primary'): Kysely<DB> => {
   const cachedConnection = connectionCache[process.env.NODE_ENV!]?.[connection]
   if (cachedConnection) return cachedConnection
 
-  const connectionConf = new ConnectionRetriever().getConnection(connection)
+  const connectionConf = new ConnectionConfRetriever().getConnectionConf(connection)
 
   const dbConn = new Kysely<DB>({
     dialect: new PostgresDialect({

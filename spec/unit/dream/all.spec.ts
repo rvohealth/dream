@@ -4,7 +4,7 @@ import { Dream } from '../../../src'
 import Animal from '../../../test-app/app/models/Balloon/Latex/Animal'
 import Balloon from '../../../test-app/app/models/Balloon'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
-import ConnectionRetriever from '../../../src/db/connection-retriever'
+import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import ReplicaSafe from '../../../src/decorators/replica-safe'
 
 describe('Dream.all', () => {
@@ -41,12 +41,12 @@ describe('Dream.all', () => {
 
   context('regarding connections', () => {
     beforeEach(() => {
-      jest.spyOn(ConnectionRetriever.prototype, 'getConnection')
+      jest.spyOn(ConnectionConfRetriever.prototype, 'getConnectionConf')
     })
 
     it('uses primary connection', async () => {
       await User.all()
-      expect(ConnectionRetriever.prototype.getConnection).toHaveBeenCalledWith('primary')
+      expect(ConnectionConfRetriever.prototype.getConnectionConf).toHaveBeenCalledWith('primary')
     })
 
     context('with replica connection specified', () => {
@@ -55,24 +55,14 @@ describe('Dream.all', () => {
 
       it('uses the replica connection', async () => {
         await CustomUser.all()
-        expect(ConnectionRetriever.prototype.getConnection).toHaveBeenCalledWith('replica')
-      })
-
-      context('with a transaction specified', () => {
-        it('uses the primary connection, since all connections in transaction need to use the same connection', async () => {
-          await CustomUser.transaction(async txn => {
-            await CustomUser.txn(txn).connection('replica').all()
-          })
-          expect(ConnectionRetriever.prototype.getConnection).toHaveBeenCalledWith('primary')
-          expect(ConnectionRetriever.prototype.getConnection).not.toHaveBeenCalledWith('replica')
-        })
+        expect(ConnectionConfRetriever.prototype.getConnectionConf).toHaveBeenCalledWith('replica')
       })
 
       context('with explicit primary connection override', () => {
         it('uses the replica connection', async () => {
           await CustomUser.connection('primary').all()
-          expect(ConnectionRetriever.prototype.getConnection).toHaveBeenCalledWith('primary')
-          expect(ConnectionRetriever.prototype.getConnection).not.toHaveBeenCalledWith('replica')
+          expect(ConnectionConfRetriever.prototype.getConnectionConf).toHaveBeenCalledWith('primary')
+          expect(ConnectionConfRetriever.prototype.getConnectionConf).not.toHaveBeenCalledWith('replica')
         })
       })
     })

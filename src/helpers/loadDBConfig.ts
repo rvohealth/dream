@@ -1,8 +1,8 @@
-import ConnectionRetriever from '../db/connection-retriever'
+import ConnectionConfRetriever from '../db/connection-conf-retriever'
 import { DbConnectionType } from '../db/types'
 
 export default async function loadDBConfig(connection: DbConnectionType = 'primary') {
-  const connectionConf = new ConnectionRetriever().getConnection(connection)
+  const connectionConf = new ConnectionConfRetriever().getConnectionConf(connection)
 
   return {
     host: process.env[connectionConf.host] || 'localhost',
