@@ -21,10 +21,10 @@ const connectionCache = {
 } as any
 
 export default (connection: DbConnectionType = 'primary'): Kysely<DB> => {
-  const connectionConf = new ConnectionRetriever().getConnection(connection)
   const cachedConnection = connectionCache[process.env.NODE_ENV!]?.[connection]
-
   if (cachedConnection) return cachedConnection
+
+  const connectionConf = new ConnectionRetriever().getConnection(connection)
 
   const dbConn = new Kysely<DB>({
     dialect: new PostgresDialect({
