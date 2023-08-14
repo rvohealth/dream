@@ -3,6 +3,7 @@ import ReplicaSafe from '../../../src/decorators/replica-safe'
 import Balloon from '../../../test-app/app/models/Balloon'
 import User from '../../../test-app/app/models/User'
 import Query from '../../../src/dream/query'
+import DreamDbConnection from '../../../src/db/dream-db-connection'
 
 describe('Query#all', () => {
   it('returns all records, ordered by id', async () => {
@@ -25,13 +26,13 @@ describe('Query#all', () => {
 
   context('regarding connections', () => {
     beforeEach(() => {
-      jest.spyOn(ConnectionConfRetriever.prototype, 'getConnectionConf')
+      jest.spyOn(DreamDbConnection, 'getConnection')
     })
 
     it('uses primary connection', async () => {
       await User.all()
-      expect(ConnectionConfRetriever.prototype.getConnectionConf).toHaveBeenCalledWith('primary')
-      expect(ConnectionConfRetriever.prototype.getConnectionConf).not.toHaveBeenCalledWith('replica')
+      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
+      expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith('replica')
     })
 
     context('with replica connection specified', () => {
@@ -40,7 +41,7 @@ describe('Query#all', () => {
 
       it('uses the replica connection', async () => {
         await new Query(CustomUser).all()
-        expect(ConnectionConfRetriever.prototype.getConnectionConf).toHaveBeenCalledWith('replica')
+        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('replica')
       })
 
       context('with a transaction specified', () => {
@@ -48,16 +49,16 @@ describe('Query#all', () => {
           await CustomUser.transaction(async txn => {
             await new Query(CustomUser).txn(txn).connection('replica').all()
           })
-          expect(ConnectionConfRetriever.prototype.getConnectionConf).toHaveBeenCalledWith('primary')
-          expect(ConnectionConfRetriever.prototype.getConnectionConf).not.toHaveBeenCalledWith('replica')
+          expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
+          expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith('replica')
         })
       })
 
       context('with explicit primary connection override', () => {
         it('uses the primary connection, despite being ReplicaSafe', async () => {
           await new Query(CustomUser).connection('primary').all()
-          expect(ConnectionConfRetriever.prototype.getConnectionConf).toHaveBeenCalledWith('primary')
-          expect(ConnectionConfRetriever.prototype.getConnectionConf).not.toHaveBeenCalledWith('replica')
+          expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
+          expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith('replica')
         })
       })
     })

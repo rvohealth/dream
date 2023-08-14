@@ -6,6 +6,7 @@ import Balloon from '../../../test-app/app/models/Balloon'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
 import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import ReplicaSafe from '../../../src/decorators/replica-safe'
+import DreamDbConnection from '../../../src/db/dream-db-connection'
 
 describe('Dream.all', () => {
   it('finds all records for a given model', async () => {
@@ -41,12 +42,12 @@ describe('Dream.all', () => {
 
   context('regarding connections', () => {
     beforeEach(() => {
-      jest.spyOn(ConnectionConfRetriever.prototype, 'getConnectionConf')
+      jest.spyOn(DreamDbConnection, 'getConnection')
     })
 
     it('uses primary connection', async () => {
       await User.all()
-      expect(ConnectionConfRetriever.prototype.getConnectionConf).toHaveBeenCalledWith('primary')
+      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
     })
 
     context('with replica connection specified', () => {
@@ -55,14 +56,14 @@ describe('Dream.all', () => {
 
       it('uses the replica connection', async () => {
         await CustomUser.all()
-        expect(ConnectionConfRetriever.prototype.getConnectionConf).toHaveBeenCalledWith('replica')
+        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('replica')
       })
 
       context('with explicit primary connection override', () => {
         it('uses the replica connection', async () => {
           await CustomUser.connection('primary').all()
-          expect(ConnectionConfRetriever.prototype.getConnectionConf).toHaveBeenCalledWith('primary')
-          expect(ConnectionConfRetriever.prototype.getConnectionConf).not.toHaveBeenCalledWith('replica')
+          expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
+          expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith('replica')
         })
       })
     })

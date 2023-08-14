@@ -10,6 +10,7 @@ import PostVisibility from '../../../test-app/app/models/PostVisibility'
 import { Dream } from '../../../src'
 import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import ReplicaSafe from '../../../src/decorators/replica-safe'
+import DreamDbConnection from '../../../src/db/dream-db-connection'
 
 describe('Dream.create', () => {
   it('creates the underlying model in the db', async () => {
@@ -155,12 +156,12 @@ describe('Dream.create', () => {
 
   context('regarding connections', () => {
     beforeEach(async () => {
-      jest.spyOn(ConnectionConfRetriever.prototype, 'getConnectionConf')
+      jest.spyOn(DreamDbConnection, 'getConnection')
     })
 
     it('uses primary connection', async () => {
       await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-      expect(ConnectionConfRetriever.prototype.getConnectionConf).toHaveBeenCalledWith('primary')
+      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
     })
 
     context('with replica connection specified', () => {
@@ -170,7 +171,7 @@ describe('Dream.create', () => {
       it('uses the primary connection', async () => {
         await CustomUser.create({ email: 'how@yadoin', password: 'howyadoin' })
         // should always call to primary for update, regardless of replica-safe status
-        expect(ConnectionConfRetriever.prototype.getConnectionConf).toHaveBeenCalledWith('primary')
+        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
       })
     })
   })
