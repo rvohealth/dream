@@ -5,20 +5,7 @@ import { DB } from '../sync/schema'
 import { DbConnectionType } from './types'
 import ConnectionRetriever from './connection-retriever'
 
-const connectionCache = {
-  production: {
-    primary: null,
-    replica: null,
-  },
-  development: {
-    primary: null,
-    replica: null,
-  },
-  test: {
-    primary: null,
-    replica: null,
-  },
-} as any
+const connectionCache = {} as any
 
 export default (connection: DbConnectionType = 'primary'): Kysely<DB> => {
   const cachedConnection = connectionCache[process.env.NODE_ENV!]?.[connection]
@@ -39,6 +26,7 @@ export default (connection: DbConnectionType = 'primary'): Kysely<DB> => {
     }),
   })
 
+  connectionCache[process.env.NODE_ENV!] ||= {}
   connectionCache[process.env.NODE_ENV!][connection] = dbConn
 
   return dbConn
