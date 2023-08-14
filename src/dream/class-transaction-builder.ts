@@ -35,13 +35,6 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     return this.queryInstance().count()
   }
 
-  public connection<I extends DreamClassTransactionBuilder<DreamClass>>(
-    this: I,
-    connection: DbConnectionType
-  ) {
-    return this.queryInstance().connection(connection)
-  }
-
   public async max<
     I extends DreamClassTransactionBuilder<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],

@@ -44,16 +44,6 @@ describe('Query#all', () => {
         expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('replica')
       })
 
-      context('with a transaction specified', () => {
-        it('uses the primary connection, since all connections in transaction need to use the same connection', async () => {
-          await CustomUser.transaction(async txn => {
-            await new Query(CustomUser).txn(txn).connection('replica').all()
-          })
-          expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
-          expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith('replica')
-        })
-      })
-
       context('with explicit primary connection override', () => {
         it('uses the primary connection, despite being ReplicaSafe', async () => {
           await new Query(CustomUser).connection('primary').all()
