@@ -1,13 +1,15 @@
-import { Client } from 'pg'
 import loadPgClient from './loadPgClient'
-import { loadDbConfigYamlFile } from '../path'
+import { DbConnectionType } from '../../db/types'
+import ConnectionConfRetriever from '../../db/connection-conf-retriever'
 
-export default async function createDb(dbName?: string | null) {
+export default async function createDb(connection: DbConnectionType, dbName?: string | null) {
   // this was only ever written to clear the db between tests or in development,
   // so there is no way to drop in production
   if (process.env.NODE_ENV === 'production') return false
 
-  const dbConf = await loadDbConfigYamlFile()
+  const connectionRetriever = new ConnectionConfRetriever()
+  const dbConf = connectionRetriever.getConnectionConf(connection)
+
   dbName ||= process.env[dbConf.name] || null
 
   if (!dbName)
