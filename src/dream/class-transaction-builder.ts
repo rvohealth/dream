@@ -15,7 +15,6 @@ import {
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import saveDream from './internal/saveDream'
 import { SyncedAssociations } from '../sync/associations'
-import { DbConnectionType } from '../db/types'
 
 export default class DreamClassTransactionBuilder<DreamClass extends typeof Dream> {
   public dreamClass: DreamClass
