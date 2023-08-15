@@ -3,10 +3,10 @@ import pluralize from 'pluralize'
 import path from 'path'
 import { promises as fs } from 'fs'
 import sspawn from '../src/helpers/sspawn'
-import { loadDbConfigYamlFile, loadDreamYamlFile } from '../src/helpers/path'
+import { loadDreamYamlFile } from '../src/helpers/path'
 import compact from '../src/helpers/compact'
-import camelize from '../src/helpers/camelize'
 import snakeify from '../src/helpers/snakeify'
+import ConnectionConfRetriever from '../src/db/connection-conf-retriever'
 
 export default async function sync() {
   console.log('writing schema...')
@@ -34,13 +34,13 @@ sync()
 
 async function writeSchema() {
   const yamlConf = await loadDreamYamlFile()
-  const dbConf = await loadDbConfigYamlFile()
+  const dbConf = new ConnectionConfRetriever().getConnectionConf('primary')
 
   let absoluteSchemaPath = path.join(__dirname, '..', yamlConf.schema_path)
   let absoluteSchemaWritePath = path.join(__dirname, '..', '..', '..', yamlConf.schema_path)
   if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
     absoluteSchemaWritePath = path.join(__dirname, '..', yamlConf.schema_path)
-    let absoluteSchemaPath = path.join(__dirname, '..', yamlConf.schema_path)
+    absoluteSchemaPath = path.join(__dirname, '..', yamlConf.schema_path)
   }
 
   await sspawn(
