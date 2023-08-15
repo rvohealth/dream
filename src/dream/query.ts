@@ -1349,9 +1349,7 @@ ${JSON.stringify(association, null, 2)}
   private buildDelete<T extends Query<DreamClass>>(
     this: T
   ): DeleteQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
-    let kyselyQuery = this.dbFor('delete').deleteFrom(
-      this.dreamClass.prototype.table as InstanceType<DreamClass>['table']
-    )
+    let kyselyQuery = this.dbFor('delete').deleteFrom(this.baseSQLAlias as InstanceType<DreamClass>['table'])
     return this.buildCommon(kyselyQuery)
   }
 
