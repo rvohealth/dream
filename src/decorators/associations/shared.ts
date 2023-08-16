@@ -24,7 +24,7 @@ export type AssociatedModelParam<
     : PossibleArrayAssociationType
 > = Partial<Record<AssociationName & string, AssociationType | null>>
 
-export type DreamUpdateable<TableName extends AssociationTableNames> = Partial<
+type DreamSelectable<TableName extends AssociationTableNames> = Partial<
   Record<
     keyof DB[TableName],
     | Range<DateTime>
@@ -38,7 +38,7 @@ export type DreamUpdateable<TableName extends AssociationTableNames> = Partial<
 >
 
 export type WhereStatement<TableName extends AssociationTableNames> = Partial<
-  MergeUnionOfRecordTypes<Updateable<DB[TableName]> | DreamUpdateable<TableName>>
+  MergeUnionOfRecordTypes<Updateable<DB[TableName]> | DreamSelectable<TableName>>
 >
 
 export type LimitStatement = { count: number }
