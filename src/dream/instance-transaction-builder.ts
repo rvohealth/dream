@@ -2,7 +2,7 @@ import Dream from '../dream'
 import DreamTransaction from './transaction'
 import saveDream from './internal/saveDream'
 import destroyDream from './internal/destroyDream'
-import { UpdateableFieldsForClass, UpdateableInstanceFields } from './types'
+import { UpdateableFieldsForClass, UpdateableProperties } from './types'
 import { SyncedAssociations } from '../sync/associations'
 import associationQuery from './internal/associations/associationQuery'
 import createAssociation from './internal/associations/createAssociation'
@@ -25,7 +25,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
 
   public async update<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I,
-    attributes: UpdateableInstanceFields<DreamInstance>
+    attributes: UpdateableProperties<DreamInstance>
   ): Promise<DreamInstance> {
     this.dreamInstance.setAttributes(attributes)
     return saveDream(this.dreamInstance, this.dreamTransaction)

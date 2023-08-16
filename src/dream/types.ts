@@ -24,7 +24,7 @@ export type UpdateableFieldsForClass<DreamClass extends typeof Dream> =
       ? Record<VirtualColumns[InstanceType<DreamClass>['table'] & keyof VirtualColumns][number], any>
       : never)
 
-export type UpdateableInstanceFields<I extends Dream> =
+export type UpdateableProperties<I extends Dream> =
   | Updateable<DB[I['table'] & AssociationTableNames]>
   | AssociatedModelParam<I>
   | (VirtualColumns[I['table'] & keyof VirtualColumns] extends any[]

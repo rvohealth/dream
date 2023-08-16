@@ -25,7 +25,7 @@ import {
   NextJoinsWhereArgumentType,
   NextPreloadArgumentType,
   UpdateableFieldsForClass,
-  UpdateableInstanceFields,
+  UpdateableProperties,
   NextJoinsWherePluckArgumentType,
   AssociationNameToDotReference,
   FinalJoinsWherePluckArgumentType,
@@ -844,7 +844,7 @@ export default class Dream {
     return new DreamInstanceTransactionBuilder<I>(this, txn)
   }
 
-  public async update<I extends Dream>(this: I, attributes: UpdateableInstanceFields<I>): Promise<I> {
+  public async update<I extends Dream>(this: I, attributes: UpdateableProperties<I>): Promise<I> {
     this.setAttributes(attributes)
     // call save rather than _save so that any unsaved associations in the
     // attributes are saved with this model in a transaction
