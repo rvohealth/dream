@@ -24,7 +24,7 @@ import {
   JoinsArgumentTypeAssociatedTableNames,
   NextJoinsWhereArgumentType,
   NextPreloadArgumentType,
-  UpdateableFields,
+  UpdateableFieldsForClass,
   UpdateableInstanceFields,
   NextJoinsWherePluckArgumentType,
   AssociationNameToDotReference,
@@ -212,7 +212,7 @@ export default class Dream {
     return await query.min(field as any)
   }
 
-  public static async create<T extends typeof Dream>(this: T, opts?: UpdateableFields<T>) {
+  public static async create<T extends typeof Dream>(this: T, opts?: UpdateableFieldsForClass<T>) {
     return (await new (this as any)(opts as any).save()) as InstanceType<T>
   }
 
@@ -441,7 +441,7 @@ export default class Dream {
     return new Query<T>(this).whereNot(attributes)
   }
 
-  public static new<T extends typeof Dream>(this: T, opts?: UpdateableFields<T>) {
+  public static new<T extends typeof Dream>(this: T, opts?: UpdateableFieldsForClass<T>) {
     return new this(opts as any) as InstanceType<T>
   }
 
@@ -726,7 +726,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    opts: UpdateableFields<AssociationType & typeof Dream> = {}
+    opts: UpdateableFieldsForClass<AssociationType & typeof Dream> = {}
   ): Promise<NonNullable<AssociationType>> {
     return createAssociation(this, null, associationName, opts)
   }
@@ -741,7 +741,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    opts: UpdateableFields<AssociationType & typeof Dream> = {}
+    opts: UpdateableFieldsForClass<AssociationType & typeof Dream> = {}
   ): Promise<number> {
     return destroyAssociation(this, null, associationName, opts)
   }
@@ -863,5 +863,5 @@ export default class Dream {
 }
 
 export interface CreateOrFindByExtraOps<T extends typeof Dream> {
-  createWith?: WhereStatement<InstanceType<T>['table']> | UpdateableFields<T>
+  createWith?: WhereStatement<InstanceType<T>['table']> | UpdateableFieldsForClass<T>
 }

@@ -2,7 +2,7 @@ import Dream from '../dream'
 import DreamTransaction from './transaction'
 import saveDream from './internal/saveDream'
 import destroyDream from './internal/destroyDream'
-import { UpdateableFields, UpdateableInstanceFields } from './types'
+import { UpdateableFieldsForClass, UpdateableInstanceFields } from './types'
 import { SyncedAssociations } from '../sync/associations'
 import associationQuery from './internal/associations/associationQuery'
 import createAssociation from './internal/associations/createAssociation'
@@ -56,7 +56,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    opts: UpdateableFields<AssociationType & typeof Dream> = {}
+    opts: UpdateableFieldsForClass<AssociationType & typeof Dream> = {}
   ): Promise<NonNullable<AssociationType>> {
     return await createAssociation(this.dreamInstance, this.dreamTransaction, associationName, opts)
   }
@@ -71,7 +71,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    opts: UpdateableFields<AssociationType & typeof Dream> = {}
+    opts: UpdateableFieldsForClass<AssociationType & typeof Dream> = {}
   ): Promise<number> {
     return await destroyAssociation(this.dreamInstance, this.dreamTransaction, associationName, opts)
   }

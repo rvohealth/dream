@@ -17,7 +17,7 @@ export interface AliasCondition<PreviousTableNames extends AssociationTableNames
   columnValue: any
 }
 
-export type UpdateableFields<DreamClass extends typeof Dream> =
+export type UpdateableFieldsForClass<DreamClass extends typeof Dream> =
   | Updateable<DB[InstanceType<DreamClass>['table'] & AssociationTableNames]>
   | AssociatedModelParam<InstanceType<DreamClass>>
   | (VirtualColumns[InstanceType<DreamClass>['table'] & keyof VirtualColumns] extends any[]
