@@ -76,6 +76,11 @@ export async function dbConfigPath({ omitDirname }: { omitDirname?: boolean } = 
   return projectRootPath({ filepath: yamlConfig.db_config_path, omitDirname })
 }
 
+export async function dbSeedPath({ omitDirname }: { omitDirname?: boolean } = {}) {
+  const yamlConfig = await loadDreamYamlFile()
+  return projectRootPath({ filepath: yamlConfig.db_seed_path, omitDirname })
+}
+
 export interface DreamYamlFile {
   models_path: string
   serializers_path: string
@@ -83,6 +88,7 @@ export interface DreamYamlFile {
   migrations_path: string
   schema_path: string
   db_config_path: string
+  db_seed_path: string
   unit_spec_path: string
   feature_spec_path: string
 }

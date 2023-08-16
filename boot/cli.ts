@@ -15,6 +15,7 @@ import maybeSyncExisting from './cli/helpers/maybeSyncExisting'
 import generateSerializer from './cli/helpers/generateSerializer'
 import absoluteFilePath from '../src/helpers/absoluteFilePath'
 import developmentOrTestEnv from './cli/helpers/developmentOrTestEnv'
+import { dbSeedPath } from '../src/helpers/path'
 
 const program = new Command()
 
@@ -233,8 +234,7 @@ program
   .action(async () => {
     await maybeSyncExisting(program.args)
     setCoreDevelopmentFlag(program.args)
-    const rootPath = program.args.includes('--core') ? 'test-app/' : 'src/'
-    const seed = await import(absoluteFilePath(`${rootPath}db/seed.ts`))
+    const seed = await import(await dbSeedPath())
 
     if (!seed.default) throw 'db/seed.ts file must have an async function as the default export'
 
