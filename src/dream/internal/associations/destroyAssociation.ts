@@ -1,7 +1,7 @@
 import { SyncedAssociations } from '../../../sync/associations'
 import Dream from '../../../dream'
 import DreamTransaction from '../../transaction'
-import { UpdateableFieldsForClass } from '../../types'
+import { UpdateablePropertiesForClass } from '../../types'
 import { HasManyStatement } from '../../../decorators/associations/has-many'
 import { HasOneStatement } from '../../../decorators/associations/has-one'
 import { BelongsToStatement } from '../../../decorators/associations/belongs-to'
@@ -18,7 +18,7 @@ export default async function destroyAssociation<
   dream: DreamInstance,
   txn: DreamTransaction | null = null,
   associationName: AssociationName,
-  opts: UpdateableFieldsForClass<AssociationType & typeof Dream> = {}
+  opts: UpdateablePropertiesForClass<AssociationType & typeof Dream> = {}
 ): Promise<number> {
   const association = dream.associationMap[associationName] as
     | HasManyStatement<any>

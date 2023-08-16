@@ -10,7 +10,7 @@ import {
   JoinsArgumentTypeAssociatedTableNames,
   NextJoinsWhereArgumentType,
   NextPreloadArgumentType,
-  UpdateableFieldsForClass,
+  UpdateablePropertiesForClass,
 } from './types'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import saveDream from './internal/saveDream'
@@ -52,7 +52,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
 
   public async create<I extends DreamClassTransactionBuilder<DreamClass>>(
     this: I,
-    opts?: UpdateableFieldsForClass<DreamClass>
+    opts?: UpdateablePropertiesForClass<DreamClass>
   ): Promise<InstanceType<DreamClass>> {
     const dream = this.dreamClass.new(opts) as InstanceType<DreamClass>
     return saveDream(dream, this.dreamTransaction)
