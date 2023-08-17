@@ -121,7 +121,7 @@ function addCustomImports(file: string) {
   let dreamTypesSource: string
 
   if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-    dreamTypesSource = '../dream/types'
+    dreamTypesSource = '../../src/dream/types'
   } else {
     dreamTypesSource = 'dream'
   }
