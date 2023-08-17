@@ -124,7 +124,7 @@ export default class Dream {
     return !!this.sti?.active
   }
 
-  public static async globalName<T extends typeof Dream>(this: T) {
+  public static async globalName<T extends typeof Dream>(this: T): Promise<any> {
     const modelKey = await getModelKey(this)
     return pascalize(modelKey!)
   }
