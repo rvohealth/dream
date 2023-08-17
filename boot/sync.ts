@@ -115,20 +115,16 @@ export const DBTypeCache = {
 }
 
 function removeUnwantedExports(file: string) {
-  return file.replace('\nexport type Timestamp = ColumnType<Date, Date | string, Date | string>;', '')
+  return file.replace(
+    '\nexport type Timestamp = ColumnType<Date, Date | string, Date | string>;',
+    `\
+export type IdType = string | number | bigint | undefined
+export type Timestamp = ColumnType<DateTime>`
+  )
 }
 
 function addCustomImports(file: string) {
-  let dreamTypesSource: string
-
-  if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-    dreamTypesSource = '../../src/dream/types'
-  } else {
-    dreamTypesSource = 'dream'
-  }
-
-  const customImports = `import { DateTime } from 'luxon'
-import { IdType, Timestamp } from '${dreamTypesSource}'`
+  const customImports = `import { DateTime } from 'luxon'`
 
   return `${customImports}
 ${file}`
