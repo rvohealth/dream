@@ -64,7 +64,7 @@ export function distPath({ filepath, omitDirname }: { filepath?: string; omitDir
   if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
     return path.join(...compact([dirname, '..', '..', filepath]))
   } else {
-    return path.join(...compact([dirname, '..', '..', '..', '..', 'dist', filepath]))
+    return path.join(...compact([dirname, '..', '..', '..', '..', '..', '..', 'dist', filepath]))
   }
 }
 
