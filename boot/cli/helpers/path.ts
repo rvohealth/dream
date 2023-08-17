@@ -51,7 +51,7 @@ export function projectRootPath({
   if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
     return path.join(...compact([dirname, '..', '..', '..', filepath]))
   } else {
-    return path.join(...compact([dirname, '..', '..', '..', '..', '..', filepath]))
+    return path.join(...compact([dirname, '..', '..', '..', '..', '..', '..', filepath]))
   }
 }
 
