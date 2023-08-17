@@ -42,7 +42,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   public associationQuery<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends keyof SyncedAssociations[DreamInstance['table']]
-  >(this: I, associationName: AssociationName) {
+  >(this: I, associationName: AssociationName): any {
     return associationQuery(this.dreamInstance, this.dreamTransaction, associationName)
   }
 
