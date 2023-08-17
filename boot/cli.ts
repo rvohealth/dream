@@ -121,7 +121,11 @@ program
     console.log('BUILDING ')
     await maybeSyncExisting(program.args)
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn('yarn build-dev')
+
+    // if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
+    //   await sspawn('yarn build-dev')
+    // }
+
     await sspawn(`${coreDevFlag}node dist/src/bin/build-associations.js`)
   })
 
