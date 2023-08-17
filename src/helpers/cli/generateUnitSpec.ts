@@ -1,6 +1,6 @@
 import fs from 'fs/promises'
-import { loadDreamYamlFile } from '../helpers/path'
-import absoluteFilePath from '../helpers/absoluteFilePath'
+import { loadDreamYamlFile } from '../path'
+import absoluteFilePath from '../absoluteFilePath'
 
 export default async function generateUnitSpec(
   dreamName: string,
