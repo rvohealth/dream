@@ -36,12 +36,13 @@ async function writeSchema() {
   const yamlConf = await loadDreamYamlFile()
   const dbConf = await new ConnectionConfRetriever().getConnectionConf('primary')
 
-  let absoluteSchemaPath = path.join(__dirname, '..', '..', '..', yamlConf.schema_path)
-  let absoluteSchemaWritePath = path.join(__dirname, '..', '..', '..', '..', '..', yamlConf.schema_path)
+  let absoluteSchemaPath = path.join(__dirname, '..', '..', yamlConf.schema_path)
+  let absoluteSchemaWritePath = path.join(__dirname, '..', '..', '..', '..', yamlConf.schema_path)
   if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
     absoluteSchemaWritePath = path.join(__dirname, '..', yamlConf.schema_path)
     absoluteSchemaPath = path.join(__dirname, '..', yamlConf.schema_path)
   }
+  console.log('DEBUG 1', absoluteSchemaPath, absoluteSchemaWritePath)
 
   await sspawn(
     `kysely-codegen --url=postgres://${process.env[dbConf.user]}@${process.env[dbConf.host]}:${
