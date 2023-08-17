@@ -1,4 +1,4 @@
-import '../src/helpers/loadEnv'
+import '../helpers/loadEnv'
 import pluralize from 'pluralize'
 import path from 'path'
 import { promises as fs } from 'fs'

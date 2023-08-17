@@ -8,7 +8,7 @@
 import './cli/helpers/loadEnv'
 import { Command } from 'commander'
 import sspawn from './cli/helpers/sspawn'
-import setCoreDevelopmentFlag, { coreSuffix } from './cli/helpers/setCoreDevelopmentFlag'
+import setCoreDevelopmentFlag from './cli/helpers/setCoreDevelopmentFlag'
 import yarncmdRunByAppConsumer from './cli/helpers/yarncmdRunByAppConsumer'
 import maybeSyncExisting from './cli/helpers/maybeSyncExisting'
 import developmentOrTestEnv from './cli/helpers/developmentOrTestEnv'
@@ -239,16 +239,14 @@ program
 
 program
   .command('spec')
-  .description(
-    'copies a boilerplate template for schema.ts and dream.ts, which are both provided to the dream framework'
-  )
+  .description('runs core dev specs')
   .option('--core', 'sets core to true')
   .action(async () => {
     setCoreDevelopmentFlag(program.args)
     const files = program.args.filter(arg => /\.spec\.ts$/.test(arg))
     if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
       await sspawn(yarncmdRunByAppConsumer('dream sync:associations', program.args))
-      await sspawn(`DREAM_CORE_DEVELOPMENT=1 jest --runInBand --forceExit ${files.join(' ')}`)
+      await sspawn(`DREAM_CORE_DEVELOPMENT=1 NODE_ENV=test jest --runInBand --forceExit ${files.join(' ')}`)
     } else {
       throw 'this command is not meant for use outside core development'
     }

@@ -37,7 +37,7 @@ export default async function loadModels() {
 
     if (PossibleModelClass?.isDream) {
       const ModelClass: typeof Dream = PossibleModelClass
-      const modelKey = modelPath.replace(/\.ts$/, '')
+      const modelKey = modelPath.replace(/\.js$/, '')
       const pathParts = modelKey.split('/')
       pathParts.forEach((pathPart, index) => {
         const pascalized = pascalize(pathPart)

@@ -50,7 +50,9 @@ export function projectRootPath({
   const dirname = omitDirname ? undefined : __dirname
 
   if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-    return path.join(...compact([dirname, '..', '..', '..', filepath]))
+    return process.env.NODE_ENV === 'test'
+      ? path.join(...compact([dirname, '..', '..', filepath]))
+      : path.join(...compact([dirname, '..', '..', '..', filepath]))
   } else {
     return path.join(...compact([dirname, '..', '..', '..', '..', '..', filepath]))
   }
@@ -66,6 +68,17 @@ export function distPath({ filepath, omitDirname }: { filepath?: string; omitDir
   }
 }
 
+// this function exists because when running tests, we don't want to leave typescript,
+// so we avoid the dist folder. but when we run all other code, we use the dist folder
+// to speed things up.
+export function distOrProjectRootPath({
+  filepath,
+  omitDirname,
+}: { filepath?: string; omitDirname?: boolean } = {}) {
+  if (process.env.NODE_ENV === 'test') return projectRootPath({ filepath, omitDirname })
+  return distPath({ filepath, omitDirname })
+}
+
 export async function schemaPath({ omitDirname }: { omitDirname?: boolean } = {}) {
   const yamlConfig = await loadDreamYamlFile()
   return projectRootPath({ filepath: yamlConfig.schema_path, omitDirname })
@@ -78,12 +91,12 @@ export async function associationsPath({ omitDirname }: { omitDirname?: boolean 
 
 export async function modelsPath({ omitDirname }: { omitDirname?: boolean } = {}) {
   const yamlConfig = await loadDreamYamlFile()
-  return distPath({ filepath: yamlConfig.models_path, omitDirname })
+  return distOrProjectRootPath({ filepath: yamlConfig.models_path, omitDirname })
 }
 
 export async function migrationsPath({ omitDirname }: { omitDirname?: boolean } = {}) {
   const yamlConfig = await loadDreamYamlFile()
-  return distPath({ filepath: yamlConfig.migrations_path, omitDirname })
+  return distOrProjectRootPath({ filepath: yamlConfig.migrations_path, omitDirname })
 }
 
 export async function dbConfigPath({ omitDirname }: { omitDirname?: boolean } = {}) {
@@ -93,7 +106,7 @@ export async function dbConfigPath({ omitDirname }: { omitDirname?: boolean } = 
 
 export async function dbSeedPath({ omitDirname }: { omitDirname?: boolean } = {}) {
   const yamlConfig = await loadDreamYamlFile()
-  return distPath({ filepath: yamlConfig.db_seed_path.replace(/\.ts$/, '.js'), omitDirname })
+  return distOrProjectRootPath({ filepath: yamlConfig.db_seed_path.replace(/\.ts$/, '.js'), omitDirname })
 }
 
 export interface DreamYamlFile {
