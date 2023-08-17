@@ -9,7 +9,7 @@ import snakeify from '../helpers/snakeify'
 import ConnectionConfRetriever from '../db/connection-conf-retriever'
 
 export default async function sync() {
-  console.log('writing schema...')
+  console.log('writing schema...', process.env.DREAM_CORE_DEVELOPMENT)
   const [schema, transformedNames] = await writeSchema()
 
   console.log('syncing schema, associations, and dream config files...')
