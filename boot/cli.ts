@@ -135,7 +135,7 @@ program
   .action(async () => {
     if (!developmentOrTestEnv()) return
     setCoreDevelopmentFlag(program.args)
-    await sspawn('node dist/src/bin/sync-existing-or-create-boilerplate.js')
+    await sspawn('node dist/boot/sync-existing-or-create-boilerplate.js')
 
     if (!program.args.includes('--bypass-config-cache')) {
       await sspawn(yarncmdRunByAppConsumer('dream sync:config-cache', program.args))
