@@ -9,7 +9,7 @@
   "private": true,
   "scripts": {
     "dream": "node  --experimental-modules dist/boot/cli.js",
-    "build-boot": "rm -rf dist && npx tsc -p ./tsconfig.boot.json && yarn dream sync:config-cache && npx tsc -p ./tsconfig.boot.json",
+    "build-boot": "rm -rf dist && npx tsc -p ./tsconfig.boot.json && NODE_ENV=development yarn dream sync:existing && yarn dream sync:config-cache && npx tsc -p ./tsconfig.boot.json",
     "build-boot-dev": "rm -rf dist && npx tsc -p ./tsconfig.boot.json && yarn dream sync:config-cache --core && npx tsc -p ./tsconfig.boot.json",
     "build": "rm -rf dist && yarn build-boot && npx tsc -p ./tsconfig.build.json",
     "build-dev": "yarn before-dist-dev && npx tsc -p ./tsconfig.build-dev.json && yarn after-build-dev",
