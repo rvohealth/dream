@@ -103,7 +103,7 @@ program
   .option('--core', 'sets core to true')
   .action(async () => {
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(`${coreDevFlag}node dist/src/bin/build-config-cache.js`)
+    await sspawn(`${coreDevFlag}node dist/boot/build-config-cache.js`)
   })
 
 program
