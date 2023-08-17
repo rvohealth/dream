@@ -5,6 +5,7 @@
 // commanderjs docs:
 // https://github.com/tj/commander.js#quick-start
 
+import '../src/helpers/loadEnv'
 import { Command } from 'commander'
 import generateDream from './cli/helpers/generateDream'
 import generateMigration from './cli/helpers/generateMigration'
@@ -13,7 +14,6 @@ import setCoreDevelopmentFlag, { coreSuffix } from './cli/helpers/setCoreDevelop
 import yarncmdRunByAppConsumer from './cli/helpers/yarncmdRunByAppConsumer'
 import maybeSyncExisting from './cli/helpers/maybeSyncExisting'
 import generateSerializer from './cli/helpers/generateSerializer'
-import absoluteFilePath from '../src/helpers/absoluteFilePath'
 import developmentOrTestEnv from './cli/helpers/developmentOrTestEnv'
 import { dbSeedPath } from '../src/helpers/path'
 
@@ -92,7 +92,7 @@ program
   .action(async () => {
     await maybeSyncExisting(program.args)
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(`${coreDevFlag}npx ts-node boot/sync.ts`)
+    await sspawn(`${coreDevFlag}node dist/boot/sync.js`)
   })
 
 program
@@ -103,7 +103,7 @@ program
   .option('--core', 'sets core to true')
   .action(async () => {
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(`${coreDevFlag}npx ts-node --transpile-only src/bin/build-config-cache.ts`)
+    await sspawn(`${coreDevFlag}node dist/src/bin/build-config-cache.js`)
   })
 
 program
@@ -119,7 +119,7 @@ program
   .action(async () => {
     await maybeSyncExisting(program.args)
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(`${coreDevFlag}npx ts-node --transpile-only src/bin/build-associations.ts`)
+    await sspawn(`${coreDevFlag}node dist/src/bin/build-associations.js`)
   })
 
 program
@@ -135,7 +135,7 @@ program
   .action(async () => {
     if (!developmentOrTestEnv()) return
     setCoreDevelopmentFlag(program.args)
-    await sspawn(`npx ts-node boot/sync-existing-or-create-boilerplate.ts`)
+    await sspawn('node dist/boot/sync-existing-or-create-boilerplate.js')
 
     if (!program.args.includes('--bypass-config-cache')) {
       await sspawn(yarncmdRunByAppConsumer('dream sync:config-cache', program.args))
@@ -155,7 +155,7 @@ program
   .action(async () => {
     await maybeSyncExisting(program.args)
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(`${coreDevFlag}npx ts-node src/bin/db-create.ts`)
+    await sspawn(`${coreDevFlag}node dist/src/bin/db-create.js`)
   })
 
 program
@@ -169,7 +169,7 @@ program
   .action(async () => {
     await maybeSyncExisting(program.args)
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(`${coreDevFlag}npx ts-node src/bin/db-migrate.ts`)
+    await sspawn(`${coreDevFlag}node dist/src/bin/db-migrate.js`)
 
     if (developmentOrTestEnv()) {
       await sspawn(yarncmdRunByAppConsumer('dream sync:types --bypass-config-cache', program.args))
@@ -190,7 +190,7 @@ program
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
     const stepArg = program.args.find(arg => /--step=\d+/.test(arg))
     const step = stepArg ? parseInt(stepArg!.replace('--step=', '')) : 1
-    await sspawn(`${coreDevFlag}npx ts-node src/bin/db-rollback.ts ${step}`)
+    await sspawn(`${coreDevFlag}node dist/src/bin/db-rollback.js ${step}`)
     await sspawn(yarncmdRunByAppConsumer('dream sync:types --bypass-config-cache', program.args))
   })
 
@@ -208,7 +208,7 @@ program
     await maybeSyncExisting(program.args)
 
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(`${coreDevFlag}npx ts-node src/bin/db-drop.ts`)
+    await sspawn(`${coreDevFlag}node dist/src/bin/db-drop.js`)
   })
 
 program
@@ -233,12 +233,14 @@ program
   )
   .action(async () => {
     await maybeSyncExisting(program.args)
+    console.log('seeding db...')
     setCoreDevelopmentFlag(program.args)
     const seed = await import(await dbSeedPath())
 
     if (!seed.default) throw 'db/seed.ts file must have an async function as the default export'
 
     await seed.default()
+    console.log('done!')
   })
 
 program
@@ -266,7 +268,7 @@ program
     setCoreDevelopmentFlag(program.args)
     if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
       await sspawn(
-        `yarn dream sync:types --core && DREAM_CORE_DEVELOPMENT=1 NODE_ENV=development npx ts-node --project ./tsconfig.json ./test-app/conf/repl.ts`
+        `yarn dream sync:types --core && DREAM_CORE_DEVELOPMENT=1 NODE_ENV=development node ./dist/test-app/conf/repl.js`
       )
     } else {
       throw 'this command is not meant for use outside core development'

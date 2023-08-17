@@ -1,6 +1,6 @@
 import path from 'path'
 import Dream from '../dream'
-import { loadDreamYamlFile, modelsPath } from './path'
+import { loadDreamYamlFile, modelsPath, projectRootPath } from './path'
 import pascalize from './pascalize'
 import getFiles from './getFiles'
 import importFileWithDefault from './importFileWithDefault'
@@ -12,7 +12,7 @@ export default async function loadModels() {
   const pathToModels = await modelsPath()
   const yamlConf = await loadDreamYamlFile()
   const modelPaths = (await getFiles(pathToModels)).filter(
-    path => /\.ts$/.test(path) && !/index\.ts$/.test(path)
+    path => /\.js$/.test(path) && !/index\.js$/.test(path)
   )
   const relativeModelPaths = modelPaths.map(path =>
     path.replace(new RegExp(`^.*${yamlConf.models_path}\/`), '')
@@ -23,15 +23,16 @@ export default async function loadModels() {
   let currentRef: any = modelsObj
   for (const modelPath of relativeModelPaths) {
     const fullPath = path.join(pathToModels, modelPath)
-    const relativePath =
-      `../../${process.env.DREAM_CORE_DEVELOPMENT === '1' ? '' : '../../'}${yamlConf.models_path}/` +
+    const relativePath = path.join(
+      pathToModels,
       fullPath.replace(new RegExp(`^.*${yamlConf.models_path}\/`), '')
+    )
 
     let PossibleModelClass: typeof Dream | null = null
     try {
       PossibleModelClass = await importFileWithDefault(relativePath)
     } catch (error) {
-      throw `Failed to import the following file: ${fullPath}. Error: ${error}`
+      throw `Failed to import the following file: ${fullPath} (relative path: ${relativePath}). Error: ${error}`
     }
 
     if (PossibleModelClass?.isDream) {

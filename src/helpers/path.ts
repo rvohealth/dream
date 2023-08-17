@@ -50,9 +50,19 @@ export function projectRootPath({
   const dirname = omitDirname ? undefined : __dirname
 
   if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
+    return path.join(...compact([dirname, '..', '..', '..', filepath]))
+  } else {
+    return path.join(...compact([dirname, '..', '..', '..', '..', '..', filepath]))
+  }
+}
+
+export function distPath({ filepath, omitDirname }: { filepath?: string; omitDirname?: boolean } = {}) {
+  const dirname = omitDirname ? undefined : __dirname
+
+  if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
     return path.join(...compact([dirname, '..', '..', filepath]))
   } else {
-    return path.join(...compact([dirname, '..', '..', '..', '..', filepath]))
+    return path.join(...compact([dirname, '..', '..', '..', '..', 'dist', filepath]))
   }
 }
 
@@ -61,14 +71,19 @@ export async function schemaPath({ omitDirname }: { omitDirname?: boolean } = {}
   return projectRootPath({ filepath: yamlConfig.schema_path, omitDirname })
 }
 
+export async function associationsPath({ omitDirname }: { omitDirname?: boolean } = {}) {
+  const yamlConfig = await loadDreamYamlFile()
+  return projectRootPath({ filepath: yamlConfig.associations_path, omitDirname })
+}
+
 export async function modelsPath({ omitDirname }: { omitDirname?: boolean } = {}) {
   const yamlConfig = await loadDreamYamlFile()
-  return projectRootPath({ filepath: yamlConfig.models_path, omitDirname })
+  return distPath({ filepath: yamlConfig.models_path, omitDirname })
 }
 
 export async function migrationsPath({ omitDirname }: { omitDirname?: boolean } = {}) {
   const yamlConfig = await loadDreamYamlFile()
-  return projectRootPath({ filepath: yamlConfig.migrations_path, omitDirname })
+  return distPath({ filepath: yamlConfig.migrations_path, omitDirname })
 }
 
 export async function dbConfigPath({ omitDirname }: { omitDirname?: boolean } = {}) {
@@ -78,7 +93,7 @@ export async function dbConfigPath({ omitDirname }: { omitDirname?: boolean } = 
 
 export async function dbSeedPath({ omitDirname }: { omitDirname?: boolean } = {}) {
   const yamlConfig = await loadDreamYamlFile()
-  return projectRootPath({ filepath: yamlConfig.db_seed_path, omitDirname })
+  return distPath({ filepath: yamlConfig.db_seed_path.replace(/\.ts$/, '.js'), omitDirname })
 }
 
 export interface DreamYamlFile {

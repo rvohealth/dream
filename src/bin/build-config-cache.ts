@@ -13,7 +13,7 @@ export default {
 }
   `
 
-  const filePath = path.join(__dirname, '..', 'sync', 'config-cache.ts')
+  const filePath = path.join(__dirname, '..', '..', '..', 'src', 'sync', 'config-cache.ts')
   await fs.writeFile(filePath, fileStr)
 }
 buildConfigCache()

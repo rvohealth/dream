@@ -8,9 +8,12 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dream": "npx ts-node ./boot/cli.ts",
+    "dream": "node dist/boot/cli.js",
     "build": "rm -rf dist && npx tsc -p ./tsconfig.build.json",
-    "build:docs": "npx ts-node ./boot/build-docs.ts",
+    "build-dev": "yarn before-dist-dev && npx tsc -p ./tsconfig.build-dev.json && yarn after-build-dev",
+    "before-dist-dev": "rm -rf dist && mkdir dist",
+    "after-build-dev": "cp .dream.yml dist/.dream.yml && mkdir dist/test-app/conf/env && cp test-app/conf/env/db.yml dist/test-app/conf/env/db.yml",
+    "build:docs": "node dist/boot/build-docs.js",
     "spec": "yarn dream spec --core",
     "console": "yarn dream console --core",
     "postinstall": "if [ ! -e .no-dream-postinstall ]; then yarn dream sync:existing && yarn build; fi"

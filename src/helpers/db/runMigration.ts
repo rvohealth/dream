@@ -1,5 +1,5 @@
 import { FileMigrationProvider, Migrator } from 'kysely'
-import { loadDreamYamlFile } from '../path'
+import { loadDreamYamlFile, migrationsPath } from '../path'
 import { promises as fs } from 'fs'
 import path from 'path'
 import db from '../../db'
@@ -9,8 +9,7 @@ export default async function runMigration({
   mode = 'migrate',
   step = 1,
 }: { mode?: 'migrate' | 'rollback'; step?: number } = {}) {
-  const yamlConf = await loadDreamYamlFile()
-  const migrationFolder = absoluteFilePath(yamlConf.migrations_path)
+  const migrationFolder = await migrationsPath()
 
   const migrator = new Migrator({
     db: db('primary'),

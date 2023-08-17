@@ -2,21 +2,21 @@ import '../helpers/loadEnv'
 import path from 'path'
 import { promises as fs } from 'fs'
 import loadModels from '../helpers/loadModels'
-import { loadDreamYamlFile } from '../helpers/path'
+import { associationsPath, loadDreamYamlFile } from '../helpers/path'
 import { DBColumns } from '../sync/schema'
 import absoluteFilePath from '../helpers/absoluteFilePath'
 import Dream from '../dream'
 
 export default async function buildAssociations() {
   console.log('writing dream type metadata...')
-  let fileStr = await writeAssociationsFile()
+  let fileStr = await buildAssociationsFile()
   fileStr = await writeVirtualColumns(fileStr)
 
   const filePath = path.join(__dirname, '..', 'sync', 'associations.ts')
-  const yamlConf = await loadDreamYamlFile()
-  const clientFilePath = absoluteFilePath(yamlConf.associations_path)
+  const clientFilePath = await associationsPath()
   await fs.writeFile(filePath, fileStr)
   await fs.writeFile(clientFilePath, fileStr)
+  console.log('Done!')
 }
 buildAssociations()
 
@@ -44,7 +44,7 @@ export interface VirtualColumns ${JSON.stringify(finalModels, null, 2)}
 `
 }
 
-async function writeAssociationsFile() {
+async function buildAssociationsFile() {
   const finalModels = await fleshOutAssociations()
   const finalBelongsToModels = await fleshOutAssociations('BelongsTo')
 

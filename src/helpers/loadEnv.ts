@@ -1,7 +1,9 @@
 import dotenv from 'dotenv'
 
 if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-  dotenv.config({ path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env' })
+  const dotenvpath =
+    process.env.NODE_ENV === 'test' ? __dirname + '/../../../.env.test' : __dirname + '/../../../.env'
+  dotenv.config({ path: dotenvpath })
 } else {
-  dotenv.config({ path: process.env.NODE_ENV === 'test' ? '../../.env.test' : '../../.env' })
+  dotenv.config({ path: process.env.NODE_ENV === 'test' ? '../../../.env.test' : '../../../.env' })
 }
