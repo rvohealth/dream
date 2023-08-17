@@ -1,6 +1,6 @@
 import fs from 'fs/promises'
-import sspawn from '../src/helpers/sspawn'
-import { loadDreamYamlFile } from '../src/helpers/path'
+import sspawn from '../helpers/sspawn'
+import { loadDreamYamlFile } from '../helpers/path'
 
 export default async function syncExistingOrCreateBoilerplate() {
   console.log('checking for sync folder compatibility...')

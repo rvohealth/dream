@@ -1,9 +1,9 @@
 import fs from 'fs/promises'
-import migrationVersion from './migrationVersion'
-import hyphenize from '../../../src/helpers/hyphenize'
-import generateMigrationContent from '../../../src/helpers/cli/generateMigrationContent'
-import absoluteFilePath from '../../../src/helpers/absoluteFilePath'
-import { loadDreamYamlFile } from '../../../src/helpers/path'
+import migrationVersion from '../helpers/migrationVersion'
+import hyphenize from '../helpers/hyphenize'
+import generateMigrationContent from '../helpers/cli/generateMigrationContent'
+import absoluteFilePath from '../helpers/absoluteFilePath'
+import { loadDreamYamlFile } from '../helpers/path'
 
 export default async function generateMigration(
   migrationName: string,

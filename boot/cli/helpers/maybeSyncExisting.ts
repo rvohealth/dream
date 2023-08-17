@@ -1,6 +1,6 @@
 import fs from 'fs/promises'
 import path from 'path'
-import sspawn from '../../../src/helpers/sspawn'
+import sspawn from './sspawn'
 import yarncmdRunByAppConsumer from './yarncmdRunByAppConsumer'
 import developmentOrTestEnv from './developmentOrTestEnv'
 

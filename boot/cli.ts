@@ -5,17 +5,13 @@
 // commanderjs docs:
 // https://github.com/tj/commander.js#quick-start
 
-import '../src/helpers/loadEnv'
+import './cli/helpers/loadEnv'
 import { Command } from 'commander'
-import generateDream from './cli/helpers/generateDream'
-import generateMigration from './cli/helpers/generateMigration'
-import sspawn from '../src/helpers/sspawn'
+import sspawn from './cli/helpers/sspawn'
 import setCoreDevelopmentFlag, { coreSuffix } from './cli/helpers/setCoreDevelopmentFlag'
 import yarncmdRunByAppConsumer from './cli/helpers/yarncmdRunByAppConsumer'
 import maybeSyncExisting from './cli/helpers/maybeSyncExisting'
-import generateSerializer from './cli/helpers/generateSerializer'
 import developmentOrTestEnv from './cli/helpers/developmentOrTestEnv'
-import { dbSeedPath } from '../src/helpers/path'
 
 const program = new Command()
 
@@ -28,7 +24,8 @@ program
   .action(async () => {
     await maybeSyncExisting(program.args)
     const [_, name] = program.args
-    await generateMigration(name)
+    const coreDevFlag = setCoreDevelopmentFlag(program.args)
+    await sspawn(`${coreDevFlag}node dist/src/bin/generate-migration.js ${name}`)
   })
 
 program
@@ -45,9 +42,11 @@ program
     await maybeSyncExisting(program.args)
     setCoreDevelopmentFlag(program.args)
     const [_, name, ...attributes] = program.args
-    await generateDream(
-      name,
-      attributes.filter(attr => !['--core'].includes(attr))
+    const coreDevFlag = setCoreDevelopmentFlag(program.args)
+    await sspawn(
+      `${coreDevFlag}node dist/src/bin/generate-dream.js ${name} ${attributes
+        .filter(attr => !['--core'].includes(attr))
+        .join(' ')}`
     )
   })
 
@@ -60,10 +59,11 @@ program
   .action(async () => {
     const [_, name, ...attributes] = program.args
 
-    setCoreDevelopmentFlag(program.args)
-    await generateSerializer(
-      name,
-      attributes.filter(attr => !['--core'].includes(attr))
+    const coreDevFlag = setCoreDevelopmentFlag(program.args)
+    await sspawn(
+      `${coreDevFlag}node dist/src/bin/generate-serializer.js ${name} ${attributes
+        .filter(attr => !['--core'].includes(attr))
+        .join(' ')}`
     )
   })
 
@@ -92,7 +92,7 @@ program
   .action(async () => {
     await maybeSyncExisting(program.args)
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(`${coreDevFlag}node dist/boot/sync.js`)
+    await sspawn(`${coreDevFlag}node dist/src/bin/sync.js`)
   })
 
 program
@@ -135,7 +135,7 @@ program
   .action(async () => {
     if (!developmentOrTestEnv()) return
     setCoreDevelopmentFlag(program.args)
-    await sspawn('node dist/boot/sync-existing-or-create-boilerplate.js')
+    await sspawn('node dist/src/bin/sync-existing-or-create-boilerplate.js')
 
     if (!program.args.includes('--bypass-config-cache')) {
       await sspawn(yarncmdRunByAppConsumer('dream sync:config-cache', program.args))
@@ -233,14 +233,8 @@ program
   )
   .action(async () => {
     await maybeSyncExisting(program.args)
-    console.log('seeding db...')
-    setCoreDevelopmentFlag(program.args)
-    const seed = await import(await dbSeedPath())
-
-    if (!seed.default) throw 'db/seed.ts file must have an async function as the default export'
-
-    await seed.default()
-    console.log('done!')
+    const coreDevFlag = setCoreDevelopmentFlag(program.args)
+    await sspawn(`${coreDevFlag}node dist/src/bin/db-seed.js`)
   })
 
 program

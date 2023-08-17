@@ -2,11 +2,11 @@ import '../src/helpers/loadEnv'
 import pluralize from 'pluralize'
 import path from 'path'
 import { promises as fs } from 'fs'
-import sspawn from '../src/helpers/sspawn'
-import { loadDreamYamlFile } from '../src/helpers/path'
-import compact from '../src/helpers/compact'
-import snakeify from '../src/helpers/snakeify'
-import ConnectionConfRetriever from '../src/db/connection-conf-retriever'
+import sspawn from '../helpers/sspawn'
+import { loadDreamYamlFile } from '../helpers/path'
+import compact from '../helpers/compact'
+import snakeify from '../helpers/snakeify'
+import ConnectionConfRetriever from '../db/connection-conf-retriever'
 
 export default async function sync() {
   console.log('writing schema...')

@@ -1,8 +1,8 @@
 import path from 'path'
-import generateSerializerString from '../../../src/helpers/cli/generateSerializerContent'
-import fileWriter from '../../../src/helpers/fileWriter'
-import absoluteFilePath from '../../../src/helpers/absoluteFilePath'
-import { loadDreamYamlFile } from '../../../src/helpers/path'
+import generateSerializerString from '../helpers/cli/generateSerializerContent'
+import fileWriter from '../helpers/fileWriter'
+import absoluteFilePath from '../helpers/absoluteFilePath'
+import { loadDreamYamlFile } from '../helpers/path'
 
 export default async function generateSerializer(
   fullyQualifiedModelName: string,
