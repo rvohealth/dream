@@ -8,6 +8,9 @@ if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
 } else {
   console.log('DEBUG 2', __dirname)
   dotenv.config({
-    path: process.env.NODE_ENV === 'test' ? '../../../../../.env.test' : '../../../../../.env',
+    path:
+      process.env.NODE_ENV === 'test'
+        ? __dirname + '../../../../../.env.test'
+        : __dirname + '../../../../../.env',
   })
 }
