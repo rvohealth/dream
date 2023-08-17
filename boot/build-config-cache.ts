@@ -15,7 +15,9 @@ export default {
 
   await fs.mkdir(path.join(__dirname, '..', 'src', 'sync'), { recursive: true })
   const filePath = path.join(__dirname, '..', 'src', 'sync', 'config-cache.ts')
+  const originalFilePath = path.join(__dirname, '..', '..', 'src', 'sync', 'config-cache.ts')
   await fs.writeFile(filePath, fileStr)
+  await fs.writeFile(originalFilePath, fileStr)
   console.log('Done!')
 }
 buildConfigCache()
