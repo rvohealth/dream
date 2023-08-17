@@ -7,5 +7,5 @@ export default function isDecimal<
   Table extends DB[keyof DB] = DB[TableName]
 >(attribute: keyof Table, { table }: { table: TableName }): boolean {
   const cachedType = cachedTypeForAttribute(attribute, { table })
-  return cachedType?.split('|')?.includes('Numeric') || false
+  return !!cachedType?.split('|')?.find(str => ['Numeric', 'Generated<Numeric>'].includes(str))
 }
