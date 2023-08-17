@@ -16,7 +16,7 @@
     "build:docs": "node dist/boot/build-docs.js",
     "spec": "yarn dream spec --core",
     "console": "yarn dream console --core",
-    "postinstall": "if [ ! -e .no-dream-postinstall ]; then yarn dream sync:existing && yarn build; fi"
+    "postinstall": "if [ ! -e .no-dream-postinstall ]; then NODE_ENV=development yarn dream sync:existing && yarn build; fi"
   },
   "dependencies": {
     "@types/jest": "^29.5.0",
