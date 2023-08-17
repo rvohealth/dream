@@ -9,6 +9,7 @@
   "private": true,
   "scripts": {
     "dream": "node dist/boot/cli.js",
+    "build-boot": "rm -rf dist && npx tsc -p ./tsconfig.boot.json",
     "build": "rm -rf dist && npx tsc -p ./tsconfig.build.json",
     "build-dev": "yarn before-dist-dev && npx tsc -p ./tsconfig.build-dev.json && yarn after-build-dev",
     "before-dist-dev": "rm -rf dist && mkdir dist",
