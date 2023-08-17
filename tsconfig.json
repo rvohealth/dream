@@ -20,5 +20,5 @@
     "rootDir": "./",
     "outDir": "./dist"
   },
-  "include": ["src/**/*", "test-app", "spec/**/*"]
+  "include": ["src/**/*", "test-app", "spec/**/*", "boot/sync.ts"]
 }

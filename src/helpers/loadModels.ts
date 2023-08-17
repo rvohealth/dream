@@ -11,8 +11,10 @@ export default async function loadModels() {
 
   const pathToModels = await modelsPath()
   const yamlConf = await loadDreamYamlFile()
-  const modelPaths = (await getFiles(pathToModels)).filter(
-    path => /\.js$/.test(path) && !/index\.js$/.test(path)
+  const modelPaths = (await getFiles(pathToModels)).filter(path =>
+    process.env.DREAM_CORE_SPEC_RUN === '1'
+      ? /\.ts$/.test(path) && !/index\.ts$/.test(path)
+      : /\.js$/.test(path) && !/index\.js$/.test(path)
   )
   const relativeModelPaths = modelPaths.map(path =>
     path.replace(new RegExp(`^.*${yamlConf.models_path}\/`), '')
@@ -25,7 +27,8 @@ export default async function loadModels() {
     const fullPath = path.join(pathToModels, modelPath)
     const relativePath = path.join(
       pathToModels,
-      fullPath.replace(new RegExp(`^.*${yamlConf.models_path}\/`), '')
+      modelPath
+      // fullPath.replace(new RegExp(`^.*${yamlConf.models_path}\/`), '')
     )
 
     let PossibleModelClass: typeof Dream | null = null
@@ -37,7 +40,7 @@ export default async function loadModels() {
 
     if (PossibleModelClass?.isDream) {
       const ModelClass: typeof Dream = PossibleModelClass
-      const modelKey = modelPath.replace(/\.js$/, '')
+      const modelKey = modelPath.replace(/\.[jt]s$/, '')
       const pathParts = modelKey.split('/')
       pathParts.forEach((pathPart, index) => {
         const pascalized = pascalize(pathPart)

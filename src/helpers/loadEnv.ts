@@ -1,17 +1,15 @@
 import dotenv from 'dotenv'
 
+const fileName = `.env${process.env.NODE_ENV === 'test' ? '.test' : ''}`
+let dotenvpath: string = ''
+
 if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-  const dotenvpath =
-    process.env.NODE_ENV === 'test' ? __dirname + '/../../.env.test' : __dirname + '/../../../.env'
-  console.log('DEBUG 1', __dirname)
-  dotenv.config({ path: dotenvpath })
+  dotenvpath =
+    process.env.DREAM_CORE_SPEC_RUN === '1'
+      ? __dirname + `/../../${fileName}`
+      : __dirname + `/../../../${fileName}`
 } else {
-  const dotenvpath =
-    process.env.NODE_ENV === 'test'
-      ? __dirname + '/../../../../../.env.test'
-      : __dirname + '/../../../../../.env'
-  console.log('DEBUG 2', __dirname, dotenvpath)
-  dotenv.config({
-    path: dotenvpath,
-  })
+  dotenvpath = __dirname + `/../../../../../${fileName}`
 }
+
+dotenv.config({ path: dotenvpath })

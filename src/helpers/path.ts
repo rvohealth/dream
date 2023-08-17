@@ -50,7 +50,7 @@ export function projectRootPath({
   const dirname = omitDirname ? undefined : __dirname
 
   if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-    return process.env.NODE_ENV === 'test'
+    return process.env.DREAM_CORE_SPEC_RUN === '1'
       ? path.join(...compact([dirname, '..', '..', filepath]))
       : path.join(...compact([dirname, '..', '..', '..', filepath]))
   } else {
@@ -62,7 +62,7 @@ export function distPath({ filepath, omitDirname }: { filepath?: string; omitDir
   const dirname = omitDirname ? undefined : __dirname
 
   if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-    return path.join(...compact([dirname, '..', '..', filepath]))
+    return path.join(...compact([dirname, '..', '..', '..', 'dist', filepath]))
   } else {
     return path.join(...compact([dirname, '..', '..', '..', '..', '..', 'dist', filepath]))
   }
@@ -75,8 +75,13 @@ export function distOrProjectRootPath({
   filepath,
   omitDirname,
 }: { filepath?: string; omitDirname?: boolean } = {}) {
-  if (process.env.NODE_ENV === 'test') return projectRootPath({ filepath, omitDirname })
+  if (process.env.DREAM_CORE_SPEC_RUN === '1') return projectRootPath({ filepath, omitDirname })
   return distPath({ filepath, omitDirname })
+}
+
+function transformExtension(filepath: string) {
+  if (process.env.DREAM_CORE_SPEC_RUN === '1') return filepath
+  return filepath.replace(/\.ts$/, '.js')
 }
 
 export async function schemaPath({ omitDirname }: { omitDirname?: boolean } = {}) {
@@ -106,7 +111,7 @@ export async function dbConfigPath({ omitDirname }: { omitDirname?: boolean } = 
 
 export async function dbSeedPath({ omitDirname }: { omitDirname?: boolean } = {}) {
   const yamlConfig = await loadDreamYamlFile()
-  return distOrProjectRootPath({ filepath: yamlConfig.db_seed_path.replace(/\.ts$/, '.js'), omitDirname })
+  return distOrProjectRootPath({ filepath: transformExtension(yamlConfig.db_seed_path), omitDirname })
 }
 
 export interface DreamYamlFile {

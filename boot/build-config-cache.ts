@@ -19,5 +19,6 @@ export default {
   await fs.writeFile(filePath, fileStr)
   await fs.writeFile(originalFilePath, fileStr)
   console.log('Done!')
+  process.exit()
 }
 buildConfigCache()

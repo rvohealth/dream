@@ -77,7 +77,8 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
-    await maybeSyncExisting(program.args)
+    // await maybeSyncExisting(program.args)
+    // await sspawn(yarncmdRunByAppConsumer('dream sync:existing', program.args))
     await sspawn(yarncmdRunByAppConsumer('dream sync:schema', program.args))
     await sspawn(yarncmdRunByAppConsumer('dream sync:associations --bypass-config-cache', program.args))
   })
@@ -90,9 +91,9 @@ program
   )
   .option('--core', 'sets core to true')
   .action(async () => {
-    await maybeSyncExisting(program.args)
+    // await maybeSyncExisting(program.args)
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(`${coreDevFlag}node dist/src/bin/sync.js`)
+    await sspawn(`${coreDevFlag}node --experimental-modules dist/boot/sync.js`)
   })
 
 program
@@ -117,8 +118,10 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
+    console.log('BUILDING ')
     await maybeSyncExisting(program.args)
     const coreDevFlag = setCoreDevelopmentFlag(program.args)
+    await sspawn('yarn build-dev')
     await sspawn(`${coreDevFlag}node dist/src/bin/build-associations.js`)
   })
 
@@ -246,7 +249,11 @@ program
     const files = program.args.filter(arg => /\.spec\.ts$/.test(arg))
     if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
       await sspawn(yarncmdRunByAppConsumer('dream sync:associations', program.args))
-      await sspawn(`DREAM_CORE_DEVELOPMENT=1 NODE_ENV=test jest --runInBand --forceExit ${files.join(' ')}`)
+      await sspawn(
+        `DREAM_CORE_DEVELOPMENT=1 NODE_ENV=test DREAM_CORE_SPEC_RUN=1 jest --runInBand --forceExit ${files.join(
+          ' '
+        )}`
+      )
     } else {
       throw 'this command is not meant for use outside core development'
     }

@@ -5,7 +5,6 @@ import ConnectionConfRetriever from '../db/connection-conf-retriever'
 async function dbDrop() {
   const connectionRetriever = new ConnectionConfRetriever()
   const primaryDbConf = connectionRetriever.getConnectionConf('primary')
-  console.log('HELLOBIRLD', primaryDbConf, process.env)
 
   console.log(`dropping ${process.env[primaryDbConf.name]}`)
   await _dropDb('primary')
