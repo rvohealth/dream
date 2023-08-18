@@ -169,14 +169,14 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
   public where<
     I extends DreamClassTransactionBuilder<DreamClass>,
     TableName extends keyof DB = InstanceType<I['dreamClass']>['table'] & keyof DB
-  >(this: I, attributes: WhereStatement<TableName>) {
+  >(this: I, attributes: WhereStatement<TableName>): Query<DreamClass> {
     return this.queryInstance().where(attributes as any)
   }
 
   public whereNot<
     I extends DreamClassTransactionBuilder<DreamClass>,
     TableName extends keyof DB = InstanceType<I['dreamClass']>['table'] & keyof DB
-  >(this: I, attributes: WhereStatement<TableName>) {
+  >(this: I, attributes: WhereStatement<TableName>): Query<DreamClass> {
     return this.queryInstance().whereNot(attributes as any)
   }
 }
