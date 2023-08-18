@@ -28,6 +28,13 @@ export async function loadDreamYamlFile() {
   return config
 }
 
+export function shouldOmitDistFolder() {
+  return (
+    process.env.DREAM_OMIT_DIST_FOLDER === '1' ||
+    (process.env.DREAM_CORE_DEVELOPMENT === '1' && process.env.DREAM_CORE_SPEC_RUN === '1')
+  )
+}
+
 let _dbConfigCache: DbConfig | null = null
 export async function loadDbConfigYamlFile() {
   if (_dbConfigCache) return _dbConfigCache
@@ -49,11 +56,13 @@ export function projectRootPath({
   const dirname = omitDirname ? undefined : __dirname
 
   if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-    return process.env.DREAM_CORE_SPEC_RUN === '1'
+    return shouldOmitDistFolder()
       ? path.join(...compact([dirname, '..', '..', '..', filepath]))
       : path.join(...compact([dirname, '..', '..', '..', '..', filepath]))
   } else {
-    return path.join(...compact([dirname, '..', '..', '..', '..', '..', '..', filepath]))
+    return shouldOmitDistFolder()
+      ? path.join(...compact([dirname, '..', '..', '..', '..', '..', filepath]))
+      : path.join(...compact([dirname, '..', '..', '..', '..', '..', '..', filepath]))
   }
 }
 

@@ -2,6 +2,7 @@ import './cli/helpers/loadEnv'
 import path from 'path'
 import { promises as fs } from 'fs'
 import { loadDbConfigYamlFile } from './cli/helpers/path'
+import compact from './cli/helpers/compact'
 
 export default async function buildConfigCache() {
   const dbConf = await loadDbConfigYamlFile()
@@ -13,9 +14,23 @@ export default {
 }
   `
 
-  await fs.mkdir(path.join(__dirname, '..', 'src', 'sync'), { recursive: true })
-  const filePath = path.join(__dirname, '..', 'src', 'sync', 'config-cache.ts')
-  const originalFilePath = path.join(__dirname, '..', '..', 'src', 'sync', 'config-cache.ts')
+  let distSyncPathParts = compact([
+    __dirname,
+    process.env.DREAM_OMIT_DIST_FOLDER === '1' ? null : '..',
+    'src',
+    'sync',
+  ])
+  let rootSyncPathParts = compact([
+    __dirname,
+    '..',
+    process.env.DREAM_OMIT_DIST_FOLDER === '1' ? null : '..',
+    'src',
+    'sync',
+  ])
+  const filePath = path.join(...distSyncPathParts, 'config-cache.ts')
+  const originalFilePath = path.join(...rootSyncPathParts, 'config-cache.ts')
+
+  await fs.mkdir(path.join(...distSyncPathParts), { recursive: true })
   await fs.writeFile(filePath, fileStr)
   await fs.writeFile(originalFilePath, fileStr)
   console.log('Done!')

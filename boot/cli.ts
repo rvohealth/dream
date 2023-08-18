@@ -12,6 +12,8 @@ import setCoreDevelopmentFlag from './cli/helpers/setCoreDevelopmentFlag'
 import yarncmdRunByAppConsumer from './cli/helpers/yarncmdRunByAppConsumer'
 import maybeSyncExisting from './cli/helpers/maybeSyncExisting'
 import developmentOrTestEnv from './cli/helpers/developmentOrTestEnv'
+import nodeOrTsnodeCmd from './cli/helpers/nodeOrTsnodeCmd'
+import omitCoreDev from './cli/helpers/omitCoreDev'
 
 const program = new Command()
 
@@ -21,11 +23,15 @@ program
   .description('g:migration <name> create a new dream migration')
   .argument('<name>', 'name of the migration')
   .option('--core', 'sets core to true')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
     await maybeSyncExisting(program.args)
     const [_, name] = program.args
-    const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(`${coreDevFlag}node dist/src/bin/generate-migration.js ${name}`)
+    await sspawn(
+      nodeOrTsnodeCmd('src/bin/generate-migration.ts', program.args, {
+        fileArgs: [name],
+      })
+    )
   })
 
 program
@@ -38,15 +44,15 @@ program
   .description('generate <name> [...attributes] create a new dream')
   .argument('<name>', 'name of the dream')
   .option('--core', 'sets core to true')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
     await maybeSyncExisting(program.args)
-    setCoreDevelopmentFlag(program.args)
     const [_, name, ...attributes] = program.args
-    const coreDevFlag = setCoreDevelopmentFlag(program.args)
+
     await sspawn(
-      `${coreDevFlag}node dist/src/bin/generate-dream.js ${name} ${attributes
-        .filter(attr => !['--core'].includes(attr))
-        .join(' ')}`
+      nodeOrTsnodeCmd('src/bin/generate-dream.ts', program.args, {
+        fileArgs: [name, ...omitCoreDev(attributes)],
+      })
     )
   })
 
@@ -56,14 +62,13 @@ program
   .description('generate:serializer <name> [...attributes] create a new serializer')
   .argument('<name>', 'name of the serializer')
   .option('--core', 'sets core to true')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
     const [_, name, ...attributes] = program.args
-
-    const coreDevFlag = setCoreDevelopmentFlag(program.args)
     await sspawn(
-      `${coreDevFlag}node dist/src/bin/generate-serializer.js ${name} ${attributes
-        .filter(attr => !['--core'].includes(attr))
-        .join(' ')}`
+      nodeOrTsnodeCmd('src/bin/generate-serializer.ts', program.args, {
+        fileArgs: [name, ...omitCoreDev(attributes)],
+      })
     )
   })
 
@@ -92,8 +97,7 @@ program
   .option('--core', 'sets core to true')
   .action(async () => {
     // await maybeSyncExisting(program.args)
-    const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(`${coreDevFlag}node --experimental-modules dist/boot/sync.js`)
+    await sspawn(nodeOrTsnodeCmd('boot/sync.ts', program.args, { nodeFlags: ['--experimental-modules'] }))
   })
 
 program
@@ -102,9 +106,9 @@ program
     'builds the preliminary type cache necessary for dream to operate. Must be run prior to anything else'
   )
   .option('--core', 'sets core to true')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
-    const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(`${coreDevFlag}node dist/boot/build-config-cache.js`)
+    await sspawn(nodeOrTsnodeCmd('boot/build-config-cache.ts', program.args))
   })
 
 program
@@ -113,20 +117,14 @@ program
     'examines your current models, building a type-map of the associations so that the ORM can understand your relational setup. This is commited to your repo, and synced to the dream repo for consumption within the underlying library.'
   )
   .option('--core', 'sets core to true')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
   .option(
     '--bypass-config-cache',
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
-    console.log('BUILDING ')
     await maybeSyncExisting(program.args)
-    const coreDevFlag = setCoreDevelopmentFlag(program.args)
-
-    // if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-    //   await sspawn('yarn build-dev')
-    // }
-
-    await sspawn(`${coreDevFlag}node dist/src/bin/build-associations.js`)
+    await sspawn(nodeOrTsnodeCmd('src/bin/build-associations.ts', program.args))
   })
 
 program
@@ -135,14 +133,14 @@ program
     'syncs the current schema, associations, and db configuration (rather than generating a new one).'
   )
   .option('--core', 'sets core to true')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
   .option(
     '--bypass-config-cache',
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
     if (!developmentOrTestEnv()) return
-    setCoreDevelopmentFlag(program.args)
-    await sspawn('node dist/boot/sync-existing-or-create-boilerplate.js')
+    await sspawn(nodeOrTsnodeCmd('boot/sync-existing-or-create-boilerplate.ts', program.args))
 
     if (!program.args.includes('--bypass-config-cache')) {
       await sspawn(yarncmdRunByAppConsumer('dream sync:config-cache', program.args))
@@ -155,28 +153,28 @@ program
     'creates a new database, seeding from local .env or .env.test if NODE_ENV=test is set for env vars'
   )
   .option('--core', 'sets core to true')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
   .option(
     '--bypass-config-cache',
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
     await maybeSyncExisting(program.args)
-    const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(`${coreDevFlag}node dist/src/bin/db-create.js`)
+    await sspawn(nodeOrTsnodeCmd('src/bin/db-create.ts', program.args))
   })
 
 program
   .command('db:migrate')
   .description('db:migrate runs any outstanding database migrations')
   .option('--core', 'sets core to true')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
   .option(
     '--bypass-config-cache',
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
     await maybeSyncExisting(program.args)
-    const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(`${coreDevFlag}node dist/src/bin/db-migrate.js`)
+    await sspawn(nodeOrTsnodeCmd('src/bin/db-migrate.ts', program.args))
 
     if (developmentOrTestEnv()) {
       await sspawn(yarncmdRunByAppConsumer('dream sync:types --bypass-config-cache', program.args))
@@ -188,16 +186,16 @@ program
   .description('db:rollback rolls back the migration')
   .option('--step <integer>', '--step <integer> number of steps back to travel')
   .option('--core', 'sets core to true')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
   .option(
     '--bypass-config-cache',
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
     await maybeSyncExisting(program.args)
-    const coreDevFlag = setCoreDevelopmentFlag(program.args)
     const stepArg = program.args.find(arg => /--step=\d+/.test(arg))
     const step = stepArg ? parseInt(stepArg!.replace('--step=', '')) : 1
-    await sspawn(`${coreDevFlag}node dist/src/bin/db-rollback.js ${step}`)
+    await sspawn(nodeOrTsnodeCmd(`src/bin/db-rollback.ts`, program.args, { fileArgs: [`${step}`] }))
     await sspawn(yarncmdRunByAppConsumer('dream sync:types --bypass-config-cache', program.args))
   })
 
@@ -207,21 +205,21 @@ program
     'drops the database, seeding from local .env or .env.test if NODE_ENV=test is set for env vars'
   )
   .option('--core', 'sets core to true')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
   .option(
     '--bypass-config-cache',
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
     await maybeSyncExisting(program.args)
-
-    const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(`${coreDevFlag}node dist/src/bin/db-drop.js`)
+    await sspawn(nodeOrTsnodeCmd(`src/bin/db-drop.ts`, program.args))
   })
 
 program
   .command('db:reset')
   .description('db:reset runs db:drop (safely), then db:create, then db:migrate')
   .option('--core', 'sets core to true')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
     await maybeSyncExisting(program.args)
     await sspawn(yarncmdRunByAppConsumer('dream db:drop --bypass-config-cache', program.args))
@@ -234,20 +232,21 @@ program
   .command('db:seed')
   .description('seeds the database using the file located in db/seed.ts')
   .option('--core', 'sets core to true')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
   .option(
     '--bypass-config-cache',
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
     await maybeSyncExisting(program.args)
-    const coreDevFlag = setCoreDevelopmentFlag(program.args)
-    await sspawn(`${coreDevFlag}node dist/src/bin/db-seed.js`)
+    await sspawn(nodeOrTsnodeCmd(`src/bin/db-seed.ts`, program.args))
   })
 
 program
   .command('spec')
   .description('runs core dev specs')
   .option('--core', 'sets core to true')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
     setCoreDevelopmentFlag(program.args)
     const files = program.args.filter(arg => /\.spec\.ts$/.test(arg))
@@ -267,11 +266,12 @@ program
   .command('console')
   .description('initiates a repl, loading the models from the development test-app into scope for easy use')
   .option('--core', 'sets core to true')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
     setCoreDevelopmentFlag(program.args)
     if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
       await sspawn(
-        `yarn dream sync:types --core && DREAM_CORE_DEVELOPMENT=1 NODE_ENV=development node ./dist/test-app/conf/repl.js`
+        `yarn dream sync:types --core && DREAM_CORE_DEVELOPMENT=1 NODE_ENV=development npx ts-node ./test-app/conf/repl.js`
       )
     } else {
       throw 'this command is not meant for use outside core development'
