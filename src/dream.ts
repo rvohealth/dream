@@ -642,6 +642,15 @@ export default class Dream {
     return this.isPersisted && now !== was
   }
 
+  public willSaveChangeToAttribute<
+    I extends Dream,
+    TableName extends I['table'],
+    Table extends DB[TableName],
+    Attr extends keyof Updateable<Table> & string
+  >(this: I, attribute: Attr): boolean {
+    return this.attributeIsDirty(attribute as any)
+  }
+
   public columns<
     I extends Dream,
     TableName extends keyof DB = I['table'] & keyof DB,
@@ -658,13 +667,21 @@ export default class Dream {
     const obj: Updateable<Table> = {}
     Object.keys(this.attributes()).forEach(column => {
       // TODO: clean up types
-      if (
-        (this.frozenAttributes as any)[column] === undefined ||
-        (this.frozenAttributes as any)[column] !== (this.attributes() as any)[column]
-      )
-        (obj as any)[column] = (this.attributes() as any)[column]
+      if (this.attributeIsDirty(column as any)) (obj as any)[column] = (this.attributes() as any)[column]
     })
     return obj
+  }
+
+  private attributeIsDirty<
+    I extends Dream,
+    TableName extends I['table'],
+    Table extends DB[TableName],
+    Attr extends keyof Updateable<Table> & string
+  >(this: I, attribute: Attr): boolean {
+    return (
+      (this.frozenAttributes as any)[attribute] === undefined ||
+      (this.frozenAttributes as any)[attribute] !== (this.attributes() as any)[attribute]
+    )
   }
 
   public async destroy<I extends Dream, TableName extends keyof DB = I['table'] & keyof DB>(
