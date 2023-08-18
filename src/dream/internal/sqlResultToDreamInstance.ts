@@ -8,7 +8,7 @@ export default function sqlResultToDreamInstance<
   DreamClass extends typeof Dream,
   TableName extends AssociationTableNames = InstanceType<DreamClass>['table'],
   Table = DB[TableName]
->(dreamClass: DreamClass, sqlResult: any) {
+>(dreamClass: DreamClass, sqlResult: any): InstanceType<DreamClass> | Dream {
   if (dreamClass.extendedBy) {
     const extendingDreamClass = dreamClass.extendedBy.find(
       extendingDreamClass => extendingDreamClass.name === sqlResult.type
