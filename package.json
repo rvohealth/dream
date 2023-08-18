@@ -11,7 +11,7 @@
     "dream": "node  --experimental-modules dist/boot/cli.js",
     "build-boot": "rm -rf dist && npx tsc -p ./tsconfig.boot.json && NODE_ENV=development yarn dream sync:existing && npx tsc -p ./tsconfig.boot.json",
     "build-boot-core": "rm -rf dist && npx tsc -p ./tsconfig.boot.json && yarn dream sync:config-cache --core && npx tsc -p ./tsconfig.boot.json",
-    "build": "rm -rf dist && yarn build-boot && npx tsc -p ./tsconfig.build.json",
+    "build": "echo \"removing existing dream build...\" && rm -rf dist && echo \"building dream boot...\" && yarn build-boot && echo \"building dream...\" && npx tsc -p ./tsconfig.build.json",
     "after-build": "cp ../../.dream.yml dist/.dream.yml",
     "build-core": "yarn before-build-core && npx tsc -p ./tsconfig.build-core.json && yarn after-build-core",
     "before-build-core": "rm -rf dist && mkdir dist && yarn build-boot-core",
