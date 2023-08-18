@@ -11,7 +11,7 @@ import MissingThroughAssociationSource from '../../../../src/exceptions/associat
 import JoinAttemptedOnMissingAssociation from '../../../../src/exceptions/associations/join-attempted-with-missing-association'
 
 describe('Query#joins through with simple associations', () => {
-  context('HasMany via a join table', () => {
+  context('explicit HasMany through', () => {
     it('sets HasMany property on the model and BelongsToProperty on the associated model', async () => {
       await BalloonSpotter.create()
       const balloon = await Latex.create()
@@ -23,7 +23,7 @@ describe('Query#joins through with simple associations', () => {
     })
   })
 
-  context('HasMany through a join table', () => {
+  context('implicit HasMany through', () => {
     it('sets HasMany property and through property on the model and BelongsToProperty on the associated model', async () => {
       await BalloonSpotter.create()
       const balloon = await Latex.create()

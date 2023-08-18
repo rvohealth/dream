@@ -14,7 +14,7 @@ import Sandbag from '../../../../test-app/app/models/Sandbag'
 import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating'
 
 describe('Query#preload through with simple associations', () => {
-  context('HasMany via a join table', () => {
+  context('explicit HasMany through', () => {
     it('sets HasMany property on the model and BelongsToProperty on the associated model', async () => {
       const balloon = await Latex.create()
       const balloonSpotter = await BalloonSpotter.create()
@@ -26,7 +26,7 @@ describe('Query#preload through with simple associations', () => {
     })
   })
 
-  context('HasMany through a join table', () => {
+  context('implicit HasMany through', () => {
     it('sets HasMany property and through property on the model and BelongsToProperty on the associated model', async () => {
       const balloon = await Latex.create()
       const balloonSpotter = await BalloonSpotter.create()
@@ -70,7 +70,7 @@ describe('Query#preload through with simple associations', () => {
     })
   })
 
-  context('HasMany via HasOne association', () => {
+  context('explicit HasMany through HasOne', () => {
     it('sets HasOne association property on the base model and the HasMany property on the assocaited model', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ user })
@@ -166,7 +166,7 @@ describe('Query#preload through with simple associations', () => {
     })
   })
 
-  context('HasMany through HasOne association', () => {
+  context('implicit HasMany through HasOne', () => {
     it('sets HasOne association property on the base model and the HasMany property on the assocaited model', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ user })
