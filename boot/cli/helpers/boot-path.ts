@@ -2,10 +2,7 @@ import path from 'path'
 import YAML from 'yaml'
 import { promises as fs } from 'fs'
 import compact from './compact'
-
-export async function loadFile(filepath: string) {
-  return await fs.readFile(filepath)
-}
+import loadFile from '../../../shared/helpers/path/loadFile'
 
 export async function writeFile(filepath: string, contents: string) {
   return await fs.writeFile(filepath, contents)

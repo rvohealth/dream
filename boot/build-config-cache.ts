@@ -1,7 +1,7 @@
 import './cli/helpers/loadEnv'
 import path from 'path'
 import { promises as fs } from 'fs'
-import { loadDbConfigYamlFile } from './cli/helpers/path'
+import { loadDbConfigYamlFile } from './cli/helpers/boot-path'
 import compact from './cli/helpers/compact'
 
 export default async function buildConfigCache() {
