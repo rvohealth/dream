@@ -13,10 +13,6 @@ export default function projectRootPath({
       ? path.join(...compact([dirname, '..', '..', '..', filepath]))
       : path.join(...compact([dirname, '..', '..', '..', '..', filepath]))
   } else {
-    console.log(
-      shouldOmitDistFolder(),
-      path.join(...compact([dirname, '..', '..', '..', '..', '..', filepath]))
-    )
     return shouldOmitDistFolder()
       ? path.join(...compact([dirname, '..', '..', '..', '..', '..', filepath]))
       : path.join(...compact([dirname, '..', '..', '..', '..', '..', '..', filepath]))
