@@ -16,7 +16,7 @@ export default async function syncExistingOrCreateBoilerplate() {
   try {
     await fs.statfs('./src/sync/config-cache.ts')
   } catch (_) {
-    console.log('missing config cache, copying boilerplate over')
+    console.log('missing config cache, copying boilerplate over', process.cwd())
     await sspawn(`cp boot/boilerplate/sync/config-cache.ts ${__dirname}/../../../src/sync/config-cache.ts`)
   }
 
