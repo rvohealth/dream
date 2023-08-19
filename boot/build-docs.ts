@@ -1,5 +1,5 @@
 import './cli/helpers/loadEnv'
-import sspawn from './cli/helpers/sspawn'
+import sspawn from '../shared/helpers/sspawn'
 import pack from '../package.json'
 
 export default async function buildDocs() {

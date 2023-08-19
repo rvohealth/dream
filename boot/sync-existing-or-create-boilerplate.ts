@@ -1,5 +1,5 @@
 import fs from 'fs/promises'
-import sspawn from './cli/helpers/sspawn'
+import sspawn from '../shared/helpers/sspawn'
 import loadDreamYamlFile from '../shared/helpers/path/loadDreamYamlFile'
 
 export default async function syncExistingOrCreateBoilerplate() {

@@ -7,7 +7,7 @@
 
 import './cli/helpers/loadEnv'
 import { Command } from 'commander'
-import sspawn from './cli/helpers/sspawn'
+import sspawn from '../shared/helpers/sspawn'
 import setCoreDevelopmentFlag from './cli/helpers/setCoreDevelopmentFlag'
 import yarncmdRunByAppConsumer from './cli/helpers/yarncmdRunByAppConsumer'
 import maybeSyncExisting from './cli/helpers/maybeSyncExisting'
