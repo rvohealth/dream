@@ -1,6 +1,6 @@
 import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import { DbConnectionType } from '../../../src/db/types'
-import { DbConnectionConfig } from '../../../src/helpers/path'
+import { DbConnectionConfig } from '../../../shared/helpers/path/types'
 
 describe('ConnectionConfRetriever', () => {
   let getConfig = () => ({
