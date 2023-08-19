@@ -1,4 +1,4 @@
-import './cli/helpers/loadEnv'
+import './cli/helpers/loadAppEnvFromBoot'
 import path from 'path'
 import { promises as fs } from 'fs'
 import compact from '../shared/helpers/compact'

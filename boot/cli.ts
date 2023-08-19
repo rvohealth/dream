@@ -5,11 +5,10 @@
 // commanderjs docs:
 // https://github.com/tj/commander.js#quick-start
 
-import './cli/helpers/loadEnv'
+import './cli/helpers/loadAppEnvFromBoot'
 import { Command } from 'commander'
 import sspawn from '../shared/helpers/sspawn'
 import setCoreDevelopmentFlag from './cli/helpers/setCoreDevelopmentFlag'
-import yarncmdRunByAppConsumer from './cli/helpers/yarncmdRunByAppConsumer'
 import maybeSyncExisting from './cli/helpers/maybeSyncExisting'
 import developmentOrTestEnv from './cli/helpers/developmentOrTestEnv'
 import nodeOrTsnodeCmd from './cli/helpers/nodeOrTsnodeCmd'

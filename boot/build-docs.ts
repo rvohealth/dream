@@ -1,4 +1,4 @@
-import './cli/helpers/loadEnv'
+import './cli/helpers/loadAppEnvFromBoot'
 import sspawn from '../shared/helpers/sspawn'
 import pack from '../package.json'
 
