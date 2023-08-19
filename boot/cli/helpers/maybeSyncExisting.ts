@@ -2,12 +2,12 @@ import fs from 'fs/promises'
 import path from 'path'
 import sspawn from '../../../shared/helpers/sspawn'
 import developmentOrTestEnv from './developmentOrTestEnv'
-import dreamOrDreamtsCmd from './dreamOrDreamtsCmd'
+import dreamjsOrDreamtsCmd from './dreamjsOrDreamtsCmd'
 
 export default async function maybeSyncExisting(programArgs: string[]) {
   if (!developmentOrTestEnv() || programArgs.includes('--bypass-config-cache')) return
 
-  await sspawn(dreamOrDreamtsCmd('sync:config-cache', programArgs))
+  await sspawn(dreamjsOrDreamtsCmd('sync:config-cache', programArgs))
 
   try {
     const pathToCheck = programArgs.includes('--core')
@@ -16,6 +16,6 @@ export default async function maybeSyncExisting(programArgs: string[]) {
     await fs.statfs(pathToCheck)
   } catch (_) {
     console.log('Missing schema file, resyncing app')
-    await sspawn(dreamOrDreamtsCmd('sync:existing', programArgs))
+    await sspawn(dreamjsOrDreamtsCmd('sync:existing', programArgs))
   }
 }
