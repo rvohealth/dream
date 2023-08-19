@@ -21,12 +21,11 @@ export default async function sync() {
         'cp ./test-app/db/associations.ts ./src/sync'
     )
   } else {
-    const updirs = shouldOmitDistFolder() ? '../../' : '../../../'
     await sspawn(
       'rm -f src/sync/schema.ts && rm -f src/sync/associations.ts && ' +
         'echo $(pwd) && ' +
-        `cp ${updirs}${yamlConf.schema_path} ./src/sync/schema.ts && ` +
-        `cp ${updirs}${yamlConf.associations_path} ./src/sync/associations.ts`
+        `cp ../../${yamlConf.schema_path} ./src/sync/schema.ts && ` +
+        `cp ../../${yamlConf.associations_path} ./src/sync/associations.ts`
     )
   }
 
