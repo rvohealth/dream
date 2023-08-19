@@ -1,7 +1,6 @@
 import fs from 'fs/promises'
 import sspawn from './cli/helpers/sspawn'
 import { loadDreamYamlFile, shouldOmitDistFolder } from './cli/helpers/path'
-import updirsToDreamRoot from './cli/helpers/updirsToDreamRoot'
 
 export default async function syncExistingOrCreateBoilerplate() {
   console.log('checking for sync folder compatibility...')
