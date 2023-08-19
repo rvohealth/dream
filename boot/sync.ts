@@ -16,14 +16,15 @@ export default async function sync() {
   const yamlConf = await loadDreamYamlFile()
   if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
     await sspawn(
-      'rm -f src/sync/schema.ts && rm -f src/sync/dream.ts && ' +
+      'rm -f src/sync/schema.ts && rm -f src/sync/associations.ts && ' +
         'cp ./test-app/db/schema.ts ./src/sync && ' +
         'cp ./test-app/db/associations.ts ./src/sync'
     )
   } else {
     const updirs = shouldOmitDistFolder() ? '../../' : '../../../'
     await sspawn(
-      'rm -f src/sync/schema.ts && rm -f src/sync/dream.ts && ' +
+      'rm -f src/sync/schema.ts && rm -f src/sync/associations.ts && ' +
+        'echo $(pwd) && ' +
         `cp ${updirs}${yamlConf.schema_path} ./src/sync/schema.ts && ` +
         `cp ${updirs}${yamlConf.associations_path} ./src/sync/associations.ts`
     )
