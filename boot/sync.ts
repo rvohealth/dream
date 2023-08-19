@@ -44,7 +44,6 @@ async function writeSchema() {
     absoluteSchemaWritePath = path.join(__dirname, '..', yamlConf.schema_path)
     absoluteSchemaPath = path.join(__dirname, '..', yamlConf.schema_path)
   }
-  console.log('DEBUG 1', shouldOmitDistFolder(), absoluteSchemaPath, absoluteSchemaWritePath)
 
   await sspawn(
     `kysely-codegen --url=postgres://${process.env[dbConf.user]}@${process.env[dbConf.host]}:${
