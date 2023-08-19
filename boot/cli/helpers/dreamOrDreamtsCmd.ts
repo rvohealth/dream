@@ -1,4 +1,3 @@
-import path from 'path'
 import setCoreDevelopmentFlag from './setCoreDevelopmentFlag'
 
 export type TypescriptFileType = `${string}.ts`
