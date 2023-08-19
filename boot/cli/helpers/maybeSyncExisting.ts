@@ -3,12 +3,12 @@ import path from 'path'
 import sspawn from './sspawn'
 import yarncmdRunByAppConsumer from './yarncmdRunByAppConsumer'
 import developmentOrTestEnv from './developmentOrTestEnv'
-import dreamOrTsdreamCmd from './dreamOrTsdreamCmd'
+import dreamOrDreamtsCmd from './dreamOrDreamtsCmd'
 
 export default async function maybeSyncExisting(programArgs: string[]) {
   if (!developmentOrTestEnv() || programArgs.includes('--bypass-config-cache')) return
 
-  await sspawn(dreamOrTsdreamCmd('sync:config-cache', programArgs))
+  await sspawn(dreamOrDreamtsCmd('sync:config-cache', programArgs))
 
   try {
     const pathToCheck = programArgs.includes('--core')
@@ -17,6 +17,6 @@ export default async function maybeSyncExisting(programArgs: string[]) {
     await fs.statfs(pathToCheck)
   } catch (_) {
     console.log('Missing schema file, resyncing app')
-    await sspawn(dreamOrTsdreamCmd('sync:existing', programArgs))
+    await sspawn(dreamOrDreamtsCmd('sync:existing', programArgs))
   }
 }

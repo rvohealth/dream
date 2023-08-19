@@ -14,7 +14,7 @@ import maybeSyncExisting from './cli/helpers/maybeSyncExisting'
 import developmentOrTestEnv from './cli/helpers/developmentOrTestEnv'
 import nodeOrTsnodeCmd from './cli/helpers/nodeOrTsnodeCmd'
 import omitCoreDev from './cli/helpers/omitCoreDev'
-import dreamOrTsdreamCmd from './cli/helpers/dreamOrTsdreamCmd'
+import dreamOrDreamtsCmd from './cli/helpers/dreamOrDreamtsCmd'
 
 const program = new Command()
 
@@ -89,10 +89,10 @@ program
   )
   .action(async () => {
     // await maybeSyncExisting(cmdargs())
-    // await sspawn(dreamOrTsdreamCmd('sync:existing', cmdargs()))
-    await sspawn(dreamOrTsdreamCmd('sync:schema', cmdargs()))
+    // await sspawn(dreamOrDreamtsCmd('sync:existing', cmdargs()))
+    await sspawn(dreamOrDreamtsCmd('sync:schema', cmdargs()))
     await sspawn(
-      dreamOrTsdreamCmd('sync:associations', cmdargs(), {
+      dreamOrDreamtsCmd('sync:associations', cmdargs(), {
         cmdArgs: ['--bypass-config-cache'],
       })
     )
@@ -154,7 +154,7 @@ program
     await sspawn(nodeOrTsnodeCmd('boot/sync-existing-or-create-boilerplate.ts', cmdargs()))
 
     if (!cmdargs().includes('--bypass-config-cache')) {
-      await sspawn(dreamOrTsdreamCmd('sync:config-cache', cmdargs()))
+      await sspawn(dreamOrDreamtsCmd('sync:config-cache', cmdargs()))
     }
   })
 
@@ -189,7 +189,7 @@ program
 
     if (developmentOrTestEnv()) {
       await sspawn(
-        dreamOrTsdreamCmd('sync:types', cmdargs(), {
+        dreamOrDreamtsCmd('sync:types', cmdargs(), {
           cmdArgs: ['--bypass-config-cache'],
         })
       )
@@ -212,7 +212,7 @@ program
     const step = stepArg ? parseInt(stepArg!.replace('--step=', '')) : 1
     await sspawn(nodeOrTsnodeCmd(`src/bin/db-rollback.ts`, cmdargs(), { fileArgs: [`${step}`] }))
     await sspawn(
-      dreamOrTsdreamCmd('sync:types', cmdargs(), {
+      dreamOrDreamtsCmd('sync:types', cmdargs(), {
         cmdArgs: ['--bypass-config-cache'],
       })
     )
@@ -242,22 +242,22 @@ program
   .action(async () => {
     await maybeSyncExisting(cmdargs())
     await sspawn(
-      dreamOrTsdreamCmd('db:drop', cmdargs(), {
+      dreamOrDreamtsCmd('db:drop', cmdargs(), {
         cmdArgs: ['--bypass-config-cache'],
       })
     )
     await sspawn(
-      dreamOrTsdreamCmd('db:create', cmdargs(), {
+      dreamOrDreamtsCmd('db:create', cmdargs(), {
         cmdArgs: ['--bypass-config-cache'],
       })
     )
     await sspawn(
-      dreamOrTsdreamCmd('db:migrate', cmdargs(), {
+      dreamOrDreamtsCmd('db:migrate', cmdargs(), {
         cmdArgs: ['--bypass-config-cache'],
       })
     )
     await sspawn(
-      dreamOrTsdreamCmd('db:seed', cmdargs(), {
+      dreamOrDreamtsCmd('db:seed', cmdargs(), {
         cmdArgs: ['--bypass-config-cache'],
       })
     )
@@ -286,7 +286,7 @@ program
     setCoreDevelopmentFlag(cmdargs())
     const files = cmdargs().filter(arg => /\.spec\.ts$/.test(arg))
     if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-      await sspawn(dreamOrTsdreamCmd('sync:associations', cmdargs()))
+      await sspawn(dreamOrDreamtsCmd('sync:associations', cmdargs()))
       await sspawn(
         `DREAM_CORE_DEVELOPMENT=1 NODE_ENV=test DREAM_CORE_SPEC_RUN=1 jest --runInBand --forceExit ${files.join(
           ' '
