@@ -14,7 +14,6 @@ export default async function buildAssociations() {
 
   const filePath = path.join(__dirname, '..', 'sync', 'associations.ts')
   const clientFilePath = await associationsPath()
-  console.log('WTF IS GOING ON WITH ASSOCIATIONS', filePath, clientFilePath)
   await fs.writeFile(filePath, fileStr)
   await fs.writeFile(clientFilePath, fileStr)
   console.log('Done!')
