@@ -1,6 +1,6 @@
 import path from 'path'
 import Dream from '../dream'
-import { loadDreamYamlFile, modelsPath, projectRootPath } from './path'
+import { loadDreamYamlFile, modelsPath } from './path'
 import pascalize from './pascalize'
 import getFiles from './getFiles'
 import importFileWithDefault from './importFileWithDefault'

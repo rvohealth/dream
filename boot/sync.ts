@@ -3,10 +3,11 @@ import pluralize from 'pluralize'
 import path from 'path'
 import { promises as fs } from 'fs'
 import sspawn from './cli/helpers/sspawn'
-import { loadDreamYamlFile, shouldOmitDistFolder } from './cli/helpers/boot-path'
-import compact from './cli/helpers/compact'
+import compact from '../shared/helpers/compact'
 import snakeify from './cli/helpers/snakeify'
 import ConnectionConfRetriever from './cli/connection-conf-retriever-primitive'
+import loadDreamYamlFile from '../shared/helpers/path/loadDreamYamlFile'
+import shouldOmitDistFolder from '../shared/helpers/path/shouldOmitDistFolder'
 
 export default async function sync() {
   console.log('writing schema...', process.env.DREAM_CORE_DEVELOPMENT)
