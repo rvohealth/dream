@@ -1,6 +1,6 @@
 import pluralize from 'pluralize'
 import pascalize from '../../../src/helpers/pascalize'
-import snakeify from '../snakeify'
+import snakeify from '../../../shared/helpers/snakeify'
 import InvalidDecimalFieldPassedToGenerator from '../../exceptions/invalid-decimal-field-passed-to-generator'
 
 export default function generateMigrationContent({

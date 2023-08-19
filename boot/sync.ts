@@ -4,13 +4,13 @@ import path from 'path'
 import { promises as fs } from 'fs'
 import sspawn from './cli/helpers/sspawn'
 import compact from '../shared/helpers/compact'
-import snakeify from './cli/helpers/snakeify'
+import snakeify from '../shared/helpers/snakeify'
 import ConnectionConfRetriever from './cli/connection-conf-retriever-primitive'
 import loadDreamYamlFile from '../shared/helpers/path/loadDreamYamlFile'
 import shouldOmitDistFolder from '../shared/helpers/path/shouldOmitDistFolder'
 
 export default async function sync() {
-  console.log('writing schema...', process.env.DREAM_CORE_DEVELOPMENT)
+  console.log('writing schema...')
   const [schema, transformedNames] = await writeSchema()
 
   console.log('syncing schema, associations, and dream config files...')

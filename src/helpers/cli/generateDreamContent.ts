@@ -2,7 +2,7 @@ import path from 'path'
 import pluralize from 'pluralize'
 import pascalize from '../../../src/helpers/pascalize'
 import camelize from '../../../src/helpers/camelize'
-import snakeify from '../../../src/helpers/snakeify'
+import snakeify from '../../../shared/helpers/snakeify'
 import uniq from '../uniq'
 import { loadDreamYamlFile } from '../path'
 

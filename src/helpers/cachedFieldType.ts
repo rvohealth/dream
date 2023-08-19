@@ -1,6 +1,6 @@
 import Dream from '../dream'
 import { DB, DBTypeCache } from '../sync/schema'
-import snakeify from './snakeify'
+import snakeify from '../../shared/helpers/snakeify'
 
 export default function cachedFieldType<
   T extends typeof Dream,

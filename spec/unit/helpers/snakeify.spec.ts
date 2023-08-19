@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import snakeify from '../../../src/helpers/snakeify'
+import snakeify from '../../../shared/helpers/snakeify'
 import User from '../../../test-app/app/models/User'
 
 describe('snakeify', () => {
