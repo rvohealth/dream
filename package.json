@@ -8,7 +8,8 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dream": "node  --experimental-modules dist/boot/cli.js",
+    "dream": "yarn dreamts",
+    "dreamjs": "node  --experimental-modules dist/boot/cli.js",
     "dreamts": "DREAM_OMIT_DIST_FOLDER=1 TS_SAFE=1 npx ts-node -r ./src/helpers/loadAppEnv.ts boot/cli.ts",
     "dreamts-core": "DREAM_OMIT_DIST_FOLDER=1 TS_SAFE=1 npx ts-node -r ./src/helpers/loadEnv.ts boot/cli.ts",
     "build-boot": "rm -rf dist && npx tsc -p ./tsconfig.boot.json && NODE_ENV=development yarn dream sync:existing && npx tsc -p ./tsconfig.boot.json",
