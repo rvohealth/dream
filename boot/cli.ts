@@ -82,6 +82,7 @@ program
   .alias('sync:all')
   .description('runs yarn dream sync:schema, then yarn dream sync:associations')
   .option('--core', 'sets core to true')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
   .option(
     '--bypass-config-cache',
     'bypasses running type cache build (this is typically used internally only)'
@@ -104,6 +105,7 @@ program
     'sync introspects your database, updating your schema to reflect, and then syncs the new schema with the installed dream node module, allowing it provide your schema to the underlying kysely integration'
   )
   .option('--core', 'sets core to true')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
     // await maybeSyncExisting(cmdargs())
     await sspawn(nodeOrTsnodeCmd('boot/sync.ts', cmdargs(), { nodeFlags: ['--experimental-modules'] }))
