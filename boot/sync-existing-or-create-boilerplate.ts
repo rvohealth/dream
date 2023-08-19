@@ -1,6 +1,7 @@
 import fs from 'fs/promises'
 import sspawn from './cli/helpers/sspawn'
 import { loadDreamYamlFile, shouldOmitDistFolder } from './cli/helpers/path'
+import updirsToDreamRoot from './cli/helpers/updirsToDreamRoot'
 
 export default async function syncExistingOrCreateBoilerplate() {
   console.log('checking for sync folder compatibility...')
@@ -17,8 +18,7 @@ export default async function syncExistingOrCreateBoilerplate() {
     await fs.statfs('./src/sync/config-cache.ts')
   } catch (_) {
     console.log('missing config cache, copying boilerplate over', process.cwd())
-    const updirs = shouldOmitDistFolder() ? '/../../' : '/../../../'
-    await sspawn(`cp boot/boilerplate/sync/config-cache.ts ${__dirname}${updirs}src/sync/config-cache.ts`)
+    await sspawn(`cp boot/boilerplate/sync/config-cache.ts src/sync/config-cache.ts`)
   }
 
   try {
