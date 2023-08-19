@@ -1,19 +1,14 @@
 import path from 'path'
 import YAML from 'yaml'
-import { promises as fs } from 'fs'
 import compact from './compact'
-import importFileWithDefault from './importFileWithDefault'
 import _loadFile from '../../shared/helpers/path/loadFile'
+import _writeFile from '../../shared/helpers/path/writeFile'
+import _importFile from '../../shared/helpers/path/importFile'
+import { DbConfig, DreamYamlFile } from '../../shared/helpers/path/types'
 
 export const loadFile = _loadFile
-
-export async function writeFile(filepath: string, contents: string) {
-  return await fs.writeFile(filepath, contents)
-}
-
-export async function importFile(filepath: string) {
-  return await import(filepath)
-}
+export const writeFile = _writeFile
+export const importFile = _importFile
 
 export function shouldOmitDistFolder() {
   return (
@@ -120,44 +115,4 @@ export async function dbConfigPath({ omitDirname }: { omitDirname?: boolean } = 
 export async function dbSeedPath({ omitDirname }: { omitDirname?: boolean } = {}) {
   const yamlConfig = await loadDreamYamlFile()
   return distOrProjectRootPath({ filepath: transformExtension(yamlConfig.db_seed_path), omitDirname })
-}
-
-export interface DreamYamlFile {
-  models_path: string
-  serializers_path: string
-  associations_path: string
-  migrations_path: string
-  schema_path: string
-  db_config_path: string
-  db_seed_path: string
-  unit_spec_path: string
-  feature_spec_path: string
-}
-
-export interface DreamConfig {
-  db: DbConfig
-}
-
-export interface DbConfig {
-  production: {
-    primary: DbConnectionConfig
-    replica?: DbConnectionConfig
-  }
-  development: {
-    primary: DbConnectionConfig
-    replica?: DbConnectionConfig
-  }
-  test: {
-    primary: DbConnectionConfig
-    replica?: DbConnectionConfig
-  }
-}
-
-export interface DbConnectionConfig {
-  user: string
-  password: string
-  name: string
-  host: string
-  port: string
-  use_ssl?: string
 }

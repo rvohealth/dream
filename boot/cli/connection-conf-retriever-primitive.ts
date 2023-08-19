@@ -1,4 +1,4 @@
-import { DbConfig, DbConnectionConfig } from './helpers/boot-path'
+import { DbConfig, DbConnectionConfig } from '../../shared/helpers/path/types'
 
 export type DbConnectionType = 'primary' | 'replica'
 

@@ -1,4 +1,4 @@
-import { DbConfig, DbConnectionConfig } from '../helpers/path'
+import { DbConfig, DbConnectionConfig } from '../../shared/helpers/path/types'
 import { DbConnectionType } from './types'
 import configCache from '../sync/config-cache'
 
