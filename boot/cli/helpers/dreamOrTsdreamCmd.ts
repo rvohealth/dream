@@ -8,7 +8,7 @@ export default function dreamOrTsdreamCmd(
   { cmdArgs = [] }: { cmdArgs?: string[] } = {}
 ) {
   const coreDevFlag = setCoreDevelopmentFlag(programArgs)
-  const useTsnode = programArgs.includes('--tsnode')
+  const useTsnode = programArgs.includes('--tsnode') || process.env.TS_SAFE === '1'
   const dreamCmd = useTsnode ? 'tsdream' : 'dream'
   const omitDistFromPathEnv = useTsnode ? 'DREAM_OMIT_DIST_FOLDER=1 ' : ''
   const basepath = process.env.DREAM_CORE_DEVELOPMENT === '1' ? '' : '../../'
