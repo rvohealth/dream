@@ -151,7 +151,6 @@ program
   )
   .action(async () => {
     if (!developmentOrTestEnv()) return
-    console.log('DEBUGGGGG', process.argv)
     await sspawn(nodeOrTsnodeCmd('boot/sync-existing-or-create-boilerplate.ts', cmdargs()))
 
     if (!cmdargs().includes('--bypass-config-cache')) {

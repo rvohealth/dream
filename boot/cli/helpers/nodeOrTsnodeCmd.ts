@@ -13,7 +13,7 @@ export default function nodeOrTsnodeCmd(
   const omitDistFromPathEnv = useTsnode ? 'DREAM_OMIT_DIST_FOLDER=1 ' : ''
   const realFilePath = useTsnode ? filePath : path.join('dist', filePath.replace(/\.ts$/, '.js'))
   if (useTsnode) fileArgs.push('--tsnode')
-  return `${coreDevFlag}${omitDistFromPathEnv}${nodeCmd} ${nodeFlags.join(
-    ' '
-  )} ${realFilePath} ${fileArgs.join(' ')} `
+  return `${coreDevFlag}${omitDistFromPathEnv}${nodeCmd} ${
+    useTsnode ? '' : nodeFlags.join(' ')
+  } ${realFilePath} ${fileArgs.join(' ')} `
 }
