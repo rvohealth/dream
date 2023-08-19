@@ -18,6 +18,10 @@ import dreamOrTsdreamCmd from './cli/helpers/dreamOrTsdreamCmd'
 
 const program = new Command()
 
+function cmdargs() {
+  return process.argv.slice(3, process.argv.length)
+}
+
 program
   .command('generate:migration')
   .alias('g:migration')
@@ -26,10 +30,10 @@ program
   .option('--core', 'sets core to true')
   .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
-    await maybeSyncExisting(program.args)
-    const [_, name] = program.args
+    await maybeSyncExisting(cmdargs())
+    const [name] = cmdargs()
     await sspawn(
-      nodeOrTsnodeCmd('src/bin/generate-migration.ts', program.args, {
+      nodeOrTsnodeCmd('src/bin/generate-migration.ts', cmdargs(), {
         fileArgs: [name],
       })
     )
@@ -47,11 +51,11 @@ program
   .option('--core', 'sets core to true')
   .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
-    await maybeSyncExisting(program.args)
-    const [_, name, ...attributes] = program.args
+    await maybeSyncExisting(cmdargs())
+    const [name, ...attributes] = cmdargs()
 
     await sspawn(
-      nodeOrTsnodeCmd('src/bin/generate-dream.ts', program.args, {
+      nodeOrTsnodeCmd('src/bin/generate-dream.ts', cmdargs(), {
         fileArgs: [name, ...omitCoreDev(attributes)],
       })
     )
@@ -65,9 +69,9 @@ program
   .option('--core', 'sets core to true')
   .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
-    const [_, name, ...attributes] = program.args
+    const [name, ...attributes] = cmdargs()
     await sspawn(
-      nodeOrTsnodeCmd('src/bin/generate-serializer.ts', program.args, {
+      nodeOrTsnodeCmd('src/bin/generate-serializer.ts', cmdargs(), {
         fileArgs: [name, ...omitCoreDev(attributes)],
       })
     )
@@ -83,11 +87,11 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
-    // await maybeSyncExisting(program.args)
-    // await sspawn(dreamOrTsdreamCmd('sync:existing', program.args))
-    await sspawn(dreamOrTsdreamCmd('sync:schema', program.args))
+    // await maybeSyncExisting(cmdargs())
+    // await sspawn(dreamOrTsdreamCmd('sync:existing', cmdargs()))
+    await sspawn(dreamOrTsdreamCmd('sync:schema', cmdargs()))
     await sspawn(
-      dreamOrTsdreamCmd('sync:associations', program.args, {
+      dreamOrTsdreamCmd('sync:associations', cmdargs(), {
         cmdArgs: ['--bypass-config-cache'],
       })
     )
@@ -101,8 +105,8 @@ program
   )
   .option('--core', 'sets core to true')
   .action(async () => {
-    // await maybeSyncExisting(program.args)
-    await sspawn(nodeOrTsnodeCmd('boot/sync.ts', program.args, { nodeFlags: ['--experimental-modules'] }))
+    // await maybeSyncExisting(cmdargs())
+    await sspawn(nodeOrTsnodeCmd('boot/sync.ts', cmdargs(), { nodeFlags: ['--experimental-modules'] }))
   })
 
 program
@@ -113,7 +117,7 @@ program
   .option('--core', 'sets core to true')
   .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
-    await sspawn(nodeOrTsnodeCmd('boot/build-config-cache.ts', program.args))
+    await sspawn(nodeOrTsnodeCmd('boot/build-config-cache.ts', cmdargs()))
   })
 
 program
@@ -128,8 +132,8 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
-    await maybeSyncExisting(program.args)
-    await sspawn(nodeOrTsnodeCmd('src/bin/build-associations.ts', program.args))
+    await maybeSyncExisting(cmdargs())
+    await sspawn(nodeOrTsnodeCmd('src/bin/build-associations.ts', cmdargs()))
   })
 
 program
@@ -145,10 +149,10 @@ program
   )
   .action(async () => {
     if (!developmentOrTestEnv()) return
-    await sspawn(nodeOrTsnodeCmd('boot/sync-existing-or-create-boilerplate.ts', program.args))
+    await sspawn(nodeOrTsnodeCmd('boot/sync-existing-or-create-boilerplate.ts', cmdargs()))
 
-    if (!program.args.includes('--bypass-config-cache')) {
-      await sspawn(dreamOrTsdreamCmd('sync:config-cache', program.args))
+    if (!cmdargs().includes('--bypass-config-cache')) {
+      await sspawn(dreamOrTsdreamCmd('sync:config-cache', cmdargs()))
     }
   })
 
@@ -164,8 +168,8 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
-    await maybeSyncExisting(program.args)
-    await sspawn(nodeOrTsnodeCmd('src/bin/db-create.ts', program.args))
+    await maybeSyncExisting(cmdargs())
+    await sspawn(nodeOrTsnodeCmd('src/bin/db-create.ts', cmdargs()))
   })
 
 program
@@ -178,12 +182,12 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
-    await maybeSyncExisting(program.args)
-    await sspawn(nodeOrTsnodeCmd('src/bin/db-migrate.ts', program.args))
+    await maybeSyncExisting(cmdargs())
+    await sspawn(nodeOrTsnodeCmd('src/bin/db-migrate.ts', cmdargs()))
 
     if (developmentOrTestEnv()) {
       await sspawn(
-        dreamOrTsdreamCmd('sync:types', program.args, {
+        dreamOrTsdreamCmd('sync:types', cmdargs(), {
           cmdArgs: ['--bypass-config-cache'],
         })
       )
@@ -201,12 +205,12 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
-    await maybeSyncExisting(program.args)
-    const stepArg = program.args.find(arg => /--step=\d+/.test(arg))
+    await maybeSyncExisting(cmdargs())
+    const stepArg = cmdargs().find(arg => /--step=\d+/.test(arg))
     const step = stepArg ? parseInt(stepArg!.replace('--step=', '')) : 1
-    await sspawn(nodeOrTsnodeCmd(`src/bin/db-rollback.ts`, program.args, { fileArgs: [`${step}`] }))
+    await sspawn(nodeOrTsnodeCmd(`src/bin/db-rollback.ts`, cmdargs(), { fileArgs: [`${step}`] }))
     await sspawn(
-      dreamOrTsdreamCmd('sync:types', program.args, {
+      dreamOrTsdreamCmd('sync:types', cmdargs(), {
         cmdArgs: ['--bypass-config-cache'],
       })
     )
@@ -224,8 +228,8 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
-    await maybeSyncExisting(program.args)
-    await sspawn(nodeOrTsnodeCmd(`src/bin/db-drop.ts`, program.args))
+    await maybeSyncExisting(cmdargs())
+    await sspawn(nodeOrTsnodeCmd(`src/bin/db-drop.ts`, cmdargs()))
   })
 
 program
@@ -234,24 +238,24 @@ program
   .option('--core', 'sets core to true')
   .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
-    await maybeSyncExisting(program.args)
+    await maybeSyncExisting(cmdargs())
     await sspawn(
-      dreamOrTsdreamCmd('db:drop', program.args, {
+      dreamOrTsdreamCmd('db:drop', cmdargs(), {
         cmdArgs: ['--bypass-config-cache'],
       })
     )
     await sspawn(
-      dreamOrTsdreamCmd('db:create', program.args, {
+      dreamOrTsdreamCmd('db:create', cmdargs(), {
         cmdArgs: ['--bypass-config-cache'],
       })
     )
     await sspawn(
-      dreamOrTsdreamCmd('db:migrate', program.args, {
+      dreamOrTsdreamCmd('db:migrate', cmdargs(), {
         cmdArgs: ['--bypass-config-cache'],
       })
     )
     await sspawn(
-      dreamOrTsdreamCmd('db:seed', program.args, {
+      dreamOrTsdreamCmd('db:seed', cmdargs(), {
         cmdArgs: ['--bypass-config-cache'],
       })
     )
@@ -267,8 +271,8 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
-    await maybeSyncExisting(program.args)
-    await sspawn(nodeOrTsnodeCmd(`src/bin/db-seed.ts`, program.args))
+    await maybeSyncExisting(cmdargs())
+    await sspawn(nodeOrTsnodeCmd(`src/bin/db-seed.ts`, cmdargs()))
   })
 
 program
@@ -277,10 +281,10 @@ program
   .option('--core', 'sets core to true')
   .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
-    setCoreDevelopmentFlag(program.args)
-    const files = program.args.filter(arg => /\.spec\.ts$/.test(arg))
+    setCoreDevelopmentFlag(cmdargs())
+    const files = cmdargs().filter(arg => /\.spec\.ts$/.test(arg))
     if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-      await sspawn(dreamOrTsdreamCmd('sync:associations', program.args))
+      await sspawn(dreamOrTsdreamCmd('sync:associations', cmdargs()))
       await sspawn(
         `DREAM_CORE_DEVELOPMENT=1 NODE_ENV=test DREAM_CORE_SPEC_RUN=1 jest --runInBand --forceExit ${files.join(
           ' '
@@ -297,7 +301,7 @@ program
   .option('--core', 'sets core to true')
   .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
-    setCoreDevelopmentFlag(program.args)
+    setCoreDevelopmentFlag(cmdargs())
     if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
       await sspawn(
         `yarn dream sync:types --core && DREAM_CORE_DEVELOPMENT=1 NODE_ENV=development npx ts-node ./test-app/conf/repl.js`
