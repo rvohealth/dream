@@ -9,7 +9,7 @@ if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
       ? __dirname + `/../../${fileName}`
       : __dirname + `/../../../${fileName}`
 } else {
-  dotenvpath = __dirname + `/../../../../../${fileName}`
+  dotenvpath = __dirname + `/../../../../${fileName}`
 }
 
 dotenv.config({ path: dotenvpath })
