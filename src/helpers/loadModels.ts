@@ -12,7 +12,7 @@ export default async function loadModels() {
   const pathToModels = await modelsPath()
   const yamlConf = await loadDreamYamlFile()
   const modelPaths = (await getFiles(pathToModels)).filter(path =>
-    process.env.DREAM_CORE_SPEC_RUN === '1'
+    process.env.DREAM_CORE_SPEC_RUN === '1' || process.env.TS_SAFE === '1'
       ? /\.ts$/.test(path) && !/index\.ts$/.test(path)
       : /\.js$/.test(path) && !/index\.js$/.test(path)
   )
