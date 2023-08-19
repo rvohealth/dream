@@ -3,7 +3,6 @@ import { loadDreamYamlFile, migrationsPath } from '../path'
 import { promises as fs } from 'fs'
 import path from 'path'
 import db from '../../db'
-import absoluteFilePath from '../absoluteFilePath'
 
 export default async function runMigration({
   mode = 'migrate',

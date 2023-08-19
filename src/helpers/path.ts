@@ -16,6 +16,13 @@ export async function importFile(filepath: string) {
   return await import(filepath)
 }
 
+export function shouldOmitDistFolder() {
+  return (
+    process.env.DREAM_OMIT_DIST_FOLDER === '1' ||
+    (process.env.DREAM_CORE_DEVELOPMENT === '1' && process.env.DREAM_CORE_SPEC_RUN === '1')
+  )
+}
+
 let _yamlCache: DreamYamlFile | null = null
 export async function loadDreamYamlFile() {
   if (_yamlCache) return _yamlCache
@@ -50,11 +57,13 @@ export function projectRootPath({
   const dirname = omitDirname ? undefined : __dirname
 
   if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-    return process.env.DREAM_CORE_SPEC_RUN === '1'
+    return shouldOmitDistFolder()
       ? path.join(...compact([dirname, '..', '..', filepath]))
       : path.join(...compact([dirname, '..', '..', '..', filepath]))
   } else {
-    return path.join(...compact([dirname, '..', '..', '..', '..', '..', filepath]))
+    return shouldOmitDistFolder()
+      ? path.join(...compact([dirname, '..', '..', '..', '..', filepath]))
+      : path.join(...compact([dirname, '..', '..', '..', '..', '..', filepath]))
   }
 }
 
