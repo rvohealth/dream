@@ -75,7 +75,8 @@ export function distOrProjectRootPath({
   filepath,
   omitDirname,
 }: { filepath?: string; omitDirname?: boolean } = {}) {
-  if (process.env.DREAM_CORE_SPEC_RUN === '1') return projectRootPath({ filepath, omitDirname })
+  if (process.env.DREAM_OMIT_DIST_FOLDER === '1' || process.env.DREAM_CORE_SPEC_RUN === '1')
+    return projectRootPath({ filepath, omitDirname })
   return distPath({ filepath, omitDirname })
 }
 
