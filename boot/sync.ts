@@ -3,7 +3,7 @@ import pluralize from 'pluralize'
 import path from 'path'
 import { promises as fs } from 'fs'
 import sspawn from './cli/helpers/sspawn'
-import { loadDreamYamlFile } from './cli/helpers/path'
+import { loadDreamYamlFile, shouldOmitDistFolder } from './cli/helpers/path'
 import compact from './cli/helpers/compact'
 import snakeify from './cli/helpers/snakeify'
 import ConnectionConfRetriever from './cli/connection-conf-retriever-primitive'
@@ -21,10 +21,11 @@ export default async function sync() {
         'cp ./test-app/db/associations.ts ./src/sync'
     )
   } else {
+    const updirs = shouldOmitDistFolder() ? '../../' : '../../../'
     await sspawn(
       'rm -f src/sync/schema.ts && rm -f src/sync/dream.ts && ' +
-        `cp ../../${yamlConf.schema_path} ./src/sync/schema.ts && ` +
-        `cp ../../${yamlConf.associations_path} ./src/sync/associations.ts`
+        `cp ${updirs}${yamlConf.schema_path} ./src/sync/schema.ts && ` +
+        `cp ${updirs}${yamlConf.associations_path} ./src/sync/associations.ts`
     )
   }
 
