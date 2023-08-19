@@ -17,7 +17,6 @@ export default function dreamOrTsdreamCmd(
   const fullcmd = `${coreDevFlag}${omitDistFromPathEnv}yarn --cwd=${basepath}node_modules/dream ${dreamCmd} ${cmd} ${cmdArgs.join(
     ' '
   )} `
-  console.log(fullcmd)
 
   return fullcmd
 }
