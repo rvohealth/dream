@@ -20,5 +20,5 @@
     "rootDir": "./",
     "outDir": "./dist"
   },
-  "include": ["boot/**/*"]
+  "include": ["boot/**/*", "shared/**/*"]
 }
