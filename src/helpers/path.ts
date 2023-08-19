@@ -84,13 +84,12 @@ export function distOrProjectRootPath({
   filepath,
   omitDirname,
 }: { filepath?: string; omitDirname?: boolean } = {}) {
-  if (process.env.DREAM_OMIT_DIST_FOLDER === '1' || process.env.DREAM_CORE_SPEC_RUN === '1')
-    return projectRootPath({ filepath, omitDirname })
+  if (shouldOmitDistFolder()) return projectRootPath({ filepath, omitDirname })
   return distPath({ filepath, omitDirname })
 }
 
 function transformExtension(filepath: string) {
-  if (process.env.DREAM_CORE_SPEC_RUN === '1') return filepath
+  if (process.env.DREAM_CORE_SPEC_RUN === '1' || process.env.TS_SAFE === '1') return filepath
   return filepath.replace(/\.ts$/, '.js')
 }
 
