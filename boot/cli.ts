@@ -14,6 +14,7 @@ import maybeSyncExisting from './cli/helpers/maybeSyncExisting'
 import developmentOrTestEnv from './cli/helpers/developmentOrTestEnv'
 import nodeOrTsnodeCmd from './cli/helpers/nodeOrTsnodeCmd'
 import omitCoreDev from './cli/helpers/omitCoreDev'
+import dreamOrTsdreamCmd from './cli/helpers/dreamOrTsdreamCmd'
 
 const program = new Command()
 
@@ -83,9 +84,13 @@ program
   )
   .action(async () => {
     // await maybeSyncExisting(program.args)
-    // await sspawn(yarncmdRunByAppConsumer('dream sync:existing', program.args))
-    await sspawn(yarncmdRunByAppConsumer('dream sync:schema', program.args))
-    await sspawn(yarncmdRunByAppConsumer('dream sync:associations --bypass-config-cache', program.args))
+    // await sspawn(dreamOrTsdreamCmd('sync:existing', program.args))
+    await sspawn(dreamOrTsdreamCmd('sync:schema', program.args))
+    await sspawn(
+      dreamOrTsdreamCmd('sync:associations', program.args, {
+        cmdArgs: ['--bypass-config-cache'],
+      })
+    )
   })
 
 program
@@ -143,7 +148,7 @@ program
     await sspawn(nodeOrTsnodeCmd('boot/sync-existing-or-create-boilerplate.ts', program.args))
 
     if (!program.args.includes('--bypass-config-cache')) {
-      await sspawn(yarncmdRunByAppConsumer('dream sync:config-cache', program.args))
+      await sspawn(dreamOrTsdreamCmd('sync:config-cache', program.args))
     }
   })
 
@@ -177,7 +182,11 @@ program
     await sspawn(nodeOrTsnodeCmd('src/bin/db-migrate.ts', program.args))
 
     if (developmentOrTestEnv()) {
-      await sspawn(yarncmdRunByAppConsumer('dream sync:types --bypass-config-cache', program.args))
+      await sspawn(
+        dreamOrTsdreamCmd('sync:types', program.args, {
+          cmdArgs: ['--bypass-config-cache'],
+        })
+      )
     }
   })
 
@@ -196,7 +205,11 @@ program
     const stepArg = program.args.find(arg => /--step=\d+/.test(arg))
     const step = stepArg ? parseInt(stepArg!.replace('--step=', '')) : 1
     await sspawn(nodeOrTsnodeCmd(`src/bin/db-rollback.ts`, program.args, { fileArgs: [`${step}`] }))
-    await sspawn(yarncmdRunByAppConsumer('dream sync:types --bypass-config-cache', program.args))
+    await sspawn(
+      dreamOrTsdreamCmd('sync:types', program.args, {
+        cmdArgs: ['--bypass-config-cache'],
+      })
+    )
   })
 
 program
@@ -222,10 +235,26 @@ program
   .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
     await maybeSyncExisting(program.args)
-    await sspawn(yarncmdRunByAppConsumer('dream db:drop --bypass-config-cache', program.args))
-    await sspawn(yarncmdRunByAppConsumer('dream db:create --bypass-config-cache', program.args))
-    await sspawn(yarncmdRunByAppConsumer('dream db:migrate --bypass-config-cache', program.args))
-    await sspawn(yarncmdRunByAppConsumer('dream db:seed --bypass-config-cache', program.args))
+    await sspawn(
+      dreamOrTsdreamCmd('db:drop', program.args, {
+        cmdArgs: ['--bypass-config-cache'],
+      })
+    )
+    await sspawn(
+      dreamOrTsdreamCmd('db:create', program.args, {
+        cmdArgs: ['--bypass-config-cache'],
+      })
+    )
+    await sspawn(
+      dreamOrTsdreamCmd('db:migrate', program.args, {
+        cmdArgs: ['--bypass-config-cache'],
+      })
+    )
+    await sspawn(
+      dreamOrTsdreamCmd('db:seed', program.args, {
+        cmdArgs: ['--bypass-config-cache'],
+      })
+    )
   })
 
 program
@@ -251,7 +280,7 @@ program
     setCoreDevelopmentFlag(program.args)
     const files = program.args.filter(arg => /\.spec\.ts$/.test(arg))
     if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-      await sspawn(yarncmdRunByAppConsumer('dream sync:associations', program.args))
+      await sspawn(dreamOrTsdreamCmd('sync:associations', program.args))
       await sspawn(
         `DREAM_CORE_DEVELOPMENT=1 NODE_ENV=test DREAM_CORE_SPEC_RUN=1 jest --runInBand --forceExit ${files.join(
           ' '
