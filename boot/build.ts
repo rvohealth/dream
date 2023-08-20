@@ -14,7 +14,7 @@ async function build() {
   // log.write(logo() + '\n\n', { cache: true })
   log.write(c.magentaBright('building dream...'), { cache: true })
   log.write(c.magentaBright('removing existing cache...'))
-  await sspawn('rm -rf dist')
+  await sspawn('rm -rf dist && mkdir src/sync')
 
   log.write(c.magentaBright('syncing existing app schema and associations...'))
   await sspawn('NODE_ENV=development yarn dream sync:existing')
