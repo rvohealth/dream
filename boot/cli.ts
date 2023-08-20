@@ -22,6 +22,21 @@ function cmdargs() {
 }
 
 program
+  .command('build')
+  .description('build: compiles the app to javascript')
+  .option('--core', 'sets core to true')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
+  .action(async () => {
+    await maybeSyncExisting(cmdargs())
+    const [name] = cmdargs()
+    await sspawn(
+      nodeOrTsnodeCmd('boot/build.ts', cmdargs(), {
+        fileArgs: [name],
+      })
+    )
+  })
+
+program
   .command('generate:migration')
   .alias('g:migration')
   .description('g:migration <name> create a new dream migration')
