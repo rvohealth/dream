@@ -16,11 +16,11 @@ async function build() {
   log.write(c.magentaBright('removing existing cache...'))
   await sspawn('rm -rf dist')
 
-  log.write(c.magentaBright('building boot cache...'))
-  await sspawn('npx tsc -p ./tsconfig.boot.json')
-
   log.write(c.magentaBright('syncing existing app schema and associations...'))
   await sspawn('NODE_ENV=development yarn dream sync:existing')
+
+  log.write(c.magentaBright('building boot cache...'))
+  await sspawn('npx tsc -p ./tsconfig.boot.json')
 
   log.write(c.magentaBright('building dream app...'))
   await sspawn('npx tsc -p ./tsconfig.build.json')
