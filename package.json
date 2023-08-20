@@ -11,7 +11,7 @@
     "dream": "yarn dreamts",
     "dreamjs": "node  --experimental-modules dist/boot/cli.js",
     "dreamts": "DREAM_OMIT_DIST_FOLDER=1 TS_SAFE=1 npx ts-node -r ./src/helpers/loadEnv.ts boot/cli.ts",
-    "build": "yarn dream build",
+    "build": "echo \"booting dream...\" && npx tsc -p ./tsconfig.boot.json && yarn dream build",
     "build:docs": "node dist/boot/build-docs.js",
     "spec": "DREAM_CORE_DEVELOPMENT=1 yarn build-core && DREAM_CORE_DEVELOPMENT=1 yarn dream spec --core",
     "console": "yarn dream console --core",
