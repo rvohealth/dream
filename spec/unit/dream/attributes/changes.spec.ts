@@ -65,6 +65,7 @@ describe('Dream#changes', () => {
 
       await pet.save()
       expect(pet.changes()).toEqual({
+        created_at: expect.objectContaining({ was: expect.any(DateTime), now: expect.any(DateTime) }),
         species: {
           was: 'dog',
           now: 'frog',
