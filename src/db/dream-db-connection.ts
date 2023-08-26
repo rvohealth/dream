@@ -4,13 +4,17 @@ import ConnectionConfRetriever from './connection-conf-retriever'
 import { DbConnectionType } from './types'
 import { Pool } from 'pg'
 import Benchmark from '../../shared/helpers/benchmark'
+import debug from '../../shared/helpers/debug'
 
 const connectionCache = {} as any
 
 export default class DreamDbConnection {
   public static getConnection(connection: DbConnectionType) {
     const cachedConnection = connectionCache[process.env.NODE_ENV!]?.[connection]
-    if (cachedConnection) return cachedConnection
+    if (cachedConnection) {
+      console.log('RETURNING CACHED CONNECTION!!!')
+      return cachedConnection
+    }
 
     const connectionConf = new ConnectionConfRetriever().getConnectionConf(connection)
 
