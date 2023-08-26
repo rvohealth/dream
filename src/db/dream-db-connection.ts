@@ -26,6 +26,7 @@ export default class DreamDbConnection {
       port: process.env[connectionConf.port] ? parseInt(process.env[connectionConf.port]!) : 5432,
       ssl: connectionConf.use_ssl ? process.env[connectionConf.use_ssl] === '1' : false,
       allowExitOnIdle: true,
+      connectionTimeoutMillis: 7000,
       // statement_timeout: 60000,
       // query_timeout: 60000,
       // max: process.env.MAX_DB_CONNECTIONS ? parseInt(process.env.MAX_DB_CONNECTIONS!) : 10,
