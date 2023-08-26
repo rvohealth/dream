@@ -21,19 +21,22 @@ export default class DreamDbConnection {
     const benchmark = new Benchmark()
     benchmark.start()
     benchmark.mark('BEGINNING CONNECT TO DB...')
+    const pool = new Pool({
+      user: process.env[connectionConf.user] || '',
+      password: process.env[connectionConf.password] || '',
+      database: process.env[connectionConf.name],
+      host: process.env[connectionConf.host] || 'localhost',
+      port: process.env[connectionConf.port] ? parseInt(process.env[connectionConf.port]!) : 5432,
+      ssl: connectionConf.use_ssl ? process.env[connectionConf.use_ssl] === '1' : false,
+      max: process.env.MAX_DB_CONNECTIONS ? parseInt(process.env.MAX_DB_CONNECTIONS!) : 20,
+      idleTimeoutMillis: 60 * 60 * 24 * 1000,
+    })
+
     const dbConn = new Kysely<DB>({
       dialect: new PostgresDialect({
-        pool: new Pool({
-          user: process.env[connectionConf.user] || '',
-          password: process.env[connectionConf.password] || '',
-          database: process.env[connectionConf.name],
-          host: process.env[connectionConf.host] || 'localhost',
-          port: process.env[connectionConf.port] ? parseInt(process.env[connectionConf.port]!) : 5432,
-          ssl: connectionConf.use_ssl ? process.env[connectionConf.use_ssl] === '1' : false,
-          max: process.env.MAX_DB_CONNECTIONS ? parseInt(process.env.MAX_DB_CONNECTIONS!) : 20,
-          idleTimeoutMillis: 60 * 60 * 24 * 1000,
-        }),
+        pool,
         onCreateConnection: async () => {
+          console.log('NUMBER OF DB CONNECTIONS: ', pool.totalCount)
           benchmark.mark('ENDING CONNECT TO DB...')
         },
       }),
