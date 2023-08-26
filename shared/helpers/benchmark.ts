@@ -15,8 +15,10 @@ export default class Benchmark {
     if (!this._start) this.start()
     console[level](
       message,
+      `(alternate benchmark1: ${new Date().getMilliseconds() - this._startdate.getMilliseconds()})`,
       DateTime.now().diff(this._start, 'milliseconds').milliseconds,
-      `(alternate benchmark: ${new Date().getMilliseconds() - this._startdate.getMilliseconds()})`
+      `(alternate benchmark2: ${new Date().getMilliseconds() - this._startdate.getMilliseconds()})`,
+      DateTime.now().diff(this._start, 'milliseconds').milliseconds
     )
   }
 }

@@ -6,17 +6,17 @@ import { Pool } from 'pg'
 import Benchmark from '../../shared/helpers/benchmark'
 import debug from '../../shared/helpers/debug'
 
-const connectionCache = {} as any
+const connections = {} as any
 
 export default class DreamDbConnection {
-  public static getConnection(connection: DbConnectionType) {
-    const cachedConnection = connectionCache[process.env.NODE_ENV!]?.[connection]
-    if (cachedConnection) {
+  public static getConnection(connectionType: DbConnectionType) {
+    const connection = connections[connectionType]
+    if (connection) {
       console.log('RETURNING CACHED CONNECTION!!!')
-      return cachedConnection
+      return connection
     }
 
-    const connectionConf = new ConnectionConfRetriever().getConnectionConf(connection)
+    const connectionConf = new ConnectionConfRetriever().getConnectionConf(connectionType)
 
     const benchmark = new Benchmark()
     benchmark.start()
@@ -28,6 +28,7 @@ export default class DreamDbConnection {
       host: process.env[connectionConf.host] || 'localhost',
       port: process.env[connectionConf.port] ? parseInt(process.env[connectionConf.port]!) : 5432,
       ssl: connectionConf.use_ssl ? process.env[connectionConf.use_ssl] === '1' : false,
+      query_timeout: 60000,
       // max: process.env.MAX_DB_CONNECTIONS ? parseInt(process.env.MAX_DB_CONNECTIONS!) : 10,
       // idleTimeoutMillis: 60 * 60 * 24 * 1000,
     })
@@ -42,8 +43,7 @@ export default class DreamDbConnection {
       }),
     })
 
-    connectionCache[process.env.NODE_ENV!] ||= {}
-    connectionCache[process.env.NODE_ENV!][connection] = dbConn
+    connections[connectionType] = dbConn
 
     return dbConn
   }
