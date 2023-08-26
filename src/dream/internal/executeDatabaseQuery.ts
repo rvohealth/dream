@@ -1,3 +1,5 @@
+import benchmark from '../../../shared/helpers/benchmark'
+
 export default async function executeDatabaseQuery<
   Command extends 'execute' | 'executeTakeFirst' | 'executeTakeFirstOrThrow',
   ReturnType extends Command extends 'execute'
