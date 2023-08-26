@@ -26,6 +26,7 @@ export default class DreamDbConnection {
           host: process.env[connectionConf.host] || 'localhost',
           port: process.env[connectionConf.port] ? parseInt(process.env[connectionConf.port]!) : 5432,
           ssl: connectionConf.use_ssl ? process.env[connectionConf.use_ssl] === '1' : false,
+          max: process.env.MAX_DB_CONNECTIONS ? parseInt(process.env.MAX_DB_CONNECTIONS!) : 20,
         }),
         onCreateConnection: async () => {
           benchmark.mark('ENDING CONNECT TO DB...')
