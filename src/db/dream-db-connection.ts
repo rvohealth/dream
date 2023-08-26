@@ -3,6 +3,7 @@ import { DB } from '../sync/schema'
 import ConnectionConfRetriever from './connection-conf-retriever'
 import { DbConnectionType } from './types'
 import { Pool } from 'pg'
+import Benchmark from '../../shared/helpers/benchmark'
 
 const connectionCache = {} as any
 
@@ -13,6 +14,9 @@ export default class DreamDbConnection {
 
     const connectionConf = new ConnectionConfRetriever().getConnectionConf(connection)
 
+    const benchmark = new Benchmark()
+    benchmark.start()
+    benchmark.mark('BEGINNING CONNECT TO DB...')
     const dbConn = new Kysely<DB>({
       dialect: new PostgresDialect({
         pool: new Pool({
@@ -23,6 +27,9 @@ export default class DreamDbConnection {
           port: process.env[connectionConf.port] ? parseInt(process.env[connectionConf.port]!) : 5432,
           ssl: connectionConf.use_ssl ? process.env[connectionConf.use_ssl] === '1' : false,
         }),
+        onCreateConnection: async () => {
+          benchmark.mark('ENDING CONNECT TO DB...')
+        },
       }),
     })
 
