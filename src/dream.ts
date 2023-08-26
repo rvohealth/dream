@@ -526,7 +526,7 @@ export default class Dream {
   private dreamTransaction: DreamTransaction | null = null
   constructor(opts?: Updateable<DB[keyof DB]>) {
     if (opts) {
-      const marshalledOpts = this.setAttributes(opts)
+      const marshalledOpts = this.setAttributes(opts as any)
 
       // if id is set, then we freeze attributes after setting them, so that
       // any modifications afterwards will indicate updates.
