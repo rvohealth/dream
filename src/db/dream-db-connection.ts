@@ -11,10 +11,7 @@ const connections = {} as any
 export default class DreamDbConnection {
   public static getConnection(connectionType: DbConnectionType) {
     const connection = connections[connectionType]
-    if (connection) {
-      console.log('RETURNING CACHED CONNECTION!!!')
-      return connection
-    }
+    if (connection) return connection
 
     const connectionConf = new ConnectionConfRetriever().getConnectionConf(connectionType)
 
