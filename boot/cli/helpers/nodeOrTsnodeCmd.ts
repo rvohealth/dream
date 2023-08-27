@@ -5,7 +5,11 @@ export type TypescriptFileType = `${string}.ts`
 export default function nodeOrTsnodeCmd(
   filePath: TypescriptFileType,
   programArgs: string[],
-  { nodeFlags = [], fileArgs = [] }: { nodeFlags?: string[]; fileArgs?: string[] } = {}
+  {
+    nodeFlags = [],
+    tsnodeFlags = [],
+    fileArgs = [],
+  }: { nodeFlags?: string[]; tsnodeFlags?: string[]; fileArgs?: string[] } = {}
 ) {
   const coreDevFlag = setCoreDevelopmentFlag(programArgs)
   const useTsnode = programArgs.includes('--tsnode') || process.env.TS_SAFE === '1'
@@ -16,6 +20,6 @@ export default function nodeOrTsnodeCmd(
   const nodeEnvFlag = process.env.NODE_ENV ? `NODE_ENV=${process.env.NODE_ENV} ` : ''
 
   return `${nodeEnvFlag}${coreDevFlag}${omitDistFromPathEnv}${nodeCmd} ${
-    useTsnode ? '' : nodeFlags.join(' ')
+    useTsnode ? tsnodeFlags.join(' ') : nodeFlags.join(' ')
   } ${realFilePath} ${fileArgs.join(' ')} `
 }
