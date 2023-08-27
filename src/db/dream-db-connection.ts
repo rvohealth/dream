@@ -13,18 +13,16 @@ export default class DreamDbConnection {
 
     const connectionConf = new ConnectionConfRetriever().getConnectionConf(connectionType)
 
-    const pool = new Pool({
-      user: process.env[connectionConf.user] || '',
-      password: process.env[connectionConf.password] || '',
-      database: process.env[connectionConf.name],
-      host: process.env[connectionConf.host] || 'localhost',
-      port: process.env[connectionConf.port] ? parseInt(process.env[connectionConf.port]!) : 5432,
-      ssl: connectionConf.use_ssl ? process.env[connectionConf.use_ssl] === '1' : false,
-    })
-
     const dbConn = new Kysely<DB>({
       dialect: new PostgresDialect({
-        pool,
+        pool: new Pool({
+          user: process.env[connectionConf.user] || '',
+          password: process.env[connectionConf.password] || '',
+          database: process.env[connectionConf.name],
+          host: process.env[connectionConf.host] || 'localhost',
+          port: process.env[connectionConf.port] ? parseInt(process.env[connectionConf.port]!) : 5432,
+          ssl: connectionConf.use_ssl ? process.env[connectionConf.use_ssl] === '1' : false,
+        }),
       }),
     })
 
