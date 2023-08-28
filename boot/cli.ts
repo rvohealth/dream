@@ -21,8 +21,6 @@ function cmdargs() {
   return process.argv.slice(3, process.argv.length)
 }
 
-console.log('HI!', cmdargs(), program.args)
-
 program
   .command('build')
   .description('build: compiles the app to javascript')
