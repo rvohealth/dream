@@ -65,7 +65,7 @@ describe('Dream#changes', () => {
 
       await pet.save()
       expect(pet.changes()).toEqual({
-        created_at: expect.objectContaining({ was: expect.any(DateTime), now: expect.any(DateTime) }),
+        createdAt: expect.objectContaining({ was: expect.any(DateTime), now: expect.any(DateTime) }),
         species: {
           was: 'dog',
           now: 'frog',
@@ -78,11 +78,11 @@ describe('Dream#changes', () => {
     })
 
     it('datetimes that are changed are included', async () => {
-      const originalCreatedAt = pet.created_at
+      const originalCreatedAt = pet.createdAt
       const otherDatetime = DateTime.now().minus({ minutes: 1 })
-      pet.created_at = otherDatetime
+      pet.createdAt = otherDatetime
       expect(pet.changes()).toEqual({
-        created_at: {
+        createdAt: {
           was: originalCreatedAt,
           now: otherDatetime,
         },

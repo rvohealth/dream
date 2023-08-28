@@ -20,19 +20,19 @@ describe('Dream.create', () => {
     expect(typeof user!.id).toBe('string')
   })
 
-  it('sets created_at', async () => {
+  it('sets createdAt', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    expect(user!.created_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+    expect(user!.createdAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
     const reloadedUser = await User.find(user.id)
-    expect(reloadedUser!.created_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+    expect(reloadedUser!.createdAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
   })
 
-  it('sets updated_at', async () => {
+  it('sets updatedAt', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const now = DateTime.now()
-    expect(user!.updated_at.toSeconds()).toBeWithin(1, now.toSeconds())
+    expect(user!.updatedAt.toSeconds()).toBeWithin(1, now.toSeconds())
     const reloadedUser = await User.find(user.id)
-    expect(reloadedUser!.updated_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+    expect(reloadedUser!.updatedAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
   })
 
   context('given a transaction', () => {
@@ -59,9 +59,9 @@ describe('Dream.create', () => {
     it('sets the foreign key on this object', async () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
       const composition = await Composition.create({ user })
-      expect(composition.user_id).toEqual(user.id)
+      expect(composition.userId).toEqual(user.id)
       const reloadedComposition = await Composition.find(composition.id)
-      expect(reloadedComposition!.user_id).toEqual(user.id)
+      expect(reloadedComposition!.userId).toEqual(user.id)
     })
 
     it('sets the reference to that model', async () => {
@@ -76,11 +76,11 @@ describe('Dream.create', () => {
         const post = await Post.create({ user })
         const rating = await Rating.create({ user, rateable: post })
 
-        expect(rating.rateable_id).toEqual(post.id)
-        expect(rating.rateable_type).toEqual('Post')
+        expect(rating.rateableId).toEqual(post.id)
+        expect(rating.rateableType).toEqual('Post')
         const reloadedRating = await Rating.find(rating.id)
-        expect(reloadedRating!.rateable_id).toEqual(post.id)
-        expect(reloadedRating!.rateable_type).toEqual('Post')
+        expect(reloadedRating!.rateableId).toEqual(post.id)
+        expect(reloadedRating!.rateableType).toEqual('Post')
       })
 
       it('sets the reference to that model', async () => {
@@ -123,7 +123,7 @@ describe('Dream.create', () => {
         const user = User.new({ email: 'fred@fred', password: 'howyadoin' })
         const composition = await Composition.create({ content: 'howyadoin', user })
 
-        expect(typeof composition.user_id).toBe('string')
+        expect(typeof composition.userId).toBe('string')
         expect(composition.user.isPersisted).toBe(true)
         expect(composition.user).toMatchDreamModel(user)
       })
@@ -131,14 +131,14 @@ describe('Dream.create', () => {
       context('the associated model is polymorphic', () => {
         it('stores the foreign key type as well as the foreign key id', async () => {
           const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-          const post = Post.new({ user_id: user.id })
+          const post = Post.new({ userId: user.id })
           const rating = await Rating.create({ user, rateable: post })
 
-          expect(rating.rateable_id).toEqual(post.id)
-          expect(rating.rateable_type).toEqual('Post')
+          expect(rating.rateableId).toEqual(post.id)
+          expect(rating.rateableType).toEqual('Post')
           const reloadedRating = await Rating.find(rating.id)
-          expect(reloadedRating!.rateable_id).toEqual(post.id)
-          expect(reloadedRating!.rateable_type).toEqual('Post')
+          expect(reloadedRating!.rateableId).toEqual(post.id)
+          expect(reloadedRating!.rateableType).toEqual('Post')
         })
       })
     })
@@ -146,7 +146,7 @@ describe('Dream.create', () => {
 
   context('passed a model to a HasOne association', () => {
     it('raises an exception', async () => {
-      const userSettings = UserSettings.new({ likes_chalupas: true })
+      const userSettings = UserSettings.new({ likesChalupas: true })
       await expect(
         // @ts-ignore
         User.create({ email: 'fred@fishman', password: 'howyadoin', userSettings })

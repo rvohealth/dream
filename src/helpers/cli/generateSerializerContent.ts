@@ -1,5 +1,5 @@
 import pluralize from 'pluralize'
-import camelize from '../camelize'
+import camelize from '../../../shared/helpers/camelize'
 import pascalize from '../pascalize'
 
 export default async function generateSerializerContent(
@@ -54,7 +54,7 @@ export default class ${serializerClass}${dataTypeCapture} extends DreamSerialize
 
         default:
           return `@Attribute(${attributeSpecifier(type)})
-  public ${name}: ${jsType(type)}`
+  public ${camelize(name)}: ${jsType(type)}`
       }
     })
     .join('\n\n  ')}

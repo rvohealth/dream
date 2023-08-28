@@ -16,13 +16,13 @@ export default class Rating extends Dream {
 
   @BelongsTo(() => User)
   public user: User
-  public user_id: IdType
+  public userId: IdType
 
   @BelongsTo(() => [Composition, Post], {
-    foreignKey: 'rateable_id',
+    foreignKey: 'rateableId',
     polymorphic: true,
   })
   public rateable: Composition | Post
-  public rateable_id: IdType
-  public rateable_type: string
+  public rateableId: IdType
+  public rateableType: string
 }

@@ -6,7 +6,7 @@ import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAs
 describe('Dream#load', () => {
   it('loads (by deferring to #preload)', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id, primary: true })
+    const composition = await Composition.create({ userId: user.id, primary: true })
 
     await user.load('compositions').execute()
     expect(user.compositions).toMatchDreamModels([composition])

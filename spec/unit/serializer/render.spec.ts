@@ -90,7 +90,7 @@ describe('DreamSerializer#render', () => {
 
   context('with decorated attributes', () => {
     context('one of the fields is a date', () => {
-      let subject = () => new MySerializer({ created_at: createdAt }).render()
+      let subject = () => new MySerializer({ createdAt: createdAt }).render()
       let createdAt: DateTime | null | undefined
 
       beforeEach(() => {
@@ -98,7 +98,7 @@ describe('DreamSerializer#render', () => {
       })
       class MySerializer extends DreamSerializer {
         @Attribute('date')
-        public created_at: string
+        public createdAt: string
       }
 
       context('the date field is a valid luxon date', () => {
@@ -124,7 +124,7 @@ describe('DreamSerializer#render', () => {
 
         it('sets the field to null on the serializer', () => {
           const serializer = new MySerializer({
-            created_at: undefined,
+            createdAt: undefined,
           })
           expect(serializer.render()).toEqual({ createdAt: null })
         })
@@ -148,9 +148,9 @@ describe('DreamSerializer#render', () => {
       it('renders all attribute keys in camel case', async () => {
         class MySerializer extends DreamSerializer {
           @Attribute('date')
-          public created_at: string
+          public createdAt: string
         }
-        const serializer = new MySerializer({ created_at: DateTime.fromFormat('2002-10-02', 'yyyy-MM-dd') })
+        const serializer = new MySerializer({ createdAt: DateTime.fromFormat('2002-10-02', 'yyyy-MM-dd') })
         expect(serializer.casing('camel').render()).toEqual({ createdAt: '2002-10-02' })
       })
     })
@@ -630,7 +630,7 @@ describe('DreamSerializer#render', () => {
         it('returns the delegated attributes in the correct casing in the payload', async () => {
           class PetSerializer extends DreamSerializer {
             @Delegate('user')
-            public updated_at: string
+            public updatedAt: string
           }
 
           const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
@@ -638,7 +638,7 @@ describe('DreamSerializer#render', () => {
           await pet.load('user').execute()
 
           const serializer = new PetSerializer(pet)
-          expect(serializer.casing('camel').render()).toEqual({ updatedAt: user.updated_at })
+          expect(serializer.casing('camel').render()).toEqual({ updatedAt: user.updatedAt })
         })
       })
     })

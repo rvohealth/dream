@@ -23,11 +23,11 @@ describe('Query#pluck', () => {
 
   context('with multiple fields', () => {
     it('should return multi-dimensional array', async () => {
-      const plucked = await User.order('id').pluck('id', 'created_at')
+      const plucked = await User.order('id').pluck('id', 'createdAt')
       expect(plucked).toEqual([
-        [user1.id, user1.created_at],
-        [user2.id, user2.created_at],
-        [user3.id, user3.created_at],
+        [user1.id, user1.createdAt],
+        [user2.id, user2.createdAt],
+        [user3.id, user3.createdAt],
       ])
     })
   })

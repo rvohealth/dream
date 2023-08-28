@@ -14,7 +14,7 @@ describe('Dream#associationQuery', () => {
       const recentComposition = await Composition.create({ user })
       const olderComposition = await Composition.create({
         user,
-        created_at: DateTime.now().minus({ year: 1 }),
+        createdAt: DateTime.now().minus({ year: 1 }),
       })
 
       expect(await user.associationQuery('recentCompositions').all()).toMatchDreamModels([recentComposition])
@@ -29,7 +29,7 @@ describe('Dream#associationQuery', () => {
         const recentComposition = await Composition.create({ user })
         const olderComposition = await Composition.create({
           user,
-          created_at: DateTime.now().minus({ year: 1 }),
+          createdAt: DateTime.now().minus({ year: 1 }),
         })
 
         const compositionAsset1 = await CompositionAsset.create({ composition: recentComposition })
@@ -110,7 +110,7 @@ describe('Dream#associationQuery', () => {
       const recentComposition = await Composition.create({ user })
       const olderComposition = await Composition.create({
         user,
-        created_at: DateTime.now().minus({ year: 1 }),
+        createdAt: DateTime.now().minus({ year: 1 }),
       })
 
       await Dream.transaction(async txn => {

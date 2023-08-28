@@ -20,8 +20,8 @@ export default class MealType extends Dream {
   }
 
   public id: IdType
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 }\
 `
       )
@@ -51,9 +51,9 @@ export default class User extends Dream {
 
   public id: IdType
   public email: string
-  public password_digest: string
-  public created_at: DateTime
-  public updated_at: DateTime
+  public passwordDigest: string
+  public createdAt: DateTime
+  public updatedAt: DateTime
 }\
 `
         )
@@ -92,9 +92,9 @@ export default class Chalupa extends Dream {
   public id: IdType
   public topping: ToppingEnum
   public protein: ProteinEnum
-  public existing_enum: MyExistingEnumEnum
-  public created_at: DateTime
-  public updated_at: DateTime
+  public existingEnum: MyExistingEnumEnum
+  public createdAt: DateTime
+  public updatedAt: DateTime
 }\
 `
         )
@@ -106,7 +106,7 @@ export default class Chalupa extends Dream {
         const res = await generateDreamContent('user', ['chalupa_count:integer'], {
           useUUID: false,
         })
-        expectSingleColumnWithType(res, 'chalupa_count', 'number', 'integer')
+        expectSingleColumnWithType(res, 'chalupaCount', 'number', 'integer')
       })
     })
 
@@ -115,7 +115,7 @@ export default class Chalupa extends Dream {
         const res = await generateDreamContent('user', ['chalupa_count:decimal'], {
           useUUID: false,
         })
-        expectSingleColumnWithType(res, 'chalupa_count', 'number', 'decimal')
+        expectSingleColumnWithType(res, 'chalupaCount', 'number', 'decimal')
       })
     })
 
@@ -124,7 +124,7 @@ export default class Chalupa extends Dream {
         const res = await generateDreamContent('user', ['chalupa_count:float'], {
           useUUID: false,
         })
-        expectSingleColumnWithType(res, 'chalupa_count', 'number', 'float')
+        expectSingleColumnWithType(res, 'chalupaCount', 'number', 'float')
       })
     })
 
@@ -133,7 +133,7 @@ export default class Chalupa extends Dream {
         const res = await generateDreamContent('user', ['chalupafied_at:datetime'], {
           useUUID: false,
         })
-        expectSingleColumnWithType(res, 'chalupafied_at', 'DateTime', 'datetime')
+        expectSingleColumnWithType(res, 'chalupafiedAt', 'DateTime', 'datetime')
       })
     })
 
@@ -142,7 +142,7 @@ export default class Chalupa extends Dream {
         const res = await generateDreamContent('user', ['chalupafied_at:timestamp'], {
           useUUID: false,
         })
-        expectSingleColumnWithType(res, 'chalupafied_at', 'DateTime', 'datetime')
+        expectSingleColumnWithType(res, 'chalupafiedAt', 'DateTime', 'datetime')
       })
     })
 
@@ -160,7 +160,7 @@ export default class Chalupa extends Dream {
         const res = await generateDreamContent('user', ['chalupa_data:json'], {
           useUUID: false,
         })
-        expectSingleColumnWithType(res, 'chalupa_data', 'string', 'json')
+        expectSingleColumnWithType(res, 'chalupaData', 'string', 'json')
       })
     })
 
@@ -169,12 +169,12 @@ export default class Chalupa extends Dream {
         const res = await generateDreamContent('user', ['chalupa_data:jsonb'], {
           useUUID: false,
         })
-        expectSingleColumnWithType(res, 'chalupa_data', 'string', 'jsonb')
+        expectSingleColumnWithType(res, 'chalupaData', 'string', 'jsonb')
       })
     })
 
     context('relationships', () => {
-      context('when provided with a belongs_to relationship', () => {
+      context('when provided with a belongsTo relationship', () => {
         it('generates a BelongsTo relationship in model', async () => {
           const res = await generateDreamContent('composition', ['graph_node:belongs_to'], {
             useUUID: false,
@@ -196,12 +196,12 @@ export default class Composition extends Dream {
   }
 
   public id: IdType
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
   @BelongsTo(() => GraphNode)
   public graphNode: GraphNode
-  public graph_node_id: IdType
+  public graphNodeId: IdType
 }\
 `
           )
@@ -229,12 +229,12 @@ export default class CatToy extends Dream {
   }
 
   public id: IdType
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
   @BelongsTo(() => Cat)
   public cat: Cat
-  public cat_id: IdType
+  public catId: IdType
 }\
 `
             )
@@ -261,8 +261,8 @@ export default class CatToy extends Dream {
   }
 
   public id: IdType
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
   @HasMany(() => Cat)
   public cats: Cat[]
@@ -292,8 +292,8 @@ export default class CatToy extends Dream {
   }
 
   public id: IdType
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
   @HasOne(() => Cat)
   public cat: Cat
@@ -323,12 +323,12 @@ export default class Cat extends Dream {
   }
 
   public id: IdType
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
   @BelongsTo(() => GraphNode)
   public graphNode: GraphNode
-  public graph_node_id: IdType
+  public graphNodeId: IdType
 }\
 `
             )
@@ -355,12 +355,12 @@ export default class Cat extends Dream {
   }
 
   public id: IdType
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
   @BelongsTo(() => Dog)
   public dog: Dog
-  public dog_id: IdType
+  public dogId: IdType
 }\
 `
             )
@@ -387,12 +387,12 @@ export default class Cat extends Dream {
   }
 
   public id: IdType
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
   @BelongsTo(() => Dog)
   public dog: Dog
-  public dog_id: IdType
+  public dogId: IdType
 }\
 `
             )
@@ -421,23 +421,23 @@ export default class Composition extends Dream {
   }
 
   public id: IdType
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
   @BelongsTo(() => User)
   public user: User
-  public user_id: IdType
+  public userId: IdType
 
   @BelongsTo(() => Chalupa)
   public chalupa: Chalupa
-  public chalupa_id: IdType
+  public chalupaId: IdType
 }\
 `
           )
         })
       })
 
-      context('when provided with a has_one relationship', () => {
+      context('when provided with a hasOne relationship', () => {
         it('generates a HasOne relationship in model', async () => {
           const res = await generateDreamContent('composition', ['user:has_one'], {
             useUUID: false,
@@ -459,8 +459,8 @@ export default class Composition extends Dream {
   }
 
   public id: IdType
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
   @HasOne(() => User)
   public user: User
@@ -470,7 +470,7 @@ export default class Composition extends Dream {
         })
       })
 
-      context('when provided with a has_many relationship', () => {
+      context('when provided with a hasMany relationship', () => {
         it('generates a HasMany relationship in model', async () => {
           const res = await generateDreamContent('user', ['composition:has_many'], {
             useUUID: false,
@@ -492,8 +492,8 @@ export default class User extends Dream {
   }
 
   public id: IdType
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
   @HasMany(() => Composition)
   public compositions: Composition[]
@@ -525,12 +525,12 @@ export default class Composition extends Dream {
   }
 
   public id: IdType
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
   @BelongsTo(() => User)
   public user: User
-  public user_id: IdType
+  public userId: IdType
 }\
 `
           )
@@ -558,8 +558,8 @@ export default class User extends Dream {
 
   public id: IdType
   public ${name}: ${type}
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 }\
 `
   )

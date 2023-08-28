@@ -35,7 +35,7 @@ describe('Dream#destroyAssociation', () => {
     it('destroys the related association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const createdAt = DateTime.now().minus({ days: 1 })
-      const userSettings = await user.createAssociation('userSettings', { created_at: createdAt })
+      const userSettings = await user.createAssociation('userSettings', { createdAt: createdAt })
       expect(await user.associationQuery('userSettings').all()).toMatchDreamModels([userSettings])
 
       await user.destroyAssociation('userSettings')
@@ -57,7 +57,7 @@ describe('Dream#destroyAssociation', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const post = await Post.create({ user, body: 'howyadoin' })
       const createdAt = DateTime.now().minus({ days: 1 })
-      const postVisibility = await post.createAssociation('postVisibility', { created_at: createdAt })
+      const postVisibility = await post.createAssociation('postVisibility', { createdAt: createdAt })
       expect(await post.associationQuery('postVisibility').first()).toMatchDreamModel(postVisibility)
 
       await post.destroyAssociation('postVisibility')

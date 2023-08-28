@@ -16,14 +16,14 @@ export default class BalloonSpotterBalloon extends Dream {
   }
 
   public id: IdType
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
   @BelongsTo(() => BalloonSpotter)
   public balloonSpotter: BalloonSpotter
-  public balloon_spotter_id: IdType
+  public balloonSpotterId: IdType
 
-  @BelongsTo(() => Balloon, { foreignKey: 'balloon_id' })
+  @BelongsTo(() => Balloon, { foreignKey: 'balloonId' })
   public balloon: Balloon
-  public balloon_id: IdType
+  public balloonId: IdType
 }

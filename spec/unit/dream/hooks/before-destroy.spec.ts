@@ -5,9 +5,9 @@ import User from '../../../../test-app/app/models/User'
 describe('Dream BeforeDestroy decorator', () => {
   it('runs the method before destroying a record', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id })
+    const composition = await Composition.create({ userId: user.id })
     const compositionAsset = await CompositionAsset.create({
-      composition_id: composition.id,
+      compositionId: composition.id,
       src: 'mark before destroy',
     })
 

@@ -7,7 +7,7 @@ describe('Dream AfterCreateCommit decorator', () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
     const composition = await Composition.create({
-      user_id: user.id,
+      userId: user.id,
       content: 'change me after create commit',
     })
     expect(composition.content).toEqual('changed after create commit')

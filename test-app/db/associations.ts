@@ -85,10 +85,6 @@ export default {
     "extraRateable": [
       "compositions",
       "posts"
-    ],
-    "extra_rateable": [
-      "compositions",
-      "posts"
     ]
   },
   "graph_edge_nodes": {
@@ -308,10 +304,6 @@ export interface SyncedAssociations {
     "extraRateable": [
       "compositions",
       "posts"
-    ],
-    "extra_rateable": [
-      "compositions",
-      "posts"
     ]
   },
   "graph_edge_nodes": {
@@ -489,10 +481,6 @@ export interface SyncedBelongsToAssociations {
       "users"
     ],
     "extraRateable": [
-      "compositions",
-      "posts"
-    ],
-    "extra_rateable": [
       "compositions",
       "posts"
     ]

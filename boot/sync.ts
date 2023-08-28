@@ -5,6 +5,7 @@ import { promises as fs } from 'fs'
 import sspawn from '../shared/helpers/sspawn'
 import compact from '../shared/helpers/compact'
 import snakeify from '../shared/helpers/snakeify'
+import camelize from '../shared/helpers/camelize'
 import ConnectionConfRetriever from './cli/connection-conf-retriever-primitive'
 import loadDreamYamlFile from '../shared/helpers/path/loadDreamYamlFile'
 import shouldOmitDistFolder from '../shared/helpers/path/shouldOmitDistFolder'
@@ -68,10 +69,15 @@ async function writeSchema() {
 async function enhanceSchema(file: string) {
   file = removeUnwantedExports(file)
   file = replaceBlankExport(file)
-  file = addCustomImports(file)
 
-  const interfaces = file.split(/export interface/g)
+  const interfaces = file.split(/export interface /g)
   const results = interfaces.slice(1, interfaces.length)
+  const dbInterface = results.find(str => /^DB \{/.test(str))!
+  const camelDbInterface = camelcasify(dbInterface)
+
+  file = camelcasify(file)
+  file = file.replace(camelDbInterface, dbInterface)
+  file = addCustomImports(file)
 
   const interfaceKeyIndexes = compact(results.map(result => indexInterfaceKeys(result)))
   const dreamCoercedInterfaces = results.map(result => buildDreamCoercedInterfaces(result))
@@ -136,6 +142,19 @@ function replaceBlankExport(str: string) {
   return str.replace(/export interface DB \{\}/, 'export interface DB { placeholder: {} }')
 }
 
+function camelcasify(str: string) {
+  return _camelcasify(str)
+}
+
+function _camelcasify(str: string): string {
+  const camelString = str.replace(
+    /([( .])([a-zA-Z1-3]+)_([a-z1-3])([a-z1-3]+)/g,
+    (match, p1, p2, p3, p4) => `${p1}${p2}${p3.toUpperCase()}${p4}`
+  )
+
+  return camelString === str ? camelString : _camelcasify(camelString)
+}
+
 function indexInterfaceKeys(str: string) {
   const name = str.split(' {')[0].replace(/\s/g, '')
   if (name === 'DB') return null
@@ -147,7 +166,7 @@ function indexInterfaceKeys(str: string) {
     .map(attr => attr.split(':')[0].replace(/\s/g, ''))
 
   return `export const ${pluralize.singular(name)}Columns = [\
-${keys.map(key => `'${key}'`).join(', ')}]\
+${keys.map(key => `'${camelize(key)}'`).join(', ')}]\
 `
 }
 
@@ -165,7 +184,7 @@ function buildCachedInterfaces(str: string) {
     ])
 
   return `export const ${name}TypeCache = {
-  ${keysAndValues.map(([key, value]) => `${key}: '${value}'`).join(',\n  ')}
+  ${keysAndValues.map(([key, value]) => `${camelize(key)}: '${value}'`).join(',\n  ')}
 }\
   `
 }
@@ -181,7 +200,7 @@ function buildDreamCoercedInterfaces(str: string) {
     .map(attr => [attr.split(':')[0].replace(/\s/g, ''), attr.split(':')[1].replace(/;$/, '')])
 
   return `export interface ${pluralize.singular(name)}Attributes {
-  ${keysAndValues.map(([key, value]) => `${key}: ${coercedTypeString(value)}`).join('\n  ')}
+  ${keysAndValues.map(([key, value]) => `${camelize(key)}: ${coercedTypeString(value)}`).join('\n  ')}
 }\
   `
 }

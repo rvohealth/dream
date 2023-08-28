@@ -11,16 +11,16 @@ describe('Dream HasMany association', () => {
     expect(userAssociations.length).toEqual(12)
 
     // compositions
-    expect(userAssociations[0].foreignKey()).toEqual('user_id')
+    expect(userAssociations[0].foreignKey()).toEqual('userId')
     expect(userAssociations[0].modelCB()).toEqual(Composition)
 
     // Invalid foreign key type examples
-    expect(userAssociations[1].foreignKey()).toEqual('user_id')
+    expect(userAssociations[1].foreignKey()).toEqual('userId')
     expect(userAssociations[1].modelCB()).toEqual(IncompatibleForeignKeyTypeExample)
 
     // composition assets
     expect(userAssociations[2].through).toEqual('compositions')
-    expect(userAssociations[2].foreignKey()).toEqual('user_id')
+    expect(userAssociations[2].foreignKey()).toEqual('userId')
     expect(userAssociations[2].modelCB()).toEqual(CompositionAsset)
 
     // composition asset audits
@@ -28,7 +28,7 @@ describe('Dream HasMany association', () => {
     expect(userAssociations[3].modelCB()).toEqual(CompositionAssetAudit)
 
     // balloons
-    expect(userAssociations[4].foreignKey()).toEqual('user_id')
+    expect(userAssociations[4].foreignKey()).toEqual('userId')
     expect(userAssociations[4].modelCB()).toEqual(Composition)
 
     // ensure that other model associations have not

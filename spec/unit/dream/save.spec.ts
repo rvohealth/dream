@@ -58,39 +58,39 @@ describe('Dream#save', () => {
       })
     })
 
-    it('sets created_at', async () => {
+    it('sets createdAt', async () => {
       await user.save()
-      expect(user!.created_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+      expect(user!.createdAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
       const reloadedUser = await User.find(user.id)
-      expect(reloadedUser!.created_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+      expect(reloadedUser!.createdAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
     })
 
-    context('when created_at is passed', () => {
-      it('doesn’t override created_at', async () => {
+    context('when createdAt is passed', () => {
+      it('doesn’t override createdAt', async () => {
         const createdAt = DateTime.now().minus({ day: 1 })
-        user.created_at = createdAt
+        user.createdAt = createdAt
         await user.save()
-        expect(user!.created_at.toSeconds()).toBeWithin(1, createdAt.toSeconds())
+        expect(user!.createdAt.toSeconds()).toBeWithin(1, createdAt.toSeconds())
         const reloadedUser = await User.find(user.id)
-        expect(reloadedUser!.created_at.toSeconds()).toBeWithin(1, createdAt.toSeconds())
+        expect(reloadedUser!.createdAt.toSeconds()).toBeWithin(1, createdAt.toSeconds())
       })
     })
 
-    it('sets updated_at', async () => {
+    it('sets updatedAt', async () => {
       await user.save()
-      expect(user!.updated_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+      expect(user!.updatedAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
       const reloadedUser = await User.find(user.id)
-      expect(reloadedUser!.updated_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+      expect(reloadedUser!.updatedAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
     })
 
-    context('when updated_at is passed', () => {
-      it('doesn’t override updated_at', async () => {
+    context('when updatedAt is passed', () => {
+      it('doesn’t override updatedAt', async () => {
         const updatedAt = DateTime.now().minus({ day: 1 })
-        user.updated_at = updatedAt
+        user.updatedAt = updatedAt
         await user.save()
-        expect(user!.updated_at.toSeconds()).toBeWithin(1, updatedAt.toSeconds())
+        expect(user!.updatedAt.toSeconds()).toBeWithin(1, updatedAt.toSeconds())
         const reloadedUser = await User.find(user.id)
-        expect(reloadedUser!.updated_at.toSeconds()).toBeWithin(1, updatedAt.toSeconds())
+        expect(reloadedUser!.updatedAt.toSeconds()).toBeWithin(1, updatedAt.toSeconds())
       })
     })
   })
@@ -109,16 +109,16 @@ describe('Dream#save', () => {
       expect(reloadedUser!.name).toEqual('cheese')
     })
 
-    it('sets created_at', async () => {
-      expect(user!.created_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+    it('sets createdAt', async () => {
+      expect(user!.createdAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
       const reloadedUser = await User.find(user.id)
-      expect(reloadedUser!.created_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+      expect(reloadedUser!.createdAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
     })
 
-    it('sets updated_at', async () => {
-      expect(user!.updated_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+    it('sets updatedAt', async () => {
+      expect(user!.updatedAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
       const reloadedUser = await User.find(user.id)
-      expect(reloadedUser!.updated_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+      expect(reloadedUser!.updatedAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
     })
   })
 })

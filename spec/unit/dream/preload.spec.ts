@@ -9,10 +9,10 @@ import Latex from '../../../test-app/app/models/Balloon/Latex'
 describe('Dream.preload', () => {
   it('loads a HasOne association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id })
-    const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+    const composition = await Composition.create({ userId: user.id })
+    const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
     const compositionAssetAudit = await CompositionAssetAudit.create({
-      composition_asset_id: compositionAsset.id,
+      compositionAssetId: compositionAsset.id,
     })
 
     const reloaded = await CompositionAssetAudit.preload('compositionAsset').first()

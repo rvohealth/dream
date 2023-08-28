@@ -38,9 +38,9 @@ describe('Query#joins through with simple associations', () => {
   it('joins a HasOne through HasOne association', async () => {
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id, primary: true })
+    const composition = await Composition.create({ userId: user.id, primary: true })
     const compositionAsset = await CompositionAsset.create({
-      composition_id: composition.id,
+      compositionId: composition.id,
       primary: true,
     })
 
@@ -51,8 +51,8 @@ describe('Query#joins through with simple associations', () => {
   it('joins a HasMany through HasMany association', async () => {
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id })
-    await CompositionAsset.create({ composition_id: composition.id })
+    const composition = await Composition.create({ userId: user.id })
+    await CompositionAsset.create({ compositionId: composition.id })
 
     const reloadedUsers = await new Query(User).joins('compositionAssets').all()
     expect(reloadedUsers).toMatchDreamModels([user])
@@ -62,10 +62,10 @@ describe('Query#joins through with simple associations', () => {
     it('joins a HasMany through another through association', async () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-      const composition = await Composition.create({ user_id: user.id })
-      const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+      const composition = await Composition.create({ userId: user.id })
+      const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
       const compositionAssetAudit = await CompositionAssetAudit.create({
-        composition_asset_id: compositionAsset.id,
+        compositionAssetId: compositionAsset.id,
       })
 
       const reloadedUsers = await new Query(User).joins('compositionAssetAudits').all()
@@ -78,9 +78,9 @@ describe('Query#joins through with simple associations', () => {
       it('joins', async () => {
         await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-        const composition = await Composition.create({ user_id: user.id, primary: true })
+        const composition = await Composition.create({ userId: user.id, primary: true })
         const compositionAsset = await CompositionAsset.create({
-          composition_id: composition.id,
+          compositionId: composition.id,
           primary: true,
         })
 
@@ -99,9 +99,9 @@ describe('Query#joins through with simple associations', () => {
         it('joins', async () => {
           await User.create({ email: 'fred@frewd', password: 'howyadoin' })
           const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-          const composition = await Composition.create({ user_id: user.id, primary: true })
+          const composition = await Composition.create({ userId: user.id, primary: true })
           const compositionAsset = await CompositionAsset.create({
-            composition_id: composition.id,
+            compositionId: composition.id,
             primary: true,
           })
 
@@ -121,12 +121,12 @@ describe('Query#joins through with simple associations', () => {
     context('HasOne through BelongsTo', () => {
       it('joins', async () => {
         const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-        const otherComposition = await Composition.create({ user_id: otherUser.id })
-        await CompositionAsset.create({ composition_id: otherComposition.id })
+        const otherComposition = await Composition.create({ userId: otherUser.id })
+        await CompositionAsset.create({ compositionId: otherComposition.id })
 
         const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-        const composition = await Composition.create({ user_id: user.id })
-        const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+        const composition = await Composition.create({ userId: user.id })
+        const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
 
         const reloadedCompositionAssets = await new Query(CompositionAsset)
           .joins('user', { id: user.id })
@@ -144,8 +144,8 @@ describe('Query#joins through with simple associations', () => {
       it('joins a HasMany through HasMany association', async () => {
         await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-        const composition = await Composition.create({ user_id: user.id })
-        const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+        const composition = await Composition.create({ userId: user.id })
+        const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
 
         const reloadedUsers = await new Query(User)
           .joins('compositionAssets', { id: compositionAsset.id })
@@ -163,10 +163,10 @@ describe('Query#joins through with simple associations', () => {
       it('joins a HasMany through another through association', async () => {
         await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-        const composition = await Composition.create({ user_id: user.id })
-        const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+        const composition = await Composition.create({ userId: user.id })
+        const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
         const compositionAssetAudit = await CompositionAssetAudit.create({
-          composition_asset_id: compositionAsset.id,
+          compositionAssetId: compositionAsset.id,
         })
 
         const reloadedUsers = await new Query(User)
@@ -206,7 +206,7 @@ describe('Query#joins through with simple associations', () => {
           const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
           const olderComposition = await Composition.create({
             user,
-            created_at: DateTime.now().minus({ year: 1 }),
+            createdAt: DateTime.now().minus({ year: 1 }),
           })
 
           const compositionAsset = await CompositionAsset.create({
@@ -259,7 +259,7 @@ describe('Query#joins through with simple associations', () => {
           const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
           const olderComposition = await Composition.create({
             user,
-            created_at: DateTime.now().minus({ year: 1 }),
+            createdAt: DateTime.now().minus({ year: 1 }),
           })
 
           const compositionAsset2 = await CompositionAsset.create({
@@ -276,7 +276,7 @@ describe('Query#joins through with simple associations', () => {
             const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
             const olderComposition = await Composition.create({
               user,
-              created_at: DateTime.now().minus({ year: 1 }),
+              createdAt: DateTime.now().minus({ year: 1 }),
             })
 
             const compositionAsset2 = await CompositionAsset.create({

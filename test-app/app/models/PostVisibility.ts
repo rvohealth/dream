@@ -13,8 +13,8 @@ export default class PostVisibility extends Dream {
   public id: IdType
   public visibility: boolean
   public notes: string
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
   @HasOne(() => Post)
   public post: Post

@@ -6,7 +6,7 @@ describe('Dream.joins', () => {
   it('joins a HasOne association', async () => {
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id, primary: true })
+    const composition = await Composition.create({ userId: user.id, primary: true })
 
     const reloadedUsers = await User.joins('mainComposition').all()
     expect(reloadedUsers).toMatchDreamModels([user])
@@ -16,7 +16,7 @@ describe('Dream.joins', () => {
     it('joins a HasOne association', async () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-      const composition = await Composition.create({ user_id: user.id, primary: true })
+      const composition = await Composition.create({ userId: user.id, primary: true })
       let reloadedUsers: User[]
 
       await Dream.transaction(async txn => {

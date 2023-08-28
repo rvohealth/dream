@@ -25,7 +25,7 @@ describe('Query#joinsPluck', () => {
     await EdgeNode.create({ node, edge: edge1 })
     await EdgeNode.create({ node, edge: edge2 })
 
-    const plucked = await new Query(Node).joinsPluck('edgeNodes', { edge_id: edge2.id }, 'edge', [
+    const plucked = await new Query(Node).joinsPluck('edgeNodes', { edgeId: edge2.id }, 'edge', [
       'edge.id',
       'edge.name',
     ])

@@ -25,7 +25,7 @@ import { DreamSerializer, Attribute } from 'dream'
 
 export default class UserSerializer extends DreamSerializer {
   @Attribute()
-  public logged_in_at: any
+  public loggedInAt: any
 }\
 `
         )
@@ -45,7 +45,7 @@ import User from '../models/User'
 
 export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
   @Attribute()
-  public logged_in_at: any
+  public loggedInAt: any
 }\
 `
         )
@@ -137,7 +137,7 @@ import User from '../models/User'
 
 export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
   @Attribute()
-  public logged_in_at: DateTime
+  public loggedInAt: DateTime
 }\
 `
           )
@@ -156,7 +156,7 @@ import User from '../models/User'
 
 export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
   @Attribute('date')
-  public logged_in_on: DateTime
+  public loggedInOn: DateTime
 }\
 `
           )

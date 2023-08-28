@@ -17,7 +17,7 @@ describe('Query#preload with simple associations', () => {
   context('HasOne', () => {
     it('loads the association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const composition = await Composition.create({ user_id: user.id, primary: true })
+      const composition = await Composition.create({ userId: user.id, primary: true })
 
       const reloadedUser = await new Query(User).preload('mainComposition').first()
       expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
@@ -46,8 +46,8 @@ describe('Query#preload with simple associations', () => {
   context('HasMany', () => {
     it('loads the associations', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const composition1 = await Composition.create({ user_id: user.id })
-      const composition2 = await Composition.create({ user_id: user.id })
+      const composition1 = await Composition.create({ userId: user.id })
+      const composition2 = await Composition.create({ userId: user.id })
 
       const reloadedUser = await new Query(User).preload('compositions').first()
       expect(reloadedUser!.compositions).toMatchDreamModels([composition1, composition2])
@@ -85,7 +85,7 @@ describe('Query#preload with simple associations', () => {
   context('BelongsTo', () => {
     it('loads the association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      await Composition.create({ user_id: user.id })
+      await Composition.create({ userId: user.id })
       const reloadedComposition = await new Query(Composition).preload('user').first()
       expect(reloadedComposition!.user).toMatchDreamModel(user)
     })
@@ -103,8 +103,8 @@ describe('Query#preload with simple associations', () => {
 
   it('can handle object notation', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id })
-    const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+    const composition = await Composition.create({ userId: user.id })
+    const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
 
     const reloaded = await new Query(User).preload('compositions', 'compositionAssets').first()
     expect(reloaded!.compositions).toMatchDreamModels([composition])
@@ -113,9 +113,9 @@ describe('Query#preload with simple associations', () => {
 
   it('can handle sibling preload', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id, primary: true })
-    const composition2 = await Composition.create({ user_id: user.id })
-    const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+    const composition = await Composition.create({ userId: user.id, primary: true })
+    const composition2 = await Composition.create({ userId: user.id })
+    const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
 
     const reloadedUser = await new Query(User)
       .preload('compositions')
@@ -133,7 +133,7 @@ describe('Query#preload with simple associations', () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({
           user,
-          created_at: DateTime.now().minus({ day: 1 }),
+          createdAt: DateTime.now().minus({ day: 1 }),
         })
 
         const reloadedUser = await new Query(User).preload('recentCompositions').first()
@@ -146,7 +146,7 @@ describe('Query#preload with simple associations', () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         await Composition.create({
           user,
-          created_at: DateTime.now().minus({ year: 1 }),
+          createdAt: DateTime.now().minus({ year: 1 }),
         })
 
         const reloadedUser = await new Query(User).preload('recentCompositions').first()
@@ -159,7 +159,7 @@ describe('Query#preload with simple associations', () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         await Composition.create({
           user,
-          created_at: DateTime.now().minus({ day: 1 }),
+          createdAt: DateTime.now().minus({ day: 1 }),
         })
 
         const reloadedUser = await new Query(User).preload('notRecentCompositions').first()
@@ -172,7 +172,7 @@ describe('Query#preload with simple associations', () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({
           user,
-          created_at: DateTime.now().minus({ year: 1 }),
+          createdAt: DateTime.now().minus({ year: 1 }),
         })
 
         const reloadedUser = await new Query(User).preload('notRecentCompositions').first()
@@ -253,7 +253,7 @@ describe('Query#preload with simple associations', () => {
     it('applies the default scope to the included models', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const snoopy = await Pet.create({ user, name: 'Snoopy' })
-      await Pet.create({ user, name: 'Woodstock', deleted_at: DateTime.now() })
+      await Pet.create({ user, name: 'Woodstock', deletedAt: DateTime.now() })
       const reloadedUser = await User.where({ email: user.email }).preload('pets').first()
       expect(reloadedUser!.pets).toMatchDreamModels([snoopy])
     })

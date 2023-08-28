@@ -19,7 +19,7 @@ describe('BelongsTo setters', () => {
     const composition = await Composition.create({ user })
     composition.user = otherUser
 
-    expect(composition.user_id).toEqual(otherUser.id)
+    expect(composition.userId).toEqual(otherUser.id)
   })
 
   it('the original foreign key is stored in the changedAttributes foreign key', async () => {
@@ -28,7 +28,7 @@ describe('BelongsTo setters', () => {
     const composition = await Composition.create({ user })
     composition.user = otherUser
 
-    expect(composition.changedAttributes()).toEqual({ user_id: user.id })
+    expect(composition.changedAttributes()).toEqual({ userId: user.id })
   })
 
   context('polymorphic', () => {
@@ -39,8 +39,8 @@ describe('BelongsTo setters', () => {
       const rating = await Rating.create({ user, rateable: composition })
       rating.rateable = post
 
-      expect(rating.rateable_id).toEqual(post.id)
-      expect(rating.rateable_type).toEqual('Post')
+      expect(rating.rateableId).toEqual(post.id)
+      expect(rating.rateableType).toEqual('Post')
     })
 
     it('the original foreign key and type are stored in the changedAttributes foreign key and type', async () => {
@@ -51,8 +51,8 @@ describe('BelongsTo setters', () => {
       rating.rateable = post
 
       expect(rating.changedAttributes()).toEqual({
-        rateable_id: composition.id,
-        rateable_type: 'Composition',
+        rateableId: composition.id,
+        rateableType: 'Composition',
       })
     })
   })

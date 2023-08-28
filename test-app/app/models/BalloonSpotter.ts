@@ -17,8 +17,8 @@ export default class BalloonSpotter extends Dream {
 
   public id: IdType
   public name: string
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
   @HasMany(() => BalloonSpotterBalloon)
   public balloonSpotterBalloons: BalloonSpotterBalloon[]

@@ -25,13 +25,13 @@ export default class User extends Dream {
   public id: IdType
   public type: string
   public name: string
-  public deleted_at: DateTime
-  public created_at: DateTime
-  public updated_at: DateTime
+  public deletedAt: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
   @Virtual()
   public password: string | undefined
-  public password_digest: string
+  public passwordDigest: string
 
   @Validates('contains', '@')
   @Validates('presence')
@@ -69,13 +69,13 @@ export default class User extends Dream {
 
   // recent associations
   @HasMany(() => Composition, {
-    where: { created_at: () => range(DateTime.now().minus({ week: 1 })) },
+    where: { createdAt: () => range(DateTime.now().minus({ week: 1 })) },
   })
   public recentCompositions: Composition[]
 
   // not recent associations (contrived so that we can test whereNot)
   @HasMany(() => Composition, {
-    whereNot: { created_at: () => range(DateTime.now().minus({ week: 1 })) },
+    whereNot: { createdAt: () => range(DateTime.now().minus({ week: 1 })) },
   })
   public notRecentCompositions: Composition[]
 
@@ -116,17 +116,17 @@ export default class User extends Dream {
 
   @Scope({ default: true })
   public static hideDeleted(query: Query<typeof User>) {
-    return query.where({ deleted_at: null })
+    return query.where({ deletedAt: null })
   }
 
   @BeforeSave()
   public async hashPass() {
-    if (this.password) this.password_digest = await bcrypt.hash(this.password, 4)
+    if (this.password) this.passwordDigest = await bcrypt.hash(this.password, 4)
     this.password = undefined
   }
 
   public async checkPassword(password: string) {
-    if (!this.password_digest) return false
-    return await bcrypt.compare(password, this.password_digest)
+    if (!this.passwordDigest) return false
+    return await bcrypt.compare(password, this.passwordDigest)
   }
 }

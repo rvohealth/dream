@@ -1,7 +1,7 @@
 import path from 'path'
 import pluralize from 'pluralize'
 import pascalize from '../../../src/helpers/pascalize'
-import camelize from '../../../src/helpers/camelize'
+import camelize from '../../../shared/helpers/camelize'
 import snakeify from '../../../shared/helpers/snakeify'
 import uniq from '../uniq'
 import { loadDreamYamlFile } from '../path'
@@ -88,11 +88,10 @@ export default async function generateDreamContent(
       case 'belongs_to':
         dreamImports.push('BelongsTo')
         additionalImports.push(associationImportStatement)
-        let belongsToOptions = descriptors.includes('many_to_one') ? ", { mode: 'many_to_one' }" : ''
         return `
-@BelongsTo(() => ${dreamClassNameFromAttributeName(attributeName)}${belongsToOptions})
+@BelongsTo(() => ${dreamClassNameFromAttributeName(attributeName)})
 public ${camelize(associationName)}: ${dreamClassNameFromAttributeName(attributeName)}
-public ${snakeify(associationName)}_id: ${idTypescriptType}
+public ${camelize(associationName)}Id: ${idTypescriptType}
 `
 
       case 'has_one':
@@ -113,7 +112,7 @@ public ${pluralize(camelize(associationName))}: ${dreamClassNameFromAttributeNam
 
       default:
         return `
-public ${attributeName}: ${getAttributeType(attribute)}\
+public ${camelize(attributeName)}: ${getAttributeType(attribute)}\
 `
     }
   })
@@ -129,8 +128,8 @@ public ${attributeName}: ${getAttributeType(attribute)}\
   }
 
   const timestamps = `
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 `
 
   const tableName = snakeify(pluralize(modelName.replace(/\//g, '_')))

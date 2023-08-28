@@ -16,10 +16,10 @@ export default class Collar extends Dream {
 
   public id: IdType
   public lost: boolean
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
   @BelongsTo(() => Pet)
   public pet: Pet
-  public pet_id: IdType
+  public petId: IdType
 }

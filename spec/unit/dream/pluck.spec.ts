@@ -28,10 +28,10 @@ describe('Dream#pluck', () => {
 
   context('with multiple fields', () => {
     it('should return multi-dimensional array', async () => {
-      const records = await User.order('id').pluck('id', 'created_at')
+      const records = await User.order('id').pluck('id', 'createdAt')
       expect(records).toEqual([
-        [user1.id, user1.created_at],
-        [user2.id, user2.created_at],
+        [user1.id, user1.createdAt],
+        [user2.id, user2.createdAt],
       ])
     })
   })

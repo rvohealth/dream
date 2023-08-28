@@ -10,10 +10,10 @@ export default class IncompatibleForeignKeyTypeExample extends Dream {
   }
 
   public id: IdType
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
   @BelongsTo(() => User)
   public user: User
-  public user_id: number
+  public userId: number
 }

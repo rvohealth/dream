@@ -15,7 +15,7 @@ describe('Dream#unscoped', () => {
   it('returns an unscoped query', async () => {
     await pet.destroy()
     const reloadedPet = await Pet.unscoped().find(petId)
-    expect(reloadedPet!.deleted_at).not.toBeNull()
+    expect(reloadedPet!.deletedAt).not.toBeNull()
     expect(reloadedPet).toMatchDreamModel(pet)
   })
 })

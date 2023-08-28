@@ -10,6 +10,6 @@ export default class BaseExtraRating extends Dream {
   public body: string | null
   public rating: number | null
 
-  public extra_rateable_id: IdType
-  public extra_rateable_type: string
+  public extraRateableId: IdType
+  public extraRateableType: string
 }

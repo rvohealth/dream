@@ -17,10 +17,10 @@ export default class Edge extends Dream {
 
   public id: IdType
   public name: string
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
-  @HasMany(() => EdgeNode, { foreignKey: 'edge_id' })
+  @HasMany(() => EdgeNode, { foreignKey: 'edgeId' })
   public edgeNodes: EdgeNode[]
 
   @HasMany(() => GraphNode, { through: 'edgeNodes' })

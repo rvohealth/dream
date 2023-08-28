@@ -5,9 +5,9 @@ import User from '../../../../test-app/app/models/User'
 describe('Dream AfterDestroy decorator', () => {
   it('runs the method after destroying a record', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id, content: 'howyadoin' })
+    const composition = await Composition.create({ userId: user.id, content: 'howyadoin' })
     const compositionAsset = await CompositionAsset.create({
-      composition_id: composition.id,
+      compositionId: composition.id,
       src: 'mark after destroy',
     })
 

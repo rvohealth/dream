@@ -55,7 +55,7 @@ describe('Dream initialization', () => {
     it('converts the date to a luxon date', async () => {
       const user = await User.create({ email: 'fred@', password: 'howyadoin' })
       const u = await User.find(user.id)
-      expect(u!.created_at.constructor).toEqual(DateTime)
+      expect(u!.createdAt.constructor).toEqual(DateTime)
     })
   })
 

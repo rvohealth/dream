@@ -8,13 +8,13 @@ describe('Dream HasOne association', () => {
     const userAssociations = User.associations.hasOne
     expect(userAssociations.length).toEqual(3)
 
-    expect(userAssociations[0].foreignKey()).toEqual('user_id')
+    expect(userAssociations[0].foreignKey()).toEqual('userId')
     expect(userAssociations[0].modelCB()).toEqual(UserSettings)
 
-    expect(userAssociations[1].foreignKey()).toEqual('user_id')
+    expect(userAssociations[1].foreignKey()).toEqual('userId')
     expect(userAssociations[1].modelCB()).toEqual(Composition)
 
-    expect(userAssociations[2].foreignKey()).toEqual('user_id')
+    expect(userAssociations[2].foreignKey()).toEqual('userId')
     expect(userAssociations[2].modelCB()).toEqual(CompositionAsset)
 
     // ensure that other model associations have not

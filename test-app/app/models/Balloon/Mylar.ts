@@ -10,6 +10,6 @@ export default class Mylar extends Balloon {
   @BelongsTo(() => User)
   public user: User
 
-  @HasMany(() => Sandbag, { foreignKey: 'balloon_id' })
+  @HasMany(() => Sandbag, { foreignKey: 'balloonId' })
   public sandbags: Sandbag[]
 }

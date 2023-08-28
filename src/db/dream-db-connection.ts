@@ -1,4 +1,4 @@
-import { Kysely, PostgresDialect } from 'kysely'
+import { Kysely, PostgresDialect, CamelCasePlugin } from 'kysely'
 import { DB } from '../sync/schema'
 import ConnectionConfRetriever from './connection-conf-retriever'
 import { DbConnectionType } from './types'
@@ -24,6 +24,7 @@ export default class DreamDbConnection {
           ssl: connectionConf.use_ssl ? process.env[connectionConf.use_ssl] === '1' : false,
         }),
       }),
+      plugins: [new CamelCasePlugin()],
     })
 
     connections[connectionType] = dbConn

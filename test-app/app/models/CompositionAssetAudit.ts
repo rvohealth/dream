@@ -17,7 +17,7 @@ export default class CompositionAssetAudit extends Dream {
 
   @BelongsTo(() => CompositionAsset)
   public compositionAsset: CompositionAsset
-  public composition_asset_id: IdType
+  public compositionAssetId: IdType
 
   @HasOne(() => Composition, {
     through: 'compositionAsset',

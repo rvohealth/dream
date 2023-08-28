@@ -1,669 +1,618 @@
 import { DateTime } from 'luxon'
-import { IdType, Timestamp } from '../../src/dream/types'
-import type { ColumnType } from 'kysely'
+import type { ColumnType } from "kysely";
 
-export type BalloonColorsEnum = 'blue' | 'green' | 'red'
+export type BalloonColorsEnum = "blue" | "green" | "red";
 
-export type BalloonLineMaterialsEnum = 'nylon' | 'ribbon' | 'twine' | 'yarn'
+export type BalloonLineMaterialsEnum = "nylon" | "ribbon" | "twine" | "yarn";
 
-export type BalloonTypesEnum = 'Animal' | 'Latex' | 'Mylar'
+export type BalloonTypesEnum = "Animal" | "Latex" | "Mylar";
 
-export type CatTreats = 'cat-safe chalupas (catlupas,supaloopas)' | 'chicken' | 'ocean fish' | 'tuna'
+export type CatTreats = "cat-safe chalupas (catlupas,supaloopas)" | "chicken" | "ocean fish" | "tuna";
 
-export type ExtraRatingTypesEnum = 'HeartRating' | 'StarRating'
+export type ExtraRatingTypesEnum = "HeartRating" | "StarRating";
 
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
-  : ColumnType<T, T | undefined, T>
+  : ColumnType<T, T | undefined, T>;
 
-export type Int8 = ColumnType<string, string | number | bigint, string | number | bigint>
+export type Int8 = ColumnType<string, string | number | bigint, string | number | bigint>;
 
-export type Numeric = ColumnType<string, string | number, string | number>
+export type Numeric = ColumnType<string, string | number, string | number>;
 
-export type Species = 'cat' | 'dog' | 'frog'
+export type Species = "cat" | "dog" | "frog";
+export type IdType = string | number | bigint | undefined
+export type Timestamp = ColumnType<DateTime>
 
 export interface BalloonLines {
-  id: Generated<Int8>
-  balloon_id: Int8
-  material: BalloonLineMaterialsEnum | null
-  created_at: Timestamp
-  updated_at: Timestamp
+  id: Generated<Int8>;
+  balloonId: Int8;
+  material: BalloonLineMaterialsEnum | null;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface BalloonSpotterBalloons {
-  id: Generated<Int8>
-  balloon_spotter_id: Int8
-  balloon_id: Int8
-  created_at: Timestamp
-  updated_at: Timestamp
+  id: Generated<Int8>;
+  balloonSpotterId: Int8;
+  balloonId: Int8;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface BalloonSpotters {
-  id: Generated<Int8>
-  name: string | null
-  created_at: Timestamp
-  updated_at: Timestamp
+  id: Generated<Int8>;
+  name: string | null;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface BeautifulBalloons {
-  id: Generated<Int8>
-  user_id: Int8 | null
-  type: BalloonTypesEnum
-  volume: Numeric | null
-  color: BalloonColorsEnum | null
-  multicolor: BalloonColorsEnum[] | null
-  deleted_at: Timestamp | null
-  created_at: Timestamp
-  updated_at: Timestamp
+  id: Generated<Int8>;
+  userId: Int8 | null;
+  type: BalloonTypesEnum;
+  volume: Numeric | null;
+  color: BalloonColorsEnum | null;
+  multicolor: BalloonColorsEnum[] | null;
+  deletedAt: Timestamp | null;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface Collars {
-  id: Generated<Int8>
-  pet_id: Int8
-  lost: boolean | null
-  created_at: Timestamp
-  updated_at: Timestamp
+  id: Generated<Int8>;
+  petId: Int8;
+  lost: boolean | null;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface CompositionAssetAudits {
-  id: Generated<Int8>
-  composition_asset_id: Int8
-  approval: boolean | null
-  created_at: Timestamp
-  updated_at: Timestamp
+  id: Generated<Int8>;
+  compositionAssetId: Int8;
+  approval: boolean | null;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface CompositionAssets {
-  id: Generated<Int8>
-  composition_id: Int8
-  name: string | null
-  src: string | null
-  primary: Generated<boolean | null>
-  score: Generated<number | null>
-  created_at: Timestamp
-  updated_at: Timestamp
+  id: Generated<Int8>;
+  compositionId: Int8;
+  name: string | null;
+  src: string | null;
+  primary: Generated<boolean | null>;
+  score: Generated<number | null>;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface Compositions {
-  id: Generated<Int8>
-  user_id: Int8
-  content: string | null
-  primary: Generated<boolean | null>
-  created_at: Timestamp
-  updated_at: Timestamp
+  id: Generated<Int8>;
+  userId: Int8;
+  content: string | null;
+  primary: Generated<boolean | null>;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface ExtraRatings {
-  type: ExtraRatingTypesEnum | null
-  id: Generated<Int8>
-  user_id: Int8
-  extra_rateable_id: Int8
-  extra_rateable_type: string
-  rating: number | null
-  created_at: Timestamp
-  updated_at: Timestamp
+  type: ExtraRatingTypesEnum | null;
+  id: Generated<Int8>;
+  userId: Int8;
+  extraRateableId: Int8;
+  extraRateableType: string;
+  rating: number | null;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface GraphEdgeNodes {
-  id: Generated<Int8>
-  edge_id: Int8
-  node_id: Int8
-  created_at: Timestamp
-  updated_at: Timestamp
+  id: Generated<Int8>;
+  edgeId: Int8;
+  nodeId: Int8;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface GraphEdges {
-  id: Generated<Int8>
-  name: string | null
-  created_at: Timestamp
-  updated_at: Timestamp
+  id: Generated<Int8>;
+  name: string | null;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface GraphNodes {
-  id: Generated<Int8>
-  name: string | null
-  created_at: Timestamp
-  updated_at: Timestamp
+  id: Generated<Int8>;
+  name: string | null;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface IncompatibleForeignKeyTypeExamples {
-  id: Generated<Int8>
-  user_id: number
-  created_at: Timestamp
-  updated_at: Timestamp
+  id: Generated<Int8>;
+  userId: number;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface Pets {
-  id: Generated<Int8>
-  user_id: Int8 | null
-  favorite_treats: CatTreats[] | null
-  species: Species | null
-  name: string | null
-  deleted_at: Timestamp | null
-  created_at: Timestamp
+  id: Generated<Int8>;
+  userId: Int8 | null;
+  favoriteTreats: CatTreats[] | null;
+  species: Species | null;
+  name: string | null;
+  deletedAt: Timestamp | null;
+  createdAt: Timestamp;
 }
 
 export interface Posts {
-  id: Generated<Int8>
-  user_id: Int8
-  post_visibility_id: Int8 | null
-  body: string | null
-  created_at: Timestamp
-  updated_at: Timestamp
+  id: Generated<Int8>;
+  userId: Int8;
+  postVisibilityId: Int8 | null;
+  body: string | null;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface PostVisibilities {
-  id: Generated<Int8>
-  visibility: boolean | null
-  notes: string | null
-  created_at: Timestamp
-  updated_at: Timestamp
+  id: Generated<Int8>;
+  visibility: boolean | null;
+  notes: string | null;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface Ratings {
-  id: Generated<Int8>
-  user_id: Int8
-  rateable_id: Int8
-  rateable_type: string
-  rating: number | null
-  created_at: Timestamp
-  updated_at: Timestamp
+  id: Generated<Int8>;
+  userId: Int8;
+  rateableId: Int8;
+  rateableType: string;
+  rating: number | null;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface Sandbags {
-  id: Generated<Int8>
-  balloon_id: Int8
-  weight: number | null
-  created_at: Timestamp
-  updated_at: Timestamp
+  id: Generated<Int8>;
+  balloonId: Int8;
+  weight: number | null;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface Users {
-  id: Generated<Int8>
-  name: string | null
-  email: string
-  password_digest: string
-  created_at: Timestamp
-  updated_at: Timestamp
-  deleted_at: Timestamp | null
+  id: Generated<Int8>;
+  name: string | null;
+  email: string;
+  passwordDigest: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  deletedAt: Timestamp | null;
 }
 
 export interface UserSettings {
-  id: Generated<Int8>
-  user_id: Int8
-  likes_chalupas: Generated<boolean>
-  created_at: Timestamp
-  updated_at: Timestamp
+  id: Generated<Int8>;
+  userId: Int8;
+  likesChalupas: Generated<boolean>;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface DB {
-  balloon_lines: BalloonLines
-  balloon_spotter_balloons: BalloonSpotterBalloons
-  balloon_spotters: BalloonSpotters
-  beautiful_balloons: BeautifulBalloons
-  collars: Collars
-  composition_asset_audits: CompositionAssetAudits
-  composition_assets: CompositionAssets
-  compositions: Compositions
-  extra_ratings: ExtraRatings
-  graph_edge_nodes: GraphEdgeNodes
-  graph_edges: GraphEdges
-  graph_nodes: GraphNodes
-  incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples
-  pets: Pets
-  post_visibilities: PostVisibilities
-  posts: Posts
-  ratings: Ratings
-  sandbags: Sandbags
-  user_settings: UserSettings
-  users: Users
+  balloon_lines: BalloonLines;
+  balloon_spotter_balloons: BalloonSpotterBalloons;
+  balloon_spotters: BalloonSpotters;
+  beautiful_balloons: BeautifulBalloons;
+  collars: Collars;
+  composition_asset_audits: CompositionAssetAudits;
+  composition_assets: CompositionAssets;
+  compositions: Compositions;
+  extra_ratings: ExtraRatings;
+  graph_edge_nodes: GraphEdgeNodes;
+  graph_edges: GraphEdges;
+  graph_nodes: GraphNodes;
+  incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples;
+  pets: Pets;
+  post_visibilities: PostVisibilities;
+  posts: Posts;
+  ratings: Ratings;
+  sandbags: Sandbags;
+  user_settings: UserSettings;
+  users: Users;
 }
 
-export const BalloonLineColumns = ['id', 'balloon_id', 'material', 'created_at', 'updated_at']
-export const BalloonSpotterBalloonColumns = [
-  'id',
-  'balloon_spotter_id',
-  'balloon_id',
-  'created_at',
-  'updated_at',
-]
-export const BalloonSpotterColumns = ['id', 'name', 'created_at', 'updated_at']
-export const BeautifulBalloonColumns = [
-  'id',
-  'user_id',
-  'type',
-  'volume',
-  'color',
-  'multicolor',
-  'deleted_at',
-  'created_at',
-  'updated_at',
-]
-export const CollarColumns = ['id', 'pet_id', 'lost', 'created_at', 'updated_at']
-export const CompositionAssetAuditColumns = [
-  'id',
-  'composition_asset_id',
-  'approval',
-  'created_at',
-  'updated_at',
-]
-export const CompositionAssetColumns = [
-  'id',
-  'composition_id',
-  'name',
-  'src',
-  'primary',
-  'score',
-  'created_at',
-  'updated_at',
-]
-export const CompositionColumns = ['id', 'user_id', 'content', 'primary', 'created_at', 'updated_at']
-export const ExtraRatingColumns = [
-  'type',
-  'id',
-  'user_id',
-  'extra_rateable_id',
-  'extra_rateable_type',
-  'rating',
-  'created_at',
-  'updated_at',
-]
-export const GraphEdgeNodeColumns = ['id', 'edge_id', 'node_id', 'created_at', 'updated_at']
-export const GraphEdgeColumns = ['id', 'name', 'created_at', 'updated_at']
-export const GraphNodeColumns = ['id', 'name', 'created_at', 'updated_at']
-export const IncompatibleForeignKeyTypeExampleColumns = ['id', 'user_id', 'created_at', 'updated_at']
-export const PetColumns = ['id', 'user_id', 'favorite_treats', 'species', 'name', 'deleted_at', 'created_at']
-export const PostColumns = ['id', 'user_id', 'post_visibility_id', 'body', 'created_at', 'updated_at']
-export const PostVisibilityColumns = ['id', 'visibility', 'notes', 'created_at', 'updated_at']
-export const RatingColumns = [
-  'id',
-  'user_id',
-  'rateable_id',
-  'rateable_type',
-  'rating',
-  'created_at',
-  'updated_at',
-]
-export const SandbagColumns = ['id', 'balloon_id', 'weight', 'created_at', 'updated_at']
-export const UserColumns = [
-  'id',
-  'name',
-  'email',
-  'password_digest',
-  'created_at',
-  'updated_at',
-  'deleted_at',
-]
-export const UserSettingColumns = ['id', 'user_id', 'likes_chalupas', 'created_at', 'updated_at']
+
+export const BalloonLineColumns = ['id', 'balloonId', 'material', 'createdAt', 'updatedAt']
+export const BalloonSpotterBalloonColumns = ['id', 'balloonSpotterId', 'balloonId', 'createdAt', 'updatedAt']
+export const BalloonSpotterColumns = ['id', 'name', 'createdAt', 'updatedAt']
+export const BeautifulBalloonColumns = ['id', 'userId', 'type', 'volume', 'color', 'multicolor', 'deletedAt', 'createdAt', 'updatedAt']
+export const CollarColumns = ['id', 'petId', 'lost', 'createdAt', 'updatedAt']
+export const CompositionAssetAuditColumns = ['id', 'compositionAssetId', 'approval', 'createdAt', 'updatedAt']
+export const CompositionAssetColumns = ['id', 'compositionId', 'name', 'src', 'primary', 'score', 'createdAt', 'updatedAt']
+export const CompositionColumns = ['id', 'userId', 'content', 'primary', 'createdAt', 'updatedAt']
+export const ExtraRatingColumns = ['type', 'id', 'userId', 'extraRateableId', 'extraRateableType', 'rating', 'createdAt', 'updatedAt']
+export const GraphEdgeNodeColumns = ['id', 'edgeId', 'nodeId', 'createdAt', 'updatedAt']
+export const GraphEdgeColumns = ['id', 'name', 'createdAt', 'updatedAt']
+export const GraphNodeColumns = ['id', 'name', 'createdAt', 'updatedAt']
+export const IncompatibleForeignKeyTypeExampleColumns = ['id', 'userId', 'createdAt', 'updatedAt']
+export const PetColumns = ['id', 'userId', 'favoriteTreats', 'species', 'name', 'deletedAt', 'createdAt']
+export const PostColumns = ['id', 'userId', 'postVisibilityId', 'body', 'createdAt', 'updatedAt']
+export const PostVisibilityColumns = ['id', 'visibility', 'notes', 'createdAt', 'updatedAt']
+export const RatingColumns = ['id', 'userId', 'rateableId', 'rateableType', 'rating', 'createdAt', 'updatedAt']
+export const SandbagColumns = ['id', 'balloonId', 'weight', 'createdAt', 'updatedAt']
+export const UserColumns = ['id', 'name', 'email', 'passwordDigest', 'createdAt', 'updatedAt', 'deletedAt']
+export const UserSettingColumns = ['id', 'userId', 'likesChalupas', 'createdAt', 'updatedAt']
 
 export interface BalloonLineAttributes {
   id: IdType
-  balloon_id: IdType
+  balloonId: IdType
   material: BalloonLineMaterialsEnum | null
-  created_at: DateTime
-  updated_at: DateTime
-}
+  createdAt: DateTime
+  updatedAt: DateTime
+}  
 
 export interface BalloonSpotterBalloonAttributes {
   id: IdType
-  balloon_spotter_id: IdType
-  balloon_id: IdType
-  created_at: DateTime
-  updated_at: DateTime
-}
+  balloonSpotterId: IdType
+  balloonId: IdType
+  createdAt: DateTime
+  updatedAt: DateTime
+}  
 
 export interface BalloonSpotterAttributes {
   id: IdType
   name: string | null
-  created_at: DateTime
-  updated_at: DateTime
-}
+  createdAt: DateTime
+  updatedAt: DateTime
+}  
 
 export interface BeautifulBalloonAttributes {
   id: IdType
-  user_id: IdType | null
+  userId: IdType | null
   type: BalloonTypesEnum
   volume: number | null
   color: BalloonColorsEnum | null
   multicolor: BalloonColorsEnum[] | null
-  deleted_at: DateTime | null
-  created_at: DateTime
-  updated_at: DateTime
-}
+  deletedAt: DateTime | null
+  createdAt: DateTime
+  updatedAt: DateTime
+}  
 
 export interface CollarAttributes {
   id: IdType
-  pet_id: IdType
+  petId: IdType
   lost: boolean | null
-  created_at: DateTime
-  updated_at: DateTime
-}
+  createdAt: DateTime
+  updatedAt: DateTime
+}  
 
 export interface CompositionAssetAuditAttributes {
   id: IdType
-  composition_asset_id: IdType
+  compositionAssetId: IdType
   approval: boolean | null
-  created_at: DateTime
-  updated_at: DateTime
-}
+  createdAt: DateTime
+  updatedAt: DateTime
+}  
 
 export interface CompositionAssetAttributes {
   id: IdType
-  composition_id: IdType
+  compositionId: IdType
   name: string | null
   src: string | null
   primary: boolean | null
   score: number | null
-  created_at: DateTime
-  updated_at: DateTime
-}
+  createdAt: DateTime
+  updatedAt: DateTime
+}  
 
 export interface CompositionAttributes {
   id: IdType
-  user_id: IdType
+  userId: IdType
   content: string | null
   primary: boolean | null
-  created_at: DateTime
-  updated_at: DateTime
-}
+  createdAt: DateTime
+  updatedAt: DateTime
+}  
 
 export interface ExtraRatingAttributes {
   type: ExtraRatingTypesEnum | null
   id: IdType
-  user_id: IdType
-  extra_rateable_id: IdType
-  extra_rateable_type: string
+  userId: IdType
+  extraRateableId: IdType
+  extraRateableType: string
   rating: number | null
-  created_at: DateTime
-  updated_at: DateTime
-}
+  createdAt: DateTime
+  updatedAt: DateTime
+}  
 
 export interface GraphEdgeNodeAttributes {
   id: IdType
-  edge_id: IdType
-  node_id: IdType
-  created_at: DateTime
-  updated_at: DateTime
-}
+  edgeId: IdType
+  nodeId: IdType
+  createdAt: DateTime
+  updatedAt: DateTime
+}  
 
 export interface GraphEdgeAttributes {
   id: IdType
   name: string | null
-  created_at: DateTime
-  updated_at: DateTime
-}
+  createdAt: DateTime
+  updatedAt: DateTime
+}  
 
 export interface GraphNodeAttributes {
   id: IdType
   name: string | null
-  created_at: DateTime
-  updated_at: DateTime
-}
+  createdAt: DateTime
+  updatedAt: DateTime
+}  
 
 export interface IncompatibleForeignKeyTypeExampleAttributes {
   id: IdType
-  user_id: number
-  created_at: DateTime
-  updated_at: DateTime
-}
+  userId: number
+  createdAt: DateTime
+  updatedAt: DateTime
+}  
 
 export interface PetAttributes {
   id: IdType
-  user_id: IdType | null
-  favorite_treats: CatTreats[] | null
+  userId: IdType | null
+  favoriteTreats: CatTreats[] | null
   species: Species | null
   name: string | null
-  deleted_at: DateTime | null
-  created_at: DateTime
-}
+  deletedAt: DateTime | null
+  createdAt: DateTime
+}  
 
 export interface PostAttributes {
   id: IdType
-  user_id: IdType
-  post_visibility_id: IdType | null
+  userId: IdType
+  postVisibilityId: IdType | null
   body: string | null
-  created_at: DateTime
-  updated_at: DateTime
-}
+  createdAt: DateTime
+  updatedAt: DateTime
+}  
 
 export interface PostVisibilityAttributes {
   id: IdType
   visibility: boolean | null
   notes: string | null
-  created_at: DateTime
-  updated_at: DateTime
-}
+  createdAt: DateTime
+  updatedAt: DateTime
+}  
 
 export interface RatingAttributes {
   id: IdType
-  user_id: IdType
-  rateable_id: IdType
-  rateable_type: string
+  userId: IdType
+  rateableId: IdType
+  rateableType: string
   rating: number | null
-  created_at: DateTime
-  updated_at: DateTime
-}
+  createdAt: DateTime
+  updatedAt: DateTime
+}  
 
 export interface SandbagAttributes {
   id: IdType
-  balloon_id: IdType
+  balloonId: IdType
   weight: number | null
-  created_at: DateTime
-  updated_at: DateTime
-}
+  createdAt: DateTime
+  updatedAt: DateTime
+}  
 
 export interface UserAttributes {
   id: IdType
   name: string | null
   email: string
-  password_digest: string
-  created_at: DateTime
-  updated_at: DateTime
-  deleted_at: DateTime | null
-}
+  passwordDigest: string
+  createdAt: DateTime
+  updatedAt: DateTime
+  deletedAt: DateTime | null
+}  
 
 export interface UserSettingAttributes {
   id: IdType
-  user_id: IdType
-  likes_chalupas: boolean
-  created_at: DateTime
-  updated_at: DateTime
-}
+  userId: IdType
+  likesChalupas: boolean
+  createdAt: DateTime
+  updatedAt: DateTime
+}  
+
 
 export const BalloonLinesTypeCache = {
   id: 'Generated<Int8>',
-  balloon_id: 'Int8',
+  balloonId: 'Int8',
   material: 'BalloonLineMaterialsEnum|null',
-  created_at: 'Timestamp',
-  updated_at: 'Timestamp',
-}
+  createdAt: 'Timestamp',
+  updatedAt: 'Timestamp'
+}  
 
 export const BalloonSpotterBalloonsTypeCache = {
   id: 'Generated<Int8>',
-  balloon_spotter_id: 'Int8',
-  balloon_id: 'Int8',
-  created_at: 'Timestamp',
-  updated_at: 'Timestamp',
-}
+  balloonSpotterId: 'Int8',
+  balloonId: 'Int8',
+  createdAt: 'Timestamp',
+  updatedAt: 'Timestamp'
+}  
 
 export const BalloonSpottersTypeCache = {
   id: 'Generated<Int8>',
   name: 'string|null',
-  created_at: 'Timestamp',
-  updated_at: 'Timestamp',
-}
+  createdAt: 'Timestamp',
+  updatedAt: 'Timestamp'
+}  
 
 export const BeautifulBalloonsTypeCache = {
   id: 'Generated<Int8>',
-  user_id: 'Int8|null',
+  userId: 'Int8|null',
   type: 'BalloonTypesEnum',
   volume: 'Numeric|null',
   color: 'BalloonColorsEnum|null',
   multicolor: 'BalloonColorsEnum[]|null',
-  deleted_at: 'Timestamp|null',
-  created_at: 'Timestamp',
-  updated_at: 'Timestamp',
-}
+  deletedAt: 'Timestamp|null',
+  createdAt: 'Timestamp',
+  updatedAt: 'Timestamp'
+}  
 
 export const CollarsTypeCache = {
   id: 'Generated<Int8>',
-  pet_id: 'Int8',
+  petId: 'Int8',
   lost: 'boolean|null',
-  created_at: 'Timestamp',
-  updated_at: 'Timestamp',
-}
+  createdAt: 'Timestamp',
+  updatedAt: 'Timestamp'
+}  
 
 export const CompositionAssetAuditsTypeCache = {
   id: 'Generated<Int8>',
-  composition_asset_id: 'Int8',
+  compositionAssetId: 'Int8',
   approval: 'boolean|null',
-  created_at: 'Timestamp',
-  updated_at: 'Timestamp',
-}
+  createdAt: 'Timestamp',
+  updatedAt: 'Timestamp'
+}  
 
 export const CompositionAssetsTypeCache = {
   id: 'Generated<Int8>',
-  composition_id: 'Int8',
+  compositionId: 'Int8',
   name: 'string|null',
   src: 'string|null',
   primary: 'Generated<boolean|null>',
   score: 'Generated<number|null>',
-  created_at: 'Timestamp',
-  updated_at: 'Timestamp',
-}
+  createdAt: 'Timestamp',
+  updatedAt: 'Timestamp'
+}  
 
 export const CompositionsTypeCache = {
   id: 'Generated<Int8>',
-  user_id: 'Int8',
+  userId: 'Int8',
   content: 'string|null',
   primary: 'Generated<boolean|null>',
-  created_at: 'Timestamp',
-  updated_at: 'Timestamp',
-}
+  createdAt: 'Timestamp',
+  updatedAt: 'Timestamp'
+}  
 
 export const ExtraRatingsTypeCache = {
   type: 'ExtraRatingTypesEnum|null',
   id: 'Generated<Int8>',
-  user_id: 'Int8',
-  extra_rateable_id: 'Int8',
-  extra_rateable_type: 'string',
+  userId: 'Int8',
+  extraRateableId: 'Int8',
+  extraRateableType: 'string',
   rating: 'number|null',
-  created_at: 'Timestamp',
-  updated_at: 'Timestamp',
-}
+  createdAt: 'Timestamp',
+  updatedAt: 'Timestamp'
+}  
 
 export const GraphEdgeNodesTypeCache = {
   id: 'Generated<Int8>',
-  edge_id: 'Int8',
-  node_id: 'Int8',
-  created_at: 'Timestamp',
-  updated_at: 'Timestamp',
-}
+  edgeId: 'Int8',
+  nodeId: 'Int8',
+  createdAt: 'Timestamp',
+  updatedAt: 'Timestamp'
+}  
 
 export const GraphEdgesTypeCache = {
   id: 'Generated<Int8>',
   name: 'string|null',
-  created_at: 'Timestamp',
-  updated_at: 'Timestamp',
-}
+  createdAt: 'Timestamp',
+  updatedAt: 'Timestamp'
+}  
 
 export const GraphNodesTypeCache = {
   id: 'Generated<Int8>',
   name: 'string|null',
-  created_at: 'Timestamp',
-  updated_at: 'Timestamp',
-}
+  createdAt: 'Timestamp',
+  updatedAt: 'Timestamp'
+}  
 
 export const IncompatibleForeignKeyTypeExamplesTypeCache = {
   id: 'Generated<Int8>',
-  user_id: 'number',
-  created_at: 'Timestamp',
-  updated_at: 'Timestamp',
-}
+  userId: 'number',
+  createdAt: 'Timestamp',
+  updatedAt: 'Timestamp'
+}  
 
 export const PetsTypeCache = {
   id: 'Generated<Int8>',
-  user_id: 'Int8|null',
-  favorite_treats: 'CatTreats[]|null',
+  userId: 'Int8|null',
+  favoriteTreats: 'CatTreats[]|null',
   species: 'Species|null',
   name: 'string|null',
-  deleted_at: 'Timestamp|null',
-  created_at: 'Timestamp',
-}
+  deletedAt: 'Timestamp|null',
+  createdAt: 'Timestamp'
+}  
 
 export const PostsTypeCache = {
   id: 'Generated<Int8>',
-  user_id: 'Int8',
-  post_visibility_id: 'Int8|null',
+  userId: 'Int8',
+  postVisibilityId: 'Int8|null',
   body: 'string|null',
-  created_at: 'Timestamp',
-  updated_at: 'Timestamp',
-}
+  createdAt: 'Timestamp',
+  updatedAt: 'Timestamp'
+}  
 
 export const PostVisibilitiesTypeCache = {
   id: 'Generated<Int8>',
   visibility: 'boolean|null',
   notes: 'string|null',
-  created_at: 'Timestamp',
-  updated_at: 'Timestamp',
-}
+  createdAt: 'Timestamp',
+  updatedAt: 'Timestamp'
+}  
 
 export const RatingsTypeCache = {
   id: 'Generated<Int8>',
-  user_id: 'Int8',
-  rateable_id: 'Int8',
-  rateable_type: 'string',
+  userId: 'Int8',
+  rateableId: 'Int8',
+  rateableType: 'string',
   rating: 'number|null',
-  created_at: 'Timestamp',
-  updated_at: 'Timestamp',
-}
+  createdAt: 'Timestamp',
+  updatedAt: 'Timestamp'
+}  
 
 export const SandbagsTypeCache = {
   id: 'Generated<Int8>',
-  balloon_id: 'Int8',
+  balloonId: 'Int8',
   weight: 'number|null',
-  created_at: 'Timestamp',
-  updated_at: 'Timestamp',
-}
+  createdAt: 'Timestamp',
+  updatedAt: 'Timestamp'
+}  
 
 export const UsersTypeCache = {
   id: 'Generated<Int8>',
   name: 'string|null',
   email: 'string',
-  password_digest: 'string',
-  created_at: 'Timestamp',
-  updated_at: 'Timestamp',
-  deleted_at: 'Timestamp|null',
-}
+  passwordDigest: 'string',
+  createdAt: 'Timestamp',
+  updatedAt: 'Timestamp',
+  deletedAt: 'Timestamp|null'
+}  
 
 export const UserSettingsTypeCache = {
   id: 'Generated<Int8>',
-  user_id: 'Int8',
-  likes_chalupas: 'Generated<boolean>',
-  created_at: 'Timestamp',
-  updated_at: 'Timestamp',
-}
+  userId: 'Int8',
+  likesChalupas: 'Generated<boolean>',
+  createdAt: 'Timestamp',
+  updatedAt: 'Timestamp'
+}  
+
+
 
 export interface InterpretedDB {
-  balloon_lines: BalloonLineAttributes
-  balloon_spotter_balloons: BalloonSpotterBalloonAttributes
-  balloon_spotters: BalloonSpotterAttributes
-  beautiful_balloons: BeautifulBalloonAttributes
-  collars: CollarAttributes
-  composition_asset_audits: CompositionAssetAuditAttributes
-  composition_assets: CompositionAssetAttributes
-  compositions: CompositionAttributes
-  extra_ratings: ExtraRatingAttributes
-  graph_edge_nodes: GraphEdgeNodeAttributes
-  graph_edges: GraphEdgeAttributes
-  graph_nodes: GraphNodeAttributes
-  incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExampleAttributes
-  pets: PetAttributes
-  posts: PostAttributes
-  post_visibilities: PostVisibilityAttributes
-  ratings: RatingAttributes
-  sandbags: SandbagAttributes
-  users: UserAttributes
+  balloon_lines: BalloonLineAttributes,
+  balloon_spotter_balloons: BalloonSpotterBalloonAttributes,
+  balloon_spotters: BalloonSpotterAttributes,
+  beautiful_balloons: BeautifulBalloonAttributes,
+  collars: CollarAttributes,
+  composition_asset_audits: CompositionAssetAuditAttributes,
+  composition_assets: CompositionAssetAttributes,
+  compositions: CompositionAttributes,
+  extra_ratings: ExtraRatingAttributes,
+  graph_edge_nodes: GraphEdgeNodeAttributes,
+  graph_edges: GraphEdgeAttributes,
+  graph_nodes: GraphNodeAttributes,
+  incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExampleAttributes,
+  pets: PetAttributes,
+  posts: PostAttributes,
+  post_visibilities: PostVisibilityAttributes,
+  ratings: RatingAttributes,
+  sandbags: SandbagAttributes,
+  users: UserAttributes,
   user_settings: UserSettingAttributes
 }
 
@@ -687,7 +636,7 @@ export const DBColumns = {
   ratings: RatingColumns,
   sandbags: SandbagColumns,
   users: UserColumns,
-  user_settings: UserSettingColumns,
+  user_settings: UserSettingColumns
 }
 
 export const DBTypeCache = {
@@ -710,5 +659,5 @@ export const DBTypeCache = {
   ratings: RatingsTypeCache,
   sandbags: SandbagsTypeCache,
   users: UsersTypeCache,
-  user_settings: UserSettingsTypeCache,
+  user_settings: UserSettingsTypeCache
 } as Partial<Record<keyof DB, any>>

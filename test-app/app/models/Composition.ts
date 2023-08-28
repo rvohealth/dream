@@ -23,12 +23,12 @@ export default class Composition extends Dream {
 
   public id: IdType
   public content: string | null
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
   @BelongsTo(() => User)
   public user: User
-  public user_id: IdType
+  public userId: IdType
 
   @HasMany(() => CompositionAsset)
   public compositionAssets: CompositionAsset[]
@@ -50,7 +50,7 @@ export default class Composition extends Dream {
   public mainCompositionAssetAudits: CompositionAssetAudit[]
 
   @HasMany(() => HeartRating, {
-    foreignKey: 'extra_rateable_id',
+    foreignKey: 'extraRateableId',
     polymorphic: true,
   })
   public heartRatings: HeartRating[]

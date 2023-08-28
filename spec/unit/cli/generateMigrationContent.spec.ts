@@ -155,7 +155,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     })
 
     context('belongs_to attribute is passed', () => {
-      it('generates a kysely model with the belongs_to association', async () => {
+      it('generates a kysely model with the belongsTo association', async () => {
         const res = generateMigrationContent({
           table: 'compositions',
           attributes: ['admin/user:belongs_to'],
@@ -185,7 +185,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     })
 
     context('belongs_to attribute is passed AND useUUID=false', () => {
-      it('generates a kysely model with the belongs_to association', async () => {
+      it('generates a kysely model with the belongsTo association', async () => {
         const res = generateMigrationContent({
           table: 'compositions',
           attributes: ['user:belongs_to'],

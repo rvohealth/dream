@@ -25,10 +25,7 @@ describe('Query.joinsPluck', () => {
     await EdgeNode.create({ node, edge: edge1 })
     await EdgeNode.create({ node, edge: edge2 })
 
-    const plucked = await Node.joinsPluck('edgeNodes', { edge_id: edge2.id }, 'edge', [
-      'edge.id',
-      'edge.name',
-    ])
+    const plucked = await Node.joinsPluck('edgeNodes', { edgeId: edge2.id }, 'edge', ['edge.id', 'edge.name'])
     expect(plucked).toEqual([[edge2.id, edge2.name]])
   })
 })

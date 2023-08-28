@@ -10,10 +10,10 @@ import User from '../User'
 export default class HeartRating extends BaseExtraRating {
   @BelongsTo(() => User)
   public user: User
-  public user_id: IdType
+  public userId: IdType
 
   @BelongsTo(() => [Composition, Post], {
-    foreignKey: 'extra_rateable_id',
+    foreignKey: 'extraRateableId',
     polymorphic: true,
   })
   public extraRateable: Composition | Post

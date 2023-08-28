@@ -11,7 +11,7 @@ describe('Query#joins with simple associations', () => {
   it('joins a HasOne association', async () => {
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id, primary: true })
+    const composition = await Composition.create({ userId: user.id, primary: true })
 
     const reloadedUsers = await new Query(User).joins('mainComposition').all()
     expect(reloadedUsers).toMatchDreamModels([user])
@@ -20,7 +20,7 @@ describe('Query#joins with simple associations', () => {
   it('joins a HasMany association', async () => {
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id })
+    const composition = await Composition.create({ userId: user.id })
 
     const reloadedUsers = await new Query(User).joins('compositions').all()
     expect(reloadedUsers).toMatchDreamModels([user])
@@ -31,8 +31,8 @@ describe('Query#joins with simple associations', () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
 
-      const composition = await Composition.create({ user_id: user.id, primary: true })
-      const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+      const composition = await Composition.create({ userId: user.id, primary: true })
+      const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
 
       const reloadedUsers = await new Query(User).joins('mainComposition', 'compositionAssets').all()
 
@@ -44,8 +44,8 @@ describe('Query#joins with simple associations', () => {
     it('loads specified associations', async () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-      const composition = await Composition.create({ user_id: user.id, primary: true })
-      await CompositionAsset.create({ composition_id: composition.id })
+      const composition = await Composition.create({ userId: user.id, primary: true })
+      await CompositionAsset.create({ compositionId: composition.id })
 
       const reloadedUsers = await new Query(User)
         .joins('compositions')
@@ -59,7 +59,7 @@ describe('Query#joins with simple associations', () => {
     it('joins a HasOne association', async () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-      const composition = await Composition.create({ user_id: user.id, primary: true })
+      const composition = await Composition.create({ userId: user.id, primary: true })
 
       const reloadedUsers = await new Query(User).joins('mainComposition', { id: composition.id }).all()
       expect(reloadedUsers).toMatchDreamModels([user])
@@ -73,7 +73,7 @@ describe('Query#joins with simple associations', () => {
     it('joins a HasMany association', async () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-      const composition = await Composition.create({ user_id: user.id })
+      const composition = await Composition.create({ userId: user.id })
 
       const reloadedUsers = await new Query(User).joins('compositions', { id: composition.id }).all()
       expect(reloadedUsers).toMatchDreamModels([user])
@@ -86,10 +86,10 @@ describe('Query#joins with simple associations', () => {
 
     it('joins a BelongsTo association', async () => {
       const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      await Composition.create({ user_id: otherUser.id })
+      await Composition.create({ userId: otherUser.id })
 
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-      const composition = await Composition.create({ user_id: user.id })
+      const composition = await Composition.create({ userId: user.id })
 
       const reloadedComposition = await new Query(Composition).joins('user', { id: user.id }).all()
       expect(reloadedComposition).toMatchDreamModels([composition])
@@ -106,12 +106,12 @@ describe('Query#joins with simple associations', () => {
         const composition = await Composition.create({ user })
 
         const reloadedComposition = await new Query(Composition)
-          .joins('user', { created_at: range(DateTime.now().minus({ day: 1 })) })
+          .joins('user', { createdAt: range(DateTime.now().minus({ day: 1 })) })
           .first()
         expect(reloadedComposition).toMatchDreamModel(composition)
 
         const noResults = await new Query(Composition)
-          .joins('user', { created_at: range(DateTime.now().plus({ day: 1 })) })
+          .joins('user', { createdAt: range(DateTime.now().plus({ day: 1 })) })
           .first()
         expect(noResults).toBeNull()
       })
@@ -121,12 +121,12 @@ describe('Query#joins with simple associations', () => {
         await Composition.create({ user })
 
         const reloadedUser = await new Query(User)
-          .joins('compositions', { created_at: range(DateTime.now().minus({ day: 1 })) })
+          .joins('compositions', { createdAt: range(DateTime.now().minus({ day: 1 })) })
           .first()
         expect(reloadedUser).toMatchDreamModel(user)
 
         const noResults = await new Query(User)
-          .joins('compositions', { created_at: range(DateTime.now().plus({ day: 1 })) })
+          .joins('compositions', { createdAt: range(DateTime.now().plus({ day: 1 })) })
           .first()
         expect(noResults).toBeNull()
       })
@@ -137,8 +137,8 @@ describe('Query#joins with simple associations', () => {
         await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
 
-        const composition = await Composition.create({ user_id: user.id, primary: true })
-        const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+        const composition = await Composition.create({ userId: user.id, primary: true })
+        const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
 
         const reloadedUsers = await new Query(User)
           .joins('mainComposition', 'compositionAssets', { id: compositionAsset.id })
@@ -158,8 +158,8 @@ describe('Query#joins with simple associations', () => {
       it('loads specified associations', async () => {
         await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-        const composition = await Composition.create({ user_id: user.id, primary: true })
-        const compositionAsset = await CompositionAsset.create({ composition_id: composition.id })
+        const composition = await Composition.create({ userId: user.id, primary: true })
+        const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
 
         const reloadedUsers = await new Query(User)
           .joins('compositions', { id: composition.id })
@@ -190,7 +190,7 @@ describe('Query#joins with simple associations', () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         await Composition.create({
           user,
-          created_at: DateTime.now().minus({ day: 1 }),
+          createdAt: DateTime.now().minus({ day: 1 }),
         })
 
         const reloadedUser = await User.joins('recentCompositions').first()
@@ -203,7 +203,7 @@ describe('Query#joins with simple associations', () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         await Composition.create({
           user,
-          created_at: DateTime.now().minus({ year: 1 }),
+          createdAt: DateTime.now().minus({ year: 1 }),
         })
 
         const reloadedUser = await User.joins('recentCompositions').first()
@@ -216,7 +216,7 @@ describe('Query#joins with simple associations', () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         await Composition.create({
           user,
-          created_at: DateTime.now().minus({ day: 1 }),
+          createdAt: DateTime.now().minus({ day: 1 }),
         })
 
         const reloadedUser = await User.joins('notRecentCompositions').first()
@@ -229,7 +229,7 @@ describe('Query#joins with simple associations', () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         await Composition.create({
           user,
-          created_at: DateTime.now().minus({ year: 1 }),
+          createdAt: DateTime.now().minus({ year: 1 }),
         })
 
         const reloadedUser = await User.joins('notRecentCompositions').first()
@@ -310,7 +310,7 @@ describe('Query#joins with simple associations', () => {
 
     it('takes the nested scope into account', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      await Pet.create({ user, name: 'Snoopy', deleted_at: DateTime.now() })
+      await Pet.create({ user, name: 'Snoopy', deletedAt: DateTime.now() })
       const reloadedUser = await User.where({ email: user.email }).joins('pets', { name: 'Snoopy' }).first()
       const notFoundUser = await User.where({ email: user.email }).joins('pets', { name: 'Znoopy' }).first()
 
@@ -331,12 +331,12 @@ describe('Query#joins with simple associations', () => {
       user0 = await User.create({
         email: 'fred@frewd',
         password: 'howyadoin',
-        created_at: begin,
+        createdAt: begin,
       })
       user1 = await User.create({
         email: 'fred@frezd',
         password: 'howyadoin',
-        created_at: begin.plus({ day: 1 }),
+        createdAt: begin.plus({ day: 1 }),
       })
 
       pet0 = await Pet.create({ user: user0 })
@@ -344,7 +344,7 @@ describe('Query#joins with simple associations', () => {
     })
 
     it('is able to apply date ranges to where clause', async () => {
-      const pets = await Pet.joins('user', { created_at: range(begin.plus({ hour: 1 })) }).all()
+      const pets = await Pet.joins('user', { createdAt: range(begin.plus({ hour: 1 })) }).all()
 
       expect(pets).toMatchDreamModels([pet1])
     })

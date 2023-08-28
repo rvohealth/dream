@@ -16,10 +16,10 @@ export default class Sandbag extends Dream {
 
   public id: IdType
   public weight: number
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
-  @BelongsTo(() => Mylar, { foreignKey: 'balloon_id' })
+  @BelongsTo(() => Mylar, { foreignKey: 'balloonId' })
   public mylar: Mylar
-  public balloon_id: IdType
+  public balloonId: IdType
 }

@@ -256,7 +256,7 @@ describe('Query#preload through with simple associations', () => {
       const composition = await Composition.create({ user })
       const compositionAsset = await CompositionAsset.create({ composition })
       const compositionAssetAudit = await CompositionAssetAudit.create({
-        composition_asset_id: compositionAsset.id,
+        compositionAssetId: compositionAsset.id,
       })
 
       const reloadedUser = await new Query(User).preload('compositionAssetAudits').first()
@@ -268,7 +268,7 @@ describe('Query#preload through with simple associations', () => {
       const composition = await Composition.create({ user })
       const compositionAsset = await CompositionAsset.create({ composition })
       await CompositionAssetAudit.create({
-        composition_asset_id: compositionAsset.id,
+        compositionAssetId: compositionAsset.id,
       })
 
       const reloaded = await new Query(CompositionAssetAudit).preload('user').first()
@@ -283,7 +283,7 @@ describe('Query#preload through with simple associations', () => {
         const recentComposition = await Composition.create({ user })
         const olderComposition = await Composition.create({
           user,
-          created_at: DateTime.now().minus({ year: 1 }),
+          createdAt: DateTime.now().minus({ year: 1 }),
         })
 
         const compositionAsset1 = await CompositionAsset.create({ composition: recentComposition })
@@ -300,7 +300,7 @@ describe('Query#preload through with simple associations', () => {
         const recentComposition = await Composition.create({ user })
         const olderComposition = await Composition.create({
           user,
-          created_at: DateTime.now().minus({ year: 1 }),
+          createdAt: DateTime.now().minus({ year: 1 }),
         })
 
         const compositionAsset1 = await CompositionAsset.create({ composition: recentComposition })
@@ -317,7 +317,7 @@ describe('Query#preload through with simple associations', () => {
           const recentComposition = await Composition.create({ user })
           const olderComposition = await Composition.create({
             user,
-            created_at: DateTime.now().minus({ year: 1 }),
+            createdAt: DateTime.now().minus({ year: 1 }),
           })
 
           const compositionAsset1 = await CompositionAsset.create({

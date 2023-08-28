@@ -49,30 +49,30 @@ describe('Dream#update', () => {
     })
   })
 
-  it('updates the updated_at field', async () => {
+  it('updates the updatedAt field', async () => {
     const updatedAt = DateTime.now().minus({ day: 1 })
     const user = await User.create({
       email: 'fred@frewd',
       password: 'howyadoin',
       name: 'Charlie Brown',
-      updated_at: updatedAt,
+      updatedAt: updatedAt,
     })
-    expect(user!.updated_at.toSeconds()).toBeWithin(1, updatedAt.toSeconds())
+    expect(user!.updatedAt.toSeconds()).toBeWithin(1, updatedAt.toSeconds())
 
     await user.update({ email: 'how@yadoin' })
-    expect(user!.updated_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+    expect(user!.updatedAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
     const reloadedUser = await User.find(user.id)
-    expect(reloadedUser!.updated_at.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+    expect(reloadedUser!.updatedAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
   })
 
-  context('the model does not have an updated_at field', () => {
+  context('the model does not have an updatedAt field', () => {
     it('does not raise an exception', async () => {
       const user = await User.create({ email: 'fred@dred', password: 'howyadoin' })
       const pet = await Pet.create({ user, name: 'pal', species: 'cat' })
 
       // this is really checking that updating a stray attribute does not
       // raise an exception, since the Pet model was configured intentionally
-      // to be missing an updated_at field.
+      // to be missing an updatedAt field.
       await pet.update({ name: 'pal mcjones' })
       expect(pet.name).toEqual('pal mcjones')
     })
@@ -85,9 +85,9 @@ describe('Dream#update', () => {
       const composition = await Composition.create({ user })
       await composition.update({ user: otherUser })
 
-      expect(composition.user_id).toEqual(otherUser.id)
+      expect(composition.userId).toEqual(otherUser.id)
       const reloadedComposition = await Composition.find(composition.id)
-      expect(reloadedComposition!.user_id).toEqual(otherUser.id)
+      expect(reloadedComposition!.userId).toEqual(otherUser.id)
     })
 
     it('sets the reference to that model', async () => {
@@ -107,11 +107,11 @@ describe('Dream#update', () => {
         const rating = await Rating.create({ user, rateable: post })
         await rating.update({ rateable: composition })
 
-        expect(rating.rateable_id).toEqual(composition.id)
-        expect(rating.rateable_type).toEqual('Composition')
+        expect(rating.rateableId).toEqual(composition.id)
+        expect(rating.rateableType).toEqual('Composition')
         const reloadedRating = await Rating.find(rating.id)
-        expect(reloadedRating!.rateable_id).toEqual(composition.id)
-        expect(reloadedRating!.rateable_type).toEqual('Composition')
+        expect(reloadedRating!.rateableId).toEqual(composition.id)
+        expect(reloadedRating!.rateableType).toEqual('Composition')
       })
 
       it('sets the reference to that model', async () => {
@@ -134,27 +134,27 @@ describe('Dream#update', () => {
 
       await composition.update({ user: user2 })
       expect(user2.isPersisted).toEqual(true)
-      expect(typeof composition.user_id).toEqual('string')
-      expect(composition.user_id).toEqual(user2.id)
+      expect(typeof composition.userId).toEqual('string')
+      expect(composition.userId).toEqual(user2.id)
 
       const reloadedComposition = await Composition.find(composition.id)
-      expect(reloadedComposition!.user_id).toEqual(user2.id)
+      expect(reloadedComposition!.userId).toEqual(user2.id)
     })
 
     context('the associated model is polymorphic', () => {
       it('stores the foreign key type as well as the foreign key id', async () => {
         const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-        const post = Post.new({ user_id: user.id })
-        const post2 = Post.new({ user_id: user.id })
+        const post = Post.new({ userId: user.id })
+        const post2 = Post.new({ userId: user.id })
         const rating = await Rating.create({ user, rateable: post })
 
         await rating.update({ rateable: post2 })
-        expect(rating.rateable_id).toEqual(post2.id)
-        expect(rating.rateable_type).toEqual('Post')
+        expect(rating.rateableId).toEqual(post2.id)
+        expect(rating.rateableType).toEqual('Post')
 
         const reloadedRating = await Rating.find(rating.id)
-        expect(reloadedRating!.rateable_id).toEqual(post2.id)
-        expect(reloadedRating!.rateable_type).toEqual('Post')
+        expect(reloadedRating!.rateableId).toEqual(post2.id)
+        expect(reloadedRating!.rateableType).toEqual('Post')
       })
     })
   })
@@ -162,7 +162,7 @@ describe('Dream#update', () => {
   context('passed a model to a HasOne association', () => {
     it('raises an exception', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const userSettings = UserSettings.new({ likes_chalupas: true })
+      const userSettings = UserSettings.new({ likesChalupas: true })
 
       await expect(
         // @ts-ignore

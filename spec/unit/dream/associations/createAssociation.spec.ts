@@ -10,9 +10,9 @@ describe('Dream#createAssociation', () => {
     it('creates the related association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const createdAt = DateTime.now().minus({ days: 1 })
-      const composition = await user.createAssociation('compositions', { created_at: createdAt })
+      const composition = await user.createAssociation('compositions', { createdAt: createdAt })
 
-      expect(composition.created_at).toEqual(createdAt)
+      expect(composition.createdAt).toEqual(createdAt)
       expect(await user.associationQuery('compositions').all()).toMatchDreamModels([composition])
     })
   })
@@ -30,9 +30,9 @@ describe('Dream#createAssociation', () => {
     it('creates the related association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const createdAt = DateTime.now().minus({ days: 1 })
-      const userSettings = await user.createAssociation('userSettings', { created_at: createdAt })
+      const userSettings = await user.createAssociation('userSettings', { createdAt: createdAt })
 
-      expect(userSettings.created_at).toEqual(createdAt)
+      expect(userSettings.createdAt).toEqual(createdAt)
       expect(await user.associationQuery('userSettings').all()).toMatchDreamModels([userSettings])
     })
   })
@@ -51,9 +51,9 @@ describe('Dream#createAssociation', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const post = await Post.create({ user, body: 'howyadoin' })
       const createdAt = DateTime.now().minus({ days: 1 })
-      const postVisibility = await post.createAssociation('postVisibility', { created_at: createdAt })
+      const postVisibility = await post.createAssociation('postVisibility', { createdAt: createdAt })
 
-      expect(postVisibility.created_at).toEqual(createdAt)
+      expect(postVisibility.createdAt).toEqual(createdAt)
       expect(await post.associationQuery('postVisibility').first()).toMatchDreamModel(postVisibility)
     })
   })
@@ -64,9 +64,9 @@ describe('Dream#createAssociation', () => {
       const createdAt = DateTime.now().minus({ days: 1 })
 
       await Dream.transaction(async txn => {
-        const composition = await user.txn(txn).createAssociation('compositions', { created_at: createdAt })
+        const composition = await user.txn(txn).createAssociation('compositions', { createdAt: createdAt })
 
-        expect(composition.created_at).toEqual(createdAt)
+        expect(composition.createdAt).toEqual(createdAt)
         expect(await user.txn(txn).associationQuery('compositions').all()).toMatchDreamModels([composition])
       })
     })
@@ -80,9 +80,9 @@ describe('Dream#createAssociation', () => {
         await Dream.transaction(async txn => {
           const postVisibility = await post
             .txn(txn)
-            .createAssociation('postVisibility', { created_at: createdAt })
+            .createAssociation('postVisibility', { createdAt: createdAt })
 
-          expect(postVisibility.created_at).toEqual(createdAt)
+          expect(postVisibility.createdAt).toEqual(createdAt)
           expect(await PostVisibility.txn(txn).count()).toEqual(1)
           expect(await post.txn(txn).associationQuery('postVisibility').first()).toMatchDreamModel(
             postVisibility

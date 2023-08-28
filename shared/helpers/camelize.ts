@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import uncapitalize from './uncapitalize'
+import uncapitalize from '../../src/helpers/uncapitalize'
 
 export default function camelize<
   T extends string | { [key: string]: any } | (string | { [key: string]: any })[],

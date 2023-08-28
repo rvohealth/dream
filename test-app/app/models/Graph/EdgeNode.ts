@@ -16,14 +16,14 @@ export default class EdgeNode extends Dream {
   }
 
   public id: IdType
-  public created_at: DateTime
-  public updated_at: DateTime
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
-  @BelongsTo(() => GraphEdge, { foreignKey: 'edge_id' })
+  @BelongsTo(() => GraphEdge, { foreignKey: 'edgeId' })
   public edge: GraphEdge
-  public edge_id: IdType
+  public edgeId: IdType
 
-  @BelongsTo(() => GraphNode, { foreignKey: 'node_id' })
+  @BelongsTo(() => GraphNode, { foreignKey: 'nodeId' })
   public node: GraphNode
-  public node_id: IdType
+  public nodeId: IdType
 }

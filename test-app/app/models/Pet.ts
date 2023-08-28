@@ -24,20 +24,20 @@ export default class Pet extends Dream {
   public id: IdType
   public species: Species
   public name: string
-  public favorite_treats: CatTreats[]
-  public deleted_at: DateTime
-  public created_at: DateTime
+  public favoriteTreats: CatTreats[]
+  public deletedAt: DateTime
+  public createdAt: DateTime
 
   @Scope({ default: true })
   public static hideDeleted(query: any) {
-    return query.where({ deleted_at: null })
+    return query.where({ deletedAt: null })
   }
 
   @BelongsTo(() => User, {
     optional: true,
   })
   public user: User | null
-  public user_id: IdType
+  public userId: IdType
 
   @HasMany(() => Collar)
   public collars: Collar
@@ -51,7 +51,7 @@ export default class Pet extends Dream {
 
   @BeforeDestroy()
   public async doSoftDelete() {
-    await (this as Pet).update({ deleted_at: DateTime.now() })
+    await (this as Pet).update({ deletedAt: DateTime.now() })
     this.preventDeletion()
   }
 }

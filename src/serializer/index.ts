@@ -1,5 +1,5 @@
 import Dream from '../dream'
-import camelize from '../helpers/camelize'
+import camelize from '../../shared/helpers/camelize'
 import snakeify from '../../shared/helpers/snakeify'
 import { DateTime } from 'luxon'
 import { AttributeStatement } from './decorators/attribute'

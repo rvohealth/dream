@@ -19,9 +19,9 @@ export default class Balloon extends Dream {
   public type: BalloonTypesEnum
   public color: BalloonColorsEnum
   public multicolor: BalloonColorsEnum[]
-  public ribbon_sizes: number[]
-  public created_at: DateTime
-  public updated_at: DateTime
+  public ribbonSizes: number[]
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
   @Scope()
   public static red(query: any) {
@@ -30,12 +30,12 @@ export default class Balloon extends Dream {
 
   @Scope({ default: true })
   public static hideDeleted(query: any) {
-    return query.where({ deleted_at: null })
+    return query.where({ deletedAt: null })
   }
 
   @BeforeDestroy()
   public async softDelete() {
-    await (this as Balloon).update({ deleted_at: DateTime.now() })
+    await (this as Balloon).update({ deletedAt: DateTime.now() })
     this.preventDeletion()
   }
 
@@ -44,8 +44,8 @@ export default class Balloon extends Dream {
 
   @BelongsTo(() => User, { optional: true })
   public user: User
-  public user_id: IdType
+  public userId: IdType
 
-  @HasOne(() => BalloonLine, { foreignKey: 'balloon_id' })
+  @HasOne(() => BalloonLine, { foreignKey: 'balloonId' })
   public balloonLine: BalloonLine
 }

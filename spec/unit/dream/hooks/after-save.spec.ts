@@ -4,7 +4,7 @@ import User from '../../../../test-app/app/models/User'
 describe('Dream AfterSave decorator', () => {
   it('runs the query after saving a record', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition = await Composition.create({ user_id: user.id, content: 'change me after save' })
+    const composition = await Composition.create({ userId: user.id, content: 'change me after save' })
     expect(composition.content).toEqual('changed after save')
 
     await composition.reload()

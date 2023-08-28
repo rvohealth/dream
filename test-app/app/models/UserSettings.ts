@@ -10,11 +10,11 @@ export default class UserSettings extends Dream {
   }
 
   public id: IdType
-  public likes_chalupas: boolean
-  public created_at: DateTime
-  public updated_at: DateTime
+  public likesChalupas: boolean
+  public createdAt: DateTime
+  public updatedAt: DateTime
 
   @BelongsTo(() => User)
   public user: User
-  public user_id: IdType
+  public userId: IdType
 }

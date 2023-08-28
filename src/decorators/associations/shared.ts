@@ -14,6 +14,7 @@ import { SyncedBelongsToAssociations } from '../../sync/associations'
 import CurriedOpsStatement from '../../ops/curried-ops-statement'
 import { MergeUnionOfRecordTypes } from '../../helpers/typeutils'
 import { checkForeignKey } from '../../exceptions/associations/explicit-foreign-key'
+import camelize from '../../../shared/helpers/camelize'
 
 export type AssociatedModelParam<
   I extends Dream,
@@ -93,7 +94,7 @@ export function finalForeignKey(
         ? modelCBtoSingleDreamClass(dreamClass, partialAssociation).prototype.table
         : dreamClass.prototype.table
 
-    computedForeignKey = pluralize.singular(table) + '_id'
+    computedForeignKey = camelize(pluralize.singular(table)) + 'Id'
   }
 
   if (partialAssociation.type === 'BelongsTo' || !partialAssociation.through)
@@ -107,7 +108,7 @@ export function foreignKeyTypeField(
   dream: typeof Dream,
   partialAssociation: PartialAssociationStatement
 ): string {
-  return finalForeignKey(foreignKey, dream, partialAssociation).replace(/_id$/, '_type')
+  return finalForeignKey(foreignKey, dream, partialAssociation).replace(/Id$/, 'Type')
 }
 
 export function modelCBtoSingleDreamClass(

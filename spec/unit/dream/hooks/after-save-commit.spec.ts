@@ -8,7 +8,7 @@ describe('Dream AfterSaveCommit decorator', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
       const composition = await Composition.create({
-        user_id: user.id,
+        userId: user.id,
         content: 'change me after save commit',
       })
       expect(composition.content).toEqual('changed after save commit')
@@ -21,7 +21,7 @@ describe('Dream AfterSaveCommit decorator', () => {
           const user = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
 
           composition = await Composition.txn(txn).create({
-            user_id: user.id,
+            userId: user.id,
             content: 'change me after save commit',
           })
         })
@@ -35,7 +35,7 @@ describe('Dream AfterSaveCommit decorator', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
       const composition = await Composition.create({
-        user_id: user.id,
+        userId: user.id,
       })
       await composition.update({
         content: 'change me after save commit',
@@ -49,7 +49,7 @@ describe('Dream AfterSaveCommit decorator', () => {
         await Dream.transaction(async txn => {
           const user = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
 
-          composition = await Composition.txn(txn).create({ user_id: user.id })
+          composition = await Composition.txn(txn).create({ userId: user.id })
           await composition.txn(txn).update({
             content: 'change me after save commit',
           })

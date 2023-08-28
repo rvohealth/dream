@@ -18,20 +18,20 @@ export default class Post extends Dream {
 
   @BelongsTo(() => User)
   public user: User
-  public user_id: IdType
+  public userId: IdType
 
   @BelongsTo(() => PostVisibility, { optional: true })
   public postVisibility: PostVisibility | null
-  public post_visibility_id: IdType | null
+  public postVisibilityId: IdType | null
 
   @HasMany(() => Rating, {
-    foreignKey: 'rateable_id',
+    foreignKey: 'rateableId',
     polymorphic: true,
   })
   public ratings: Rating[]
 
   @HasMany(() => HeartRating, {
-    foreignKey: 'extra_rateable_id',
+    foreignKey: 'extraRateableId',
     polymorphic: true,
   })
   public heartRatings: HeartRating[]

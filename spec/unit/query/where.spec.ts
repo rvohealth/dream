@@ -428,33 +428,33 @@ describe('Query#where', () => {
       user0 = await User.create({
         email: 'fred@frewd',
         password: 'howyadoin',
-        created_at: begin.minus({ hour: 1 }),
+        createdAt: begin.minus({ hour: 1 }),
       })
       user1 = await User.create({
         email: 'fred@frezd',
         password: 'howyadoin',
-        created_at: begin,
+        createdAt: begin,
       })
       user2 = await User.create({
         email: 'fred@frwwd',
         password: 'howyadoin',
-        created_at: begin.plus({ hour: 1 }),
+        createdAt: begin.plus({ hour: 1 }),
       })
       user3 = await User.create({
         email: 'fred@frewdzsd',
         password: 'howyadoin',
-        created_at: end,
+        createdAt: end,
       })
       user4 = await User.create({
         email: 'fred@frwewdzsd',
         password: 'howyadoin',
-        created_at: end.plus({ hour: 1 }),
+        createdAt: end.plus({ hour: 1 }),
       })
     })
 
     it('is able to apply date ranges to where clause', async () => {
       const records = await User.order('id')
-        .where({ created_at: range(begin, end) })
+        .where({ createdAt: range(begin, end) })
         .all()
 
       expect(records.length).toEqual(3)
@@ -464,7 +464,7 @@ describe('Query#where', () => {
     context('end is not passed', () => {
       it('finds all dates after the start', async () => {
         const records = await User.order('id')
-          .where({ created_at: range(begin.plus({ hour: 1 })) })
+          .where({ createdAt: range(begin.plus({ hour: 1 })) })
           .all()
 
         expect(records.length).toEqual(3)
@@ -475,7 +475,7 @@ describe('Query#where', () => {
     context('start is not passed', () => {
       it('finds all dates before the end', async () => {
         const records = await User.order('id')
-          .where({ created_at: range(null, begin.plus({ hour: 1 })) })
+          .where({ createdAt: range(null, begin.plus({ hour: 1 })) })
           .all()
 
         expect(records.length).toEqual(3)
@@ -486,7 +486,7 @@ describe('Query#where', () => {
     context('excludeEnd is passed', () => {
       it('omits a record landing exactly on the end date', async () => {
         const records = await User.order('id')
-          .where({ created_at: range(begin, end, true) })
+          .where({ createdAt: range(begin, end, true) })
           .all()
 
         expect(records.length).toEqual(2)
@@ -507,23 +507,23 @@ describe('Query#where', () => {
       user1 = await User.create({
         email: 'fred@frewd',
         password: 'howyadoin',
-        created_at: begin.minus({ hour: 1 }),
+        createdAt: begin.minus({ hour: 1 }),
       })
       user2 = await User.create({
         email: 'fred@frwwd',
         password: 'howyadoin',
-        created_at: begin.plus({ hour: 1 }),
+        createdAt: begin.plus({ hour: 1 }),
       })
       user3 = await User.create({
         email: 'fred@frwewdzsd',
         password: 'howyadoin',
-        created_at: end.plus({ hour: 1 }),
+        createdAt: end.plus({ hour: 1 }),
       })
     })
 
     it('is able to apply date ranges to where clause', async () => {
       const users = await User.order('id')
-        .where({ created_at: () => range(begin, end) })
+        .where({ createdAt: () => range(begin, end) })
         .all()
 
       expect(users).toMatchDreamModels([user2])
