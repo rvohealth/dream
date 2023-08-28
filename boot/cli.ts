@@ -21,6 +21,8 @@ function cmdargs() {
   return process.argv.slice(3, process.argv.length)
 }
 
+console.log('HI!', cmdargs(), program.args)
+
 program
   .command('build')
   .description('build: compiles the app to javascript')
@@ -287,6 +289,11 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
+    if (process.env.NODE_ENV === 'test' && process.env.DREAM_SEED_DB_IN_TEST !== '1') {
+      console.log('skipping db seed for test env. To really seed for test, add DREAM_SEED_DB_IN_TEST=1')
+      return
+    }
+
     await maybeSyncExisting(cmdargs())
     await sspawn(nodeOrTsnodeCmd(`src/bin/db-seed.ts`, cmdargs()))
   })
