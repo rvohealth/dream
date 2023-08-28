@@ -164,7 +164,7 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
-    if (!developmentOrTestEnv()) return
+    if (process.env.NODE_ENV === 'production') return
     await sspawn(nodeOrTsnodeCmd('boot/sync-existing-or-create-boilerplate.ts', cmdargs()))
 
     if (!cmdargs().includes('--bypass-config-cache')) {
