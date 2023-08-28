@@ -1,3 +1,4 @@
+import dreamRootPath from '../../shared/helpers/path/dreamRootPath'
 import { DbConfig, DbConnectionConfig } from '../../shared/helpers/path/types'
 import { projectRootPath } from '../../src/helpers/path'
 
@@ -5,8 +6,8 @@ export type DbConnectionType = 'primary' | 'replica'
 
 export default class ConnectionConfRetriever {
   public async getConnectionConf(connection: DbConnectionType): Promise<DbConnectionConfig> {
-    console.log(projectRootPath({ filepath: 'src/sync/config-cache' }))
-    const dbConfig = (await import(projectRootPath({ filepath: 'src/sync/config-cache' }))).default
+    console.log('config cache path:', dreamRootPath({ filepath: 'src/sync/config-cache' }))
+    const dbConfig = (await import(dreamRootPath({ filepath: 'src/sync/config-cache' }))).default
       .db as DbConfig
 
     const nodeEnv = process.env.NODE_ENV! as 'production' | 'development' | 'test'
