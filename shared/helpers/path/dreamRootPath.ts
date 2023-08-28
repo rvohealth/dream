@@ -10,6 +10,8 @@ export default function dreamRootPath({
   `
   if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
     return path.join(process.env.APP_ROOT_PATH!, '..', filepath || '')
+  } else if (process.env.PSYCHIC_CORE_DEVELOPMENT === '1') {
+    return path.join(process.env.APP_ROOT_PATH!, '..', 'node_modules/dream', filepath || '')
   } else {
     return path.join(process.env.APP_ROOT_PATH!, 'node_modules/dream', filepath || '')
   }
