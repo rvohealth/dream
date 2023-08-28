@@ -5,6 +5,5 @@
 import path from 'path'
 
 export default function absoluteFilePath(filePath: string) {
-  console.log('APP_ROOT_PATH:', process.env.APP_ROOT_PATH)
   return path.join(process.env.APP_ROOT_PATH!, filePath)
 }
