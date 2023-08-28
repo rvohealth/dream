@@ -1171,10 +1171,7 @@ ${JSON.stringify(association, null, 2)}
           a = attr
           b = 'is'
           c = val
-        } else if (
-          val.constructor === SelectQueryBuilder ||
-          val.constructor.name === 'SelectQueryBuilderImpl'
-        ) {
+        } else if (['SelectQueryBuilder', 'SelectQueryBuilderImpl'].includes(val.constructor.name)) {
           a = attr
           b = 'in'
           c = val
