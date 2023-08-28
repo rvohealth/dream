@@ -6,7 +6,6 @@ export type DbConnectionType = 'primary' | 'replica'
 
 export default class ConnectionConfRetriever {
   public async getConnectionConf(connection: DbConnectionType): Promise<DbConnectionConfig> {
-    console.log('config cache path:', dreamRootPath({ filepath: 'src/sync/config-cache' }))
     const dbConfig = (await import(dreamRootPath({ filepath: 'src/sync/config-cache' }))).default
       .db as DbConfig
 
