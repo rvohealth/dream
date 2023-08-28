@@ -5,7 +5,6 @@
 import path from 'path'
 
 export default function absoluteFilePath(filePath: string) {
-  return process.env.DREAM_CORE_DEVELOPMENT === '1'
-    ? path.join(process.cwd(), filePath)
-    : path.join(process.cwd(), '..', '..', filePath)
+  console.log('APP_ROOT_PATH:', process.env.APP_ROOT_PATH)
+  return path.join(process.env.APP_ROOT_PATH!, filePath)
 }

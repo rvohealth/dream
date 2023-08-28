@@ -1,20 +1,12 @@
 import path from 'path'
-import compact from '../compact'
-import shouldOmitDistFolder from './shouldOmitDistFolder'
 
 export default function projectRootPath({
   filepath,
   omitDirname,
 }: { filepath?: string; omitDirname?: boolean } = {}) {
-  const dirname = omitDirname ? undefined : __dirname
-
-  if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-    return shouldOmitDistFolder()
-      ? path.join(...compact([dirname, '..', '..', '..', filepath]))
-      : path.join(...compact([dirname, '..', '..', '..', '..', filepath]))
-  } else {
-    return shouldOmitDistFolder()
-      ? path.join(...compact([dirname, '..', '..', '..', '..', '..', filepath]))
-      : path.join(...compact([dirname, '..', '..', '..', '..', '..', '..', filepath]))
-  }
+  if (!process.env.APP_ROOT_PATH)
+    throw `
+    ATTENTION!: Must set APP_ROOT_PATH env var to your project root
+  `
+  return path.join(process.env.APP_ROOT_PATH!, '..', filepath || '')
 }
