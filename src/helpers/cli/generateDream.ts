@@ -4,12 +4,13 @@ import generateDreamContent from './generateDreamContent'
 import generateMigrationContent from './generateMigrationContent'
 import generateSerializerContent from './generateSerializerContent'
 import migrationVersion from '../migrationVersion'
-import { loadDreamYamlFile } from '../path'
+import { loadDreamYamlFile, migrationsPath, modelsPath } from '../path'
 import hyphenize from '../hyphenize'
 import snakeify from '../../../shared/helpers/snakeify'
 import pascalize from '../pascalize'
 import absoluteFilePath from '../absoluteFilePath'
 import generateUnitSpec from './generateUnitSpec'
+import path from 'path'
 
 export default async function generateDream(
   dreamName: string,
@@ -24,17 +25,14 @@ export default async function generateDream(
   // TODO: add uuid support
   const useUUID = false
 
-  const dreamBasePath = `${rootPath}/${ymlConfig.models_path}`
+  const dreamBasePath = await modelsPath()
   const formattedDreamName = pluralize
     .singular(dreamName)
     .split('/')
     .map(pathName => pascalize(pathName))
     .join('/')
-  const dreamPath = `${dreamBasePath}/${formattedDreamName}.ts`
-  const relativeDreamPath = dreamPath.replace(
-    new RegExp(`^.*${ymlConfig.models_path}`),
-    ymlConfig.models_path
-  )
+  const dreamPath = path.join(dreamBasePath, `${formattedDreamName}.ts`)
+  const relativeDreamPath = dreamPath.replace(dreamBasePath, ymlConfig.models_path)
   const dreamPathParts = formattedDreamName.split('/')
   const thisfs = fs ? fs : await import('fs/promises')
 
@@ -51,9 +49,11 @@ export default async function generateDream(
     await thisfs.mkdir(fullPath, { recursive: true })
   }
 
+  const content = await generateDreamContent(dreamName, attributes, { useUUID })
+
   try {
     console.log(`generating dream: ${relativeDreamPath}`)
-    await thisfs.writeFile(dreamPath, await generateDreamContent(dreamName, attributes, { useUUID }))
+    await thisfs.writeFile(dreamPath, content)
   } catch (error) {
     const err = `
       Something happened while trying to create the dream file:
@@ -62,13 +62,15 @@ export default async function generateDream(
       Does this file already exist? Here is the error that was raised:
         ${error}
     `
-    console.log(err)
-    throw err
+    console.error(err)
+    console.error(error)
+    console.trace()
+    throw error
   }
 
   await generateUnitSpec(dreamName, 'models', { rootPath })
 
-  const migrationBasePath = `${rootPath}/${ymlConfig.migrations_path}`
+  const migrationBasePath = await migrationsPath()
   const version = migrationVersion()
   const migrationPath = `${migrationBasePath}/${version}-create-${pluralize(hyphenize(dreamName))}.ts`
   const relativeMigrationPath = migrationPath.replace(
@@ -76,16 +78,14 @@ export default async function generateDream(
     ymlConfig.migrations_path
   )
 
+  const finalContent = generateMigrationContent({
+    table: snakeify(pluralize(dreamName)),
+    attributes,
+    useUUID,
+  })
   try {
     console.log(`generating migration: ${relativeMigrationPath}`)
-    await thisfs.writeFile(
-      migrationPath,
-      generateMigrationContent({
-        table: snakeify(pluralize(dreamName)),
-        attributes,
-        useUUID,
-      })
-    )
+    await thisfs.writeFile(migrationPath, finalContent)
   } catch (error) {
     const err = `
       Something happened while trying to create the migration file:
@@ -133,8 +133,8 @@ export default async function generateDream(
       Does this file already exist? Here is the error that was raised:
         ${error}
     `
-    console.log(err)
-    throw err
+    console.error(err)
+    throw error
   }
 
   if (process.env.NODE_ENV !== 'test') {
