@@ -148,7 +148,7 @@ function camelcasify(str: string) {
 
 function _camelcasify(str: string): string {
   const camelString = str.replace(
-    /([( .])([a-zA-Z1-3]+)_([a-z1-3])([a-z1-3]+)/g,
+    /([( .])([a-z][a-zA-Z0-9]*)_([a-z0-9])([a-z0-9]*)/g,
     (match, p1, p2, p3, p4) => `${p1}${p2}${p3.toUpperCase()}${p4}`
   )
 

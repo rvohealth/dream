@@ -94,6 +94,15 @@ export interface Compositions {
   updatedAt: Timestamp;
 }
 
+export interface EdgeCaseAttributes {
+  id: Generated<Int8>;
+  kPop: boolean | null;
+  popK: string | null;
+  popKPop: number | null;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
 export interface ExtraRatings {
   type: ExtraRatingTypesEnum | null;
   id: Generated<Int8>;
@@ -206,6 +215,7 @@ export interface DB {
   composition_asset_audits: CompositionAssetAudits;
   composition_assets: CompositionAssets;
   compositions: Compositions;
+  edge_case_attributes: EdgeCaseAttributes;
   extra_ratings: ExtraRatings;
   graph_edge_nodes: GraphEdgeNodes;
   graph_edges: GraphEdges;
@@ -229,6 +239,7 @@ export const CollarColumns = ['id', 'petId', 'lost', 'createdAt', 'updatedAt']
 export const CompositionAssetAuditColumns = ['id', 'compositionAssetId', 'approval', 'createdAt', 'updatedAt']
 export const CompositionAssetColumns = ['id', 'compositionId', 'name', 'src', 'primary', 'score', 'createdAt', 'updatedAt']
 export const CompositionColumns = ['id', 'userId', 'content', 'primary', 'createdAt', 'updatedAt']
+export const EdgeCaseAttributeColumns = ['id', 'kPop', 'popK', 'popKPop', 'createdAt', 'updatedAt']
 export const ExtraRatingColumns = ['type', 'id', 'userId', 'extraRateableId', 'extraRateableType', 'rating', 'createdAt', 'updatedAt']
 export const GraphEdgeNodeColumns = ['id', 'edgeId', 'nodeId', 'createdAt', 'updatedAt']
 export const GraphEdgeColumns = ['id', 'name', 'createdAt', 'updatedAt']
@@ -309,6 +320,15 @@ export interface CompositionAttributes {
   userId: IdType
   content: string | null
   primary: boolean | null
+  createdAt: DateTime
+  updatedAt: DateTime
+}  
+
+export interface EdgeCaseAttributeAttributes {
+  id: IdType
+  kPop: boolean | null
+  popK: string | null
+  popKPop: number | null
   createdAt: DateTime
   updatedAt: DateTime
 }  
@@ -488,6 +508,15 @@ export const CompositionsTypeCache = {
   updatedAt: 'Timestamp'
 }  
 
+export const EdgeCaseAttributesTypeCache = {
+  id: 'Generated<Int8>',
+  kPop: 'boolean|null',
+  popK: 'string|null',
+  popKPop: 'number|null',
+  createdAt: 'Timestamp',
+  updatedAt: 'Timestamp'
+}  
+
 export const ExtraRatingsTypeCache = {
   type: 'ExtraRatingTypesEnum|null',
   id: 'Generated<Int8>',
@@ -602,6 +631,7 @@ export interface InterpretedDB {
   composition_asset_audits: CompositionAssetAuditAttributes,
   composition_assets: CompositionAssetAttributes,
   compositions: CompositionAttributes,
+  edge_case_attributes: EdgeCaseAttributeAttributes,
   extra_ratings: ExtraRatingAttributes,
   graph_edge_nodes: GraphEdgeNodeAttributes,
   graph_edges: GraphEdgeAttributes,
@@ -625,6 +655,7 @@ export const DBColumns = {
   composition_asset_audits: CompositionAssetAuditColumns,
   composition_assets: CompositionAssetColumns,
   compositions: CompositionColumns,
+  edge_case_attributes: EdgeCaseAttributeColumns,
   extra_ratings: ExtraRatingColumns,
   graph_edge_nodes: GraphEdgeNodeColumns,
   graph_edges: GraphEdgeColumns,
@@ -648,6 +679,7 @@ export const DBTypeCache = {
   composition_asset_audits: CompositionAssetAuditsTypeCache,
   composition_assets: CompositionAssetsTypeCache,
   compositions: CompositionsTypeCache,
+  edge_case_attributes: EdgeCaseAttributesTypeCache,
   extra_ratings: ExtraRatingsTypeCache,
   graph_edge_nodes: GraphEdgeNodesTypeCache,
   graph_edges: GraphEdgesTypeCache,

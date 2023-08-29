@@ -24,7 +24,7 @@ export default class DreamDbConnection {
           ssl: connectionConf.use_ssl ? process.env[connectionConf.use_ssl] === '1' : false,
         }),
       }),
-      plugins: [new CamelCasePlugin()],
+      plugins: [new CamelCasePlugin({ underscoreBetweenUppercaseLetters: true })],
     })
 
     connections[connectionType] = dbConn

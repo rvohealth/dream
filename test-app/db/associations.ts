@@ -78,6 +78,7 @@ export default {
       "extra_ratings"
     ]
   },
+  "edge_case_attributes": {},
   "extra_ratings": {
     "user": [
       "users"
@@ -297,6 +298,7 @@ export interface SyncedAssociations {
       "extra_ratings"
     ]
   },
+  "edge_case_attributes": {},
   "extra_ratings": {
     "user": [
       "users"
@@ -476,6 +478,7 @@ export interface SyncedBelongsToAssociations {
       "users"
     ]
   },
+  "edge_case_attributes": false,
   "extra_ratings": {
     "user": [
       "users"
@@ -546,6 +549,7 @@ export interface VirtualColumns {
   "composition_asset_audits": false,
   "composition_assets": false,
   "compositions": false,
+  "edge_case_attributes": false,
   "extra_ratings": false,
   "graph_edge_nodes": false,
   "graph_edges": false,

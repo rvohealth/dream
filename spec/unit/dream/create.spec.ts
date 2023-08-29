@@ -11,6 +11,7 @@ import { Dream } from '../../../src'
 import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import ReplicaSafe from '../../../src/decorators/replica-safe'
 import DreamDbConnection from '../../../src/db/dream-db-connection'
+import EdgeCaseAttribute from '../../../test-app/app/models/EdgeCaseAttribute'
 
 describe('Dream.create', () => {
   it('creates the underlying model in the db', async () => {
@@ -173,6 +174,16 @@ describe('Dream.create', () => {
         // should always call to primary for update, regardless of replica-safe status
         expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
       })
+    })
+  })
+
+  context('camel-case edge cases', () => {
+    it('translates properly to the database layer', async () => {
+      await EdgeCaseAttribute.create({ kPop: true, popK: 'a', popKPop: 7 })
+      const edgeCase = await EdgeCaseAttribute.first()
+      expect(edgeCase!.kPop).toBe(true)
+      expect(edgeCase!.popK).toEqual('a')
+      expect(edgeCase!.popKPop).toEqual(7)
     })
   })
 })
