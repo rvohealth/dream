@@ -126,8 +126,8 @@ function removeUnwantedExports(file: string) {
   return file.replace(
     '\nexport type Timestamp = ColumnType<Date, Date | string, Date | string>;',
     `\
-export type IdType = string | number | bigint | undefined
-export type Timestamp = ColumnType<DateTime>`
+type IdType = string | number | bigint | undefined
+type Timestamp = ColumnType<DateTime>`
   )
 }
 

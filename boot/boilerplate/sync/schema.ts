@@ -1,5 +1,3 @@
-export type IdType = string | number | bigint | undefined
-
 export interface DB {
   _placeholder_: false
 }

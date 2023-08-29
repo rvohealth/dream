@@ -20,8 +20,8 @@ export type Int8 = ColumnType<string, string | number | bigint, string | number 
 export type Numeric = ColumnType<string, string | number, string | number>;
 
 export type Species = "cat" | "dog" | "frog";
-export type IdType = string | number | bigint | undefined
-export type Timestamp = ColumnType<DateTime>
+type IdType = string | number | bigint | undefined
+type Timestamp = ColumnType<DateTime>
 
 export interface BalloonLines {
   id: Generated<Int8>;
