@@ -10,6 +10,7 @@ import snakeify from '../../../shared/helpers/snakeify'
 import pascalize from '../pascalize'
 import absoluteFilePath from '../absoluteFilePath'
 import generateUnitSpec from './generateUnitSpec'
+import serializersPath from '../../../shared/helpers/path/serializersPath'
 import path from 'path'
 
 export default async function generateDream(
@@ -98,14 +99,14 @@ export default async function generateDream(
     throw err
   }
 
-  const serializerBasePath = `${rootPath}/${ymlConfig.serializers_path}`
+  const serializerBasePath = await serializersPath()
   const fullyQualifiedSerializerName =
     pluralize
       .singular(dreamName)
       .split('/')
       .map(pathName => pascalize(pathName))
       .join('/') + 'Serializer'
-  const serializerPath = `${serializerBasePath}/${fullyQualifiedSerializerName}.ts`
+  const serializerPath = path.join(serializerBasePath, `${fullyQualifiedSerializerName}.ts`)
   const relativeSerializerPath = serializerPath.replace(
     new RegExp(`^.*${ymlConfig.serializers_path}`),
     ymlConfig.serializers_path

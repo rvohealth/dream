@@ -1,6 +1,8 @@
 import fs from 'fs/promises'
 import { loadDreamYamlFile } from '../path'
 import absoluteFilePath from '../absoluteFilePath'
+import unitSpecsPath from '../../../shared/helpers/path/unitSpecsPath'
+import path from 'path'
 
 export default async function generateUnitSpec(
   dreamName: string,
@@ -12,7 +14,8 @@ export default async function generateUnitSpec(
   } = {}
 ) {
   const ymlConfig = await loadDreamYamlFile()
-  const specPath = `${rootPath}/${ymlConfig.unit_spec_path}/${specSubpath}/${dreamName}.spec.ts`
+  const specBasePath = await unitSpecsPath()
+  const specPath = path.join(specBasePath, specSubpath, `${dreamName}.spec.ts`)
   const specDirPath = specPath.split('/').slice(0, -1).join('/')
   const relativeSpecPath = specPath.replace(
     new RegExp(`^.*${ymlConfig.unit_spec_path}`),
