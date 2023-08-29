@@ -36,10 +36,10 @@ DB_HOST=localhost
 
 ```bash
 yarn install
-APP_ROOT_PATH=$(pwd)/test-app NODE_ENV=development yarn dream db:create --core
-APP_ROOT_PATH=$(pwd)/test-app NODE_ENV=development yarn dream db:migrate --core
-APP_ROOT_PATH=$(pwd)/test-app NODE_ENV=test yarn dream db:create --core
-APP_ROOT_PATH=$(pwd)/test-app NODE_ENV=test yarn dream db:migrate --core
+NODE_ENV=development yarn dreamcore db:create
+NODE_ENV=development yarn dreamcore db:migrate
+NODE_ENV=test yarn dreamcore db:create
+NODE_ENV=test yarn dreamcore db:migrate
 ```
 
 ## Features
