@@ -149,7 +149,9 @@ program
   )
   .action(async () => {
     await maybeSyncExisting(cmdargs())
-    await sspawn(nodeOrTsnodeCmd('src/bin/build-associations.ts', cmdargs()))
+    await sspawn(
+      nodeOrTsnodeCmd('src/bin/build-associations.ts', cmdargs(), { tsnodeFlags: ['--transpile-only'] })
+    )
   })
 
 program
