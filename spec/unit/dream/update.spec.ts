@@ -7,7 +7,6 @@ import CanOnlyPassBelongsToModelParam from '../../../src/exceptions/associations
 import { DateTime } from 'luxon'
 import Pet from '../../../test-app/app/models/Pet'
 import { Dream } from '../../../src'
-import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 
 describe('Dream#update', () => {
   it('updates the underlying model in the db', async () => {
@@ -168,6 +167,20 @@ describe('Dream#update', () => {
         // @ts-ignore
         user.update({ userSettings })
       ).rejects.toThrowError(CanOnlyPassBelongsToModelParam)
+    })
+  })
+
+  context('given a postgres array field', () => {
+    it('correctly inserts the array values into the field', async () => {
+      const pet = await Pet.create({
+        favoriteTreats: ['chicken', 'tuna', 'cat-safe chalupas (catlupas,supaloopas)'],
+      })
+      await pet.update({ favoriteTreats: ['chicken'] })
+
+      expect(pet.favoriteTreats).toEqual(['chicken'])
+
+      await pet.reload()
+      expect(pet.favoriteTreats).toEqual(['chicken'])
     })
   })
 })
