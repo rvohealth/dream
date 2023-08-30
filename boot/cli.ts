@@ -295,7 +295,7 @@ program
     }
 
     await maybeSyncExisting(cmdargs())
-    await sspawn(nodeOrTsnodeCmd(`src/bin/db-seed.ts`, cmdargs()))
+    await sspawn(nodeOrTsnodeCmd(`src/bin/db-seed.ts`, cmdargs(), { tsnodeFlags: ['--transpile-only'] }))
   })
 
 program
