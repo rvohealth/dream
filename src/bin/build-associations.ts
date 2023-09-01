@@ -93,7 +93,6 @@ async function fleshOutAssociations(targetAssociationType?: string) {
       ]
     }
   }
-  console.log('DREAM CLASS:', finalModels)
 
   return finalModels
 }
