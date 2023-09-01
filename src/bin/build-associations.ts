@@ -76,14 +76,24 @@ async function fleshOutAssociations(targetAssociationType?: string) {
 
       const dreamClassOrClasses = associationMetaData.modelCB()
       if (dreamClassOrClasses.constructor === Array) {
-        finalModels[model.prototype.table][associationName] = (dreamClassOrClasses as any[]).map(
-          dreamClass => dreamClass.prototype.table
-        )
+        const tables: string[] = (dreamClassOrClasses as any[]).map(dreamClass => dreamClass.prototype.table)
+        finalModels[model.prototype.table][associationName] ||= []
+        finalModels[model.prototype.table][associationName] = [
+          ...finalModels[model.prototype.table][associationName],
+          ...tables,
+        ]
       } else {
-        finalModels[model.prototype.table][associationName] = [dreamClassOrClasses.prototype.table]
+        finalModels[model.prototype.table][associationName] ||= []
+        finalModels[model.prototype.table][associationName].push(dreamClassOrClasses.prototype.table)
       }
+
+      // guarantee unique
+      finalModels[model.prototype.table][associationName] = [
+        ...new Set(finalModels[model.prototype.table][associationName]),
+      ]
     }
   }
+  console.log('DREAM CLASS:', finalModels)
 
   return finalModels
 }
