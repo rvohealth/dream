@@ -22,6 +22,7 @@
     "after:build:core": "cp .dream.yml dist/.dream.yml && mkdir dist/test-app/conf/env && cp test-app/conf/env/db.yml dist/test-app/conf/env/db.yml && yarn build:package-json",
     "build:docs": "node dist/boot/build-docs.js",
     "spec": "APP_ROOT_PATH=$(pwd)/test-app DREAM_CORE_DEVELOPMENT=1 yarn build:core && APP_ROOT_PATH=$(pwd)/test-app DREAM_CORE_DEVELOPMENT=1 yarn dream spec --core",
+    "spec:fast": "APP_ROOT_PATH=$(pwd)/test-app DREAM_CORE_DEVELOPMENT=1 NODE_ENV=test DREAM_CORE_SPEC_RUN=1 jest --runInBand --forceExit",
     "console": "yarn dream console --core",
     "postinstall": "if [ ! -e .no-dream-postinstall ]; then NODE_ENV=development yarn dream sync:existing && yarn build; fi"
   },
