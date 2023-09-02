@@ -48,7 +48,6 @@ import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associati
 import DreamSerializer from './serializer'
 import MissingSerializer from './exceptions/missing-serializer'
 import MissingTable from './exceptions/missing-table'
-import CannotCastToNonSTIChild from './exceptions/sti/cannot-cast-to-non-sti-child'
 import CannotCreateAssociationWithThroughContext from './exceptions/associations/cannot-create-association-with-through-context'
 import CannotDestroyAssociationWithThroughContext from './exceptions/associations/cannot-destroy-association-with-through-context'
 import associationQuery from './dream/internal/associations/associationQuery'
@@ -540,16 +539,6 @@ export default class Dream {
         })
       }
     }
-  }
-
-  public as<I extends Dream, T extends typeof Dream>(this: I, dreamClass: T): InstanceType<T> {
-    const construct = this.constructor as DreamConstructorType<I>
-    if (!construct.isSTIBase) throw new CannotCastToNonSTIChild(construct, dreamClass)
-
-    const extendedBy = construct.extendedBy!
-    if (!extendedBy.includes(dreamClass)) throw new CannotCastToNonSTIChild(construct, dreamClass)
-
-    return dreamClass.new(this.attributes() as any)
   }
 
   public attributes<I extends Dream>(this: I): Updateable<DB[I['table']]> {
