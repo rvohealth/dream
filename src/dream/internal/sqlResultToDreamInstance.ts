@@ -9,10 +9,8 @@ export default function sqlResultToDreamInstance<
   TableName extends AssociationTableNames = InstanceType<DreamClass>['table'],
   Table = DB[TableName]
 >(dreamClass: DreamClass, sqlResult: any): InstanceType<DreamClass> | Dream {
-  if (dreamClass.extendedBy) {
-    const extendingDreamClass = dreamClass.extendedBy.find(
-      extendingDreamClass => extendingDreamClass.name === sqlResult.type
-    )
+  if (dreamClass.isSTIBase) {
+    const extendingDreamClass = findExtendingDreamClass(dreamClass, sqlResult.type)
 
     if (!extendingDreamClass)
       throw new STIChildMissing(dreamClass, sqlResult.type, sqlResult[dreamClass.primaryKey])
@@ -21,4 +19,18 @@ export default function sqlResultToDreamInstance<
   } else {
     return new dreamClass(sqlResult as Updateable<Table>)
   }
+}
+
+export function findExtendingDreamClass(dreamClass: typeof Dream, type: string): typeof Dream | undefined {
+  if (!dreamClass.extendedBy) return undefined
+
+  const extendingDreamClass = dreamClass.extendedBy.find(
+    extendingDreamClass => extendingDreamClass.name === type
+  )
+
+  if (extendingDreamClass) return extendingDreamClass
+
+  return dreamClass.extendedBy
+    .map(extendingDreamClass => findExtendingDreamClass(extendingDreamClass, type))
+    .find(dreamClassOrUndefined => dreamClassOrUndefined)
 }

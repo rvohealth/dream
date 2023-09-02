@@ -5,8 +5,9 @@ export default function STI(dreamClass: typeof Dream, { value }: { value?: strin
   return function (target: any) {
     const t = target as typeof Dream
 
-    dreamClass.extendedBy ||= []
-    dreamClass.extendedBy.push(t)
+    if (!Object.getOwnPropertyDescriptor(t, 'extendedBy')) t.extendedBy = []
+    if (!Object.getOwnPropertyDescriptor(dreamClass, 'extendedBy')) dreamClass.extendedBy = []
+    dreamClass.extendedBy!.push(t)
 
     t.sti = {
       active: true,

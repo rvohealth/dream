@@ -115,7 +115,7 @@ export default class Dream {
   }
 
   public static get isSTIBase() {
-    return !!this.extendedBy?.length
+    return !!this.extendedBy?.length && !this.isSTIChild
   }
 
   public static get isSTIChild() {
