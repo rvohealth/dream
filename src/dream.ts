@@ -49,7 +49,6 @@ import DreamSerializer from './serializer'
 import MissingSerializer from './exceptions/missing-serializer'
 import MissingTable from './exceptions/missing-table'
 import CannotCastToNonSTIChild from './exceptions/sti/cannot-cast-to-non-sti-child'
-import CannotCastNonSTIModelToChild from './exceptions/sti/cannot-cast-non-sti-model-to-child'
 import CannotCreateAssociationWithThroughContext from './exceptions/associations/cannot-create-association-with-through-context'
 import CannotDestroyAssociationWithThroughContext from './exceptions/associations/cannot-destroy-association-with-through-context'
 import associationQuery from './dream/internal/associations/associationQuery'
@@ -549,19 +548,6 @@ export default class Dream {
 
     const extendedBy = construct.extendedBy!
     if (!extendedBy.includes(dreamClass)) throw new CannotCastToNonSTIChild(construct, dreamClass)
-
-    return dreamClass.new(this.attributes() as any)
-  }
-
-  public asChild<I extends Dream>(this: I) {
-    const construct = this.constructor as DreamConstructorType<I>
-    if (!construct.isSTIBase) throw new CannotCastNonSTIModelToChild(construct)
-
-    const extendedBy = construct.extendedBy!
-    if (!extendedBy) throw new CannotCastNonSTIModelToChild(construct)
-
-    const dreamClass = extendedBy.find(d => d.name === (this as any).type) as typeof Dream | null
-    if (!dreamClass) throw new CannotCastNonSTIModelToChild(construct)
 
     return dreamClass.new(this.attributes() as any)
   }
