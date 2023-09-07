@@ -15,6 +15,8 @@ export default async function buildAssociations() {
   await fs.writeFile(clientFilePath, fileStr)
   console.log('Done!')
 }
+
+// eslint-disable-next-line
 buildAssociations()
 
 async function getDBColumns() {

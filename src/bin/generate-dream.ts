@@ -6,4 +6,6 @@ async function _generateDream() {
   const args = argv.slice(3, argv.length)
   await generateDream(name, args)
 }
+
+// eslint-disable-next-line
 _generateDream()

@@ -10,4 +10,5 @@ async function migrateToLatest() {
   await db('primary', dreamconf).destroy()
 }
 
+// eslint-disable-next-line
 migrateToLatest()

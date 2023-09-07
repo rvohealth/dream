@@ -26,7 +26,7 @@ describe('Dream#destroyAssociation', () => {
   context('with a HasMany through association', () => {
     it('raises a targeted exception, alerting the user to their mistake', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      expect(async () => await user.destroyAssociation('compositionAssets')).rejects.toThrowError(
+      await expect(user.destroyAssociation('compositionAssets')).rejects.toThrowError(
         CannotDestroyAssociationWithThroughContext
       )
     })
@@ -47,7 +47,7 @@ describe('Dream#destroyAssociation', () => {
   context('with a HasOne through association', () => {
     it('raises a targeted exception, alerting the user to their mistake', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      expect(async () => await user.destroyAssociation('mainCompositionAsset')).rejects.toThrowError(
+      await expect(user.destroyAssociation('mainCompositionAsset')).rejects.toThrowError(
         CannotDestroyAssociationWithThroughContext
       )
     })
