@@ -31,13 +31,7 @@ export default async function loadModels() {
       // fullPath.replace(new RegExp(`^.*${yamlConf.models_path}\/`), '')
     )
 
-    let PossibleModelClass: typeof Dream | null = null
-    try {
-      PossibleModelClass = await importFileWithDefault(relativePath)
-    } catch (error) {
-      throw `Failed to import the following file: ${fullPath} (relative path: ${relativePath}). Error: ${error}`
-    }
-
+    const PossibleModelClass: typeof Dream | null = await importFileWithDefault(relativePath)
     if (PossibleModelClass?.isDream) {
       const ModelClass: typeof Dream = PossibleModelClass
       const modelKey = modelPath.replace(/\.[jt]s$/, '')
