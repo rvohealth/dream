@@ -223,7 +223,7 @@ export default class Query<
       if (!preloadStatements[nextAssociationStatement]) preloadStatements[nextAssociationStatement] = {}
       const nextPreload = preloadStatements[nextAssociationStatement]
       this.fleshOutPreloadStatements(nextPreload, associationStatements)
-    } else if (nextAssociationStatement.constructor === Array) {
+    } else if (Array.isArray(nextAssociationStatement)) {
       nextAssociationStatement.forEach(associationStatement => {
         preloadStatements[associationStatement] = {}
       })
@@ -341,7 +341,7 @@ export default class Query<
 
     if (nextAssociationStatement === undefined) {
       // just satisfying typing
-    } else if (nextAssociationStatement.constructor === Array) {
+    } else if (Array.isArray(nextAssociationStatement)) {
       return nextAssociationStatement
     } else if (nextAssociationStatement.constructor === String && nextAssociationStatement.includes('.')) {
       return nextAssociationStatement as `${any}.${any}`
@@ -682,7 +682,7 @@ export default class Query<
             get() {
               const throughAssociation = (dream as any)[association.through!]
 
-              if (throughAssociation && throughAssociation.constructor === Array) {
+              if (Array.isArray(throughAssociation)) {
                 return Object.freeze(
                   (throughAssociation as any[]).flatMap(record =>
                     hydratedSourceValue(record, association.source)
@@ -728,7 +728,7 @@ export default class Query<
       })
 
     const throughClass = throughAssociation.modelCB() as typeof Dream
-    if (throughClass.constructor === Array)
+    if (Array.isArray(throughClass))
       throw new CannotAssociateThroughPolymorphic({
         dreamClass,
         association,
@@ -746,7 +746,7 @@ export default class Query<
   }
 
   public async applyOneInclude(currentAssociationTableOrAlias: string, dreams: Dream | Dream[]) {
-    if (dreams.constructor !== Array) dreams = [dreams as Dream]
+    if (!Array.isArray(dreams)) dreams = [dreams as Dream]
 
     const dream = dreams.find(dream => dream.associationMap[currentAssociationTableOrAlias])!
     if (!dream) return
@@ -995,7 +995,7 @@ ${JSON.stringify(association, null, 2)}
     previousAssociationTableOrAlias = results.previousAssociationTableOrAlias
 
     if (association.type === 'BelongsTo') {
-      if (association.modelCB().constructor === Array)
+      if (Array.isArray(association.modelCB()))
         throw new CannotJoinPolymorphicBelongsToError({
           dreamClass,
           association,
@@ -1175,7 +1175,7 @@ ${JSON.stringify(association, null, 2)}
           a = attr
           b = 'in'
           c = val
-        } else if (val.constructor === Array) {
+        } else if (Array.isArray(val)) {
           a = attr
           b = 'in'
           c = val
@@ -1232,9 +1232,9 @@ ${JSON.stringify(association, null, 2)}
         // 2. If we receive a blank array during a NOT IN comparison,
         //    then it is the same as the where statement not being present at all,
         //    resulting in a noop on our end
-        if (b === 'in' && c.constructor === Array && c.length === 0) {
+        if (b === 'in' && Array.isArray(c) && c.length === 0) {
           query = negate ? query.where(sql`TRUE`) : query.where(sql`FALSE`)
-        } else if (b === 'not in' && c.constructor === Array && c.length === 0) {
+        } else if (b === 'not in' && Array.isArray(c) && c.length === 0) {
           query = negate ? query.where(sql`FALSE`) : query.where(sql`TRUE`)
         } else if (negate) {
           // @ts-ignore

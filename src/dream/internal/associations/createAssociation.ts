@@ -26,7 +26,7 @@ export default async function createAssociation<
     | HasOneStatement<any>
     | BelongsToStatement<any>
 
-  if (association.modelCB().constructor === Array) {
+  if (Array.isArray(association.modelCB())) {
     throw `
         Cannot create polymorphic associations using createAssociation
       `

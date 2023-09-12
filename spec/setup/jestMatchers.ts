@@ -46,12 +46,12 @@ expect.extend({
   },
 
   toMatchDreamModels(received: any, expected: any) {
-    if (received?.constructor !== Array) {
+    if (!Array.isArray(received)) {
       return {
         pass: false,
         message: () => `Expected received object to be an Array, but was ${received?.constructor?.name}`,
       }
-    } else if (expected?.constructor !== Array) {
+    } else if (!Array.isArray(expected)) {
       return {
         pass: false,
         message: () => `Expected expected object to be an Array, but was ${expected?.constructor?.name}`,

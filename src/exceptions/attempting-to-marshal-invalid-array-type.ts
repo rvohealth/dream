@@ -11,7 +11,8 @@ export default class AttemptingToMarshalInvalidArrayType extends Error {
       an array or a postgres-serialized array.
 
       received:
-        ${this.given}
+        ${this.given?.constructor?.name}
+        ${JSON.stringify(this.given)}
     `
   }
 }

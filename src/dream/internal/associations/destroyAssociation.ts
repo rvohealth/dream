@@ -25,7 +25,7 @@ export default async function destroyAssociation<
     | HasOneStatement<any>
     | BelongsToStatement<any>
 
-  if (association.modelCB().constructor === Array) {
+  if (Array.isArray(association.modelCB())) {
     throw `
       Cannot destroy polymorphic associations using destroyAssociation
     `

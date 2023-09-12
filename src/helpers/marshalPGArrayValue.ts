@@ -11,16 +11,15 @@ export default function marshalPGArrayValue<
   column: Attr,
   { table }: { table: TableName }
 ): Table[Attr] | null | undefined {
-  if ([null, undefined].includes(value as any)) return value as null | undefined
-  switch (value?.constructor) {
-    case Array:
-      return value as Table[Attr]
+  if (value === null) return null
+  if (value === undefined) return undefined
 
-    case String:
-      return parsePostgresArray(value as string, (val: string) => val) as Table[Attr]
-
-    default:
-      throw new AttemptingToMarshalInvalidArrayType(value)
+  if (Array.isArray(value)) {
+    return value as Table[Attr]
+  } else if (value.constructor === String) {
+    return parsePostgresArray(value as string, (val: string) => val) as Table[Attr]
+  } else {
+    throw new AttemptingToMarshalInvalidArrayType(value)
   }
 }
 

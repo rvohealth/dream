@@ -117,7 +117,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   private applyAssociation(associationStatement: AssociationStatement) {
     const associatedData = this.associatedData(associationStatement)
 
-    if (associationStatement.type === 'RendersMany' && associatedData?.constructor === Array)
+    if (associationStatement.type === 'RendersMany' && Array.isArray(associatedData))
       return associatedData.map(d => this.renderAssociation(d, associationStatement))
     else if (associatedData) return this.renderAssociation(associatedData, associationStatement)
     return associationStatement.type === 'RendersMany' ? [] : null

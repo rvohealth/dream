@@ -75,7 +75,7 @@ async function fleshOutAssociations(targetAssociationType?: string) {
       finalModels[model.prototype.table] ||= {}
 
       const dreamClassOrClasses = associationMetaData.modelCB()
-      if (dreamClassOrClasses.constructor === Array) {
+      if (Array.isArray(dreamClassOrClasses)) {
         const tables: string[] = (dreamClassOrClasses as any[]).map(dreamClass => dreamClass.prototype.table)
         finalModels[model.prototype.table][associationName] ||= []
         finalModels[model.prototype.table][associationName] = [

@@ -115,7 +115,7 @@ export function modelCBtoSingleDreamClass(
   dreamClass: typeof Dream,
   partialAssociation: PartialAssociationStatement
 ): typeof Dream {
-  if (partialAssociation.modelCB().constructor === Array)
+  if (Array.isArray(partialAssociation.modelCB()))
     throw `${dreamClass.name} association ${partialAssociation.as} is incompatible with array of ${partialAssociation.type} Dream types`
 
   return partialAssociation.modelCB() as typeof Dream
