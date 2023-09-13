@@ -564,6 +564,14 @@ export default class Dream {
     throw 'must have get dbTypeCache defined on child'
   }
 
+  public get virtualColumns(): any {
+    throw 'must have get virtualColumns defined on child'
+  }
+
+  public get syncedBelongsToAssociations(): any {
+    throw 'must have get syncedBelongsToAssociations defined on child'
+  }
+
   public get table(): AssociationTableNames<any, any> {
     throw new MissingTable(this.constructor as typeof Dream)
   }

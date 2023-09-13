@@ -9,7 +9,6 @@ import OpsStatement from '../../ops/ops-statement'
 import { BelongsToStatement } from './belongs-to'
 import { HasManyStatement } from './has-many'
 import { HasOneStatement } from './has-one'
-import { SyncedBelongsToAssociations } from '../../sync/associations'
 import CurriedOpsStatement from '../../ops/curried-ops-statement'
 import { MergeUnionOfRecordTypes } from '../../helpers/typeutils'
 import { checkForeignKey } from '../../exceptions/associations/explicit-foreign-key'
@@ -17,7 +16,8 @@ import camelize from '../../../shared/helpers/camelize'
 
 export type AssociatedModelParam<
   I extends Dream,
-  AssociationName = keyof SyncedBelongsToAssociations[I['table'] & keyof SyncedBelongsToAssociations],
+  AssociationName = keyof I['syncedBelongsToAssociations'][I['table'] &
+    keyof I['syncedBelongsToAssociations']],
   PossibleArrayAssociationType = I[AssociationName & keyof I],
   AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
     ? ElementType

@@ -1,7 +1,6 @@
 import { DateTime } from 'luxon'
 import { Updateable, ColumnType } from 'kysely'
 import { AssociationTableNames } from '../db/reflections'
-import { VirtualColumns } from '../sync/associations'
 import Dream from '../dream'
 import { Inc } from '../helpers/typeutils'
 import { AssociatedModelParam, WhereStatement } from '../decorators/associations/shared'
@@ -26,15 +25,20 @@ export type UpdateablePropertiesForClass<DreamClass extends typeof Dream> =
         AssociationTableNames<InstanceType<DreamClass>['DB'], InstanceType<DreamClass>['syncedAssociations']>]
     >
   | AssociatedModelParam<InstanceType<DreamClass>>
-  | (VirtualColumns[InstanceType<DreamClass>['table'] & keyof VirtualColumns] extends any[]
-      ? Record<VirtualColumns[InstanceType<DreamClass>['table'] & keyof VirtualColumns][number], any>
+  | (InstanceType<DreamClass>['virtualColumns'][InstanceType<DreamClass>['table'] &
+      keyof InstanceType<DreamClass>['virtualColumns']] extends any[]
+      ? Record<
+          InstanceType<DreamClass>['virtualColumns'][InstanceType<DreamClass>['table'] &
+            keyof InstanceType<DreamClass>['virtualColumns']][number],
+          any
+        >
       : never)
 
 export type UpdateableProperties<I extends Dream> =
   | Updateable<I['DB'][I['table'] & AssociationTableNames<I['DB'], I['syncedAssociations']>]>
   | AssociatedModelParam<I>
-  | (VirtualColumns[I['table'] & keyof VirtualColumns] extends any[]
-      ? Record<VirtualColumns[I['table'] & keyof VirtualColumns][number], any>
+  | (I['virtualColumns'][I['table'] & keyof I['virtualColumns']] extends any[]
+      ? Record<I['virtualColumns'][I['table'] & keyof I['virtualColumns']][number], any>
       : never)
 
 export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) => T) & typeof Dream
