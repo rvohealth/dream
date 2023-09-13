@@ -29,6 +29,13 @@ async function writeVirtualColumns(fileStr: string) {
   })
 
   for (const model of models) {
+    // do this to avoid running into the ApplicationModel
+    try {
+      model.prototype.table
+    } catch (_) {
+      continue
+    }
+
     modelsBeforeAdaption[model.prototype.table] ||= []
     modelsBeforeAdaption[model.prototype.table] = [
       ...modelsBeforeAdaption[model.prototype.table],
