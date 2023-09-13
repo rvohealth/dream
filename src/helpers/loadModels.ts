@@ -32,7 +32,14 @@ export default async function loadModels() {
     )
 
     const PossibleModelClass: typeof Dream | null = await importFileWithDefault(relativePath)
-    if (PossibleModelClass?.isDream) {
+
+    let hasValidTable = false
+    try {
+      PossibleModelClass?.prototype?.table
+      hasValidTable = true
+    } catch (err) {}
+
+    if (PossibleModelClass?.isDream && hasValidTable) {
       const ModelClass: typeof Dream = PossibleModelClass
       const modelKey = modelPath.replace(/\.[jt]s$/, '')
       const pathParts = modelKey.split('/')

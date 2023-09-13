@@ -3,9 +3,8 @@ import path from 'path'
 import { promises as fs } from 'fs'
 import loadModels from '../helpers/loadModels'
 import { associationsPath, loadDreamYamlFile } from '../helpers/path'
-import { DBColumns } from '../sync/schema'
-import absoluteFilePath from '../helpers/absoluteFilePath'
 import Dream from '../dream'
+import sortBy from 'lodash.sortby'
 
 export default async function buildAssociations() {
   console.log('writing dream type metadata...')
@@ -20,11 +19,21 @@ export default async function buildAssociations() {
 }
 buildAssociations()
 
+async function getDBColumns() {
+  const models = sortBy(Object.values(await loadModels()) as (typeof Dream)[], m => m.prototype.table)
+  const dbColumns: any = {}
+  models.forEach(m => {
+    dbColumns[m.prototype.table] = m.prototype.dbColumns
+  })
+  return dbColumns
+}
+
 async function writeVirtualColumns(fileStr: string) {
   const models = Object.values(await loadModels()) as (typeof Dream)[]
   const modelsBeforeAdaption: { [key: string]: string[] } = {}
+  const dbColumns: any = await getDBColumns()
 
-  Object.keys(DBColumns).forEach(column => {
+  Object.keys(dbColumns).forEach(column => {
     modelsBeforeAdaption[column] = []
   })
 
@@ -55,7 +64,7 @@ async function buildAssociationsFile() {
   const finalModels = await fleshOutAssociations()
   const finalBelongsToModels = await fleshOutAssociations('BelongsTo')
 
-  setEmptyAssociationObjectsToFalse(finalBelongsToModels)
+  await setEmptyAssociationObjectsToFalse(finalBelongsToModels)
 
   return `\
 export default ${JSON.stringify(finalModels, null, 2)}
@@ -69,8 +78,9 @@ export interface SyncedBelongsToAssociations ${JSON.stringify(finalBelongsToMode
 async function fleshOutAssociations(targetAssociationType?: string) {
   const models = Object.values(await loadModels()) as any[]
   const finalModels: { [key: string]: { [key: string]: string[] } } = {}
+  const dbColumns: any = await getDBColumns()
 
-  Object.keys(DBColumns).forEach(column => {
+  Object.keys(dbColumns).forEach(column => {
     finalModels[column] = {}
   })
 
@@ -104,8 +114,11 @@ async function fleshOutAssociations(targetAssociationType?: string) {
   return finalModels
 }
 
-function setEmptyAssociationObjectsToFalse(models: { [key: string]: { [key: string]: string[] } | boolean }) {
-  Object.keys(DBColumns).forEach(column => {
+async function setEmptyAssociationObjectsToFalse(models: {
+  [key: string]: { [key: string]: string[] } | boolean
+}) {
+  const dbColumns: any = await getDBColumns()
+  Object.keys(dbColumns).forEach(column => {
     if (Object.keys(models[column]).length === 0) models[column] = false
   })
 }

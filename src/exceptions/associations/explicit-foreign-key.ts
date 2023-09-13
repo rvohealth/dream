@@ -1,7 +1,6 @@
 import { BelongsToStatement } from '../../decorators/associations/belongs-to'
 import { PartialAssociationStatement, modelCBtoSingleDreamClass } from '../../decorators/associations/shared'
 import Dream from '../../dream'
-import { DBColumns } from '../../sync/schema'
 
 export class InvalidComputedForeignKey extends Error {
   public dreamClass: typeof Dream
@@ -71,7 +70,7 @@ export function checkForeignKey(
   if (partialAssociation.type === 'BelongsTo') table = dreamClass.prototype.table
   else table = modelCBtoSingleDreamClass(dreamClass, partialAssociation).prototype.table
 
-  const validForeignKey = (DBColumns as any)[table].indexOf(computedForeignKey) > -1
+  const validForeignKey = (dreamClass.prototype.dbColumns as any)[table].indexOf(computedForeignKey) > -1
   if (validForeignKey) return
 
   if (explicitForeignKey)

@@ -131,6 +131,11 @@ export default {
       "collars"
     ]
   },
+  "post_visibilities": {
+    "post": [
+      "posts"
+    ]
+  },
   "posts": {
     "user": [
       "users"
@@ -145,11 +150,6 @@ export default {
       "extra_ratings"
     ]
   },
-  "post_visibilities": {
-    "post": [
-      "posts"
-    ]
-  },
   "ratings": {
     "user": [
       "users"
@@ -162,6 +162,11 @@ export default {
   "sandbags": {
     "mylar": [
       "beautiful_balloons"
+    ]
+  },
+  "user_settings": {
+    "user": [
+      "users"
     ]
   },
   "users": {
@@ -209,11 +214,6 @@ export default {
     ],
     "pets": [
       "pets"
-    ]
-  },
-  "user_settings": {
-    "user": [
-      "users"
     ]
   }
 }
@@ -351,6 +351,11 @@ export interface SyncedAssociations {
       "collars"
     ]
   },
+  "post_visibilities": {
+    "post": [
+      "posts"
+    ]
+  },
   "posts": {
     "user": [
       "users"
@@ -365,11 +370,6 @@ export interface SyncedAssociations {
       "extra_ratings"
     ]
   },
-  "post_visibilities": {
-    "post": [
-      "posts"
-    ]
-  },
   "ratings": {
     "user": [
       "users"
@@ -382,6 +382,11 @@ export interface SyncedAssociations {
   "sandbags": {
     "mylar": [
       "beautiful_balloons"
+    ]
+  },
+  "user_settings": {
+    "user": [
+      "users"
     ]
   },
   "users": {
@@ -429,11 +434,6 @@ export interface SyncedAssociations {
     ],
     "pets": [
       "pets"
-    ]
-  },
-  "user_settings": {
-    "user": [
-      "users"
     ]
   }
 }
@@ -508,6 +508,7 @@ export interface SyncedBelongsToAssociations {
       "users"
     ]
   },
+  "post_visibilities": false,
   "posts": {
     "user": [
       "users"
@@ -516,7 +517,6 @@ export interface SyncedBelongsToAssociations {
       "post_visibilities"
     ]
   },
-  "post_visibilities": false,
   "ratings": {
     "user": [
       "users"
@@ -531,12 +531,12 @@ export interface SyncedBelongsToAssociations {
       "beautiful_balloons"
     ]
   },
-  "users": false,
   "user_settings": {
     "user": [
       "users"
     ]
-  }
+  },
+  "users": false
 }
   
 
@@ -556,12 +556,12 @@ export interface VirtualColumns {
   "graph_nodes": false,
   "incompatible_foreign_key_type_examples": false,
   "pets": false,
-  "posts": false,
   "post_visibilities": false,
+  "posts": false,
   "ratings": false,
   "sandbags": false,
+  "user_settings": false,
   "users": [
     "password"
-  ],
-  "user_settings": false
+  ]
 }

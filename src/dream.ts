@@ -1,6 +1,5 @@
 import { CompiledQuery, SelectArg, SelectExpression, Updateable } from 'kysely'
 import db from './db'
-import { DBColumns } from './sync/schema'
 import { HasManyStatement } from './decorators/associations/has-many'
 import { BelongsToStatement } from './decorators/associations/belongs-to'
 import { HasOneStatement } from './decorators/associations/has-one'
@@ -134,7 +133,7 @@ export default class Dream {
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
   >(): (keyof Table)[] {
-    return (DBColumns as any)[this.prototype.table]
+    return (this.prototype.dbColumns as any)[this.prototype.table]
   }
 
   public static associationMap<
