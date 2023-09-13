@@ -1,5 +1,4 @@
 import { AssociationTableNames } from '../../db/reflections'
-import { DBTypeCache } from '../../sync/schema'
 
 export default function cachedTypeForAttribute<
   DB extends any,
@@ -10,6 +9,6 @@ export default function cachedTypeForAttribute<
   > &
     keyof DB,
   Table extends DB[TableName] = DB[TableName]
->(attribute: keyof Table, { table }: { table: TableName }): string {
-  return ((DBTypeCache as any)[table] as any)[attribute]
+>(attribute: keyof Table, { table, dbTypeCache }: { table: TableName; dbTypeCache: any }): string {
+  return (dbTypeCache[table] as any)[attribute]
 }

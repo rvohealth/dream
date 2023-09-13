@@ -13,17 +13,17 @@ export function marshalDBValue<
   > &
     keyof DB,
   Table extends DB[TableName] = DB[TableName]
->(value: any, { table, column }: { table: TableName; column: keyof Table }) {
+>(value: any, { table, column, dbTypeCache }: { table: TableName; column: keyof Table; dbTypeCache: any }) {
   if (
     value !== null &&
     value !== undefined &&
-    isDecimal<DB, SyncedAssociations, TableName, Table>(column, { table })
+    isDecimal<DB, SyncedAssociations, TableName, Table>(column, { table, dbTypeCache })
   )
     return parseFloat(value)
 
   if (value?.constructor === Date) return DateTime.fromJSDate(value)
 
-  if (isPostgresArray<DB, SyncedAssociations, TableName, Table>(column, { table }))
+  if (isPostgresArray<DB, SyncedAssociations, TableName, Table>(column, { table, dbTypeCache }))
     return marshalPGArrayValue<DB, SyncedAssociations, TableName, Table>(value, column, { table })
 
   return value

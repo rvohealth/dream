@@ -1,5 +1,4 @@
 import Dream from '../dream'
-import { DBTypeCache } from '../sync/schema'
 import snakeify from '../../shared/helpers/snakeify'
 
 export default function cachedFieldType<
@@ -9,7 +8,7 @@ export default function cachedFieldType<
 >(dreamType: T, fieldName: FN) {
   const unaliasedFieldName = fieldName.split('.').pop() as string
   // @ts-ignore
-  return kyselyTypesToSqlType(DBTypeCache[dreamType.prototype.table][unaliasedFieldName])
+  return kyselyTypesToSqlType(dreamType.prototype.dbTypeCache[dreamType.prototype.table][unaliasedFieldName])
 }
 
 function kyselyTypesToSqlType(kyselyTypes: string) {

@@ -91,6 +91,7 @@ export default class Query<
   DreamClass extends typeof Dream,
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
+  DBTypeCache extends DreamInstance['dbTypeCache'] = DreamInstance['dbTypeCache'],
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
   Table extends DB[DreamInstance['table']] = DB[DreamInstance['table']],
   ColumnType = keyof DB[keyof DB] extends never ? unknown : keyof DB[keyof DB]
@@ -567,6 +568,7 @@ export default class Query<
       marshalDBValue<DB, SyncedAssociations>(val, {
         table: this.dreamClass.prototype.table,
         column: fields[index] as any,
+        dbTypeCache: this.dreamClass.prototype.dbTypeCache,
       })
 
     if (fields.length > 1) {
