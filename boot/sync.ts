@@ -109,6 +109,16 @@ export interface InterpretedDB {
   }
 }
 
+export class InterpretedDBClass {
+  ${
+    transformedNames.length
+      ? transformedNames
+          .map(([name, newName]) => `${snakeify(name)}: ${pluralize.singular(name)}Attributes`)
+          .join('\n  ')
+      : 'placeholder: []'
+  }
+}
+
 export const DBColumns = {
   ${
     transformedNames.length

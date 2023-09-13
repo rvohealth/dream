@@ -1,6 +1,5 @@
 import { SelectArg, SelectExpression, Updateable } from 'kysely'
 import { WhereStatement } from '../decorators/associations/shared'
-import { InterpretedDB } from '../sync/schema'
 import Dream from '../dream'
 import DreamTransaction from './transaction'
 import Query from './query'
@@ -61,10 +60,14 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
 
   public async find<
     I extends DreamClassTransactionBuilder<DreamClass>,
-    TableName extends keyof InterpretedDB = InstanceType<I['dreamClass']>['table'] & keyof InterpretedDB
+    TableName extends keyof InstanceType<I['dreamClass']>['interpretedDB'] = InstanceType<
+      I['dreamClass']
+    >['table'] &
+      keyof InstanceType<I['dreamClass']>['interpretedDB']
   >(
     this: I,
-    id: InterpretedDB[TableName][DreamClass['primaryKey'] & keyof InterpretedDB[TableName]]
+    id: InstanceType<I['dreamClass']>['interpretedDB'][TableName][DreamClass['primaryKey'] &
+      keyof InstanceType<I['dreamClass']>['interpretedDB'][TableName]]
   ): Promise<InstanceType<DreamClass> | null> {
     return await this.queryInstance()
       .where({ [this.dreamClass.primaryKey]: id } as any)

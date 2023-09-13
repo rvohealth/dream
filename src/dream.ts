@@ -1,6 +1,6 @@
 import { CompiledQuery, SelectArg, SelectExpression, Updateable } from 'kysely'
 import db from './db'
-import { DBColumns, InterpretedDB } from './sync/schema'
+import { DBColumns } from './sync/schema'
 import { HasManyStatement } from './decorators/associations/has-many'
 import { BelongsToStatement } from './decorators/associations/belongs-to'
 import { HasOneStatement } from './decorators/associations/has-one'
@@ -255,6 +255,7 @@ export default class Dream {
 
   public static async find<
     T extends typeof Dream,
+    InterpretedDB extends InstanceType<T>['interpretedDB'],
     TableName extends keyof InterpretedDB = InstanceType<T>['table'] & keyof InterpretedDB
   >(
     this: T,
@@ -549,7 +550,15 @@ export default class Dream {
   }
 
   public get syncedAssociations(): any {
-    throw `must have get syncedAssociations defined on child`
+    throw 'must have get syncedAssociations defined on child'
+  }
+
+  public get interpretedDB(): any {
+    throw 'must have get interpretedDB defined on child'
+  }
+
+  public get dbColumns(): any {
+    throw 'must have get dbColumns defined on child'
   }
 
   public get table(): AssociationTableNames<any, any> {

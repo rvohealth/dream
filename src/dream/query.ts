@@ -26,7 +26,6 @@ import {
   Updateable,
   sql,
 } from 'kysely'
-import { InterpretedDB } from '../sync/schema'
 import { marshalDBValue } from '../helpers/marshalDBValue'
 import Dream from '../dream'
 import { HasManyStatement } from '../decorators/associations/has-many'
@@ -170,10 +169,12 @@ export default class Query<
 
   public async find<
     T extends Query<DreamClass>,
-    TableName extends keyof InterpretedDB = InstanceType<DreamClass>['table'] & keyof InterpretedDB
+    TableName extends keyof InstanceType<DreamClass>['interpretedDB'] = InstanceType<DreamClass>['table'] &
+      keyof InstanceType<DreamClass>['interpretedDB']
   >(
     this: T,
-    id: InterpretedDB[TableName][DreamClass['primaryKey'] & keyof InterpretedDB[TableName]]
+    id: InstanceType<DreamClass>['interpretedDB'][TableName][DreamClass['primaryKey'] &
+      keyof InstanceType<DreamClass>['interpretedDB'][TableName]]
   ): Promise<(InstanceType<DreamClass> & Dream) | null> {
     if (!id) return null
     // @ts-ignore

@@ -670,6 +670,30 @@ export interface InterpretedDB {
   user_settings: UserSettingAttributes
 }
 
+export class InterpretedDBClass {
+  balloon_lines: BalloonLineAttributes
+  balloon_spotter_balloons: BalloonSpotterBalloonAttributes
+  balloon_spotters: BalloonSpotterAttributes
+  beautiful_balloons: BeautifulBalloonAttributes
+  collars: CollarAttributes
+  composition_asset_audits: CompositionAssetAuditAttributes
+  composition_assets: CompositionAssetAttributes
+  compositions: CompositionAttributes
+  edge_case_attributes: EdgeCaseAttributeAttributes
+  extra_ratings: ExtraRatingAttributes
+  graph_edge_nodes: GraphEdgeNodeAttributes
+  graph_edges: GraphEdgeAttributes
+  graph_nodes: GraphNodeAttributes
+  incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExampleAttributes
+  pets: PetAttributes
+  posts: PostAttributes
+  post_visibilities: PostVisibilityAttributes
+  ratings: RatingAttributes
+  sandbags: SandbagAttributes
+  users: UserAttributes
+  user_settings: UserSettingAttributes
+}
+
 export const DBColumns = {
   balloon_lines: BalloonLineColumns,
   balloon_spotter_balloons: BalloonSpotterBalloonColumns,

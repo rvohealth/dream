@@ -1,5 +1,5 @@
 import Dream from '../../../src/dream'
-import { DBClass } from '../../db/schema'
+import { DBClass, DBColumns, InterpretedDBClass } from '../../db/schema'
 import SyncedAssociationsVal, { SyncedAssociations } from '../../db/associations'
 
 export default class ApplicationModel extends Dream {
@@ -7,7 +7,15 @@ export default class ApplicationModel extends Dream {
     return new DBClass()
   }
 
+  public get interpretedDB(): InterpretedDBClass {
+    return new InterpretedDBClass()
+  }
+
   public get syncedAssociations(): SyncedAssociations {
     return SyncedAssociationsVal as SyncedAssociations
+  }
+
+  public get dbColumns(): typeof DBColumns {
+    return DBColumns
   }
 }
