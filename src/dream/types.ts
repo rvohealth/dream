@@ -85,6 +85,7 @@ export type JoinsArgumentTypeAssociatedTableNames<
 
 // joinsPluck
 export type NextJoinsWherePluckArgumentType<
+  DB extends any,
   PreviousAssociationName,
   PreviousPreviousAssociationName,
   PreviousTableNames,
@@ -101,24 +102,31 @@ export type NextJoinsWherePluckArgumentType<
   ?
       | keyof PreviousSyncedAssociations
       | AssociationNameToDotReference<
+          DB,
           PreviousPreviousAssociationName,
           PreviousTableNames & AssociationTableNames
         >
       | AssociationNameToDotReference<
+          DB,
           PreviousPreviousAssociationName,
           PreviousTableNames & AssociationTableNames
         >[]
   :
       | keyof PreviousSyncedAssociations
       | WhereStatement<PreviousTableNames & AssociationTableNames>
-      | AssociationNameToDotReference<PreviousAssociationName, PreviousTableNames & AssociationTableNames>
-      | AssociationNameToDotReference<PreviousAssociationName, PreviousTableNames & AssociationTableNames>[]
+      | AssociationNameToDotReference<DB, PreviousAssociationName, PreviousTableNames & AssociationTableNames>
+      | AssociationNameToDotReference<
+          DB,
+          PreviousAssociationName,
+          PreviousTableNames & AssociationTableNames
+        >[]
 
 // type X = NextJoinsWherePluckArgumentType<, 'pets'>
 // type Y = ['pets.name', 'pets.id']
 // type Z = Y extends X ? 'yes' : 'no'
 
 export type FinalJoinsWherePluckArgumentType<
+  DB extends any,
   PreviousAssociationName,
   PreviousPreviousAssociationName,
   PreviousTableNames
@@ -131,20 +139,27 @@ export type FinalJoinsWherePluckArgumentType<
   : PreviousAssociationName extends WhereStatement<any>
   ?
       | AssociationNameToDotReference<
+          DB,
           PreviousPreviousAssociationName,
           PreviousTableNames & AssociationTableNames
         >
       | AssociationNameToDotReference<
+          DB,
           PreviousPreviousAssociationName,
           PreviousTableNames & AssociationTableNames
         >[]
   :
-      | AssociationNameToDotReference<PreviousAssociationName, PreviousTableNames & AssociationTableNames>
-      | AssociationNameToDotReference<PreviousAssociationName, PreviousTableNames & AssociationTableNames>[]
+      | AssociationNameToDotReference<DB, PreviousAssociationName, PreviousTableNames & AssociationTableNames>
+      | AssociationNameToDotReference<
+          DB,
+          PreviousAssociationName,
+          PreviousTableNames & AssociationTableNames
+        >[]
 
 // end:joinsPluck
 
 export type AssociationNameToDotReference<
+  DB extends any,
   AssociationName,
   TableNames extends keyof SyncedAssociations & string
 > = `${AssociationName & string}.${keyof Updateable<DB[TableNames & keyof DB]> & string}`

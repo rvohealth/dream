@@ -329,24 +329,25 @@ export default class Dream {
 
   public static async joinsPluck<
     T extends typeof Dream,
+    DB extends InstanceType<T>['DB'],
     TableName extends InstanceType<T>['table'],
     //
     A extends keyof SyncedAssociations[TableName] & string,
     ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
       string[])[number],
     //
-    B extends NextJoinsWherePluckArgumentType<A, A, ATableName>,
+    B extends NextJoinsWherePluckArgumentType<DB, A, A, ATableName>,
     BTableName extends JoinsArgumentTypeAssociatedTableNames<ATableName, B>,
-    C extends NextJoinsWherePluckArgumentType<B, A, BTableName>,
+    C extends NextJoinsWherePluckArgumentType<DB, B, A, BTableName>,
     CTableName extends JoinsArgumentTypeAssociatedTableNames<BTableName, C>,
-    D extends NextJoinsWherePluckArgumentType<C, B, CTableName>,
+    D extends NextJoinsWherePluckArgumentType<DB, C, B, CTableName>,
     DTableName extends JoinsArgumentTypeAssociatedTableNames<CTableName, D>,
-    E extends NextJoinsWherePluckArgumentType<D, C, DTableName>,
+    E extends NextJoinsWherePluckArgumentType<DB, D, C, DTableName>,
     ETableName extends JoinsArgumentTypeAssociatedTableNames<DTableName, E>,
-    F extends NextJoinsWherePluckArgumentType<E, D, ETableName>,
+    F extends NextJoinsWherePluckArgumentType<DB, E, D, ETableName>,
     FTableName extends JoinsArgumentTypeAssociatedTableNames<ETableName, F>,
     //
-    G extends FinalJoinsWherePluckArgumentType<F, E, FTableName>
+    G extends FinalJoinsWherePluckArgumentType<DB, F, E, FTableName>
   >(this: T, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     const query: Query<T> = new Query<T>(this)
 
@@ -688,24 +689,25 @@ export default class Dream {
 
   public async joinsPluck<
     I extends Dream,
+    DB extends I['DB'],
     TableName extends I['table'],
     //
     A extends keyof SyncedAssociations[TableName] & string,
     ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
       string[])[number],
     //
-    B extends NextJoinsWherePluckArgumentType<A, A, ATableName>,
+    B extends NextJoinsWherePluckArgumentType<DB, A, A, ATableName>,
     BTableName extends JoinsArgumentTypeAssociatedTableNames<ATableName, B>,
-    C extends NextJoinsWherePluckArgumentType<B, A, BTableName>,
+    C extends NextJoinsWherePluckArgumentType<DB, B, A, BTableName>,
     CTableName extends JoinsArgumentTypeAssociatedTableNames<BTableName, C>,
-    D extends NextJoinsWherePluckArgumentType<C, B, CTableName>,
+    D extends NextJoinsWherePluckArgumentType<DB, C, B, CTableName>,
     DTableName extends JoinsArgumentTypeAssociatedTableNames<CTableName, D>,
-    E extends NextJoinsWherePluckArgumentType<D, C, DTableName>,
+    E extends NextJoinsWherePluckArgumentType<DB, D, C, DTableName>,
     ETableName extends JoinsArgumentTypeAssociatedTableNames<DTableName, E>,
-    F extends NextJoinsWherePluckArgumentType<E, D, ETableName>,
+    F extends NextJoinsWherePluckArgumentType<DB, E, D, ETableName>,
     FTableName extends JoinsArgumentTypeAssociatedTableNames<ETableName, F>,
     //
-    G extends FinalJoinsWherePluckArgumentType<F, E, FTableName>
+    G extends FinalJoinsWherePluckArgumentType<DB, F, E, FTableName>
   >(this: I, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     const construct = this.constructor as DreamConstructorType<I>
     return await construct
