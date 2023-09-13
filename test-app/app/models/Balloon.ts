@@ -1,5 +1,4 @@
 import { DateTime } from 'luxon'
-import Dream from '../../../src/dream'
 import { IdType } from '../../../src/dream/types'
 import HasOne from '../../../src/decorators/associations/has-one'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
@@ -9,8 +8,9 @@ import User from './User'
 import { BalloonColorsEnum, BalloonTypesEnum } from '../../db/schema'
 import { BeforeDestroy } from '../../../src'
 import BalloonLine from './BalloonLine'
+import ApplicationModel from './ApplicationModel'
 
-export default class Balloon extends Dream {
+export default class Balloon extends ApplicationModel {
   public get table() {
     return 'beautiful_balloons' as const
   }

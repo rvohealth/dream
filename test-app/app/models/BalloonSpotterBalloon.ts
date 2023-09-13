@@ -1,12 +1,12 @@
 import { DateTime } from 'luxon'
-import Dream from '../../../src/dream'
 import { IdType } from '../../../src/dream/types'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import BalloonSpotterBalloonSerializer from '../../../test-app/app/serializers/BalloonSpotterBalloonSerializer'
 import BalloonSpotter from './BalloonSpotter'
 import Balloon from './Balloon'
+import ApplicationModel from './ApplicationModel'
 
-export default class BalloonSpotterBalloon extends Dream {
+export default class BalloonSpotterBalloon extends ApplicationModel {
   public get table() {
     return 'balloon_spotter_balloons' as const
   }

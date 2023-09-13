@@ -1,10 +1,10 @@
 import { DateTime } from 'luxon'
-import Dream from '../../../src/dream'
 import { IdType } from '../../../src/dream/types'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import User from './User'
+import ApplicationModel from './ApplicationModel'
 
-export default class IncompatibleForeignKeyTypeExample extends Dream {
+export default class IncompatibleForeignKeyTypeExample extends ApplicationModel {
   public get table() {
     return 'incompatible_foreign_key_type_examples' as const
   }

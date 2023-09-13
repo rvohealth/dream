@@ -1,9 +1,9 @@
 import { DateTime } from 'luxon'
-import Dream from '../../../src/dream'
 import { IdType } from '../../../src/dream/types'
 import EdgeCaseAttributeSerializer from '../../../test-app/app/serializers/EdgeCaseAttributeSerializer'
+import ApplicationModel from './ApplicationModel'
 
-export default class EdgeCaseAttribute extends Dream {
+export default class EdgeCaseAttribute extends ApplicationModel {
   public get table() {
     return 'edge_case_attributes' as const
   }

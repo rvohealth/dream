@@ -9,14 +9,14 @@ import AfterSaveCommit from '../../../src/decorators/hooks/after-save-commit'
 import AfterUpdate from '../../../src/decorators/hooks/after-update'
 import AfterUpdateCommit from '../../../src/decorators/hooks/after-update-commit'
 import BeforeCreate from '../../../src/decorators/hooks/before-create'
-import Dream from '../../../src/dream'
 import { IdType } from '../../../src/dream/types'
 import CompositionAsset from './CompositionAsset'
 import CompositionAssetAudit from './CompositionAssetAudit'
 import User from './User'
 import HeartRating from './ExtraRating/HeartRating'
+import ApplicationModel from './ApplicationModel'
 
-export default class Composition extends Dream {
+export default class Composition extends ApplicationModel {
   public get table() {
     return 'compositions' as const
   }

@@ -1,13 +1,13 @@
 import HasOne from '../../../src/decorators/associations/has-one'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import BeforeUpdate from '../../../src/decorators/hooks/before-update'
-import Dream from '../../../src/dream'
 import { IdType } from '../../../src/dream/types'
 import Composition from './Composition'
 import CompositionAsset from './CompositionAsset'
 import User from './User'
+import ApplicationModel from './ApplicationModel'
 
-export default class CompositionAssetAudit extends Dream {
+export default class CompositionAssetAudit extends ApplicationModel {
   public get table() {
     return 'composition_asset_audits' as const
   }

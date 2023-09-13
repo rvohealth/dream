@@ -1,11 +1,11 @@
 import { DateTime } from 'luxon'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
-import Dream from '../../../src/dream'
 import { IdType } from '../../../src/dream/types'
 import SandbagSerializer from '../../../test-app/app/serializers/SandbagSerializer'
 import Mylar from './Balloon/Mylar'
+import ApplicationModel from './ApplicationModel'
 
-export default class Sandbag extends Dream {
+export default class Sandbag extends ApplicationModel {
   public get table() {
     return 'sandbags' as const
   }

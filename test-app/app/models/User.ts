@@ -7,7 +7,6 @@ import CompositionAsset from './CompositionAsset'
 import CompositionAssetAudit from './CompositionAssetAudit'
 import Validates from '../../../src/decorators/validations/validates'
 import UserSettings from './UserSettings'
-import Dream from '../../../src/dream'
 import { IdType } from '../../../src/dream/types'
 import { DateTime } from 'luxon'
 import Balloon from './Balloon'
@@ -16,8 +15,9 @@ import { BeforeSave, range } from '../../../src'
 import Virtual from '../../../src/decorators/virtual'
 import Pet from './Pet'
 import Query from '../../../src/dream/query'
+import ApplicationModel from './ApplicationModel'
 
-export default class User extends Dream {
+export default class User extends ApplicationModel {
   public get table() {
     return 'users' as const
   }
@@ -130,3 +130,6 @@ export default class User extends Dream {
     return await bcrypt.compare(password, this.passwordDigest)
   }
 }
+
+// const u = new User()
+// u.updatenew({ email: 'how!' })

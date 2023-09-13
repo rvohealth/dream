@@ -1,11 +1,11 @@
 import { DateTime } from 'luxon'
-import Dream from '../../../src/dream'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import { IdType } from '../../../src/dream/types'
 import CollarSerializer from '../../../test-app/app/serializers/CollarSerializer'
 import Pet from './Pet'
+import ApplicationModel from './ApplicationModel'
 
-export default class Collar extends Dream {
+export default class Collar extends ApplicationModel {
   public get table() {
     return 'collars' as const
   }

@@ -1,12 +1,12 @@
 import { DateTime } from 'luxon'
-import Dream from '../../../../src/dream'
 import { IdType } from '../../../../src/dream/types'
 import HasMany from '../../../../src/decorators/associations/has-many'
 import GraphEdgeSerializer from '../../../../test-app/app/serializers/Graph/EdgeSerializer'
 import EdgeNode from './EdgeNode'
 import GraphNode from './Node'
+import ApplicationModel from '../ApplicationModel'
 
-export default class Edge extends Dream {
+export default class Edge extends ApplicationModel {
   public get table() {
     return 'graph_edges' as const
   }

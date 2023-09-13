@@ -58,6 +58,7 @@ import destroyAssociation from './dream/internal/associations/destroyAssociation
 import { DatabaseError } from 'pg'
 import LoadBuilder from './dream/load-builder'
 import { DbConnectionType } from './db/types'
+import MissingDB from './exceptions/missing-db'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -493,6 +494,10 @@ export default class Dream {
     return (this as any)[this.primaryKey] || null
   }
 
+  public get DB(): any {
+    throw new MissingDB()
+  }
+
   public get table(): AssociationTableNames {
     throw new MissingTable(this.constructor as typeof Dream)
   }
@@ -842,6 +847,16 @@ export default class Dream {
     // attributes are saved with this model in a transaction
     return await this.save()
   }
+
+  // public async updatenew<I extends Dream, DB extends I['DB'], Table extends DB[I['table']]>(
+  //   this: I,
+  //   attributes: Partial<Table>
+  // ): Promise<I> {
+  //   this.setAttributes(attributes)
+  //   // call save rather than _save so that any unsaved associations in the
+  //   // attributes are saved with this model in a transaction
+  //   return await this.save()
+  // }
 
   public _preventDeletion: boolean = false
   public preventDeletion() {

@@ -4,15 +4,15 @@ import HasMany from '../../../src/decorators/associations/has-many'
 import HasOne from '../../../src/decorators/associations/has-one'
 import Scope from '../../../src/decorators/scope'
 import User from './User'
-import Dream from '../../../src/dream'
 import { IdType } from '../../../src/dream/types'
 import { BeforeDestroy } from '../../../src'
 import Collar from './Collar'
 import PetSerializer from '../serializers/PetSerializer'
 import { CatTreats } from '../../../src/sync/schema'
 import { Species } from '../../db/schema'
+import ApplicationModel from './ApplicationModel'
 
-export default class Pet extends Dream {
+export default class Pet extends ApplicationModel {
   public get table() {
     return 'pets' as const
   }

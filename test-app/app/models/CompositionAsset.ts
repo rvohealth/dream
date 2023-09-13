@@ -5,13 +5,13 @@ import AfterDestroy from '../../../src/decorators/hooks/after-destroy'
 import AfterDestroyCommit from '../../../src/decorators/hooks/after-destroy-commit'
 import BeforeDestroy from '../../../src/decorators/hooks/before-destroy'
 import BeforeSave from '../../../src/decorators/hooks/before-save'
-import Dream from '../../../src/dream'
 import { IdType } from '../../../src/dream/types'
+import ApplicationModel from './ApplicationModel'
 import Composition from './Composition'
 import CompositionAssetAudit from './CompositionAssetAudit'
 import User from './User'
 
-export default class CompositionAsset extends Dream {
+export default class CompositionAsset extends ApplicationModel {
   public get table() {
     return 'composition_assets' as const
   }
