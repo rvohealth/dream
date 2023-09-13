@@ -1,5 +1,4 @@
 import Dream from '../../dream'
-import { DB } from '../../sync/schema'
 import { AssociationTableNames } from '../../db/reflections'
 import {
   PartialAssociationStatement,
