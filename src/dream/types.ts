@@ -20,14 +20,14 @@ export interface AliasCondition<PreviousTableNames extends AssociationTableNames
 export type UpdateableColumns<DreamInstance extends Dream> = Updateable<DB[DreamInstance['table']]>
 
 export type UpdateablePropertiesForClass<DreamClass extends typeof Dream> =
-  | Updateable<DB[InstanceType<DreamClass>['table'] & AssociationTableNames]>
+  | Updateable<InstanceType<DreamClass>['DB'][InstanceType<DreamClass>['table'] & AssociationTableNames]>
   | AssociatedModelParam<InstanceType<DreamClass>>
   | (VirtualColumns[InstanceType<DreamClass>['table'] & keyof VirtualColumns] extends any[]
       ? Record<VirtualColumns[InstanceType<DreamClass>['table'] & keyof VirtualColumns][number], any>
       : never)
 
 export type UpdateableProperties<I extends Dream> =
-  | Updateable<DB[I['table'] & AssociationTableNames]>
+  | Updateable<I['DB'][I['table'] & AssociationTableNames]>
   | AssociatedModelParam<I>
   | (VirtualColumns[I['table'] & keyof VirtualColumns] extends any[]
       ? Record<VirtualColumns[I['table'] & keyof VirtualColumns][number], any>
