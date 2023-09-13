@@ -5,7 +5,7 @@ import Dream from '../../dream'
 export default class MissingThroughAssociationSource extends Error {
   public dreamClass: typeof Dream
   public throughClass: typeof Dream
-  public association: HasManyStatement<any> | HasOneStatement<any>
+  public association: HasManyStatement<any, any, any> | HasOneStatement<any, any, any>
 
   constructor({
     dreamClass,
@@ -14,7 +14,7 @@ export default class MissingThroughAssociationSource extends Error {
   }: {
     dreamClass: typeof Dream
     throughClass: typeof Dream
-    association: HasManyStatement<any> | HasOneStatement<any>
+    association: HasManyStatement<any, any, any> | HasOneStatement<any, any, any>
   }) {
     super()
     this.dreamClass = dreamClass

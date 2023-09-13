@@ -1,9 +1,9 @@
 import OpsStatement from './ops-statement'
 import Dream from '../dream'
-import { DB } from '../sync/schema'
 
 export default class CurriedOpsStatement<
   T extends typeof Dream,
+  DB extends InstanceType<T>['DB'],
   FN extends keyof DB[InstanceType<T>['table']] & string
 > {
   public factoryFn: (dreamClass: T, fieldName: FN) => OpsStatement

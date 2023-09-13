@@ -1,7 +1,6 @@
-import { SyncedAssociations } from '../../../sync/associations'
 import Dream from '../../../dream'
 import DreamTransaction from '../../transaction'
-import { UpdateablePropertiesForClass } from '../../types'
+import { DreamConstructorType, UpdateablePropertiesForClass } from '../../types'
 import { HasManyStatement } from '../../../decorators/associations/has-many'
 import { HasOneStatement } from '../../../decorators/associations/has-one'
 import { BelongsToStatement } from '../../../decorators/associations/belongs-to'
@@ -9,6 +8,7 @@ import CannotDestroyAssociationWithThroughContext from '../../../exceptions/asso
 
 export default async function destroyAssociation<
   DreamInstance extends Dream,
+  SyncedAssociations extends DreamInstance['syncedAssociations'],
   AssociationName extends keyof SyncedAssociations[DreamInstance['table']],
   PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
   AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
@@ -16,14 +16,14 @@ export default async function destroyAssociation<
     : PossibleArrayAssociationType
 >(
   dream: DreamInstance,
-  txn: DreamTransaction | null = null,
+  txn: DreamTransaction<DreamInstance['DB']> | null = null,
   associationName: AssociationName,
   opts: UpdateablePropertiesForClass<AssociationType & typeof Dream> = {}
 ): Promise<number> {
-  const association = dream.associationMap[associationName] as
-    | HasManyStatement<any>
-    | HasOneStatement<any>
-    | BelongsToStatement<any>
+  const association = dream.associationMap()[associationName] as
+    | HasManyStatement<any, any, any>
+    | HasOneStatement<any, any, any>
+    | BelongsToStatement<any, any, any>
 
   if (Array.isArray(association.modelCB())) {
     throw `
@@ -35,7 +35,7 @@ export default async function destroyAssociation<
   switch (association.type) {
     case 'HasMany':
     case 'HasOne':
-      if ((association as HasManyStatement<any>).through)
+      if ((association as HasManyStatement<any, any, any>).through)
         throw new CannotDestroyAssociationWithThroughContext({
           dreamClass: dream.constructor as typeof Dream,
           association,

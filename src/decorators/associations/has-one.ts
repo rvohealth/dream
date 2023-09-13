@@ -23,8 +23,24 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
     polymorphic?: boolean
     source?: string
     through?: string
-    where?: WhereStatement<InstanceType<AssociationDreamClass>['table'] & AssociationTableNames>
-    whereNot?: WhereStatement<InstanceType<AssociationDreamClass>['table'] & AssociationTableNames>
+    where?: WhereStatement<
+      InstanceType<AssociationDreamClass>['DB'],
+      InstanceType<AssociationDreamClass>['syncedAssociations'],
+      InstanceType<AssociationDreamClass>['table'] &
+        AssociationTableNames<
+          InstanceType<AssociationDreamClass>['DB'],
+          InstanceType<AssociationDreamClass>['syncedAssociations']
+        >
+    >
+    whereNot?: WhereStatement<
+      InstanceType<AssociationDreamClass>['DB'],
+      InstanceType<AssociationDreamClass>['syncedAssociations'],
+      InstanceType<AssociationDreamClass>['table'] &
+        AssociationTableNames<
+          InstanceType<AssociationDreamClass>['DB'],
+          InstanceType<AssociationDreamClass>['syncedAssociations']
+        >
+    >
   } = {}
 ): any {
   return function (target: any, key: string, _: any) {
@@ -52,11 +68,14 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
       foreignKeyTypeField() {
         return foreignKeyTypeField(foreignKey, dreamClass, partialAssociation)
       },
-    } as HasOneStatement<any>
+    } as HasOneStatement<any, any, any>
 
     dreamClass.associations['hasOne'].push(association)
   }
 }
 
-export interface HasOneStatement<ForeignTableName extends AssociationTableNames>
-  extends HasStatement<ForeignTableName, 'HasOne'> {}
+export interface HasOneStatement<
+  DB extends any,
+  SyncedAssociations extends any,
+  ForeignTableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB
+> extends HasStatement<DB, SyncedAssociations, ForeignTableName, 'HasOne'> {}

@@ -7,7 +7,7 @@ import runHooksFor from './runHooksFor'
 export default async function safelyRunCommitHooks<DreamInstance extends Dream>(
   dream: DreamInstance,
   hookType: CommitHookType,
-  txn: DreamTransaction | null = null
+  txn: DreamTransaction<DreamConstructorType<DreamInstance>> | null = null
 ) {
   const Base = dream.constructor as DreamConstructorType<DreamInstance>
   if (txn) {

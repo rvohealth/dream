@@ -1,7 +1,5 @@
-import { SyncedAssociations } from '../../../sync/associations'
 import Dream from '../../../dream'
 import DreamTransaction from '../../transaction'
-import Query from '../../query'
 import { DreamConstructorType, UpdateablePropertiesForClass } from '../../types'
 import { HasManyStatement } from '../../../decorators/associations/has-many'
 import { HasOneStatement } from '../../../decorators/associations/has-one'
@@ -10,6 +8,7 @@ import CannotCreateAssociationWithThroughContext from '../../../exceptions/assoc
 
 export default async function createAssociation<
   DreamInstance extends Dream,
+  SyncedAssociations extends DreamInstance['syncedAssociations'],
   AssociationName extends keyof SyncedAssociations[DreamInstance['table']],
   PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
   AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
@@ -17,14 +16,14 @@ export default async function createAssociation<
     : PossibleArrayAssociationType
 >(
   dream: DreamInstance,
-  txn: DreamTransaction | null = null,
+  txn: DreamTransaction<DreamConstructorType<DreamInstance>> | null = null,
   associationName: AssociationName,
   opts: UpdateablePropertiesForClass<AssociationType & typeof Dream> = {}
 ): Promise<NonNullable<AssociationType>> {
-  const association = dream.associationMap[associationName] as
-    | HasManyStatement<any>
-    | HasOneStatement<any>
-    | BelongsToStatement<any>
+  const association = dream.associationMap()[associationName] as
+    | HasManyStatement<any, any, any>
+    | HasOneStatement<any, any, any>
+    | BelongsToStatement<any, any, any>
 
   if (Array.isArray(association.modelCB())) {
     throw `
@@ -36,7 +35,7 @@ export default async function createAssociation<
   switch (association.type) {
     case 'HasMany':
     case 'HasOne':
-      if ((association as HasManyStatement<any>).through)
+      if ((association as HasManyStatement<any, any, any>).through)
         throw new CannotCreateAssociationWithThroughContext({
           dreamClass: dream.constructor as typeof Dream,
           association,
@@ -59,7 +58,7 @@ export default async function createAssociation<
 
     case 'BelongsTo':
       let belongstoresult: AssociationType
-      const fn = async (txn: DreamTransaction) => {
+      const fn = async (txn: DreamTransaction<DreamConstructorType<DreamInstance>>) => {
         belongstoresult = await (associationClass as any).txn(txn).create({
           ...opts,
         })
@@ -69,7 +68,7 @@ export default async function createAssociation<
       }
 
       if (txn) await fn(txn)
-      else await Dream.transaction(fn)
+      else await (Dream as any).transaction(fn)
 
       return belongstoresult! as unknown as NonNullable<AssociationType>
   }

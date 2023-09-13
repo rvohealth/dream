@@ -1,10 +1,11 @@
 import Dream from '../../dream'
 import DreamTransaction from '../transaction'
+import { DreamConstructorType } from '../types'
 import saveDream from './saveDream'
 
 export default async function saveUnsavedAssociations<DreamInstance extends Dream>(
   dream: DreamInstance,
-  txn: DreamTransaction | null
+  txn: DreamTransaction<DreamConstructorType<DreamInstance>> | null
 ) {
   const self = dream as any
 

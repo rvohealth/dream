@@ -43,7 +43,7 @@ export default function BelongsTo(
       foreignKeyTypeField() {
         return foreignKeyTypeField(foreignKey, dreamClass, partialAssociation)
       },
-    } as BelongsToStatement<any>
+    } as BelongsToStatement<any, any, any>
 
     dreamClass.associations['belongsTo'].push(association)
 
@@ -64,7 +64,11 @@ export default function BelongsTo(
   }
 }
 
-export interface BelongsToStatement<TableName extends AssociationTableNames> {
+export interface BelongsToStatement<
+  DB extends any,
+  SyncedAssociations extends any,
+  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB
+> {
   modelCB: () => typeof Dream | (typeof Dream)[]
   type: 'BelongsTo'
   as: string

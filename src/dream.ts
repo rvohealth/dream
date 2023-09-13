@@ -1,6 +1,6 @@
 import { CompiledQuery, SelectArg, SelectExpression, Updateable } from 'kysely'
 import db from './db'
-import { DB, DBColumns, InterpretedDB } from './sync/schema'
+import { DBColumns, InterpretedDB } from './sync/schema'
 import { HasManyStatement } from './decorators/associations/has-many'
 import { BelongsToStatement } from './decorators/associations/belongs-to'
 import { HasOneStatement } from './decorators/associations/has-one'
@@ -9,7 +9,6 @@ import { HookStatement, blankHooksFactory } from './decorators/hooks/shared'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { marshalDBValue } from './helpers/marshalDBValue'
-import { SyncedAssociations } from './sync/associations'
 import {
   AssociatedModelParam,
   WhereStatement,
@@ -68,9 +67,9 @@ export default class Dream {
   public static createdAtField = 'createdAt'
 
   public static associations: {
-    belongsTo: BelongsToStatement<any>[]
-    hasMany: HasManyStatement<any>[]
-    hasOne: HasOneStatement<any>[]
+    belongsTo: BelongsToStatement<any, any, any>[]
+    hasMany: HasManyStatement<any, any, any>[]
+    hasOne: HasOneStatement<any, any, any>[]
   } = blankAssociationsFactory(this)
 
   public static scopes: {
@@ -130,13 +129,20 @@ export default class Dream {
 
   public static columns<
     T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
   >(): (keyof Table)[] {
     return (DBColumns as any)[this.prototype.table]
   }
 
-  public static get associationMap() {
+  public static associationMap<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations']
+  >(this: T) {
     const allAssociations = [
       ...this.associations.belongsTo,
       ...this.associations.hasOne,
@@ -145,9 +151,9 @@ export default class Dream {
 
     const map = {} as {
       [key: (typeof allAssociations)[number]['as']]:
-        | BelongsToStatement<AssociationTableNames>
-        | HasManyStatement<AssociationTableNames>
-        | HasOneStatement<AssociationTableNames>
+        | BelongsToStatement<DB, SyncedAssociations, AssociationTableNames<DB, SyncedAssociations> & keyof DB>
+        | HasManyStatement<DB, SyncedAssociations, AssociationTableNames<DB, SyncedAssociations> & keyof DB>
+        | HasOneStatement<DB, SyncedAssociations, AssociationTableNames<DB, SyncedAssociations> & keyof DB>
     }
 
     for (const association of allAssociations) {
@@ -175,6 +181,8 @@ export default class Dream {
 
   public static async all<
     T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName],
     IdColumn = T['primaryKey'] & keyof Table
@@ -195,7 +203,9 @@ export default class Dream {
 
   public static async max<
     DreamClass extends typeof Dream,
-    TableName extends InstanceType<DreamClass>['table'],
+    I extends InstanceType<DreamClass>,
+    TableName extends I['table'],
+    DB extends I['DB'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>
   >(this: DreamClass, field: SimpleFieldType): Promise<number> {
     const query: Query<DreamClass> = new Query<DreamClass>(this)
@@ -204,7 +214,9 @@ export default class Dream {
 
   public static async min<
     DreamClass extends typeof Dream,
-    TableName extends InstanceType<DreamClass>['table'],
+    I extends InstanceType<DreamClass>,
+    TableName extends I['table'],
+    DB extends I['DB'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>
   >(this: DreamClass, field: SimpleFieldType): Promise<number> {
     const query: Query<DreamClass> = new Query<DreamClass>(this)
@@ -217,7 +229,11 @@ export default class Dream {
 
   public static async createOrFindBy<T extends typeof Dream>(
     this: T,
-    opts: WhereStatement<InstanceType<T>['table']>,
+    opts: WhereStatement<
+      InstanceType<T>['DB'],
+      InstanceType<T>['syncedAssociations'],
+      InstanceType<T>['table']
+    >,
     extraOpts: CreateOrFindByExtraOps<T> = {}
   ): Promise<InstanceType<T> | null> {
     let record: InstanceType<T>
@@ -250,7 +266,11 @@ export default class Dream {
 
   public static async findBy<T extends typeof Dream>(
     this: T,
-    attributes: WhereStatement<InstanceType<T>['table']>
+    attributes: WhereStatement<
+      InstanceType<T>['DB'],
+      InstanceType<T>['syncedAssociations'],
+      InstanceType<T>['table']
+    >
   ): Promise<(InstanceType<T> & Dream) | null> {
     const query: Query<T> = new Query<T>(this)
     return await query.findBy(attributes)
@@ -258,7 +278,11 @@ export default class Dream {
 
   public static async findOrCreateBy<T extends typeof Dream>(
     this: T,
-    opts: WhereStatement<InstanceType<T>['table']>,
+    opts: WhereStatement<
+      InstanceType<T>['DB'],
+      InstanceType<T>['syncedAssociations'],
+      InstanceType<T>['table']
+    >,
     extraOpts: CreateOrFindByExtraOps<T> = {}
   ) {
     const existingRecord = await this.findBy(opts)
@@ -277,20 +301,22 @@ export default class Dream {
 
   public static preload<
     T extends typeof Dream,
+    I extends InstanceType<T>,
+    SyncedAssociations extends I['syncedAssociations'],
     TableName extends InstanceType<T>['table'],
     //
-    A extends NextPreloadArgumentType<TableName>,
-    ATableName extends PreloadArgumentTypeAssociatedTableNames<TableName, A>,
-    B extends NextPreloadArgumentType<ATableName>,
-    BTableName extends PreloadArgumentTypeAssociatedTableNames<ATableName, B>,
-    C extends NextPreloadArgumentType<BTableName>,
-    CTableName extends PreloadArgumentTypeAssociatedTableNames<BTableName, C>,
-    D extends NextPreloadArgumentType<CTableName>,
-    DTableName extends PreloadArgumentTypeAssociatedTableNames<CTableName, D>,
-    E extends NextPreloadArgumentType<DTableName>,
-    ETableName extends PreloadArgumentTypeAssociatedTableNames<DTableName, E>,
-    F extends NextPreloadArgumentType<ETableName>,
-    FTableName extends PreloadArgumentTypeAssociatedTableNames<ETableName, F>,
+    A extends NextPreloadArgumentType<SyncedAssociations, TableName>,
+    ATableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, TableName, A>,
+    B extends NextPreloadArgumentType<SyncedAssociations, ATableName>,
+    BTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ATableName, B>,
+    C extends NextPreloadArgumentType<SyncedAssociations, BTableName>,
+    CTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, BTableName, C>,
+    D extends NextPreloadArgumentType<SyncedAssociations, CTableName>,
+    DTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, CTableName, D>,
+    E extends NextPreloadArgumentType<SyncedAssociations, DTableName>,
+    ETableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, DTableName, E>,
+    F extends NextPreloadArgumentType<SyncedAssociations, ETableName>,
+    FTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ETableName, F>,
     //
     G extends FTableName extends undefined
       ? undefined
@@ -303,24 +329,29 @@ export default class Dream {
 
   public static joins<
     T extends typeof Dream,
-    TableName extends InstanceType<T>['table'],
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends I['table'] & keyof SyncedAssociations,
     //
     A extends keyof SyncedAssociations[TableName] & string,
     ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
       string[])[number],
     //
-    B extends NextJoinsWhereArgumentType<ATableName>,
-    BTableName extends JoinsArgumentTypeAssociatedTableNames<ATableName, B>,
-    C extends NextJoinsWhereArgumentType<BTableName>,
-    CTableName extends JoinsArgumentTypeAssociatedTableNames<BTableName, C>,
-    D extends NextJoinsWhereArgumentType<CTableName>,
-    DTableName extends JoinsArgumentTypeAssociatedTableNames<CTableName, D>,
-    E extends NextJoinsWhereArgumentType<DTableName>,
-    ETableName extends JoinsArgumentTypeAssociatedTableNames<DTableName, E>,
-    F extends NextJoinsWhereArgumentType<ETableName>,
-    FTableName extends JoinsArgumentTypeAssociatedTableNames<ETableName, F>,
+    B extends NextJoinsWhereArgumentType<DB, SyncedAssociations, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
+    C extends NextJoinsWhereArgumentType<DB, SyncedAssociations, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
+    D extends NextJoinsWhereArgumentType<DB, SyncedAssociations, CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>,
+    E extends NextJoinsWhereArgumentType<DB, SyncedAssociations, DTableName>,
+    ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>,
+    F extends NextJoinsWhereArgumentType<DB, SyncedAssociations, ETableName>,
+    FTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>,
     //
-    G extends FTableName extends undefined ? undefined : WhereStatement<FTableName & AssociationTableNames>
+    G extends FTableName extends undefined
+      ? undefined
+      : WhereStatement<DB, SyncedAssociations, FTableName & AssociationTableNames<DB, SyncedAssociations>>
   >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     const query: Query<T> = new Query<T>(this)
 
@@ -329,25 +360,27 @@ export default class Dream {
 
   public static async joinsPluck<
     T extends typeof Dream,
-    DB extends InstanceType<T>['DB'],
-    TableName extends InstanceType<T>['table'],
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends I['table'],
     //
     A extends keyof SyncedAssociations[TableName] & string,
     ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
       string[])[number],
     //
-    B extends NextJoinsWherePluckArgumentType<DB, A, A, ATableName>,
-    BTableName extends JoinsArgumentTypeAssociatedTableNames<ATableName, B>,
-    C extends NextJoinsWherePluckArgumentType<DB, B, A, BTableName>,
-    CTableName extends JoinsArgumentTypeAssociatedTableNames<BTableName, C>,
-    D extends NextJoinsWherePluckArgumentType<DB, C, B, CTableName>,
-    DTableName extends JoinsArgumentTypeAssociatedTableNames<CTableName, D>,
-    E extends NextJoinsWherePluckArgumentType<DB, D, C, DTableName>,
-    ETableName extends JoinsArgumentTypeAssociatedTableNames<DTableName, E>,
-    F extends NextJoinsWherePluckArgumentType<DB, E, D, ETableName>,
-    FTableName extends JoinsArgumentTypeAssociatedTableNames<ETableName, F>,
+    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
+    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
+    D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>,
+    E extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>,
+    ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>,
+    F extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>,
+    FTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>,
     //
-    G extends FinalJoinsWherePluckArgumentType<DB, F, E, FTableName>
+    G extends FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
   >(this: T, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     const query: Query<T> = new Query<T>(this)
 
@@ -367,6 +400,8 @@ export default class Dream {
 
   public static nestedSelect<
     T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
     SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<T>['table']>>
   >(this: T, selection: SelectArg<DB, ExtractTableAlias<DB, InstanceType<T>['table']>, SE>) {
     let query: Query<T> = new Query<T>(this)
@@ -375,8 +410,11 @@ export default class Dream {
 
   public static order<
     T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
     ColumnName extends keyof Table & string,
-    TableName extends AssociationTableNames = InstanceType<T>['table'],
+    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = I['table'],
     Table extends DB[keyof DB] = DB[TableName]
   >(this: T, column: ColumnName, direction: 'asc' | 'desc' = 'asc') {
     let query: Query<T> = new Query<T>(this)
@@ -386,8 +424,10 @@ export default class Dream {
 
   public static async pluck<
     T extends typeof Dream,
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<T>['table']>>
-  >(this: T, ...fields: SelectArg<DB, ExtractTableAlias<DB, InstanceType<T>['table']>, SE>[]) {
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, I['table']>>
+  >(this: T, ...fields: SelectArg<DB, ExtractTableAlias<DB, I['table']>, SE>[]) {
     let query: Query<T> = new Query<T>(this)
     return await query.pluck(...(fields as any[]))
   }
@@ -403,13 +443,16 @@ export default class Dream {
     return query.sql()
   }
 
-  public static txn<T extends typeof Dream>(this: T, txn: DreamTransaction): DreamClassTransactionBuilder<T> {
+  public static txn<T extends typeof Dream>(
+    this: T,
+    txn: DreamTransaction<InstanceType<T>['DB']>
+  ): DreamClassTransactionBuilder<T> {
     return new DreamClassTransactionBuilder<T>(this, txn)
   }
 
   public static async transaction<T extends typeof Dream>(
     this: T,
-    callback: (txn: DreamTransaction) => Promise<unknown>
+    callback: (txn: DreamTransaction<InstanceType<T>['DB']>) => Promise<unknown>
   ) {
     const dreamTransaction = new DreamTransaction()
 
@@ -417,7 +460,9 @@ export default class Dream {
       .transaction()
       .execute(async kyselyTransaction => {
         dreamTransaction.kyselyTransaction = kyselyTransaction
-        await (callback as (txn: DreamTransaction) => Promise<unknown>)(dreamTransaction)
+        await (callback as (txn: DreamTransaction<InstanceType<T>['DB']>) => Promise<unknown>)(
+          dreamTransaction
+        )
       })
 
     await dreamTransaction.runAfterCommitHooks()
@@ -427,17 +472,21 @@ export default class Dream {
 
   public static where<
     T extends typeof Dream,
-    TableName extends AssociationTableNames = InstanceType<T>['table']
-  >(this: T, attributes: WhereStatement<TableName>) {
-    // @ts-ignore
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<T>['table']
+  >(this: T, attributes: WhereStatement<DB, SyncedAssociations, TableName>): Query<T> {
     return new Query<T>(this).where(attributes)
   }
 
   public static whereNot<
     T extends typeof Dream,
-    TableName extends AssociationTableNames = InstanceType<T>['table']
-  >(this: T, attributes: WhereStatement<TableName>) {
-    // @ts-ignore
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<T>['table']
+  >(this: T, attributes: WhereStatement<DB, SyncedAssociations, TableName>): Query<T> {
     return new Query<T>(this).whereNot(attributes)
   }
 
@@ -445,8 +494,8 @@ export default class Dream {
     return new this(opts as any) as InstanceType<T>
   }
 
-  public get associationMap() {
-    return (this.constructor as typeof Dream).associationMap
+  public associationMap<T extends Dream>(this: T) {
+    return (this.constructor as typeof Dream).associationMap()
   }
 
   public get associations() {
@@ -499,7 +548,11 @@ export default class Dream {
     throw new MissingDB()
   }
 
-  public get table(): AssociationTableNames {
+  public get syncedAssociations(): any {
+    throw `must have get syncedAssociations defined on child`
+  }
+
+  public get table(): AssociationTableNames<any, any> {
     throw new MissingTable(this.constructor as typeof Dream)
   }
 
@@ -508,13 +561,17 @@ export default class Dream {
   }
 
   public get unsavedAssociations(): (
-    | BelongsToStatement<any>
-    | HasOneStatement<any>
-    | HasManyStatement<any>
+    | BelongsToStatement<any, any, any>
+    | HasOneStatement<any, any, any>
+    | HasManyStatement<any, any, any>
   )[] {
-    const unsaved: (BelongsToStatement<any> | HasOneStatement<any> | HasManyStatement<any>)[] = []
-    for (const associationName in this.associationMap) {
-      const associationMetadata = this.associationMap[associationName]
+    const unsaved: (
+      | BelongsToStatement<any, any, any>
+      | HasOneStatement<any, any, any>
+      | HasManyStatement<any, any, any>
+    )[] = []
+    for (const associationName in this.associationMap()) {
+      const associationMetadata = this.associationMap()[associationName]
       const associationRecord = (this as any)[associationName] as Dream | undefined
       if (associationRecord?.isDreamInstance && associationRecord?.isDirty) {
         unsaved.push(associationMetadata)
@@ -527,8 +584,14 @@ export default class Dream {
   public frozenAttributes: { [key: string]: any } = {}
   public originalAttributes: { [key: string]: any } = {}
   public attributesFromBeforeLastSave: { [key: string]: any } = {}
-  private dreamTransaction: DreamTransaction | null = null
-  constructor(opts?: Updateable<DB[keyof DB]>) {
+  private dreamTransaction: DreamTransaction<any> | null = null
+  constructor(
+    opts?: any
+    // opts?: Updateable<
+    //   InstanceType<DreamModel & typeof Dream>['DB'][InstanceType<DreamModel>['table'] &
+    //     keyof InstanceType<DreamModel>['DB']]
+    // >
+  ) {
     if (opts) {
       const marshalledOpts = this.setAttributes(opts as any)
 
@@ -539,7 +602,8 @@ export default class Dream {
         this.originalAttributes = { ...marshalledOpts }
         this.attributesFromBeforeLastSave = { ...marshalledOpts }
       } else {
-        ;(this.constructor as typeof Dream).columns().forEach(column => {
+        const columns = (this.constructor as typeof Dream).columns() as string[]
+        columns.forEach(column => {
           this.originalAttributes[column] = undefined
           this.attributesFromBeforeLastSave[column] = undefined
         })
@@ -547,7 +611,7 @@ export default class Dream {
     }
   }
 
-  public attributes<I extends Dream>(this: I): Updateable<DB[I['table']]> {
+  public attributes<I extends Dream, DB extends I['DB']>(this: I): Updateable<DB[I['table']]> {
     const obj: Updateable<DB[I['table']]> = {}
     ;(this.constructor as DreamConstructorType<I>).columns().forEach(column => {
       ;(obj as any)[column] = (this as any)[column]
@@ -557,15 +621,20 @@ export default class Dream {
 
   public cachedTypeFor<
     I extends Dream,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
     TableName extends keyof DB = I['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
   >(this: I, attribute: keyof Table): string {
-    return cachedTypeForAttribute(attribute, { table: this.table })
+    return cachedTypeForAttribute<DB, SyncedAssociations>(attribute, { table: this.table })
   }
 
   public changedAttributes<
     I extends Dream,
-    TableName extends AssociationTableNames = I['table'] & AssociationTableNames,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = I['table'] &
+      AssociationTableNames<DB, SyncedAssociations>,
     Table extends DB[keyof DB] = DB[TableName]
   >(this: I): Updateable<Table> {
     const obj: Updateable<Table> = {}
@@ -578,6 +647,7 @@ export default class Dream {
 
   public changes<
     I extends Dream,
+    DB extends I['DB'],
     TableName extends I['table'],
     Table extends DB[TableName],
     RetType extends Partial<
@@ -604,6 +674,7 @@ export default class Dream {
 
   public previousValueForAttribute<
     I extends Dream,
+    DB extends I['DB'],
     TableName extends I['table'],
     Table extends DB[TableName],
     Attr extends keyof Updateable<Table> & string
@@ -614,6 +685,7 @@ export default class Dream {
   public savedChangeToAttribute<
     I extends Dream,
     TableName extends I['table'],
+    DB extends I['DB'],
     Table extends DB[TableName],
     Attr extends keyof Updateable<Table> & string
   >(this: I, attribute: Attr): boolean {
@@ -626,6 +698,7 @@ export default class Dream {
   public willSaveChangeToAttribute<
     I extends Dream,
     TableName extends I['table'],
+    DB extends I['DB'],
     Table extends DB[TableName],
     Attr extends keyof Updateable<Table> & string
   >(this: I, attribute: Attr): boolean {
@@ -634,6 +707,7 @@ export default class Dream {
 
   public columns<
     I extends Dream,
+    DB extends I['DB'],
     TableName extends keyof DB = I['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
   >(this: I): (keyof Table)[] {
@@ -642,7 +716,10 @@ export default class Dream {
 
   public dirtyAttributes<
     I extends Dream,
-    TableName extends AssociationTableNames = I['table'] & AssociationTableNames,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = I['table'] &
+      AssociationTableNames<DB, SyncedAssociations>,
     Table extends DB[keyof DB] = DB[TableName]
   >(this: I): Updateable<Table> {
     const obj: Updateable<Table> = {}
@@ -655,6 +732,7 @@ export default class Dream {
 
   private attributeIsDirty<
     I extends Dream,
+    DB extends I['DB'],
     TableName extends I['table'],
     Table extends DB[TableName],
     Attr extends keyof Updateable<Table> & string
@@ -665,9 +743,7 @@ export default class Dream {
     )
   }
 
-  public async destroy<I extends Dream, TableName extends keyof DB = I['table'] & keyof DB>(
-    this: I
-  ): Promise<I> {
+  public async destroy<I extends Dream>(this: I): Promise<I> {
     return destroyDream(this)
   }
 
@@ -681,34 +757,37 @@ export default class Dream {
 
   public isDecimal<
     I extends Dream,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
     TableName extends keyof DB = I['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
   >(this: I, attribute: keyof Table): boolean {
-    return isDecimal(attribute, { table: this.table })
+    return isDecimal<DB, SyncedAssociations>(attribute, { table: this.table })
   }
 
   public async joinsPluck<
     I extends Dream,
     DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
     TableName extends I['table'],
     //
     A extends keyof SyncedAssociations[TableName] & string,
     ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
       string[])[number],
     //
-    B extends NextJoinsWherePluckArgumentType<DB, A, A, ATableName>,
-    BTableName extends JoinsArgumentTypeAssociatedTableNames<ATableName, B>,
-    C extends NextJoinsWherePluckArgumentType<DB, B, A, BTableName>,
-    CTableName extends JoinsArgumentTypeAssociatedTableNames<BTableName, C>,
-    D extends NextJoinsWherePluckArgumentType<DB, C, B, CTableName>,
-    DTableName extends JoinsArgumentTypeAssociatedTableNames<CTableName, D>,
-    E extends NextJoinsWherePluckArgumentType<DB, D, C, DTableName>,
-    ETableName extends JoinsArgumentTypeAssociatedTableNames<DTableName, E>,
-    F extends NextJoinsWherePluckArgumentType<DB, E, D, ETableName>,
-    FTableName extends JoinsArgumentTypeAssociatedTableNames<ETableName, F>,
+    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
+    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
+    D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>,
+    E extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>,
+    ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>,
+    F extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>,
+    FTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>,
     //
-    G extends FinalJoinsWherePluckArgumentType<DB, F, E, FTableName>
-  >(this: I, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
+    G extends FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
+  >(this: I, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G): Promise<any[]> {
     const construct = this.constructor as DreamConstructorType<I>
     return await construct
       .where({ [this.primaryKey]: this.primaryKeyValue } as any)
@@ -717,6 +796,7 @@ export default class Dream {
 
   public async createAssociation<
     I extends Dream,
+    SyncedAssociations extends I['syncedAssociations'],
     AssociationName extends keyof SyncedAssociations[I['table']],
     PossibleArrayAssociationType = I[AssociationName & keyof I],
     AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
@@ -732,6 +812,7 @@ export default class Dream {
 
   public async destroyAssociation<
     I extends Dream,
+    SyncedAssociations extends I['syncedAssociations'],
     AssociationName extends keyof SyncedAssociations[I['table']],
     PossibleArrayAssociationType = I[AssociationName & keyof I],
     AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
@@ -745,34 +826,36 @@ export default class Dream {
     return destroyAssociation(this, null, associationName, opts)
   }
 
-  public associationQuery<I extends Dream, AssociationName extends keyof SyncedAssociations[I['table']]>(
-    this: I,
-    associationName: AssociationName
-  ) {
+  public associationQuery<
+    I extends Dream,
+    SyncedAssociations extends I['syncedAssociations'],
+    AssociationName extends keyof SyncedAssociations[I['table']]
+  >(this: I, associationName: AssociationName) {
     return associationQuery(this, null, associationName)
   }
 
   public load<
     I extends Dream,
     TableName extends I['table'],
+    SyncedAssociations extends I['syncedAssociations'],
     //
-    A extends NextPreloadArgumentType<TableName>,
-    ATableName extends PreloadArgumentTypeAssociatedTableNames<TableName, A>,
-    B extends NextPreloadArgumentType<ATableName>,
-    BTableName extends PreloadArgumentTypeAssociatedTableNames<ATableName, B>,
-    C extends NextPreloadArgumentType<BTableName>,
-    CTableName extends PreloadArgumentTypeAssociatedTableNames<BTableName, C>,
-    D extends NextPreloadArgumentType<CTableName>,
-    DTableName extends PreloadArgumentTypeAssociatedTableNames<CTableName, D>,
-    E extends NextPreloadArgumentType<DTableName>,
-    ETableName extends PreloadArgumentTypeAssociatedTableNames<DTableName, E>,
-    F extends NextPreloadArgumentType<ETableName>,
-    FTableName extends PreloadArgumentTypeAssociatedTableNames<ETableName, F>,
+    A extends NextPreloadArgumentType<SyncedAssociations, TableName>,
+    ATableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, TableName, A>,
+    B extends NextPreloadArgumentType<SyncedAssociations, ATableName>,
+    BTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ATableName, B>,
+    C extends NextPreloadArgumentType<SyncedAssociations, BTableName>,
+    CTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, BTableName, C>,
+    D extends NextPreloadArgumentType<SyncedAssociations, CTableName>,
+    DTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, CTableName, D>,
+    E extends NextPreloadArgumentType<SyncedAssociations, DTableName>,
+    ETableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, DTableName, E>,
+    F extends NextPreloadArgumentType<SyncedAssociations, ETableName>,
+    FTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ETableName, F>,
     //
     G extends FTableName extends undefined
       ? undefined
       : (keyof SyncedAssociations[FTableName & keyof SyncedAssociations] & string)[]
-  >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
+  >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G): LoadBuilder<I> {
     return new LoadBuilder<I>(this).load(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
 
@@ -788,25 +871,27 @@ export default class Dream {
 
   public setAttributes<
     I extends Dream,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
     TableName extends keyof DB = I['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
   >(this: I, attributes: Updateable<Table> | AssociatedModelParam<I>) {
     const self = this as any
     const marshalledOpts: any = {}
     Object.keys(attributes as any).forEach(attr => {
-      const associationMetaData = this.associationMap[attr]
+      const associationMetaData = this.associationMap()[attr]
 
       if (associationMetaData && associationMetaData.type !== 'BelongsTo') {
         throw new CanOnlyPassBelongsToModelParam(self.constructor, associationMetaData)
       } else if (associationMetaData) {
-        const belongsToAssociationMetaData = associationMetaData as BelongsToStatement<any>
+        const belongsToAssociationMetaData = associationMetaData as BelongsToStatement<any, any, any>
         const associatedObject = (attributes as any)[attr]
         self[attr] = associatedObject
 
-        if (!(associationMetaData as BelongsToStatement<any>).optional && !associatedObject)
+        if (!(associationMetaData as BelongsToStatement<any, any, any>).optional && !associatedObject)
           throw new CannotPassNullOrUndefinedToRequiredBelongsTo(
             this.constructor as DreamConstructorType<I>,
-            associationMetaData as BelongsToStatement<any>
+            associationMetaData as BelongsToStatement<any, any, any>
           )
 
         const foreignKey = belongsToAssociationMetaData.foreignKey()
@@ -818,10 +903,13 @@ export default class Dream {
         }
       } else {
         // TODO: cleanup type chaos
-        self[attr] = marshalledOpts[attr] = marshalDBValue((attributes as any)[attr], {
-          column: attr as any,
-          table: this.table,
-        })
+        self[attr] = marshalledOpts[attr] = marshalDBValue<DB, SyncedAssociations>(
+          (attributes as any)[attr],
+          {
+            column: attr as any,
+            table: this.table,
+          }
+        )
       }
     })
 
@@ -839,7 +927,7 @@ export default class Dream {
     }
   }
 
-  public txn<I extends Dream>(this: I, txn: DreamTransaction): DreamInstanceTransactionBuilder<I> {
+  public txn<I extends Dream>(this: I, txn: DreamTransaction<I['DB']>): DreamInstanceTransactionBuilder<I> {
     return new DreamInstanceTransactionBuilder<I>(this, txn)
   }
 
@@ -849,16 +937,6 @@ export default class Dream {
     // attributes are saved with this model in a transaction
     return await this.save()
   }
-
-  // public async updatenew<I extends Dream, DB extends I['DB'], Table extends DB[I['table']]>(
-  //   this: I,
-  //   attributes: Partial<Table>
-  // ): Promise<I> {
-  //   this.setAttributes(attributes)
-  //   // call save rather than _save so that any unsaved associations in the
-  //   // attributes are saved with this model in a transaction
-  //   return await this.save()
-  // }
 
   public _preventDeletion: boolean = false
   public preventDeletion() {
@@ -872,5 +950,7 @@ export default class Dream {
 }
 
 export interface CreateOrFindByExtraOps<T extends typeof Dream> {
-  createWith?: WhereStatement<InstanceType<T>['table']> | UpdateablePropertiesForClass<T>
+  createWith?:
+    | WhereStatement<InstanceType<T>['DB'], InstanceType<T>['syncedAssociations'], InstanceType<T>['table']>
+    | UpdateablePropertiesForClass<T>
 }

@@ -1,35 +1,37 @@
 import { DateTime } from 'luxon'
 import { Updateable, ColumnType } from 'kysely'
 import { AssociationTableNames } from '../db/reflections'
-import { SyncedAssociations, VirtualColumns } from '../sync/associations'
+import { VirtualColumns } from '../sync/associations'
 import Dream from '../dream'
 import { Inc } from '../helpers/typeutils'
-import { DB } from '../sync/schema'
 import { AssociatedModelParam, WhereStatement } from '../decorators/associations/shared'
 
 export type IdType = string | number | bigint | undefined
 export type Timestamp = ColumnType<DateTime>
 
-export interface AliasCondition<PreviousTableNames extends AssociationTableNames> {
-  conditionToExecute: boolean
-  alias: keyof SyncedAssociations[PreviousTableNames]
-  column: keyof Updateable<DB[PreviousTableNames]>
-  columnValue: any
-}
+// export interface AliasCondition<DB extends any, PreviousTableNames extends AssociationTableNames<DB>> {
+//   conditionToExecute: boolean
+//   alias: keyof SyncedAssociations[PreviousTableNames]
+//   column: keyof Updateable<DB[PreviousTableNames]>
+//   columnValue: any
+// }
 
 export type UpdateableColumns<DreamInstance extends Dream> = Updateable<
   DreamInstance['DB'][DreamInstance['table']]
 >
 
 export type UpdateablePropertiesForClass<DreamClass extends typeof Dream> =
-  | Updateable<InstanceType<DreamClass>['DB'][InstanceType<DreamClass>['table'] & AssociationTableNames]>
+  | Updateable<
+      InstanceType<DreamClass>['DB'][InstanceType<DreamClass>['table'] &
+        AssociationTableNames<InstanceType<DreamClass>['DB'], InstanceType<DreamClass>['syncedAssociations']>]
+    >
   | AssociatedModelParam<InstanceType<DreamClass>>
   | (VirtualColumns[InstanceType<DreamClass>['table'] & keyof VirtualColumns] extends any[]
       ? Record<VirtualColumns[InstanceType<DreamClass>['table'] & keyof VirtualColumns][number], any>
       : never)
 
 export type UpdateableProperties<I extends Dream> =
-  | Updateable<I['DB'][I['table'] & AssociationTableNames]>
+  | Updateable<I['DB'][I['table'] & AssociationTableNames<I['DB'], I['syncedAssociations']>]>
   | AssociatedModelParam<I>
   | (VirtualColumns[I['table'] & keyof VirtualColumns] extends any[]
       ? Record<VirtualColumns[I['table'] & keyof VirtualColumns][number], any>
@@ -39,6 +41,7 @@ export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) 
 
 // preload
 export type NextPreloadArgumentType<
+  SyncedAssociations extends any,
   PreviousTableNames,
   PreviousSyncedAssociations = PreviousTableNames extends undefined
     ? undefined
@@ -48,6 +51,7 @@ export type NextPreloadArgumentType<
   : (keyof PreviousSyncedAssociations & string) | (keyof PreviousSyncedAssociations & string)[]
 
 export type PreloadArgumentTypeAssociatedTableNames<
+  SyncedAssociations extends any,
   PreviousTableNames,
   ArgumentType,
   PreviousSyncedAssociations = PreviousTableNames extends undefined
@@ -61,15 +65,25 @@ export type PreloadArgumentTypeAssociatedTableNames<
 
 // joins
 export type NextJoinsWhereArgumentType<
+  DB extends any,
+  SyncedAssociations extends any,
   PreviousTableNames,
   PreviousSyncedAssociations = PreviousTableNames extends undefined
     ? undefined
     : SyncedAssociations[PreviousTableNames & keyof SyncedAssociations]
 > = PreviousTableNames extends undefined
   ? undefined
-  : (keyof PreviousSyncedAssociations & string) | WhereStatement<PreviousTableNames & AssociationTableNames>
+  :
+      | (keyof PreviousSyncedAssociations & string)
+      | WhereStatement<
+          DB,
+          SyncedAssociations,
+          PreviousTableNames & AssociationTableNames<DB, SyncedAssociations> & keyof DB
+        >
 
 export type JoinsArgumentTypeAssociatedTableNames<
+  DB extends any,
+  SyncedAssociations extends any,
   PreviousTableNames,
   ArgumentType,
   PreviousSyncedAssociations = PreviousTableNames extends undefined
@@ -79,7 +93,7 @@ export type JoinsArgumentTypeAssociatedTableNames<
   ? undefined
   : ArgumentType extends any[]
   ? undefined
-  : ArgumentType extends WhereStatement<any>
+  : ArgumentType extends WhereStatement<DB, SyncedAssociations, any>
   ? PreviousTableNames
   : (PreviousSyncedAssociations[ArgumentType & (keyof PreviousSyncedAssociations & string)] &
       string[])[number]
@@ -88,6 +102,7 @@ export type JoinsArgumentTypeAssociatedTableNames<
 // joinsPluck
 export type NextJoinsWherePluckArgumentType<
   DB extends any,
+  SyncedAssociations extends any,
   PreviousAssociationName,
   PreviousPreviousAssociationName,
   PreviousTableNames,
@@ -100,27 +115,51 @@ export type NextJoinsWherePluckArgumentType<
   ? undefined
   : PreviousAssociationName extends any[]
   ? undefined
-  : PreviousAssociationName extends WhereStatement<any>
+  : PreviousAssociationName extends WhereStatement<DB, SyncedAssociations, any>
   ?
       | keyof PreviousSyncedAssociations
       | AssociationNameToDotReference<
           DB,
+          SyncedAssociations,
           PreviousPreviousAssociationName,
-          PreviousTableNames & AssociationTableNames
+          PreviousTableNames &
+            AssociationTableNames<DB, SyncedAssociations> &
+            keyof SyncedAssociations &
+            string
         >
       | AssociationNameToDotReference<
           DB,
+          SyncedAssociations,
           PreviousPreviousAssociationName,
-          PreviousTableNames & AssociationTableNames
+          PreviousTableNames &
+            AssociationTableNames<DB, SyncedAssociations> &
+            keyof SyncedAssociations &
+            string
         >[]
   :
       | keyof PreviousSyncedAssociations
-      | WhereStatement<PreviousTableNames & AssociationTableNames>
-      | AssociationNameToDotReference<DB, PreviousAssociationName, PreviousTableNames & AssociationTableNames>
+      | WhereStatement<
+          DB,
+          SyncedAssociations,
+          PreviousTableNames & AssociationTableNames<DB, SyncedAssociations> & keyof DB
+        >
       | AssociationNameToDotReference<
           DB,
+          SyncedAssociations,
           PreviousAssociationName,
-          PreviousTableNames & AssociationTableNames
+          PreviousTableNames &
+            AssociationTableNames<DB, SyncedAssociations> &
+            keyof SyncedAssociations &
+            string
+        >
+      | AssociationNameToDotReference<
+          DB,
+          SyncedAssociations,
+          PreviousAssociationName,
+          PreviousTableNames &
+            AssociationTableNames<DB, SyncedAssociations> &
+            keyof SyncedAssociations &
+            string
         >[]
 
 // type X = NextJoinsWherePluckArgumentType<, 'pets'>
@@ -129,6 +168,7 @@ export type NextJoinsWherePluckArgumentType<
 
 export type FinalJoinsWherePluckArgumentType<
   DB extends any,
+  SyncedAssociations extends any,
   PreviousAssociationName,
   PreviousPreviousAssociationName,
   PreviousTableNames
@@ -138,30 +178,51 @@ export type FinalJoinsWherePluckArgumentType<
   ? undefined
   : PreviousAssociationName extends any[]
   ? undefined
-  : PreviousAssociationName extends WhereStatement<any>
+  : PreviousAssociationName extends WhereStatement<DB, SyncedAssociations, any>
   ?
       | AssociationNameToDotReference<
           DB,
+          SyncedAssociations,
           PreviousPreviousAssociationName,
-          PreviousTableNames & AssociationTableNames
+          PreviousTableNames &
+            AssociationTableNames<DB, SyncedAssociations> &
+            keyof SyncedAssociations &
+            string
         >
       | AssociationNameToDotReference<
           DB,
+          SyncedAssociations,
           PreviousPreviousAssociationName,
-          PreviousTableNames & AssociationTableNames
+          PreviousTableNames &
+            AssociationTableNames<DB, SyncedAssociations> &
+            keyof SyncedAssociations &
+            string
         >[]
   :
-      | AssociationNameToDotReference<DB, PreviousAssociationName, PreviousTableNames & AssociationTableNames>
       | AssociationNameToDotReference<
           DB,
+          SyncedAssociations,
           PreviousAssociationName,
-          PreviousTableNames & AssociationTableNames
+          PreviousTableNames &
+            AssociationTableNames<DB, SyncedAssociations> &
+            keyof SyncedAssociations &
+            string
+        >
+      | AssociationNameToDotReference<
+          DB,
+          SyncedAssociations,
+          PreviousAssociationName,
+          PreviousTableNames &
+            AssociationTableNames<DB, SyncedAssociations> &
+            keyof SyncedAssociations &
+            string
         >[]
 
 // end:joinsPluck
 
 export type AssociationNameToDotReference<
   DB extends any,
+  SyncedAssociations extends any,
   AssociationName,
   TableNames extends keyof SyncedAssociations & string
 > = `${AssociationName & string}.${keyof Updateable<DB[TableNames & keyof DB]> & string}`
@@ -170,7 +231,7 @@ export type AssociationNameToDotReference<
 // type Y = X extends `${any}.${any}`
 //   ? '`${any}.${any}` does match AssociationNameToDotReference'
 //   : 'it doesn’t match'
-// type Y = NextJoinsWherePluckArgumentType<WhereStatement<any>, 'mylar', 'beautiful_balloons'>
+// type Y = NextJoinsWherePluckArgumentType<WhereStatement<any, any, any>, 'mylar', 'beautiful_balloons'>
 
 export type RelaxedPreloadStatement<Depth extends number = 0> = Depth extends 7
   ? {}
@@ -180,12 +241,16 @@ export type RelaxedJoinsStatement<Depth extends number = 0> = Depth extends 7
   ? {}
   : { [key: string]: RelaxedJoinsStatement<Inc<Depth>> | {} }
 
-export type RelaxedJoinsWhereStatement<Depth extends number = 0> = Depth extends 7
+export type RelaxedJoinsWhereStatement<
+  DB extends any,
+  SyncedAssociations extends any,
+  Depth extends number = 0
+> = Depth extends 7
   ? {}
   : {
-      [key: string]: RelaxedPreloadStatement<Inc<Depth>> | {} | WhereStatement<any>
+      [key: string]: RelaxedPreloadStatement<Inc<Depth>> | {} | WhereStatement<DB, SyncedAssociations, any>
     }
 
-export type TableOrAssociationName =
-  | keyof SyncedAssociations
-  | keyof SyncedAssociations[keyof SyncedAssociations]
+export type TableOrAssociationName<SyncedAssociations extends any> =
+  | (keyof SyncedAssociations & string)
+  | (keyof SyncedAssociations[keyof SyncedAssociations] & string)

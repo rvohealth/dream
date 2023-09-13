@@ -3,7 +3,7 @@ import Dream from '../../dream'
 
 export default class CannotJoinPolymorphicBelongsToError extends Error {
   public dreamClass: typeof Dream
-  public association: BelongsToStatement<any>
+  public association: BelongsToStatement<any, any, any>
   public joinsStatements: any
 
   constructor({
@@ -12,7 +12,7 @@ export default class CannotJoinPolymorphicBelongsToError extends Error {
     joinsStatements,
   }: {
     dreamClass: typeof Dream
-    association: BelongsToStatement<any>
+    association: BelongsToStatement<any, any, any>
     joinsStatements: any
   }) {
     super()

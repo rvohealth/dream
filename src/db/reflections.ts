@@ -1,10 +1,8 @@
-import { SyncedAssociations } from '../sync/associations'
-import { DB } from '../sync/schema'
-
-export type AssociationTableNames = keyof DB & keyof SyncedAssociations extends never
+export type AssociationTableNames<DB extends any, SyncedAssociations extends any> = keyof DB &
+  keyof SyncedAssociations extends never
   ? unknown
-  : keyof DB & keyof SyncedAssociations
-export type Tables = keyof DB
-export type TableInterfaces = valueof<DB>
+  : keyof DB & keyof SyncedAssociations & string
+export type Tables<DB> = keyof DB
+export type TableInterfaces<DB> = valueof<DB>
 
 type valueof<T> = T[keyof T]

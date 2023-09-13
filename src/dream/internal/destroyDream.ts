@@ -9,7 +9,7 @@ import safelyRunCommitHooks from './safelyRunCommitHooks'
 export default async function destroyDream<
   I extends Dream,
   TableName extends keyof DB = I['table'] & keyof DB
->(dream: I, txn: DreamTransaction | null = null): Promise<I> {
+>(dream: I, txn: DreamTransaction<I['DB']> | null = null): Promise<I> {
   await runHooksFor('beforeDestroy', dream)
   if (dream._preventDeletion) return dream.unpreventDeletion()
   const db = txn?.kyselyTransaction || _db('primary')

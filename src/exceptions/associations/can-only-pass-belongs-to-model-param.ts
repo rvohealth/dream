@@ -4,9 +4,12 @@ import Dream from '../../dream'
 
 export default class CanOnlyPassBelongsToModelParam extends Error {
   public dreamClass: typeof Dream
-  public association: HasManyStatement<any> | HasOneStatement<any>
+  public association: HasManyStatement<any, any, any> | HasOneStatement<any, any, any>
 
-  constructor(dreamClass: typeof Dream, association: HasManyStatement<any> | HasOneStatement<any>) {
+  constructor(
+    dreamClass: typeof Dream,
+    association: HasManyStatement<any, any, any> | HasOneStatement<any, any, any>
+  ) {
     super()
     this.dreamClass = dreamClass
     this.association = association

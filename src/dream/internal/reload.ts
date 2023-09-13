@@ -5,7 +5,7 @@ import { DreamConstructorType } from '../types'
 
 export default async function reload<DreamInstance extends Dream>(
   dream: DreamInstance,
-  txn: DreamTransaction | null = null
+  txn: DreamTransaction<DreamConstructorType<DreamInstance>> | null = null
 ) {
   const base = dream.constructor as DreamConstructorType<DreamInstance>
   let query: Query<DreamConstructorType<DreamInstance>> = new Query<DreamConstructorType<DreamInstance>>(base)

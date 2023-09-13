@@ -8,10 +8,11 @@ import sqlAttributes from '../../helpers/sqlAttributes'
 import safelyRunCommitHooks from './safelyRunCommitHooks'
 import _db from '../../db'
 import executeDatabaseQuery from './executeDatabaseQuery'
+import { DreamConstructorType } from '../types'
 
 export default async function saveDream<DreamInstance extends Dream>(
   dream: DreamInstance,
-  txn: DreamTransaction | null = null
+  txn: DreamTransaction<DreamInstance['DB']> | null = null
 ) {
   const db = txn?.kyselyTransaction || _db('primary')
 

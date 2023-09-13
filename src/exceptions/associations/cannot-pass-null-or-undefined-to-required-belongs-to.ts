@@ -3,9 +3,9 @@ import Dream from '../../dream'
 
 export default class CannotPassNullOrUndefinedToRequiredBelongsTo extends Error {
   public dreamClass: typeof Dream
-  public association: BelongsToStatement<any>
+  public association: BelongsToStatement<any, any, any>
 
-  constructor(dreamClass: typeof Dream, association: BelongsToStatement<any>) {
+  constructor(dreamClass: typeof Dream, association: BelongsToStatement<any, any, any>) {
     super()
     this.dreamClass = dreamClass
     this.association = association

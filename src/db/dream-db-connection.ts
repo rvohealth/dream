@@ -1,5 +1,4 @@
 import { Kysely, PostgresDialect, CamelCasePlugin } from 'kysely'
-import { DB } from '../sync/schema'
 import ConnectionConfRetriever from './connection-conf-retriever'
 import { DbConnectionType } from './types'
 import { Pool } from 'pg'
@@ -7,7 +6,7 @@ import { Pool } from 'pg'
 const connections = {} as any
 
 export default class DreamDbConnection {
-  public static getConnection(connectionType: DbConnectionType) {
+  public static getConnection<DB extends any>(connectionType: DbConnectionType): Kysely<DB> {
     const connection = connections[connectionType]
     if (connection) return connection
 

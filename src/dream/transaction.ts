@@ -1,5 +1,4 @@
 import { Transaction } from 'kysely'
-import { DB } from '../sync/schema'
 import { HookStatement } from '../decorators/hooks/shared'
 import Dream from '../dream'
 import { runHook } from './internal/runHooksFor'
@@ -13,7 +12,7 @@ export interface TransactionCommitHookStatement {
 // a transaction class, as much as a collector for various callbacks
 // that must be run after the underlying transaction is commited (i.e.
 // AfterCreateCommit, AfterUpdateCommit, etc...).
-export default class DreamTransaction {
+export default class DreamTransaction<DB extends any> {
   private _kyselyTransaction: Transaction<DB>
   private commitHooks: TransactionCommitHookStatement[] = []
 

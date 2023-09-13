@@ -1,9 +1,14 @@
 import { AssociationTableNames } from '../db/reflections'
 import AttemptingToMarshalInvalidArrayType from '../exceptions/attempting-to-marshal-invalid-array-type'
-import { DB } from '../sync/schema'
 
 export default function marshalPGArrayValue<
-  TableName extends AssociationTableNames,
+  DB extends any,
+  SyncedAssociations extends any,
+  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = AssociationTableNames<
+    DB,
+    SyncedAssociations
+  > &
+    keyof DB,
   Table extends DB[TableName] = DB[TableName],
   Attr extends keyof Table = keyof Table
 >(

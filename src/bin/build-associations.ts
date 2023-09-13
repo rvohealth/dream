@@ -76,7 +76,7 @@ async function fleshOutAssociations(targetAssociationType?: string) {
 
   for (const model of models) {
     for (const associationName of model.associationNames) {
-      const associationMetaData = model.associationMap[associationName]
+      const associationMetaData = model.associationMap()[associationName]
       if (targetAssociationType && associationMetaData.type !== targetAssociationType) continue
 
       finalModels[model.prototype.table] ||= {}

@@ -1,6 +1,5 @@
 import Dream from '../../dream'
 import pluralize = require('pluralize')
-import { DB } from '../../sync/schema'
 import { SelectQueryBuilder, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
 import { Range } from '../../helpers/range'
@@ -25,27 +24,37 @@ export type AssociatedModelParam<
     : PossibleArrayAssociationType
 > = Partial<Record<AssociationName & string, AssociationType | null>>
 
-type DreamSelectable<TableName extends AssociationTableNames> = Partial<
+type DreamSelectable<
+  DB extends any,
+  SyncedAssociations extends any,
+  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB
+> = Partial<
   Record<
     keyof DB[TableName],
     | Range<DateTime>
     | (() => Range<DateTime>)
     | Range<number>
     | OpsStatement
-    | CurriedOpsStatement<any, any>
+    | CurriedOpsStatement<any, any, any>
     | (IdType | string | number)[]
     | SelectQueryBuilder<DB, keyof DB, any>
   >
 >
 
-export type WhereStatement<TableName extends AssociationTableNames> = Partial<
-  MergeUnionOfRecordTypes<Updateable<DB[TableName]> | DreamSelectable<TableName>>
+export type WhereStatement<
+  DB extends any,
+  SyncedAssociations extends any,
+  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB
+> = Partial<
+  MergeUnionOfRecordTypes<Updateable<DB[TableName]> | DreamSelectable<DB, SyncedAssociations, TableName>>
 >
 
 export type LimitStatement = { count: number }
 
 export interface HasStatement<
-  ForeignTableName extends AssociationTableNames,
+  DB extends any,
+  SyncedAssociations extends any,
+  ForeignTableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
   HasType extends 'HasOne' | 'HasMany'
 > {
   modelCB: () => typeof Dream
@@ -56,14 +65,14 @@ export interface HasStatement<
   polymorphic: boolean
   source: string
   through?: string
-  where?: WhereStatement<ForeignTableName>
-  whereNot?: WhereStatement<ForeignTableName>
+  where?: WhereStatement<DB, SyncedAssociations, ForeignTableName>
+  whereNot?: WhereStatement<DB, SyncedAssociations, ForeignTableName>
 }
 
 export function blankAssociationsFactory(dreamClass: typeof Dream): {
-  belongsTo: BelongsToStatement<any>[]
-  hasMany: HasManyStatement<any>[]
-  hasOne: HasOneStatement<any>[]
+  belongsTo: BelongsToStatement<any, any, any>[]
+  hasMany: HasManyStatement<any, any, any>[]
+  hasOne: HasOneStatement<any, any, any>[]
 } {
   return {
     belongsTo: [...(dreamClass.associations?.belongsTo || [])],
@@ -77,9 +86,9 @@ type hasOneManySpecificFields = 'source' | 'through' | 'where' | 'whereNot'
 type belongsToSpecificFields = 'optional'
 
 export type PartialAssociationStatement =
-  | Pick<HasManyStatement<any>, partialTypeFields | hasOneManySpecificFields>
-  | Pick<HasOneStatement<any>, partialTypeFields | hasOneManySpecificFields>
-  | Pick<BelongsToStatement<any>, partialTypeFields | belongsToSpecificFields>
+  | Pick<HasManyStatement<any, any, any>, partialTypeFields | hasOneManySpecificFields>
+  | Pick<HasOneStatement<any, any, any>, partialTypeFields | hasOneManySpecificFields>
+  | Pick<BelongsToStatement<any, any, any>, partialTypeFields | belongsToSpecificFields>
 
 export function finalForeignKey(
   foreignKey: string | undefined,

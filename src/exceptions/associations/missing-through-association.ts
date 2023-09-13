@@ -4,14 +4,14 @@ import Dream from '../../dream'
 
 export default class MissingThroughAssociation extends Error {
   public dreamClass: typeof Dream
-  public association: HasManyStatement<any> | HasOneStatement<any>
+  public association: HasManyStatement<any, any, any> | HasOneStatement<any, any, any>
 
   constructor({
     dreamClass,
     association,
   }: {
     dreamClass: typeof Dream
-    association: HasManyStatement<any> | HasOneStatement<any>
+    association: HasManyStatement<any, any, any> | HasOneStatement<any, any, any>
   }) {
     super()
     this.dreamClass = dreamClass

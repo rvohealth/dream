@@ -1,6 +1,6 @@
 import { SelectArg, SelectExpression, Updateable } from 'kysely'
 import { WhereStatement } from '../decorators/associations/shared'
-import { DB, InterpretedDB } from '../sync/schema'
+import { InterpretedDB } from '../sync/schema'
 import Dream from '../dream'
 import DreamTransaction from './transaction'
 import Query from './query'
@@ -14,12 +14,11 @@ import {
 } from './types'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import saveDream from './internal/saveDream'
-import { SyncedAssociations } from '../sync/associations'
 
 export default class DreamClassTransactionBuilder<DreamClass extends typeof Dream> {
   public dreamClass: DreamClass
-  public dreamTransaction: DreamTransaction
-  constructor(dreamClass: DreamClass, txn: DreamTransaction) {
+  public dreamTransaction: DreamTransaction<DreamClass>
+  constructor(dreamClass: DreamClass, txn: DreamTransaction<DreamClass>) {
     this.dreamClass = dreamClass
     this.dreamTransaction = txn
   }
@@ -37,6 +36,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
   public async max<
     I extends DreamClassTransactionBuilder<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
+    DB extends InstanceType<DreamClass>['DB'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>
   >(this: I, field: SimpleFieldType): Promise<number> {
     return this.queryInstance().max(field as any)
@@ -45,6 +45,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
   public async min<
     I extends DreamClassTransactionBuilder<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
+    DB extends InstanceType<DreamClass>['DB'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>
   >(this: I, field: SimpleFieldType): Promise<number> {
     return this.queryInstance().min(field as any)
@@ -55,7 +56,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     opts?: UpdateablePropertiesForClass<DreamClass>
   ): Promise<InstanceType<DreamClass>> {
     const dream = this.dreamClass.new(opts) as InstanceType<DreamClass>
-    return saveDream(dream, this.dreamTransaction)
+    return saveDream<InstanceType<DreamClass>>(dream, this.dreamTransaction as any)
   }
 
   public async find<
@@ -70,7 +71,10 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
       .first()
   }
 
-  public async findBy<I extends DreamClassTransactionBuilder<DreamClass>>(
+  public async findBy<
+    I extends DreamClassTransactionBuilder<DreamClass>,
+    DB extends InstanceType<DreamClass>['DB']
+  >(
     this: I,
     attributes: Updateable<DB[InstanceType<DreamClass>['table']]>
   ): Promise<InstanceType<DreamClass> | null> {
@@ -88,19 +92,20 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
   public preload<
     I extends DreamClassTransactionBuilder<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
+    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
     //
-    A extends NextPreloadArgumentType<TableName>,
-    ATableName extends PreloadArgumentTypeAssociatedTableNames<TableName, A>,
-    B extends NextPreloadArgumentType<ATableName>,
-    BTableName extends PreloadArgumentTypeAssociatedTableNames<ATableName, B>,
-    C extends NextPreloadArgumentType<BTableName>,
-    CTableName extends PreloadArgumentTypeAssociatedTableNames<BTableName, C>,
-    D extends NextPreloadArgumentType<CTableName>,
-    DTableName extends PreloadArgumentTypeAssociatedTableNames<CTableName, D>,
-    E extends NextPreloadArgumentType<DTableName>,
-    ETableName extends PreloadArgumentTypeAssociatedTableNames<DTableName, E>,
-    F extends NextPreloadArgumentType<ETableName>,
-    FTableName extends PreloadArgumentTypeAssociatedTableNames<ETableName, F>,
+    A extends NextPreloadArgumentType<SyncedAssociations, TableName>,
+    ATableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, TableName, A>,
+    B extends NextPreloadArgumentType<SyncedAssociations, ATableName>,
+    BTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ATableName, B>,
+    C extends NextPreloadArgumentType<SyncedAssociations, BTableName>,
+    CTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, BTableName, C>,
+    D extends NextPreloadArgumentType<SyncedAssociations, CTableName>,
+    DTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, CTableName, D>,
+    E extends NextPreloadArgumentType<SyncedAssociations, DTableName>,
+    ETableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, DTableName, E>,
+    F extends NextPreloadArgumentType<SyncedAssociations, ETableName>,
+    FTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ETableName, F>,
     //
     G extends FTableName extends undefined
       ? undefined
@@ -112,23 +117,27 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
   public joins<
     I extends DreamClassTransactionBuilder<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
+    DB extends InstanceType<DreamClass>['DB'],
+    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
     //
     A extends keyof SyncedAssociations[TableName] & string,
     ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
       string[])[number],
     //
-    B extends NextJoinsWhereArgumentType<ATableName>,
-    BTableName extends JoinsArgumentTypeAssociatedTableNames<ATableName, B>,
-    C extends NextJoinsWhereArgumentType<BTableName>,
-    CTableName extends JoinsArgumentTypeAssociatedTableNames<BTableName, C>,
-    D extends NextJoinsWhereArgumentType<CTableName>,
-    DTableName extends JoinsArgumentTypeAssociatedTableNames<CTableName, D>,
-    E extends NextJoinsWhereArgumentType<DTableName>,
-    ETableName extends JoinsArgumentTypeAssociatedTableNames<DTableName, E>,
-    F extends NextJoinsWhereArgumentType<ETableName>,
-    FTableName extends JoinsArgumentTypeAssociatedTableNames<ETableName, F>,
+    B extends NextJoinsWhereArgumentType<DB, SyncedAssociations, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
+    C extends NextJoinsWhereArgumentType<DB, SyncedAssociations, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
+    D extends NextJoinsWhereArgumentType<DB, SyncedAssociations, CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>,
+    E extends NextJoinsWhereArgumentType<DB, SyncedAssociations, DTableName>,
+    ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>,
+    F extends NextJoinsWhereArgumentType<DB, SyncedAssociations, ETableName>,
+    FTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>,
     //
-    G extends FTableName extends undefined ? undefined : WhereStatement<FTableName & AssociationTableNames>
+    G extends FTableName extends undefined
+      ? undefined
+      : WhereStatement<DB, SyncedAssociations, FTableName & AssociationTableNames<DB, SyncedAssociations>>
   >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     return this.queryInstance().joins(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
@@ -145,6 +154,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
 
   public nestedSelect<
     I extends DreamClassTransactionBuilder<DreamClass>,
+    DB extends InstanceType<DreamClass>['DB'],
     SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>>
   >(this: I, selection: SelectArg<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, SE>) {
     return this.queryInstance().nestedSelect(selection as any)
@@ -153,7 +163,10 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
   public order<
     I extends DreamClassTransactionBuilder<DreamClass>,
     ColumnName extends keyof Table & string,
-    TableName extends AssociationTableNames = InstanceType<DreamClass>['table'],
+    DB extends InstanceType<DreamClass>['DB'],
+    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
+    TableName extends AssociationTableNames<DB, SyncedAssociations> &
+      keyof DB = InstanceType<DreamClass>['table'],
     Table extends DB[keyof DB] = DB[TableName]
   >(this: I, column: ColumnName, direction: 'asc' | 'desc' = 'asc') {
     return this.queryInstance().order(column as any, direction)
@@ -161,6 +174,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
 
   public async pluck<
     I extends DreamClassTransactionBuilder<DreamClass>,
+    DB extends InstanceType<DreamClass>['DB'],
     SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>>
   >(this: I, ...fields: SelectArg<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, SE>[]) {
     return await this.queryInstance().pluck(...(fields as any[]))
@@ -168,15 +182,25 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
 
   public where<
     I extends DreamClassTransactionBuilder<DreamClass>,
-    TableName extends keyof DB = InstanceType<I['dreamClass']>['table'] & keyof DB
-  >(this: I, attributes: WhereStatement<TableName>): Query<DreamClass> {
+    DB extends InstanceType<DreamClass>['DB'],
+    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
+    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<
+      I['dreamClass']
+    >['table'] &
+      keyof DB
+  >(this: I, attributes: WhereStatement<DB, SyncedAssociations, TableName>): Query<DreamClass> {
     return this.queryInstance().where(attributes as any)
   }
 
   public whereNot<
     I extends DreamClassTransactionBuilder<DreamClass>,
-    TableName extends keyof DB = InstanceType<I['dreamClass']>['table'] & keyof DB
-  >(this: I, attributes: WhereStatement<TableName>): Query<DreamClass> {
+    DB extends InstanceType<DreamClass>['DB'],
+    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
+    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<
+      I['dreamClass']
+    >['table'] &
+      keyof DB
+  >(this: I, attributes: WhereStatement<DB, SyncedAssociations, TableName>): Query<DreamClass> {
     return this.queryInstance().whereNot(attributes as any)
   }
 }
