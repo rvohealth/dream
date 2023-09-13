@@ -91,6 +91,14 @@ ${interfaceKeyIndexes.join('\n')}
 ${dreamCoercedInterfaces.join('\n\n')}
 ${cachedInterfaces.join('\n\n')}
 
+export class DBClass {
+  ${
+    transformedNames.length
+      ? transformedNames.map(([name, newName]) => `${snakeify(name)}: ${name}`).join('\n  ')
+      : 'placeholder: []'
+  }
+}
+
 export interface InterpretedDB {
   ${
     transformedNames.length

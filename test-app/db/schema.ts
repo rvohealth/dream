@@ -622,6 +622,30 @@ export const UserSettingsTypeCache = {
 
 
 
+export class DBClass {
+  balloon_lines: BalloonLines
+  balloon_spotter_balloons: BalloonSpotterBalloons
+  balloon_spotters: BalloonSpotters
+  beautiful_balloons: BeautifulBalloons
+  collars: Collars
+  composition_asset_audits: CompositionAssetAudits
+  composition_assets: CompositionAssets
+  compositions: Compositions
+  edge_case_attributes: EdgeCaseAttributes
+  extra_ratings: ExtraRatings
+  graph_edge_nodes: GraphEdgeNodes
+  graph_edges: GraphEdges
+  graph_nodes: GraphNodes
+  incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples
+  pets: Pets
+  posts: Posts
+  post_visibilities: PostVisibilities
+  ratings: Ratings
+  sandbags: Sandbags
+  users: Users
+  user_settings: UserSettings
+}
+
 export interface InterpretedDB {
   balloon_lines: BalloonLineAttributes,
   balloon_spotter_balloons: BalloonSpotterBalloonAttributes,
