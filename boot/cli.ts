@@ -9,7 +9,6 @@ import './cli/helpers/loadAppEnvFromBoot'
 import { Command } from 'commander'
 import sspawn from '../shared/helpers/sspawn'
 import setCoreDevelopmentFlag from './cli/helpers/setCoreDevelopmentFlag'
-import maybeSyncExisting from './cli/helpers/maybeSyncExisting'
 import developmentOrTestEnv from './cli/helpers/developmentOrTestEnv'
 import nodeOrTsnodeCmd from './cli/helpers/nodeOrTsnodeCmd'
 import omitCoreDev from './cli/helpers/omitCoreDev'
@@ -27,7 +26,6 @@ program
   .option('--core', 'sets core to true')
   .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
-    await maybeSyncExisting(cmdargs())
     const [name] = cmdargs()
     await sspawn(
       nodeOrTsnodeCmd('boot/build.ts', cmdargs(), {
@@ -44,7 +42,6 @@ program
   .option('--core', 'sets core to true')
   .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
-    await maybeSyncExisting(cmdargs())
     const [name] = cmdargs()
     await sspawn(
       nodeOrTsnodeCmd('src/bin/generate-migration.ts', cmdargs(), {
@@ -65,7 +62,6 @@ program
   .option('--core', 'sets core to true')
   .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
-    await maybeSyncExisting(cmdargs())
     const [name, ...attributes] = cmdargs()
 
     await sspawn(
@@ -102,8 +98,6 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
-    // await maybeSyncExisting(cmdargs())
-    // await sspawn(dreamjsOrDreamtsCmd('sync:existing', cmdargs()))
     await sspawn(dreamjsOrDreamtsCmd('sync:schema', cmdargs()))
     await sspawn(
       dreamjsOrDreamtsCmd('sync:associations', cmdargs(), {
@@ -121,7 +115,6 @@ program
   .option('--core', 'sets core to true')
   .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
-    // await maybeSyncExisting(cmdargs())
     await sspawn(nodeOrTsnodeCmd('boot/sync.ts', cmdargs(), { nodeFlags: ['--experimental-modules'] }))
   })
 
@@ -137,26 +130,9 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
-    await maybeSyncExisting(cmdargs())
     await sspawn(
       nodeOrTsnodeCmd('src/bin/build-associations.ts', cmdargs(), { tsnodeFlags: ['--transpile-only'] })
     )
-  })
-
-program
-  .command('sync:existing')
-  .description(
-    'syncs the current schema, associations, and db configuration (rather than generating a new one).'
-  )
-  .option('--core', 'sets core to true')
-  .option('--tsnode', 'runs the command using ts-node instead of node')
-  .option(
-    '--bypass-config-cache',
-    'bypasses running type cache build (this is typically used internally only)'
-  )
-  .action(async () => {
-    if (process.env.NODE_ENV === 'production') return
-    await sspawn(nodeOrTsnodeCmd('boot/sync-existing-or-create-boilerplate.ts', cmdargs()))
   })
 
 program
@@ -171,7 +147,6 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
-    await maybeSyncExisting(cmdargs())
     await sspawn(nodeOrTsnodeCmd('src/bin/db-create.ts', cmdargs()))
   })
 
@@ -185,7 +160,6 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
-    await maybeSyncExisting(cmdargs())
     await sspawn(nodeOrTsnodeCmd('src/bin/db-migrate.ts', cmdargs()))
 
     if (developmentOrTestEnv()) {
@@ -208,7 +182,6 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
-    await maybeSyncExisting(cmdargs())
     const stepArg = cmdargs().find(arg => /--step=\d+/.test(arg))
     const step = stepArg ? parseInt(stepArg!.replace('--step=', '')) : 1
     await sspawn(nodeOrTsnodeCmd(`src/bin/db-rollback.ts`, cmdargs(), { fileArgs: [`${step}`] }))
@@ -231,7 +204,6 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
-    await maybeSyncExisting(cmdargs())
     await sspawn(nodeOrTsnodeCmd(`src/bin/db-drop.ts`, cmdargs()))
   })
 
@@ -241,7 +213,6 @@ program
   .option('--core', 'sets core to true')
   .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
-    await maybeSyncExisting(cmdargs())
     await sspawn(
       dreamjsOrDreamtsCmd('db:drop', cmdargs(), {
         cmdArgs: ['--bypass-config-cache'],
@@ -279,7 +250,6 @@ program
       return
     }
 
-    await maybeSyncExisting(cmdargs())
     await sspawn(nodeOrTsnodeCmd(`src/bin/db-seed.ts`, cmdargs(), { tsnodeFlags: ['--transpile-only'] }))
   })
 

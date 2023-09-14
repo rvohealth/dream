@@ -13,7 +13,7 @@
     "dreamjs": "node  --experimental-modules dist/boot/cli.js",
     "dreamts": "DREAM_OMIT_DIST_FOLDER=1 TS_SAFE=1 npx ts-node -r ./src/helpers/loadEnv.ts boot/cli.ts",
     "build:package-json": "DREAM_OMIT_DIST_FOLDER=1 TS_SAFE=1 npx ts-node -r ./src/helpers/loadEnv.ts boot/adapt-package-json.ts",
-    "build:boot": "rm -rf dist && npx tsc -p ./tsconfig.boot.json && NODE_ENV=development yarn dream sync:existing",
+    "build:boot": "rm -rf dist && npx tsc -p ./tsconfig.boot.json",
     "build": "echo \"building dream boot...\" && yarn build:boot && echo \"building dream...\" && npx tsc -p ./tsconfig.build.json && yarn build:package-json",
     "after:build": "cp ../../.dream.yml dist/.dream.yml",
     "build:boot-core": "rm -rf dist && APP_ROOT_PATH=$(pwd)/test-app npx tsc -p ./tsconfig.boot.json && APP_ROOT_PATH=$(pwd)/test-app npx tsc -p ./tsconfig.boot.json",
@@ -23,8 +23,7 @@
     "build:docs": "node dist/boot/build-docs.js",
     "spec": "APP_ROOT_PATH=$(pwd)/test-app DREAM_CORE_DEVELOPMENT=1 yarn build:core && APP_ROOT_PATH=$(pwd)/test-app DREAM_CORE_DEVELOPMENT=1 yarn dream spec --core",
     "spec:fast": "APP_ROOT_PATH=$(pwd)/test-app DREAM_CORE_DEVELOPMENT=1 NODE_ENV=test DREAM_CORE_SPEC_RUN=1 jest --runInBand --forceExit",
-    "console": "yarn dream console --core",
-    "postinstall": "if [ ! -e .no-dream-postinstall ]; then NODE_ENV=development yarn dream sync:existing && yarn build; fi"
+    "console": "yarn dream console --core"
   },
   "dependencies": {
     "@types/jest": "^29.5.0",
