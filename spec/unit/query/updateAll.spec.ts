@@ -26,7 +26,7 @@ describe('Query#updateAll', () => {
 
     it('uses primary connection', async () => {
       await User.where({ email: 'fred@fred' }).updateAll({ email: 'how@yadoin' })
-      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
+      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
     })
 
     context('with replica connection specified', () => {
@@ -36,7 +36,7 @@ describe('Query#updateAll', () => {
       it('uses the primary connection', async () => {
         await CustomUser.where({ email: 'fred@fred' }).updateAll({ email: 'how@yadoin' })
         // should always call to primary for update, regardless of replica-safe status
-        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
+        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
       })
     })
   })

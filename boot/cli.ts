@@ -126,17 +126,6 @@ program
   })
 
 program
-  .command('sync:config-cache')
-  .description(
-    'builds the preliminary type cache necessary for dream to operate. Must be run prior to anything else'
-  )
-  .option('--core', 'sets core to true')
-  .option('--tsnode', 'runs the command using ts-node instead of node')
-  .action(async () => {
-    await sspawn(nodeOrTsnodeCmd('boot/build-config-cache.ts', cmdargs()))
-  })
-
-program
   .command('sync:associations')
   .description(
     'examines your current models, building a type-map of the associations so that the ORM can understand your relational setup. This is commited to your repo, and synced to the dream repo for consumption within the underlying library.'
@@ -168,10 +157,6 @@ program
   .action(async () => {
     if (process.env.NODE_ENV === 'production') return
     await sspawn(nodeOrTsnodeCmd('boot/sync-existing-or-create-boilerplate.ts', cmdargs()))
-
-    if (!cmdargs().includes('--bypass-config-cache')) {
-      await sspawn(dreamjsOrDreamtsCmd('sync:config-cache', cmdargs()))
-    }
   })
 
 program

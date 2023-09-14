@@ -1,11 +1,12 @@
 import { DbConfig, DbConnectionConfig } from '../../shared/helpers/path/types'
 import { DbConnectionType } from './types'
 import configCache from '../sync/config-cache'
+import Dreamconf from '../../shared/dreamconf'
 
 export default class ConnectionConfRetriever {
   public dbConfig: DbConfig
-  constructor() {
-    this.dbConfig = configCache.db
+  constructor(dreamconf: Dreamconf) {
+    this.dbConfig = dreamconf.env.db
   }
 
   public getConnectionConf(connection: DbConnectionType): DbConnectionConfig {

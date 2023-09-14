@@ -1,8 +1,9 @@
+import loadDreamconfFile from '../../shared/helpers/path/loadDreamconfFile'
 import ConnectionConfRetriever from '../db/connection-conf-retriever'
 import { DbConnectionType } from '../db/types'
 
 export default async function loadDBConfig(connection: DbConnectionType = 'primary') {
-  const connectionConf = new ConnectionConfRetriever().getConnectionConf(connection)
+  const connectionConf = new ConnectionConfRetriever(await loadDreamconfFile()).getConnectionConf(connection)
 
   return {
     host: process.env[connectionConf.host] || 'localhost',

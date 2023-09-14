@@ -3,6 +3,7 @@ import { migrationsPath } from '../path'
 import { promises as fs } from 'fs'
 import path from 'path'
 import db from '../../db'
+import loadDreamconfFile from '../../../shared/helpers/path/loadDreamconfFile'
 
 export default async function runMigration({
   mode = 'migrate',
@@ -10,8 +11,9 @@ export default async function runMigration({
 }: { mode?: 'migrate' | 'rollback'; step?: number } = {}) {
   const migrationFolder = await migrationsPath()
 
+  const dreamconf = await loadDreamconfFile()
   const migrator = new Migrator({
-    db: db('primary'),
+    db: db('primary', dreamconf),
     provider: new FileMigrationProvider({
       fs,
       path,

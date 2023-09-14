@@ -1,3 +1,5 @@
+import { DbConfig } from './helpers/path/types'
+
 export default class Dreamconf {
   public DB: any
   public interpretedDB: any
@@ -6,6 +8,7 @@ export default class Dreamconf {
   public virtualColumns: any
   public dbColumns: any
   public dbTypeCache: any
+  public env: EnvOpts
   constructor({
     DB,
     interpretedDB,
@@ -14,6 +17,7 @@ export default class Dreamconf {
     virtualColumns,
     dbColumns,
     dbTypeCache,
+    env,
   }: DreamconfOpts) {
     this.DB = DB
     this.interpretedDB = interpretedDB
@@ -22,6 +26,7 @@ export default class Dreamconf {
     this.virtualColumns = virtualColumns
     this.dbColumns = dbColumns
     this.dbTypeCache = dbTypeCache
+    this.env = env
   }
 }
 
@@ -37,29 +42,5 @@ export interface DreamconfOpts {
 }
 
 export interface EnvOpts {
-  db: DBEnvOpts
-}
-
-export interface DBEnvOpts {
-  development: {
-    primary: Partial<DBOpts>
-    replica?: Partial<DBOpts>
-  }
-  test: {
-    primary: Partial<DBOpts>
-    replica?: Partial<DBOpts>
-  }
-  production: {
-    primary: Partial<DBOpts>
-    replica?: Partial<DBOpts>
-  }
-}
-
-export interface DBOpts {
-  user: string
-  password: string
-  host: string
-  name: string
-  port: string
-  use_ssl: string
+  db: DbConfig
 }

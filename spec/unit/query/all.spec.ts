@@ -31,8 +31,8 @@ describe('Query#all', () => {
 
     it('uses primary connection', async () => {
       await User.all()
-      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
-      expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith('replica')
+      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
+      expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith('replica', expect.objectContaining({}))
     })
 
     context('with replica connection specified', () => {
@@ -41,14 +41,17 @@ describe('Query#all', () => {
 
       it('uses the replica connection', async () => {
         await new Query(CustomUser).all()
-        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('replica')
+        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('replica', expect.objectContaining({}))
       })
 
       context('with explicit primary connection override', () => {
         it('uses the primary connection, despite being ReplicaSafe', async () => {
           await new Query(CustomUser).connection('primary').all()
-          expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
-          expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith('replica')
+          expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
+          expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith(
+            'replica',
+            expect.objectContaining({})
+          )
         })
       })
     })

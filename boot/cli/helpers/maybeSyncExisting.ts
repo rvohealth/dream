@@ -7,8 +7,6 @@ import dreamjsOrDreamtsCmd from './dreamjsOrDreamtsCmd'
 export default async function maybeSyncExisting(programArgs: string[]) {
   if (!developmentOrTestEnv() || programArgs.includes('--bypass-config-cache')) return
 
-  await sspawn(dreamjsOrDreamtsCmd('sync:config-cache', programArgs))
-
   try {
     const pathToCheck = programArgs.includes('--core')
       ? path.join(process.cwd(), '/src/sync/schema.ts')

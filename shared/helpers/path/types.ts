@@ -8,6 +8,7 @@ export interface DreamYamlFile {
   db_seed_path: string
   unit_spec_path: string
   feature_spec_path: string
+  dreamconf_path: string
 }
 
 export interface DreamConfig {

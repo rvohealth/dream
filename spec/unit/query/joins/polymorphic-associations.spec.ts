@@ -7,11 +7,12 @@ import Query from '../../../../src/dream/query'
 import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating'
 import { sql } from 'kysely'
 import db from '../../../../src/db'
+import dreamconf from '../../../../test-app/conf/dreamconf'
 
 describe('Query#joins with polymorphic associations', () => {
   beforeEach(async () => {
-    await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(db('primary'))
-    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(db('primary'))
+    await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(db('primary', dreamconf))
+    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(db('primary', dreamconf))
   })
 
   it('joins a HasMany association', async () => {

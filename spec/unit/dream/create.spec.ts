@@ -162,7 +162,7 @@ describe('Dream.create', () => {
 
     it('uses primary connection', async () => {
       await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
+      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
     })
 
     context('with replica connection specified', () => {
@@ -172,7 +172,7 @@ describe('Dream.create', () => {
       it('uses the primary connection', async () => {
         await CustomUser.create({ email: 'how@yadoin', password: 'howyadoin' })
         // should always call to primary for update, regardless of replica-safe status
-        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
+        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
       })
     })
   })

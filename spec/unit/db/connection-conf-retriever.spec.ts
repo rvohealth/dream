@@ -1,22 +1,35 @@
 import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import { DbConnectionType } from '../../../src/db/types'
 import { DbConnectionConfig } from '../../../shared/helpers/path/types'
+import Dreamconf from '../../../shared/dreamconf'
 
 describe('ConnectionConfRetriever', () => {
-  let getConfig = () => ({
-    production: {
-      primary: prodPrimaryConfig,
-      replica: prodReplicaConfig,
-    },
-    development: {
-      primary: devPrimaryConfig,
-      replica: devReplicaConfig,
-    },
-    test: {
-      primary: testPrimaryConfig,
-      replica: testReplicaConfig,
-    },
-  })
+  let getConfig = () =>
+    new Dreamconf({
+      DB: {},
+      dbColumns: {},
+      dbTypeCache: {},
+      interpretedDB: {},
+      syncedAssociations: {},
+      syncedBelongsToAssociations: {},
+      virtualColumns: {},
+      env: {
+        db: {
+          production: {
+            primary: prodPrimaryConfig,
+            replica: prodReplicaConfig,
+          },
+          development: {
+            primary: devPrimaryConfig,
+            replica: devReplicaConfig,
+          },
+          test: {
+            primary: testPrimaryConfig,
+            replica: testReplicaConfig,
+          },
+        },
+      },
+    })
 
   let connection: DbConnectionType
   let prodPrimaryConfig: DbConnectionConfig
@@ -80,8 +93,7 @@ describe('ConnectionConfRetriever', () => {
 
   describe('#getConnectionConf', () => {
     let subject = () => {
-      const connectionRetriever = new ConnectionConfRetriever()
-      connectionRetriever.dbConfig = getConfig()
+      const connectionRetriever = new ConnectionConfRetriever(getConfig())
       return connectionRetriever.getConnectionConf(connection)
     }
 
@@ -173,8 +185,7 @@ describe('ConnectionConfRetriever', () => {
 
   describe('#hasReplicaConfig', () => {
     let subject = () => {
-      const connectionRetriever = new ConnectionConfRetriever()
-      connectionRetriever.dbConfig = getConfig()
+      const connectionRetriever = new ConnectionConfRetriever(getConfig())
       return connectionRetriever.hasReplicaConfig()
     }
 

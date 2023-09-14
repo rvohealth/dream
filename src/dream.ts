@@ -57,7 +57,8 @@ import { DatabaseError } from 'pg'
 import LoadBuilder from './dream/load-builder'
 import { DbConnectionType } from './db/types'
 import MissingDB from './exceptions/missing-db'
-import Dreamconf from './dream/dreamconf'
+import Dreamconf from '../shared/dreamconf'
+import dreamconf from '../test-app/conf/dreamconf'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -457,7 +458,7 @@ export default class Dream {
   ) {
     const dreamTransaction = new DreamTransaction()
 
-    const res = await db('primary')
+    const res = await db('primary', dreamconf)
       .transaction()
       .execute(async kyselyTransaction => {
         dreamTransaction.kyselyTransaction = kyselyTransaction

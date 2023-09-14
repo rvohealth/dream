@@ -1,6 +1,5 @@
 export { default as loadDreamYamlFile } from '../../shared/helpers/path/loadDreamYamlFile'
 export { default as projectRootPath } from '../../shared/helpers/path/projectRootPath'
-export { default as loadDbConfigYamlFile } from '../../shared/helpers/path/loadDbConfigYamlFile'
 export { default as schemaPath } from '../../shared/helpers/path/schemaPath'
 export { default as associationsPath } from '../../shared/helpers/path/associationsPath'
 export { default as modelsPath } from '../../shared/helpers/path/modelsPath'

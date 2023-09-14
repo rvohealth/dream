@@ -141,10 +141,15 @@ export default class Query<
     }
   }
 
+  // ATTENTION FRED
+  // stop trying to make this async. You never learn...
   public dbFor(sqlCommandType: SqlCommandType) {
     // ): Kysely<InstanceType<DreamClass>['DB'] | Transaction<InstanceType<DreamClass>['DB']>> {
     if (this.dreamTransaction?.kyselyTransaction) return this.dreamTransaction?.kyselyTransaction
-    return _db<InstanceType<DreamClass>['DB']>(this.dbConnectionType(sqlCommandType))
+    return _db<InstanceType<DreamClass>['DB']>(
+      this.dbConnectionType(sqlCommandType),
+      this.dreamClass.prototype.dreamconf
+    )
   }
 
   public clone(opts: QueryOpts<DreamClass, ColumnType> = {}): Query<DreamClass> {

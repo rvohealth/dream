@@ -16,7 +16,7 @@
     "build:boot": "rm -rf dist && npx tsc -p ./tsconfig.boot.json && NODE_ENV=development yarn dream sync:existing",
     "build": "echo \"building dream boot...\" && yarn build:boot && echo \"building dream...\" && npx tsc -p ./tsconfig.build.json && yarn build:package-json",
     "after:build": "cp ../../.dream.yml dist/.dream.yml",
-    "build:boot-core": "rm -rf dist && APP_ROOT_PATH=$(pwd)/test-app npx tsc -p ./tsconfig.boot.json && APP_ROOT_PATH=$(pwd)/test-app yarn dream sync:config-cache --core && APP_ROOT_PATH=$(pwd)/test-app npx tsc -p ./tsconfig.boot.json",
+    "build:boot-core": "rm -rf dist && APP_ROOT_PATH=$(pwd)/test-app npx tsc -p ./tsconfig.boot.json && APP_ROOT_PATH=$(pwd)/test-app npx tsc -p ./tsconfig.boot.json",
     "build:core": "APP_ROOT_PATH=$(pwd)/test-app yarn before:build:core && APP_ROOT_PATH=$(pwd)/test-app  npx tsc -p ./tsconfig.build.core.json && yarn after:build:core",
     "before:build:core": "rm -rf dist && mkdir dist && APP_ROOT_PATH=$(pwd)/test-app yarn build:boot-core",
     "after:build:core": "cp .dream.yml dist/.dream.yml && mkdir dist/test-app/conf/env && cp test-app/conf/env/db.yml dist/test-app/conf/env/db.yml && yarn build:package-json",

@@ -12,7 +12,7 @@ export default async function destroyDream<
 >(dream: I, txn: DreamTransaction<I['DB']> | null = null): Promise<I> {
   await runHooksFor('beforeDestroy', dream)
   if (dream._preventDeletion) return dream.unpreventDeletion()
-  const db = txn?.kyselyTransaction || _db('primary')
+  const db = txn?.kyselyTransaction || _db('primary', dream.dreamconf)
 
   const Base = dream.constructor as DreamConstructorType<I>
 
