@@ -11,9 +11,7 @@ export default async function buildAssociations() {
   let fileStr = await buildAssociationsFile()
   fileStr = await writeVirtualColumns(fileStr)
 
-  const filePath = path.join(__dirname, '..', 'sync', 'associations.ts')
   const clientFilePath = await associationsPath()
-  await fs.writeFile(filePath, fileStr)
   await fs.writeFile(clientFilePath, fileStr)
   console.log('Done!')
 }

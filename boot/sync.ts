@@ -12,25 +12,7 @@ import shouldOmitDistFolder from '../shared/helpers/path/shouldOmitDistFolder'
 
 export default async function sync() {
   console.log('writing schema...')
-  const [schema, transformedNames] = await writeSchema()
-
-  // console.log('syncing schema, associations, and dream config files...')
-  // const yamlConf = await loadDreamYamlFile()
-  // if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-  //   await sspawn(
-  //     'rm -f src/sync/schema.ts && rm -f src/sync/associations.ts && ' +
-  //       'cp ./test-app/db/schema.ts ./src/sync && ' +
-  //       'cp ./test-app/db/associations.ts ./src/sync'
-  //   )
-  // } else {
-  //   await sspawn(
-  //     'rm -f src/sync/schema.ts && rm -f src/sync/associations.ts && ' +
-  //       'echo $(pwd) && ' +
-  //       `cp ../../${yamlConf.schema_path} ./src/sync/schema.ts && ` +
-  //       `cp ../../${yamlConf.associations_path} ./src/sync/associations.ts`
-  //   )
-  // }
-
+  await writeSchema()
   console.log('sync complete!')
 }
 sync()
