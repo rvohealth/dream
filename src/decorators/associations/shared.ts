@@ -16,8 +16,8 @@ import camelize from '../../../shared/helpers/camelize'
 
 export type AssociatedModelParam<
   I extends Dream,
-  AssociationName = keyof I['syncedBelongsToAssociations'][I['table'] &
-    keyof I['syncedBelongsToAssociations']],
+  AssociationName = keyof I['dreamconf']['syncedBelongsToAssociations'][I['table'] &
+    keyof I['dreamconf']['syncedBelongsToAssociations']],
   PossibleArrayAssociationType = I[AssociationName & keyof I],
   AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
     ? ElementType

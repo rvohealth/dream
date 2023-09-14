@@ -565,10 +565,6 @@ export default class Dream {
     throw 'must have get dbTypeCache defined on child'
   }
 
-  public get syncedBelongsToAssociations(): any {
-    throw 'must have get syncedBelongsToAssociations defined on child'
-  }
-
   public get dreamconf(): Dreamconf {
     throw 'must have get dreamconf defined on child'
   }
