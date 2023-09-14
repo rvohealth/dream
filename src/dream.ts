@@ -57,6 +57,7 @@ import { DatabaseError } from 'pg'
 import LoadBuilder from './dream/load-builder'
 import { DbConnectionType } from './db/types'
 import MissingDB from './exceptions/missing-db'
+import Dreamconf from './dream/dreamconf'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -564,12 +565,12 @@ export default class Dream {
     throw 'must have get dbTypeCache defined on child'
   }
 
-  public get virtualColumns(): any {
-    throw 'must have get virtualColumns defined on child'
-  }
-
   public get syncedBelongsToAssociations(): any {
     throw 'must have get syncedBelongsToAssociations defined on child'
+  }
+
+  public get dreamconf(): Dreamconf {
+    throw 'must have get dreamconf defined on child'
   }
 
   public get table(): AssociationTableNames<any, any> {
