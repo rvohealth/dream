@@ -25,29 +25,23 @@ import {
   UpdateablePropertiesForClass,
   UpdateableProperties,
   NextJoinsWherePluckArgumentType,
-  AssociationNameToDotReference,
   FinalJoinsWherePluckArgumentType,
 } from './dream/types'
 import Query from './dream/query'
-import runHooksFor from './dream/internal/runHooksFor'
 import checkValidationsFor from './dream/internal/checkValidationsFor'
 import DreamTransaction from './dream/transaction'
 import DreamClassTransactionBuilder from './dream/class-transaction-builder'
-import safelyRunCommitHooks from './dream/internal/safelyRunCommitHooks'
 import saveDream from './dream/internal/saveDream'
 import DreamInstanceTransactionBuilder from './dream/instance-transaction-builder'
 import pascalize from './helpers/pascalize'
 import getModelKey from './helpers/getModelKey'
 import { VirtualAttributeStatement } from './decorators/virtual'
-import ValidationError from './exceptions/validation-error'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
 import isDecimal from './helpers/db/isDecimal'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
 import DreamSerializer from './serializer'
 import MissingSerializer from './exceptions/missing-serializer'
 import MissingTable from './exceptions/missing-table'
-import CannotCreateAssociationWithThroughContext from './exceptions/associations/cannot-create-association-with-through-context'
-import CannotDestroyAssociationWithThroughContext from './exceptions/associations/cannot-destroy-association-with-through-context'
 import associationQuery from './dream/internal/associations/associationQuery'
 import createAssociation from './dream/internal/associations/createAssociation'
 import reload from './dream/internal/reload'
@@ -58,7 +52,6 @@ import LoadBuilder from './dream/load-builder'
 import { DbConnectionType } from './db/types'
 import MissingDB from './exceptions/missing-db'
 import Dreamconf from '../shared/dreamconf'
-import dreamconf from '../test-app/conf/dreamconf'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -458,7 +451,7 @@ export default class Dream {
   ) {
     const dreamTransaction = new DreamTransaction()
 
-    const res = await db('primary', dreamconf)
+    const res = await db('primary', this.prototype.dreamconf)
       .transaction()
       .execute(async kyselyTransaction => {
         dreamTransaction.kyselyTransaction = kyselyTransaction
