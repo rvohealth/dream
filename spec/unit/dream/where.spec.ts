@@ -1,6 +1,5 @@
 import User from '../../../test-app/app/models/User'
-import Composition from '../../../test-app/app/models/Composition'
-import { Dream } from '../../../src'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 
 describe('Dream.where', () => {
   it('finds records matching specified conditions', async () => {
@@ -16,7 +15,7 @@ describe('Dream.where', () => {
     let user1: User | null = null
     let records: User[] = []
     it('finds records matching specified conditions', async () => {
-      await Dream.transaction(async txn => {
+      await ApplicationModel.transaction(async txn => {
         user1 = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
         await User.txn(txn).create({ email: 'how@yadoin', password: 'howyadoin' })
 

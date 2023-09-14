@@ -4,6 +4,7 @@ import Post from '../../../../test-app/app/models/Post'
 import Composition from '../../../../test-app/app/models/Composition'
 import CannotDestroyAssociationWithThroughContext from '../../../../src/exceptions/associations/cannot-destroy-association-with-through-context'
 import { Dream } from '../../../../src'
+import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 
 describe('Dream#destroyAssociation', () => {
   context('with a HasMany association', () => {
@@ -76,7 +77,7 @@ describe('Dream#destroyAssociation', () => {
       expect(await Composition.all()).toMatchDreamModels([composition, composition2])
       expect(await user.associationQuery('compositions').all()).toMatchDreamModels([composition])
 
-      await Dream.transaction(async txn => {
+      await ApplicationModel.transaction(async txn => {
         await user.txn(txn).destroyAssociation('compositions')
       })
 

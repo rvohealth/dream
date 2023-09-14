@@ -1,4 +1,4 @@
-import { Dream } from '../../../src'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import User from '../../../test-app/app/models/User'
 
 describe('Dream.whereNot', () => {
@@ -16,7 +16,7 @@ describe('Dream.whereNot', () => {
       let user2: User | null = null
       let user3: User | null = null
       let records: User[] = []
-      await Dream.transaction(async txn => {
+      await ApplicationModel.transaction(async txn => {
         await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
         user2 = await User.txn(txn).create({ email: 'danny@nelso', password: 'howyadoin' })
         user3 = await User.txn(txn).create({ email: 'how@yadoin', password: 'howyadoin' })

@@ -1,4 +1,5 @@
 import { Dream } from '../../../src'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import User from '../../../test-app/app/models/User'
 
 describe('Dream#pluck', () => {
@@ -18,7 +19,7 @@ describe('Dream#pluck', () => {
     it('plucks the specified attributes and returns them as raw data', async () => {
       let user3: User | null = null
       let records: any[] = []
-      await Dream.transaction(async txn => {
+      await ApplicationModel.transaction(async txn => {
         user3 = await User.txn(txn).create({ email: 'fred@txn', password: 'howyadoin' })
         records = await User.txn(txn).pluck('id')
       })

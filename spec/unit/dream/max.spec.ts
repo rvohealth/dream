@@ -1,7 +1,7 @@
 import User from '../../../test-app/app/models/User'
-import { Dream } from '../../../src'
 import Composition from '../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 
 describe('Dream.max', () => {
   it('returns the max', async () => {
@@ -25,7 +25,7 @@ describe('Dream.max', () => {
       let max = await CompositionAsset.max('score')
       expect(max).toEqual(3)
 
-      await Dream.transaction(async txn => {
+      await ApplicationModel.transaction(async txn => {
         const compositionAsset2 = await CompositionAsset.txn(txn).create({ composition, score: 7 })
 
         max = await CompositionAsset.txn(txn).max('score')

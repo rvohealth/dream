@@ -1,8 +1,8 @@
 import { DateTime } from 'luxon'
 import User from '../../../test-app/app/models/User'
-import { Dream } from '../../../src'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 
 describe('Dream#save', () => {
   context('a new record', () => {
@@ -20,7 +20,7 @@ describe('Dream#save', () => {
 
     context('when encased in a transaction', () => {
       it('updates the underlying model in the db', async () => {
-        await Dream.transaction(async txn => {
+        await ApplicationModel.transaction(async txn => {
           await user.txn(txn).save()
         })
 

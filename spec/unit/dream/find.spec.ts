@@ -1,4 +1,5 @@
 import Dream from '../../../src/dream'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Balloon from '../../../test-app/app/models/Balloon'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
 import User from '../../../test-app/app/models/User'
@@ -42,7 +43,7 @@ describe('Dream.find', () => {
 
   context('when passed a transaction', () => {
     it('can find records', async () => {
-      await Dream.transaction(async txn => {
+      await ApplicationModel.transaction(async txn => {
         expect(await User.txn(txn).find(user.id)).toMatchDreamModel(user)
       })
     })

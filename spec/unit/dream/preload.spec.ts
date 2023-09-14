@@ -2,9 +2,9 @@ import User from '../../../test-app/app/models/User'
 import Composition from '../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit'
-import { Dream } from '../../../src'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 
 describe('Dream.preload', () => {
   it('loads a HasOne association', async () => {
@@ -23,7 +23,7 @@ describe('Dream.preload', () => {
     it('loads a HasOne association', async () => {
       let reloadedCompositionAssetAudit: CompositionAssetAudit | null = null
       let compositionAsset: CompositionAsset | null = null
-      await Dream.transaction(async txn => {
+      await ApplicationModel.transaction(async txn => {
         const user = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.txn(txn).create({ user })
         compositionAsset = await CompositionAsset.txn(txn).create({ composition })

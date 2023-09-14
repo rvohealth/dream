@@ -6,7 +6,7 @@ import UserSettings from '../../../test-app/app/models/UserSettings'
 import CanOnlyPassBelongsToModelParam from '../../../src/exceptions/associations/can-only-pass-belongs-to-model-param'
 import { DateTime } from 'luxon'
 import Pet from '../../../test-app/app/models/Pet'
-import { Dream } from '../../../src'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 
 describe('Dream#update', () => {
   it('updates the underlying model in the db', async () => {
@@ -31,7 +31,7 @@ describe('Dream#update', () => {
   context('when encased in a transaction', () => {
     it('updates the underlying model in the db', async () => {
       let user: User | null = null
-      await Dream.transaction(async txn => {
+      await ApplicationModel.transaction(async txn => {
         user = await User.txn(txn).create({
           email: 'fred@frewd',
           password: 'howyadoin',

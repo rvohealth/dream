@@ -1,4 +1,4 @@
-import { Dream } from '../../../src'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import User from '../../../test-app/app/models/User'
 
 describe('Dream#destroy', () => {
@@ -17,7 +17,7 @@ describe('Dream#destroy', () => {
       let beforeFailureCount = 1
 
       try {
-        await Dream.transaction(async txn => {
+        await ApplicationModel.transaction(async txn => {
           await user.txn(txn).destroy()
           beforeFailureCount = await User.txn(txn).count()
           throw 'throwing to kill transaction'

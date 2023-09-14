@@ -68,7 +68,7 @@ export default async function createAssociation<
       }
 
       if (txn) await fn(txn)
-      else await (Dream as any).transaction(fn)
+      else await (dream.constructor as any).transaction(fn)
 
       return belongstoresult! as unknown as NonNullable<AssociationType>
   }

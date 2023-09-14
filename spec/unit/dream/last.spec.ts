@@ -1,4 +1,4 @@
-import { Dream } from '../../../src'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import User from '../../../test-app/app/models/User'
 
 describe('Dream.last', () => {
@@ -12,7 +12,7 @@ describe('Dream.last', () => {
   context('when passed a transaction', () => {
     it('can find the last record within a transaction', async () => {
       let user: User | null = null
-      await Dream.transaction(async txn => {
+      await ApplicationModel.transaction(async txn => {
         await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
         await User.txn(txn).create({ email: 'fred@frewd2', password: 'howyadoin' })
         user = await User.txn(txn).last()

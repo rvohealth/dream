@@ -1,5 +1,5 @@
 import User from '../../../test-app/app/models/User'
-import { Dream } from '../../../src'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 
 describe('Dream.count', () => {
   it('counts all records for a given model', async () => {
@@ -15,7 +15,7 @@ describe('Dream.count', () => {
       let count: number = await User.count()
       expect(count).toEqual(0)
 
-      await Dream.transaction(async txn => {
+      await ApplicationModel.transaction(async txn => {
         await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
         count = await User.txn(txn).count()
       })

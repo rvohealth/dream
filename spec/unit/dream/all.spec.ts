@@ -7,6 +7,7 @@ import Latex from '../../../test-app/app/models/Balloon/Latex'
 import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import ReplicaSafe from '../../../src/decorators/replica-safe'
 import DreamDbConnection from '../../../src/db/dream-db-connection'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 
 describe('Dream.all', () => {
   it('finds all records for a given model', async () => {
@@ -32,7 +33,7 @@ describe('Dream.all', () => {
     it('can find records', async () => {
       let users: User[] = []
       let user: User | null = null
-      await Dream.transaction(async txn => {
+      await ApplicationModel.transaction(async txn => {
         user = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
         users = await User.txn(txn).all()
       })

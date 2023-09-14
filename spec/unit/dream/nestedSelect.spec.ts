@@ -1,4 +1,4 @@
-import { Dream } from '../../../src'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import User from '../../../test-app/app/models/User'
 
 describe('Dream#nestedSelect', () => {
@@ -28,7 +28,7 @@ describe('Dream#nestedSelect', () => {
       let user1: User | null = null
       let user2: User | null = null
       let user3: User | null = null
-      await Dream.transaction(async txn => {
+      await ApplicationModel.transaction(async txn => {
         user1 = await User.txn(txn).create({
           email: 'fred@frewd',
           password: 'howyadoin',

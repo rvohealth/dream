@@ -926,7 +926,7 @@ export default class Dream {
 
   public async save<I extends Dream>(this: I): Promise<I> {
     if (this.hasUnsavedAssociations) {
-      await Dream.transaction(async txn => {
+      await (this.constructor as typeof Dream).transaction(async txn => {
         await saveDream(this, txn)
       })
       return this

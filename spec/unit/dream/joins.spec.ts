@@ -1,6 +1,7 @@
 import User from '../../../test-app/app/models/User'
 import Composition from '../../../test-app/app/models/Composition'
 import { Dream } from '../../../src'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 
 describe('Dream.joins', () => {
   it('joins a HasOne association', async () => {
@@ -19,7 +20,7 @@ describe('Dream.joins', () => {
       const composition = await Composition.create({ userId: user.id, primary: true })
       let reloadedUsers: User[]
 
-      await Dream.transaction(async txn => {
+      await ApplicationModel.transaction(async txn => {
         reloadedUsers = await User.txn(txn).joins('mainComposition').all()
         expect(reloadedUsers).toMatchDreamModels([user])
       })

@@ -1,13 +1,13 @@
-import Dream from '../../../src/dream'
 import User from '../../../test-app/app/models/User'
 import Composition from '../../../test-app/app/models/Composition'
 import { ValidationError } from '../../../src'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 
-describe('Dream.transaction', () => {
+describe('ApplicationModel.transaction', () => {
   it('completes all database actions within the transaction', async () => {
     const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
 
-    await Dream.transaction(async txn => {
+    await ApplicationModel.transaction(async txn => {
       await Composition.txn(txn).create({ user })
       await user.txn(txn).update({ email: 'fred@fishman' })
     })
@@ -22,7 +22,7 @@ describe('Dream.transaction', () => {
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
 
       await expect(
-        Dream.transaction(async txn => {
+        ApplicationModel.transaction(async txn => {
           await Composition.txn(txn).create({ user })
           // ts-ignore because we are setting this to a disallowed type intentionally to force the transaction to fail
           // @ts-ignore

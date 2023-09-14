@@ -12,6 +12,7 @@ import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import ReplicaSafe from '../../../src/decorators/replica-safe'
 import DreamDbConnection from '../../../src/db/dream-db-connection'
 import EdgeCaseAttribute from '../../../test-app/app/models/EdgeCaseAttribute'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 
 describe('Dream.create', () => {
   it('creates the underlying model in the db', async () => {
@@ -40,7 +41,7 @@ describe('Dream.create', () => {
     it('saves the record', async () => {
       let user: User | null = null
 
-      await Dream.transaction(async txn => {
+      await ApplicationModel.transaction(async txn => {
         user = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
       })
 

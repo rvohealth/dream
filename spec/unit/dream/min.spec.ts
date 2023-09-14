@@ -1,7 +1,7 @@
 import User from '../../../test-app/app/models/User'
-import { Dream } from '../../../src'
 import Composition from '../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 
 describe('Dream.min', () => {
   it('returns the min', async () => {
@@ -25,7 +25,7 @@ describe('Dream.min', () => {
       let min = await CompositionAsset.min('score')
       expect(min).toEqual(7)
 
-      await Dream.transaction(async txn => {
+      await ApplicationModel.transaction(async txn => {
         const compositionAsset2 = await CompositionAsset.txn(txn).create({ composition, score: 3 })
 
         min = await CompositionAsset.txn(txn).min('score')

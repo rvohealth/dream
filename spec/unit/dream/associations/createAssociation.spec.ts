@@ -4,6 +4,7 @@ import Post from '../../../../test-app/app/models/Post'
 import CannotCreateAssociationWithThroughContext from '../../../../src/exceptions/associations/cannot-create-association-with-through-context'
 import { Dream } from '../../../../src'
 import PostVisibility from '../../../../test-app/app/models/PostVisibility'
+import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 
 describe('Dream#createAssociation', () => {
   context('with a HasMany association', () => {
@@ -63,7 +64,7 @@ describe('Dream#createAssociation', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const createdAt = DateTime.now().minus({ days: 1 })
 
-      await Dream.transaction(async txn => {
+      await ApplicationModel.transaction(async txn => {
         const composition = await user.txn(txn).createAssociation('compositions', { createdAt: createdAt })
 
         expect(composition.createdAt).toEqual(createdAt)
@@ -77,7 +78,7 @@ describe('Dream#createAssociation', () => {
         const post = await Post.create({ user, body: 'howyadoin' })
         const createdAt = DateTime.now().minus({ days: 1 })
 
-        await Dream.transaction(async txn => {
+        await ApplicationModel.transaction(async txn => {
           const postVisibility = await post
             .txn(txn)
             .createAssociation('postVisibility', { createdAt: createdAt })

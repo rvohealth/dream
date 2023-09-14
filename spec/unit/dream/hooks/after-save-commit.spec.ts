@@ -1,4 +1,4 @@
-import { Dream } from '../../../../src'
+import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 import Composition from '../../../../test-app/app/models/Composition'
 import User from '../../../../test-app/app/models/User'
 
@@ -17,7 +17,7 @@ describe('Dream AfterSaveCommit decorator', () => {
     context('the entire statement is wrapped in a transaction', () => {
       it('runs commit hooks after transaction commits', async () => {
         let composition: Composition | null = null
-        await Dream.transaction(async txn => {
+        await ApplicationModel.transaction(async txn => {
           const user = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
 
           composition = await Composition.txn(txn).create({
@@ -46,7 +46,7 @@ describe('Dream AfterSaveCommit decorator', () => {
     context('the entire statement is wrapped in a transaction', () => {
       it('runs commit hooks after transaction commits', async () => {
         let composition: Composition | null = null
-        await Dream.transaction(async txn => {
+        await ApplicationModel.transaction(async txn => {
           const user = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
 
           composition = await Composition.txn(txn).create({ userId: user.id })

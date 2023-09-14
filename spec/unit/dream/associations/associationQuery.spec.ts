@@ -3,6 +3,7 @@ import { Dream } from '../../../../src'
 import Composition from '../../../../test-app/app/models/Composition'
 import User from '../../../../test-app/app/models/User'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
+import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 
 describe('Dream#associationQuery', () => {
   context('with a HasMany association', () => {
@@ -113,7 +114,7 @@ describe('Dream#associationQuery', () => {
         createdAt: DateTime.now().minus({ year: 1 }),
       })
 
-      await Dream.transaction(async txn => {
+      await ApplicationModel.transaction(async txn => {
         expect(await user.txn(txn).associationQuery('recentCompositions').all()).toMatchDreamModels([
           recentComposition,
         ])

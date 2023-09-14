@@ -1,4 +1,4 @@
-import { Dream } from '../../../src'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Balloon from '../../../test-app/app/models/Balloon'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
 import User from '../../../test-app/app/models/User'
@@ -21,7 +21,7 @@ describe('Dream.findBy', () => {
   context('when passed a transaction', () => {
     it('can find records', async () => {
       let user: User | null = null
-      await Dream.transaction(async txn => {
+      await ApplicationModel.transaction(async txn => {
         const u = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
         user = await User.txn(txn).findBy({ id: u.id })
       })

@@ -1,4 +1,4 @@
-import { Dream } from '../../../src'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import User from '../../../test-app/app/models/User'
 
 describe('Dream#reload', () => {
@@ -16,7 +16,7 @@ describe('Dream#reload', () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
-      Dream.transaction(async txn => {
+      ApplicationModel.transaction(async txn => {
         const userInAnotherInstance = await User.txn(txn).find(user.id)
         await userInAnotherInstance!.txn(txn).update({ email: 'a@b.com' })
         expect((await user.txn(txn).reload()).email).toEqual('a@b.com')
