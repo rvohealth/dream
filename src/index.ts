@@ -1,4 +1,5 @@
 export { default as Dream } from './dream'
+export { default as Dreamconf } from '../shared/dreamconf'
 export { default as Query } from './dream/query'
 export { default as DreamTransaction } from './dream/transaction'
 export { default as db } from './db'
