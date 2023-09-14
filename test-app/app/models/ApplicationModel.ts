@@ -12,10 +12,6 @@ export default class ApplicationModel extends Dream {
     return new DBClass()
   }
 
-  public get interpretedDB(): InterpretedDBClass {
-    return new InterpretedDBClass()
-  }
-
   public get syncedAssociations(): SyncedAssociations {
     return SyncedAssociationsVal as SyncedAssociations
   }

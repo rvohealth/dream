@@ -60,14 +60,14 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
 
   public async find<
     I extends DreamClassTransactionBuilder<DreamClass>,
-    TableName extends keyof InstanceType<I['dreamClass']>['interpretedDB'] = InstanceType<
+    TableName extends keyof InstanceType<I['dreamClass']>['dreamconf']['interpretedDB'] = InstanceType<
       I['dreamClass']
     >['table'] &
-      keyof InstanceType<I['dreamClass']>['interpretedDB']
+      keyof InstanceType<I['dreamClass']>['dreamconf']['interpretedDB']
   >(
     this: I,
-    id: InstanceType<I['dreamClass']>['interpretedDB'][TableName][DreamClass['primaryKey'] &
-      keyof InstanceType<I['dreamClass']>['interpretedDB'][TableName]]
+    id: InstanceType<I['dreamClass']>['dreamconf']['interpretedDB'][TableName][DreamClass['primaryKey'] &
+      keyof InstanceType<I['dreamClass']>['dreamconf']['interpretedDB'][TableName]]
   ): Promise<InstanceType<DreamClass> | null> {
     return await this.queryInstance()
       .where({ [this.dreamClass.primaryKey]: id } as any)

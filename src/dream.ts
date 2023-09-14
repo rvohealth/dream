@@ -255,7 +255,7 @@ export default class Dream {
 
   public static async find<
     T extends typeof Dream,
-    InterpretedDB extends InstanceType<T>['interpretedDB'],
+    InterpretedDB extends InstanceType<T>['dreamconf']['interpretedDB'],
     TableName extends keyof InterpretedDB = InstanceType<T>['table'] & keyof InterpretedDB
   >(
     this: T,
@@ -551,10 +551,6 @@ export default class Dream {
 
   public get syncedAssociations(): any {
     throw 'must have get syncedAssociations defined on child'
-  }
-
-  public get interpretedDB(): any {
-    throw 'must have get interpretedDB defined on child'
   }
 
   public get dreamconf(): Dreamconf {

@@ -8,7 +8,9 @@ export default function cachedFieldType<
 >(dreamType: T, fieldName: FN) {
   const unaliasedFieldName = fieldName.split('.').pop() as string
   // @ts-ignore
-  return kyselyTypesToSqlType(dreamType.prototype.dbTypeCache[dreamType.prototype.table][unaliasedFieldName])
+  return kyselyTypesToSqlType(
+    dreamType.prototype.dreamconf.dbTypeCache[dreamType.prototype.table][unaliasedFieldName]
+  )
 }
 
 function kyselyTypesToSqlType(kyselyTypes: string) {

@@ -91,7 +91,7 @@ export default class Query<
   DreamClass extends typeof Dream,
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
-  DBTypeCache extends DreamInstance['dbTypeCache'] = DreamInstance['dbTypeCache'],
+  DBTypeCache extends DreamInstance['dreamconf']['dbTypeCache'] = DreamInstance['dreamconf']['dbTypeCache'],
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
   Table extends DB[DreamInstance['table']] = DB[DreamInstance['table']],
   ColumnType = keyof DB[keyof DB] extends never ? unknown : keyof DB[keyof DB]
@@ -170,12 +170,12 @@ export default class Query<
 
   public async find<
     T extends Query<DreamClass>,
-    TableName extends keyof InstanceType<DreamClass>['interpretedDB'] = InstanceType<DreamClass>['table'] &
-      keyof InstanceType<DreamClass>['interpretedDB']
+    TableName extends keyof InstanceType<DreamClass>['dreamconf']['interpretedDB'] = InstanceType<DreamClass>['table'] &
+      keyof InstanceType<DreamClass>['dreamconf']['interpretedDB']
   >(
     this: T,
-    id: InstanceType<DreamClass>['interpretedDB'][TableName][DreamClass['primaryKey'] &
-      keyof InstanceType<DreamClass>['interpretedDB'][TableName]]
+    id: InstanceType<DreamClass>['dreamconf']['interpretedDB'][TableName][DreamClass['primaryKey'] &
+      keyof InstanceType<DreamClass>['dreamconf']['interpretedDB'][TableName]]
   ): Promise<(InstanceType<DreamClass> & Dream) | null> {
     if (!id) return null
     // @ts-ignore
@@ -568,7 +568,7 @@ export default class Query<
       marshalDBValue<DB, SyncedAssociations>(val, {
         table: this.dreamClass.prototype.table,
         column: fields[index] as any,
-        dbTypeCache: this.dreamClass.prototype.dbTypeCache,
+        dbTypeCache: this.dreamClass.prototype.dreamconf.dbTypeCache,
       })
 
     if (fields.length > 1) {
