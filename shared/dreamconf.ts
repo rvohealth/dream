@@ -1,13 +1,21 @@
 import { DbConfig } from './helpers/path/types'
 
-export default class Dreamconf {
-  public DB: any
-  public interpretedDB: any
-  public syncedAssociations: any
-  public syncedBelongsToAssociations: any
-  public virtualColumns: any
-  public dbColumns: any
-  public dbTypeCache: any
+export default class Dreamconf<
+  DB extends any = any,
+  InterpretedDB extends any = any,
+  SyncedAssociations extends any = any,
+  SyncedBelongsToAssociations extends any = any,
+  VirtualColumns extends any = any,
+  DBColumns extends any = any,
+  DBTypeCache extends any = any
+> {
+  public DB: DB
+  public interpretedDB: InterpretedDB
+  public syncedAssociations: SyncedAssociations
+  public syncedBelongsToAssociations: SyncedBelongsToAssociations
+  public virtualColumns: VirtualColumns
+  public dbColumns: DBColumns
+  public dbTypeCache: DBTypeCache
   public env: EnvOpts
   constructor({
     DB,

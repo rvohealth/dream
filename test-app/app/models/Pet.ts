@@ -8,8 +8,7 @@ import { IdType } from '../../../src/dream/types'
 import { BeforeDestroy } from '../../../src'
 import Collar from './Collar'
 import PetSerializer from '../serializers/PetSerializer'
-import { CatTreats } from '../../../src/sync/schema'
-import { Species } from '../../db/schema'
+import { CatTreats, Species } from '../../db/schema'
 import ApplicationModel from './ApplicationModel'
 
 export default class Pet extends ApplicationModel {

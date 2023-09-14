@@ -7,8 +7,6 @@ import CanOnlyPassBelongsToModelParam from '../../../src/exceptions/associations
 import Pet from '../../../test-app/app/models/Pet'
 import { DateTime } from 'luxon'
 import PostVisibility from '../../../test-app/app/models/PostVisibility'
-import { Dream } from '../../../src'
-import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import ReplicaSafe from '../../../src/decorators/replica-safe'
 import DreamDbConnection from '../../../src/db/dream-db-connection'
 import EdgeCaseAttribute from '../../../test-app/app/models/EdgeCaseAttribute'
