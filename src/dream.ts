@@ -557,10 +557,6 @@ export default class Dream {
     throw 'must have get interpretedDB defined on child'
   }
 
-  public get dbTypeCache(): any {
-    throw 'must have get dbTypeCache defined on child'
-  }
-
   public get dreamconf(): Dreamconf {
     throw 'must have get dreamconf defined on child'
   }
@@ -635,14 +631,14 @@ export default class Dream {
   public cachedTypeFor<
     I extends Dream,
     DB extends I['DB'],
-    DBTypeCache extends I['dbTypeCache'],
+    DBTypeCache extends I['dreamconf']['dbTypeCache'],
     SyncedAssociations extends I['syncedAssociations'],
     TableName extends keyof DB = I['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
   >(this: I, attribute: keyof Table): string {
     return cachedTypeForAttribute<DB, SyncedAssociations>(attribute, {
       table: this.table,
-      dbTypeCache: this.dbTypeCache,
+      dbTypeCache: this.dreamconf.dbTypeCache,
     })
   }
 
@@ -781,7 +777,7 @@ export default class Dream {
   >(this: I, attribute: keyof Table): boolean {
     return isDecimal<DB, SyncedAssociations>(attribute, {
       table: this.table,
-      dbTypeCache: this.dbTypeCache,
+      dbTypeCache: this.dreamconf.dbTypeCache,
     })
   }
 
@@ -892,7 +888,7 @@ export default class Dream {
   public setAttributes<
     I extends Dream,
     DB extends I['DB'],
-    DBTypeCache extends I['dbTypeCache'],
+    DBTypeCache extends I['dreamconf']['dbTypeCache'],
     SyncedAssociations extends I['syncedAssociations'],
     TableName extends keyof DB = I['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
@@ -929,7 +925,7 @@ export default class Dream {
           {
             column: attr as any,
             table: this.table,
-            dbTypeCache: this.dbTypeCache,
+            dbTypeCache: this.dreamconf.dbTypeCache,
           }
         )
       }

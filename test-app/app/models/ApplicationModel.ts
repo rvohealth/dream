@@ -20,10 +20,6 @@ export default class ApplicationModel extends Dream {
     return SyncedAssociationsVal as SyncedAssociations
   }
 
-  public get dbTypeCache(): typeof DBTypeCache {
-    return DBTypeCache
-  }
-
   public get dreamconf(): Dreamconf {
     return new Dreamconf({
       DB: new DBClass(),
