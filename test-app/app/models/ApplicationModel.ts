@@ -20,15 +20,6 @@ export default class ApplicationModel extends Dream {
     return SyncedAssociationsVal as SyncedAssociations
   }
 
-  public get syncedBelongsToAssociations(): SyncedBelongsToAssociations {
-    // this just returns an interface anyways, so no need for a real value
-    return {} as SyncedBelongsToAssociations
-  }
-
-  public get dbColumns(): typeof DBColumns {
-    return DBColumns
-  }
-
   public get dbTypeCache(): typeof DBTypeCache {
     return DBTypeCache
   }

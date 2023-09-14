@@ -23,7 +23,7 @@ async function getDBColumns() {
   const models = sortBy(Object.values(await loadModels()) as (typeof Dream)[], m => m.prototype.table)
   const dbColumns: any = {}
   models.forEach(m => {
-    dbColumns[m.prototype.table] = m.prototype.dbColumns
+    dbColumns[m.prototype.table] = m.prototype.dreamconf.dbColumns[m.prototype.table]
   })
   return dbColumns
 }

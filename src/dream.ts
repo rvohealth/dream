@@ -134,7 +134,7 @@ export default class Dream {
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
   >(): (keyof Table)[] {
-    return (this.prototype.dbColumns as any)[this.prototype.table]
+    return (this.prototype.dreamconf.dbColumns as any)[this.prototype.table]
   }
 
   public static associationMap<
@@ -555,10 +555,6 @@ export default class Dream {
 
   public get interpretedDB(): any {
     throw 'must have get interpretedDB defined on child'
-  }
-
-  public get dbColumns(): any {
-    throw 'must have get dbColumns defined on child'
   }
 
   public get dbTypeCache(): any {
