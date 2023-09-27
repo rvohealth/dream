@@ -158,6 +158,7 @@ export interface Posts {
   userId: Int8;
   postVisibilityId: Int8 | null;
   body: string | null;
+  position: number;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -246,7 +247,7 @@ export const GraphEdgeColumns = ['id', 'name', 'createdAt', 'updatedAt']
 export const GraphNodeColumns = ['id', 'name', 'createdAt', 'updatedAt']
 export const IncompatibleForeignKeyTypeExampleColumns = ['id', 'userId', 'createdAt', 'updatedAt']
 export const PetColumns = ['id', 'userId', 'favoriteTreats', 'species', 'name', 'deletedAt', 'createdAt']
-export const PostColumns = ['id', 'userId', 'postVisibilityId', 'body', 'createdAt', 'updatedAt']
+export const PostColumns = ['id', 'userId', 'postVisibilityId', 'body', 'position', 'createdAt', 'updatedAt']
 export const PostVisibilityColumns = ['id', 'visibility', 'notes', 'createdAt', 'updatedAt']
 export const RatingColumns = ['id', 'userId', 'rateableId', 'rateableType', 'rating', 'createdAt', 'updatedAt']
 export const SandbagColumns = ['id', 'balloonId', 'weight', 'createdAt', 'updatedAt']
@@ -388,6 +389,7 @@ export interface PostAttributes {
   userId: IdType
   postVisibilityId: IdType | null
   body: string | null
+  position: number
   createdAt: DateTime
   updatedAt: DateTime
 }  
@@ -572,6 +574,7 @@ export const PostsTypeCache = {
   userId: 'Int8',
   postVisibilityId: 'Int8|null',
   body: 'string|null',
+  position: 'number',
   createdAt: 'Timestamp',
   updatedAt: 'Timestamp'
 }  

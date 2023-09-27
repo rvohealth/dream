@@ -13,16 +13,7 @@ export default async function runHooksFor<T extends Dream>(key: HookType, dream:
 }
 
 export async function runHook<T extends Dream>(statement: HookStatement, dream: T) {
-  const Base = dream.constructor as typeof Dream
-  try {
-    await (dream as any)[statement.method]()
-  } catch (error) {
-    throw `
-        Error running ${statement.type} on ${Base.name}
-        ${error}
-        statement.method: ${statement.method}
-      `
-  }
+  await (dream as any)[statement.method]()
 }
 
 function ensureSTITypeFieldIsSet<T extends Dream>(dream: T) {

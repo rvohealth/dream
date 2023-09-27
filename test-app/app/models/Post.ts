@@ -6,6 +6,7 @@ import Rating from './Rating'
 import User from './User'
 import HeartRating from './ExtraRating/HeartRating'
 import ApplicationModel from './ApplicationModel'
+import { Sortable } from '../../../src'
 
 export default class Post extends ApplicationModel {
   public get table() {
@@ -13,6 +14,10 @@ export default class Post extends ApplicationModel {
   }
 
   public id: IdType
+
+  @Sortable({ scope: 'user' })
+  public position: number
+
   public body: string | null
 
   @BelongsTo(() => User)

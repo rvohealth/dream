@@ -116,6 +116,13 @@ export default class Dream {
     return !!this.sti?.active
   }
 
+  public static addHook(hookType: keyof typeof this.hooks, statement: HookStatement) {
+    const existingHook = this.hooks[hookType].find(hook => hook.method === statement.method)
+    if (existingHook) return
+
+    this.hooks[hookType] = [...this.hooks[hookType], statement]
+  }
+
   public static async globalName<T extends typeof Dream>(this: T): Promise<any> {
     const modelKey = await getModelKey(this)
     return pascalize(modelKey!)
@@ -682,6 +689,7 @@ export default class Dream {
     Table extends DB[TableName],
     Attr extends keyof Updateable<Table> & string
   >(this: I, attribute: Attr): Updateable<Table>[Attr] {
+    if (this.frozenAttributes[attribute] !== (this as any)[attribute]) return this.frozenAttributes[attribute]
     return (this.attributesFromBeforeLastSave as any)[attribute]
   }
 

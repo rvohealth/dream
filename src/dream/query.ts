@@ -489,16 +489,29 @@ export default class Query<
 
   // TODO: in the future, we should support insert type, but don't yet, since inserts are done outside
   // the query class for some reason.
-  public toKysely<T extends Query<DreamClass>>(this: T, type: Exclude<SqlCommandType, 'insert'> = 'select') {
+  public toKysely<
+    T extends Query<DreamClass>,
+    QueryType extends 'select' | 'delete' | 'update',
+    ToKyselyReturnType = QueryType extends 'select'
+      ? SelectQueryBuilder<any, string, {}>
+      : QueryType extends 'delete'
+      ? DeleteQueryBuilder<any, string, {}>
+      : QueryType extends 'update'
+      ? UpdateQueryBuilder<any, string, any, {}>
+      : never
+  >(this: T, type: QueryType): ToKyselyReturnType {
     switch (type) {
       case 'select':
-        return this.buildSelect()
+        return this.buildSelect() as ToKyselyReturnType
 
       case 'delete':
-        return this.buildDelete()
+        return this.buildDelete() as ToKyselyReturnType
 
       case 'update':
-        return this.buildUpdate({})
+        return this.buildUpdate({}) as ToKyselyReturnType
+
+      default:
+        throw `never`
     }
   }
 
@@ -1379,7 +1392,7 @@ ${JSON.stringify(association, null, 2)}
     }
 
     query.orStatements.forEach(orStatement => {
-      kyselyQuery = kyselyQuery.union(orStatement.toKysely() as any)
+      kyselyQuery = kyselyQuery.union(orStatement.toKysely('select') as any)
     })
 
     if (Object.keys(query.whereStatement).length) {

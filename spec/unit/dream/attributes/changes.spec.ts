@@ -27,7 +27,7 @@ describe('Dream#changes', () => {
       expect(pet.changes()).toEqual(
         expect.objectContaining({
           species: {
-            was: undefined,
+            was: 'dog',
             now: 'frog',
           },
         })
