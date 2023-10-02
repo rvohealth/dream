@@ -3,6 +3,7 @@ import Query from '../../../src/dream/query'
 import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import ReplicaSafe from '../../../src/decorators/replica-safe'
 import DreamDbConnection from '../../../src/db/dream-db-connection'
+import NoUpdateAllOnAssociationQuery from '../../../src/exceptions/no-updateall-on-association-query'
 
 describe('Query#updateAll', () => {
   it('takes passed params and sends them through to all models matchin query', async () => {
@@ -15,6 +16,79 @@ describe('Query#updateAll', () => {
     expect(numRecords).toEqual(2)
     const records = await User.all()
     expect(records.map(r => r.name)).toMatchObject(['cool', 'cool'])
+  })
+
+  it('respects where clause', async () => {
+    const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+
+    const numRecords = await new Query(User).where({ email: 'how@yadoin' }).updateAll({
+      name: 'cool',
+    })
+    expect(numRecords).toEqual(1)
+
+    await user1.reload()
+    await user2.reload()
+
+    expect(user1.name).toBeNull()
+    expect(user2.name).toEqual('cool')
+  })
+
+  context('within an associationQuery', () => {
+    it('raises an exception', async () => {
+      const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      const composition = await user.createAssociation('compositions', { content: 'Opus' })
+
+      expect(
+        async () => await user.associationQuery('compositions').updateAll({ content: 'cool' })
+      ).rejects.toThrowError(NoUpdateAllOnAssociationQuery)
+    })
+  })
+
+  context('within an associationUpdateQuery', () => {
+    it('only updates the associated records', async () => {
+      const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition1 = await user1.createAssociation('compositions', { content: 'Opus1' })
+
+      const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      const composition2 = await user2.createAssociation('compositions', { content: 'Opus2' })
+
+      const numRecords = await user2.associationUpdateQuery('compositions').updateAll({
+        content: 'cool',
+      })
+      expect(numRecords).toEqual(1)
+
+      await composition1.reload()
+      await composition2.reload()
+
+      expect(composition1.content).toEqual('Opus1')
+      expect(composition2.content).toEqual('cool')
+    })
+
+    it('respects where clauses', async () => {
+      const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition1 = await user1.createAssociation('compositions', { content: 'Opus1' })
+
+      const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      const composition2 = await user2.createAssociation('compositions', { content: 'Opus2' })
+      const composition3 = await user2.createAssociation('compositions', { content: 'Opus3' })
+
+      const numRecords = await user2
+        .associationUpdateQuery('compositions')
+        .where({ content: 'Opus3' })
+        .updateAll({
+          content: 'cool',
+        })
+      expect(numRecords).toEqual(1)
+
+      await composition1.reload()
+      await composition2.reload()
+      await composition3.reload()
+
+      expect(composition1.content).toEqual('Opus1')
+      expect(composition2.content).toEqual('Opus2')
+      expect(composition3.content).toEqual('cool')
+    })
   })
 
   context('regarding connections', () => {

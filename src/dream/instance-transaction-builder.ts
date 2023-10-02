@@ -4,6 +4,7 @@ import saveDream from './internal/saveDream'
 import destroyDream from './internal/destroyDream'
 import { UpdateablePropertiesForClass, UpdateableProperties, DreamConstructorType } from './types'
 import associationQuery from './internal/associations/associationQuery'
+import associationUpdateQuery from './internal/associations/associationUpdateQuery'
 import createAssociation from './internal/associations/createAssociation'
 import reload from './internal/reload'
 import destroyAssociation from './internal/associations/destroyAssociation'
@@ -43,6 +44,13 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     AssociationName extends keyof DreamInstance['syncedAssociations'][DreamInstance['table']]
   >(this: I, associationName: AssociationName): any {
     return associationQuery(this.dreamInstance, this.dreamTransaction, associationName)
+  }
+
+  public associationUpdateQuery<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    AssociationName extends keyof DreamInstance['syncedAssociations'][DreamInstance['table']]
+  >(this: I, associationName: AssociationName): any {
+    return associationUpdateQuery(this.dreamInstance, this.dreamTransaction, associationName)
   }
 
   public async createAssociation<

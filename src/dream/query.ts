@@ -49,6 +49,7 @@ import { singular } from 'pluralize'
 import isEmpty from 'lodash.isempty'
 import executeDatabaseQuery from './internal/executeDatabaseQuery'
 import { DbConnectionType } from '../db/types'
+import NoUpdateAllOnAssociationQuery from '../exceptions/no-updateall-on-association-query'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -937,6 +938,8 @@ ${JSON.stringify(association, null, 2)}
     this: T,
     attributes: Updateable<InstanceType<DreamClass>['table']>
   ) {
+    if (this.baseSelectQuery) throw new NoUpdateAllOnAssociationQuery()
+
     const kyselyQuery = this.buildUpdate(attributes)
     const res = await executeDatabaseQuery(kyselyQuery, 'execute')
     const resultData = Array.from(res.entries())?.[0]?.[1]

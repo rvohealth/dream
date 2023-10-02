@@ -43,6 +43,7 @@ import DreamSerializer from './serializer'
 import MissingSerializer from './exceptions/missing-serializer'
 import MissingTable from './exceptions/missing-table'
 import associationQuery from './dream/internal/associations/associationQuery'
+import associationUpdateQuery from './dream/internal/associations/associationUpdateQuery'
 import createAssociation from './dream/internal/associations/createAssociation'
 import reload from './dream/internal/reload'
 import destroyDream from './dream/internal/destroyDream'
@@ -846,6 +847,14 @@ export default class Dream {
     AssociationName extends keyof SyncedAssociations[I['table']]
   >(this: I, associationName: AssociationName) {
     return associationQuery(this, null, associationName)
+  }
+
+  public associationUpdateQuery<
+    I extends Dream,
+    SyncedAssociations extends I['syncedAssociations'],
+    AssociationName extends keyof SyncedAssociations[I['table']]
+  >(this: I, associationName: AssociationName) {
+    return associationUpdateQuery(this, null, associationName)
   }
 
   public load<
