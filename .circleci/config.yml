@@ -35,11 +35,6 @@ jobs:
       - node/install:
           install-yarn: true
           node-version: '18.15.0'
-      - run:
-          name: Update npmrc with node-beam creds
-          command: |
-            echo @rvohealth:registry=https://npm.pkg.github.com > ~/.npmrc
-            echo //npm.pkg.github.com/:_authToken=$GITHUB_OAUTH_TOKEN >> ~/.npmrc
       - node/install-packages:
           pkg-manager: yarn
           app-dir: ~/project
