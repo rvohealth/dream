@@ -15,13 +15,13 @@ jobs:
       - image: cimg/postgres:13.9
         environment: # add POSTGRES environment variables.
           POSTGRES_USER: dream
-          POSTGRES_DB: dream_test
+          POSTGRES_DB: dream_core_test
           POSTGRES_PASSWORD: ''
     environment:
       NODE_ENV: test
       PORT: 7778
       DB_USER: dream
-      PRIMARY_DB_NAME: dream_test
+      PRIMARY_DB_NAME: dream_core_test
       PRIMARY_DB_HOST: localhost
       DB_PORT: 5432
       TZ: UTC
