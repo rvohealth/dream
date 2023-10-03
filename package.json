@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "dream orm",
   "main": "src/index.ts",
-  "repository": "https://github.com/avocadojesus/dream.git",
+  "repository": "https://github.com/rvohealth/dream.git",
   "author": "avocadojesust",
   "license": "MIT",
   "private": false,
