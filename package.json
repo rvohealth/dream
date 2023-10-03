@@ -1,12 +1,12 @@
 {
-  "name": "dream",
+  "name": "@rvohealth/dream",
   "version": "0.1.0",
   "description": "dream orm",
   "main": "src/index.ts",
   "repository": "https://github.com/avocadojesus/dream.git",
   "author": "avocadojesust",
   "license": "MIT",
-  "private": true,
+  "private": false,
   "scripts": {
     "dream": "yarn dreamts",
     "dreamcore": "APP_ROOT_PATH=$(pwd)/test-app DREAM_CORE_DEVELOPMENT=1 yarn dreamts",
