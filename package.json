@@ -25,6 +25,9 @@
     "spec:fast": "APP_ROOT_PATH=$(pwd)/test-app DREAM_CORE_DEVELOPMENT=1 NODE_ENV=test DREAM_CORE_SPEC_RUN=1 jest --runInBand --forceExit",
     "console": "yarn dream console --core"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "dependencies": {
     "@types/jest": "^29.5.0",
     "@types/lodash.isempty": "^4.4.7",
