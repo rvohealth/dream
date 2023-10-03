@@ -42,7 +42,7 @@ jobs:
             echo //npm.pkg.github.com/:_authToken=$GITHUB_OAUTH_TOKEN >> ~/.npmrc
       - node/install-packages:
           pkg-manager: yarn
-          app-dir: ~/project/api
+          app-dir: ~/project
           cache-version: v2
       # Here we make sure that the secondary container boots
       # up before we run operations on the database.
@@ -51,10 +51,10 @@ jobs:
           command: dockerize -wait tcp://localhost:5432 -timeout 1m
       - run:
           name: 'Database migrate'
-          command: cd ~/project/api && APP_ROOT_PATH=$(pwd) yarn dreamcore db:migrate
+          command: cd ~/project && APP_ROOT_PATH=$(pwd) yarn dreamcore db:migrate
       - run:
           name: 'Run unit specs'
-          command: cd ~/project/api && APP_ROOT_PATH=$(pwd) yarn spec
+          command: cd ~/project && APP_ROOT_PATH=$(pwd) yarn spec
 
 workflows:
   test:
