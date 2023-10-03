@@ -1,6 +1,6 @@
 {
   "name": "dream",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "dream orm",
   "main": "src/index.ts",
   "repository": "https://github.com/avocadojesus/dream.git",
