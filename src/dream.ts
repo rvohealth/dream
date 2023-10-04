@@ -302,6 +302,11 @@ export default class Dream {
     return (await query.first()) as (InstanceType<T> & Dream) | null
   }
 
+  public static async exists<T extends typeof Dream>(this: T): Promise<boolean> {
+    const query: Query<T> = new Query<T>(this)
+    return await query.exists()
+  }
+
   public static preload<
     T extends typeof Dream,
     I extends InstanceType<T>,

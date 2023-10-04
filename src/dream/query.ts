@@ -616,6 +616,9 @@ export default class Query<
   }
 
   public async exists<T extends Query<DreamClass>>(this: T): Promise<boolean> {
+    // Implementing via `limit(1).all()`, rather than the simpler `!!(await this.first())`
+    // because it avoids the step of finding the first. Just find any, and return
+    // that one.
     return (await this.limit(1).all()).length > 0
   }
 
