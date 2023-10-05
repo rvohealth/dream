@@ -17,10 +17,10 @@ export default function Sortable(opts: SortableOpts = {}): any {
     const positionField = key
     const query = new Query(dreamClass)
 
-    const beforeSaveMethodName = `_cachePositionFor${pascalize(key)}`
-    const afterUpdateMethodName = `_updatePositionFor${pascalize(key)}`
-    const afterCreateMethodName = `_setNewPositionFor${pascalize(key)}`
-    const afterDestroyMethodName = `_setPositionsAfterDestructionFor${pascalize(key)}`
+    const beforeSaveMethodName = `_cacheValueFor${pascalize(key)}`
+    const afterUpdateMethodName = `_updateValueFor${pascalize(key)}`
+    const afterCreateMethodName = `_setNewValueFor${pascalize(key)}`
+    const afterDestroyMethodName = `_setValuesAfterDestructionFor${pascalize(key)}`
 
     // before saving, we remember the new value for position, but clear it from our
     // supervised attributes to prevent position from saving
