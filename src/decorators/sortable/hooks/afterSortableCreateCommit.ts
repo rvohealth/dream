@@ -22,7 +22,6 @@ export default async function afterSortableCreateCommit({
     dream,
     positionField,
     scope,
-    previousPosition: dream.changes()[positionField]?.was,
     query,
   })
 
