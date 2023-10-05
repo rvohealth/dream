@@ -10,6 +10,7 @@ import clearCachedSortableValues from './clearCachedSortableValues'
 import beforeSortableSave from './beforeSortableSave'
 import setPosition from './setPosition'
 import afterUpdateSortableCommit from './afterSortableUpdateCommit'
+import afterSortableCreateCommit from './afterSortableCreateCommit'
 
 export default function Sortable(opts: SortableOpts = {}): any {
   return function (target: any, key: string, _: any) {
@@ -54,15 +55,14 @@ export default function Sortable(opts: SortableOpts = {}): any {
     // we need to split existing records on position and update, but otherwise we simply set the new position
     // to be the length of all existing records + 1
     ;(dreamClass as any).prototype[afterCreateMethodName] = async function () {
-      await setPosition({
-        position: this[cacheKey],
+      await afterSortableCreateCommit({
         dream: this,
         positionField,
-        scope: opts.scope,
-        previousPosition: this.changes()[positionField]?.was,
+        cachedValuesName,
+        cacheKey,
         query,
+        scope: opts.scope,
       })
-      clearCachedSortableValues(this, cacheKey, cachedValuesName)
     }
 
     // after destroy, auto-adjust positions of all related records to maintain incrementing order
