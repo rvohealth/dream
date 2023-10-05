@@ -1,7 +1,7 @@
 import { ExpressionBuilder } from 'kysely'
-import Dream from '../../dream'
-import Query from '../../dream/query'
-import ops from '../../ops'
+import Dream from '../../../dream'
+import Query from '../../../dream/query'
+import ops from '../../../ops'
 import getForeignKeyForSortableScope from './getForeignKeyForSortableScope'
 
 export default async function decrementPositionForScopedRecordsGreaterThanPosition(

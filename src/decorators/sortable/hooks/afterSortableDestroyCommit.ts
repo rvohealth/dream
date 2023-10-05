@@ -1,8 +1,8 @@
-import Dream from '../../dream'
-import Query from '../../dream/query'
-import clearCachedSortableValues from './clearCachedSortableValues'
-import decrementPositionForScopedRecordsGreaterThanPosition from './decrementScopedRecordsGreaterThanPosition'
-import setPosition from './setPosition'
+import Dream from '../../../dream'
+import Query from '../../../dream/query'
+import clearCachedSortableValues from '../helpers/clearCachedSortableValues'
+import decrementPositionForScopedRecordsGreaterThanPosition from '../helpers/decrementScopedRecordsGreaterThanPosition'
+import setPosition from '../helpers/setPosition'
 
 export default async function afterSortableDestroyCommit({
   positionField,
