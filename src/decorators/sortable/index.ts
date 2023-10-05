@@ -5,12 +5,10 @@ import BeforeSave from '../hooks/before-save'
 import AfterCreateCommit from '../hooks/after-create-commit'
 import AfterUpdateCommit from '../hooks/after-update-commit'
 import AfterDestroyCommit from '../hooks/after-destroy-commit'
-import decrementPositionForScopedRecordsGreaterThanPosition from './decrementScopedRecordsGreaterThanPosition'
-import clearCachedSortableValues from './clearCachedSortableValues'
 import beforeSortableSave from './beforeSortableSave'
-import setPosition from './setPosition'
 import afterUpdateSortableCommit from './afterSortableUpdateCommit'
 import afterSortableCreateCommit from './afterSortableCreateCommit'
+import afterSortableDestroyCommit from './afterSortableDestroyCommit'
 
 export default function Sortable(opts: SortableOpts = {}): any {
   return function (target: any, key: string, _: any) {
@@ -67,13 +65,14 @@ export default function Sortable(opts: SortableOpts = {}): any {
 
     // after destroy, auto-adjust positions of all related records to maintain incrementing order
     ;(dreamClass as any).prototype[afterDestroyMethodName] = async function () {
-      await decrementPositionForScopedRecordsGreaterThanPosition(this[positionField], {
+      await afterSortableDestroyCommit({
         dream: this,
         positionField,
-        scope: opts.scope,
+        cachedValuesName,
+        cacheKey,
         query,
+        scope: opts.scope,
       })
-      clearCachedSortableValues(this, cacheKey, cachedValuesName)
     }
 
     BeforeSave()(target, beforeSaveMethodName)
