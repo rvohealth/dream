@@ -20,6 +20,7 @@ import applySortableScopeToQuery from './applySortableScopeToQuery'
 import getForeignKeyForSortableScope from './getForeignKeyForSortableScope'
 import decrementPositionForScopedRecordsGreaterThanPosition from './decrementScopedRecordsGreaterThanPosition'
 import sortableQueryExcludingDream from './sortableQueryExcludingDream'
+import clearCachedSortableValues from './clearCachedSortableValues'
 
 export default function Sortable(opts: SortableOpts = {}): any {
   return function (target: any, key: string, _: any) {
@@ -91,7 +92,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
         })
       }
 
-      clearCachedValues(this, cacheKey, cachedValuesName)
+      clearCachedSortableValues(this, cacheKey, cachedValuesName)
     }
 
     // after create, we always want to ensure the position is set, so if they provide one,
@@ -106,7 +107,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
         previousPosition: this.changes()[positionField]?.was,
         query,
       })
-      clearCachedValues(this, cacheKey, cachedValuesName)
+      clearCachedSortableValues(this, cacheKey, cachedValuesName)
     }
 
     // after destroy, auto-adjust positions of all related records to maintain incrementing order
@@ -117,7 +118,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
         scope: opts.scope,
         query,
       })
-      clearCachedValues(this, cacheKey, cachedValuesName)
+      clearCachedSortableValues(this, cacheKey, cachedValuesName)
     }
 
     BeforeSave()(target, beforeSaveMethodName)
@@ -276,11 +277,6 @@ async function updatePositionForRecord(
       [positionField]: position,
     })
     .execute()
-}
-
-function clearCachedValues(dream: Dream, cacheKey: string, cachedValuesName: string) {
-  ;(dream as any)[cacheKey] = undefined
-  ;(dream as any)[cachedValuesName] = undefined
 }
 
 export interface SortableOpts {
