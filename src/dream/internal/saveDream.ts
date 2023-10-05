@@ -18,6 +18,7 @@ export default async function saveDream<DreamInstance extends Dream>(
 
   const alreadyPersisted = dream.isPersisted
 
+  console.log('DOIN IT!!!', (dream as any).positionAlpha)
   await runHooksFor('beforeSave', dream)
   if (alreadyPersisted) await runHooksFor('beforeUpdate', dream)
   else await runHooksFor('beforeCreate', dream)
@@ -50,7 +51,9 @@ export default async function saveDream<DreamInstance extends Dream>(
     query = db.insertInto(dream.table).values(sqlifiedAttributes as any)
   }
 
+  console.log('HERE!!!', dream.attributes())
   const data = await executeDatabaseQuery(query.returning(dream.columns()), 'executeTakeFirstOrThrow')
+  console.log('SAVED!')
   dream.setAttributes(data)
 
   // set frozen attributes to what has already been saved

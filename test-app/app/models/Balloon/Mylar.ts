@@ -1,3 +1,4 @@
+import { Sortable } from '../../../../src'
 import STI from '../../../../src/decorators/STI'
 import BelongsTo from '../../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../../src/decorators/associations/has-many'
@@ -12,4 +13,7 @@ export default class Mylar extends Balloon {
 
   @HasMany(() => Sandbag, { foreignKey: 'balloonId' })
   public sandbags: Sandbag[]
+
+  @Sortable({ scope: 'user' })
+  public positionBeta: number
 }

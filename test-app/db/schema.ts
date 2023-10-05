@@ -52,6 +52,8 @@ export interface BeautifulBalloons {
   type: BalloonTypesEnum;
   volume: Numeric | null;
   color: BalloonColorsEnum | null;
+  positionAlpha: number | null;
+  positionBeta: number | null;
   multicolor: BalloonColorsEnum[] | null;
   deletedAt: Timestamp | null;
   createdAt: Timestamp;
@@ -235,7 +237,7 @@ export interface DB {
 export const BalloonLineColumns = ['id', 'balloonId', 'material', 'createdAt', 'updatedAt']
 export const BalloonSpotterBalloonColumns = ['id', 'balloonSpotterId', 'balloonId', 'createdAt', 'updatedAt']
 export const BalloonSpotterColumns = ['id', 'name', 'createdAt', 'updatedAt']
-export const BeautifulBalloonColumns = ['id', 'userId', 'type', 'volume', 'color', 'multicolor', 'deletedAt', 'createdAt', 'updatedAt']
+export const BeautifulBalloonColumns = ['id', 'userId', 'type', 'volume', 'color', 'positionAlpha', 'positionBeta', 'multicolor', 'deletedAt', 'createdAt', 'updatedAt']
 export const CollarColumns = ['id', 'petId', 'lost', 'createdAt', 'updatedAt']
 export const CompositionAssetAuditColumns = ['id', 'compositionAssetId', 'approval', 'createdAt', 'updatedAt']
 export const CompositionAssetColumns = ['id', 'compositionId', 'name', 'src', 'primary', 'score', 'createdAt', 'updatedAt']
@@ -283,6 +285,8 @@ export interface BeautifulBalloonAttributes {
   type: BalloonTypesEnum
   volume: number | null
   color: BalloonColorsEnum | null
+  positionAlpha: number | null
+  positionBeta: number | null
   multicolor: BalloonColorsEnum[] | null
   deletedAt: DateTime | null
   createdAt: DateTime
@@ -468,6 +472,8 @@ export const BeautifulBalloonsTypeCache = {
   type: 'BalloonTypesEnum',
   volume: 'Numeric|null',
   color: 'BalloonColorsEnum|null',
+  positionAlpha: 'number|null',
+  positionBeta: 'number|null',
   multicolor: 'BalloonColorsEnum[]|null',
   deletedAt: 'Timestamp|null',
   createdAt: 'Timestamp',

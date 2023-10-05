@@ -6,7 +6,7 @@ import Scope from '../../../src/decorators/scope'
 import Validates from '../../../src/decorators/validations/validates'
 import User from './User'
 import { BalloonColorsEnum, BalloonTypesEnum } from '../../db/schema'
-import { BeforeDestroy } from '../../../src'
+import { BeforeDestroy, Query, Sortable } from '../../../src'
 import BalloonLine from './BalloonLine'
 import ApplicationModel from './ApplicationModel'
 
@@ -23,6 +23,9 @@ export default class Balloon extends ApplicationModel {
   public createdAt: DateTime
   public updatedAt: DateTime
 
+  @Sortable({ scope: 'user' })
+  public positionAlpha: number
+
   @Scope()
   public static red(query: any) {
     return query.where({ color: 'red' })
@@ -35,7 +38,12 @@ export default class Balloon extends ApplicationModel {
 
   @BeforeDestroy()
   public async softDelete() {
-    await (this as Balloon).update({ deletedAt: DateTime.now() })
+    await new Query(this.constructor as typeof Balloon)
+      .toKysely('update')
+      .set({ deletedAt: DateTime.now(), positionAlpha: null, positionBeta: null })
+      .where(this.primaryKey, '=', this.primaryKeyValue)
+      .execute()
+
     this.preventDeletion()
   }
 
