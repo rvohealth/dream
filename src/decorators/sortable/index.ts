@@ -19,6 +19,7 @@ import positionIsInvalid from './positionIsInvalid'
 import applySortableScopeToQuery from './applySortableScopeToQuery'
 import getForeignKeyForSortableScope from './getForeignKeyForSortableScope'
 import decrementPositionForScopedRecordsGreaterThanPosition from './decrementScopedRecordsGreaterThanPosition'
+import sortableQueryExcludingDream from './sortableQueryExcludingDream'
 
 export default function Sortable(opts: SortableOpts = {}): any {
   return function (target: any, key: string, _: any) {
@@ -248,7 +249,7 @@ async function setNewPosition({
   query: Query<typeof Dream>
   scope?: string
 }) {
-  const numConflictingRecords = await buildSortableQuery(query, dream, scope).count()
+  const numConflictingRecords = await sortableQueryExcludingDream(dream, query, scope).count()
 
   await db('primary', dream.dreamconf)
     .updateTable(dream.table as any)
@@ -275,13 +276,6 @@ async function updatePositionForRecord(
       [positionField]: position,
     })
     .execute()
-}
-
-function buildSortableQuery(query: Query<typeof Dream>, dream: Dream, scope?: string) {
-  query = query.whereNot({
-    [dream.primaryKey]: dream.primaryKeyValue as any,
-  })
-  return applySortableScopeToQuery(query, dream, scope)
 }
 
 function clearCachedValues(dream: Dream, cacheKey: string, cachedValuesName: string) {
