@@ -14,14 +14,15 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
 
-  await db.schema
-    .createIndex('posts_unique_position_on_user_id')
-    .on('posts')
-    .columns(['position', 'user_id'])
-    .execute()
+  await sql`
+      ALTER TABLE posts
+      ADD CONSTRAINT posts_unique_position_user_id
+        UNIQUE (user_id, position)
+        DEFERRABLE INITIALLY DEFERRED
+    `.execute(db)
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropIndex('posts_unique_position_on_user_id').execute()
+  await db.schema.alterTable('posts').dropConstraint('posts_unique_position_user_id').execute()
   await db.schema.dropTable('posts').execute()
 }
