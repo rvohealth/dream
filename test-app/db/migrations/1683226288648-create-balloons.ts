@@ -19,26 +19,32 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
 
-  await db.schema
-    .createIndex('beautiful_balloons_uniq_on_alphapos_and_user_id')
-    .on('beautiful_balloons')
-    .columns(['user_id', 'position_alpha'])
-    .unique()
-    .execute()
+  await sql`
+      ALTER TABLE beautiful_balloons
+      ADD CONSTRAINT beautiful_balloons_unique_user_id_position_alpha
+        UNIQUE (user_id, position_alpha)
+        DEFERRABLE INITIALLY DEFERRED
+    `.execute(db)
 
-  await db.schema
-    .createIndex('beautiful_balloons_uniq_on_betapos_and_user_id')
-    .on('beautiful_balloons')
-    .columns(['user_id', 'position_beta', 'type'])
-    .unique()
-    .execute()
+  await sql`
+      ALTER TABLE beautiful_balloons
+      ADD CONSTRAINT beautiful_balloons_unique_user_id_type_position_beta
+        UNIQUE (user_id, type, position_beta)
+        DEFERRABLE INITIALLY DEFERRED
+    `.execute(db)
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('beautiful_balloons')
+    .dropConstraint('beautiful_balloons_unique_user_id_position_alpha')
+    .execute()
+  await db.schema
+    .alterTable('beautiful_balloons')
+    .dropConstraint('beautiful_balloons_unique_user_id_type_position_beta')
+    .execute()
   await db.schema.dropTable('beautiful_balloons').execute()
   await db.schema.dropType('balloon_colors_enum').execute()
-  await db.schema.dropIndex('beautiful_balloons_uniq_on_alphapos_and_user_id').execute()
-  await db.schema.dropIndex('beautiful_balloons_uniq_on_betapos_and_user_id').execute()
   await db.schema.dropType('balloon_colors_enum').execute()
   await db.schema.dropType('balloon_types_enum').execute()
 }
