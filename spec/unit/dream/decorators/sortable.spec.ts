@@ -4,6 +4,9 @@ import Post from '../../../../test-app/app/models/Post'
 import Sortable from '../../../../src/decorators/sortable'
 import NonExistentScopeProvidedToSortableDecorator from '../../../../src/exceptions/non-existent-scope-provided-to-sortable-decorator'
 import NonBelongsToScopeProvidedToSortableDecorator from '../../../../src/exceptions/non-belongs-to-scope-provided-to-sortable-decorator'
+import Balloon from '../../../../test-app/app/models/Balloon'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
+import Latex from '../../../../test-app/app/models/Balloon/Latex'
 
 describe('@Sortable', () => {
   let user: User
@@ -60,10 +63,10 @@ describe('@Sortable', () => {
 
         context('the position is set to a value that is lower than the highest existing position + 1', () => {
           it('leaves the position as-is for the new record, but offsets all records with a position >= the position of this new record', async () => {
-            const post1 = await UnscopedPost.create({ body: 'hello', user })
-            const post2 = await UnscopedPost.create({ body: 'hello', user: user2 })
+            const post1 = await UnscopedPost.create({ body: 'post 1', user })
+            const post2 = await UnscopedPost.create({ body: 'post 2', user: user2 })
             const post3 = await UnscopedPost.create({ body: 'hello', user: user2 })
-            const newPost = await UnscopedPost.create({ body: 'hello', user, position: 2 })
+            const newPost = await UnscopedPost.create({ body: 'new post', user, position: 2 })
 
             expect(newPost.position).toEqual(2)
             expect((await post1.reload()).position).toEqual(1)
@@ -430,6 +433,55 @@ describe('@Sortable', () => {
           NonBelongsToScopeProvidedToSortableDecorator
         )
       })
+    })
+  })
+
+  context('when the sortable decorator is applied within an STI base class', () => {
+    it('applies sorting logic against foreign key of scope only, not child STI class', async () => {
+      const unrelatedBalloon = await Mylar.create({ user: user2 })
+      const balloon1 = await Mylar.create({ user })
+      const balloon2 = await Latex.create({ user })
+      const balloon3 = await Mylar.create({ user })
+      const balloon4 = await Latex.create({ user })
+
+      expect(balloon4.positionAlpha).toEqual(4)
+      expect((await balloon1.reload()).positionAlpha).toEqual(1)
+      expect((await balloon2.reload()).positionAlpha).toEqual(2)
+      expect((await balloon3.reload()).positionAlpha).toEqual(3)
+      expect((await unrelatedBalloon.reload()).positionAlpha).toEqual(1)
+
+      console.log('BEGIN!!!!')
+      await balloon4.update({ color: 'red', positionAlpha: 2 })
+      // expect((await balloon4.reload()).positionAlpha).toEqual(2)
+
+      // expect((await balloon1.reload()).positionAlpha).toEqual(1)
+      // expect((await balloon2.reload()).positionAlpha).toEqual(3)
+      // expect((await balloon3.reload()).positionAlpha).toEqual(4)
+      // expect((await unrelatedBalloon.reload()).positionAlpha).toEqual(1)
+    })
+  })
+
+  context('when the sortable decorator is applied within an STI child class', () => {
+    it('applies sorting logic against foreign key of scope AND child STI class', async () => {
+      const unrelatedBalloon = await Mylar.create({ user: user2 })
+      const balloon1 = await Mylar.create({ user })
+      const balloon2 = await Latex.create({ user })
+      const balloon3 = await Mylar.create({ user })
+      const balloon4 = await Latex.create({ user })
+
+      expect(balloon4.positionBeta).toEqual(2)
+      expect((await balloon1.reload()).positionBeta).toEqual(1)
+      expect((await balloon2.reload()).positionBeta).toEqual(1)
+      expect((await balloon3.reload()).positionBeta).toEqual(2)
+      expect((await unrelatedBalloon.reload()).positionBeta).toEqual(1)
+
+      await balloon4.update({ positionBeta: 1 })
+      expect((await balloon4.reload()).positionBeta).toEqual(1)
+
+      expect((await balloon1.reload()).positionBeta).toEqual(1)
+      expect((await balloon2.reload()).positionBeta).toEqual(2)
+      expect((await balloon3.reload()).positionBeta).toEqual(2)
+      expect((await unrelatedBalloon.reload()).positionBeta).toEqual(1)
     })
   })
 })

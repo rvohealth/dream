@@ -22,27 +22,28 @@ export default async function executeDatabaseQuery<
     `
     : null
 
-  try {
-    if (debugging) {
-      console.log(
-        `
+  // try {
+  if (debugging) {
+    console.log(
+      `
             About to execute the following SQL:
             ${sqlDebugMessage}
           `
-      )
-    }
-
-    return await kyselyQuery[command]()
-  } catch (error) {
-    if (debugging) {
-      console.error(`
-          Error executing the following SQL:
-          ${error}
-
-          ${sqlDebugMessage}
-        `)
-    }
-    // throw the original error to maintain stack trace
-    throw error
+    )
   }
+
+  return await kyselyQuery[command]()
+  // } catch (error) {
+  //   if (debugging) {
+  //     console.error(`
+  //         Error executing the following SQL:
+  //         ${error}
+
+  //         ${sqlDebugMessage}
+  //       `)
+  //   }
+  //   console.trace()
+  //   // throw the original error to maintain stack trace
+  //   throw error
+  // }
 }

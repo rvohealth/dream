@@ -8,7 +8,7 @@ export default function BeforeSave(): any {
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'hooks'))
       dreamClass.hooks = blankHooksFactory(dreamClass)
 
-    dreamClass.hooks['beforeSave'].push({
+    dreamClass.addHook('beforeSave', {
       method: key,
       type: 'beforeSave',
     } as HookStatement)
