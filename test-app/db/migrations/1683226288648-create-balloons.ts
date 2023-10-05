@@ -1,4 +1,5 @@
 import { Kysely, sql } from 'kysely'
+import addDeferrableUniqueConstraint from '../../../src/db/migration-helpers/addDeferrableUniqueConstraint'
 
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema.createType('balloon_colors_enum').asEnum(['red', 'green', 'blue']).execute()
@@ -19,19 +20,19 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
 
-  await sql`
-      ALTER TABLE beautiful_balloons
-      ADD CONSTRAINT beautiful_balloons_unique_user_id_position_alpha
-        UNIQUE (user_id, position_alpha)
-        DEFERRABLE INITIALLY DEFERRED
-    `.execute(db)
+  await addDeferrableUniqueConstraint(
+    'beautiful_balloons_unique_user_id_position_alpha',
+    'beautiful_balloons',
+    ['user_id', 'position_alpha'],
+    db
+  )
 
-  await sql`
-      ALTER TABLE beautiful_balloons
-      ADD CONSTRAINT beautiful_balloons_unique_user_id_type_position_beta
-        UNIQUE (user_id, type, position_beta)
-        DEFERRABLE INITIALLY DEFERRED
-    `.execute(db)
+  await addDeferrableUniqueConstraint(
+    'beautiful_balloons_unique_user_id_type_position_beta',
+    'beautiful_balloons',
+    ['user_id', 'type', 'position_alpha'],
+    db
+  )
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
