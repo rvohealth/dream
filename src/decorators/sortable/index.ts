@@ -21,6 +21,7 @@ import getForeignKeyForSortableScope from './getForeignKeyForSortableScope'
 import decrementPositionForScopedRecordsGreaterThanPosition from './decrementScopedRecordsGreaterThanPosition'
 import sortableQueryExcludingDream from './sortableQueryExcludingDream'
 import clearCachedSortableValues from './clearCachedSortableValues'
+import beforeSortableSave from './beforeSortableSave'
 
 export default function Sortable(opts: SortableOpts = {}): any {
   return function (target: any, key: string, _: any) {
@@ -39,41 +40,14 @@ export default function Sortable(opts: SortableOpts = {}): any {
     // before saving, we remember the new value for position, but clear it from our
     // supervised attributes to prevent position from saving
     ;(dreamClass as any).prototype[beforeSaveMethodName] = async function () {
-      if (!this.willSaveChangeToAttribute(positionField)) return
-
-      const position = this[positionField]
-
-      if (await positionIsInvalid({ query, dream: this, scope: opts.scope, position })) {
-        if (this.isPersisted) {
-          this[positionField] = undefined
-          return
-        } else {
-          this[cacheKey] = this.changes()[positionField]?.was
-        }
-      } else {
-        this[cacheKey] = position
-      }
-
-      // if the only change being saved is a change to position
-      // we can apply position changes immediately, rather than waiting for after hooks to fire.
-      const values = {
-        position: this[cacheKey],
+      await beforeSortableSave({
         dream: this,
         positionField,
-        scope: opts.scope,
-        previousPosition: this.changes()[positionField]?.was,
+        cachedValuesName,
+        cacheKey,
         query,
-      }
-
-      this[cachedValuesName] = values
-
-      // if the previous value for this field was null or undefined, make sure to
-      // set to a real integer to prevent non-null violations at DB level
-      if (this.isPersisted) {
-        this[positionField] = undefined
-      } else {
-        this[positionField] = 0
-      }
+        scope: opts.scope,
+      })
     }
 
     // once saved, we can now safely update position in isolation
