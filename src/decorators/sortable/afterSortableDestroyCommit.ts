@@ -8,14 +8,10 @@ export default async function afterSortableDestroyCommit({
   positionField,
   dream,
   query,
-  cacheKey,
-  cachedValuesName,
   scope,
 }: {
   positionField: string
   dream: Dream
-  cacheKey: string
-  cachedValuesName: string
   query: Query<typeof Dream>
   scope?: string
 }) {
@@ -25,5 +21,5 @@ export default async function afterSortableDestroyCommit({
     scope,
     query,
   })
-  clearCachedSortableValues(dream, cacheKey, cachedValuesName)
+  clearCachedSortableValues(dream, positionField)
 }

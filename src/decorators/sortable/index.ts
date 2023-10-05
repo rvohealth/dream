@@ -17,12 +17,10 @@ export default function Sortable(opts: SortableOpts = {}): any {
     const positionField = key
     const query = new Query(dreamClass)
 
-    const cacheKey = `_cachedPositionFor${pascalize(key)}`
     const beforeSaveMethodName = `_cachePositionFor${pascalize(key)}`
     const afterUpdateMethodName = `_updatePositionFor${pascalize(key)}`
     const afterCreateMethodName = `_setNewPositionFor${pascalize(key)}`
     const afterDestroyMethodName = `_setPositionsAfterDestructionFor${pascalize(key)}`
-    const cachedValuesName = `_${positionField}CachedValues`
 
     // before saving, we remember the new value for position, but clear it from our
     // supervised attributes to prevent position from saving
@@ -30,8 +28,6 @@ export default function Sortable(opts: SortableOpts = {}): any {
       await beforeSortableSave({
         dream: this,
         positionField,
-        cachedValuesName,
-        cacheKey,
         query,
         scope: opts.scope,
       })
@@ -42,8 +38,6 @@ export default function Sortable(opts: SortableOpts = {}): any {
       await afterUpdateSortableCommit({
         dream: this,
         positionField,
-        cachedValuesName,
-        cacheKey,
         query,
         scope: opts.scope,
       })
@@ -56,8 +50,6 @@ export default function Sortable(opts: SortableOpts = {}): any {
       await afterSortableCreateCommit({
         dream: this,
         positionField,
-        cachedValuesName,
-        cacheKey,
         query,
         scope: opts.scope,
       })
@@ -68,8 +60,6 @@ export default function Sortable(opts: SortableOpts = {}): any {
       await afterSortableDestroyCommit({
         dream: this,
         positionField,
-        cachedValuesName,
-        cacheKey,
         query,
         scope: opts.scope,
       })
