@@ -1,22 +1,23 @@
 import Dream from '../../dream'
 import Query from '../../dream/query'
 import positionIsInvalid from './positionIsInvalid'
+import sortableCacheKeyName from './sortableCacheKeyName'
+import sortableCacheValuesName from './sortableCacheValuesName'
 
 export default async function beforeSortableSave({
   positionField,
   dream,
   query,
-  cacheKey,
-  cachedValuesName,
   scope,
 }: {
   positionField: string
   dream: Dream
-  cacheKey: string
-  cachedValuesName: string
   query: Query<typeof Dream>
   scope?: string
 }) {
+  const cacheKey = sortableCacheKeyName(positionField)
+  const cachedValuesName = sortableCacheValuesName(positionField)
+
   if (!dream.willSaveChangeToAttribute(positionField)) return
 
   const position = (dream as any)[positionField]

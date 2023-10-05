@@ -2,22 +2,21 @@ import Dream from '../../dream'
 import Query from '../../dream/query'
 import clearCachedSortableValues from './clearCachedSortableValues'
 import setPosition from './setPosition'
+import sortableCacheKeyName from './sortableCacheKeyName'
 
 export default async function afterSortableCreateCommit({
   positionField,
   dream,
   query,
-  cacheKey,
-  cachedValuesName,
   scope,
 }: {
   positionField: string
   dream: Dream
-  cacheKey: string
-  cachedValuesName: string
   query: Query<typeof Dream>
   scope?: string
 }) {
+  const cacheKey = sortableCacheKeyName(positionField)
+
   await setPosition({
     position: (dream as any)[cacheKey],
     dream,
@@ -27,5 +26,5 @@ export default async function afterSortableCreateCommit({
     query,
   })
 
-  clearCachedSortableValues(dream, cacheKey, cachedValuesName)
+  clearCachedSortableValues(dream, positionField)
 }
