@@ -1,8 +1,8 @@
-import Dream from '../../dream'
-import Query from '../../dream/query'
-import positionIsInvalid from './positionIsInvalid'
-import sortableCacheKeyName from './sortableCacheKeyName'
-import sortableCacheValuesName from './sortableCacheValuesName'
+import Dream from '../../../dream'
+import Query from '../../../dream/query'
+import positionIsInvalid from '../helpers/positionIsInvalid'
+import sortableCacheKeyName from '../helpers/sortableCacheKeyName'
+import sortableCacheValuesName from '../helpers/sortableCacheValuesName'
 
 export default async function beforeSortableSave({
   positionField,

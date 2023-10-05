@@ -1,8 +1,8 @@
-import Dream from '../../dream'
-import Query from '../../dream/query'
-import clearCachedSortableValues from './clearCachedSortableValues'
-import setPosition from './setPosition'
-import sortableCacheKeyName from './sortableCacheKeyName'
+import Dream from '../../../dream'
+import Query from '../../../dream/query'
+import clearCachedSortableValues from '../helpers/clearCachedSortableValues'
+import setPosition from '../helpers/setPosition'
+import sortableCacheKeyName from '../helpers/sortableCacheKeyName'
 
 export default async function afterSortableCreateCommit({
   positionField,

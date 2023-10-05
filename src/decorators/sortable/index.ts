@@ -5,10 +5,10 @@ import BeforeSave from '../hooks/before-save'
 import AfterCreateCommit from '../hooks/after-create-commit'
 import AfterUpdateCommit from '../hooks/after-update-commit'
 import AfterDestroyCommit from '../hooks/after-destroy-commit'
-import beforeSortableSave from './beforeSortableSave'
-import afterUpdateSortableCommit from './afterSortableUpdateCommit'
-import afterSortableCreateCommit from './afterSortableCreateCommit'
-import afterSortableDestroyCommit from './afterSortableDestroyCommit'
+import beforeSortableSave from './hooks/beforeSortableSave'
+import afterUpdateSortableCommit from './hooks/afterSortableUpdateCommit'
+import afterSortableCreateCommit from './hooks/afterSortableCreateCommit'
+import afterSortableDestroyCommit from './hooks/afterSortableDestroyCommit'
 
 export default function Sortable(opts: SortableOpts = {}): any {
   return function (target: any, key: string, _: any) {

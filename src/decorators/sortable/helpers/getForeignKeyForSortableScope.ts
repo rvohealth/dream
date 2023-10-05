@@ -1,9 +1,9 @@
-import Dream from '../../dream'
-import NonBelongsToScopeProvidedToSortableDecorator from '../../exceptions/non-belongs-to-scope-provided-to-sortable-decorator'
-import NonExistentScopeProvidedToSortableDecorator from '../../exceptions/non-existent-scope-provided-to-sortable-decorator'
-import { BelongsToStatement } from '../associations/belongs-to'
-import { HasManyStatement } from '../associations/has-many'
-import { HasOneStatement } from '../associations/has-one'
+import Dream from '../../../dream'
+import NonBelongsToScopeProvidedToSortableDecorator from '../../../exceptions/non-belongs-to-scope-provided-to-sortable-decorator'
+import NonExistentScopeProvidedToSortableDecorator from '../../../exceptions/non-existent-scope-provided-to-sortable-decorator'
+import { BelongsToStatement } from '../../associations/belongs-to'
+import { HasManyStatement } from '../../associations/has-many'
+import { HasOneStatement } from '../../associations/has-one'
 
 export default function getForeignKeyForSortableScope(dream: Dream, scope?: string) {
   if (!scope) return null

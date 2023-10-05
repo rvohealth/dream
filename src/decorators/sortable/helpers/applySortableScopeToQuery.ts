@@ -1,5 +1,5 @@
-import Dream from '../../dream'
-import Query from '../../dream/query'
+import Dream from '../../../dream'
+import Query from '../../../dream/query'
 import getForeignKeyForSortableScope from './getForeignKeyForSortableScope'
 
 export default function applySortableScopeToQuery(query: Query<typeof Dream>, dream: Dream, scope?: string) {

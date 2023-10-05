@@ -1,5 +1,5 @@
-import Dream from '../../dream'
-import Query from '../../dream/query'
+import Dream from '../../../dream'
+import Query from '../../../dream/query'
 import applySortableScopeToQuery from './applySortableScopeToQuery'
 
 export default function sortableQueryExcludingDream(

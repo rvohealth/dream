@@ -1,4 +1,4 @@
-import Dream from '../../dream'
+import Dream from '../../../dream'
 import sortableCacheKeyName from './sortableCacheKeyName'
 import sortableCacheValuesName from './sortableCacheValuesName'
 
