@@ -450,14 +450,13 @@ describe('@Sortable', () => {
       expect((await balloon3.reload()).positionAlpha).toEqual(3)
       expect((await unrelatedBalloon.reload()).positionAlpha).toEqual(1)
 
-      console.log('BEGIN!!!!')
       await balloon4.update({ color: 'red', positionAlpha: 2 })
-      // expect((await balloon4.reload()).positionAlpha).toEqual(2)
+      expect((await balloon4.reload()).positionAlpha).toEqual(2)
 
-      // expect((await balloon1.reload()).positionAlpha).toEqual(1)
-      // expect((await balloon2.reload()).positionAlpha).toEqual(3)
-      // expect((await balloon3.reload()).positionAlpha).toEqual(4)
-      // expect((await unrelatedBalloon.reload()).positionAlpha).toEqual(1)
+      expect((await balloon1.reload()).positionAlpha).toEqual(1)
+      expect((await balloon2.reload()).positionAlpha).toEqual(3)
+      expect((await balloon3.reload()).positionAlpha).toEqual(4)
+      expect((await unrelatedBalloon.reload()).positionAlpha).toEqual(1)
     })
   })
 
