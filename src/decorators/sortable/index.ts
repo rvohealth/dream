@@ -55,7 +55,8 @@ export default function Sortable(opts: SortableOpts = {}): any {
       })
     }
 
-    // after destroy, auto-adjust positions of all related records to maintain incrementing order
+    // after destroy, auto-adjust positions of all related records with a greater position
+    // than this one to maintain incrementing order,
     ;(dreamClass as any).prototype[afterDestroyMethodName] = async function () {
       await afterSortableDestroyCommit({
         dream: this,
