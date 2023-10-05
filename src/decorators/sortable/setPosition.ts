@@ -86,13 +86,13 @@ async function setNewPosition({
   query: Query<typeof Dream>
   scope?: string
 }) {
-  const numConflictingRecords = await sortableQueryExcludingDream(dream, query, scope).count()
+  const newPosition = (await sortableQueryExcludingDream(dream, query, scope).max(positionField)) + 1
 
   await db('primary', dream.dreamconf)
     .updateTable(dream.table as any)
     .where(dream.primaryKey as any, '=', dream.primaryKeyValue)
     .set({
-      [positionField]: numConflictingRecords + 1,
+      [positionField]: newPosition,
     })
     .execute()
 
