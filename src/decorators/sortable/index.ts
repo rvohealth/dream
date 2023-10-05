@@ -9,6 +9,7 @@ import decrementPositionForScopedRecordsGreaterThanPosition from './decrementSco
 import clearCachedSortableValues from './clearCachedSortableValues'
 import beforeSortableSave from './beforeSortableSave'
 import setPosition from './setPosition'
+import afterUpdateSortableCommit from './afterSortableUpdateCommit'
 
 export default function Sortable(opts: SortableOpts = {}): any {
   return function (target: any, key: string, _: any) {
@@ -39,21 +40,14 @@ export default function Sortable(opts: SortableOpts = {}): any {
 
     // once saved, we can now safely update position in isolation
     ;(dreamClass as any).prototype[afterUpdateMethodName] = async function () {
-      if (!this[cacheKey]) return
-      if (this[cachedValuesName]) {
-        await setPosition(this[cachedValuesName] as any)
-      } else {
-        await setPosition({
-          position: this[cacheKey],
-          dream: this,
-          positionField,
-          scope: opts.scope,
-          previousPosition: this.changes()[positionField]?.was,
-          query,
-        })
-      }
-
-      clearCachedSortableValues(this, cacheKey, cachedValuesName)
+      await afterUpdateSortableCommit({
+        dream: this,
+        positionField,
+        cachedValuesName,
+        cacheKey,
+        query,
+        scope: opts.scope,
+      })
     }
 
     // after create, we always want to ensure the position is set, so if they provide one,
