@@ -18,6 +18,7 @@ import AfterDestroyCommit from '../hooks/after-destroy-commit'
 import positionIsInvalid from './positionIsInvalid'
 import applySortableScopeToQuery from './applySortableScopeToQuery'
 import getForeignKeyForSortableScope from './getForeignKeyForSortableScope'
+import decrementPositionForScopedRecordsGreaterThanPosition from './decrementScopedRecordsGreaterThanPosition'
 
 export default function Sortable(opts: SortableOpts = {}): any {
   return function (target: any, key: string, _: any) {
@@ -109,7 +110,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
 
     // after destroy, auto-adjust positions of all related records to maintain incrementing order
     ;(dreamClass as any).prototype[afterDestroyMethodName] = async function () {
-      autoadjustPositions({
+      await decrementPositionForScopedRecordsGreaterThanPosition(this[positionField], {
         dream: this,
         positionField,
         scope: opts.scope,
@@ -258,39 +259,6 @@ async function setNewPosition({
     .execute()
 
   await dream.reload()
-}
-
-async function autoadjustPositions({
-  dream,
-  positionField,
-  query,
-  scope,
-}: {
-  dream: Dream
-  positionField: string
-  query: Query<typeof Dream>
-  scope?: string
-}) {
-  const position = (dream as any)[positionField]
-
-  let kyselyQuery = query
-    .whereNot({ [dream.primaryKey]: dream.primaryKeyValue as any })
-    .where({
-      [positionField]: ops.greaterThanOrEqualTo(position),
-    })
-    .toKysely('update')
-    .set((eb: ExpressionBuilder<(typeof dream)['DB'], typeof dream.table>) => {
-      return {
-        [positionField]: eb(positionField, '-', 1),
-      }
-    })
-
-  const foreignKey = getForeignKeyForSortableScope(dream, scope)
-  if (foreignKey) {
-    kyselyQuery = kyselyQuery.where(foreignKey, '=', (dream as any)[foreignKey])
-  }
-
-  await kyselyQuery.execute()
 }
 
 async function updatePositionForRecord(
