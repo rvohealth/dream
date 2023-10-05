@@ -33,8 +33,7 @@ export default async function beforeSortableSave({
     ;(dream as any)[cacheKey] = position
   }
 
-  // if the only change being saved is a change to position
-  // we can apply position changes immediately, rather than waiting for after hooks to fire.
+  // store values to be used in after create/update hook
   const values = {
     position: (dream as any)[cacheKey],
     dream: dream,
@@ -45,11 +44,14 @@ export default async function beforeSortableSave({
   }
   ;(dream as any)[cachedValuesName] = values
 
-  // if the previous value for dream field was null or undefined, make sure to
-  // set to a real integer to prevent non-null violations at DB level
   if (dream.isPersisted) {
+    // if the dream is saved, set the position field to undefined, which will cause
+    // the update cycle to ignore the position field. We will proceed to update it in an
+    // AfterUpdateCommit hook
     ;(dream as any)[positionField] = undefined
   } else {
+    // if the dream is not saved, set position to 0 to prevent collisions with existing position values.
+    // it will be updated in an AfterCreateCommit hook to the correct value after saving.
     ;(dream as any)[positionField] = 0
   }
 }
