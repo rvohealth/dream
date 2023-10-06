@@ -53,6 +53,9 @@ import LoadBuilder from './dream/load-builder'
 import { DbConnectionType } from './db/types'
 import MissingDB from './exceptions/missing-db'
 import Dreamconf from '../shared/dreamconf'
+import resortAllRecords from './decorators/sortable/helpers/resortAllRecords'
+import { SortableFieldConfig } from './decorators/sortable'
+import NonExistentScopeProvidedToResort from './exceptions/non-existent-scope-provided-to-resort'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -76,6 +79,7 @@ export default class Dream {
   }
 
   public static virtualAttributes: VirtualAttributeStatement[] = []
+  public static sortableFields: SortableFieldConfig[] = []
 
   public static extendedBy: (typeof Dream)[] | null
 
@@ -438,6 +442,19 @@ export default class Dream {
   >(this: T, ...fields: SelectArg<DB, ExtractTableAlias<DB, I['table']>, SE>[]) {
     let query: Query<T> = new Query<T>(this)
     return await query.pluck(...(fields as any[]))
+  }
+
+  public static async resort<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, I['table']>>
+  >(this: T, ...fields: SelectArg<DB, ExtractTableAlias<DB, I['table']>, SE>[]) {
+    for (const field of fields) {
+      const sortableMetadata = this.sortableFields.find(conf => conf.positionField === field)
+      if (!sortableMetadata) throw new NonExistentScopeProvidedToResort(fields as string[], this)
+      await resortAllRecords(this, field as string, sortableMetadata.scope)
+    }
   }
 
   public static scope<T extends typeof Dream>(this: T, scopeName: string) {
