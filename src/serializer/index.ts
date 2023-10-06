@@ -7,6 +7,7 @@ import { AssociationStatement } from './decorators/associations/shared'
 import { DelegateStatement } from './decorators/delegate'
 import { loadDreamYamlFile } from '../helpers/path'
 import MissingSerializer from '../exceptions/missing-serializer'
+import round from '../helpers/round'
 
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
   public static attributeStatements: AttributeStatement[] = []
@@ -83,12 +84,19 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
       )
 
       if (attributeStatement) {
-        const { field, renderAs } = attributeStatement
+        const { field, renderAs, options } = attributeStatement
         const fieldWithCasing = this.applyCasingToField(field)
         switch (renderAs) {
           case 'date':
-            const fieldValue: DateTime | undefined = this.getAttributeValue(attributeStatement)
-            returnObj[fieldWithCasing] = fieldValue?.toFormat('yyyy-MM-dd') || null
+            const dateValue: DateTime | null | undefined = this.getAttributeValue(attributeStatement)
+            returnObj[fieldWithCasing] = dateValue?.toFormat('yyyy-MM-dd') || null
+            break
+
+          case 'round':
+            const roundValue: number | null | undefined = this.getAttributeValue(attributeStatement)
+
+            returnObj[fieldWithCasing] =
+              typeof roundValue === 'number' ? round(roundValue, options?.precision) : null
             break
 
           default:

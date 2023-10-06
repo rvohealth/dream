@@ -90,7 +90,7 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
       })
 
       context('one of those attributes is a number', () => {
-        it('adds a string type to the field', async () => {
+        it('adds a number type to the field', async () => {
           const res = await generateSerializerContent('UserSerializer', 'User', ['howyadoin:number'])
 
           expect(res).toEqual(
@@ -108,7 +108,7 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
       })
 
       context('one of those attributes is a decimal', () => {
-        it('adds a string type to the field', async () => {
+        it('adds a number attribute, rounded to the precision of the decimal', async () => {
           const res = await generateSerializerContent('UserSerializer', 'User', ['howyadoin:decimal:4,2'])
 
           expect(res).toEqual(
@@ -117,7 +117,7 @@ import { DreamSerializer, Attribute } from 'dream'
 import User from '../models/User'
 
 export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
-  @Attribute()
+  @Attribute('round', { precision: 2 })
   public howyadoin: number
 }\
 `
