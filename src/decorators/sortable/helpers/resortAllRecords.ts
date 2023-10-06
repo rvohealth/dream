@@ -1,5 +1,6 @@
 import Dream from '../../../dream'
 import getForeignKeyForSortableScope from './getForeignKeyForSortableScope'
+import isSortedCorrectly from './isSortedCorrectly'
 import scopeArray from './scopeArray'
 
 export default async function resortAllRecords(
@@ -17,6 +18,9 @@ export default async function resortAllRecords(
 
   for (const dreamArr of Object.values(hash)) {
     const dreams = dreamArr as Dream[]
+
+    if (isSortedCorrectly(dreams, positionField)) continue
+
     await dreamClass.transaction(async txn => {
       let counter = 1
       for (const dream of dreams) {

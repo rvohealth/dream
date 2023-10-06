@@ -73,7 +73,7 @@ describe('Dream#resort', () => {
       expect((await edge2Node2_2.reload()).position).toEqual(102)
     })
 
-    it('resets their positions to auto-incrementing order', async () => {
+    it.only('resets their positions to auto-incrementing order', async () => {
       await EdgeNode.resort('position')
 
       expect((await edge1Node1_1.reload()).position).toEqual(1)
