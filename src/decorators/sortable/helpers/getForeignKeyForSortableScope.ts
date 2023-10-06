@@ -4,9 +4,11 @@ import NonExistentScopeProvidedToSortableDecorator from '../../../exceptions/non
 import { BelongsToStatement } from '../../associations/belongs-to'
 import { HasManyStatement } from '../../associations/has-many'
 import { HasOneStatement } from '../../associations/has-one'
+import scopeArray from './scopeArray'
 
 export default function getForeignKeyForSortableScope(dream: Dream, scope?: string) {
   if (!scope) return null
+
   const associationMetadata = (dream.associationMap() as any)[scope] as
     | BelongsToStatement<any, any, string>
     | HasManyStatement<any, any, string>

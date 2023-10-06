@@ -120,6 +120,7 @@ export interface GraphEdgeNodes {
   id: Generated<Int8>;
   edgeId: Int8;
   nodeId: Int8;
+  position: number | null;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -244,7 +245,7 @@ export const CompositionAssetColumns = ['id', 'compositionId', 'name', 'src', 'p
 export const CompositionColumns = ['id', 'userId', 'content', 'primary', 'createdAt', 'updatedAt']
 export const EdgeCaseAttributeColumns = ['id', 'kPop', 'popK', 'popKPop', 'createdAt', 'updatedAt']
 export const ExtraRatingColumns = ['type', 'id', 'userId', 'extraRateableId', 'extraRateableType', 'rating', 'createdAt', 'updatedAt']
-export const GraphEdgeNodeColumns = ['id', 'edgeId', 'nodeId', 'createdAt', 'updatedAt']
+export const GraphEdgeNodeColumns = ['id', 'edgeId', 'nodeId', 'position', 'createdAt', 'updatedAt']
 export const GraphEdgeColumns = ['id', 'name', 'createdAt', 'updatedAt']
 export const GraphNodeColumns = ['id', 'name', 'createdAt', 'updatedAt']
 export const IncompatibleForeignKeyTypeExampleColumns = ['id', 'userId', 'createdAt', 'updatedAt']
@@ -353,6 +354,7 @@ export interface GraphEdgeNodeAttributes {
   id: IdType
   edgeId: IdType
   nodeId: IdType
+  position: number | null
   createdAt: DateTime
   updatedAt: DateTime
 }  
@@ -540,6 +542,7 @@ export const GraphEdgeNodesTypeCache = {
   id: 'Generated<Int8>',
   edgeId: 'Int8',
   nodeId: 'Int8',
+  position: 'number|null',
   createdAt: 'Timestamp',
   updatedAt: 'Timestamp'
 }  

@@ -7,6 +7,9 @@ import NonBelongsToScopeProvidedToSortableDecorator from '../../../../src/except
 import Balloon from '../../../../test-app/app/models/Balloon'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
+import Edge from '../../../../test-app/app/models/Graph/Edge'
+import Node from '../../../../test-app/app/models/Graph/Node'
+import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
 
 describe('@Sortable', () => {
   let user: User
@@ -481,6 +484,34 @@ describe('@Sortable', () => {
       expect((await balloon2.reload()).positionBeta).toEqual(2)
       expect((await balloon3.reload()).positionBeta).toEqual(2)
       expect((await unrelatedBalloon.reload()).positionBeta).toEqual(1)
+    })
+  })
+
+  context('with multiple scopes', () => {
+    it('it correctly applies all foreign keys', async () => {
+      const edge1 = await Edge.create({ name: 'edge 1' })
+      const edge2 = await Edge.create({ name: 'edge 2' })
+      const node1 = await Node.create({ name: 'node 1' })
+      const node2 = await Node.create({ name: 'node 2' })
+
+      const unrelatedNode1 = await EdgeNode.create({ edge: edge2, node: node1 })
+      const unrelatedNode2 = await EdgeNode.create({ edge: edge1, node: node2 })
+      const edgeNode1 = await EdgeNode.create({ edge: edge1, node: node1 })
+      const edgeNode2 = await EdgeNode.create({ edge: edge1, node: node1 })
+      const edgeNode3 = await EdgeNode.create({ edge: edge1, node: node1 })
+
+      expect(edgeNode3.position).toEqual(3)
+      expect((await edgeNode1.reload()).position).toEqual(1)
+      expect((await edgeNode2.reload()).position).toEqual(2)
+      expect((await unrelatedNode1.reload()).position).toEqual(1)
+      expect((await unrelatedNode2.reload()).position).toEqual(1)
+
+      await edgeNode3.update({ position: 1 })
+      expect((await edgeNode3.reload()).position).toEqual(1)
+      expect((await edgeNode1.reload()).position).toEqual(2)
+      expect((await edgeNode2.reload()).position).toEqual(3)
+      expect((await unrelatedNode1.reload()).position).toEqual(1)
+      expect((await unrelatedNode2.reload()).position).toEqual(1)
     })
   })
 })

@@ -13,7 +13,7 @@ export default async function afterSortableDestroyCommit({
   positionField: string
   dream: Dream
   query: Query<typeof Dream>
-  scope?: string
+  scope?: string | string[]
 }) {
   await decrementPositionForScopedRecordsGreaterThanPosition((dream as any)[positionField], {
     dream,

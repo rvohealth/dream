@@ -5,6 +5,7 @@ import GraphEdgeNodeSerializer from '../../../../test-app/app/serializers/Graph/
 import GraphEdge from './Edge'
 import GraphNode from './Node'
 import ApplicationModel from '../ApplicationModel'
+import { Sortable } from '../../../../src'
 
 export default class EdgeNode extends ApplicationModel {
   public get table() {
@@ -18,6 +19,9 @@ export default class EdgeNode extends ApplicationModel {
   public id: IdType
   public createdAt: DateTime
   public updatedAt: DateTime
+
+  @Sortable({ scope: ['edge', 'node'] })
+  public position: number
 
   @BelongsTo(() => GraphEdge, { foreignKey: 'edgeId' })
   public edge: GraphEdge
