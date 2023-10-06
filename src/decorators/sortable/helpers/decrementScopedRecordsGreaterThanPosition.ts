@@ -3,6 +3,7 @@ import Dream from '../../../dream'
 import Query from '../../../dream/query'
 import ops from '../../../ops'
 import getForeignKeyForSortableScope from './getForeignKeyForSortableScope'
+import scopeArray from './scopeArray'
 
 export default async function decrementPositionForScopedRecordsGreaterThanPosition(
   position: number,
@@ -15,7 +16,7 @@ export default async function decrementPositionForScopedRecordsGreaterThanPositi
     dream: Dream
     positionField: string
     query: Query<typeof Dream>
-    scope?: string
+    scope?: string | string[]
   }
 ) {
   let kyselyQuery = query
@@ -30,9 +31,11 @@ export default async function decrementPositionForScopedRecordsGreaterThanPositi
       }
     })
 
-  const foreignKey = getForeignKeyForSortableScope(dream, scope)
-  if (foreignKey) {
-    kyselyQuery = kyselyQuery.where(foreignKey, '=', (dream as any)[foreignKey])
+  for (const singleScope of scopeArray(scope)) {
+    const foreignKey = getForeignKeyForSortableScope(dream, singleScope)
+    if (foreignKey) {
+      kyselyQuery = kyselyQuery.where(foreignKey, '=', (dream as any)[foreignKey])
+    }
   }
 
   await kyselyQuery.execute()

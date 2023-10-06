@@ -74,5 +74,5 @@ export default function Sortable(opts: SortableOpts = {}): any {
 }
 
 export interface SortableOpts {
-  scope?: string
+  scope?: string | string[] | string[]
 }

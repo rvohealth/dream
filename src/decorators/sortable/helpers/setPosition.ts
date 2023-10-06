@@ -6,6 +6,7 @@ import DreamTransaction from '../../../dream/transaction'
 import range from '../../../helpers/range'
 import getForeignKeyForSortableScope from './getForeignKeyForSortableScope'
 import sortableQueryExcludingDream from './sortableQueryExcludingDream'
+import scopeArray from './scopeArray'
 
 export default async function setPosition({
   position,
@@ -20,7 +21,7 @@ export default async function setPosition({
   previousPosition?: number
   positionField: string
   query: Query<typeof Dream>
-  scope?: string
+  scope?: string | string[]
 }) {
   if (position) {
     await setPositionFromValue({
@@ -54,7 +55,7 @@ async function setPositionFromValue({
   previousPosition?: number
   positionField: string
   query: Query<typeof Dream>
-  scope?: string
+  scope?: string | string[]
 }) {
   const newPosition = position
 
@@ -84,7 +85,7 @@ async function setNewPosition({
   dream: Dream
   positionField: string
   query: Query<typeof Dream>
-  scope?: string
+  scope?: string | string[]
 }) {
   const newPosition = (await sortableQueryExcludingDream(dream, query, scope).max(positionField)) + 1
 
@@ -113,7 +114,7 @@ async function updateConflictingRecords({
   previousPosition?: number
   positionField: string
   query: Query<typeof Dream>
-  scope?: string
+  scope?: string | string[]
   txn: DreamTransaction<any>
 }) {
   const newPosition = position
@@ -134,9 +135,11 @@ async function updateConflictingRecords({
       }
     })
 
-  const foreignKey = getForeignKeyForSortableScope(dream, scope)
-  if (foreignKey) {
-    kyselyQuery = kyselyQuery.where(foreignKey, '=', (dream as any)[foreignKey])
+  for (const singleScope of scopeArray(scope)) {
+    const foreignKey = getForeignKeyForSortableScope(dream, singleScope)
+    if (foreignKey) {
+      kyselyQuery = kyselyQuery.where(foreignKey, '=', (dream as any)[foreignKey])
+    }
   }
 
   await kyselyQuery.execute()
@@ -147,7 +150,7 @@ async function updatePositionForRecord(
   dream: Dream,
   positionField: string,
   position: number,
-  scope?: string
+  scope?: string | string[]
 ) {
   await txn.kyselyTransaction
     .updateTable(dream.table as any)
