@@ -53,7 +53,7 @@ export default class ${serializerClass}${dataTypeCapture} extends DreamSerialize
   public ${pluralize(camelize(classNameFromRawStr(name)))}: ${classNameFromRawStr(name)}[]`
 
         default:
-          return `@Attribute(${attributeSpecifier(type)})
+          return `@Attribute(${attributeSpecifier(type)}${attributeOptionsSpecifier(type, attr)})
   public ${camelize(name)}: ${jsType(type)}`
       }
     })
@@ -66,6 +66,17 @@ function attributeSpecifier(type: string) {
   switch (type) {
     case 'date':
       return "'date'"
+    case 'decimal':
+      return "'round'"
+    default:
+      return ''
+  }
+}
+
+function attributeOptionsSpecifier(type: string, attr: string) {
+  switch (type) {
+    case 'decimal':
+      return `, { precision: ${attr.split(',').pop()} }`
     default:
       return ''
   }

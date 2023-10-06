@@ -90,7 +90,7 @@ describe('DreamSerializer#render', () => {
 
   context('with decorated attributes', () => {
     context('one of the fields is a date', () => {
-      let subject = () => new MySerializer({ createdAt: createdAt }).render()
+      let subject = () => new MySerializer({ createdAt }).render()
       let createdAt: DateTime | null | undefined
 
       beforeEach(() => {
@@ -127,6 +127,88 @@ describe('DreamSerializer#render', () => {
             createdAt: undefined,
           })
           expect(serializer.render()).toEqual({ createdAt: null })
+        })
+      })
+    })
+
+    context('round', () => {
+      let kilos: Number | null | undefined
+
+      beforeEach(() => {
+        kilos = null
+      })
+
+      context('without an explicit precision', () => {
+        let subject = () => new MySerializer({ kilos }).render()
+        class MySerializer extends DreamSerializer {
+          @Attribute('round')
+          public kilos: number
+        }
+
+        context('the number field is a number', () => {
+          beforeEach(() => {
+            kilos = 7.9351
+          })
+
+          it('rounds the number to an integer', async () => {
+            expect(subject()).toEqual({ kilos: 8 })
+          })
+        })
+
+        context('the number field is null', () => {
+          it('sets the field to null on the serializer', () => {
+            expect(subject()).toEqual({ kilos: null })
+          })
+        })
+
+        context('the number field is undefined', () => {
+          beforeEach(() => {
+            kilos = undefined
+          })
+
+          it('sets the field to null on the serializer', () => {
+            const serializer = new MySerializer({
+              kilos: undefined,
+            })
+            expect(serializer.render()).toEqual({ kilos: null })
+          })
+        })
+      })
+
+      context('with an explicit precision', () => {
+        let subject = () => new MySerializer({ kilos }).render()
+        class MySerializer extends DreamSerializer {
+          @Attribute('round', { precision: 2 })
+          public kilos: number
+        }
+
+        context('the number field is a number', () => {
+          beforeEach(() => {
+            kilos = 7.9351
+          })
+
+          it('rounds the number to the specified precision', async () => {
+            expect(subject()).toEqual({ kilos: 7.94 })
+          })
+        })
+
+        context('the number field is null', () => {
+          it('sets the field to null on the serializer', () => {
+            expect(subject()).toEqual({ kilos: null })
+          })
+        })
+
+        context('the number field is undefined', () => {
+          beforeEach(() => {
+            kilos = undefined
+          })
+
+          it('sets the field to null on the serializer', () => {
+            const serializer = new MySerializer({
+              kilos: undefined,
+            })
+            expect(serializer.render()).toEqual({ kilos: null })
+          })
         })
       })
     })
