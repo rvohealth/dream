@@ -9,10 +9,18 @@ import beforeSortableSave from './hooks/beforeSortableSave'
 import afterUpdateSortableCommit from './hooks/afterSortableUpdateCommit'
 import afterSortableCreateCommit from './hooks/afterSortableCreateCommit'
 import afterSortableDestroyCommit from './hooks/afterSortableDestroyCommit'
+import resortAllRecords from './helpers/resortAllRecords'
+import scopeArray from './helpers/scopeArray'
 
 export default function Sortable(opts: SortableOpts = {}): any {
   return function (target: any, key: string, _: any) {
     const dreamClass: typeof Dream = target.constructor
+
+    if (!Object.getOwnPropertyDescriptor(dreamClass, 'sortableFields')) dreamClass.sortableFields = []
+    dreamClass.sortableFields.push({
+      scope: scopeArray(opts.scope),
+      positionField: key,
+    })
 
     const positionField = key
     const query = new Query(dreamClass)
@@ -75,4 +83,9 @@ export default function Sortable(opts: SortableOpts = {}): any {
 
 export interface SortableOpts {
   scope?: string | string[] | string[]
+}
+
+export interface SortableFieldConfig {
+  scope: string[]
+  positionField: string
 }
