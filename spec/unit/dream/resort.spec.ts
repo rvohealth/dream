@@ -4,6 +4,10 @@ import Node from '../../../test-app/app/models/Graph/Node'
 import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode'
 import { ExpressionBuilder } from 'kysely'
 import NonExistentScopeProvidedToResort from '../../../src/exceptions/non-existent-scope-provided-to-resort'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar'
+import Latex from '../../../test-app/app/models/Balloon/Latex'
+import User from '../../../test-app/app/models/User'
+import Balloon from '../../../test-app/app/models/Balloon'
 
 describe('Dream#resort', () => {
   let edge1: Edge
@@ -73,7 +77,7 @@ describe('Dream#resort', () => {
       expect((await edge2Node2_2.reload()).position).toEqual(102)
     })
 
-    it.only('resets their positions to auto-incrementing order', async () => {
+    it('resets their positions to auto-incrementing order', async () => {
       await EdgeNode.resort('position')
 
       expect((await edge1Node1_1.reload()).position).toEqual(1)
@@ -91,6 +95,34 @@ describe('Dream#resort', () => {
       await expect(async () => await EdgeNode.resort('createdAt')).rejects.toThrowError(
         NonExistentScopeProvidedToResort
       )
+    })
+  })
+
+  context('with an STI base class', () => {
+    it('resets their positions to auto-incrementing order', async () => {
+      const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      const user2 = await User.create({ email: 'how@yadoin2', password: 'howyadoin' })
+      const unrelatedBalloon = await Mylar.create({ user: user2 })
+      const balloon1 = await Mylar.create({ user })
+      const balloon2 = await Latex.create({ user })
+      const balloon3 = await Mylar.create({ user })
+      const balloon4 = await Latex.create({ user })
+
+      await Balloon.where({ id: balloon1.id })
+        .toKysely('update')
+        .set({
+          positionAlpha: 7,
+        })
+        .execute()
+
+      expect((await balloon1.reload()).positionAlpha).toEqual(7)
+      await Balloon.resort('positionAlpha')
+
+      expect((await balloon2.reload()).positionAlpha).toEqual(1)
+      expect((await balloon3.reload()).positionAlpha).toEqual(2)
+      expect((await balloon4.reload()).positionAlpha).toEqual(3)
+      expect((await balloon1.reload()).positionAlpha).toEqual(4)
+      expect((await unrelatedBalloon.reload()).positionAlpha).toEqual(1)
     })
   })
 })
