@@ -7,9 +7,10 @@ export default async function addDeferrableUniqueConstraint(
   db: Kysely<any>
 ) {
   await sql`
+    ALTER TABLE ${sql.table(tableName)} DROP CONSTRAINT IF EXISTS ${sql.table(constraintName)};
     ALTER TABLE ${sql.table(tableName)}
     ADD CONSTRAINT ${sql.table(constraintName)}
       UNIQUE (${sql.raw(columns.join(', '))})
-      DEFERRABLE INITIALLY DEFERRED
+      DEFERRABLE INITIALLY DEFERRED;
   `.execute(db)
 }
