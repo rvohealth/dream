@@ -11,7 +11,7 @@ export default class LoadBuilder<DreamInstance extends Dream> {
   private query: Query<DreamConstructorType<DreamInstance>>
 
   constructor(dream: Dream) {
-    this.dream = dream
+    this.dream = dream.clone()
     const base = this.dream.constructor as DreamConstructorType<DreamInstance>
     this.query = new Query<DreamConstructorType<DreamInstance>>(base)
   }
@@ -63,7 +63,8 @@ export default class LoadBuilder<DreamInstance extends Dream> {
     return this
   }
 
-  public async execute(): Promise<void> {
+  public async execute(): Promise<DreamInstance> {
     await this.query.hydratePreload(this.dream)
+    return this.dream as DreamInstance
   }
 }

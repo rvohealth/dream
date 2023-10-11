@@ -12,17 +12,26 @@ describe('Dream#load', () => {
     pet = await user.createAssociation('pets', { species: 'cat', name: 'aster' })
   })
 
+  it('returns a copy of the dream instance', async () => {
+    const clone = await user.load('pets').execute()
+    expect(clone).toMatchDreamModel(user)
+    expect(clone).not.toBe(user)
+
+    expect(clone.pets).toMatchDreamModels([pet])
+    expect(clone.pets).not.toBe(user.pets)
+  })
+
   context('Has(One/Many) association', () => {
     it('loads the association', async () => {
-      await user.load('pets').execute()
-      expect(user.pets).toMatchDreamModels([await Pet.findBy({ name: 'aster' })])
+      const clone = await user.load('pets').execute()
+      expect(clone.pets).toMatchDreamModels([await Pet.findBy({ name: 'aster' })])
     })
   })
 
   context('BelongsATo association', () => {
     it('loads the association', async () => {
-      await pet.load('user').execute()
-      expect(pet.user).toMatchDreamModel(await User.findBy({ email: 'fred@fred' }))
+      const clone = await pet.load('user').execute()
+      expect(clone.user).toMatchDreamModel(await User.findBy({ email: 'fred@fred' }))
     })
   })
 
@@ -32,27 +41,29 @@ describe('Dream#load', () => {
       const compositionAsset = await composition?.createAssociation('compositionAssets', {
         name: 'compositionAsset X',
       })
-      await user.load('compositionAssets').execute()
-      expect(user.compositionAssets).toMatchDreamModels([compositionAsset])
+      const clone = await user.load('compositionAssets').execute()
+      expect(clone.compositionAssets).toMatchDreamModels([compositionAsset])
     })
   })
 
   context('when called twice', () => {
     context('Has(One/Many) association', () => {
       it('loads the first time, then reloads', async () => {
-        await user.load('pets').execute()
+        const clone = await user.load('pets').execute()
         await pet.update({ name: 'Snoopy' })
-        await user.load('pets').execute()
-        expect(user.pets).toMatchDreamModels([await Pet.findBy({ name: 'Snoopy' })])
+        const clone2 = await user.load('pets').execute()
+        expect(clone2.pets).toMatchDreamModels([await Pet.findBy({ name: 'Snoopy' })])
+        expect(clone2.pets).not.toEqual(clone.pets)
       })
     })
 
     context('BelongsATo association', () => {
       it('loads the first time, then reloads', async () => {
-        await pet.load('user').execute()
+        const clone = await pet.load('user').execute()
         await user.update({ email: 'lucy@peanuts.com' })
-        await pet.load('user').execute()
-        expect(pet.user).toMatchDreamModel(await User.findBy({ email: 'lucy@peanuts.com' }))
+        const clone2 = await pet.load('user').execute()
+        expect(clone2.user).toMatchDreamModel(await User.findBy({ email: 'lucy@peanuts.com' }))
+        expect(clone2.user).not.toEqual(clone.user)
       })
     })
 
@@ -62,21 +73,22 @@ describe('Dream#load', () => {
         const compositionAsset = await composition?.createAssociation('compositionAssets', {
           name: 'compositionAsset X',
         })
-        await user.load('compositionAssets').execute()
+        const clone = await user.load('compositionAssets').execute()
         await compositionAsset.update({ name: 'hello' })
-        await user.load('compositionAssets').execute()
-        expect(user.compositionAssets![0].name).toEqual('hello')
+        const clone2 = await user.load('compositionAssets').execute()
+        expect(clone2.compositionAssets![0].name).toEqual('hello')
+        expect(clone2.compositionAssets).not.toEqual(clone.compositionAssets)
       })
     })
 
     it('allows chaining load statements', async () => {
       const composition = await user.createAssociation('compositions', { name: 'composition A' })
-      const compositionAsset = await composition?.createAssociation('compositionAssets', {
+      await composition?.createAssociation('compositionAssets', {
         name: 'compositionAsset X',
       })
-      await user.load('compositionAssets').load('pets').execute()
-      expect(user.compositionAssets![0].name).toEqual('compositionAsset X')
-      expect(user.pets![0].name).toEqual('aster')
+      const clone = await user.load('compositionAssets').load('pets').execute()
+      expect(clone.compositionAssets![0].name).toEqual('compositionAsset X')
+      expect(clone.pets![0].name).toEqual('aster')
     })
   })
 })

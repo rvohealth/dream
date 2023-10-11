@@ -24,10 +24,10 @@ describe('Dream#clone', () => {
   it('clones the loaded associations to a new instance', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     await user.createAssociation('balloons', { type: 'Latex', color: 'red' })
-    await user.load('balloons').execute()
+    const loaded = await user.load('balloons').execute()
 
     const user2 = user.clone()
-    expect(user.balloons).toMatchDreamModels(user2.balloons)
+    expect(loaded.balloons).toMatchDreamModels(user2.balloons)
   })
 
   context('miscillanious attributes', () => {
@@ -89,13 +89,13 @@ describe('Dream#clone', () => {
     it('copies nested objects containing dreams', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const balloon = await user.createAssociation('balloons', { type: 'Latex', color: 'red' })
-      await user.load('balloons').execute()
-      ;(user as any).howyadoin = { stuff: [{ dreams: [balloon] }] }
+      const loaded = await user.load('balloons').execute()
+      ;(loaded as any).howyadoin = { stuff: [{ dreams: [balloon] }] }
 
-      const user2 = user.clone()
-      expect((user2 as any).howyadoin.stuff[0].dreams).toMatchDreamModels([balloon])
+      const cloned = loaded.clone()
+      expect((cloned as any).howyadoin.stuff[0].dreams).toMatchDreamModels([balloon])
 
-      const clonedDream = (user2 as any).howyadoin.stuff[0].dreams[0]
+      const clonedDream = (cloned as any).howyadoin.stuff[0].dreams[0]
       expect(clonedDream).not.toBe(balloon)
       expect(clonedDream.constructor.name).toEqual(balloon.constructor.name)
     })
