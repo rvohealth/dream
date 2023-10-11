@@ -24,4 +24,5 @@ async function dbDrop() {
   process.exit()
 }
 
+// eslint-disable-next-line
 dbDrop()

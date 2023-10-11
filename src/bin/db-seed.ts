@@ -11,4 +11,5 @@ async function dbSeed() {
   console.log('done!')
 }
 
+// eslint-disable-next-line
 dbSeed()

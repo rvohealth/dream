@@ -6,4 +6,6 @@ async function _generateMigration() {
   const args = argv.slice(3, argv.length)
   await generateMigration(name)
 }
+
+// eslint-disable-next-line
 _generateMigration()

@@ -14,4 +14,5 @@ async function dbRollback() {
   await db('primary', dreamconf).destroy()
 }
 
+// eslint-disable-next-line
 dbRollback()
