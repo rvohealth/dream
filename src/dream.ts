@@ -56,6 +56,7 @@ import Dreamconf from '../shared/dreamconf'
 import resortAllRecords from './decorators/sortable/helpers/resortAllRecords'
 import { SortableFieldConfig } from './decorators/sortable'
 import NonExistentScopeProvidedToResort from './exceptions/non-existent-scope-provided-to-resort'
+import cloneDeep from 'lodash.clonedeep'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -829,6 +830,10 @@ export default class Dream {
     return await construct
       .where({ [this.primaryKey]: this.primaryKeyValue } as any)
       .joinsPluck(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
+  }
+
+  public clone<I extends Dream>(this: I): I {
+    return cloneDeep(this)
   }
 
   public async createAssociation<
