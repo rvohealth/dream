@@ -8,7 +8,7 @@ describe('Dream#load', () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ userId: user.id, primary: true })
 
-    await user.load('compositions').execute()
-    expect(user.compositions).toMatchDreamModels([composition])
+    const reloaded = await user.load('compositions').execute()
+    expect(reloaded.compositions).toMatchDreamModels([composition])
   })
 })
