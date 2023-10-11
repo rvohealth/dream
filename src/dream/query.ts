@@ -741,7 +741,7 @@ export default class Query<
     } else {
       // Post has many Commenters through Comments
       // hydrate Post Comments
-      await this.applyOneInclude(association.through, dreams)
+      await this.applyOnePreload(association.through, dreams)
 
       dreams.forEach(dream => {
         if (association.type === 'HasMany') {
@@ -813,7 +813,7 @@ export default class Query<
     return newAssociation
   }
 
-  public async applyOneInclude(currentAssociationTableOrAlias: string, dreams: Dream | Dream[]) {
+  public async applyOnePreload(currentAssociationTableOrAlias: string, dreams: Dream | Dream[]) {
     if (!Array.isArray(dreams)) dreams = [dreams as Dream]
 
     const dream = dreams.find(dream => dream.associationMap()[currentAssociationTableOrAlias])!
@@ -835,19 +835,19 @@ export default class Query<
       if (association.polymorphic) {
         // Rating polymorphically BelongsTo Composition and Post
         // for each of Composition and Post
-        for (const associatedModel of association.modelCB() as (typeof Dream)[]) {
+        for (const associatedModelClass of association.modelCB() as (typeof Dream)[]) {
           const relevantAssociatedModels = dreams.filter((dream: any) => {
-            return (dream as any)[association.foreignKeyTypeField()] === associatedModel.name
+            return (dream as any)[association.foreignKeyTypeField()] === associatedModelClass.name
           })
 
           if (relevantAssociatedModels.length) {
             associationQuery = this.dreamTransaction
-              ? associatedModel.txn(this.dreamTransaction)
-              : associatedModel
+              ? associatedModelClass.txn(this.dreamTransaction)
+              : associatedModelClass
 
             // @ts-ignore
             associationQuery = associationQuery.where({
-              [associatedModel.primaryKey]: relevantAssociatedModels.map(
+              [associatedModelClass.primaryKey]: relevantAssociatedModels.map(
                 (dream: any) => (dream as any)[association.foreignKey()]
               ),
             })
@@ -856,21 +856,23 @@ export default class Query<
           }
         }
       } else {
-        const associatedModel = association.modelCB() as typeof Dream
+        const associatedModelClass = association.modelCB() as typeof Dream
         associationQuery = this.dreamTransaction
-          ? associatedModel.txn(this.dreamTransaction)
-          : associatedModel
+          ? associatedModelClass.txn(this.dreamTransaction)
+          : associatedModelClass
 
         // @ts-ignore
         associationQuery = associationQuery.where({
-          [associatedModel.primaryKey]: dreams.map(dream => (dream as any)[association.foreignKey()]),
+          [associatedModelClass.primaryKey]: dreams.map(dream => (dream as any)[association.foreignKey()]),
         })
 
         this.hydrateAssociation(dreams, association, await associationQuery.all())
       }
     } else {
-      const associatedModel = association.modelCB() as typeof Dream
-      associationQuery = this.dreamTransaction ? associatedModel.txn(this.dreamTransaction) : associatedModel
+      const associatedModelClass = association.modelCB() as typeof Dream
+      associationQuery = this.dreamTransaction
+        ? associatedModelClass.txn(this.dreamTransaction)
+        : associatedModelClass
       // @ts-ignore
       associationQuery = associationQuery.where({
         [association.foreignKey()]: dreams.map(dream => dream.primaryKeyValue),
@@ -910,7 +912,7 @@ ${JSON.stringify(association, null, 2)}
 
   private async applyPreload(preloadStatement: RelaxedPreloadStatement, dream: Dream | Dream[]) {
     for (const key of Object.keys(preloadStatement as any)) {
-      const nestedDream = await this.applyOneInclude(key, dream)
+      const nestedDream = await this.applyOnePreload(key, dream)
       if (nestedDream) {
         await this.applyPreload((preloadStatement as any)[key], nestedDream)
       }
