@@ -21,7 +21,7 @@ describe('Dream#createAssociation', () => {
   context('with a HasMany through association', () => {
     it('raises a targeted exception, alerting the user to their mistake', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      expect(async () => await user.createAssociation('compositionAssets', {})).rejects.toThrowError(
+      await expect(user.createAssociation('compositionAssets', {})).rejects.toThrowError(
         CannotCreateAssociationWithThroughContext
       )
     })
@@ -41,7 +41,7 @@ describe('Dream#createAssociation', () => {
   context('with a HasOne through association', () => {
     it('raises a targeted exception, alerting the user to their mistake', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      expect(async () => await user.createAssociation('mainCompositionAsset', {})).rejects.toThrowError(
+      await expect(user.createAssociation('mainCompositionAsset', {})).rejects.toThrowError(
         CannotCreateAssociationWithThroughContext
       )
     })

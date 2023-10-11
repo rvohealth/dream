@@ -36,9 +36,8 @@ describe('Dream.createOrFindBy', () => {
     })
 
     it('does not mask error', async () => {
-      expect(
-        async () =>
-          await User.createOrFindBy({ email: 'fred@fred' }, { createWith: { password: 'nothowyadoin' } })
+      await expect(
+        User.createOrFindBy({ email: 'fred@fred' }, { createWith: { password: 'nothowyadoin' } })
       ).rejects.toThrowError()
     })
   })

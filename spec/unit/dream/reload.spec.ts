@@ -16,7 +16,7 @@ describe('Dream#reload', () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
-      ApplicationModel.transaction(async txn => {
+      await ApplicationModel.transaction(async txn => {
         const userInAnotherInstance = await User.txn(txn).find(user.id)
         await userInAnotherInstance!.txn(txn).update({ email: 'a@b.com' })
         expect((await user.txn(txn).reload()).email).toEqual('a@b.com')

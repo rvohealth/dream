@@ -39,9 +39,9 @@ describe('Query#updateAll', () => {
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
       const composition = await user.createAssociation('compositions', { content: 'Opus' })
 
-      expect(
-        async () => await user.associationQuery('compositions').updateAll({ content: 'cool' })
-      ).rejects.toThrowError(NoUpdateAllOnAssociationQuery)
+      await expect(user.associationQuery('compositions').updateAll({ content: 'cool' })).rejects.toThrowError(
+        NoUpdateAllOnAssociationQuery
+      )
     })
   })
 
