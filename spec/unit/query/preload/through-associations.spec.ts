@@ -71,7 +71,7 @@ describe('Query#preload through with simple associations', () => {
   })
 
   context('explicit HasMany through HasOne', () => {
-    it('sets HasOne association property on the base model and the HasMany property on the assocaited model', async () => {
+    it('sets HasOne association property on the base model and the HasMany property on the associated model', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ user })
       const compositionAsset = await CompositionAsset.create({
@@ -114,7 +114,7 @@ describe('Query#preload through with simple associations', () => {
     })
 
     context('when there are no models associated via the HasMany', () => {
-      it('sets HasOne association property on the base model and the HasMany property on the assocaited model to an empty array', async () => {
+      it('sets HasOne association property on the base model and the HasMany property on the associated model to an empty array', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })
         const compositionAsset = await CompositionAsset.create({
@@ -126,6 +126,7 @@ describe('Query#preload through with simple associations', () => {
           .preload('mainCompositionAsset', 'compositionAssetAudits')
           .first()
         expect(reloadedComposition!.mainCompositionAsset).toMatchDreamModel(compositionAsset)
+        expect(reloadedComposition!.mainCompositionAsset.compositionAssetAudits).toEqual([])
       })
     })
 
@@ -167,7 +168,7 @@ describe('Query#preload through with simple associations', () => {
   })
 
   context('implicit HasMany through HasOne', () => {
-    it('sets HasOne association property on the base model and the HasMany property on the assocaited model', async () => {
+    it('sets HasOne association property on the base model and the HasMany property on the associated model', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ user })
       const compositionAsset = await CompositionAsset.create({
@@ -187,7 +188,7 @@ describe('Query#preload through with simple associations', () => {
     })
 
     context('when there are no models associated via the HasMany', () => {
-      it('sets HasOne association property on the base model and the HasMany property on the assocaited model to an empty array', async () => {
+      it('sets HasOne association property on the base model and the HasMany property on the associated model to an empty array', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })
         const compositionAsset = await CompositionAsset.create({
