@@ -94,22 +94,23 @@ describe('Query#preload through with simple associations', () => {
     context('multiple, final preload', () => {
       it('preload all of the specified associations', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-        const composition = await Composition.create({ user })
-        const compositionAsset = await CompositionAsset.create({
-          composition,
-          primary: true,
-        })
+        const composition = await Composition.create({ user, primary: true })
+        const compositionAsset = await CompositionAsset.create({ composition })
+        const compositionAsset2 = await CompositionAsset.create({ composition })
         const heartRating = await HeartRating.create({
           user,
           extraRateable: composition,
         })
 
         const reloaded = await new Query(User)
-          .preload('compositions', ['compositionAssets', 'heartRatings'])
+          .preload('mainComposition', ['compositionAssets', 'heartRatings'])
           .first()
-        expect(reloaded!.compositions).toMatchDreamModels([composition])
-        expect(reloaded!.compositions[0].compositionAssets).toMatchDreamModels([compositionAsset])
-        expect(reloaded!.compositions[0].heartRatings).toMatchDreamModels([heartRating])
+        expect(reloaded!.mainComposition).toMatchDreamModel(composition)
+        expect(reloaded!.mainComposition.compositionAssets).toMatchDreamModels([
+          compositionAsset,
+          compositionAsset2,
+        ])
+        expect(reloaded!.mainComposition.heartRatings).toMatchDreamModels([heartRating])
       })
     })
 
