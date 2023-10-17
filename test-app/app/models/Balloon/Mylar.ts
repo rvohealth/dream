@@ -1,10 +1,10 @@
-import { Sortable } from '../../../../src'
 import STI from '../../../../src/decorators/STI'
-import BelongsTo from '../../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../../src/decorators/associations/has-many'
 import Balloon from '../Balloon'
-import Sandbag from '../Sandbag'
+import Sortable from '../../../../src/decorators/sortable'
+import BelongsTo from '../../../../src/decorators/associations/belongs-to'
 import User from '../User'
+import Sandbag from '../Sandbag'
 
 @STI(Balloon)
 export default class Mylar extends Balloon {

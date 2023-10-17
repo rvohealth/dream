@@ -1,14 +1,18 @@
 import { DateTime } from 'luxon'
 import { IdType } from '../../../src/dream/types'
 import HasOne from '../../../src/decorators/associations/has-one'
-import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import Scope from '../../../src/decorators/scope'
 import Validates from '../../../src/decorators/validations/validates'
-import User from './User'
 import { BalloonColorsEnum, BalloonTypesEnum } from '../../db/schema'
-import { BeforeDestroy, Query, Sortable } from '../../../src'
 import BalloonLine from './BalloonLine'
 import ApplicationModel from './ApplicationModel'
+import Sortable from '../../../src/decorators/sortable'
+import BeforeDestroy from '../../../src/decorators/hooks/before-destroy'
+import Query from '../../../src/dream/query'
+import User from './User'
+import BelongsTo from '../../../src/decorators/associations/belongs-to'
+import HasMany from '../../../src/decorators/associations/has-many'
+import HeartRating from './ExtraRating/HeartRating'
 
 export default class Balloon extends ApplicationModel {
   public get table() {
@@ -56,4 +60,7 @@ export default class Balloon extends ApplicationModel {
 
   @HasOne(() => BalloonLine, { foreignKey: 'balloonId' })
   public balloonLine: BalloonLine
+
+  @HasMany(() => HeartRating, { polymorphic: true, foreignKey: 'extraRateableId' })
+  public heartRatings: HeartRating[]
 }

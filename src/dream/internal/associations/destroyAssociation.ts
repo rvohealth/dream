@@ -26,9 +26,9 @@ export default async function destroyAssociation<
     | BelongsToStatement<any, any, any>
 
   if (Array.isArray(association.modelCB())) {
-    throw `
+    throw new Error(`
       Cannot destroy polymorphic associations using destroyAssociation
-    `
+    `)
   }
   const associationClass = association.modelCB() as typeof Dream
 

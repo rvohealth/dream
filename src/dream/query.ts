@@ -672,7 +672,7 @@ export default class Query<
           .filter((dream: any) => {
             if (association.polymorphic) {
               return (
-                dream[association.foreignKeyTypeField()] === loadedAssociation.constructor.name &&
+                dream[association.foreignKeyTypeField()] === loadedAssociation.stiBaseClassOrOwnClass.name &&
                 dream[association.foreignKey()] === loadedAssociation.primaryKeyValue
               )
             } else {
@@ -837,7 +837,10 @@ export default class Query<
         // for each of Composition and Post
         for (const associatedModel of association.modelCB() as (typeof Dream)[]) {
           const relevantAssociatedModels = dreams.filter((dream: any) => {
-            return (dream as any)[association.foreignKeyTypeField()] === associatedModel.name
+            return (
+              (dream as any)[association.foreignKeyTypeField()] ===
+              associatedModel.stiBaseClassOrOwnClass.name
+            )
           })
 
           if (relevantAssociatedModels.length) {
@@ -878,7 +881,7 @@ export default class Query<
 
       if (association.polymorphic) {
         associationQuery = associationQuery.where({
-          [association.foreignKeyTypeField()]: dream.constructor.name,
+          [association.foreignKeyTypeField()]: dream.stiBaseClassOrOwnClass.name,
         })
       }
 
@@ -1114,7 +1117,7 @@ ${JSON.stringify(association, null, 2)}
         query = this.applyWhereStatement(
           query,
           this.aliasWhereStatement(
-            [{ [association.foreignKeyTypeField()]: dreamClass.name } as any],
+            [{ [association.foreignKeyTypeField()]: dreamClass.stiBaseClassOrOwnClass.name } as any],
             currentAssociationTableOrAlias
           )
         )

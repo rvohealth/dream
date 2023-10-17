@@ -150,9 +150,10 @@ describe('Query#preload through with simple associations', () => {
         const sandbag = await Sandbag.create({ mylar })
 
         const reloaded = await new Query(User).preload('balloons', 'sandbags').order('id', 'asc').first()
-        expect(reloaded!.balloons[0]).toMatchDreamModel(latex)
-        expect(reloaded!.balloons[1]).toMatchDreamModel(mylar)
-        expect((reloaded!.balloons[1] as Mylar).sandbags).toMatchDreamModels([sandbag])
+        expect(reloaded!.balloons).toMatchDreamModels([latex, mylar])
+        if (reloaded!.balloons[1].constructor === Mylar)
+          expect((reloaded!.balloons[1] as Mylar).sandbags).toMatchDreamModels([sandbag])
+        else expect((reloaded!.balloons[0] as Mylar).sandbags).toMatchDreamModels([sandbag])
       })
 
       context("when the query doesn't include any STI child that has the association", () => {

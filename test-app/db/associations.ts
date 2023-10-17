@@ -27,6 +27,9 @@ export default {
     "balloonLine": [
       "balloon_lines"
     ],
+    "heartRatings": [
+      "extra_ratings"
+    ],
     "sandbags": [
       "sandbags"
     ]
@@ -85,7 +88,8 @@ export default {
     ],
     "extraRateable": [
       "compositions",
-      "posts"
+      "posts",
+      "beautiful_balloons"
     ]
   },
   "graph_edge_nodes": {
@@ -247,6 +251,9 @@ export interface SyncedAssociations {
     "balloonLine": [
       "balloon_lines"
     ],
+    "heartRatings": [
+      "extra_ratings"
+    ],
     "sandbags": [
       "sandbags"
     ]
@@ -305,7 +312,8 @@ export interface SyncedAssociations {
     ],
     "extraRateable": [
       "compositions",
-      "posts"
+      "posts",
+      "beautiful_balloons"
     ]
   },
   "graph_edge_nodes": {
@@ -485,7 +493,8 @@ export interface SyncedBelongsToAssociations {
     ],
     "extraRateable": [
       "compositions",
-      "posts"
+      "posts",
+      "beautiful_balloons"
     ]
   },
   "graph_edge_nodes": {

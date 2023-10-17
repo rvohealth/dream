@@ -26,9 +26,9 @@ export default async function createAssociation<
     | BelongsToStatement<any, any, any>
 
   if (Array.isArray(association.modelCB())) {
-    throw `
+    throw new Error(`
         Cannot create polymorphic associations using createAssociation
-      `
+      `)
   }
   const associationClass = association.modelCB() as typeof Dream
 

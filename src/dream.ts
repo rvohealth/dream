@@ -82,13 +82,15 @@ export default class Dream {
   public static virtualAttributes: VirtualAttributeStatement[] = []
   public static sortableFields: SortableFieldConfig[] = []
 
-  public static extendedBy: (typeof Dream)[] | null
+  public static extendedBy: (typeof Dream)[] | null = null
 
   public static sti: {
     active: boolean
+    baseClass: typeof Dream | null
     value: string | null
   } = {
     active: false,
+    baseClass: null,
     value: null,
   }
 
@@ -116,6 +118,14 @@ export default class Dream {
 
   public static get isSTIBase() {
     return !!this.extendedBy?.length && !this.isSTIChild
+  }
+
+  public static get stiBaseClassOrOwnClass(): typeof Dream {
+    return this.sti.baseClass || this
+  }
+
+  public get stiBaseClassOrOwnClass(): typeof Dream {
+    return (this.constructor as typeof Dream).stiBaseClassOrOwnClass
   }
 
   public static get isSTIChild() {
@@ -947,10 +957,11 @@ export default class Dream {
 
         const foreignKey = belongsToAssociationMetaData.foreignKey()
         self[foreignKey] = marshalledOpts[foreignKey] = associatedObject?.primaryKeyValue
+
         if (belongsToAssociationMetaData.polymorphic) {
           const foreignKeyTypeField = belongsToAssociationMetaData.foreignKeyTypeField()
           self[foreignKeyTypeField] = marshalledOpts[foreignKeyTypeField] =
-            associatedObject?.constructor?.name
+            associatedObject?.stiBaseClassOrOwnClass?.name
         }
       } else {
         // TODO: cleanup type chaos

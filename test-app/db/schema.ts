@@ -9,6 +9,8 @@ export type BalloonTypesEnum = "Animal" | "Latex" | "Mylar";
 
 export type CatTreats = "cat-safe chalupas (catlupas,supaloopas)" | "chicken" | "ocean fish" | "tuna";
 
+export type ExtraRateableTypesEnum = "Balloon" | "Composition" | "Post";
+
 export type ExtraRatingTypesEnum = "HeartRating" | "StarRating";
 
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
@@ -106,11 +108,11 @@ export interface EdgeCaseAttributes {
 }
 
 export interface ExtraRatings {
-  type: ExtraRatingTypesEnum | null;
+  type: ExtraRatingTypesEnum;
   id: Generated<Int8>;
   userId: Int8;
   extraRateableId: Int8;
-  extraRateableType: string;
+  extraRateableType: ExtraRateableTypesEnum;
   rating: number | null;
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -340,11 +342,11 @@ export interface EdgeCaseAttributeAttributes {
 }  
 
 export interface ExtraRatingAttributes {
-  type: ExtraRatingTypesEnum | null
+  type: ExtraRatingTypesEnum
   id: IdType
   userId: IdType
   extraRateableId: IdType
-  extraRateableType: string
+  extraRateableType: ExtraRateableTypesEnum
   rating: number | null
   createdAt: DateTime
   updatedAt: DateTime
@@ -528,11 +530,11 @@ export const EdgeCaseAttributesTypeCache = {
 }  
 
 export const ExtraRatingsTypeCache = {
-  type: 'ExtraRatingTypesEnum|null',
+  type: 'ExtraRatingTypesEnum',
   id: 'Generated<Int8>',
   userId: 'Int8',
   extraRateableId: 'Int8',
-  extraRateableType: 'string',
+  extraRateableType: 'ExtraRateableTypesEnum',
   rating: 'number|null',
   createdAt: 'Timestamp',
   updatedAt: 'Timestamp'

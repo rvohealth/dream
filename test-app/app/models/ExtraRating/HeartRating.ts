@@ -5,6 +5,7 @@ import BaseExtraRating from './Base'
 import Composition from '../Composition'
 import Post from '../Post'
 import User from '../User'
+import Balloon from '../Balloon'
 
 @STI(BaseExtraRating)
 export default class HeartRating extends BaseExtraRating {
@@ -12,9 +13,9 @@ export default class HeartRating extends BaseExtraRating {
   public user: User
   public userId: IdType
 
-  @BelongsTo(() => [Composition, Post], {
+  @BelongsTo(() => [Composition, Post, Balloon], {
     foreignKey: 'extraRateableId',
     polymorphic: true,
   })
-  public extraRateable: Composition | Post
+  public extraRateable: Composition | Post | Balloon
 }

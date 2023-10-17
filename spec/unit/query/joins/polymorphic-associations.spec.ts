@@ -8,6 +8,10 @@ import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating
 import { sql } from 'kysely'
 import db from '../../../../src/db'
 import dreamconf from '../../../../test-app/conf/dreamconf'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
+import Latex from '../../../../test-app/app/models/Balloon/Latex'
+import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal'
+import Balloon from '../../../../test-app/app/models/Balloon'
 
 describe('Query#joins with polymorphic associations', () => {
   beforeEach(async () => {
@@ -44,6 +48,31 @@ describe('Query#joins with polymorphic associations', () => {
 
     const reloaded = await new Query(Post).joins('heartRatings').all()
     expect(reloaded).toMatchDreamModels([post])
+  })
+
+  context('when joining a polymorphic HasMany from an STI class', () => {
+    it('joins associations for all STI models', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+
+      const mylar = await Mylar.create({ user })
+      const latex = await Latex.create({ user })
+      const animal = await Animal.create({ user })
+
+      await HeartRating.create({
+        user,
+        extraRateable: mylar,
+        rating: 7,
+      })
+
+      await HeartRating.create({
+        user,
+        extraRateable: animal,
+        rating: 8,
+      })
+
+      const balloons = await Balloon.joins('heartRatings').all()
+      expect(balloons).toMatchDreamModels([mylar, animal])
+    })
   })
 
   it('from a BelongsTo association', async () => {

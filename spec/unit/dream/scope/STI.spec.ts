@@ -14,7 +14,7 @@ describe('Dream STI', () => {
     user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
   })
 
-  describe('#isSTIBase', () => {
+  describe('.isSTIBase', () => {
     context('when the model is not extended', () => {
       it('is false', () => {
         expect(User.isSTIBase).toBe(false)
@@ -34,7 +34,7 @@ describe('Dream STI', () => {
     })
   })
 
-  describe('#isSTIBase', () => {
+  describe('.isSTIBase', () => {
     context('when the model is not STI', () => {
       it('is false', () => {
         expect(User.isSTIChild).toBe(false)
@@ -56,6 +56,38 @@ describe('Dream STI', () => {
     context('when the model is extended, but also extends a Dream model', () => {
       it('is false', () => {
         expect(Latex.isSTIChild).toBe(true)
+      })
+    })
+  })
+
+  describe('.sti.baseClass', () => {
+    context('when the model is not STI', () => {
+      it('is null', () => {
+        expect(User.sti.baseClass).toBeNull()
+      })
+    })
+
+    context('when the model is an STI base class', () => {
+      it('is null', () => {
+        expect(Balloon.sti.baseClass).toBeNull()
+      })
+    })
+
+    context('when the model extends a Dream model', () => {
+      it('is the base class extended by this Dream model', () => {
+        expect(Mylar.sti.baseClass).toEqual(Balloon)
+      })
+    })
+
+    context('when the model is extended, but also extends a Dream model', () => {
+      it('is the base class extended by this Dream model', () => {
+        expect(Latex.sti.baseClass).toEqual(Balloon)
+      })
+    })
+
+    context('when the model extends a class that itself extends a class', () => {
+      it('is the base class extended by this Dream model', () => {
+        expect(Animal.sti.baseClass).toEqual(Balloon)
       })
     })
   })

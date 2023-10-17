@@ -3,19 +3,21 @@ import Dream from '../dream'
 
 export default function STI(dreamClass: typeof Dream, { value }: { value?: string } = {}): ClassDecorator {
   return function (target: any) {
-    const t = target as typeof Dream
+    const stiChildClass = target as typeof Dream
+    const baseClass = dreamClass.sti.baseClass || dreamClass
 
-    if (!Object.getOwnPropertyDescriptor(t, 'extendedBy')) t.extendedBy = []
+    if (!Object.getOwnPropertyDescriptor(stiChildClass, 'extendedBy')) stiChildClass.extendedBy = []
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'extendedBy')) dreamClass.extendedBy = []
-    dreamClass.extendedBy!.push(t)
+    dreamClass.extendedBy!.push(stiChildClass)
 
-    t.sti = {
+    stiChildClass.sti = {
       active: true,
-      value: value || t.name,
+      baseClass,
+      value: value || stiChildClass.name,
     }
-    ;(t as any)['applySTIScope'] = function (query: any) {
-      return query.where({ type: t.sti.value })
+    ;(stiChildClass as any)['applySTIScope'] = function (query: any) {
+      return query.where({ type: stiChildClass.sti.value })
     }
-    Scope({ default: true })(t, 'applySTIScope')
+    Scope({ default: true })(stiChildClass, 'applySTIScope')
   }
 }

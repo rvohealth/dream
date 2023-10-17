@@ -1,4 +1,4 @@
-import { STI } from '../../../../../src'
+import STI from '../../../../../src/decorators/STI'
 import Latex from '../Latex'
 
 @STI(Latex)
