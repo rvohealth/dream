@@ -76,6 +76,18 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
 
   public renderOne() {
     let returnObj: { [key: string]: any } = {}
+    for (const associationStatement of (this.constructor as typeof DreamSerializer).associationStatements) {
+      if (associationStatement.flatten) {
+        returnObj = {
+          ...returnObj,
+          ...this.applyAssociation(associationStatement),
+        }
+      } else {
+        returnObj[this.applyCasingToField(associationStatement.field)] =
+          this.applyAssociation(associationStatement)
+      }
+    }
+
     this.attributes.forEach(attr => {
       const attributeStatement = (this.constructor as typeof DreamSerializer).attributeStatements.find(
         s =>
@@ -108,17 +120,6 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
       returnObj[this.applyCasingToField(delegateStatement.field)] = this.applyDelegation(delegateStatement)
     })
 
-    for (const associationStatement of (this.constructor as typeof DreamSerializer).associationStatements) {
-      if (associationStatement.flatten) {
-        returnObj = {
-          ...returnObj,
-          ...this.applyAssociation(associationStatement),
-        }
-      } else {
-        returnObj[this.applyCasingToField(associationStatement.field)] =
-          this.applyAssociation(associationStatement)
-      }
-    }
     return returnObj
   }
 

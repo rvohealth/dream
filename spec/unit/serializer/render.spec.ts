@@ -802,4 +802,33 @@ describe('DreamSerializer#render', () => {
       })
     })
   })
+
+  context('with duplicate attributes applied on a child and parent serializer', () => {
+    class ParentSerializer extends DreamSerializer {
+      @RendersOne(() => ChildSerializer, { flatten: true })
+      public child: any
+
+      @Attribute()
+      public howyadoin() {
+        return 'superhowyadoin'
+      }
+    }
+
+    class ChildSerializer extends DreamSerializer {
+      @Attribute()
+      public childattr() {
+        return 123
+      }
+
+      @Attribute()
+      public howyadoin() {
+        return 'howyadoin'
+      }
+    }
+
+    it('applies attribute def from parent, discards child', () => {
+      const serializer = new ParentSerializer({ child: 1 })
+      expect(serializer.render()).toEqual({ howyadoin: 'superhowyadoin', childattr: 123 })
+    })
+  })
 })
