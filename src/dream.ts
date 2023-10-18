@@ -37,7 +37,7 @@ import pascalize from './helpers/pascalize'
 import getModelKey from './helpers/getModelKey'
 import { VirtualAttributeStatement } from './decorators/virtual'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
-import isDecimal from './helpers/db/isDecimal'
+import isDecimal from './helpers/db/types/isDecimal'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
 import DreamSerializer from './serializer'
 import MissingSerializer from './exceptions/missing-serializer'
@@ -659,18 +659,13 @@ export default class Dream {
     return obj
   }
 
-  public cachedTypeFor<
-    I extends Dream,
-    DB extends I['DB'],
-    DBTypeCache extends I['dreamconf']['dbTypeCache'],
-    SyncedAssociations extends I['syncedAssociations'],
-    TableName extends keyof DB = I['table'] & keyof DB,
+  public static cachedTypeFor<
+    T extends typeof Dream,
+    DB extends InstanceType<T>['DB'],
+    TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
-  >(this: I, attribute: keyof Table): string {
-    return cachedTypeForAttribute<DB, SyncedAssociations>(attribute, {
-      table: this.table,
-      dbTypeCache: this.dreamconf.dbTypeCache,
-    })
+  >(this: T, attribute: keyof Table): string {
+    return cachedTypeForAttribute(this, attribute)
   }
 
   public changedAttributes<
@@ -807,10 +802,7 @@ export default class Dream {
     TableName extends keyof DB = I['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
   >(this: I, attribute: keyof Table): boolean {
-    return isDecimal<DB, SyncedAssociations>(attribute, {
-      table: this.table,
-      dbTypeCache: this.dreamconf.dbTypeCache,
-    })
+    return isDecimal(this.constructor as typeof Dream, attribute)
   }
 
   public async joinsPluck<
@@ -932,7 +924,6 @@ export default class Dream {
   public setAttributes<
     I extends Dream,
     DB extends I['DB'],
-    DBTypeCache extends I['dreamconf']['dbTypeCache'],
     SyncedAssociations extends I['syncedAssociations'],
     TableName extends keyof DB = I['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
@@ -965,13 +956,10 @@ export default class Dream {
         }
       } else {
         // TODO: cleanup type chaos
-        self[attr] = marshalledOpts[attr] = marshalDBValue<DB, SyncedAssociations>(
-          (attributes as any)[attr],
-          {
-            column: attr as any,
-            table: this.table,
-            dbTypeCache: this.dreamconf.dbTypeCache,
-          }
+        self[attr] = marshalledOpts[attr] = marshalDBValue(
+          this.constructor as typeof Dream,
+          attr as any,
+          (attributes as any)[attr]
         )
       }
     })

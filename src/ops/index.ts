@@ -2,7 +2,8 @@ import { ComparisonOperatorExpression, sql } from 'kysely'
 import OpsStatement from './ops-statement'
 import CurriedOpsStatement from './curried-ops-statement'
 import Dream from '../dream'
-import cachedFieldType from '../helpers/cachedFieldType'
+import isDatabaseArray from '../helpers/db/types/isDatabaseArray'
+import AnyRequiresArrayColumn from '../exceptions/ops/any-requires-array-column'
 
 const ops = {
   expression: (operator: ComparisonOperatorExpression, value: any) => new OpsStatement(operator, value),
@@ -13,7 +14,9 @@ const ops = {
       DB extends InstanceType<T>['DB'],
       FN extends keyof DB[InstanceType<T>['table']] & string
     >(dreamClass: T, fieldName: FN) {
-      const castType: string = cachedFieldType(dreamClass, fieldName)
+      const column = fieldName.replace(/^.*\./, '')
+      if (!isDatabaseArray(dreamClass, column)) throw new AnyRequiresArrayColumn(dreamClass, column)
+      const castType = dreamClass.cachedTypeFor(column)
       return new OpsStatement('@>', sql`ARRAY[${sql.join([value])}]::${sql.raw(castType)}`)
     }),
   like: (like: string) => new OpsStatement('like', like),

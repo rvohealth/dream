@@ -198,6 +198,7 @@ export interface Users {
   id: Generated<Int8>;
   name: string | null;
   email: string;
+  birthdate: Timestamp | null;
   passwordDigest: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -256,7 +257,7 @@ export const PostColumns = ['id', 'userId', 'postVisibilityId', 'body', 'positio
 export const PostVisibilityColumns = ['id', 'visibility', 'notes', 'createdAt', 'updatedAt']
 export const RatingColumns = ['id', 'userId', 'rateableId', 'rateableType', 'rating', 'createdAt', 'updatedAt']
 export const SandbagColumns = ['id', 'balloonId', 'weight', 'createdAt', 'updatedAt']
-export const UserColumns = ['id', 'name', 'email', 'passwordDigest', 'createdAt', 'updatedAt', 'deletedAt']
+export const UserColumns = ['id', 'name', 'email', 'birthdate', 'passwordDigest', 'createdAt', 'updatedAt', 'deletedAt']
 export const UserSettingColumns = ['id', 'userId', 'likesChalupas', 'createdAt', 'updatedAt']
 
 export interface BalloonLineAttributes {
@@ -432,6 +433,7 @@ export interface UserAttributes {
   id: IdType
   name: string | null
   email: string
+  birthdate: DateTime | null
   passwordDigest: string
   createdAt: DateTime
   updatedAt: DateTime
@@ -447,192 +449,193 @@ export interface UserSettingAttributes {
 }  
 
 
-export const BalloonLinesTypeCache = {
-  id: 'Generated<Int8>',
-  balloonId: 'Int8',
-  material: 'BalloonLineMaterialsEnum|null',
-  createdAt: 'Timestamp',
-  updatedAt: 'Timestamp'
-}  
+export const BalloonLinesDBTypeMap = {
+  id: 'bigint',
+  balloonId: 'bigint',
+  material: 'balloon_line_materials_enum',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone'
+}
 
-export const BalloonSpotterBalloonsTypeCache = {
-  id: 'Generated<Int8>',
-  balloonSpotterId: 'Int8',
-  balloonId: 'Int8',
-  createdAt: 'Timestamp',
-  updatedAt: 'Timestamp'
-}  
+export const BalloonSpotterBalloonsDBTypeMap = {
+  id: 'bigint',
+  balloonSpotterId: 'bigint',
+  balloonId: 'bigint',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone'
+}
 
-export const BalloonSpottersTypeCache = {
-  id: 'Generated<Int8>',
-  name: 'string|null',
-  createdAt: 'Timestamp',
-  updatedAt: 'Timestamp'
-}  
+export const BalloonSpottersDBTypeMap = {
+  id: 'bigint',
+  name: 'character varying',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone'
+}
 
-export const BeautifulBalloonsTypeCache = {
-  id: 'Generated<Int8>',
-  userId: 'Int8|null',
-  type: 'BalloonTypesEnum',
-  volume: 'Numeric|null',
-  color: 'BalloonColorsEnum|null',
-  positionAlpha: 'number|null',
-  positionBeta: 'number|null',
-  multicolor: 'BalloonColorsEnum[]|null',
-  deletedAt: 'Timestamp|null',
-  createdAt: 'Timestamp',
-  updatedAt: 'Timestamp'
-}  
+export const BeautifulBalloonsDBTypeMap = {
+  id: 'bigint',
+  userId: 'bigint',
+  type: 'balloon_types_enum',
+  volume: 'numeric',
+  color: 'balloon_colors_enum',
+  positionAlpha: 'integer',
+  positionBeta: 'integer',
+  multicolor: 'balloon_colors_enum[]',
+  deletedAt: 'timestamp without time zone',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone'
+}
 
-export const CollarsTypeCache = {
-  id: 'Generated<Int8>',
-  petId: 'Int8',
-  lost: 'boolean|null',
-  createdAt: 'Timestamp',
-  updatedAt: 'Timestamp'
-}  
+export const CollarsDBTypeMap = {
+  id: 'bigint',
+  petId: 'bigint',
+  lost: 'boolean',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone'
+}
 
-export const CompositionAssetAuditsTypeCache = {
-  id: 'Generated<Int8>',
-  compositionAssetId: 'Int8',
-  approval: 'boolean|null',
-  createdAt: 'Timestamp',
-  updatedAt: 'Timestamp'
-}  
+export const CompositionAssetAuditsDBTypeMap = {
+  id: 'bigint',
+  compositionAssetId: 'bigint',
+  approval: 'boolean',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone'
+}
 
-export const CompositionAssetsTypeCache = {
-  id: 'Generated<Int8>',
-  compositionId: 'Int8',
-  name: 'string|null',
-  src: 'string|null',
-  primary: 'Generated<boolean|null>',
-  score: 'Generated<number|null>',
-  createdAt: 'Timestamp',
-  updatedAt: 'Timestamp'
-}  
+export const CompositionAssetsDBTypeMap = {
+  id: 'bigint',
+  compositionId: 'bigint',
+  name: 'character varying',
+  src: 'text',
+  primary: 'boolean',
+  score: 'integer',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone'
+}
 
-export const CompositionsTypeCache = {
-  id: 'Generated<Int8>',
-  userId: 'Int8',
-  content: 'string|null',
-  primary: 'Generated<boolean|null>',
-  createdAt: 'Timestamp',
-  updatedAt: 'Timestamp'
-}  
+export const CompositionsDBTypeMap = {
+  id: 'bigint',
+  userId: 'bigint',
+  content: 'text',
+  primary: 'boolean',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone'
+}
 
-export const EdgeCaseAttributesTypeCache = {
-  id: 'Generated<Int8>',
-  kPop: 'boolean|null',
-  popK: 'string|null',
-  popKPop: 'number|null',
-  createdAt: 'Timestamp',
-  updatedAt: 'Timestamp'
-}  
+export const EdgeCaseAttributesDBTypeMap = {
+  id: 'bigint',
+  kPop: 'boolean',
+  popK: 'character varying',
+  popKPop: 'integer',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone'
+}
 
-export const ExtraRatingsTypeCache = {
-  type: 'ExtraRatingTypesEnum',
-  id: 'Generated<Int8>',
-  userId: 'Int8',
-  extraRateableId: 'Int8',
-  extraRateableType: 'ExtraRateableTypesEnum',
-  rating: 'number|null',
-  createdAt: 'Timestamp',
-  updatedAt: 'Timestamp'
-}  
+export const ExtraRatingsDBTypeMap = {
+  type: 'extra_rating_types_enum',
+  id: 'bigint',
+  userId: 'bigint',
+  extraRateableId: 'bigint',
+  extraRateableType: 'extra_rateable_types_enum',
+  rating: 'integer',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone'
+}
 
-export const GraphEdgeNodesTypeCache = {
-  id: 'Generated<Int8>',
-  edgeId: 'Int8',
-  nodeId: 'Int8',
-  position: 'number|null',
-  createdAt: 'Timestamp',
-  updatedAt: 'Timestamp'
-}  
+export const GraphEdgeNodesDBTypeMap = {
+  id: 'bigint',
+  edgeId: 'bigint',
+  nodeId: 'bigint',
+  position: 'integer',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone'
+}
 
-export const GraphEdgesTypeCache = {
-  id: 'Generated<Int8>',
-  name: 'string|null',
-  createdAt: 'Timestamp',
-  updatedAt: 'Timestamp'
-}  
+export const GraphEdgesDBTypeMap = {
+  id: 'bigint',
+  name: 'character varying',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone'
+}
 
-export const GraphNodesTypeCache = {
-  id: 'Generated<Int8>',
-  name: 'string|null',
-  createdAt: 'Timestamp',
-  updatedAt: 'Timestamp'
-}  
+export const GraphNodesDBTypeMap = {
+  id: 'bigint',
+  name: 'character varying',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone'
+}
 
-export const IncompatibleForeignKeyTypeExamplesTypeCache = {
-  id: 'Generated<Int8>',
-  userId: 'number',
-  createdAt: 'Timestamp',
-  updatedAt: 'Timestamp'
-}  
+export const IncompatibleForeignKeyTypeExamplesDBTypeMap = {
+  id: 'bigint',
+  userId: 'integer',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone'
+}
 
-export const PetsTypeCache = {
-  id: 'Generated<Int8>',
-  userId: 'Int8|null',
-  favoriteTreats: 'CatTreats[]|null',
-  species: 'Species|null',
-  name: 'string|null',
-  deletedAt: 'Timestamp|null',
-  createdAt: 'Timestamp'
-}  
+export const PetsDBTypeMap = {
+  id: 'bigint',
+  userId: 'bigint',
+  favoriteTreats: 'cat_treats[]',
+  species: 'species',
+  name: 'text',
+  deletedAt: 'timestamp without time zone',
+  createdAt: 'timestamp without time zone'
+}
 
-export const PostsTypeCache = {
-  id: 'Generated<Int8>',
-  userId: 'Int8',
-  postVisibilityId: 'Int8|null',
-  body: 'string|null',
-  position: 'number',
-  createdAt: 'Timestamp',
-  updatedAt: 'Timestamp'
-}  
+export const PostsDBTypeMap = {
+  id: 'bigint',
+  userId: 'bigint',
+  postVisibilityId: 'bigint',
+  body: 'text',
+  position: 'integer',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone'
+}
 
-export const PostVisibilitiesTypeCache = {
-  id: 'Generated<Int8>',
-  visibility: 'boolean|null',
-  notes: 'string|null',
-  createdAt: 'Timestamp',
-  updatedAt: 'Timestamp'
-}  
+export const PostVisibilitiesDBTypeMap = {
+  id: 'bigint',
+  visibility: 'boolean',
+  notes: 'text',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone'
+}
 
-export const RatingsTypeCache = {
-  id: 'Generated<Int8>',
-  userId: 'Int8',
-  rateableId: 'Int8',
-  rateableType: 'string',
-  rating: 'number|null',
-  createdAt: 'Timestamp',
-  updatedAt: 'Timestamp'
-}  
+export const RatingsDBTypeMap = {
+  id: 'bigint',
+  userId: 'bigint',
+  rateableId: 'bigint',
+  rateableType: 'character varying',
+  rating: 'integer',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone'
+}
 
-export const SandbagsTypeCache = {
-  id: 'Generated<Int8>',
-  balloonId: 'Int8',
-  weight: 'number|null',
-  createdAt: 'Timestamp',
-  updatedAt: 'Timestamp'
-}  
+export const SandbagsDBTypeMap = {
+  id: 'bigint',
+  balloonId: 'bigint',
+  weight: 'integer',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone'
+}
 
-export const UsersTypeCache = {
-  id: 'Generated<Int8>',
-  name: 'string|null',
-  email: 'string',
-  passwordDigest: 'string',
-  createdAt: 'Timestamp',
-  updatedAt: 'Timestamp',
-  deletedAt: 'Timestamp|null'
-}  
+export const UsersDBTypeMap = {
+  id: 'bigint',
+  name: 'character varying',
+  email: 'character varying',
+  birthdate: 'date',
+  passwordDigest: 'character varying',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone',
+  deletedAt: 'timestamp without time zone'
+}
 
-export const UserSettingsTypeCache = {
-  id: 'Generated<Int8>',
-  userId: 'Int8',
-  likesChalupas: 'Generated<boolean>',
-  createdAt: 'Timestamp',
-  updatedAt: 'Timestamp'
-}  
+export const UserSettingsDBTypeMap = {
+  id: 'bigint',
+  userId: 'bigint',
+  likesChalupas: 'boolean',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone'
+}
 
 
 
@@ -733,25 +736,25 @@ export const DBColumns = {
 }
 
 export const DBTypeCache = {
-  balloon_lines: BalloonLinesTypeCache,
-  balloon_spotter_balloons: BalloonSpotterBalloonsTypeCache,
-  balloon_spotters: BalloonSpottersTypeCache,
-  beautiful_balloons: BeautifulBalloonsTypeCache,
-  collars: CollarsTypeCache,
-  composition_asset_audits: CompositionAssetAuditsTypeCache,
-  composition_assets: CompositionAssetsTypeCache,
-  compositions: CompositionsTypeCache,
-  edge_case_attributes: EdgeCaseAttributesTypeCache,
-  extra_ratings: ExtraRatingsTypeCache,
-  graph_edge_nodes: GraphEdgeNodesTypeCache,
-  graph_edges: GraphEdgesTypeCache,
-  graph_nodes: GraphNodesTypeCache,
-  incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamplesTypeCache,
-  pets: PetsTypeCache,
-  posts: PostsTypeCache,
-  post_visibilities: PostVisibilitiesTypeCache,
-  ratings: RatingsTypeCache,
-  sandbags: SandbagsTypeCache,
-  users: UsersTypeCache,
-  user_settings: UserSettingsTypeCache
+  balloon_lines: BalloonLinesDBTypeMap,
+  balloon_spotter_balloons: BalloonSpotterBalloonsDBTypeMap,
+  balloon_spotters: BalloonSpottersDBTypeMap,
+  beautiful_balloons: BeautifulBalloonsDBTypeMap,
+  collars: CollarsDBTypeMap,
+  composition_asset_audits: CompositionAssetAuditsDBTypeMap,
+  composition_assets: CompositionAssetsDBTypeMap,
+  compositions: CompositionsDBTypeMap,
+  edge_case_attributes: EdgeCaseAttributesDBTypeMap,
+  extra_ratings: ExtraRatingsDBTypeMap,
+  graph_edge_nodes: GraphEdgeNodesDBTypeMap,
+  graph_edges: GraphEdgesDBTypeMap,
+  graph_nodes: GraphNodesDBTypeMap,
+  incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamplesDBTypeMap,
+  pets: PetsDBTypeMap,
+  posts: PostsDBTypeMap,
+  post_visibilities: PostVisibilitiesDBTypeMap,
+  ratings: RatingsDBTypeMap,
+  sandbags: SandbagsDBTypeMap,
+  users: UsersDBTypeMap,
+  user_settings: UserSettingsDBTypeMap
 } as Partial<Record<keyof DB, any>>

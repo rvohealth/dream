@@ -1,30 +1,30 @@
 import { DateTime } from 'luxon'
-import isDecimal from './db/isDecimal'
-import isPostgresArray from './db/isPostgresArray'
-import marshalPGArrayValue from './marshalPGArrayValue'
-import { AssociationTableNames } from '../db/reflections'
+import isDecimal from './db/types/isDecimal'
+import isDatabaseArray from './db/types/isDatabaseArray'
+import marshalDBArrayValue from './marshalDBArrayValue'
+import Dream from '../dream'
+import isDate from './db/types/isDate'
 
 export function marshalDBValue<
-  DB extends any,
-  SyncedAssociations extends any,
-  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = AssociationTableNames<
-    DB,
-    SyncedAssociations
-  > &
-    keyof DB,
-  Table extends DB[TableName] = DB[TableName]
->(value: any, { table, column, dbTypeCache }: { table: TableName; column: keyof Table; dbTypeCache: any }) {
-  if (
-    value !== null &&
-    value !== undefined &&
-    isDecimal<DB, SyncedAssociations, TableName, Table>(column, { table, dbTypeCache })
-  )
-    return parseFloat(value)
+  T extends typeof Dream,
+  DB extends InstanceType<T>['DB'],
+  TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
+  Table extends DB[keyof DB] = DB[TableName]
+>(dreamClass: T, column: keyof Table, value: any) {
+  if (value !== null && value !== undefined && isDecimal(dreamClass, column)) return parseFloat(value)
 
-  if (value?.constructor === Date) return DateTime.fromJSDate(value)
+  if (value?.constructor === Date) {
+    if (isDate(dreamClass, column)) {
+      const dateString = value.toISOString().split('T')[0]
+      return DateTime.fromISO(dateString, { zone: 'UTC' })
+    } else {
+      return DateTime.fromJSDate(value, { zone: 'UTC' })
+    }
+  }
 
-  if (isPostgresArray<DB, SyncedAssociations, TableName, Table>(column, { table, dbTypeCache }))
-    return marshalPGArrayValue<DB, SyncedAssociations, TableName, Table>(value, column, { table })
+  if (isDatabaseArray(dreamClass, column)) {
+    return marshalDBArrayValue(dreamClass, value)
+  }
 
   return value
 }

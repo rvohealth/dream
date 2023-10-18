@@ -25,6 +25,7 @@ export default class User extends ApplicationModel {
   public id: IdType
   public type: string
   public name: string
+  public birthdate: DateTime
   public deletedAt: DateTime
   public createdAt: DateTime
   public updatedAt: DateTime

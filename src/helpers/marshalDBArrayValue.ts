@@ -1,28 +1,20 @@
-import { AssociationTableNames } from '../db/reflections'
+import Dream from '../dream'
 import AttemptingToMarshalInvalidArrayType from '../exceptions/attempting-to-marshal-invalid-array-type'
 
-export default function marshalPGArrayValue<
-  DB extends any,
-  SyncedAssociations extends any,
-  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = AssociationTableNames<
-    DB,
-    SyncedAssociations
-  > &
-    keyof DB,
-  Table extends DB[TableName] = DB[TableName],
-  Attr extends keyof Table = keyof Table
->(
-  value: string | any[] | null | undefined,
-  column: Attr,
-  { table }: { table: TableName }
-): Table[Attr] | null | undefined {
+export default function marshalDBArrayValue<
+  T extends typeof Dream,
+  DB extends InstanceType<T>['DB'],
+  TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
+  Table extends DB[keyof DB] = DB[TableName],
+  Column extends keyof Table = keyof Table
+>(dreamClass: T, value: string | any[] | null | undefined): Table[Column] | null | undefined {
   if (value === null) return null
   if (value === undefined) return undefined
 
   if (Array.isArray(value)) {
-    return value as Table[Attr]
+    return value as Table[Column]
   } else if (value.constructor === String) {
-    return parsePostgresArray(value as string, (val: string) => val) as Table[Attr]
+    return parsePostgresArray(value as string, (val: string) => val) as Table[Column]
   } else {
     throw new AttemptingToMarshalInvalidArrayType(value)
   }

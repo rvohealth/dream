@@ -13,7 +13,7 @@ describe('Dream#createAssociation', () => {
       const createdAt = DateTime.now().minus({ days: 1 })
       const composition = await user.createAssociation('compositions', { createdAt: createdAt })
 
-      expect(composition.createdAt).toEqual(createdAt)
+      expect(composition.createdAt).toEqual(createdAt.toUTC())
       expect(await user.associationQuery('compositions').all()).toMatchDreamModels([composition])
     })
   })
@@ -33,7 +33,7 @@ describe('Dream#createAssociation', () => {
       const createdAt = DateTime.now().minus({ days: 1 })
       const userSettings = await user.createAssociation('userSettings', { createdAt: createdAt })
 
-      expect(userSettings.createdAt).toEqual(createdAt)
+      expect(userSettings.createdAt).toEqual(createdAt.toUTC())
       expect(await user.associationQuery('userSettings').all()).toMatchDreamModels([userSettings])
     })
   })
@@ -54,7 +54,7 @@ describe('Dream#createAssociation', () => {
       const createdAt = DateTime.now().minus({ days: 1 })
       const postVisibility = await post.createAssociation('postVisibility', { createdAt: createdAt })
 
-      expect(postVisibility.createdAt).toEqual(createdAt)
+      expect(postVisibility.createdAt).toEqual(createdAt.toUTC())
       expect(await post.associationQuery('postVisibility').first()).toMatchDreamModel(postVisibility)
     })
   })
@@ -67,7 +67,7 @@ describe('Dream#createAssociation', () => {
       await ApplicationModel.transaction(async txn => {
         const composition = await user.txn(txn).createAssociation('compositions', { createdAt: createdAt })
 
-        expect(composition.createdAt).toEqual(createdAt)
+        expect(composition.createdAt).toEqual(createdAt.toUTC())
         expect(await user.txn(txn).associationQuery('compositions').all()).toMatchDreamModels([composition])
       })
     })
@@ -83,7 +83,7 @@ describe('Dream#createAssociation', () => {
             .txn(txn)
             .createAssociation('postVisibility', { createdAt: createdAt })
 
-          expect(postVisibility.createdAt).toEqual(createdAt)
+          expect(postVisibility.createdAt).toEqual(createdAt.toUTC())
           expect(await PostVisibility.txn(txn).count()).toEqual(1)
           expect(await post.txn(txn).associationQuery('postVisibility').first()).toMatchDreamModel(
             postVisibility

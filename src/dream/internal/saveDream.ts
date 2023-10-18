@@ -38,7 +38,7 @@ export default async function saveDream<DreamInstance extends Dream>(
   if (!(dream.dirtyAttributes() as any).updatedAt && (dream.columns() as any[]).includes('updatedAt'))
     (dream as any).updatedAt = now
 
-  const sqlifiedAttributes = sqlAttributes(dream.dirtyAttributes())
+  const sqlifiedAttributes = sqlAttributes(dream)
 
   if (alreadyPersisted) {
     query = db

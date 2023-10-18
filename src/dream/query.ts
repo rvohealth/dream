@@ -583,12 +583,7 @@ export default class Query<
 
     const vals = (await executeDatabaseQuery(kyselyQuery, 'execute')).map(result => Object.values(result))
 
-    const mapFn = (val: any, index: any) =>
-      marshalDBValue<DB, SyncedAssociations>(val, {
-        table: this.dreamClass.prototype.table,
-        column: fields[index] as any,
-        dbTypeCache: this.dreamClass.prototype.dreamconf.dbTypeCache,
-      })
+    const mapFn = (val: any, index: any) => marshalDBValue(this.dreamClass, fields[index] as any, val)
 
     if (fields.length > 1) {
       return vals.map(arr => arr.map(mapFn)) as any[]

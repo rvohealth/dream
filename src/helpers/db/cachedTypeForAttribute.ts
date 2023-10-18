@@ -1,14 +1,10 @@
-import { AssociationTableNames } from '../../db/reflections'
+import Dream from '../../dream'
 
 export default function cachedTypeForAttribute<
-  DB extends any,
-  SyncedAssociations extends any,
-  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = AssociationTableNames<
-    DB,
-    SyncedAssociations
-  > &
-    keyof DB,
-  Table extends DB[TableName] = DB[TableName]
->(attribute: keyof Table, { table, dbTypeCache }: { table: TableName; dbTypeCache: any }): string {
-  return (dbTypeCache[table] as any)[attribute]
+  T extends typeof Dream,
+  DB extends InstanceType<T>['DB'],
+  TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
+  Table extends DB[keyof DB] = DB[TableName]
+>(dreamClass: T, attribute: keyof Table): string {
+  return (dreamClass.prototype.dreamconf.dbTypeCache[dreamClass.prototype.table] as any)[attribute]
 }

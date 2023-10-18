@@ -1,4 +1,6 @@
 import '../src/helpers/loadEnv'
+import _db from '../src/db'
+import loadDreamconfFile from '../shared/helpers/path/loadDreamconfFile'
 import pluralize from 'pluralize'
 import path from 'path'
 import { promises as fs } from 'fs'
@@ -9,6 +11,7 @@ import camelize from '../shared/helpers/camelize'
 import ConnectionConfRetriever from './cli/connection-conf-retriever-primitive'
 import loadDreamYamlFile from '../shared/helpers/path/loadDreamYamlFile'
 import shouldOmitDistFolder from '../shared/helpers/path/shouldOmitDistFolder'
+import { Kysely, sql } from 'kysely'
 
 export default async function sync() {
   console.log('writing schema...')
@@ -45,12 +48,11 @@ async function writeSchema() {
   // intentionally bypassing helpers here, since they often end up referencing
   // from the dist folder, whereas dirname here is pointing to true src folder.
   const file = (await fs.readFile(absoluteSchemaPath)).toString()
-  const [enhancedSchema, transformedNames] = await enhanceSchema(file)
+  const enhancedSchema = await enhanceSchema(file)
 
   await fs.writeFile(absoluteSchemaWritePath, enhancedSchema as string)
 
   console.log('done enhancing schema!')
-  return [enhancedSchema, transformedNames] as [string, [string, string][]]
 }
 
 // begin: schema helpers
@@ -70,20 +72,25 @@ async function enhanceSchema(file: string) {
 
   const interfaceKeyIndexes = compact(results.map(result => indexInterfaceKeys(result)))
   const dreamCoercedInterfaces = results.map(result => buildDreamCoercedInterfaces(result))
-  const cachedInterfaces = results.map(result => buildCachedInterfaces(result))
-  let transformedNames = compact(results.map(result => transformName(result))) as [string, string][]
 
+  const dreamconf = await loadDreamconfFile()
+  const db = _db('primary', dreamconf)
+  const dbTypeMap = await Promise.all(results.map(async result => await buildDBTypeMap(db, result)))
+
+  let transformedNames = compact(results.map(result => transformName(result))) as string[]
+
+  // BEGIN FILE CONTENTS BUILDING
   const newFileContents = `${file}
 
 ${interfaceKeyIndexes.join('\n')}
 
 ${dreamCoercedInterfaces.join('\n\n')}
-${cachedInterfaces.join('\n\n')}
+${dbTypeMap.join('\n\n')}
 
 export class DBClass {
   ${
     transformedNames.length
-      ? transformedNames.map(([name, newName]) => `${snakeify(name)}: ${name}`).join('\n  ')
+      ? transformedNames.map(name => `${snakeify(name)}: ${name}`).join('\n  ')
       : 'placeholder: []'
   }
 }
@@ -91,9 +98,7 @@ export class DBClass {
 export interface InterpretedDB {
   ${
     transformedNames.length
-      ? transformedNames
-          .map(([name, newName]) => `${snakeify(name)}: ${pluralize.singular(name)}Attributes`)
-          .join(',\n  ')
+      ? transformedNames.map(name => `${snakeify(name)}: ${pluralize.singular(name)}Attributes`).join(',\n  ')
       : 'placeholder: []'
   }
 }
@@ -101,9 +106,7 @@ export interface InterpretedDB {
 export class InterpretedDBClass {
   ${
     transformedNames.length
-      ? transformedNames
-          .map(([name, newName]) => `${snakeify(name)}: ${pluralize.singular(name)}Attributes`)
-          .join('\n  ')
+      ? transformedNames.map(name => `${snakeify(name)}: ${pluralize.singular(name)}Attributes`).join('\n  ')
       : 'placeholder: []'
   }
 }
@@ -111,9 +114,7 @@ export class InterpretedDBClass {
 export const DBColumns = {
   ${
     transformedNames.length
-      ? transformedNames
-          .map(([name, newName]) => `${snakeify(name)}: ${pluralize.singular(name)}Columns`)
-          .join(',\n  ')
+      ? transformedNames.map(name => `${snakeify(name)}: ${pluralize.singular(name)}Columns`).join(',\n  ')
       : 'placeholder: []'
   }
 }
@@ -121,12 +122,12 @@ export const DBColumns = {
 export const DBTypeCache = {
   ${
     transformedNames.length
-      ? transformedNames.map(([name, newName]) => `${snakeify(name)}: ${name}TypeCache`).join(',\n  ')
+      ? transformedNames.map(name => `${snakeify(name)}: ${name}DBTypeMap`).join(',\n  ')
       : 'placeholder: []'
   }
 } as Partial<Record<keyof DB, any>>
 `
-  return [newFileContents, transformedNames] as [string, [string, string][]]
+  return newFileContents
 }
 
 function removeUnwantedExports(file: string) {
@@ -177,23 +178,20 @@ ${keys.map(key => `'${camelize(key)}'`).join(', ')}]\
 `
 }
 
-function buildCachedInterfaces(str: string) {
+async function buildDBTypeMap(db: Kysely<any>, str: string) {
   const name = str.split(' {')[0].replace(/\s/g, '')
   if (name === 'DB') return null
 
-  const keysAndValues = str
-    .split('{')[1]
-    .split('\n')
-    .filter(str => !['', '}'].includes(str.replace(/\s/g, '')))
-    .map(attr => [
-      attr.split(':')[0].replace(/\s/g, ''),
-      attr.split(':')[1].replace(/\s/g, '').replace(/;$/, ''),
-    ])
+  const tableName = snakeify(name)
+  const sqlQuery = sql`SELECT column_name, udt_name::regtype FROM information_schema.columns WHERE table_name = ${tableName}`
+  const columnToDBTypeMap = await sqlQuery.execute(db)
 
-  return `export const ${name}TypeCache = {
-  ${keysAndValues.map(([key, value]) => `${camelize(key)}: '${value}'`).join(',\n  ')}
+  return `export const ${name}DBTypeMap = {
+  ${(columnToDBTypeMap.rows as { columnName: string; udtName: string }[])
+    .map(mapping => `${camelize(mapping.columnName)}: '${mapping.udtName}'`)
+    .join(',\n  ')}
 }\
-  `
+`
 }
 
 function buildDreamCoercedInterfaces(str: string) {
@@ -236,8 +234,8 @@ function coercedTypeString(typeString: string) {
     .join(' | ')
 }
 
-function transformName(str: string): [string, string] | null {
+function transformName(str: string): string | null {
   const name = str.split(' {')[0].replace(/\s/g, '')
   if (name === 'DB') return null
-  return [name, pluralize.singular(name) + 'Opts']
+  return name
 }

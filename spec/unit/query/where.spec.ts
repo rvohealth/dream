@@ -7,6 +7,7 @@ import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import Balloon from '../../../test-app/app/models/Balloon'
 import Rating from '../../../test-app/app/models/Rating'
 import Post from '../../../test-app/app/models/Post'
+import AnyRequiresArrayColumn from '../../../src/exceptions/ops/any-requires-array-column'
 
 describe('Query#where', () => {
   it('supports multiple clauses', async () => {
@@ -228,6 +229,15 @@ describe('Query#where', () => {
 
       const balloons = await new Query(Balloon).where({ multicolor: ops.any('green') }).all()
       expect(balloons).toMatchDreamModels([multicolorBalloon, greenBalloon])
+    })
+
+    context('when passed a non-array column', () => {
+      it('raises an exception', async () => {
+        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        await expect(new Query(User).where({ email: ops.any('fred@fred') }).all()).rejects.toThrowError(
+          AnyRequiresArrayColumn
+        )
+      })
     })
   })
 
