@@ -55,3 +55,7 @@ function sslConfig(connectionConf: DbConnectionConfig) {
 export function dreamDbConnections() {
   return connections
 }
+
+export async function closeAllDbConnections() {
+  await Promise.all(Object.values(connections).map(conn => conn.destroy()))
+}
