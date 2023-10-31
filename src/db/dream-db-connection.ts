@@ -6,7 +6,11 @@ import { Pool } from 'pg'
 import Dreamconf from '../../shared/dreamconf'
 import { DbConnectionConfig } from '../../shared/helpers/path/types'
 
-const connections = {} as any
+const connections = {} as { [key: string]: Kysely<any> }
+
+process.on('SIGINT', async function () {
+  await Promise.all(Object.values(connections).map(dbConn => dbConn.destroy()))
+})
 
 export default class DreamDbConnection {
   public static getConnection<DB extends any>(
