@@ -9,7 +9,12 @@ import { DbConnectionConfig } from '../../shared/helpers/path/types'
 const connections = {} as { [key: string]: Kysely<any> }
 
 process.on('SIGINT', async function () {
-  await Promise.all(Object.values(connections).map(dbConn => dbConn.destroy()))
+  try {
+    await Promise.all(Object.values(connections).map(dbConn => dbConn.destroy()))
+    process.exit(0)
+  } catch (error) {
+    process.exit(1)
+  }
 })
 
 export default class DreamDbConnection {
