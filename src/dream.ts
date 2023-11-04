@@ -340,10 +340,7 @@ export default class Dream {
     ETableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, DTableName, E>,
     F extends NextPreloadArgumentType<SyncedAssociations, ETableName>,
     FTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ETableName, F>,
-    //
-    G extends FTableName extends undefined
-      ? undefined
-      : (keyof SyncedAssociations[FTableName & keyof SyncedAssociations] & string)[]
+    G extends NextPreloadArgumentType<SyncedAssociations, FTableName>
   >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     const query: Query<T> = new Query<T>(this)
 
@@ -371,10 +368,7 @@ export default class Dream {
     ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>,
     F extends NextJoinsWhereArgumentType<DB, SyncedAssociations, ETableName>,
     FTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>,
-    //
-    G extends FTableName extends undefined
-      ? undefined
-      : WhereStatement<DB, SyncedAssociations, FTableName & AssociationTableNames<DB, SyncedAssociations>>
+    G extends NextJoinsWhereArgumentType<DB, SyncedAssociations, FTableName>
   >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     const query: Query<T> = new Query<T>(this)
 
@@ -903,10 +897,7 @@ export default class Dream {
     ETableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, DTableName, E>,
     F extends NextPreloadArgumentType<SyncedAssociations, ETableName>,
     FTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ETableName, F>,
-    //
-    G extends FTableName extends undefined
-      ? undefined
-      : (keyof SyncedAssociations[FTableName & keyof SyncedAssociations] & string)[]
+    G extends NextPreloadArgumentType<SyncedAssociations, FTableName>
   >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G): LoadBuilder<I> {
     return new LoadBuilder<I>(this).load(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }

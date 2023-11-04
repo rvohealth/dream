@@ -113,10 +113,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     ETableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, DTableName, E>,
     F extends NextPreloadArgumentType<SyncedAssociations, ETableName>,
     FTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ETableName, F>,
-    //
-    G extends FTableName extends undefined
-      ? undefined
-      : (keyof SyncedAssociations[FTableName & keyof SyncedAssociations] & string)[]
+    G extends NextPreloadArgumentType<SyncedAssociations, FTableName>
   >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     return this.queryInstance().preload(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
@@ -141,10 +138,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>,
     F extends NextJoinsWhereArgumentType<DB, SyncedAssociations, ETableName>,
     FTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>,
-    //
-    G extends FTableName extends undefined
-      ? undefined
-      : WhereStatement<DB, SyncedAssociations, FTableName & AssociationTableNames<DB, SyncedAssociations>>
+    G extends NextJoinsWhereArgumentType<DB, SyncedAssociations, FTableName>
   >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     return this.queryInstance().joins(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
