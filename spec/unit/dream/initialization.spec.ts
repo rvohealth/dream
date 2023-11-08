@@ -36,8 +36,7 @@ describe('Dream initialization', () => {
     context('undefined is passed', () => {
       context('the relationship is optional', () => {
         it('allows undefined to be set', () => {
-          const pet = Pet.new({ user: undefined })
-          expect(pet.user).toBeUndefined()
+          expect(() => Pet.new({ user: undefined })).not.toThrowError()
         })
       })
 

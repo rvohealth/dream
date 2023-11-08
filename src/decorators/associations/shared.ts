@@ -13,6 +13,7 @@ import CurriedOpsStatement from '../../ops/curried-ops-statement'
 import { MergeUnionOfRecordTypes } from '../../helpers/typeutils'
 import { checkForeignKey } from '../../exceptions/associations/explicit-foreign-key'
 import camelize from '../../../shared/helpers/camelize'
+import NonLoadedAssociation from '../../exceptions/associations/non-loaded-association'
 
 export type AssociatedModelParam<
   I extends Dream,
@@ -128,4 +129,41 @@ export function modelCBtoSingleDreamClass(
     throw `${dreamClass.name} association ${partialAssociation.as} is incompatible with array of ${partialAssociation.type} Dream types`
 
   return partialAssociation.modelCB() as typeof Dream
+}
+
+export function applyGetterAndSetter(
+  target: Dream,
+  partialAssociation: PartialAssociationStatement,
+  {
+    foreignKeyBase,
+    isBelongsTo,
+  }: {
+    foreignKeyBase?: string
+    isBelongsTo?: boolean
+  } = {}
+) {
+  const dreamClass: typeof Dream = target.constructor as typeof Dream
+
+  Object.defineProperty(target, partialAssociation.as, {
+    configurable: true,
+
+    get: function (this: any) {
+      const value = this[`__${partialAssociation.as}__`]
+      if (value === undefined)
+        throw new NonLoadedAssociation({ dreamClass, associationName: partialAssociation.as })
+      else return value
+    },
+
+    set: function (this: any, associatedModel: any) {
+      this[`__${partialAssociation.as}__`] = associatedModel
+
+      if (isBelongsTo) {
+        this[finalForeignKey(foreignKeyBase, dreamClass, partialAssociation)] =
+          associatedModel?.primaryKeyValue
+        if (partialAssociation.polymorphic)
+          this[foreignKeyTypeField(foreignKeyBase, dreamClass, partialAssociation)] =
+            associatedModel?.constructor?.name
+      }
+    },
+  })
 }

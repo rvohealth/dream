@@ -41,21 +41,21 @@ export default class CompositionAsset extends ApplicationModel {
 
   @BeforeDestroy()
   public async updateCompositionContentBeforeDestroy(this: CompositionAsset) {
-    const reloaded = this.composition ? this : await this.load('composition').execute()
+    const reloaded = this.loaded('composition') ? this : await this.load('composition').execute()
     if (this.src === 'mark before destroy')
       await reloaded.composition!.update({ content: 'something was destroyed' })
   }
 
   @AfterDestroy()
   public async updateCompositionContentAfterDestroy(this: CompositionAsset) {
-    const reloaded = this.composition ? this : await this.load('composition').execute()
+    const reloaded = this.loaded('composition') ? this : await this.load('composition').execute()
     if (this.src === 'mark after destroy')
       await reloaded.composition!.update({ content: 'changed after destroying composition asset' })
   }
 
   @AfterDestroyCommit()
   public async updateCompositionContentAfterDestroyCommit(this: CompositionAsset) {
-    const reloaded = this.composition ? this : await this.load('composition').execute()
+    const reloaded = this.loaded('composition') ? this : await this.load('composition').execute()
     if (this.src === 'mark after destroy commit')
       await reloaded.composition!.update({ content: 'changed after destroy commit of composition asset' })
   }

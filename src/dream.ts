@@ -57,6 +57,7 @@ import resortAllRecords from './decorators/sortable/helpers/resortAllRecords'
 import { SortableFieldConfig } from './decorators/sortable'
 import NonExistentScopeProvidedToResort from './exceptions/non-existent-scope-provided-to-resort'
 import cloneDeep from 'lodash.clonedeep'
+import NonLoadedAssociation from './exceptions/associations/non-loaded-association'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -606,7 +607,10 @@ export default class Dream {
     )[] = []
     for (const associationName in this.associationMap()) {
       const associationMetadata = this.associationMap()[associationName]
-      const associationRecord = (this as any)[associationName] as Dream | undefined
+      const associationRecord: Dream | null = (this as any).loaded(associationName)
+        ? ((this as any)[associationName] as Dream)
+        : null
+
       if (associationRecord?.isDreamInstance && associationRecord?.isDirty) {
         unsaved.push(associationMetadata)
       }
@@ -902,6 +906,22 @@ export default class Dream {
     return new LoadBuilder<I>(this).load(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
 
+  public loaded<
+    I extends Dream,
+    TableName extends I['table'],
+    SyncedAssociations extends I['syncedAssociations'],
+    //
+    A extends NextPreloadArgumentType<SyncedAssociations, TableName>
+  >(this: I, a: A) {
+    try {
+      ;(this as any)[a]
+      return true
+    } catch (error) {
+      if ((error as any).constructor !== NonLoadedAssociation) throw error
+      return false
+    }
+  }
+
   public async reload<I extends Dream>(this: I) {
     return reload(this)
   }
@@ -929,7 +949,7 @@ export default class Dream {
       } else if (associationMetaData) {
         const belongsToAssociationMetaData = associationMetaData as BelongsToStatement<any, any, any>
         const associatedObject = (attributes as any)[attr]
-        self[attr] = associatedObject
+        if (associatedObject !== undefined) self[attr] = associatedObject
 
         if (!(associationMetaData as BelongsToStatement<any, any, any>).optional && !associatedObject)
           throw new CannotPassNullOrUndefinedToRequiredBelongsTo(

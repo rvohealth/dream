@@ -2,6 +2,7 @@ import Dream from '../../dream'
 import { AssociationTableNames } from '../../db/reflections'
 import {
   PartialAssociationStatement,
+  applyGetterAndSetter,
   blankAssociationsFactory,
   finalForeignKey,
   foreignKeyTypeField,
@@ -45,20 +46,7 @@ export default function BelongsTo(
     } as BelongsToStatement<any, any, any>
 
     dreamClass.associations['belongsTo'].push(association)
-
-    Object.defineProperty(target, key, {
-      get: function (this: any) {
-        return this[`__${key}__`]
-      },
-      set: function (this: any, associatedModel: any) {
-        this[`__${key}__`] = associatedModel
-        this[finalForeignKey(foreignKey, dreamClass, partialAssociation)] = associatedModel?.primaryKeyValue
-        if (polymorphic)
-          this[foreignKeyTypeField(foreignKey, dreamClass, partialAssociation)] =
-            associatedModel?.constructor?.name
-      },
-    })
-
+    applyGetterAndSetter(target, association, { isBelongsTo: true, foreignKeyBase: foreignKey })
     if (!optional) Validates('requiredBelongsTo')(target, key)
   }
 }

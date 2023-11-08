@@ -1,4 +1,4 @@
-import { Dream } from '../../../src'
+import { Dream, NonLoadedAssociation } from '../../../src'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import Pet from '../../../test-app/app/models/Pet'
 import User from '../../../test-app/app/models/User'
@@ -18,7 +18,7 @@ describe('Dream#load', () => {
     expect(clone).not.toBe(user)
 
     expect(clone.pets).toMatchDreamModels([pet])
-    expect(clone.pets).not.toBe(user.pets)
+    expect(() => user.pets).toThrowError(NonLoadedAssociation)
   })
 
   context('Has(One/Many) association', () => {

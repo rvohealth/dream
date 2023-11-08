@@ -433,6 +433,12 @@ describe('DreamSerializer#render', () => {
           const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
           await Pet.create({ user, name: 'aster', species: 'cat' })
 
+          Object.defineProperty(user, 'pets', {
+            get: function (this: any) {
+              return undefined
+            },
+          })
+
           const serializer = new UserSerializer(user)
           expect(serializer.render()).toEqual({ pets: [] })
         })
@@ -543,8 +549,11 @@ describe('DreamSerializer#render', () => {
           const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
           const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
 
-          // @ts-ignore: this is intentional to simulate a miscasted var
-          pet.user = undefined
+          Object.defineProperty(pet, 'user', {
+            get: function (this: any) {
+              return undefined
+            },
+          })
 
           const serializer = new PetSerializer(pet)
           expect(serializer.render()).toEqual({ user: null })

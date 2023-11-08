@@ -3,6 +3,7 @@ import {
   HasStatement,
   PartialAssociationStatement,
   WhereStatement,
+  applyGetterAndSetter,
   blankAssociationsFactory,
   finalForeignKey,
   foreignKeyTypeField,
@@ -71,6 +72,7 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
     } as HasOneStatement<any, any, any>
 
     dreamClass.associations['hasOne'].push(association)
+    applyGetterAndSetter(target, association)
   }
 }
 

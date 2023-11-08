@@ -1,8 +1,15 @@
 import ValidationStatement from '../../decorators/validations/shared'
 import Dream from '../../dream'
+import NonLoadedAssociation from '../../exceptions/associations/non-loaded-association'
 
 export default function isValid(dream: Dream, validation: ValidationStatement) {
-  const value = (dream as any)[validation.column]
+  let value: any
+  try {
+    value = (dream as any)[validation.column]
+  } catch (error) {
+    if ((error as any).constructor !== NonLoadedAssociation) throw error
+  }
+
   switch (validation.type) {
     case 'presence':
       return !isBlank(value)
