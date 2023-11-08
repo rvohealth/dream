@@ -8,6 +8,7 @@ import Pet from '../../../test-app/app/models/Pet'
 import Delegate from '../../../src/serializer/decorators/delegate'
 import MissingSerializer from '../../../src/exceptions/missing-serializer'
 import Balloon from '../../../test-app/app/models/Balloon'
+import NonLoadedAssociation from '../../../src/exceptions/associations/non-loaded-association'
 
 describe('DreamSerializer#render', () => {
   it('renders a single attribute', async () => {
@@ -428,13 +429,15 @@ describe('DreamSerializer#render', () => {
         })
       })
 
-      context('when the field is undefined', () => {
-        it('adds a blank array', async () => {
+      context('when the association has not been loaded', () => {
+        it('raises NonLoadedAssociation', async () => {
           const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
           await Pet.create({ user, name: 'aster', species: 'cat' })
 
           const serializer = new UserSerializer(user)
-          expect(serializer.render()).toEqual({ pets: [] })
+          expect(() => {
+            serializer.render()
+          }).toThrowError(NonLoadedAssociation)
         })
       })
 
@@ -538,8 +541,8 @@ describe('DreamSerializer#render', () => {
         })
       })
 
-      context('when the field is undefined', () => {
-        it('sets to null', async () => {
+      context('when the association has not been loaded', () => {
+        it('raises NonLoadedAssociation', async () => {
           const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
           const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
 
@@ -547,7 +550,9 @@ describe('DreamSerializer#render', () => {
           pet.user = undefined
 
           const serializer = new PetSerializer(pet)
-          expect(serializer.render()).toEqual({ user: null })
+          expect(() => {
+            serializer.render()
+          }).toThrowError(NonLoadedAssociation)
         })
       })
 

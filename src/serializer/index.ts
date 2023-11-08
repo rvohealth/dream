@@ -5,9 +5,9 @@ import { DateTime } from 'luxon'
 import { AttributeStatement } from './decorators/attribute'
 import { AssociationStatement } from './decorators/associations/shared'
 import { DelegateStatement } from './decorators/delegate'
-import { loadDreamYamlFile } from '../helpers/path'
 import MissingSerializer from '../exceptions/missing-serializer'
 import round from '../helpers/round'
+import NonLoadedAssociation from '../exceptions/associations/non-loaded-association'
 
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
   public static attributeStatements: AttributeStatement[] = []
@@ -126,10 +126,11 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   private applyAssociation(associationStatement: AssociationStatement) {
     const associatedData = this.associatedData(associationStatement)
 
+    if (associatedData === null) return associationStatement.type === 'RendersMany' ? [] : null
+    if (associatedData === undefined) throw new NonLoadedAssociation(associationStatement)
     if (associationStatement.type === 'RendersMany' && Array.isArray(associatedData))
       return associatedData.map(d => this.renderAssociation(d, associationStatement))
-    else if (associatedData) return this.renderAssociation(associatedData, associationStatement)
-    return associationStatement.type === 'RendersMany' ? [] : null
+    if (associatedData) return this.renderAssociation(associatedData, associationStatement)
   }
 
   private renderAssociation(associatedData: any, associationStatement: AssociationStatement) {
