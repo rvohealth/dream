@@ -22,6 +22,7 @@ export default function RendersMany(
       {
         type: 'RendersMany',
         field: key,
+        optional: opts.optional || false,
         serializerClassCB,
         source: opts.source || key,
         through: opts.through || null,
@@ -31,6 +32,7 @@ export default function RendersMany(
 }
 
 export interface RendersManyOpts {
+  optional?: boolean
   source?: string
   through?: string
 }

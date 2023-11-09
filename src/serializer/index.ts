@@ -8,6 +8,7 @@ import { DelegateStatement } from './decorators/delegate'
 import { loadDreamYamlFile } from '../helpers/path'
 import MissingSerializer from '../exceptions/missing-serializer'
 import round from '../helpers/round'
+import NonLoadedAssociation from '../exceptions/associations/non-loaded-association'
 
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
   public static attributeStatements: AttributeStatement[] = []
@@ -124,7 +125,16 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   }
 
   private applyAssociation(associationStatement: AssociationStatement) {
-    const associatedData = this.associatedData(associationStatement)
+    // let associatedData: ReturnType<DreamSerializer.prototype.associatedData>
+    let associatedData: any
+
+    try {
+      associatedData = this.associatedData(associationStatement)
+    } catch (error) {
+      if ((error as any).constructor !== NonLoadedAssociation) throw error
+      if (associationStatement.optional) return undefined
+      throw error
+    }
 
     if (associationStatement.type === 'RendersMany' && Array.isArray(associatedData))
       return associatedData.map(d => this.renderAssociation(d, associationStatement))

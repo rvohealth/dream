@@ -8,6 +8,7 @@ import Pet from '../../../test-app/app/models/Pet'
 import Delegate from '../../../src/serializer/decorators/delegate'
 import MissingSerializer from '../../../src/exceptions/missing-serializer'
 import Balloon from '../../../test-app/app/models/Balloon'
+import { NonLoadedAssociation } from '../../../src'
 
 describe('DreamSerializer#render', () => {
   it('renders a single attribute', async () => {
@@ -428,6 +429,31 @@ describe('DreamSerializer#render', () => {
         })
       })
 
+      context('when the association hasn’t been loaded', () => {
+        it('throws NonLoadedAssociation', async () => {
+          const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+          await Pet.create({ user, name: 'aster', species: 'cat' })
+
+          const serializer = new UserSerializer(user)
+          expect(() => serializer.render()).toThrowError(NonLoadedAssociation)
+        })
+
+        context('when the serializer is optional', () => {
+          class UserSerializer extends DreamSerializer {
+            @RendersMany(() => PetSerializer, { optional: true })
+            public pets: Pet[]
+          }
+
+          it('renders the association as undefined', async () => {
+            const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+            await Pet.create({ user, name: 'aster', species: 'cat' })
+
+            const serializer = new UserSerializer(user)
+            expect(serializer.render()).toEqual({ pets: undefined })
+          })
+        })
+      })
+
       context('when the field is undefined', () => {
         it('adds a blank array', async () => {
           const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
@@ -541,6 +567,33 @@ describe('DreamSerializer#render', () => {
         expect(serializer.render()).toMatchObject({
           pet: { name: 'aster', species: 'cat' },
           balloon: { color: 'red' },
+        })
+      })
+
+      context('when the association hasn’t been loaded', () => {
+        it('throws NonLoadedAssociation', async () => {
+          const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+          const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+          const reloadedPet = await Pet.find(pet.id)
+
+          const serializer = new PetSerializer(reloadedPet)
+          expect(() => serializer.render()).toThrowError(NonLoadedAssociation)
+        })
+
+        context('when the serializer is optional', () => {
+          class PetSerializer extends DreamSerializer {
+            @RendersOne(() => UserSerializer, { optional: true })
+            public user: User
+          }
+
+          it('renders the association as undefined', async () => {
+            const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+            const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+            const reloadedPet = await Pet.find(pet.id)
+
+            const serializer = new PetSerializer(reloadedPet)
+            expect(serializer.render()).toEqual({ pets: undefined })
+          })
         })
       })
 
