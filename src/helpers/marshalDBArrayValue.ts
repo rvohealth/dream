@@ -1,5 +1,6 @@
 import Dream from '../dream'
 import AttemptingToMarshalInvalidArrayType from '../exceptions/attempting-to-marshal-invalid-array-type'
+import { isString } from './typechecks'
 
 export default function marshalDBArrayValue<
   T extends typeof Dream,
@@ -13,7 +14,7 @@ export default function marshalDBArrayValue<
 
   if (Array.isArray(value)) {
     return value as Table[Column]
-  } else if (value.constructor === String) {
+  } else if (isString(value)) {
     return parsePostgresArray(value as string, (val: string) => val) as Table[Column]
   } else {
     throw new AttemptingToMarshalInvalidArrayType(value)

@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon'
+import { isObject } from '../../src/helpers/typechecks'
 
 export default function snakeify<
   T extends string | { [key: string]: any } | (string | { [key: string]: any })[],
@@ -14,25 +15,27 @@ export default function snakeify<
     return target.map(s => snakeify(s)) as RT
   }
 
-  if (typeof target === 'object') {
+  if (isObject(target)) {
     const agg: { [key: string]: any } = {}
-    return Object.keys(target).reduce((agg, s) => {
-      switch (target[s]?.constructor) {
+    const obj = target as { [key: string]: any }
+
+    return Object.keys(obj).reduce((agg, s) => {
+      switch (obj[s]?.constructor) {
         case DateTime:
-          agg[snakeify(s) as string] = target[s]
+          agg[snakeify(s) as string] = obj[s]
           break
 
         default:
-          if ([null, undefined].includes(target[s])) agg[snakeify(s) as string] = target[s]
-          else if (typeof target[s] === 'object') return snakeify(target[s])
-          else agg[snakeify(s) as string] = target[s]
+          if ([null, undefined].includes(obj[s])) agg[snakeify(s) as string] = obj[s]
+          else if (isObject(obj[s])) return snakeify(obj[s])
+          else agg[snakeify(s) as string] = obj[s]
       }
 
       return agg
     }, agg) as RT
   }
 
-  return target
+  return (target as string)
     .replace(/(?:^|\.?)([A-Z])/g, (_: string, y: string) => '_' + y.toLowerCase())
     .replace(/^_/, '')
     .replace(/\//g, '_')

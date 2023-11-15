@@ -50,6 +50,7 @@ import isEmpty from 'lodash.isempty'
 import executeDatabaseQuery from './internal/executeDatabaseQuery'
 import { DbConnectionType } from '../db/types'
 import NoUpdateAllOnAssociationQuery from '../exceptions/no-updateall-on-association-query'
+import { isObject, isString } from '../helpers/typechecks'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -233,12 +234,16 @@ export default class Query<
 
     if (nextAssociationStatement === undefined) {
       // just satisfying typing
-    } else if (nextAssociationStatement.constructor === String) {
-      if (!preloadStatements[nextAssociationStatement]) preloadStatements[nextAssociationStatement] = {}
-      const nextPreload = preloadStatements[nextAssociationStatement]
+    } else if (isString(nextAssociationStatement)) {
+      const nextStatement = nextAssociationStatement as string
+
+      if (!preloadStatements[nextStatement]) preloadStatements[nextStatement] = {}
+      const nextPreload = preloadStatements[nextStatement]
       this.fleshOutPreloadStatements(nextPreload, associationStatements)
     } else if (Array.isArray(nextAssociationStatement)) {
-      nextAssociationStatement.forEach(associationStatement => {
+      const nextStatement = nextAssociationStatement as string[]
+
+      nextStatement.forEach(associationStatement => {
         preloadStatements[associationStatement] = {}
       })
     }
@@ -285,21 +290,24 @@ export default class Query<
 
     if (nextAssociationStatement === undefined) {
       // just satisfying typing
-    } else if (nextAssociationStatement.constructor === String) {
-      if (!joinsStatements[nextAssociationStatement]) joinsStatements[nextAssociationStatement] = {}
-      if (!joinsWhereStatements[nextAssociationStatement]) joinsWhereStatements[nextAssociationStatement] = {}
-      const nextJoinsStatements = joinsStatements[nextAssociationStatement]
-      const nextJoinsWhereStatements = joinsWhereStatements[
-        nextAssociationStatement
-      ] as RelaxedJoinsWhereStatement<DB, SyncedAssociations>
+    } else if (isString(nextAssociationStatement)) {
+      const nextStatement = nextAssociationStatement as string
+
+      if (!joinsStatements[nextStatement]) joinsStatements[nextStatement] = {}
+      if (!joinsWhereStatements[nextStatement]) joinsWhereStatements[nextStatement] = {}
+      const nextJoinsStatements = joinsStatements[nextStatement]
+      const nextJoinsWhereStatements = joinsWhereStatements[nextStatement] as RelaxedJoinsWhereStatement<
+        DB,
+        SyncedAssociations
+      >
 
       this.fleshOutJoinsStatements(
         nextJoinsStatements,
         nextJoinsWhereStatements,
-        nextAssociationStatement,
+        nextStatement,
         associationStatements
       )
-    } else if (nextAssociationStatement.constructor === Object && previousAssociationName) {
+    } else if (isObject(nextAssociationStatement) && previousAssociationName) {
       Object.keys(nextAssociationStatement).forEach((key: string) => {
         joinsWhereStatements[key] = (nextAssociationStatement as any)[key]
       })
@@ -373,23 +381,26 @@ export default class Query<
       // just satisfying typing
     } else if (Array.isArray(nextAssociationStatement)) {
       return nextAssociationStatement
-    } else if (nextAssociationStatement.constructor === String && nextAssociationStatement.includes('.')) {
+    } else if (isString(nextAssociationStatement) && (nextAssociationStatement as string).includes('.')) {
       return nextAssociationStatement as `${any}.${any}`
-    } else if (nextAssociationStatement.constructor === String) {
-      if (!joinsStatements[nextAssociationStatement]) joinsStatements[nextAssociationStatement] = {}
-      if (!joinsWhereStatements[nextAssociationStatement]) joinsWhereStatements[nextAssociationStatement] = {}
-      const nextJoinsStatements = joinsStatements[nextAssociationStatement]
-      const nextJoinsWhereStatements = joinsWhereStatements[
-        nextAssociationStatement
-      ] as RelaxedJoinsWhereStatement<DB, SyncedAssociations>
+    } else if (isString(nextAssociationStatement)) {
+      const nextStatement = nextAssociationStatement as string
+
+      if (!joinsStatements[nextStatement]) joinsStatements[nextStatement] = {}
+      if (!joinsWhereStatements[nextStatement]) joinsWhereStatements[nextStatement] = {}
+      const nextJoinsStatements = joinsStatements[nextStatement]
+      const nextJoinsWhereStatements = joinsWhereStatements[nextStatement] as RelaxedJoinsWhereStatement<
+        DB,
+        SyncedAssociations
+      >
 
       return this.fleshOutJoinsPluckStatements(
         nextJoinsStatements,
         nextJoinsWhereStatements,
-        nextAssociationStatement,
+        nextStatement,
         associationStatements
       )
-    } else if (nextAssociationStatement.constructor === Object && previousAssociationName) {
+    } else if (isObject(nextAssociationStatement) && previousAssociationName) {
       Object.keys(nextAssociationStatement).forEach((key: string) => {
         joinsWhereStatements[key] = (nextAssociationStatement as any)[key]
       })
