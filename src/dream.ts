@@ -294,14 +294,10 @@ export default class Dream {
 
   public static async findOrCreateBy<T extends typeof Dream>(
     this: T,
-    opts: WhereStatement<
-      InstanceType<T>['DB'],
-      InstanceType<T>['syncedAssociations'],
-      InstanceType<T>['table']
-    >,
+    opts: UpdateablePropertiesForClass<T>,
     extraOpts: CreateOrFindByExtraOps<T> = {}
   ) {
-    const existingRecord = await this.findBy(opts)
+    const existingRecord = await this.findBy(extractAttributesFromUpdateableProperties(this, opts))
     if (existingRecord) return existingRecord
 
     return (await new (this as any)({

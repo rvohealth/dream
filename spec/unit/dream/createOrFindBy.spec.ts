@@ -44,9 +44,15 @@ describe('Dream.createOrFindBy', () => {
     })
   })
 
-  it('respects associations', async () => {
+  it('respects associations in primary opts', async () => {
     const user = await User.create({ email: 'fred@fred.fred', password: 'howyadoin' })
     const composition = await Composition.createOrFindBy({ user }, { createWith: { content: 'howyadoin' } })
+    expect(composition!.userId).toEqual(user.id)
+  })
+
+  it('respects associations in secondary opts', async () => {
+    const user = await User.create({ email: 'fred@fred.fred', password: 'howyadoin' })
+    const composition = await Composition.createOrFindBy({ content: 'howyadoin' }, { createWith: { user } })
     expect(composition!.userId).toEqual(user.id)
   })
 })

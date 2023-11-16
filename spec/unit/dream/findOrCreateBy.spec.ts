@@ -1,3 +1,4 @@
+import Composition from '../../../test-app/app/models/Composition'
 import User from '../../../test-app/app/models/User'
 
 describe('Dream.findOrCreateBy', () => {
@@ -25,5 +26,17 @@ describe('Dream.findOrCreateBy', () => {
       expect(user!.email).toEqual('fred@fred')
       expect(await user!.checkPassword('howyadoin')).toEqual(true)
     })
+  })
+
+  it('respects associations in primary opts', async () => {
+    const user = await User.create({ email: 'fred@fred.fred', password: 'howyadoin' })
+    const composition = await Composition.findOrCreateBy({ user }, { createWith: { content: 'howyadoin' } })
+    expect(composition!.userId).toEqual(user.id)
+  })
+
+  it('respects associations in secondary opts', async () => {
+    const user = await User.create({ email: 'fred@fred.fred', password: 'howyadoin' })
+    const composition = await Composition.findOrCreateBy({ content: 'howyadoin' }, { createWith: { user } })
+    expect(composition!.userId).toEqual(user.id)
   })
 })
