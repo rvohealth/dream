@@ -1,4 +1,5 @@
 import { Dream } from '../../../src'
+import Composition from '../../../test-app/app/models/Composition'
 import User from '../../../test-app/app/models/User'
 
 describe('Dream.createOrFindBy', () => {
@@ -41,5 +42,11 @@ describe('Dream.createOrFindBy', () => {
           await User.createOrFindBy({ email: 'fred@fred' }, { createWith: { password: 'nothowyadoin' } })
       ).rejects.toThrowError()
     })
+  })
+
+  it('respects associations', async () => {
+    const user = await User.create({ email: 'fred@fred.fred', password: 'howyadoin' })
+    const composition = await Composition.createOrFindBy({ user }, { createWith: { content: 'howyadoin' } })
+    expect(composition!.userId).toEqual(user.id)
   })
 })

@@ -58,6 +58,7 @@ import { SortableFieldConfig } from './decorators/sortable'
 import NonExistentScopeProvidedToResort from './exceptions/non-existent-scope-provided-to-resort'
 import cloneDeep from 'lodash.clonedeep'
 import NonLoadedAssociation from './exceptions/associations/non-loaded-association'
+import extractAttributesFromUpdateableProperties from './dream/internal/extractAttributesFromUpdateableProperties'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -247,11 +248,7 @@ export default class Dream {
 
   public static async createOrFindBy<T extends typeof Dream>(
     this: T,
-    opts: WhereStatement<
-      InstanceType<T>['DB'],
-      InstanceType<T>['syncedAssociations'],
-      InstanceType<T>['table']
-    >,
+    opts: UpdateablePropertiesForClass<T>,
     extraOpts: CreateOrFindByExtraOps<T> = {}
   ): Promise<InstanceType<T> | null> {
     let record: InstanceType<T>
@@ -266,7 +263,7 @@ export default class Dream {
         (err as DatabaseError)?.constructor === DatabaseError &&
         (err as DatabaseError)?.message?.includes('duplicate key value violates unique constraint')
       )
-        return await this.findBy(opts)
+        return await this.findBy(extractAttributesFromUpdateableProperties(this, opts))
       throw err
     }
   }
@@ -939,42 +936,11 @@ export default class Dream {
     TableName extends keyof DB = I['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
   >(this: I, attributes: Updateable<Table> | AssociatedModelParam<I>) {
-    const self = this as any
-    const marshalledOpts: any = {}
-    Object.keys(attributes as any).forEach(attr => {
-      const associationMetaData = this.associationMap()[attr]
-
-      if (associationMetaData && associationMetaData.type !== 'BelongsTo') {
-        throw new CanOnlyPassBelongsToModelParam(self.constructor, associationMetaData)
-      } else if (associationMetaData) {
-        const belongsToAssociationMetaData = associationMetaData as BelongsToStatement<any, any, any>
-        const associatedObject = (attributes as any)[attr]
-        if (associatedObject !== undefined) self[attr] = associatedObject
-
-        if (!(associationMetaData as BelongsToStatement<any, any, any>).optional && !associatedObject)
-          throw new CannotPassNullOrUndefinedToRequiredBelongsTo(
-            this.constructor as DreamConstructorType<I>,
-            associationMetaData as BelongsToStatement<any, any, any>
-          )
-
-        const foreignKey = belongsToAssociationMetaData.foreignKey()
-        self[foreignKey] = marshalledOpts[foreignKey] = associatedObject?.primaryKeyValue
-
-        if (belongsToAssociationMetaData.polymorphic) {
-          const foreignKeyTypeField = belongsToAssociationMetaData.foreignKeyTypeField()
-          self[foreignKeyTypeField] = marshalledOpts[foreignKeyTypeField] =
-            associatedObject?.stiBaseClassOrOwnClass?.name
-        }
-      } else {
-        // TODO: cleanup type chaos
-        self[attr] = marshalledOpts[attr] = marshalDBValue(
-          this.constructor as typeof Dream,
-          attr as any,
-          (attributes as any)[attr]
-        )
-      }
-    })
-
+    const marshalledOpts = extractAttributesFromUpdateableProperties(
+      this.constructor as DreamConstructorType<I>,
+      attributes as any,
+      this
+    )
     return marshalledOpts
   }
 
