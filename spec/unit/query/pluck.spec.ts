@@ -1,9 +1,5 @@
 import User from '../../../test-app/app/models/User'
-import Node from '../../../test-app/app/models/Graph/Node'
-import Edge from '../../../test-app/app/models/Graph/Edge'
-import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode'
-import Composition from '../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
+import ops from '../../../src/ops'
 
 describe('Query#pluck', () => {
   let user1: User
@@ -11,9 +7,9 @@ describe('Query#pluck', () => {
   let user3: User
 
   beforeEach(async () => {
-    user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-    user3 = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+    user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'helloworld' })
+    user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin', name: 'hello world' })
+    user3 = await User.create({ email: 'fred@fishman', password: 'howyadoin', name: 'herzog' })
   })
 
   it('plucks the specified attributes and returns them as raw data', async () => {
@@ -29,6 +25,22 @@ describe('Query#pluck', () => {
         [user2.id, user2.createdAt],
         [user3.id, user3.createdAt],
       ])
+    })
+  })
+
+  context('with a where clause specified', () => {
+    it('respects the where clause', async () => {
+      const plucked = await User.order('id').where({ name: 'helloworld' }).pluck('id')
+      expect(plucked).toEqual([user1.id])
+    })
+
+    context('with a similarity operator', () => {
+      it('respects the similarity operator', async () => {
+        const plucked = await User.order('id')
+          .where({ name: ops.similarity('hello world') })
+          .pluck('id')
+        expect(plucked).toEqual([user1.id, user2.id])
+      })
     })
   })
 })

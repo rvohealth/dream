@@ -6,6 +6,8 @@ import { DateTime } from 'luxon'
 import range from '../../../../src/helpers/range'
 import Query from '../../../../src/dream/query'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
+import Balloon from '../../../../test-app/app/models/Balloon'
+import ops from '../../../../src/ops'
 
 describe('Query#joins with simple associations', () => {
   it('joins a HasOne association', async () => {
@@ -68,6 +70,20 @@ describe('Query#joins with simple associations', () => {
         .joins('mainComposition', { id: parseInt(composition.id!.toString()) + 1 })
         .all()
       expect(noResults).toEqual([])
+    })
+
+    context('joining on similar text', () => {
+      it('excludes records that are not similar to text', async () => {
+        const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'Hello World' })
+        const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin', name: 'Hallo' })
+        const user3 = await User.create({ email: 'how@frewd', password: 'howyadoin', name: 'George' })
+        const balloon1 = await Mylar.create({ user: user1 })
+        const balloon2 = await Mylar.create({ user: user2 })
+        const balloon3 = await Mylar.create({ user: user3 })
+
+        const balloons = await Balloon.joins('user', { name: ops.similarity('hello') }).all()
+        expect(balloons).toMatchDreamModels([balloon1, balloon2])
+      })
     })
 
     it('joins a HasMany association', async () => {

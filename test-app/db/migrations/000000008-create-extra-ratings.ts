@@ -12,6 +12,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('extra_rateable_id', 'bigint', col => col.notNull())
     .addColumn('extra_rateable_type', sql`extra_rateable_types_enum`, col => col.notNull())
     .addColumn('rating', 'integer')
+    .addColumn('body', 'text')
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()

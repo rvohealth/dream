@@ -8,6 +8,8 @@ import Balloon from '../../../test-app/app/models/Balloon'
 import Rating from '../../../test-app/app/models/Rating'
 import Post from '../../../test-app/app/models/Post'
 import AnyRequiresArrayColumn from '../../../src/exceptions/ops/any-requires-array-column'
+import Composition from '../../../test-app/app/models/Composition'
+import ScoreMustBeANormalNumber from '../../../src/exceptions/ops/score-must-be-a-normal-number'
 
 describe('Query#where', () => {
   it('supports multiple clauses', async () => {
@@ -340,6 +342,175 @@ describe('Query#where', () => {
       expect(records).toEqual([user3.id])
     })
   })
+
+  // BEGIN: trigram search
+  context('ops.similarity statement is passed', () => {
+    let user1: User
+    let user2: User
+    let user3: User
+    beforeEach(async () => {
+      user1 = await User.create({
+        email: 'pizza@a',
+        password: 'howyadoin',
+        name: 'world',
+      })
+      user2 = await User.create({
+        email: 'pizza@b',
+        password: 'howyadoin',
+        name: 'wordle',
+      })
+      user3 = await User.create({
+        email: 'pizza@c',
+        password: 'howyadoin',
+        name: 'wonderland',
+      })
+    })
+
+    it('returns results matching the similarity clause', async () => {
+      const records = await User.where({ name: ops.similarity('world') }).all()
+      expect(records).toMatchDreamModels([user1, user2])
+    })
+
+    context('when applying a score', () => {
+      context('when applying a very strict score', () => {
+        it('only includes precise matches', async () => {
+          const records = await User.where({ name: ops.similarity('world', { score: 0.9 }) }).all()
+          expect(records).toMatchDreamModels([user1])
+        })
+      })
+
+      context('when applying a very leniant score', () => {
+        it('only includes leniant matches', async () => {
+          const records = await User.where({ name: ops.similarity('world', { score: 0.1 }) }).all()
+          expect(records).toMatchDreamModels([user1, user2, user3])
+        })
+      })
+
+      context('when applying a score that is less than 0', () => {
+        it('raises a targeted exception', async () => {
+          await expect(async () => {
+            await User.where({ name: ops.similarity('world', { score: -0.001 }) }).all()
+          }).rejects.toThrowError(ScoreMustBeANormalNumber)
+        })
+      })
+
+      context('when applying a score that is greater than 1', () => {
+        it('raises a targeted exception', async () => {
+          await expect(async () => {
+            await User.where({ name: ops.similarity('world', { score: 1.000001 }) }).all()
+          }).rejects.toThrowError(ScoreMustBeANormalNumber)
+        })
+      })
+    })
+
+    context('when used on multiple indexed fields', () => {
+      it('averages the score found by both', async () => {
+        const records = await User.where({
+          name: ops.similarity('world'),
+          email: ops.similarity('pizza'),
+        }).all()
+        expect(records).toMatchDreamModels([user1, user2])
+      })
+
+      context('one of the search terms is grossly mismatched', () => {
+        it('does not include results for that search term', async () => {
+          const records = await User.where({
+            name: ops.similarity('world'),
+            email: ops.similarity('nonmatch'),
+          }).all()
+          expect(records).toEqual([])
+        })
+      })
+    })
+
+    context('when used on a field that has not been indexed', () => {
+      it('still allows for trigram search (though it will be less efficient without GIN indexes)', async () => {
+        const composition = await Composition.create({ content: 'world', user: user1 })
+        await Composition.create({ content: 'nonmatch', user: user1 })
+
+        const records = await Composition.where({
+          content: ops.similarity('world'),
+        }).all()
+
+        expect(records).toMatchDreamModels([composition])
+      })
+    })
+  })
+
+  context('ops.wordSimilarity statement is passed', () => {
+    let user1: User
+    let user2: User
+    let user3: User
+    beforeEach(async () => {
+      user1 = await User.create({
+        email: 'hello@world',
+        password: 'howyadoin',
+        name: 'world',
+      })
+      user2 = await User.create({
+        email: 'hello@wordl',
+        password: 'howyadoin',
+        name: 'wordle',
+      })
+      user3 = await User.create({
+        email: 'hello@wonderland',
+        password: 'howyadoin',
+        name: 'wonderland',
+      })
+    })
+
+    it('returns results matching the wordSimilarity clause', async () => {
+      const records = await new Query(User).where({ name: ops.wordSimilarity('world') }).all()
+      expect(records).toMatchDreamModels([user1])
+    })
+
+    context('when overriding score', () => {
+      it('applies score override', async () => {
+        const records = await new Query(User)
+          .where({ name: ops.wordSimilarity('world', { score: 0.1 }) })
+          .all()
+        expect(records).toMatchDreamModels([user1, user2, user3])
+      })
+    })
+  })
+
+  context('ops.strictWordSimilarity statement is passed', () => {
+    let user1: User
+    let user2: User
+    let user3: User
+    beforeEach(async () => {
+      user1 = await User.create({
+        email: 'hello@world',
+        password: 'howyadoin',
+        name: 'world',
+      })
+      user2 = await User.create({
+        email: 'hello@wordl',
+        password: 'howyadoin',
+        name: 'wordle',
+      })
+      user3 = await User.create({
+        email: 'hello@wonderland',
+        password: 'howyadoin',
+        name: 'wonderland',
+      })
+    })
+
+    it('returns results matching the strictWordSimilarity clause', async () => {
+      const records = await new Query(User).where({ name: ops.strictWordSimilarity('world') }).all()
+      expect(records).toMatchDreamModels([user1])
+    })
+
+    context('when overriding score', () => {
+      it('applies score override', async () => {
+        const records = await new Query(User)
+          .where({ name: ops.strictWordSimilarity('world', { score: 0.1 }) })
+          .all()
+        expect(records).toMatchDreamModels([user1, user2, user3])
+      })
+    })
+  })
+  // END: trigram search
 
   context('ops.match statement is passed', () => {
     it('uses a "~" operator for comparison', async () => {

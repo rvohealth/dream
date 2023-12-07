@@ -1,12 +1,18 @@
+import { ComparisonOperatorExpression as KyselyComparisonOperatorExpression } from 'kysely'
 import { DateTime } from 'luxon'
 import { Updateable, ColumnType } from 'kysely'
 import { AssociationTableNames } from '../db/reflections'
 import Dream from '../dream'
 import { Inc } from '../helpers/typeutils'
 import { AssociatedModelParam, WhereStatement } from '../decorators/associations/shared'
+import OpsStatement from '../ops/ops-statement'
 
 export type IdType = string | number | bigint | undefined
 export type Timestamp = ColumnType<DateTime>
+
+export const TRIGRAM_OPERATORS = ['%', '<%', '<<%'] as const
+export type TrigramOperator = (typeof TRIGRAM_OPERATORS)[number]
+export type ComparisonOperatorExpression = KyselyComparisonOperatorExpression | TrigramOperator
 
 // export interface AliasCondition<DB extends any, PreviousTableNames extends AssociationTableNames<DB>> {
 //   conditionToExecute: boolean
@@ -261,3 +267,12 @@ export type RelaxedJoinsWhereStatement<
 export type TableOrAssociationName<SyncedAssociations extends any> =
   | (keyof SyncedAssociations & string)
   | (keyof SyncedAssociations[keyof SyncedAssociations] & string)
+
+export type SqlCommandType = 'select' | 'update' | 'delete' | 'insert'
+
+export interface SimilarityStatement {
+  tableName: string
+  tableAlias: string
+  columnName: string
+  opsStatement: OpsStatement<any, any>
+}

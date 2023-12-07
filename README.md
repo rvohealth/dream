@@ -312,6 +312,75 @@ yarn dream db:create --core
 # creates the db for either the core app or a consuming app (which is why there is no "core:db:create" variant)
 ```
 
+### Similarity matching
+
+Dream provides a similarity searching library out of the box which allows you to implement fuzzy-searching in your app. To use it, first write a migration.
+
+```bash
+yarn psy g:migration add_fuzzy_search_to_users
+```
+
+Open the generated migration, create the pg_trgm extension and create a gin index for a field on your model
+
+```ts
+import { Kysely, sql } from 'kysely'
+import { createGinIndex, createExtension } from '@rvohealth/dream'
+
+export async function up(db: Kysely<any>): Promise<void> {
+  // this only needs to be run once per db
+  await createExtension('pg_trgm', db)
+
+  // this is not necessary, but it will dramatically improve the search
+  // speed once your db has enough records for it to matter
+  await createGinIndex('users', 'name', 'users_name_gin_index', db)
+}
+
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropIndex('users_name_gin_index')
+}
+```
+
+Once done, run migrations
+
+```bash
+NODE_ENV=development yarn psy db:migrate
+```
+
+Now you can take full advantage of pg_trgm using the dream adapters!
+
+```ts
+import { ops } from '@rvohealth/dream'
+
+// applies a score match of 0.3
+const users = await User.where({ name: ops.similarity('steeven hawkins') }).all()
+
+// applies a score match of 0.5
+const users = await User.where({ name: ops.wordSimilarity('steeven hawkins') }).all()
+
+// applies a score match of 0.6
+const users = await User.where({ name: ops.strictWordSimilarity('steeven hawkins') }).all()
+
+// applies a score match of 0.2
+const users = await User.where({ name: ops.similarity('steeven hawkins', { score: 0.2 }) }).all()
+
+// this will also work for plucking, updating, joining, and aggregate functions like min, max and count
+const userIds = await User.where({ name: ops.similarity('steeven hawkins') }).pluck('id')
+const min = await User.where({ name: ops.similarity('steeven hawkins') }).min('id')
+const max = await User.where({ name: ops.similarity('steeven hawkins') }).max('id')
+const count = await User.where({ name: ops.similarity('steeven hawkins') }).count()
+const petIds = await User.joinsPluck('pets', { name: ops.similarity('fido') }, ['pets.id'])
+const numUpdatedRecords = await User.where({ name: ops.similarity('steeven hawkins') }).update({
+  name: 'Stephen Hawking',
+})
+const users = await User.joins('pets', { name: ops.similarity('fido') }).all()
+
+const user = await User.first()
+const pets = await user
+  .associationQuery('pets')
+  .where({ name: ops.similarity('fido') })
+  .all()
+```
+
 ### Contributing
 
 Though the spec framework isn't entirely comprehensive, this application was built with a BDD philosophy guiding its foundation, using tests that actually excercize the ORM from front to back, rather than relying on lot's of stubbing of internal modules.

@@ -1,6 +1,7 @@
 import User from '../../../test-app/app/models/User'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
+import ops from '../../../src/ops'
 
 describe('Query#count', () => {
   it('counts query results', async () => {
@@ -10,6 +11,17 @@ describe('Query#count', () => {
 
     const count = await User.where({ name: 'fred' }).count()
     expect(count).toEqual(2)
+  })
+
+  context('with a similarity operator passed', () => {
+    it('respects the similarity operator', async () => {
+      const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+      const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin', name: 'fred h' })
+      const user3 = await User.create({ email: 'how@fishman', password: 'howyadoin', name: 'tim' })
+
+      const count = await User.where({ name: ops.similarity('fred') }).count()
+      expect(count).toEqual(2)
+    })
   })
 
   context('within a polymorphic association query', () => {

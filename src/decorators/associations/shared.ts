@@ -35,7 +35,7 @@ type DreamSelectable<
     | Range<DateTime>
     | (() => Range<DateTime>)
     | Range<number>
-    | OpsStatement
+    | OpsStatement<any, any>
     | CurriedOpsStatement<any, any, any>
     | (IdType | string | number)[]
     | SelectQueryBuilder<DB, keyof DB, any>

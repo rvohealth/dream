@@ -3,6 +3,7 @@ import User from '../../../test-app/app/models/User'
 import ops from '../../../src/ops'
 import Rating from '../../../test-app/app/models/Rating'
 import Post from '../../../test-app/app/models/Post'
+import CannotNegateSimilarityClause from '../../../src/exceptions/cannot-negate-similarity-clause'
 
 describe('Query#whereNot', () => {
   it('negates a query', async () => {
@@ -259,6 +260,32 @@ describe('Query#whereNot', () => {
         expect(records).toEqual([user3.id])
       })
     })
+
+    // BEGIN: trigram search
+    context('ops.similarity statement is passed', () => {
+      it('raises a targeted exception', async () => {
+        await expect(async () => {
+          await User.whereNot({ name: ops.similarity('world') }).all()
+        }).rejects.toThrowError(CannotNegateSimilarityClause)
+      })
+    })
+
+    context('ops.wordSimilarity statement is passed', () => {
+      it('raises a targeted exception', async () => {
+        await expect(async () => {
+          await User.whereNot({ name: ops.wordSimilarity('world') }).all()
+        }).rejects.toThrowError(CannotNegateSimilarityClause)
+      })
+    })
+
+    context('ops.strictWordSimilarity statement is passed', () => {
+      it('raises a targeted exception', async () => {
+        await expect(async () => {
+          await User.whereNot({ name: ops.strictWordSimilarity('world') }).all()
+        }).rejects.toThrowError(CannotNegateSimilarityClause)
+      })
+    })
+    // END: trigram search
 
     context('ops.match statement is passed', () => {
       it('uses a "~" operator for comparison', async () => {

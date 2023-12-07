@@ -1,9 +1,10 @@
-import { ComparisonOperatorExpression, sql } from 'kysely'
+import { sql } from 'kysely'
 import OpsStatement from './ops-statement'
 import CurriedOpsStatement from './curried-ops-statement'
 import Dream from '../dream'
 import isDatabaseArray from '../helpers/db/types/isDatabaseArray'
 import AnyRequiresArrayColumn from '../exceptions/ops/any-requires-array-column'
+import { ComparisonOperatorExpression } from '../dream/types'
 
 const ops = {
   expression: (operator: ComparisonOperatorExpression, value: any) => new OpsStatement(operator, value),
@@ -28,14 +29,20 @@ const ops = {
   lessThanOrEqualTo: (lessThanOrEqualTo: number) => new OpsStatement('<=', lessThanOrEqualTo),
   greaterThan: (greaterThan: number) => new OpsStatement('>', greaterThan),
   greaterThanOrEqualTo: (greaterThanOrEqualTo: number) => new OpsStatement('>=', greaterThanOrEqualTo),
+  similarity: (similarity: string, { score = 0.3 }: { score?: number } = {}) =>
+    new OpsStatement('%', similarity, { score }),
+  wordSimilarity: (similarity: string, { score = 0.5 }: { score?: number } = {}) =>
+    new OpsStatement('<%', similarity, { score }),
+  strictWordSimilarity: (similarity: string, { score = 0.6 }: { score?: number } = {}) =>
+    new OpsStatement('<<%', similarity, { score }),
   not: {
-    in: (arr: any[]) => new OpsStatement('not in', arr),
-    like: (like: string) => new OpsStatement('not like', like),
-    ilike: (ilike: string) => new OpsStatement('not ilike', ilike),
+    in: (arr: any[]) => new OpsStatement('not in', arr, { negated: true }),
+    like: (like: string) => new OpsStatement('not like', like, { negated: true }),
+    ilike: (ilike: string) => new OpsStatement('not ilike', ilike, { negated: true }),
     match: (match: string, { caseInsensitive = false }: { caseInsensitive?: boolean } = {}) =>
-      new OpsStatement(caseInsensitive ? '!~*' : '!~', match),
-    equal: (equal: any) => new OpsStatement('!=', equal),
-    lessThan: (lessThan: number) => new OpsStatement('!<', lessThan),
+      new OpsStatement(caseInsensitive ? '!~*' : '!~', match, { negated: true }),
+    equal: (equal: any) => new OpsStatement('!=', equal, { negated: true }),
+    lessThan: (lessThan: number) => new OpsStatement('!<', lessThan, { negated: true }),
   },
 }
 

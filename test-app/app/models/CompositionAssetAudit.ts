@@ -14,6 +14,7 @@ export default class CompositionAssetAudit extends ApplicationModel {
 
   public id: IdType
   public approval: boolean | null
+  public notes: string | null
 
   @BelongsTo(() => CompositionAsset)
   public compositionAsset: CompositionAsset

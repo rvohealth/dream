@@ -9,6 +9,7 @@ import BalloonSpotter from '../../../../test-app/app/models/BalloonSpotter'
 import BalloonSpotterBalloon from '../../../../test-app/app/models/BalloonSpotterBalloon'
 import MissingThroughAssociationSource from '../../../../src/exceptions/associations/missing-through-association-source'
 import JoinAttemptedOnMissingAssociation from '../../../../src/exceptions/associations/join-attempted-with-missing-association'
+import ops from '../../../../src/ops'
 
 describe('Query#joins through with simple associations', () => {
   context('explicit HasMany through', () => {
@@ -93,6 +94,39 @@ describe('Query#joins through with simple associations', () => {
           .joins('mainCompositionAsset', { id: parseInt(compositionAsset.id!.toString()) + 1 })
           .all()
         expect(noResults).toEqual([])
+      })
+
+      context('with a similarity operator', () => {
+        beforeEach(async () => {
+          const foreignUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+          const foreignComposition = await Composition.create({
+            user: foreignUser,
+            primary: true,
+          })
+          await CompositionAsset.create({
+            compositionId: foreignComposition.id,
+            primary: true,
+            name: 'goodbye',
+          })
+        })
+
+        it('filters out results that do not match similarity text', async () => {
+          const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+          const composition = await Composition.create({
+            userId: user.id,
+            primary: true,
+          })
+          const compositionAsset = await CompositionAsset.create({
+            compositionId: composition.id,
+            primary: true,
+            name: 'hello',
+          })
+
+          const reloadedUsers = await new Query(User)
+            .joins('mainCompositionAsset', { name: ops.similarity('hell') })
+            .all()
+          expect(reloadedUsers).toMatchDreamModels([user])
+        })
       })
 
       context('with another association after the where clause', () => {
@@ -198,6 +232,80 @@ describe('Query#joins through with simple associations', () => {
             name: compositionAsset.name,
           }).first()
           expect(reloadedUser).toMatchDreamModel(user)
+        })
+
+        context('with a deep similarity operator', () => {
+          it('joins', async () => {
+            const user1 = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+            const composition1 = await Composition.create({ user: user1 })
+            const compositionAsset1 = await CompositionAsset.create({
+              compositionId: composition1.id,
+              primary: true,
+            })
+            const compositionAssetAudit1 = await CompositionAssetAudit.create({
+              compositionAsset: compositionAsset1,
+              notes: 'Hello',
+            })
+
+            const user2 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+            const composition2 = await Composition.create({ user: user2 })
+            const compositionAsset2 = await CompositionAsset.create({
+              compositionId: composition2.id,
+              primary: true,
+            })
+            const compositionAssetAudit2 = await CompositionAssetAudit.create({
+              compositionAsset: compositionAsset2,
+              notes: 'Goodbye',
+            })
+
+            const reloadedUsers = await new Query(User)
+              .joins('compositions', 'compositionAssets', 'compositionAssetAudits', {
+                notes: ops.similarity('hallo'),
+              })
+              .all()
+            expect(reloadedUsers).toMatchDreamModels([user1])
+          })
+
+          context('with an association after the conditions', () => {
+            it('joins', async () => {
+              const user1 = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+              const composition1 = await Composition.create({ user: user1 })
+              const compositionAsset1 = await CompositionAsset.create({
+                compositionId: composition1.id,
+                primary: true,
+                name: 'hello',
+              })
+              const compositionAssetAudit1 = await CompositionAssetAudit.create({
+                compositionAsset: compositionAsset1,
+                notes: 'Hello',
+              })
+
+              const user2 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+              const composition2 = await Composition.create({ user: user2 })
+              const compositionAsset2 = await CompositionAsset.create({
+                compositionId: composition2.id,
+                primary: true,
+                name: 'gabye',
+              })
+              const compositionAssetAudit2 = await CompositionAssetAudit.create({
+                compositionAsset: compositionAsset2,
+                notes: 'Goodbye',
+              })
+
+              const reloadedUsers = await new Query(User)
+                .joins(
+                  'compositions',
+                  'compositionAssets',
+                  { name: ops.similarity('hallo') },
+                  'compositionAssetAudits',
+                  {
+                    notes: ops.similarity('hallo'),
+                  }
+                )
+                .all()
+              expect(reloadedUsers).toMatchDreamModels([user1])
+            })
+          })
         })
       })
 

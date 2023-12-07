@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { AssociationTableNames } from '../db/reflections'
 import { LimitStatement, WhereStatement } from '../decorators/associations/shared'
@@ -12,18 +13,19 @@ import {
   NextJoinsWherePluckArgumentType,
   FinalJoinsWherePluckArgumentType,
   TableOrAssociationName,
+  TRIGRAM_OPERATORS,
+  SqlCommandType,
+  SimilarityStatement,
 } from './types'
 import {
   AliasedExpression,
   ComparisonOperator,
-  ComparisonOperatorExpression,
   DeleteQueryBuilder,
   DeleteResult,
-  Kysely,
   SelectQueryBuilder,
-  Transaction,
   UpdateQueryBuilder,
   Updateable,
+  ComparisonOperatorExpression as KyselyComparisonOperatorExpression,
   sql,
 } from 'kysely'
 import { marshalDBValue } from '../helpers/marshalDBValue'
@@ -51,6 +53,15 @@ import executeDatabaseQuery from './internal/executeDatabaseQuery'
 import { DbConnectionType } from '../db/types'
 import NoUpdateAllOnAssociationQuery from '../exceptions/no-updateall-on-association-query'
 import { isObject, isString } from '../helpers/typechecks'
+import similaritySelectSql from './internal/similarity/similaritySelectSql'
+import similarityWhereSql from './internal/similarity/similarityWhereSql'
+import validateTable from '../db/validators/validateTable'
+import validateColumn from '../db/validators/validateColumn'
+import CannotNegateSimilarityClause from '../exceptions/cannot-negate-similarity-clause'
+import SimilarityBuilder from './internal/similarity/SimilarityBuilder'
+import ConnectedToDB from '../db/ConnectedToDB'
+import SimilarityOperatorNotSupportedOnDestroyQueries from '../exceptions/similarity-operator-not-supported-on-destroy-queries'
+import debug from '../../shared/helpers/debug'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -87,8 +98,6 @@ const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: Compar
   // '<->',
 }
 
-type SqlCommandType = 'select' | 'update' | 'delete' | 'insert'
-
 export default class Query<
   DreamClass extends typeof Dream,
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
@@ -97,7 +106,7 @@ export default class Query<
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
   Table extends DB[DreamInstance['table']] = DB[DreamInstance['table']],
   ColumnType = keyof DB[keyof DB] extends never ? unknown : keyof DB[keyof DB]
-> {
+> extends ConnectedToDB<DreamClass> {
   public readonly whereStatement: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
   public readonly whereNotStatement: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze(
     []
@@ -115,6 +124,7 @@ export default class Query<
   public dreamTransaction: DreamTransaction<DB> | null = null
   public connectionOverride?: DbConnectionType
   constructor(DreamClass: DreamClass, opts: QueryOpts<DreamClass, ColumnType> = {}) {
+    super(DreamClass, opts)
     this.dreamClass = DreamClass
     this.baseSQLAlias = opts.baseSQLAlias || this.dreamClass.prototype['table']
     this.baseSelectQuery = opts.baseSelectQuery || null
@@ -129,29 +139,6 @@ export default class Query<
     this.shouldBypassDefaultScopes = Object.freeze(opts.shouldBypassDefaultScopes || false)
     this.dreamTransaction = opts.transaction || null
     this.connectionOverride = opts.connection
-  }
-
-  public dbConnectionType(sqlCommandType: SqlCommandType): DbConnectionType {
-    if (this.dreamTransaction) return 'primary'
-
-    switch (sqlCommandType) {
-      case 'select':
-        return this.connectionOverride || (this.dreamClass.replicaSafe ? 'replica' : 'primary')
-
-      default:
-        return 'primary'
-    }
-  }
-
-  // ATTENTION FRED
-  // stop trying to make this async. You never learn...
-  public dbFor(sqlCommandType: SqlCommandType) {
-    // ): Kysely<InstanceType<DreamClass>['DB'] | Transaction<InstanceType<DreamClass>['DB']>> {
-    if (this.dreamTransaction?.kyselyTransaction) return this.dreamTransaction?.kyselyTransaction
-    return _db<InstanceType<DreamClass>['DB']>(
-      this.dbConnectionType(sqlCommandType),
-      this.dreamClass.prototype.dreamconf
-    )
   }
 
   public clone(opts: QueryOpts<DreamClass, ColumnType> = {}): Query<DreamClass> {
@@ -533,6 +520,8 @@ export default class Query<
       count(`${this.baseSQLAlias as any}.${this.dreamClass.primaryKey}` as any).as('tablecount')
     )
 
+    kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery, { includeGroupBy: true })
+
     const data = (await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')) as any
 
     return parseInt(data.tablecount.toString())
@@ -543,15 +532,13 @@ export default class Query<
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>,
     JoinsPluckFieldType extends any
-    // JoinsPluckFieldType extends JoinsPluckAssociationExpression<
-    //   InstanceType<DreamClass>['table'],
-    //   T['joinsStatements'][number]
-    // >
   >(this: T, field: SimpleFieldType | JoinsPluckFieldType) {
     const { max } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
 
     kyselyQuery = kyselyQuery.select(max(field as any) as any)
+    kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery, { includeGroupBy: true })
+
     const data = (await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')) as any
 
     return data.max
@@ -562,15 +549,12 @@ export default class Query<
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>,
     JoinsPluckFieldType extends any
-    // JoinsPluckFieldType extends JoinsPluckAssociationExpression<
-    //   InstanceType<DreamClass>['table'],
-    //   T['joinsStatements'][number]
-    // >
   >(this: T, field: SimpleFieldType | JoinsPluckFieldType) {
     const { min } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
 
     kyselyQuery = kyselyQuery.select(min(field as any) as any)
+    kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery, { includeGroupBy: true })
     const data = (await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')) as any
 
     return data.min
@@ -582,9 +566,12 @@ export default class Query<
     SimpleFieldType extends keyof Updateable<DB[TableName]>
   >(this: T, ...fields: SimpleFieldType[]): Promise<any[]> {
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
+
     fields.forEach(field => {
       kyselyQuery = kyselyQuery.select(field as any)
     })
+
+    kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery)
 
     const vals = (await executeDatabaseQuery(kyselyQuery, 'execute')).map(result => Object.values(result))
 
@@ -885,16 +872,16 @@ export default class Query<
         })
       }
 
-      if (process.env.DEBUG === '1' && association.where) {
-        console.log(`
+      if (association.where) {
+        debug(`
 applying where clause for association:
 ${JSON.stringify(association, null, 2)}
         `)
       }
       if (association.where) associationQuery = associationQuery.where(association.where)
 
-      if (process.env.DEBUG === '1' && association.whereNot) {
-        console.log(`
+      if (association.whereNot) {
+        debug(`
 applying whereNot clause for association:
 ${JSON.stringify(association, null, 2)}
         `)
@@ -937,7 +924,13 @@ ${JSON.stringify(association, null, 2)}
     this: T,
     attributes: Updateable<InstanceType<DreamClass>['table']>
   ) {
-    return await this.where(attributes as any).destroy()
+    const query = this.where(attributes as any)
+
+    if (query.hasSimilarityClauses) {
+      throw new SimilarityOperatorNotSupportedOnDestroyQueries(this.dreamClass, attributes)
+    }
+
+    return query.destroy()
   }
 
   public async updateAll<T extends Query<DreamClass>>(
@@ -1247,11 +1240,21 @@ ${JSON.stringify(association, null, 2)}
       .filter(key => (whereStatement as any)[key] !== undefined)
       .forEach(attr => {
         let val = (whereStatement as any)[attr]
+
+        if (
+          (val as OpsStatement<any, any>)?.isOpsStatement &&
+          (val as OpsStatement<any, any>).shouldBypassWhereStatement
+        ) {
+          // some ops statements are handled specifically in the select portion of the query,
+          // and should be ommited from the where clause directly
+          return
+        }
+
         let a: any
-        let b: ComparisonOperatorExpression
+        let b: KyselyComparisonOperatorExpression
         let c: any
         let a2: any | null = null
-        let b2: ComparisonOperatorExpression | null = null
+        let b2: KyselyComparisonOperatorExpression | null = null
         let c2: any | null = null
 
         if (val instanceof Function) {
@@ -1277,7 +1280,7 @@ ${JSON.stringify(association, null, 2)}
           c = val.value
         } else if (val.constructor === OpsStatement) {
           a = attr
-          b = val.operator
+          b = val.operator as KyselyComparisonOperatorExpression
           c = val.value
         } else if (val.constructor === Range) {
           let rangeStart = null
@@ -1389,6 +1392,8 @@ ${JSON.stringify(association, null, 2)}
   }
 
   private buildCommon<T extends Query<DreamClass>>(this: T, kyselyQuery: any) {
+    this.checkForQueryViolations()
+
     let query = this.conditionallyApplyScopes()
 
     if (!isEmpty(query.joinsStatements)) {
@@ -1432,6 +1437,14 @@ ${JSON.stringify(association, null, 2)}
     return kyselyQuery
   }
 
+  private checkForQueryViolations() {
+    const invalidWhereNotClauses = this.similarityStatementBuilder().whereNotStatementsWithSimilarityClauses()
+    if (invalidWhereNotClauses.length) {
+      const { tableName, tableAlias, columnName, opsStatement } = invalidWhereNotClauses[0]
+      throw new CannotNegateSimilarityClause(tableName, columnName, opsStatement.value)
+    }
+  }
+
   private aliasWhereStatement(
     whereStatements: Readonly<WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>[]>,
     alias: string
@@ -1459,7 +1472,6 @@ ${JSON.stringify(association, null, 2)}
     { bypassSelectAll = false }: { bypassSelectAll?: boolean } = {}
   ): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
     let kyselyQuery: SelectQueryBuilder<DB, any, {}>
-    const db = this.dbFor('select')
 
     if (this.baseSelectQuery) {
       kyselyQuery = this.baseSelectQuery.buildSelect({ bypassSelectAll: true })
@@ -1468,6 +1480,7 @@ ${JSON.stringify(association, null, 2)}
         this.baseSQLAlias === this.dreamClass.prototype.table
           ? this.dreamClass.prototype.table
           : `${this.dreamClass.prototype.table} as ${this.baseSQLAlias}`
+
       kyselyQuery = this.dbFor('select').selectFrom(from as any)
     }
 
@@ -1478,10 +1491,13 @@ ${JSON.stringify(association, null, 2)}
 
     if (this.limitStatement) kyselyQuery = kyselyQuery.limit(this.limitStatement.count)
 
-    if (!bypassSelectAll)
+    if (!bypassSelectAll) {
       kyselyQuery = kyselyQuery.selectAll(
         this.baseSQLAlias as ExtractTableAlias<DB, InstanceType<DreamClass>['table']>
       )
+
+      kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery)
+    }
 
     return kyselyQuery
   }
@@ -1493,7 +1509,57 @@ ${JSON.stringify(association, null, 2)}
     let kyselyQuery = this.dbFor('update')
       .updateTable(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
       .set(attributes as any)
+
+    kyselyQuery = this.conditionallyAttachSimilarityColumnsToUpdate(kyselyQuery)
+
     return this.buildCommon(kyselyQuery)
+  }
+
+  private get hasSimilarityClauses() {
+    return this.similarityStatementBuilder().hasSimilarityClauses
+  }
+
+  private similarityStatementBuilder<T extends Query<DreamClass>>(this: T) {
+    return new SimilarityBuilder(this.dreamClass, {
+      where: [...this.whereStatement],
+      whereNot: [...this.whereNotStatement],
+      joinsWhereStatements: this.joinsWhereStatements,
+      transaction: this.dreamTransaction,
+      connection: this.connectionOverride,
+    })
+  }
+
+  private conditionallyAttachSimilarityColumnsToSelect<T extends Query<DreamClass>>(
+    this: T,
+    kyselyQuery: SelectQueryBuilder<
+      InstanceType<DreamClass>['DB'],
+      ExtractTableAlias<InstanceType<DreamClass>['DB'], InstanceType<DreamClass>['table']>,
+      {}
+    >,
+    { includeGroupBy = false }: { includeGroupBy?: boolean } = {}
+  ) {
+    const similarityBuilder = this.similarityStatementBuilder()
+    if (similarityBuilder.hasSimilarityClauses) {
+      kyselyQuery = similarityBuilder.select(kyselyQuery, { includeGroupBy })
+    }
+
+    return kyselyQuery
+  }
+
+  private conditionallyAttachSimilarityColumnsToUpdate<T extends Query<DreamClass>>(
+    this: T,
+    kyselyQuery: UpdateQueryBuilder<
+      InstanceType<DreamClass>['DB'],
+      ExtractTableAlias<InstanceType<DreamClass>['DB'], InstanceType<DreamClass>['table']>,
+      ExtractTableAlias<any, any>,
+      any
+    >
+  ) {
+    const similarityBuilder = this.similarityStatementBuilder()
+    if (similarityBuilder.hasSimilarityClauses) {
+      kyselyQuery = similarityBuilder.update(kyselyQuery)
+    }
+    return kyselyQuery
   }
 }
 

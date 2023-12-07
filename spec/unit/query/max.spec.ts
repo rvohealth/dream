@@ -1,3 +1,4 @@
+import ops from '../../../src/ops'
 import Query from '../../../src/dream/query'
 import Composition from '../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
@@ -6,7 +7,32 @@ import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
 
 describe('Query#max', () => {
-  describe('hasMany', () => {
+  it('returns the record with the highest value', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+    await Post.create({ user, body: 'universe' })
+    await Post.create({ user, body: 'world' })
+    const post3 = await Post.create({ user, body: 'world' })
+
+    const max = await Post.max('id')
+    expect(max).toEqual(post3.id)
+  })
+
+  context('with a where statement passed', () => {
+    context('with a similarity operator passed', () => {
+      it('respects the similarity operator', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+        const post1 = await Post.create({ user, body: 'universe' })
+        const post2 = await Post.create({ user, body: 'world' })
+        const post3 = await Post.create({ user, body: 'world' })
+
+        const max = await Post.where({ body: ops.similarity('world') }).max('id')
+
+        expect(max).toEqual(post3.id)
+      })
+    })
+  })
+
+  context('hasMany', () => {
     it('returns the max', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
       const composition = await Composition.create({ user })
@@ -18,9 +44,27 @@ describe('Query#max', () => {
 
       expect(max).toEqual(7)
     })
+
+    context('with a polymorphic association', () => {
+      it('returns the max', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+
+        const post1 = await Post.create({ user })
+        const post2 = await Post.create({ user })
+
+        const rating1 = await Rating.create({ user, rateable: post1, rating: 3 })
+        const rating2 = await Rating.create({ user, rateable: post1, rating: 4 })
+        const rating3 = await Rating.create({ user, rateable: post2, rating: 5 })
+        const rating4 = await Rating.create({ user, rateable: post1, rating: 2 })
+
+        const max = await post1.associationQuery('ratings').max('rating')
+
+        expect(max).toEqual(4)
+      })
+    })
   })
 
-  describe('hasMany through', () => {
+  context('hasMany through', () => {
     it('returns the max', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
       const composition1 = await Composition.create({ user })
@@ -33,21 +77,5 @@ describe('Query#max', () => {
 
       expect(max).toEqual(7)
     })
-  })
-
-  it('returns the max', async () => {
-    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
-
-    const post1 = await Post.create({ user })
-    const post2 = await Post.create({ user })
-
-    const rating1 = await Rating.create({ user, rateable: post1, rating: 3 })
-    const rating2 = await Rating.create({ user, rateable: post1, rating: 4 })
-    const rating3 = await Rating.create({ user, rateable: post2, rating: 5 })
-    const rating4 = await Rating.create({ user, rateable: post1, rating: 2 })
-
-    const max = await post1.associationQuery('ratings').max('rating')
-
-    expect(max).toEqual(4)
   })
 })

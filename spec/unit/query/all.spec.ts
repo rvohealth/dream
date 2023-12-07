@@ -4,6 +4,7 @@ import Balloon from '../../../test-app/app/models/Balloon'
 import User from '../../../test-app/app/models/User'
 import Query from '../../../src/dream/query'
 import DreamDbConnection from '../../../src/db/dream-db-connection'
+import ops from '../../../src/ops'
 
 describe('Query#all', () => {
   it('returns all records, ordered by id', async () => {
@@ -13,6 +14,32 @@ describe('Query#all', () => {
 
     const record = await User.all()
     expect(record).toMatchDreamModels([userb, userc, usera])
+  })
+
+  context('where clause is passed', () => {
+    it('respects where clause', async () => {
+      const userb = await User.create({ email: 'b@b.com', password: 'howyadoin' })
+      const userc = await User.create({ email: 'c@c.com', password: 'howyadoin' })
+      const usera = await User.create({ email: 'a@a.com', password: 'howyadoin' })
+
+      const record = await User.where({ email: ['b@b.com', 'a@a.com'] })
+        .order('email')
+        .all()
+      expect(record).toMatchDreamModels([usera, userb])
+    })
+
+    context('similarity operator is used', () => {
+      it('filters out non-matching records', async () => {
+        const userb = await User.create({ email: 'b@b.com', password: 'howyadoin', name: 'fred' })
+        const userc = await User.create({ email: 'c@c.com', password: 'howyadoin', name: 'fredd' })
+        const usera = await User.create({ email: 'a@a.com', password: 'howyadoin', name: 'calvin' })
+
+        const record = await User.where({ name: ops.similarity('fred') })
+          .order('email')
+          .all()
+        expect(record).toMatchDreamModels([userb, userc])
+      })
+    })
   })
 
   it('respects order', async () => {

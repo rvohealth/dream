@@ -12,6 +12,7 @@ import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal'
 import Balloon from '../../../../test-app/app/models/Balloon'
+import ops from '../../../../src/ops'
 
 describe('Query#joins with polymorphic associations', () => {
   beforeEach(async () => {
@@ -48,6 +49,22 @@ describe('Query#joins with polymorphic associations', () => {
 
     const reloaded = await new Query(Post).joins('heartRatings').all()
     expect(reloaded).toMatchDreamModels([post])
+  })
+
+  context('when using a similarity operator to drill down results', () => {
+    it('excludes records not matching similarity text', async () => {
+      const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+
+      const post = await Post.create({ user })
+      await HeartRating.create({ user, extraRateable: post, body: 'hello' })
+
+      const post2 = await Post.create({ user })
+      await HeartRating.create({ user, extraRateable: post2, body: 'goodbye' })
+
+      const reloaded = await new Query(Post).joins('heartRatings', { body: ops.similarity('hello') }).all()
+
+      expect(reloaded).toMatchDreamModels([post])
+    })
   })
 
   context('when joining a polymorphic HasMany from an STI class', () => {
