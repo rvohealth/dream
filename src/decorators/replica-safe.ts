@@ -1,4 +1,3 @@
-import Scope from './scope'
 import Dream from '../dream'
 
 export default function ReplicaSafe(): ClassDecorator {
