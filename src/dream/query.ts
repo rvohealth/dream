@@ -635,10 +635,16 @@ export default class Query<
   ) {
     switch (association.type) {
       case 'HasMany':
-        dreams.forEach((dream: any) => (dream[association.as] = []))
+        dreams.forEach((dream: any) => {
+          if (dream.loaded(association.as)) return // only overwrite if this hasn't yet been preloaded
+
+          dream[association.as] = []
+        })
         break
       default:
         dreams.forEach((dream: any) => {
+          if (dream.loaded(association.as)) return // only overwrite if this hasn't yet been preloaded
+
           Object.defineProperty(dream, association.as, {
             configurable: true,
             get() {
@@ -667,6 +673,8 @@ export default class Query<
             }
           })
           .forEach((dream: any) => {
+            if (dream[association.as]) return // only overwrite if this hasn't yet been preloaded
+
             Object.defineProperty(dream, association.as, {
               get() {
                 return loadedAssociation
@@ -690,8 +698,12 @@ export default class Query<
           .filter(dream => (loadedAssociation as any)[association.foreignKey()] === dream.primaryKeyValue)
           .forEach((dream: any) => {
             if (association.type === 'HasMany') {
+              if (Object.isFrozen(dream[association.as])) return // only overwrite if this hasn't yet been preloaded
+
               dream[association.as].push(loadedAssociation)
             } else {
+              if (dream[association.as]) return // only overwrite if this hasn't yet been preloaded
+
               Object.defineProperty(dream, association.as, {
                 get() {
                   return loadedAssociation

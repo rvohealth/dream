@@ -35,6 +35,7 @@ export interface BalloonLines {
 
 export interface BalloonSpotterBalloons {
   id: Generated<Int8>;
+  userId: Int8 | null;
   balloonSpotterId: Int8;
   balloonId: Int8;
   createdAt: Timestamp;
@@ -242,7 +243,7 @@ export interface DB {
 
 
 export const BalloonLineColumns = ['id', 'balloonId', 'material', 'createdAt', 'updatedAt']
-export const BalloonSpotterBalloonColumns = ['id', 'balloonSpotterId', 'balloonId', 'createdAt', 'updatedAt']
+export const BalloonSpotterBalloonColumns = ['id', 'userId', 'balloonSpotterId', 'balloonId', 'createdAt', 'updatedAt']
 export const BalloonSpotterColumns = ['id', 'name', 'createdAt', 'updatedAt']
 export const BeautifulBalloonColumns = ['id', 'userId', 'type', 'volume', 'color', 'positionAlpha', 'positionBeta', 'multicolor', 'deletedAt', 'createdAt', 'updatedAt']
 export const CollarColumns = ['id', 'petId', 'lost', 'createdAt', 'updatedAt']
@@ -273,6 +274,7 @@ export interface BalloonLineAttributes {
 
 export interface BalloonSpotterBalloonAttributes {
   id: IdType
+  userId: IdType | null
   balloonSpotterId: IdType
   balloonId: IdType
   createdAt: DateTime
@@ -465,6 +467,7 @@ export const BalloonLinesDBTypeMap = {
 
 export const BalloonSpotterBalloonsDBTypeMap = {
   id: 'bigint',
+  userId: 'bigint',
   balloonSpotterId: 'bigint',
   balloonId: 'bigint',
   createdAt: 'timestamp without time zone',

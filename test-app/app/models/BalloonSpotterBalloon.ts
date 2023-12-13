@@ -5,6 +5,7 @@ import BalloonSpotterBalloonSerializer from '../../../test-app/app/serializers/B
 import BalloonSpotter from './BalloonSpotter'
 import Balloon from './Balloon'
 import ApplicationModel from './ApplicationModel'
+import User from './User'
 
 export default class BalloonSpotterBalloon extends ApplicationModel {
   public get table() {
@@ -18,6 +19,10 @@ export default class BalloonSpotterBalloon extends ApplicationModel {
   public id: IdType
   public createdAt: DateTime
   public updatedAt: DateTime
+
+  @BelongsTo(() => User, { optional: true })
+  public user: User
+  public userId: IdType
 
   @BelongsTo(() => BalloonSpotter)
   public balloonSpotter: BalloonSpotter

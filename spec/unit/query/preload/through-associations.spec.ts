@@ -39,6 +39,23 @@ describe('Query#preload through with simple associations', () => {
     })
   })
 
+  context('combined explicit and implicit on the same HasMany through', () => {
+    it('sets HasMany property on the model and BelongsToProperty on the associated model', async () => {
+      const balloon = await Latex.create()
+      const balloonSpotter = await BalloonSpotter.create()
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon, user })
+
+      const reloaded = await new Query(BalloonSpotter)
+        .preload('balloonSpotterBalloons', 'user')
+        .preload('balloons')
+        .first()
+      expect(reloaded!.balloons).toMatchDreamModels([balloon])
+      expect(reloaded!.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon])
+      expect(reloaded!.balloonSpotterBalloons[0].user).toMatchDreamModel(user)
+    })
+  })
+
   context('HasOne through HasOne association', () => {
     it(
       'sets the association property and the association property on the through association to the ' +

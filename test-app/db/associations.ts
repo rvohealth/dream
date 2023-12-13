@@ -5,6 +5,9 @@ export default {
     ]
   },
   "balloon_spotter_balloons": {
+    "user": [
+      "users"
+    ],
     "balloonSpotter": [
       "balloon_spotters"
     ],
@@ -229,6 +232,9 @@ export interface SyncedAssociations {
     ]
   },
   "balloon_spotter_balloons": {
+    "user": [
+      "users"
+    ],
     "balloonSpotter": [
       "balloon_spotters"
     ],
@@ -453,6 +459,9 @@ export interface SyncedBelongsToAssociations {
     ]
   },
   "balloon_spotter_balloons": {
+    "user": [
+      "users"
+    ],
     "balloonSpotter": [
       "balloon_spotters"
     ],
