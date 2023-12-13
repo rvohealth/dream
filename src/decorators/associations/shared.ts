@@ -1,5 +1,5 @@
 import Dream from '../../dream'
-import pluralize = require('pluralize')
+import { singular } from 'pluralize'
 import { SelectQueryBuilder, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
 import { Range } from '../../helpers/range'
@@ -14,6 +14,7 @@ import { MergeUnionOfRecordTypes } from '../../helpers/typeutils'
 import { checkForeignKey } from '../../exceptions/associations/explicit-foreign-key'
 import camelize from '../../../shared/helpers/camelize'
 import NonLoadedAssociation from '../../exceptions/associations/non-loaded-association'
+import compact from '../../helpers/compact'
 
 export type AssociatedModelParam<
   I extends Dream,
@@ -104,7 +105,7 @@ export function finalForeignKey(
         ? modelCBtoSingleDreamClass(dreamClass, partialAssociation).prototype.table
         : dreamClass.prototype.table
 
-    computedForeignKey = camelize(pluralize.singular(table)) + 'Id'
+    computedForeignKey = camelize(singular(table)) + 'Id'
   }
 
   if (partialAssociation.type === 'BelongsTo' || !partialAssociation.through)
@@ -148,10 +149,36 @@ export function applyGetterAndSetter(
     configurable: true,
 
     get: function (this: any) {
-      const value = this[`__${partialAssociation.as}__`]
-      if (value === undefined)
-        throw new NonLoadedAssociation({ dreamClass, associationName: partialAssociation.as })
-      else return value
+      if ((partialAssociation as any).through) {
+        const association = partialAssociation as
+          | HasManyStatement<any, any, any>
+          | HasOneStatement<any, any, any>
+
+        if (association.type === 'HasMany') {
+          const throughAssociation = (this as any)[association.through!]
+
+          if (Array.isArray(throughAssociation)) {
+            return Object.freeze(
+              compact(
+                (throughAssociation as any[]).flatMap(record =>
+                  hydratedSourceValue(record, association.source)
+                )
+              )
+            )
+          } else if (throughAssociation) {
+            return hydratedSourceValue(throughAssociation, association.source)
+          } else {
+            return Object.freeze([])
+          }
+        } else {
+          return hydratedSourceValue(this[association.through!], association.source) || null
+        }
+      } else {
+        const value = this[`__${partialAssociation.as}__`]
+        if (value === undefined)
+          throw new NonLoadedAssociation({ dreamClass, associationName: partialAssociation.as })
+        else return value
+      }
     },
 
     set: function (this: any, associatedModel: any) {
@@ -166,4 +193,10 @@ export function applyGetterAndSetter(
       }
     },
   })
+}
+
+function hydratedSourceValue(dream: Dream | typeof Dream | undefined, sourceName: string) {
+  if (!dream) return
+  if (!sourceName) return
+  return (dream as any)[sourceName] || (dream as any)[singular(sourceName)]
 }

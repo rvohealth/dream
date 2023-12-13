@@ -98,6 +98,18 @@ describe('Dream#update', () => {
       expect(composition.user).toEqual(otherUser)
     })
 
+    context('when the association being set has been loaded with a different model', () => {
+      it('sets the reference to that model', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const otherUser = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+        const composition = await Composition.create({ user })
+        const reloaded = await Composition.preload('user').find(composition.id)
+        await reloaded!.update({ user: otherUser })
+
+        expect(reloaded!.user).toEqual(otherUser)
+      })
+    })
+
     context('when the model is polymorphic', () => {
       it('sets the foreign key and foreign key type on this object', async () => {
         const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })

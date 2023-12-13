@@ -637,20 +637,13 @@ export default class Query<
       case 'HasMany':
         dreams.forEach((dream: any) => {
           if (dream.loaded(association.as)) return // only overwrite if this hasn't yet been preloaded
-
           dream[association.as] = []
         })
         break
       default:
         dreams.forEach((dream: any) => {
           if (dream.loaded(association.as)) return // only overwrite if this hasn't yet been preloaded
-
-          Object.defineProperty(dream, association.as, {
-            configurable: true,
-            get() {
-              return null
-            },
-          })
+          dream[`__${association.as}__`] = null
         })
     }
 
@@ -674,12 +667,7 @@ export default class Query<
           })
           .forEach((dream: any) => {
             if (dream[association.as]) return // only overwrite if this hasn't yet been preloaded
-
-            Object.defineProperty(dream, association.as, {
-              get() {
-                return loadedAssociation
-              },
-            })
+            dream[association.as] = loadedAssociation
           })
       } else {
         dreams.forEach(dream => {
@@ -699,16 +687,10 @@ export default class Query<
           .forEach((dream: any) => {
             if (association.type === 'HasMany') {
               if (Object.isFrozen(dream[association.as])) return // only overwrite if this hasn't yet been preloaded
-
               dream[association.as].push(loadedAssociation)
             } else {
               if (dream[association.as]) return // only overwrite if this hasn't yet been preloaded
-
-              Object.defineProperty(dream, association.as, {
-                get() {
-                  return loadedAssociation
-                },
-              })
+              dream[association.as] = loadedAssociation
             }
           })
       }
@@ -741,38 +723,6 @@ export default class Query<
       // Post has many Commenters through Comments
       // hydrate Post Comments
       await this.applyOneInclude(association.through, dreams)
-
-      dreams.forEach(dream => {
-        if (association.type === 'HasMany') {
-          Object.defineProperty(dream, association.as, {
-            configurable: true,
-            get() {
-              const throughAssociation = (dream as any)[association.through!]
-
-              if (Array.isArray(throughAssociation)) {
-                return Object.freeze(
-                  compact(
-                    (throughAssociation as any[]).flatMap(record =>
-                      hydratedSourceValue(record, association.source)
-                    )
-                  )
-                )
-              } else if (throughAssociation) {
-                return hydratedSourceValue(throughAssociation, association.source)
-              } else {
-                return Object.freeze([])
-              }
-            },
-          })
-        } else {
-          Object.defineProperty(dream, association.as, {
-            configurable: true,
-            get() {
-              return hydratedSourceValue((dream as any)[association.through!], association.source) || null
-            },
-          })
-        }
-      })
 
       // return:
       //  Comments,
@@ -1607,10 +1557,4 @@ function getSourceAssociation(dream: Dream | typeof Dream | undefined, sourceNam
   return (
     (dream as Dream).associationMap()[sourceName] || (dream as Dream).associationMap()[singular(sourceName)]
   )
-}
-
-function hydratedSourceValue(dream: Dream | typeof Dream | undefined, sourceName: string) {
-  if (!dream) return
-  if (!sourceName) return
-  return (dream as any)[sourceName] || (dream as any)[singular(sourceName)]
 }
