@@ -5,6 +5,7 @@ import { HasMany } from '../../../src'
 import BalloonSpotterBalloon from './BalloonSpotterBalloon'
 import Balloon from './Balloon'
 import ApplicationModel from './ApplicationModel'
+import User from './User'
 
 export default class BalloonSpotter extends ApplicationModel {
   public get table() {
@@ -25,4 +26,7 @@ export default class BalloonSpotter extends ApplicationModel {
 
   @HasMany(() => Balloon, { through: 'balloonSpotterBalloons', source: 'balloon' })
   public balloons: Balloon[]
+
+  @HasMany(() => User, { through: 'balloonSpotterBalloons', source: 'user' })
+  public users: User[]
 }

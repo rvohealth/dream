@@ -74,7 +74,6 @@ export interface Collars {
 export interface CompositionAssetAudits {
   id: Generated<Int8>;
   compositionAssetId: Int8;
-  notes: string | null;
   approval: boolean | null;
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -116,7 +115,6 @@ export interface ExtraRatings {
   extraRateableId: Int8;
   extraRateableType: ExtraRateableTypesEnum;
   rating: number | null;
-  body: string | null;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -185,7 +183,6 @@ export interface Ratings {
   rateableId: Int8;
   rateableType: string;
   rating: number | null;
-  body: string | null;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -247,11 +244,11 @@ export const BalloonSpotterBalloonColumns = ['id', 'userId', 'balloonSpotterId',
 export const BalloonSpotterColumns = ['id', 'name', 'createdAt', 'updatedAt']
 export const BeautifulBalloonColumns = ['id', 'userId', 'type', 'volume', 'color', 'positionAlpha', 'positionBeta', 'multicolor', 'deletedAt', 'createdAt', 'updatedAt']
 export const CollarColumns = ['id', 'petId', 'lost', 'createdAt', 'updatedAt']
-export const CompositionAssetAuditColumns = ['id', 'compositionAssetId', 'notes', 'approval', 'createdAt', 'updatedAt']
+export const CompositionAssetAuditColumns = ['id', 'compositionAssetId', 'approval', 'createdAt', 'updatedAt']
 export const CompositionAssetColumns = ['id', 'compositionId', 'name', 'src', 'primary', 'score', 'createdAt', 'updatedAt']
 export const CompositionColumns = ['id', 'userId', 'content', 'primary', 'createdAt', 'updatedAt']
 export const EdgeCaseAttributeColumns = ['id', 'kPop', 'popK', 'popKPop', 'createdAt', 'updatedAt']
-export const ExtraRatingColumns = ['type', 'id', 'userId', 'extraRateableId', 'extraRateableType', 'rating', 'body', 'createdAt', 'updatedAt']
+export const ExtraRatingColumns = ['type', 'id', 'userId', 'extraRateableId', 'extraRateableType', 'rating', 'createdAt', 'updatedAt']
 export const GraphEdgeNodeColumns = ['id', 'edgeId', 'nodeId', 'position', 'createdAt', 'updatedAt']
 export const GraphEdgeColumns = ['id', 'name', 'createdAt', 'updatedAt']
 export const GraphNodeColumns = ['id', 'name', 'createdAt', 'updatedAt']
@@ -259,7 +256,7 @@ export const IncompatibleForeignKeyTypeExampleColumns = ['id', 'userId', 'create
 export const PetColumns = ['id', 'userId', 'favoriteTreats', 'species', 'name', 'deletedAt', 'createdAt']
 export const PostColumns = ['id', 'userId', 'postVisibilityId', 'body', 'position', 'createdAt', 'updatedAt']
 export const PostVisibilityColumns = ['id', 'visibility', 'notes', 'createdAt', 'updatedAt']
-export const RatingColumns = ['id', 'userId', 'rateableId', 'rateableType', 'rating', 'body', 'createdAt', 'updatedAt']
+export const RatingColumns = ['id', 'userId', 'rateableId', 'rateableType', 'rating', 'createdAt', 'updatedAt']
 export const SandbagColumns = ['id', 'balloonId', 'weight', 'createdAt', 'updatedAt']
 export const UserColumns = ['id', 'name', 'email', 'birthdate', 'passwordDigest', 'createdAt', 'updatedAt', 'deletedAt']
 export const UserSettingColumns = ['id', 'userId', 'likesChalupas', 'createdAt', 'updatedAt']
@@ -313,7 +310,6 @@ export interface CollarAttributes {
 export interface CompositionAssetAuditAttributes {
   id: IdType
   compositionAssetId: IdType
-  notes: string | null
   approval: boolean | null
   createdAt: DateTime
   updatedAt: DateTime
@@ -355,7 +351,6 @@ export interface ExtraRatingAttributes {
   extraRateableId: IdType
   extraRateableType: ExtraRateableTypesEnum
   rating: number | null
-  body: string | null
   createdAt: DateTime
   updatedAt: DateTime
 }  
@@ -424,7 +419,6 @@ export interface RatingAttributes {
   rateableId: IdType
   rateableType: string
   rating: number | null
-  body: string | null
   createdAt: DateTime
   updatedAt: DateTime
 }  
@@ -506,7 +500,6 @@ export const CollarsDBTypeMap = {
 export const CompositionAssetAuditsDBTypeMap = {
   id: 'bigint',
   compositionAssetId: 'bigint',
-  notes: 'text',
   approval: 'boolean',
   createdAt: 'timestamp without time zone',
   updatedAt: 'timestamp without time zone'
@@ -548,7 +541,6 @@ export const ExtraRatingsDBTypeMap = {
   extraRateableId: 'bigint',
   extraRateableType: 'extra_rateable_types_enum',
   rating: 'integer',
-  body: 'text',
   createdAt: 'timestamp without time zone',
   updatedAt: 'timestamp without time zone'
 }
@@ -617,7 +609,6 @@ export const RatingsDBTypeMap = {
   rateableId: 'bigint',
   rateableType: 'character varying',
   rating: 'integer',
-  body: 'text',
   createdAt: 'timestamp without time zone',
   updatedAt: 'timestamp without time zone'
 }

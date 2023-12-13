@@ -14,7 +14,7 @@ import Sandbag from '../../../../test-app/app/models/Sandbag'
 import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating'
 
 describe('Query#preload through with simple associations', () => {
-  context('explicit HasMany through', () => {
+  context('explicit HasMany through a BelongsTo', () => {
     it('sets HasMany property on the model and BelongsToProperty on the associated model', async () => {
       const balloon = await Latex.create()
       const balloonSpotter = await BalloonSpotter.create()
@@ -26,7 +26,7 @@ describe('Query#preload through with simple associations', () => {
     })
   })
 
-  context('implicit HasMany through', () => {
+  context('implicit HasMany through a BelongsTo', () => {
     it('sets HasMany property and through property on the model and BelongsToProperty on the associated model', async () => {
       const balloon = await Latex.create()
       const balloonSpotter = await BalloonSpotter.create()
@@ -36,6 +36,17 @@ describe('Query#preload through with simple associations', () => {
       expect(reloaded!.balloons).toMatchDreamModels([balloon])
       expect(reloaded!.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon])
       expect(reloaded!.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon)
+    })
+
+    context('when the join model does not have an associated BelongsTo', () => {
+      it('returns an array without null values', async () => {
+        const balloon = await Latex.create()
+        const balloonSpotter = await BalloonSpotter.create()
+        const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
+
+        const reloaded = await new Query(BalloonSpotter).preload('users').first()
+        expect(reloaded!.users).toEqual([])
+      })
     })
   })
 
@@ -106,6 +117,15 @@ describe('Query#preload through with simple associations', () => {
       expect(reloadedComposition!.mainCompositionAsset.compositionAssetAudits).toMatchDreamModels([
         compositionAssetAudit,
       ])
+    })
+
+    context('when the join model does not have an associated HasOne', () => {
+      it('returns an array without null values', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const balloon = await Latex.create({ user })
+        const reloaded = await User.preload('balloonLines').first()
+        expect(reloaded!.balloonLines).toEqual([])
+      })
     })
 
     context('multiple, final preload', () => {

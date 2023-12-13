@@ -21,6 +21,9 @@ export default {
     ],
     "balloons": [
       "beautiful_balloons"
+    ],
+    "users": [
+      "users"
     ]
   },
   "beautiful_balloons": {
@@ -218,6 +221,9 @@ export default {
     ],
     "balloons": [
       "beautiful_balloons"
+    ],
+    "balloonLines": [
+      "balloon_lines"
     ],
     "pets": [
       "pets"
@@ -248,6 +254,9 @@ export interface SyncedAssociations {
     ],
     "balloons": [
       "beautiful_balloons"
+    ],
+    "users": [
+      "users"
     ]
   },
   "beautiful_balloons": {
@@ -445,6 +454,9 @@ export interface SyncedAssociations {
     ],
     "balloons": [
       "beautiful_balloons"
+    ],
+    "balloonLines": [
+      "balloon_lines"
     ],
     "pets": [
       "pets"

@@ -16,6 +16,7 @@ import Virtual from '../../../src/decorators/virtual'
 import Pet from './Pet'
 import Query from '../../../src/dream/query'
 import ApplicationModel from './ApplicationModel'
+import BalloonLine from './BalloonLine'
 
 export default class User extends ApplicationModel {
   public get table() {
@@ -106,6 +107,9 @@ export default class User extends ApplicationModel {
 
   @HasMany(() => Balloon)
   public balloons: Balloon[]
+
+  @HasMany(() => BalloonLine, { through: 'balloons', source: 'balloonLine' })
+  public balloonLines: BalloonLine[]
 
   @HasMany(() => Pet)
   public pets: Pet[]
