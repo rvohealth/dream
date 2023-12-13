@@ -751,8 +751,10 @@ export default class Query<
 
               if (Array.isArray(throughAssociation)) {
                 return Object.freeze(
-                  (throughAssociation as any[]).flatMap(record =>
-                    hydratedSourceValue(record, association.source)
+                  compact(
+                    (throughAssociation as any[]).flatMap(record =>
+                      hydratedSourceValue(record, association.source)
+                    )
                   )
                 )
               } else if (throughAssociation) {
