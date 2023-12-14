@@ -137,7 +137,13 @@ export default {
     "notLostCollar": [
       "collars"
     ],
+    "uniqueCollar": [
+      "collars"
+    ],
     "collars": [
+      "collars"
+    ],
+    "uniqueCollars": [
       "collars"
     ]
   },
@@ -370,7 +376,13 @@ export interface SyncedAssociations {
     "notLostCollar": [
       "collars"
     ],
+    "uniqueCollar": [
+      "collars"
+    ],
     "collars": [
+      "collars"
+    ],
+    "uniqueCollars": [
       "collars"
     ]
   },

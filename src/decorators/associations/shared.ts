@@ -53,6 +53,14 @@ export type WhereStatement<
 
 export type LimitStatement = { count: number }
 
+export type TableColumnName<
+  DB extends any,
+  SyncedAssociations extends any,
+  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
+  Table extends DB[keyof DB] = DB[TableName],
+  ColumnName extends keyof Table & string = keyof Table & string
+> = ColumnName
+
 export interface HasStatement<
   DB extends any,
   SyncedAssociations extends any,
@@ -69,6 +77,7 @@ export interface HasStatement<
   through?: string
   where?: WhereStatement<DB, SyncedAssociations, ForeignTableName>
   whereNot?: WhereStatement<DB, SyncedAssociations, ForeignTableName>
+  distinct?: TableColumnName<DB, SyncedAssociations, ForeignTableName>
 }
 
 export function blankAssociationsFactory(dreamClass: typeof Dream): {

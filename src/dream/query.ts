@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { AssociationTableNames } from '../db/reflections'
-import { LimitStatement, WhereStatement } from '../decorators/associations/shared'
+import { LimitStatement, TableColumnName, WhereStatement } from '../decorators/associations/shared'
 import {
   JoinsArgumentTypeAssociatedTableNames,
   PreloadArgumentTypeAssociatedTableNames,
@@ -119,6 +119,7 @@ export default class Query<
   public readonly joinsStatements: RelaxedJoinsStatement = Object.freeze({})
   public readonly joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = Object.freeze({})
   public readonly shouldBypassDefaultScopes: boolean = false
+  public readonly distinctColumn: ColumnType | null = null
   public readonly dreamClass: DreamClass
   public baseSQLAlias: TableOrAssociationName<SyncedAssociations>
   public baseSelectQuery: Query<any> | null
@@ -139,6 +140,7 @@ export default class Query<
     this.joinsWhereStatements = Object.freeze(opts.joinsWhereStatements || {})
     this.shouldBypassDefaultScopes = Object.freeze(opts.shouldBypassDefaultScopes || false)
     this.dreamTransaction = opts.transaction || null
+    this.distinctColumn = opts.distinctColumn || null
     this.connectionOverride = opts.connection
   }
 
@@ -151,6 +153,9 @@ export default class Query<
       limit: opts.limit || this.limitStatement,
       or: [...this.orStatements, ...(opts.or || [])],
       order: opts.order || this.orderStatement || null,
+      distinctColumn: (opts.distinctColumn !== undefined
+        ? opts.distinctColumn
+        : this.distinctColumn) as ColumnType | null,
       preloadStatements: opts.preloadStatements || this.preloadStatements,
       joinsStatements: opts.joinsStatements || this.joinsStatements,
       joinsWhereStatements: opts.joinsWhereStatements || this.joinsWhereStatements,
@@ -536,6 +541,26 @@ export default class Query<
     return parseInt(data.tablecount.toString())
   }
 
+  public distinct<T extends Query<DreamClass>>(
+    this: T,
+    columnName?:
+      | TableColumnName<
+          InstanceType<DreamClass>['dreamconf']['DB'],
+          InstanceType<DreamClass>['dreamconf']['syncedAssociations'],
+          InstanceType<DreamClass>['table']
+        >
+      | null
+      | boolean
+  ) {
+    if (columnName === true || [null, undefined].includes(columnName as any)) {
+      return this.clone({ distinctColumn: this.dreamClass.primaryKey })
+    } else if (columnName === false) {
+      return this.clone({ distinctColumn: null })
+    } else {
+      return this.clone({ distinctColumn: columnName as any })
+    }
+  }
+
   public async max<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
@@ -572,8 +597,9 @@ export default class Query<
   public async pluck<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]>
-  >(this: T, ...fields: SimpleFieldType[]): Promise<any[]> {
+    SimpleFieldType extends keyof Updateable<DB[TableName]> & string,
+    TablePrefixedFieldType extends `${TableName}.${SimpleFieldType}`
+  >(this: T, ...fields: (SimpleFieldType | TablePrefixedFieldType)[]): Promise<any[]> {
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
 
     fields.forEach(field => {
@@ -860,6 +886,16 @@ ${JSON.stringify(association, null, 2)}
         `)
       }
       if (association.whereNot) associationQuery = associationQuery.whereNot(association.whereNot)
+
+      if ((association as any).distinct) {
+        debug(`
+applying distinct clause for association:
+${JSON.stringify(association, null, 2)}
+        `)
+      }
+      if ((association as any).distinct) {
+        // associationQuery = associationQuery.distinct((association as any).distinct)
+      }
 
       this.hydrateAssociation(dreams, association, await associationQuery.all())
     }
@@ -1410,7 +1446,7 @@ ${JSON.stringify(association, null, 2)}
     return kyselyQuery
   }
 
-  private checkForQueryViolations() {
+  private checkForQueryViolations<T extends Query<DreamClass>>(this: T) {
     const invalidWhereNotClauses = this.similarityStatementBuilder().whereNotStatementsWithSimilarityClauses()
     if (invalidWhereNotClauses.length) {
       const { tableName, tableAlias, columnName, opsStatement } = invalidWhereNotClauses[0]
@@ -1457,6 +1493,10 @@ ${JSON.stringify(association, null, 2)}
       kyselyQuery = this.dbFor('select').selectFrom(from as any)
     }
 
+    if (this.distinctColumn) {
+      kyselyQuery = kyselyQuery.distinctOn(this.distinctColumn as any)
+    }
+
     kyselyQuery = this.buildCommon(kyselyQuery)
 
     if (this.orderStatement)
@@ -1489,7 +1529,7 @@ ${JSON.stringify(association, null, 2)}
   }
 
   private get hasSimilarityClauses() {
-    return this.similarityStatementBuilder().hasSimilarityClauses
+    return (this as any).similarityStatementBuilder().hasSimilarityClauses
   }
 
   private similarityStatementBuilder<T extends Query<DreamClass>>(this: T) {
@@ -1553,6 +1593,7 @@ export interface QueryOpts<
   or?: Query<DreamClass>[]
   order?: { column: ColumnType & string; direction: 'asc' | 'desc' } | null
   preloadStatements?: RelaxedPreloadStatement
+  distinctColumn?: ColumnType | null
   joinsStatements?: RelaxedJoinsStatement
   joinsWhereStatements?: RelaxedJoinsWhereStatement<DB, SyncedAssociations>
   shouldBypassDefaultScopes?: boolean
