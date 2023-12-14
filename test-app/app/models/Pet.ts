@@ -50,9 +50,6 @@ export default class Pet extends ApplicationModel {
 
   @HasMany(() => Collar, { distinct: 'tagName' })
   public uniqueCollars: Collar
-
-  @HasOne(() => Collar, { distinct: 'tagName' })
-  public uniqueCollar: Collar
   // end: totally contrived for testing purposes
 
   @BeforeDestroy()
