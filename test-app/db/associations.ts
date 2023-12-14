@@ -43,6 +43,9 @@ export default {
   "collars": {
     "pet": [
       "pets"
+    ],
+    "balloon": [
+      "beautiful_balloons"
     ]
   },
   "composition_asset_audits": {
@@ -137,14 +140,14 @@ export default {
     "notLostCollar": [
       "collars"
     ],
-    "uniqueCollar": [
-      "collars"
-    ],
     "collars": [
       "collars"
     ],
     "uniqueCollars": [
       "collars"
+    ],
+    "uniqueBalloons": [
+      "beautiful_balloons"
     ]
   },
   "post_visibilities": {
@@ -282,6 +285,9 @@ export interface SyncedAssociations {
   "collars": {
     "pet": [
       "pets"
+    ],
+    "balloon": [
+      "beautiful_balloons"
     ]
   },
   "composition_asset_audits": {
@@ -376,14 +382,14 @@ export interface SyncedAssociations {
     "notLostCollar": [
       "collars"
     ],
-    "uniqueCollar": [
-      "collars"
-    ],
     "collars": [
       "collars"
     ],
     "uniqueCollars": [
       "collars"
+    ],
+    "uniqueBalloons": [
+      "beautiful_balloons"
     ]
   },
   "post_visibilities": {
@@ -502,6 +508,9 @@ export interface SyncedBelongsToAssociations {
   "collars": {
     "pet": [
       "pets"
+    ],
+    "balloon": [
+      "beautiful_balloons"
     ]
   },
   "composition_asset_audits": {

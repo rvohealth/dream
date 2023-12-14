@@ -10,6 +10,7 @@ import Collar from './Collar'
 import PetSerializer from '../serializers/PetSerializer'
 import { CatTreats, Species } from '../../db/schema'
 import ApplicationModel from './ApplicationModel'
+import Balloon from './Balloon'
 
 export default class Pet extends ApplicationModel {
   public get table() {
@@ -50,6 +51,9 @@ export default class Pet extends ApplicationModel {
 
   @HasMany(() => Collar, { distinct: 'tagName' })
   public uniqueCollars: Collar
+
+  @HasMany(() => Balloon, { through: 'uniqueCollars', source: 'balloon' })
+  public uniqueBalloons: Balloon
   // end: totally contrived for testing purposes
 
   @BeforeDestroy()

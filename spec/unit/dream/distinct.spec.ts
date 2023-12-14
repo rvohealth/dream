@@ -1,6 +1,9 @@
 import ops from '../../../src/ops'
+import Latex from '../../../test-app/app/models/Balloon/Latex'
+import Composition from '../../../test-app/app/models/Composition'
 import Node from '../../../test-app/app/models/Graph/Node'
 import Pet from '../../../test-app/app/models/Pet'
+import User from '../../../test-app/app/models/User'
 
 describe('Dream.distinct', () => {
   it('returns unique results distinct on the primary key', async () => {
@@ -60,18 +63,73 @@ describe('Dream.distinct', () => {
   })
 
   context('with matching distinct-clause-on-the-association', () => {
-    context('HasMany', () => {
-      it('applies distinct clause to association upon loading', async () => {
-        const pet = await Pet.create()
-        const collar1 = await pet.createAssociation('collars', {
-          tagName: 'chalupas jr',
+    context('preloading', () => {
+      context('HasMany', () => {
+        it('applies distinct clause to association upon loading', async () => {
+          const pet = await Pet.create()
+          const collar1 = await pet.createAssociation('collars', {
+            tagName: 'chalupas jr',
+          })
+          const collar2 = await pet.createAssociation('collars', {
+            tagName: 'chalupas jr',
+          })
+
+          const reloaded = await Pet.preload('uniqueCollars').first()
+          expect(reloaded!.uniqueCollars).toMatchDreamModels([collar1])
         })
-        const collar2 = await pet.createAssociation('collars', {
-          tagName: 'chalupas jr',
+      })
+
+      context('HasMany through', () => {
+        it('applies distinct clause to association upon loading', async () => {
+          const pet = await Pet.create()
+          const balloon = await Latex.create()
+          const collar1 = await pet.createAssociation('collars', {
+            tagName: 'chalupas jr',
+            balloon,
+          })
+          const collar2 = await pet.createAssociation('collars', {
+            tagName: 'chalupas jr',
+            balloon,
+          })
+
+          const reloaded = await Pet.preload('uniqueBalloons').first()
+          expect(reloaded!.uniqueBalloons).toMatchDreamModels([balloon])
+        })
+      })
+    })
+
+    context('joins', () => {
+      context('HasMany through', () => {
+        context('HasMany', () => {
+          it('applies distinct clause to association upon loading', async () => {
+            const pet = await Pet.create()
+            const collar1 = await pet.createAssociation('collars', {
+              tagName: 'chalupas jr',
+            })
+            const collar2 = await pet.createAssociation('collars', {
+              tagName: 'chalupas jr',
+            })
+
+            const ids = await Pet.joinsPluck('uniqueCollars', ['uniqueCollars.id'])
+            expect(ids).toEqual([collar1.id])
+          })
         })
 
-        const reloaded = await Pet.preload('uniqueCollars').first()
-        expect(reloaded!.uniqueCollars).toMatchDreamModels([collar1])
+        it('applies distinct clause to association upon loading', async () => {
+          const pet = await Pet.create()
+          const balloon = await Latex.create()
+          const collar1 = await pet.createAssociation('collars', {
+            tagName: 'chalupas jr',
+            balloon,
+          })
+          const collar2 = await pet.createAssociation('collars', {
+            tagName: 'chalupas jr',
+            balloon,
+          })
+
+          const ids = await Pet.joinsPluck('uniqueBalloons', ['uniqueBalloons.id'])
+          expect(ids).toEqual([balloon.id])
+        })
       })
     })
   })

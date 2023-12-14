@@ -66,6 +66,7 @@ export interface BeautifulBalloons {
 export interface Collars {
   id: Generated<Int8>;
   petId: Int8;
+  balloonId: Int8 | null;
   lost: boolean | null;
   tagName: string | null;
   createdAt: Timestamp;
@@ -247,7 +248,7 @@ export const BalloonLineColumns = ['id', 'balloonId', 'material', 'createdAt', '
 export const BalloonSpotterBalloonColumns = ['id', 'userId', 'balloonSpotterId', 'balloonId', 'createdAt', 'updatedAt']
 export const BalloonSpotterColumns = ['id', 'name', 'createdAt', 'updatedAt']
 export const BeautifulBalloonColumns = ['id', 'userId', 'type', 'volume', 'color', 'positionAlpha', 'positionBeta', 'multicolor', 'deletedAt', 'createdAt', 'updatedAt']
-export const CollarColumns = ['id', 'petId', 'lost', 'tagName', 'createdAt', 'updatedAt']
+export const CollarColumns = ['id', 'petId', 'balloonId', 'lost', 'tagName', 'createdAt', 'updatedAt']
 export const CompositionAssetAuditColumns = ['id', 'compositionAssetId', 'notes', 'approval', 'createdAt', 'updatedAt']
 export const CompositionAssetColumns = ['id', 'compositionId', 'name', 'src', 'primary', 'score', 'createdAt', 'updatedAt']
 export const CompositionColumns = ['id', 'userId', 'content', 'primary', 'createdAt', 'updatedAt']
@@ -306,6 +307,7 @@ export interface BeautifulBalloonAttributes {
 export interface CollarAttributes {
   id: IdType
   petId: IdType
+  balloonId: IdType | null
   lost: boolean | null
   tagName: string | null
   createdAt: DateTime
@@ -500,6 +502,7 @@ export const BeautifulBalloonsDBTypeMap = {
 export const CollarsDBTypeMap = {
   id: 'bigint',
   petId: 'bigint',
+  balloonId: 'bigint',
   lost: 'boolean',
   tagName: 'character varying',
   createdAt: 'timestamp without time zone',
