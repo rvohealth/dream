@@ -894,7 +894,7 @@ ${JSON.stringify(association, null, 2)}
         `)
       }
       if ((association as any).distinct) {
-        // associationQuery = associationQuery.distinct((association as any).distinct)
+        associationQuery = associationQuery.distinct((association as any).distinct)
       }
 
       this.hydrateAssociation(dreams, association, await associationQuery.all())

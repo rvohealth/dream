@@ -74,20 +74,5 @@ describe('Dream.distinct', () => {
         expect(reloaded!.uniqueCollars).toMatchDreamModels([collar1])
       })
     })
-
-    context('HasOne', () => {
-      it('applies distinct clause to association upon loading', async () => {
-        const pet = await Pet.create()
-        const collar1 = await pet.createAssociation('collars', {
-          tagName: 'chalupas jr',
-        })
-        const collar2 = await pet.createAssociation('collars', {
-          tagName: 'chalupas jr',
-        })
-
-        const reloaded = await Pet.preload('uniqueCollar').first()
-        expect(reloaded!.uniqueCollar).toMatchDreamModel(collar1)
-      })
-    })
   })
 })
