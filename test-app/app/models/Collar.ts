@@ -4,6 +4,7 @@ import { IdType } from '../../../src/dream/types'
 import CollarSerializer from '../../../test-app/app/serializers/CollarSerializer'
 import Pet from './Pet'
 import ApplicationModel from './ApplicationModel'
+import Balloon from './Balloon'
 
 export default class Collar extends ApplicationModel {
   public get table() {
@@ -23,4 +24,8 @@ export default class Collar extends ApplicationModel {
   @BelongsTo(() => Pet)
   public pet: Pet
   public petId: IdType
+
+  @BelongsTo(() => Balloon, { foreignKey: 'balloonId', optional: true })
+  public balloon: Balloon
+  public balloonId: IdType
 }

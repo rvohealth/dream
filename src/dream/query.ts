@@ -119,7 +119,7 @@ export default class Query<
   public readonly joinsStatements: RelaxedJoinsStatement = Object.freeze({})
   public readonly joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = Object.freeze({})
   public readonly shouldBypassDefaultScopes: boolean = false
-  public readonly distinctColumn: ColumnType | null = null
+  private readonly distinctColumn: ColumnType | null = null
   public readonly dreamClass: DreamClass
   public baseSQLAlias: TableOrAssociationName<SyncedAssociations>
   public baseSelectQuery: Query<any> | null
@@ -1166,6 +1166,12 @@ ${JSON.stringify(association, null, 2)}
           { negate: true }
         )
       }
+
+      if (association.distinct) {
+        query = query.distinctOn(
+          `${currentAssociationTableOrAlias}.${this.distinctColumnNameForAssociation(association)}`
+        )
+      }
     }
 
     return {
@@ -1174,6 +1180,12 @@ ${JSON.stringify(association, null, 2)}
       previousAssociationTableOrAlias,
       currentAssociationTableOrAlias,
     }
+  }
+
+  private distinctColumnNameForAssociation(association: any) {
+    if (!association.distinct) return null
+    if (association.distinct === true) return association.foreignKey()
+    return association.distinct
   }
 
   private recursivelyJoin<T extends Query<DreamClass>>(

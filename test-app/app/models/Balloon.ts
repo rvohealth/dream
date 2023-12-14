@@ -13,6 +13,7 @@ import User from './User'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
 import HeartRating from './ExtraRating/HeartRating'
+import Collar from './Collar'
 
 export default class Balloon extends ApplicationModel {
   public get table() {

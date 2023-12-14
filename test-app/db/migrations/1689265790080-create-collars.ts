@@ -5,6 +5,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .createTable('collars')
     .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('pet_id', 'bigint', col => col.references('pets.id').onDelete('cascade').notNull())
+    .addColumn('balloon_id', 'bigint', col => col.references('beautiful_balloons.id').onDelete('cascade'))
     .addColumn('lost', 'boolean')
     .addColumn('tag_name', 'varchar(255)')
     .addColumn('created_at', 'timestamp', col => col.notNull())
