@@ -12,6 +12,17 @@ describe('Dream.distinct', () => {
     expect(ids).toEqual([node1.id, node2.id, node3.id])
   })
 
+  context('with a specific column name passed', () => {
+    it('returns unique results', async () => {
+      const node1 = await Node.create({ name: 'mynode' })
+      const node2 = await Node.create({ name: 'mynode' })
+      const node3 = await Node.create({ name: 'chalupas' })
+
+      const names = await Node.distinct('name').pluck('name')
+      expect(names).toEqual(['chalupas', 'mynode'])
+    })
+  })
+
   context('with "true" passed', () => {
     it('returns unique results distinct on the primary key', async () => {
       const node1 = await Node.create({ name: 'mynode' })
@@ -31,17 +42,6 @@ describe('Dream.distinct', () => {
 
       const names = await Node.distinct('name').distinct(false).pluck('name')
       expect(names).toEqual(['mynode', 'mynode', 'chalupas'])
-    })
-  })
-
-  context('with a specific column name passed', () => {
-    it('returns unique results', async () => {
-      const node1 = await Node.create({ name: 'mynode' })
-      const node2 = await Node.create({ name: 'mynode' })
-      const node3 = await Node.create({ name: 'chalupas' })
-
-      const names = await Node.distinct('name').pluck('name')
-      expect(names).toEqual(['chalupas', 'mynode'])
     })
   })
 
