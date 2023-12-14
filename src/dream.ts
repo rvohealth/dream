@@ -10,6 +10,7 @@ import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { marshalDBValue } from './helpers/marshalDBValue'
 import {
   AssociatedModelParam,
+  TableColumnName,
   WhereStatement,
   blankAssociationsFactory,
 } from './decorators/associations/shared'
@@ -266,6 +267,17 @@ export default class Dream {
         return await this.findBy(extractAttributesFromUpdateableProperties(this, opts))
       throw err
     }
+  }
+
+  public static distinct<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends InstanceType<T>['table']
+  >(this: T, columnName?: TableColumnName<DB, SyncedAssociations, TableName> | null | boolean) {
+    const query: Query<T> = new Query<T>(this)
+    return query.distinct(columnName as any)
   }
 
   public static async find<

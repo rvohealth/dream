@@ -16,6 +16,7 @@ export default class Collar extends ApplicationModel {
 
   public id: IdType
   public lost: boolean
+  public tagName: string
   public createdAt: DateTime
   public updatedAt: DateTime
 

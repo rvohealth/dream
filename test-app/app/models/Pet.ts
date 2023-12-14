@@ -44,9 +44,16 @@ export default class Pet extends ApplicationModel {
   @HasOne(() => Collar, { where: { lost: false } })
   public currentCollar: Collar
 
-  // totally contrived for testing purposes
+  // begin: totally contrived for testing purposes
   @HasOne(() => Collar, { whereNot: { lost: true } })
   public notLostCollar: Collar
+
+  @HasMany(() => Collar, { distinct: 'tagName' })
+  public uniqueCollars: Collar
+
+  @HasOne(() => Collar, { distinct: 'tagName' })
+  public uniqueCollar: Collar
+  // end: totally contrived for testing purposes
 
   @BeforeDestroy()
   public async doSoftDelete() {

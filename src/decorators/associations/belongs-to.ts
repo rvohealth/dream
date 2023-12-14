@@ -30,6 +30,7 @@ export default function BelongsTo(
     const partialAssociation = {
       modelCB,
       type: 'BelongsTo',
+      distinct: null,
       as: key,
       optional,
       polymorphic,
@@ -62,5 +63,6 @@ export interface BelongsToStatement<
   foreignKey: () => keyof DB[TableName]
   foreignKeyTypeField: () => keyof DB[TableName]
   optional: boolean
+  distinct: null
   polymorphic: boolean
 }
