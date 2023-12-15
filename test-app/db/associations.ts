@@ -148,6 +148,15 @@ export default {
     ],
     "uniqueBalloons": [
       "beautiful_balloons"
+    ],
+    "distinctBalloons": [
+      "beautiful_balloons"
+    ],
+    "redBalloons": [
+      "beautiful_balloons"
+    ],
+    "notRedBalloons": [
+      "beautiful_balloons"
     ]
   },
   "post_visibilities": {
@@ -389,6 +398,15 @@ export interface SyncedAssociations {
       "collars"
     ],
     "uniqueBalloons": [
+      "beautiful_balloons"
+    ],
+    "distinctBalloons": [
+      "beautiful_balloons"
+    ],
+    "redBalloons": [
+      "beautiful_balloons"
+    ],
+    "notRedBalloons": [
       "beautiful_balloons"
     ]
   },

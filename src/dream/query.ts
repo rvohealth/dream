@@ -807,6 +807,7 @@ export default class Query<
     let association = dream.associationMap()[currentAssociationTableOrAlias]
     let associationQuery
 
+    const originalAssociation = association
     const results = await this.preloadBridgeThroughAssociations(
       dream.constructor as typeof Dream,
       dreams,
@@ -854,6 +855,8 @@ export default class Query<
           [associatedModel.primaryKey]: dreams.map(dream => (dream as any)[association.foreignKey()]),
         })
 
+        associationQuery = this.bridgeOriginalPreloadAssociation(originalAssociation, associationQuery)
+
         this.hydrateAssociation(dreams, association, await associationQuery.all())
       }
     } else {
@@ -896,10 +899,36 @@ ${JSON.stringify(association, null, 2)}
         associationQuery = associationQuery.distinct((association as any).distinct)
       }
 
+      associationQuery = this.bridgeOriginalPreloadAssociation(originalAssociation, associationQuery)
+
       this.hydrateAssociation(dreams, association, await associationQuery.all())
     }
 
     return compact(dreams.flatMap(dream => (dream as any)[association.as]))
+  }
+
+  private bridgeOriginalPreloadAssociation(
+    originalAssociation:
+      | HasOneStatement<DB, SyncedAssociations, any>
+      | HasManyStatement<DB, SyncedAssociations, any>
+      | BelongsToStatement<DB, SyncedAssociations, any>,
+    associationQuery: Query<any>
+  ) {
+    if ((originalAssociation as any)?.through) {
+      const assoc = originalAssociation as
+        | HasManyStatement<any, any, string>
+        | HasOneStatement<any, any, string>
+
+      if (assoc.where) {
+        associationQuery = associationQuery.where(assoc.where)
+      }
+
+      if (assoc.whereNot) {
+        associationQuery = associationQuery.whereNot(assoc.whereNot)
+      }
+    }
+
+    return associationQuery
   }
 
   public async hydratePreload(dream: Dream) {
@@ -1010,17 +1039,18 @@ ${JSON.stringify(association, null, 2)}
         currentAssociationTableOrAlias: association.through as TableOrAssociationName<
           InstanceType<DreamClass>['syncedAssociations']
         >,
+        originalAssociation: association,
       })
       const newAssociation = this.followThroughAssociation(dreamClass, association)
 
-      return this.joinsBridgeThroughAssociations({
+      return {
         query: results.query,
         dreamClass: association.modelCB(),
         association: newAssociation,
         previousAssociationTableOrAlias: association.through as TableOrAssociationName<
           InstanceType<DreamClass>['syncedAssociations']
         >,
-      })
+      }
     }
   }
 
@@ -1031,11 +1061,15 @@ ${JSON.stringify(association, null, 2)}
       dreamClass,
       previousAssociationTableOrAlias,
       currentAssociationTableOrAlias,
+      originalAssociation,
     }: {
       query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
       dreamClass: typeof Dream
       previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
       currentAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
+      originalAssociation?:
+        | HasOneStatement<DB, SyncedAssociations, any>
+        | HasManyStatement<DB, SyncedAssociations, any>
     }
   ): {
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
@@ -1122,6 +1156,27 @@ ${JSON.stringify(association, null, 2)}
             currentAssociationTableOrAlias
           )
         )
+      }
+
+      if (originalAssociation?.through) {
+        if (originalAssociation.distinct) {
+          query = query.distinctOn(this.distinctColumnNameForAssociation(originalAssociation))
+        }
+
+        if (originalAssociation.where) {
+          query = this.applyWhereStatement(
+            query,
+            this.aliasWhereStatement([originalAssociation.where], originalAssociation.as)
+          )
+        }
+
+        if (originalAssociation.whereNot) {
+          query = this.applyWhereStatement(
+            query,
+            this.aliasWhereStatement([originalAssociation.whereNot], originalAssociation.as),
+            { negate: true }
+          )
+        }
       }
 
       if (!this.shouldBypassDefaultScopes) {

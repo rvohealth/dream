@@ -13,16 +13,14 @@ import { AssociationTableNames } from '../../db/reflections'
 
 export default function HasMany<AssociationDreamClass extends typeof Dream>(
   modelCB: () => AssociationDreamClass,
-  options:
-    | HasManyOptionsWithThrough<AssociationDreamClass>
-    | HasManyOptionsWithoutThrough<AssociationDreamClass> = {}
+  options: HasManyOptions<AssociationDreamClass> = {}
 ): any {
   return function (target: any, key: string, _: any) {
     const { foreignKey, polymorphic = false, source } = options
-    const through = (options as HasManyOptionsWithThrough<AssociationDreamClass>).through
-    const where = (options as HasManyOptionsWithoutThrough<AssociationDreamClass>).where
-    const whereNot = (options as HasManyOptionsWithoutThrough<AssociationDreamClass>).whereNot
-    const distinct = (options as HasManyOptionsWithoutThrough<AssociationDreamClass>).distinct
+    const through = options.through
+    const where = options.where
+    const whereNot = options.whereNot
+    const distinct = options.distinct
 
     const dreamClass: typeof Dream = target.constructor
 
@@ -66,19 +64,17 @@ export type HasManyOptions<AssociationDreamClass extends typeof Dream> = {
   foreignKey?: string
   polymorphic?: boolean
   source?: string
-}
-
-export interface HasManyOptionsWithThrough<AssociationDreamClass extends typeof Dream>
-  extends HasManyOptions<AssociationDreamClass> {
-  distinct?: never
-  where?: never
-  whereNot?: never
-  through?: string
-}
-
-export interface HasManyOptionsWithoutThrough<AssociationDreamClass extends typeof Dream>
-  extends HasManyOptions<AssociationDreamClass> {
-  through?: never
+  distinct?:
+    | TableColumnName<
+        InstanceType<AssociationDreamClass>['DB'],
+        InstanceType<AssociationDreamClass>['syncedAssociations'],
+        InstanceType<AssociationDreamClass>['table'] &
+          AssociationTableNames<
+            InstanceType<AssociationDreamClass>['DB'],
+            InstanceType<AssociationDreamClass>['syncedAssociations']
+          >
+      >
+    | boolean
   where?: WhereStatement<
     InstanceType<AssociationDreamClass>['DB'],
     InstanceType<AssociationDreamClass>['syncedAssociations'],
@@ -97,15 +93,5 @@ export interface HasManyOptionsWithoutThrough<AssociationDreamClass extends type
         InstanceType<AssociationDreamClass>['syncedAssociations']
       >
   >
-  distinct?:
-    | TableColumnName<
-        InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['syncedAssociations'],
-        InstanceType<AssociationDreamClass>['table'] &
-          AssociationTableNames<
-            InstanceType<AssociationDreamClass>['DB'],
-            InstanceType<AssociationDreamClass>['syncedAssociations']
-          >
-      >
-    | boolean
+  through?: string
 }

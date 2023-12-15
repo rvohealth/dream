@@ -10,6 +10,9 @@ import BalloonSpotterBalloon from '../../../../test-app/app/models/BalloonSpotte
 import MissingThroughAssociationSource from '../../../../src/exceptions/associations/missing-through-association-source'
 import JoinAttemptedOnMissingAssociation from '../../../../src/exceptions/associations/join-attempted-with-missing-association'
 import ops from '../../../../src/ops'
+import Pet from '../../../../test-app/app/models/Pet'
+import Collar from '../../../../test-app/app/models/Collar'
+import Balloon from '../../../../test-app/app/models/Balloon'
 
 describe('Query#joins through with simple associations', () => {
   context('explicit HasMany through', () => {
@@ -398,6 +401,36 @@ describe('Query#joins through with simple associations', () => {
           })
         })
       })
+    })
+  })
+
+  context('with a where clause on an implicit through association', () => {
+    it('applies conditional to selectively bring in records', async () => {
+      const pet = await Pet.create()
+      const redBalloon = await Latex.create({ color: 'red' })
+      const greenBalloon = await Latex.create({ color: 'green' })
+
+      const collar1 = await pet.createAssociation('collars', { balloon: redBalloon })
+      const collar2 = await pet.createAssociation('collars', { balloon: greenBalloon })
+
+      const ids = await pet.joinsPluck('redBalloons', ['redBalloons.id'])
+      expect(ids).toEqual([redBalloon.id])
+    })
+  })
+
+  context('with a whereNot clause on an implicit through association', () => {
+    it('applies conditional to selectively bring in records', async () => {
+      const pet = await Pet.create()
+      const redBalloon = await Latex.create({ color: 'red' })
+      const greenBalloon = await Latex.create({ color: 'green' })
+      const blueBalloon = await Latex.create({ color: 'blue' })
+
+      const collar1 = await pet.createAssociation('collars', { balloon: redBalloon })
+      const collar2 = await pet.createAssociation('collars', { balloon: greenBalloon })
+      const collar3 = await pet.createAssociation('collars', { balloon: blueBalloon })
+
+      const ids = await pet.joinsPluck('notRedBalloons', ['notRedBalloons.id'])
+      expect(ids).toEqual([greenBalloon.id, blueBalloon.id])
     })
   })
 
