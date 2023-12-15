@@ -108,5 +108,4 @@ export interface HasManyOptionsWithoutThrough<AssociationDreamClass extends type
           >
       >
     | boolean
-    | null
 }
