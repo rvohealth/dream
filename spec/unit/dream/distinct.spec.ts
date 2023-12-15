@@ -99,22 +99,22 @@ describe('Dream.distinct', () => {
     })
 
     context('joins', () => {
-      context('HasMany through', () => {
-        context('HasMany', () => {
-          it('applies distinct clause to association upon loading', async () => {
-            const pet = await Pet.create()
-            const collar1 = await pet.createAssociation('collars', {
-              tagName: 'chalupas jr',
-            })
-            const collar2 = await pet.createAssociation('collars', {
-              tagName: 'chalupas jr',
-            })
-
-            const ids = await Pet.joinsPluck('uniqueCollars', ['uniqueCollars.id'])
-            expect(ids).toEqual([collar1.id])
+      context('HasMany', () => {
+        it('applies distinct clause to association upon loading', async () => {
+          const pet = await Pet.create()
+          const collar1 = await pet.createAssociation('collars', {
+            tagName: 'chalupas jr',
           })
-        })
+          const collar2 = await pet.createAssociation('collars', {
+            tagName: 'chalupas jr',
+          })
 
+          const ids = await Pet.joinsPluck('uniqueCollars', ['uniqueCollars.id'])
+          expect(ids).toEqual([collar1.id])
+        })
+      })
+
+      context('HasMany through', () => {
         it('applies distinct clause to association upon loading', async () => {
           const pet = await Pet.create()
           const balloon = await Latex.create()
