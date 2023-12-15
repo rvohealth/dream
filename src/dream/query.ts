@@ -543,16 +543,15 @@ export default class Query<
 
   public distinct<T extends Query<DreamClass>>(
     this: T,
-    columnName?:
+    columnName:
       | TableColumnName<
           InstanceType<DreamClass>['dreamconf']['DB'],
           InstanceType<DreamClass>['dreamconf']['syncedAssociations'],
           InstanceType<DreamClass>['table']
         >
-      | null
-      | boolean
+      | boolean = true
   ) {
-    if (columnName === true || [null, undefined].includes(columnName as any)) {
+    if (columnName === true) {
       return this.clone({ distinctColumn: this.dreamClass.primaryKey })
     } else if (columnName === false) {
       return this.clone({ distinctColumn: null })
