@@ -12,6 +12,7 @@ import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import Sandbag from '../../../../test-app/app/models/Sandbag'
 import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating'
+import Pet from '../../../../test-app/app/models/Pet'
 
 describe('Query#preload through with simple associations', () => {
   context('explicit HasMany through a BelongsTo', () => {
@@ -373,6 +374,36 @@ describe('Query#preload through with simple associations', () => {
           expect(reloadedUser!.recentCompositionAssets).toMatchDreamModels([compositionAsset1])
         })
       })
+    })
+  })
+
+  context('with a where clause on an implicit through association', () => {
+    it('applies conditional to selectively bring in records', async () => {
+      const pet = await Pet.create()
+      const redBalloon = await Latex.create({ color: 'red' })
+      const greenBalloon = await Latex.create({ color: 'green' })
+
+      const collar1 = await pet.createAssociation('collars', { balloon: redBalloon })
+      const collar2 = await pet.createAssociation('collars', { balloon: greenBalloon })
+
+      const reloaded = await Pet.preload('redBalloons').first()
+      expect(reloaded!.redBalloons).toMatchDreamModels([redBalloon])
+    })
+  })
+
+  context('with a whereNot clause on an implicit through association', () => {
+    it('applies conditional to selectively bring in records', async () => {
+      const pet = await Pet.create()
+      const redBalloon = await Latex.create({ color: 'red' })
+      const greenBalloon = await Latex.create({ color: 'green' })
+      const blueBalloon = await Latex.create({ color: 'blue' })
+
+      const collar1 = await pet.createAssociation('collars', { balloon: redBalloon })
+      const collar2 = await pet.createAssociation('collars', { balloon: greenBalloon })
+      const collar3 = await pet.createAssociation('collars', { balloon: blueBalloon })
+
+      const reloaded = await Pet.preload('notRedBalloons').first()
+      expect(reloaded!.notRedBalloons).toMatchDreamModels([greenBalloon, blueBalloon])
     })
   })
 

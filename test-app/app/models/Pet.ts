@@ -54,6 +54,15 @@ export default class Pet extends ApplicationModel {
 
   @HasMany(() => Balloon, { through: 'uniqueCollars', source: 'balloon' })
   public uniqueBalloons: Balloon
+
+  @HasMany(() => Balloon, { through: 'collars', source: 'balloon', distinct: true })
+  public distinctBalloons: Balloon
+
+  @HasMany(() => Balloon, { through: 'collars', source: 'balloon', where: { color: 'red' } })
+  public redBalloons: Balloon
+
+  @HasMany(() => Balloon, { through: 'collars', source: 'balloon', whereNot: { color: 'red' } })
+  public notRedBalloons: Balloon
   // end: totally contrived for testing purposes
 
   @BeforeDestroy()
