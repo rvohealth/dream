@@ -462,11 +462,14 @@ export default class Query<
     //   T['joinsStatements'][number]
     // >
   >(this: T, selection: SimpleFieldType | JoinsPluckFieldType) {
-    const query = this.buildSelect({ bypassSelectAll: true }) as SelectQueryBuilder<
+    let query = this.buildSelect({ bypassSelectAll: true }) as SelectQueryBuilder<
       DB,
       ExtractTableAlias<DB, TableName>,
       any
     >
+
+    query = this.conditionallyAttachSimilarityColumnsToSelect(query as any, { includeGroupBy: false }) as any
+
     return query.select(selection as any)
   }
 
