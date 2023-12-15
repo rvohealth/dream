@@ -62,6 +62,7 @@ import SimilarityBuilder from './internal/similarity/SimilarityBuilder'
 import ConnectedToDB from '../db/ConnectedToDB'
 import SimilarityOperatorNotSupportedOnDestroyQueries from '../exceptions/similarity-operator-not-supported-on-destroy-queries'
 import debug from '../../shared/helpers/debug'
+import cloneDeep from 'lodash.clonedeep'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -295,9 +296,12 @@ export default class Query<
         associationStatements
       )
     } else if (isObject(nextAssociationStatement) && previousAssociationName) {
-      Object.keys(nextAssociationStatement).forEach((key: string) => {
-        joinsWhereStatements[key] = (nextAssociationStatement as any)[key]
+      const clonedNextAssociationStatement = cloneDeep(nextAssociationStatement)
+
+      Object.keys(clonedNextAssociationStatement).forEach((key: string) => {
+        joinsWhereStatements[key] = (clonedNextAssociationStatement as any)[key]
       })
+
       this.fleshOutJoinsStatements(
         joinsStatements,
         joinsWhereStatements,
@@ -388,8 +392,10 @@ export default class Query<
         associationStatements
       )
     } else if (isObject(nextAssociationStatement) && previousAssociationName) {
-      Object.keys(nextAssociationStatement).forEach((key: string) => {
-        joinsWhereStatements[key] = (nextAssociationStatement as any)[key]
+      const clonedNextAssociationStatement = cloneDeep(nextAssociationStatement)
+
+      Object.keys(clonedNextAssociationStatement).forEach((key: string) => {
+        joinsWhereStatements[key] = (clonedNextAssociationStatement as any)[key]
       })
 
       return this.fleshOutJoinsPluckStatements(

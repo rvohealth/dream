@@ -8,6 +8,7 @@ import Query from '../../../../src/dream/query'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import Balloon from '../../../../test-app/app/models/Balloon'
 import ops from '../../../../src/ops'
+import OpsStatement from '../../../../src/ops/ops-statement'
 
 describe('Query#joins with simple associations', () => {
   it('joins a HasOne association', async () => {
@@ -83,6 +84,21 @@ describe('Query#joins with simple associations', () => {
 
         const balloons = await Balloon.joins('user', { name: ops.similarity('hello') }).all()
         expect(balloons).toMatchDreamModels([balloon1, balloon2])
+      })
+    })
+
+    context('with an ops object', () => {
+      it('changing the ops object after joining does not affect the join', async () => {
+        const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'Hello World' })
+        const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin', name: 'Hallo' })
+        const balloon1 = await Mylar.create({ user: user1 })
+        const balloon2 = await Mylar.create({ user: user2 })
+
+        const whereClause: Record<string, OpsStatement<any, any>> = { id: ops.equal(user1.id) }
+        const query = Balloon.joins('user', whereClause)
+        whereClause.id.value = user2.id
+        const balloons = await query.all()
+        expect(balloons).toMatchDreamModels([balloon1])
       })
     })
 
