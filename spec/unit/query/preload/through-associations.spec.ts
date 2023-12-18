@@ -13,6 +13,7 @@ import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import Sandbag from '../../../../test-app/app/models/Sandbag'
 import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating'
 import Pet from '../../../../test-app/app/models/Pet'
+import JoinAttemptedOnMissingAssociation from '../../../../src/exceptions/associations/join-attempted-with-missing-association'
 
 describe('Query#preload through with simple associations', () => {
   context('explicit HasMany through a BelongsTo', () => {
@@ -28,15 +29,13 @@ describe('Query#preload through with simple associations', () => {
   })
 
   context('implicit HasMany through a BelongsTo', () => {
-    it('sets HasMany property and through property on the model and BelongsToProperty on the associated model', async () => {
+    it('sets HasMany property', async () => {
       const balloon = await Latex.create()
       const balloonSpotter = await BalloonSpotter.create()
       const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
 
       const reloaded = await new Query(BalloonSpotter).preload('balloons').first()
       expect(reloaded!.balloons).toMatchDreamModels([balloon])
-      expect(reloaded!.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon])
-      expect(reloaded!.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon)
     })
 
     context('when the join model does not have an associated BelongsTo', () => {
@@ -69,24 +68,18 @@ describe('Query#preload through with simple associations', () => {
   })
 
   context('HasOne through HasOne association', () => {
-    it(
-      'sets the association property and the association property on the through association to the ' +
-        'loaded model, and the join association property to the loaded join model',
-      async () => {
-        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-        const composition = await Composition.create({ user, primary: true })
-        await CompositionAsset.create({ composition })
-        const compositionAsset = await CompositionAsset.create({
-          composition,
-          primary: true,
-        })
+    it('sets the HasOne association', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ user, primary: true })
+      await CompositionAsset.create({ composition })
+      const compositionAsset = await CompositionAsset.create({
+        composition,
+        primary: true,
+      })
 
-        const reloadedUser = await new Query(User).preload('mainCompositionAsset').first()
-        expect(reloadedUser!.mainCompositionAsset).toMatchDreamModel(compositionAsset)
-        expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
-        expect(reloadedUser!.mainComposition.mainCompositionAsset).toMatchDreamModel(compositionAsset)
-      }
-    )
+      const reloadedUser = await new Query(User).preload('mainCompositionAsset').first()
+      expect(reloadedUser!.mainCompositionAsset).toMatchDreamModel(compositionAsset)
+    })
 
     context('when there is no associated model', () => {
       it('sets the association property and the join association property to null', async () => {
@@ -94,7 +87,6 @@ describe('Query#preload through with simple associations', () => {
 
         const reloadedUser = await new Query(User).preload('mainCompositionAsset').first()
         expect(reloadedUser!.mainCompositionAsset).toBeNull()
-        expect(reloadedUser!.mainComposition).toBeNull()
       })
     })
   })
@@ -153,7 +145,7 @@ describe('Query#preload through with simple associations', () => {
     })
 
     context('when there are no models associated via the HasMany', () => {
-      it('sets HasOne association property on the base model and the HasMany property on the assocaited model to an empty array', async () => {
+      it('sets HasMany association to an empty array', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })
         const compositionAsset = await CompositionAsset.create({
@@ -164,7 +156,7 @@ describe('Query#preload through with simple associations', () => {
         const reloadedComposition = await new Query(Composition)
           .preload('mainCompositionAsset', 'compositionAssetAudits')
           .first()
-        expect(reloadedComposition!.mainCompositionAsset).toMatchDreamModel(compositionAsset)
+        expect(reloadedComposition!.mainCompositionAsset.compositionAssetAudits).toEqual([])
       })
     })
 
@@ -207,7 +199,7 @@ describe('Query#preload through with simple associations', () => {
   })
 
   context('implicit HasMany through HasOne', () => {
-    it('sets HasOne association property on the base model and the HasMany property on the assocaited model', async () => {
+    it('sets the HasMany association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ user })
       const compositionAsset = await CompositionAsset.create({
@@ -219,15 +211,11 @@ describe('Query#preload through with simple associations', () => {
       })
 
       const reloadedComposition = await new Query(Composition).preload('mainCompositionAssetAudits').first()
-      expect(reloadedComposition!.mainCompositionAsset).toMatchDreamModel(compositionAsset)
-      expect(reloadedComposition!.mainCompositionAsset.compositionAssetAudits).toMatchDreamModels([
-        compositionAssetAudit,
-      ])
       expect(reloadedComposition!.mainCompositionAssetAudits).toMatchDreamModels([compositionAssetAudit])
     })
 
     context('when there are no models associated via the HasMany', () => {
-      it('sets HasOne association property on the base model and the HasMany property on the assocaited model to an empty array', async () => {
+      it('sets the HasMany association to an empty array', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })
         const compositionAsset = await CompositionAsset.create({
@@ -236,8 +224,6 @@ describe('Query#preload through with simple associations', () => {
         })
 
         const reloadedComposition = await new Query(Composition).preload('mainCompositionAssetAudits').first()
-        expect(reloadedComposition!.mainCompositionAsset).toMatchDreamModel(compositionAsset)
-        expect(reloadedComposition!.mainCompositionAsset.compositionAssetAudits).toEqual([])
         expect(reloadedComposition!.mainCompositionAssetAudits).toEqual([])
       })
     })
@@ -255,7 +241,6 @@ describe('Query#preload through with simple associations', () => {
 
       const reloadedUser = await new Query(User).preload('mainCompositionAsset').first()
       expect(reloadedUser!.mainCompositionAsset).toBeNull()
-      expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
     })
   })
 
@@ -265,7 +250,6 @@ describe('Query#preload through with simple associations', () => {
     await CompositionAsset.create({ composition })
 
     const reloadedCompositionAsset = await new Query(CompositionAsset).preload('user').first()
-    expect(reloadedCompositionAsset!.composition).toMatchDreamModel(composition)
     expect(reloadedCompositionAsset!.user).toMatchDreamModel(user)
   })
 
@@ -276,9 +260,7 @@ describe('Query#preload through with simple associations', () => {
       const compositionAsset = await CompositionAsset.create({ composition })
 
       const reloadedUser = await new Query(User).preload('compositionAssets').first()
-      expect(reloadedUser!.compositions).toMatchDreamModels([composition])
       expect(reloadedUser!.compositionAssets).toMatchDreamModels([compositionAsset])
-      expect(reloadedUser!.compositions[0].compositionAssets).toMatchDreamModels([compositionAsset])
     })
 
     context('when there are no associated models', () => {
@@ -408,12 +390,12 @@ describe('Query#preload through with simple associations', () => {
   })
 
   context('with a missing association', () => {
-    it('throws MissingThroughAssociation', async () => {
+    it('throws JoinAttemptedOnMissingAssociation', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
       const query = new Query(User).preload('nonExtantCompositionAssets1').first()
 
-      await expect(query).rejects.toThrow(MissingThroughAssociation)
+      await expect(query).rejects.toThrow(JoinAttemptedOnMissingAssociation)
     })
   })
 

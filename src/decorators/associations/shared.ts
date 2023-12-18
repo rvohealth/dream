@@ -158,36 +158,10 @@ export function applyGetterAndSetter(
     configurable: true,
 
     get: function (this: any) {
-      if ((partialAssociation as any).through) {
-        const association = partialAssociation as
-          | HasManyStatement<any, any, any>
-          | HasOneStatement<any, any, any>
-
-        if (association.type === 'HasMany') {
-          const throughAssociation = (this as any)[association.through!]
-
-          if (Array.isArray(throughAssociation)) {
-            return Object.freeze(
-              compact(
-                (throughAssociation as any[]).flatMap(record =>
-                  hydratedSourceValue(record, association.source)
-                )
-              )
-            )
-          } else if (throughAssociation) {
-            return hydratedSourceValue(throughAssociation, association.source)
-          } else {
-            return Object.freeze([])
-          }
-        } else {
-          return hydratedSourceValue(this[association.through!], association.source) || null
-        }
-      } else {
-        const value = this[`__${partialAssociation.as}__`]
-        if (value === undefined)
-          throw new NonLoadedAssociation({ dreamClass, associationName: partialAssociation.as })
-        else return value
-      }
+      const value = this[`__${partialAssociation.as}__`]
+      if (value === undefined)
+        throw new NonLoadedAssociation({ dreamClass, associationName: partialAssociation.as })
+      else return value
     },
 
     set: function (this: any, associatedModel: any) {

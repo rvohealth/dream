@@ -1,9 +1,7 @@
 import ops from '../../../src/ops'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
-import Composition from '../../../test-app/app/models/Composition'
 import Node from '../../../test-app/app/models/Graph/Node'
 import Pet from '../../../test-app/app/models/Pet'
-import User from '../../../test-app/app/models/User'
 
 describe('Dream.distinct', () => {
   it('returns unique results distinct on the primary key', async () => {
@@ -96,6 +94,22 @@ describe('Dream.distinct', () => {
           expect(reloaded!.uniqueBalloons).toMatchDreamModels([balloon])
         })
       })
+
+      context('HasMany through with a distinct clause applied on the outer association', () => {
+        it('applies distinct clause to association upon loading', async () => {
+          const pet = await Pet.create()
+          const balloon = await Latex.create()
+          const collar1 = await pet.createAssociation('collars', {
+            balloon,
+          })
+          const collar2 = await pet.createAssociation('collars', {
+            balloon,
+          })
+
+          const reloaded = await Pet.preload('distinctBalloons').first()
+          expect(reloaded?.distinctBalloons).toMatchDreamModels([balloon])
+        })
+      })
     })
 
     context('joins', () => {
@@ -110,7 +124,8 @@ describe('Dream.distinct', () => {
           })
 
           const ids = await Pet.joinsPluck('uniqueCollars', ['uniqueCollars.id'])
-          expect(ids).toEqual([collar1.id])
+          expect(ids.length).toEqual(1)
+          expect([collar1.id, collar2.id].includes(ids[0])).toBe(true)
         })
       })
 

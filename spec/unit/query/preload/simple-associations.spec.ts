@@ -1,7 +1,6 @@
 import User from '../../../../test-app/app/models/User'
 import Composition from '../../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
-import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
 import IncompatibleForeignKeyTypeExample from '../../../../test-app/app/models/IncompatibleForeignKeyTypeExample'
 import ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase from '../../../../src/exceptions/associations/foreign-key-on-association-does-not-match-primary-key-on-base'
 import { DateTime } from 'luxon'
@@ -10,8 +9,6 @@ import Query from '../../../../src/dream/query'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import BalloonLine from '../../../../test-app/app/models/BalloonLine'
 import Balloon from '../../../../test-app/app/models/Balloon'
-import MissingThroughAssociation from '../../../../src/exceptions/associations/missing-through-association'
-import MissingThroughAssociationSource from '../../../../src/exceptions/associations/missing-through-association-source'
 
 describe('Query#preload with simple associations', () => {
   context('HasOne', () => {

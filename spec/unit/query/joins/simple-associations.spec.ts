@@ -340,14 +340,14 @@ describe('Query#joins with simple associations', () => {
       expect(reloadedUser).toMatchDreamModel(user)
     })
 
-    it('takes the nested scope into account', async () => {
-      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      await Pet.create({ user, name: 'Snoopy', deletedAt: DateTime.now() })
-      const reloadedUser = await User.where({ email: user.email }).joins('pets', { name: 'Snoopy' }).first()
-      const notFoundUser = await User.where({ email: user.email }).joins('pets', { name: 'Znoopy' }).first()
+    it('applies the default scope on the associated class', async () => {
+      const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      await Pet.create({ user: user1, name: 'Snoopy', deletedAt: DateTime.now() })
+      await Pet.create({ user: user2, name: 'Woodstock' })
 
-      expect(reloadedUser).toMatchDreamModel(user)
-      expect(notFoundUser).toBeNull()
+      const users = await User.joins('pets').all()
+      expect(users).toMatchDreamModels([user2])
     })
   })
 

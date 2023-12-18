@@ -1,4 +1,3 @@
-import crypto from 'crypto'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { AssociationTableNames } from '../db/reflections'
 import { LimitStatement, TableColumnName, WhereStatement } from '../decorators/associations/shared'
@@ -13,9 +12,6 @@ import {
   NextJoinsWherePluckArgumentType,
   FinalJoinsWherePluckArgumentType,
   TableOrAssociationName,
-  TRIGRAM_OPERATORS,
-  SqlCommandType,
-  SimilarityStatement,
 } from './types'
 import {
   AliasedExpression,
@@ -33,19 +29,16 @@ import Dream from '../dream'
 import { HasManyStatement } from '../decorators/associations/has-many'
 import { HasOneStatement } from '../decorators/associations/has-one'
 import { BelongsToStatement } from '../decorators/associations/belongs-to'
-import _db from '../db'
 import CannotJoinPolymorphicBelongsToError from '../exceptions/associations/cannot-join-polymorphic-belongs-to-error'
 import OpsStatement from '../ops/ops-statement'
 import { Range } from '../helpers/range'
 import { DateTime } from 'luxon'
 import DreamTransaction from './transaction'
 import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance'
-import ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase from '../exceptions/associations/foreign-key-on-association-does-not-match-primary-key-on-base'
 import CurriedOpsStatement from '../ops/curried-ops-statement'
 import CannotAssociateThroughPolymorphic from '../exceptions/associations/cannot-associate-through-polymorphic'
 import MissingThroughAssociation from '../exceptions/associations/missing-through-association'
 import MissingThroughAssociationSource from '../exceptions/associations/missing-through-association-source'
-import compact from '../helpers/compact'
 import JoinAttemptedOnMissingAssociation from '../exceptions/associations/join-attempted-with-missing-association'
 import { singular } from 'pluralize'
 import isEmpty from 'lodash.isempty'
@@ -53,15 +46,10 @@ import executeDatabaseQuery from './internal/executeDatabaseQuery'
 import { DbConnectionType } from '../db/types'
 import NoUpdateAllOnAssociationQuery from '../exceptions/no-updateall-on-association-query'
 import { isObject, isString } from '../helpers/typechecks'
-import similaritySelectSql from './internal/similarity/similaritySelectSql'
-import similarityWhereSql from './internal/similarity/similarityWhereSql'
-import validateTable from '../db/validators/validateTable'
-import validateColumn from '../db/validators/validateColumn'
 import CannotNegateSimilarityClause from '../exceptions/cannot-negate-similarity-clause'
 import SimilarityBuilder from './internal/similarity/SimilarityBuilder'
 import ConnectedToDB from '../db/ConnectedToDB'
 import SimilarityOperatorNotSupportedOnDestroyQueries from '../exceptions/similarity-operator-not-supported-on-destroy-queries'
-import debug from '../../shared/helpers/debug'
 import cloneDeep from 'lodash.clonedeep'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
@@ -665,7 +653,7 @@ export default class Query<
       | HasManyStatement<DB, SyncedAssociations, any>
       | HasOneStatement<DB, SyncedAssociations, any>
       | BelongsToStatement<DB, SyncedAssociations, any>,
-    loadedAssociations: Dream[]
+    preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[]
   ) {
     switch (association.type) {
       case 'HasMany':
@@ -686,86 +674,28 @@ export default class Query<
     // loadedAssociations is an array of Posts and Compositions
     // if rating.rateable_id === loadedAssociation.primaryKeyvalue
     //  rating.rateable = loadedAssociation
-    for (const loadedAssociation of loadedAssociations) {
-      if (association.type === 'BelongsTo') {
-        dreams
-          .filter((dream: any) => {
-            if (association.polymorphic) {
-              return (
-                dream[association.foreignKeyTypeField()] === loadedAssociation.stiBaseClassOrOwnClass.name &&
-                dream[association.foreignKey()] === loadedAssociation.primaryKeyValue
-              )
-            } else {
-              return dream[association.foreignKey()] === loadedAssociation.primaryKeyValue
-            }
-          })
-          .forEach((dream: any) => {
-            if (dream[association.as]) return // only overwrite if this hasn't yet been preloaded
-            dream[association.as] = loadedAssociation
-          })
-      } else {
-        dreams.forEach(dream => {
-          if (
-            (loadedAssociation as any)[association.foreignKey()].constructor !==
-            dream.primaryKeyValue!.constructor
-          )
-            throw new ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase({
-              baseDreamClass: dream.constructor as typeof Dream,
-              associationDreamClass: loadedAssociation.constructor as typeof Dream,
-              foreignKeyColumnName: association.foreignKey() as string,
-            })
-        })
 
-        dreams
-          .filter(dream => (loadedAssociation as any)[association.foreignKey()] === dream.primaryKeyValue)
-          .forEach((dream: any) => {
-            if (association.type === 'HasMany') {
-              if (Object.isFrozen(dream[association.as])) return // only overwrite if this hasn't yet been preloaded
-              dream[association.as].push(loadedAssociation)
-            } else {
-              if (dream[association.as]) return // only overwrite if this hasn't yet been preloaded
-              dream[association.as] = loadedAssociation
-            }
-          })
-      }
-    }
+    preloadedDreamsAndWhatTheyPointTo.forEach(preloadedDreamAndWhatItPointsTo => {
+      dreams
+        .filter(
+          dream =>
+            dream.primaryKeyValue === preloadedDreamAndWhatItPointsTo.pointsToPrimaryKey &&
+            (!preloadedDreamAndWhatItPointsTo.pointsToType ||
+              (dream as any).type === preloadedDreamAndWhatItPointsTo.pointsToType)
+        )
+        .forEach((dream: any) => {
+          if (association.type === 'HasMany') {
+            if (Object.isFrozen(dream[association.as])) return // only overwrite if this hasn't yet been preloaded
+            dream[association.as].push(preloadedDreamAndWhatItPointsTo.dream)
+          } else {
+            if (dream[association.as]) return // only overwrite if this hasn't yet been preloaded
+            dream[association.as] = preloadedDreamAndWhatItPointsTo.dream
+          }
+        })
+    })
 
     if (association.type === 'HasMany') {
-      dreams.forEach((dream: any) => {
-        if (dream[association.as]) Object.freeze(dream[association.as])
-      })
-    }
-  }
-
-  public async preloadBridgeThroughAssociations(
-    dreamClass: typeof Dream,
-    dreams: Dream[],
-    association:
-      | HasOneStatement<DB, SyncedAssociations, any>
-      | HasManyStatement<DB, SyncedAssociations, any>
-      | BelongsToStatement<DB, SyncedAssociations, any>
-  ): Promise<{
-    dreams: Dream[]
-    association:
-      | HasOneStatement<DB, SyncedAssociations, any>
-      | HasManyStatement<DB, SyncedAssociations, any>
-      | BelongsToStatement<DB, SyncedAssociations, any>
-  }> {
-    if (association.type === 'BelongsTo' || !association.through) {
-      return { dreams: compact(dreams), association }
-    } else {
-      // Post has many Commenters through Comments
-      // hydrate Post Comments
-      await this.applyOneInclude(association.through, dreams)
-
-      // return:
-      //  Comments,
-      //  the Comments -> CommentAuthors hasMany association
-      // So that Comments may be properly hydrated with many CommentAuthors
-      const newDreams = (dreams as any[]).flatMap(dream => dream[association.through!])
-      const newAssociation = this.followThroughAssociation(dreamClass, association)
-
-      return await this.preloadBridgeThroughAssociations(dreamClass, newDreams, newAssociation)
+      dreams.forEach((dream: any) => Object.freeze(dream[association.as]))
     }
   }
 
@@ -795,140 +725,203 @@ export default class Query<
         association,
       })
 
-    return newAssociation
+    return { throughAssociation, throughClass, newAssociation }
   }
 
-  public async applyOneInclude(currentAssociationTableOrAlias: string, dreams: Dream | Dream[]) {
-    if (!Array.isArray(dreams)) dreams = [dreams as Dream]
-
-    const dream = dreams.find(dream => dream.associationMap()[currentAssociationTableOrAlias])!
-    if (!dream) return
-
-    let association = dream.associationMap()[currentAssociationTableOrAlias]
+  private async preloadPolymorphicBelongsTo(
+    association: BelongsToStatement<any, any, string>,
+    dreams: Dream[]
+  ) {
+    if (!association.polymorphic)
+      throw new Error(
+        `Association ${association.as} points to an array of models but is not designated polymorphic`
+      )
+    if (association.type !== 'BelongsTo')
+      throw new Error(
+        `Polymorphic association ${association.as} points to an array of models but is ${association.type}. Only BelongsTo associations may point to an array of models.`
+      )
+    // Polymorphic BelongsTo. Preload by loading each target class separately.
     let associationQuery
 
-    const originalAssociation = association
-    const results = await this.preloadBridgeThroughAssociations(
-      dream.constructor as typeof Dream,
-      dreams,
-      association
-    )
-    dreams = results.dreams
-    if (dreams.length === 0) return
-    association = results.association
+    for (const associatedModel of association.modelCB() as (typeof Dream)[]) {
+      const relevantAssociatedModels = dreams.filter((dream: any) => {
+        return (
+          (dream as any)[association.foreignKeyTypeField()] === associatedModel.stiBaseClassOrOwnClass.name
+        )
+      })
 
-    if (association.type === 'BelongsTo') {
-      if (association.polymorphic) {
-        // Rating polymorphically BelongsTo Composition and Post
-        // for each of Composition and Post
-        for (const associatedModel of association.modelCB() as (typeof Dream)[]) {
-          const relevantAssociatedModels = dreams.filter((dream: any) => {
-            return (
-              (dream as any)[association.foreignKeyTypeField()] ===
-              associatedModel.stiBaseClassOrOwnClass.name
-            )
-          })
-
-          if (relevantAssociatedModels.length) {
-            associationQuery = this.dreamTransaction
-              ? associatedModel.txn(this.dreamTransaction)
-              : associatedModel
-
-            // @ts-ignore
-            associationQuery = associationQuery.where({
-              [associatedModel.primaryKey]: relevantAssociatedModels.map(
-                (dream: any) => (dream as any)[association.foreignKey()]
-              ),
-            })
-
-            this.hydrateAssociation(dreams, association, await associationQuery.all())
-          }
-        }
-      } else {
-        const associatedModel = association.modelCB() as typeof Dream
+      if (relevantAssociatedModels.length) {
         associationQuery = this.dreamTransaction
           ? associatedModel.txn(this.dreamTransaction)
           : associatedModel
 
         // @ts-ignore
         associationQuery = associationQuery.where({
-          [associatedModel.primaryKey]: dreams.map(dream => (dream as any)[association.foreignKey()]),
+          [associatedModel.primaryKey]: relevantAssociatedModels.map(
+            (dream: any) => (dream as any)[association.foreignKey()]
+          ),
         })
 
-        associationQuery = this.bridgeOriginalPreloadAssociation(originalAssociation, associationQuery)
-
-        this.hydrateAssociation(dreams, association, await associationQuery.all())
-      }
-    } else {
-      const associatedModel = association.modelCB() as typeof Dream
-      associationQuery = this.dreamTransaction ? associatedModel.txn(this.dreamTransaction) : associatedModel
-      // @ts-ignore
-      associationQuery = associationQuery.where({
-        [association.foreignKey()]: dreams.map(dream => dream.primaryKeyValue),
-      })
-
-      if (association.polymorphic) {
-        associationQuery = associationQuery.where({
-          [association.foreignKeyTypeField()]: dream.stiBaseClassOrOwnClass.name,
+        dreams.forEach((dream: any) => {
+          if (dream.loaded(association.as)) return // only overwrite if this hasn't yet been preloaded
+          dream[`__${association.as}__`] = null
         })
-      }
 
-      if (association.where) {
-        debug(`
-applying where clause for association:
-${JSON.stringify(association, null, 2)}
-        `)
-      }
-      if (association.where) associationQuery = associationQuery.where(association.where)
+        const loadedAssociations = await associationQuery.all()
 
-      if (association.whereNot) {
-        debug(`
-applying whereNot clause for association:
-${JSON.stringify(association, null, 2)}
-        `)
+        // dreams is a Rating
+        // Rating belongs to: rateables (Posts / Compositions)
+        // loadedAssociations is an array of Posts and Compositions
+        // if rating.rateable_id === loadedAssociation.primaryKeyvalue
+        //  rating.rateable = loadedAssociation
+        for (const loadedAssociation of loadedAssociations) {
+          dreams
+            .filter((dream: any) => {
+              if (association.polymorphic) {
+                return (
+                  dream[association.foreignKeyTypeField()] ===
+                    loadedAssociation.stiBaseClassOrOwnClass.name &&
+                  dream[association.foreignKey()] === loadedAssociation.primaryKeyValue
+                )
+              } else {
+                return dream[association.foreignKey()] === loadedAssociation.primaryKeyValue
+              }
+            })
+            .forEach((dream: any) => {
+              if (dream[association.as]) return // only overwrite if this hasn't yet been preloaded
+              dream[association.as] = loadedAssociation
+            })
+        }
       }
-      if (association.whereNot) associationQuery = associationQuery.whereNot(association.whereNot)
-
-      if ((association as any).distinct) {
-        debug(`
-applying distinct clause for association:
-${JSON.stringify(association, null, 2)}
-        `)
-      }
-      if ((association as any).distinct) {
-        associationQuery = associationQuery.distinct((association as any).distinct)
-      }
-
-      associationQuery = this.bridgeOriginalPreloadAssociation(originalAssociation, associationQuery)
-
-      this.hydrateAssociation(dreams, association, await associationQuery.all())
     }
-
-    return compact(dreams.flatMap(dream => (dream as any)[association.as]))
   }
 
-  private bridgeOriginalPreloadAssociation(
-    originalAssociation:
-      | HasOneStatement<DB, SyncedAssociations, any>
-      | HasManyStatement<DB, SyncedAssociations, any>
-      | BelongsToStatement<DB, SyncedAssociations, any>,
-    associationQuery: Query<any>
-  ) {
-    if ((originalAssociation as any)?.through) {
-      const assoc = originalAssociation as
-        | HasManyStatement<any, any, string>
-        | HasOneStatement<any, any, string>
+  public async applyOnePreload(associationName: string, dreams: Dream | Dream[]) {
+    if (!Array.isArray(dreams)) dreams = [dreams as Dream]
 
-      if (assoc.where) {
-        associationQuery = associationQuery.where(assoc.where)
+    const dream = dreams.find(dream => dream.associationMap()[associationName])!
+    if (!dream) return
+
+    let association = dream.associationMap()[associationName]
+    const dreamClass = dream.constructor as typeof Dream
+    const dreamClassToHydrate = association.modelCB() as typeof Dream
+
+    if (Array.isArray(dreamClassToHydrate))
+      return this.preloadPolymorphicBelongsTo(association as BelongsToStatement<any, any, string>, dreams)
+
+    const dreamClassToHydrateColumns = dreamClassToHydrate.columns()
+
+    const columnsToPluck = [
+      `${dreamClass.prototype.table}.${dreamClass.primaryKey} as _MatchId_`,
+      ...(dreamClassToHydrateColumns.map(column => `${associationName}.${column.toString()}`) as any[]),
+    ]
+
+    if (association.polymorphic) columnsToPluck.unshift(`${dreamClass.prototype.table}.type as _MatchType_`)
+
+    const associationQuery = this.dreamTransaction ? dreamClass.txn(this.dreamTransaction) : dreamClass
+
+    const hydrationData: any[][] = await associationQuery
+      // @ts-ignore
+      .where({ [dreamClass.primaryKey]: dreams.map(obj => obj.primaryKeyValue) })
+      .joinsPluck(associationName, columnsToPluck)
+
+    const preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[] = hydrationData.map(
+      pluckedData => {
+        const attributes = {} as any
+        const offset = association.polymorphic ? 2 : 1
+        dreamClassToHydrateColumns.forEach(
+          (columnName, index) => (attributes[columnName] = pluckedData[index + offset])
+        )
+        return {
+          dream: sqlResultToDreamInstance(dreamClassToHydrate, attributes),
+          pointsToPrimaryKey: pluckedData[0],
+          pointsToType: association.polymorphic ? pluckedData[1] : undefined,
+        }
       }
+    )
 
-      if (assoc.whereNot) {
-        associationQuery = associationQuery.whereNot(assoc.whereNot)
-      }
-    }
+    this.hydrateAssociation(dreams, association, preloadedDreamsAndWhatTheyPointTo)
 
-    return associationQuery
+    return preloadedDreamsAndWhatTheyPointTo.map(obj => obj.dream)
+
+    //     let associationQuery
+
+    //     const originalAssociation = association
+    //     const results = await this.preloadBridgeThroughAssociations(
+    //       dream.constructor as typeof Dream,
+    //       dreams,
+    //       association
+    //     )
+    //     dreams = results.dreams
+    //     if (dreams.length === 0) return
+    //     association = results.association
+
+    //     if (association.type === 'BelongsTo') {
+    //       if (association.polymorphic) {
+    //         // Rating polymorphically BelongsTo Composition and Post
+    //         // for each of Composition and Post
+
+    //       } else {
+    //         const associatedModel = association.modelCB() as typeof Dream
+    //         associationQuery = this.dreamTransaction
+    //           ? associatedModel.txn(this.dreamTransaction)
+    //           : associatedModel
+
+    //         // @ts-ignore
+    //         associationQuery = associationQuery.where({
+    //           [associatedModel.primaryKey]: dreams.map(dream => (dream as any)[association.foreignKey()]),
+    //         })
+
+    //         associationQuery = this.bridgeOriginalPreloadAssociation(originalAssociation, associationQuery)
+
+    //         this.hydrateAssociation(dreams, association, await associationQuery.all())
+    //       }
+    //     } else {
+    //       const associatedModel = association.modelCB() as typeof Dream
+    //       associationQuery = this.dreamTransaction ? associatedModel.txn(this.dreamTransaction) : associatedModel
+    //       // @ts-ignore
+    //       associationQuery = associationQuery.where({
+    //         [association.foreignKey()]: dreams.map(dream => dream.primaryKeyValue),
+    //       })
+
+    //       if (association.polymorphic) {
+    //         associationQuery = associationQuery.where({
+    //           [association.foreignKeyTypeField()]: dream.stiBaseClassOrOwnClass.name,
+    //         })
+    //       }
+
+    //       if (association.where) {
+    //         debug(`
+    // applying where clause for association:
+    // ${JSON.stringify(association, null, 2)}
+    //         `)
+    //       }
+    //       if (association.where) associationQuery = associationQuery.where(association.where)
+
+    //       if (association.whereNot) {
+    //         debug(`
+    // applying whereNot clause for association:
+    // ${JSON.stringify(association, null, 2)}
+    //         `)
+    //       }
+    //       if (association.whereNot) associationQuery = associationQuery.whereNot(association.whereNot)
+
+    //       if ((association as any).distinct) {
+    //         debug(`
+    // applying distinct clause for association:
+    // ${JSON.stringify(association, null, 2)}
+    //         `)
+    //       }
+    //       if ((association as any).distinct) {
+    //         associationQuery = associationQuery.distinct((association as any).distinct)
+    //       }
+
+    //       associationQuery = this.bridgeOriginalPreloadAssociation(originalAssociation, associationQuery)
+
+    //       this.hydrateAssociation(dreams, association, await associationQuery.all())
+    //     }
+
+    //     return compact(dreams.flatMap(dream => (dream as any)[association.as]))
   }
 
   public async hydratePreload(dream: Dream) {
@@ -937,9 +930,9 @@ ${JSON.stringify(association, null, 2)}
 
   private async applyPreload(preloadStatement: RelaxedPreloadStatement, dream: Dream | Dream[]) {
     for (const key of Object.keys(preloadStatement as any)) {
-      const nestedDream = await this.applyOneInclude(key, dream)
-      if (nestedDream) {
-        await this.applyPreload((preloadStatement as any)[key], nestedDream)
+      const nestedDreams = await this.applyOnePreload(key, dream)
+      if (nestedDreams) {
+        await this.applyPreload((preloadStatement as any)[key], nestedDreams)
       }
     }
   }
@@ -994,6 +987,9 @@ ${JSON.stringify(association, null, 2)}
     return query
   }
 
+  // Through associations don't get written into the SQL; they
+  // locate the next association we need to build into the SQL
+  // AND the source to reference on the other side
   private joinsBridgeThroughAssociations<T extends Query<DreamClass>>(
     this: T,
     {
@@ -1027,12 +1023,12 @@ ${JSON.stringify(association, null, 2)}
         previousAssociationTableOrAlias,
       }
     } else {
-      // Post has many Commenters through Comments
-      //  Comments,
-      //  the Comments -> CommentAuthors hasMany association
-      // dreamClass is Post
-      // newDreamClass is Comment
-      const results = this.applyOneJoin({
+      // We have entered joinsBridgeThroughAssociations with the
+      // CompositionAssetAudits HasOne User association, which
+      // is through compositionAsset
+      // We now apply the compositionAsset association (a BelongsTo)
+      // to the query
+      const { query: queryWithThroughAssociationApplied } = this.applyOneJoin({
         query,
         dreamClass,
         previousAssociationTableOrAlias,
@@ -1041,15 +1037,37 @@ ${JSON.stringify(association, null, 2)}
         >,
         originalAssociation: association,
       })
-      const newAssociation = this.followThroughAssociation(dreamClass, association)
 
-      return {
-        query: results.query,
-        dreamClass: association.modelCB(),
-        association: newAssociation,
-        previousAssociationTableOrAlias: association.through as TableOrAssociationName<
-          InstanceType<DreamClass>['syncedAssociations']
-        >,
+      // The through association has both a `through` and a `source`. The `source`
+      // is the association on the model that has now been joined. In our example,
+      // the `source` is the `user` association on the CompositionAsset model
+      const { newAssociation, throughAssociation, throughClass } = this.followThroughAssociation(
+        dreamClass,
+        association
+      )
+
+      if ((newAssociation as any).through) {
+        // This new association is itself a through association, so we recursively
+        // call joinsBridgeThroughAssociations
+        return this.joinsBridgeThroughAssociations({
+          query: queryWithThroughAssociationApplied,
+          dreamClass: throughClass,
+          association: newAssociation,
+          previousAssociationTableOrAlias: throughAssociation.as as TableOrAssociationName<
+            InstanceType<DreamClass>['syncedAssociations']
+          >,
+        })
+      } else {
+        // This new association is not a through association, so
+        // this is the target association we were looking for
+        return {
+          query: queryWithThroughAssociationApplied,
+          dreamClass: association.modelCB(),
+          association: newAssociation,
+          previousAssociationTableOrAlias: association.through as TableOrAssociationName<
+            InstanceType<DreamClass>['syncedAssociations']
+          >,
+        }
       }
     }
   }
@@ -1180,17 +1198,18 @@ ${JSON.stringify(association, null, 2)}
       }
 
       if (!this.shouldBypassDefaultScopes) {
-        const tempQuery = new Query<DreamClass>(this.dreamClass)
-
+        let scopesQuery = new Query<DreamClass>(this.dreamClass)
         const associationClass = association.modelCB() as any
         const associationScopes = associationClass.scopes.default
+
         for (const scope of associationScopes) {
-          associationClass[scope.method](tempQuery)
+          const tempQuery = associationClass[scope.method](scopesQuery)
+          if (tempQuery && tempQuery.constructor === this.constructor) scopesQuery = tempQuery
         }
 
         query = this.applyWhereStatement(
           query,
-          this.aliasWhereStatement(tempQuery.whereStatement, currentAssociationTableOrAlias)
+          this.aliasWhereStatement(scopesQuery.whereStatement, currentAssociationTableOrAlias)
         )
       }
 
@@ -1673,4 +1692,10 @@ function getSourceAssociation(dream: Dream | typeof Dream | undefined, sourceNam
   return (
     (dream as Dream).associationMap()[sourceName] || (dream as Dream).associationMap()[singular(sourceName)]
   )
+}
+
+interface PreloadedDreamsAndWhatTheyPointTo {
+  dream: Dream
+  pointsToPrimaryKey: string
+  pointsToType: string | undefined
 }

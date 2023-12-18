@@ -153,7 +153,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
-  >(): (keyof Table)[] {
+  >(): (keyof Table & string)[] {
     return (this.prototype.dreamconf.dbColumns as any)[this.prototype.table]
   }
 
