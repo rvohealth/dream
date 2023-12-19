@@ -51,6 +51,7 @@ import SimilarityBuilder from './internal/similarity/SimilarityBuilder'
 import ConnectedToDB from '../db/ConnectedToDB'
 import SimilarityOperatorNotSupportedOnDestroyQueries from '../exceptions/similarity-operator-not-supported-on-destroy-queries'
 import cloneDeep from 'lodash.clonedeep'
+import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -218,14 +219,15 @@ export default class Query<
     } else if (isString(nextAssociationStatement)) {
       const nextStatement = nextAssociationStatement as string
 
-      if (!preloadStatements[nextStatement]) preloadStatements[nextStatement] = {}
+      if (!preloadStatements[nextStatement])
+        preloadStatements[protectAgainstPollutingAssignment(nextStatement)] = {}
       const nextPreload = preloadStatements[nextStatement]
       this.fleshOutPreloadStatements(nextPreload, associationStatements)
     } else if (Array.isArray(nextAssociationStatement)) {
       const nextStatement = nextAssociationStatement as string[]
 
       nextStatement.forEach(associationStatement => {
-        preloadStatements[associationStatement] = {}
+        preloadStatements[protectAgainstPollutingAssignment(associationStatement)] = {}
       })
     }
   }
@@ -274,8 +276,10 @@ export default class Query<
     } else if (isString(nextAssociationStatement)) {
       const nextStatement = nextAssociationStatement as string
 
-      if (!joinsStatements[nextStatement]) joinsStatements[nextStatement] = {}
-      if (!joinsWhereStatements[nextStatement]) joinsWhereStatements[nextStatement] = {}
+      if (!joinsStatements[nextStatement])
+        joinsStatements[protectAgainstPollutingAssignment(nextStatement)] = {}
+      if (!joinsWhereStatements[nextStatement])
+        joinsWhereStatements[protectAgainstPollutingAssignment(nextStatement)] = {}
       const nextJoinsStatements = joinsStatements[nextStatement]
       const nextJoinsWhereStatements = joinsWhereStatements[nextStatement] as RelaxedJoinsWhereStatement<
         DB,
@@ -292,7 +296,9 @@ export default class Query<
       const clonedNextAssociationStatement = cloneDeep(nextAssociationStatement)
 
       Object.keys(clonedNextAssociationStatement).forEach((key: string) => {
-        joinsWhereStatements[key] = (clonedNextAssociationStatement as any)[key]
+        joinsWhereStatements[protectAgainstPollutingAssignment(key)] = (
+          clonedNextAssociationStatement as any
+        )[key]
       })
 
       this.fleshOutJoinsStatements(
@@ -370,8 +376,10 @@ export default class Query<
     } else if (isString(nextAssociationStatement)) {
       const nextStatement = nextAssociationStatement as string
 
-      if (!joinsStatements[nextStatement]) joinsStatements[nextStatement] = {}
-      if (!joinsWhereStatements[nextStatement]) joinsWhereStatements[nextStatement] = {}
+      if (!joinsStatements[nextStatement])
+        joinsStatements[protectAgainstPollutingAssignment(nextStatement)] = {}
+      if (!joinsWhereStatements[nextStatement])
+        joinsWhereStatements[protectAgainstPollutingAssignment(nextStatement)] = {}
       const nextJoinsStatements = joinsStatements[nextStatement]
       const nextJoinsWhereStatements = joinsWhereStatements[nextStatement] as RelaxedJoinsWhereStatement<
         DB,
@@ -388,7 +396,9 @@ export default class Query<
       const clonedNextAssociationStatement = cloneDeep(nextAssociationStatement)
 
       Object.keys(clonedNextAssociationStatement).forEach((key: string) => {
-        joinsWhereStatements[key] = (clonedNextAssociationStatement as any)[key]
+        joinsWhereStatements[protectAgainstPollutingAssignment(key)] = (
+          clonedNextAssociationStatement as any
+        )[key]
       })
 
       return this.fleshOutJoinsPluckStatements(
@@ -436,7 +446,7 @@ export default class Query<
     Object.keys(attributes).forEach(
       key =>
         // @ts-ignore
-        (chainableWhereStatement[key] = attributes[key])
+        (chainableWhereStatement[protectAgainstPollutingAssignment(key)] = attributes[key])
     )
 
     return this.clone({
@@ -826,7 +836,8 @@ export default class Query<
       pluckedData => {
         const attributes = {} as any
         dreamClassToHydrateColumns.forEach(
-          (columnName, index) => (attributes[columnName] = pluckedData[index])
+          (columnName, index) =>
+            (attributes[protectAgainstPollutingAssignment(columnName)] = pluckedData[index])
         )
         return {
           dream: sqlResultToDreamInstance(dreamClassToHydrate, attributes),
