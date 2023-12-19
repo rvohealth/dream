@@ -154,6 +154,15 @@ export default class Dream {
     return (this.prototype.dreamconf.dbColumns as any)[this.prototype.table]
   }
 
+  public static getAssociation<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations']
+  >(this: T, associationName: SyncedAssociations[DB][number]) {
+    return this.associationMap()[associationName]
+  }
+
   public static associationMap<
     T extends typeof Dream,
     I extends InstanceType<T>,
@@ -505,6 +514,14 @@ export default class Dream {
     return new this(opts as any) as InstanceType<T>
   }
 
+  public getAssociation<
+    I extends Dream,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations']
+  >(this: I, associationName: SyncedAssociations[DB][number]) {
+    return (this.constructor as typeof Dream).getAssociation(associationName)
+  }
+
   public associationMap<T extends Dream>(this: T) {
     return (this.constructor as typeof Dream).associationMap()
   }
@@ -586,7 +603,7 @@ export default class Dream {
       | HasManyStatement<any, any, any>
     )[] = []
     for (const associationName in this.associationMap()) {
-      const associationMetadata = this.associationMap()[associationName]
+      const associationMetadata = this.getAssociation(associationName)
       const associationRecord: Dream | null = (this as any).loaded(associationName)
         ? ((this as any)[associationName] as Dream)
         : null
