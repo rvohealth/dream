@@ -3,8 +3,6 @@ import Composition from '../../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
 import { DateTime } from 'luxon'
-import Query from '../../../../src/dream/query'
-import MissingThroughAssociation from '../../../../src/exceptions/associations/missing-through-association'
 import MissingThroughAssociationSource from '../../../../src/exceptions/associations/missing-through-association-source'
 import BalloonSpotter from '../../../../test-app/app/models/BalloonSpotter'
 import BalloonSpotterBalloon from '../../../../test-app/app/models/BalloonSpotterBalloon'
@@ -22,7 +20,7 @@ describe('Query#preload through with simple associations', () => {
       const balloonSpotter = await BalloonSpotter.create()
       const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
 
-      const reloaded = await new Query(BalloonSpotter).preload('balloonSpotterBalloons', 'balloon').first()
+      const reloaded = await BalloonSpotter.query().preload('balloonSpotterBalloons', 'balloon').first()
       expect(reloaded!.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon])
       expect(reloaded!.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon)
     })
@@ -34,7 +32,7 @@ describe('Query#preload through with simple associations', () => {
       const balloonSpotter = await BalloonSpotter.create()
       const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
 
-      const reloaded = await new Query(BalloonSpotter).preload('balloons').first()
+      const reloaded = await BalloonSpotter.query().preload('balloons').first()
       expect(reloaded!.balloons).toMatchDreamModels([balloon])
     })
 
@@ -44,7 +42,7 @@ describe('Query#preload through with simple associations', () => {
         const balloonSpotter = await BalloonSpotter.create()
         const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
 
-        const reloaded = await new Query(BalloonSpotter).preload('users').first()
+        const reloaded = await BalloonSpotter.query().preload('users').first()
         expect(reloaded!.users).toEqual([])
       })
     })
@@ -57,7 +55,7 @@ describe('Query#preload through with simple associations', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon, user })
 
-      const reloaded = await new Query(BalloonSpotter)
+      const reloaded = await BalloonSpotter.query()
         .preload('balloonSpotterBalloons', 'user')
         .preload('balloons')
         .first()
@@ -77,7 +75,7 @@ describe('Query#preload through with simple associations', () => {
         primary: true,
       })
 
-      const reloadedUser = await new Query(User).preload('mainCompositionAsset').first()
+      const reloadedUser = await User.query().preload('mainCompositionAsset').first()
       expect(reloadedUser!.mainCompositionAsset).toMatchDreamModel(compositionAsset)
     })
 
@@ -85,7 +83,7 @@ describe('Query#preload through with simple associations', () => {
       it('sets the association property and the join association property to null', async () => {
         await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-        const reloadedUser = await new Query(User).preload('mainCompositionAsset').first()
+        const reloadedUser = await User.query().preload('mainCompositionAsset').first()
         expect(reloadedUser!.mainCompositionAsset).toBeNull()
       })
     })
@@ -103,7 +101,7 @@ describe('Query#preload through with simple associations', () => {
         compositionAsset,
       })
 
-      const reloadedComposition = await new Query(Composition)
+      const reloadedComposition = await Composition.query()
         .preload('mainCompositionAsset', 'compositionAssetAudits')
         .first()
       expect(reloadedComposition!.mainCompositionAsset).toMatchDreamModel(compositionAsset)
@@ -132,7 +130,7 @@ describe('Query#preload through with simple associations', () => {
           extraRateable: composition,
         })
 
-        const reloaded = await new Query(User)
+        const reloaded = await User.query()
           .preload('mainComposition', ['compositionAssets', 'heartRatings'])
           .first()
         expect(reloaded!.mainComposition).toMatchDreamModel(composition)
@@ -153,7 +151,7 @@ describe('Query#preload through with simple associations', () => {
           primary: true,
         })
 
-        const reloadedComposition = await new Query(Composition)
+        const reloadedComposition = await Composition.query()
           .preload('mainCompositionAsset', 'compositionAssetAudits')
           .first()
         expect(reloadedComposition!.mainCompositionAsset.compositionAssetAudits).toEqual([])
@@ -165,7 +163,7 @@ describe('Query#preload through with simple associations', () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })
 
-        const reloadedComposition = await new Query(Composition)
+        const reloadedComposition = await Composition.query()
           .preload('mainCompositionAsset', 'compositionAssetAudits')
           .first()
         expect(reloadedComposition!.mainCompositionAsset).toBeNull()
@@ -179,7 +177,7 @@ describe('Query#preload through with simple associations', () => {
         const mylar = await Mylar.create({ color: 'red', user })
         const sandbag = await Sandbag.create({ mylar })
 
-        const reloaded = await new Query(User).preload('balloons', 'sandbags').order('id', 'asc').first()
+        const reloaded = await User.query().preload('balloons', 'sandbags').order('id', 'asc').first()
         expect(reloaded!.balloons).toMatchDreamModels([latex, mylar])
         if (reloaded!.balloons[1].constructor === Mylar)
           expect((reloaded!.balloons[1] as Mylar).sandbags).toMatchDreamModels([sandbag])
@@ -191,7 +189,7 @@ describe('Query#preload through with simple associations', () => {
           const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
           const latex = await Latex.create({ color: 'blue', user })
 
-          const reloaded = await new Query(User).preload('balloons', 'sandbags').order('id', 'asc').first()
+          const reloaded = await User.query().preload('balloons', 'sandbags').order('id', 'asc').first()
           expect(reloaded!.balloons[0]).toMatchDreamModel(latex)
         })
       })
@@ -210,7 +208,7 @@ describe('Query#preload through with simple associations', () => {
         compositionAsset,
       })
 
-      const reloadedComposition = await new Query(Composition).preload('mainCompositionAssetAudits').first()
+      const reloadedComposition = await Composition.query().preload('mainCompositionAssetAudits').first()
       expect(reloadedComposition!.mainCompositionAssetAudits).toMatchDreamModels([compositionAssetAudit])
     })
 
@@ -223,7 +221,7 @@ describe('Query#preload through with simple associations', () => {
           primary: true,
         })
 
-        const reloadedComposition = await new Query(Composition).preload('mainCompositionAssetAudits').first()
+        const reloadedComposition = await Composition.query().preload('mainCompositionAssetAudits').first()
         expect(reloadedComposition!.mainCompositionAssetAudits).toEqual([])
       })
     })
@@ -239,7 +237,7 @@ describe('Query#preload through with simple associations', () => {
         primary: false,
       })
 
-      const reloadedUser = await new Query(User).preload('mainCompositionAsset').first()
+      const reloadedUser = await User.query().preload('mainCompositionAsset').first()
       expect(reloadedUser!.mainCompositionAsset).toBeNull()
     })
   })
@@ -249,7 +247,7 @@ describe('Query#preload through with simple associations', () => {
     const composition = await Composition.create({ user })
     await CompositionAsset.create({ composition })
 
-    const reloadedCompositionAsset = await new Query(CompositionAsset).preload('user').first()
+    const reloadedCompositionAsset = await CompositionAsset.query().preload('user').first()
     expect(reloadedCompositionAsset!.user).toMatchDreamModel(user)
   })
 
@@ -259,14 +257,14 @@ describe('Query#preload through with simple associations', () => {
       const composition = await Composition.create({ user, primary: true })
       const compositionAsset = await CompositionAsset.create({ composition })
 
-      const reloadedUser = await new Query(User).preload('compositionAssets').first()
+      const reloadedUser = await User.query().preload('compositionAssets').first()
       expect(reloadedUser!.compositionAssets).toMatchDreamModels([compositionAsset])
     })
 
     context('when there are no associated models', () => {
       it('sets the association to an empty array', async () => {
         await User.create({ email: 'fred@fred', password: 'howyadoin' })
-        const users = await new Query(User).preload('compositionAssets').all()
+        const users = await User.query().preload('compositionAssets').all()
         expect(users[0].compositionAssets).toEqual([])
       })
     })
@@ -281,7 +279,7 @@ describe('Query#preload through with simple associations', () => {
         compositionAssetId: compositionAsset.id,
       })
 
-      const reloadedUser = await new Query(User).preload('compositionAssetAudits').first()
+      const reloadedUser = await User.query().preload('compositionAssetAudits').first()
       expect(reloadedUser!.compositionAssetAudits).toMatchDreamModels([compositionAssetAudit])
     })
 
@@ -293,7 +291,7 @@ describe('Query#preload through with simple associations', () => {
         compositionAssetId: compositionAsset.id,
       })
 
-      const reloaded = await new Query(CompositionAssetAudit).preload('user').first()
+      const reloaded = await CompositionAssetAudit.query().preload('user').first()
       expect(reloaded!.user).toMatchDreamModel(user)
     })
   })
@@ -311,7 +309,7 @@ describe('Query#preload through with simple associations', () => {
         const compositionAsset1 = await CompositionAsset.create({ composition: recentComposition })
         const compositionAsset2 = await CompositionAsset.create({ composition: olderComposition })
 
-        const reloadedUser = await new Query(User).preload('recentCompositions', 'compositionAssets').first()
+        const reloadedUser = await User.query().preload('recentCompositions', 'compositionAssets').first()
         expect(reloadedUser!.recentCompositions[0].compositionAssets).toMatchDreamModels([compositionAsset1])
       })
     })
@@ -328,7 +326,7 @@ describe('Query#preload through with simple associations', () => {
         const compositionAsset1 = await CompositionAsset.create({ composition: recentComposition })
         const compositionAsset2 = await CompositionAsset.create({ composition: olderComposition })
 
-        const reloadedUser = await new Query(User).preload('recentCompositionAssets').first()
+        const reloadedUser = await User.query().preload('recentCompositionAssets').first()
         expect(reloadedUser).toMatchDreamModel(user)
         expect(reloadedUser!.recentCompositionAssets).toMatchDreamModels([compositionAsset1])
       })
@@ -351,7 +349,7 @@ describe('Query#preload through with simple associations', () => {
             primary: true,
           })
 
-          const reloadedUser = await new Query(User).preload('recentCompositionAssets').first()
+          const reloadedUser = await User.query().preload('recentCompositionAssets').first()
           expect(reloadedUser).toMatchDreamModel(user)
           expect(reloadedUser!.recentCompositionAssets).toMatchDreamModels([compositionAsset1])
         })
@@ -393,7 +391,7 @@ describe('Query#preload through with simple associations', () => {
     it('throws JoinAttemptedOnMissingAssociation', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-      const query = new Query(User).preload('nonExtantCompositionAssets1').first()
+      const query = User.query().preload('nonExtantCompositionAssets1').first()
 
       await expect(query).rejects.toThrow(JoinAttemptedOnMissingAssociation)
     })
@@ -403,7 +401,7 @@ describe('Query#preload through with simple associations', () => {
     it('throws MissingThroughAssociationSource', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-      const query = new Query(User).preload('nonExtantCompositionAssets2').first()
+      const query = User.query().preload('nonExtantCompositionAssets2').first()
 
       await expect(query).rejects.toThrow(MissingThroughAssociationSource)
     })

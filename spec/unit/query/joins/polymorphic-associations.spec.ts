@@ -3,7 +3,6 @@ import Composition from '../../../../test-app/app/models/Composition'
 import Rating from '../../../../test-app/app/models/Rating'
 import Post from '../../../../test-app/app/models/Post'
 import CannotJoinPolymorphicBelongsToError from '../../../../src/exceptions/associations/cannot-join-polymorphic-belongs-to-error'
-import Query from '../../../../src/dream/query'
 import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating'
 import { sql } from 'kysely'
 import db from '../../../../src/db'
@@ -33,7 +32,7 @@ describe('Query#joins with polymorphic associations', () => {
     const post = await Post.create({ user })
     await Rating.create({ user, rateable: post })
 
-    const reloaded = await new Query(Post).joins('ratings').all()
+    const reloaded = await Post.query().joins('ratings').all()
     expect(reloaded).toMatchDreamModels([post])
   })
 
@@ -47,7 +46,7 @@ describe('Query#joins with polymorphic associations', () => {
     const post = await Post.create({ user })
     await HeartRating.create({ user, extraRateable: post })
 
-    const reloaded = await new Query(Post).joins('heartRatings').all()
+    const reloaded = await Post.query().joins('heartRatings').all()
     expect(reloaded).toMatchDreamModels([post])
   })
 
@@ -61,7 +60,9 @@ describe('Query#joins with polymorphic associations', () => {
       const post2 = await Post.create({ user })
       await HeartRating.create({ user, extraRateable: post2, body: 'goodbye' })
 
-      const reloaded = await new Query(Post).joins('heartRatings', { body: ops.similarity('hello') }).all()
+      const reloaded = await Post.query()
+        .joins('heartRatings', { body: ops.similarity('hello') })
+        .all()
 
       expect(reloaded).toMatchDreamModels([post])
     })
@@ -109,10 +110,10 @@ describe('Query#joins with polymorphic associations', () => {
       const post = await Post.create({ user })
       const rating = await Rating.create({ user, rateable: post })
 
-      const reloaded = await new Query(Post).joins('ratings', { id: rating.id }).first()
+      const reloaded = await Post.query().joins('ratings', { id: rating.id }).first()
       expect(reloaded).toMatchDreamModel(post)
 
-      const noResults = await new Query(Post)
+      const noResults = await Post.query()
         .joins('ratings', { id: parseInt(rating.id!.toString()) + 1 })
         .first()
       expect(noResults).toBeNull()

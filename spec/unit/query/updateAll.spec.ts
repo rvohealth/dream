@@ -1,6 +1,4 @@
 import User from '../../../test-app/app/models/User'
-import Query from '../../../src/dream/query'
-import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import ReplicaSafe from '../../../src/decorators/replica-safe'
 import DreamDbConnection from '../../../src/db/dream-db-connection'
 import NoUpdateAllOnAssociationQuery from '../../../src/exceptions/no-updateall-on-association-query'
@@ -11,7 +9,7 @@ describe('Query#updateAll', () => {
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
-    const numRecords = await new Query(User).updateAll({
+    const numRecords = await User.query().updateAll({
       name: 'cool',
     })
     expect(numRecords).toEqual(2)
@@ -23,7 +21,7 @@ describe('Query#updateAll', () => {
     const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
-    const numRecords = await new Query(User).where({ email: 'how@yadoin' }).updateAll({
+    const numRecords = await User.query().where({ email: 'how@yadoin' }).updateAll({
       name: 'cool',
     })
     expect(numRecords).toEqual(1)
@@ -51,9 +49,11 @@ describe('Query#updateAll', () => {
       const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
       const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin', name: 'calvin' })
 
-      const numRecords = await new Query(User).where({ name: ops.similarity('fres') }).updateAll({
-        name: 'cool',
-      })
+      const numRecords = await User.query()
+        .where({ name: ops.similarity('fres') })
+        .updateAll({
+          name: 'cool',
+        })
       expect(numRecords).toEqual(1)
 
       await user1.reload()
@@ -67,7 +67,7 @@ describe('Query#updateAll', () => {
       const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
       const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin', name: 'calvin' })
 
-      const numRecords = await new Query(User)
+      const numRecords = await User.query()
         .where({ name: ops.similarity('fres'), email: ops.similarity('fred@fred') })
         .updateAll({
           name: 'cool',

@@ -1,7 +1,6 @@
 import User from '../../../../test-app/app/models/User'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
-import Query from '../../../../src/dream/query'
 
 describe('Query#preload with sti associations', () => {
   context('HasMany associations', () => {
@@ -10,7 +9,7 @@ describe('Query#preload with sti associations', () => {
       const mylar = await Mylar.create({ user, color: 'red' })
       const latex = await Latex.create({ user, color: 'blue' })
 
-      const reloadedUser = await new Query(User).preload('balloons').first()
+      const reloadedUser = await User.query().preload('balloons').first()
       expect(reloadedUser!.balloons).toMatchDreamModels([mylar, latex])
     })
   })

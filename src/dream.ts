@@ -7,7 +7,6 @@ import { ScopeStatement } from './decorators/scope'
 import { HookStatement, blankHooksFactory } from './decorators/hooks/shared'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
-import { marshalDBValue } from './helpers/marshalDBValue'
 import {
   AssociatedModelParam,
   TableColumnName,
@@ -15,7 +14,6 @@ import {
   blankAssociationsFactory,
 } from './decorators/associations/shared'
 import { AssociationTableNames } from './db/reflections'
-import CanOnlyPassBelongsToModelParam from './exceptions/associations/can-only-pass-belongs-to-model-param'
 import {
   DreamConstructorType,
   IdType,
@@ -39,7 +37,6 @@ import getModelKey from './helpers/getModelKey'
 import { VirtualAttributeStatement } from './decorators/virtual'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
 import isDecimal from './helpers/db/types/isDecimal'
-import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
 import DreamSerializer from './serializer'
 import MissingSerializer from './exceptions/missing-serializer'
 import MissingTable from './exceptions/missing-table'
@@ -195,8 +192,7 @@ export default class Dream {
   }
 
   public static unscoped<T extends typeof Dream>(this: T) {
-    const query: Query<T> = new Query<T>(this)
-    return query.unscoped()
+    return this.query().unscoped()
   }
 
   public static async all<
@@ -207,8 +203,7 @@ export default class Dream {
     Table extends DB[keyof DB] = DB[TableName],
     IdColumn = T['primaryKey'] & keyof Table
   >(this: T): Promise<InstanceType<T>[]> {
-    const query: Query<T> = new Query<T>(this)
-    return await query.all()
+    return await this.query().all()
   }
 
   public static connection<T extends typeof Dream>(this: T, connection: DbConnectionType): Query<T> {
@@ -217,8 +212,7 @@ export default class Dream {
   }
 
   public static async count<T extends typeof Dream>(this: T): Promise<number> {
-    const query: Query<T> = new Query<T>(this)
-    return await query.count()
+    return await this.query().count()
   }
 
   public static async max<
@@ -228,8 +222,7 @@ export default class Dream {
     DB extends I['DB'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>
   >(this: DreamClass, field: SimpleFieldType): Promise<number> {
-    const query: Query<DreamClass> = new Query<DreamClass>(this)
-    return await query.max(field as any)
+    return await this.query().max(field as any)
   }
 
   public static async min<
@@ -239,8 +232,7 @@ export default class Dream {
     DB extends I['DB'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>
   >(this: DreamClass, field: SimpleFieldType): Promise<number> {
-    const query: Query<DreamClass> = new Query<DreamClass>(this)
-    return await query.min(field as any)
+    return await this.query().min(field as any)
   }
 
   public static async create<T extends typeof Dream>(this: T, opts?: UpdateablePropertiesForClass<T>) {
@@ -276,8 +268,7 @@ export default class Dream {
     SyncedAssociations extends I['syncedAssociations'],
     TableName extends InstanceType<T>['table']
   >(this: T, columnName?: TableColumnName<DB, SyncedAssociations, TableName> | null | boolean) {
-    const query: Query<T> = new Query<T>(this)
-    return query.distinct(columnName as any)
+    return this.query().distinct(columnName as any)
   }
 
   public static async find<
@@ -287,9 +278,12 @@ export default class Dream {
   >(
     this: T,
     id: InterpretedDB[TableName][T['primaryKey'] & keyof InterpretedDB[TableName]]
-  ): Promise<(InstanceType<T> & Dream) | null> {
-    const query: Query<T> = new Query<T>(this)
-    return await query.find(id)
+  ): Promise<InstanceType<T> | null> {
+    return await this.query().find(id)
+  }
+
+  public static query<T extends typeof Dream>(this: T): Query<T> {
+    return new Query<T>(this)
   }
 
   public static async findBy<T extends typeof Dream>(
@@ -299,9 +293,8 @@ export default class Dream {
       InstanceType<T>['syncedAssociations'],
       InstanceType<T>['table']
     >
-  ): Promise<(InstanceType<T> & Dream) | null> {
-    const query: Query<T> = new Query<T>(this)
-    return await query.findBy(attributes)
+  ): Promise<InstanceType<T> | null> {
+    return await this.query().findBy(attributes)
   }
 
   public static async findOrCreateBy<T extends typeof Dream>(
@@ -319,13 +312,11 @@ export default class Dream {
   }
 
   public static async first<T extends typeof Dream>(this: T): Promise<InstanceType<T> | null> {
-    const query: Query<T> = new Query<T>(this)
-    return (await query.first()) as (InstanceType<T> & Dream) | null
+    return (await this.query().first()) as InstanceType<T> | null
   }
 
   public static async exists<T extends typeof Dream>(this: T): Promise<boolean> {
-    const query: Query<T> = new Query<T>(this)
-    return await query.exists()
+    return await this.query().exists()
   }
 
   public static preload<
@@ -348,9 +339,7 @@ export default class Dream {
     FTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ETableName, F>,
     G extends NextPreloadArgumentType<SyncedAssociations, FTableName>
   >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
-    const query: Query<T> = new Query<T>(this)
-
-    return query.preload(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
+    return this.query().preload(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
 
   public static joins<
@@ -376,9 +365,7 @@ export default class Dream {
     FTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>,
     G extends NextJoinsWhereArgumentType<DB, SyncedAssociations, FTableName>
   >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
-    const query: Query<T> = new Query<T>(this)
-
-    return query.joins(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
+    return this.query().joins(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
 
   public static async joinsPluck<
@@ -405,20 +392,15 @@ export default class Dream {
     //
     G extends FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
   >(this: T, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
-    const query: Query<T> = new Query<T>(this)
-
-    return await query.joinsPluck(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
+    return await this.query().joinsPluck(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
 
   public static async last<T extends typeof Dream>(this: T): Promise<InstanceType<T> | null> {
-    const query: Query<T> = new Query<T>(this)
-    return (await query.last()) as InstanceType<T> | null
+    return (await this.query().last()) as InstanceType<T> | null
   }
 
   public static limit<T extends typeof Dream>(this: T, count: number) {
-    let query: Query<T> = new Query<T>(this)
-    query = query.limit(count)
-    return query
+    return this.query().limit(count)
   }
 
   public static nestedSelect<
@@ -427,8 +409,7 @@ export default class Dream {
     DB extends I['DB'],
     SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<T>['table']>>
   >(this: T, selection: SelectArg<DB, ExtractTableAlias<DB, InstanceType<T>['table']>, SE>) {
-    let query: Query<T> = new Query<T>(this)
-    return query.nestedSelect(selection as any)
+    return this.query().nestedSelect(selection as any)
   }
 
   public static order<
@@ -440,9 +421,7 @@ export default class Dream {
     TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = I['table'],
     Table extends DB[keyof DB] = DB[TableName]
   >(this: T, column: ColumnName, direction: 'asc' | 'desc' = 'asc') {
-    let query: Query<T> = new Query<T>(this)
-    query = query.order(column as any, direction)
-    return query
+    return this.query().order(column as any, direction)
   }
 
   public static async pluck<
@@ -451,8 +430,7 @@ export default class Dream {
     DB extends I['DB'],
     SE extends SelectExpression<DB, ExtractTableAlias<DB, I['table']>>
   >(this: T, ...fields: SelectArg<DB, ExtractTableAlias<DB, I['table']>, SE>[]) {
-    let query: Query<T> = new Query<T>(this)
-    return await query.pluck(...(fields as any[]))
+    return await this.query().pluck(...(fields as any[]))
   }
 
   public static async resort<
@@ -469,14 +447,11 @@ export default class Dream {
   }
 
   public static scope<T extends typeof Dream>(this: T, scopeName: string) {
-    let query: Query<T> = new Query<T>(this)
-    query = (this as any)[scopeName](query) as Query<T>
-    return query
+    return (this as any)[scopeName](this.query()) as Query<T>
   }
 
   public static sql<T extends typeof Dream>(this: T): CompiledQuery<{}> {
-    const query: Query<T> = new Query<T>(this)
-    return query.sql()
+    return this.query().sql()
   }
 
   public static txn<T extends typeof Dream>(
@@ -513,7 +488,7 @@ export default class Dream {
     SyncedAssociations extends I['syncedAssociations'],
     TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<T>['table']
   >(this: T, attributes: WhereStatement<DB, SyncedAssociations, TableName>): Query<T> {
-    return new Query<T>(this).where(attributes)
+    return this.query().where(attributes)
   }
 
   public static whereNot<
@@ -523,7 +498,7 @@ export default class Dream {
     SyncedAssociations extends I['syncedAssociations'],
     TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<T>['table']
   >(this: T, attributes: WhereStatement<DB, SyncedAssociations, TableName>): Query<T> {
-    return new Query<T>(this).whereNot(attributes)
+    return this.query().whereNot(attributes)
   }
 
   public static new<T extends typeof Dream>(this: T, opts?: UpdateablePropertiesForClass<T>) {

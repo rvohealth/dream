@@ -1,5 +1,4 @@
 import User from '../../../test-app/app/models/User'
-import Query from '../../../src/dream/query'
 import ops from '../../../src/ops'
 
 describe('Query#first', () => {
@@ -27,8 +26,16 @@ describe('Query#first', () => {
         const user = await User.create({ name: 'fred o', email: 'fred@fred', password: 'howyadoin' })
         const user2 = await User.create({ name: 'fred o', email: 'frewd@fred', password: 'howyadoin' })
 
-        expect(await new Query(User).where({ name: ops.similarity('fredo') }).first()).toMatchDreamModel(user)
-        expect(await new Query(User).where({ name: ops.similarity('nonmatch') }).first()).toBeNull()
+        expect(
+          await User.query()
+            .where({ name: ops.similarity('fredo') })
+            .first()
+        ).toMatchDreamModel(user)
+        expect(
+          await User.query()
+            .where({ name: ops.similarity('nonmatch') })
+            .first()
+        ).toBeNull()
       })
     })
   })

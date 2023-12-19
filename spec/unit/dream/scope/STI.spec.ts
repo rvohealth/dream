@@ -1,11 +1,9 @@
-import { Query } from '../../../../src'
 import { findExtendingDreamClass } from '../../../../src/dream/internal/sqlResultToDreamInstance'
 import Balloon from '../../../../test-app/app/models/Balloon'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import User from '../../../../test-app/app/models/User'
-import { DateTime } from 'luxon'
 
 describe('Dream STI', () => {
   let user: User | null = null
@@ -131,7 +129,7 @@ describe('Dream STI', () => {
         color: 'blue',
       })
 
-      const sql = new Query(Animal).sql().sql
+      const sql = Animal.query().sql().sql
       expect([...sql.matchAll(/"beautiful_balloons"\."type" = \$/g)].length).toEqual(1)
     })
 

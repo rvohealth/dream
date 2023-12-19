@@ -8,7 +8,7 @@ describe('Query#destroyBy', () => {
     const user2 = await User.create({ email: 'how@yadoin', name: 'howyadoin', password: 'hamz' })
     const user3 = await User.create({ email: 'fish@yadoin', name: 'cheese', password: 'hamz' })
 
-    await new Query(User).destroyBy({ name: 'howyadoin' })
+    await User.query().destroyBy({ name: 'howyadoin' })
 
     expect(await User.count()).toEqual(1)
     expect((await User.first())!.id).toEqual(user3.id)
@@ -19,7 +19,7 @@ describe('Query#destroyBy', () => {
       await User.create({ email: 'fred@frewd', name: 'howyadoin', password: 'hamz' })
 
       await expect(async () => {
-        await new Query(User).destroyBy({ name: ops.similarity('howyadoin') })
+        await User.query().destroyBy({ name: ops.similarity('howyadoin') })
       }).rejects.toThrowError()
 
       expect(await User.count()).toEqual(1)

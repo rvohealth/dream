@@ -1,6 +1,5 @@
 import Dream from '../../dream'
 import pascalize from '../../helpers/pascalize'
-import Query from '../../dream/query'
 import BeforeSave from '../hooks/before-save'
 import AfterCreateCommit from '../hooks/after-create-commit'
 import AfterUpdateCommit from '../hooks/after-update-commit'
@@ -9,7 +8,6 @@ import beforeSortableSave from './hooks/beforeSortableSave'
 import afterUpdateSortableCommit from './hooks/afterSortableUpdateCommit'
 import afterSortableCreateCommit from './hooks/afterSortableCreateCommit'
 import afterSortableDestroyCommit from './hooks/afterSortableDestroyCommit'
-import resortAllRecords from './helpers/resortAllRecords'
 import scopeArray from './helpers/scopeArray'
 
 export default function Sortable(opts: SortableOpts = {}): any {
@@ -23,7 +21,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
     })
 
     const positionField = key
-    const query = new Query(dreamClass)
+    const query = dreamClass.query()
 
     const beforeSaveMethodName = `_cacheValueFor${pascalize(key)}`
     const afterUpdateMethodName = `_updateValueFor${pascalize(key)}`

@@ -32,7 +32,7 @@ export default function associationQuery<
   // @ts-ignore
   // TODO: figure out why this type regression was caused. This was workign without
   // ts-ignore prior to refactoring to use ApplicationModel
-  return (txn ? associationClass.txn(txn).queryInstance() : new Query(associationClass))
+  return (txn ? associationClass.txn(txn).queryInstance() : associationClass.query())
     .setBaseSQLAlias(association.as as TableOrAssociationName<DreamInstance['syncedAssociations']>)
     .setBaseSelectQuery(baseSelectQuery as Query<any>) as Query<DreamConstructorType<AssociationType & Dream>>
 }

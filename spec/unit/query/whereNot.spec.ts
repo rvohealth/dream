@@ -1,4 +1,3 @@
-import Query from '../../../src/dream/query'
 import User from '../../../test-app/app/models/User'
 import ops from '../../../src/ops'
 import Rating from '../../../test-app/app/models/Rating'
@@ -11,7 +10,7 @@ describe('Query#whereNot', () => {
     const user2 = await User.create({ email: 'danny@nelso', password: 'howyadoin' })
     const user3 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
-    const records = await new Query(User).whereNot({ email: 'fred@frewd' }).all()
+    const records = await User.query().whereNot({ email: 'fred@frewd' }).all()
     expect(records).toMatchDreamModels([user2, user3])
   })
 
@@ -36,19 +35,25 @@ describe('Query#whereNot', () => {
       })
 
       it('uses an "in" operator for comparison', async () => {
-        const records = await new Query(User).whereNot({ id: ops.not.in([user1.id, user2.id]) }).pluck('id')
+        const records = await User.query()
+          .whereNot({ id: ops.not.in([user1.id, user2.id]) })
+          .pluck('id')
         expect(records).toEqual([user1.id, user2.id])
       })
 
       context('with a blank array', () => {
         it('does not find any results', async () => {
-          const records = await new Query(User).whereNot({ id: ops.not.in([]) }).pluck('id')
+          const records = await User.query()
+            .whereNot({ id: ops.not.in([]) })
+            .pluck('id')
           expect(records).toEqual([])
         })
 
         context('with a negated blank array', () => {
           it('finds all results', async () => {
-            const records = await new Query(User).whereNot({ id: ops.in([]) }).pluck('id')
+            const records = await User.query()
+              .whereNot({ id: ops.in([]) })
+              .pluck('id')
             expect(records).toEqual([user1.id, user2.id, user3.id])
           })
         })
@@ -70,7 +75,9 @@ describe('Query#whereNot', () => {
           password: 'howyadoin',
         })
 
-        const records = await new Query(User).whereNot({ id: ops.in([user1.id, user2.id]) }).pluck('id')
+        const records = await User.query()
+          .whereNot({ id: ops.in([user1.id, user2.id]) })
+          .pluck('id')
         expect(records).toEqual([user3.id])
       })
     })
@@ -86,7 +93,9 @@ describe('Query#whereNot', () => {
           password: 'howyadoin',
         })
 
-        const records = await new Query(User).whereNot({ id: ops.not.equal(user2.id) }).pluck('id')
+        const records = await User.query()
+          .whereNot({ id: ops.not.equal(user2.id) })
+          .pluck('id')
         expect(records).toEqual([user2.id])
       })
     })
@@ -106,7 +115,9 @@ describe('Query#whereNot', () => {
           password: 'howyadoin',
         })
 
-        const records = await new Query(User).whereNot({ id: ops.equal(user1.id) }).pluck('id')
+        const records = await User.query()
+          .whereNot({ id: ops.equal(user1.id) })
+          .pluck('id')
         expect(records).toEqual([user2.id, user3.id])
       })
     })
@@ -118,7 +129,9 @@ describe('Query#whereNot', () => {
         const rating5 = await Rating.create({ user, rateable: post, rating: 5 })
         const rating3 = await Rating.create({ user, rateable: post, rating: 3 })
 
-        const records = await new Query(Rating).whereNot({ rating: ops.not.lessThan(4) }).pluck('id')
+        const records = await Rating.query()
+          .whereNot({ rating: ops.not.lessThan(4) })
+          .pluck('id')
         expect(records).toEqual([rating3.id])
       })
     })
@@ -131,7 +144,9 @@ describe('Query#whereNot', () => {
         const rating4 = await Rating.create({ user, rateable: post, rating: 4 })
         const rating3 = await Rating.create({ user, rateable: post, rating: 3 })
 
-        const records = await new Query(Rating).whereNot({ rating: ops.greaterThan(4) }).pluck('id')
+        const records = await Rating.query()
+          .whereNot({ rating: ops.greaterThan(4) })
+          .pluck('id')
         expect(records).toEqual([rating4.id, rating3.id])
       })
     })
@@ -143,7 +158,9 @@ describe('Query#whereNot', () => {
         const rating5 = await Rating.create({ user, rateable: post, rating: 5 })
         const rating3 = await Rating.create({ user, rateable: post, rating: 3 })
 
-        const records = await new Query(Rating).whereNot({ rating: ops.lessThanOrEqualTo(4) }).pluck('id')
+        const records = await Rating.query()
+          .whereNot({ rating: ops.lessThanOrEqualTo(4) })
+          .pluck('id')
         expect(records).toEqual([rating5.id])
       })
     })
@@ -156,7 +173,9 @@ describe('Query#whereNot', () => {
         const rating4 = await Rating.create({ user, rateable: post, rating: 4 })
         const rating3 = await Rating.create({ user, rateable: post, rating: 3 })
 
-        const records = await new Query(Rating).whereNot({ rating: ops.lessThan(4) }).pluck('id')
+        const records = await Rating.query()
+          .whereNot({ rating: ops.lessThan(4) })
+          .pluck('id')
         expect(records).toEqual([rating5.id, rating4.id])
       })
     })
@@ -176,7 +195,9 @@ describe('Query#whereNot', () => {
           password: 'howyadoin',
         })
 
-        const records = await new Query(User).whereNot({ id: [user1.id, user2.id] }).pluck('id')
+        const records = await User.query()
+          .whereNot({ id: [user1.id, user2.id] })
+          .pluck('id')
         expect(records).toEqual([user3.id])
       })
     })
@@ -196,7 +217,9 @@ describe('Query#whereNot', () => {
           password: 'howyadoin',
         })
 
-        const records = await new Query(User).whereNot({ email: ops.not.like('%aaa@%') }).pluck('id')
+        const records = await User.query()
+          .whereNot({ email: ops.not.like('%aaa@%') })
+          .pluck('id')
         expect(records).toEqual([user1.id])
       })
     })
@@ -216,7 +239,9 @@ describe('Query#whereNot', () => {
           password: 'howyadoin',
         })
 
-        const records = await new Query(User).whereNot({ email: ops.like('%aaa@%') }).pluck('id')
+        const records = await User.query()
+          .whereNot({ email: ops.like('%aaa@%') })
+          .pluck('id')
         expect(records).toEqual([user2.id, user3.id])
       })
     })
@@ -236,7 +261,9 @@ describe('Query#whereNot', () => {
           password: 'howyadoin',
         })
 
-        const records = await new Query(User).whereNot({ email: ops.not.ilike('%aaa@%') }).pluck('id')
+        const records = await User.query()
+          .whereNot({ email: ops.not.ilike('%aaa@%') })
+          .pluck('id')
         expect(records).toEqual([user1.id, user2.id])
       })
     })
@@ -256,7 +283,9 @@ describe('Query#whereNot', () => {
           password: 'howyadoin',
         })
 
-        const records = await new Query(User).whereNot({ email: ops.ilike('%aaa@%') }).pluck('id')
+        const records = await User.query()
+          .whereNot({ email: ops.ilike('%aaa@%') })
+          .pluck('id')
         expect(records).toEqual([user3.id])
       })
     })
@@ -302,7 +331,9 @@ describe('Query#whereNot', () => {
           password: 'howyadoin',
         })
 
-        const records = await new Query(User).whereNot({ email: ops.not.match('aaa.*') }).pluck('id')
+        const records = await User.query()
+          .whereNot({ email: ops.not.match('aaa.*') })
+          .pluck('id')
         expect(records).toEqual([user1.id])
       })
 
@@ -321,7 +352,7 @@ describe('Query#whereNot', () => {
             password: 'howyadoin',
           })
 
-          const records = await new Query(User)
+          const records = await User.query()
             .whereNot({ email: ops.not.match('aaa.*', { caseInsensitive: true }) })
             .pluck('id')
           expect(records).toEqual([user1.id, user2.id])
@@ -344,7 +375,9 @@ describe('Query#whereNot', () => {
           password: 'howyadoin',
         })
 
-        const records = await new Query(User).whereNot({ email: ops.match('aaa.*') }).pluck('id')
+        const records = await User.query()
+          .whereNot({ email: ops.match('aaa.*') })
+          .pluck('id')
         expect(records).toEqual([user2.id, user3.id])
       })
 
@@ -363,7 +396,7 @@ describe('Query#whereNot', () => {
             password: 'howyadoin',
           })
 
-          const records = await new Query(User)
+          const records = await User.query()
             .whereNot({
               email: ops.match('aaa.*', { caseInsensitive: true }),
             })

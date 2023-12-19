@@ -3,7 +3,6 @@ import Node from '../../../test-app/app/models/Graph/Node'
 import Edge from '../../../test-app/app/models/Graph/Edge'
 import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode'
 import ops from '../../../src/ops'
-import Query from '../../../src/dream/query'
 import User from '../../../test-app/app/models/User'
 import Composition from '../../../test-app/app/models/Composition'
 import Pet from '../../../test-app/app/models/Pet'
@@ -18,7 +17,7 @@ describe('Query#joinsPluck', () => {
     await EdgeNode.create({ node, edge: edge1 })
     await EdgeNode.create({ node, edge: edge2 })
 
-    const plucked = await new Query(Node).joinsPluck('edgeNodes', 'edge', { name: 'E1' }, [
+    const plucked = await Node.query().joinsPluck('edgeNodes', 'edge', { name: 'E1' }, [
       'edge.id',
       'edge.name',
     ])
@@ -32,7 +31,7 @@ describe('Query#joinsPluck', () => {
     await EdgeNode.create({ node, edge: edge1 })
     await EdgeNode.create({ node, edge: edge2 })
 
-    const plucked = await new Query(Node).joinsPluck('edgeNodes', { edgeId: edge2.id }, 'edge', [
+    const plucked = await Node.query().joinsPluck('edgeNodes', { edgeId: edge2.id }, 'edge', [
       'edge.id',
       'edge.name',
     ])
@@ -47,7 +46,7 @@ describe('Query#joinsPluck', () => {
       const user2 = await User.create({ name: 'cheeseman', email: 'hello@world2', password: 'howyadoin' })
       const composition2 = await Composition.create({ content: 'howyadoin', user: user2 })
 
-      const plucked = await new Query(Composition).joinsPluck('user', { name: ops.similarity('jerem') }, [
+      const plucked = await Composition.query().joinsPluck('user', { name: ops.similarity('jerem') }, [
         'user.id',
       ])
       expect(plucked).toEqual([user1.id])
@@ -75,7 +74,7 @@ describe('Query#joinsPluck', () => {
         compositionAssetId: compositionAsset.id,
       })
 
-      const plucked = await new Query(CompositionAssetAudit).joinsPluck('user', 'user.email')
+      const plucked = await CompositionAssetAudit.query().joinsPluck('user', 'user.email')
       expect(plucked).toEqual(['fred@frewd'])
     })
   })

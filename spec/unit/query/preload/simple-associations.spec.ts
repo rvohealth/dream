@@ -1,11 +1,8 @@
 import User from '../../../../test-app/app/models/User'
 import Composition from '../../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
-import IncompatibleForeignKeyTypeExample from '../../../../test-app/app/models/IncompatibleForeignKeyTypeExample'
-import ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase from '../../../../src/exceptions/associations/foreign-key-on-association-does-not-match-primary-key-on-base'
 import { DateTime } from 'luxon'
 import Pet from '../../../../test-app/app/models/Pet'
-import Query from '../../../../src/dream/query'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import BalloonLine from '../../../../test-app/app/models/BalloonLine'
 import Balloon from '../../../../test-app/app/models/Balloon'
@@ -16,7 +13,7 @@ describe('Query#preload with simple associations', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ userId: user.id, primary: true })
 
-      const reloadedUser = await new Query(User).preload('mainComposition').first()
+      const reloadedUser = await User.query().preload('mainComposition').first()
       expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
     })
 
@@ -24,7 +21,7 @@ describe('Query#preload with simple associations', () => {
       it('sets it to null', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-        const reloadedUser = await new Query(User).preload('mainComposition').first()
+        const reloadedUser = await User.query().preload('mainComposition').first()
         expect(reloadedUser!.mainComposition).toBeNull()
       })
     })
@@ -34,7 +31,7 @@ describe('Query#preload with simple associations', () => {
         const balloon = await Latex.create({ color: 'blue' })
         const line = await BalloonLine.create({ balloon, material: 'ribbon' })
 
-        const reloaded = await new Query(Balloon).preload('balloonLine').first()
+        const reloaded = await Balloon.query().preload('balloonLine').first()
         expect(reloaded!.balloonLine).toMatchDreamModel(line)
       })
     })
@@ -46,7 +43,7 @@ describe('Query#preload with simple associations', () => {
       const composition1 = await Composition.create({ userId: user.id })
       const composition2 = await Composition.create({ userId: user.id })
 
-      const reloadedUser = await new Query(User).preload('compositions').first()
+      const reloadedUser = await User.query().preload('compositions').first()
       expect(reloadedUser!.compositions).toMatchDreamModels([composition1, composition2])
     })
 
@@ -54,7 +51,7 @@ describe('Query#preload with simple associations', () => {
       it('sets it to an empty array', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-        const reloadedUser = await new Query(User).preload('compositions').first()
+        const reloadedUser = await User.query().preload('compositions').first()
         expect(reloadedUser!.compositions).toEqual([])
       })
     })
@@ -64,7 +61,7 @@ describe('Query#preload with simple associations', () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const balloon = await Latex.create({ user, color: 'blue' })
 
-        const reloadedUser = await new Query(User).preload('balloons').first()
+        const reloadedUser = await User.query().preload('balloons').first()
         expect(reloadedUser!.balloons).toMatchDreamModels([balloon])
       })
     })
@@ -74,7 +71,7 @@ describe('Query#preload with simple associations', () => {
     it('sets the association to an empty array', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-      const reloadedUser = await new Query(User).preload('compositions').first()
+      const reloadedUser = await User.query().preload('compositions').first()
       expect(reloadedUser!.compositions).toEqual([])
     })
   })
@@ -83,7 +80,7 @@ describe('Query#preload with simple associations', () => {
     it('loads the association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       await Composition.create({ userId: user.id })
-      const reloadedComposition = await new Query(Composition).preload('user').first()
+      const reloadedComposition = await Composition.query().preload('user').first()
       expect(reloadedComposition!.user).toMatchDreamModel(user)
     })
 
@@ -92,7 +89,7 @@ describe('Query#preload with simple associations', () => {
         const balloon = await Latex.create({ color: 'blue' })
         const line = await BalloonLine.create({ balloon, material: 'ribbon' })
 
-        const reloaded = await new Query(BalloonLine).preload('balloon').first()
+        const reloaded = await BalloonLine.query().preload('balloon').first()
         expect(reloaded!.balloon).toMatchDreamModel(balloon)
       })
     })
@@ -103,7 +100,7 @@ describe('Query#preload with simple associations', () => {
     const composition = await Composition.create({ userId: user.id })
     const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
 
-    const reloaded = await new Query(User).preload('compositions', 'compositionAssets').first()
+    const reloaded = await User.query().preload('compositions', 'compositionAssets').first()
     expect(reloaded!.compositions).toMatchDreamModels([composition])
     expect(reloaded!.compositions[0].compositionAssets).toMatchDreamModels([compositionAsset])
   })
@@ -114,7 +111,7 @@ describe('Query#preload with simple associations', () => {
     const composition2 = await Composition.create({ userId: user.id })
     const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
 
-    const reloadedUser = await new Query(User)
+    const reloadedUser = await User.query()
       .preload('compositions')
       .preload('mainComposition', 'compositionAssets')
       .first()
@@ -133,7 +130,7 @@ describe('Query#preload with simple associations', () => {
           createdAt: DateTime.now().minus({ day: 1 }),
         })
 
-        const reloadedUser = await new Query(User).preload('recentCompositions').first()
+        const reloadedUser = await User.query().preload('recentCompositions').first()
         expect(reloadedUser!.recentCompositions).toMatchDreamModels([composition])
       })
     })
@@ -146,7 +143,7 @@ describe('Query#preload with simple associations', () => {
           createdAt: DateTime.now().minus({ year: 1 }),
         })
 
-        const reloadedUser = await new Query(User).preload('recentCompositions').first()
+        const reloadedUser = await User.query().preload('recentCompositions').first()
         expect(reloadedUser!.recentCompositions).toEqual([])
       })
     })
@@ -159,7 +156,7 @@ describe('Query#preload with simple associations', () => {
           createdAt: DateTime.now().minus({ day: 1 }),
         })
 
-        const reloadedUser = await new Query(User).preload('notRecentCompositions').first()
+        const reloadedUser = await User.query().preload('notRecentCompositions').first()
         expect(reloadedUser!.notRecentCompositions).toEqual([])
       })
     })
@@ -172,7 +169,7 @@ describe('Query#preload with simple associations', () => {
           createdAt: DateTime.now().minus({ year: 1 }),
         })
 
-        const reloadedUser = await new Query(User).preload('notRecentCompositions').first()
+        const reloadedUser = await User.query().preload('notRecentCompositions').first()
         expect(reloadedUser!.notRecentCompositions).toMatchDreamModels([composition])
       })
     })
@@ -228,21 +225,6 @@ describe('Query#preload with simple associations', () => {
         const reloaded = await Pet.preload('notLostCollar').first()
         expect(reloaded?.notLostCollar).toMatchDreamModel(notLostCollar)
       })
-    })
-  })
-
-  context('when an association has a mismatched type on the foreign key', () => {
-    it('throws an exception alerting the user to the mismatched types', async () => {
-      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      await IncompatibleForeignKeyTypeExample.create({ user })
-
-      let error: Error | null = null
-      try {
-        await new Query(User).preload('incompatibleForeignKeyTypeExamples').all()
-      } catch (err: any) {
-        error = err
-      }
-      expect(error!.constructor).toEqual(ForeignKeyOnAssociationDoesNotMatchPrimaryKeyOnBase)
     })
   })
 

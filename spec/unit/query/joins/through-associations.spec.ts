@@ -22,7 +22,7 @@ describe('Query#joins through with simple associations', () => {
       const balloonSpotter = await BalloonSpotter.create()
       const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
 
-      const reloaded = await new Query(BalloonSpotter).joins('balloonSpotterBalloons', 'balloon').all()
+      const reloaded = await BalloonSpotter.query().joins('balloonSpotterBalloons', 'balloon').all()
       expect(reloaded).toMatchDreamModels([balloonSpotter])
     })
   })
@@ -34,7 +34,7 @@ describe('Query#joins through with simple associations', () => {
       const balloonSpotter = await BalloonSpotter.create()
       const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
 
-      const reloaded = await new Query(BalloonSpotter).joins('balloons').all()
+      const reloaded = await BalloonSpotter.query().joins('balloons').all()
       expect(reloaded).toMatchDreamModels([balloonSpotter])
     })
   })
@@ -48,7 +48,7 @@ describe('Query#joins through with simple associations', () => {
       primary: true,
     })
 
-    const reloadedUsers = await new Query(User).joins('mainCompositionAsset').all()
+    const reloadedUsers = await User.query().joins('mainCompositionAsset').all()
     expect(reloadedUsers).toMatchDreamModels([user])
   })
 
@@ -58,7 +58,7 @@ describe('Query#joins through with simple associations', () => {
     const composition = await Composition.create({ userId: user.id })
     await CompositionAsset.create({ compositionId: composition.id })
 
-    const reloadedUsers = await new Query(User).joins('compositionAssets').all()
+    const reloadedUsers = await User.query().joins('compositionAssets').all()
     expect(reloadedUsers).toMatchDreamModels([user])
   })
 
@@ -72,7 +72,7 @@ describe('Query#joins through with simple associations', () => {
         compositionAssetId: compositionAsset.id,
       })
 
-      const reloadedUsers = await new Query(User).joins('compositionAssetAudits').all()
+      const reloadedUsers = await User.query().joins('compositionAssetAudits').all()
       expect(reloadedUsers).toMatchDreamModels([user])
     })
   })
@@ -88,12 +88,12 @@ describe('Query#joins through with simple associations', () => {
           primary: true,
         })
 
-        const reloadedUsers = await new Query(User)
+        const reloadedUsers = await User.query()
           .joins('mainCompositionAsset', { id: compositionAsset.id })
           .all()
         expect(reloadedUsers).toMatchDreamModels([user])
 
-        const noResults = await new Query(User)
+        const noResults = await User.query()
           .joins('mainCompositionAsset', { id: parseInt(compositionAsset.id!.toString()) + 1 })
           .all()
         expect(noResults).toEqual([])
@@ -125,7 +125,7 @@ describe('Query#joins through with simple associations', () => {
             name: 'hello',
           })
 
-          const reloadedUsers = await new Query(User)
+          const reloadedUsers = await User.query()
             .joins('mainCompositionAsset', { name: ops.similarity('hell') })
             .all()
           expect(reloadedUsers).toMatchDreamModels([user])
@@ -142,12 +142,12 @@ describe('Query#joins through with simple associations', () => {
             primary: true,
           })
 
-          const reloadedUsers = await new Query(User)
+          const reloadedUsers = await User.query()
             .joins('compositions', { id: composition.id }, 'compositionAssets')
             .all()
           expect(reloadedUsers).toMatchDreamModels([user])
 
-          const noResults = await new Query(User)
+          const noResults = await User.query()
             .joins('compositions', { id: parseInt(composition.id!.toString()) + 1 }, 'compositionAssets')
             .all()
           expect(noResults).toEqual([])
@@ -165,12 +165,10 @@ describe('Query#joins through with simple associations', () => {
         const composition = await Composition.create({ userId: user.id })
         const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
 
-        const reloadedCompositionAssets = await new Query(CompositionAsset)
-          .joins('user', { id: user.id })
-          .all()
+        const reloadedCompositionAssets = await CompositionAsset.query().joins('user', { id: user.id }).all()
         expect(reloadedCompositionAssets).toMatchDreamModels([compositionAsset])
 
-        const noResults = await new Query(CompositionAsset)
+        const noResults = await CompositionAsset.query()
           .joins('user', { id: parseInt(user.id!.toString()) + 1 })
           .all()
         expect(noResults).toEqual([])
@@ -184,12 +182,10 @@ describe('Query#joins through with simple associations', () => {
         const composition = await Composition.create({ userId: user.id })
         const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
 
-        const reloadedUsers = await new Query(User)
-          .joins('compositionAssets', { id: compositionAsset.id })
-          .all()
+        const reloadedUsers = await User.query().joins('compositionAssets', { id: compositionAsset.id }).all()
         expect(reloadedUsers).toMatchDreamModels([user])
 
-        const noResults = await new Query(User)
+        const noResults = await User.query()
           .joins('compositionAssets', { id: parseInt(compositionAsset.id!.toString()) + 1 })
           .all()
         expect(noResults).toEqual([])
@@ -206,12 +202,12 @@ describe('Query#joins through with simple associations', () => {
           compositionAssetId: compositionAsset.id,
         })
 
-        const reloadedUsers = await new Query(User)
+        const reloadedUsers = await User.query()
           .joins('compositionAssetAudits', { id: compositionAssetAudit.id })
           .all()
         expect(reloadedUsers).toMatchDreamModels([user])
 
-        const noResults = await new Query(User)
+        const noResults = await User.query()
           .joins('compositionAssetAudits', { id: parseInt(compositionAssetAudit.id!.toString()) + 1 })
           .all()
         expect(noResults).toEqual([])
@@ -261,7 +257,7 @@ describe('Query#joins through with simple associations', () => {
               notes: 'Goodbye',
             })
 
-            const reloadedUsers = await new Query(User)
+            const reloadedUsers = await User.query()
               .joins('compositions', 'compositionAssets', 'compositionAssetAudits', {
                 notes: ops.similarity('hallo'),
               })
@@ -295,7 +291,7 @@ describe('Query#joins through with simple associations', () => {
                 notes: 'Goodbye',
               })
 
-              const reloadedUsers = await new Query(User)
+              const reloadedUsers = await User.query()
                 .joins(
                   'compositions',
                   'compositionAssets',
@@ -438,7 +434,7 @@ describe('Query#joins through with simple associations', () => {
     it('throws MissingThroughAssociationSource', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-      const query = new Query(User).joins('nonExtantCompositionAssets1').first()
+      const query = User.query().joins('nonExtantCompositionAssets1').first()
 
       await expect(query).rejects.toThrow(JoinAttemptedOnMissingAssociation)
     })
@@ -448,7 +444,7 @@ describe('Query#joins through with simple associations', () => {
     it('throws MissingThroughAssociationSource', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-      const query = new Query(User).joins('nonExtantCompositionAssets2').first()
+      const query = User.query().joins('nonExtantCompositionAssets2').first()
 
       await expect(query).rejects.toThrow(MissingThroughAssociationSource)
     })

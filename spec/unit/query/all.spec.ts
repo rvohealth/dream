@@ -1,8 +1,5 @@
-import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import ReplicaSafe from '../../../src/decorators/replica-safe'
-import Balloon from '../../../test-app/app/models/Balloon'
 import User from '../../../test-app/app/models/User'
-import Query from '../../../src/dream/query'
 import DreamDbConnection from '../../../src/db/dream-db-connection'
 import ops from '../../../src/ops'
 
@@ -67,13 +64,13 @@ describe('Query#all', () => {
       class CustomUser extends User {}
 
       it('uses the replica connection', async () => {
-        await new Query(CustomUser).all()
+        await CustomUser.query().all()
         expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('replica', expect.objectContaining({}))
       })
 
       context('with explicit primary connection override', () => {
         it('uses the primary connection, despite being ReplicaSafe', async () => {
-          await new Query(CustomUser).connection('primary').all()
+          await CustomUser.query().connection('primary').all()
           expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
           expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith(
             'replica',
