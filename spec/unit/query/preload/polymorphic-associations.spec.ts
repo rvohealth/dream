@@ -57,15 +57,15 @@ describe('Query#preload with polymorphic associations', () => {
 
       const balloons = await Balloon.preload('heartRatings').all()
 
-      const reloadedMylar = balloons[0] as Mylar
+      const reloadedMylar = balloons.find(obj => obj.type === 'Mylar') as Mylar
       expect(reloadedMylar).toMatchDreamModel(mylar)
       expect(reloadedMylar.heartRatings).toMatchDreamModels([mylarHeartRating])
 
-      const reloadedLatex = balloons[1] as Latex
+      const reloadedLatex = balloons.find(obj => obj.type === 'Latex') as Latex
       expect(reloadedLatex).toMatchDreamModel(latex)
       expect(reloadedLatex.heartRatings).toMatchDreamModels([latexHeartRating])
 
-      const reloadedAnimal = balloons[2] as Animal
+      const reloadedAnimal = balloons.find(obj => obj.type === 'Animal') as Animal
       expect(reloadedAnimal).toMatchDreamModel(animal)
       expect(reloadedAnimal.heartRatings).toMatchDreamModels([animalHeartRating])
     })

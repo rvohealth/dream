@@ -1,4 +1,3 @@
-import { BelongsToStatement } from '../../decorators/associations/belongs-to'
 import { PartialAssociationStatement, modelCBtoSingleDreamClass } from '../../decorators/associations/shared'
 import Dream from '../../dream'
 
