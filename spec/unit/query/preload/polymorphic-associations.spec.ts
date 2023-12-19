@@ -7,6 +7,7 @@ import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal'
 import Balloon from '../../../../test-app/app/models/Balloon'
+import { DateTime } from 'luxon'
 
 describe('Query#preload with polymorphic associations', () => {
   it('loads a HasMany association', async () => {
@@ -71,13 +72,34 @@ describe('Query#preload with polymorphic associations', () => {
     })
   })
 
-  it('loads a BelongsTo association', async () => {
-    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    await Composition.create({ user })
-    const post = await Post.create({ user })
-    const rating = await Rating.create({ user, rateable: post })
+  context('BelongsTo association', () => {
+    it('loads', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await Composition.create({ user })
+      const post = await Post.create({ user })
+      const rating = await Rating.create({ user, rateable: post })
 
-    const reloaded = await Rating.where({ id: rating.id }).preload('rateable').first()
-    expect(reloaded!.rateable).toMatchDreamModel(post)
+      const reloaded = await Rating.where({ id: rating.id }).preload('rateable').first()
+      expect(reloaded!.rateable).toMatchDreamModel(post)
+    })
+
+    context('unscoped', () => {
+      it('cascades through associations', async () => {
+        const user = await User.create({
+          email: 'fred@frewd',
+          password: 'howyadoin',
+          deletedAt: DateTime.now(),
+        })
+        await Composition.create({ user })
+        const post = await Post.create({ user, deletedAt: DateTime.now() })
+        const rating = await Rating.create({ user, rateable: post })
+
+        const reloaded = await Rating.preload('rateable', 'user').find(rating.id)
+        expect(reloaded!.rateable).toBeNull()
+
+        const unscopedReloaded = await Rating.unscoped().preload('rateable', 'user').find(rating.id)
+        expect(unscopedReloaded!.rateable.user).toMatchDreamModel(user)
+      })
+    })
   })
 })

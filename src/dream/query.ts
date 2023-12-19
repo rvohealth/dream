@@ -107,13 +107,14 @@ export default class Query<
   public readonly preloadStatements: RelaxedPreloadStatement = Object.freeze({})
   public readonly joinsStatements: RelaxedJoinsStatement = Object.freeze({})
   public readonly joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = Object.freeze({})
-  public readonly shouldBypassDefaultScopes: boolean = false
+  public readonly bypassDefaultScopes: boolean = false
   private readonly distinctColumn: ColumnType | null = null
   public readonly dreamClass: DreamClass
   public baseSQLAlias: TableOrAssociationName<SyncedAssociations>
   public baseSelectQuery: Query<any> | null
   public dreamTransaction: DreamTransaction<DB> | null = null
   public connectionOverride?: DbConnectionType
+
   constructor(DreamClass: DreamClass, opts: QueryOpts<DreamClass, ColumnType> = {}) {
     super(DreamClass, opts)
     this.dreamClass = DreamClass
@@ -127,10 +128,18 @@ export default class Query<
     this.preloadStatements = Object.freeze(opts.preloadStatements || {})
     this.joinsStatements = Object.freeze(opts.joinsStatements || {})
     this.joinsWhereStatements = Object.freeze(opts.joinsWhereStatements || {})
-    this.shouldBypassDefaultScopes = Object.freeze(opts.shouldBypassDefaultScopes || false)
+    this.bypassDefaultScopes = Object.freeze(opts.bypassDefaultScopes || false)
     this.dreamTransaction = opts.transaction || null
     this.distinctColumn = opts.distinctColumn || null
     this.connectionOverride = opts.connection
+  }
+
+  private symmetricalQueryForDreamClass<D extends typeof Dream>(
+    this: Query<DreamClass>,
+    dreamClass: D
+  ): Query<D> {
+    const associationQuery: Query<D> = this.bypassDefaultScopes ? dreamClass.unscoped() : dreamClass.query()
+    return this.dreamTransaction ? associationQuery.txn(this.dreamTransaction) : associationQuery
   }
 
   public clone(opts: QueryOpts<DreamClass, ColumnType> = {}): Query<DreamClass> {
@@ -148,10 +157,8 @@ export default class Query<
       preloadStatements: opts.preloadStatements || this.preloadStatements,
       joinsStatements: opts.joinsStatements || this.joinsStatements,
       joinsWhereStatements: opts.joinsWhereStatements || this.joinsWhereStatements,
-      shouldBypassDefaultScopes:
-        opts.shouldBypassDefaultScopes !== undefined
-          ? opts.shouldBypassDefaultScopes
-          : this.shouldBypassDefaultScopes,
+      bypassDefaultScopes:
+        opts.bypassDefaultScopes !== undefined ? opts.bypassDefaultScopes : this.bypassDefaultScopes,
       transaction: opts.transaction || this.dreamTransaction,
       connection: opts.connection,
     }) as Query<DreamClass>
@@ -419,7 +426,7 @@ export default class Query<
   }
 
   public unscoped<T extends Query<DreamClass>>(this: T): Query<DreamClass> {
-    return this.clone({ shouldBypassDefaultScopes: true })
+    return this.clone({ bypassDefaultScopes: true })
   }
 
   public where<T extends Query<DreamClass>>(
@@ -733,7 +740,9 @@ export default class Query<
     return { throughAssociation, throughClass, newAssociation }
   }
 
+  // Polymorphic BelongsTo. Preload by loading each target class separately.
   private async preloadPolymorphicBelongsTo(
+    this: Query<DreamClass>,
     association: BelongsToStatement<any, any, string>,
     dreams: Dream[]
   ) {
@@ -746,8 +755,7 @@ export default class Query<
         `Polymorphic association ${association.as} points to an array of models but is ${association.type}. Only BelongsTo associations may point to an array of models.`
       )
 
-    // Polymorphic BelongsTo. Preload by loading each target class separately.
-    let associationQuery
+    let associatedDreams: Dream[] = []
 
     for (const associatedModel of association.modelCB() as (typeof Dream)[]) {
       const relevantAssociatedModels = dreams.filter((dream: any) => {
@@ -757,23 +765,20 @@ export default class Query<
       })
 
       if (relevantAssociatedModels.length) {
-        associationQuery = this.dreamTransaction
-          ? associatedModel.txn(this.dreamTransaction)
-          : associatedModel
-
-        // @ts-ignore
-        associationQuery = associationQuery.where({
-          [associatedModel.primaryKey]: relevantAssociatedModels.map(
-            (dream: any) => (dream as any)[association.foreignKey()]
-          ),
-        })
-
         dreams.forEach((dream: any) => {
           if (dream.loaded(association.as)) return // only overwrite if this hasn't yet been preloaded
           dream[`__${association.as}__`] = null
         })
 
-        const loadedAssociations = await associationQuery.all()
+        const loadedAssociations = await this.symmetricalQueryForDreamClass(associatedModel)
+          .where({
+            [associatedModel.primaryKey]: relevantAssociatedModels.map(
+              (dream: any) => (dream as any)[association.foreignKey()]
+            ),
+          })
+          .all()
+
+        associatedDreams = [...associatedDreams, ...loadedAssociations]
 
         // dreams is a Rating
         // Rating belongs to: rateables (Posts / Compositions)
@@ -800,9 +805,11 @@ export default class Query<
         }
       }
     }
+
+    return associatedDreams
   }
 
-  private async applyOnePreload(associationName: string, dreams: Dream | Dream[]) {
+  private async applyOnePreload(this: Query<DreamClass>, associationName: string, dreams: Dream | Dream[]) {
     if (!Array.isArray(dreams)) dreams = [dreams as Dream]
 
     const dream = dreams.find(dream => dream.getAssociation(associationName))!
@@ -825,10 +832,8 @@ export default class Query<
     const baseClass = dreamClass.stiBaseClassOrOwnClass.getAssociation(associationName)
       ? dreamClass.stiBaseClassOrOwnClass
       : dreamClass
-    const associationQuery = this.dreamTransaction ? baseClass.txn(this.dreamTransaction) : baseClass
 
-    const hydrationData: any[][] = await associationQuery
-      // @ts-ignore
+    const hydrationData: any[][] = await this.symmetricalQueryForDreamClass(baseClass)
       .where({ [dreamClass.primaryKey]: dreams.map(obj => obj.primaryKeyValue) })
       .joinsPluck(associationName, columnsToPluck)
 
@@ -851,11 +856,15 @@ export default class Query<
     return preloadedDreamsAndWhatTheyPointTo.map(obj => obj.dream)
   }
 
-  public async hydratePreload(dream: Dream) {
+  public async hydratePreload(this: Query<DreamClass>, dream: Dream) {
     await this.applyPreload(this.preloadStatements as any, dream)
   }
 
-  private async applyPreload(preloadStatement: RelaxedPreloadStatement, dream: Dream | Dream[]) {
+  private async applyPreload(
+    this: Query<DreamClass>,
+    preloadStatement: RelaxedPreloadStatement,
+    dream: Dream | Dream[]
+  ) {
     for (const key of Object.keys(preloadStatement as any)) {
       const nestedDreams = await this.applyOnePreload(key, dream)
       if (nestedDreams) {
@@ -903,7 +912,7 @@ export default class Query<
   }
 
   private conditionallyApplyScopes(this: Query<DreamClass>): Query<DreamClass> {
-    if (this.shouldBypassDefaultScopes) return this
+    if (this.bypassDefaultScopes) return this
 
     const thisScopes = this.dreamClass.scopes.default
     let query: Query<DreamClass> = this
@@ -1124,7 +1133,7 @@ export default class Query<
         }
       }
 
-      if (!this.shouldBypassDefaultScopes) {
+      if (!this.bypassDefaultScopes) {
         let scopesQuery = new Query<DreamClass>(this.dreamClass)
         const associationClass = association.modelCB() as any
         const associationScopes = associationClass.scopes.default
@@ -1608,7 +1617,7 @@ export interface QueryOpts<
   distinctColumn?: ColumnType | null
   joinsStatements?: RelaxedJoinsStatement
   joinsWhereStatements?: RelaxedJoinsWhereStatement<DB, SyncedAssociations>
-  shouldBypassDefaultScopes?: boolean
+  bypassDefaultScopes?: boolean
   transaction?: DreamTransaction<DB> | null | undefined
   connection?: DbConnectionType
 }

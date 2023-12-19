@@ -12,6 +12,7 @@ import Sandbag from '../../../../test-app/app/models/Sandbag'
 import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating'
 import Pet from '../../../../test-app/app/models/Pet'
 import JoinAttemptedOnMissingAssociation from '../../../../src/exceptions/associations/join-attempted-with-missing-association'
+import Collar from '../../../../test-app/app/models/Collar'
 
 describe('Query#preload through with simple associations', () => {
   context('explicit HasMany through a BelongsTo', () => {
@@ -404,6 +405,24 @@ describe('Query#preload through with simple associations', () => {
       const query = User.query().preload('nonExtantCompositionAssets2').first()
 
       await expect(query).rejects.toThrow(MissingThroughAssociationSource)
+    })
+  })
+
+  context('unscoped', () => {
+    it('cascades through associations', async () => {
+      const user = await User.create({
+        email: 'fred@frewd',
+        password: 'howyadoin',
+        deletedAt: DateTime.now(),
+      })
+      const pet = await Pet.create({ user })
+      const balloon = await Latex.create({ color: 'red', deletedAt: DateTime.now() })
+      const collar = await Collar.create({ pet, balloon })
+
+      const unscopedReloadedUser = await User.unscoped().preload('pets', 'redBalloons').first()
+      expect(unscopedReloadedUser).toMatchDreamModel(user)
+      expect(unscopedReloadedUser!.pets).toMatchDreamModels([pet])
+      expect(unscopedReloadedUser!.pets[0].redBalloons).toMatchDreamModels([balloon])
     })
   })
 })

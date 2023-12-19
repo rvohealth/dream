@@ -11,6 +11,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     )
     .addColumn('body', 'text')
     .addColumn('position', 'integer', col => col.notNull())
+    .addColumn('deleted_at', 'timestamp', col => col.defaultTo(null))
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()

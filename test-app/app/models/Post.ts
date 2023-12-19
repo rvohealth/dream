@@ -1,5 +1,8 @@
+import { DateTime } from 'luxon'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
+import Query from '../../../src/dream/query'
+import Scope from '../../../src/decorators/scope'
 import { IdType } from '../../../src/dream/types'
 import PostVisibility from './PostVisibility'
 import Rating from './Rating'
@@ -14,6 +17,7 @@ export default class Post extends ApplicationModel {
   }
 
   public id: IdType
+  public deletedAt: DateTime
 
   @Sortable({ scope: 'user' })
   public position: number
@@ -39,4 +43,9 @@ export default class Post extends ApplicationModel {
     polymorphic: true,
   })
   public heartRatings: HeartRating[]
+
+  @Scope({ default: true })
+  public static hideDeleted(query: Query<typeof Post>) {
+    return query.where({ deletedAt: null })
+  }
 }

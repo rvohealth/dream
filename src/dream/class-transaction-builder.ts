@@ -147,6 +147,10 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     return new Query<DreamClass>(this.dreamClass).txn(this.dreamTransaction)
   }
 
+  public unscoped<I extends DreamClassTransactionBuilder<DreamClass>>(this: I): Query<DreamClass> {
+    return this.queryInstance().unscoped()
+  }
+
   public async last<I extends DreamClassTransactionBuilder<DreamClass>>(
     this: I
   ): Promise<InstanceType<DreamClass> | null> {

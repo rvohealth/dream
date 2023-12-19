@@ -169,6 +169,7 @@ export interface Posts {
   postVisibilityId: Int8 | null;
   body: string | null;
   position: number;
+  deletedAt: Timestamp | null;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -259,7 +260,7 @@ export const GraphEdgeColumns = ['id', 'name', 'createdAt', 'updatedAt']
 export const GraphNodeColumns = ['id', 'name', 'createdAt', 'updatedAt']
 export const IncompatibleForeignKeyTypeExampleColumns = ['id', 'userId', 'createdAt', 'updatedAt']
 export const PetColumns = ['id', 'userId', 'favoriteTreats', 'species', 'name', 'deletedAt', 'createdAt']
-export const PostColumns = ['id', 'userId', 'postVisibilityId', 'body', 'position', 'createdAt', 'updatedAt']
+export const PostColumns = ['id', 'userId', 'postVisibilityId', 'body', 'position', 'deletedAt', 'createdAt', 'updatedAt']
 export const PostVisibilityColumns = ['id', 'visibility', 'notes', 'createdAt', 'updatedAt']
 export const RatingColumns = ['id', 'userId', 'rateableId', 'rateableType', 'rating', 'body', 'createdAt', 'updatedAt']
 export const SandbagColumns = ['id', 'balloonId', 'weight', 'createdAt', 'updatedAt']
@@ -410,6 +411,7 @@ export interface PostAttributes {
   postVisibilityId: IdType | null
   body: string | null
   position: number
+  deletedAt: DateTime | null
   createdAt: DateTime
   updatedAt: DateTime
 }  
@@ -605,6 +607,7 @@ export const PostsDBTypeMap = {
   postVisibilityId: 'bigint',
   body: 'text',
   position: 'integer',
+  deletedAt: 'timestamp without time zone',
   createdAt: 'timestamp without time zone',
   updatedAt: 'timestamp without time zone'
 }
