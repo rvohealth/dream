@@ -148,7 +148,7 @@ describe('Dream.distinct', () => {
         })
       })
 
-      context('HasMany through with a distinct clause applied on the outer association', () => {
+      context('HasMany through with a distinct clause applied on the implicit association', () => {
         it('applies distinct clause to association upon loading', async () => {
           const pet = await Pet.create()
           const balloon = await Latex.create()
@@ -162,25 +162,28 @@ describe('Dream.distinct', () => {
           const ids = await Pet.joinsPluck('distinctBalloons', ['distinctBalloons.id'])
           expect(ids).toEqual([balloon.id])
         })
-      })
 
-      context('Replicating bug', () => {
-        it('applies distinct clause to association upon loading', async () => {
-          const pet1 = await Pet.create({ name: 'pet1' })
-          const pet2 = await Pet.create({ name: 'pet2' })
-          const understudy = await Pet.create({ name: 'understudy1' })
-          await PetUnderstudyJoinModel.create({
-            pet: pet1,
-            understudy,
-          })
-          await PetUnderstudyJoinModel.create({
-            pet: pet2,
-            understudy,
-          })
+        context(
+          'Replicating bug caused by HasMany through join model pointing back to original model again',
+          () => {
+            it('applies distinct clause to association upon loading', async () => {
+              const pet1 = await Pet.create({ name: 'pet1' })
+              const pet2 = await Pet.create({ name: 'pet2' })
+              const understudy = await Pet.create({ name: 'understudy1' })
+              await PetUnderstudyJoinModel.create({
+                pet: pet1,
+                understudy,
+              })
+              await PetUnderstudyJoinModel.create({
+                pet: pet2,
+                understudy,
+              })
 
-          const ids = await Pet.joinsPluck('understudies', ['understudies.id'])
-          expect(ids).toEqual([understudy.id])
-        })
+              const ids = await Pet.joinsPluck('understudies', ['understudies.id'])
+              expect(ids).toEqual([understudy.id])
+            })
+          }
+        )
       })
     })
   })
