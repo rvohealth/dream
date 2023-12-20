@@ -4,6 +4,9 @@ import Composition from '../../../../test-app/app/models/Composition'
 import User from '../../../../test-app/app/models/User'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
+import Pet from '../../../../test-app/app/models/Pet'
+import Latex from '../../../../test-app/app/models/Balloon/Latex'
+import Collar from '../../../../test-app/app/models/Collar'
 
 describe('Dream#associationQuery', () => {
   context('with a HasMany association', () => {
@@ -119,6 +122,25 @@ describe('Dream#associationQuery', () => {
           recentComposition,
         ])
       })
+    })
+  })
+
+  context('unscoped', () => {
+    it('unscopes', async () => {
+      const user = await User.create({
+        email: 'fred@frewd',
+        password: 'howyadoin',
+        deletedAt: DateTime.now(),
+      })
+      const balloon = await Latex.create({ user, color: 'red', deletedAt: DateTime.now() })
+
+      const query = user.associationQuery('balloons')
+
+      const balloons = await query.all()
+      expect(balloons).toEqual([])
+
+      const unscopedBalloons = await query.unscoped().all()
+      expect(unscopedBalloons).toMatchDreamModels([balloon])
     })
   })
 })
