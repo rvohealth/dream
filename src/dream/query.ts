@@ -1109,7 +1109,13 @@ export default class Query<
 
       if (originalAssociation?.through) {
         if (originalAssociation.distinct) {
-          query = query.distinctOn(this.distinctColumnNameForAssociation(originalAssociation))
+          query = query.distinctOn(
+            this.distinctColumnNameForAssociation({
+              association: originalAssociation,
+              tableNameOrAlias: originalAssociation.as,
+              foreignKey: originalAssociation.modelCB().primaryKey,
+            }) as any
+          )
         }
 
         if (originalAssociation.where) {
@@ -1173,7 +1179,11 @@ export default class Query<
 
       if (association.distinct) {
         query = query.distinctOn(
-          `${currentAssociationTableOrAlias}.${this.distinctColumnNameForAssociation(association)}`
+          this.distinctColumnNameForAssociation({
+            association,
+            tableNameOrAlias: currentAssociationTableOrAlias,
+            foreignKey: association.foreignKey(),
+          }) as any
         )
       }
     }
@@ -1186,10 +1196,18 @@ export default class Query<
     }
   }
 
-  private distinctColumnNameForAssociation(association: any) {
+  private distinctColumnNameForAssociation({
+    association,
+    tableNameOrAlias,
+    foreignKey,
+  }: {
+    association: any
+    tableNameOrAlias: string
+    foreignKey: string
+  }) {
     if (!association.distinct) return null
-    if (association.distinct === true) return association.foreignKey()
-    return association.distinct
+    if (association.distinct === true) return `${tableNameOrAlias}.${foreignKey}`
+    return `${tableNameOrAlias}.${association.distinct}`
   }
 
   private recursivelyJoin<T extends Query<DreamClass>>(

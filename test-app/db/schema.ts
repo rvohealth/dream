@@ -163,6 +163,14 @@ export interface Pets {
   createdAt: Timestamp;
 }
 
+export interface PetUnderstudyJoinModels {
+  id: Generated<Int8>;
+  petId: Int8;
+  understudyId: Int8;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
 export interface Posts {
   id: Generated<Int8>;
   userId: Int8;
@@ -235,6 +243,7 @@ export interface DB {
   graph_edges: GraphEdges;
   graph_nodes: GraphNodes;
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples;
+  pet_understudy_join_models: PetUnderstudyJoinModels;
   pets: Pets;
   post_visibilities: PostVisibilities;
   posts: Posts;
@@ -260,6 +269,7 @@ export const GraphEdgeColumns = ['id', 'name', 'createdAt', 'updatedAt']
 export const GraphNodeColumns = ['id', 'name', 'createdAt', 'updatedAt']
 export const IncompatibleForeignKeyTypeExampleColumns = ['id', 'userId', 'createdAt', 'updatedAt']
 export const PetColumns = ['id', 'userId', 'favoriteTreats', 'species', 'name', 'deletedAt', 'createdAt']
+export const PetUnderstudyJoinModelColumns = ['id', 'petId', 'understudyId', 'createdAt', 'updatedAt']
 export const PostColumns = ['id', 'userId', 'postVisibilityId', 'body', 'position', 'deletedAt', 'createdAt', 'updatedAt']
 export const PostVisibilityColumns = ['id', 'visibility', 'notes', 'createdAt', 'updatedAt']
 export const RatingColumns = ['id', 'userId', 'rateableId', 'rateableType', 'rating', 'body', 'createdAt', 'updatedAt']
@@ -403,6 +413,14 @@ export interface PetAttributes {
   name: string | null
   deletedAt: DateTime | null
   createdAt: DateTime
+}  
+
+export interface PetUnderstudyJoinModelAttributes {
+  id: IdType
+  petId: IdType
+  understudyId: IdType
+  createdAt: DateTime
+  updatedAt: DateTime
 }  
 
 export interface PostAttributes {
@@ -601,6 +619,14 @@ export const PetsDBTypeMap = {
   createdAt: 'timestamp without time zone'
 }
 
+export const PetUnderstudyJoinModelsDBTypeMap = {
+  id: 'bigint',
+  petId: 'bigint',
+  understudyId: 'bigint',
+  createdAt: 'timestamp without time zone',
+  updatedAt: 'timestamp without time zone'
+}
+
 export const PostsDBTypeMap = {
   id: 'bigint',
   userId: 'bigint',
@@ -676,6 +702,7 @@ export class DBClass {
   graph_nodes: GraphNodes
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples
   pets: Pets
+  pet_understudy_join_models: PetUnderstudyJoinModels
   posts: Posts
   post_visibilities: PostVisibilities
   ratings: Ratings
@@ -700,6 +727,7 @@ export interface InterpretedDB {
   graph_nodes: GraphNodeAttributes,
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExampleAttributes,
   pets: PetAttributes,
+  pet_understudy_join_models: PetUnderstudyJoinModelAttributes,
   posts: PostAttributes,
   post_visibilities: PostVisibilityAttributes,
   ratings: RatingAttributes,
@@ -724,6 +752,7 @@ export class InterpretedDBClass {
   graph_nodes: GraphNodeAttributes
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExampleAttributes
   pets: PetAttributes
+  pet_understudy_join_models: PetUnderstudyJoinModelAttributes
   posts: PostAttributes
   post_visibilities: PostVisibilityAttributes
   ratings: RatingAttributes
@@ -748,6 +777,7 @@ export const DBColumns = {
   graph_nodes: GraphNodeColumns,
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExampleColumns,
   pets: PetColumns,
+  pet_understudy_join_models: PetUnderstudyJoinModelColumns,
   posts: PostColumns,
   post_visibilities: PostVisibilityColumns,
   ratings: RatingColumns,
@@ -772,6 +802,7 @@ export const DBTypeCache = {
   graph_nodes: GraphNodesDBTypeMap,
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamplesDBTypeMap,
   pets: PetsDBTypeMap,
+  pet_understudy_join_models: PetUnderstudyJoinModelsDBTypeMap,
   posts: PostsDBTypeMap,
   post_visibilities: PostVisibilitiesDBTypeMap,
   ratings: RatingsDBTypeMap,

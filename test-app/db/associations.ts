@@ -130,6 +130,14 @@ export default {
       "users"
     ]
   },
+  "pet_understudy_join_models": {
+    "pet": [
+      "pets"
+    ],
+    "understudy": [
+      "pets"
+    ]
+  },
   "pets": {
     "user": [
       "users"
@@ -157,6 +165,12 @@ export default {
     ],
     "notRedBalloons": [
       "beautiful_balloons"
+    ],
+    "petUnderstudies": [
+      "pet_understudy_join_models"
+    ],
+    "understudies": [
+      "pets"
     ]
   },
   "post_visibilities": {
@@ -381,6 +395,14 @@ export interface SyncedAssociations {
       "users"
     ]
   },
+  "pet_understudy_join_models": {
+    "pet": [
+      "pets"
+    ],
+    "understudy": [
+      "pets"
+    ]
+  },
   "pets": {
     "user": [
       "users"
@@ -408,6 +430,12 @@ export interface SyncedAssociations {
     ],
     "notRedBalloons": [
       "beautiful_balloons"
+    ],
+    "petUnderstudies": [
+      "pet_understudy_join_models"
+    ],
+    "understudies": [
+      "pets"
     ]
   },
   "post_visibilities": {
@@ -572,6 +600,14 @@ export interface SyncedBelongsToAssociations {
       "users"
     ]
   },
+  "pet_understudy_join_models": {
+    "pet": [
+      "pets"
+    ],
+    "understudy": [
+      "pets"
+    ]
+  },
   "pets": {
     "user": [
       "users"
@@ -624,6 +660,7 @@ export interface VirtualColumns {
   "graph_edges": false,
   "graph_nodes": false,
   "incompatible_foreign_key_type_examples": false,
+  "pet_understudy_join_models": false,
   "pets": false,
   "post_visibilities": false,
   "posts": false,

@@ -2,6 +2,7 @@ import ops from '../../../src/ops'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
 import Node from '../../../test-app/app/models/Graph/Node'
 import Pet from '../../../test-app/app/models/Pet'
+import PetUnderstudyJoinModel from '../../../test-app/app/models/PetUnderstudyJoinModel'
 
 describe('Dream.distinct', () => {
   it('returns unique results distinct on the primary key', async () => {
@@ -160,6 +161,25 @@ describe('Dream.distinct', () => {
 
           const ids = await Pet.joinsPluck('distinctBalloons', ['distinctBalloons.id'])
           expect(ids).toEqual([balloon.id])
+        })
+      })
+
+      context('Replicating bug', () => {
+        it('applies distinct clause to association upon loading', async () => {
+          const pet1 = await Pet.create({ name: 'pet1' })
+          const pet2 = await Pet.create({ name: 'pet2' })
+          const understudy = await Pet.create({ name: 'understudy1' })
+          await PetUnderstudyJoinModel.create({
+            pet: pet1,
+            understudy,
+          })
+          await PetUnderstudyJoinModel.create({
+            pet: pet2,
+            understudy,
+          })
+
+          const ids = await Pet.joinsPluck('understudies', ['understudies.id'])
+          expect(ids).toEqual([understudy.id])
         })
       })
     })

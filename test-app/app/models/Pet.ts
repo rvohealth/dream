@@ -11,6 +11,7 @@ import PetSerializer from '../serializers/PetSerializer'
 import { CatTreats, Species } from '../../db/schema'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
+import PetUnderstudyJoinModel from './PetUnderstudyJoinModel'
 
 export default class Pet extends ApplicationModel {
   public get table() {
@@ -63,6 +64,16 @@ export default class Pet extends ApplicationModel {
 
   @HasMany(() => Balloon, { through: 'collars', source: 'balloon', whereNot: { color: 'red' } })
   public notRedBalloons: Balloon
+
+  @HasMany(() => PetUnderstudyJoinModel, { foreignKey: 'petId' })
+  public petUnderstudies: PetUnderstudyJoinModel[]
+
+  @HasMany(() => Pet, {
+    through: 'petUnderstudies',
+    source: 'understudy',
+    distinct: true,
+  })
+  public understudies: Pet[]
   // end: totally contrived for testing purposes
 
   @BeforeDestroy()
