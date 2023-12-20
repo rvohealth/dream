@@ -58,6 +58,7 @@ import NonExistentScopeProvidedToResort from './exceptions/non-existent-scope-pr
 import cloneDeep from 'lodash.clonedeep'
 import NonLoadedAssociation from './exceptions/associations/non-loaded-association'
 import extractAttributesFromUpdateableProperties from './dream/internal/extractAttributesFromUpdateableProperties'
+import associationToGetterSetterProp from './decorators/associations/associationToGetterSetterProp'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -853,7 +854,7 @@ export default class Dream {
     const clone: any = new self.constructor()
 
     const associationDataKeys = Object.values((this.constructor as typeof Dream).associationMap()).map(
-      association => `__${association.as}__`
+      association => associationToGetterSetterProp(association)
     )
 
     Object.keys(this).forEach(property => {

@@ -48,36 +48,33 @@ describe('Dream#load', () => {
 
   context('when called twice', () => {
     context('Has(One/Many) association', () => {
-      it('loads the first time, then reloads', async () => {
+      it('loads the association fresh from the database', async () => {
         const clone = await user.load('pets').execute()
-        await pet.update({ name: 'Snoopy' })
-        const clone2 = await user.load('pets').execute()
-        expect(clone2.pets).toMatchDreamModels([await Pet.findBy({ name: 'Snoopy' })])
-        expect(clone2.pets).not.toEqual(clone.pets)
+        await Pet.query().updateAll({ name: 'Snoopy' })
+        const clone2 = await clone.load('pets').execute()
+        expect(clone2.pets[0].name).toEqual('Snoopy')
       })
     })
 
-    context('BelongsATo association', () => {
-      it('loads the first time, then reloads', async () => {
+    context('BelongsTo association', () => {
+      it('loads the association fresh from the database', async () => {
         const clone = await pet.load('user').execute()
-        await user.update({ email: 'lucy@peanuts.com' })
-        const clone2 = await pet.load('user').execute()
-        expect(clone2.user).toMatchDreamModel(await User.findBy({ email: 'lucy@peanuts.com' }))
-        expect(clone2.user).not.toEqual(clone.user)
+        await User.query().updateAll({ email: 'lucy@peanuts.com' })
+        const clone2 = await clone.load('user').execute()
+        expect(clone2.user!.email).toEqual('lucy@peanuts.com')
       })
     })
 
     context('through associations', () => {
-      it('loads the first time, then reloads', async () => {
+      it('loads the association fresh from the database', async () => {
         const composition = await user.createAssociation('compositions', { name: 'composition A' })
         const compositionAsset = await composition?.createAssociation('compositionAssets', {
           name: 'compositionAsset X',
         })
         const clone = await user.load('compositionAssets').execute()
-        await compositionAsset.update({ name: 'hello' })
-        const clone2 = await user.load('compositionAssets').execute()
+        await CompositionAsset.query().updateAll({ name: 'hello' })
+        const clone2 = await clone.load('compositionAssets').execute()
         expect(clone2.compositionAssets![0].name).toEqual('hello')
-        expect(clone2.compositionAssets).not.toEqual(clone.compositionAssets)
       })
     })
 

@@ -52,6 +52,7 @@ import ConnectedToDB from '../db/ConnectedToDB'
 import SimilarityOperatorNotSupportedOnDestroyQueries from '../exceptions/similarity-operator-not-supported-on-destroy-queries'
 import cloneDeep from 'lodash.clonedeep'
 import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment'
+import associationToGetterSetterProp from '../decorators/associations/associationToGetterSetterProp'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -675,14 +676,12 @@ export default class Query<
     switch (association.type) {
       case 'HasMany':
         dreams.forEach((dream: any) => {
-          if (dream.loaded(association.as)) return // only overwrite if this hasn't yet been preloaded
           dream[association.as] = []
         })
         break
       default:
         dreams.forEach((dream: any) => {
-          if (dream.loaded(association.as)) return // only overwrite if this hasn't yet been preloaded
-          dream[`__${association.as}__`] = null
+          dream[associationToGetterSetterProp(association)] = null
         })
     }
 
@@ -697,10 +696,8 @@ export default class Query<
         .filter(dream => dream.primaryKeyValue === preloadedDreamAndWhatItPointsTo.pointsToPrimaryKey)
         .forEach((dream: any) => {
           if (association.type === 'HasMany') {
-            if (Object.isFrozen(dream[association.as])) return // only overwrite if this hasn't yet been preloaded
             dream[association.as].push(preloadedDreamAndWhatItPointsTo.dream)
           } else {
-            if (dream[association.as]) return // only overwrite if this hasn't yet been preloaded
             dream[association.as] = preloadedDreamAndWhatItPointsTo.dream
           }
         })
@@ -766,8 +763,7 @@ export default class Query<
 
       if (relevantAssociatedModels.length) {
         dreams.forEach((dream: any) => {
-          if (dream.loaded(association.as)) return // only overwrite if this hasn't yet been preloaded
-          dream[`__${association.as}__`] = null
+          dream[associationToGetterSetterProp(association)] = null
         })
 
         const loadedAssociations = await this.symmetricalQueryForDreamClass(associatedModel)
@@ -799,7 +795,6 @@ export default class Query<
               }
             })
             .forEach((dream: any) => {
-              if (dream[association.as]) return // only overwrite if this hasn't yet been preloaded
               dream[association.as] = loadedAssociation
             })
         }

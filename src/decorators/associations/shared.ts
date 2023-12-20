@@ -15,6 +15,7 @@ import { checkForeignKey } from '../../exceptions/associations/explicit-foreign-
 import camelize from '../../../shared/helpers/camelize'
 import NonLoadedAssociation from '../../exceptions/associations/non-loaded-association'
 import compact from '../../helpers/compact'
+import associationToGetterSetterProp from './associationToGetterSetterProp'
 
 export type AssociatedModelParam<
   I extends Dream,
@@ -158,14 +159,14 @@ export function applyGetterAndSetter(
     configurable: true,
 
     get: function (this: any) {
-      const value = this[`__${partialAssociation.as}__`]
+      const value = this[associationToGetterSetterProp(partialAssociation)]
       if (value === undefined)
         throw new NonLoadedAssociation({ dreamClass, associationName: partialAssociation.as })
       else return value
     },
 
     set: function (this: any, associatedModel: any) {
-      this[`__${partialAssociation.as}__`] = associatedModel
+      this[associationToGetterSetterProp(partialAssociation)] = associatedModel
 
       if (isBelongsTo) {
         this[finalForeignKey(foreignKeyBase, dreamClass, partialAssociation)] =
