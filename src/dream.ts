@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon'
 import { CompiledQuery, SelectArg, SelectExpression, Updateable } from 'kysely'
 import db from './db'
 import { HasManyStatement } from './decorators/associations/has-many'
@@ -619,7 +620,7 @@ export default class Dream {
   public frozenAttributes: { [key: string]: any } = {}
   public originalAttributes: { [key: string]: any } = {}
   public attributesFromBeforeLastSave: { [key: string]: any } = {}
-  private dreamTransaction: DreamTransaction<any> | null = null
+
   constructor(
     opts?: any
     // opts?: Updateable<
@@ -758,10 +759,12 @@ export default class Dream {
     Table extends DB[keyof DB] = DB[TableName]
   >(this: I): Updateable<Table> {
     const obj: Updateable<Table> = {}
+
     Object.keys(this.attributes()).forEach(column => {
       // TODO: clean up types
       if (this.attributeIsDirty(column as any)) (obj as any)[column] = (this.attributes() as any)[column]
     })
+
     return obj
   }
 
@@ -772,9 +775,14 @@ export default class Dream {
     Table extends DB[TableName],
     Attr extends keyof Updateable<Table> & string
   >(this: I, attribute: Attr): boolean {
+    const frozenValue = (this.frozenAttributes as any)[attribute]
+    const currentValue = (this.attributes() as any)[attribute]
+
     return (
-      (this.frozenAttributes as any)[attribute] === undefined ||
-      (this.frozenAttributes as any)[attribute] !== (this.attributes() as any)[attribute]
+      frozenValue === undefined ||
+      (frozenValue?.constructor === DateTime
+        ? (frozenValue as DateTime).toMillis() !== (currentValue as DateTime | null)?.toMillis()
+        : frozenValue !== currentValue)
     )
   }
 
@@ -829,8 +837,32 @@ export default class Dream {
       .joinsPluck(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
 
-  public clone<I extends Dream>(this: I): I {
+  /**
+   * Deep clones the model, it's attributes, and its associations
+   */
+  public deepClone<I extends Dream>(this: I): I {
     return cloneDeep(this)
+  }
+
+  /**
+   * Deep clones the model and it's attributes, but maintains references to
+   * loaded associations
+   */
+  public clone<I extends Dream>(this: I): I {
+    const self: any = this
+    const clone: any = new self.constructor()
+
+    const associationDataKeys = Object.values((this.constructor as typeof Dream).associationMap()).map(
+      association => `__${association.as}__`
+    )
+
+    Object.keys(this).forEach(property => {
+      if (!associationDataKeys.includes(property)) clone[property] = cloneDeep(self[property])
+    })
+
+    associationDataKeys.forEach(associationDataKey => (clone[associationDataKey] = self[associationDataKey]))
+
+    return clone as I
   }
 
   public async createAssociation<
