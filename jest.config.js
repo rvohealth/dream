@@ -6,7 +6,7 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   setupFiles: ['jest-plugin-context/setup'],
-  setupFilesAfterEnv: ['<rootDir>spec/setup/hooks.ts'],
+  setupFilesAfterEnv: ['<rootDir>spec/setup/hooks.ts', 'luxon-jest-matchers'],
   globalSetup: '<rootDir>spec/setup/beforeAll.ts',
   globalTeardown: '<rootDir>spec/setup/afterAll.ts',
 }

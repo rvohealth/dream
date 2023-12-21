@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
@@ -18,6 +19,86 @@ describe('Dream#isDirty', () => {
 
     user.email = 'ham@'
     expect(user.isDirty).toEqual(false)
+  })
+
+  context('DateTime', () => {
+    let user: User
+
+    beforeEach(async () => {
+      user = await User.create({
+        email: 'ham@',
+        password: 'chalupas',
+      })
+    })
+
+    context('when the DateTime is a different object at the same time', () => {
+      it('is false', () => {
+        user.updatedAt = DateTime.fromISO(user.updatedAt.toISO()!)
+        expect(user.isDirty).toBe(false)
+      })
+    })
+
+    context('when the DateTime is a different time', () => {
+      it('is true', () => {
+        user.updatedAt = user.updatedAt.plus({ second: 1 })
+        expect(user.isDirty).toBe(true)
+      })
+    })
+
+    context('when the DateTime is a string representation of the same time', () => {
+      it('is false', () => {
+        user.updatedAt = user.updatedAt.toISO()! as any
+        expect(user.isDirty).toBe(false)
+      })
+    })
+
+    context('when the DateTime is a string representation of a different time', () => {
+      it('is true', () => {
+        user.updatedAt = user.updatedAt.plus({ second: 1 }).toISO()! as any
+        expect(user.isDirty).toBe(true)
+      })
+    })
+  })
+
+  context('CalendarDate', () => {
+    let user: User
+    let originalBirthdateString = '1988-10-13'
+
+    beforeEach(async () => {
+      user = await User.create({
+        email: 'ham@',
+        password: 'chalupas',
+        birthdate: DateTime.fromISO(originalBirthdateString),
+      })
+    })
+
+    context('when the DateTime is a different object at the same time', () => {
+      it('is false', () => {
+        user.birthdate = DateTime.fromISO(user.birthdate.toISO()!)
+        expect(user.isDirty).toBe(false)
+      })
+    })
+
+    context('when the DateTime is a different time', () => {
+      it('is true', () => {
+        user.birthdate = user.birthdate.plus({ second: 1 })
+        expect(user.isDirty).toBe(true)
+      })
+    })
+
+    context('when the DateTime is a string representation of the same time', () => {
+      it('is false', () => {
+        user.birthdate = originalBirthdateString as any
+        expect(user.isDirty).toBe(false)
+      })
+    })
+
+    context('when the DateTime is a string representation of a different time', () => {
+      it('is true', () => {
+        user.birthdate = '1988-10-14' as any
+        expect(user.isDirty).toBe(true)
+      })
+    })
   })
 
   context('with a blank record', () => {

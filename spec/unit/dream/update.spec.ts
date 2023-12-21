@@ -195,4 +195,58 @@ describe('Dream#update', () => {
       expect(pet.favoriteTreats).toEqual(['chicken'])
     })
   })
+
+  context('datetime field', () => {
+    let user: User
+
+    beforeEach(async () => {
+      user = await User.create({
+        email: 'ham@',
+        password: 'chalupas',
+      })
+    })
+
+    it('updates to the date', async () => {
+      const newTime = DateTime.now().minus({ days: 7 })
+      await user.update({ deletedAt: newTime })
+      const reloaded = await User.unscoped().find(user.id)
+      expect(reloaded!.deletedAt).toEqualDateTime(newTime)
+    })
+
+    context('with a string representation of a datetime', () => {
+      it('updates to the datetime', async () => {
+        const newTime = DateTime.now().minus({ days: 7 })
+        await user.update({ deletedAt: newTime.toISO() as any })
+        const reloaded = await User.unscoped().find(user.id)
+        expect(reloaded!.deletedAt).toEqualDateTime(newTime)
+      })
+    })
+  })
+
+  context('date field', () => {
+    let user: User
+    const dateString = '1980-10-13'
+
+    beforeEach(async () => {
+      user = await User.create({
+        email: 'ham@',
+        password: 'chalupas',
+      })
+    })
+
+    it('updates to the date', async () => {
+      const newDate = DateTime.fromISO(dateString)
+      await user.update({ birthdate: newDate })
+      const reloaded = await User.unscoped().find(user.id)
+      expect(reloaded!.birthdate.toISODate()).toEqual(dateString)
+    })
+
+    context('with a string representation of a date', () => {
+      it('updates to the date', async () => {
+        await user.update({ birthdate: dateString as any })
+        const reloaded = await User.unscoped().find(user.id)
+        expect(reloaded!.birthdate.toISODate()).toEqual(dateString)
+      })
+    })
+  })
 })

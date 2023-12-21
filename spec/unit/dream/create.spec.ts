@@ -185,4 +185,64 @@ describe('Dream.create', () => {
       expect(edgeCase!.popKPop).toEqual(7)
     })
   })
+
+  context('datetime field', () => {
+    it('creates the model with the specified date', async () => {
+      const aTime = DateTime.now().minus({ days: 7 })
+
+      const user = await User.create({
+        email: 'ham@',
+        password: 'chalupas',
+        deletedAt: aTime,
+      })
+
+      const reloaded = await User.unscoped().find(user.id)
+      expect(reloaded!.deletedAt).toEqualDateTime(aTime)
+    })
+
+    context('with a string representation of a datetime', () => {
+      it('creates the model with the specified datetime', async () => {
+        const aTime = DateTime.now().minus({ days: 7 })
+
+        const user = await User.create({
+          email: 'ham@',
+          password: 'chalupas',
+          deletedAt: aTime.toISO() as any,
+        })
+
+        const reloaded = await User.unscoped().find(user.id)
+        expect(reloaded!.deletedAt).toEqualDateTime(aTime)
+      })
+    })
+  })
+
+  context('date field', () => {
+    const dateString = '1980-10-13'
+
+    it('creates the model with the specified date', async () => {
+      const aDate = DateTime.fromISO(dateString)
+
+      const user = await User.create({
+        email: 'ham@',
+        password: 'chalupas',
+        birthdate: aDate,
+      })
+
+      const reloaded = await User.unscoped().find(user.id)
+      expect(reloaded!.birthdate.toISODate()).toEqual(dateString)
+    })
+
+    context('with a string representation of a date', () => {
+      it('creates the model with the specified date', async () => {
+        const user = await User.create({
+          email: 'ham@',
+          password: 'chalupas',
+          birthdate: dateString as any,
+        })
+
+        const reloaded = await User.unscoped().find(user.id)
+        expect(reloaded!.birthdate.toISODate()).toEqual(dateString)
+      })
+    })
+  })
 })

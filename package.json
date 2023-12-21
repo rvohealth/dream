@@ -1,6 +1,6 @@
 {
   "name": "@rvohealth/dream",
-  "version": "0.1.36",
+  "version": "0.1.37",
   "description": "dream orm",
   "main": "src/index.ts",
   "repository": "https://github.com/rvohealth/dream.git",
@@ -65,6 +65,7 @@
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "jest-plugin-context": "^2.9.0",
+    "luxon-jest-matchers": "^0.1.14",
     "typedoc": "^0.24.6"
   }
 }

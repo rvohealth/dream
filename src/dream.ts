@@ -59,6 +59,7 @@ import cloneDeep from 'lodash.clonedeep'
 import NonLoadedAssociation from './exceptions/associations/non-loaded-association'
 import extractAttributesFromUpdateableProperties from './dream/internal/extractAttributesFromUpdateableProperties'
 import associationToGetterSetterProp from './decorators/associations/associationToGetterSetterProp'
+import { isString } from './helpers/typechecks'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -782,9 +783,15 @@ export default class Dream {
     return (
       frozenValue === undefined ||
       (frozenValue?.constructor === DateTime
-        ? (frozenValue as DateTime).toMillis() !== (currentValue as DateTime | null)?.toMillis()
+        ? (frozenValue as DateTime).toMillis() !== this.unknownValueToMillis(currentValue)
         : frozenValue !== currentValue)
     )
+  }
+
+  private unknownValueToMillis(currentValue: any): number | undefined {
+    if (!currentValue) return
+    if (isString(currentValue)) currentValue = DateTime.fromISO(currentValue)
+    if ((currentValue as DateTime)?.isValid) return currentValue.toMillis()
   }
 
   public async destroy<I extends Dream>(this: I): Promise<I> {
