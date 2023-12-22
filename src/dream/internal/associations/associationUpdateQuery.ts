@@ -4,6 +4,7 @@ import Query from '../../query'
 import { DreamConstructorType } from '../../types'
 import { HasManyStatement } from '../../../decorators/associations/has-many'
 import { HasOneStatement } from '../../../decorators/associations/has-one'
+import { BelongsToStatement } from '../../../decorators/associations/belongs-to'
 
 export default function associationUpdateQuery<
   DreamInstance extends Dream,
@@ -22,8 +23,12 @@ export default function associationUpdateQuery<
   const association = dream.associationMap()[associationName] as
     | HasManyStatement<any, any, any>
     | HasOneStatement<any, any, any>
+    | BelongsToStatement<any, any, any>
 
   const associationClass = association.modelCB()
+  if (Array.isArray(associationClass)) {
+    throw new Error('Cannot update a polymorphic association using associationUpdateQuery')
+  }
 
   const dreamClass = dream.constructor as typeof Dream
 
