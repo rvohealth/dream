@@ -227,6 +227,9 @@ export default {
     "lastComposition": [
       "compositions"
     ],
+    "firstPet": [
+      "pets"
+    ],
     "compositions": [
       "compositions"
     ],
@@ -500,6 +503,9 @@ export interface SyncedAssociations {
     ],
     "lastComposition": [
       "compositions"
+    ],
+    "firstPet": [
+      "pets"
     ],
     "compositions": [
       "compositions"

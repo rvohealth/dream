@@ -1602,23 +1602,25 @@ export default class Query<
   }
 
   private attachLimitAndOrderStatementsToNonSelectQuery<
+    T extends Query<DreamClass>,
     QueryType extends
       | UpdateQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, any, {}>
       | DeleteQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
-  >(kyselyQuery: QueryType): QueryType {
+  >(this: T, kyselyQuery: QueryType): QueryType {
     if (this.limitStatement || this.orderStatement) {
       kyselyQuery = (kyselyQuery as any).where((eb: any) => {
-        let subquery = eb
-          .selectFrom(this.dreamClass.prototype.table)
-          .select(this.dreamClass.primaryKey as any)
+        let subquery = this.nestedSelect(this.dreamClass.primaryKey)
+        // let subquery = eb
+        //   .selectFrom(this.dreamClass.prototype.table)
+        //   .select(this.dreamClass.primaryKey as any)
 
-        if (this.limitStatement) {
-          subquery = subquery.limit(this.limitStatement!.count)
-        }
+        // if (this.limitStatement) {
+        //   subquery = subquery.limit(this.limitStatement!.count)
+        // }
 
-        if (this.orderStatement) {
-          subquery = subquery.orderBy(this.orderStatement.column as any, this.orderStatement.direction)
-        }
+        // if (this.orderStatement) {
+        //   subquery = subquery.orderBy(this.orderStatement.column as any, this.orderStatement.direction)
+        // }
 
         return eb(this.dreamClass.primaryKey as any, 'in', subquery)
       })

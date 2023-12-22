@@ -237,9 +237,9 @@ describe('Query#preload with simple associations', () => {
           user,
         })
 
-        let reloadedUser = await User.preload('lastComposition').preload('firstComposition').first()
-        expect(reloadedUser!.lastComposition).toMatchDreamModel(lastComposition)
+        let reloadedUser = await User.preload('firstComposition').preload('lastComposition').first()
         expect(reloadedUser!.firstComposition).toMatchDreamModel(firstComposition)
+        expect(reloadedUser!.lastComposition).toMatchDreamModel(lastComposition)
       })
     })
   })
