@@ -3,6 +3,7 @@ import DreamTransaction from '../../transaction'
 import Query from '../../query'
 import { DreamConstructorType, TableOrAssociationName } from '../../types'
 import { HasManyStatement } from '../../../decorators/associations/has-many'
+import { HasOneStatement } from '../../../decorators/associations/has-one'
 
 export default function associationUpdateQuery<
   DreamInstance extends Dream,
@@ -18,7 +19,10 @@ export default function associationUpdateQuery<
   txn: DreamTransaction<DreamInstance['DB']> | null = null,
   associationName: AssociationName
 ) {
-  const association = dream.associationMap()[associationName] as HasManyStatement<any, any, any>
+  const association = dream.associationMap()[associationName] as
+    | HasManyStatement<any, any, any>
+    | HasOneStatement<any, any, any>
+
   const associationClass = association.modelCB()
 
   const dreamClass = dream.constructor as typeof Dream
@@ -37,7 +41,21 @@ export default function associationUpdateQuery<
     [associationClass.primaryKey]: nestedSelect,
   }
 
-  return txn
-    ? (associationClass.txn(txn).where(whereClause) as AssociationQuery)
-    : (associationClass.where(whereClause) as AssociationQuery)
+  let query = txn
+    ? (associationClass.txn(txn).where(whereClause) as any)
+    : (associationClass.where(whereClause) as any)
+
+  if (association.order) {
+    if (Array.isArray(association.order)) {
+      query = query.order(association.order[0], association.order[1])
+    } else {
+      query = query.order(association.order, 'asc')
+    }
+  }
+
+  if (association.type === 'HasOne') {
+    query = query.limit(1)
+  }
+
+  return query as AssociationQuery
 }

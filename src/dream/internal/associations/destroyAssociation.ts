@@ -41,7 +41,7 @@ export default async function destroyAssociation<
           association,
         })
 
-      return await associationClass
+      let query = associationClass
         // NOTE: do not remove this ts-ignore. It only breaks when other apps
         // load their schemas in.
         // @ts-ignore
@@ -49,7 +49,20 @@ export default async function destroyAssociation<
           [association.foreignKey()]: dream.primaryKeyValue,
           ...opts,
         })
-        .destroy()
+
+      if (association.type === 'HasOne') {
+        query = query.limit(1)
+      }
+
+      if (association.order) {
+        if (Array.isArray(association.order)) {
+          query = query.order(association.order[0], association.order[1])
+        } else {
+          query = query.order(association.order, 'asc')
+        }
+      }
+
+      return await query.destroy()
 
     case 'BelongsTo':
       // NOTE: dream relies on the database being properly set up with cascade deletion on the foreign key.

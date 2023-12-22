@@ -226,6 +226,22 @@ describe('Query#preload with simple associations', () => {
         expect(reloaded?.notLostCollar).toMatchDreamModel(notLostCollar)
       })
     })
+
+    context('with order-clause-on-the-association', () => {
+      it('loads the associated object', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const firstComposition = await Composition.create({
+          user,
+        })
+        const lastComposition = await Composition.create({
+          user,
+        })
+
+        let reloadedUser = await User.preload('lastComposition').preload('firstComposition').first()
+        expect(reloadedUser!.lastComposition).toMatchDreamModel(lastComposition)
+        expect(reloadedUser!.firstComposition).toMatchDreamModel(firstComposition)
+      })
+    })
   })
 
   context('default scopes on the included models', () => {

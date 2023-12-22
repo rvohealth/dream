@@ -103,6 +103,22 @@ describe('Dream#associationQuery', () => {
           .first()
       ).toBeNull()
     })
+
+    context('with order applied to the association', () => {
+      it('applies order', async () => {
+        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        const composition1 = await Composition.create({ user, content: 'a' })
+        const composition3 = await Composition.create({ user, content: 'c' })
+        const composition4 = await Composition.create({ user, content: 'd' })
+        const composition2 = await Composition.create({ user, content: 'b' })
+
+        const results = await user.associationQuery('sortedCompositions').all()
+        expect(results[0]).toMatchDreamModel(composition1)
+        expect(results[1]).toMatchDreamModel(composition2)
+        expect(results[2]).toMatchDreamModel(composition3)
+        expect(results[3]).toMatchDreamModel(composition4)
+      })
+    })
   })
 
   context('when in a transaction', () => {
@@ -121,6 +137,22 @@ describe('Dream#associationQuery', () => {
         expect(await user.txn(txn).associationQuery('recentCompositions').all()).toMatchDreamModels([
           recentComposition,
         ])
+      })
+    })
+  })
+
+  context('HasOne', () => {
+    context('with order applied to the association', () => {
+      it('applies order', async () => {
+        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        const composition1 = await Composition.create({ user, content: 'b' })
+        const composition2 = await Composition.create({ user, content: 'a' })
+
+        const firstResults = await user.associationQuery('firstComposition').first()
+        expect(firstResults).toMatchDreamModel(composition1)
+
+        const lastResults = await user.associationQuery('lastComposition').first()
+        expect(lastResults).toMatchDreamModel(composition2)
       })
     })
   })

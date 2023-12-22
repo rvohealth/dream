@@ -1,6 +1,7 @@
 import Dream from '../../dream'
 import {
   HasStatement,
+  OrderStatement,
   PartialAssociationStatement,
   TableColumnName,
   WhereStatement,
@@ -21,6 +22,7 @@ export default function HasMany<AssociationDreamClass extends typeof Dream>(
     const where = options.where
     const whereNot = options.whereNot
     const distinct = options.distinct
+    const order = options.order
 
     const dreamClass: typeof Dream = target.constructor
 
@@ -37,6 +39,7 @@ export default function HasMany<AssociationDreamClass extends typeof Dream>(
       where,
       whereNot,
       distinct,
+      order,
     } as PartialAssociationStatement
 
     const association = {
@@ -85,6 +88,15 @@ export type HasManyOptions<AssociationDreamClass extends typeof Dream> = {
       >
   >
   whereNot?: WhereStatement<
+    InstanceType<AssociationDreamClass>['DB'],
+    InstanceType<AssociationDreamClass>['syncedAssociations'],
+    InstanceType<AssociationDreamClass>['table'] &
+      AssociationTableNames<
+        InstanceType<AssociationDreamClass>['DB'],
+        InstanceType<AssociationDreamClass>['syncedAssociations']
+      >
+  >
+  order?: OrderStatement<
     InstanceType<AssociationDreamClass>['DB'],
     InstanceType<AssociationDreamClass>['syncedAssociations'],
     InstanceType<AssociationDreamClass>['table'] &

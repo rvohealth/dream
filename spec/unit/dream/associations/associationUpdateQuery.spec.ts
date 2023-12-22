@@ -104,6 +104,23 @@ describe('Dream#associationUpdateQuery', () => {
     })
   })
 
+  context('HasOne', () => {
+    context('with order defined on association', () => {
+      it('respects order', async () => {
+        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        const composition1 = await Composition.create({ user, content: '1' })
+        const composition2 = await Composition.create({ user, content: '2' })
+
+        await user.associationUpdateQuery('lastComposition').updateAll({ content: 'zoomba' })
+        await composition1.reload()
+        await composition2.reload()
+
+        expect(composition1.content).toEqual('1')
+        expect(composition2.content).toEqual('zoomba')
+      })
+    })
+  })
+
   context('when in a transaction', () => {
     it('returns a chainable query encapsulating that association', async () => {
       const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })

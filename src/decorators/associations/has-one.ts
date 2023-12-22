@@ -1,7 +1,9 @@
 import Dream from '../../dream'
 import {
   HasStatement,
+  OrderStatement,
   PartialAssociationStatement,
+  TableColumnName,
   WhereStatement,
   applyGetterAndSetter,
   blankAssociationsFactory,
@@ -19,6 +21,7 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
     through,
     where,
     whereNot,
+    order,
   }: {
     foreignKey?: string
     polymorphic?: boolean
@@ -34,6 +37,15 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
         >
     >
     whereNot?: WhereStatement<
+      InstanceType<AssociationDreamClass>['DB'],
+      InstanceType<AssociationDreamClass>['syncedAssociations'],
+      InstanceType<AssociationDreamClass>['table'] &
+        AssociationTableNames<
+          InstanceType<AssociationDreamClass>['DB'],
+          InstanceType<AssociationDreamClass>['syncedAssociations']
+        >
+    >
+    order?: OrderStatement<
       InstanceType<AssociationDreamClass>['DB'],
       InstanceType<AssociationDreamClass>['syncedAssociations'],
       InstanceType<AssociationDreamClass>['table'] &
@@ -60,6 +72,7 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
       where,
       whereNot,
       distinct: null,
+      order,
     } as PartialAssociationStatement
 
     const association = {
