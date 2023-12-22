@@ -74,6 +74,11 @@ export default class User extends ApplicationModel {
   })
   public lastComposition: Composition
 
+  @HasOne(() => Pet, {
+    order: 'name',
+  })
+  public firstPet: Pet
+
   @HasMany(() => Composition, {
     order: ['content', 'asc'],
   })

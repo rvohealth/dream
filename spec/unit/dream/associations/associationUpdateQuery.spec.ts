@@ -4,6 +4,7 @@ import Composition from '../../../../test-app/app/models/Composition'
 import User from '../../../../test-app/app/models/User'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
+import Pet from '../../../../test-app/app/models/Pet'
 
 describe('Dream#associationUpdateQuery', () => {
   context('with a HasMany association', () => {
@@ -117,6 +118,52 @@ describe('Dream#associationUpdateQuery', () => {
 
         expect(composition1.content).toEqual('1')
         expect(composition2.content).toEqual('zoomba')
+      })
+
+      it('respects scopes on the associated model', async () => {
+        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        const pet1 = await Pet.create({ user, name: 'petb' })
+        const pet2 = await Pet.create({ user, name: 'peta' })
+        await pet2.destroy()
+
+        await user.associationUpdateQuery('firstPet').updateAll({ name: 'coolidge' })
+
+        await pet1.reload()
+        const reloadedPet2 = await Pet.unscoped().find(pet2.id)
+
+        expect(pet1.name).toEqual('coolidge')
+        expect(reloadedPet2!.name).toEqual('peta')
+      })
+
+      context.skip('with a subsequent order defined on query', () => {
+        it('respects order', async () => {
+          const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+          const pet1 = await Pet.create({ user, name: 'petb' })
+          const pet2 = await Pet.create({ user, name: 'peta' })
+
+          await user.associationUpdateQuery('firstPet').order('id', 'asc').updateAll({ name: 'coolidge' })
+
+          await pet1.reload()
+          await pet2.reload()
+
+          expect(pet1.name).toEqual('petb')
+          expect(pet2.name).toEqual('coolidge')
+        })
+
+        it('respects scopes on the associated model', async () => {
+          const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+          const pet1 = await Pet.create({ user, name: 'petb' })
+          const pet2 = await Pet.create({ user, name: 'peta' })
+          await pet2.destroy()
+
+          await user.associationUpdateQuery('firstPet').order('name', 'desc').updateAll({ name: 'coolidge' })
+
+          await pet1.reload()
+          const reloadedPet2 = await Pet.unscoped().find(pet2.id)
+
+          expect(pet1.name).toEqual('coolidge')
+          expect(reloadedPet2!.name).toEqual('peta')
+        })
       })
     })
   })
