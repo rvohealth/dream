@@ -1,10 +1,9 @@
 import Dream from '../../../dream'
 import DreamTransaction from '../../transaction'
 import Query from '../../query'
-import { DreamConstructorType, TableOrAssociationName, UpdateablePropertiesForClass } from '../../types'
+import { DreamConstructorType } from '../../types'
 import { HasManyStatement } from '../../../decorators/associations/has-many'
 import { HasOneStatement } from '../../../decorators/associations/has-one'
-import applyOrderAndLimitToAssociationQuery from './applyOrderAndLimitToAssociationQuery'
 
 export default function associationUpdateQuery<
   DreamInstance extends Dream,
