@@ -2,6 +2,7 @@ import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { AssociationTableNames } from '../db/reflections'
 import {
   LimitStatement,
+  OrderQueryStatement,
   OrderStatement,
   TableColumnName,
   WhereStatement,
@@ -109,7 +110,7 @@ export default class Query<
   )
   public readonly limitStatement: LimitStatement | null
   public readonly orStatements: readonly Query<DreamClass>[] = Object.freeze([])
-  public readonly orderStatement: { column: ColumnType & string; direction: 'asc' | 'desc' } | null = null
+  public readonly orderStatement: OrderQueryStatement<ColumnType> | null = null
   public readonly preloadStatements: RelaxedPreloadStatement = Object.freeze({})
   public readonly joinsStatements: RelaxedJoinsStatement = Object.freeze({})
   public readonly joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = Object.freeze({})
@@ -152,11 +153,11 @@ export default class Query<
     return new Query(this.dreamClass, {
       baseSQLAlias: opts.baseSQLAlias || this.baseSQLAlias,
       baseSelectQuery: opts.baseSelectQuery || this.baseSelectQuery,
-      where: [...this.whereStatement, ...(opts.where || [])],
-      whereNot: [...this.whereNotStatement, ...(opts.whereNot || [])],
-      limit: opts.limit || this.limitStatement,
+      where: opts.where === null ? [] : [...this.whereStatement, ...(opts.where || [])],
+      whereNot: opts.whereNot === null ? [] : [...this.whereNotStatement, ...(opts.whereNot || [])],
+      limit: opts.limit !== undefined ? opts.limit : this.limitStatement || null,
       or: [...this.orStatements, ...(opts.or || [])],
-      order: opts.order || this.orderStatement || null,
+      order: opts.order !== undefined ? opts.order : this.orderStatement || null,
       distinctColumn: (opts.distinctColumn !== undefined
         ? opts.distinctColumn
         : this.distinctColumn) as ColumnType | null,
@@ -1301,6 +1302,10 @@ export default class Query<
       query = query.orderBy(`${association.as}.${orderStatement}`, 'asc')
     }
 
+    if (association.type === 'HasOne') {
+      query = query.limit(1)
+    }
+
     return query
   }
 
@@ -1542,10 +1547,9 @@ export default class Query<
     let kyselyQuery = this.dbFor('delete').deleteFrom(
       this.baseSQLAlias as unknown as AliasedExpression<any, any>
     )
-    kyselyQuery = this.buildCommon(kyselyQuery)
-    kyselyQuery = this.attachLimitAndOrderStatementsToNonSelectQuery(kyselyQuery)
 
-    return kyselyQuery
+    const results = this.attachLimitAndOrderStatementsToNonSelectQuery(kyselyQuery)
+    return results.clone.buildCommon(results.kyselyQuery)
   }
 
   private buildSelect<T extends Query<DreamClass>, DI extends InstanceType<DreamClass>, DB extends DI['DB']>(
@@ -1595,10 +1599,10 @@ export default class Query<
       .updateTable(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
       .set(attributes as any)
 
-    kyselyQuery = this.attachLimitAndOrderStatementsToNonSelectQuery(kyselyQuery)
     kyselyQuery = this.conditionallyAttachSimilarityColumnsToUpdate(kyselyQuery)
 
-    return this.buildCommon(kyselyQuery)
+    const results = this.attachLimitAndOrderStatementsToNonSelectQuery(kyselyQuery)
+    return results.clone.buildCommon(results.kyselyQuery)
   }
 
   private attachLimitAndOrderStatementsToNonSelectQuery<
@@ -1606,27 +1610,20 @@ export default class Query<
     QueryType extends
       | UpdateQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, any, {}>
       | DeleteQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
-  >(this: T, kyselyQuery: QueryType): QueryType {
+  >(this: T, kyselyQuery: QueryType): { kyselyQuery: QueryType; clone: T } {
     if (this.limitStatement || this.orderStatement) {
       kyselyQuery = (kyselyQuery as any).where((eb: any) => {
         let subquery = this.nestedSelect(this.dreamClass.primaryKey)
-        // let subquery = eb
-        //   .selectFrom(this.dreamClass.prototype.table)
-        //   .select(this.dreamClass.primaryKey as any)
-
-        // if (this.limitStatement) {
-        //   subquery = subquery.limit(this.limitStatement!.count)
-        // }
-
-        // if (this.orderStatement) {
-        //   subquery = subquery.orderBy(this.orderStatement.column as any, this.orderStatement.direction)
-        // }
-
         return eb(this.dreamClass.primaryKey as any, 'in', subquery)
       })
+
+      return {
+        kyselyQuery,
+        clone: this.clone({ where: null, whereNot: null, order: null, limit: null }) as T,
+      }
     }
 
-    return kyselyQuery
+    return { kyselyQuery, clone: this }
   }
 
   private get hasSimilarityClauses() {
@@ -1688,11 +1685,11 @@ export interface QueryOpts<
 > {
   baseSQLAlias?: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
   baseSelectQuery?: Query<any> | null
-  where?: WhereStatement<DB, SyncedAssociations, any>[]
-  whereNot?: WhereStatement<DB, SyncedAssociations, any>[]
+  where?: WhereStatement<DB, SyncedAssociations, any>[] | null
+  whereNot?: WhereStatement<DB, SyncedAssociations, any>[] | null
   limit?: LimitStatement | null
   or?: Query<DreamClass>[]
-  order?: { column: ColumnType & string; direction: 'asc' | 'desc' } | null
+  order?: OrderQueryStatement<ColumnType> | null
   preloadStatements?: RelaxedPreloadStatement
   distinctColumn?: ColumnType | null
   joinsStatements?: RelaxedJoinsStatement

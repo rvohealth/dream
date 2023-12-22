@@ -5,6 +5,7 @@ import Composition from '../../../../test-app/app/models/Composition'
 import CannotDestroyAssociationWithThroughContext from '../../../../src/exceptions/associations/cannot-destroy-association-with-through-context'
 import { Dream } from '../../../../src'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
+import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 
 describe('Dream#destroyAssociation', () => {
   context('with a HasMany association', () => {
@@ -21,14 +22,46 @@ describe('Dream#destroyAssociation', () => {
       expect(await user.associationQuery('compositions').all()).toEqual([])
       expect(await Composition.all()).toMatchDreamModels([composition2])
     })
+
+    context('with query options passed', () => {
+      it('destroys the related association, respecting options', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await user.createAssociation('compositions', { content: 'chalupas dujour' })
+        const composition2 = await user.createAssociation('compositions', { content: 'chips ahoy' })
+
+        expect(await Composition.all()).toMatchDreamModels([composition, composition2])
+        expect(await user.associationQuery('compositions').all()).toMatchDreamModels([
+          composition,
+          composition2,
+        ])
+        await user.destroyAssociation('compositions', { content: 'chalupas dujour' })
+
+        expect(await user.associationQuery('compositions').all()).toMatchDreamModels([composition2])
+        expect(await Composition.all()).toMatchDreamModels([composition2])
+      })
+    })
   })
 
   context('with a HasMany through association', () => {
-    it('raises a targeted exception, alerting the user to their mistake', async () => {
+    it('destroys the related through association, respecting options', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      await expect(user.destroyAssociation('compositionAssets')).rejects.toThrowError(
-        CannotDestroyAssociationWithThroughContext
-      )
+      const composition = await user.createAssociation('compositions', { content: '1' })
+      const compositionAsset1 = await composition.createAssociation('compositionAssets', {
+        name: 'chalupas dujour',
+      })
+      const compositionAsset2 = await composition.createAssociation('compositionAssets', {
+        name: 'coolidge',
+      })
+
+      expect(await CompositionAsset.all()).toMatchDreamModels([compositionAsset1, compositionAsset2])
+      expect(await user.associationQuery('compositionAssets').all()).toMatchDreamModels([
+        compositionAsset1,
+        compositionAsset2,
+      ])
+      await user.destroyAssociation('compositionAssets', { name: 'chalupas dujour' })
+
+      expect(await user.associationQuery('compositionAssets').all()).toMatchDreamModels([compositionAsset2])
+      expect(await CompositionAsset.all()).toMatchDreamModels([compositionAsset2])
     })
   })
 
@@ -69,15 +102,6 @@ describe('Dream#destroyAssociation', () => {
 
         expect(await user.associationQuery('lastComposition').first()).toMatchDreamModel(composition1)
       })
-    })
-  })
-
-  context('with a HasOne through association', () => {
-    it('raises a targeted exception, alerting the user to their mistake', async () => {
-      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      await expect(user.destroyAssociation('mainCompositionAsset')).rejects.toThrowError(
-        CannotDestroyAssociationWithThroughContext
-      )
     })
   })
 

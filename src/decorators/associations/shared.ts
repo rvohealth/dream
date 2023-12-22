@@ -62,6 +62,11 @@ export type OrderStatement<
 
 export type LimitStatement = { count: number }
 
+export type OrderQueryStatement<ColumnType extends any> = {
+  column: ColumnType & string
+  direction: 'asc' | 'desc'
+}
+
 export type TableColumnName<
   DB extends any,
   SyncedAssociations extends any,

@@ -116,8 +116,8 @@ describe('Dream#associationUpdateQuery', () => {
         await composition1.reload()
         await composition2.reload()
 
-        expect(composition1.content).toEqual('1')
         expect(composition2.content).toEqual('zoomba')
+        expect(composition1.content).toEqual('1')
       })
 
       it('respects scopes on the associated model', async () => {
@@ -135,8 +135,8 @@ describe('Dream#associationUpdateQuery', () => {
         expect(reloadedPet2!.name).toEqual('peta')
       })
 
-      context.skip('with a subsequent order defined on query', () => {
-        it('respects order', async () => {
+      context('with a subsequent order defined on query', () => {
+        it('respects both orders', async () => {
           const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
           const pet1 = await Pet.create({ user, name: 'petb' })
           const pet2 = await Pet.create({ user, name: 'peta' })
