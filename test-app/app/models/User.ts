@@ -64,6 +64,21 @@ export default class User extends ApplicationModel {
   })
   public mainCompositionAsset: CompositionAsset
 
+  @HasOne(() => Composition, {
+    order: ['id', 'asc'],
+  })
+  public firstComposition: Composition
+
+  @HasOne(() => Composition, {
+    order: ['id', 'desc'],
+  })
+  public lastComposition: Composition
+
+  @HasMany(() => Composition, {
+    order: ['content', 'asc'],
+  })
+  public sortedCompositions: Composition[]
+
   @HasMany(() => CompositionAssetAudit, {
     through: 'compositionAssets',
   })

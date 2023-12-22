@@ -268,6 +268,18 @@ describe('Query#joins with simple associations', () => {
       })
     })
 
+    context('with order-clause-on-the-association', () => {
+      it('loads the associated object', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        await Composition.create({
+          user,
+        })
+
+        const reloadedUser = await User.joins('sortedCompositions').first()
+        expect(reloadedUser).toMatchDreamModel(user)
+      })
+    })
+
     context('pointing to an STI model', () => {
       it('loads the association', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
@@ -325,6 +337,18 @@ describe('Query#joins with simple associations', () => {
 
         const reloaded = await Pet.joins('notLostCollar').first()
         expect(reloaded).toMatchDreamModel(pet)
+      })
+    })
+
+    context('with order-clause-on-the-association', () => {
+      it('loads the associated object', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        await Composition.create({
+          user,
+        })
+
+        const reloadedUser = await User.joins('lastComposition').first()
+        expect(reloadedUser).toMatchDreamModel(user)
       })
     })
   })

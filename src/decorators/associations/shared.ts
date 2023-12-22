@@ -52,6 +52,14 @@ export type WhereStatement<
   MergeUnionOfRecordTypes<Updateable<DB[TableName]> | DreamSelectable<DB, SyncedAssociations, TableName>>
 >
 
+export type OrderStatement<
+  DB extends any,
+  SyncedAssociations extends any,
+  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB
+> =
+  | TableColumnName<DB, SyncedAssociations, TableName>
+  | [TableColumnName<DB, SyncedAssociations, TableName>, 'asc' | 'desc']
+
 export type LimitStatement = { count: number }
 
 export type TableColumnName<
@@ -79,6 +87,7 @@ export interface HasStatement<
   where?: WhereStatement<DB, SyncedAssociations, ForeignTableName>
   whereNot?: WhereStatement<DB, SyncedAssociations, ForeignTableName>
   distinct?: TableColumnName<DB, SyncedAssociations, ForeignTableName>
+  order?: OrderStatement<DB, SyncedAssociations, ForeignTableName>
 }
 
 export function blankAssociationsFactory(dreamClass: typeof Dream): {

@@ -221,6 +221,12 @@ export default {
     "mainCompositionAsset": [
       "composition_assets"
     ],
+    "firstComposition": [
+      "compositions"
+    ],
+    "lastComposition": [
+      "compositions"
+    ],
     "compositions": [
       "compositions"
     ],
@@ -229,6 +235,9 @@ export default {
     ],
     "compositionAssets": [
       "composition_assets"
+    ],
+    "sortedCompositions": [
+      "compositions"
     ],
     "compositionAssetAudits": [
       "composition_asset_audits"
@@ -486,6 +495,12 @@ export interface SyncedAssociations {
     "mainCompositionAsset": [
       "composition_assets"
     ],
+    "firstComposition": [
+      "compositions"
+    ],
+    "lastComposition": [
+      "compositions"
+    ],
     "compositions": [
       "compositions"
     ],
@@ -494,6 +509,9 @@ export interface SyncedAssociations {
     ],
     "compositionAssets": [
       "composition_assets"
+    ],
+    "sortedCompositions": [
+      "compositions"
     ],
     "compositionAssetAudits": [
       "composition_asset_audits"

@@ -1,6 +1,11 @@
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { AssociationTableNames } from '../db/reflections'
-import { LimitStatement, TableColumnName, WhereStatement } from '../decorators/associations/shared'
+import {
+  LimitStatement,
+  OrderStatement,
+  TableColumnName,
+  WhereStatement,
+} from '../decorators/associations/shared'
 import {
   JoinsArgumentTypeAssociatedTableNames,
   PreloadArgumentTypeAssociatedTableNames,
@@ -698,7 +703,10 @@ export default class Query<
           if (association.type === 'HasMany') {
             dream[association.as].push(preloadedDreamAndWhatItPointsTo.dream)
           } else {
-            dream[association.as] = preloadedDreamAndWhatItPointsTo.dream
+            // in a HasOne context, order clauses will be applied in advance,
+            // prior to hydration. Considering, we only want to set the first
+            // result and ignore other results, so we will use ||= to set.
+            dream[association.as] ||= preloadedDreamAndWhatItPointsTo.dream
           }
         })
     })
@@ -877,7 +885,10 @@ export default class Query<
   }
 
   public async destroy<T extends Query<DreamClass>>(this: T): Promise<number> {
-    const deletionResult = (await this.buildDelete().executeTakeFirst()) as DeleteResult
+    const deletionResult = (await executeDatabaseQuery(
+      this.buildDelete(),
+      'executeTakeFirst'
+    )) as DeleteResult
     return Number(deletionResult?.numDeletedRows || 0)
   }
 
@@ -1132,6 +1143,10 @@ export default class Query<
             { negate: true }
           )
         }
+
+        if (originalAssociation.order) {
+          query = this.applyOrderStatementForAssociation(query, originalAssociation)
+        }
       }
 
       if (!this.bypassDefaultScopes) {
@@ -1175,6 +1190,10 @@ export default class Query<
           ),
           { negate: true }
         )
+      }
+
+      if (association.order) {
+        query = this.applyOrderStatementForAssociation(query, association)
       }
 
       if (association.distinct) {
@@ -1265,6 +1284,22 @@ export default class Query<
     ;([whereStatements].flat() as WS[]).forEach(statement => {
       query = this.applySingleWhereStatement(query, statement, { negate })
     })
+
+    return query
+  }
+
+  private applyOrderStatementForAssociation<T extends Query<DreamClass>>(
+    this: T,
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
+    association: HasOneStatement<DB, SyncedAssociations, any> | HasManyStatement<DB, SyncedAssociations, any>
+  ) {
+    const orderStatement = association.order
+
+    if (Array.isArray(orderStatement)) {
+      query = query.orderBy(`${association.as}.${orderStatement[0]}`, orderStatement[1])
+    } else {
+      query = query.orderBy(`${association.as}.${orderStatement}`, 'asc')
+    }
 
     return query
   }
@@ -1507,7 +1542,10 @@ export default class Query<
     let kyselyQuery = this.dbFor('delete').deleteFrom(
       this.baseSQLAlias as unknown as AliasedExpression<any, any>
     )
-    return this.buildCommon(kyselyQuery)
+    kyselyQuery = this.buildCommon(kyselyQuery)
+    kyselyQuery = this.attachLimitAndOrderStatementsToNonSelectQuery(kyselyQuery)
+
+    return kyselyQuery
   }
 
   private buildSelect<T extends Query<DreamClass>, DI extends InstanceType<DreamClass>, DB extends DI['DB']>(
@@ -1557,9 +1595,36 @@ export default class Query<
       .updateTable(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
       .set(attributes as any)
 
+    kyselyQuery = this.attachLimitAndOrderStatementsToNonSelectQuery(kyselyQuery)
     kyselyQuery = this.conditionallyAttachSimilarityColumnsToUpdate(kyselyQuery)
 
     return this.buildCommon(kyselyQuery)
+  }
+
+  private attachLimitAndOrderStatementsToNonSelectQuery<
+    QueryType extends
+      | UpdateQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, any, {}>
+      | DeleteQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
+  >(kyselyQuery: QueryType): QueryType {
+    if (this.limitStatement || this.orderStatement) {
+      kyselyQuery = (kyselyQuery as any).where((eb: any) => {
+        let subquery = eb
+          .selectFrom(this.dreamClass.prototype.table)
+          .select(this.dreamClass.primaryKey as any)
+
+        if (this.limitStatement) {
+          subquery = subquery.limit(this.limitStatement!.count)
+        }
+
+        if (this.orderStatement) {
+          subquery = subquery.orderBy(this.orderStatement.column as any, this.orderStatement.direction)
+        }
+
+        return eb(this.dreamClass.primaryKey as any, 'in', subquery)
+      })
+    }
+
+    return kyselyQuery
   }
 
   private get hasSimilarityClauses() {
