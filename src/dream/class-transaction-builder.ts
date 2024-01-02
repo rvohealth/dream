@@ -197,6 +197,18 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     return this.queryInstance().where(attributes as any)
   }
 
+  public whereAny<
+    I extends DreamClassTransactionBuilder<DreamClass>,
+    DB extends InstanceType<DreamClass>['DB'],
+    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
+    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<
+      I['dreamClass']
+    >['table'] &
+      keyof DB
+  >(this: I, attributes: WhereStatement<DB, SyncedAssociations, TableName>[]): Query<DreamClass> {
+    return this.queryInstance().whereAny(attributes as any)
+  }
+
   public whereNot<
     I extends DreamClassTransactionBuilder<DreamClass>,
     DB extends InstanceType<DreamClass>['DB'],

@@ -503,6 +503,16 @@ export default class Dream {
     return this.query().where(attributes)
   }
 
+  public static whereAny<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<T>['table']
+  >(this: T, attributes: WhereStatement<DB, SyncedAssociations, TableName>[]): Query<T> {
+    return this.query().whereAny(attributes)
+  }
+
   public static whereNot<
     T extends typeof Dream,
     I extends InstanceType<T>,

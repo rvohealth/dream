@@ -29,6 +29,9 @@ import {
   Updateable,
   ComparisonOperatorExpression as KyselyComparisonOperatorExpression,
   sql,
+  ExpressionBuilder,
+  ExpressionWrapper,
+  RawBuilder,
 } from 'kysely'
 import { marshalDBValue } from '../helpers/marshalDBValue'
 import Dream from '../dream'
@@ -59,6 +62,7 @@ import SimilarityOperatorNotSupportedOnDestroyQueries from '../exceptions/simila
 import cloneDeep from 'lodash.clonedeep'
 import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment'
 import associationToGetterSetterProp from '../decorators/associations/associationToGetterSetterProp'
+import compact from '../helpers/compact'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -104,12 +108,12 @@ export default class Query<
   Table extends DB[DreamInstance['table']] = DB[DreamInstance['table']],
   ColumnType = keyof DB[keyof DB] extends never ? unknown : keyof DB[keyof DB]
 > extends ConnectedToDB<DreamClass> {
-  public readonly whereStatement: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
-  public readonly whereNotStatement: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze(
+  public readonly whereStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
+  public readonly whereNotStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze(
     []
   )
   public readonly limitStatement: LimitStatement | null
-  public readonly orStatements: readonly Query<DreamClass>[] = Object.freeze([])
+  public readonly orStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
   public readonly orderStatement: OrderQueryStatement<ColumnType> | null = null
   public readonly preloadStatements: RelaxedPreloadStatement = Object.freeze({})
   public readonly joinsStatements: RelaxedJoinsStatement = Object.freeze({})
@@ -127,8 +131,8 @@ export default class Query<
     this.dreamClass = DreamClass
     this.baseSQLAlias = opts.baseSQLAlias || this.dreamClass.prototype['table']
     this.baseSelectQuery = opts.baseSelectQuery || null
-    this.whereStatement = Object.freeze(opts.where || [])
-    this.whereNotStatement = Object.freeze(opts.whereNot || [])
+    this.whereStatements = Object.freeze(opts.where || [])
+    this.whereNotStatements = Object.freeze(opts.whereNot || [])
     this.limitStatement = Object.freeze(opts.limit || null)
     this.orStatements = Object.freeze(opts.or || [])
     this.orderStatement = Object.freeze(opts.order || null)
@@ -153,10 +157,10 @@ export default class Query<
     return new Query(this.dreamClass, {
       baseSQLAlias: opts.baseSQLAlias || this.baseSQLAlias,
       baseSelectQuery: opts.baseSelectQuery || this.baseSelectQuery,
-      where: opts.where === null ? [] : [...this.whereStatement, ...(opts.where || [])],
-      whereNot: opts.whereNot === null ? [] : [...this.whereNotStatement, ...(opts.whereNot || [])],
+      where: opts.where === null ? [] : [...this.whereStatements, ...(opts.where || [])],
+      whereNot: opts.whereNot === null ? [] : [...this.whereNotStatements, ...(opts.whereNot || [])],
       limit: opts.limit !== undefined ? opts.limit : this.limitStatement || null,
-      or: [...this.orStatements, ...(opts.or || [])],
+      or: opts.or === null ? [] : [...this.orStatements, ...(opts.or || [])],
       order: opts.order !== undefined ? opts.order : this.orderStatement || null,
       distinctColumn: (opts.distinctColumn !== undefined
         ? opts.distinctColumn
@@ -192,10 +196,6 @@ export default class Query<
     attributes: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
   ): Promise<(InstanceType<DreamClass> & Dream) | null> {
     return await this.where(attributes).first()
-  }
-
-  public or(orStatement: Query<DreamClass>) {
-    return this.clone({ or: [orStatement] })
   }
 
   public preload<
@@ -443,6 +443,15 @@ export default class Query<
     return this._where(attributes, 'where')
   }
 
+  public whereAny<T extends Query<DreamClass>>(
+    this: T,
+    attributes: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>[]
+  ): Query<DreamClass> {
+    return this.clone({
+      or: attributes.map(obj => ({ ...obj })),
+    })
+  }
+
   public whereNot<T extends Query<DreamClass>>(
     this: T,
     attributes: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
@@ -455,16 +464,8 @@ export default class Query<
     attributes: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>,
     typeOfWhere: 'where' | 'whereNot'
   ): Query<DreamClass> {
-    const chainableWhereStatement: WhereStatement<DB, SyncedAssociations, any> = {}
-
-    Object.keys(attributes).forEach(
-      key =>
-        // @ts-ignore
-        (chainableWhereStatement[protectAgainstPollutingAssignment(key)] = attributes[key])
-    )
-
     return this.clone({
-      [typeOfWhere]: [chainableWhereStatement],
+      [typeOfWhere]: [{ ...attributes }],
     })
   }
 
@@ -530,7 +531,7 @@ export default class Query<
         return this.buildUpdate({}) as ToKyselyReturnType
 
       default:
-        throw `never`
+        throw new Error('never')
     }
   }
 
@@ -1110,9 +1111,9 @@ export default class Query<
       )
 
       if (association.polymorphic) {
-        query = this.applyWhereStatement(
+        query = this.applyWhereStatements(
           query,
-          this.aliasWhereStatement(
+          this.aliasWhereStatements(
             [{ [association.foreignKeyTypeField()]: dreamClass.stiBaseClassOrOwnClass.name } as any],
             currentAssociationTableOrAlias
           )
@@ -1131,16 +1132,16 @@ export default class Query<
         }
 
         if (originalAssociation.where) {
-          query = this.applyWhereStatement(
+          query = this.applyWhereStatements(
             query,
-            this.aliasWhereStatement([originalAssociation.where], originalAssociation.as)
+            this.aliasWhereStatements([originalAssociation.where], originalAssociation.as)
           )
         }
 
         if (originalAssociation.whereNot) {
-          query = this.applyWhereStatement(
+          query = this.applyWhereStatements(
             query,
-            this.aliasWhereStatement([originalAssociation.whereNot], originalAssociation.as),
+            this.aliasWhereStatements([originalAssociation.whereNot], originalAssociation.as),
             { negate: true }
           )
         }
@@ -1160,16 +1161,16 @@ export default class Query<
           if (tempQuery && tempQuery.constructor === this.constructor) scopesQuery = tempQuery
         }
 
-        query = this.applyWhereStatement(
+        query = this.applyWhereStatements(
           query,
-          this.aliasWhereStatement(scopesQuery.whereStatement, currentAssociationTableOrAlias)
+          this.aliasWhereStatements(scopesQuery.whereStatements, currentAssociationTableOrAlias)
         )
       }
 
       if (association.where) {
-        query = this.applyWhereStatement(
+        query = this.applyWhereStatements(
           query,
-          this.aliasWhereStatement(
+          this.aliasWhereStatements(
             [association.where as WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>],
             currentAssociationTableOrAlias
           )
@@ -1177,9 +1178,9 @@ export default class Query<
       }
 
       if (association.whereNot) {
-        query = this.applyWhereStatement(
+        query = this.applyWhereStatements(
           query,
-          this.aliasWhereStatement(
+          this.aliasWhereStatements(
             [
               association.whereNot as WhereStatement<
                 DB,
@@ -1269,7 +1270,7 @@ export default class Query<
     return query
   }
 
-  private applyWhereStatement<
+  private applyWhereStatements<
     T extends Query<DreamClass>,
     WS extends WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
   >(
@@ -1416,13 +1417,13 @@ export default class Query<
         } else if (negate) {
           // @ts-ignore
           const negatedB = OPERATION_NEGATION_MAP[b]
-          if (!negatedB) throw `no negation available for comparison operator ${b}`
+          if (!negatedB) throw new Error(`no negation available for comparison operator ${b}`)
           query = query.where(a, negatedB, c)
 
           if (b2) {
             // @ts-ignore
             const negatedB2 = OPERATION_NEGATION_MAP[b2]
-            if (!negatedB2) throw `no negation available for comparison operator ${b2}`
+            if (!negatedB2) throw new Error(`no negation available for comparison operator ${b2}`)
             query.where(a2, negatedB2, c2)
           }
         } else {
@@ -1432,6 +1433,210 @@ export default class Query<
       })
 
     return query
+  }
+
+  private whereStatementsToExpressionWrappers<T extends Query<DreamClass>>(
+    this: T,
+    eb: ExpressionBuilder<any, any>,
+    whereStatement: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>,
+    {
+      negate = false,
+    }: {
+      negate?: boolean
+    } = {}
+  ): ExpressionWrapper<any, any, any>[] {
+    return compact(
+      Object.keys(whereStatement)
+        .filter(key => (whereStatement as any)[key] !== undefined)
+        .flatMap(
+          (
+            attr
+          ):
+            | ExpressionWrapper<any, any, any>
+            | ExpressionWrapper<any, any, any>[]
+            | RawBuilder<any>
+            | undefined => {
+            let val = (whereStatement as any)[attr]
+
+            if (
+              (val as OpsStatement<any, any>)?.isOpsStatement &&
+              (val as OpsStatement<any, any>).shouldBypassWhereStatement
+            ) {
+              // some ops statements are handled specifically in the select portion of the query,
+              // and should be ommited from the where clause directly
+              return
+            }
+
+            const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val)
+
+            // postgres is unable to handle WHERE IN statements with blank arrays, such as in
+            // "WHERE id IN ()", meaning that:
+            // 1. If we receive a blank array during a IN comparison,
+            //    then we need to simply regurgitate a where statement which
+            //    guarantees no records.
+            // 2. If we receive a blank array during a NOT IN comparison,
+            //    then it is the same as the where statement not being present at all,
+            //    resulting in a noop on our end
+            if (b === 'in' && Array.isArray(c) && c.length === 0) {
+              return negate ? sql`TRUE` : sql`FALSE`
+            } else if (b === 'not in' && Array.isArray(c) && c.length === 0) {
+              return negate ? sql`FALSE` : sql`TRUE`
+            } else if (negate) {
+              // @ts-ignore
+              const negatedB = OPERATION_NEGATION_MAP[b]
+              if (!negatedB) throw new Error(`no negation available for comparison operator ${b}`)
+              const whereExpression = [eb(a, negatedB, c)]
+
+              if (b2) {
+                // @ts-ignore
+                const negatedB2 = OPERATION_NEGATION_MAP[b2]
+                if (!negatedB2) throw new Error(`no negation available for comparison operator ${b2}`)
+                whereExpression.push(eb(a2, negatedB2, c2))
+              }
+
+              return whereExpression
+            } else {
+              const whereExpression = [eb(a, b, c)]
+              if (b2) whereExpression.push(eb(a2, b2, c2))
+              return whereExpression
+            }
+          }
+        )
+    )
+  }
+
+  private orStatementsToExpressionWrappers<T extends Query<DreamClass>>(
+    this: T,
+    eb: ExpressionBuilder<any, any>,
+    orStatement: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
+  ): ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any> {
+    let useAnd = false
+
+    return Object.keys(orStatement)
+      .filter(key => (orStatement as any)[key] !== undefined)
+      .reduce(
+        (
+          expressionBuilderOrWrap: ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any>,
+          attr: any
+        ): ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any> => {
+          let val = (orStatement as any)[attr]
+
+          if (
+            (val as OpsStatement<any, any>)?.isOpsStatement &&
+            (val as OpsStatement<any, any>).shouldBypassWhereStatement
+          ) {
+            throw new Error('Similarity operator may not be used in whereAny')
+          }
+
+          const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val)
+
+          // postgres is unable to handle WHERE IN statements with blank arrays, such as in
+          // "WHERE id IN ()", meaning that:
+          // 1. If we receive a blank array during a IN comparison,
+          //    then we need to simply regurgitate a where statement which
+          //    guarantees no records.
+          // 2. If we receive a blank array during a NOT IN comparison,
+          //    then it is the same as the where statement not being present at all,
+          //    resulting in a noop on our end
+          if (b === 'in' && Array.isArray(c) && c.length === 0) {
+            if (useAnd) {
+              return expressionBuilderOrWrap.and(sql`FALSE`) as any
+            } else {
+              useAnd = true
+              return sql`FALSE` as any
+            }
+          } else if (b === 'not in' && Array.isArray(c) && c.length === 0) {
+            if (useAnd) {
+              return expressionBuilderOrWrap.and(sql`TRUE`) as any
+            } else {
+              useAnd = true
+              return sql`TRUE` as any
+            }
+          } else {
+            if (useAnd) {
+              expressionBuilderOrWrap = (expressionBuilderOrWrap as any).and(eb(a, b, c))
+            } else {
+              useAnd = true
+              expressionBuilderOrWrap = eb(a, b, c)
+            }
+            if (b2) expressionBuilderOrWrap = (expressionBuilderOrWrap as any).and(eb(a2, b2, c2))
+            return expressionBuilderOrWrap
+          }
+        },
+        eb
+      )
+  }
+
+  private dreamWhereStatementToExpressionBuilderParts(attr: string, val: any) {
+    let a: any
+    let b: KyselyComparisonOperatorExpression
+    let c: any
+    let a2: any | null = null
+    let b2: KyselyComparisonOperatorExpression | null = null
+    let c2: any | null = null
+
+    if (val instanceof Function) {
+      val = val()
+    }
+
+    if (val === null) {
+      a = attr
+      b = 'is'
+      c = val
+    } else if (['SelectQueryBuilder', 'SelectQueryBuilderImpl'].includes(val.constructor.name)) {
+      a = attr
+      b = 'in'
+      c = val
+    } else if (Array.isArray(val)) {
+      a = attr
+      b = 'in'
+      c = val
+    } else if (val.constructor === CurriedOpsStatement) {
+      val = val.toOpsStatement(this.dreamClass, attr)
+      a = attr
+      b = val.operator
+      c = val.value
+    } else if (val.constructor === OpsStatement) {
+      a = attr
+      b = val.operator as KyselyComparisonOperatorExpression
+      c = val.value
+    } else if (val.constructor === Range) {
+      let rangeStart = null
+      let rangeEnd = null
+
+      if ((val.begin?.constructor || val.end?.constructor) === DateTime) {
+        rangeStart = val.begin?.toJSDate()
+        rangeEnd = val.end?.toJSDate()
+      } else if ((val.begin?.constructor || val.end?.constructor) === Number) {
+        rangeStart = val.begin
+        rangeEnd = val.end
+      }
+
+      const excludeEnd = val.excludeEnd
+
+      if (rangeStart && rangeEnd) {
+        a = attr
+        b = '>='
+        c = rangeStart
+        a2 = attr
+        b2 = excludeEnd ? '<' : '<='
+        c2 = rangeEnd
+      } else if (rangeStart) {
+        a = attr
+        b = '>='
+        c = rangeStart
+      } else {
+        a = attr
+        b = excludeEnd ? '<' : '<='
+        c = rangeEnd
+      }
+    } else {
+      a = attr
+      b = '='
+      c = val
+    }
+
+    return { a, b, c, a2, b2, c2 }
   }
 
   private recursivelyApplyJoinWhereStatement<
@@ -1454,7 +1659,7 @@ export default class Query<
       ]
 
       if (columnValue!.constructor !== Object) {
-        query = (this as any).applyWhereStatement(query, {
+        query = (this as any).applyWhereStatements(query, {
           [`${previousAssociationTableOrAlias}.${String(key)}`]: columnValue,
         })
       } else {
@@ -1488,25 +1693,27 @@ export default class Query<
       })
     }
 
-    query.orStatements.forEach(orStatement => {
-      kyselyQuery = kyselyQuery.union(orStatement.toKysely('select') as any)
-    })
+    if (query.whereStatements.length || query.whereNotStatements.length || query.orStatements.length) {
+      kyselyQuery = kyselyQuery.where((eb: ExpressionBuilder<any, any>) => {
+        const whereStatement = query
+          .aliasWhereStatements(query.whereStatements, query.baseSQLAlias)
+          .flatMap(statement => this.whereStatementsToExpressionWrappers(eb, statement))
 
-    if (Object.keys(query.whereStatement).length) {
-      kyselyQuery = query.applyWhereStatement(
-        kyselyQuery,
-        query.aliasWhereStatement(query.whereStatement, query.baseSQLAlias)
-      )
-    }
+        const whereNotStatement = query
+          .aliasWhereStatements(query.whereNotStatements, query.baseSQLAlias)
+          .flatMap(statement => this.whereStatementsToExpressionWrappers(eb, statement, { negate: true }))
 
-    if (Object.keys(query.whereNotStatement).length) {
-      kyselyQuery = query.applyWhereStatement(
-        kyselyQuery,
-        query.aliasWhereStatement(query.whereNotStatement, query.baseSQLAlias),
-        {
-          negate: true,
+        let orEb: ExpressionWrapper<any, any, any> | undefined
+
+        if (query.orStatements.length) {
+          const orStatement = query
+            .aliasWhereStatements(query.orStatements, query.baseSQLAlias)
+            .map(orStatement => this.orStatementsToExpressionWrappers(eb, orStatement))
+          orEb = eb.or(orStatement)
         }
-      )
+
+        return eb.and(compact([...whereStatement, ...whereNotStatement, orEb]))
+      })
     }
 
     if (!isEmpty(query.joinsWhereStatements)) {
@@ -1528,7 +1735,7 @@ export default class Query<
     }
   }
 
-  private aliasWhereStatement(
+  private aliasWhereStatements(
     whereStatements: Readonly<WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>[]>,
     alias: string
   ) {
@@ -1632,8 +1839,8 @@ export default class Query<
 
   private similarityStatementBuilder<T extends Query<DreamClass>>(this: T) {
     return new SimilarityBuilder(this.dreamClass, {
-      where: [...this.whereStatement],
-      whereNot: [...this.whereNotStatement],
+      where: [...this.whereStatements],
+      whereNot: [...this.whereNotStatements],
       joinsWhereStatements: this.joinsWhereStatements,
       transaction: this.dreamTransaction,
       connection: this.connectionOverride,
@@ -1688,7 +1895,7 @@ export interface QueryOpts<
   where?: WhereStatement<DB, SyncedAssociations, any>[] | null
   whereNot?: WhereStatement<DB, SyncedAssociations, any>[] | null
   limit?: LimitStatement | null
-  or?: Query<DreamClass>[]
+  or?: WhereStatement<DB, SyncedAssociations, any>[] | null
   order?: OrderQueryStatement<ColumnType> | null
   preloadStatements?: RelaxedPreloadStatement
   distinctColumn?: ColumnType | null
