@@ -502,12 +502,12 @@ export default class Query<
     return this.clone({ order: { column: column as any, direction } })
   }
 
-  public limit(count: number) {
-    return this.clone({ limit: { count } })
+  public limit(limit: number) {
+    return this.clone({ limit })
   }
 
   public offset(offset: number) {
-    return this.clone({ offset: { amount: offset } })
+    return this.clone({ offset })
   }
 
   public sql() {
@@ -1793,8 +1793,8 @@ export default class Query<
     if (this.orderStatement)
       kyselyQuery = kyselyQuery.orderBy(this.orderStatement.column as any, this.orderStatement.direction)
 
-    if (this.limitStatement) kyselyQuery = kyselyQuery.limit(this.limitStatement.count)
-    if (this.offsetStatement) kyselyQuery = kyselyQuery.offset(this.offsetStatement.amount)
+    if (this.limitStatement) kyselyQuery = kyselyQuery.limit(this.limitStatement)
+    if (this.offsetStatement) kyselyQuery = kyselyQuery.offset(this.offsetStatement)
 
     if (!bypassSelectAll) {
       kyselyQuery = kyselyQuery.selectAll(
