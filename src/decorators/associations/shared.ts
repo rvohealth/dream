@@ -61,6 +61,7 @@ export type OrderStatement<
   | [TableColumnName<DB, SyncedAssociations, TableName>, 'asc' | 'desc']
 
 export type LimitStatement = { count: number }
+export type OffsetStatement = { amount: number }
 
 export type OrderQueryStatement<ColumnType extends any> = {
   column: ColumnType & string

@@ -415,6 +415,10 @@ export default class Dream {
     return this.query().limit(count)
   }
 
+  public static offset<T extends typeof Dream>(this: T, offset: number) {
+    return this.query().offset(offset)
+  }
+
   public static nestedSelect<
     T extends typeof Dream,
     I extends InstanceType<T>,
