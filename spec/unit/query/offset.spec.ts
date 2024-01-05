@@ -6,8 +6,8 @@ import Composition from '../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import Rating from '../../../test-app/app/models/Rating'
 
-describe('Query#limit', () => {
-  it('limits number of records returned', async () => {
+describe('Query#offset', () => {
+  it('applies offset to results', async () => {
     const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
     const user3 = await User.create({ email: 'chalupas@dujour', password: 'howyadoin' })
@@ -35,7 +35,7 @@ describe('Query#limit', () => {
   })
 
   context('hasMany', () => {
-    it('limits results', async () => {
+    it('applies offset to results', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
       const composition = await Composition.create({ user })
 
@@ -47,7 +47,7 @@ describe('Query#limit', () => {
     })
 
     context('polymorphic hasMany', () => {
-      it('limits results', async () => {
+      it('applies offset to results', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
 
         const post1 = await Post.create({ user })
@@ -62,7 +62,7 @@ describe('Query#limit', () => {
     })
 
     context('hasMany through', () => {
-      it('limits results', async () => {
+      it('applies offset to results', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
         const composition1 = await Composition.create({ user })
         const composition2 = await Composition.create({ user })
