@@ -50,11 +50,10 @@ describe('Query#limit', () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
 
         const post1 = await Post.create({ user })
-        const post2 = await Post.create({ user })
 
         const rating1 = await Rating.create({ user, rateable: post1, rating: 3 })
         const rating2 = await Rating.create({ user, rateable: post1, rating: 4 })
-        const rating3 = await Rating.create({ user, rateable: post2, rating: 1 })
+        const rating3 = await Rating.create({ user, rateable: post1, rating: 1 })
 
         const results = await post1.associationQuery('ratings').limit(2).all()
         expect(results).toMatchDreamModels([rating1, rating2])

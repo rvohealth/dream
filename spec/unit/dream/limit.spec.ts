@@ -23,15 +23,18 @@ describe('Dream.limit', () => {
       const composition = await Composition.create({ user })
 
       const compositionAsset1 = await CompositionAsset.create({ composition, score: 7 })
+      let compositionAsset2: CompositionAsset | undefined = undefined
+      let compositionAsset3: CompositionAsset | undefined = undefined
       let results: CompositionAsset[] = []
 
       await ApplicationModel.transaction(async txn => {
-        const compositionAsset2 = await CompositionAsset.txn(txn).create({ composition, score: 3 })
+        compositionAsset2 = await CompositionAsset.txn(txn).create({ composition, score: 3 })
+        compositionAsset3 = await CompositionAsset.txn(txn).create({ composition, score: 3 })
 
-        results = await CompositionAsset.txn(txn).limit(1).all()
+        results = await CompositionAsset.txn(txn).limit(2).all()
       })
 
-      expect(results).toMatchDreamModels([compositionAsset1])
+      expect(results).toMatchDreamModels([compositionAsset1, compositionAsset2])
     })
   })
 })
