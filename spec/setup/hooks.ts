@@ -4,4 +4,4 @@ import 'luxon-jest-matchers'
 
 beforeEach(async () => {
   await truncate()
-})
+}, 15000)
