@@ -3,8 +3,8 @@ import Composition from '../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 
-describe('Dream.limit', () => {
-  it('limits the results', async () => {
+describe('Dream#offset', () => {
+  it('applies offset to results', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
     const composition = await Composition.create({ user })
 
@@ -18,7 +18,7 @@ describe('Dream.limit', () => {
   })
 
   context('when passed a transaction', () => {
-    it('limits the results', async () => {
+    it('applies offset to results', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
       const composition = await Composition.create({ user })
 
