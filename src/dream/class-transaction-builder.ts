@@ -39,6 +39,13 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     return this.queryInstance().limit(limit)
   }
 
+  public offset<I extends DreamClassTransactionBuilder<DreamClass>>(
+    this: I,
+    offset: number
+  ): Query<DreamClass> {
+    return this.queryInstance().offset(offset)
+  }
+
   public async max<
     I extends DreamClassTransactionBuilder<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],

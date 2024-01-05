@@ -2,6 +2,7 @@ import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { AssociationTableNames } from '../db/reflections'
 import {
   LimitStatement,
+  OffsetStatement,
   OrderQueryStatement,
   OrderStatement,
   TableColumnName,
@@ -113,6 +114,7 @@ export default class Query<
     []
   )
   public readonly limitStatement: LimitStatement | null
+  public readonly offsetStatement: OffsetStatement | null
   public readonly orStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
   public readonly orderStatement: OrderQueryStatement<ColumnType> | null = null
   public readonly preloadStatements: RelaxedPreloadStatement = Object.freeze({})
@@ -134,6 +136,7 @@ export default class Query<
     this.whereStatements = Object.freeze(opts.where || [])
     this.whereNotStatements = Object.freeze(opts.whereNot || [])
     this.limitStatement = Object.freeze(opts.limit || null)
+    this.offsetStatement = Object.freeze(opts.offset || null)
     this.orStatements = Object.freeze(opts.or || [])
     this.orderStatement = Object.freeze(opts.order || null)
     this.preloadStatements = Object.freeze(opts.preloadStatements || {})
@@ -160,6 +163,7 @@ export default class Query<
       where: opts.where === null ? [] : [...this.whereStatements, ...(opts.where || [])],
       whereNot: opts.whereNot === null ? [] : [...this.whereNotStatements, ...(opts.whereNot || [])],
       limit: opts.limit !== undefined ? opts.limit : this.limitStatement || null,
+      offset: opts.offset !== undefined ? opts.offset : this.offsetStatement || null,
       or: opts.or === null ? [] : [...this.orStatements, ...(opts.or || [])],
       order: opts.order !== undefined ? opts.order : this.orderStatement || null,
       distinctColumn: (opts.distinctColumn !== undefined
@@ -500,6 +504,10 @@ export default class Query<
 
   public limit(count: number) {
     return this.clone({ limit: { count } })
+  }
+
+  public offset(offset: number) {
+    return this.clone({ offset: { amount: offset } })
   }
 
   public sql() {
@@ -1786,6 +1794,7 @@ export default class Query<
       kyselyQuery = kyselyQuery.orderBy(this.orderStatement.column as any, this.orderStatement.direction)
 
     if (this.limitStatement) kyselyQuery = kyselyQuery.limit(this.limitStatement.count)
+    if (this.offsetStatement) kyselyQuery = kyselyQuery.offset(this.offsetStatement.amount)
 
     if (!bypassSelectAll) {
       kyselyQuery = kyselyQuery.selectAll(
@@ -1895,6 +1904,7 @@ export interface QueryOpts<
   where?: WhereStatement<DB, SyncedAssociations, any>[] | null
   whereNot?: WhereStatement<DB, SyncedAssociations, any>[] | null
   limit?: LimitStatement | null
+  offset?: OffsetStatement | null
   or?: WhereStatement<DB, SyncedAssociations, any>[] | null
   order?: OrderQueryStatement<ColumnType> | null
   preloadStatements?: RelaxedPreloadStatement
