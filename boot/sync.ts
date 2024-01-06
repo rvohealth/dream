@@ -127,7 +127,9 @@ export const DBTypeCache = {
   }
 } as Partial<Record<keyof DB, any>>
 `
-  return newFileContents
+
+  const sortedFileContents = alphaSortInterfaceProperties(newFileContents)
+  return sortedFileContents
 }
 
 function removeUnwantedExports(file: string) {
@@ -176,6 +178,20 @@ function indexInterfaceKeys(str: string) {
   return `export const ${pluralize.singular(name)}Columns = [\
 ${keys.map(key => `'${camelize(key)}'`).join(', ')}]\
 `
+}
+
+function alphaSortInterfaceProperties(str: string) {
+  const replaced = str.replaceAll(/export interface .*? \{(.*?)\}/gs, (match, group1) => {
+    const props = group1.split(/\n/).filter((line: string) => !!line)
+    let lines = match.split(/\{\n/)
+    const name = lines.shift()
+
+    return `${name}{
+${props.sort().join('\n')}
+}`
+  })
+
+  return replaced
 }
 
 async function buildDBTypeMap(db: Kysely<any>, str: string) {
