@@ -183,8 +183,7 @@ ${keys.map(key => `'${camelize(key)}'`).join(', ')}]\
 function alphaSortInterfaceProperties(str: string) {
   const replaced = str.replaceAll(/export interface .*? \{(.*?)\}/gs, (match, group1) => {
     const props = group1.split(/\n/).filter((line: string) => !!line)
-    let lines = match.split(/\{\n/)
-    const name = lines.shift()
+    const name = match.split(/\{\n/)[0]
 
     return `${name}{
 ${props.sort().join('\n')}
