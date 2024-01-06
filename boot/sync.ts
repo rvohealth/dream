@@ -18,6 +18,7 @@ export default async function sync() {
   await writeSchema()
   console.log('sync complete!')
 }
+// eslint-disable-next-line
 sync()
 
 async function writeSchema() {
@@ -90,7 +91,10 @@ ${dbTypeMap.join('\n\n')}
 export class DBClass {
   ${
     transformedNames.length
-      ? transformedNames.map(name => `${snakeify(name)}: ${name}`).join('\n  ')
+      ? transformedNames
+          .map(name => `${snakeify(name)}: ${name}`)
+          .sort()
+          .join('\n  ')
       : 'placeholder: []'
   }
 }
@@ -98,7 +102,10 @@ export class DBClass {
 export interface InterpretedDB {
   ${
     transformedNames.length
-      ? transformedNames.map(name => `${snakeify(name)}: ${pluralize.singular(name)}Attributes`).join(',\n  ')
+      ? transformedNames
+          .map(name => `${snakeify(name)}: ${pluralize.singular(name)}Attributes`)
+          .sort()
+          .join(',\n  ')
       : 'placeholder: []'
   }
 }
@@ -106,7 +113,10 @@ export interface InterpretedDB {
 export class InterpretedDBClass {
   ${
     transformedNames.length
-      ? transformedNames.map(name => `${snakeify(name)}: ${pluralize.singular(name)}Attributes`).join('\n  ')
+      ? transformedNames
+          .map(name => `${snakeify(name)}: ${pluralize.singular(name)}Attributes`)
+          .sort()
+          .join('\n  ')
       : 'placeholder: []'
   }
 }
@@ -114,7 +124,10 @@ export class InterpretedDBClass {
 export const DBColumns = {
   ${
     transformedNames.length
-      ? transformedNames.map(name => `${snakeify(name)}: ${pluralize.singular(name)}Columns`).join(',\n  ')
+      ? transformedNames
+          .map(name => `${snakeify(name)}: ${pluralize.singular(name)}Columns`)
+          .sort()
+          .join(',\n  ')
       : 'placeholder: []'
   }
 }
@@ -122,7 +135,10 @@ export const DBColumns = {
 export const DBTypeCache = {
   ${
     transformedNames.length
-      ? transformedNames.map(name => `${snakeify(name)}: ${name}DBTypeMap`).join(',\n  ')
+      ? transformedNames
+          .map(name => `${snakeify(name)}: ${name}DBTypeMap`)
+          .sort()
+          .join(',\n  ')
       : 'placeholder: []'
   }
 } as Partial<Record<keyof DB, any>>
@@ -176,21 +192,21 @@ function indexInterfaceKeys(str: string) {
     .map(attr => attr.split(':')[0].replace(/\s/g, ''))
 
   return `export const ${pluralize.singular(name)}Columns = [\
-${keys.map(key => `'${camelize(key)}'`).join(', ')}]\
+${keys
+  .map(key => `'${camelize(key)}'`)
+  .sort()
+  .join(', ')}]\
 `
 }
 
 function alphaSortInterfaceProperties(str: string) {
-  const replaced = str.replaceAll(/export interface .*? \{(.*?)\}/gs, (match, group1) => {
-    const props = group1.split(/\n/).filter((line: string) => !!line)
-    const name = match.split(/\{\n/)[0]
+  return str.replaceAll(/(export interface [^\n{]+){\n([^}]+)\n}/g, (_match, interfaceDeclaration, lines) => {
+    const props = lines.split(/\n/)
 
-    return `${name}{
+    return `${interfaceDeclaration}{
 ${props.sort().join('\n')}
 }`
   })
-
-  return replaced
 }
 
 async function buildDBTypeMap(db: Kysely<any>, str: string) {
@@ -204,6 +220,7 @@ async function buildDBTypeMap(db: Kysely<any>, str: string) {
   return `export const ${name}DBTypeMap = {
   ${(columnToDBTypeMap.rows as { columnName: string; udtName: string }[])
     .map(mapping => `${camelize(mapping.columnName)}: '${mapping.udtName}'`)
+    .sort()
     .join(',\n  ')}
 }\
 `
@@ -220,7 +237,10 @@ function buildDreamCoercedInterfaces(str: string) {
     .map(attr => [attr.split(':')[0].replace(/\s/g, ''), attr.split(':')[1].replace(/;$/, '')])
 
   return `export interface ${pluralize.singular(name)}Attributes {
-  ${keysAndValues.map(([key, value]) => `${camelize(key)}: ${coercedTypeString(value)}`).join('\n  ')}
+  ${keysAndValues
+    .map(([key, value]) => `${camelize(key)}: ${coercedTypeString(value)}`)
+    .sort()
+    .join('\n  ')}
 }\
   `
 }
