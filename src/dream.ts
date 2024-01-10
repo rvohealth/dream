@@ -380,7 +380,7 @@ export default class Dream {
     return this.query().joins(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
 
-  public static async joinsPluck<
+  public static async pluckThrough<
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
@@ -404,7 +404,15 @@ export default class Dream {
     //
     G extends FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
   >(this: T, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
-    return await this.query().joinsPluck(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
+    return await this.query().pluckThrough(
+      a as any,
+      b as any,
+      c as any,
+      d as any,
+      e as any,
+      f as any,
+      g as any
+    )
   }
 
   public static async last<T extends typeof Dream>(this: T): Promise<InstanceType<T> | null> {
@@ -830,7 +838,7 @@ export default class Dream {
     return isDecimal(this.constructor as typeof Dream, attribute)
   }
 
-  public async joinsPluck<
+  public async pluckThrough<
     I extends Dream,
     DB extends I['DB'],
     SyncedAssociations extends I['syncedAssociations'],
@@ -856,7 +864,7 @@ export default class Dream {
     const construct = this.constructor as DreamConstructorType<I>
     return await construct
       .where({ [this.primaryKey]: this.primaryKeyValue } as any)
-      .joinsPluck(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
+      .pluckThrough(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
 
   /**

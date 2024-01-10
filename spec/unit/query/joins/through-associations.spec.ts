@@ -409,7 +409,7 @@ describe('Query#joins through with simple associations', () => {
       const collar1 = await pet.createAssociation('collars', { balloon: redBalloon })
       const collar2 = await pet.createAssociation('collars', { balloon: greenBalloon })
 
-      const ids = await pet.joinsPluck('redBalloons', ['redBalloons.id'])
+      const ids = await pet.pluckThrough('redBalloons', ['redBalloons.id'])
       expect(ids).toEqual([redBalloon.id])
     })
   })
@@ -425,7 +425,7 @@ describe('Query#joins through with simple associations', () => {
       const collar2 = await pet.createAssociation('collars', { balloon: greenBalloon })
       const collar3 = await pet.createAssociation('collars', { balloon: blueBalloon })
 
-      const ids = await pet.joinsPluck('notRedBalloons', ['notRedBalloons.id'])
+      const ids = await pet.pluckThrough('notRedBalloons', ['notRedBalloons.id'])
       expect(ids).toEqual([greenBalloon.id, blueBalloon.id])
     })
   })

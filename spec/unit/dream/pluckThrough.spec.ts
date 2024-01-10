@@ -6,7 +6,7 @@ import Node from '../../../test-app/app/models/Graph/Node'
 import Edge from '../../../test-app/app/models/Graph/Edge'
 import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode'
 
-describe('Dream.joinsPluck', () => {
+describe('Dream.pluckThrough', () => {
   it('can pluck from the associated namespace', async () => {
     const node = await Node.create({ name: 'N1' })
     const edge1 = await Edge.create({ name: 'E1' })
@@ -14,7 +14,7 @@ describe('Dream.joinsPluck', () => {
     await EdgeNode.create({ node, edge: edge1 })
     await EdgeNode.create({ node, edge: edge2 })
 
-    const plucked = await Node.joinsPluck('edgeNodes', 'edge', { name: 'E1' }, ['edge.id', 'edge.name'])
+    const plucked = await Node.pluckThrough('edgeNodes', 'edge', { name: 'E1' }, ['edge.id', 'edge.name'])
     expect(plucked).toEqual([[edge1.id, edge1.name]])
   })
 
@@ -25,7 +25,10 @@ describe('Dream.joinsPluck', () => {
     await EdgeNode.create({ node, edge: edge1 })
     await EdgeNode.create({ node, edge: edge2 })
 
-    const plucked = await Node.joinsPluck('edgeNodes', { edgeId: edge2.id }, 'edge', ['edge.id', 'edge.name'])
+    const plucked = await Node.pluckThrough('edgeNodes', { edgeId: edge2.id }, 'edge', [
+      'edge.id',
+      'edge.name',
+    ])
     expect(plucked).toEqual([[edge2.id, edge2.name]])
   })
 
@@ -39,7 +42,7 @@ describe('Dream.joinsPluck', () => {
 
       let plucked: any
       await Node.transaction(async txn => {
-        plucked = await Node.txn(txn).joinsPluck('edgeNodes', 'edge', { name: 'E1' }, [
+        plucked = await Node.txn(txn).pluckThrough('edgeNodes', 'edge', { name: 'E1' }, [
           'edge.id',
           'edge.name',
         ])
@@ -50,7 +53,7 @@ describe('Dream.joinsPluck', () => {
   })
 })
 
-describe('Dream#joinsPluck', () => {
+describe('Dream#pluckThrough', () => {
   it('can pluck from the associated namespace', async () => {
     const node = await Node.create({ name: 'N1' })
     const edge1 = await Edge.create({ name: 'E1' })
@@ -58,7 +61,7 @@ describe('Dream#joinsPluck', () => {
     await EdgeNode.create({ node, edge: edge1 })
     await EdgeNode.create({ node, edge: edge2 })
 
-    const plucked = await node.joinsPluck('edgeNodes', 'edge', { name: 'E1' }, ['edge.id', 'edge.name'])
+    const plucked = await node.pluckThrough('edgeNodes', 'edge', { name: 'E1' }, ['edge.id', 'edge.name'])
     expect(plucked).toEqual([[edge1.id, edge1.name]])
   })
 
@@ -79,7 +82,7 @@ describe('Dream#joinsPluck', () => {
       approval: true,
     })
 
-    const plucked = await user.joinsPluck(
+    const plucked = await user.pluckThrough(
       'compositions',
       { id: composition2.id },
       'compositionAssets',
@@ -91,7 +94,7 @@ describe('Dream#joinsPluck', () => {
   })
 
   context('with a transaction', () => {
-    it('supports joinsPluck', async () => {
+    it('supports pluckThrough', async () => {
       const node = await Node.create({ name: 'N1' })
       const edge1 = await Edge.create({ name: 'E1' })
       const edge2 = await Edge.create({ name: 'E2' })
@@ -106,7 +109,7 @@ describe('Dream#joinsPluck', () => {
       await Node.transaction(async txn => {
         plucked = await node
           .txn(txn)
-          .joinsPluck('edgeNodes', 'edge', { name: 'E1' }, ['edge.id', 'edge.name'])
+          .pluckThrough('edgeNodes', 'edge', { name: 'E1' }, ['edge.id', 'edge.name'])
       })
 
       expect(plucked).toEqual([[edge1.id, edge1.name]])

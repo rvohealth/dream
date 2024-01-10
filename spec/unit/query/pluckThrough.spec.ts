@@ -9,7 +9,7 @@ import Pet from '../../../test-app/app/models/Pet'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit'
 
-describe('Query#joinsPluck', () => {
+describe('Query#pluckThrough', () => {
   it('can pluck from the associated namespace', async () => {
     const node = await Node.create({ name: 'N1' })
     const edge1 = await Edge.create({ name: 'E1' })
@@ -17,7 +17,7 @@ describe('Query#joinsPluck', () => {
     await EdgeNode.create({ node, edge: edge1 })
     await EdgeNode.create({ node, edge: edge2 })
 
-    const plucked = await Node.query().joinsPluck('edgeNodes', 'edge', { name: 'E1' }, [
+    const plucked = await Node.query().pluckThrough('edgeNodes', 'edge', { name: 'E1' }, [
       'edge.id',
       'edge.name',
     ])
@@ -31,7 +31,7 @@ describe('Query#joinsPluck', () => {
     await EdgeNode.create({ node, edge: edge1 })
     await EdgeNode.create({ node, edge: edge2 })
 
-    const plucked = await Node.query().joinsPluck('edgeNodes', { edgeId: edge2.id }, 'edge', [
+    const plucked = await Node.query().pluckThrough('edgeNodes', { edgeId: edge2.id }, 'edge', [
       'edge.id',
       'edge.name',
     ])
@@ -46,7 +46,7 @@ describe('Query#joinsPluck', () => {
       const user2 = await User.create({ name: 'cheeseman', email: 'hello@world2', password: 'howyadoin' })
       const composition2 = await Composition.create({ content: 'howyadoin', user: user2 })
 
-      const plucked = await Composition.query().joinsPluck('user', { name: ops.similarity('jerem') }, [
+      const plucked = await Composition.query().pluckThrough('user', { name: ops.similarity('jerem') }, [
         'user.id',
       ])
       expect(plucked).toEqual([user1.id])
@@ -59,7 +59,7 @@ describe('Query#joinsPluck', () => {
       const snoopy = await Pet.create({ user, name: 'Snoopy' })
       await Pet.create({ user, name: 'Woodstock', deletedAt: DateTime.now() })
 
-      const names = await User.joinsPluck('pets', 'pets.name')
+      const names = await User.pluckThrough('pets', 'pets.name')
       expect(names).toEqual(['Snoopy'])
     })
   })
@@ -74,7 +74,7 @@ describe('Query#joinsPluck', () => {
         compositionAssetId: compositionAsset.id,
       })
 
-      const plucked = await CompositionAssetAudit.query().joinsPluck('user', 'user.email')
+      const plucked = await CompositionAssetAudit.query().pluckThrough('user', 'user.email')
       expect(plucked).toEqual(['fred@frewd'])
     })
   })
