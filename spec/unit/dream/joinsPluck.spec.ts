@@ -6,7 +6,7 @@ import Node from '../../../test-app/app/models/Graph/Node'
 import Edge from '../../../test-app/app/models/Graph/Edge'
 import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode'
 
-describe('Query.joinsPluck', () => {
+describe('Dream.joinsPluck', () => {
   it('can pluck from the associated namespace', async () => {
     const node = await Node.create({ name: 'N1' })
     const edge1 = await Edge.create({ name: 'E1' })
@@ -28,9 +28,29 @@ describe('Query.joinsPluck', () => {
     const plucked = await Node.joinsPluck('edgeNodes', { edgeId: edge2.id }, 'edge', ['edge.id', 'edge.name'])
     expect(plucked).toEqual([[edge2.id, edge2.name]])
   })
+
+  context('when encased in a transaction', () => {
+    it('can pluck from the associated namespace', async () => {
+      const node = await Node.create({ name: 'N1' })
+      const edge1 = await Edge.create({ name: 'E1' })
+      const edge2 = await Edge.create({ name: 'E2' })
+      await EdgeNode.create({ node, edge: edge1 })
+      await EdgeNode.create({ node, edge: edge2 })
+
+      let plucked: any
+      await Node.transaction(async txn => {
+        plucked = await Node.txn(txn).joinsPluck('edgeNodes', 'edge', { name: 'E1' }, [
+          'edge.id',
+          'edge.name',
+        ])
+      })
+
+      expect(plucked).toEqual([[edge1.id, edge1.name]])
+    })
+  })
 })
 
-describe('Query#joinsPluck', () => {
+describe('Dream#joinsPluck', () => {
   it('can pluck from the associated namespace', async () => {
     const node = await Node.create({ name: 'N1' })
     const edge1 = await Edge.create({ name: 'E1' })
@@ -68,5 +88,28 @@ describe('Query#joinsPluck', () => {
     )
 
     expect(plucked).toEqual([[compositionAssetAudit2.id, true]])
+  })
+
+  context('with a transaction', () => {
+    it('supports joinsPluck', async () => {
+      const node = await Node.create({ name: 'N1' })
+      const edge1 = await Edge.create({ name: 'E1' })
+      const edge2 = await Edge.create({ name: 'E2' })
+      await EdgeNode.create({ node, edge: edge1 })
+      await EdgeNode.create({ node, edge: edge2 })
+
+      const node2 = await Node.create({ name: 'N1' })
+      const edge3 = await Edge.create({ name: 'E1' })
+      await EdgeNode.create({ node: node2, edge: edge3 })
+
+      let plucked: any
+      await Node.transaction(async txn => {
+        plucked = await node
+          .txn(txn)
+          .joinsPluck('edgeNodes', 'edge', { name: 'E1' }, ['edge.id', 'edge.name'])
+      })
+
+      expect(plucked).toEqual([[edge1.id, edge1.name]])
+    })
   })
 })
