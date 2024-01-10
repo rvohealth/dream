@@ -49,13 +49,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     //
     G extends FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
   >(this: I, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
-    const dreamClass = this.dreamInstance.constructor as DreamClass
-    const id = this.dreamInstance.primaryKeyValue
-
-    return dreamClass
-      .txn(this.dreamTransaction)
-      .where({ [this.dreamInstance.primaryKey]: id } as any)
-      .pluckThrough(a, b, c as any, d as any, e as any, f as any, g as any)
+    return this.queryInstance().pluckThrough(a, b, c as any, d as any, e as any, f as any, g as any)
   }
 
   public async destroy<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
@@ -122,5 +116,15 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     opts: UpdateablePropertiesForClass<AssociationType & typeof Dream> = {}
   ): Promise<number> {
     return await destroyAssociation(this.dreamInstance, this.dreamTransaction, associationName, opts)
+  }
+
+  private queryInstance<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    DreamClass extends DreamConstructorType<DreamInstance>
+  >(this: I): Query<DreamClass> {
+    const dreamClass = this.dreamInstance.constructor as DreamClass
+    const id = this.dreamInstance.primaryKeyValue
+
+    return dreamClass.txn(this.dreamTransaction).where({ [this.dreamInstance.primaryKey]: id } as any)
   }
 }
