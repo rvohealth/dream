@@ -10,6 +10,8 @@ import {
   NextJoinsWhereArgumentType,
   NextPreloadArgumentType,
   UpdateablePropertiesForClass,
+  NextJoinsWherePluckArgumentType,
+  FinalJoinsWherePluckArgumentType,
 } from './types'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import saveDream from './internal/saveDream'
@@ -155,6 +157,32 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     G extends NextJoinsWhereArgumentType<DB, SyncedAssociations, FTableName>
   >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     return this.queryInstance().joins(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
+  }
+
+  public async joinsPluck<
+    I extends DreamClassTransactionBuilder<DreamClass>,
+    DB extends InstanceType<DreamClass>['DB'],
+    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
+    TableName extends InstanceType<DreamClass>['table'],
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
+    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
+    D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>,
+    E extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>,
+    ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>,
+    F extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>,
+    FTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>,
+    //
+    G extends FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
+  >(this: I, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
+    return this.queryInstance().joinsPluck(a, b, c as any, d as any, e as any, f as any, g as any)
   }
 
   public queryInstance<I extends DreamClassTransactionBuilder<DreamClass>>(this: I): Query<DreamClass> {
