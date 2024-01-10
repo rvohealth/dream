@@ -112,7 +112,7 @@ export type JoinsArgumentTypeAssociatedTableNames<
       string[])[number]
 // end:joins
 
-// joinsPluck
+// pluckThrough
 export type NextJoinsWherePluckArgumentType<
   DB extends any,
   SyncedAssociations extends any,
@@ -231,7 +231,7 @@ export type FinalJoinsWherePluckArgumentType<
             string
         >[]
 
-// end:joinsPluck
+// end:pluckThrough
 
 export type AssociationNameToDotReference<
   DB extends any,

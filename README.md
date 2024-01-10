@@ -368,7 +368,7 @@ const userIds = await User.where({ name: ops.similarity('steeven hawkins') }).pl
 const min = await User.where({ name: ops.similarity('steeven hawkins') }).min('id')
 const max = await User.where({ name: ops.similarity('steeven hawkins') }).max('id')
 const count = await User.where({ name: ops.similarity('steeven hawkins') }).count()
-const petIds = await User.joinsPluck('pets', { name: ops.similarity('fido') }, ['pets.id'])
+const petIds = await User.pluckThrough('pets', { name: ops.similarity('fido') }, ['pets.id'])
 const numUpdatedRecords = await User.where({ name: ops.similarity('steeven hawkins') }).update({
   name: 'Stephen Hawking',
 })

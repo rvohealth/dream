@@ -25,7 +25,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     this.dreamTransaction = txn
   }
 
-  public async joinsPluck<
+  public async pluckThrough<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     DreamClass extends DreamConstructorType<DreamInstance>,
     DB extends DreamInstance['DB'],
@@ -55,7 +55,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     return dreamClass
       .txn(this.dreamTransaction)
       .where({ [this.dreamInstance.primaryKey]: id } as any)
-      .joinsPluck(a, b, c as any, d as any, e as any, f as any, g as any)
+      .pluckThrough(a, b, c as any, d as any, e as any, f as any, g as any)
   }
 
   public async destroy<I extends DreamInstanceTransactionBuilder<DreamInstance>>(

@@ -328,7 +328,7 @@ export default class Query<
     }
   }
 
-  public async joinsPluck<
+  public async pluckThrough<
     T extends Query<DreamClass>,
     DB extends InstanceType<DreamClass>['DB'],
     SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
@@ -848,7 +848,7 @@ export default class Query<
 
     const hydrationData: any[][] = await this.symmetricalQueryForDreamClass(baseClass)
       .where({ [dreamClass.primaryKey]: dreams.map(obj => obj.primaryKeyValue) })
-      .joinsPluck(associationName, columnsToPluck)
+      .pluckThrough(associationName, columnsToPluck)
 
     const preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[] = hydrationData.map(
       pluckedData => {

@@ -159,7 +159,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     return this.queryInstance().joins(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
 
-  public async joinsPluck<
+  public async pluckThrough<
     I extends DreamClassTransactionBuilder<DreamClass>,
     DB extends InstanceType<DreamClass>['DB'],
     SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
@@ -182,7 +182,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     //
     G extends FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
   >(this: I, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
-    return this.queryInstance().joinsPluck(a, b, c as any, d as any, e as any, f as any, g as any)
+    return this.queryInstance().pluckThrough(a, b, c as any, d as any, e as any, f as any, g as any)
   }
 
   public queryInstance<I extends DreamClassTransactionBuilder<DreamClass>>(this: I): Query<DreamClass> {
