@@ -4,6 +4,7 @@ import isDatabaseArray from './db/types/isDatabaseArray'
 import marshalDBArrayValue from './marshalDBArrayValue'
 import Dream from '../dream'
 import isDate from './db/types/isDate'
+import isDateTime from './db/types/isDateTime'
 
 export function marshalDBValue<
   T extends typeof Dream,
@@ -20,6 +21,10 @@ export function marshalDBValue<
     } else {
       return DateTime.fromJSDate(value, { zone: 'UTC' })
     }
+  }
+
+  if (typeof value === 'string' && (isDateTime(dreamClass, column) || isDate(dreamClass, column))) {
+    return DateTime.fromISO(value, { zone: 'UTC' })
   }
 
   if (isDatabaseArray(dreamClass, column)) {
