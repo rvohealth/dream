@@ -13,6 +13,8 @@ import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating
 import Pet from '../../../../test-app/app/models/Pet'
 import JoinAttemptedOnMissingAssociation from '../../../../src/exceptions/associations/join-attempted-with-missing-association'
 import Collar from '../../../../test-app/app/models/Collar'
+import Post from '../../../../test-app/app/models/Post'
+import Rating from '../../../../test-app/app/models/Rating'
 
 describe('Query#preload through with simple associations', () => {
   context('explicit HasMany through a BelongsTo', () => {
@@ -353,6 +355,26 @@ describe('Query#preload through with simple associations', () => {
           const reloadedUser = await User.query().preload('recentCompositionAssets').first()
           expect(reloadedUser).toMatchDreamModel(user)
           expect(reloadedUser!.recentCompositionAssets).toMatchDreamModels([compositionAsset1])
+        })
+      })
+
+      context('when the where-clause references a field on the starting model’s table', () => {
+        it('loads the associated object', async () => {
+          const user = await User.create({
+            email: 'fred@frewd',
+            password: 'howyadoin',
+            featuredPostPosition: 2,
+          })
+          const post1 = await Post.create({ user })
+          const rating1 = await Rating.create({ user, rateable: post1 })
+          const post2 = await Post.create({ user })
+          const rating2 = await Rating.create({ user, rateable: post2 })
+
+          const sanityCheckUser = await User.query().preload('ratings').first()
+          expect(sanityCheckUser!.ratings).toMatchDreamModels([rating1, rating2])
+
+          const reloadedUser = await User.query().preload('featuredRatings').first()
+          expect(reloadedUser!.featuredRatings).toMatchDreamModels([rating2])
         })
       })
     })

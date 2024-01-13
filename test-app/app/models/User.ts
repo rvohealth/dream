@@ -17,6 +17,8 @@ import Pet from './Pet'
 import Query from '../../../src/dream/query'
 import ApplicationModel from './ApplicationModel'
 import BalloonLine from './BalloonLine'
+import Post from './Post'
+import Rating from './Rating'
 
 export default class User extends ApplicationModel {
   public get table() {
@@ -27,6 +29,7 @@ export default class User extends ApplicationModel {
   public type: string
   public name: string
   public birthdate: DateTime
+  public featuredPostPosition: number | null
   public deletedAt: DateTime
   public createdAt: DateTime
   public updatedAt: DateTime
@@ -42,6 +45,18 @@ export default class User extends ApplicationModel {
 
   @HasOne(() => UserSettings)
   public userSettings: UserSettings
+
+  @HasMany(() => Post)
+  public posts: Post[]
+
+  @HasMany(() => Rating, { through: 'posts', source: 'ratings' })
+  public ratings: Rating[]
+
+  @HasOne(() => Post, { selfWhere: { position: 'users.featuredPostPosition' } })
+  public featuredPost: Post
+
+  @HasMany(() => Rating, { through: 'featuredPost', source: 'ratings' })
+  public featuredRatings: Rating[]
 
   @HasMany(() => Composition)
   public compositions: Composition[]

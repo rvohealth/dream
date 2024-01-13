@@ -21,6 +21,7 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
     through,
     where,
     whereNot,
+    selfWhere,
     order,
   }: {
     foreignKey?: string
@@ -45,6 +46,7 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
           InstanceType<AssociationDreamClass>['syncedAssociations']
         >
     >
+    selfWhere?: any
     order?: OrderStatement<
       InstanceType<AssociationDreamClass>['DB'],
       InstanceType<AssociationDreamClass>['syncedAssociations'],
@@ -71,6 +73,7 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
       through,
       where,
       whereNot,
+      selfWhere,
       distinct: null,
       order,
     } as PartialAssociationStatement

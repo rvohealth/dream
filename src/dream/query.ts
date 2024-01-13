@@ -64,6 +64,7 @@ import cloneDeep from 'lodash.clonedeep'
 import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment'
 import associationToGetterSetterProp from '../decorators/associations/associationToGetterSetterProp'
 import compact from '../helpers/compact'
+import snakeify from '../../shared/helpers/snakeify'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -965,6 +966,7 @@ export default class Query<
       | HasOneStatement<DB, SyncedAssociations, any>
       | HasManyStatement<DB, SyncedAssociations, any>
       | BelongsToStatement<DB, SyncedAssociations, any>
+    throughClass?: typeof Dream | null
     previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
   } {
     if (association.type === 'BelongsTo' || !association.through) {
@@ -1016,6 +1018,7 @@ export default class Query<
           query: queryWithThroughAssociationApplied,
           dreamClass: association.modelCB(),
           association: newAssociation,
+          throughClass,
           previousAssociationTableOrAlias: association.through as TableOrAssociationName<
             InstanceType<DreamClass>['syncedAssociations']
           >,
@@ -1081,6 +1084,7 @@ export default class Query<
     dreamClass = results.dreamClass
     association = results.association
     previousAssociationTableOrAlias = results.previousAssociationTableOrAlias
+    const throughClass = results.throughClass
 
     if (association.type === 'BelongsTo') {
       if (Array.isArray(association.modelCB()))
@@ -1122,7 +1126,13 @@ export default class Query<
         query = this.applyWhereStatements(
           query,
           this.aliasWhereStatements(
-            [{ [association.foreignKeyTypeField()]: dreamClass.stiBaseClassOrOwnClass.name } as any],
+            [
+              {
+                [association.foreignKeyTypeField()]: throughClass
+                  ? throughClass.stiBaseClassOrOwnClass.name
+                  : dreamClass.stiBaseClassOrOwnClass.name,
+              } as any,
+            ],
             currentAssociationTableOrAlias
           )
         )
@@ -1151,6 +1161,13 @@ export default class Query<
             query,
             this.aliasWhereStatements([originalAssociation.whereNot], originalAssociation.as),
             { negate: true }
+          )
+        }
+
+        if (originalAssociation.selfWhere) {
+          query = this.applyWhereStatements(
+            query,
+            this.rawifiedSelfWhereClause(association.selfWhere, originalAssociation.as)
           )
         }
 
@@ -1199,6 +1216,13 @@ export default class Query<
             currentAssociationTableOrAlias
           ),
           { negate: true }
+        )
+      }
+
+      if (association.selfWhere) {
+        query = this.applyWhereStatements(
+          query,
+          this.rawifiedSelfWhereClause(association.selfWhere, currentAssociationTableOrAlias)
         )
       }
 
@@ -1748,12 +1772,23 @@ export default class Query<
     alias: string
   ) {
     return whereStatements.map(whereStatement => {
-      const aliasedWhere: any = {}
-      Object.keys(whereStatement).forEach((key: any) => {
+      return Object.keys(whereStatement).reduce((aliasedWhere, key) => {
         aliasedWhere[`${alias}.${key}`] = (whereStatement as any)[key]
-      })
-      return aliasedWhere
+        return aliasedWhere
+      }, {} as any)
     })
+  }
+
+  private rawifiedSelfWhereClause(selfWhereClause: any, alias: string) {
+    return Object.keys(selfWhereClause).reduce((acc, key) => {
+      acc[`${alias}.${key}`] = sql.raw(
+        selfWhereClause[key]
+          .split('.')
+          .map((str: string) => `"${snakeify(str)}"`)
+          .join('.')
+      )
+      return acc
+    }, {} as any)
   }
 
   private buildDelete<T extends Query<DreamClass>>(

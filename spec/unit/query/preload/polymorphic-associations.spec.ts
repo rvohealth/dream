@@ -30,6 +30,23 @@ describe('Query#preload with polymorphic associations', () => {
     expect(reloaded!.heartRatings).toMatchDreamModels([heartRating])
   })
 
+  context('through', () => {
+    it('loads the associated object', async () => {
+      const user = await User.create({
+        email: 'fred@frewd',
+        password: 'howyadoin',
+        featuredPostPosition: 2,
+      })
+      const post1 = await Post.create({ user })
+      const rating1 = await Rating.create({ user, rateable: post1 })
+      const post2 = await Post.create({ user })
+      const rating2 = await Rating.create({ user, rateable: post2 })
+
+      const reloadedUser = await User.query().preload('ratings').first()
+      expect(reloadedUser!.ratings).toMatchDreamModels([rating1, rating2])
+    })
+  })
+
   context('when loading a polymorphic HasMany from an STI class', () => {
     it('loads associations for all STI models', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })

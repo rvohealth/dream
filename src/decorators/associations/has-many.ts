@@ -21,6 +21,7 @@ export default function HasMany<AssociationDreamClass extends typeof Dream>(
     const through = options.through
     const where = options.where
     const whereNot = options.whereNot
+    const selfWhere = options.selfWhere
     const distinct = options.distinct
     const order = options.order
 
@@ -38,6 +39,7 @@ export default function HasMany<AssociationDreamClass extends typeof Dream>(
       through,
       where,
       whereNot,
+      selfWhere,
       distinct,
       order,
     } as PartialAssociationStatement
@@ -96,6 +98,7 @@ export type HasManyOptions<AssociationDreamClass extends typeof Dream> = {
         InstanceType<AssociationDreamClass>['syncedAssociations']
       >
   >
+  selfWhere?: any
   order?: OrderStatement<
     InstanceType<AssociationDreamClass>['DB'],
     InstanceType<AssociationDreamClass>['syncedAssociations'],

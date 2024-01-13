@@ -215,6 +215,9 @@ export default {
     "userSettings": [
       "user_settings"
     ],
+    "featuredPost": [
+      "posts"
+    ],
     "mainComposition": [
       "compositions"
     ],
@@ -229,6 +232,15 @@ export default {
     ],
     "firstPet": [
       "pets"
+    ],
+    "posts": [
+      "posts"
+    ],
+    "ratings": [
+      "ratings"
+    ],
+    "featuredRatings": [
+      "ratings"
     ],
     "compositions": [
       "compositions"
@@ -492,6 +504,9 @@ export interface SyncedAssociations {
     "userSettings": [
       "user_settings"
     ],
+    "featuredPost": [
+      "posts"
+    ],
     "mainComposition": [
       "compositions"
     ],
@@ -506,6 +521,15 @@ export interface SyncedAssociations {
     ],
     "firstPet": [
       "pets"
+    ],
+    "posts": [
+      "posts"
+    ],
+    "ratings": [
+      "ratings"
+    ],
+    "featuredRatings": [
+      "ratings"
     ],
     "compositions": [
       "compositions"

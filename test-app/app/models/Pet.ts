@@ -12,6 +12,7 @@ import { CatTreats, Species } from '../../db/schema'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
 import PetUnderstudyJoinModel from './PetUnderstudyJoinModel'
+import Post from './Post'
 
 export default class Pet extends ApplicationModel {
   public get table() {

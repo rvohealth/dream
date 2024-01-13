@@ -92,6 +92,7 @@ export interface HasStatement<
   through?: string
   where?: WhereStatement<DB, SyncedAssociations, ForeignTableName>
   whereNot?: WhereStatement<DB, SyncedAssociations, ForeignTableName>
+  selfWhere?: any
   distinct?: TableColumnName<DB, SyncedAssociations, ForeignTableName>
   order?: OrderStatement<DB, SyncedAssociations, ForeignTableName>
 }
@@ -109,7 +110,7 @@ export function blankAssociationsFactory(dreamClass: typeof Dream): {
 }
 
 type partialTypeFields = 'modelCB' | 'type' | 'polymorphic' | 'as'
-type hasOneManySpecificFields = 'source' | 'through' | 'where' | 'whereNot'
+type hasOneManySpecificFields = 'source' | 'through' | 'where' | 'whereNot' | 'selfWhere'
 type belongsToSpecificFields = 'optional'
 
 export type PartialAssociationStatement =

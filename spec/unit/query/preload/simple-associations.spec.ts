@@ -6,6 +6,7 @@ import Pet from '../../../../test-app/app/models/Pet'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import BalloonLine from '../../../../test-app/app/models/BalloonLine'
 import Balloon from '../../../../test-app/app/models/Balloon'
+import Post from '../../../../test-app/app/models/Post'
 
 describe('Query#preload with simple associations', () => {
   context('HasOne', () => {
@@ -132,6 +133,21 @@ describe('Query#preload with simple associations', () => {
 
         const reloadedUser = await User.query().preload('recentCompositions').first()
         expect(reloadedUser!.recentCompositions).toMatchDreamModels([composition])
+      })
+
+      context('when the where-clause references a field on the starting model’s table', () => {
+        it('loads the associated object', async () => {
+          const user = await User.create({
+            email: 'fred@frewd',
+            password: 'howyadoin',
+            featuredPostPosition: 2,
+          })
+          const post1 = await Post.create({ user })
+          const post2 = await Post.create({ user })
+
+          const reloadedUser = await User.query().preload('featuredPost').first()
+          expect(reloadedUser!.featuredPost).toMatchDreamModel(post2)
+        })
       })
     })
 
