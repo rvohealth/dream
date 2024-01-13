@@ -142,11 +142,20 @@ export default {
     "user": [
       "users"
     ],
+    "featuredPost": [
+      "posts"
+    ],
     "currentCollar": [
       "collars"
     ],
     "notLostCollar": [
       "collars"
+    ],
+    "ratings": [
+      "ratings"
+    ],
+    "featuredRatings": [
+      "ratings"
     ],
     "collars": [
       "collars"
@@ -217,6 +226,9 @@ export default {
     ],
     "featuredPost": [
       "posts"
+    ],
+    "ratingsThroughPostsThatMatchUserTargetRating": [
+      "ratings"
     ],
     "mainComposition": [
       "compositions"
@@ -431,11 +443,20 @@ export interface SyncedAssociations {
     "user": [
       "users"
     ],
+    "featuredPost": [
+      "posts"
+    ],
     "currentCollar": [
       "collars"
     ],
     "notLostCollar": [
       "collars"
+    ],
+    "ratings": [
+      "ratings"
+    ],
+    "featuredRatings": [
+      "ratings"
     ],
     "collars": [
       "collars"
@@ -506,6 +527,9 @@ export interface SyncedAssociations {
     ],
     "featuredPost": [
       "posts"
+    ],
+    "ratingsThroughPostsThatMatchUserTargetRating": [
+      "ratings"
     ],
     "mainComposition": [
       "compositions"

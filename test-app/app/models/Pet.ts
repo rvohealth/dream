@@ -13,6 +13,7 @@ import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
 import PetUnderstudyJoinModel from './PetUnderstudyJoinModel'
 import Post from './Post'
+import Rating from './Rating'
 
 export default class Pet extends ApplicationModel {
   public get table() {
@@ -40,6 +41,15 @@ export default class Pet extends ApplicationModel {
   })
   public user: User | null
   public userId: IdType
+
+  @HasOne(() => Post, { through: 'user' })
+  public featuredPost: Post
+
+  @HasMany(() => Rating, { through: 'user' })
+  public ratings: Rating[]
+
+  @HasMany(() => Rating, { through: 'user' })
+  public featuredRatings: Rating[]
 
   @HasMany(() => Collar)
   public collars: Collar

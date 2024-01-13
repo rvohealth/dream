@@ -134,21 +134,6 @@ describe('Query#preload with simple associations', () => {
         const reloadedUser = await User.query().preload('recentCompositions').first()
         expect(reloadedUser!.recentCompositions).toMatchDreamModels([composition])
       })
-
-      context('when the where-clause references a field on the starting model’s table', () => {
-        it('loads the associated object', async () => {
-          const user = await User.create({
-            email: 'fred@frewd',
-            password: 'howyadoin',
-            featuredPostPosition: 2,
-          })
-          const post1 = await Post.create({ user })
-          const post2 = await Post.create({ user })
-
-          const reloadedUser = await User.query().preload('featuredPost').first()
-          expect(reloadedUser!.featuredPost).toMatchDreamModel(post2)
-        })
-      })
     })
 
     context('with NON-matching where-clause-on-the-association', () => {
@@ -161,6 +146,23 @@ describe('Query#preload with simple associations', () => {
 
         const reloadedUser = await User.query().preload('recentCompositions').first()
         expect(reloadedUser!.recentCompositions).toEqual([])
+      })
+    })
+
+    context('with selfWhere clause', () => {
+      it('loads the associated object', async () => {
+        const user = await User.create({
+          email: 'fred@frewd',
+          password: 'howyadoin',
+          featuredPostPosition: 2,
+        })
+
+        // position is automatically set by sortable
+        const post1 = await Post.create({ user })
+        const post2 = await Post.create({ user })
+
+        const reloadedUser = await User.query().preload('featuredPost').first()
+        expect(reloadedUser!.featuredPost).toMatchDreamModel(post2)
       })
     })
 

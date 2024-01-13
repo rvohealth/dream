@@ -10,6 +10,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('email', 'varchar', col => col.notNull().unique())
     .addColumn('birthdate', 'date')
     .addColumn('featured_post_position', 'integer')
+    .addColumn('target_rating', 'integer')
     .addColumn('password_digest', 'varchar', col => col.notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())

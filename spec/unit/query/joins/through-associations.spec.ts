@@ -13,6 +13,8 @@ import ops from '../../../../src/ops'
 import Pet from '../../../../test-app/app/models/Pet'
 import Collar from '../../../../test-app/app/models/Collar'
 import Balloon from '../../../../test-app/app/models/Balloon'
+import Post from '../../../../test-app/app/models/Post'
+import Rating from '../../../../test-app/app/models/Rating'
 
 describe('Query#joins through with simple associations', () => {
   context('explicit HasMany through', () => {
@@ -411,6 +413,54 @@ describe('Query#joins through with simple associations', () => {
 
       const ids = await pet.pluckThrough('redBalloons', ['redBalloons.id'])
       expect(ids).toEqual([redBalloon.id])
+    })
+  })
+
+  context('with a whereSelf clause', () => {
+    it('applies conditional to selectively bring in records', async () => {
+      const user = await User.create({
+        email: 'fred@frewd',
+        password: 'howyadoin',
+        featuredPostPosition: 2,
+      })
+
+      // position is automatically set by sortable
+      const post1 = await Post.create({ user, body: 'hello' })
+      const post2 = await Post.create({ user, body: 'world' })
+
+      const plucked = await User.query().pluckThrough('featuredPost', [
+        'featuredPost.id',
+        'featuredPost.body',
+      ])
+      expect(plucked).toEqual([[post2.id, 'world']])
+    })
+
+    context('when the whereSelf is declared on the join association', () => {
+      it('applies conditional to selectively bring in records', async () => {
+        const user = await User.create({
+          email: 'fred@frewd',
+          password: 'howyadoin',
+          targetRating: 7,
+        })
+        const post1 = await Post.create({ user })
+        const rating1a = await Rating.create({ user, rateable: post1, rating: 3 })
+        const rating1b = await Rating.create({ user, rateable: post1, rating: 7 })
+        const post2 = await Post.create({ user })
+        const rating2a = await Rating.create({ user, rateable: post2, rating: 7 })
+        const rating2b = await Rating.create({ user, rateable: post2, rating: 5 })
+
+        const plucked = await User.query().pluckThrough('ratingsThroughPostsThatMatchUserTargetRating', [
+          'ratingsThroughPostsThatMatchUserTargetRating.id',
+          'ratingsThroughPostsThatMatchUserTargetRating.rating',
+        ])
+        expect(plucked).toHaveLength(2)
+        expect(plucked).toEqual(
+          expect.arrayContaining([
+            [rating1b.id, 7],
+            [rating2a.id, 7],
+          ])
+        )
+      })
     })
   })
 

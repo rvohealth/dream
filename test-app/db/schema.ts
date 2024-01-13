@@ -218,6 +218,7 @@ export interface Users {
   id: Generated<Int8>;
   name: string | null;
   passwordDigest: string;
+  targetRating: number | null;
   updatedAt: Timestamp;
 }
 
@@ -275,7 +276,7 @@ export const PostColumns = ['body', 'createdAt', 'deletedAt', 'id', 'position', 
 export const PostVisibilityColumns = ['createdAt', 'id', 'notes', 'updatedAt', 'visibility']
 export const RatingColumns = ['body', 'createdAt', 'id', 'rateableId', 'rateableType', 'rating', 'updatedAt', 'userId']
 export const SandbagColumns = ['balloonId', 'createdAt', 'id', 'updatedAt', 'weight']
-export const UserColumns = ['birthdate', 'createdAt', 'deletedAt', 'email', 'featuredPostPosition', 'id', 'name', 'passwordDigest', 'updatedAt']
+export const UserColumns = ['birthdate', 'createdAt', 'deletedAt', 'email', 'featuredPostPosition', 'id', 'name', 'passwordDigest', 'targetRating', 'updatedAt']
 export const UserSettingColumns = ['createdAt', 'id', 'likesChalupas', 'updatedAt', 'userId']
 
 export interface BalloonLineAttributes {
@@ -471,6 +472,7 @@ export interface UserAttributes {
   id: IdType
   name: string | null
   passwordDigest: string
+  targetRating: number | null
   updatedAt: DateTime
 }  
 
@@ -676,6 +678,7 @@ export const UsersDBTypeMap = {
   id: 'bigint',
   name: 'character varying',
   passwordDigest: 'character varying',
+  targetRating: 'integer',
   updatedAt: 'timestamp without time zone'
 }
 

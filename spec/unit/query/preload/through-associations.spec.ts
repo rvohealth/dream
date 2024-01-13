@@ -16,7 +16,7 @@ import Collar from '../../../../test-app/app/models/Collar'
 import Post from '../../../../test-app/app/models/Post'
 import Rating from '../../../../test-app/app/models/Rating'
 
-describe('Query#preload through with simple associations', () => {
+describe('Query#preload through', () => {
   context('explicit HasMany through a BelongsTo', () => {
     it('sets HasMany property on the model and BelongsToProperty on the associated model', async () => {
       const balloon = await Latex.create()
@@ -358,13 +358,15 @@ describe('Query#preload through with simple associations', () => {
         })
       })
 
-      context('when the where-clause references a field on the starting model’s table', () => {
-        it('loads the associated object', async () => {
+      context('with selfWhere clause', () => {
+        it('loads the associated models', async () => {
           const user = await User.create({
             email: 'fred@frewd',
             password: 'howyadoin',
             featuredPostPosition: 2,
           })
+
+          // position is automatically set by sortable
           const post1 = await Post.create({ user })
           const rating1 = await Rating.create({ user, rateable: post1 })
           const post2 = await Post.create({ user })
@@ -376,6 +378,58 @@ describe('Query#preload through with simple associations', () => {
           const reloadedUser = await User.query().preload('featuredRatings').first()
           expect(reloadedUser!.featuredRatings).toMatchDreamModels([rating2])
         })
+
+        context('when the whereSelf is declared on the join association', () => {
+          it('applies conditional to selectively bring in records', async () => {
+            const user = await User.create({
+              email: 'fred@frewd',
+              password: 'howyadoin',
+              targetRating: 7,
+            })
+            const post1 = await Post.create({ user })
+            const rating1a = await Rating.create({ user, rateable: post1, rating: 3 })
+            const rating1b = await Rating.create({ user, rateable: post1, rating: 7 })
+            const post2 = await Post.create({ user })
+            const rating2a = await Rating.create({ user, rateable: post2, rating: 7 })
+            const rating2b = await Rating.create({ user, rateable: post2, rating: 5 })
+
+            const reloadedUser = await User.query()
+              .preload('ratingsThroughPostsThatMatchUserTargetRating')
+              .first()
+            expect(reloadedUser!.ratingsThroughPostsThatMatchUserTargetRating).toMatchDreamModels([
+              rating1b,
+              rating2a,
+            ])
+          })
+        })
+
+        context(
+          'when the association with the selfWhere clause is not the starting model in the association chain',
+          () => {
+            it('loads the associated object', async () => {
+              const user = await User.create({
+                email: 'fred@frewd',
+                password: 'howyadoin',
+                featuredPostPosition: 2,
+              })
+
+              // position is automatically set by sortable
+              const post1 = await Post.create({ user })
+              const rating1 = await Rating.create({ user, rateable: post1 })
+              const post2 = await Post.create({ user })
+              const rating2 = await Rating.create({ user, rateable: post2 })
+
+              const pet = await Pet.create({ user })
+
+              const sanityCheckPet = await Pet.query().preload('ratings').first()
+              expect(sanityCheckPet!.ratings).toMatchDreamModels([rating1, rating2])
+
+              const reloadedPet = await Pet.query().preload('featuredPost').preload('featuredRatings').first()
+              expect(reloadedPet!.featuredPost).toMatchDreamModel(post2)
+              expect(reloadedPet!.featuredRatings).toMatchDreamModels([rating2])
+            })
+          }
+        )
       })
     })
   })

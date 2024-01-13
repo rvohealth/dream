@@ -30,6 +30,7 @@ export default class User extends ApplicationModel {
   public name: string
   public birthdate: DateTime
   public featuredPostPosition: number | null
+  public targetRating: number | null
   public deletedAt: DateTime
   public createdAt: DateTime
   public updatedAt: DateTime
@@ -52,8 +53,15 @@ export default class User extends ApplicationModel {
   @HasMany(() => Rating, { through: 'posts', source: 'ratings' })
   public ratings: Rating[]
 
-  @HasOne(() => Post, { selfWhere: { position: 'users.featuredPostPosition' } })
+  @HasOne(() => Post, { selfWhere: { position: 'featuredPostPosition' } })
   public featuredPost: Post
+
+  @HasMany(() => Rating, {
+    through: 'posts',
+    source: 'ratings',
+    selfWhere: { rating: 'targetRating' },
+  })
+  public ratingsThroughPostsThatMatchUserTargetRating: Rating[]
 
   @HasMany(() => Rating, { through: 'featuredPost', source: 'ratings' })
   public featuredRatings: Rating[]

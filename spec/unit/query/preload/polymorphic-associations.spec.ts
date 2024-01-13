@@ -37,6 +37,7 @@ describe('Query#preload with polymorphic associations', () => {
         password: 'howyadoin',
         featuredPostPosition: 2,
       })
+
       const post1 = await Post.create({ user })
       const rating1 = await Rating.create({ user, rateable: post1 })
       const post2 = await Post.create({ user })

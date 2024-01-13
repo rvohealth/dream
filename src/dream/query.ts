@@ -1167,7 +1167,11 @@ export default class Query<
         if (originalAssociation.selfWhere) {
           query = this.applyWhereStatements(
             query,
-            this.rawifiedSelfWhereClause(association.selfWhere, originalAssociation.as)
+            this.rawifiedSelfWhereClause({
+              associationAlias: originalAssociation.as,
+              selfAlias: previousAssociationTableOrAlias,
+              selfWhereClause: originalAssociation.selfWhere,
+            })
           )
         }
 
@@ -1222,7 +1226,11 @@ export default class Query<
       if (association.selfWhere) {
         query = this.applyWhereStatements(
           query,
-          this.rawifiedSelfWhereClause(association.selfWhere, currentAssociationTableOrAlias)
+          this.rawifiedSelfWhereClause({
+            associationAlias: currentAssociationTableOrAlias,
+            selfAlias: previousAssociationTableOrAlias,
+            selfWhereClause: association.selfWhere,
+          })
         )
       }
 
@@ -1779,13 +1787,20 @@ export default class Query<
     })
   }
 
-  private rawifiedSelfWhereClause(selfWhereClause: any, alias: string) {
+  // selfAlias and selfWhereClause are hard-coded into the model. They are never
+  // populated with untrusted data, so the use of `sql.raw` is safe.
+  private rawifiedSelfWhereClause({
+    associationAlias,
+    selfAlias,
+    selfWhereClause,
+  }: {
+    associationAlias: string
+    selfAlias: string
+    selfWhereClause: any
+  }) {
     return Object.keys(selfWhereClause).reduce((acc, key) => {
-      acc[`${alias}.${key}`] = sql.raw(
-        selfWhereClause[key]
-          .split('.')
-          .map((str: string) => `"${snakeify(str)}"`)
-          .join('.')
+      acc[`${associationAlias}.${key}`] = sql.raw(
+        `"${snakeify(selfAlias)}"."${snakeify(selfWhereClause[key])}"`
       )
       return acc
     }, {} as any)
