@@ -52,6 +52,12 @@ export type WhereStatement<
   MergeUnionOfRecordTypes<Updateable<DB[TableName]> | DreamSelectable<DB, SyncedAssociations, TableName>>
 >
 
+export type WhereSelfStatement<
+  DB extends any,
+  SyncedAssociations extends any,
+  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB
+> = Partial<Record<keyof DB[TableName], string>>
+
 export type OrderStatement<
   DB extends any,
   SyncedAssociations extends any,
@@ -92,7 +98,7 @@ export interface HasStatement<
   through?: string
   where?: WhereStatement<DB, SyncedAssociations, ForeignTableName>
   whereNot?: WhereStatement<DB, SyncedAssociations, ForeignTableName>
-  selfWhere?: any
+  selfWhere?: WhereSelfStatement<DB, SyncedAssociations, ForeignTableName>
   distinct?: TableColumnName<DB, SyncedAssociations, ForeignTableName>
   order?: OrderStatement<DB, SyncedAssociations, ForeignTableName>
 }

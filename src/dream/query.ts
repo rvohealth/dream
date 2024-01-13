@@ -6,6 +6,7 @@ import {
   OrderQueryStatement,
   OrderStatement,
   TableColumnName,
+  WhereSelfStatement,
   WhereStatement,
 } from '../decorators/associations/shared'
 import {
@@ -1796,12 +1797,13 @@ export default class Query<
   }: {
     associationAlias: string
     selfAlias: string
-    selfWhereClause: any
+    selfWhereClause: WhereSelfStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
   }) {
     return Object.keys(selfWhereClause).reduce((acc, key) => {
-      acc[`${associationAlias}.${key}`] = sql.raw(
-        `"${snakeify(selfAlias)}"."${snakeify(selfWhereClause[key])}"`
-      )
+      const selfColumn = selfWhereClause[key]
+      if (!selfColumn) return acc
+
+      acc[`${associationAlias}.${key}`] = sql.raw(`"${snakeify(selfAlias)}"."${snakeify(selfColumn)}"`)
       return acc
     }, {} as any)
   }

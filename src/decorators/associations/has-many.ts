@@ -4,6 +4,7 @@ import {
   OrderStatement,
   PartialAssociationStatement,
   TableColumnName,
+  WhereSelfStatement,
   WhereStatement,
   applyGetterAndSetter,
   blankAssociationsFactory,
@@ -98,7 +99,15 @@ export type HasManyOptions<AssociationDreamClass extends typeof Dream> = {
         InstanceType<AssociationDreamClass>['syncedAssociations']
       >
   >
-  selfWhere?: any
+  selfWhere?: WhereSelfStatement<
+    InstanceType<AssociationDreamClass>['DB'],
+    InstanceType<AssociationDreamClass>['syncedAssociations'],
+    InstanceType<AssociationDreamClass>['table'] &
+      AssociationTableNames<
+        InstanceType<AssociationDreamClass>['DB'],
+        InstanceType<AssociationDreamClass>['syncedAssociations']
+      >
+  >
   order?: OrderStatement<
     InstanceType<AssociationDreamClass>['DB'],
     InstanceType<AssociationDreamClass>['syncedAssociations'],
