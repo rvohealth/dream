@@ -195,7 +195,7 @@ function indexInterfaceKeys(str: string) {
 ${keys
   .map(key => `'${camelize(key)}'`)
   .sort()
-  .join(', ')}]\
+  .join(', ')}] as const\
 `
 }
 

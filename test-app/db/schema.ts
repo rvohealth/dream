@@ -19,6 +19,10 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
 
 export type Int8 = ColumnType<string, string | number | bigint, string | number | bigint>;
 
+export type LocalesEnum = "de-DE" | "en-AU" | "en-BZ" | "en-CA" | "en-cb" | "en-GB" | "en-IE" | "en-IN" | "en-JM" | "en-MT" | "en-MY" | "en-NZ" | "en-PH" | "en-SG" | "en-TT" | "en-US" | "en-ZA" | "en-ZW" | "es-ES" | "fr-FR" | "it-IT" | "ja-JP" | "ko-KR" | "pt-BR" | "zh-CN" | "zh-TW";
+
+export type LocalizableTypesEnum = "Composition" | "CompositionAsset";
+
 export type Numeric = ColumnType<string, string | number, string | number>;
 
 export type Species = "cat" | "dog" | "frog";
@@ -153,6 +157,18 @@ export interface IncompatibleForeignKeyTypeExamples {
   userId: number;
 }
 
+export interface LocalizedTexts {
+  body: string | null;
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  locale: LocalesEnum;
+  localizableId: Int8;
+  localizableType: LocalizableTypesEnum;
+  name: string | null;
+  title: string | null;
+  updatedAt: Timestamp;
+}
+
 export interface Pets {
   createdAt: Timestamp;
   deletedAt: Timestamp | null;
@@ -245,6 +261,7 @@ export interface DB {
   graph_edges: GraphEdges;
   graph_nodes: GraphNodes;
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples;
+  localized_texts: LocalizedTexts;
   pet_understudy_join_models: PetUnderstudyJoinModels;
   pets: Pets;
   post_visibilities: PostVisibilities;
@@ -256,28 +273,29 @@ export interface DB {
 }
 
 
-export const BalloonLineColumns = ['balloonId', 'createdAt', 'id', 'material', 'updatedAt']
-export const BalloonSpotterBalloonColumns = ['balloonId', 'balloonSpotterId', 'createdAt', 'id', 'updatedAt', 'userId']
-export const BalloonSpotterColumns = ['createdAt', 'id', 'name', 'updatedAt']
-export const BeautifulBalloonColumns = ['color', 'createdAt', 'deletedAt', 'id', 'multicolor', 'positionAlpha', 'positionBeta', 'type', 'updatedAt', 'userId', 'volume']
-export const CollarColumns = ['balloonId', 'createdAt', 'id', 'lost', 'petId', 'tagName', 'updatedAt']
-export const CompositionAssetAuditColumns = ['approval', 'compositionAssetId', 'createdAt', 'id', 'notes', 'updatedAt']
-export const CompositionAssetColumns = ['compositionId', 'createdAt', 'id', 'name', 'primary', 'score', 'src', 'updatedAt']
-export const CompositionColumns = ['content', 'createdAt', 'id', 'primary', 'updatedAt', 'userId']
-export const EdgeCaseAttributeColumns = ['createdAt', 'id', 'kPop', 'popK', 'popKPop', 'updatedAt']
-export const ExtraRatingColumns = ['body', 'createdAt', 'extraRateableId', 'extraRateableType', 'id', 'rating', 'type', 'updatedAt', 'userId']
-export const GraphEdgeNodeColumns = ['createdAt', 'edgeId', 'id', 'nodeId', 'position', 'updatedAt']
-export const GraphEdgeColumns = ['createdAt', 'id', 'name', 'updatedAt']
-export const GraphNodeColumns = ['createdAt', 'id', 'name', 'updatedAt']
-export const IncompatibleForeignKeyTypeExampleColumns = ['createdAt', 'id', 'updatedAt', 'userId']
-export const PetColumns = ['createdAt', 'deletedAt', 'favoriteTreats', 'id', 'name', 'species', 'userId']
-export const PetUnderstudyJoinModelColumns = ['createdAt', 'id', 'petId', 'understudyId', 'updatedAt']
-export const PostColumns = ['body', 'createdAt', 'deletedAt', 'id', 'position', 'postVisibilityId', 'updatedAt', 'userId']
-export const PostVisibilityColumns = ['createdAt', 'id', 'notes', 'updatedAt', 'visibility']
-export const RatingColumns = ['body', 'createdAt', 'id', 'rateableId', 'rateableType', 'rating', 'updatedAt', 'userId']
-export const SandbagColumns = ['balloonId', 'createdAt', 'id', 'updatedAt', 'weight']
-export const UserColumns = ['birthdate', 'createdAt', 'deletedAt', 'email', 'featuredPostPosition', 'id', 'name', 'passwordDigest', 'targetRating', 'updatedAt']
-export const UserSettingColumns = ['createdAt', 'id', 'likesChalupas', 'updatedAt', 'userId']
+export const BalloonLineColumns = ['balloonId', 'createdAt', 'id', 'material', 'updatedAt'] as const
+export const BalloonSpotterBalloonColumns = ['balloonId', 'balloonSpotterId', 'createdAt', 'id', 'updatedAt', 'userId'] as const
+export const BalloonSpotterColumns = ['createdAt', 'id', 'name', 'updatedAt'] as const
+export const BeautifulBalloonColumns = ['color', 'createdAt', 'deletedAt', 'id', 'multicolor', 'positionAlpha', 'positionBeta', 'type', 'updatedAt', 'userId', 'volume'] as const
+export const CollarColumns = ['balloonId', 'createdAt', 'id', 'lost', 'petId', 'tagName', 'updatedAt'] as const
+export const CompositionAssetAuditColumns = ['approval', 'compositionAssetId', 'createdAt', 'id', 'notes', 'updatedAt'] as const
+export const CompositionAssetColumns = ['compositionId', 'createdAt', 'id', 'name', 'primary', 'score', 'src', 'updatedAt'] as const
+export const CompositionColumns = ['content', 'createdAt', 'id', 'primary', 'updatedAt', 'userId'] as const
+export const EdgeCaseAttributeColumns = ['createdAt', 'id', 'kPop', 'popK', 'popKPop', 'updatedAt'] as const
+export const ExtraRatingColumns = ['body', 'createdAt', 'extraRateableId', 'extraRateableType', 'id', 'rating', 'type', 'updatedAt', 'userId'] as const
+export const GraphEdgeNodeColumns = ['createdAt', 'edgeId', 'id', 'nodeId', 'position', 'updatedAt'] as const
+export const GraphEdgeColumns = ['createdAt', 'id', 'name', 'updatedAt'] as const
+export const GraphNodeColumns = ['createdAt', 'id', 'name', 'updatedAt'] as const
+export const IncompatibleForeignKeyTypeExampleColumns = ['createdAt', 'id', 'updatedAt', 'userId'] as const
+export const LocalizedTextColumns = ['body', 'createdAt', 'id', 'locale', 'localizableId', 'localizableType', 'name', 'title', 'updatedAt'] as const
+export const PetColumns = ['createdAt', 'deletedAt', 'favoriteTreats', 'id', 'name', 'species', 'userId'] as const
+export const PetUnderstudyJoinModelColumns = ['createdAt', 'id', 'petId', 'understudyId', 'updatedAt'] as const
+export const PostColumns = ['body', 'createdAt', 'deletedAt', 'id', 'position', 'postVisibilityId', 'updatedAt', 'userId'] as const
+export const PostVisibilityColumns = ['createdAt', 'id', 'notes', 'updatedAt', 'visibility'] as const
+export const RatingColumns = ['body', 'createdAt', 'id', 'rateableId', 'rateableType', 'rating', 'updatedAt', 'userId'] as const
+export const SandbagColumns = ['balloonId', 'createdAt', 'id', 'updatedAt', 'weight'] as const
+export const UserColumns = ['birthdate', 'createdAt', 'deletedAt', 'email', 'featuredPostPosition', 'id', 'name', 'passwordDigest', 'targetRating', 'updatedAt'] as const
+export const UserSettingColumns = ['createdAt', 'id', 'likesChalupas', 'updatedAt', 'userId'] as const
 
 export interface BalloonLineAttributes {
   balloonId: IdType
@@ -405,6 +423,18 @@ export interface IncompatibleForeignKeyTypeExampleAttributes {
   id: IdType
   updatedAt: DateTime
   userId: number
+}  
+
+export interface LocalizedTextAttributes {
+  body: string | null
+  createdAt: DateTime
+  id: IdType
+  locale: LocalesEnum
+  localizableId: IdType
+  localizableType: LocalizableTypesEnum
+  name: string | null
+  title: string | null
+  updatedAt: DateTime
 }  
 
 export interface PetAttributes {
@@ -613,6 +643,18 @@ export const IncompatibleForeignKeyTypeExamplesDBTypeMap = {
   userId: 'integer'
 }
 
+export const LocalizedTextsDBTypeMap = {
+  body: 'text',
+  createdAt: 'timestamp without time zone',
+  id: 'bigint',
+  locale: 'locales_enum',
+  localizableId: 'bigint',
+  localizableType: 'localizable_types_enum',
+  name: 'character varying',
+  title: 'character varying',
+  updatedAt: 'timestamp without time zone'
+}
+
 export const PetsDBTypeMap = {
   createdAt: 'timestamp without time zone',
   deletedAt: 'timestamp without time zone',
@@ -707,6 +749,7 @@ export class DBClass {
   graph_edges: GraphEdges
   graph_nodes: GraphNodes
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples
+  localized_texts: LocalizedTexts
   pet_understudy_join_models: PetUnderstudyJoinModels
   pets: Pets
   post_visibilities: PostVisibilities
@@ -732,6 +775,7 @@ export interface InterpretedDB {
   graph_edges: GraphEdgeAttributes,
   graph_nodes: GraphNodeAttributes,
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExampleAttributes,
+  localized_texts: LocalizedTextAttributes,
   pet_understudy_join_models: PetUnderstudyJoinModelAttributes,
   pets: PetAttributes,
   post_visibilities: PostVisibilityAttributes,
@@ -757,6 +801,7 @@ export class InterpretedDBClass {
   graph_edges: GraphEdgeAttributes
   graph_nodes: GraphNodeAttributes
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExampleAttributes
+  localized_texts: LocalizedTextAttributes
   pet_understudy_join_models: PetUnderstudyJoinModelAttributes
   pets: PetAttributes
   post_visibilities: PostVisibilityAttributes
@@ -782,6 +827,7 @@ export const DBColumns = {
   graph_edges: GraphEdgeColumns,
   graph_nodes: GraphNodeColumns,
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExampleColumns,
+  localized_texts: LocalizedTextColumns,
   pet_understudy_join_models: PetUnderstudyJoinModelColumns,
   pets: PetColumns,
   post_visibilities: PostVisibilityColumns,
@@ -807,6 +853,7 @@ export const DBTypeCache = {
   graph_edges: GraphEdgesDBTypeMap,
   graph_nodes: GraphNodesDBTypeMap,
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamplesDBTypeMap,
+  localized_texts: LocalizedTextsDBTypeMap,
   pet_understudy_join_models: PetUnderstudyJoinModelsDBTypeMap,
   pets: PetsDBTypeMap,
   post_visibilities: PostVisibilitiesDBTypeMap,

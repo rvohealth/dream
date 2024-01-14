@@ -14,7 +14,6 @@ import { MergeUnionOfRecordTypes } from '../../helpers/typeutils'
 import { checkForeignKey } from '../../exceptions/associations/explicit-foreign-key'
 import camelize from '../../../shared/helpers/camelize'
 import NonLoadedAssociation from '../../exceptions/associations/non-loaded-association'
-import compact from '../../helpers/compact'
 import associationToGetterSetterProp from './associationToGetterSetterProp'
 
 export type AssociatedModelParam<
@@ -26,6 +25,11 @@ export type AssociatedModelParam<
     ? ElementType
     : PossibleArrayAssociationType
 > = Partial<Record<AssociationName & string, AssociationType | null>>
+
+export type PassthroughWhere<
+  DBColumns extends any,
+  TableColumns extends string[] = DBColumns[keyof DBColumns] & string[]
+> = Partial<Record<TableColumns[number], any>>
 
 type DreamSelectable<
   DB extends any,
@@ -44,12 +48,40 @@ type DreamSelectable<
   >
 >
 
+type AssociationDreamSelectable<
+  DB extends any,
+  SyncedAssociations extends any,
+  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB
+> = Partial<
+  Record<
+    keyof DB[TableName],
+    | Range<DateTime>
+    | (() => Range<DateTime>)
+    | Range<number>
+    | OpsStatement<any, any>
+    | CurriedOpsStatement<any, any, any>
+    | (IdType | string | number)[]
+    | SelectQueryBuilder<DB, keyof DB, any>
+    | 'passthrough'
+  >
+>
+
 export type WhereStatement<
   DB extends any,
   SyncedAssociations extends any,
   TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB
 > = Partial<
   MergeUnionOfRecordTypes<Updateable<DB[TableName]> | DreamSelectable<DB, SyncedAssociations, TableName>>
+>
+
+export type AssociationWhereStatement<
+  DB extends any,
+  SyncedAssociations extends any,
+  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB
+> = Partial<
+  MergeUnionOfRecordTypes<
+    Updateable<DB[TableName]> | AssociationDreamSelectable<DB, SyncedAssociations, TableName>
+  >
 >
 
 export type WhereSelfStatement<
@@ -96,7 +128,7 @@ export interface HasStatement<
   polymorphic: boolean
   source: string
   through?: string
-  where?: WhereStatement<DB, SyncedAssociations, ForeignTableName>
+  where?: AssociationWhereStatement<DB, SyncedAssociations, ForeignTableName>
   whereNot?: WhereStatement<DB, SyncedAssociations, ForeignTableName>
   selfWhere?: WhereSelfStatement<DB, SyncedAssociations, ForeignTableName>
   distinct?: TableColumnName<DB, SyncedAssociations, ForeignTableName>

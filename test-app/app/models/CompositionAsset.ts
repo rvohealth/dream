@@ -9,6 +9,7 @@ import { IdType } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Composition from './Composition'
 import CompositionAssetAudit from './CompositionAssetAudit'
+import LocalizedText from './LocalizedText'
 import User from './User'
 
 export default class CompositionAsset extends ApplicationModel {
@@ -64,4 +65,14 @@ export default class CompositionAsset extends ApplicationModel {
         content: 'changed after destroy commit of composition asset',
       })
   }
+
+  @HasOne(() => LocalizedText, {
+    polymorphic: true,
+    foreignKey: 'localizableId',
+    where: { locale: 'passthrough' },
+  })
+  public currentLocalizedText: LocalizedText[]
+
+  @HasMany(() => LocalizedText, { polymorphic: true, foreignKey: 'localizableId' })
+  public localizedTexts: LocalizedText[]
 }

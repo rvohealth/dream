@@ -1,5 +1,6 @@
 import Dream from '../../dream'
 import {
+  AssociationWhereStatement,
   HasStatement,
   OrderStatement,
   PartialAssociationStatement,
@@ -29,7 +30,7 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
     polymorphic?: boolean
     source?: string
     through?: string
-    where?: WhereStatement<
+    where?: AssociationWhereStatement<
       InstanceType<AssociationDreamClass>['DB'],
       InstanceType<AssociationDreamClass>['syncedAssociations'],
       InstanceType<AssociationDreamClass>['table'] &

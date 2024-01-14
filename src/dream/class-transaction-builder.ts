@@ -1,5 +1,5 @@
 import { SelectArg, SelectExpression, Updateable } from 'kysely'
-import { WhereStatement } from '../decorators/associations/shared'
+import { PassthroughWhere, WhereStatement } from '../decorators/associations/shared'
 import Dream from '../dream'
 import DreamTransaction from './transaction'
 import Query from './query'
@@ -225,6 +225,13 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>>
   >(this: I, ...fields: SelectArg<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, SE>[]) {
     return await this.queryInstance().pluck(...(fields as any[]))
+  }
+
+  public passthrough<
+    I extends DreamClassTransactionBuilder<DreamClass>,
+    DBColumns extends InstanceType<DreamClass>['dbColumns']
+  >(this: I, passthroughWhereStatement: PassthroughWhere<DBColumns>): Query<DreamClass> {
+    return this.queryInstance().passthrough(passthroughWhereStatement as any)
   }
 
   public where<

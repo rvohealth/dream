@@ -10,6 +10,7 @@ import ValidationStatement, { ValidationType } from './decorators/validations/sh
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import {
   AssociatedModelParam,
+  PassthroughWhere,
   TableColumnName,
   WhereStatement,
   blankAssociationsFactory,
@@ -505,6 +506,14 @@ export default class Dream {
     return res
   }
 
+  public static passthrough<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    DBColumns extends I['dbColumns']
+  >(this: T, passthroughWhereStatement: PassthroughWhere<DBColumns>): Query<T> {
+    return this.query().passthrough(passthroughWhereStatement)
+  }
+
   public static where<
     T extends typeof Dream,
     I extends InstanceType<T>,
@@ -603,6 +612,10 @@ export default class Dream {
 
   public get syncedAssociations(): any {
     throw 'must have get syncedAssociations defined on child'
+  }
+
+  public get dbColumns(): any {
+    throw 'must have get DBColumns defined on child'
   }
 
   public get dreamconf(): Dreamconf {
@@ -941,6 +954,19 @@ export default class Dream {
     AssociationName extends keyof SyncedAssociations[I['table']]
   >(this: I, associationName: AssociationName) {
     return associationUpdateQuery(this, null, associationName)
+  }
+
+  // public(passthroughWhereStatement: PassthroughWhere<DBColumns>) {
+  //   return this.clone({ passthroughWhereStatement })
+  // }
+
+  //   DBColumns extends I['dbColumns']
+
+  public passthrough<I extends Dream, DBColumns extends I['dbColumns']>(
+    this: I,
+    passthroughWhereStatement: PassthroughWhere<DBColumns>
+  ): LoadBuilder<I> {
+    return new LoadBuilder<I>(this).passthrough(passthroughWhereStatement)
   }
 
   public load<

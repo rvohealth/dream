@@ -15,6 +15,7 @@ import CompositionAssetAudit from './CompositionAssetAudit'
 import User from './User'
 import HeartRating from './ExtraRating/HeartRating'
 import ApplicationModel from './ApplicationModel'
+import LocalizedText from './LocalizedText'
 
 export default class Composition extends ApplicationModel {
   public get table() {
@@ -97,4 +98,14 @@ export default class Composition extends ApplicationModel {
     if (this.content === 'changed after save, but should change after save commit')
       this.content = 'changed after save commit'
   }
+
+  @HasOne(() => LocalizedText, {
+    polymorphic: true,
+    foreignKey: 'localizableId',
+    where: { locale: 'passthrough' },
+  })
+  public currentLocalizedText: LocalizedText[]
+
+  @HasMany(() => LocalizedText, { polymorphic: true, foreignKey: 'localizableId' })
+  public localizedTexts: LocalizedText[]
 }

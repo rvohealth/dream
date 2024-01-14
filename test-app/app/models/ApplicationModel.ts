@@ -17,6 +17,10 @@ export default class ApplicationModel extends Dream {
     return SyncedAssociationsVal as SyncedAssociations
   }
 
+  public get dbColumns(): typeof DBColumns {
+    return DBColumns as typeof DBColumns
+  }
+
   public get dreamconf(): Dreamconf<
     DBClass,
     InterpretedDBClass,

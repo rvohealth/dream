@@ -66,8 +66,14 @@ export default {
     "user": [
       "users"
     ],
+    "currentLocalizedText": [
+      "localized_texts"
+    ],
     "compositionAssetAudits": [
       "composition_asset_audits"
+    ],
+    "localizedTexts": [
+      "localized_texts"
     ]
   },
   "compositions": {
@@ -76,6 +82,9 @@ export default {
     ],
     "mainCompositionAsset": [
       "composition_assets"
+    ],
+    "currentLocalizedText": [
+      "localized_texts"
     ],
     "compositionAssets": [
       "composition_assets"
@@ -88,6 +97,9 @@ export default {
     ],
     "heartRatings": [
       "extra_ratings"
+    ],
+    "localizedTexts": [
+      "localized_texts"
     ]
   },
   "edge_case_attributes": {},
@@ -128,6 +140,12 @@ export default {
   "incompatible_foreign_key_type_examples": {
     "user": [
       "users"
+    ]
+  },
+  "localized_texts": {
+    "localizable": [
+      "compositions",
+      "composition_assets"
     ]
   },
   "pet_understudy_join_models": {
@@ -227,9 +245,6 @@ export default {
     "featuredPost": [
       "posts"
     ],
-    "ratingsThroughPostsThatMatchUserTargetRating": [
-      "ratings"
-    ],
     "mainComposition": [
       "compositions"
     ],
@@ -249,6 +264,9 @@ export default {
       "posts"
     ],
     "ratings": [
+      "ratings"
+    ],
+    "ratingsThroughPostsThatMatchUserTargetRating": [
       "ratings"
     ],
     "featuredRatings": [
@@ -367,8 +385,14 @@ export interface SyncedAssociations {
     "user": [
       "users"
     ],
+    "currentLocalizedText": [
+      "localized_texts"
+    ],
     "compositionAssetAudits": [
       "composition_asset_audits"
+    ],
+    "localizedTexts": [
+      "localized_texts"
     ]
   },
   "compositions": {
@@ -377,6 +401,9 @@ export interface SyncedAssociations {
     ],
     "mainCompositionAsset": [
       "composition_assets"
+    ],
+    "currentLocalizedText": [
+      "localized_texts"
     ],
     "compositionAssets": [
       "composition_assets"
@@ -389,6 +416,9 @@ export interface SyncedAssociations {
     ],
     "heartRatings": [
       "extra_ratings"
+    ],
+    "localizedTexts": [
+      "localized_texts"
     ]
   },
   "edge_case_attributes": {},
@@ -429,6 +459,12 @@ export interface SyncedAssociations {
   "incompatible_foreign_key_type_examples": {
     "user": [
       "users"
+    ]
+  },
+  "localized_texts": {
+    "localizable": [
+      "compositions",
+      "composition_assets"
     ]
   },
   "pet_understudy_join_models": {
@@ -528,9 +564,6 @@ export interface SyncedAssociations {
     "featuredPost": [
       "posts"
     ],
-    "ratingsThroughPostsThatMatchUserTargetRating": [
-      "ratings"
-    ],
     "mainComposition": [
       "compositions"
     ],
@@ -550,6 +583,9 @@ export interface SyncedAssociations {
       "posts"
     ],
     "ratings": [
+      "ratings"
+    ],
+    "ratingsThroughPostsThatMatchUserTargetRating": [
       "ratings"
     ],
     "featuredRatings": [
@@ -672,6 +708,12 @@ export interface SyncedBelongsToAssociations {
       "users"
     ]
   },
+  "localized_texts": {
+    "localizable": [
+      "compositions",
+      "composition_assets"
+    ]
+  },
   "pet_understudy_join_models": {
     "pet": [
       "pets"
@@ -732,6 +774,7 @@ export interface VirtualColumns {
   "graph_edges": false,
   "graph_nodes": false,
   "incompatible_foreign_key_type_examples": false,
+  "localized_texts": false,
   "pet_understudy_join_models": false,
   "pets": false,
   "post_visibilities": false,

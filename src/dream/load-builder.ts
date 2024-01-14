@@ -1,3 +1,4 @@
+import { PassthroughWhere } from '../decorators/associations/shared'
 import Dream from '../dream'
 import Query from './query'
 import {
@@ -14,6 +15,14 @@ export default class LoadBuilder<DreamInstance extends Dream> {
     this.dream = dream.clone()
     const base = this.dream.constructor as DreamConstructorType<DreamInstance>
     this.query = new Query<DreamConstructorType<DreamInstance>>(base)
+  }
+
+  public passthrough<I extends LoadBuilder<DreamInstance>, DBColumns extends DreamInstance['dbColumns']>(
+    this: I,
+    passthroughWhereStatement: PassthroughWhere<DBColumns>
+  ) {
+    this.query = this.query.passthrough(passthroughWhereStatement)
+    return this
   }
 
   public load<

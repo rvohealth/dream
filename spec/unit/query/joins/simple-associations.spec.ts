@@ -8,6 +8,7 @@ import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import Balloon from '../../../../test-app/app/models/Balloon'
 import ops from '../../../../src/ops'
 import OpsStatement from '../../../../src/ops/ops-statement'
+import LocalizedText from '../../../../test-app/app/models/LocalizedText'
 
 describe('Query#joins with simple associations', () => {
   it('joins a HasOne association', async () => {
@@ -70,6 +71,23 @@ describe('Query#joins with simple associations', () => {
         .joins('mainComposition', { id: parseInt(composition.id!.toString()) + 1 })
         .all()
       expect(noResults).toEqual([])
+    })
+
+    context('with "passthrough"', () => {
+      it('applies the passthrough when joining the associations', async () => {
+        const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition1 = await Composition.create({ user: user1 })
+        await LocalizedText.create({ localizable: composition1, locale: 'en-US' })
+
+        const user2 = await User.create({ email: 'howyya@doin', password: 'howyadoin' })
+        const composition2 = await Composition.create({ user: user2 })
+        await LocalizedText.create({ localizable: composition2, locale: 'es-ES' })
+
+        const reloaded = await User.passthrough({ locale: 'es-ES' })
+          .joins('compositions', 'currentLocalizedText')
+          .all()
+        expect(reloaded).toMatchDreamModels([user2])
+      })
     })
 
     context('joining on similar text', () => {

@@ -4,7 +4,7 @@ import {
   LimitStatement,
   OffsetStatement,
   OrderQueryStatement,
-  OrderStatement,
+  PassthroughWhere,
   TableColumnName,
   WhereSelfStatement,
   WhereStatement,
@@ -108,9 +108,11 @@ export default class Query<
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   DBTypeCache extends DreamInstance['dreamconf']['dbTypeCache'] = DreamInstance['dreamconf']['dbTypeCache'],
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
+  DBColumns extends DreamInstance['dbColumns'] = DreamInstance['dbColumns'],
   Table extends DB[DreamInstance['table']] = DB[DreamInstance['table']],
   ColumnType = keyof DB[keyof DB] extends never ? unknown : keyof DB[keyof DB]
 > extends ConnectedToDB<DreamClass> {
+  public readonly passthroughWhereStatement: PassthroughWhere<DBColumns> = Object.freeze({})
   public readonly whereStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
   public readonly whereNotStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze(
     []
@@ -135,6 +137,7 @@ export default class Query<
     this.dreamClass = DreamClass
     this.baseSQLAlias = opts.baseSQLAlias || this.dreamClass.prototype['table']
     this.baseSelectQuery = opts.baseSelectQuery || null
+    this.passthroughWhereStatement = Object.freeze(opts.passthroughWhereStatement || {})
     this.whereStatements = Object.freeze(opts.where || [])
     this.whereNotStatements = Object.freeze(opts.whereNot || [])
     this.limitStatement = Object.freeze(opts.limit || null)
@@ -154,7 +157,9 @@ export default class Query<
     this: Query<DreamClass>,
     dreamClass: D
   ): Query<D> {
-    const associationQuery: Query<D> = this.bypassDefaultScopes ? dreamClass.unscoped() : dreamClass.query()
+    const associationQuery: Query<D> = (
+      this.bypassDefaultScopes ? dreamClass.unscoped() : dreamClass.query()
+    ).clone({ passthroughWhereStatement: this.passthroughWhereStatement })
     return this.dreamTransaction ? associationQuery.txn(this.dreamTransaction) : associationQuery
   }
 
@@ -162,8 +167,13 @@ export default class Query<
     return new Query(this.dreamClass, {
       baseSQLAlias: opts.baseSQLAlias || this.baseSQLAlias,
       baseSelectQuery: opts.baseSelectQuery || this.baseSelectQuery,
-      where: opts.where === null ? [] : [...this.whereStatements, ...(opts.where || [])],
-      whereNot: opts.whereNot === null ? [] : [...this.whereNotStatements, ...(opts.whereNot || [])],
+      passthroughWhereStatement: Object.freeze({
+        ...this.passthroughWhereStatement,
+        ...(opts.passthroughWhereStatement || {}),
+      }),
+      where: opts.where === null ? [] : Object.freeze([...this.whereStatements, ...(opts.where || [])]),
+      whereNot:
+        opts.whereNot === null ? [] : Object.freeze([...this.whereNotStatements, ...(opts.whereNot || [])]),
       limit: opts.limit !== undefined ? opts.limit : this.limitStatement || null,
       offset: opts.offset !== undefined ? opts.offset : this.offsetStatement || null,
       or: opts.or === null ? [] : [...this.orStatements, ...(opts.or || [])],
@@ -171,9 +181,14 @@ export default class Query<
       distinctColumn: (opts.distinctColumn !== undefined
         ? opts.distinctColumn
         : this.distinctColumn) as ColumnType | null,
+
+      // when passed, preloadStatements, joinsStatements, and joinsWhereStatements are already
+      // cloned versions of the `this.` versions, handled in the `preload` and `joins` methods
       preloadStatements: opts.preloadStatements || this.preloadStatements,
       joinsStatements: opts.joinsStatements || this.joinsStatements,
       joinsWhereStatements: opts.joinsWhereStatements || this.joinsWhereStatements,
+      // end:when passed, preloadStatements, joinsStatements, and joinsWhereStatements are already...
+
       bypassDefaultScopes:
         opts.bypassDefaultScopes !== undefined ? opts.bypassDefaultScopes : this.bypassDefaultScopes,
       transaction: opts.transaction || this.dreamTransaction,
@@ -440,6 +455,10 @@ export default class Query<
 
   public unscoped<T extends Query<DreamClass>>(this: T): Query<DreamClass> {
     return this.clone({ bypassDefaultScopes: true, baseSelectQuery: this.baseSelectQuery?.unscoped() })
+  }
+
+  public passthrough(passthroughWhereStatement: PassthroughWhere<DBColumns>) {
+    return this.clone({ passthroughWhereStatement })
   }
 
   public where<T extends Query<DreamClass>>(
@@ -1386,7 +1405,12 @@ export default class Query<
           val = val()
         }
 
-        if (val === null) {
+        if (val === 'passthrough') {
+          const column = attr.split('.').pop()
+          a = attr
+          b = '='
+          c = (this.passthroughWhereStatement as any)[column!]
+        } else if (val === null) {
           a = attr
           b = 'is'
           c = val
@@ -1949,12 +1973,14 @@ export interface QueryOpts<
     : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']],
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
-  SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations']
+  SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
+  DBColumns extends DreamInstance['dbColumns'] = DreamInstance['dbColumns']
 > {
   baseSQLAlias?: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
   baseSelectQuery?: Query<any> | null
-  where?: WhereStatement<DB, SyncedAssociations, any>[] | null
-  whereNot?: WhereStatement<DB, SyncedAssociations, any>[] | null
+  passthroughWhereStatement?: PassthroughWhere<DBColumns> | null
+  where?: readonly WhereStatement<DB, SyncedAssociations, any>[] | null
+  whereNot?: readonly WhereStatement<DB, SyncedAssociations, any>[] | null
   limit?: LimitStatement | null
   offset?: OffsetStatement | null
   or?: WhereStatement<DB, SyncedAssociations, any>[] | null
