@@ -373,7 +373,7 @@ export default class Query<
     const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = {
       ...this.joinsWhereStatements,
     }
-    const pluckStatement = this.fleshOutJoinsPluckStatements(joinsStatements, joinsWhereStatements, null, [
+    const pluckStatement = this.fleshOutPluckThroughStatements(joinsStatements, joinsWhereStatements, null, [
       a,
       b as any,
       c,
@@ -388,7 +388,7 @@ export default class Query<
     )
   }
 
-  private fleshOutJoinsPluckStatements(
+  private fleshOutPluckThroughStatements(
     joinsStatements: RelaxedPreloadStatement,
     joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations>,
     previousAssociationName: null | string,
@@ -421,7 +421,7 @@ export default class Query<
         SyncedAssociations
       >
 
-      return this.fleshOutJoinsPluckStatements(
+      return this.fleshOutPluckThroughStatements(
         nextJoinsStatements,
         nextJoinsWhereStatements,
         nextStatement,
@@ -436,7 +436,7 @@ export default class Query<
         )[key]
       })
 
-      return this.fleshOutJoinsPluckStatements(
+      return this.fleshOutPluckThroughStatements(
         joinsStatements,
         joinsWhereStatements,
         previousAssociationName,
@@ -499,12 +499,12 @@ export default class Query<
     DB extends InstanceType<DreamClass>['DB'],
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>,
-    JoinsPluckFieldType extends any
-    // JoinsPluckFieldType extends JoinsPluckAssociationExpression<
+    PluckThroughFieldType extends any
+    // PluckThroughFieldType extends PluckThroughAssociationExpression<
     //   InstanceType<DreamClass>['table'],
     //   T['joinsStatements'][number]
     // >
-  >(this: T, selection: SimpleFieldType | JoinsPluckFieldType) {
+  >(this: T, selection: SimpleFieldType | PluckThroughFieldType) {
     let query = this.buildSelect({ bypassSelectAll: true }) as SelectQueryBuilder<
       DB,
       ExtractTableAlias<DB, TableName>,
@@ -606,8 +606,8 @@ export default class Query<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>,
-    JoinsPluckFieldType extends any
-  >(this: T, field: SimpleFieldType | JoinsPluckFieldType) {
+    PluckThroughFieldType extends any
+  >(this: T, field: SimpleFieldType | PluckThroughFieldType) {
     const { max } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
 
@@ -623,8 +623,8 @@ export default class Query<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>,
-    JoinsPluckFieldType extends any
-  >(this: T, field: SimpleFieldType | JoinsPluckFieldType) {
+    PluckThroughFieldType extends any
+  >(this: T, field: SimpleFieldType | PluckThroughFieldType) {
     const { min } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
 
