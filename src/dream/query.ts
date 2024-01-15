@@ -66,6 +66,7 @@ import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutin
 import associationToGetterSetterProp from '../decorators/associations/associationToGetterSetterProp'
 import compact from '../helpers/compact'
 import snakeify from '../../shared/helpers/snakeify'
+import LoadIntoModels from './internal/associations/load-into-models'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -110,7 +111,11 @@ export default class Query<
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
   AllColumns extends DreamInstance['allColumns'] = DreamInstance['allColumns'],
   Table extends DB[DreamInstance['table']] = DB[DreamInstance['table']],
-  ColumnType = keyof DB[keyof DB] extends never ? unknown : keyof DB[keyof DB]
+  ColumnType extends keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
+    ? unknown
+    : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] = keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
+    ? unknown
+    : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']]
 > extends ConnectedToDB<DreamClass> {
   public readonly passthroughWhereStatement: PassthroughWhere<AllColumns> = Object.freeze({})
   public readonly whereStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
@@ -125,7 +130,7 @@ export default class Query<
   public readonly joinsStatements: RelaxedJoinsStatement = Object.freeze({})
   public readonly joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = Object.freeze({})
   public readonly bypassDefaultScopes: boolean = false
-  private readonly distinctColumn: ColumnType | null = null
+  protected readonly distinctColumn: ColumnType | null = null
   public readonly dreamClass: DreamClass
   public baseSQLAlias: TableOrAssociationName<SyncedAssociations>
   public baseSelectQuery: Query<any> | null
@@ -217,6 +222,44 @@ export default class Query<
     attributes: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
   ): Promise<(InstanceType<DreamClass> & Dream) | null> {
     return await this.where(attributes).first()
+  }
+
+  // //**
+  //  *
+  //  * @param this
+  //  * @param models
+  //  * @param a
+  //  * @param b
+  //  * @param c
+  //  * @param d
+  //  * @param e
+  //  * @param f
+  //  * @param g
+  //  * @returns
+  //  */
+  public async loadInto<
+    T extends Query<DreamClass>,
+    TableName extends InstanceType<DreamClass>['table'],
+    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
+    //
+    A extends NextPreloadArgumentType<SyncedAssociations, TableName>,
+    ATableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, TableName, A>,
+    B extends NextPreloadArgumentType<SyncedAssociations, ATableName>,
+    BTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ATableName, B>,
+    C extends NextPreloadArgumentType<SyncedAssociations, BTableName>,
+    CTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, BTableName, C>,
+    D extends NextPreloadArgumentType<SyncedAssociations, CTableName>,
+    DTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, CTableName, D>,
+    E extends NextPreloadArgumentType<SyncedAssociations, DTableName>,
+    ETableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, DTableName, E>,
+    F extends NextPreloadArgumentType<SyncedAssociations, ETableName>,
+    FTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ETableName, F>,
+    G extends NextPreloadArgumentType<SyncedAssociations, FTableName>
+  >(this: T, models: Dream[], a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
+    const query = this.preload(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
+    await new LoadIntoModels<DreamClass>(query.preloadStatements, query.passthroughWhereStatement).loadInto(
+      models
+    )
   }
 
   public preload<
@@ -1394,78 +1437,7 @@ export default class Query<
           return
         }
 
-        let a: any
-        let b: KyselyComparisonOperatorExpression
-        let c: any
-        let a2: any | null = null
-        let b2: KyselyComparisonOperatorExpression | null = null
-        let c2: any | null = null
-
-        if (val instanceof Function) {
-          val = val()
-        }
-
-        if (val === 'passthrough') {
-          const column = attr.split('.').pop()
-          a = attr
-          b = '='
-          c = (this.passthroughWhereStatement as any)[column!]
-        } else if (val === null) {
-          a = attr
-          b = 'is'
-          c = val
-        } else if (['SelectQueryBuilder', 'SelectQueryBuilderImpl'].includes(val.constructor.name)) {
-          a = attr
-          b = 'in'
-          c = val
-        } else if (Array.isArray(val)) {
-          a = attr
-          b = 'in'
-          c = val
-        } else if (val.constructor === CurriedOpsStatement) {
-          val = val.toOpsStatement(this.dreamClass, attr)
-          a = attr
-          b = val.operator
-          c = val.value
-        } else if (val.constructor === OpsStatement) {
-          a = attr
-          b = val.operator as KyselyComparisonOperatorExpression
-          c = val.value
-        } else if (val.constructor === Range) {
-          let rangeStart = null
-          let rangeEnd = null
-
-          if ((val.begin?.constructor || val.end?.constructor) === DateTime) {
-            rangeStart = val.begin?.toJSDate()
-            rangeEnd = val.end?.toJSDate()
-          } else if ((val.begin?.constructor || val.end?.constructor) === Number) {
-            rangeStart = val.begin
-            rangeEnd = val.end
-          }
-
-          const excludeEnd = val.excludeEnd
-
-          if (rangeStart && rangeEnd) {
-            a = attr
-            b = '>='
-            c = rangeStart
-            a2 = attr
-            b2 = excludeEnd ? '<' : '<='
-            c2 = rangeEnd
-          } else if (rangeStart) {
-            a = attr
-            b = '>='
-            c = rangeStart
-          } else {
-            a = attr
-            b = excludeEnd ? '<' : '<='
-            c = rangeEnd
-          }
-        } else {
-          a = attr
-          b = '='
-          c = val
-        }
+        const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val)
 
         // postgres is unable to handle WHERE IN statements with blank arrays, such as in
         // "WHERE id IN ()", meaning that:
@@ -1644,7 +1616,12 @@ export default class Query<
       val = val()
     }
 
-    if (val === null) {
+    if (val === 'passthrough') {
+      const column = attr.split('.').pop()
+      a = attr
+      b = '='
+      c = (this.passthroughWhereStatement as any)[column!]
+    } else if (val === null) {
       a = attr
       b = 'is'
       c = val
@@ -1968,7 +1945,9 @@ export default class Query<
 
 export interface QueryOpts<
   DreamClass extends typeof Dream,
-  ColumnType = keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
+  ColumnType extends keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
+    ? unknown
+    : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] = keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
     ? unknown
     : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']],
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,

@@ -295,6 +295,42 @@ export default class Dream {
     return await this.query().find(id)
   }
 
+  // //**
+  //  *
+  //  * @param this
+  //  * @param models
+  //  * @param a
+  //  * @param b
+  //  * @param c
+  //  * @param d
+  //  * @param e
+  //  * @param f
+  //  * @param g
+  //  * @returns
+  //  */
+  public static async loadInto<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    TableName extends I['table'],
+    SyncedAssociations extends I['syncedAssociations'],
+    //
+    A extends NextPreloadArgumentType<SyncedAssociations, TableName>,
+    ATableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, TableName, A>,
+    B extends NextPreloadArgumentType<SyncedAssociations, ATableName>,
+    BTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ATableName, B>,
+    C extends NextPreloadArgumentType<SyncedAssociations, BTableName>,
+    CTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, BTableName, C>,
+    D extends NextPreloadArgumentType<SyncedAssociations, CTableName>,
+    DTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, CTableName, D>,
+    E extends NextPreloadArgumentType<SyncedAssociations, DTableName>,
+    ETableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, DTableName, E>,
+    F extends NextPreloadArgumentType<SyncedAssociations, ETableName>,
+    FTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ETableName, F>,
+    G extends NextPreloadArgumentType<SyncedAssociations, FTableName>
+  >(this: T, models: Dream[], a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
+    await this.query().loadInto(models, a as any, b as any, c as any, d as any, e as any, f as any, g as any)
+  }
+
   public static query<T extends typeof Dream>(this: T): Query<T> {
     return new Query<T>(this)
   }
