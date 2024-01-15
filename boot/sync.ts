@@ -12,6 +12,7 @@ import ConnectionConfRetriever from './cli/connection-conf-retriever-primitive'
 import loadDreamYamlFile from '../shared/helpers/path/loadDreamYamlFile'
 import shouldOmitDistFolder from '../shared/helpers/path/shouldOmitDistFolder'
 import { Kysely, sql } from 'kysely'
+import uniq from 'lodash.uniq'
 
 export default async function sync() {
   console.log('writing schema...')
@@ -72,6 +73,8 @@ async function enhanceSchema(file: string) {
   file = addCustomImports(file)
 
   const interfaceKeyIndexes = compact(results.map(result => indexInterfaceKeys(result)))
+  const allColumnsString = allColumns(results)
+
   const dreamCoercedInterfaces = results.map(result => buildDreamCoercedInterfaces(result))
 
   const dreamconf = await loadDreamconfFile()
@@ -84,6 +87,8 @@ async function enhanceSchema(file: string) {
   const newFileContents = `${file}
 
 ${interfaceKeyIndexes.join('\n')}
+
+${allColumnsString}
 
 ${dreamCoercedInterfaces.join('\n\n')}
 ${dbTypeMap.join('\n\n')}
@@ -185,18 +190,26 @@ function indexInterfaceKeys(str: string) {
   const name = str.split(' {')[0].replace(/\s/g, '')
   if (name === 'DB') return null
 
-  const keys = str
+  const keys = tableInterfaceToColumns(str)
+
+  return `export const ${pluralize.singular(name)}Columns = [${keys.join(', ')}] as const`
+}
+
+function allColumns(tableInterfaces: string[]) {
+  const columns: string[] = uniq(
+    compact(tableInterfaces.flatMap(tableInterface => tableInterfaceToColumns(tableInterface)))
+  ).sort() as string[]
+
+  return `export const AllColumns = [${columns.join(', ')}] as const`
+}
+
+function tableInterfaceToColumns(str: string): string[] {
+  return str
     .split('{')[1]
     .split('\n')
     .filter(str => !['', '}'].includes(str.replace(/\s/g, '')))
-    .map(attr => attr.split(':')[0].replace(/\s/g, ''))
-
-  return `export const ${pluralize.singular(name)}Columns = [\
-${keys
-  .map(key => `'${camelize(key)}'`)
-  .sort()
-  .join(', ')}] as const\
-`
+    .map(attr => "'" + camelize(attr.split(':')[0].replace(/\s/g, '')) + "'")
+    .sort()
 }
 
 function alphaSortInterfaceProperties(str: string) {

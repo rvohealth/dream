@@ -229,8 +229,8 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
 
   public passthrough<
     I extends DreamClassTransactionBuilder<DreamClass>,
-    DBColumns extends InstanceType<DreamClass>['dbColumns']
-  >(this: I, passthroughWhereStatement: PassthroughWhere<DBColumns>): Query<DreamClass> {
+    AllColumns extends InstanceType<DreamClass>['allColumns']
+  >(this: I, passthroughWhereStatement: PassthroughWhere<AllColumns>): Query<DreamClass> {
     return this.queryInstance().passthrough(passthroughWhereStatement as any)
   }
 

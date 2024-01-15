@@ -108,11 +108,11 @@ export default class Query<
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   DBTypeCache extends DreamInstance['dreamconf']['dbTypeCache'] = DreamInstance['dreamconf']['dbTypeCache'],
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
-  DBColumns extends DreamInstance['dbColumns'] = DreamInstance['dbColumns'],
+  AllColumns extends DreamInstance['allColumns'] = DreamInstance['allColumns'],
   Table extends DB[DreamInstance['table']] = DB[DreamInstance['table']],
   ColumnType = keyof DB[keyof DB] extends never ? unknown : keyof DB[keyof DB]
 > extends ConnectedToDB<DreamClass> {
-  public readonly passthroughWhereStatement: PassthroughWhere<DBColumns> = Object.freeze({})
+  public readonly passthroughWhereStatement: PassthroughWhere<AllColumns> = Object.freeze({})
   public readonly whereStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
   public readonly whereNotStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze(
     []
@@ -457,7 +457,7 @@ export default class Query<
     return this.clone({ bypassDefaultScopes: true, baseSelectQuery: this.baseSelectQuery?.unscoped() })
   }
 
-  public passthrough(passthroughWhereStatement: PassthroughWhere<DBColumns>) {
+  public passthrough(passthroughWhereStatement: PassthroughWhere<AllColumns>) {
     return this.clone({ passthroughWhereStatement })
   }
 
@@ -1974,11 +1974,11 @@ export interface QueryOpts<
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
-  DBColumns extends DreamInstance['dbColumns'] = DreamInstance['dbColumns']
+  AllColumns extends DreamInstance['allColumns'] = DreamInstance['allColumns']
 > {
   baseSQLAlias?: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
   baseSelectQuery?: Query<any> | null
-  passthroughWhereStatement?: PassthroughWhere<DBColumns> | null
+  passthroughWhereStatement?: PassthroughWhere<AllColumns> | null
   where?: readonly WhereStatement<DB, SyncedAssociations, any>[] | null
   whereNot?: readonly WhereStatement<DB, SyncedAssociations, any>[] | null
   limit?: LimitStatement | null

@@ -509,8 +509,8 @@ export default class Dream {
   public static passthrough<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DBColumns extends I['dbColumns']
-  >(this: T, passthroughWhereStatement: PassthroughWhere<DBColumns>): Query<T> {
+    AllColumns extends I['allColumns']
+  >(this: T, passthroughWhereStatement: PassthroughWhere<AllColumns>): Query<T> {
     return this.query().passthrough(passthroughWhereStatement)
   }
 
@@ -614,8 +614,8 @@ export default class Dream {
     throw 'must have get syncedAssociations defined on child'
   }
 
-  public get dbColumns(): any {
-    throw 'must have get DBColumns defined on child'
+  public get allColumns(): any {
+    throw 'must have get allColumns defined on child'
   }
 
   public get dreamconf(): Dreamconf {
@@ -956,15 +956,9 @@ export default class Dream {
     return associationUpdateQuery(this, null, associationName)
   }
 
-  // public(passthroughWhereStatement: PassthroughWhere<DBColumns>) {
-  //   return this.clone({ passthroughWhereStatement })
-  // }
-
-  //   DBColumns extends I['dbColumns']
-
-  public passthrough<I extends Dream, DBColumns extends I['dbColumns']>(
+  public passthrough<I extends Dream, AllColumns extends I['allColumns']>(
     this: I,
-    passthroughWhereStatement: PassthroughWhere<DBColumns>
+    passthroughWhereStatement: PassthroughWhere<AllColumns>
   ): LoadBuilder<I> {
     return new LoadBuilder<I>(this).passthrough(passthroughWhereStatement)
   }

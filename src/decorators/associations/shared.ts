@@ -26,10 +26,7 @@ export type AssociatedModelParam<
     : PossibleArrayAssociationType
 > = Partial<Record<AssociationName & string, AssociationType | null>>
 
-export type PassthroughWhere<
-  DBColumns extends any,
-  TableColumns extends string[] = DBColumns[keyof DBColumns] & string[]
-> = Partial<Record<TableColumns[number], any>>
+export type PassthroughWhere<AllColumns extends string[]> = Partial<Record<AllColumns[number], any>>
 
 type DreamSelectable<
   DB extends any,
