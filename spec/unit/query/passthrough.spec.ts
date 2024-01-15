@@ -1,7 +1,6 @@
 import User from '../../../test-app/app/models/User'
 import Composition from '../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
-import { DateTime } from 'luxon'
 import LocalizedText from '../../../test-app/app/models/LocalizedText'
 
 describe('Query#passthrough', () => {
@@ -12,35 +11,17 @@ describe('Query#passthrough', () => {
       async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-        const composition = await Composition.create({
-          user,
-          createdAt: DateTime.now().minus({ day: 1 }),
-        })
+        const composition = await Composition.create({ user })
+        const compositionText1 = await LocalizedText.create({ localizable: composition, locale: 'en-US' })
+        const compositionText2 = await LocalizedText.create({ localizable: composition, locale: 'es-ES' })
 
-        const compositionText1 = await LocalizedText.create({
-          localizable: composition,
-          title: 'Comp1',
-          locale: 'en-US',
-        })
-        const compositionText2 = await LocalizedText.create({
-          localizable: composition,
-          title: 'Comp1',
-          locale: 'es-ES',
-        })
-
-        const compositionAsset = await CompositionAsset.create({
-          composition,
-          createdAt: DateTime.now().minus({ day: 1 }),
-        })
-
+        const compositionAsset = await CompositionAsset.create({ composition })
         const compositionAssetText1 = await LocalizedText.create({
           localizable: compositionAsset,
-          title: 'Comp1',
           locale: 'es-ES',
         })
         const compositionAssetText2 = await LocalizedText.create({
           localizable: compositionAsset,
-          title: 'Comp1',
           locale: 'en-US',
         })
 

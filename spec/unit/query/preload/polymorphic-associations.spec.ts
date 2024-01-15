@@ -1,3 +1,6 @@
+import { sql } from 'kysely'
+import db from '../../../../src/db'
+import dreamconf from '../../../../test-app/conf/dreamconf'
 import User from '../../../../test-app/app/models/User'
 import Composition from '../../../../test-app/app/models/Composition'
 import Post from '../../../../test-app/app/models/Post'
@@ -10,14 +13,20 @@ import Balloon from '../../../../test-app/app/models/Balloon'
 import { DateTime } from 'luxon'
 
 describe('Query#preload with polymorphic associations', () => {
+  beforeEach(async () => {
+    await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(db('primary', dreamconf))
+    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(db('primary', dreamconf))
+  })
+
   it('loads a HasMany association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    await Composition.create({ user })
+    const composition = await Composition.create({ user })
+    const compositionRating = await Rating.create({ user, rateable: composition })
     const post = await Post.create({ user })
-    const rating = await Rating.create({ user, rateable: post })
+    const postRating = await Rating.create({ user, rateable: post })
 
     const reloaded = await Post.where({ id: post.id }).preload('ratings').first()
-    expect(reloaded!.ratings).toMatchDreamModels([rating])
+    expect(reloaded!.ratings).toMatchDreamModels([postRating])
   })
 
   it('loads a HasMany association with STI', async () => {
