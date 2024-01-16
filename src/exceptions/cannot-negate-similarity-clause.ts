@@ -11,10 +11,10 @@ export default class CannotNegateSimilarityClause extends Error {
 
   public get message() {
     return `
-      Negating similarity expressions is not supported.
-        table: ${this.tableName}
-        column: ${this.columnName}
-        value passed to similarity clause: ${this.value}
+Negating similarity expressions is not supported.
+  table: ${this.tableName}
+  column: ${this.columnName}
+  value passed to similarity clause: ${this.value}
     `
   }
 }

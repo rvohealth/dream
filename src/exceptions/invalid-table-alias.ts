@@ -7,22 +7,22 @@ export default class InvalidTableAlias extends Error {
 
   public get message() {
     return `
-      Invalid table alias passed to an underlying sql function.
-      table alias given:
-        "${this.tableAlias}"
-      
-      Table aliases must conform to a very basic shape, using only snake-cased alpha-numeric
-      aliases will be permitted, and they must not be an sql keyword
+Invalid table alias passed to an underlying sql function.
+table alias given:
+  "${this.tableAlias}"
 
-      examples of GOOD table aliases:
-        "users"
-        "user_settings"
+Table aliases must conform to a very basic shape, using only snake-cased alpha-numeric
+aliases will be permitted, and they must not be an sql keyword
 
-      example of BAD table aliases:
-        "users.settings"
-        "user settings"
-        "select"
-        "truncate"
+examples of GOOD table aliases:
+  "users"
+  "user_settings"
+
+example of BAD table aliases:
+  "users.settings"
+  "user settings"
+  "select"
+  "truncate"
     `
   }
 }

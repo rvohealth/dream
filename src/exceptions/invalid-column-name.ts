@@ -9,9 +9,9 @@ export default class InvalidColumnName extends Error {
 
   public get message() {
     return `
-      Invalid column name passed to an underlying sql function.
-      The invalid column name received was:
-        ${this.tableName}.${this.columnName}
+Invalid column name passed to an underlying sql function.
+The invalid column name received was:
+  ${this.tableName}.${this.columnName}
     `
   }
 }

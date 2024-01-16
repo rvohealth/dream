@@ -11,9 +11,9 @@ export default class SimilarityOperatorNotSupportedOnDestroyQueries extends Erro
 
   public get message() {
     return `
-      Cannot pass a similarity operator to a destroy function.
-        dream class: "${this.dreamClass.name}"
-        attributes: ${JSON.stringify(this.attributes, null, 8)}
+Cannot pass a similarity operator to a destroy function.
+  dream class: "${this.dreamClass.name}"
+  attributes: ${JSON.stringify(this.attributes, null, 8)}
     `
   }
 }
