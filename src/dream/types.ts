@@ -10,6 +10,14 @@ import OpsStatement from '../ops/ops-statement'
 export type IdType = string | number | bigint | undefined
 export type Timestamp = ColumnType<DateTime>
 
+class Passthrough {
+  constructor() {}
+}
+
+export const DreamConst = {
+  passthrough: Passthrough,
+}
+
 export const TRIGRAM_OPERATORS = ['%', '<%', '<<%'] as const
 export type TrigramOperator = (typeof TRIGRAM_OPERATORS)[number]
 export type ComparisonOperatorExpression = KyselyComparisonOperatorExpression | TrigramOperator

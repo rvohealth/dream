@@ -1,4 +1,5 @@
 import Dream from '../dream'
+import { DreamConst } from '../dream/types'
 import camelize from '../../shared/helpers/camelize'
 import snakeify from '../../shared/helpers/snakeify'
 import { DateTime } from 'luxon'
@@ -152,7 +153,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   }
 
   private associatedData(associationStatement: AssociationStatement) {
-    const delegateToPassthroughData = associationStatement.source === 'passthroughData'
+    const delegateToPassthroughData = associationStatement.source === DreamConst.passthrough
     let self = (delegateToPassthroughData ? this.passthroughData : this.data) as any
 
     if (associationStatement.through) {
@@ -162,7 +163,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     }
 
     if (delegateToPassthroughData) return self[associationStatement.field]
-    return self[associationStatement.source]
+    return self[associationStatement.source as string]
   }
 
   private applyDelegation(delegateStatement: DelegateStatement) {

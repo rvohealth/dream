@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
 import DreamSerializer from '../../../src/serializer'
+import { DreamConst } from '../../../src/dream/types'
 import Attribute from '../../../src/serializer/decorators/attribute'
 import RendersMany from '../../../src/serializer/decorators/associations/renders-many'
 import RendersOne from '../../../src/serializer/decorators/associations/renders-one'
@@ -341,17 +342,17 @@ describe('DreamSerializer#render', () => {
           }
 
           class UserSerializerWithSource extends DreamSerializer {
-            @RendersMany({ source: 'passthroughData' })
+            @RendersMany({ source: DreamConst.passthrough })
             public howdys: Howdy[]
           }
 
           class HelloSerializer extends DreamSerializer {
-            @RendersMany({ source: 'passthroughData', through: 'hello' })
+            @RendersMany({ source: DreamConst.passthrough, through: 'hello' })
             public howdys: Howdy[]
           }
 
           class WorldSerializer extends DreamSerializer {
-            @RendersMany({ source: 'passthroughData', through: 'hello.world' })
+            @RendersMany({ source: DreamConst.passthrough, through: 'hello.world' })
             public howdys: Howdy[]
           }
 
@@ -641,17 +642,17 @@ describe('DreamSerializer#render', () => {
           }
 
           class UserSerializerWithSource extends DreamSerializer {
-            @RendersOne({ source: 'passthroughData' })
+            @RendersOne({ source: DreamConst.passthrough })
             public howdy: Howdy
           }
 
           class HelloSerializer extends DreamSerializer {
-            @RendersOne({ source: 'passthroughData', through: 'hello' })
+            @RendersOne({ source: DreamConst.passthrough, through: 'hello' })
             public howdy: Howdy
           }
 
           class WorldSerializer extends DreamSerializer {
-            @RendersOne({ source: 'passthroughData', through: 'hello.world' })
+            @RendersOne({ source: DreamConst.passthrough, through: 'hello.world' })
             public howdy: Howdy
           }
 

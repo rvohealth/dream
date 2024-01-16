@@ -4,7 +4,7 @@ import { SelectQueryBuilder, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
 import { Range } from '../../helpers/range'
 import { AssociationTableNames } from '../../db/reflections'
-import { IdType } from '../../dream/types'
+import { DreamConst, IdType } from '../../dream/types'
 import OpsStatement from '../../ops/ops-statement'
 import { BelongsToStatement } from './belongs-to'
 import { HasManyStatement } from './has-many'
@@ -59,7 +59,7 @@ type AssociationDreamSelectable<
     | CurriedOpsStatement<any, any, any>
     | (IdType | string | number)[]
     | SelectQueryBuilder<DB, keyof DB, any>
-    | 'passthrough'
+    | typeof DreamConst.passthrough
   >
 >
 

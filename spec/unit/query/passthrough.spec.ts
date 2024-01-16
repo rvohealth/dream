@@ -6,7 +6,7 @@ import LocalizedText from '../../../test-app/app/models/LocalizedText'
 describe('Query#passthrough', () => {
   context('preload', () => {
     it(
-      "works in combination with association `where` clauses defined with 'passthrough' to " +
+      'works in combination with association `where` clauses defined with `DreamConst.passthrough` to ' +
         'limit what is loaded to models that match the passthrough',
       async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })

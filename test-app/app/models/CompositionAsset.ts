@@ -5,7 +5,7 @@ import AfterDestroy from '../../../src/decorators/hooks/after-destroy'
 import AfterDestroyCommit from '../../../src/decorators/hooks/after-destroy-commit'
 import BeforeDestroy from '../../../src/decorators/hooks/before-destroy'
 import BeforeSave from '../../../src/decorators/hooks/before-save'
-import { IdType } from '../../../src/dream/types'
+import { DreamConst, IdType } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Composition from './Composition'
 import CompositionAssetAudit from './CompositionAssetAudit'
@@ -69,7 +69,7 @@ export default class CompositionAsset extends ApplicationModel {
   @HasOne(() => LocalizedText, {
     polymorphic: true,
     foreignKey: 'localizableId',
-    where: { locale: 'passthrough' },
+    where: { locale: DreamConst.passthrough },
   })
   public currentLocalizedText: LocalizedText[]
 

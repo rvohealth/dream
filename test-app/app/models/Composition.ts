@@ -9,7 +9,7 @@ import AfterSaveCommit from '../../../src/decorators/hooks/after-save-commit'
 import AfterUpdate from '../../../src/decorators/hooks/after-update'
 import AfterUpdateCommit from '../../../src/decorators/hooks/after-update-commit'
 import BeforeCreate from '../../../src/decorators/hooks/before-create'
-import { IdType } from '../../../src/dream/types'
+import { DreamConst, IdType } from '../../../src/dream/types'
 import CompositionAsset from './CompositionAsset'
 import CompositionAssetAudit from './CompositionAssetAudit'
 import User from './User'
@@ -102,7 +102,7 @@ export default class Composition extends ApplicationModel {
   @HasOne(() => LocalizedText, {
     polymorphic: true,
     foreignKey: 'localizableId',
-    where: { locale: 'passthrough' },
+    where: { locale: DreamConst.passthrough },
   })
   public currentLocalizedText: LocalizedText[]
 

@@ -10,6 +10,7 @@ import {
   WhereStatement,
 } from '../decorators/associations/shared'
 import {
+  DreamConst,
   JoinsArgumentTypeAssociatedTableNames,
   PreloadArgumentTypeAssociatedTableNames,
   NextJoinsWhereArgumentType,
@@ -1612,11 +1613,11 @@ export default class Query<
     let b2: KyselyComparisonOperatorExpression | null = null
     let c2: any | null = null
 
-    if (val instanceof Function) {
+    if (val instanceof Function && val !== DreamConst.passthrough) {
       val = val()
     }
 
-    if (val === 'passthrough') {
+    if (val === DreamConst.passthrough) {
       const column = attr.split('.').pop()
       a = attr
       b = '='
