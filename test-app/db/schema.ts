@@ -234,6 +234,7 @@ export interface Users {
   id: Generated<Int8>;
   name: string | null;
   passwordDigest: string;
+  socialSecurityNumber: string | null;
   targetRating: number | null;
   updatedAt: Timestamp;
 }
@@ -294,10 +295,10 @@ export const PostColumns = ['body', 'createdAt', 'deletedAt', 'id', 'position', 
 export const PostVisibilityColumns = ['createdAt', 'id', 'notes', 'updatedAt', 'visibility'] as const
 export const RatingColumns = ['body', 'createdAt', 'id', 'rateableId', 'rateableType', 'rating', 'updatedAt', 'userId'] as const
 export const SandbagColumns = ['balloonId', 'createdAt', 'id', 'updatedAt', 'weight'] as const
-export const UserColumns = ['birthdate', 'createdAt', 'deletedAt', 'email', 'featuredPostPosition', 'id', 'name', 'passwordDigest', 'targetRating', 'updatedAt'] as const
+export const UserColumns = ['birthdate', 'createdAt', 'deletedAt', 'email', 'featuredPostPosition', 'id', 'name', 'passwordDigest', 'socialSecurityNumber', 'targetRating', 'updatedAt'] as const
 export const UserSettingColumns = ['createdAt', 'id', 'likesChalupas', 'updatedAt', 'userId'] as const
 
-export const AllColumns = ['approval', 'balloonId', 'balloonLines', 'balloonSpotterBalloons', 'balloonSpotterId', 'balloonSpotters', 'beautifulBalloons', 'birthdate', 'body', 'collars', 'color', 'compositionAssetAudits', 'compositionAssetId', 'compositionAssets', 'compositionId', 'compositions', 'content', 'createdAt', 'deletedAt', 'edgeCaseAttributes', 'edgeId', 'email', 'extraRateableId', 'extraRateableType', 'extraRatings', 'favoriteTreats', 'featuredPostPosition', 'graphEdgeNodes', 'graphEdges', 'graphNodes', 'id', 'incompatibleForeignKeyTypeExamples', 'kPop', 'likesChalupas', 'locale', 'localizableId', 'localizableType', 'localizedTexts', 'lost', 'material', 'multicolor', 'name', 'nodeId', 'notes', 'passwordDigest', 'petId', 'petUnderstudyJoinModels', 'pets', 'popK', 'popKPop', 'position', 'positionAlpha', 'positionBeta', 'postVisibilities', 'postVisibilityId', 'posts', 'primary', 'rateableId', 'rateableType', 'rating', 'ratings', 'sandbags', 'score', 'species', 'src', 'tagName', 'targetRating', 'title', 'type', 'understudyId', 'updatedAt', 'userId', 'userSettings', 'users', 'visibility', 'volume', 'weight'] as const
+export const AllColumns = ['approval', 'balloonId', 'balloonLines', 'balloonSpotterBalloons', 'balloonSpotterId', 'balloonSpotters', 'beautifulBalloons', 'birthdate', 'body', 'collars', 'color', 'compositionAssetAudits', 'compositionAssetId', 'compositionAssets', 'compositionId', 'compositions', 'content', 'createdAt', 'deletedAt', 'edgeCaseAttributes', 'edgeId', 'email', 'extraRateableId', 'extraRateableType', 'extraRatings', 'favoriteTreats', 'featuredPostPosition', 'graphEdgeNodes', 'graphEdges', 'graphNodes', 'id', 'incompatibleForeignKeyTypeExamples', 'kPop', 'likesChalupas', 'locale', 'localizableId', 'localizableType', 'localizedTexts', 'lost', 'material', 'multicolor', 'name', 'nodeId', 'notes', 'passwordDigest', 'petId', 'petUnderstudyJoinModels', 'pets', 'popK', 'popKPop', 'position', 'positionAlpha', 'positionBeta', 'postVisibilities', 'postVisibilityId', 'posts', 'primary', 'rateableId', 'rateableType', 'rating', 'ratings', 'sandbags', 'score', 'socialSecurityNumber', 'species', 'src', 'tagName', 'targetRating', 'title', 'type', 'understudyId', 'updatedAt', 'userId', 'userSettings', 'users', 'visibility', 'volume', 'weight'] as const
 
 export interface BalloonLineAttributes {
   balloonId: IdType
@@ -504,6 +505,7 @@ export interface UserAttributes {
   id: IdType
   name: string | null
   passwordDigest: string
+  socialSecurityNumber: string | null
   targetRating: number | null
   updatedAt: DateTime
 }  
@@ -722,6 +724,7 @@ export const UsersDBTypeMap = {
   id: 'bigint',
   name: 'character varying',
   passwordDigest: 'character varying',
+  socialSecurityNumber: 'character varying',
   targetRating: 'integer',
   updatedAt: 'timestamp without time zone'
 }

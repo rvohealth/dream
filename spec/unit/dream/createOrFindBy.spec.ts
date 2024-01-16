@@ -1,4 +1,5 @@
 import { Dream } from '../../../src'
+import CreateOrFindByFailedToCreateAndFind from '../../../src/exceptions/create-or-find-by-failed-to-create-and-find'
 import Composition from '../../../test-app/app/models/Composition'
 import User from '../../../test-app/app/models/User'
 
@@ -28,6 +29,30 @@ describe('Dream.createOrFindBy', () => {
       expect(await user!.checkPassword('howyadoin')).toEqual(true)
     })
   })
+
+  context(
+    'when createOrFindBy attribute doesn’t match an existing record, but a `createWith` field conflicts with an existing record',
+    () => {
+      let existingUser: User
+
+      beforeEach(async () => {
+        existingUser = await User.create({
+          email: 'fred@fred',
+          socialSecurityNumber: '1234567890',
+          password: 'howyadoin',
+        })
+      })
+
+      it('throws CreateOrFindByFailedToCreateAndFind', async () => {
+        await expect(
+          User.createOrFindBy(
+            { email: 'howya@doin' },
+            { createWith: { socialSecurityNumber: '1234567890', password: 'nothowyadoin' } }
+          )
+        ).rejects.toThrowError(CreateOrFindByFailedToCreateAndFind)
+      })
+    }
+  )
 
   context('when a non-foreign-key-constraint related issue crops up', () => {
     beforeEach(() => {

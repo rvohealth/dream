@@ -29,6 +29,7 @@ export default class User extends ApplicationModel {
   public type: string
   public name: string
   public birthdate: DateTime
+  public socialSecurityNumber: string
   public featuredPostPosition: number | null
   public targetRating: number | null
   public deletedAt: DateTime

@@ -61,6 +61,7 @@ import NonLoadedAssociation from './exceptions/associations/non-loaded-associati
 import extractAttributesFromUpdateableProperties from './dream/internal/extractAttributesFromUpdateableProperties'
 import associationToGetterSetterProp from './decorators/associations/associationToGetterSetterProp'
 import { isString } from './helpers/typechecks'
+import CreateOrFindByFailedToCreateAndFind from './exceptions/create-or-find-by-failed-to-create-and-find'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -268,8 +269,11 @@ export default class Dream {
       if (
         (err as DatabaseError)?.constructor === DatabaseError &&
         (err as DatabaseError)?.message?.includes('duplicate key value violates unique constraint')
-      )
-        return await this.findBy(extractAttributesFromUpdateableProperties(this, opts))
+      ) {
+        const dreamModel = await this.findBy(extractAttributesFromUpdateableProperties(this, opts))
+        if (!dreamModel) throw new CreateOrFindByFailedToCreateAndFind(this)
+        return dreamModel
+      }
       throw err
     }
   }
