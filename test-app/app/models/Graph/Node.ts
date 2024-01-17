@@ -23,6 +23,6 @@ export default class Node extends ApplicationModel {
   @HasMany(() => EdgeNode, { foreignKey: 'nodeId' })
   public edgeNodes: EdgeNode[]
 
-  @HasMany(() => GraphEdge, { through: 'edgeNodes' })
+  @HasMany(() => GraphEdge, { through: 'edgeNodes', preloadThroughColumns: ['position', 'createdAt'] })
   public edges: GraphEdge[]
 }

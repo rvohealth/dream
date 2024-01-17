@@ -68,6 +68,7 @@ import associationToGetterSetterProp from '../decorators/associations/associatio
 import compact from '../helpers/compact'
 import snakeify from '../../shared/helpers/snakeify'
 import LoadIntoModels from './internal/associations/load-into-models'
+import { allNestedObjectKeys } from '../helpers/allNestedObjectKeys'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -133,7 +134,7 @@ export default class Query<
   public readonly bypassDefaultScopes: boolean = false
   protected readonly distinctColumn: ColumnType | null = null
   public readonly dreamClass: DreamClass
-  public baseSQLAlias: TableOrAssociationName<SyncedAssociations>
+  public baseSqlAlias: TableOrAssociationName<SyncedAssociations>
   public baseSelectQuery: Query<any> | null
   public dreamTransaction: DreamTransaction<DB> | null = null
   public connectionOverride?: DbConnectionType
@@ -141,7 +142,7 @@ export default class Query<
   constructor(DreamClass: DreamClass, opts: QueryOpts<DreamClass, ColumnType> = {}) {
     super(DreamClass, opts)
     this.dreamClass = DreamClass
-    this.baseSQLAlias = opts.baseSQLAlias || this.dreamClass.prototype['table']
+    this.baseSqlAlias = opts.baseSqlAlias || this.dreamClass.prototype['table']
     this.baseSelectQuery = opts.baseSelectQuery || null
     this.passthroughWhereStatement = Object.freeze(opts.passthroughWhereStatement || {})
     this.whereStatements = Object.freeze(opts.where || [])
@@ -171,7 +172,7 @@ export default class Query<
 
   public clone(opts: QueryOpts<DreamClass, ColumnType> = {}): Query<DreamClass> {
     return new Query(this.dreamClass, {
-      baseSQLAlias: opts.baseSQLAlias || this.baseSQLAlias,
+      baseSqlAlias: opts.baseSqlAlias || this.baseSqlAlias,
       baseSelectQuery: opts.baseSelectQuery || this.baseSelectQuery,
       passthroughWhereStatement: Object.freeze({
         ...this.passthroughWhereStatement,
@@ -417,7 +418,23 @@ export default class Query<
     const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = {
       ...this.joinsWhereStatements,
     }
-    const pluckStatement = this.fleshOutPluckThroughStatements(joinsStatements, joinsWhereStatements, null, [
+    const pluckStatement = [
+      this.fleshOutPluckThroughStatements(joinsStatements, joinsWhereStatements, null, [
+        a,
+        b as any,
+        c,
+        d,
+        e,
+        f,
+        g,
+      ]),
+    ].flat() as any[]
+
+    const vals = await this.clone({ joinsStatements, joinsWhereStatements }).pluckWithoutMarshalling(
+      ...pluckStatement
+    )
+
+    const associationNamesToDreamClasses = this.pluckThroughStatementsToDreamClassesMap([
       a,
       b as any,
       c,
@@ -427,9 +444,56 @@ export default class Query<
       g,
     ])
 
-    return await this.clone({ joinsStatements, joinsWhereStatements }).pluck(
-      ...([pluckStatement].flat() as any[])
-    )
+    const mapFn = (val: any, index: number) => {
+      const parts = pluckStatement[index].split('.')
+
+      if (parts.length === 1 || parts[0] === this.dreamClass.prototype['table']) {
+        const column = parts[0]
+        return marshalDBValue(this.dreamClass, column, val)
+      } else {
+        const [associationName, column] = parts
+        return marshalDBValue(associationNamesToDreamClasses[associationName], column, val)
+      }
+    }
+
+    const response = this.pluckValuesToPluckResponse(pluckStatement, vals, mapFn)
+    return response
+  }
+
+  private pluckThroughStatementsToDreamClassesMap(
+    associationStatements: (
+      | string
+      | WhereStatement<DB, SyncedAssociations, any>
+      | `${any}.${any}`
+      | `${any}.${any}`[]
+      | undefined
+    )[]
+  ): { [key: string]: typeof Dream } {
+    const joinsStatements = {}
+    this.fleshOutPluckThroughStatements(joinsStatements, {}, null, associationStatements)
+    const associations = allNestedObjectKeys(joinsStatements)
+    return this.associationsToDreamClassesMap(associations)
+  }
+
+  private associationsToDreamClassesMap(associationNames: string[]) {
+    const associationsToDreamClassesMap: { [key: string]: typeof Dream } = {}
+
+    associationNames.reduce((dreamClass: typeof Dream, associationName: string) => {
+      const association = dreamClass.getAssociation(associationName)
+      const through = (association as any).through
+
+      if (through) {
+        const throughAssociation = dreamClass.getAssociation(through)
+        const throughAssociationDreamClass = throughAssociation.modelCB() as typeof Dream
+        associationsToDreamClassesMap[through] = throughAssociationDreamClass
+      }
+
+      const nextDreamClass = association.modelCB() as typeof Dream
+      associationsToDreamClassesMap[associationName] = nextDreamClass
+      return nextDreamClass
+    }, this.dreamClass)
+
+    return associationsToDreamClassesMap
   }
 
   private fleshOutPluckThroughStatements(
@@ -489,8 +553,8 @@ export default class Query<
     }
   }
 
-  public setBaseSQLAlias(baseSQLAlias: TableOrAssociationName<SyncedAssociations>) {
-    return this.clone({ baseSQLAlias })
+  public setBaseSQLAlias(baseSqlAlias: TableOrAssociationName<SyncedAssociations>) {
+    return this.clone({ baseSqlAlias })
   }
 
   public setBaseSelectQuery(baseSelectQuery: Query<any> | null) {
@@ -564,7 +628,9 @@ export default class Query<
     column: ColumnName,
     direction: 'asc' | 'desc' = 'asc'
   ) {
-    return this.clone({ order: { column: column as any, direction } })
+    return this.clone({
+      order: { column: this.namespaceColumn(column) as any, direction },
+    })
   }
 
   public limit(limit: number) {
@@ -616,9 +682,7 @@ export default class Query<
     const { count } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
 
-    kyselyQuery = kyselyQuery.select(
-      count(`${this.baseSQLAlias as any}.${this.dreamClass.primaryKey}` as any).as('tablecount')
-    )
+    kyselyQuery = kyselyQuery.select(count(this.namespaceColumn(this.dreamClass.primaryKey)).as('tablecount'))
 
     kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery, { includeGroupBy: true })
 
@@ -629,7 +693,7 @@ export default class Query<
 
   public distinct<T extends Query<DreamClass>>(
     this: T,
-    columnName:
+    column:
       | TableColumnName<
           InstanceType<DreamClass>['dreamconf']['DB'],
           InstanceType<DreamClass>['dreamconf']['syncedAssociations'],
@@ -637,13 +701,18 @@ export default class Query<
         >
       | boolean = true
   ) {
-    if (columnName === true) {
-      return this.clone({ distinctColumn: this.dreamClass.primaryKey })
-    } else if (columnName === false) {
+    if (column === true) {
+      return this.clone({ distinctColumn: this.namespaceColumn(this.dreamClass.primaryKey) })
+    } else if (column === false) {
       return this.clone({ distinctColumn: null })
     } else {
-      return this.clone({ distinctColumn: columnName as any })
+      return this.clone({ distinctColumn: this.namespaceColumn(column) })
     }
+  }
+
+  private namespaceColumn(column: string) {
+    if (column.includes('.')) return column
+    return `${this.baseSqlAlias}.${column}`
   }
 
   public async max<
@@ -679,28 +748,44 @@ export default class Query<
     return data.min
   }
 
-  public async pluck<
+  private async pluckWithoutMarshalling<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]> & string,
     TablePrefixedFieldType extends `${TableName}.${SimpleFieldType}`
   >(this: T, ...fields: (SimpleFieldType | TablePrefixedFieldType)[]): Promise<any[]> {
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
+    const aliases: string[] = []
 
-    fields.forEach(field => {
-      kyselyQuery = kyselyQuery.select(field as any)
+    fields.forEach((field: string, index: number) => {
+      const alias = `dr${index}`
+      aliases.push(alias)
+      kyselyQuery = kyselyQuery.select(`${field} as ${alias}` as any)
     })
 
     kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery)
 
-    const vals = (await executeDatabaseQuery(kyselyQuery, 'execute')).map(result => Object.values(result))
+    return (await executeDatabaseQuery(kyselyQuery, 'execute')).map(singleResult =>
+      aliases.map(alias => singleResult[alias])
+    )
+  }
 
-    const mapFn = (val: any, index: any) => marshalDBValue(this.dreamClass, fields[index] as any, val)
+  public async pluck<
+    T extends Query<DreamClass>,
+    TableName extends InstanceType<DreamClass>['table'],
+    SimpleFieldType extends keyof Updateable<DB[TableName]> & string,
+    TablePrefixedFieldType extends `${TableName}.${SimpleFieldType}`
+  >(this: T, ...fields: (SimpleFieldType | TablePrefixedFieldType)[]): Promise<any[]> {
+    const vals = await this.pluckWithoutMarshalling(...fields)
+    const mapFn = (val: any, index: number) => marshalDBValue(this.dreamClass, fields[index] as any, val)
+    return this.pluckValuesToPluckResponse(fields, vals, mapFn)
+  }
 
+  private pluckValuesToPluckResponse(fields: any[], vals: any[], mapFn: (value: any, index: number) => any) {
     if (fields.length > 1) {
       return vals.map(arr => arr.map(mapFn)) as any[]
     } else {
-      return vals.flat().map(mapFn) as any[]
+      return vals.flat().map(val => mapFn(val, 0)) as any[]
     }
   }
 
@@ -901,11 +986,24 @@ export default class Query<
       return this.preloadPolymorphicBelongsTo(association as BelongsToStatement<any, any, string>, dreams)
 
     const dreamClassToHydrateColumns = dreamClassToHydrate.columns()
+    const throughColumnsToHydrate: any[] = []
 
     const columnsToPluck = [
       ...(dreamClassToHydrateColumns.map(column => `${associationName}.${column.toString()}`) as any[]),
-      `${dreamClass.prototype.table}.${dreamClass.primaryKey} as _MatchId_`,
     ]
+
+    const asHasAssociation = association as
+      | HasManyStatement<DB, SyncedAssociations, any>
+      | HasOneStatement<DB, SyncedAssociations, any>
+
+    if (asHasAssociation.through && asHasAssociation.preloadThroughColumns) {
+      asHasAssociation.preloadThroughColumns!.forEach(preloadThroughColumn => {
+        throughColumnsToHydrate.push(preloadThroughColumn)
+        columnsToPluck.push(`${asHasAssociation.through}.${preloadThroughColumn}`)
+      })
+    }
+
+    columnsToPluck.push(`${dreamClass.prototype.table}.${dreamClass.primaryKey}`)
 
     const baseClass = dreamClass.stiBaseClassOrOwnClass.getAssociation(associationName)
       ? dreamClass.stiBaseClassOrOwnClass
@@ -922,9 +1020,18 @@ export default class Query<
           (columnName, index) =>
             (attributes[protectAgainstPollutingAssignment(columnName)] = pluckedData[index])
         )
+
+        const hydratedDream = sqlResultToDreamInstance(dreamClassToHydrate, attributes)
+
+        throughColumnsToHydrate.forEach(
+          (throughAssociationColumn, index) =>
+            ((hydratedDream as any).preloadedThroughColumns[throughAssociationColumn] =
+              pluckedData[dreamClassToHydrateColumns.length + index])
+        )
+
         return {
-          dream: sqlResultToDreamInstance(dreamClassToHydrate, attributes),
-          pointsToPrimaryKey: pluckedData[dreamClassToHydrateColumns.length],
+          dream: hydratedDream,
+          pointsToPrimaryKey: pluckedData[pluckedData.length - 1],
         }
       }
     )
@@ -1732,25 +1839,25 @@ export default class Query<
         query: kyselyQuery,
         joinsStatement: query.joinsStatements,
         dreamClass: query.dreamClass,
-        previousAssociationTableOrAlias: this.baseSQLAlias,
+        previousAssociationTableOrAlias: this.baseSqlAlias,
       })
     }
 
     if (query.whereStatements.length || query.whereNotStatements.length || query.orStatements.length) {
       kyselyQuery = kyselyQuery.where((eb: ExpressionBuilder<any, any>) => {
         const whereStatement = query
-          .aliasWhereStatements(query.whereStatements, query.baseSQLAlias)
+          .aliasWhereStatements(query.whereStatements, query.baseSqlAlias)
           .flatMap(statement => this.whereStatementsToExpressionWrappers(eb, statement))
 
         const whereNotStatement = query
-          .aliasWhereStatements(query.whereNotStatements, query.baseSQLAlias)
+          .aliasWhereStatements(query.whereNotStatements, query.baseSqlAlias)
           .flatMap(statement => this.whereStatementsToExpressionWrappers(eb, statement, { negate: true }))
 
         let orEb: ExpressionWrapper<any, any, any> | undefined
 
         if (query.orStatements.length) {
           const orStatement = query
-            .aliasWhereStatements(query.orStatements, query.baseSQLAlias)
+            .aliasWhereStatements(query.orStatements, query.baseSqlAlias)
             .map(orStatement => this.orStatementsToExpressionWrappers(eb, orStatement))
           orEb = eb.or(orStatement)
         }
@@ -1763,7 +1870,7 @@ export default class Query<
       kyselyQuery = query.recursivelyApplyJoinWhereStatement(
         kyselyQuery,
         query.joinsWhereStatements,
-        query.baseSQLAlias
+        query.baseSqlAlias
       )
     }
 
@@ -1814,7 +1921,7 @@ export default class Query<
     this: T
   ): DeleteQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
     let kyselyQuery = this.dbFor('delete').deleteFrom(
-      this.baseSQLAlias as unknown as AliasedExpression<any, any>
+      this.baseSqlAlias as unknown as AliasedExpression<any, any>
     )
 
     const results = this.attachLimitAndOrderStatementsToNonSelectQuery(kyselyQuery)
@@ -1831,9 +1938,9 @@ export default class Query<
       kyselyQuery = this.baseSelectQuery.buildSelect({ bypassSelectAll: true })
     } else {
       const from =
-        this.baseSQLAlias === this.dreamClass.prototype.table
+        this.baseSqlAlias === this.dreamClass.prototype.table
           ? this.dreamClass.prototype.table
-          : `${this.dreamClass.prototype.table} as ${this.baseSQLAlias}`
+          : `${this.dreamClass.prototype.table} as ${this.baseSqlAlias}`
 
       kyselyQuery = this.dbFor('select').selectFrom(from as any)
     }
@@ -1852,7 +1959,7 @@ export default class Query<
 
     if (!bypassSelectAll) {
       kyselyQuery = kyselyQuery.selectAll(
-        this.baseSQLAlias as ExtractTableAlias<DB, InstanceType<DreamClass>['table']>
+        this.baseSqlAlias as ExtractTableAlias<DB, InstanceType<DreamClass>['table']>
       )
 
       kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery)
@@ -1956,7 +2063,7 @@ export interface QueryOpts<
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
   AllColumns extends DreamInstance['allColumns'] = DreamInstance['allColumns']
 > {
-  baseSQLAlias?: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
+  baseSqlAlias?: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
   baseSelectQuery?: Query<any> | null
   passthroughWhereStatement?: PassthroughWhere<AllColumns> | null
   where?: readonly WhereStatement<DB, SyncedAssociations, any>[] | null

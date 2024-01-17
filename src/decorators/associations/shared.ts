@@ -125,6 +125,7 @@ export interface HasStatement<
   polymorphic: boolean
   source: string
   through?: string
+  preloadThroughColumns?: string[]
   where?: AssociationWhereStatement<DB, SyncedAssociations, ForeignTableName>
   whereNot?: WhereStatement<DB, SyncedAssociations, ForeignTableName>
   selfWhere?: WhereSelfStatement<DB, SyncedAssociations, ForeignTableName>
@@ -145,7 +146,13 @@ export function blankAssociationsFactory(dreamClass: typeof Dream): {
 }
 
 type partialTypeFields = 'modelCB' | 'type' | 'polymorphic' | 'as'
-type hasOneManySpecificFields = 'source' | 'through' | 'where' | 'whereNot' | 'selfWhere'
+type hasOneManySpecificFields =
+  | 'source'
+  | 'through'
+  | 'preloadThroughColumns'
+  | 'where'
+  | 'whereNot'
+  | 'selfWhere'
 type belongsToSpecificFields = 'optional'
 
 export type PartialAssociationStatement =

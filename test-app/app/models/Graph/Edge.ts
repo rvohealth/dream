@@ -19,6 +19,10 @@ export default class Edge extends ApplicationModel {
   public name: string
   public createdAt: DateTime
   public updatedAt: DateTime
+  public preloadedThroughColumns: {
+    position?: typeof EdgeNode.prototype.position
+    createdAt?: typeof EdgeNode.prototype.createdAt
+  } = {}
 
   @HasMany(() => EdgeNode, { foreignKey: 'edgeId' })
   public edgeNodes: EdgeNode[]

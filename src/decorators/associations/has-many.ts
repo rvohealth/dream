@@ -21,6 +21,7 @@ export default function HasMany<AssociationDreamClass extends typeof Dream>(
   return function (target: any, key: string, _: any) {
     const { foreignKey, polymorphic = false, source } = options
     const through = options.through
+    const preloadThroughColumns = options.preloadThroughColumns
     const where = options.where
     const whereNot = options.whereNot
     const selfWhere = options.selfWhere
@@ -39,6 +40,7 @@ export default function HasMany<AssociationDreamClass extends typeof Dream>(
       polymorphic,
       source: source || key,
       through,
+      preloadThroughColumns,
       where,
       whereNot,
       selfWhere,
@@ -119,4 +121,5 @@ export type HasManyOptions<AssociationDreamClass extends typeof Dream> = {
       >
   >
   through?: string
+  preloadThroughColumns?: string[]
 }

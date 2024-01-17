@@ -15,6 +15,8 @@ import JoinAttemptedOnMissingAssociation from '../../../../src/exceptions/associ
 import Collar from '../../../../test-app/app/models/Collar'
 import Post from '../../../../test-app/app/models/Post'
 import Rating from '../../../../test-app/app/models/Rating'
+import Node from '../../../../test-app/app/models/Graph/Node'
+import Edge from '../../../../test-app/app/models/Graph/Edge'
 
 describe('Query#preload through', () => {
   context('explicit HasMany through a BelongsTo', () => {
@@ -499,6 +501,29 @@ describe('Query#preload through', () => {
       expect(unscopedReloadedUser).toMatchDreamModel(user)
       expect(unscopedReloadedUser!.pets).toMatchDreamModels([pet])
       expect(unscopedReloadedUser!.pets[0].redBalloons).toMatchDreamModels([balloon])
+    })
+  })
+
+  context('preloadThroughColumns', () => {
+    it('loads the specified columns onto the loaded model', async () => {
+      const node = await Node.create({ name: 'mynode' })
+      const edge1 = await Edge.create({ name: 'myedge1' })
+      const edge2 = await Edge.create({ name: 'myedge2' })
+
+      // position automatically set by Sortable decorator
+      const edgeNode1 = await node.createAssociation('edgeNodes', { name: 'graph_edge_1', edge: edge1 })
+      const edgeNode2 = await node.createAssociation('edgeNodes', { name: 'graph_edge_2', edge: edge2 })
+
+      const reloadedNode = await Node.preload('edges').first()
+
+      const reloadedEdge1 = reloadedNode!.edges.find(obj => obj.name === 'myedge1')
+      const reloadedEdge2 = reloadedNode!.edges.find(obj => obj.name === 'myedge2')
+
+      expect(reloadedEdge1!.preloadedThroughColumns.position).toEqual(1)
+      expect(reloadedEdge1!.preloadedThroughColumns.createdAt).toEqualDateTime(edgeNode1.createdAt)
+
+      expect(reloadedEdge2!.preloadedThroughColumns.position).toEqual(2)
+      expect(reloadedEdge2!.preloadedThroughColumns.createdAt).toEqualDateTime(edgeNode2.createdAt)
     })
   })
 })

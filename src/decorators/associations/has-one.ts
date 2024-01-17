@@ -21,6 +21,7 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
     polymorphic = false,
     source,
     through,
+    preloadThroughColumns,
     where,
     whereNot,
     selfWhere,
@@ -30,6 +31,7 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
     polymorphic?: boolean
     source?: string
     through?: string
+    preloadThroughColumns?: string[]
     where?: AssociationWhereStatement<
       InstanceType<AssociationDreamClass>['DB'],
       InstanceType<AssociationDreamClass>['syncedAssociations'],
@@ -81,6 +83,7 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
       polymorphic,
       source: source || key,
       through,
+      preloadThroughColumns,
       where,
       whereNot,
       selfWhere,

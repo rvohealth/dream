@@ -4,7 +4,6 @@ import Post from '../../../../test-app/app/models/Post'
 import Sortable from '../../../../src/decorators/sortable'
 import NonExistentScopeProvidedToSortableDecorator from '../../../../src/exceptions/non-existent-scope-provided-to-sortable-decorator'
 import NonBelongsToScopeProvidedToSortableDecorator from '../../../../src/exceptions/non-belongs-to-scope-provided-to-sortable-decorator'
-import Balloon from '../../../../test-app/app/models/Balloon'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import Edge from '../../../../test-app/app/models/Graph/Edge'
@@ -500,18 +499,18 @@ describe('@Sortable', () => {
       const edgeNode2 = await EdgeNode.create({ edge: edge1, node: node1 })
       const edgeNode3 = await EdgeNode.create({ edge: edge1, node: node1 })
 
-      expect(edgeNode3.position).toEqual(3)
-      expect((await edgeNode1.reload()).position).toEqual(1)
-      expect((await edgeNode2.reload()).position).toEqual(2)
-      expect((await unrelatedNode1.reload()).position).toEqual(1)
-      expect((await unrelatedNode2.reload()).position).toEqual(1)
+      expect(edgeNode3.multiScopedPosition).toEqual(3)
+      expect((await edgeNode1.reload()).multiScopedPosition).toEqual(1)
+      expect((await edgeNode2.reload()).multiScopedPosition).toEqual(2)
+      expect((await unrelatedNode1.reload()).multiScopedPosition).toEqual(1)
+      expect((await unrelatedNode2.reload()).multiScopedPosition).toEqual(1)
 
-      await edgeNode3.update({ position: 1 })
-      expect((await edgeNode3.reload()).position).toEqual(1)
-      expect((await edgeNode1.reload()).position).toEqual(2)
-      expect((await edgeNode2.reload()).position).toEqual(3)
-      expect((await unrelatedNode1.reload()).position).toEqual(1)
-      expect((await unrelatedNode2.reload()).position).toEqual(1)
+      await edgeNode3.update({ multiScopedPosition: 1 })
+      expect((await edgeNode3.reload()).multiScopedPosition).toEqual(1)
+      expect((await edgeNode1.reload()).multiScopedPosition).toEqual(2)
+      expect((await edgeNode2.reload()).multiScopedPosition).toEqual(3)
+      expect((await unrelatedNode1.reload()).multiScopedPosition).toEqual(1)
+      expect((await unrelatedNode2.reload()).multiScopedPosition).toEqual(1)
     })
   })
 })

@@ -6,8 +6,8 @@ describe('Query#distinct', () => {
   it('returns unique results distinct on the primary key', async () => {
     const node = await Node.create({ name: 'mynode' })
     const edge = await Edge.create({ name: 'myedge' })
-    const edgeNode1 = await node.createAssociation('edgeNodes', { name: 'grahp_edge_1', edge })
-    const edgeNode2 = await node.createAssociation('edgeNodes', { name: 'grahp_edge_2', edge })
+    const edgeNode1 = await node.createAssociation('edgeNodes', { name: 'graph_edge_1', edge })
+    const edgeNode2 = await node.createAssociation('edgeNodes', { name: 'graph_edge_2', edge })
 
     let ids = await Edge.joins('edgeNodes').pluck('graph_edges.id')
     expect(ids).toEqual([edge.id, edge.id])
@@ -21,8 +21,8 @@ describe('Query#distinct', () => {
       const node = await Node.create({ name: 'mynode' })
       const edge1 = await Edge.create({ name: 'myedge' })
       const edge2 = await Edge.create({ name: 'myedge' })
-      const edgeNode1 = await node.createAssociation('edgeNodes', { name: 'grahp_edge_1', edge: edge1 })
-      const edgeNode2 = await node.createAssociation('edgeNodes', { name: 'grahp_edge_2', edge: edge2 })
+      const edgeNode1 = await node.createAssociation('edgeNodes', { name: 'graph_edge_1', edge: edge1 })
+      const edgeNode2 = await node.createAssociation('edgeNodes', { name: 'graph_edge_2', edge: edge2 })
 
       let ids = await Edge.joins('edgeNodes').pluck('graph_edges.id')
       expect(ids).toEqual([edge1.id, edge2.id])
@@ -36,8 +36,8 @@ describe('Query#distinct', () => {
     it('returns unique results distinct on the primary key', async () => {
       const node = await Node.create({ name: 'mynode' })
       const edge = await Edge.create({ name: 'myedge' })
-      const edgeNode1 = await node.createAssociation('edgeNodes', { name: 'grahp_edge_1', edge })
-      const edgeNode2 = await node.createAssociation('edgeNodes', { name: 'grahp_edge_2', edge })
+      const edgeNode1 = await node.createAssociation('edgeNodes', { name: 'graph_edge_1', edge })
+      const edgeNode2 = await node.createAssociation('edgeNodes', { name: 'graph_edge_2', edge })
 
       let ids = await Edge.joins('edgeNodes').pluck('graph_edges.id')
       expect(ids).toEqual([edge.id, edge.id])
@@ -52,8 +52,8 @@ describe('Query#distinct', () => {
       const node = await Node.create({ name: 'mynode' })
       const edge1 = await Edge.create({ name: 'myedge' })
       const edge2 = await Edge.create({ name: 'myedge' })
-      const edgeNode1 = await node.createAssociation('edgeNodes', { name: 'grahp_edge_1', edge: edge1 })
-      const edgeNode2 = await node.createAssociation('edgeNodes', { name: 'grahp_edge_2', edge: edge2 })
+      const edgeNode1 = await node.createAssociation('edgeNodes', { name: 'graph_edge_1', edge: edge1 })
+      const edgeNode2 = await node.createAssociation('edgeNodes', { name: 'graph_edge_2', edge: edge2 })
 
       const ids = await Edge.joins('edgeNodes').distinct('name').distinct(false).pluck('graph_edges.id')
       expect(ids).toEqual([edge1.id, edge2.id])
@@ -65,8 +65,8 @@ describe('Query#distinct', () => {
       const node = await Node.create({ name: 'mynode' })
       const edge1 = await Edge.create({ name: 'myedge' })
       const edge2 = await Edge.create({ name: 'myedge' })
-      const edgeNode1 = await node.createAssociation('edgeNodes', { name: 'grahp_edge_1', edge: edge1 })
-      const edgeNode2 = await node.createAssociation('edgeNodes', { name: 'grahp_edge_2', edge: edge2 })
+      const edgeNode1 = await node.createAssociation('edgeNodes', { name: 'graph_edge_1', edge: edge1 })
+      const edgeNode2 = await node.createAssociation('edgeNodes', { name: 'graph_edge_2', edge: edge2 })
 
       const ids = await Edge.joins('edgeNodes')
         .distinct('name')

@@ -20,8 +20,11 @@ export default class EdgeNode extends ApplicationModel {
   public createdAt: DateTime
   public updatedAt: DateTime
 
-  @Sortable({ scope: ['edge', 'node'] })
+  @Sortable({ scope: 'node' })
   public position: number
+
+  @Sortable({ scope: ['edge', 'node'] })
+  public multiScopedPosition: number
 
   @BelongsTo(() => GraphEdge, { foreignKey: 'edgeId' })
   public edge: GraphEdge
