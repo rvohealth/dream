@@ -142,6 +142,7 @@ export interface GraphEdges {
   id: Generated<Int8>;
   name: string | null;
   updatedAt: Timestamp;
+  weight: Numeric | null;
 }
 
 export interface GraphNodes {
@@ -286,7 +287,7 @@ export const CompositionColumns = ['content', 'createdAt', 'id', 'primary', 'upd
 export const EdgeCaseAttributeColumns = ['createdAt', 'id', 'kPop', 'popK', 'popKPop', 'updatedAt'] as const
 export const ExtraRatingColumns = ['body', 'createdAt', 'extraRateableId', 'extraRateableType', 'id', 'rating', 'type', 'updatedAt', 'userId'] as const
 export const GraphEdgeNodeColumns = ['createdAt', 'edgeId', 'id', 'multiScopedPosition', 'nodeId', 'position', 'updatedAt'] as const
-export const GraphEdgeColumns = ['createdAt', 'id', 'name', 'updatedAt'] as const
+export const GraphEdgeColumns = ['createdAt', 'id', 'name', 'updatedAt', 'weight'] as const
 export const GraphNodeColumns = ['createdAt', 'id', 'name', 'updatedAt'] as const
 export const IncompatibleForeignKeyTypeExampleColumns = ['createdAt', 'id', 'updatedAt', 'userId'] as const
 export const LocalizedTextColumns = ['body', 'createdAt', 'id', 'locale', 'localizableId', 'localizableType', 'name', 'title', 'updatedAt'] as const
@@ -414,6 +415,7 @@ export interface GraphEdgeAttributes {
   id: IdType
   name: string | null
   updatedAt: DateTime
+  weight: number | null
 }  
 
 export interface GraphNodeAttributes {
@@ -633,7 +635,8 @@ export const GraphEdgesDBTypeMap = {
   createdAt: 'timestamp without time zone',
   id: 'bigint',
   name: 'character varying',
-  updatedAt: 'timestamp without time zone'
+  updatedAt: 'timestamp without time zone',
+  weight: 'numeric'
 }
 
 export const GraphNodesDBTypeMap = {

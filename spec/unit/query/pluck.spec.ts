@@ -1,5 +1,6 @@
 import User from '../../../test-app/app/models/User'
 import ops from '../../../src/ops'
+import Edge from '../../../test-app/app/models/Graph/Edge'
 
 describe('Query#pluck', () => {
   let user1: User
@@ -15,6 +16,30 @@ describe('Query#pluck', () => {
   it('plucks the specified attributes and returns them as raw data', async () => {
     const plucked = await User.order('id').pluck('id')
     expect(plucked).toEqual([user1.id, user2.id, user3.id])
+  })
+
+  context('columns that get transformed during marshalling', () => {
+    context('a single value', () => {
+      it('are properly marshalled', async () => {
+        const edge1 = await Edge.create({ name: 'E1', weight: 2.3 })
+        const edge2 = await Edge.create({ name: 'E2', weight: 7.1 })
+
+        const plucked = await Edge.query().pluck('weight')
+        expect(plucked[0]).toEqual(2.3)
+        expect(plucked[1]).toEqual(7.1)
+      })
+    })
+
+    context('multiple values', () => {
+      it('are properly marshalled', async () => {
+        const edge1 = await Edge.create({ name: 'E1', weight: 2.3 })
+        const edge2 = await Edge.create({ name: 'E2', weight: 7.1 })
+
+        const plucked = await Edge.query().pluck('name', 'weight')
+        expect(plucked[0]).toEqual(['E1', 2.3])
+        expect(plucked[1]).toEqual(['E2', 7.1])
+      })
+    })
   })
 
   context('with multiple fields', () => {

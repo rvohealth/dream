@@ -17,6 +17,7 @@ export default class Edge extends ApplicationModel {
 
   public id: IdType
   public name: string
+  public weight: number
   public createdAt: DateTime
   public updatedAt: DateTime
   public preloadedThroughColumns: {
