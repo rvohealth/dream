@@ -479,10 +479,13 @@ describe('DreamSerializer#render', () => {
 
         it('leverages the default serializer', async () => {
           const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-          const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+          let pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+          pet = await pet.load('ratings').execute()
 
           const serializer = new UserSerializer({ pets: [pet] })
-          expect(serializer.render()).toEqual({ pets: [{ id: pet.id, name: 'aster', species: 'cat' }] })
+          expect(serializer.render()).toEqual({
+            pets: [{ id: pet.id, name: 'aster', species: 'cat', ratings: [] }],
+          })
         })
 
         context('when a serializer is not present on the model', () => {
@@ -508,10 +511,13 @@ describe('DreamSerializer#render', () => {
 
         it('leverages the default serializer and applies the config', async () => {
           const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-          const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+          let pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+          pet = await pet.load('ratings').execute()
 
           const serializer = new UserSerializer({ howyadoin: { pets: [pet] } })
-          expect(serializer.render()).toEqual({ pets: [{ id: pet.id, name: 'aster', species: 'cat' }] })
+          expect(serializer.render()).toEqual({
+            pets: [{ id: pet.id, name: 'aster', species: 'cat', ratings: [] }],
+          })
         })
       })
     })
@@ -796,10 +802,13 @@ describe('DreamSerializer#render', () => {
 
       it('leverages the default serializer', async () => {
         const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-        const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+        let pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+        pet = await pet.load('ratings').execute()
 
         const serializer = new UserSerializer({ pet })
-        expect(serializer.render()).toEqual({ pet: { id: pet.id, name: 'aster', species: 'cat' } })
+        expect(serializer.render()).toEqual({
+          pet: { id: pet.id, name: 'aster', species: 'cat', ratings: [] },
+        })
       })
 
       context('when a serializer is not present on the model', () => {
@@ -825,10 +834,13 @@ describe('DreamSerializer#render', () => {
 
       it('leverages the default serializer and applies the config', async () => {
         const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-        const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+        let pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+        pet = await pet.load('ratings').execute()
 
         const serializer = new UserSerializer({ howyadoin: { pet } })
-        expect(serializer.render()).toEqual({ pet: { id: pet.id, name: 'aster', species: 'cat' } })
+        expect(serializer.render()).toEqual({
+          pet: { id: pet.id, name: 'aster', species: 'cat', ratings: [] },
+        })
       })
     })
   })
