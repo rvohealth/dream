@@ -72,6 +72,7 @@ function renderAsToType(renderAs: SerializableTypes, schema: any) {
 
   const typeCoersions = {
     date: 'string',
+    datetime: 'string',
     round: 'number',
   } as any
 
