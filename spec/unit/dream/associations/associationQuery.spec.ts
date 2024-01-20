@@ -72,6 +72,32 @@ describe('Dream#associationQuery', () => {
       expect(await otherUser.associationQuery('compositionAssets').findBy({ score: 3 })).toBeNull()
     })
 
+    it('supports calling destroy', async () => {
+      const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+
+      const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      const composition = await Composition.create({ user, content: 'howyadoin' })
+      const otherCompositionAsset = await CompositionAsset.create({
+        composition,
+        name: 'asset 0',
+        score: 1,
+      })
+      const compositionAsset = await CompositionAsset.create({
+        composition,
+        name: 'asset 1',
+        score: 3,
+      })
+
+      expect(await user.associationQuery('compositionAssets').all()).toMatchDreamModels([
+        otherCompositionAsset,
+        compositionAsset,
+      ])
+      expect(await user.associationQuery('compositionAssets').where({ score: 3 }).destroy())
+      expect(await user.associationQuery('compositionAssets').all()).toMatchDreamModels([
+        otherCompositionAsset,
+      ])
+    })
+
     it('supports chaining of subsequent joins', async () => {
       const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
