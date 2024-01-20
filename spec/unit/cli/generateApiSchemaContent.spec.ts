@@ -74,7 +74,7 @@ export interface Collar {
       })
 
       context('with explicit serializer', () => {
-        it('looks up serializer through associated model and renders correct type', async () => {
+        it('uses provided serializer from callback', async () => {
           const file = await generateApiSchemaContent()
           expect(file).toContain(`\
 export interface BalloonSpotterBalloon {
@@ -98,7 +98,7 @@ export interface BalloonSpotter {
       })
 
       context('with explicit serializer', () => {
-        it('looks up serializer through associated model and renders correct type', async () => {
+        it('uses provided serializer from callback', async () => {
           const file = await generateApiSchemaContent()
 
           expect(file).toContain(`\
