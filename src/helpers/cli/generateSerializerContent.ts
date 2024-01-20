@@ -1,12 +1,15 @@
 import pluralize from 'pluralize'
 import camelize from '../../../shared/helpers/camelize'
 import pascalize from '../pascalize'
+import initializeDream from '../../../shared/helpers/initializeDream'
 
 export default async function generateSerializerContent(
   fullyQualifiedSerializerName: string,
   fullyQualifiedModelName?: string,
   attributes: string[] = []
 ) {
+  await initializeDream()
+
   const serializerClass = fullyQualifiedClassNameFromRawStr(fullyQualifiedSerializerName)
   let relatedModelImport = ''
   let modelClass = ''

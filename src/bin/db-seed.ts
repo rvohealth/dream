@@ -1,7 +1,10 @@
+import initializeDream from '../../shared/helpers/initializeDream'
 import '../helpers/loadEnv'
 import { dbSeedPath } from '../helpers/path'
 
 async function dbSeed() {
+  await initializeDream()
+
   console.log('seeding db...')
   const seed = await import(await dbSeedPath())
 
