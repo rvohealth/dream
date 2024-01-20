@@ -163,6 +163,28 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
         })
       })
 
+      context('one of those attributes is an enum', () => {
+        it('adds an enum type to the Attribute call', async () => {
+          const res = await generateSerializerContent('UserSerializer', 'User', [
+            'topping:enum:topping:cheese,baja_sauce',
+          ])
+          console.log(res)
+
+          expect(res).toEqual(
+            `\
+import { DreamSerializer, Attribute } from '@rvohealth/dream'
+import { ToppingEnum } from '../../../test-app/db/schema'
+import User from '../models/User'
+
+export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+  @Attribute('enum:ToppingEnum')
+  public topping: ToppingEnum
+}\
+`
+          )
+        })
+      })
+
       context('when one of those attributes is an association', () => {
         context('BelongsTo', () => {
           it('correctly injects RendersOne decorator and imports for the model', async () => {
