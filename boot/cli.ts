@@ -88,6 +88,20 @@ program
   })
 
 program
+  .command('generate:api')
+  .alias('g:api')
+  .description('generate:serializer <name> [...attributes] create a new serializer')
+  .option('--core', 'sets core to true')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
+  .action(async () => {
+    await sspawn(
+      nodeOrTsnodeCmd('src/bin/generate-api.ts', cmdargs(), {
+        fileArgs: [],
+      })
+    )
+  })
+
+program
   .command('sync:types')
   .alias('sync:all')
   .description('runs yarn dream sync:schema, then yarn dream sync:associations')

@@ -72,7 +72,7 @@ function attributeSpecifier(type: string) {
     case 'decimal':
       return "'round'"
     default:
-      return ''
+      return type ? `'${type}'` : ''
   }
 }
 

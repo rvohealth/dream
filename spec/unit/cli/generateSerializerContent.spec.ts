@@ -81,7 +81,7 @@ import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
 export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
-  @Attribute()
+  @Attribute('string')
   public howyadoin: string
 }\
 `
@@ -99,7 +99,7 @@ import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
 export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
-  @Attribute()
+  @Attribute('number')
   public howyadoin: number
 }\
 `
@@ -136,7 +136,7 @@ import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
 export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
-  @Attribute()
+  @Attribute('datetime')
   public loggedInAt: DateTime
 }\
 `

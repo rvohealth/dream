@@ -7,4 +7,7 @@ export default class BalloonLineSerializer extends DreamSerializer {
 
   @Attribute()
   public material: any
+
+  @Attribute('date')
+  public createdAt: any
 }

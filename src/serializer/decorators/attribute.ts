@@ -21,7 +21,9 @@ export default function Attribute(renderAs?: SerializableTypes, options?: Attrib
   }
 }
 
-export type SerializableTypes = 'date' | 'round'
+export type SerializableTypes = SerializableBaseTypes | SerializableBaseArrayTypes | `enum:${string}`
+export type SerializableBaseArrayTypes = `${SerializableBaseTypes}[]`
+export type SerializableBaseTypes = 'date' | 'round' | 'string' | 'number' | 'boolean' | 'datetime'
 
 type AttributeRenderOptions = { precision?: RoundingPrecision }
 

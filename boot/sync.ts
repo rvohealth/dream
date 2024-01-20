@@ -83,9 +83,10 @@ async function enhanceSchema(file: string) {
   const dbTypeMap = await Promise.all(results.map(async result => await buildDBTypeMap(db, result)))
 
   let transformedNames = compact(results.map(result => transformName(result))) as string[]
+  const fileWithCoercedTypes = exportedTypesToExportedTypesArrays(file)
 
   // BEGIN FILE CONTENTS BUILDING
-  const newFileContents = `${file}
+  const newFileContents = `${fileWithCoercedTypes}
 
 ${interfaceKeyIndexes.join('\n')}
 
@@ -227,6 +228,24 @@ function alphaSortInterfaceProperties(str: string) {
     return `${interfaceDeclaration}{
 ${props.sort().join('\n')}
 }`
+  })
+}
+
+function exportedTypesToExportedTypesArrays(str: string) {
+  const ommitedTypes = ['Generated<T>', 'Int8', 'Numeric']
+
+  return str.replaceAll(/export type ([^=]*) = ([^;]*);\n/g, (_match, typeDeclaration, types) => {
+    const originalType = `export type ${typeDeclaration} = ${types};\n`
+    if (ommitedTypes.some(type => new RegExp(type).test(typeDeclaration))) {
+      return originalType
+    }
+
+    return `\
+${originalType}
+export const ${typeDeclaration}Array = [
+  ${types.split(' | ').join(',\n  ')}
+] as const
+`
   })
 }
 
