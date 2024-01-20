@@ -36,6 +36,11 @@ export interface GraphEdge {
       expect(file).toContain('createdAt: string')
     })
 
+    it('renders datetime attributes as string type', async () => {
+      const file = await generateApiSchemaContent()
+      expect(file).toContain('updatedAt: string')
+    })
+
     it('renders round attributes as number type', async () => {
       const file = await generateApiSchemaContent()
       expect(file).toContain('roundedPopKPop: number')
