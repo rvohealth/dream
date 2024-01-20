@@ -36,7 +36,7 @@ export default async function generateSerializerContent(
   return `\
 ${luxonImport}import { ${dreamImports.join(
     ', '
-  )} } from 'dream'${relatedModelImport}${additionalModelImports.join('')}
+  )} } from '@rvohealth/dream'${relatedModelImport}${additionalModelImports.join('')}
 
 export default class ${serializerClass}${dataTypeCapture} extends DreamSerializer${dreamSerializerTypeArgs} {
   ${attributes

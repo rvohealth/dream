@@ -1,16 +1,17 @@
 import generateDreamContent from '../../../src/helpers/cli/generateDreamContent'
 
-describe('howl generate:model <name> [...attributes]', () => {
+describe('dream generate:model <name> [...attributes]', () => {
   context('when provided with a pascalized table name', () => {
     it('generates a dream model with multiple string fields', async () => {
       const res = await generateDreamContent('MealType', [], { useUUID: false })
       expect(res).toEqual(
         `\
 import { DateTime } from 'luxon'
-import { Dream, IdType } from 'dream'
+import { Dream, IdType } from '@rvohealth/dream'
+import ApplicationModel from './ApplicationModel'
 import MealTypeSerializer from '../../../test-app/app/serializers/MealTypeSerializer'
 
-export default class MealType extends Dream {
+export default class MealType extends ApplicationModel {
   public get table() {
     return 'meal_types' as const
   }
@@ -37,10 +38,11 @@ export default class MealType extends Dream {
         expect(res).toEqual(
           `\
 import { DateTime } from 'luxon'
-import { Dream, IdType } from 'dream'
+import { Dream, IdType } from '@rvohealth/dream'
+import ApplicationModel from './ApplicationModel'
 import UserSerializer from '../../../test-app/app/serializers/UserSerializer'
 
-export default class User extends Dream {
+export default class User extends ApplicationModel {
   public get table() {
     return 'users' as const
   }
@@ -76,11 +78,12 @@ export default class User extends Dream {
         expect(res).toEqual(
           `\
 import { DateTime } from 'luxon'
-import { Dream, IdType } from 'dream'
+import { Dream, IdType } from '@rvohealth/dream'
+import ApplicationModel from './ApplicationModel'
 import ChalupaSerializer from '../../../test-app/app/serializers/ChalupaSerializer'
 import { ToppingEnum, ProteinEnum, MyExistingEnumEnum } from '../../../test-app/db/schema'
 
-export default class Chalupa extends Dream {
+export default class Chalupa extends ApplicationModel {
   public get table() {
     return 'chalupas' as const
   }
@@ -182,11 +185,12 @@ export default class Chalupa extends Dream {
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { Dream, IdType, BelongsTo } from 'dream'
+import { Dream, IdType, BelongsTo } from '@rvohealth/dream'
+import ApplicationModel from './ApplicationModel'
 import CompositionSerializer from '../../../test-app/app/serializers/CompositionSerializer'
 import GraphNode from './GraphNode'
 
-export default class Composition extends Dream {
+export default class Composition extends ApplicationModel {
   public get table() {
     return 'compositions' as const
   }
@@ -215,11 +219,12 @@ export default class Composition extends Dream {
             expect(res).toEqual(
               `\
 import { DateTime } from 'luxon'
-import { Dream, IdType, BelongsTo } from 'dream'
+import { Dream, IdType, BelongsTo } from '@rvohealth/dream'
+import ApplicationModel from './ApplicationModel'
 import CatToySerializer from '../../../test-app/app/serializers/CatToySerializer'
 import Cat from './Pet/Domestic/Cat'
 
-export default class CatToy extends Dream {
+export default class CatToy extends ApplicationModel {
   public get table() {
     return 'cat_toys' as const
   }
@@ -247,11 +252,12 @@ export default class CatToy extends Dream {
             expect(res).toEqual(
               `\
 import { DateTime } from 'luxon'
-import { Dream, IdType, HasMany } from 'dream'
+import { Dream, IdType, HasMany } from '@rvohealth/dream'
+import ApplicationModel from './ApplicationModel'
 import CatToySerializer from '../../../test-app/app/serializers/CatToySerializer'
 import Cat from './Pet/Domestic/Cat'
 
-export default class CatToy extends Dream {
+export default class CatToy extends ApplicationModel {
   public get table() {
     return 'cat_toys' as const
   }
@@ -278,11 +284,12 @@ export default class CatToy extends Dream {
             expect(res).toEqual(
               `\
 import { DateTime } from 'luxon'
-import { Dream, IdType, HasOne } from 'dream'
+import { Dream, IdType, HasOne } from '@rvohealth/dream'
+import ApplicationModel from './ApplicationModel'
 import CatToySerializer from '../../../test-app/app/serializers/CatToySerializer'
 import Cat from './Pet/Domestic/Cat'
 
-export default class CatToy extends Dream {
+export default class CatToy extends ApplicationModel {
   public get table() {
     return 'cat_toys' as const
   }
@@ -309,11 +316,12 @@ export default class CatToy extends Dream {
             expect(res).toEqual(
               `\
 import { DateTime } from 'luxon'
-import { Dream, IdType, BelongsTo } from 'dream'
+import { Dream, IdType, BelongsTo } from '@rvohealth/dream'
+import ApplicationModel from '../../ApplicationModel'
 import PetDomesticCatSerializer from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
 import GraphNode from '../../GraphNode'
 
-export default class Cat extends Dream {
+export default class Cat extends ApplicationModel {
   public get table() {
     return 'pet_domestic_cats' as const
   }
@@ -341,11 +349,12 @@ export default class Cat extends Dream {
             expect(res).toEqual(
               `\
 import { DateTime } from 'luxon'
-import { Dream, IdType, BelongsTo } from 'dream'
+import { Dream, IdType, BelongsTo } from '@rvohealth/dream'
+import ApplicationModel from '../../ApplicationModel'
 import PetDomesticCatSerializer from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
 import Dog from '../../Pet/Domestic/Dog'
 
-export default class Cat extends Dream {
+export default class Cat extends ApplicationModel {
   public get table() {
     return 'pet_domestic_cats' as const
   }
@@ -373,11 +382,12 @@ export default class Cat extends Dream {
             expect(res).toEqual(
               `\
 import { DateTime } from 'luxon'
-import { Dream, IdType, BelongsTo } from 'dream'
+import { Dream, IdType, BelongsTo } from '@rvohealth/dream'
+import ApplicationModel from '../../ApplicationModel'
 import PetWildCatSerializer from '../../../../../test-app/app/serializers/Pet/Wild/CatSerializer'
 import Dog from '../../Pet/Domestic/Dog'
 
-export default class Cat extends Dream {
+export default class Cat extends ApplicationModel {
   public get table() {
     return 'pet_wild_cats' as const
   }
@@ -406,12 +416,13 @@ export default class Cat extends Dream {
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { Dream, IdType, BelongsTo } from 'dream'
+import { Dream, IdType, BelongsTo } from '@rvohealth/dream'
+import ApplicationModel from './ApplicationModel'
 import CompositionSerializer from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
 import Chalupa from './Chalupa'
 
-export default class Composition extends Dream {
+export default class Composition extends ApplicationModel {
   public get table() {
     return 'compositions' as const
   }
@@ -445,11 +456,12 @@ export default class Composition extends Dream {
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { Dream, IdType, HasOne } from 'dream'
+import { Dream, IdType, HasOne } from '@rvohealth/dream'
+import ApplicationModel from './ApplicationModel'
 import CompositionSerializer from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
 
-export default class Composition extends Dream {
+export default class Composition extends ApplicationModel {
   public get table() {
     return 'compositions' as const
   }
@@ -478,11 +490,12 @@ export default class Composition extends Dream {
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { Dream, IdType, HasMany } from 'dream'
+import { Dream, IdType, HasMany } from '@rvohealth/dream'
+import ApplicationModel from './ApplicationModel'
 import UserSerializer from '../../../test-app/app/serializers/UserSerializer'
 import Composition from './Composition'
 
-export default class User extends Dream {
+export default class User extends ApplicationModel {
   public get table() {
     return 'users' as const
   }
@@ -511,11 +524,12 @@ export default class User extends Dream {
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { Dream, IdType, BelongsTo } from 'dream'
+import { Dream, IdType, BelongsTo } from '@rvohealth/dream'
+import ApplicationModel from './ApplicationModel'
 import CompositionSerializer from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
 
-export default class Composition extends Dream {
+export default class Composition extends ApplicationModel {
   public get table() {
     return 'compositions' as const
   }
@@ -544,10 +558,11 @@ function expectSingleColumnWithType(response: string, name: string, type: string
   expect(response).toEqual(
     `\
 import { DateTime } from 'luxon'
-import { Dream, IdType } from 'dream'
+import { Dream, IdType } from '@rvohealth/dream'
+import ApplicationModel from './ApplicationModel'
 import UserSerializer from '../../../test-app/app/serializers/UserSerializer'
 
-export default class User extends Dream {
+export default class User extends ApplicationModel {
   public get table() {
     return 'users' as const
   }

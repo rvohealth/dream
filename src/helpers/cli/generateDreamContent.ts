@@ -134,13 +134,16 @@ public ${camelize(attributeName)}: ${getAttributeType(attribute)}\
 
   const tableName = snakeify(pluralize(modelName.replace(/\//g, '_')))
 
+  const relativePath = relativePathToModelRoot(modelName)
+
   return `\
 import { DateTime } from 'luxon'
-import { ${uniq(dreamImports).join(', ')} } from 'dream'${
+import { ${uniq(dreamImports).join(', ')} } from '@rvohealth/dream'
+import ApplicationModel from '${relativePath}ApplicationModel'${
     !!additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
   }
 
-export default class ${pascalize(modelName.split('/').pop()!)} extends Dream {
+export default class ${pascalize(modelName.split('/').pop()!)} extends ApplicationModel {
   public get table() {
     return '${tableName}' as const
   }
