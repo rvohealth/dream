@@ -1,13 +1,13 @@
 import generateSerializerContent from '../../../src/helpers/cli/generateSerializerContent'
 
-describe('psy generate:serializer <name> [...attributes]', () => {
+describe('dream generate:serializer <name> [...attributes]', () => {
   context('when not provided with a dream class', () => {
     it('renders a blank serializer with no types', async () => {
       const res = await generateSerializerContent('UserSerializer')
 
       expect(res).toEqual(
         `\
-import { DreamSerializer, Attribute } from 'dream'
+import { DreamSerializer, Attribute } from '@rvohealth/dream'
 
 export default class UserSerializer extends DreamSerializer {
   
@@ -21,7 +21,7 @@ export default class UserSerializer extends DreamSerializer {
 
         expect(res).toEqual(
           `\
-import { DreamSerializer, Attribute } from 'dream'
+import { DreamSerializer, Attribute } from '@rvohealth/dream'
 
 export default class UserSerializer extends DreamSerializer {
   @Attribute()
@@ -40,7 +40,7 @@ export default class UserSerializer extends DreamSerializer {
 
         expect(res).toEqual(
           `\
-import { DreamSerializer, Attribute } from 'dream'
+import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
 export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
@@ -59,7 +59,7 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
 
           expect(res).toEqual(
             `\
-import { DreamSerializer, Attribute } from 'dream'
+import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import Admin from '../../models/User/Admin'
 
 export default class UserAdminSerializer<DataType extends Admin> extends DreamSerializer<DataType> {
@@ -77,7 +77,7 @@ export default class UserAdminSerializer<DataType extends Admin> extends DreamSe
 
           expect(res).toEqual(
             `\
-import { DreamSerializer, Attribute } from 'dream'
+import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
 export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
@@ -95,7 +95,7 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
 
           expect(res).toEqual(
             `\
-import { DreamSerializer, Attribute } from 'dream'
+import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
 export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
@@ -113,7 +113,7 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
 
           expect(res).toEqual(
             `\
-import { DreamSerializer, Attribute } from 'dream'
+import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
 export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
@@ -132,7 +132,7 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { DreamSerializer, Attribute } from 'dream'
+import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
 export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
@@ -151,7 +151,7 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
           expect(res).toEqual(
             `\
 import { DateTime } from 'luxon'
-import { DreamSerializer, Attribute } from 'dream'
+import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
 export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
@@ -170,7 +170,7 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
 
             expect(res).toEqual(
               `\
-import { DreamSerializer, Attribute, RendersOne } from 'dream'
+import { DreamSerializer, Attribute, RendersOne } from '@rvohealth/dream'
 import User from '../models/User'
 import Organization from '../models/Organization'
 
@@ -188,7 +188,7 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
 
             expect(res).toEqual(
               `\
-import { DreamSerializer, Attribute, RendersOne } from 'dream'
+import { DreamSerializer, Attribute, RendersOne } from '@rvohealth/dream'
 import User from '../models/User'
 import Organization from '../models/Organization'
 
@@ -206,7 +206,7 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
 
             expect(res).toEqual(
               `\
-import { DreamSerializer, Attribute, RendersMany } from 'dream'
+import { DreamSerializer, Attribute, RendersMany } from '@rvohealth/dream'
 import User from '../models/User'
 import Organization from '../models/Organization'
 
@@ -226,7 +226,7 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
 
             expect(res).toEqual(
               `\
-import { DreamSerializer, Attribute, RendersOne } from 'dream'
+import { DreamSerializer, Attribute, RendersOne } from '@rvohealth/dream'
 import Admin from '../../models/User/Admin'
 import MyModel from '../../models/Double/Nested/MyModel'
 
