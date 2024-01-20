@@ -105,7 +105,7 @@ export default class Chalupa extends ApplicationModel {
     })
 
     context('when name has an uncountable rule applied in inflections conf', () => {
-      it.only('respects inflections conf while generating model name', async () => {
+      it('respects inflections conf while generating model name', async () => {
         const res = await generateDreamContent('paper', ['name:string'], {
           useUUID: true,
         })
