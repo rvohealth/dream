@@ -218,7 +218,7 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
           })
 
           context('when passed an association that should not be pluralized', () => {
-            it.only('correctly injects RendersMany decorator and imports for the model', async () => {
+            it('correctly injects RendersMany decorator and imports for the model', async () => {
               const res = await generateSerializerContent('UserSerializer', 'User', ['Paper:has_many'])
 
               expect(res).toEqual(
