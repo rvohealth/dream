@@ -5,12 +5,15 @@ import EdgeCaseAttribute from '../models/EdgeCaseAttribute'
 export default class EdgeCaseAttributeSerializer<
   DataType extends EdgeCaseAttribute
 > extends DreamSerializer<DataType> {
-  @Attribute()
+  @Attribute('boolean')
   public kPop: any
 
-  @Attribute()
+  @Attribute('string')
   public popK: string
 
-  @Attribute()
+  @Attribute('number')
   public popKPop: number
+
+  @Attribute('round', { precision: 2 })
+  public roundedPopKPop: number
 }
