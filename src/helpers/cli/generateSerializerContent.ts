@@ -1,16 +1,22 @@
+import path from 'path'
 import pluralize from 'pluralize'
 import camelize from '../../../shared/helpers/camelize'
 import pascalize from '../pascalize'
 import initializeDream from '../../../shared/helpers/initializeDream'
+import { loadDreamYamlFile } from '../path'
+import uniq from '../uniq'
 
 export default async function generateSerializerContent(
   fullyQualifiedSerializerName: string,
   fullyQualifiedModelName?: string,
   attributes: string[] = []
 ) {
+  const yamlConf = await loadDreamYamlFile()
   await initializeDream()
 
   const serializerClass = fullyQualifiedClassNameFromRawStr(fullyQualifiedSerializerName)
+  const enumImports: string[] = []
+  const additionalImports: string[] = []
   let relatedModelImport = ''
   let modelClass = ''
   let dataTypeCapture = ''
@@ -30,16 +36,32 @@ export default async function generateSerializerContent(
 
   const additionalModelImports: string[] = []
   attributes.forEach(attr => {
-    const [name, type] = attr.split(':')
+    const [name, type, ...descriptors] = attr.split(':')
     if (['belongs_to', 'has_one', 'has_many'].includes(type)) {
       additionalModelImports.push(importStatementForModel(fullyQualifiedSerializerName, name))
     }
+
+    if (type === 'enum') {
+      const enumName = descriptors[0] + '_enum'
+      enumImports.push(pascalize(enumName))
+    }
   })
+
+  if (!!enumImports.length) {
+    const relativePath = path.join(
+      await relativePathToSrcRoot(fullyQualifiedSerializerName),
+      yamlConf.schema_path.replace(/\.ts$/, '')
+    )
+    const enumImport = `import { ${enumImports.join(', ')} } from '${relativePath}'`
+    additionalImports.push(enumImport)
+  }
+
+  const additionalImportsStr = !!additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
 
   return `\
 ${luxonImport}import { ${dreamImports.join(
     ', '
-  )} } from '@rvohealth/dream'${relatedModelImport}${additionalModelImports.join('')}
+  )} } from '@rvohealth/dream'${additionalImportsStr}${relatedModelImport}${additionalModelImports.join('')}
 
 export default class ${serializerClass}${dataTypeCapture} extends DreamSerializer${dreamSerializerTypeArgs} {
   ${attributes
@@ -56,8 +78,8 @@ export default class ${serializerClass}${dataTypeCapture} extends DreamSerialize
   public ${pluralize(camelize(classNameFromRawStr(name)))}: ${classNameFromRawStr(name)}[]`
 
         default:
-          return `@Attribute(${attributeSpecifier(type)}${attributeOptionsSpecifier(type, attr)})
-  public ${camelize(name)}: ${jsType(type)}`
+          return `@Attribute(${attributeSpecifier(type, attr)}${attributeOptionsSpecifier(type, attr)})
+  public ${camelize(name)}: ${jsType(type, attr)}`
       }
     })
     .join('\n\n  ')}
@@ -65,12 +87,15 @@ export default class ${serializerClass}${dataTypeCapture} extends DreamSerialize
 `
 }
 
-function attributeSpecifier(type: string) {
+function attributeSpecifier(type: string, originalAttribute: string) {
   switch (type) {
     case 'date':
       return "'date'"
     case 'decimal':
       return "'round'"
+    case 'enum':
+      const coercedType = pascalize(originalAttribute.split(':')[2])
+      return `'enum:${coercedType}Enum'`
     default:
       return type ? `'${type}'` : ''
   }
@@ -85,7 +110,7 @@ function attributeOptionsSpecifier(type: string, attr: string) {
   }
 }
 
-function jsType(type?: string) {
+function jsType(type: string, originalAttribute: string) {
   switch (type) {
     case 'datetime':
     case 'date':
@@ -98,6 +123,8 @@ function jsType(type?: string) {
     case 'string':
     case 'text':
       return 'string'
+    case 'enum':
+      return pascalize(originalAttribute.split(':')[2]) + 'Enum'
 
     default:
       return 'any'
@@ -118,7 +145,7 @@ function fullyQualifiedClassNameFromRawStr(className: string) {
 }
 
 function hasDateTimeType(attributes: string[]) {
-  return !!attributes.map(attr => jsType(attr.split(':')[1])).find(a => a === 'DateTime')
+  return !!attributes.map(attr => jsType(attr.split(':')[1], attr)).find(a => a === 'DateTime')
 }
 
 function pathToModelFromSerializer(fullyQualifiedSerializerName: string, fullyQualifiedModelName: string) {
@@ -135,4 +162,25 @@ function importStatementForModel(fullyQualifiedSerializerName: string, fullyQual
     fullyQualifiedSerializerName,
     fullyQualifiedModelName
   )}'`
+}
+
+function relativePathToModelRoot(modelName: string) {
+  const numNestedDirsForModel = modelName.split('/').length - 1
+  let updirs = ''
+  for (let i = 0; i < numNestedDirsForModel; i++) {
+    updirs += '../'
+  }
+  return numNestedDirsForModel > 0 ? updirs : './'
+}
+
+async function relativePathToSrcRoot(modelName: string) {
+  const yamlConf = await loadDreamYamlFile()
+  const rootPath = relativePathToModelRoot(modelName)
+  const numUpdirsInRootPath = yamlConf.models_path.split('/').length
+  let updirs = ''
+  for (let i = 0; i < numUpdirsInRootPath; i++) {
+    updirs += '../'
+  }
+
+  return rootPath === './' ? updirs : path.join(rootPath, updirs)
 }
