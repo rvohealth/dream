@@ -104,6 +104,37 @@ export default class Chalupa extends ApplicationModel {
       })
     })
 
+    context('when name has an uncountable rule applied in inflections conf', () => {
+      it.only('respects inflections conf while generating model name', async () => {
+        const res = await generateDreamContent('paper', ['name:string'], {
+          useUUID: true,
+        })
+        expect(res).toEqual(
+          `\
+import { DateTime } from 'luxon'
+import { Dream, IdType } from '@rvohealth/dream'
+import ApplicationModel from './ApplicationModel'
+import PaperSerializer from '../../../test-app/app/serializers/PaperSerializer'
+
+export default class Paper extends ApplicationModel {
+  public get table() {
+    return 'paper' as const
+  }
+
+  public get serializer() {
+    return PaperSerializer<any>
+  }
+
+  public id: IdType
+  public name: string
+  public createdAt: DateTime
+  public updatedAt: DateTime
+}\
+`
+        )
+      })
+    })
+
     context('with an integer attribute', () => {
       it('generates a dream model with a number field', async () => {
         const res = await generateDreamContent('user', ['chalupa_count:integer'], {

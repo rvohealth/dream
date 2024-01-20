@@ -5,6 +5,8 @@ import camelize from '../../../shared/helpers/camelize'
 import snakeify from '../../../shared/helpers/snakeify'
 import uniq from '../uniq'
 import { loadDreamYamlFile } from '../path'
+import confPath from '../../../shared/helpers/path/confPath'
+import initializeDream from '../../../shared/helpers/initializeDream'
 
 const cooercedTypes = {
   bigint: 'string',
@@ -61,6 +63,8 @@ export default async function generateDreamContent(
     useUUID?: boolean
   } = {}
 ) {
+  await initializeDream()
+
   const dreamImports: string[] = ['Dream', 'IdType']
 
   const idTypescriptType = 'IdType'

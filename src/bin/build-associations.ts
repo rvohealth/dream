@@ -5,8 +5,11 @@ import loadModels from '../helpers/loadModels'
 import { associationsPath, loadDreamYamlFile } from '../helpers/path'
 import Dream from '../dream'
 import sortBy from 'lodash.sortby'
+import initializeDream from '../../shared/helpers/initializeDream'
 
 export default async function buildAssociations() {
+  await initializeDream()
+
   console.log('writing dream type metadata...')
   let fileStr = await buildAssociationsFile()
   fileStr = await writeVirtualColumns(fileStr)

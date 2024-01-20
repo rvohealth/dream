@@ -216,6 +216,24 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
 }`
             )
           })
+
+          context('when passed an association that should not be pluralized', () => {
+            it.only('correctly injects RendersMany decorator and imports for the model', async () => {
+              const res = await generateSerializerContent('UserSerializer', 'User', ['Paper:has_many'])
+
+              expect(res).toEqual(
+                `\
+import { DreamSerializer, Attribute, RendersMany } from '@rvohealth/dream'
+import User from '../models/User'
+import Paper from '../models/Paper'
+
+export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+  @RendersMany()
+  public paper: Paper[]
+}`
+              )
+            })
+          })
         })
 
         context('nested models', () => {
