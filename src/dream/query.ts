@@ -802,6 +802,35 @@ export default class Query<
     return this.pluckValuesToPluckResponse(fields, vals, mapFn)
   }
 
+  public async pluckEach<
+    T extends Query<DreamClass>,
+    TableName extends InstanceType<DreamClass>['table'],
+    SimpleFieldType extends keyof Updateable<DB[TableName]> & string,
+    TablePrefixedFieldType extends `${TableName}.${SimpleFieldType}`
+  >(
+    this: T,
+    fields: (SimpleFieldType | TablePrefixedFieldType)[],
+    cb: (plucked: any | any[]) => void | Promise<void>,
+    { chunkSize = 1000 }: { chunkSize?: number } = {}
+  ): Promise<void> {
+    let offset = 0
+    const count = await this.count()
+    const totalPages = Math.ceil(count / chunkSize)
+
+    const mapFn = (val: any, index: number) => marshalDBValue(this.dreamClass, fields[index] as any, val)
+
+    for (let i = 0; i < totalPages; i++) {
+      const records = await this.offset(offset)
+        .limit(chunkSize)
+        .pluckWithoutMarshalling(...fields)
+      const vals = this.pluckValuesToPluckResponse(fields, records, mapFn)
+      for (const val of vals) {
+        await cb(val)
+      }
+      offset += chunkSize
+    }
+  }
+
   private pluckValuesToPluckResponse(fields: any[], vals: any[], mapFn: (value: any, index: number) => any) {
     if (fields.length > 1) {
       return vals.map(arr => arr.map(mapFn)) as any[]

@@ -235,6 +235,20 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     return await this.queryInstance().pluck(...(fields as any[]))
   }
 
+  public async pluckEach<
+    I extends DreamClassTransactionBuilder<DreamClass>,
+    DB extends InstanceType<DreamClass>['DB'],
+    TableName extends InstanceType<DreamClass>['table'],
+    SimpleFieldType extends keyof Updateable<DB[TableName]> & string,
+    TablePrefixedFieldType extends `${TableName}.${SimpleFieldType}`
+  >(
+    this: I,
+    fields: (SimpleFieldType | TablePrefixedFieldType)[],
+    cb: (plucked: any | any[]) => void | Promise<void>
+  ): Promise<void> {
+    await this.queryInstance().pluckEach(fields as any[], cb)
+  }
+
   public passthrough<
     I extends DreamClassTransactionBuilder<DreamClass>,
     AllColumns extends InstanceType<DreamClass>['allColumns']

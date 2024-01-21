@@ -22,6 +22,26 @@ describe('Dream.findEach', () => {
     expect(records).toMatchDreamModels([user1, user2])
   })
 
+  context('with chunk size specified', () => {
+    it('finds all records for a given model', async () => {
+      const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      const user3 = await User.create({ email: 'what@yadoin', password: 'howyadoin' })
+      const user4 = await User.create({ email: 'where@yadoin', password: 'howyadoin' })
+      const user5 = await User.create({ email: 'why@yadoin', password: 'howyadoin' })
+
+      const records: User[] = []
+      await User.findEach(
+        async user => {
+          records.push(user)
+        },
+        { chunkSize: 2 }
+      )
+
+      expect(records).toMatchDreamModels([user1, user2, user3, user4, user5])
+    })
+  })
+
   context('STI models', () => {
     it('are instantiated as the type specified in the type field', async () => {
       const latexBalloon = await Latex.create({ color: 'green' })

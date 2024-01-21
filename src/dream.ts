@@ -509,6 +509,20 @@ export default class Dream {
     return await this.query().pluck(...(fields as any[]))
   }
 
+  public static async pluckEach<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, I['table']>>
+  >(
+    this: T,
+    fields: SelectArg<DB, ExtractTableAlias<DB, I['table']>, SE>[],
+    cb: (dream: I) => void | Promise<void>,
+    { chunkSize = 1000 }: { chunkSize?: number } = {}
+  ) {
+    return await this.query().pluckEach(fields as any[], cb, { chunkSize })
+  }
+
   public static async resort<
     T extends typeof Dream,
     I extends InstanceType<T>,
