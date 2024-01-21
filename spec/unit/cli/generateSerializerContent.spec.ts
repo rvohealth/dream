@@ -168,7 +168,6 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
           const res = await generateSerializerContent('UserSerializer', 'User', [
             'topping:enum:topping:cheese,baja_sauce',
           ])
-          console.log(res)
 
           expect(res).toEqual(
             `\
@@ -188,7 +187,7 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
       context('when one of those attributes is an association', () => {
         context('BelongsTo', () => {
           it('correctly injects RendersOne decorator and imports for the model', async () => {
-            const res = await generateSerializerContent('UserSerializer', 'User', ['Organization:belongs_to'])
+            const res = await generateSerializerContent('UserSerializer', 'user', ['organization:belongs_to'])
 
             expect(res).toEqual(
               `\
