@@ -41,7 +41,7 @@ export interface GraphEdge {
       expect(file).toContain('updatedAt: string')
     })
 
-    it('renders round attributes as number type', async () => {
+    it('renders decimal attributes as number type', async () => {
       const file = await generateApiSchemaContent()
       expect(file).toContain('roundedPopKPop: number')
     })

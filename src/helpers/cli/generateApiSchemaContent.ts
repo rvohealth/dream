@@ -73,7 +73,7 @@ function renderAsToType(renderAs: SerializableTypes, schema: any) {
   const typeCoersions = {
     date: 'string',
     datetime: 'string',
-    round: 'number',
+    decimal: 'number',
   } as any
 
   return typeCoersions[renderAs] || renderAs
