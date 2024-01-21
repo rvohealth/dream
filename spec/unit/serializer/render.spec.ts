@@ -133,7 +133,7 @@ describe('DreamSerializer#render', () => {
       })
     })
 
-    context('round', () => {
+    context('decimal', () => {
       let kilos: Number | null | undefined
 
       beforeEach(() => {
@@ -143,7 +143,7 @@ describe('DreamSerializer#render', () => {
       context('without an explicit precision', () => {
         let subject = () => new MySerializer({ kilos }).render()
         class MySerializer extends DreamSerializer {
-          @Attribute('round')
+          @Attribute('decimal')
           public kilos: number
         }
 
@@ -180,7 +180,7 @@ describe('DreamSerializer#render', () => {
       context('with an explicit precision', () => {
         let subject = () => new MySerializer({ kilos }).render()
         class MySerializer extends DreamSerializer {
-          @Attribute('round', { precision: 2 })
+          @Attribute('decimal', { precision: 2 })
           public kilos: number
         }
 

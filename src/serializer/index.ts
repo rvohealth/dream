@@ -107,7 +107,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
             returnObj[fieldWithCasing] = dateValue?.toFormat('yyyy-MM-dd') || null
             break
 
-          case 'round':
+          case 'decimal':
             const roundValue: number | null | undefined = this.getAttributeValue(attributeStatement)
 
             returnObj[fieldWithCasing] =
