@@ -117,7 +117,7 @@ import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
 export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
-  @Attribute('round', { precision: 2 })
+  @Attribute('decimal', { precision: 2 })
   public howyadoin: number
 }\
 `

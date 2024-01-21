@@ -92,7 +92,7 @@ function attributeSpecifier(type: string, originalAttribute: string) {
     case 'date':
       return "'date'"
     case 'decimal':
-      return "'round'"
+      return "'decimal'"
     case 'enum':
       const coercedType = pascalize(originalAttribute.split(':')[2])
       return `'enum:${coercedType}Enum'`

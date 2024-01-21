@@ -90,7 +90,7 @@ program
 program
   .command('generate:api')
   .alias('g:api')
-  .description('generate:serializer <name> [...attributes] create a new serializer')
+  .description('generate:api generates a new type file to be imported by the client')
   .option('--core', 'sets core to true')
   .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
