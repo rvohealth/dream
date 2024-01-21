@@ -229,6 +229,24 @@ export default class Query<
     return await this.where(attributes).first()
   }
 
+  public async findEach<T extends Query<DreamClass>>(
+    this: T,
+    cb: (instance: InstanceType<DreamClass>) => void | Promise<void>,
+    { chunkSize = 1000 }: { chunkSize?: number } = {}
+  ): Promise<void> {
+    let offset = 0
+    const count = await this.count()
+    const totalPages = Math.ceil(count / chunkSize)
+
+    for (let i = 0; i < totalPages; i++) {
+      const records = await this.offset(offset).limit(chunkSize).all()
+      for (const record of records) {
+        await cb(record)
+      }
+      offset += chunkSize
+    }
+  }
+
   // //**
   //  *
   //  * @param this
@@ -683,7 +701,7 @@ export default class Query<
 
   public async count<T extends Query<DreamClass>>(this: T) {
     const { count } = this.dbFor('select').fn
-    let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
+    let kyselyQuery = this.buildSelect({ bypassSelectAll: true, bypassOrder: true })
 
     kyselyQuery = kyselyQuery.select(count(this.namespaceColumn(this.dreamClass.primaryKey)).as('tablecount'))
 
@@ -1936,7 +1954,10 @@ export default class Query<
 
   private buildSelect<T extends Query<DreamClass>, DI extends InstanceType<DreamClass>, DB extends DI['DB']>(
     this: T,
-    { bypassSelectAll = false }: { bypassSelectAll?: boolean } = {}
+    {
+      bypassSelectAll = false,
+      bypassOrder = false,
+    }: { bypassSelectAll?: boolean; bypassOrder?: boolean } = {}
   ): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
     let kyselyQuery: SelectQueryBuilder<DB, any, {}>
 
@@ -1957,7 +1978,7 @@ export default class Query<
 
     kyselyQuery = this.buildCommon(kyselyQuery)
 
-    if (this.orderStatement)
+    if (this.orderStatement && !bypassOrder)
       kyselyQuery = kyselyQuery.orderBy(this.orderStatement.column as any, this.orderStatement.direction)
 
     if (this.limitStatement) kyselyQuery = kyselyQuery.limit(this.limitStatement)

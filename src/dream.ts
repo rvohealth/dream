@@ -302,6 +302,14 @@ export default class Dream {
     return await this.query().find(id)
   }
 
+  public static async findEach<T extends typeof Dream>(
+    this: T,
+    cb: (instance: InstanceType<T>) => void | Promise<void>,
+    { chunkSize = 1000 }: { chunkSize?: number } = {}
+  ): Promise<void> {
+    await this.query().findEach(cb, { chunkSize })
+  }
+
   // //**
   //  *
   //  * @param this
