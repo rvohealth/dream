@@ -134,7 +134,7 @@ function jsType(type: string, originalAttribute: string) {
 // Deprecate classNameFromRawStr once dream models have been rebuilt to use fully-qualified class names.
 function classNameFromRawStr(className: string) {
   const classNameParts = className.split('/')
-  return classNameParts[classNameParts.length - 1]
+  return pascalize(classNameParts[classNameParts.length - 1])
 }
 
 function fullyQualifiedClassNameFromRawStr(className: string) {
@@ -150,7 +150,10 @@ function hasDateTimeType(attributes: string[]) {
 
 function pathToModelFromSerializer(fullyQualifiedSerializerName: string, fullyQualifiedModelName: string) {
   const numAdditionalUpdirs = fullyQualifiedSerializerName.split('/').length - 1
-  let modelPath = `models/${fullyQualifiedModelName}`
+  let modelPath = `models/${fullyQualifiedModelName
+    .split('/')
+    .map(str => pascalize(str))
+    .join('/')}`
   for (let i = 0; i <= numAdditionalUpdirs; i++) {
     modelPath = `../${modelPath}`
   }
