@@ -69,6 +69,7 @@ import compact from '../helpers/compact'
 import snakeify from '../../shared/helpers/snakeify'
 import LoadIntoModels from './internal/associations/load-into-models'
 import { allNestedObjectKeys } from '../helpers/allNestedObjectKeys'
+import { extractValueFromJoinsPluckResponse } from './internal/extractValueFromJoinsPluckResponse'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -466,19 +467,114 @@ export default class Query<
     ])
 
     const mapFn = (val: any, index: number) => {
-      const parts = pluckStatement[index].split('.')
-
-      if (parts.length === 1 || parts[0] === this.dreamClass.prototype['table']) {
-        const column = parts[0]
-        return marshalDBValue(this.dreamClass, column, val)
-      } else {
-        const [associationName, column] = parts
-        return marshalDBValue(associationNamesToDreamClasses[associationName], column, val)
-      }
+      return extractValueFromJoinsPluckResponse(
+        val,
+        index,
+        pluckStatement,
+        this.dreamClass,
+        associationNamesToDreamClasses
+      )
     }
 
     const response = this.pluckValuesToPluckResponse(pluckStatement, vals, mapFn)
     return response
+  }
+
+  public async pluckEachThrough<
+    T extends Query<DreamClass>,
+    DB extends InstanceType<DreamClass>['DB'],
+    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
+    TableName extends InstanceType<DreamClass>['table'],
+    CB extends (data: any | any[]) => void | Promise<void>,
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
+    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
+    D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>,
+    E extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>,
+    ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>,
+    F extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>,
+    FTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>,
+    //
+    G extends FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
+  >(
+    this: T,
+    a: A,
+    b: B | CB | FindEachOpts,
+    c?: C | CB | FindEachOpts,
+    d?: D | CB | FindEachOpts,
+    e?: E | CB | FindEachOpts,
+    f?: F | CB | FindEachOpts,
+    g?: G | CB | FindEachOpts,
+    cb?: CB | FindEachOpts,
+    opts?: FindEachOpts
+  ): Promise<void> {
+    const allOpts = [a, b, c, d, e, f, g, cb, opts]
+    const providedCb = allOpts.find(v => typeof v === 'function') as CB
+    const providedOpts = allOpts.find(v => typeof v === 'object') as FindEachOpts
+    const chunkSize = providedOpts?.chunkSize || 1000
+
+    let offset = 0
+    const count = await this.count()
+    const totalPages = Math.ceil(count / chunkSize)
+
+    const joinsStatements = { ...this.joinsStatements }
+
+    const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = {
+      ...this.joinsWhereStatements,
+    }
+    const pluckStatement = [
+      this.fleshOutPluckThroughStatements(joinsStatements, joinsWhereStatements, null, [
+        a,
+        b as any,
+        c,
+        d,
+        e,
+        f,
+        g,
+      ]),
+    ].flat() as any[]
+
+    const associationNamesToDreamClasses = this.pluckThroughStatementsToDreamClassesMap([
+      a,
+      b as any,
+      c,
+      d,
+      e,
+      f,
+      g,
+    ])
+
+    const baseQuery = this.clone({ joinsStatements, joinsWhereStatements })
+    const mapFn = (val: any, index: number) => {
+      return extractValueFromJoinsPluckResponse(
+        val,
+        index,
+        pluckStatement,
+        this.dreamClass,
+        associationNamesToDreamClasses
+      )
+    }
+
+    for (let i = 0; i < totalPages; i++) {
+      const results = await baseQuery
+        .offset(offset)
+        .limit(chunkSize)
+        .pluckWithoutMarshalling(...pluckStatement)
+
+      const plucked = this.pluckValuesToPluckResponse(pluckStatement, results, mapFn)
+
+      for (const data of plucked) {
+        await providedCb(data)
+      }
+      offset += chunkSize
+    }
   }
 
   private pluckThroughStatementsToDreamClassesMap(
@@ -2146,4 +2242,8 @@ function getSourceAssociation(dream: Dream | typeof Dream | undefined, sourceNam
 interface PreloadedDreamsAndWhatTheyPointTo {
   dream: Dream
   pointsToPrimaryKey: string
+}
+
+export interface FindEachOpts {
+  chunkSize?: number
 }
