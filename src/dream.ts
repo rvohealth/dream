@@ -29,7 +29,7 @@ import {
   FinalJoinsWherePluckArgumentType,
   AttributeKeys,
 } from './dream/types'
-import Query from './dream/query'
+import Query, { FindEachOpts } from './dream/query'
 import checkValidationsFor from './dream/internal/checkValidationsFor'
 import DreamTransaction from './dream/transaction'
 import DreamClassTransactionBuilder from './dream/class-transaction-builder'
@@ -1214,190 +1214,6 @@ export default class Dream {
     DB extends I['DB'],
     SyncedAssociations extends I['syncedAssociations'],
     TableName extends I['table'],
-    //
-    A extends keyof SyncedAssociations[TableName] & string,
-    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
-      string[])[number],
-    //
-    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
-    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>
-  >(
-    this: I,
-    a: A,
-    cb: (data: any | any[]) => void | Promise<void>,
-    opts?: { chunkSize?: number }
-  ): Promise<void>
-
-  public async pluckEachThrough<
-    I extends Dream,
-    DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
-    TableName extends I['table'],
-    //
-    A extends keyof SyncedAssociations[TableName] & string,
-    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
-      string[])[number],
-    //
-    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
-    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>
-  >(
-    this: I,
-    a: A,
-    b: B,
-    cb: (data: any | any[]) => void | Promise<void>,
-    opts?: { chunkSize?: number }
-  ): Promise<void>
-
-  public async pluckEachThrough<
-    I extends Dream,
-    DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
-    TableName extends I['table'],
-    //
-    A extends keyof SyncedAssociations[TableName] & string,
-    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
-      string[])[number],
-    //
-    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
-    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
-    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
-    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>
-  >(
-    this: I,
-    a: A,
-    b: B,
-    c: C,
-    cb: (data: any | any[]) => void | Promise<void>,
-    opts?: { chunkSize?: number }
-  ): Promise<void>
-
-  public async pluckEachThrough<
-    I extends Dream,
-    DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
-    TableName extends I['table'],
-    //
-    A extends keyof SyncedAssociations[TableName] & string,
-    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
-      string[])[number],
-    //
-    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
-    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
-    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
-    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
-    D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
-    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>
-  >(
-    this: I,
-    a: A,
-    b: B,
-    c: C,
-    d: D,
-    cb: (data: any | any[]) => void | Promise<void>,
-    opts?: { chunkSize?: number }
-  ): Promise<void>
-
-  public async pluckEachThrough<
-    I extends Dream,
-    DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
-    TableName extends I['table'],
-    //
-    A extends keyof SyncedAssociations[TableName] & string,
-    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
-      string[])[number],
-    //
-    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
-    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
-    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
-    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
-    D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
-    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>,
-    E extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>,
-    ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>
-  >(
-    this: I,
-    a: A,
-    b: B,
-    c: C,
-    d: D,
-    e: E,
-    cb: (data: any | any[]) => void | Promise<void>,
-    opts?: { chunkSize?: number }
-  ): Promise<void>
-
-  public async pluckEachThrough<
-    I extends Dream,
-    DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
-    TableName extends I['table'],
-    //
-    A extends keyof SyncedAssociations[TableName] & string,
-    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
-      string[])[number],
-    //
-    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
-    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
-    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
-    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
-    D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
-    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>,
-    E extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>,
-    ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>,
-    F extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>,
-    FTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>
-  >(
-    this: I,
-    a: A,
-    b: B,
-    c: C,
-    d: D,
-    e: E,
-    f: F,
-    cb: (data: any | any[]) => void | Promise<void>,
-    opts?: { chunkSize?: number }
-  ): Promise<void>
-
-  public async pluckEachThrough<
-    I extends Dream,
-    DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
-    TableName extends I['table'],
-    //
-    A extends keyof SyncedAssociations[TableName] & string,
-    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
-      string[])[number],
-    //
-    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
-    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
-    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
-    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
-    D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
-    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>,
-    E extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>,
-    ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>,
-    F extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>,
-    FTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>,
-    //
-    G extends FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
-  >(
-    this: I,
-    a: A,
-    b: B,
-    c: C,
-    d: D,
-    e: E,
-    f: F,
-    g: G,
-    cb: (data: any | any[]) => void | Promise<void>,
-    opts?: { chunkSize?: number }
-  ): Promise<void>
-
-  public async pluckEachThrough<
-    I extends Dream,
-    DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
-    TableName extends I['table'],
     CB extends (data: any | any[]) => void | Promise<void>,
     //
     A extends keyof SyncedAssociations[TableName] & string,
@@ -1419,14 +1235,14 @@ export default class Dream {
   >(
     this: I,
     a: A,
-    b: B,
-    c?: C,
-    d?: D,
-    e?: E,
-    f?: F,
-    g?: G | CB,
-    cb?: CB,
-    opts?: { chunkSize?: number }
+    b: B | CB,
+    c?: C | CB | FindEachOpts,
+    d?: D | CB | FindEachOpts,
+    e?: E | CB | FindEachOpts,
+    f?: F | CB | FindEachOpts,
+    g?: G | CB | FindEachOpts,
+    cb?: CB | FindEachOpts,
+    opts?: FindEachOpts
   ): Promise<void> {
     const construct = this.constructor as DreamConstructorType<I>
     await construct
