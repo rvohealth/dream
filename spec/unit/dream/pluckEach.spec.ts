@@ -26,7 +26,7 @@ describe('Dream#pluckEach', () => {
         id => {
           ids.push(id)
         },
-        { chunkSize: 1 }
+        { batchSize: 1 }
       )
       expect(ids).toEqual([user1.id, user2.id])
     })
