@@ -6,9 +6,9 @@ export default function BeforeCreate(): any {
     const dreamClass: typeof Dream = target.constructor
 
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'hooks'))
-      dreamClass.hooks = blankHooksFactory(dreamClass)
+      dreamClass['hooks'] = blankHooksFactory(dreamClass)
 
-    dreamClass.hooks['beforeCreate'].push({
+    dreamClass['hooks']['beforeCreate'].push({
       method: key,
       type: 'beforeCreate',
     } as HookStatement)

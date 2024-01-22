@@ -4,7 +4,7 @@ import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 
 describe('Dream Scope (default variant)', () => {
   it('builds scope mapping', async () => {
-    const scopes = User.scopes.default
+    const scopes = User['scopes'].default
     expect(scopes[0].method).toEqual('hideDeleted')
     expect(scopes[0].default).toEqual(true)
   })

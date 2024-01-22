@@ -7,7 +7,7 @@ export default async function runHooksFor<T extends Dream>(key: HookType, dream:
   }
 
   const Base = dream.constructor as typeof Dream
-  for (const statement of Base.hooks[key]) {
+  for (const statement of Base['hooks'][key]) {
     await runHook(statement, dream)
   }
 }
@@ -19,7 +19,7 @@ export async function runHook<T extends Dream>(statement: HookStatement, dream: 
 function ensureSTITypeFieldIsSet<T extends Dream>(dream: T) {
   // todo: turn STI logic here into before create applied by decorator
   const Base = dream.constructor as typeof Dream
-  if (Base.sti.value) {
-    ;(dream as any).type = Base.sti.value
+  if (Base['sti'].value) {
+    ;(dream as any).type = Base['sti'].value
   }
 }

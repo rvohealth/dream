@@ -3,7 +3,7 @@ import User from '../../../../test-app/app/models/User'
 
 describe('Dream length validation', () => {
   it('builds scope mapping', async () => {
-    const validation = User.validations.find(v => v.column === 'email' && v.type === 'length')!
+    const validation = User['validations'].find(v => v.column === 'email' && v.type === 'length')!
     expect(validation.type).toEqual('length')
     expect(validation.column).toEqual('email')
     expect(validation.options!.length!.min).toEqual(4)

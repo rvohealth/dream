@@ -6,9 +6,9 @@ export default function BeforeUpdate(): any {
     const dreamClass: typeof Dream = target.constructor
 
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'hooks'))
-      dreamClass.hooks = blankHooksFactory(dreamClass)
+      dreamClass['hooks'] = blankHooksFactory(dreamClass)
 
-    dreamClass.hooks['beforeUpdate'].push({
+    dreamClass['hooks']['beforeUpdate'].push({
       method: key,
       type: 'beforeUpdate',
     } as HookStatement)

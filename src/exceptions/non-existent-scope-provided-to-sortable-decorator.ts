@@ -18,7 +18,7 @@ received:
   scope: ${this.scope}
 
 BelongsTo scopes on ${this.dreamClass.name} are:
-  ${this.dreamClass.associations.belongsTo.map(assoc => assoc.as).join('\n        ')}
+  ${this.dreamClass['associations'].belongsTo.map(assoc => assoc.as).join('\n        ')}
     `
   }
 }

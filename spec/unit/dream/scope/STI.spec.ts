@@ -61,40 +61,40 @@ describe('Dream STI', () => {
   describe('.sti.baseClass', () => {
     context('when the model is not STI', () => {
       it('is null', () => {
-        expect(User.sti.baseClass).toBeNull()
+        expect(User['sti'].baseClass).toBeNull()
       })
     })
 
     context('when the model is an STI base class', () => {
       it('is null', () => {
-        expect(Balloon.sti.baseClass).toBeNull()
+        expect(Balloon['sti'].baseClass).toBeNull()
       })
     })
 
     context('when the model extends a Dream model', () => {
       it('is the base class extended by this Dream model', () => {
-        expect(Mylar.sti.baseClass).toEqual(Balloon)
+        expect(Mylar['sti'].baseClass).toEqual(Balloon)
       })
     })
 
     context('when the model is extended, but also extends a Dream model', () => {
       it('is the base class extended by this Dream model', () => {
-        expect(Latex.sti.baseClass).toEqual(Balloon)
+        expect(Latex['sti'].baseClass).toEqual(Balloon)
       })
     })
 
     context('when the model extends a class that itself extends a class', () => {
       it('is the base class extended by this Dream model', () => {
-        expect(Animal.sti.baseClass).toEqual(Balloon)
+        expect(Animal['sti'].baseClass).toEqual(Balloon)
       })
     })
   })
 
   it('builds scope mapping', async () => {
-    expect(Balloon.sti.value).toBeNull()
+    expect(Balloon['sti'].value).toBeNull()
 
-    expect(Mylar.sti.value).toEqual('Mylar')
-    expect(Latex.sti.value).toEqual('Latex')
+    expect(Mylar['sti'].value).toEqual('Mylar')
+    expect(Latex['sti'].value).toEqual('Latex')
   })
 
   it('auto-applies the type field for STI classes upon insertion', async () => {

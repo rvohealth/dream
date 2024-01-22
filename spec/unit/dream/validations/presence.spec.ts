@@ -3,7 +3,7 @@ import User from '../../../../test-app/app/models/User'
 
 describe('Dream presence validation', () => {
   it('builds scope mapping', async () => {
-    const validation = User.validations.find(v => v.column === 'email' && v.type === 'presence')!
+    const validation = User['validations'].find(v => v.column === 'email' && v.type === 'presence')!
     expect(validation.type).toEqual('presence')
     expect(validation.column).toEqual('email')
   })

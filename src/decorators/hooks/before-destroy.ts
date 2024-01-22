@@ -6,9 +6,9 @@ export default function BeforeDestroy(): any {
     const dreamClass: typeof Dream = target.constructor
 
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'hooks'))
-      dreamClass.hooks = blankHooksFactory(dreamClass)
+      dreamClass['hooks'] = blankHooksFactory(dreamClass)
 
-    dreamClass.hooks['beforeDestroy'].push({
+    dreamClass['hooks']['beforeDestroy'].push({
       method: key,
       type: 'beforeDestroy',
     } as HookStatement)

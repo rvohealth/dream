@@ -3,7 +3,7 @@ import User from '../../../../test-app/app/models/User'
 
 describe('Dream Scope (method variant)', () => {
   it('builds scope mapping', async () => {
-    const scopes = User.scopes.named
+    const scopes = User['scopes'].named
     expect(scopes[0].method).toEqual('withFunnyName')
     expect(scopes[0].default).toEqual(false)
   })
