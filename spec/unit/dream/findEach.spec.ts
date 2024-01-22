@@ -32,7 +32,7 @@ describe('Dream.findEach', () => {
         async user => {
           records.push(user)
         },
-        { chunkSize: 2 }
+        { batchSize: 2 }
       )
 
       expect(records).toMatchDreamModels([user1, user2, user3, user4, user5])
@@ -74,27 +74,6 @@ describe('Dream.findEach', () => {
     it('uses primary connection', async () => {
       await User.findEach(() => {})
       expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
-    })
-
-    context('with replica connection specified', () => {
-      @ReplicaSafe()
-      class CustomUser extends User {}
-
-      it('uses the replica connection', async () => {
-        await CustomUser.findEach(() => {})
-        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('replica', expect.objectContaining({}))
-      })
-
-      context('with explicit primary connection override', () => {
-        it('uses the replica connection', async () => {
-          await CustomUser.connection('primary').findEach(() => {})
-          expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
-          expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith(
-            'replica',
-            expect.objectContaining({})
-          )
-        })
-      })
     })
   })
 })

@@ -305,9 +305,9 @@ export default class Dream {
   public static async findEach<T extends typeof Dream>(
     this: T,
     cb: (instance: InstanceType<T>) => void | Promise<void>,
-    { chunkSize = 1000 }: { chunkSize?: number } = {}
+    { batchSize = 1000 }: { batchSize?: number } = {}
   ): Promise<void> {
-    await this.query().findEach(cb, { chunkSize })
+    await this.query().findEach(cb, { batchSize })
   }
 
   // //**
@@ -478,7 +478,7 @@ export default class Dream {
     A extends keyof SyncedAssociations[TableName] & string,
     ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
       string[])[number]
-  >(this: T, a: A, cb?: CB, opts?: { chunkSize?: number }): Promise<void>
+  >(this: T, a: A, cb?: CB, opts?: { batchSize?: number }): Promise<void>
 
   public static async pluckEachThrough<
     T extends typeof Dream,
@@ -494,7 +494,7 @@ export default class Dream {
     //
     B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
     BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>
-  >(this: T, a: A, b: B, cb?: CB, opts?: { chunkSize?: number }): Promise<void>
+  >(this: T, a: A, b: B, cb?: CB, opts?: { batchSize?: number }): Promise<void>
 
   public static async pluckEachThrough<
     T extends typeof Dream,
@@ -512,7 +512,7 @@ export default class Dream {
     BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
     C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
     CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>
-  >(this: T, a: A, b: B, c?: C, cb?: CB, opts?: { chunkSize?: number }): Promise<void>
+  >(this: T, a: A, b: B, c?: C, cb?: CB, opts?: { batchSize?: number }): Promise<void>
 
   public static async pluckEachThrough<
     T extends typeof Dream,
@@ -532,7 +532,7 @@ export default class Dream {
     CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
     D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
     DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>
-  >(this: T, a: A, b: B, c?: C, d?: D, cb?: CB, opts?: { chunkSize?: number }): Promise<void>
+  >(this: T, a: A, b: B, c?: C, d?: D, cb?: CB, opts?: { batchSize?: number }): Promise<void>
 
   public static async pluckEachThrough<
     T extends typeof Dream,
@@ -554,7 +554,7 @@ export default class Dream {
     DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>,
     E extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>,
     ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>
-  >(this: T, a: A, b: B, c?: C, d?: D, e?: E, cb?: CB, opts?: { chunkSize?: number }): Promise<void>
+  >(this: T, a: A, b: B, c?: C, d?: D, e?: E, cb?: CB, opts?: { batchSize?: number }): Promise<void>
 
   public static async pluckEachThrough<
     T extends typeof Dream,
@@ -578,7 +578,7 @@ export default class Dream {
     ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>,
     F extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>,
     FTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>
-  >(this: T, a: A, b: B, c?: C, d?: D, e?: E, f?: F, cb?: CB, opts?: { chunkSize?: number }): Promise<void>
+  >(this: T, a: A, b: B, c?: C, d?: D, e?: E, f?: F, cb?: CB, opts?: { batchSize?: number }): Promise<void>
 
   public static async pluckEachThrough<
     T extends typeof Dream,
@@ -614,7 +614,7 @@ export default class Dream {
     f?: F,
     g?: G,
     cb?: CB,
-    opts?: { chunkSize?: number }
+    opts?: { batchSize?: number }
   ): Promise<void> {
     await this.query().pluckEachThrough(a, b, c as any, d as any, e as any, f as any, g as any, cb, opts)
   }
@@ -670,9 +670,9 @@ export default class Dream {
     this: T,
     fields: SelectArg<DB, ExtractTableAlias<DB, I['table']>, SE>[],
     cb: (dream: I) => void | Promise<void>,
-    { chunkSize = 1000 }: { chunkSize?: number } = {}
+    { batchSize = 1000 }: { batchSize?: number } = {}
   ) {
-    return await this.query().pluckEach(fields as any[], cb, { chunkSize })
+    return await this.query().pluckEach(fields as any[], cb, { batchSize })
   }
 
   public static async resort<

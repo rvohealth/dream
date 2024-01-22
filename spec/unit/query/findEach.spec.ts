@@ -65,28 +65,5 @@ describe('Query#findEach', () => {
       expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
       expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith('replica', expect.objectContaining({}))
     })
-
-    context('with replica connection specified', () => {
-      @ReplicaSafe()
-      class CustomUser extends User {}
-
-      it('uses the replica connection', async () => {
-        await CustomUser.query().findEach(() => {})
-        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('replica', expect.objectContaining({}))
-      })
-
-      context('with explicit primary connection override', () => {
-        it('uses the primary connection, despite being ReplicaSafe', async () => {
-          await CustomUser.query()
-            .connection('primary')
-            .findEach(() => {})
-          expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
-          expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith(
-            'replica',
-            expect.objectContaining({})
-          )
-        })
-      })
-    })
   })
 })

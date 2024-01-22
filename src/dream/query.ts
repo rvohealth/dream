@@ -233,18 +233,18 @@ export default class Query<
   public async findEach<T extends Query<DreamClass>>(
     this: T,
     cb: (instance: InstanceType<DreamClass>) => void | Promise<void>,
-    { chunkSize = 1000 }: { chunkSize?: number } = {}
+    { batchSize = 1000 }: { batchSize?: number } = {}
   ): Promise<void> {
     let offset = 0
-    const count = await this.count()
-    const totalPages = Math.ceil(count / chunkSize)
+    let records = await this.offset(offset).limit(batchSize).all()
 
-    for (let i = 0; i < totalPages; i++) {
-      const records = await this.offset(offset).limit(chunkSize).all()
+    while (records.length > 0) {
       for (const record of records) {
         await cb(record)
       }
-      offset += chunkSize
+
+      offset += batchSize
+      records = await this.offset(offset).limit(batchSize).all()
     }
   }
 
@@ -562,18 +562,24 @@ export default class Query<
       )
     }
 
-    for (let i = 0; i < totalPages; i++) {
-      const results = await baseQuery
-        .offset(offset)
-        .limit(chunkSize)
-        .pluckWithoutMarshalling(...pluckStatement)
+    let offset = 0
+    let results = await baseQuery
+      .offset(offset)
+      .limit(batchSize)
+      .pluckWithoutMarshalling(...pluckStatement)
 
+    while (results.length > 0) {
       const plucked = this.pluckValuesToPluckResponse(pluckStatement, results, mapFn)
 
       for (const data of plucked) {
         await providedCb(data)
       }
-      offset += chunkSize
+
+      offset += batchSize
+      results = await baseQuery
+        .offset(offset)
+        .limit(batchSize)
+        .pluckWithoutMarshalling(...pluckStatement)
     }
   }
 
@@ -907,23 +913,25 @@ export default class Query<
     this: T,
     fields: (SimpleFieldType | TablePrefixedFieldType)[],
     cb: (plucked: any | any[]) => void | Promise<void>,
-    { chunkSize = 1000 }: { chunkSize?: number } = {}
+    { batchSize = 1000 }: { batchSize?: number } = {}
   ): Promise<void> {
-    let offset = 0
-    const count = await this.count()
-    const totalPages = Math.ceil(count / chunkSize)
-
     const mapFn = (val: any, index: number) => marshalDBValue(this.dreamClass, fields[index] as any, val)
 
-    for (let i = 0; i < totalPages; i++) {
-      const records = await this.offset(offset)
-        .limit(chunkSize)
-        .pluckWithoutMarshalling(...fields)
+    let offset = 0
+    let records = await this.offset(offset)
+      .limit(batchSize)
+      .pluckWithoutMarshalling(...fields)
+
+    while (records.length > 0) {
       const vals = this.pluckValuesToPluckResponse(fields, records, mapFn)
       for (const val of vals) {
         await cb(val)
       }
-      offset += chunkSize
+
+      offset += batchSize
+      records = await this.offset(offset)
+        .limit(batchSize)
+        .pluckWithoutMarshalling(...fields)
     }
   }
 
@@ -2245,5 +2253,5 @@ interface PreloadedDreamsAndWhatTheyPointTo {
 }
 
 export interface FindEachOpts {
-  chunkSize?: number
+  batchSize?: number
 }
