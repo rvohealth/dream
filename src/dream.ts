@@ -467,6 +467,158 @@ export default class Dream {
     )
   }
 
+  public static async pluckEachThrough<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends I['table'],
+    CB extends (data: any | any[]) => void | Promise<void>,
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number]
+  >(this: T, a: A, cb?: CB, opts?: { chunkSize?: number }): Promise<void>
+
+  public static async pluckEachThrough<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends I['table'],
+    CB extends (data: any | any[]) => void | Promise<void>,
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>
+  >(this: T, a: A, b: B, cb?: CB, opts?: { chunkSize?: number }): Promise<void>
+
+  public static async pluckEachThrough<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends I['table'],
+    CB extends (data: any | any[]) => void | Promise<void>,
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
+    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>
+  >(this: T, a: A, b: B, c?: C, cb?: CB, opts?: { chunkSize?: number }): Promise<void>
+
+  public static async pluckEachThrough<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends I['table'],
+    CB extends (data: any | any[]) => void | Promise<void>,
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
+    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
+    D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>
+  >(this: T, a: A, b: B, c?: C, d?: D, cb?: CB, opts?: { chunkSize?: number }): Promise<void>
+
+  public static async pluckEachThrough<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends I['table'],
+    CB extends (data: any | any[]) => void | Promise<void>,
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
+    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
+    D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>,
+    E extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>,
+    ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>
+  >(this: T, a: A, b: B, c?: C, d?: D, e?: E, cb?: CB, opts?: { chunkSize?: number }): Promise<void>
+
+  public static async pluckEachThrough<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends I['table'],
+    CB extends (data: any | any[]) => void | Promise<void>,
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
+    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
+    D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>,
+    E extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>,
+    ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>,
+    F extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>,
+    FTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>
+  >(this: T, a: A, b: B, c?: C, d?: D, e?: E, f?: F, cb?: CB, opts?: { chunkSize?: number }): Promise<void>
+
+  public static async pluckEachThrough<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends I['table'],
+    CB extends (data: any | any[]) => void | Promise<void>,
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
+    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
+    D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>,
+    E extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>,
+    ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>,
+    F extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>,
+    FTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>,
+    //
+    G extends FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
+  >(
+    this: T,
+    a: A,
+    b: B,
+    c?: C,
+    d?: D,
+    e?: E,
+    f?: F,
+    g?: G,
+    cb?: CB,
+    opts?: { chunkSize?: number }
+  ): Promise<void> {
+    await this.query().pluckEachThrough(a, b, c as any, d as any, e as any, f as any, g as any, cb, opts)
+  }
+
   public static async last<T extends typeof Dream>(this: T): Promise<InstanceType<T> | null> {
     return (await this.query().last()) as InstanceType<T> | null
   }
@@ -1055,6 +1207,231 @@ export default class Dream {
     return await construct
       .where({ [this.primaryKey]: this.primaryKeyValue } as any)
       .pluckThrough(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
+  }
+
+  public async pluckEachThrough<
+    I extends Dream,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends I['table'],
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>
+  >(
+    this: I,
+    a: A,
+    cb: (data: any | any[]) => void | Promise<void>,
+    opts?: { chunkSize?: number }
+  ): Promise<void>
+
+  public async pluckEachThrough<
+    I extends Dream,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends I['table'],
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>
+  >(
+    this: I,
+    a: A,
+    b: B,
+    cb: (data: any | any[]) => void | Promise<void>,
+    opts?: { chunkSize?: number }
+  ): Promise<void>
+
+  public async pluckEachThrough<
+    I extends Dream,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends I['table'],
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
+    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>
+  >(
+    this: I,
+    a: A,
+    b: B,
+    c: C,
+    cb: (data: any | any[]) => void | Promise<void>,
+    opts?: { chunkSize?: number }
+  ): Promise<void>
+
+  public async pluckEachThrough<
+    I extends Dream,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends I['table'],
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
+    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
+    D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>
+  >(
+    this: I,
+    a: A,
+    b: B,
+    c: C,
+    d: D,
+    cb: (data: any | any[]) => void | Promise<void>,
+    opts?: { chunkSize?: number }
+  ): Promise<void>
+
+  public async pluckEachThrough<
+    I extends Dream,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends I['table'],
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
+    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
+    D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>,
+    E extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>,
+    ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>
+  >(
+    this: I,
+    a: A,
+    b: B,
+    c: C,
+    d: D,
+    e: E,
+    cb: (data: any | any[]) => void | Promise<void>,
+    opts?: { chunkSize?: number }
+  ): Promise<void>
+
+  public async pluckEachThrough<
+    I extends Dream,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends I['table'],
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
+    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
+    D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>,
+    E extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>,
+    ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>,
+    F extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>,
+    FTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>
+  >(
+    this: I,
+    a: A,
+    b: B,
+    c: C,
+    d: D,
+    e: E,
+    f: F,
+    cb: (data: any | any[]) => void | Promise<void>,
+    opts?: { chunkSize?: number }
+  ): Promise<void>
+
+  public async pluckEachThrough<
+    I extends Dream,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends I['table'],
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
+    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
+    D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>,
+    E extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>,
+    ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>,
+    F extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>,
+    FTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>,
+    //
+    G extends FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
+  >(
+    this: I,
+    a: A,
+    b: B,
+    c: C,
+    d: D,
+    e: E,
+    f: F,
+    g: G,
+    cb: (data: any | any[]) => void | Promise<void>,
+    opts?: { chunkSize?: number }
+  ): Promise<void>
+
+  public async pluckEachThrough<
+    I extends Dream,
+    DB extends I['DB'],
+    SyncedAssociations extends I['syncedAssociations'],
+    TableName extends I['table'],
+    CB extends (data: any | any[]) => void | Promise<void>,
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
+    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
+    D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>,
+    E extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>,
+    ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>,
+    F extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>,
+    FTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>,
+    //
+    G extends FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
+  >(
+    this: I,
+    a: A,
+    b: B,
+    c?: C,
+    d?: D,
+    e?: E,
+    f?: F,
+    g?: G | CB,
+    cb?: CB,
+    opts?: { chunkSize?: number }
+  ): Promise<void> {
+    const construct = this.constructor as DreamConstructorType<I>
+    await construct
+      .where({ [this.primaryKey]: this.primaryKeyValue } as any)
+      .pluckEachThrough(a, b, c as any, d as any, e as any, f as any, g as any, cb, opts)
   }
 
   /**

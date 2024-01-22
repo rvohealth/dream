@@ -2,7 +2,7 @@ import { SelectArg, SelectExpression, Updateable } from 'kysely'
 import { PassthroughWhere, WhereStatement } from '../decorators/associations/shared'
 import Dream from '../dream'
 import DreamTransaction from './transaction'
-import Query from './query'
+import Query, { FindEachOpts } from './query'
 import { AssociationTableNames } from '../db/reflections'
 import {
   PreloadArgumentTypeAssociatedTableNames,
@@ -191,6 +191,54 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     G extends FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
   >(this: I, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     return this.queryInstance().pluckThrough(a, b, c as any, d as any, e as any, f as any, g as any)
+  }
+
+  public async pluckEachThrough<
+    I extends DreamClassTransactionBuilder<DreamClass>,
+    DB extends InstanceType<DreamClass>['DB'],
+    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
+    TableName extends InstanceType<DreamClass>['table'],
+    CB extends (data: any | any[]) => void | Promise<void>,
+    //
+    A extends keyof SyncedAssociations[TableName] & string,
+    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
+      string[])[number],
+    //
+    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
+    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
+    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
+    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
+    D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
+    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>,
+    E extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>,
+    ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>,
+    F extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>,
+    FTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>,
+    //
+    G extends FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
+  >(
+    this: I,
+    a: A,
+    b: B | CB,
+    c?: C | CB | FindEachOpts,
+    d?: D | CB | FindEachOpts,
+    e?: E | CB | FindEachOpts,
+    f?: F | CB | FindEachOpts,
+    g?: G | CB | FindEachOpts,
+    cb?: CB,
+    opts?: FindEachOpts
+  ) {
+    return this.queryInstance().pluckEachThrough(
+      a,
+      b,
+      c as any,
+      d as any,
+      e as any,
+      f as any,
+      g as any,
+      cb,
+      opts
+    )
   }
 
   public queryInstance<I extends DreamClassTransactionBuilder<DreamClass>>(this: I): Query<DreamClass> {
