@@ -62,7 +62,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     this: I,
     attributes: UpdateableProperties<DreamInstance>
   ): Promise<DreamInstance> {
-    this.dreamInstance.setAttributes(attributes)
+    this.dreamInstance['setAttributes'](attributes)
     return saveDream(this.dreamInstance, this.dreamTransaction)
   }
 

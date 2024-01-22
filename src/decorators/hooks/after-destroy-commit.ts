@@ -8,7 +8,7 @@ export default function AfterDestroyCommit(): any {
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'hooks'))
       dreamClass['hooks'] = blankHooksFactory(dreamClass)
 
-    dreamClass.addHook('afterDestroyCommit', {
+    dreamClass['addHook']('afterDestroyCommit', {
       method: key,
       type: 'afterDestroyCommit',
     } as HookStatement)

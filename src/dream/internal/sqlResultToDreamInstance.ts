@@ -12,7 +12,7 @@ export default function sqlResultToDreamInstance<
     keyof DB = InstanceType<DreamClass>['table'],
   Table extends DB[TableName] = DB[TableName]
 >(dreamClass: DreamClass, sqlResult: any): InstanceType<DreamClass> | Dream {
-  if (dreamClass.isSTIBase) {
+  if (dreamClass['isSTIBase']) {
     const extendingDreamClass = findExtendingDreamClass(dreamClass, sqlResult.type)
 
     if (!extendingDreamClass)

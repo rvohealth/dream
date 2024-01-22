@@ -925,7 +925,7 @@ export default class Query<
     for (const associatedModel of association.modelCB() as (typeof Dream)[]) {
       const relevantAssociatedModels = dreams.filter((dream: any) => {
         return (
-          (dream as any)[association.foreignKeyTypeField()] === associatedModel.stiBaseClassOrOwnClass.name
+          (dream as any)[association.foreignKeyTypeField()] === associatedModel['stiBaseClassOrOwnClass'].name
         )
       })
 
@@ -955,7 +955,7 @@ export default class Query<
               if (association.polymorphic) {
                 return (
                   dream[association.foreignKeyTypeField()] ===
-                    loadedAssociation.stiBaseClassOrOwnClass.name &&
+                    loadedAssociation['stiBaseClassOrOwnClass'].name &&
                   dream[association.foreignKey()] === loadedAssociation.primaryKeyValue
                 )
               } else {
@@ -1005,8 +1005,8 @@ export default class Query<
 
     columnsToPluck.push(`${dreamClass.prototype.table}.${dreamClass.primaryKey}`)
 
-    const baseClass = dreamClass.stiBaseClassOrOwnClass.getAssociation(associationName)
-      ? dreamClass.stiBaseClassOrOwnClass
+    const baseClass = dreamClass['stiBaseClassOrOwnClass'].getAssociation(associationName)
+      ? dreamClass['stiBaseClassOrOwnClass']
       : dreamClass
 
     const hydrationData: any[][] = await this.symmetricalQueryForDreamClass(baseClass)
@@ -1300,8 +1300,8 @@ export default class Query<
             [
               {
                 [association.foreignKeyTypeField()]: throughClass
-                  ? throughClass.stiBaseClassOrOwnClass.name
-                  : dreamClass.stiBaseClassOrOwnClass.name,
+                  ? throughClass['stiBaseClassOrOwnClass'].name
+                  : dreamClass['stiBaseClassOrOwnClass'].name,
               } as any,
             ],
             currentAssociationTableOrAlias

@@ -17,7 +17,7 @@ const ops = {
     >(dreamClass: T, fieldName: FN) {
       const column = fieldName.replace(/^.*\./, '')
       if (!isDatabaseArray(dreamClass, column)) throw new AnyRequiresArrayColumn(dreamClass, column)
-      const castType = dreamClass.cachedTypeFor(column)
+      const castType = dreamClass['cachedTypeFor'](column)
       return new OpsStatement('@>', sql`ARRAY[${sql.join([value])}]::${sql.raw(castType)}`)
     }),
   like: (like: string) => new OpsStatement('like', like),

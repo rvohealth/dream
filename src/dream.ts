@@ -124,23 +124,23 @@ export default class Dream {
     return true
   }
 
-  public static get isSTIBase() {
+  protected static get isSTIBase() {
     return !!this.extendedBy?.length && !this.isSTIChild
   }
 
-  public static get stiBaseClassOrOwnClass(): typeof Dream {
-    return this.sti.baseClass || this
-  }
-
-  public get stiBaseClassOrOwnClass(): typeof Dream {
-    return (this.constructor as typeof Dream).stiBaseClassOrOwnClass
-  }
-
-  public static get isSTIChild() {
+  protected static get isSTIChild() {
     return !!this.sti?.active
   }
 
-  public static addHook(hookType: keyof typeof this.hooks, statement: HookStatement) {
+  protected static get stiBaseClassOrOwnClass(): typeof Dream {
+    return this.sti.baseClass || this
+  }
+
+  protected get stiBaseClassOrOwnClass(): typeof Dream {
+    return (this.constructor as typeof Dream).stiBaseClassOrOwnClass
+  }
+
+  protected static addHook(hookType: keyof typeof this.hooks, statement: HookStatement) {
     const existingHook = this.hooks[hookType].find(hook => hook.method === statement.method)
     if (existingHook) return
 
@@ -587,10 +587,6 @@ export default class Dream {
     return this.query().whereNot(attributes)
   }
 
-  public static new<T extends typeof Dream>(this: T, opts?: UpdateablePropertiesForClass<T>) {
-    return new this(opts as any) as InstanceType<T>
-  }
-
   public getAssociation<
     I extends Dream,
     DB extends I['DB'],
@@ -702,6 +698,10 @@ export default class Dream {
   private currentAttributes: { [key: string]: any } = {}
   private attributesFromBeforeLastSave: { [key: string]: any } = {}
 
+  public static new<T extends typeof Dream>(this: T, opts?: UpdateablePropertiesForClass<T>) {
+    return new this(opts as any) as InstanceType<T>
+  }
+
   constructor(
     opts?: any
     // opts?: Updateable<
@@ -712,7 +712,7 @@ export default class Dream {
     this.defineAttributeAccessors()
 
     if (opts) {
-      const marshalledOpts = this.setAttributes(opts as any)
+      const marshalledOpts = this['setAttributes'](opts as any)
 
       // if id is set, then we freeze attributes after setting them, so that
       // any modifications afterwards will indicate updates.
@@ -834,7 +834,7 @@ export default class Dream {
     return { ...this.currentAttributes } as Updateable<DB[I['table']]>
   }
 
-  public static cachedTypeFor<
+  protected static cachedTypeFor<
     T extends typeof Dream,
     DB extends InstanceType<T>['DB'],
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
@@ -981,16 +981,6 @@ export default class Dream {
 
   protected freezeAttributes() {
     this.frozenAttributes = { ...this.attributes() }
-  }
-
-  public isDecimal<
-    I extends Dream,
-    DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
-    TableName extends keyof DB = I['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName]
-  >(this: I, attribute: keyof Table): boolean {
-    return isDecimal(this.constructor as typeof Dream, attribute)
   }
 
   public async pluckThrough<
@@ -1146,7 +1136,7 @@ export default class Dream {
     return serializer.render()
   }
 
-  public setAttributes<
+  private setAttributes<
     I extends Dream,
     DB extends I['DB'],
     SyncedAssociations extends I['syncedAssociations'],
@@ -1174,13 +1164,13 @@ export default class Dream {
   }
 
   public async update<I extends Dream>(this: I, attributes: UpdateableProperties<I>): Promise<I> {
-    this.setAttributes(attributes)
+    this['setAttributes'](attributes)
     // call save rather than _save so that any unsaved associations in the
     // attributes are saved with this model in a transaction
     return await this.save()
   }
 
-  public _preventDeletion: boolean = false
+  private _preventDeletion: boolean = false
   public preventDeletion() {
     this._preventDeletion = true
   }
