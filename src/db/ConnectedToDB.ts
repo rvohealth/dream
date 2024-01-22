@@ -24,7 +24,7 @@ export default class ConnectedToDB<
 
     switch (sqlCommandType) {
       case 'select':
-        return this.connectionOverride || (this.dreamClass.replicaSafe ? 'replica' : 'primary')
+        return this.connectionOverride || (this.dreamClass['replicaSafe'] ? 'replica' : 'primary')
 
       default:
         return 'primary'

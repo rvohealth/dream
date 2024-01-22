@@ -13,14 +13,14 @@ export default function Scope(
     const branch = opts.default ? 'default' : 'named'
     if (!Object.getOwnPropertyDescriptor(t, 'scopes'))
       t['scopes'] = {
-        default: [...(t.scopes?.default || [])] as ScopeStatement[],
-        named: [...(t.scopes?.named || [])] as ScopeStatement[],
+        default: [...(t['scopes']?.default || [])] as ScopeStatement[],
+        named: [...(t['scopes']?.named || [])] as ScopeStatement[],
       }
 
-    const alreadyApplied = t.scopes[branch].find(scope => scope.method === key)
+    const alreadyApplied = t['scopes'][branch].find(scope => scope.method === key)
 
     if (!alreadyApplied) {
-      t.scopes[branch].push({
+      t['scopes'][branch].push({
         method: key,
         default: opts.default || false,
       })

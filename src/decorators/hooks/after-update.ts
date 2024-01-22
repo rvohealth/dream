@@ -6,9 +6,9 @@ export default function AfterUpdate(): any {
     const dreamClass: typeof Dream = target.constructor
 
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'hooks'))
-      dreamClass.hooks = blankHooksFactory(dreamClass)
+      dreamClass['hooks'] = blankHooksFactory(dreamClass)
 
-    dreamClass.hooks['afterUpdate'].push({
+    dreamClass['hooks']['afterUpdate'].push({
       method: key,
       type: 'afterUpdate',
     } as HookStatement)

@@ -73,13 +73,13 @@ export default class Dream {
 
   public static createdAtField = 'createdAt'
 
-  public static associations: {
+  protected static associations: {
     belongsTo: BelongsToStatement<any, any, any>[]
     hasMany: HasManyStatement<any, any, any>[]
     hasOne: HasOneStatement<any, any, any>[]
   } = blankAssociationsFactory(this)
 
-  public static scopes: {
+  protected static scopes: {
     default: ScopeStatement[]
     named: ScopeStatement[]
   } = {
@@ -87,12 +87,12 @@ export default class Dream {
     named: [],
   }
 
-  public static virtualAttributes: VirtualAttributeStatement[] = []
-  public static sortableFields: SortableFieldConfig[] = []
+  protected static virtualAttributes: VirtualAttributeStatement[] = []
+  protected static sortableFields: SortableFieldConfig[] = []
 
-  public static extendedBy: (typeof Dream)[] | null = null
+  protected static extendedBy: (typeof Dream)[] | null = null
 
-  public static sti: {
+  protected static sti: {
     active: boolean
     baseClass: typeof Dream | null
     value: string | null
@@ -102,7 +102,7 @@ export default class Dream {
     value: null,
   }
 
-  public static hooks: {
+  protected static hooks: {
     beforeCreate: HookStatement[]
     beforeUpdate: HookStatement[]
     beforeSave: HookStatement[]
@@ -117,8 +117,8 @@ export default class Dream {
     afterDestroyCommit: HookStatement[]
   } = blankHooksFactory(this)
 
-  public static validations: ValidationStatement[] = []
-  public static replicaSafe = false
+  protected static validations: ValidationStatement[] = []
+  protected static replicaSafe = false
 
   public static get isDream() {
     return true

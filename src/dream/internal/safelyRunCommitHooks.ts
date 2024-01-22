@@ -11,7 +11,7 @@ export default async function safelyRunCommitHooks<DreamInstance extends Dream>(
 ) {
   const Base = dream.constructor as DreamConstructorType<DreamInstance>
   if (txn) {
-    Base.hooks[hookType].forEach(hook => {
+    Base['hooks'][hookType].forEach(hook => {
       txn!.addCommitHook(hook, dream)
     })
   } else {

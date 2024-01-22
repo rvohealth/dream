@@ -18,7 +18,7 @@ received:
   scope: ${this.scopes.join(', ')}
 
 BelongsTo scopes on ${this.dreamClass.name} are:
-  ${this.dreamClass.sortableFields.map(conf => conf.positionField).join('\n        ')}
+  ${this.dreamClass['sortableFields'].map(conf => conf.positionField).join('\n        ')}
     `
   }
 }

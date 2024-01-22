@@ -25,15 +25,15 @@ export default function sqlResultToDreamInstance<
 }
 
 export function findExtendingDreamClass(dreamClass: typeof Dream, type: string): typeof Dream | undefined {
-  if (!dreamClass.extendedBy) return undefined
+  if (!dreamClass['extendedBy']) return undefined
 
-  const extendingDreamClass = dreamClass.extendedBy.find(
+  const extendingDreamClass = dreamClass['extendedBy'].find(
     extendingDreamClass => extendingDreamClass.name === type
   )
 
   if (extendingDreamClass) return extendingDreamClass
 
-  return dreamClass.extendedBy
+  return dreamClass['extendedBy']
     .map(extendingDreamClass => findExtendingDreamClass(extendingDreamClass, type))
     .find(dreamClassOrUndefined => dreamClassOrUndefined)
 }

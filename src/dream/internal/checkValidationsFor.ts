@@ -5,7 +5,7 @@ import isValid from './isValid'
 export default function checkValidationsFor(dream: Dream) {
   const validationErrors: { [key: string]: ValidationType[] } = {}
   const Base = dream.constructor as typeof Dream
-  Base.validations.forEach(validation => runValidation(dream, validation, validationErrors))
+  Base['validations'].forEach(validation => runValidation(dream, validation, validationErrors))
   return validationErrors
 }
 

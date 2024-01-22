@@ -6,7 +6,7 @@ export default function AfterDestroyCommit(): any {
     const dreamClass: typeof Dream = target.constructor
 
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'hooks'))
-      dreamClass.hooks = blankHooksFactory(dreamClass)
+      dreamClass['hooks'] = blankHooksFactory(dreamClass)
 
     dreamClass.addHook('afterDestroyCommit', {
       method: key,

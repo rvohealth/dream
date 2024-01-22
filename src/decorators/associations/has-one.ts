@@ -74,7 +74,7 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
     const dreamClass: typeof Dream = target.constructor
 
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'associations'))
-      dreamClass.associations = blankAssociationsFactory(dreamClass)
+      dreamClass['associations'] = blankAssociationsFactory(dreamClass)
 
     const partialAssociation = {
       modelCB,
@@ -101,7 +101,7 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
       },
     } as HasOneStatement<any, any, any>
 
-    dreamClass.associations['hasOne'].push(association)
+    dreamClass['associations']['hasOne'].push(association)
     applyGetterAndSetter(target, association)
   }
 }

@@ -25,7 +25,7 @@ export default function BelongsTo(
     const dreamClass: typeof Dream = target.constructor
 
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'associations'))
-      dreamClass.associations = blankAssociationsFactory(dreamClass)
+      dreamClass['associations'] = blankAssociationsFactory(dreamClass)
 
     const partialAssociation = {
       modelCB,
@@ -46,7 +46,7 @@ export default function BelongsTo(
       },
     } as BelongsToStatement<any, any, any>
 
-    dreamClass.associations['belongsTo'].push(association)
+    dreamClass['associations']['belongsTo'].push(association)
     applyGetterAndSetter(target, association, { isBelongsTo: true, foreignKeyBase: foreignKey })
     if (!optional) Validates('requiredBelongsTo')(target, key)
   }

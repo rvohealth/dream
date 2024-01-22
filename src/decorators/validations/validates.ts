@@ -14,9 +14,9 @@ export default function Validates<
   return function (target: any, key: string, _: any) {
     const t = target.constructor as typeof Dream
     if (!Object.getOwnPropertyDescriptor(t, 'validations'))
-      t.validations = [...(t.validations || [])] as ValidationStatement[]
+      t['validations'] = [...(t['validations'] || [])] as ValidationStatement[]
 
-    t.validations.push({
+    t['validations'].push({
       type,
       column: key,
       options: extractValidationOptionsFromArgs(type, args),

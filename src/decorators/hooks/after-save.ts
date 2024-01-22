@@ -6,9 +6,9 @@ export default function AfterSave(): any {
     const dreamClass: typeof Dream = target.constructor
 
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'hooks'))
-      dreamClass.hooks = blankHooksFactory(dreamClass)
+      dreamClass['hooks'] = blankHooksFactory(dreamClass)
 
-    dreamClass.hooks['afterSave'].push({
+    dreamClass['hooks']['afterSave'].push({
       method: key,
       type: 'afterSave',
     } as HookStatement)

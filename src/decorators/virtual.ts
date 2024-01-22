@@ -5,9 +5,9 @@ export default function Virtual(): any {
     const t: typeof Dream = target.constructor
 
     if (!Object.getOwnPropertyDescriptor(t, 'virtualAttributes'))
-      t['virtualAttributes'] = [...(t.virtualAttributes || [])]
+      t['virtualAttributes'] = [...(t['virtualAttributes'] || [])]
 
-    t.virtualAttributes.push({
+    t['virtualAttributes'].push({
       property: key,
     } as VirtualAttributeStatement)
   }
