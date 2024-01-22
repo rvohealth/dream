@@ -119,25 +119,28 @@ export default class Query<
     ? unknown
     : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']]
 > extends ConnectedToDB<DreamClass> {
-  public readonly passthroughWhereStatement: PassthroughWhere<AllColumns> = Object.freeze({})
-  public readonly whereStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
-  public readonly whereNotStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze(
-    []
-  )
-  public readonly limitStatement: LimitStatement | null
-  public readonly offsetStatement: OffsetStatement | null
-  public readonly orStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
-  public readonly orderStatement: OrderQueryStatement<ColumnType> | null = null
-  public readonly preloadStatements: RelaxedPreloadStatement = Object.freeze({})
-  public readonly joinsStatements: RelaxedJoinsStatement = Object.freeze({})
-  public readonly joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = Object.freeze({})
-  public readonly bypassDefaultScopes: boolean = false
-  protected readonly distinctColumn: ColumnType | null = null
   public readonly dreamClass: DreamClass
-  public baseSqlAlias: TableOrAssociationName<SyncedAssociations>
-  public baseSelectQuery: Query<any> | null
   public dreamTransaction: DreamTransaction<DB> | null = null
   public connectionOverride?: DbConnectionType
+
+  private readonly passthroughWhereStatement: PassthroughWhere<AllColumns> = Object.freeze({})
+  private readonly whereStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
+  private readonly whereNotStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze(
+    []
+  )
+  private readonly limitStatement: LimitStatement | null
+  private readonly offsetStatement: OffsetStatement | null
+  private readonly orStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
+  private readonly orderStatement: OrderQueryStatement<ColumnType> | null = null
+  private readonly preloadStatements: RelaxedPreloadStatement = Object.freeze({})
+  private readonly joinsStatements: RelaxedJoinsStatement = Object.freeze({})
+  private readonly joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = Object.freeze(
+    {}
+  )
+  private readonly bypassDefaultScopes: boolean = false
+  private readonly distinctColumn: ColumnType | null = null
+  private baseSqlAlias: TableOrAssociationName<SyncedAssociations>
+  private baseSelectQuery: Query<any> | null
 
   constructor(DreamClass: DreamClass, opts: QueryOpts<DreamClass, ColumnType> = {}) {
     super(DreamClass, opts)
