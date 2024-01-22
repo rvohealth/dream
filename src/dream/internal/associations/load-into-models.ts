@@ -70,7 +70,7 @@ export default class LoadIntoModels<
           const relevantAssociatedModels = dreams.filter((dream: any) => {
             return (
               (dream as any)[association.foreignKeyTypeField()] ===
-              associatedModel.stiBaseClassOrOwnClass.name
+              associatedModel['stiBaseClassOrOwnClass'].name
             )
           })
 
@@ -125,7 +125,7 @@ export default class LoadIntoModels<
       // REMOVING THIS BECAUSE WE NEED TO MATCH DIFFERENT POLYMORPHIC MODELS. CHECK TYPES DURING ASSOCIATION, NOT QUERY
       // if (association.polymorphic) {
       //   associationQuery = associationQuery.where({
-      //     [association.foreignKeyTypeField()]: dream.stiBaseClassOrOwnClass.name as any,
+      //     [association.foreignKeyTypeField()]: dream['stiBaseClassOrOwnClass'].name as any,
       //   })
       // }
       // end: REMOVING THIS BECAUSE WE NEED TO MATCH DIFFERENT POLYMORPHIC MODELS. CHECK TYPES DURING ASSOCIATION, NOT QUERY
@@ -282,7 +282,8 @@ ${JSON.stringify(association, null, 2)}
           .filter((dream: any) => {
             if (association.polymorphic) {
               return (
-                dream[association.foreignKeyTypeField()] === loadedAssociation.stiBaseClassOrOwnClass.name &&
+                dream[association.foreignKeyTypeField()] ===
+                  loadedAssociation['stiBaseClassOrOwnClass'].name &&
                 dream[association.foreignKey()] === loadedAssociation.primaryKeyValue
               )
             } else {
@@ -299,7 +300,7 @@ ${JSON.stringify(association, null, 2)}
             if (association.polymorphic) {
               return (
                 (loadedAssociation as any)[association.foreignKeyTypeField()] ===
-                  dream.stiBaseClassOrOwnClass.name &&
+                  dream['stiBaseClassOrOwnClass'].name &&
                 (loadedAssociation as any)[association.foreignKey()] === dream.primaryKeyValue
               )
             } else {

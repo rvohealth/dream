@@ -11,7 +11,7 @@ export default async function destroyDream<
   TableName extends keyof DB = I['table'] & keyof DB
 >(dream: I, txn: DreamTransaction<I['DB']> | null = null): Promise<I> {
   await runHooksFor('beforeDestroy', dream)
-  if (dream._preventDeletion) return dream.unpreventDeletion()
+  if (dream['_preventDeletion']) return dream.unpreventDeletion()
   const db = txn?.kyselyTransaction || _db('primary', dream.dreamconf)
 
   const Base = dream.constructor as DreamConstructorType<I>

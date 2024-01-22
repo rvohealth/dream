@@ -6,5 +6,5 @@ export default function isDecimal<
   TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
   Table extends DB[keyof DB] = DB[TableName]
 >(dreamClass: T, column: keyof Table): boolean {
-  return dreamClass.cachedTypeFor(column) === 'numeric'
+  return dreamClass['cachedTypeFor'](column) === 'numeric'
 }

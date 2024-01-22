@@ -15,45 +15,45 @@ describe('Dream STI', () => {
   describe('.isSTIBase', () => {
     context('when the model is not extended', () => {
       it('is false', () => {
-        expect(User.isSTIBase).toBe(false)
+        expect(User['isSTIBase']).toBe(false)
       })
     })
 
     context('when the model is extended', () => {
       it('is true', () => {
-        expect(Balloon.isSTIBase).toBe(true)
+        expect(Balloon['isSTIBase']).toBe(true)
       })
     })
 
     context('when the model is extended, but also extends a Dream model', () => {
       it('is false', () => {
-        expect(Latex.isSTIBase).toBe(false)
+        expect(Latex['isSTIBase']).toBe(false)
       })
     })
   })
 
-  describe('.isSTIBase', () => {
+  describe('.isSTIChild', () => {
     context('when the model is not STI', () => {
       it('is false', () => {
-        expect(User.isSTIChild).toBe(false)
+        expect(User['isSTIChild']).toBe(false)
       })
     })
 
     context('when the model is extended', () => {
       it('is true', () => {
-        expect(Balloon.isSTIChild).toBe(false)
+        expect(Balloon['isSTIChild']).toBe(false)
       })
     })
 
     context('when the model extends a Dream model', () => {
       it('is true', () => {
-        expect(Mylar.isSTIChild).toBe(true)
+        expect(Mylar['isSTIChild']).toBe(true)
       })
     })
 
     context('when the model is extended, but also extends a Dream model', () => {
       it('is false', () => {
-        expect(Latex.isSTIChild).toBe(true)
+        expect(Latex['isSTIChild']).toBe(true)
       })
     })
   })

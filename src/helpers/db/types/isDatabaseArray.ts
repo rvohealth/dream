@@ -6,5 +6,5 @@ export default function isDatabaseArray<
   TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
   Table extends DB[keyof DB] = DB[TableName]
 >(dreamClass: T, column: keyof Table): boolean {
-  return /\[\]$/.test(dreamClass.cachedTypeFor(column))
+  return /\[\]$/.test(dreamClass['cachedTypeFor'](column))
 }
