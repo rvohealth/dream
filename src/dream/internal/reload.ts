@@ -21,7 +21,8 @@ export default async function reload<DreamInstance extends Dream>(
   // @ts-ignore
   const newRecord = (await query.first()) as I
   dream.setAttributes(newRecord.attributes())
-  dream.freezeAttributes()
+
+  dream['freezeAttributes']()
 
   return dream
 }

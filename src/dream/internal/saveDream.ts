@@ -8,7 +8,6 @@ import sqlAttributes from '../../helpers/sqlAttributes'
 import safelyRunCommitHooks from './safelyRunCommitHooks'
 import _db from '../../db'
 import executeDatabaseQuery from './executeDatabaseQuery'
-import { DreamConstructorType } from '../types'
 
 export default async function saveDream<DreamInstance extends Dream>(
   dream: DreamInstance,
@@ -54,9 +53,9 @@ export default async function saveDream<DreamInstance extends Dream>(
   dream.setAttributes(data)
 
   // set frozen attributes to what has already been saved
-  dream.freezeAttributes()
-  dream.attributesFromBeforeLastSave = dream.originalAttributes
-  dream.originalAttributes = dream.attributes()
+  dream['freezeAttributes']()
+  dream['attributesFromBeforeLastSave'] = dream['originalAttributes']
+  dream['originalAttributes'] = dream.attributes()
 
   await runHooksFor('afterSave', dream)
   if (alreadyPersisted) await runHooksFor('afterUpdate', dream)
