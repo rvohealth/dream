@@ -1,6 +1,6 @@
 import Dream from '../../../dream'
 
-export default function isDate<
+export default function isDateColumn<
   T extends typeof Dream,
   DB extends InstanceType<T>['DB'],
   TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,

@@ -24,6 +24,7 @@ export default class Composition extends ApplicationModel {
 
   public id: IdType
   public content: string | null
+  public metadata: CompositionMetadata
   public createdAt: DateTime
   public updatedAt: DateTime
 
@@ -108,4 +109,9 @@ export default class Composition extends ApplicationModel {
 
   @HasMany(() => LocalizedText, { polymorphic: true, foreignKey: 'localizableId' })
   public localizedTexts: LocalizedText[]
+}
+
+export interface CompositionMetadata {
+  version?: number
+  contributors?: string[]
 }

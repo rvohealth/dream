@@ -1,4 +1,5 @@
 import Dream from '../../dream'
+import CannotReloadUnsavedDream from '../../exceptions/cannot-reload-unsaved-dream'
 import Query from '../query'
 import DreamTransaction from '../transaction'
 import { DreamConstructorType } from '../types'
@@ -7,6 +8,8 @@ export default async function reload<DreamInstance extends Dream>(
   dream: DreamInstance,
   txn: DreamTransaction<DreamConstructorType<DreamInstance>> | null = null
 ) {
+  if (!dream.isPersisted) throw new CannotReloadUnsavedDream(dream)
+
   const base = dream.constructor as DreamConstructorType<DreamInstance>
   let query: Query<DreamConstructorType<DreamInstance>> = new Query<DreamConstructorType<DreamInstance>>(base)
 
