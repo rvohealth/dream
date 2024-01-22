@@ -70,7 +70,7 @@ describe('Query#all', () => {
 
       context('with explicit primary connection override', () => {
         it('uses the primary connection, despite being ReplicaSafe', async () => {
-          await CustomUser.query().connection('primary').all()
+          await CustomUser.query()['connection']('primary').all()
           expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
           expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith(
             'replica',

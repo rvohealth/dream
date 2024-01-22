@@ -62,7 +62,7 @@ describe('Dream.all', () => {
 
       context('with explicit primary connection override', () => {
         it('uses the replica connection', async () => {
-          await CustomUser.connection('primary').all()
+          await CustomUser['connection']('primary').all()
           expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
           expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith(
             'replica',

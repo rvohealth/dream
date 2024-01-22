@@ -173,7 +173,7 @@ export default class Query<
     return this.dreamTransaction ? associationQuery.txn(this.dreamTransaction) : associationQuery
   }
 
-  public clone(opts: QueryOpts<DreamClass, ColumnType> = {}): Query<DreamClass> {
+  private clone(opts: QueryOpts<DreamClass, ColumnType> = {}): Query<DreamClass> {
     return new Query(this.dreamClass, {
       baseSqlAlias: opts.baseSqlAlias || this.baseSqlAlias,
       baseSelectQuery: opts.baseSelectQuery || this.baseSelectQuery,
@@ -556,11 +556,11 @@ export default class Query<
     }
   }
 
-  public setBaseSQLAlias(baseSqlAlias: TableOrAssociationName<SyncedAssociations>) {
+  private setBaseSQLAlias(baseSqlAlias: TableOrAssociationName<SyncedAssociations>) {
     return this.clone({ baseSqlAlias })
   }
 
-  public setBaseSelectQuery(baseSelectQuery: Query<any> | null) {
+  private setBaseSelectQuery(baseSelectQuery: Query<any> | null) {
     return this.clone({ baseSelectQuery })
   }
 
@@ -806,7 +806,10 @@ export default class Query<
     return theAll
   }
 
-  public connection<T extends Query<DreamClass>>(this: T, connection: DbConnectionType): Query<DreamClass> {
+  protected connection<T extends Query<DreamClass>>(
+    this: T,
+    connection: DbConnectionType
+  ): Query<DreamClass> {
     return this.clone({ connection })
   }
 
@@ -1044,7 +1047,7 @@ export default class Query<
     return preloadedDreamsAndWhatTheyPointTo.map(obj => obj.dream)
   }
 
-  public async hydratePreload(this: Query<DreamClass>, dream: Dream) {
+  private async hydratePreload(this: Query<DreamClass>, dream: Dream) {
     await this.applyPreload(this.preloadStatements as any, dream)
   }
 
@@ -1971,7 +1974,7 @@ export default class Query<
     return kyselyQuery
   }
 
-  public buildUpdate<T extends Query<DreamClass>>(
+  private buildUpdate<T extends Query<DreamClass>>(
     this: T,
     attributes: Updateable<InstanceType<DreamClass>['table']>
   ): UpdateQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, any, {}> {

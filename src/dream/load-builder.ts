@@ -73,7 +73,7 @@ export default class LoadBuilder<DreamInstance extends Dream> {
   }
 
   public async execute(): Promise<DreamInstance> {
-    await this.query.hydratePreload(this.dream)
+    await this.query['hydratePreload'](this.dream)
     return this.dream as DreamInstance
   }
 }
