@@ -517,12 +517,10 @@ export default class Query<
   ): Promise<void> {
     const allOpts = [a, b, c, d, e, f, g, cb, opts]
     const providedCb = allOpts.find(v => typeof v === 'function') as CB
-    const providedOpts = allOpts.find(v => typeof v === 'object') as FindEachOpts
-    const chunkSize = providedOpts?.chunkSize || 1000
-
-    let offset = 0
-    const count = await this.count()
-    const totalPages = Math.ceil(count / chunkSize)
+    const providedOpts = allOpts.find(
+      v => isObject(v) && Object.keys(v as any).includes('batchSize')
+    ) as FindEachOpts
+    const batchSize = providedOpts?.batchSize || 1000
 
     const joinsStatements = { ...this.joinsStatements }
 
