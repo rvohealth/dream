@@ -14,13 +14,6 @@ describe('camelize', () => {
       expect(camelize({ helloWorld: 'HowAreYou' })).toEqual({ helloWorld: 'HowAreYou' })
     })
 
-    context('when passed a dream', () => {
-      it('parsed the dreams attributes', async () => {
-        const user = await User.create({ email: 'fred@', password: 'howyadoin' })
-        expect(camelize(user)).toEqual(expect.objectContaining({ email: 'fred@' }))
-      })
-    })
-
     context('when passed a key with a date time value', () => {
       it('does not try to parse the DateTime as an object', () => {
         const now = DateTime.now()

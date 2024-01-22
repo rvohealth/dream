@@ -118,7 +118,7 @@ export function expectMatchingDreamModels(
     message = () =>
       EXPECTED_COLOR(`expected ${expected.constructor.name}, `) +
       RECEIVED_COLOR(`received ${received.constructor.name}`)
-  } else if (expected.id !== received.id) {
+  } else if (expected.primaryKeyValue !== received.primaryKeyValue) {
     message = () =>
       EXPECTED_COLOR(
         `expected is ${expected.constructor.name} with primary key ${expected.primaryKeyValue}\n`
@@ -127,7 +127,6 @@ export function expectMatchingDreamModels(
   } else {
     const comparableReceived = attributes(received)
     const comparableExpected = attributes(expected)
-
     pass = JSON.stringify(comparableReceived) === JSON.stringify(comparableExpected)
 
     message = pass
