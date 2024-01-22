@@ -59,10 +59,12 @@ import { SortableFieldConfig } from './decorators/sortable'
 import NonExistentScopeProvidedToResort from './exceptions/non-existent-scope-provided-to-resort'
 import cloneDeep from 'lodash.clonedeep'
 import NonLoadedAssociation from './exceptions/associations/non-loaded-association'
-import extractAttributesFromUpdateableProperties from './dream/internal/extractAttributesFromUpdateableProperties'
 import associationToGetterSetterProp from './decorators/associations/associationToGetterSetterProp'
 import { isString } from './helpers/typechecks'
 import CreateOrFindByFailedToCreateAndFind from './exceptions/create-or-find-by-failed-to-create-and-find'
+import CanOnlyPassBelongsToModelParam from './exceptions/associations/can-only-pass-belongs-to-model-param'
+import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
+import { marshalDBValue } from './helpers/marshalDBValue'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -271,7 +273,7 @@ export default class Dream {
         (err as DatabaseError)?.constructor === DatabaseError &&
         (err as DatabaseError)?.message?.includes('duplicate key value violates unique constraint')
       ) {
-        const dreamModel = await this.findBy(extractAttributesFromUpdateableProperties(this, opts))
+        const dreamModel = await this.findBy(this.extractAttributesFromUpdateableProperties(opts))
         if (!dreamModel) throw new CreateOrFindByFailedToCreateAndFind(this)
         return dreamModel
       }
@@ -356,7 +358,7 @@ export default class Dream {
     opts: UpdateablePropertiesForClass<T>,
     extraOpts: CreateOrFindByExtraOps<T> = {}
   ) {
-    const existingRecord = await this.findBy(extractAttributesFromUpdateableProperties(this, opts))
+    const existingRecord = await this.findBy(this.extractAttributesFromUpdateableProperties(opts))
     if (existingRecord) return existingRecord
 
     return (await new (this as any)({
@@ -695,10 +697,10 @@ export default class Dream {
   }
 
   public errors: { [key: string]: ValidationType[] } = {}
-  public frozenAttributes: { [key: string]: any } = {}
-  public originalAttributes: { [key: string]: any } = {}
-  public currentAttributes: { [key: string]: any } = {}
-  public attributesFromBeforeLastSave: { [key: string]: any } = {}
+  private frozenAttributes: { [key: string]: any } = {}
+  private originalAttributes: { [key: string]: any } = {}
+  private currentAttributes: { [key: string]: any } = {}
+  private attributesFromBeforeLastSave: { [key: string]: any } = {}
 
   constructor(
     opts?: any
@@ -728,9 +730,66 @@ export default class Dream {
     }
   }
 
+  protected static extractAttributesFromUpdateableProperties<T extends typeof Dream>(
+    this: T,
+    attributes: UpdateablePropertiesForClass<T>,
+    dreamInstance?: InstanceType<T>
+  ): WhereStatement<InstanceType<T>['DB'], InstanceType<T>['syncedAssociations'], InstanceType<T>['table']> {
+    const marshalledOpts: any = {}
+
+    Object.keys(attributes as any).forEach(attr => {
+      const associationMetaData = this.associationMap()[attr]
+
+      if (associationMetaData && associationMetaData.type !== 'BelongsTo') {
+        throw new CanOnlyPassBelongsToModelParam(this, associationMetaData)
+      } else if (associationMetaData) {
+        const belongsToAssociationMetaData = associationMetaData as BelongsToStatement<any, any, any>
+        const associatedObject = (attributes as any)[attr]
+
+        // if dream instance is passed, set the loaded association
+        if (dreamInstance && associatedObject !== undefined) (dreamInstance as any)[attr] = associatedObject
+
+        if (!(associationMetaData as BelongsToStatement<any, any, any>).optional && !associatedObject)
+          throw new CannotPassNullOrUndefinedToRequiredBelongsTo(
+            this,
+            associationMetaData as BelongsToStatement<any, any, any>
+          )
+
+        const foreignKey = belongsToAssociationMetaData.foreignKey()
+        marshalledOpts[foreignKey] = associatedObject?.primaryKeyValue
+        if (dreamInstance) {
+          dreamInstance.setAttribute(foreignKey as any, marshalledOpts[foreignKey])
+        }
+
+        if (belongsToAssociationMetaData.polymorphic) {
+          const foreignKeyTypeField = belongsToAssociationMetaData.foreignKeyTypeField()
+          marshalledOpts[foreignKeyTypeField] = associatedObject?.stiBaseClassOrOwnClass?.name
+          if (dreamInstance) {
+            dreamInstance.setAttribute(
+              foreignKeyTypeField as any,
+              associatedObject?.stiBaseClassOrOwnClass?.name
+            )
+          }
+        }
+      } else {
+        marshalledOpts[attr] = marshalDBValue(this, attr as any, (attributes as any)[attr])
+
+        if (dreamInstance) {
+          dreamInstance.setAttribute(attr, marshalledOpts[attr])
+        }
+      }
+    })
+
+    return marshalledOpts
+  }
+
   protected defineAttributeAccessors() {
     const columns = (this.constructor as typeof Dream).columns()
     columns.forEach(column => {
+      // this ensures that the currentAttributes object will contain keys
+      // for each of the properties
+      if (this.currentAttributes[column] === undefined) this.currentAttributes[column] = undefined
+
       Object.defineProperty(this, column, {
         get() {
           return this.currentAttributes[column]
@@ -742,7 +801,7 @@ export default class Dream {
     })
   }
 
-  public setAttribute<I extends Dream, Key extends AttributeKeys<I>>(
+  protected setAttribute<I extends Dream, Key extends AttributeKeys<I>>(
     this: I,
     attr: Key & string,
     val: any
@@ -757,7 +816,10 @@ export default class Dream {
     }
   }
 
-  public getAttribute<I extends Dream, Key extends AttributeKeys<I>>(this: I, attr: Key & string): unknown {
+  protected getAttribute<I extends Dream, Key extends AttributeKeys<I>>(
+    this: I,
+    attr: Key & string
+  ): unknown {
     const columns = (this.constructor as typeof Dream).columns()
     const self = this as any
 
@@ -917,7 +979,7 @@ export default class Dream {
     return other?.constructor === this.constructor && other.primaryKeyValue === this.primaryKeyValue
   }
 
-  public freezeAttributes() {
+  protected freezeAttributes() {
     this.frozenAttributes = { ...this.attributes() }
   }
 
@@ -1091,11 +1153,8 @@ export default class Dream {
     TableName extends keyof DB = I['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
   >(this: I, attributes: Updateable<Table> | AssociatedModelParam<I>) {
-    const marshalledOpts = extractAttributesFromUpdateableProperties(
-      this.constructor as DreamConstructorType<I>,
-      attributes as any,
-      this
-    )
+    const dreamClass = this.constructor as typeof Dream
+    const marshalledOpts = dreamClass.extractAttributesFromUpdateableProperties(attributes as any, this)
     return marshalledOpts
   }
 
