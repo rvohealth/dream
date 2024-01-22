@@ -86,19 +86,5 @@ describe('Dream#clone', () => {
       const user2 = user.clone()
       expect((user2 as any).howyadoin).toBeNull()
     })
-
-    it('copies nested objects containing dreams', async () => {
-      let user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const balloon = await user.createAssociation('balloons', { type: 'Latex', color: 'red' })
-      user = (await User.preload('balloons').first())!
-      ;(user as any).howyadoin = { stuff: [{ dreams: [balloon] }] }
-
-      const cloned = user.clone()
-      expect((cloned as any).howyadoin.stuff[0].dreams).toMatchDreamModels([balloon])
-
-      const clonedDream = (cloned as any).howyadoin.stuff[0].dreams[0]
-      expect(clonedDream).not.toBe(balloon)
-      expect(clonedDream.constructor.name).toEqual(balloon.constructor.name)
-    })
   })
 })

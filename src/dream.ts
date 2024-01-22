@@ -27,6 +27,7 @@ import {
   UpdateableProperties,
   NextJoinsWherePluckArgumentType,
   FinalJoinsWherePluckArgumentType,
+  AttributeKeys,
 } from './dream/types'
 import Query from './dream/query'
 import checkValidationsFor from './dream/internal/checkValidationsFor'
@@ -696,6 +697,7 @@ export default class Dream {
   public errors: { [key: string]: ValidationType[] } = {}
   public frozenAttributes: { [key: string]: any } = {}
   public originalAttributes: { [key: string]: any } = {}
+  public currentAttributes: { [key: string]: any } = {}
   public attributesFromBeforeLastSave: { [key: string]: any } = {}
 
   constructor(
@@ -705,6 +707,8 @@ export default class Dream {
     //     keyof InstanceType<DreamModel>['DB']]
     // >
   ) {
+    this.defineAttributeAccessors()
+
     if (opts) {
       const marshalledOpts = this.setAttributes(opts as any)
 
@@ -715,7 +719,7 @@ export default class Dream {
         this.originalAttributes = { ...marshalledOpts }
         this.attributesFromBeforeLastSave = { ...marshalledOpts }
       } else {
-        const columns = (this.constructor as typeof Dream).columns() as string[]
+        const columns = (this.constructor as typeof Dream).columns()
         columns.forEach(column => {
           this.originalAttributes[column] = undefined
           this.attributesFromBeforeLastSave[column] = undefined
@@ -724,12 +728,48 @@ export default class Dream {
     }
   }
 
-  public attributes<I extends Dream, DB extends I['DB']>(this: I): Updateable<DB[I['table']]> {
-    const obj: Updateable<DB[I['table']]> = {}
-    ;(this.constructor as DreamConstructorType<I>).columns().forEach(column => {
-      ;(obj as any)[column] = (this as any)[column]
+  protected defineAttributeAccessors() {
+    const columns = (this.constructor as typeof Dream).columns()
+    columns.forEach(column => {
+      Object.defineProperty(this, column, {
+        get() {
+          return this.currentAttributes[column]
+        },
+        set(val: any) {
+          return (this.currentAttributes[column] = val)
+        },
+      })
     })
-    return obj
+  }
+
+  public setAttribute<I extends Dream, Key extends AttributeKeys<I>>(
+    this: I,
+    attr: Key & string,
+    val: any
+  ): void {
+    const columns = (this.constructor as typeof Dream).columns()
+    const self = this as any
+
+    if (columns.includes(attr)) {
+      self.currentAttributes[attr] = val
+    } else {
+      self[attr] = val
+    }
+  }
+
+  public getAttribute<I extends Dream, Key extends AttributeKeys<I>>(this: I, attr: Key & string): unknown {
+    const columns = (this.constructor as typeof Dream).columns()
+    const self = this as any
+
+    if (columns.includes(attr)) {
+      return self.currentAttributes[attr]
+    } else {
+      return self[attr]
+    }
+  }
+
+  public attributes<I extends Dream, DB extends I['DB']>(this: I): Updateable<DB[I['table']]> {
+    return { ...this.currentAttributes } as Updateable<DB[I['table']]>
   }
 
   public static cachedTypeFor<
@@ -837,7 +877,7 @@ export default class Dream {
   >(this: I): Updateable<Table> {
     const obj: Updateable<Table> = {}
 
-    Object.keys(this.attributes()).forEach(column => {
+    this.columns().forEach(column => {
       // TODO: clean up types
       if (this.attributeIsDirty(column as any)) (obj as any)[column] = (this.attributes() as any)[column]
     })
@@ -918,13 +958,6 @@ export default class Dream {
     return await construct
       .where({ [this.primaryKey]: this.primaryKeyValue } as any)
       .pluckThrough(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
-  }
-
-  /**
-   * Deep clones the model, it's attributes, and its associations
-   */
-  public deepClone<I extends Dream>(this: I): I {
-    return cloneDeep(this)
   }
 
   /**

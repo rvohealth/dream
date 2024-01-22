@@ -34,21 +34,24 @@ export default function extractAttributesFromUpdateableProperties<T extends type
       const foreignKey = belongsToAssociationMetaData.foreignKey()
       marshalledOpts[foreignKey] = associatedObject?.primaryKeyValue
       if (dreamInstance) {
-        ;(dreamInstance as any)[foreignKey] = marshalledOpts[foreignKey]
+        dreamInstance.setAttribute(foreignKey as any, marshalledOpts[foreignKey])
       }
 
       if (belongsToAssociationMetaData.polymorphic) {
         const foreignKeyTypeField = belongsToAssociationMetaData.foreignKeyTypeField()
         marshalledOpts[foreignKeyTypeField] = associatedObject?.stiBaseClassOrOwnClass?.name
         if (dreamInstance) {
-          ;(dreamInstance as any)[foreignKeyTypeField] = associatedObject?.stiBaseClassOrOwnClass?.name
+          dreamInstance.setAttribute(
+            foreignKeyTypeField as any,
+            associatedObject?.stiBaseClassOrOwnClass?.name
+          )
         }
       }
     } else {
-      // TODO: cleanup type chaos
       marshalledOpts[attr] = marshalDBValue(dreamClass, attr as any, (attributes as any)[attr])
+
       if (dreamInstance) {
-        ;(dreamInstance as any)[attr] = marshalledOpts[attr]
+        dreamInstance.setAttribute(attr, marshalledOpts[attr])
       }
     }
   })
