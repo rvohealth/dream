@@ -223,7 +223,7 @@ export default class Dream {
     return await this.query().all()
   }
 
-  public static connection<T extends typeof Dream>(this: T, connection: DbConnectionType): Query<T> {
+  protected static connection<T extends typeof Dream>(this: T, connection: DbConnectionType): Query<T> {
     const query: Query<T> = new Query<T>(this, { connection })
     return query
   }
