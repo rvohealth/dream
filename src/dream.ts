@@ -812,7 +812,7 @@ export default class Dream {
     })
   }
 
-  protected setAttribute<I extends Dream, Key extends AttributeKeys<I>>(
+  public setAttribute<I extends Dream, Key extends AttributeKeys<I>>(
     this: I,
     attr: Key & string,
     val: any
@@ -831,10 +831,7 @@ export default class Dream {
     }
   }
 
-  protected getAttribute<I extends Dream, Key extends AttributeKeys<I>>(
-    this: I,
-    attr: Key & string
-  ): unknown {
+  public getAttribute<I extends Dream, Key extends AttributeKeys<I>>(this: I, attr: Key & string): unknown {
     const columns = (this.constructor as typeof Dream).columns()
     const self = this as any
 
