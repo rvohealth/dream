@@ -62,6 +62,7 @@ async function writeSchema() {
 async function enhanceSchema(file: string) {
   file = removeUnwantedExports(file)
   file = replaceBlankExport(file)
+  file = replaceJsonType(file)
 
   const interfaces = file.split(/export interface /g)
   const results = interfaces.slice(1, interfaces.length)
@@ -171,6 +172,13 @@ ${file}`
 
 function replaceBlankExport(str: string) {
   return str.replace(/export interface DB \{\}/, 'export interface DB { placeholder: {} }')
+}
+
+function replaceJsonType(str: string) {
+  return str.replace(
+    'export type Json = ColumnType<JsonValue, string, string>',
+    'export type Json = ColumnType<JsonValue, string | JsonValue, string | JsonValue>'
+  )
 }
 
 function camelcasify(str: string) {

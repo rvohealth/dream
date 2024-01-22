@@ -3,6 +3,7 @@ import User from '../../../test-app/app/models/User'
 import Pet from '../../../test-app/app/models/Pet'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from '../../../src/exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
+import Composition from '../../../test-app/app/models/Composition'
 
 describe('Dream initialization', () => {
   it('sets attributes', () => {
@@ -62,6 +63,20 @@ describe('Dream initialization', () => {
     it('converts the date string to a luxon date', async () => {
       const user = User.new({ birthdate: '2000-10-10' as any })
       expect(user.birthdate).toEqual(DateTime.fromISO('2000-10-10'))
+    })
+  })
+
+  context('an object is passed to a jsonb field', () => {
+    it('converts the object to a string for insertion, but exposes it as an object when fetched', async () => {
+      const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      const metadata = { version: 1 }
+      const composition = Composition.new({ content: 'howyadoin', metadata, user })
+      expect(composition.metadata).toEqual({ version: 1 })
+
+      await composition.save()
+      expect(composition.metadata).toEqual({ version: 1 })
+
+      expect(composition.attributes().metadata).toEqual(JSON.stringify({ version: 1 }))
     })
   })
 

@@ -19,6 +19,18 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
 
 export type Int8 = ColumnType<string, string | number | bigint, string | number | bigint>;
 
+export type Json = ColumnType<JsonValue, string | JsonValue, string | JsonValue>;
+
+export type JsonArray = JsonValue[];
+
+export type JsonObject = {
+  [K in string]?: JsonValue;
+};
+
+export type JsonPrimitive = boolean | null | number | string;
+
+export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
+
 export type LocalesEnum = "de-DE" | "en-AU" | "en-BZ" | "en-CA" | "en-cb" | "en-GB" | "en-IE" | "en-IN" | "en-JM" | "en-MT" | "en-MY" | "en-NZ" | "en-PH" | "en-SG" | "en-TT" | "en-US" | "en-ZA" | "en-ZW" | "es-ES" | "fr-FR" | "it-IT" | "ja-JP" | "ko-KR" | "pt-BR" | "zh-CN" | "zh-TW";
 
 export type LocalizableTypesEnum = "Composition" | "CompositionAsset";
@@ -101,6 +113,9 @@ export interface Compositions {
   content: string | null;
   createdAt: Timestamp;
   id: Generated<Int8>;
+  metadata2: Json | null;
+  metadata3: Json | null;
+  metadata: Generated<Json>;
   primary: Generated<boolean | null>;
   updatedAt: Timestamp;
   userId: Int8;
@@ -283,7 +298,7 @@ export const BeautifulBalloonColumns = ['color', 'createdAt', 'deletedAt', 'id',
 export const CollarColumns = ['balloonId', 'createdAt', 'id', 'lost', 'petId', 'tagName', 'updatedAt'] as const
 export const CompositionAssetAuditColumns = ['approval', 'compositionAssetId', 'createdAt', 'id', 'notes', 'updatedAt'] as const
 export const CompositionAssetColumns = ['compositionId', 'createdAt', 'id', 'name', 'primary', 'score', 'src', 'updatedAt'] as const
-export const CompositionColumns = ['content', 'createdAt', 'id', 'primary', 'updatedAt', 'userId'] as const
+export const CompositionColumns = ['content', 'createdAt', 'id', 'metadata', 'metadata2', 'metadata3', 'primary', 'updatedAt', 'userId'] as const
 export const EdgeCaseAttributeColumns = ['createdAt', 'id', 'kPop', 'popK', 'popKPop', 'updatedAt'] as const
 export const ExtraRatingColumns = ['body', 'createdAt', 'extraRateableId', 'extraRateableType', 'id', 'rating', 'type', 'updatedAt', 'userId'] as const
 export const GraphEdgeNodeColumns = ['createdAt', 'edgeId', 'id', 'multiScopedPosition', 'nodeId', 'position', 'updatedAt'] as const
@@ -300,7 +315,7 @@ export const SandbagColumns = ['balloonId', 'createdAt', 'id', 'updatedAt', 'wei
 export const UserColumns = ['birthdate', 'createdAt', 'deletedAt', 'email', 'featuredPostPosition', 'id', 'name', 'passwordDigest', 'socialSecurityNumber', 'targetRating', 'updatedAt'] as const
 export const UserSettingColumns = ['createdAt', 'id', 'likesChalupas', 'updatedAt', 'userId'] as const
 
-export const AllColumns = ['approval', 'balloonId', 'balloonLines', 'balloonSpotterBalloons', 'balloonSpotterId', 'balloonSpotters', 'beautifulBalloons', 'birthdate', 'body', 'collars', 'color', 'compositionAssetAudits', 'compositionAssetId', 'compositionAssets', 'compositionId', 'compositions', 'content', 'createdAt', 'deletedAt', 'edgeCaseAttributes', 'edgeId', 'email', 'extraRateableId', 'extraRateableType', 'extraRatings', 'favoriteTreats', 'featuredPostPosition', 'graphEdgeNodes', 'graphEdges', 'graphNodes', 'id', 'incompatibleForeignKeyTypeExamples', 'kPop', 'likesChalupas', 'locale', 'localizableId', 'localizableType', 'localizedTexts', 'lost', 'material', 'multiScopedPosition', 'multicolor', 'name', 'nodeId', 'notes', 'passwordDigest', 'petId', 'petUnderstudyJoinModels', 'pets', 'popK', 'popKPop', 'position', 'positionAlpha', 'positionBeta', 'postVisibilities', 'postVisibilityId', 'posts', 'primary', 'rateableId', 'rateableType', 'rating', 'ratings', 'sandbags', 'score', 'socialSecurityNumber', 'species', 'src', 'tagName', 'targetRating', 'title', 'type', 'understudyId', 'updatedAt', 'userId', 'userSettings', 'users', 'visibility', 'volume', 'weight'] as const
+export const AllColumns = ['approval', 'balloonId', 'balloonLines', 'balloonSpotterBalloons', 'balloonSpotterId', 'balloonSpotters', 'beautifulBalloons', 'birthdate', 'body', 'collars', 'color', 'compositionAssetAudits', 'compositionAssetId', 'compositionAssets', 'compositionId', 'compositions', 'content', 'createdAt', 'deletedAt', 'edgeCaseAttributes', 'edgeId', 'email', 'extraRateableId', 'extraRateableType', 'extraRatings', 'favoriteTreats', 'featuredPostPosition', 'graphEdgeNodes', 'graphEdges', 'graphNodes', 'id', 'incompatibleForeignKeyTypeExamples', 'kPop', 'likesChalupas', 'locale', 'localizableId', 'localizableType', 'localizedTexts', 'lost', 'material', 'metadata', 'metadata2', 'metadata3', 'multiScopedPosition', 'multicolor', 'name', 'nodeId', 'notes', 'passwordDigest', 'petId', 'petUnderstudyJoinModels', 'pets', 'popK', 'popKPop', 'position', 'positionAlpha', 'positionBeta', 'postVisibilities', 'postVisibilityId', 'posts', 'primary', 'rateableId', 'rateableType', 'rating', 'ratings', 'sandbags', 'score', 'socialSecurityNumber', 'species', 'src', 'tagName', 'targetRating', 'title', 'type', 'understudyId', 'updatedAt', 'userId', 'userSettings', 'users', 'visibility', 'volume', 'weight'] as const
 
 export interface BalloonLineAttributes {
   balloonId: IdType
@@ -374,6 +389,9 @@ export interface CompositionAttributes {
   content: string | null
   createdAt: DateTime
   id: IdType
+  metadata2: Json | null
+  metadata3: Json | null
+  metadata: Json
   primary: boolean | null
   updatedAt: DateTime
   userId: IdType
@@ -595,6 +613,9 @@ export const CompositionsDBTypeMap = {
   content: 'text',
   createdAt: 'timestamp without time zone',
   id: 'bigint',
+  metadata2: 'jsonb',
+  metadata3: 'json',
+  metadata: 'jsonb',
   primary: 'boolean',
   updatedAt: 'timestamp without time zone',
   userId: 'bigint'

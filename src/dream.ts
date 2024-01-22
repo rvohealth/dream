@@ -39,7 +39,6 @@ import pascalize from './helpers/pascalize'
 import getModelKey from './helpers/getModelKey'
 import { VirtualAttributeStatement } from './decorators/virtual'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
-import isDecimal from './helpers/db/types/isDecimal'
 import DreamSerializer from './serializer'
 import MissingSerializer from './exceptions/missing-serializer'
 import MissingTable from './exceptions/missing-table'
@@ -65,6 +64,7 @@ import CreateOrFindByFailedToCreateAndFind from './exceptions/create-or-find-by-
 import CanOnlyPassBelongsToModelParam from './exceptions/associations/can-only-pass-belongs-to-model-param'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
 import { marshalDBValue } from './helpers/marshalDBValue'
+import isJsonColumn from './helpers/db/types/isJsonColumn'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -790,14 +790,25 @@ export default class Dream {
       // for each of the properties
       if (this.currentAttributes[column] === undefined) this.currentAttributes[column] = undefined
 
-      Object.defineProperty(this, column, {
-        get() {
-          return this.currentAttributes[column]
-        },
-        set(val: any) {
-          return (this.currentAttributes[column] = val)
-        },
-      })
+      if (isJsonColumn(this.constructor as typeof Dream, column)) {
+        Object.defineProperty(this, column, {
+          get() {
+            return JSON.parse(this.currentAttributes[column])
+          },
+          set(val: any) {
+            this.currentAttributes[column] = isString(val) ? val : JSON.stringify(val)
+          },
+        })
+      } else {
+        Object.defineProperty(this, column, {
+          get() {
+            return this.currentAttributes[column]
+          },
+          set(val: any) {
+            return (this.currentAttributes[column] = val)
+          },
+        })
+      }
     })
   }
 
@@ -810,7 +821,11 @@ export default class Dream {
     const self = this as any
 
     if (columns.includes(attr)) {
-      self.currentAttributes[attr] = val
+      self.currentAttributes[attr] = isJsonColumn(this.constructor as typeof Dream, attr)
+        ? isString(val)
+          ? val
+          : JSON.stringify(val)
+        : val
     } else {
       self[attr] = val
     }
