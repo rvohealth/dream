@@ -74,6 +74,7 @@ function renderAsToType(renderAs: SerializableTypes, schema: any) {
     date: 'string',
     datetime: 'string',
     decimal: 'number',
+    json: 'any',
   } as any
 
   return typeCoersions[renderAs] || renderAs

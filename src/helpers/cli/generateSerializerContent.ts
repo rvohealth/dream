@@ -93,6 +93,9 @@ function attributeSpecifier(type: string, originalAttribute: string) {
       return "'date'"
     case 'decimal':
       return "'decimal'"
+    case 'jsonb':
+    case 'json':
+      return "'json'"
     case 'enum':
       const coercedType = pascalize(originalAttribute.split(':')[2])
       return `'enum:${coercedType}Enum'`
