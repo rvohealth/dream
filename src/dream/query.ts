@@ -120,6 +120,12 @@ export default class Query<
     ? unknown
     : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']]
 > extends ConnectedToDB<DreamClass> {
+  public static readonly BATCH_SIZES = {
+    FIND_EACH: 1000,
+    PLUCK_EACH: 10000,
+    PLUCK_EACH_THROUGH: 1000,
+  }
+
   public readonly dreamClass: DreamClass
   public dreamTransaction: DreamTransaction<DB> | null = null
   public connectionOverride?: DbConnectionType
@@ -233,7 +239,7 @@ export default class Query<
   public async findEach<T extends Query<DreamClass>>(
     this: T,
     cb: (instance: InstanceType<DreamClass>) => void | Promise<void>,
-    { batchSize = 1000 }: { batchSize?: number } = {}
+    { batchSize = Query.BATCH_SIZES.FIND_EACH }: { batchSize?: number } = {}
   ): Promise<void> {
     let offset = 0
     let records: any[]
@@ -520,7 +526,7 @@ export default class Query<
     const providedCbIndex = allOpts.findIndex(v => typeof v === 'function')
     const providedCb = allOpts[providedCbIndex] as CB
     const providedOpts = allOpts[providedCbIndex + 1] as FindEachOpts
-    const batchSize = providedOpts?.batchSize || 1000
+    const batchSize = providedOpts?.batchSize || Query.BATCH_SIZES.PLUCK_EACH_THROUGH
 
     const joinsStatements = { ...this.joinsStatements }
 
@@ -907,7 +913,7 @@ export default class Query<
     this: T,
     fields: (SimpleFieldType | TablePrefixedFieldType)[],
     cb: (plucked: any | any[]) => void | Promise<void>,
-    { batchSize = 1000 }: { batchSize?: number } = {}
+    { batchSize = Query.BATCH_SIZES.PLUCK_EACH }: { batchSize?: number } = {}
   ): Promise<void> {
     const mapFn = (val: any, index: number) => marshalDBValue(this.dreamClass, fields[index] as any, val)
 

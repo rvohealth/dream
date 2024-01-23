@@ -305,9 +305,9 @@ export default class Dream {
   public static async findEach<T extends typeof Dream>(
     this: T,
     cb: (instance: InstanceType<T>) => void | Promise<void>,
-    { batchSize = 1000 }: { batchSize?: number } = {}
+    opts?: FindEachOpts
   ): Promise<void> {
-    await this.query().findEach(cb, { batchSize })
+    await this.query().findEach(cb, opts)
   }
 
   // //**
@@ -670,9 +670,9 @@ export default class Dream {
     this: T,
     fields: SelectArg<DB, ExtractTableAlias<DB, I['table']>, SE>[],
     cb: (dream: I) => void | Promise<void>,
-    { batchSize = 1000 }: { batchSize?: number } = {}
+    opts?: FindEachOpts
   ) {
-    return await this.query().pluckEach(fields as any[], cb, { batchSize })
+    return await this.query().pluckEach(fields as any[], cb, opts)
   }
 
   public static async resort<
