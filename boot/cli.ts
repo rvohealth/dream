@@ -97,6 +97,7 @@ program
     await sspawn(
       nodeOrTsnodeCmd('src/bin/generate-api.ts', cmdargs(), {
         fileArgs: [],
+        tsnodeFlags: ['--transpile-only'],
       })
     )
   })
