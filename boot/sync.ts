@@ -83,7 +83,7 @@ async function enhanceSchema(file: string) {
   const dbTypeMap = await Promise.all(results.map(async result => await buildDBTypeMap(db, result)))
 
   let transformedNames = compact(results.map(result => transformName(result))) as string[]
-  const fileWithCoercedTypes = exportedTypesToExportedTypesArrays(file)
+  const fileWithCoercedTypes = exportedTypesToExportedTypeValues(file)
 
   // BEGIN FILE CONTENTS BUILDING
   const newFileContents = `${fileWithCoercedTypes}
@@ -231,7 +231,7 @@ ${props.sort().join('\n')}
   })
 }
 
-function exportedTypesToExportedTypesArrays(str: string) {
+function exportedTypesToExportedTypeValues(str: string) {
   const ommitedTypes = [
     'Generated<T>',
     'Int8',
@@ -251,7 +251,7 @@ function exportedTypesToExportedTypesArrays(str: string) {
 
     return `\
 ${originalType}
-export const ${typeDeclaration}Array = [
+export const ${typeDeclaration}Values = [
   ${types.split(' | ').join(',\n  ')}
 ] as const
 `
