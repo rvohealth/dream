@@ -173,7 +173,7 @@ export default class Query<
     return this.dreamTransaction ? associationQuery.txn(this.dreamTransaction) : associationQuery
   }
 
-  private clone(opts: QueryOpts<DreamClass, ColumnType> = {}): Query<DreamClass> {
+  public clone(opts: QueryOpts<DreamClass, ColumnType> = {}): Query<DreamClass> {
     return new Query(this.dreamClass, {
       baseSqlAlias: opts.baseSqlAlias || this.baseSqlAlias,
       baseSelectQuery: opts.baseSelectQuery || this.baseSelectQuery,
