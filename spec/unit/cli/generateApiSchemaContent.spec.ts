@@ -31,6 +31,11 @@ export interface GraphEdge {
       expect(file).toContain('kPop: boolean')
     })
 
+    it('supports json attributes', async () => {
+      const file = await generateApiSchemaContent()
+      expect(file).toContain('metadata: any')
+    })
+
     it('renders date attributes as string type', async () => {
       const file = await generateApiSchemaContent()
       expect(file).toContain('createdAt: string')
