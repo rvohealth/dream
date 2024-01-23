@@ -232,11 +232,20 @@ ${props.sort().join('\n')}
 }
 
 function exportedTypesToExportedTypesArrays(str: string) {
-  const ommitedTypes = ['Generated<T>', 'Int8', 'Numeric']
+  const ommitedTypes = [
+    'Generated<T>',
+    'Int8',
+    'Numeric',
+    'Json',
+    'JsonArray',
+    'JsonObject',
+    'JsonPrimitive',
+    'JsonValue',
+  ]
 
   return str.replaceAll(/export type ([^=]*) = ([^;]*);\n/g, (_match, typeDeclaration, types) => {
     const originalType = `export type ${typeDeclaration} = ${types};\n`
-    if (ommitedTypes.some(type => new RegExp(type).test(typeDeclaration))) {
+    if (ommitedTypes.some(type => type === typeDeclaration)) {
       return originalType
     }
 
