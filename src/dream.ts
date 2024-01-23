@@ -790,24 +790,35 @@ export default class Dream {
       // for each of the properties
       if (this.currentAttributes[column] === undefined) this.currentAttributes[column] = undefined
 
-      if (isJsonColumn(this.constructor as typeof Dream, column)) {
-        Object.defineProperty(this, column, {
-          get() {
-            return JSON.parse(this.currentAttributes[column])
-          },
-          set(val: any) {
-            this.currentAttributes[column] = isString(val) ? val : JSON.stringify(val)
-          },
-        })
-      } else {
-        Object.defineProperty(this, column, {
-          get() {
-            return this.currentAttributes[column]
-          },
-          set(val: any) {
-            return (this.currentAttributes[column] = val)
-          },
-        })
+      if (
+        !Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), column)?.get &&
+        !Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), column)?.set
+      ) {
+        if (isJsonColumn(this.constructor as typeof Dream, column)) {
+          Object.defineProperty(Object.getPrototypeOf(this), column, {
+            get() {
+              return JSON.parse(this.currentAttributes[column])
+            },
+
+            set(val: any) {
+              this.currentAttributes[column] = isString(val) ? val : JSON.stringify(val)
+            },
+
+            configurable: true,
+          })
+        } else {
+          Object.defineProperty(Object.getPrototypeOf(this), column, {
+            get() {
+              return this.currentAttributes[column]
+            },
+
+            set(val: any) {
+              return (this.currentAttributes[column] = val)
+            },
+
+            configurable: true,
+          })
+        }
       }
     })
   }

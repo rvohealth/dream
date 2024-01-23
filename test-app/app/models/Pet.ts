@@ -31,6 +31,14 @@ export default class Pet extends ApplicationModel {
   public deletedAt: DateTime
   public createdAt: DateTime
 
+  public get nickname() {
+    return (this.getAttribute('nickname') || this.name) as typeof this.name
+  }
+
+  public set nickname(nickname: string) {
+    this.setAttribute('nickname', `Li’l ${nickname}`)
+  }
+
   @Scope({ default: true })
   public static hideDeleted(query: any) {
     return query.where({ deletedAt: null })

@@ -213,28 +213,30 @@ export function applyGetterAndSetter(
 ) {
   const dreamClass: typeof Dream = target.constructor as typeof Dream
 
-  Object.defineProperty(target, partialAssociation.as, {
-    configurable: true,
+  if (!Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target), partialAssociation.as)?.get) {
+    Object.defineProperty(Object.getPrototypeOf(target), partialAssociation.as, {
+      configurable: true,
 
-    get: function (this: any) {
-      const value = this[associationToGetterSetterProp(partialAssociation)]
-      if (value === undefined)
-        throw new NonLoadedAssociation({ dreamClass, associationName: partialAssociation.as })
-      else return value
-    },
+      get: function (this: any) {
+        const value = this[associationToGetterSetterProp(partialAssociation)]
+        if (value === undefined)
+          throw new NonLoadedAssociation({ dreamClass, associationName: partialAssociation.as })
+        else return value
+      },
 
-    set: function (this: any, associatedModel: any) {
-      this[associationToGetterSetterProp(partialAssociation)] = associatedModel
+      set: function (this: any, associatedModel: any) {
+        this[associationToGetterSetterProp(partialAssociation)] = associatedModel
 
-      if (isBelongsTo) {
-        this[finalForeignKey(foreignKeyBase, dreamClass, partialAssociation)] =
-          associatedModel?.primaryKeyValue
-        if (partialAssociation.polymorphic)
-          this[foreignKeyTypeField(foreignKeyBase, dreamClass, partialAssociation)] =
-            associatedModel?.constructor?.name
-      }
-    },
-  })
+        if (isBelongsTo) {
+          this[finalForeignKey(foreignKeyBase, dreamClass, partialAssociation)] =
+            associatedModel?.primaryKeyValue
+          if (partialAssociation.polymorphic)
+            this[foreignKeyTypeField(foreignKeyBase, dreamClass, partialAssociation)] =
+              associatedModel?.constructor?.name
+        }
+      },
+    })
+  }
 }
 
 function hydratedSourceValue(dream: Dream | typeof Dream | undefined, sourceName: string) {

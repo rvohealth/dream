@@ -6,7 +6,6 @@ import { DateTime } from 'luxon'
 import { AttributeStatement } from './decorators/attribute'
 import { AssociationStatement } from './decorators/associations/shared'
 import { DelegateStatement } from './decorators/delegate'
-import { loadDreamYamlFile } from '../helpers/path'
 import MissingSerializer from '../exceptions/missing-serializer'
 import round from '../helpers/round'
 import NonLoadedAssociation from '../exceptions/associations/non-loaded-association'
@@ -24,15 +23,17 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
 
     attributeStatements.forEach(attributeStatement => {
       if (!attributeStatement.functional) {
-        Object.defineProperty(this, attributeStatement.field, {
-          get() {
-            return this.data[attributeStatement.field]
-          },
+        if (!Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), attributeStatement.field)?.get) {
+          Object.defineProperty(Object.getPrototypeOf(this), attributeStatement.field, {
+            get() {
+              return this.data[attributeStatement.field]
+            },
 
-          set(val: any) {
-            this.data[attributeStatement.field] = val
-          },
-        })
+            set(val: any) {
+              this.data[attributeStatement.field] = val
+            },
+          })
+        }
       }
     })
   }
