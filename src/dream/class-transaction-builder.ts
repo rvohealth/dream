@@ -105,7 +105,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
   public async findEach<I extends DreamClassTransactionBuilder<DreamClass>>(
     this: I,
     cb: (instance: InstanceType<DreamClass>) => void | Promise<void>,
-    opts: FindEachOpts
+    opts?: FindEachOpts
   ): Promise<void> {
     await this.queryInstance().findEach(cb, opts)
   }
