@@ -2,15 +2,14 @@ import { DateTime } from 'luxon'
 import type { ColumnType } from "kysely";
 
 export type BalloonColorsEnum = "blue" | "green" | "red";
-
 export const BalloonColorsEnumValues = [
   "blue",
   "green",
   "red"
 ] as const
 
-export type BalloonLineMaterialsEnum = "nylon" | "ribbon" | "twine" | "yarn";
 
+export type BalloonLineMaterialsEnum = "nylon" | "ribbon" | "twine" | "yarn";
 export const BalloonLineMaterialsEnumValues = [
   "nylon",
   "ribbon",
@@ -18,16 +17,16 @@ export const BalloonLineMaterialsEnumValues = [
   "yarn"
 ] as const
 
-export type BalloonTypesEnum = "Animal" | "Latex" | "Mylar";
 
+export type BalloonTypesEnum = "Animal" | "Latex" | "Mylar";
 export const BalloonTypesEnumValues = [
   "Animal",
   "Latex",
   "Mylar"
 ] as const
 
-export type CatTreats = "cat-safe chalupas (catlupas,supaloopas)" | "chicken" | "ocean fish" | "tuna";
 
+export type CatTreats = "cat-safe chalupas (catlupas,supaloopas)" | "chicken" | "ocean fish" | "tuna";
 export const CatTreatsValues = [
   "cat-safe chalupas (catlupas,supaloopas)",
   "chicken",
@@ -35,20 +34,21 @@ export const CatTreatsValues = [
   "tuna"
 ] as const
 
-export type ExtraRateableTypesEnum = "Balloon" | "Composition" | "Post";
 
+export type ExtraRateableTypesEnum = "Balloon" | "Composition" | "Post";
 export const ExtraRateableTypesEnumValues = [
   "Balloon",
   "Composition",
   "Post"
 ] as const
 
-export type ExtraRatingTypesEnum = "HeartRating" | "StarRating";
 
+export type ExtraRatingTypesEnum = "HeartRating" | "StarRating";
 export const ExtraRatingTypesEnumValues = [
   "HeartRating",
   "StarRating"
 ] as const
+
 
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
@@ -69,7 +69,6 @@ export type JsonPrimitive = boolean | null | number | string;
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
 export type LocalesEnum = "de-DE" | "en-AU" | "en-BZ" | "en-CA" | "en-cb" | "en-GB" | "en-IE" | "en-IN" | "en-JM" | "en-MT" | "en-MY" | "en-NZ" | "en-PH" | "en-SG" | "en-TT" | "en-US" | "en-ZA" | "en-ZW" | "es-ES" | "fr-FR" | "it-IT" | "ja-JP" | "ko-KR" | "pt-BR" | "zh-CN" | "zh-TW";
-
 export const LocalesEnumValues = [
   "de-DE",
   "en-AU",
@@ -99,22 +98,23 @@ export const LocalesEnumValues = [
   "zh-TW"
 ] as const
 
-export type LocalizableTypesEnum = "Composition" | "CompositionAsset";
 
+export type LocalizableTypesEnum = "Composition" | "CompositionAsset";
 export const LocalizableTypesEnumValues = [
   "Composition",
   "CompositionAsset"
 ] as const
 
+
 export type Numeric = ColumnType<string, string | number, string | number>;
 
 export type Species = "cat" | "dog" | "frog";
-
 export const SpeciesValues = [
   "cat",
   "dog",
   "frog"
 ] as const
+
 type IdType = string | number | bigint | undefined
 type Timestamp = ColumnType<DateTime>
 

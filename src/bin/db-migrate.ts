@@ -11,6 +11,7 @@ async function migrateToLatest() {
 
   const dreamconf = await loadDreamconfFile()
   await db('primary', dreamconf).destroy()
+  process.exit()
 }
 
 // eslint-disable-next-line

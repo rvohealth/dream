@@ -17,7 +17,6 @@ import uniq from 'lodash.uniq'
 export default async function sync() {
   console.log('writing schema...')
   await writeSchema()
-  console.log('sync complete!')
 }
 // eslint-disable-next-line
 sync()
@@ -55,6 +54,7 @@ async function writeSchema() {
   await fs.writeFile(absoluteSchemaWritePath, enhancedSchema as string)
 
   console.log('done enhancing schema!')
+  process.exit()
 }
 
 // begin: schema helpers
@@ -243,8 +243,8 @@ function exportedTypesToExportedTypeValues(str: string) {
     'JsonValue',
   ]
 
-  return str.replaceAll(/export type ([^=]*) = ([^;]*);\n/g, (_match, typeDeclaration, types) => {
-    const originalType = `export type ${typeDeclaration} = ${types};\n`
+  return str.replaceAll(/export type ([^=]*) = ([^;\n]*);/g, (_match, typeDeclaration, types) => {
+    const originalType = `export type ${typeDeclaration} = ${types};`
     if (ommitedTypes.some(type => type === typeDeclaration)) {
       return originalType
     }

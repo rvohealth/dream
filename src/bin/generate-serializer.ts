@@ -8,6 +8,7 @@ async function _generateSerializer() {
   let name = argv[2]
   const args = argv.slice(3, argv.length)
   await generateSerializer(name, args)
+  process.exit()
 }
 
 // eslint-disable-next-line

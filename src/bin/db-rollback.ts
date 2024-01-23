@@ -15,6 +15,7 @@ async function dbRollback() {
 
   const dreamconf = await loadDreamconfFile()
   await db('primary', dreamconf).destroy()
+  process.exit()
 }
 
 // eslint-disable-next-line

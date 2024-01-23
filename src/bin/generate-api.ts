@@ -5,6 +5,7 @@ import generateDream from '../helpers/cli/generateDream'
 async function _generateApi() {
   await initializeDream()
   await generateApiSchema()
+  process.exit()
 }
 
 // eslint-disable-next-line
