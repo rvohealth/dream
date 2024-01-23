@@ -48,7 +48,7 @@ async function writeVirtualColumns(fileStr: string) {
     modelsBeforeAdaption[model.prototype.table] ||= []
     modelsBeforeAdaption[model.prototype.table] = [
       ...modelsBeforeAdaption[model.prototype.table],
-      ...model.virtualAttributes.map(vc => vc.property),
+      ...model['virtualAttributes'].map(vc => vc.property),
     ]
   }
   const finalModels = setEmptyVirtualObjectsToFalse(modelsBeforeAdaption)
