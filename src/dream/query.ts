@@ -70,6 +70,8 @@ import snakeify from '../../shared/helpers/snakeify'
 import LoadIntoModels from './internal/associations/load-into-models'
 import { allNestedObjectKeys } from '../helpers/allNestedObjectKeys'
 import { extractValueFromJoinsPluckResponse } from './internal/extractValueFromJoinsPluckResponse'
+import MissingRequiredCallbackFunctionToPluckEach from '../exceptions/missing-required-callback-function-to-pluck-each'
+import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../exceptions/cannot-pass-additional-fields-to-pluck-each-after-callback-function'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -526,6 +528,12 @@ export default class Query<
     const providedCbIndex = allOpts.findIndex(v => typeof v === 'function')
     const providedCb = allOpts[providedCbIndex] as CB
     const providedOpts = allOpts[providedCbIndex + 1] as FindEachOpts
+
+    if (!providedCb)
+      throw new MissingRequiredCallbackFunctionToPluckEach('pluckEachThrough', compact(allOpts))
+    if (providedOpts !== undefined && !providedOpts?.batchSize)
+      throw new CannotPassAdditionalFieldsToPluckEachAfterCallback('pluckEachThrough', compact(allOpts))
+
     const batchSize = providedOpts?.batchSize || Query.BATCH_SIZES.PLUCK_EACH_THROUGH
 
     const joinsStatements = { ...this.joinsStatements }
