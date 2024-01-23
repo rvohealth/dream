@@ -5,7 +5,7 @@ describe('dream generate:api', () => {
     const file = await generateApiSchemaContent()
     expect(file).toContain(`\
 export type Species = 'cat' | 'dog' | 'frog'
-export const SpeciesArray = [
+export const SpeciesValues = [
   'cat',
   'dog',
   'frog'

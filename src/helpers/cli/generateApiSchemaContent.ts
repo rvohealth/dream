@@ -48,13 +48,13 @@ async function renderExportedTypeDeclarations() {
   const schema = await loadSchema()
 
   return Object.keys(schema)
-    .filter(key => /Array$/.test(key))
+    .filter(key => /Values$/.test(key))
     .reduce((acc, key) => {
       const values = schema[key]
       return (
         acc +
         `\
-export type ${key.replace(/Array$/, '')} = ${values.map((val: string) => `'${val}'`).join(' | ')}
+export type ${key.replace(/Values$/, '')} = ${values.map((val: string) => `'${val}'`).join(' | ')}
 export const ${key} = [
   ${values.map((val: string) => `'${val}'`).join(',\n  ')}
 ]

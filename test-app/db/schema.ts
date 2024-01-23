@@ -3,7 +3,7 @@ import type { ColumnType } from "kysely";
 
 export type BalloonColorsEnum = "blue" | "green" | "red";
 
-export const BalloonColorsEnumArray = [
+export const BalloonColorsEnumValues = [
   "blue",
   "green",
   "red"
@@ -11,7 +11,7 @@ export const BalloonColorsEnumArray = [
 
 export type BalloonLineMaterialsEnum = "nylon" | "ribbon" | "twine" | "yarn";
 
-export const BalloonLineMaterialsEnumArray = [
+export const BalloonLineMaterialsEnumValues = [
   "nylon",
   "ribbon",
   "twine",
@@ -20,7 +20,7 @@ export const BalloonLineMaterialsEnumArray = [
 
 export type BalloonTypesEnum = "Animal" | "Latex" | "Mylar";
 
-export const BalloonTypesEnumArray = [
+export const BalloonTypesEnumValues = [
   "Animal",
   "Latex",
   "Mylar"
@@ -28,7 +28,7 @@ export const BalloonTypesEnumArray = [
 
 export type CatTreats = "cat-safe chalupas (catlupas,supaloopas)" | "chicken" | "ocean fish" | "tuna";
 
-export const CatTreatsArray = [
+export const CatTreatsValues = [
   "cat-safe chalupas (catlupas,supaloopas)",
   "chicken",
   "ocean fish",
@@ -37,7 +37,7 @@ export const CatTreatsArray = [
 
 export type ExtraRateableTypesEnum = "Balloon" | "Composition" | "Post";
 
-export const ExtraRateableTypesEnumArray = [
+export const ExtraRateableTypesEnumValues = [
   "Balloon",
   "Composition",
   "Post"
@@ -45,7 +45,7 @@ export const ExtraRateableTypesEnumArray = [
 
 export type ExtraRatingTypesEnum = "HeartRating" | "StarRating";
 
-export const ExtraRatingTypesEnumArray = [
+export const ExtraRatingTypesEnumValues = [
   "HeartRating",
   "StarRating"
 ] as const
@@ -70,7 +70,7 @@ export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
 export type LocalesEnum = "de-DE" | "en-AU" | "en-BZ" | "en-CA" | "en-cb" | "en-GB" | "en-IE" | "en-IN" | "en-JM" | "en-MT" | "en-MY" | "en-NZ" | "en-PH" | "en-SG" | "en-TT" | "en-US" | "en-ZA" | "en-ZW" | "es-ES" | "fr-FR" | "it-IT" | "ja-JP" | "ko-KR" | "pt-BR" | "zh-CN" | "zh-TW";
 
-export const LocalesEnumArray = [
+export const LocalesEnumValues = [
   "de-DE",
   "en-AU",
   "en-BZ",
@@ -101,7 +101,7 @@ export const LocalesEnumArray = [
 
 export type LocalizableTypesEnum = "Composition" | "CompositionAsset";
 
-export const LocalizableTypesEnumArray = [
+export const LocalizableTypesEnumValues = [
   "Composition",
   "CompositionAsset"
 ] as const
@@ -110,7 +110,7 @@ export type Numeric = ColumnType<string, string | number, string | number>;
 
 export type Species = "cat" | "dog" | "frog";
 
-export const SpeciesArray = [
+export const SpeciesValues = [
   "cat",
   "dog",
   "frog"
