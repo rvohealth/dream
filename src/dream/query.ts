@@ -236,16 +236,17 @@ export default class Query<
     { batchSize = 1000 }: { batchSize?: number } = {}
   ): Promise<void> {
     let offset = 0
-    let records = await this.offset(offset).limit(batchSize).all()
+    let records: any[]
 
-    while (records.length > 0) {
+    do {
+      records = await this.offset(offset).limit(batchSize).all()
+
       for (const record of records) {
         await cb(record)
       }
 
       offset += batchSize
-      records = await this.offset(offset).limit(batchSize).all()
-    }
+    } while (records.length > 0 && records.length === batchSize)
   }
 
   // //**
@@ -561,12 +562,12 @@ export default class Query<
     }
 
     let offset = 0
-    let results = await baseQuery
-      .offset(offset)
-      .limit(batchSize)
-      .pluckWithoutMarshalling(...pluckStatement)
-
-    while (results.length > 0) {
+    let results: any[]
+    do {
+      results = await baseQuery
+        .offset(offset)
+        .limit(batchSize)
+        .pluckWithoutMarshalling(...pluckStatement)
       const plucked = this.pluckValuesToPluckResponse(pluckStatement, results, mapFn)
 
       for (const data of plucked) {
@@ -574,11 +575,7 @@ export default class Query<
       }
 
       offset += batchSize
-      results = await baseQuery
-        .offset(offset)
-        .limit(batchSize)
-        .pluckWithoutMarshalling(...pluckStatement)
-    }
+    } while (results.length > 0 && results.length === batchSize)
   }
 
   private pluckThroughStatementsToDreamClassesMap(
@@ -916,21 +913,19 @@ export default class Query<
     const mapFn = (val: any, index: number) => marshalDBValue(this.dreamClass, fields[index] as any, val)
 
     let offset = 0
-    let records = await this.offset(offset)
-      .limit(batchSize)
-      .pluckWithoutMarshalling(...fields)
+    let records: any[]
+    do {
+      records = await this.offset(offset)
+        .limit(batchSize)
+        .pluckWithoutMarshalling(...fields)
 
-    while (records.length > 0) {
       const vals = this.pluckValuesToPluckResponse(fields, records, mapFn)
       for (const val of vals) {
         await cb(val)
       }
 
       offset += batchSize
-      records = await this.offset(offset)
-        .limit(batchSize)
-        .pluckWithoutMarshalling(...fields)
-    }
+    } while (records.length > 0 && records.length === batchSize)
   }
 
   private pluckValuesToPluckResponse(fields: any[], vals: any[], mapFn: (value: any, index: number) => any) {
