@@ -517,10 +517,9 @@ export default class Query<
     opts?: FindEachOpts
   ): Promise<void> {
     const allOpts = [a, b, c, d, e, f, g, cb, opts]
-    const providedCb = allOpts.find(v => typeof v === 'function') as CB
-    const providedOpts = allOpts.find(
-      v => isObject(v) && Object.keys(v as any).includes('batchSize')
-    ) as FindEachOpts
+    const providedCbIndex = allOpts.findIndex(v => typeof v === 'function')
+    const providedCb = allOpts[providedCbIndex] as CB
+    const providedOpts = allOpts[providedCbIndex + 1] as FindEachOpts
     const batchSize = providedOpts?.batchSize || 1000
 
     const joinsStatements = { ...this.joinsStatements }
