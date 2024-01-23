@@ -118,5 +118,36 @@ describe('Query#pluckEachThrough', () => {
       })
       expect(plucked).toEqual(['fred@frewd'])
     })
+
+    context('limiting batch size on a tree', () => {
+      it('plucks from the through associations', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+        const composition = await Composition.create({ user })
+        const composition2 = await Composition.create({ user: user2 })
+        const compositionAsset1 = await CompositionAsset.create({ composition, name: 'asset 1' })
+        const compositionAsset2 = await CompositionAsset.create({ composition, name: 'asset 2' })
+        const compositionAsset3 = await CompositionAsset.create({
+          composition: composition2,
+          name: 'asset 3',
+        })
+        const compositionAsset4 = await CompositionAsset.create({
+          composition: composition2,
+          name: 'asset 4',
+        })
+
+        const plucked: any[] = []
+        await User.query().pluckEachThrough(
+          'compositions',
+          'compositionAssets',
+          ['compositionAssets.name'],
+          data => {
+            plucked.push(data)
+          },
+          { batchSize: 1 }
+        )
+        expect(plucked).toEqual(expect.arrayContaining(['asset 1', 'asset 2', 'asset 3', 'asset 4']))
+      })
+    })
   })
 })
