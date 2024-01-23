@@ -292,9 +292,10 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
   >(
     this: I,
     fields: (SimpleFieldType | TablePrefixedFieldType)[],
-    cb: (plucked: any | any[]) => void | Promise<void>
+    cb: (plucked: any | any[]) => void | Promise<void>,
+    opts?: FindEachOpts
   ): Promise<void> {
-    await this.queryInstance().pluckEach(fields as any[], cb)
+    await this.queryInstance().pluckEach(fields as any[], cb, opts)
   }
 
   public passthrough<

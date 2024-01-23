@@ -8,6 +8,8 @@ import Composition from '../../../test-app/app/models/Composition'
 import Pet from '../../../test-app/app/models/Pet'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit'
+import MissingRequiredCallbackFunctionToPluckEach from '../../../src/exceptions/missing-required-callback-function-to-pluck-each'
+import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../../../src/exceptions/cannot-pass-additional-fields-to-pluck-each-after-callback-function'
 
 describe('Query#pluckEachThrough', () => {
   it('can pluck from the associated namespace', async () => {
@@ -29,6 +31,24 @@ describe('Query#pluckEachThrough', () => {
     )
 
     expect(plucked).toEqual([[edge1.id, edge1.name]])
+  })
+
+  context('with invalid arguments', () => {
+    context('when the cb function is not provided', () => {
+      it('raises a targeted exception', async () => {
+        await expect(
+          async () => await Node.query().pluckEachThrough('edgeNodes', 'edge', ['edge.id'])
+        ).rejects.toThrowError(MissingRequiredCallbackFunctionToPluckEach)
+      })
+    })
+
+    context('when additional pluck arguments are following the call to pluckEachThrough', () => {
+      it('raises a targeted exception', async () => {
+        await expect(
+          async () => await Node.query().pluckEachThrough('edgeNodes', 'edge', arr => {}, ['edge.id'])
+        ).rejects.toThrowError(CannotPassAdditionalFieldsToPluckEachAfterCallback)
+      })
+    })
   })
 
   context('columns that get transformed during marshalling', () => {
