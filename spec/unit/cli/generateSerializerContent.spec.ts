@@ -107,6 +107,24 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
         })
       })
 
+      context('one of those attributes is json', () => {
+        it('adds a number type to the field', async () => {
+          const res = await generateSerializerContent('UserSerializer', 'User', ['howyadoin:json'])
+
+          expect(res).toEqual(
+            `\
+import { DreamSerializer, Attribute } from '@rvohealth/dream'
+import User from '../models/User'
+
+export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+  @Attribute('json')
+  public howyadoin: any
+}\
+`
+          )
+        })
+      })
+
       context('one of those attributes is jsonb', () => {
         it('adds a number type to the field', async () => {
           const res = await generateSerializerContent('UserSerializer', 'User', ['howyadoin:jsonb'])
