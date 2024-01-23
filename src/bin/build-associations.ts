@@ -17,6 +17,7 @@ export default async function buildAssociations() {
   const clientFilePath = await associationsPath()
   await fs.writeFile(clientFilePath, fileStr)
   console.log('Done!')
+  process.exit()
 }
 
 // eslint-disable-next-line

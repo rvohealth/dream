@@ -129,7 +129,12 @@ program
   .option('--core', 'sets core to true')
   .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
-    await sspawn(nodeOrTsnodeCmd('boot/sync.ts', cmdargs(), { nodeFlags: ['--experimental-modules'] }))
+    await sspawn(
+      nodeOrTsnodeCmd('boot/sync.ts', cmdargs(), {
+        nodeFlags: ['--experimental-modules'],
+        tsnodeFlags: ['--transpile-only'],
+      })
+    )
   })
 
 program
@@ -161,7 +166,7 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
-    await sspawn(nodeOrTsnodeCmd('src/bin/db-create.ts', cmdargs()))
+    await sspawn(nodeOrTsnodeCmd('src/bin/db-create.ts', cmdargs(), { tsnodeFlags: ['--transpile-only'] }))
   })
 
 program
@@ -174,7 +179,7 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
-    await sspawn(nodeOrTsnodeCmd('src/bin/db-migrate.ts', cmdargs()))
+    await sspawn(nodeOrTsnodeCmd('src/bin/db-migrate.ts', cmdargs(), { tsnodeFlags: ['--transpile-only'] }))
 
     if (developmentOrTestEnv()) {
       await sspawn(
@@ -218,7 +223,7 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
-    await sspawn(nodeOrTsnodeCmd(`src/bin/db-drop.ts`, cmdargs()))
+    await sspawn(nodeOrTsnodeCmd(`src/bin/db-drop.ts`, cmdargs(), { tsnodeFlags: ['--transpile-only'] }))
   })
 
 program
