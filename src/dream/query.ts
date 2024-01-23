@@ -541,27 +541,15 @@ export default class Query<
     const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = {
       ...this.joinsWhereStatements,
     }
+
+    const fieldArgs = [a, b as any, c, d, e, f, g]
+    const onlyColumns: any = fieldArgs.filter((_, index) => index < providedCbIndex)
+
     const pluckStatement = [
-      this.fleshOutPluckThroughStatements(joinsStatements, joinsWhereStatements, null, [
-        a,
-        b as any,
-        c,
-        d,
-        e,
-        f,
-        g,
-      ]),
+      this.fleshOutPluckThroughStatements(joinsStatements, joinsWhereStatements, null, onlyColumns),
     ].flat() as any[]
 
-    const associationNamesToDreamClasses = this.pluckThroughStatementsToDreamClassesMap([
-      a,
-      b as any,
-      c,
-      d,
-      e,
-      f,
-      g,
-    ])
+    const associationNamesToDreamClasses = this.pluckThroughStatementsToDreamClassesMap(fieldArgs)
 
     const baseQuery = this.clone({ joinsStatements, joinsWhereStatements })
     const mapFn = (val: any, index: number) => {
@@ -916,13 +904,33 @@ export default class Query<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]> & string,
-    TablePrefixedFieldType extends `${TableName}.${SimpleFieldType}`
+    TablePrefixedFieldType extends `${TableName}.${SimpleFieldType}`,
+    CB extends (plucked: any) => void | Promise<void>
   >(
     this: T,
-    fields: (SimpleFieldType | TablePrefixedFieldType)[],
-    cb: (plucked: any | any[]) => void | Promise<void>,
-    { batchSize = Query.BATCH_SIZES.PLUCK_EACH }: { batchSize?: number } = {}
+    // NOTE: cannot use abbreviated types captured in generics to type fields, since
+    // they will break types in real world use.
+    ...fields: (
+      | (keyof Updateable<DB[TableName]> & string)
+      | `${TableName}.${keyof Updateable<DB[TableName]> & string}`
+      | CB
+      | FindEachOpts
+    )[]
   ): Promise<void> {
+    const providedCbIndex = fields.findIndex(v => typeof v === 'function')
+    const providedCb = fields[providedCbIndex] as CB
+    const providedOpts = fields[providedCbIndex + 1] as FindEachOpts
+
+    if (!providedCb) throw new MissingRequiredCallbackFunctionToPluckEach('pluckEach', fields)
+    if (providedOpts !== undefined && !providedOpts?.batchSize)
+      throw new CannotPassAdditionalFieldsToPluckEachAfterCallback('pluckEach', fields)
+
+    const onlyColumns: (SimpleFieldType | TablePrefixedFieldType)[] = fields.filter(
+      (_, index) => index < providedCbIndex
+    ) as (SimpleFieldType | TablePrefixedFieldType)[]
+
+    const batchSize = providedOpts?.batchSize || Query.BATCH_SIZES.PLUCK_EACH_THROUGH
+
     const mapFn = (val: any, index: number) => marshalDBValue(this.dreamClass, fields[index] as any, val)
 
     let offset = 0
@@ -930,11 +938,11 @@ export default class Query<
     do {
       records = await this.offset(offset)
         .limit(batchSize)
-        .pluckWithoutMarshalling(...fields)
+        .pluckWithoutMarshalling(...onlyColumns)
 
-      const vals = this.pluckValuesToPluckResponse(fields, records, mapFn)
+      const vals = this.pluckValuesToPluckResponse(onlyColumns, records, mapFn)
       for (const val of vals) {
-        await cb(val)
+        await providedCb(val)
       }
 
       offset += batchSize

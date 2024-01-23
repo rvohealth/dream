@@ -12,7 +12,7 @@ describe('Dream#pluckEach', () => {
 
   it('plucks the specified attributes and returns them as raw data', async () => {
     const ids: any[] = []
-    await User.pluckEach(['id'], id => {
+    await User.pluckEach('id', id => {
       ids.push(id)
     })
     expect(ids).toEqual([user1.id, user2.id])
@@ -22,7 +22,7 @@ describe('Dream#pluckEach', () => {
     it('plucks the specified attributes and returns them as raw data', async () => {
       const ids: any[] = []
       await User.pluckEach(
-        ['id'],
+        'id',
         id => {
           ids.push(id)
         },
@@ -38,7 +38,7 @@ describe('Dream#pluckEach', () => {
       let ids: any[] = []
       await ApplicationModel.transaction(async txn => {
         user3 = await User.txn(txn).create({ email: 'fred@txn', password: 'howyadoin' })
-        await User.txn(txn).pluckEach(['id'], id => {
+        await User.txn(txn).pluckEach('id', id => {
           ids.push(id)
         })
       })
@@ -49,7 +49,7 @@ describe('Dream#pluckEach', () => {
   context('with multiple fields', () => {
     it('should return multi-dimensional array', async () => {
       const data: any[] = []
-      await User.order('id').pluckEach(['id', 'createdAt'], arr => {
+      await User.order('id').pluckEach('id', 'createdAt', arr => {
         data.push(arr)
       })
 
