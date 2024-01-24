@@ -217,8 +217,7 @@ export default class Dream {
     I extends InstanceType<T>,
     DB extends I['DB'],
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName],
-    IdColumn = T['primaryKey'] & keyof Table
+    Table extends DB[keyof DB] = DB[TableName]
   >(this: T): Promise<InstanceType<T>[]> {
     return await this.query().all()
   }
@@ -779,7 +778,7 @@ export default class Dream {
     this.defineAttributeAccessors()
 
     if (opts) {
-      const marshalledOpts = this['setAttributes'](opts as any)
+      const marshalledOpts = this.setAttributes(opts as any)
 
       // if id is set, then we freeze attributes after setting them, so that
       // any modifications afterwards will indicate updates.
@@ -1267,7 +1266,7 @@ export default class Dream {
     return serializer.render()
   }
 
-  private setAttributes<
+  public setAttributes<
     I extends Dream,
     DB extends I['DB'],
     SyncedAssociations extends I['syncedAssociations'],
@@ -1295,7 +1294,7 @@ export default class Dream {
   }
 
   public async update<I extends Dream>(this: I, attributes: UpdateableProperties<I>): Promise<I> {
-    this['setAttributes'](attributes)
+    this.setAttributes(attributes)
     // call save rather than _save so that any unsaved associations in the
     // attributes are saved with this model in a transaction
     return await this.save()
