@@ -3,13 +3,15 @@ import User from '../../../test-app/app/models/User'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar'
+import Latex from '../../../test-app/app/models/Balloon/Latex'
 
 describe('Dream#save', () => {
   context('a new record', () => {
     let user: User
 
     beforeEach(async () => {
-      user = await User.new({ email: 'fred@frewd', password: 'howyadoin' })
+      user = User.new({ email: 'fred@frewd', password: 'howyadoin' })
     })
 
     it('saves', async () => {
@@ -119,6 +121,26 @@ describe('Dream#save', () => {
       expect(user!.updatedAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
       const reloadedUser = await User.find(user.id)
       expect(reloadedUser!.updatedAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+    })
+
+    context('coercing attributes', () => {
+      context('string is passed in place of a decimal', () => {
+        it('correctly coerces string decimal to decimal', async () => {
+          const balloon = await Latex.create({ volume: '0.2' as any })
+          expect(balloon.volume).toEqual(0.2)
+        })
+      })
+
+      context('string is passed in place of an integer', () => {
+        it('correctly coerces string decimal to decimal', async () => {
+          const user = await User.create({
+            email: 'how@yadoin',
+            password: 'howyadoin',
+            featuredPostPosition: '3' as any,
+          })
+          expect(user.featuredPostPosition).toEqual(3)
+        })
+      })
     })
   })
 })
