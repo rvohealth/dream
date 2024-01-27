@@ -22,7 +22,8 @@
     "after:build:core": "cp .dream.yml dist/.dream.yml && mkdir dist/test-app/conf/env && cp test-app/conf/env/db.yml dist/test-app/conf/env/db.yml && yarn build:package-json",
     "build:docs": "node dist/boot/build-docs.js",
     "spec": "APP_ROOT_PATH=$(pwd)/test-app DREAM_CORE_DEVELOPMENT=1 NODE_ENV=test DREAM_CORE_SPEC_RUN=1 jest --runInBand --forceExit",
-    "console": "yarn dream console --core"
+    "console": "yarn dream console --core",
+    "types:trace": "rm -rf dist && APP_ROOT_PATH=$(pwd) npx tsc -p ./tsconfig.build.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
@@ -61,6 +62,7 @@
     "@types/jest-plugin-context": "^2.9.5",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
+    "@typescript/analyze-trace": "^0.10.1",
     "bcrypt": "^5.1.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
