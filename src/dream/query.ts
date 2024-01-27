@@ -1657,12 +1657,22 @@ export default class Query<
       dreamClass,
       previousAssociationTableOrAlias,
     }: {
-      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
-      joinsStatement: RelaxedJoinsWhereStatement<DB, SyncedAssociations>
+      // @reduce-type-complexity
+      // query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
+      query: any
+      // @reduce-type-complexity
+      // joinsStatement: RelaxedJoinsWhereStatement<DB, SyncedAssociations>
+      joinsStatement: any
+      // @reduce-type-complexity
+      // dreamClass: typeof Dream
       dreamClass: typeof Dream
-      previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
+      // @reduce-type-complexity
+      // previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
+      previousAssociationTableOrAlias: any
     }
-  ): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
+  ): // @reduce-type-complexity
+  // ): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
+  any {
     for (const currentAssociationTableOrAlias of Object.keys(joinsStatement) as TableOrAssociationName<
       InstanceType<DreamClass>['syncedAssociations']
     >[]) {
