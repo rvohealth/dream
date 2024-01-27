@@ -1673,9 +1673,13 @@ export default class Query<
   ): // @reduce-type-complexity
   // ): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
   any {
-    for (const currentAssociationTableOrAlias of Object.keys(joinsStatement) as TableOrAssociationName<
-      InstanceType<DreamClass>['syncedAssociations']
-    >[]) {
+    // @reduce-type-complexity
+    // const tableOrAssociationNames = Object.keys(joinsStatement) as TableOrAssociationName<
+    //   InstanceType<DreamClass>['syncedAssociations']
+    // >[]
+    const tableOrAssociationNames = Object.keys(joinsStatement) as any[]
+
+    for (const currentAssociationTableOrAlias of tableOrAssociationNames) {
       const results = this.applyOneJoin({
         query,
         dreamClass,
