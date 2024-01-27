@@ -1328,9 +1328,11 @@ export default class Query<
         query,
         dreamClass,
         previousAssociationTableOrAlias,
-        currentAssociationTableOrAlias: association.through as TableOrAssociationName<
-          InstanceType<DreamClass>['syncedAssociations']
-        >,
+        // @reduce-type-complexity
+        // currentAssociationTableOrAlias: association.through as TableOrAssociationName<
+        //   InstanceType<DreamClass>['syncedAssociations']
+        // >,
+        currentAssociationTableOrAlias: association.through as any,
         originalAssociation: association,
       })
 
@@ -1378,19 +1380,35 @@ export default class Query<
       currentAssociationTableOrAlias,
       originalAssociation,
     }: {
-      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
-      dreamClass: typeof Dream
-      previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
-      currentAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
-      originalAssociation?:
-        | HasOneStatement<DB, SyncedAssociations, any>
-        | HasManyStatement<DB, SyncedAssociations, any>
+      // @reduce-type-complexity
+      // query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
+      query: any
+      // @reduce-type-complexity
+      // dreamClass: typeof Dream
+      dreamClass: any
+      // @reduce-type-complexity
+      // previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
+      previousAssociationTableOrAlias: any
+      // @reduce-type-complexity
+      // currentAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
+      currentAssociationTableOrAlias: any
+      // @reduce-type-complexity
+      // originalAssociation?:
+      //   | HasOneStatement<DB, SyncedAssociations, any>
+      //   | HasManyStatement<DB, SyncedAssociations, any>
+      originalAssociation?: any
     }
   ): {
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
+    // @reduce-type-complexity
+    // query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
+    query: any
     association: any
-    previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
-    currentAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
+    // @reduce-type-complexity
+    // previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
+    previousAssociationTableOrAlias: any
+    // @reduce-type-complexity
+    // currentAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
+    currentAssociationTableOrAlias: any
   } {
     // Given:
     // dreamClass: Post
