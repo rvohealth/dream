@@ -1293,23 +1293,41 @@ export default class Query<
       association,
       previousAssociationTableOrAlias,
     }: {
+      // @reduce-type-complexity
+      // query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
       query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
-      dreamClass: typeof Dream
-      association:
-        | HasOneStatement<DB, SyncedAssociations, any>
-        | HasManyStatement<DB, SyncedAssociations, any>
-        | BelongsToStatement<DB, SyncedAssociations, any>
-      previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
+      // @reduce-type-complexity
+      // dreamClass: typeof Dream
+      dreamClass: any
+      // @reduce-type-complexity
+      // association:
+      //   | HasOneStatement<DB, SyncedAssociations, any>
+      //   | HasManyStatement<DB, SyncedAssociations, any>
+      //   | BelongsToStatement<DB, SyncedAssociations, any>
+      association: any
+      // @reduce-type-complexity
+      // previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
+      previousAssociationTableOrAlias: any
     }
   ): {
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
-    dreamClass: typeof Dream
-    association:
-      | HasOneStatement<DB, SyncedAssociations, any>
-      | HasManyStatement<DB, SyncedAssociations, any>
-      | BelongsToStatement<DB, SyncedAssociations, any>
-    throughClass?: typeof Dream | null
-    previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
+    // @reduce-type-complexity
+    // query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
+    query: any
+    // @reduce-type-complexity
+    // dreamClass: typeof Dream
+    dreamClass: any
+    // @reduce-type-complexity
+    // association:
+    //   | HasOneStatement<DB, SyncedAssociations, any>
+    //   | HasManyStatement<DB, SyncedAssociations, any>
+    //   | BelongsToStatement<DB, SyncedAssociations, any>
+    association: any
+    // @reduce-type-complexity
+    // throughClass?: typeof Dream | null
+    throughClass?: any
+    // @reduce-type-complexity
+    // previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
+    previousAssociationTableOrAlias: any
   } {
     if (association.type === 'BelongsTo' || !association.through) {
       return {
