@@ -4,8 +4,12 @@ import getForeignKeyForSortableScope from './getForeignKeyForSortableScope'
 import scopeArray from './scopeArray'
 
 export default function applySortableScopeToQuery(
-  query: Query<typeof Dream>,
-  dream: Dream,
+  // @reduce-type-complexity
+  // query: Query<typeof Dream>,
+  query: any,
+  // @reduce-type-complexity
+  // dream: Dream,
+  dream: any,
   scope?: string | string[]
 ) {
   if (!scope) return query

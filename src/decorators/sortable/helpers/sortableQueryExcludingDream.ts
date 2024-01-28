@@ -3,8 +3,12 @@ import Query from '../../../dream/query'
 import applySortableScopeToQuery from './applySortableScopeToQuery'
 
 export default function sortableQueryExcludingDream(
-  dream: Dream,
-  query: Query<typeof Dream>,
+  // @reduce-type-complexity
+  // dream: Dream,
+  dream: any,
+  // @reduce-type-complexity
+  // query: Query<typeof Dream>,
+  query: any,
   scope?: string | string[]
 ) {
   query = query.whereNot({
