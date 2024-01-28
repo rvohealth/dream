@@ -212,13 +212,7 @@ export default class Dream {
     return this.query().unscoped()
   }
 
-  public static async all<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    DB extends I['DB'],
-    TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName]
-  >(this: T): Promise<InstanceType<T>[]> {
+  public static async all<T extends typeof Dream>(this: T): Promise<InstanceType<T>[]> {
     return await this.query().all()
   }
 
@@ -552,7 +546,6 @@ export default class Dream {
     I extends InstanceType<T>,
     DB extends I['DB'],
     TableName extends I['table'],
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, I['table']>>,
     CB extends (plucked: any) => void | Promise<void>
   >(
     this: T,
@@ -1269,7 +1262,6 @@ export default class Dream {
   public setAttributes<
     I extends Dream,
     DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
     TableName extends keyof DB = I['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
   >(this: I, attributes: Updateable<Table> | AssociatedModelParam<I>) {
