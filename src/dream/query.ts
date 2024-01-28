@@ -112,9 +112,10 @@ export default class Query<
   DreamClass extends typeof Dream,
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
-  SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
-  AllColumns extends DreamInstance['allColumns'] = DreamInstance['allColumns'],
-  Table extends DB[DreamInstance['table']] = DB[DreamInstance['table']],
+  // @reduce-type-complexity
+  // SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
+  // @reduce-type-complexity
+  // AllColumns extends DreamInstance['allColumns'] = DreamInstance['allColumns'],
   ColumnType extends keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
     ? unknown
     : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] = keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
@@ -131,23 +132,35 @@ export default class Query<
   public dreamTransaction: DreamTransaction<DB> | null = null
   public connectionOverride?: DbConnectionType
 
-  private readonly passthroughWhereStatement: PassthroughWhere<AllColumns> = Object.freeze({})
-  private readonly whereStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
-  private readonly whereNotStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze(
-    []
-  )
+  // @reduce-type-complexity
+  // private readonly passthroughWhereStatement: PassthroughWhere<AllColumns> = Object.freeze({})
+  private readonly passthroughWhereStatement: PassthroughWhere<any> = Object.freeze({})
+  // @reduce-type-complexity
+  // private readonly whereStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
+  private readonly whereStatements: readonly WhereStatement<DB, any, any>[] = Object.freeze([])
+  // @reduce-type-complexity
+  // private readonly whereNotStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze(
+  //   []
+  // )
+  private readonly whereNotStatements: readonly WhereStatement<DB, any, any>[] = Object.freeze([])
   private readonly limitStatement: LimitStatement | null
   private readonly offsetStatement: OffsetStatement | null
-  private readonly orStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
+  // @reduce-type-complexity
+  // private readonly orStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
+  private readonly orStatements: readonly WhereStatement<DB, any, any>[] = Object.freeze([])
   private readonly orderStatement: OrderQueryStatement<ColumnType> | null = null
   private readonly preloadStatements: RelaxedPreloadStatement = Object.freeze({})
   private readonly joinsStatements: RelaxedJoinsStatement = Object.freeze({})
-  private readonly joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = Object.freeze(
-    {}
-  )
+  // @reduce-type-complexity
+  // private readonly joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = Object.freeze(
+  //   {}
+  // )
+  private readonly joinsWhereStatements: RelaxedJoinsWhereStatement<DB, any> = Object.freeze({})
   private readonly bypassDefaultScopes: boolean = false
   private readonly distinctColumn: ColumnType | null = null
-  private baseSqlAlias: TableOrAssociationName<SyncedAssociations>
+  // @reduce-type-complexity
+  // private baseSqlAlias: TableOrAssociationName<SyncedAssociations>
+  private baseSqlAlias: TableOrAssociationName<any>
   private baseSelectQuery: Query<any> | null
 
   constructor(DreamClass: DreamClass, opts: QueryOpts<DreamClass, ColumnType> = {}) {
@@ -232,7 +245,11 @@ export default class Query<
 
   public async findBy<T extends Query<DreamClass>>(
     this: T,
-    attributes: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
+    attributes: WhereStatement<
+      DB,
+      InstanceType<DreamClass>['dreamconf']['syncedAssociations'],
+      InstanceType<DreamClass>['table']
+    >
   ): Promise<(InstanceType<DreamClass> & Dream) | null> {
     return await this.where(attributes).first()
   }
@@ -375,9 +392,13 @@ export default class Query<
 
   private fleshOutJoinsStatements(
     joinsStatements: RelaxedPreloadStatement,
-    joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations>,
+    // @reduce-type-complexity
+    // joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations>,
+    joinsWhereStatements: RelaxedJoinsWhereStatement<any, any>,
     previousAssociationName: null | string,
-    associationStatements: (string | WhereStatement<DB, SyncedAssociations, any> | undefined)[]
+    // @reduce-type-complexity
+    // associationStatements: (string | WhereStatement<DB, SyncedAssociations, any> | undefined)[]
+    associationStatements: (string | WhereStatement<any, any, any> | undefined)[]
   ) {
     const nextAssociationStatement = associationStatements.shift()
 
@@ -391,9 +412,14 @@ export default class Query<
       if (!joinsWhereStatements[nextStatement])
         joinsWhereStatements[protectAgainstPollutingAssignment(nextStatement)] = {}
       const nextJoinsStatements = joinsStatements[nextStatement]
+      // @reduce-type-complexity
+      // const nextJoinsWhereStatements = joinsWhereStatements[nextStatement] as RelaxedJoinsWhereStatement<
+      //   DB,
+      //   SyncedAssociations
+      // >
       const nextJoinsWhereStatements = joinsWhereStatements[nextStatement] as RelaxedJoinsWhereStatement<
-        DB,
-        SyncedAssociations
+        any,
+        any
       >
 
       this.fleshOutJoinsStatements(
@@ -581,7 +607,9 @@ export default class Query<
   private pluckThroughStatementsToDreamClassesMap(
     associationStatements: (
       | string
-      | WhereStatement<DB, SyncedAssociations, any>
+      // @reduce-type-complexity
+      // | WhereStatement<DB, SyncedAssociations, any>
+      | WhereStatement<any, any, any>
       | `${any}.${any}`
       | `${any}.${any}`[]
       | undefined
@@ -616,11 +644,15 @@ export default class Query<
 
   private fleshOutPluckThroughStatements(
     joinsStatements: RelaxedPreloadStatement,
-    joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations>,
+    // @reduce-type-complexity
+    // joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations>,
+    joinsWhereStatements: RelaxedJoinsWhereStatement<any, any>,
     previousAssociationName: null | string,
     associationStatements: (
       | string
-      | WhereStatement<DB, SyncedAssociations, any>
+      // @reduce-type-complexity
+      // | WhereStatement<DB, SyncedAssociations, any>
+      | WhereStatement<any, any, any>
       | `${any}.${any}`
       | `${any}.${any}`[]
       | undefined
@@ -642,9 +674,14 @@ export default class Query<
       if (!joinsWhereStatements[nextStatement])
         joinsWhereStatements[protectAgainstPollutingAssignment(nextStatement)] = {}
       const nextJoinsStatements = joinsStatements[nextStatement]
+      // @reduce-type-complexity
+      // const nextJoinsWhereStatements = joinsWhereStatements[nextStatement] as RelaxedJoinsWhereStatement<
+      //   DB,
+      //   SyncedAssociations
+      // >
       const nextJoinsWhereStatements = joinsWhereStatements[nextStatement] as RelaxedJoinsWhereStatement<
-        DB,
-        SyncedAssociations
+        any,
+        any
       >
 
       return this.fleshOutPluckThroughStatements(
@@ -671,7 +708,11 @@ export default class Query<
     }
   }
 
-  private setBaseSQLAlias(baseSqlAlias: TableOrAssociationName<SyncedAssociations>) {
+  private setBaseSQLAlias(
+    // @reduce-type-complexity
+    // baseSqlAlias: TableOrAssociationName<SyncedAssociations>
+    baseSqlAlias: TableOrAssociationName<any>
+  ) {
     return this.clone({ baseSqlAlias })
   }
 
@@ -683,18 +724,28 @@ export default class Query<
     return this.clone({ bypassDefaultScopes: true, baseSelectQuery: this.baseSelectQuery?.unscoped() })
   }
 
-  public passthrough(passthroughWhereStatement: PassthroughWhere<AllColumns>) {
+  public passthrough<
+    T extends Query<DreamClass>,
+    DreamInstance extends InstanceType<DreamClass>,
+    AllColumns extends DreamInstance['allColumns'] = DreamInstance['allColumns']
+  >(this: T, passthroughWhereStatement: PassthroughWhere<AllColumns>) {
     return this.clone({ passthroughWhereStatement })
   }
 
-  public where<T extends Query<DreamClass>>(
+  public where<
+    T extends Query<DreamClass>,
+    SyncedAssociations extends InstanceType<DreamClass>['dreamconf']['syncedAssociations']
+  >(
     this: T,
     attributes: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
   ): Query<DreamClass> {
     return this._where(attributes, 'where')
   }
 
-  public whereAny<T extends Query<DreamClass>>(
+  public whereAny<
+    T extends Query<DreamClass>,
+    SyncedAssociations extends InstanceType<DreamClass>['dreamconf']['syncedAssociations']
+  >(
     this: T,
     attributes: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>[]
   ): Query<DreamClass> {
@@ -703,7 +754,10 @@ export default class Query<
     })
   }
 
-  public whereNot<T extends Query<DreamClass>>(
+  public whereNot<
+    T extends Query<DreamClass>,
+    SyncedAssociations extends InstanceType<DreamClass>['dreamconf']['syncedAssociations']
+  >(
     this: T,
     attributes: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
   ): Query<DreamClass> {
@@ -712,7 +766,9 @@ export default class Query<
 
   private _where<T extends Query<DreamClass>>(
     this: T,
-    attributes: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>,
+    // @reduce-type-complexity
+    // attributes: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>,
+    attributes: WhereStatement<any, any, InstanceType<DreamClass>['table']>,
     typeOfWhere: 'where' | 'whereNot'
   ): Query<DreamClass> {
     return this.clone({
@@ -742,10 +798,12 @@ export default class Query<
     return query.select(selection as any)
   }
 
-  public order<ColumnName extends keyof Table & string>(
-    column: ColumnName,
-    direction: 'asc' | 'desc' = 'asc'
-  ) {
+  public order<
+    DreamInstance extends InstanceType<DreamClass>,
+    DB extends DreamInstance['DB'],
+    Table extends DB[DreamInstance['table']],
+    ColumnName extends keyof Table & string
+  >(column: ColumnName, direction: 'asc' | 'desc' = 'asc') {
     return this.clone({
       order: { column: this.namespaceColumn(column) as any, direction },
     })
@@ -1002,10 +1060,11 @@ export default class Query<
 
   private hydrateAssociation(
     dreams: Dream[],
-    association:
-      | HasManyStatement<DB, SyncedAssociations, any>
-      | HasOneStatement<DB, SyncedAssociations, any>
-      | BelongsToStatement<DB, SyncedAssociations, any>,
+    association: // @reduce-type-complexity
+    // | HasManyStatement<DB, SyncedAssociations, any>
+    // | HasOneStatement<DB, SyncedAssociations, any>
+    // | BelongsToStatement<DB, SyncedAssociations, any>,
+    HasManyStatement<any, any, any> | HasOneStatement<any, any, any> | BelongsToStatement<any, any, any>,
     preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[]
   ) {
     switch (association.type) {
@@ -1048,7 +1107,9 @@ export default class Query<
 
   private followThroughAssociation(
     dreamClass: typeof Dream,
-    association: HasOneStatement<DB, SyncedAssociations, any> | HasManyStatement<DB, SyncedAssociations, any>
+    // @reduce-type-complexity
+    // association: HasOneStatement<DB, SyncedAssociations, any> | HasManyStatement<DB, SyncedAssociations, any>
+    association: HasOneStatement<any, any, any> | HasManyStatement<any, any, any>
   ) {
     const throughAssociation = association.through && dreamClass.getAssociation(association.through)
     if (!throughAssociation)
@@ -1162,9 +1223,11 @@ export default class Query<
       ...(dreamClassToHydrateColumns.map(column => `${associationName}.${column.toString()}`) as any[]),
     ]
 
-    const asHasAssociation = association as
-      | HasManyStatement<DB, SyncedAssociations, any>
-      | HasOneStatement<DB, SyncedAssociations, any>
+    // @reduce-type-complexity
+    // const asHasAssociation = association as
+    // | HasManyStatement<DB, SyncedAssociations, any>
+    // | HasOneStatement<DB, SyncedAssociations, any>
+    const asHasAssociation = association as HasManyStatement<any, any, any> | HasOneStatement<any, any, any>
 
     if (asHasAssociation.through && asHasAssociation.preloadThroughColumns) {
       asHasAssociation.preloadThroughColumns!.forEach(preloadThroughColumn => {
@@ -1577,7 +1640,9 @@ export default class Query<
         query = this.applyWhereStatements(
           query,
           this.aliasWhereStatements(
-            [association.where as WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>],
+            // @reduce-type-complexity
+            // [association.where as WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>],
+            [association.where as WhereStatement<any, any, InstanceType<DreamClass>['table']>],
             currentAssociationTableOrAlias
           )
         )
@@ -1588,11 +1653,13 @@ export default class Query<
           query,
           this.aliasWhereStatements(
             [
-              association.whereNot as WhereStatement<
-                DB,
-                SyncedAssociations,
-                InstanceType<DreamClass>['table']
-              >,
+              // @reduce-type-complexity
+              // association.whereNot as WhereStatement<
+              //   DB,
+              //   SyncedAssociations,
+              //   InstanceType<DreamClass>['table']
+              // >,
+              association.whereNot as WhereStatement<any, any, InstanceType<DreamClass>['table']>,
             ],
             currentAssociationTableOrAlias
           ),
@@ -1700,7 +1767,9 @@ export default class Query<
 
   private applyWhereStatements<
     T extends Query<DreamClass>,
-    WS extends WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
+    // @reduce-type-complexity
+    // WS extends WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
+    WS extends WhereStatement<any, any, InstanceType<DreamClass>['table']>
   >(
     this: T,
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
@@ -1720,8 +1789,12 @@ export default class Query<
 
   private applyOrderStatementForAssociation<T extends Query<DreamClass>>(
     this: T,
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
-    association: HasOneStatement<DB, SyncedAssociations, any> | HasManyStatement<DB, SyncedAssociations, any>
+    // @reduce-type-complexity
+    // query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
+    query: SelectQueryBuilder<any, any, {}>,
+    // @reduce-type-complexity
+    // association: HasOneStatement<DB, SyncedAssociations, any> | HasManyStatement<DB, SyncedAssociations, any>
+    association: HasOneStatement<any, any, any> | HasManyStatement<any, any, any>
   ) {
     const orderStatement = association.order
 
@@ -1740,8 +1813,12 @@ export default class Query<
 
   private applySingleWhereStatement<T extends Query<DreamClass>>(
     this: T,
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
-    whereStatement: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>,
+    // @reduce-type-complexity
+    // query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
+    query: SelectQueryBuilder<any, any, {}>,
+    // @reduce-type-complexity
+    // whereStatement: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>,
+    whereStatement: WhereStatement<any, any, any>,
     {
       negate = false,
     }: {
@@ -1800,7 +1877,9 @@ export default class Query<
   private whereStatementsToExpressionWrappers<T extends Query<DreamClass>>(
     this: T,
     eb: ExpressionBuilder<any, any>,
-    whereStatement: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>,
+    // @reduce-type-complexity
+    // whereStatement: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>,
+    whereStatement: WhereStatement<any, any, InstanceType<DreamClass>['table']>,
     {
       negate = false,
     }: {
@@ -1870,7 +1949,9 @@ export default class Query<
   private orStatementsToExpressionWrappers<T extends Query<DreamClass>>(
     this: T,
     eb: ExpressionBuilder<any, any>,
-    orStatement: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
+    // @reduce-type-complexity
+    // orStatement: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
+    orStatement: WhereStatement<any, any, any>
   ): ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any> {
     let useAnd = false
 
@@ -2014,7 +2095,9 @@ export default class Query<
       keyof InstanceType<DreamClass>['syncedAssociations']
   >(
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
-    whereJoinsStatement: RelaxedJoinsWhereStatement<DB, SyncedAssociations>,
+    // @reduce-type-complexity
+    // whereJoinsStatement: RelaxedJoinsWhereStatement<DB, SyncedAssociations>,
+    whereJoinsStatement: RelaxedJoinsWhereStatement<any, any>,
     previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
   ) {
     for (const key of Object.keys(whereJoinsStatement) as (
@@ -2103,7 +2186,9 @@ export default class Query<
   }
 
   private aliasWhereStatements(
-    whereStatements: Readonly<WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>[]>,
+    // @reduce-type-complexity
+    // whereStatements: Readonly<WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>[]>,
+    whereStatements: Readonly<WhereStatement<any, any, any>[]>,
     alias: string
   ) {
     return whereStatements.map(whereStatement => {
@@ -2123,7 +2208,9 @@ export default class Query<
   }: {
     associationAlias: string
     selfAlias: string
-    selfWhereClause: WhereSelfStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
+    // @reduce-type-complexity
+    // selfWhereClause: WhereSelfStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
+    selfWhereClause: WhereSelfStatement<any, any, any>
   }) {
     return Object.keys(selfWhereClause).reduce((acc, key) => {
       const selfColumn = selfWhereClause[key]
