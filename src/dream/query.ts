@@ -109,18 +109,19 @@ const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: Compar
 }
 
 export default class Query<
-  DreamClass extends typeof Dream,
+  DreamClass extends typeof Dream
   // @reduce-type-complexity
   // DB extends DreamInstance['DB'] = DreamInstance['DB'],
   // @reduce-type-complexity
   // SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
   // @reduce-type-complexity
   // AllColumns extends DreamInstance['allColumns'] = DreamInstance['allColumns'],
-  ColumnType extends keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
-    ? unknown
-    : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] = keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
-    ? unknown
-    : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']]
+  // @reduce-type-complexity
+  // ColumnType extends keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
+  //   ? unknown
+  //   : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] = keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
+  //   ? unknown
+  //   : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']]
 > extends ConnectedToDB<DreamClass> {
   public static readonly BATCH_SIZES = {
     FIND_EACH: 1000,
@@ -151,7 +152,9 @@ export default class Query<
   // private readonly orStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
   private readonly orStatements: readonly WhereStatement<InstanceType<DreamClass>['DB'], any, any>[] =
     Object.freeze([])
-  private readonly orderStatement: OrderQueryStatement<ColumnType> | null = null
+  // @reduce-type-complexity
+  // private readonly orderStatement: OrderQueryStatement<ColumnType> | null = null
+  private readonly orderStatement: OrderQueryStatement<any> | null = null
   private readonly preloadStatements: RelaxedPreloadStatement = Object.freeze({})
   private readonly joinsStatements: RelaxedJoinsStatement = Object.freeze({})
   // @reduce-type-complexity
@@ -161,13 +164,15 @@ export default class Query<
   private readonly joinsWhereStatements: RelaxedJoinsWhereStatement<InstanceType<DreamClass>['DB'], any> =
     Object.freeze({})
   private readonly bypassDefaultScopes: boolean = false
-  private readonly distinctColumn: ColumnType | null = null
+  // @reduce-type-complexity
+  // private readonly distinctColumn: ColumnType | null = null
+  private readonly distinctColumn: any | null = null
   // @reduce-type-complexity
   // private baseSqlAlias: TableOrAssociationName<SyncedAssociations>
   private baseSqlAlias: TableOrAssociationName<any>
   private baseSelectQuery: Query<any> | null
 
-  constructor(DreamClass: DreamClass, opts: QueryOpts<DreamClass, ColumnType> = {}) {
+  constructor(DreamClass: DreamClass, opts: QueryOpts<DreamClass> = {}) {
     super(DreamClass, opts)
     this.dreamClass = DreamClass
     this.baseSqlAlias = opts.baseSqlAlias || this.dreamClass.prototype['table']
@@ -198,7 +203,7 @@ export default class Query<
     return this.dreamTransaction ? associationQuery.txn(this.dreamTransaction) : associationQuery
   }
 
-  public clone(opts: QueryOpts<DreamClass, ColumnType> = {}): Query<DreamClass> {
+  public clone(opts: QueryOpts<DreamClass> = {}): Query<DreamClass> {
     return new Query(this.dreamClass, {
       baseSqlAlias: opts.baseSqlAlias || this.baseSqlAlias,
       baseSelectQuery: opts.baseSelectQuery || this.baseSelectQuery,
@@ -213,9 +218,13 @@ export default class Query<
       offset: opts.offset !== undefined ? opts.offset : this.offsetStatement || null,
       or: opts.or === null ? [] : [...this.orStatements, ...(opts.or || [])],
       order: opts.order !== undefined ? opts.order : this.orderStatement || null,
-      distinctColumn: (opts.distinctColumn !== undefined
-        ? opts.distinctColumn
-        : this.distinctColumn) as ColumnType | null,
+      // @reduce-type-complexity
+      // distinctColumn: (opts.distinctColumn !== undefined
+      //   ? opts.distinctColumn
+      //   : this.distinctColumn) as ColumnType | null,
+      distinctColumn: (opts.distinctColumn !== undefined ? opts.distinctColumn : this.distinctColumn) as
+        | any
+        | null,
 
       // when passed, preloadStatements, joinsStatements, and joinsWhereStatements are already
       // cloned versions of the `this.` versions, handled in the `preload` and `joins` methods
