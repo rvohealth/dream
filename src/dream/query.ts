@@ -111,7 +111,8 @@ const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: Compar
 export default class Query<
   DreamClass extends typeof Dream,
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
-  DB extends DreamInstance['DB'] = DreamInstance['DB'],
+  // @reduce-type-complexity
+  // DB extends DreamInstance['DB'] = DreamInstance['DB'],
   // @reduce-type-complexity
   // SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
   // @reduce-type-complexity
@@ -129,7 +130,7 @@ export default class Query<
   }
 
   public readonly dreamClass: DreamClass
-  public dreamTransaction: DreamTransaction<DB> | null = null
+  public dreamTransaction: DreamTransaction<InstanceType<DreamClass>['DB']> | null = null
   public connectionOverride?: DbConnectionType
 
   // @reduce-type-complexity
@@ -137,17 +138,20 @@ export default class Query<
   private readonly passthroughWhereStatement: PassthroughWhere<any> = Object.freeze({})
   // @reduce-type-complexity
   // private readonly whereStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
-  private readonly whereStatements: readonly WhereStatement<DB, any, any>[] = Object.freeze([])
+  private readonly whereStatements: readonly WhereStatement<InstanceType<DreamClass>['DB'], any, any>[] =
+    Object.freeze([])
   // @reduce-type-complexity
   // private readonly whereNotStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze(
   //   []
   // )
-  private readonly whereNotStatements: readonly WhereStatement<DB, any, any>[] = Object.freeze([])
+  private readonly whereNotStatements: readonly WhereStatement<InstanceType<DreamClass>['DB'], any, any>[] =
+    Object.freeze([])
   private readonly limitStatement: LimitStatement | null
   private readonly offsetStatement: OffsetStatement | null
   // @reduce-type-complexity
   // private readonly orStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
-  private readonly orStatements: readonly WhereStatement<DB, any, any>[] = Object.freeze([])
+  private readonly orStatements: readonly WhereStatement<InstanceType<DreamClass>['DB'], any, any>[] =
+    Object.freeze([])
   private readonly orderStatement: OrderQueryStatement<ColumnType> | null = null
   private readonly preloadStatements: RelaxedPreloadStatement = Object.freeze({})
   private readonly joinsStatements: RelaxedJoinsStatement = Object.freeze({})
@@ -155,7 +159,8 @@ export default class Query<
   // private readonly joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = Object.freeze(
   //   {}
   // )
-  private readonly joinsWhereStatements: RelaxedJoinsWhereStatement<DB, any> = Object.freeze({})
+  private readonly joinsWhereStatements: RelaxedJoinsWhereStatement<InstanceType<DreamClass>['DB'], any> =
+    Object.freeze({})
   private readonly bypassDefaultScopes: boolean = false
   private readonly distinctColumn: ColumnType | null = null
   // @reduce-type-complexity
@@ -246,7 +251,7 @@ export default class Query<
   public async findBy<T extends Query<DreamClass>>(
     this: T,
     attributes: WhereStatement<
-      DB,
+      InstanceType<DreamClass>['DB'],
       InstanceType<DreamClass>['dreamconf']['syncedAssociations'],
       InstanceType<DreamClass>['table']
     >
@@ -737,7 +742,11 @@ export default class Query<
     SyncedAssociations extends InstanceType<DreamClass>['dreamconf']['syncedAssociations']
   >(
     this: T,
-    attributes: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
+    attributes: WhereStatement<
+      InstanceType<DreamClass>['DB'],
+      SyncedAssociations,
+      InstanceType<DreamClass>['table']
+    >
   ): Query<DreamClass> {
     return this._where(attributes, 'where')
   }
@@ -747,7 +756,11 @@ export default class Query<
     SyncedAssociations extends InstanceType<DreamClass>['dreamconf']['syncedAssociations']
   >(
     this: T,
-    attributes: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>[]
+    attributes: WhereStatement<
+      InstanceType<DreamClass>['DB'],
+      SyncedAssociations,
+      InstanceType<DreamClass>['table']
+    >[]
   ): Query<DreamClass> {
     return this.clone({
       or: attributes.map(obj => ({ ...obj })),
@@ -759,7 +772,11 @@ export default class Query<
     SyncedAssociations extends InstanceType<DreamClass>['dreamconf']['syncedAssociations']
   >(
     this: T,
-    attributes: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
+    attributes: WhereStatement<
+      InstanceType<DreamClass>['DB'],
+      SyncedAssociations,
+      InstanceType<DreamClass>['table']
+    >
   ): Query<DreamClass> {
     return this._where(attributes, 'whereNot')
   }
@@ -894,7 +911,7 @@ export default class Query<
   public async max<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]>,
+    SimpleFieldType extends keyof Updateable<InstanceType<DreamClass>['DB'][TableName]>,
     PluckThroughFieldType extends any
   >(this: T, field: SimpleFieldType | PluckThroughFieldType) {
     const { max } = this.dbFor('select').fn
@@ -911,7 +928,7 @@ export default class Query<
   public async min<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]>,
+    SimpleFieldType extends keyof Updateable<InstanceType<DreamClass>['DB'][TableName]>,
     PluckThroughFieldType extends any
   >(this: T, field: SimpleFieldType | PluckThroughFieldType) {
     const { min } = this.dbFor('select').fn
@@ -927,7 +944,7 @@ export default class Query<
   private async pluckWithoutMarshalling<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]> & string,
+    SimpleFieldType extends keyof Updateable<InstanceType<DreamClass>['DB'][TableName]> & string,
     TablePrefixedFieldType extends `${TableName}.${SimpleFieldType}`
   >(this: T, ...fields: (SimpleFieldType | TablePrefixedFieldType)[]): Promise<any[]> {
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
@@ -949,7 +966,7 @@ export default class Query<
   public async pluck<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]> & string,
+    SimpleFieldType extends keyof Updateable<InstanceType<DreamClass>['DB'][TableName]> & string,
     TablePrefixedFieldType extends `${TableName}.${SimpleFieldType}`
   >(this: T, ...fields: (SimpleFieldType | TablePrefixedFieldType)[]): Promise<any[]> {
     const vals = await this.pluckWithoutMarshalling(...fields)
@@ -960,7 +977,7 @@ export default class Query<
   public async pluckEach<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]> & string,
+    SimpleFieldType extends keyof Updateable<InstanceType<DreamClass>['DB'][TableName]> & string,
     TablePrefixedFieldType extends `${TableName}.${SimpleFieldType}`,
     CB extends (plucked: any) => void | Promise<void>
   >(
@@ -968,8 +985,8 @@ export default class Query<
     // NOTE: cannot use abbreviated types captured in generics to type fields, since
     // they will break types in real world use.
     ...fields: (
-      | (keyof Updateable<DB[TableName]> & string)
-      | `${TableName}.${keyof Updateable<DB[TableName]> & string}`
+      | (keyof Updateable<InstanceType<DreamClass>['DB'][TableName]> & string)
+      | `${TableName}.${keyof Updateable<InstanceType<DreamClass>['DB'][TableName]> & string}`
       | CB
       | FindEachOpts
     )[]
@@ -1357,7 +1374,7 @@ export default class Query<
     }: {
       // @reduce-type-complexity
       // query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
-      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
+      query: SelectQueryBuilder<any, any, {}>
       // @reduce-type-complexity
       // dreamClass: typeof Dream
       dreamClass: any
@@ -1772,7 +1789,9 @@ export default class Query<
     WS extends WhereStatement<any, any, InstanceType<DreamClass>['table']>
   >(
     this: T,
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
+    // @reduce-type-complexity
+    // query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
+    query: SelectQueryBuilder<any, any, {}>,
     whereStatements: WS | WS[],
     {
       negate = false,
@@ -2094,7 +2113,9 @@ export default class Query<
     > &
       keyof InstanceType<DreamClass>['syncedAssociations']
   >(
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
+    // @reduce-type-complexity
+    // query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
+    query: SelectQueryBuilder<any, any, {}>,
     // @reduce-type-complexity
     // whereJoinsStatement: RelaxedJoinsWhereStatement<DB, SyncedAssociations>,
     whereJoinsStatement: RelaxedJoinsWhereStatement<any, any>,
@@ -2102,11 +2123,11 @@ export default class Query<
   ) {
     for (const key of Object.keys(whereJoinsStatement) as (
       | keyof InstanceType<DreamClass>['syncedAssociations'][PreviousTableName]
-      | keyof Updateable<DB[PreviousTableName]>
+      | keyof Updateable<InstanceType<DreamClass>['DB'][PreviousTableName]>
     )[]) {
-      const columnValue = (whereJoinsStatement as Updateable<DB[PreviousTableName]>)[
-        key as keyof Updateable<DB[PreviousTableName]>
-      ]
+      const columnValue = (
+        whereJoinsStatement as Updateable<InstanceType<DreamClass>['DB'][PreviousTableName]>
+      )[key as keyof Updateable<InstanceType<DreamClass>['DB'][PreviousTableName]>]
 
       if (columnValue!.constructor !== Object) {
         query = (this as any).applyWhereStatements(query, {
@@ -2223,7 +2244,11 @@ export default class Query<
 
   private buildDelete<T extends Query<DreamClass>>(
     this: T
-  ): DeleteQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
+  ): DeleteQueryBuilder<
+    InstanceType<DreamClass>['DB'],
+    ExtractTableAlias<InstanceType<DreamClass>['DB'], InstanceType<DreamClass>['table']>,
+    {}
+  > {
     let kyselyQuery = this.dbFor('delete').deleteFrom(
       this.baseSqlAlias as unknown as AliasedExpression<any, any>
     )
@@ -2278,7 +2303,12 @@ export default class Query<
   private buildUpdate<T extends Query<DreamClass>>(
     this: T,
     attributes: Updateable<InstanceType<DreamClass>['table']>
-  ): UpdateQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, any, {}> {
+  ): UpdateQueryBuilder<
+    InstanceType<DreamClass>['DB'],
+    ExtractTableAlias<InstanceType<DreamClass>['DB'], InstanceType<DreamClass>['table']>,
+    any,
+    {}
+  > {
     let kyselyQuery = this.dbFor('update')
       .updateTable(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
       .set(attributes as any)
@@ -2292,8 +2322,17 @@ export default class Query<
   private attachLimitAndOrderStatementsToNonSelectQuery<
     T extends Query<DreamClass>,
     QueryType extends
-      | UpdateQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, any, {}>
-      | DeleteQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
+      | UpdateQueryBuilder<
+          InstanceType<DreamClass>['DB'],
+          ExtractTableAlias<InstanceType<DreamClass>['DB'], InstanceType<DreamClass>['table']>,
+          any,
+          {}
+        >
+      | DeleteQueryBuilder<
+          InstanceType<DreamClass>['DB'],
+          ExtractTableAlias<InstanceType<DreamClass>['DB'], InstanceType<DreamClass>['table']>,
+          {}
+        >
   >(this: T, kyselyQuery: QueryType): { kyselyQuery: QueryType; clone: T } {
     if (this.limitStatement || this.orderStatement) {
       kyselyQuery = (kyselyQuery as any).where((eb: any) => {
