@@ -6,20 +6,27 @@ import { HasOneStatement } from '../../../decorators/associations/has-one'
 import { BelongsToStatement } from '../../../decorators/associations/belongs-to'
 import CannotCreateAssociationWithThroughContext from '../../../exceptions/associations/cannot-create-association-with-through-context'
 
-export default async function createAssociation<
-  DreamInstance extends Dream,
-  SyncedAssociations extends DreamInstance['syncedAssociations'],
-  AssociationName extends keyof SyncedAssociations[DreamInstance['table']],
-  PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
-  AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
-    ? ElementType
-    : PossibleArrayAssociationType
->(
-  dream: DreamInstance,
-  txn: DreamTransaction<DreamConstructorType<DreamInstance>> | null = null,
-  associationName: AssociationName,
-  opts: UpdateablePropertiesForClass<AssociationType & typeof Dream> = {}
-): Promise<NonNullable<AssociationType>> {
+// @reduce-type-complexity
+// export default async function createAssociation<
+//   DreamInstance extends Dream,
+//   SyncedAssociations extends DreamInstance['syncedAssociations'],
+//   AssociationName extends keyof SyncedAssociations[DreamInstance['table']],
+//   PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
+//   AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
+//     ? ElementType
+//     : PossibleArrayAssociationType
+// >(
+//   dream: DreamInstance,
+//   txn: DreamTransaction<DreamConstructorType<DreamInstance>> | null = null,
+//   associationName: AssociationName,
+//   opts: UpdateablePropertiesForClass<AssociationType & typeof Dream> = {}
+// ): Promise<NonNullable<AssociationType>> {
+export default async function createAssociation(
+  dream: any,
+  txn: any = null,
+  associationName: any,
+  opts: any = {}
+): Promise<NonNullable<any>> {
   const association = dream.associationMap()[associationName] as
     | HasManyStatement<any, any, any>
     | HasOneStatement<any, any, any>
@@ -54,11 +61,18 @@ export default async function createAssociation<
           ...opts,
         })
       }
-      return hasresult! as unknown as NonNullable<AssociationType>
+      // @reduce-type-complexity
+      // return hasresult! as unknown as NonNullable<AssociationType>
+      return hasresult! as any
 
     case 'BelongsTo':
-      let belongstoresult: AssociationType
-      const fn = async (txn: DreamTransaction<DreamConstructorType<DreamInstance>>) => {
+      // @reduce-type-complexity
+      // let belongstoresult: AssociationType
+      let belongstoresult: any
+
+      // @reduce-type-complexity
+      // const fn = async (txn: DreamTransaction<DreamConstructorType<DreamInstance>>) => {
+      const fn = async (txn: any) => {
         belongstoresult = await (associationClass as any).txn(txn).create({
           ...opts,
         })
@@ -70,6 +84,8 @@ export default async function createAssociation<
       if (txn) await fn(txn)
       else await (dream.constructor as any).transaction(fn)
 
-      return belongstoresult! as unknown as NonNullable<AssociationType>
+      // @reduce-type-complexity
+      // return belongstoresult! as unknown as NonNullable<AssociationType>
+      return belongstoresult! as any
   }
 }
