@@ -1649,28 +1649,25 @@ export default class Query<
     return `${tableNameOrAlias}.${association.distinct}`
   }
 
-  private recursivelyJoin<T extends Query<DreamClass>>(
-    this: T,
-    {
-      query,
-      joinsStatement,
-      dreamClass,
-      previousAssociationTableOrAlias,
-    }: {
-      // @reduce-type-complexity
-      // query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
-      query: any
-      // @reduce-type-complexity
-      // joinsStatement: RelaxedJoinsWhereStatement<DB, SyncedAssociations>
-      joinsStatement: any
-      // @reduce-type-complexity
-      // dreamClass: typeof Dream
-      dreamClass: typeof Dream
-      // @reduce-type-complexity
-      // previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
-      previousAssociationTableOrAlias: any
-    }
-  ): // @reduce-type-complexity
+  private recursivelyJoin({
+    query,
+    joinsStatement,
+    dreamClass,
+    previousAssociationTableOrAlias,
+  }: {
+    // @reduce-type-complexity
+    // query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
+    query: any
+    // @reduce-type-complexity
+    // joinsStatement: RelaxedJoinsWhereStatement<DB, SyncedAssociations>
+    joinsStatement: any
+    // @reduce-type-complexity
+    // dreamClass: typeof Dream
+    dreamClass: typeof Dream
+    // @reduce-type-complexity
+    // previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
+    previousAssociationTableOrAlias: any
+  }): // @reduce-type-complexity
   // ): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
   any {
     // @reduce-type-complexity
