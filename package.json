@@ -23,7 +23,8 @@
     "build:docs": "node dist/boot/build-docs.js",
     "spec": "APP_ROOT_PATH=$(pwd)/test-app DREAM_CORE_DEVELOPMENT=1 NODE_ENV=test DREAM_CORE_SPEC_RUN=1 jest --runInBand --forceExit",
     "console": "yarn dream console --core",
-    "types:trace": "rm -rf dist && APP_ROOT_PATH=$(pwd) npx tsc -p ./tsconfig.build.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300"
+    "types:trace": "rm -rf dist && APP_ROOT_PATH=$(pwd) npx tsc -p ./tsconfig.build.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
+    "types:trace-test-app": "rm -rf dist && APP_ROOT_PATH=$(pwd) npx tsc -p ./tsconfig.trace.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"

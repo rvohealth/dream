@@ -82,6 +82,7 @@ const dreamconf = new Dreamconf<
   dbColumns: DBColumns,
   dbTypeCache: DBTypeCache,
   env,
+  associationDepth: 7,
 })
 
 export default dreamconf
