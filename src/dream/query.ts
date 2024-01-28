@@ -110,7 +110,6 @@ const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: Compar
 
 export default class Query<
   DreamClass extends typeof Dream,
-  DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   // @reduce-type-complexity
   // DB extends DreamInstance['DB'] = DreamInstance['DB'],
   // @reduce-type-complexity
