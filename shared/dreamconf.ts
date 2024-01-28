@@ -18,6 +18,7 @@ export default class Dreamconf<
   public dbColumns: DBColumns
   public dbTypeCache: DBTypeCache
   public env: EnvOpts
+  public associationDepth: number
   constructor({
     DB,
     interpretedDB,
@@ -27,6 +28,7 @@ export default class Dreamconf<
     dbColumns,
     dbTypeCache,
     env,
+    associationDepth = 7,
   }: DreamconfOpts) {
     this.DB = DB
     this.interpretedDB = interpretedDB
@@ -36,6 +38,7 @@ export default class Dreamconf<
     this.dbColumns = dbColumns
     this.dbTypeCache = dbTypeCache
     this.env = env
+    this.associationDepth = associationDepth
   }
 }
 
@@ -48,6 +51,7 @@ export interface DreamconfOpts {
   dbColumns: any
   dbTypeCache: any
   env: EnvOpts
+  associationDepth?: number
 }
 
 export interface EnvOpts {
