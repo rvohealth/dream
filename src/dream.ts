@@ -28,6 +28,12 @@ import {
   NextJoinsWherePluckArgumentType,
   FinalJoinsWherePluckArgumentType,
   AttributeKeys,
+  GreaterThanTwo,
+  GreaterThanThree,
+  GreaterThanFour,
+  GreaterThanFive,
+  GreaterThanSix,
+  GreaterThanSeven,
 } from './dream/types'
 import Query, { FindEachOpts } from './dream/query'
 import checkValidationsFor from './dream/internal/checkValidationsFor'
@@ -1075,18 +1081,40 @@ export default class Dream {
     ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
       string[])[number],
     //
-    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
-    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
-    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
-    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
-    D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
-    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>,
-    E extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>,
-    ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>,
-    F extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>,
-    FTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>,
+    B extends I['dreamconf']['associationDepth'] extends GreaterThanTwo
+      ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>
+      : any,
+    BTableName extends I['dreamconf']['associationDepth'] extends GreaterThanTwo
+      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>
+      : any,
+    C extends I['dreamconf']['associationDepth'] extends GreaterThanThree
+      ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>
+      : any,
+    CTableName extends I['dreamconf']['associationDepth'] extends GreaterThanThree
+      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>
+      : any,
+    D extends I['dreamconf']['associationDepth'] extends GreaterThanFour
+      ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>
+      : any,
+    DTableName extends I['dreamconf']['associationDepth'] extends GreaterThanFour
+      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>
+      : any,
+    E extends I['dreamconf']['associationDepth'] extends GreaterThanFive
+      ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>
+      : any,
+    ETableName extends I['dreamconf']['associationDepth'] extends GreaterThanFive
+      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>
+      : any,
+    F extends I['dreamconf']['associationDepth'] extends GreaterThanSix
+      ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>
+      : any,
+    FTableName extends I['dreamconf']['associationDepth'] extends GreaterThanSix
+      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>
+      : any,
     //
-    G extends FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
+    G extends I['dreamconf']['associationDepth'] extends GreaterThanSeven
+      ? FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
+      : any
   >(this: I, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G): Promise<any[]> {
     const construct = this.constructor as DreamConstructorType<I>
     return await construct
@@ -1105,18 +1133,40 @@ export default class Dream {
     ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
       string[])[number],
     //
-    B extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>,
-    BTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>,
-    C extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>,
-    CTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>,
-    D extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>,
-    DTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>,
-    E extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>,
-    ETableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>,
-    F extends NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>,
-    FTableName extends JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>,
+    B extends I['dreamconf']['associationDepth'] extends GreaterThanTwo
+      ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>
+      : any,
+    BTableName extends I['dreamconf']['associationDepth'] extends GreaterThanTwo
+      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>
+      : any,
+    C extends I['dreamconf']['associationDepth'] extends GreaterThanThree
+      ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>
+      : any,
+    CTableName extends I['dreamconf']['associationDepth'] extends GreaterThanThree
+      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>
+      : any,
+    D extends I['dreamconf']['associationDepth'] extends GreaterThanFour
+      ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>
+      : any,
+    DTableName extends I['dreamconf']['associationDepth'] extends GreaterThanFour
+      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>
+      : any,
+    E extends I['dreamconf']['associationDepth'] extends GreaterThanFive
+      ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>
+      : any,
+    ETableName extends I['dreamconf']['associationDepth'] extends GreaterThanFive
+      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>
+      : any,
+    F extends I['dreamconf']['associationDepth'] extends GreaterThanSix
+      ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>
+      : any,
+    FTableName extends I['dreamconf']['associationDepth'] extends GreaterThanSix
+      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>
+      : any,
     //
-    G extends FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
+    G extends I['dreamconf']['associationDepth'] extends GreaterThanSeven
+      ? FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
+      : any
   >(
     this: I,
     a: A,
@@ -1218,17 +1268,39 @@ export default class Dream {
     //
     A extends NextPreloadArgumentType<SyncedAssociations, TableName>,
     ATableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, TableName, A>,
-    B extends NextPreloadArgumentType<SyncedAssociations, ATableName>,
-    BTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ATableName, B>,
-    C extends NextPreloadArgumentType<SyncedAssociations, BTableName>,
-    CTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, BTableName, C>,
-    D extends NextPreloadArgumentType<SyncedAssociations, CTableName>,
-    DTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, CTableName, D>,
-    E extends NextPreloadArgumentType<SyncedAssociations, DTableName>,
-    ETableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, DTableName, E>,
-    F extends NextPreloadArgumentType<SyncedAssociations, ETableName>,
-    FTableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ETableName, F>,
-    G extends NextPreloadArgumentType<SyncedAssociations, FTableName>
+    B extends I['dreamconf']['associationDepth'] extends GreaterThanTwo
+      ? NextPreloadArgumentType<SyncedAssociations, ATableName>
+      : any,
+    BTableName extends I['dreamconf']['associationDepth'] extends GreaterThanTwo
+      ? PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ATableName, B>
+      : any,
+    C extends I['dreamconf']['associationDepth'] extends GreaterThanThree
+      ? NextPreloadArgumentType<SyncedAssociations, BTableName>
+      : any,
+    CTableName extends I['dreamconf']['associationDepth'] extends GreaterThanThree
+      ? PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, BTableName, C>
+      : any,
+    D extends I['dreamconf']['associationDepth'] extends GreaterThanFour
+      ? NextPreloadArgumentType<SyncedAssociations, CTableName>
+      : any,
+    DTableName extends I['dreamconf']['associationDepth'] extends GreaterThanFour
+      ? PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, CTableName, D>
+      : any,
+    E extends I['dreamconf']['associationDepth'] extends GreaterThanFive
+      ? NextPreloadArgumentType<SyncedAssociations, DTableName>
+      : any,
+    ETableName extends I['dreamconf']['associationDepth'] extends GreaterThanSix
+      ? PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, DTableName, E>
+      : any,
+    F extends I['dreamconf']['associationDepth'] extends GreaterThanSeven
+      ? NextPreloadArgumentType<SyncedAssociations, ETableName>
+      : any,
+    FTableName extends I['dreamconf']['associationDepth'] extends GreaterThanSix
+      ? PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ETableName, F>
+      : any,
+    G extends I['dreamconf']['associationDepth'] extends GreaterThanSeven
+      ? NextPreloadArgumentType<SyncedAssociations, FTableName>
+      : any
   >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G): LoadBuilder<I> {
     return new LoadBuilder<I>(this).load(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }

@@ -293,3 +293,11 @@ export interface SimilarityStatement {
   columnName: string
   opsStatement: OpsStatement<any, any>
 }
+
+export type GreaterThanOne = 2 | 3 | 4 | 5 | 6 | 7 | 8
+export type GreaterThanTwo = 3 | 4 | 5 | 6 | 7 | 8
+export type GreaterThanThree = 4 | 5 | 6 | 7 | 8
+export type GreaterThanFour = 5 | 6 | 7 | 8
+export type GreaterThanFive = 6 | 7 | 8
+export type GreaterThanSix = 7 | 8
+export type GreaterThanSeven = 8
