@@ -131,6 +131,8 @@ export type JoinsArgumentTypeAssociatedTableNames<
 
 // pluckThrough
 export type NextJoinsWherePluckArgumentType<
+  ApplicationModelDepthLimit extends AssociationDepths,
+  RequiredDepth extends AssociationDepths,
   DB extends any,
   SyncedAssociations extends any,
   PreviousAssociationName,
@@ -294,10 +296,66 @@ export interface SimilarityStatement {
   opsStatement: OpsStatement<any, any>
 }
 
-export type GreaterThanOne = 2 | 3 | 4 | 5 | 6 | 7 | 8
-export type GreaterThanTwo = 3 | 4 | 5 | 6 | 7 | 8
-export type GreaterThanThree = 4 | 5 | 6 | 7 | 8
-export type GreaterThanFour = 5 | 6 | 7 | 8
-export type GreaterThanFive = 6 | 7 | 8
-export type GreaterThanSix = 7 | 8
-export type GreaterThanSeven = 8
+export enum AssociationDepths {
+  ONE = 'ONE',
+  TWO = 'TWO',
+  THREE = 'THREE',
+  FOUR = 'FOUR',
+  FIVE = 'FIVE',
+  SIX = 'SIX',
+  SEVEN = 'SEVEN',
+  EIGHT = 'EIGHT',
+}
+
+export type AllAssociationDepths =
+  | AssociationDepths.ONE
+  | AssociationDepths.TWO
+  | AssociationDepths.THREE
+  | AssociationDepths.FOUR
+  | AssociationDepths.FIVE
+  | AssociationDepths.SIX
+  | AssociationDepths.SEVEN
+  | AssociationDepths.EIGHT
+
+export type GreaterThanOne =
+  | AssociationDepths.TWO
+  | AssociationDepths.THREE
+  | AssociationDepths.FOUR
+  | AssociationDepths.FIVE
+  | AssociationDepths.SIX
+  | AssociationDepths.SEVEN
+  | AssociationDepths.EIGHT
+export type GreaterThanTwo =
+  | AssociationDepths.THREE
+  | AssociationDepths.FOUR
+  | AssociationDepths.FIVE
+  | AssociationDepths.SIX
+  | AssociationDepths.SEVEN
+  | AssociationDepths.EIGHT
+export type GreaterThanThree =
+  | AssociationDepths.FOUR
+  | AssociationDepths.FIVE
+  | AssociationDepths.SIX
+  | AssociationDepths.SEVEN
+  | AssociationDepths.EIGHT
+export type GreaterThanFour =
+  | AssociationDepths.FIVE
+  | AssociationDepths.SIX
+  | AssociationDepths.SEVEN
+  | AssociationDepths.EIGHT
+export type GreaterThanFive = AssociationDepths.SIX | AssociationDepths.SEVEN | AssociationDepths.EIGHT
+export type GreaterThanSix = AssociationDepths.SEVEN | AssociationDepths.EIGHT
+export type GreaterThanSeven = AssociationDepths.EIGHT
+
+export type AnyIfUnsafeTypeDepth<
+  AssociationDepth extends AssociationDepths,
+  DesiredGreaterThanDepth extends
+    | GreaterThanOne
+    | GreaterThanTwo
+    | GreaterThanThree
+    | GreaterThanFour
+    | GreaterThanFive
+    | GreaterThanSix
+    | GreaterThanSeven,
+  ReturnType extends any
+> = AssociationDepth extends DesiredGreaterThanDepth ? ReturnType : any
