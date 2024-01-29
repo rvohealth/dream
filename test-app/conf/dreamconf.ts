@@ -1,4 +1,4 @@
-import Dreamconf from '../../shared/dreamconf'
+import Dreamconf, { AssociationDepths } from '../../shared/dreamconf'
 import SyncedAssociationsVal, {
   SyncedAssociations,
   SyncedBelongsToAssociations,
@@ -82,7 +82,6 @@ const dreamconf = new Dreamconf<
   dbColumns: DBColumns,
   dbTypeCache: DBTypeCache,
   env,
-  associationDepth: 7,
 })
 
 export default dreamconf

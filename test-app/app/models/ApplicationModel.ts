@@ -5,10 +5,14 @@ import SyncedAssociationsVal, {
   SyncedBelongsToAssociations,
   VirtualColumns,
 } from '../../db/associations'
-import Dreamconf from '../../../shared/dreamconf'
+import Dreamconf, { AssociationDepths } from '../../../shared/dreamconf'
 import dreamconf from '../../conf/dreamconf'
 
 export default class ApplicationModel extends Dream {
+  public get associationDepth() {
+    return AssociationDepths.EIGHT as const
+  }
+
   public get DB() {
     return new DBClass()
   }
