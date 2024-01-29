@@ -131,8 +131,6 @@ export type JoinsArgumentTypeAssociatedTableNames<
 
 // pluckThrough
 export type NextJoinsWherePluckArgumentType<
-  ApplicationModelDepthLimit extends AssociationDepths,
-  RequiredDepth extends AssociationDepths,
   DB extends any,
   SyncedAssociations extends any,
   PreviousAssociationName,
@@ -306,16 +304,6 @@ export enum AssociationDepths {
   SEVEN = 'SEVEN',
   EIGHT = 'EIGHT',
 }
-
-export type AllAssociationDepths =
-  | AssociationDepths.ONE
-  | AssociationDepths.TWO
-  | AssociationDepths.THREE
-  | AssociationDepths.FOUR
-  | AssociationDepths.FIVE
-  | AssociationDepths.SIX
-  | AssociationDepths.SEVEN
-  | AssociationDepths.EIGHT
 
 export type GreaterThanOne =
   | AssociationDepths.TWO
