@@ -1,4 +1,4 @@
-import Dreamconf, { AssociationDepths } from '../../shared/dreamconf'
+import Dreamconf from '../../shared/dreamconf'
 import SyncedAssociationsVal, {
   SyncedAssociations,
   SyncedBelongsToAssociations,
