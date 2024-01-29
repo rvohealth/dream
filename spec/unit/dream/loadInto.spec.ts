@@ -25,4 +25,11 @@ describe('Dream.loadInto', () => {
     expect(composition.localizedTexts).toMatchDreamModels([compositionText1, compositionText2])
     expect(compositionAsset.localizedTexts).toMatchDreamModels([compositionAssetText1, compositionAssetText2])
   })
+
+  // this is skipped, since it is only here to ensure that types are working
+  // from args a-g, which does not actually need to be run, since if this is
+  // broken, tests will fail to compile due to type errors
+  it.skip('permits types a-g', async () => {
+    await Composition.loadInto([], 'user', 'balloons', 'user', 'balloons', 'user', 'balloons')
+  })
 })
