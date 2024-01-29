@@ -302,4 +302,11 @@ describe('Query#preload with simple associations', () => {
       expect(reloadedUser!.pets).toMatchDreamModels([snoopy])
     })
   })
+
+  // this is skipped, since it is only here to ensure that types are working
+  // from args a-g, which does not actually need to be run, since if this is
+  // broken, tests will fail to compile due to type errors
+  it.skip('permits types a-g', async () => {
+    Composition.query().preload('user', 'balloons', 'user', 'balloons', 'user', 'balloons')
+  })
 })
