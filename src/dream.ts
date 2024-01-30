@@ -34,8 +34,6 @@ import {
   GreaterThanOne,
   GreaterThanFive,
   GreaterThanSix,
-  GreaterThanSeven,
-  AnyIfUnsafeTypeDepth,
 } from './dream/types'
 import Query, { FindEachOpts } from './dream/query'
 import checkValidationsFor from './dream/internal/checkValidationsFor'

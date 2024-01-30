@@ -334,16 +334,3 @@ export type GreaterThanFour =
 export type GreaterThanFive = AssociationDepths.SIX | AssociationDepths.SEVEN | AssociationDepths.EIGHT
 export type GreaterThanSix = AssociationDepths.SEVEN | AssociationDepths.EIGHT
 export type GreaterThanSeven = AssociationDepths.EIGHT
-
-export type AnyIfUnsafeTypeDepth<
-  AssociationDepth extends AssociationDepths,
-  DesiredGreaterThanDepth extends
-    | GreaterThanOne
-    | GreaterThanTwo
-    | GreaterThanThree
-    | GreaterThanFour
-    | GreaterThanFive
-    | GreaterThanSix
-    | GreaterThanSeven,
-  ReturnType extends any
-> = AssociationDepth extends DesiredGreaterThanDepth ? ReturnType : any
