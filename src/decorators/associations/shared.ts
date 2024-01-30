@@ -213,8 +213,8 @@ export function applyGetterAndSetter(
 ) {
   const dreamClass: typeof Dream = target.constructor as typeof Dream
 
-  if (!Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target), partialAssociation.as)?.get) {
-    Object.defineProperty(Object.getPrototypeOf(target), partialAssociation.as, {
+  if (!Object.getOwnPropertyDescriptor(dreamClass.prototype, partialAssociation.as)?.get) {
+    Object.defineProperty(dreamClass.prototype, partialAssociation.as, {
       configurable: true,
 
       get: function (this: any) {
