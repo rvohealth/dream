@@ -283,37 +283,37 @@ export default class Query<
     //
     A extends NextPreloadArgumentType<SyncedAssociations, TableName>,
     ATableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, TableName, A>,
-    B extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanOne
+    B extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanOne
       ? NextPreloadArgumentType<SyncedAssociations, ATableName>
       : any,
-    BTableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanOne
+    BTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanOne
       ? PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ATableName, B>
       : never,
-    C extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanTwo
+    C extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanTwo
       ? NextPreloadArgumentType<SyncedAssociations, BTableName>
       : any,
-    CTableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanTwo
+    CTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanTwo
       ? PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, BTableName, C>
       : never,
-    D extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanThree
+    D extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanThree
       ? NextPreloadArgumentType<SyncedAssociations, CTableName>
       : any,
-    DTableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanThree
+    DTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanThree
       ? PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, CTableName, D>
       : never,
-    E extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanFour
+    E extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFour
       ? NextPreloadArgumentType<SyncedAssociations, DTableName>
       : any,
-    ETableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanFour
+    ETableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFour
       ? PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, DTableName, E>
       : never,
-    F extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanFive
+    F extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFive
       ? NextPreloadArgumentType<SyncedAssociations, ETableName>
       : any,
-    FTableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanFive
+    FTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFive
       ? PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ETableName, F>
       : never,
-    G extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanSix
+    G extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanSix
       ? NextPreloadArgumentType<SyncedAssociations, FTableName>
       : any
   >(this: T, models: Dream[], a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
@@ -330,37 +330,37 @@ export default class Query<
     //
     A extends NextPreloadArgumentType<SyncedAssociations, TableName>,
     ATableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, TableName, A>,
-    B extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanOne
+    B extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanOne
       ? NextPreloadArgumentType<SyncedAssociations, ATableName>
       : any,
-    BTableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanOne
+    BTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanOne
       ? PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ATableName, B>
       : never,
-    C extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanTwo
+    C extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanTwo
       ? NextPreloadArgumentType<SyncedAssociations, BTableName>
       : any,
-    CTableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanTwo
+    CTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanTwo
       ? PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, BTableName, C>
       : never,
-    D extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanThree
+    D extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanThree
       ? NextPreloadArgumentType<SyncedAssociations, CTableName>
       : any,
-    DTableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanThree
+    DTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanThree
       ? PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, CTableName, D>
       : never,
-    E extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanFour
+    E extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFour
       ? NextPreloadArgumentType<SyncedAssociations, DTableName>
       : any,
-    ETableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanFour
+    ETableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFour
       ? PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, DTableName, E>
       : never,
-    F extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanFive
+    F extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFive
       ? NextPreloadArgumentType<SyncedAssociations, ETableName>
       : any,
-    FTableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanFive
+    FTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFive
       ? PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ETableName, F>
       : never,
-    G extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanSix
+    G extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanSix
       ? NextPreloadArgumentType<SyncedAssociations, FTableName>
       : any
   >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
@@ -403,37 +403,37 @@ export default class Query<
     ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
       string[])[number],
     //
-    B extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanOne
+    B extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanOne
       ? NextJoinsWhereArgumentType<DB, SyncedAssociations, ATableName>
       : any,
-    BTableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanOne
+    BTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanOne
       ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>
       : never,
-    C extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanTwo
+    C extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanTwo
       ? NextJoinsWhereArgumentType<DB, SyncedAssociations, BTableName>
       : any,
-    CTableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanTwo
+    CTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanTwo
       ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>
       : never,
-    D extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanThree
+    D extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanThree
       ? NextJoinsWhereArgumentType<DB, SyncedAssociations, CTableName>
       : any,
-    DTableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanThree
+    DTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanThree
       ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>
       : never,
-    E extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanFour
+    E extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFour
       ? NextJoinsWhereArgumentType<DB, SyncedAssociations, DTableName>
       : any,
-    ETableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanFour
+    ETableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFour
       ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>
       : never,
-    F extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanFive
+    F extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFive
       ? NextJoinsWhereArgumentType<DB, SyncedAssociations, ETableName>
       : any,
-    FTableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanFive
+    FTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFive
       ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>
       : never,
-    G extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanSix
+    G extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanSix
       ? NextJoinsWhereArgumentType<DB, SyncedAssociations, FTableName>
       : any
   >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
@@ -503,38 +503,38 @@ export default class Query<
     ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
       string[])[number],
     //
-    B extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanOne
+    B extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanOne
       ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>
       : any,
-    BTableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanOne
+    BTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanOne
       ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>
       : never,
-    C extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanTwo
+    C extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanTwo
       ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>
       : any,
-    CTableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanTwo
+    CTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanTwo
       ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>
       : never,
-    D extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanThree
+    D extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanThree
       ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>
       : any,
-    DTableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanThree
+    DTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanThree
       ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>
       : never,
-    E extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanFour
+    E extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFour
       ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>
       : any,
-    ETableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanFour
+    ETableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFour
       ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>
       : never,
-    F extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanFive
+    F extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFive
       ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>
       : any,
-    FTableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanFive
+    FTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFive
       ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>
       : never,
     //
-    G extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanSix
+    G extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanSix
       ? FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
       : any
   >(this: T, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
@@ -594,38 +594,38 @@ export default class Query<
     ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
       string[])[number],
     //
-    B extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanOne
+    B extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanOne
       ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>
       : any,
-    BTableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanOne
+    BTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanOne
       ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>
       : never,
-    C extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanTwo
+    C extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanTwo
       ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>
       : any,
-    CTableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanTwo
+    CTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanTwo
       ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>
       : never,
-    D extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanThree
+    D extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanThree
       ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>
       : any,
-    DTableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanThree
+    DTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanThree
       ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>
       : never,
-    E extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanFour
+    E extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFour
       ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>
       : any,
-    ETableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanFour
+    ETableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFour
       ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>
       : never,
-    F extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanFive
+    F extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFive
       ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>
       : any,
-    FTableName extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanFive
+    FTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFive
       ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>
       : never,
     //
-    G extends InstanceType<DreamClass>['associationDepth'] extends GreaterThanSix
+    G extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanSix
       ? FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
       : any
   >(

@@ -9,7 +9,7 @@ import Dreamconf, { AssociationDepths } from '../../../shared/dreamconf'
 import dreamconf from '../../conf/dreamconf'
 
 export default class ApplicationModel extends Dream {
-  public get associationDepth() {
+  public get maxAssociationTypeDepth() {
     return AssociationDepths.EIGHT as const
   }
 
