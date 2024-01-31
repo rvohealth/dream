@@ -16,15 +16,19 @@ import camelize from '../../../shared/helpers/camelize'
 import NonLoadedAssociation from '../../exceptions/associations/non-loaded-association'
 import associationToGetterSetterProp from './associationToGetterSetterProp'
 
+type AssociatedModelType<
+  I extends Dream,
+  AssociationName extends keyof I['dreamconf']['syncedBelongsToAssociations'][I['table'] &
+    keyof I['dreamconf']['syncedBelongsToAssociations']],
+  PossibleArrayAssociationType = I[AssociationName & keyof I]
+> = PossibleArrayAssociationType extends (infer ElementType)[] ? ElementType : PossibleArrayAssociationType
+
 export type AssociatedModelParam<
   I extends Dream,
   AssociationName = keyof I['dreamconf']['syncedBelongsToAssociations'][I['table'] &
-    keyof I['dreamconf']['syncedBelongsToAssociations']],
-  PossibleArrayAssociationType = I[AssociationName & keyof I],
-  AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
-    ? ElementType
-    : PossibleArrayAssociationType
-> = Partial<Record<AssociationName & string, AssociationType | null>>
+    keyof I['dreamconf']['syncedBelongsToAssociations']] &
+    string
+> = Partial<{ [K in AssociationName & string]: AssociatedModelType<I, K> | null }>
 
 export type PassthroughWhere<AllColumns extends string[]> = Partial<Record<AllColumns[number], any>>
 
