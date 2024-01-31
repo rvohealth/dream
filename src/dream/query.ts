@@ -1120,9 +1120,9 @@ export default class Query<
   private hydrateAssociation(
     dreams: Dream[],
     association:
-      | HasManyStatement<DB, SyncedAssociations, any>
-      | HasOneStatement<DB, SyncedAssociations, any>
-      | BelongsToStatement<DB, SyncedAssociations, any>,
+      | HasManyStatement<any, any, any>
+      | HasOneStatement<any, any, any>
+      | BelongsToStatement<any, any, any>,
     preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[]
   ) {
     switch (association.type) {
@@ -1165,7 +1165,7 @@ export default class Query<
 
   private followThroughAssociation(
     dreamClass: typeof Dream,
-    association: HasOneStatement<DB, SyncedAssociations, any> | HasManyStatement<DB, SyncedAssociations, any>
+    association: HasOneStatement<any, any, any> | HasManyStatement<any, any, any>
   ) {
     const throughAssociation = association.through && dreamClass.getAssociation(association.through)
     if (!throughAssociation)
@@ -1279,9 +1279,7 @@ export default class Query<
       ...(dreamClassToHydrateColumns.map(column => `${associationName}.${column.toString()}`) as any[]),
     ]
 
-    const asHasAssociation = association as
-      | HasManyStatement<DB, SyncedAssociations, any>
-      | HasOneStatement<DB, SyncedAssociations, any>
+    const asHasAssociation = association as HasManyStatement<any, any, any> | HasOneStatement<any, any, any>
 
     if (asHasAssociation.through && asHasAssociation.preloadThroughColumns) {
       asHasAssociation.preloadThroughColumns!.forEach(preloadThroughColumn => {
@@ -1412,18 +1410,18 @@ export default class Query<
       query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
       dreamClass: typeof Dream
       association:
-        | HasOneStatement<DB, SyncedAssociations, any>
-        | HasManyStatement<DB, SyncedAssociations, any>
-        | BelongsToStatement<DB, SyncedAssociations, any>
+        | HasOneStatement<any, any, any>
+        | HasManyStatement<any, any, any>
+        | BelongsToStatement<any, any, any>
       previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
     }
   ): {
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
     dreamClass: typeof Dream
     association:
-      | HasOneStatement<DB, SyncedAssociations, any>
-      | HasManyStatement<DB, SyncedAssociations, any>
-      | BelongsToStatement<DB, SyncedAssociations, any>
+      | HasOneStatement<any, any, any>
+      | HasManyStatement<any, any, any>
+      | BelongsToStatement<any, any, any>
     throughClass?: typeof Dream | null
     previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
   } {
@@ -1498,9 +1496,7 @@ export default class Query<
       dreamClass: typeof Dream
       previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
       currentAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
-      originalAssociation?:
-        | HasOneStatement<DB, SyncedAssociations, any>
-        | HasManyStatement<DB, SyncedAssociations, any>
+      originalAssociation?: HasOneStatement<any, any, any> | HasManyStatement<any, any, any>
     }
   ): {
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
@@ -1829,9 +1825,7 @@ export default class Query<
     }: {
       query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
       tableNameOrAlias: string
-      association:
-        | HasOneStatement<DB, SyncedAssociations, any>
-        | HasManyStatement<DB, SyncedAssociations, any>
+      association: HasOneStatement<any, any, any> | HasManyStatement<any, any, any>
     }
   ) {
     const orderStatement = association.order
@@ -2213,10 +2207,7 @@ export default class Query<
     }
   }
 
-  private aliasWhereStatements(
-    whereStatements: Readonly<WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>[]>,
-    alias: string
-  ) {
+  private aliasWhereStatements(whereStatements: Readonly<WhereStatement<any, any, any>[]>, alias: string) {
     return whereStatements.map(whereStatement => {
       return Object.keys(whereStatement).reduce((aliasedWhere, key) => {
         aliasedWhere[`${alias}.${key}`] = (whereStatement as any)[key]
