@@ -17,6 +17,7 @@ import Post from '../../../../test-app/app/models/Post'
 import Rating from '../../../../test-app/app/models/Rating'
 import Node from '../../../../test-app/app/models/Graph/Node'
 import Edge from '../../../../test-app/app/models/Graph/Edge'
+import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
 
 describe('Query#preload through', () => {
   context('explicit HasMany through a BelongsTo', () => {
@@ -402,6 +403,74 @@ describe('Query#preload through', () => {
               rating1b,
               rating2a,
             ])
+          })
+        })
+
+        context(
+          'when the association with the selfWhere clause is not the starting model in the association chain',
+          () => {
+            it('loads the associated object', async () => {
+              const user = await User.create({
+                email: 'fred@frewd',
+                password: 'howyadoin',
+                featuredPostPosition: 2,
+              })
+
+              // position is automatically set by sortable
+              const post1 = await Post.create({ user })
+              const rating1 = await Rating.create({ user, rateable: post1 })
+              const post2 = await Post.create({ user })
+              const rating2 = await Rating.create({ user, rateable: post2 })
+
+              const pet = await Pet.create({ user })
+
+              const sanityCheckPet = await Pet.query().preload('ratings').first()
+              expect(sanityCheckPet!.ratings).toMatchDreamModels([rating1, rating2])
+
+              const reloadedPet = await Pet.query().preload('featuredPost').preload('featuredRatings').first()
+              expect(reloadedPet!.featuredPost).toMatchDreamModel(post2)
+              expect(reloadedPet!.featuredRatings).toMatchDreamModels([rating2])
+            })
+          }
+        )
+      })
+
+      context('with selfWhereNot clause', () => {
+        let node: Node
+        let edge1: Edge
+        let edge2: Edge
+        let edge3: Edge
+        let edgeNode1: EdgeNode
+        let edgeNode2: EdgeNode
+        let edgeNode3: EdgeNode
+
+        beforeEach(async () => {
+          node = await Node.create({ name: 'world', omittedEdgePosition: 1 })
+          edge1 = await Edge.create({ name: 'hello' })
+          edge2 = await Edge.create({ name: 'world' })
+          edge3 = await Edge.create({ name: 'goodbye' })
+
+          // position is automatically set by sortable
+          edgeNode1 = await EdgeNode.create({ node, edge: edge1 })
+          edgeNode2 = await EdgeNode.create({ node, edge: edge2 })
+          edgeNode3 = await EdgeNode.create({ node, edge: edge3 })
+        })
+
+        it('loads the associated models', async () => {
+          const sanityCheckNode = await Node.query().preload('edges').first()
+          expect(sanityCheckNode!.edges).toMatchDreamModels([edge1, edge2, edge3])
+
+          const reloadedNode = await Node.query().preload('nonOmittedPositionEdges').first()
+          expect(reloadedNode!.nonOmittedPositionEdges).toMatchDreamModels([edge2, edge3])
+        })
+
+        context('when the whereSelf is declared on the join association', () => {
+          it('applies conditional to selectively bring in records', async () => {
+            const sanityCheckNode = await Node.query().preload('edges').first()
+            expect(sanityCheckNode!.edges).toMatchDreamModels([edge1, edge2, edge3])
+
+            const reloadedNode = await Node.query().preload('nonNodeNameEdgesOnThroughAssociation').first()
+            expect(reloadedNode!.nonNodeNameEdgesOnThroughAssociation).toMatchDreamModels([edge1, edge3])
           })
         })
 

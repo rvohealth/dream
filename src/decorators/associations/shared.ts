@@ -133,6 +133,7 @@ export interface HasStatement<
   where?: AssociationWhereStatement<DB, SyncedAssociations, ForeignTableName>
   whereNot?: WhereStatement<DB, SyncedAssociations, ForeignTableName>
   selfWhere?: WhereSelfStatement<DB, SyncedAssociations, ForeignTableName>
+  selfWhereNot?: WhereSelfStatement<DB, SyncedAssociations, ForeignTableName>
   distinct?: TableColumnName<DB, SyncedAssociations, ForeignTableName>
   order?: OrderStatement<DB, SyncedAssociations, ForeignTableName>
 }
@@ -157,6 +158,7 @@ type hasOneManySpecificFields =
   | 'where'
   | 'whereNot'
   | 'selfWhere'
+  | 'selfWhereNot'
 type belongsToSpecificFields = 'optional'
 
 export type PartialAssociationStatement =

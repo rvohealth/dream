@@ -135,6 +135,15 @@ export default {
     ],
     "edges": [
       "graph_edges"
+    ],
+    "nonOmittedPositionEdgeNodes": [
+      "graph_edge_nodes"
+    ],
+    "nonOmittedPositionEdges": [
+      "graph_edges"
+    ],
+    "nonNodeNameEdgesOnThroughAssociation": [
+      "graph_edges"
     ]
   },
   "incompatible_foreign_key_type_examples": {
@@ -266,10 +275,10 @@ export default {
     "ratings": [
       "ratings"
     ],
-    "ratingsThroughPostsThatMatchUserTargetRating": [
+    "featuredRatings": [
       "ratings"
     ],
-    "featuredRatings": [
+    "ratingsThroughPostsThatMatchUserTargetRating": [
       "ratings"
     ],
     "compositions": [
@@ -454,6 +463,15 @@ export interface SyncedAssociations {
     ],
     "edges": [
       "graph_edges"
+    ],
+    "nonOmittedPositionEdgeNodes": [
+      "graph_edge_nodes"
+    ],
+    "nonOmittedPositionEdges": [
+      "graph_edges"
+    ],
+    "nonNodeNameEdgesOnThroughAssociation": [
+      "graph_edges"
     ]
   },
   "incompatible_foreign_key_type_examples": {
@@ -585,10 +603,10 @@ export interface SyncedAssociations {
     "ratings": [
       "ratings"
     ],
-    "ratingsThroughPostsThatMatchUserTargetRating": [
+    "featuredRatings": [
       "ratings"
     ],
-    "featuredRatings": [
+    "ratingsThroughPostsThatMatchUserTargetRating": [
       "ratings"
     ],
     "compositions": [

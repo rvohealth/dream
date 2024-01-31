@@ -57,15 +57,15 @@ export default class User extends ApplicationModel {
   @HasOne(() => Post, { selfWhere: { position: 'featuredPostPosition' } })
   public featuredPost: Post
 
+  @HasMany(() => Rating, { through: 'featuredPost', source: 'ratings' })
+  public featuredRatings: Rating[]
+
   @HasMany(() => Rating, {
     through: 'posts',
     source: 'ratings',
     selfWhere: { rating: 'targetRating' },
   })
   public ratingsThroughPostsThatMatchUserTargetRating: Rating[]
-
-  @HasMany(() => Rating, { through: 'featuredPost', source: 'ratings' })
-  public featuredRatings: Rating[]
 
   @HasMany(() => Composition)
   public compositions: Composition[]

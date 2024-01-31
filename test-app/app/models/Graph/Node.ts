@@ -17,6 +17,7 @@ export default class Node extends ApplicationModel {
 
   public id: IdType
   public name: string
+  public omittedEdgePosition: number
   public createdAt: DateTime
   public updatedAt: DateTime
 
@@ -25,4 +26,17 @@ export default class Node extends ApplicationModel {
 
   @HasMany(() => GraphEdge, { through: 'edgeNodes', preloadThroughColumns: ['position', 'createdAt'] })
   public edges: GraphEdge[]
+
+  @HasMany(() => EdgeNode, { foreignKey: 'nodeId', selfWhereNot: { position: 'omittedEdgePosition' } })
+  public nonOmittedPositionEdgeNodes: EdgeNode[]
+
+  @HasMany(() => GraphEdge, { through: 'nonOmittedPositionEdgeNodes', source: 'edge' })
+  public nonOmittedPositionEdges: GraphEdge[]
+
+  @HasMany(() => GraphEdge, {
+    through: 'edgeNodes',
+    source: 'edge',
+    selfWhereNot: { name: 'name' },
+  })
+  public nonNodeNameEdgesOnThroughAssociation: GraphEdge[]
 }

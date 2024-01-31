@@ -241,6 +241,7 @@ export interface GraphNodes {
   createdAt: Timestamp;
   id: Generated<Int8>;
   name: string | null;
+  omittedEdgePosition: number | null;
   updatedAt: Timestamp;
 }
 
@@ -381,7 +382,7 @@ export const EdgeCaseAttributeColumns = ['createdAt', 'id', 'kPop', 'popK', 'pop
 export const ExtraRatingColumns = ['body', 'createdAt', 'extraRateableId', 'extraRateableType', 'id', 'rating', 'type', 'updatedAt', 'userId'] as const
 export const GraphEdgeNodeColumns = ['createdAt', 'edgeId', 'id', 'multiScopedPosition', 'nodeId', 'position', 'updatedAt'] as const
 export const GraphEdgeColumns = ['createdAt', 'id', 'name', 'updatedAt', 'weight'] as const
-export const GraphNodeColumns = ['createdAt', 'id', 'name', 'updatedAt'] as const
+export const GraphNodeColumns = ['createdAt', 'id', 'name', 'omittedEdgePosition', 'updatedAt'] as const
 export const IncompatibleForeignKeyTypeExampleColumns = ['createdAt', 'id', 'updatedAt', 'userId'] as const
 export const LocalizedTextColumns = ['body', 'createdAt', 'id', 'locale', 'localizableId', 'localizableType', 'name', 'title', 'updatedAt'] as const
 export const PetColumns = ['createdAt', 'deletedAt', 'favoriteTreats', 'id', 'name', 'nickname', 'species', 'userId'] as const
@@ -393,7 +394,7 @@ export const SandbagColumns = ['balloonId', 'createdAt', 'id', 'updatedAt', 'wei
 export const UserColumns = ['birthdate', 'createdAt', 'deletedAt', 'email', 'featuredPostPosition', 'id', 'name', 'passwordDigest', 'socialSecurityNumber', 'targetRating', 'updatedAt'] as const
 export const UserSettingColumns = ['createdAt', 'id', 'likesChalupas', 'updatedAt', 'userId'] as const
 
-export const AllColumns = ['approval', 'balloonId', 'balloonLines', 'balloonSpotterBalloons', 'balloonSpotterId', 'balloonSpotters', 'beautifulBalloons', 'birthdate', 'body', 'collars', 'color', 'compositionAssetAudits', 'compositionAssetId', 'compositionAssets', 'compositionId', 'compositions', 'content', 'createdAt', 'deletedAt', 'edgeCaseAttributes', 'edgeId', 'email', 'extraRateableId', 'extraRateableType', 'extraRatings', 'favoriteTreats', 'featuredPostPosition', 'graphEdgeNodes', 'graphEdges', 'graphNodes', 'id', 'incompatibleForeignKeyTypeExamples', 'kPop', 'likesChalupas', 'locale', 'localizableId', 'localizableType', 'localizedTexts', 'lost', 'material', 'metadata', 'metadata2', 'metadata3', 'multiScopedPosition', 'multicolor', 'name', 'nickname', 'nodeId', 'notes', 'passwordDigest', 'petId', 'petUnderstudyJoinModels', 'pets', 'popK', 'popKPop', 'position', 'positionAlpha', 'positionBeta', 'postVisibilities', 'postVisibilityId', 'posts', 'primary', 'rateableId', 'rateableType', 'rating', 'ratings', 'sandbags', 'score', 'socialSecurityNumber', 'species', 'src', 'tagName', 'targetRating', 'title', 'type', 'understudyId', 'updatedAt', 'userId', 'userSettings', 'users', 'visibility', 'volume', 'weight'] as const
+export const AllColumns = ['approval', 'balloonId', 'balloonLines', 'balloonSpotterBalloons', 'balloonSpotterId', 'balloonSpotters', 'beautifulBalloons', 'birthdate', 'body', 'collars', 'color', 'compositionAssetAudits', 'compositionAssetId', 'compositionAssets', 'compositionId', 'compositions', 'content', 'createdAt', 'deletedAt', 'edgeCaseAttributes', 'edgeId', 'email', 'extraRateableId', 'extraRateableType', 'extraRatings', 'favoriteTreats', 'featuredPostPosition', 'graphEdgeNodes', 'graphEdges', 'graphNodes', 'id', 'incompatibleForeignKeyTypeExamples', 'kPop', 'likesChalupas', 'locale', 'localizableId', 'localizableType', 'localizedTexts', 'lost', 'material', 'metadata', 'metadata2', 'metadata3', 'multiScopedPosition', 'multicolor', 'name', 'nickname', 'nodeId', 'notes', 'omittedEdgePosition', 'passwordDigest', 'petId', 'petUnderstudyJoinModels', 'pets', 'popK', 'popKPop', 'position', 'positionAlpha', 'positionBeta', 'postVisibilities', 'postVisibilityId', 'posts', 'primary', 'rateableId', 'rateableType', 'rating', 'ratings', 'sandbags', 'score', 'socialSecurityNumber', 'species', 'src', 'tagName', 'targetRating', 'title', 'type', 'understudyId', 'updatedAt', 'userId', 'userSettings', 'users', 'visibility', 'volume', 'weight'] as const
 
 export interface BalloonLineAttributes {
   balloonId: IdType
@@ -518,6 +519,7 @@ export interface GraphNodeAttributes {
   createdAt: DateTime
   id: IdType
   name: string | null
+  omittedEdgePosition: number | null
   updatedAt: DateTime
 }  
 
@@ -743,6 +745,7 @@ export const GraphNodesDBTypeMap = {
   createdAt: 'timestamp without time zone',
   id: 'bigint',
   name: 'character varying',
+  omittedEdgePosition: 'integer',
   updatedAt: 'timestamp without time zone'
 }
 

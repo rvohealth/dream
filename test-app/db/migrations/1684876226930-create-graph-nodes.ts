@@ -5,6 +5,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .createTable('graph_nodes')
     .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('name', 'varchar(255)')
+    .addColumn('omitted_edge_position', 'integer')
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()

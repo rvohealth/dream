@@ -1633,6 +1633,18 @@ export default class Query<
           )
         }
 
+        if (originalAssociation.selfWhereNot) {
+          query = this.applyWhereStatements(
+            query,
+            this.rawifiedSelfWhereClause({
+              associationAlias: originalAssociation.as,
+              selfAlias: previousAssociationTableOrAlias,
+              selfWhereClause: originalAssociation.selfWhereNot,
+            }),
+            { negate: true }
+          )
+        }
+
         if (originalAssociation.order) {
           query = this.applyOrderStatementForAssociation(query, originalAssociation)
         }
@@ -1689,6 +1701,18 @@ export default class Query<
             selfAlias: previousAssociationTableOrAlias,
             selfWhereClause: association.selfWhere,
           })
+        )
+      }
+
+      if (association.selfWhereNot) {
+        query = this.applyWhereStatements(
+          query,
+          this.rawifiedSelfWhereClause({
+            associationAlias: currentAssociationTableOrAlias,
+            selfAlias: previousAssociationTableOrAlias,
+            selfWhereClause: association.selfWhereNot,
+          }),
+          { negate: true }
         )
       }
 

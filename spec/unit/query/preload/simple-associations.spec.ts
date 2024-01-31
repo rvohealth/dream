@@ -8,6 +8,9 @@ import BalloonLine from '../../../../test-app/app/models/BalloonLine'
 import Balloon from '../../../../test-app/app/models/Balloon'
 import Post from '../../../../test-app/app/models/Post'
 import LocalizedText from '../../../../test-app/app/models/LocalizedText'
+import Node from '../../../../test-app/app/models/Graph/Node'
+import Edge from '../../../../test-app/app/models/Graph/Edge'
+import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
 
 describe('Query#preload with simple associations', () => {
   context('HasOne', () => {
@@ -194,6 +197,36 @@ describe('Query#preload with simple associations', () => {
 
         const reloadedUser = await User.query().preload('featuredPost').first()
         expect(reloadedUser!.featuredPost).toMatchDreamModel(post2)
+      })
+    })
+
+    context('with selfWhereNot clause', () => {
+      let node: Node
+      let edge1: Edge
+      let edge2: Edge
+      let edge3: Edge
+      let edgeNode1: EdgeNode
+      let edgeNode2: EdgeNode
+      let edgeNode3: EdgeNode
+
+      beforeEach(async () => {
+        node = await Node.create({ name: 'world', omittedEdgePosition: 1 })
+        edge1 = await Edge.create({ name: 'hello' })
+        edge2 = await Edge.create({ name: 'world' })
+        edge3 = await Edge.create({ name: 'goodbye' })
+
+        // position is automatically set by sortable
+        edgeNode1 = await EdgeNode.create({ node, edge: edge1 })
+        edgeNode2 = await EdgeNode.create({ node, edge: edge2 })
+        edgeNode3 = await EdgeNode.create({ node, edge: edge3 })
+      })
+
+      it('loads the associated models', async () => {
+        const sanityCheckNode = await Node.query().preload('edges').first()
+        expect(sanityCheckNode!.edges).toMatchDreamModels([edge1, edge2, edge3])
+
+        const reloadedNode = await Node.query().preload('nonOmittedPositionEdgeNodes').first()
+        expect(reloadedNode!.nonOmittedPositionEdgeNodes).toMatchDreamModels([edgeNode2, edgeNode3])
       })
     })
 
