@@ -24,8 +24,17 @@ export default class Node extends ApplicationModel {
   @HasMany(() => EdgeNode, { foreignKey: 'nodeId' })
   public edgeNodes: EdgeNode[]
 
+  @HasMany(() => EdgeNode, { foreignKey: 'nodeId', order: 'position' })
+  public orderedEdgeNodes: EdgeNode[]
+
   @HasMany(() => GraphEdge, { through: 'edgeNodes', preloadThroughColumns: ['position', 'createdAt'] })
   public edges: GraphEdge[]
+
+  @HasMany(() => GraphEdge, { through: 'edgeNodes', order: 'name', source: 'edge' })
+  public edgesOrderedByName: GraphEdge[]
+
+  @HasMany(() => GraphEdge, { through: 'orderedEdgeNodes', source: 'edge' })
+  public edgesOrderedByPosition: GraphEdge[]
 
   @HasMany(() => EdgeNode, { foreignKey: 'nodeId', selfWhereNot: { position: 'omittedEdgePosition' } })
   public nonOmittedPositionEdgeNodes: EdgeNode[]

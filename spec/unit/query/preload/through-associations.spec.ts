@@ -382,7 +382,7 @@ describe('Query#preload through', () => {
           expect(reloadedUser!.featuredRatings).toMatchDreamModels([rating2])
         })
 
-        context('when the whereSelf is declared on the join association', () => {
+        context('when the selfWhere is declared on the join association', () => {
           it('applies conditional to selectively bring in records', async () => {
             const user = await User.create({
               email: 'fred@frewd',
@@ -433,6 +433,30 @@ describe('Query#preload through', () => {
             })
           }
         )
+
+        context('through a BelongsTo', () => {
+          it('applies conditional to selectively bring in records', async () => {
+            const node = await Node.create({ name: 'world', omittedEdgePosition: 1 })
+            const edge1 = await Edge.create({ name: 'hello' })
+            const edge2 = await Edge.create({ name: 'world' })
+            const edge3 = await Edge.create({ name: 'goodbye' })
+
+            // position is automatically set by sortable
+            const edgeNode1 = await EdgeNode.create({ node, edge: edge1 })
+            const edgeNode2 = await EdgeNode.create({ node, edge: edge2 })
+            const edgeNode3 = await EdgeNode.create({ node, edge: edge3 })
+
+            const sanityCheckEdgeNode = await edgeNode2.load('siblingsIncludingMe').execute()
+            expect(sanityCheckEdgeNode!.siblingsIncludingMe).toMatchDreamModels([
+              edgeNode1,
+              edgeNode2,
+              edgeNode3,
+            ])
+
+            const reloadedEdgeNode = await edgeNode2.load('justThisSibling').execute()
+            expect(reloadedEdgeNode!.justThisSibling).toMatchDreamModel(edgeNode2)
+          })
+        })
       })
 
       context('with selfWhereNot clause', () => {
@@ -464,7 +488,7 @@ describe('Query#preload through', () => {
           expect(reloadedNode!.nonOmittedPositionEdges).toMatchDreamModels([edge2, edge3])
         })
 
-        context('when the whereSelf is declared on the join association', () => {
+        context('when the selfWhere is declared on the join association', () => {
           it('applies conditional to selectively bring in records', async () => {
             const sanityCheckNode = await Node.query().preload('edges').first()
             expect(sanityCheckNode!.edges).toMatchDreamModels([edge1, edge2, edge3])
@@ -474,33 +498,36 @@ describe('Query#preload through', () => {
           })
         })
 
-        context(
-          'when the association with the selfWhere clause is not the starting model in the association chain',
-          () => {
-            it('loads the associated object', async () => {
-              const user = await User.create({
-                email: 'fred@frewd',
-                password: 'howyadoin',
-                featuredPostPosition: 2,
-              })
+        context('through a BelongsTo', () => {
+          it('applies conditional to selectively bring in records', async () => {
+            const sanityCheckEdgeNode = await edgeNode2.load('siblingsIncludingMe').execute()
+            expect(sanityCheckEdgeNode!.siblingsIncludingMe).toMatchDreamModels([
+              edgeNode1,
+              edgeNode2,
+              edgeNode3,
+            ])
 
-              // position is automatically set by sortable
-              const post1 = await Post.create({ user })
-              const rating1 = await Rating.create({ user, rateable: post1 })
-              const post2 = await Post.create({ user })
-              const rating2 = await Rating.create({ user, rateable: post2 })
+            const reloadedEdgeNode = await edgeNode2.load('siblings').execute()
+            expect(reloadedEdgeNode!.siblings).toMatchDreamModels([edgeNode1, edgeNode3])
+          })
+        })
+      })
+    })
 
-              const pet = await Pet.create({ user })
+    context('through a BelongsTo', () => {
+      it('applies conditional to selectively bring in records', async () => {
+        const node = await Node.create({ name: 'world', omittedEdgePosition: 1 })
+        const edge1 = await Edge.create({ name: 'hello' })
+        const edge2 = await Edge.create({ name: 'world' })
+        const edge3 = await Edge.create({ name: 'goodbye' })
 
-              const sanityCheckPet = await Pet.query().preload('ratings').first()
-              expect(sanityCheckPet!.ratings).toMatchDreamModels([rating1, rating2])
+        // position is automatically set by sortable
+        const edgeNode1 = await EdgeNode.create({ node, edge: edge1 })
+        const edgeNode2 = await EdgeNode.create({ node, edge: edge2 })
+        const edgeNode3 = await EdgeNode.create({ node, edge: edge3 })
 
-              const reloadedPet = await Pet.query().preload('featuredPost').preload('featuredRatings').first()
-              expect(reloadedPet!.featuredPost).toMatchDreamModel(post2)
-              expect(reloadedPet!.featuredRatings).toMatchDreamModels([rating2])
-            })
-          }
-        )
+        const reloadedEdgeNode = await edgeNode2.load('headSibling').execute()
+        expect(reloadedEdgeNode!.headSibling).toMatchDreamModel(edgeNode1)
       })
     })
   })
@@ -532,6 +559,23 @@ describe('Query#preload through', () => {
 
       const reloaded = await Pet.preload('notRedBalloons').first()
       expect(reloaded!.notRedBalloons).toMatchDreamModels([greenBalloon, blueBalloon])
+    })
+
+    context('through a BelongsTo', () => {
+      it('applies conditional to selectively bring in records', async () => {
+        const node = await Node.create({ name: 'world', omittedEdgePosition: 1 })
+        const edge1 = await Edge.create({ name: 'hello' })
+        const edge2 = await Edge.create({ name: 'world' })
+        const edge3 = await Edge.create({ name: 'goodbye' })
+
+        // position is automatically set by sortable
+        const edgeNode1 = await EdgeNode.create({ node, edge: edge1 })
+        const edgeNode2 = await EdgeNode.create({ node, edge: edge2 })
+        const edgeNode3 = await EdgeNode.create({ node, edge: edge3 })
+
+        const reloadedEdgeNode = await edgeNode2.load('tailSiblings').execute()
+        expect(reloadedEdgeNode!.tailSiblings).toMatchDreamModels([edgeNode2, edgeNode3])
+      })
     })
   })
 
@@ -593,6 +637,61 @@ describe('Query#preload through', () => {
 
       expect(reloadedEdge2!.preloadedThroughColumns.position).toEqual(2)
       expect(reloadedEdge2!.preloadedThroughColumns.createdAt).toEqualDateTime(edgeNode2.createdAt)
+    })
+  })
+
+  context('with order-clause-on-the-association', () => {
+    let node: Node
+    let edge1: Edge
+    let edge2: Edge
+    let edge3: Edge
+    let edgeNode1: EdgeNode
+    let edgeNode2: EdgeNode
+    let edgeNode3: EdgeNode
+
+    beforeEach(async () => {
+      node = await Node.create({ name: 'world', omittedEdgePosition: 1 })
+      edge1 = await Edge.create({ name: 'c' })
+      edge2 = await Edge.create({ name: 'a' })
+      edge3 = await Edge.create({ name: 'b' })
+
+      // position is automatically set by sortable
+      edgeNode1 = await EdgeNode.create({ node, edge: edge1 })
+      edgeNode2 = await EdgeNode.create({ node, edge: edge2 })
+      edgeNode3 = await EdgeNode.create({ node, edge: edge3 })
+      await edgeNode3.update({ position: 1 })
+    })
+
+    it('orders the results based on the order specified in the association', async () => {
+      const node = await Node.preload('edgesOrderedByName').first()
+      expect(node!.edgesOrderedByName[0]).toMatchDreamModel(edge2)
+      expect(node!.edgesOrderedByName[1]).toMatchDreamModel(edge3)
+      expect(node!.edgesOrderedByName[2]).toMatchDreamModel(edge1)
+    })
+
+    context('order on the association we’re going through', () => {
+      it('orders the results based on the order specified in the association', async () => {
+        const node = await Node.preload('edgesOrderedByPosition').first()
+        expect(node!.edgesOrderedByPosition[0]).toMatchDreamModel(edge3)
+        expect(node!.edgesOrderedByPosition[1]).toMatchDreamModel(edge1)
+        expect(node!.edgesOrderedByPosition[2]).toMatchDreamModel(edge2)
+      })
+    })
+
+    context('through a BelongsTo association', () => {
+      it('orders the results based on the order specified in the root association', async () => {
+        const node = await edgeNode2.load('orderedSiblings').execute()
+        expect(node!.orderedSiblings[0]).toMatchDreamModel(edgeNode3)
+        expect(node!.orderedSiblings[1]).toMatchDreamModel(edgeNode1)
+        expect(node!.orderedSiblings[2]).toMatchDreamModel(edgeNode2)
+      })
+
+      it('orders the results based on the order specified in the source association', async () => {
+        const node = await edgeNode2.load('orderedSiblingsWithOrderOnSource').execute()
+        expect(node!.orderedSiblingsWithOrderOnSource[0]).toMatchDreamModel(edgeNode3)
+        expect(node!.orderedSiblingsWithOrderOnSource[1]).toMatchDreamModel(edgeNode1)
+        expect(node!.orderedSiblingsWithOrderOnSource[2]).toMatchDreamModel(edgeNode2)
+      })
     })
   })
 })

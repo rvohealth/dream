@@ -119,6 +119,27 @@ export default {
     ],
     "node": [
       "graph_nodes"
+    ],
+    "justThisSibling": [
+      "graph_edge_nodes"
+    ],
+    "headSibling": [
+      "graph_edge_nodes"
+    ],
+    "siblingsIncludingMe": [
+      "graph_edge_nodes"
+    ],
+    "siblings": [
+      "graph_edge_nodes"
+    ],
+    "orderedSiblings": [
+      "graph_edge_nodes"
+    ],
+    "orderedSiblingsWithOrderOnSource": [
+      "graph_edge_nodes"
+    ],
+    "tailSiblings": [
+      "graph_edge_nodes"
     ]
   },
   "graph_edges": {
@@ -133,7 +154,16 @@ export default {
     "edgeNodes": [
       "graph_edge_nodes"
     ],
+    "orderedEdgeNodes": [
+      "graph_edge_nodes"
+    ],
     "edges": [
+      "graph_edges"
+    ],
+    "edgesOrderedByName": [
+      "graph_edges"
+    ],
+    "edgesOrderedByPosition": [
       "graph_edges"
     ],
     "nonOmittedPositionEdgeNodes": [
@@ -447,6 +477,27 @@ export interface SyncedAssociations {
     ],
     "node": [
       "graph_nodes"
+    ],
+    "justThisSibling": [
+      "graph_edge_nodes"
+    ],
+    "headSibling": [
+      "graph_edge_nodes"
+    ],
+    "siblingsIncludingMe": [
+      "graph_edge_nodes"
+    ],
+    "siblings": [
+      "graph_edge_nodes"
+    ],
+    "orderedSiblings": [
+      "graph_edge_nodes"
+    ],
+    "orderedSiblingsWithOrderOnSource": [
+      "graph_edge_nodes"
+    ],
+    "tailSiblings": [
+      "graph_edge_nodes"
     ]
   },
   "graph_edges": {
@@ -461,7 +512,16 @@ export interface SyncedAssociations {
     "edgeNodes": [
       "graph_edge_nodes"
     ],
+    "orderedEdgeNodes": [
+      "graph_edge_nodes"
+    ],
     "edges": [
+      "graph_edges"
+    ],
+    "edgesOrderedByName": [
+      "graph_edges"
+    ],
+    "edgesOrderedByPosition": [
       "graph_edges"
     ],
     "nonOmittedPositionEdgeNodes": [

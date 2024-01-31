@@ -1544,6 +1544,64 @@ export default class Query<
     previousAssociationTableOrAlias = results.previousAssociationTableOrAlias
     const throughClass = results.throughClass
 
+    if (originalAssociation?.through) {
+      if (originalAssociation.distinct) {
+        query = query.distinctOn(
+          this.distinctColumnNameForAssociation({
+            association: originalAssociation,
+            tableNameOrAlias: originalAssociation.as,
+            foreignKey: originalAssociation.modelCB().primaryKey,
+          }) as any
+        )
+      }
+
+      if (originalAssociation.where) {
+        query = this.applyWhereStatements(
+          query,
+          this.aliasWhereStatements([originalAssociation.where], originalAssociation.as)
+        )
+      }
+
+      if (originalAssociation.whereNot) {
+        query = this.applyWhereStatements(
+          query,
+          this.aliasWhereStatements([originalAssociation.whereNot], originalAssociation.as),
+          { negate: true }
+        )
+      }
+
+      if (originalAssociation.selfWhere) {
+        query = this.applyWhereStatements(
+          query,
+          this.rawifiedSelfWhereClause({
+            associationAlias: originalAssociation.as,
+            selfAlias: previousAssociationTableOrAlias,
+            selfWhereClause: originalAssociation.selfWhere,
+          })
+        )
+      }
+
+      if (originalAssociation.selfWhereNot) {
+        query = this.applyWhereStatements(
+          query,
+          this.rawifiedSelfWhereClause({
+            associationAlias: originalAssociation.as,
+            selfAlias: previousAssociationTableOrAlias,
+            selfWhereClause: originalAssociation.selfWhereNot,
+          }),
+          { negate: true }
+        )
+      }
+
+      if (originalAssociation.order) {
+        query = this.applyOrderStatementForAssociation({
+          query,
+          tableNameOrAlias: originalAssociation.as,
+          association: originalAssociation,
+        })
+      }
+    }
+
     if (association.type === 'BelongsTo') {
       if (Array.isArray(association.modelCB()))
         throw new CannotJoinPolymorphicBelongsToError({
@@ -1594,60 +1652,6 @@ export default class Query<
             currentAssociationTableOrAlias
           )
         )
-      }
-
-      if (originalAssociation?.through) {
-        if (originalAssociation.distinct) {
-          query = query.distinctOn(
-            this.distinctColumnNameForAssociation({
-              association: originalAssociation,
-              tableNameOrAlias: originalAssociation.as,
-              foreignKey: originalAssociation.modelCB().primaryKey,
-            }) as any
-          )
-        }
-
-        if (originalAssociation.where) {
-          query = this.applyWhereStatements(
-            query,
-            this.aliasWhereStatements([originalAssociation.where], originalAssociation.as)
-          )
-        }
-
-        if (originalAssociation.whereNot) {
-          query = this.applyWhereStatements(
-            query,
-            this.aliasWhereStatements([originalAssociation.whereNot], originalAssociation.as),
-            { negate: true }
-          )
-        }
-
-        if (originalAssociation.selfWhere) {
-          query = this.applyWhereStatements(
-            query,
-            this.rawifiedSelfWhereClause({
-              associationAlias: originalAssociation.as,
-              selfAlias: previousAssociationTableOrAlias,
-              selfWhereClause: originalAssociation.selfWhere,
-            })
-          )
-        }
-
-        if (originalAssociation.selfWhereNot) {
-          query = this.applyWhereStatements(
-            query,
-            this.rawifiedSelfWhereClause({
-              associationAlias: originalAssociation.as,
-              selfAlias: previousAssociationTableOrAlias,
-              selfWhereClause: originalAssociation.selfWhereNot,
-            }),
-            { negate: true }
-          )
-        }
-
-        if (originalAssociation.order) {
-          query = this.applyOrderStatementForAssociation(query, originalAssociation)
-        }
       }
 
       if (!this.bypassDefaultScopes) {
@@ -1717,7 +1721,11 @@ export default class Query<
       }
 
       if (association.order) {
-        query = this.applyOrderStatementForAssociation(query, association)
+        query = this.applyOrderStatementForAssociation({
+          query,
+          tableNameOrAlias: currentAssociationTableOrAlias,
+          association,
+        })
       }
 
       if (association.distinct) {
@@ -1814,15 +1822,24 @@ export default class Query<
 
   private applyOrderStatementForAssociation<T extends Query<DreamClass>>(
     this: T,
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
-    association: HasOneStatement<DB, SyncedAssociations, any> | HasManyStatement<DB, SyncedAssociations, any>
+    {
+      query,
+      tableNameOrAlias,
+      association,
+    }: {
+      query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
+      tableNameOrAlias: string
+      association:
+        | HasOneStatement<DB, SyncedAssociations, any>
+        | HasManyStatement<DB, SyncedAssociations, any>
+    }
   ) {
     const orderStatement = association.order
 
     if (Array.isArray(orderStatement)) {
-      query = query.orderBy(`${association.as}.${orderStatement[0]}`, orderStatement[1])
+      query = query.orderBy(`${tableNameOrAlias}.${orderStatement[0]}`, orderStatement[1])
     } else {
-      query = query.orderBy(`${association.as}.${orderStatement}`, 'asc')
+      query = query.orderBy(`${tableNameOrAlias}.${orderStatement}`, 'asc')
     }
 
     if (association.type === 'HasOne') {
