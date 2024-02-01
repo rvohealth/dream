@@ -20,12 +20,19 @@ export default class Balloon extends ApplicationModel {
   }
 
   public id: IdType
-  public type: BalloonTypesEnum
   public color: BalloonColorsEnum
   public multicolor: BalloonColorsEnum[]
   public ribbonSizes: number[]
   public createdAt: DateTime
   public updatedAt: DateTime
+
+  public get type() {
+    return this.getAttribute('type') as BalloonTypesEnum
+  }
+
+  public set type(newType: BalloonTypesEnum) {
+    this.setAttribute('type', newType)
+  }
 
   @Sortable({ scope: 'user' })
   public positionAlpha: number

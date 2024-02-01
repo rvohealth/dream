@@ -1011,24 +1011,24 @@ export default class Dream {
         const foreignKey = belongsToAssociationMetaData.foreignKey()
         marshalledOpts[foreignKey] = associatedObject?.primaryKeyValue
         if (dreamInstance) {
-          dreamInstance.setAttribute(foreignKey as any, marshalledOpts[foreignKey])
+          ;(dreamInstance as any)[foreignKey] = marshalledOpts[foreignKey]
         }
 
         if (belongsToAssociationMetaData.polymorphic) {
           const foreignKeyTypeField = belongsToAssociationMetaData.foreignKeyTypeField()
           marshalledOpts[foreignKeyTypeField] = associatedObject?.stiBaseClassOrOwnClass?.name
           if (dreamInstance) {
-            dreamInstance.setAttribute(
-              foreignKeyTypeField as any,
-              associatedObject?.stiBaseClassOrOwnClass?.name
-            )
+            ;(dreamInstance as any)[foreignKeyTypeField] = associatedObject?.stiBaseClassOrOwnClass?.name
           }
         }
       } else {
         marshalledOpts[attr] = marshalDBValue(this, attr as any, (attributes as any)[attr])
 
-        if (dreamInstance) {
-          dreamInstance.setAttribute(attr, marshalledOpts[attr])
+        // only call setter if the value has changed, since it is unknown what kind of
+        // odd side effects can end up happening from custom setter overrides.
+        const dreamAttributeHasChanged = (dreamInstance as any)[attr] !== marshalledOpts[attr]
+        if (dreamInstance && dreamAttributeHasChanged) {
+          ;(dreamInstance as any)[attr] = marshalledOpts[attr]
         }
       }
     })
