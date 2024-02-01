@@ -164,6 +164,14 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     return saveDream(this.dreamInstance, this.dreamTransaction)
   }
 
+  public async updateAttributes<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
+    this: I,
+    attributes: UpdateableProperties<DreamInstance>
+  ): Promise<DreamInstance> {
+    this.dreamInstance['_setAttributes'](attributes, { bypassUserDefinedSetters: true })
+    return saveDream(this.dreamInstance, this.dreamTransaction)
+  }
+
   public async reload<I extends DreamInstanceTransactionBuilder<DreamInstance>>(this: I) {
     return reload(this.dreamInstance, this.dreamTransaction)
   }

@@ -1059,6 +1059,8 @@ export default class Dream {
         if (isJsonColumn(this.constructor as typeof Dream, column)) {
           Object.defineProperty(Object.getPrototypeOf(this), column, {
             get() {
+              if ([undefined, null].includes(this.currentAttributes[column]))
+                return this.currentAttributes[column]
               return JSON.parse(this.currentAttributes[column])
             },
 
@@ -1599,6 +1601,13 @@ export default class Dream {
 
   public async update<I extends Dream>(this: I, attributes: UpdateableProperties<I>): Promise<I> {
     this.setAttributes(attributes)
+    // call save rather than _save so that any unsaved associations in the
+    // attributes are saved with this model in a transaction
+    return await this.save()
+  }
+
+  public async updateAttributes<I extends Dream>(this: I, attributes: UpdateableProperties<I>): Promise<I> {
+    this._setAttributes(attributes, { bypassUserDefinedSetters: true })
     // call save rather than _save so that any unsaved associations in the
     // attributes are saved with this model in a transaction
     return await this.save()
