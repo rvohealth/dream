@@ -1035,7 +1035,8 @@ export default class Dream {
 
         // only call setter if the value has changed, since it is unknown what kind of
         // odd side effects can end up happening from custom setter overrides.
-        const dreamAttributeHasChanged = (dreamInstance as any)[attr] !== marshalledOpts[attr]
+        const dreamAttributeHasChanged =
+          dreamInstance && (dreamInstance as any)[attr] !== marshalledOpts[attr]
         if (dreamInstance && dreamAttributeHasChanged) {
           setAttributeOnDreamInstance(attr, marshalledOpts[attr])
         }
@@ -1245,7 +1246,7 @@ export default class Dream {
     const currentValue = (this.attributes() as any)[attribute]
 
     return (
-      frozenValue === undefined ||
+      (frozenValue === undefined && !this.isPersisted) ||
       (frozenValue?.constructor === DateTime
         ? (frozenValue as DateTime).toMillis() !== this.unknownValueToMillis(currentValue)
         : frozenValue !== currentValue)
