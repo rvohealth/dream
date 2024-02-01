@@ -7,6 +7,9 @@ import CanOnlyPassBelongsToModelParam from '../../../src/exceptions/associations
 import { DateTime } from 'luxon'
 import Pet from '../../../test-app/app/models/Pet'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar'
+import Balloon from '../../../test-app/app/models/Balloon'
+import Animal from '../../../test-app/app/models/Balloon/Latex/Animal'
 
 describe('Dream#update', () => {
   it('updates the underlying model in the db', async () => {
@@ -246,6 +249,20 @@ describe('Dream#update', () => {
         await user.update({ birthdate: dateString as any })
         const reloaded = await User.unscoped().find(user.id)
         expect(reloaded!.birthdate.toISODate()).toEqual(dateString)
+      })
+    })
+  })
+
+  context('STI', () => {
+    context('when updating the type field on an STI record', () => {
+      it('allows the type field to update', async () => {
+        const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+        const balloon = await Mylar.create({ user })
+        expect(balloon.type).toEqual('Mylar')
+
+        await balloon.update({ type: 'Animal' })
+        const reloaded = await Animal.find(balloon.id)
+        expect(reloaded!.type).toEqual('Animal')
       })
     })
   })
