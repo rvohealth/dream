@@ -35,8 +35,8 @@ export default class Pet extends ApplicationModel {
     return (this.getAttribute('nickname') || this.name) as typeof this.name
   }
 
-  public set nickname(nickname: string | null) {
-    if (nickname) this.setAttribute('nickname', `Li’l ${nickname}`)
+  public set nickname(nickname: string) {
+    this.setAttribute('nickname', `Li’l ${nickname}`)
   }
 
   @Scope({ default: true })
