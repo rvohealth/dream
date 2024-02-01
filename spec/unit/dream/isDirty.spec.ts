@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 
 describe('Dream#isDirty', () => {
   it('reflects being dirty when dirty', async () => {
@@ -105,6 +106,18 @@ describe('Dream#isDirty', () => {
     it('considers record to be dirty, even though no new attributes are being set explicitly', () => {
       const user = User.new()
       expect(user.isDirty).toEqual(true)
+    })
+  })
+
+  context('STI', () => {
+    context('when updating the type field on an STI record', () => {
+      it('considers the record dirty', async () => {
+        const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+        const balloon = await Mylar.create({ user })
+        expect(balloon.isDirty).toEqual(false)
+        balloon.type = 'Animal'
+        expect(balloon.isDirty).toEqual(true)
+      })
     })
   })
 
