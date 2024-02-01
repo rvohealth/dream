@@ -986,9 +986,18 @@ export default class Dream {
   protected static extractAttributesFromUpdateableProperties<T extends typeof Dream>(
     this: T,
     attributes: UpdateablePropertiesForClass<T>,
-    dreamInstance?: InstanceType<T>
+    dreamInstance?: InstanceType<T>,
+    { bypassUserDefinedSetters = false }: { bypassUserDefinedSetters?: boolean } = {}
   ): WhereStatement<InstanceType<T>['DB'], InstanceType<T>['syncedAssociations'], InstanceType<T>['table']> {
     const marshalledOpts: any = {}
+
+    const setAttributeOnDreamInstance = (attr: any, value: any) => {
+      if (bypassUserDefinedSetters) {
+        ;(dreamInstance as any).setAttribute(attr, value)
+      } else {
+        ;(dreamInstance as any)[attr] = value
+      }
+    }
 
     Object.keys(attributes as any).forEach(attr => {
       const associationMetaData = this.associationMap()[attr]
@@ -1011,14 +1020,14 @@ export default class Dream {
         const foreignKey = belongsToAssociationMetaData.foreignKey()
         marshalledOpts[foreignKey] = associatedObject?.primaryKeyValue
         if (dreamInstance) {
-          ;(dreamInstance as any)[foreignKey] = marshalledOpts[foreignKey]
+          setAttributeOnDreamInstance(foreignKey, marshalledOpts[foreignKey])
         }
 
         if (belongsToAssociationMetaData.polymorphic) {
           const foreignKeyTypeField = belongsToAssociationMetaData.foreignKeyTypeField()
           marshalledOpts[foreignKeyTypeField] = associatedObject?.stiBaseClassOrOwnClass?.name
           if (dreamInstance) {
-            ;(dreamInstance as any)[foreignKeyTypeField] = associatedObject?.stiBaseClassOrOwnClass?.name
+            setAttributeOnDreamInstance(foreignKeyTypeField, associatedObject?.stiBaseClassOrOwnClass?.name)
           }
         }
       } else {
@@ -1028,7 +1037,7 @@ export default class Dream {
         // odd side effects can end up happening from custom setter overrides.
         const dreamAttributeHasChanged = (dreamInstance as any)[attr] !== marshalledOpts[attr]
         if (dreamInstance && dreamAttributeHasChanged) {
-          ;(dreamInstance as any)[attr] = marshalledOpts[attr]
+          setAttributeOnDreamInstance(attr, marshalledOpts[attr])
         }
       }
     })
@@ -1553,8 +1562,23 @@ export default class Dream {
     TableName extends keyof DB = I['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
   >(this: I, attributes: Updateable<Table> | AssociatedModelParam<I>) {
+    return this._setAttributes(attributes)
+  }
+
+  private _setAttributes<
+    I extends Dream,
+    DB extends I['DB'],
+    TableName extends keyof DB = I['table'] & keyof DB,
+    Table extends DB[keyof DB] = DB[TableName]
+  >(
+    this: I,
+    attributes: Updateable<Table> | AssociatedModelParam<I>,
+    { bypassUserDefinedSetters = false }: { bypassUserDefinedSetters?: boolean } = {}
+  ) {
     const dreamClass = this.constructor as typeof Dream
-    const marshalledOpts = dreamClass.extractAttributesFromUpdateableProperties(attributes as any, this)
+    const marshalledOpts = dreamClass.extractAttributesFromUpdateableProperties(attributes as any, this, {
+      bypassUserDefinedSetters,
+    })
     return marshalledOpts
   }
 

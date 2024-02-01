@@ -50,7 +50,7 @@ export default async function saveDream<DreamInstance extends Dream>(
   }
 
   const data = await executeDatabaseQuery(query.returning(dream.columns()), 'executeTakeFirstOrThrow')
-  dream.setAttributes(data)
+  dream['_setAttributes'](data, { bypassUserDefinedSetters: true })
 
   // set frozen attributes to what has already been saved
   dream['freezeAttributes']()
