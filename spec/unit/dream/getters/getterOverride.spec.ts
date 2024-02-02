@@ -21,6 +21,8 @@ describe('getter override', () => {
       await balloon.update({ type: 'Animal' })
       let animal = await Animal.find(balloon.id)
 
+      // a type setter is applied to the Animal model
+      // to overwrite any attempt at setting type
       await animal!.update({ type: 'Latex' })
       animal = await Animal.find(animal!.id)
 
