@@ -199,8 +199,13 @@ export default class Query<
       where: opts.where === null ? [] : Object.freeze([...this.whereStatements, ...(opts.where || [])]),
       whereNot:
         opts.whereNot === null ? [] : Object.freeze([...this.whereNotStatements, ...(opts.whereNot || [])]),
-      limit: opts.limit !== undefined ? opts.limit : this.limitStatement || null,
-      offset: opts.offset !== undefined ? opts.offset : this.offsetStatement || null,
+      limit: opts.limit === null ? null : opts.limit !== undefined ? opts.limit : this.limitStatement || null,
+      offset:
+        opts.limit === null || opts.offset === null
+          ? null
+          : opts.offset !== undefined
+          ? opts.offset
+          : this.offsetStatement || null,
       or: opts.or === null ? [] : [...this.orStatements, ...(opts.or || [])],
       order: opts.order !== undefined ? opts.order : this.orderStatement || null,
       distinctColumn: (opts.distinctColumn !== undefined
@@ -868,11 +873,11 @@ export default class Query<
     })
   }
 
-  public limit(limit: number) {
+  public limit(limit: number | null) {
     return this.clone({ limit })
   }
 
-  public offset(offset: number) {
+  public offset(offset: number | null) {
     return this.clone({ offset })
   }
 

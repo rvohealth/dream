@@ -17,6 +17,36 @@ describe('Dream#offset', () => {
     expect(results).toMatchDreamModels([compositionAsset2, compositionAsset3])
   })
 
+  context('offset is null', () => {
+    it('removes offset', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+      const composition = await Composition.create({ user })
+
+      const compositionAsset1 = await CompositionAsset.create({ composition })
+      const compositionAsset2 = await CompositionAsset.create({ composition })
+      const compositionAsset3 = await CompositionAsset.create({ composition })
+
+      const results = await CompositionAsset.limit(2).offset(1).offset(null).all()
+
+      expect(results).toMatchDreamModels([compositionAsset1, compositionAsset2])
+    })
+  })
+
+  context('limit is null', () => {
+    it('removes offset', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+      const composition = await Composition.create({ user })
+
+      const compositionAsset1 = await CompositionAsset.create({ composition })
+      const compositionAsset2 = await CompositionAsset.create({ composition })
+      const compositionAsset3 = await CompositionAsset.create({ composition })
+
+      const results = await CompositionAsset.limit(2).offset(1).limit(null).all()
+
+      expect(results).toMatchDreamModels([compositionAsset1, compositionAsset2, compositionAsset3])
+    })
+  })
+
   context('when passed a transaction', () => {
     it('applies offset to results', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
@@ -32,6 +62,42 @@ describe('Dream#offset', () => {
       })
 
       expect(results).toMatchDreamModels([compositionAsset2])
+    })
+
+    context('offset is null', () => {
+      it('removes offset', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+        const composition = await Composition.create({ user })
+
+        const compositionAsset1 = await CompositionAsset.create({ composition })
+        let compositionAsset2: CompositionAsset | undefined = undefined
+        let results: CompositionAsset[] = []
+
+        await ApplicationModel.transaction(async txn => {
+          compositionAsset2 = await CompositionAsset.txn(txn).create({ composition, score: 3 })
+          results = await CompositionAsset.txn(txn).offset(null).offset(1).limit(1).offset(null).all()
+        })
+
+        expect(results).toMatchDreamModels([compositionAsset1])
+      })
+    })
+
+    context('limit is null', () => {
+      it('removes offset', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+        const composition = await Composition.create({ user })
+
+        const compositionAsset1 = await CompositionAsset.create({ composition })
+        let compositionAsset2: CompositionAsset | undefined = undefined
+        let results: CompositionAsset[] = []
+
+        await ApplicationModel.transaction(async txn => {
+          compositionAsset2 = await CompositionAsset.txn(txn).create({ composition, score: 3 })
+          results = await CompositionAsset.txn(txn).offset(1).limit(1).limit(null).all()
+        })
+
+        expect(results).toMatchDreamModels([compositionAsset1, compositionAsset2])
+      })
     })
   })
 })
