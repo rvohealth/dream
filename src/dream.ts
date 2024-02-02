@@ -1618,7 +1618,7 @@ export default class Dream {
   }
 
   /**
-   * #setAttributes
+   * ### #setAttributes
    *
    * takes the attributes passed in and sets their values internally,
    * bypassing any custom setters defined for these attributes
