@@ -1005,10 +1005,6 @@ export default class Dream {
         const dreamAttributeHasChanged =
           dreamInstance && (dreamInstance as any)[attr] !== marshalledOpts[attr]
 
-        if (attr === 'nickname') {
-          console.log(dreamAttributeHasChanged, marshalledOpts[attr])
-          console.trace()
-        }
         ;(dreamInstance as any)[attr] = value
       }
     }
