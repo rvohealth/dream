@@ -1085,7 +1085,7 @@ export default class Dream {
   }
 
   /**
-   * #assignAttribute
+   * ### #assignAttribute
    *
    * changes the attribute value for a single attribute,
    * leveraging any custom-defined setters. If you would like to
@@ -1106,7 +1106,7 @@ export default class Dream {
   }
 
   /**
-   * #setAttribute
+   * ### #setAttribute
    *
    * changes the attribute value for a single attribute internally,
    * bypassing any custom-defined setters. If you would like to set attributes
