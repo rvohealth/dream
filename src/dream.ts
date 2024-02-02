@@ -881,6 +881,10 @@ export default class Dream {
     return !!(this as any)[this.primaryKey]
   }
 
+  public get isNewRecord() {
+    return !this.isPersisted
+  }
+
   public get isValid(): boolean {
     this.errors = checkValidationsFor(this)
     return !Object.keys(this.errors).filter(key => !!this.errors[key].length).length
@@ -1275,7 +1279,7 @@ export default class Dream {
     const currentValue = (this.attributes() as any)[attribute]
 
     return (
-      (frozenValue === undefined && !this.isPersisted) ||
+      (frozenValue === undefined && this.isNewRecord) ||
       (frozenValue?.constructor === DateTime
         ? (frozenValue as DateTime).toMillis() !== this.unknownValueToMillis(currentValue)
         : frozenValue !== currentValue)
