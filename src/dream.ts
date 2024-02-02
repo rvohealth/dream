@@ -951,12 +951,17 @@ export default class Dream {
   private currentAttributes: { [key: string]: any } = {}
   private attributesFromBeforeLastSave: { [key: string]: any } = {}
 
-  public static new<T extends typeof Dream>(this: T, opts?: UpdateablePropertiesForClass<T>) {
-    return new this(opts as any) as InstanceType<T>
+  public static new<T extends typeof Dream>(
+    this: T,
+    opts?: UpdateablePropertiesForClass<T>,
+    additionalOpts: { bypassUserDefinedSetters?: boolean } = {}
+  ) {
+    return new this(opts as any, additionalOpts) as InstanceType<T>
   }
 
   constructor(
-    opts?: any
+    opts?: any,
+    additionalOpts: { bypassUserDefinedSetters?: boolean } = {}
     // opts?: Updateable<
     //   InstanceType<DreamModel & typeof Dream>['DB'][InstanceType<DreamModel>['table'] &
     //     keyof InstanceType<DreamModel>['DB']]
@@ -965,7 +970,7 @@ export default class Dream {
     this.defineAttributeAccessors()
 
     if (opts) {
-      const marshalledOpts = this.setAttributes(opts as any)
+      const marshalledOpts = this._setAttributes(opts as any, additionalOpts)
 
       // if id is set, then we freeze attributes after setting them, so that
       // any modifications afterwards will indicate updates.
@@ -995,6 +1000,15 @@ export default class Dream {
       if (bypassUserDefinedSetters) {
         ;(dreamInstance as any).setAttribute(attr, value)
       } else {
+        // only call setter if the value has changed, since it is unknown what kind of
+        // odd side effects can end up happening from custom setter overrides.
+        const dreamAttributeHasChanged =
+          dreamInstance && (dreamInstance as any)[attr] !== marshalledOpts[attr]
+
+        if (attr === 'nickname') {
+          console.log(dreamAttributeHasChanged, marshalledOpts[attr])
+          console.trace()
+        }
         ;(dreamInstance as any)[attr] = value
       }
     }
@@ -1033,11 +1047,7 @@ export default class Dream {
       } else {
         marshalledOpts[attr] = marshalDBValue(this, attr as any, (attributes as any)[attr])
 
-        // only call setter if the value has changed, since it is unknown what kind of
-        // odd side effects can end up happening from custom setter overrides.
-        const dreamAttributeHasChanged =
-          dreamInstance && (dreamInstance as any)[attr] !== marshalledOpts[attr]
-        if (dreamInstance && dreamAttributeHasChanged) {
+        if (dreamInstance) {
           setAttributeOnDreamInstance(attr, marshalledOpts[attr])
         }
       }
