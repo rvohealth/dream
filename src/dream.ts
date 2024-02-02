@@ -1000,11 +1000,6 @@ export default class Dream {
       if (bypassUserDefinedSetters) {
         ;(dreamInstance as any).setAttribute(attr, value)
       } else {
-        // only call setter if the value has changed, since it is unknown what kind of
-        // odd side effects can end up happening from custom setter overrides.
-        const dreamAttributeHasChanged =
-          dreamInstance && (dreamInstance as any)[attr] !== marshalledOpts[attr]
-
         ;(dreamInstance as any)[attr] = value
       }
     }
