@@ -997,10 +997,12 @@ export default class Dream {
     const marshalledOpts: any = {}
 
     const setAttributeOnDreamInstance = (attr: any, value: any) => {
+      if (!dreamInstance) return
+
       if (bypassUserDefinedSetters) {
-        ;(dreamInstance as any).setAttribute(attr, value)
+        dreamInstance.setAttribute(attr, value)
       } else {
-        ;(dreamInstance as any)[attr] = value
+        dreamInstance.assignAttribute(attr, value)
       }
     }
 
@@ -1024,23 +1026,16 @@ export default class Dream {
 
         const foreignKey = belongsToAssociationMetaData.foreignKey()
         marshalledOpts[foreignKey] = associatedObject?.primaryKeyValue
-        if (dreamInstance) {
-          setAttributeOnDreamInstance(foreignKey, marshalledOpts[foreignKey])
-        }
+        setAttributeOnDreamInstance(foreignKey, marshalledOpts[foreignKey])
 
         if (belongsToAssociationMetaData.polymorphic) {
           const foreignKeyTypeField = belongsToAssociationMetaData.foreignKeyTypeField()
           marshalledOpts[foreignKeyTypeField] = associatedObject?.stiBaseClassOrOwnClass?.name
-          if (dreamInstance) {
-            setAttributeOnDreamInstance(foreignKeyTypeField, associatedObject?.stiBaseClassOrOwnClass?.name)
-          }
+          setAttributeOnDreamInstance(foreignKeyTypeField, associatedObject?.stiBaseClassOrOwnClass?.name)
         }
       } else {
         marshalledOpts[attr] = marshalDBValue(this, attr as any, (attributes as any)[attr])
-
-        if (dreamInstance) {
-          setAttributeOnDreamInstance(attr, marshalledOpts[attr])
-        }
+        setAttributeOnDreamInstance(attr, marshalledOpts[attr])
       }
     })
 
@@ -1089,6 +1084,39 @@ export default class Dream {
     })
   }
 
+  /**
+   * #assignAttribute
+   *
+   * changes the attribute value for a single attribute,
+   * leveraging any custom-defined setters. If you would like to
+   * bypass custom-defined setters, use #setAttribute instead
+   *
+   * ```ts
+   *  const user = new User()
+   *  user.assignAttribute('email', 'sally@gmail.com')
+   * ```
+   */
+  public assignAttribute<I extends Dream, Key extends AttributeKeys<I>>(
+    this: I,
+    attr: Key & string,
+    val: any
+  ): void {
+    const self = this as any
+    self[attr] = val
+  }
+
+  /**
+   * #setAttribute
+   *
+   * changes the attribute value for a single attribute internally,
+   * bypassing any custom-defined setters. If you would like to set attributes
+   * without bypassing custom-defined setters, use #assignAttribute instead
+   *
+   * ```ts
+   *  const user = new User()
+   *  user.setAttribute('email', 'sally@gmail.com')
+   * ```
+   */
   public setAttribute<I extends Dream, Key extends AttributeKeys<I>>(
     this: I,
     attr: Key & string,
@@ -1104,7 +1132,7 @@ export default class Dream {
           : JSON.stringify(val)
         : val
     } else {
-      self[attr] = val
+      self.currentAttributes[attr] = val
     }
   }
 
@@ -1560,13 +1588,54 @@ export default class Dream {
     return serializer.render()
   }
 
+  /**
+   * ### #assignAttributes
+   *
+   * takes the attributes passed in and sets their values,
+   * leveraging any custom setters defined for these attributes
+   *
+   * e.g.
+   *
+   * ```ts
+   *  const user = new User()
+   *  user.assignAttributes({ email: 'my@email', password: 'my password' })
+   * ```
+   *
+   * #### NOTE:
+   * if you are interested in bypassing custom-defined setters,
+   * use `#setAttributes` instead.
+   */
+  public assignAttributes<
+    I extends Dream,
+    DB extends I['DB'],
+    TableName extends keyof DB = I['table'] & keyof DB,
+    Table extends DB[keyof DB] = DB[TableName]
+  >(this: I, attributes: Updateable<Table> | AssociatedModelParam<I>) {
+    return this._setAttributes(attributes, { bypassUserDefinedSetters: false })
+  }
+
+  /**
+   * #setAttributes
+   *
+   * takes the attributes passed in and sets their values internally,
+   * bypassing any custom setters defined for these attributes
+   *
+   * ```ts
+   *  const user = new User()
+   *  user.setAttributes({ email: 'my@email', password: 'my password' })
+   * ```
+   *
+   * #### NOTE:
+   * if you are interested in leveraging custom-defined setters,
+   * use `#assignAttributes` instead.
+   */
   public setAttributes<
     I extends Dream,
     DB extends I['DB'],
     TableName extends keyof DB = I['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
   >(this: I, attributes: Updateable<Table> | AssociatedModelParam<I>) {
-    return this._setAttributes(attributes)
+    return this._setAttributes(attributes, { bypassUserDefinedSetters: true })
   }
 
   private _setAttributes<
@@ -1577,12 +1646,14 @@ export default class Dream {
   >(
     this: I,
     attributes: Updateable<Table> | AssociatedModelParam<I>,
-    { bypassUserDefinedSetters = false }: { bypassUserDefinedSetters?: boolean } = {}
+    additionalOpts: { bypassUserDefinedSetters?: boolean } = {}
   ) {
     const dreamClass = this.constructor as typeof Dream
-    const marshalledOpts = dreamClass.extractAttributesFromUpdateableProperties(attributes as any, this, {
-      bypassUserDefinedSetters,
-    })
+    const marshalledOpts = dreamClass.extractAttributesFromUpdateableProperties(
+      attributes as any,
+      this,
+      additionalOpts
+    )
     return marshalledOpts
   }
 
@@ -1601,15 +1672,53 @@ export default class Dream {
     return new DreamInstanceTransactionBuilder<I>(this, txn)
   }
 
+  /**
+   * ### #update
+   *
+   * applies all attribute changes passed to the dream,
+   * leveraging any custom-defined setters,
+   * and then saves the dream instance
+   *
+   * e.g.
+   *
+   * ```ts
+   *  const user = await User.create({ email: 'saly@gmail.com' })
+   *  await user.update({ email: 'sally@gmail.com' })
+   * ```
+   *
+   * #### NOTE:
+   * if you are interested in bypassing any custom-defined setters,
+   * use `#updateAttributes` instead.
+   *
+   */
   public async update<I extends Dream>(this: I, attributes: UpdateableProperties<I>): Promise<I> {
-    this.setAttributes(attributes)
+    // use #assignAttributes to leverage any custom-defined setters
+    this.assignAttributes(attributes)
+
     // call save rather than _save so that any unsaved associations in the
     // attributes are saved with this model in a transaction
     return await this.save()
   }
 
+  /**
+   * ### #updateAttributes
+   *
+   * applies all attribute changes passed to the dream,
+   * bypassing any custom-defined setters,
+   * and then saves the dream instance.
+   *
+   * ```ts
+   *  const user = await User.create({ email: 'saly@gmail.com' })
+   *  await user.updateAttributes({ email: 'sally@gmail.com' })
+   * ```
+   * #### NOTE:
+   * if you are interested in updating the values without bypassing
+   * any custom-defined setters, use `#update` instead.
+   */
   public async updateAttributes<I extends Dream>(this: I, attributes: UpdateableProperties<I>): Promise<I> {
-    this._setAttributes(attributes, { bypassUserDefinedSetters: true })
+    // use #setAttributes to bypass any custom-defined setters
+    this.setAttributes(attributes)
+
     // call save rather than _save so that any unsaved associations in the
     // attributes are saved with this model in a transaction
     return await this.save()
