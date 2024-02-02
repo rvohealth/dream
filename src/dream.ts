@@ -693,11 +693,11 @@ export default class Dream {
     return (await this.query().last()) as InstanceType<T> | null
   }
 
-  public static limit<T extends typeof Dream>(this: T, count: number) {
+  public static limit<T extends typeof Dream>(this: T, count: number | null) {
     return this.query().limit(count)
   }
 
-  public static offset<T extends typeof Dream>(this: T, offset: number) {
+  public static offset<T extends typeof Dream>(this: T, offset: number | null) {
     return this.query().offset(offset)
   }
 

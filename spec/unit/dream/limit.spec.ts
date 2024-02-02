@@ -17,6 +17,21 @@ describe('Dream.limit', () => {
     expect(results).toMatchDreamModels([compositionAsset1, compositionAsset2])
   })
 
+  context('when passed null', () => {
+    it('removes limit', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+      const composition = await Composition.create({ user })
+
+      const compositionAsset1 = await CompositionAsset.create({ composition })
+      const compositionAsset2 = await CompositionAsset.create({ composition })
+      const compositionAsset3 = await CompositionAsset.create({ composition })
+
+      const results = await CompositionAsset.limit(2).limit(null).all()
+
+      expect(results).toMatchDreamModels([compositionAsset1, compositionAsset2, compositionAsset3])
+    })
+  })
+
   context('when passed a transaction', () => {
     it('limits the results', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
@@ -35,6 +50,26 @@ describe('Dream.limit', () => {
       })
 
       expect(results).toMatchDreamModels([compositionAsset1, compositionAsset2])
+    })
+
+    context('when passed null', () => {
+      it('removes limit', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+        const composition = await Composition.create({ user })
+
+        const compositionAsset1 = await CompositionAsset.create({ composition })
+        let compositionAsset2: CompositionAsset | undefined = undefined
+        let compositionAsset3: CompositionAsset | undefined = undefined
+
+        let results: CompositionAsset[] = []
+        await ApplicationModel.transaction(async txn => {
+          compositionAsset2 = await CompositionAsset.create({ composition })
+          compositionAsset3 = await CompositionAsset.create({ composition })
+          results = await CompositionAsset.txn(txn).limit(null).limit(2).limit(null).all()
+        })
+
+        expect(results).toMatchDreamModels([compositionAsset1, compositionAsset2, compositionAsset3])
+      })
     })
   })
 })

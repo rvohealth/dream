@@ -42,14 +42,14 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
 
   public limit<I extends DreamClassTransactionBuilder<DreamClass>>(
     this: I,
-    limit: number
+    limit: number | null
   ): Query<DreamClass> {
     return this.queryInstance().limit(limit)
   }
 
   public offset<I extends DreamClassTransactionBuilder<DreamClass>>(
     this: I,
-    offset: number
+    offset: number | null
   ): Query<DreamClass> {
     return this.queryInstance().offset(offset)
   }
