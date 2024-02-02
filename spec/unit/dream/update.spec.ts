@@ -49,6 +49,22 @@ describe('Dream#update', () => {
       const reloadedUser = await User.find(user!.id)
       expect(reloadedUser!.name).toEqual('Snoopy')
     })
+
+    context('with a model containing setter overrides', () => {
+      it('applies setter overrides', async () => {
+        let pet: Pet | null = null
+        await ApplicationModel.transaction(async txn => {
+          pet = await Pet.txn(txn).create({
+            name: 'Violet',
+          })
+
+          expect(pet.nickname).toEqual('Violet')
+          await pet.txn(txn).update({ nickname: 'Pony' })
+        })
+
+        expect(pet!.getAttribute('nickname')).toEqual('Li’l Pony')
+      })
+    })
   })
 
   it('updates the updatedAt field', async () => {
