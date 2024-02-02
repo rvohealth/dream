@@ -1278,12 +1278,11 @@ export default class Dream {
     const frozenValue = (this.frozenAttributes as any)[attribute]
     const currentValue = (this.attributes() as any)[attribute]
 
-    return (
-      (frozenValue === undefined && this.isNewRecord) ||
-      (frozenValue?.constructor === DateTime
-        ? (frozenValue as DateTime).toMillis() !== this.unknownValueToMillis(currentValue)
-        : frozenValue !== currentValue)
-    )
+    if (this.isNewRecord) return true
+
+    return frozenValue?.constructor === DateTime
+      ? (frozenValue as DateTime).toMillis() !== this.unknownValueToMillis(currentValue)
+      : frozenValue !== currentValue
   }
 
   private unknownValueToMillis(currentValue: any): number | undefined {
