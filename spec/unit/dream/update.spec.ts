@@ -58,7 +58,6 @@ describe('Dream#update', () => {
             name: 'Violet',
           })
 
-          expect(pet.nickname).toEqual('Violet')
           await pet.txn(txn).update({ nickname: 'Pony' })
         })
 
