@@ -1,6 +1,6 @@
 import Dream from '../dream'
 
-export default class NonExistentScopeProvidedToSortableDecorator extends Error {
+export default class NonBelongsToAssociationProvidedAsSortableDecoratorScope extends Error {
   private scope: string
   private dreamClass: typeof Dream
 
@@ -12,7 +12,7 @@ export default class NonExistentScopeProvidedToSortableDecorator extends Error {
 
   public get message() {
     return `
-Only BelongsTo scopes are supported by the @Sortable decorator.
+Only BelongsTo associations are supported as scopes for the @Sortable decorator.
 received:
   dream model class: ${this.dreamClass.name}
   scope: ${this.scope}

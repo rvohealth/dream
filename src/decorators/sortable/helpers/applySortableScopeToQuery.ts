@@ -1,6 +1,6 @@
 import Dream from '../../../dream'
 import Query from '../../../dream/query'
-import getForeignKeyForSortableScope from './getForeignKeyForSortableScope'
+import getColumnForSortableScope from './getColumnForSortableScope'
 import scopeArray from './scopeArray'
 
 export default function applySortableScopeToQuery(
@@ -12,9 +12,9 @@ export default function applySortableScopeToQuery(
   const scopes = scopeArray(scope)
 
   for (const scope of scopes) {
-    const foreignKey = getForeignKeyForSortableScope(dream, scope)!
+    const column = getColumnForSortableScope(dream, scope)!
     query = query.where({
-      [foreignKey]: (dream as any)[foreignKey],
+      [column]: (dream as any)[column],
     })
   }
 

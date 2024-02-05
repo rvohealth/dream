@@ -2,7 +2,7 @@ import { ExpressionBuilder } from 'kysely'
 import Dream from '../../../dream'
 import Query from '../../../dream/query'
 import ops from '../../../ops'
-import getForeignKeyForSortableScope from './getForeignKeyForSortableScope'
+import getColumnForSortableScope from './getColumnForSortableScope'
 import scopeArray from './scopeArray'
 
 export default async function decrementPositionForScopedRecordsGreaterThanPosition(
@@ -32,9 +32,9 @@ export default async function decrementPositionForScopedRecordsGreaterThanPositi
     })
 
   for (const singleScope of scopeArray(scope)) {
-    const foreignKey = getForeignKeyForSortableScope(dream, singleScope)
-    if (foreignKey) {
-      kyselyQuery = kyselyQuery.where(foreignKey, '=', (dream as any)[foreignKey])
+    const column = getColumnForSortableScope(dream, singleScope)
+    if (column) {
+      kyselyQuery = kyselyQuery.where(column, '=', (dream as any)[column])
     }
   }
 

@@ -2,13 +2,14 @@ import { describe as context } from '@jest/globals'
 import User from '../../../../test-app/app/models/User'
 import Post from '../../../../test-app/app/models/Post'
 import Sortable from '../../../../src/decorators/sortable'
-import NonExistentScopeProvidedToSortableDecorator from '../../../../src/exceptions/non-existent-scope-provided-to-sortable-decorator'
-import NonBelongsToScopeProvidedToSortableDecorator from '../../../../src/exceptions/non-belongs-to-scope-provided-to-sortable-decorator'
+import NonBelongsToAssociationProvidedAsSortableDecoratorScope from '../../../../src/exceptions/non-belongs-to-association-provided-as-sortable-decorator-scope'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import Edge from '../../../../test-app/app/models/Graph/Edge'
 import Node from '../../../../test-app/app/models/Graph/Node'
 import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
+import SortableDecoratorRequiresColumnOrBelongsToAssociation from '../../../../src/exceptions/sortable-decorator-requires-column-or-belongs-to-association'
+import Pet from '../../../../test-app/app/models/Pet'
 
 describe('@Sortable', () => {
   let user: User
@@ -410,6 +411,20 @@ describe('@Sortable', () => {
     })
   })
 
+  context('with another column as the scope', () => {
+    it('sets the position independently for models with different values of the scoping column', async () => {
+      const dog1 = await Pet.create({ species: 'dog' })
+      const cat1 = await Pet.create({ species: 'cat' })
+      const cat2 = await Pet.create({ species: 'cat' })
+      const dog2 = await Pet.create({ species: 'dog' })
+
+      expect(dog1.positionWithinSpecies).toEqual(1)
+      expect(dog2.positionWithinSpecies).toEqual(2)
+      expect(cat1.positionWithinSpecies).toEqual(1)
+      expect(cat2.positionWithinSpecies).toEqual(2)
+    })
+  })
+
   context('with an invalid scope provided', () => {
     context('with a scope pointing to a non-existent association', () => {
       class InvalidPost extends Post {
@@ -419,7 +434,7 @@ describe('@Sortable', () => {
 
       it('raises a targeted exception', async () => {
         await expect(async () => await InvalidPost.create({ body: 'hello', user })).rejects.toThrowError(
-          NonExistentScopeProvidedToSortableDecorator
+          SortableDecoratorRequiresColumnOrBelongsToAssociation
         )
       })
     })
@@ -432,7 +447,7 @@ describe('@Sortable', () => {
 
       it('raises a targeted exception', async () => {
         await expect(async () => await InvalidPost.create({ body: 'hello', user })).rejects.toThrowError(
-          NonBelongsToScopeProvidedToSortableDecorator
+          NonBelongsToAssociationProvidedAsSortableDecoratorScope
         )
       })
     })

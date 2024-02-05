@@ -14,6 +14,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('user_id', 'bigint', col => col.references('users.id').onDelete('cascade'))
     .addColumn('favorite_treats', sql`cat_treats[]`)
     .addColumn('species', sql`species`)
+    .addColumn('positionWithinSpecies', 'integer', col => col.notNull())
     .addColumn('name', 'text')
     .addColumn('nickname', 'text')
     .addColumn('deleted_at', 'timestamp')

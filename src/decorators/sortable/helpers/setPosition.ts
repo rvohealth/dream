@@ -4,7 +4,7 @@ import Dream from '../../../dream'
 import Query from '../../../dream/query'
 import DreamTransaction from '../../../dream/transaction'
 import range from '../../../helpers/range'
-import getForeignKeyForSortableScope from './getForeignKeyForSortableScope'
+import getColumnForSortableScope from './getColumnForSortableScope'
 import sortableQueryExcludingDream from './sortableQueryExcludingDream'
 import scopeArray from './scopeArray'
 
@@ -136,9 +136,9 @@ async function updateConflictingRecords({
     })
 
   for (const singleScope of scopeArray(scope)) {
-    const foreignKey = getForeignKeyForSortableScope(dream, singleScope)
-    if (foreignKey) {
-      kyselyQuery = kyselyQuery.where(foreignKey, '=', (dream as any)[foreignKey])
+    const column = getColumnForSortableScope(dream, singleScope)
+    if (column) {
+      kyselyQuery = kyselyQuery.where(column, '=', (dream as any)[column])
     }
   }
 

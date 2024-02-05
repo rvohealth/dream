@@ -1,5 +1,5 @@
 import Dream from '../../../dream'
-import getForeignKeyForSortableScope from './getForeignKeyForSortableScope'
+import getColumnForSortableScope from './getColumnForSortableScope'
 import isSortedCorrectly from './isSortedCorrectly'
 import scopeArray from './scopeArray'
 
@@ -40,6 +40,6 @@ export default async function resortAllRecords(
 
 function foreignKeysForScope(dream: Dream, scope?: string | string[]) {
   return scopeArray(scope)
-    .map(singleScope => getForeignKeyForSortableScope(dream, singleScope))
+    .map(singleScope => getColumnForSortableScope(dream, singleScope))
     .map(fk => (dream as any)[fk])
 }

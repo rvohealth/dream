@@ -3,6 +3,7 @@ import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
 import HasOne from '../../../src/decorators/associations/has-one'
 import Scope from '../../../src/decorators/scope'
+import Sortable from '../../../src/decorators/sortable'
 import User from './User'
 import { IdType } from '../../../src/dream/types'
 import { BeforeDestroy } from '../../../src'
@@ -38,6 +39,9 @@ export default class Pet extends ApplicationModel {
   public set nickname(nickname: string) {
     this.setAttribute('nickname', `Li’l ${nickname}`)
   }
+
+  @Sortable({ scope: 'species' })
+  public positionWithinSpecies: number
 
   @Scope({ default: true })
   public static hideDeleted(query: any) {
