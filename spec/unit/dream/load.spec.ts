@@ -1,4 +1,5 @@
 import { Dream, NonLoadedAssociation } from '../../../src'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import Pet from '../../../test-app/app/models/Pet'
 import User from '../../../test-app/app/models/User'
@@ -26,6 +27,19 @@ describe('Dream#load', () => {
   // broken, tests will fail to compile due to type errors
   it.skip('permits types a-g', async () => {
     await user.load('pets', 'collars', 'pet', 'collars', 'pet').execute()
+  })
+
+  context('with a transaction', () => {
+    it('loads the association', async () => {
+      let pets: Pet[] = []
+      await ApplicationModel.transaction(async txn => {
+        await user.txn(txn).createAssociation('pets', { species: 'dog', name: 'violet' })
+        user = await user.txn(txn).load('pets').execute()
+        pets = user.pets
+      })
+
+      expect(pets.map(p => p.name)).toEqual(['aster', 'violet'])
+    })
   })
 
   context('Has(One/Many) association', () => {
