@@ -1,6 +1,7 @@
 import { PassthroughWhere } from '../decorators/associations/shared'
 import Dream from '../dream'
 import Query from './query'
+import DreamTransaction from './transaction'
 import {
   DreamConstructorType,
   NextPreloadArgumentType,
@@ -9,12 +10,14 @@ import {
 
 export default class LoadBuilder<DreamInstance extends Dream> {
   private dream: Dream
+  private dreamTransaction: DreamTransaction<any> | undefined
   private query: Query<DreamConstructorType<DreamInstance>>
 
-  constructor(dream: Dream) {
+  constructor(dream: Dream, txn?: DreamTransaction<any>) {
     this.dream = dream.clone()
     const base = this.dream.constructor as DreamConstructorType<DreamInstance>
     this.query = new Query<DreamConstructorType<DreamInstance>>(base)
+    this.dreamTransaction = txn
   }
 
   public passthrough<I extends LoadBuilder<DreamInstance>, AllColumns extends DreamInstance['allColumns']>(
@@ -73,6 +76,10 @@ export default class LoadBuilder<DreamInstance extends Dream> {
   }
 
   public async execute(): Promise<DreamInstance> {
+    if (this.dreamTransaction) {
+      this.query = this.query.txn(this.dreamTransaction)
+    }
+
     await this.query['hydratePreload'](this.dream)
     return this.dream as DreamInstance
   }

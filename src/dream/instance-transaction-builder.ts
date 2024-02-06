@@ -15,6 +15,8 @@ import {
   GreaterThanFour,
   GreaterThanFive,
   GreaterThanSix,
+  NextPreloadArgumentType,
+  PreloadArgumentTypeAssociatedTableNames,
 } from './types'
 import associationQuery from './internal/associations/associationQuery'
 import associationUpdateQuery from './internal/associations/associationUpdateQuery'
@@ -22,6 +24,7 @@ import createAssociation from './internal/associations/createAssociation'
 import reload from './internal/reload'
 import destroyAssociation from './internal/associations/destroyAssociation'
 import Query, { FindEachOpts } from './query'
+import LoadBuilder from './load-builder'
 
 export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream> {
   public dreamInstance: DreamInstance
@@ -147,6 +150,74 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
       g as any,
       cb,
       opts
+    )
+  }
+
+  public load<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    TableName extends DreamInstance['table'],
+    SyncedAssociations extends DreamInstance['syncedAssociations'],
+    //
+    A extends NextPreloadArgumentType<SyncedAssociations, TableName>,
+    ATableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, TableName, A>,
+    B extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanOne
+      ? NextPreloadArgumentType<SyncedAssociations, ATableName>
+      : any,
+    BTableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanOne
+      ? PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ATableName, B>
+      : never,
+    C extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanTwo
+      ? BTableName extends never
+        ? never
+        : NextPreloadArgumentType<SyncedAssociations, BTableName>
+      : any,
+    CTableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanTwo
+      ? PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, BTableName, C>
+      : never,
+    D extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanThree
+      ? CTableName extends never
+        ? never
+        : NextPreloadArgumentType<SyncedAssociations, CTableName>
+      : any,
+    DTableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanThree
+      ? CTableName extends never
+        ? never
+        : PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, CTableName, D>
+      : never,
+    E extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFour
+      ? DTableName extends never
+        ? never
+        : NextPreloadArgumentType<SyncedAssociations, DTableName>
+      : any,
+    ETableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFive
+      ? DTableName extends never
+        ? never
+        : PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, DTableName, E>
+      : never,
+    F extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFive
+      ? ETableName extends never
+        ? never
+        : NextPreloadArgumentType<SyncedAssociations, ETableName>
+      : any,
+    FTableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFive
+      ? ETableName extends never
+        ? never
+        : PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ETableName, F>
+      : never,
+    G extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanSix
+      ? FTableName extends never
+        ? never
+        : NextPreloadArgumentType<SyncedAssociations, FTableName>
+      : any
+  >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G): LoadBuilder<DreamInstance> {
+    return new LoadBuilder<DreamInstance>(this.dreamInstance, this.dreamTransaction).load(
+      a as any,
+      b as any,
+      c as any,
+      d as any,
+      e as any,
+      f as any,
+      g as any
     )
   }
 
