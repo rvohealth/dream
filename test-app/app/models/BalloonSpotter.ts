@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import { IdType } from '../../../src/dream/types'
 import BalloonSpotterSerializer from '../../../test-app/app/serializers/BalloonSpotterSerializer'
-import { HasMany } from '../../../src'
+import HasMany from '../../../src/decorators/associations/has-many'
 import BalloonSpotterBalloon from './BalloonSpotterBalloon'
 import Balloon from './Balloon'
 import ApplicationModel from './ApplicationModel'

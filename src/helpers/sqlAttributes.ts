@@ -10,7 +10,7 @@ export default function sqlAttributes(dream: Dream) {
 
     if (val?.constructor === DateTime) {
       result[key] = val.toJSDate()
-    } else {
+    } else if (val !== undefined) {
       result[key] = val
     }
 

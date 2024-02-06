@@ -1,4 +1,4 @@
-import { IdType } from '../../../src'
+import { IdType } from '../../../src/dream/types'
 import DreamSerializer from '../../../src/serializer'
 import Attribute from '../../../src/serializer/decorators/attribute'
 import RendersMany from '../../../src/serializer/decorators/associations/renders-many'

@@ -49,8 +49,12 @@ export default async function saveDream<DreamInstance extends Dream>(
     query = db.insertInto(dream.table).values(sqlifiedAttributes as any)
   }
 
-  const data = await executeDatabaseQuery(query.returning(dream.columns()), 'executeTakeFirstOrThrow')
-  dream.setAttributes(data)
+  // BeforeSave/Update actions may clear all the data that we intended to save, leaving us with
+  // an invalid update command. The Sortable decorator is an example of this.
+  if (!alreadyPersisted || Object.keys(sqlifiedAttributes).length) {
+    const data = await executeDatabaseQuery(query.returning(dream.columns()), 'executeTakeFirstOrThrow')
+    dream.setAttributes(data)
+  }
 
   // set frozen attributes to what has already been saved
   dream['freezeAttributes']()

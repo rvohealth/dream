@@ -187,6 +187,7 @@ export default {
       "composition_assets"
     ]
   },
+  "model_without_updated_at": {},
   "pet_understudy_join_models": {
     "pet": [
       "pets"
@@ -545,6 +546,7 @@ export interface SyncedAssociations {
       "composition_assets"
     ]
   },
+  "model_without_updated_at": {},
   "pet_understudy_join_models": {
     "pet": [
       "pets"
@@ -792,6 +794,7 @@ export interface SyncedBelongsToAssociations {
       "composition_assets"
     ]
   },
+  "model_without_updated_at": false,
   "pet_understudy_join_models": {
     "pet": [
       "pets"
@@ -853,6 +856,7 @@ export interface VirtualColumns {
   "graph_nodes": false,
   "incompatible_foreign_key_type_examples": false,
   "localized_texts": false,
+  "model_without_updated_at": false,
   "pet_understudy_join_models": false,
   "pets": false,
   "post_visibilities": false,

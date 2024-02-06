@@ -1,8 +1,7 @@
 import repl from 'node:repl'
 import fs from 'fs/promises'
 import path from 'path'
-import { loadDreamYamlFile, modelsPath } from '../../src/helpers/path'
-import absoluteFilePath from '../../src/helpers/absoluteFilePath'
+import { modelsPath } from '../../src/helpers/path'
 import importFileWithDefault from '../../src/helpers/importFileWithDefault'
 
 const replServer = repl.start('> ')

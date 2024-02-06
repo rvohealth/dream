@@ -9,7 +9,7 @@ import Rating from './Rating'
 import User from './User'
 import HeartRating from './ExtraRating/HeartRating'
 import ApplicationModel from './ApplicationModel'
-import { Sortable } from '../../../src'
+import Sortable from '../../../src/decorators/sortable'
 
 export default class Post extends ApplicationModel {
   public get table() {

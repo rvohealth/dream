@@ -1,4 +1,5 @@
 import { Kysely, sql } from 'kysely'
+import addDeferrableUniqueConstraint from '../../../src/db/migration-helpers/addDeferrableUniqueConstraint'
 
 export async function up(db: Kysely<any>): Promise<void> {
   // NOTE: intentionally leaving out updated at field on this model so that models without
@@ -14,12 +15,19 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('user_id', 'bigint', col => col.references('users.id').onDelete('cascade'))
     .addColumn('favorite_treats', sql`cat_treats[]`)
     .addColumn('species', sql`species`)
-    .addColumn('positionWithinSpecies', 'integer', col => col.notNull())
+    .addColumn('position_within_species', 'integer', col => col.notNull())
     .addColumn('name', 'text')
     .addColumn('nickname', 'text')
     .addColumn('deleted_at', 'timestamp')
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .execute()
+
+  await addDeferrableUniqueConstraint(
+    'pets_unique_position_within_species',
+    'pets',
+    ['species', 'position_within_species'],
+    db
+  )
 }
 
 export async function down(db: Kysely<any>): Promise<void> {

@@ -423,6 +423,24 @@ describe('@Sortable', () => {
       expect(cat1.positionWithinSpecies).toEqual(1)
       expect(cat2.positionWithinSpecies).toEqual(2)
     })
+
+    context('updating position', () => {
+      it('automatically adjusts other records with the same column scope', async () => {
+        const dog1 = await Pet.create({ species: 'dog' })
+        const cat1 = await Pet.create({ species: 'cat' })
+        const cat2 = await Pet.create({ species: 'cat' })
+        const dog2 = await Pet.create({ species: 'dog' })
+        const dog3 = await Pet.create({ species: 'dog' })
+
+        await dog3.update({ positionWithinSpecies: 1 })
+
+        expect((await dog3.reload()).positionWithinSpecies).toEqual(1)
+        expect((await dog1.reload()).positionWithinSpecies).toEqual(2)
+        expect((await dog2.reload()).positionWithinSpecies).toEqual(3)
+        expect((await cat1.reload()).positionWithinSpecies).toEqual(1)
+        expect((await cat2.reload()).positionWithinSpecies).toEqual(2)
+      })
+    })
   })
 
   context('with an invalid scope provided', () => {
@@ -467,7 +485,7 @@ describe('@Sortable', () => {
       expect((await balloon3.reload()).positionAlpha).toEqual(3)
       expect((await unrelatedBalloon.reload()).positionAlpha).toEqual(1)
 
-      await balloon4.update({ color: 'red', positionAlpha: 2 })
+      await balloon4.update({ positionAlpha: 2 })
       expect((await balloon4.reload()).positionAlpha).toEqual(2)
 
       expect((await balloon1.reload()).positionAlpha).toEqual(1)

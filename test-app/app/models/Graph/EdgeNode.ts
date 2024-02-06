@@ -8,7 +8,7 @@ import GraphEdgeNodeSerializer from '../../../../test-app/app/serializers/Graph/
 import GraphEdge from './Edge'
 import GraphNode from './Node'
 import ApplicationModel from '../ApplicationModel'
-import { Sortable } from '../../../../src'
+import Sortable from '../../../../src/decorators/sortable'
 
 export default class EdgeNode extends ApplicationModel {
   public get table() {

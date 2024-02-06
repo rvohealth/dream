@@ -10,6 +10,7 @@ import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import Balloon from '../../../test-app/app/models/Balloon'
 import Animal from '../../../test-app/app/models/Balloon/Latex/Animal'
+import ModelWithoutUpdatedAt from '../../../test-app/app/models/ModelWithoutUpdatedAt'
 
 describe('Dream#update', () => {
   it('updates the underlying model in the db', async () => {
@@ -281,4 +282,18 @@ describe('Dream#update', () => {
       })
     })
   })
+
+  context(
+    'when a BeforeSave/Update action leaves a model with nothing to update ' +
+      '(only happens on models without an updatedAt field since that is automatically maintained)',
+    () => {
+      it('does not throw an error', async () => {
+        const modelWithoutUpdatedAt = await ModelWithoutUpdatedAt.create({ cantUpdateThis: 'hello world' })
+
+        await modelWithoutUpdatedAt.update({ cantUpdateThis: 'goodbye' })
+
+        expect((await modelWithoutUpdatedAt.reload()).cantUpdateThis).toEqual('hello world')
+      })
+    }
+  )
 })

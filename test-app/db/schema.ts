@@ -264,6 +264,13 @@ export interface LocalizedTexts {
   updatedAt: Timestamp;
 }
 
+export interface ModelWithoutUpdatedAt {
+  cantUpdateThis: string | null;
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  name: string | null;
+}
+
 export interface Pets {
   createdAt: Timestamp;
   deletedAt: Timestamp | null;
@@ -360,6 +367,7 @@ export interface DB {
   graph_nodes: GraphNodes;
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples;
   localized_texts: LocalizedTexts;
+  model_without_updated_at: ModelWithoutUpdatedAt;
   pet_understudy_join_models: PetUnderstudyJoinModels;
   pets: Pets;
   post_visibilities: PostVisibilities;
@@ -386,6 +394,7 @@ export const GraphEdgeColumns = ['createdAt', 'id', 'name', 'updatedAt', 'weight
 export const GraphNodeColumns = ['createdAt', 'id', 'name', 'omittedEdgePosition', 'updatedAt'] as const
 export const IncompatibleForeignKeyTypeExampleColumns = ['createdAt', 'id', 'updatedAt', 'userId'] as const
 export const LocalizedTextColumns = ['body', 'createdAt', 'id', 'locale', 'localizableId', 'localizableType', 'name', 'title', 'updatedAt'] as const
+export const ModelWithoutUpdatedAtColumns = ['cantUpdateThis', 'createdAt', 'id', 'name'] as const
 export const PetColumns = ['createdAt', 'deletedAt', 'favoriteTreats', 'id', 'name', 'nickname', 'positionWithinSpecies', 'species', 'userId'] as const
 export const PetUnderstudyJoinModelColumns = ['createdAt', 'id', 'petId', 'understudyId', 'updatedAt'] as const
 export const PostColumns = ['body', 'createdAt', 'deletedAt', 'id', 'position', 'postVisibilityId', 'updatedAt', 'userId'] as const
@@ -395,7 +404,7 @@ export const SandbagColumns = ['balloonId', 'createdAt', 'id', 'updatedAt', 'wei
 export const UserColumns = ['birthdate', 'createdAt', 'deletedAt', 'email', 'featuredPostPosition', 'id', 'name', 'passwordDigest', 'socialSecurityNumber', 'targetRating', 'updatedAt'] as const
 export const UserSettingColumns = ['createdAt', 'id', 'likesChalupas', 'updatedAt', 'userId'] as const
 
-export const AllColumns = ['approval', 'balloonId', 'balloonLines', 'balloonSpotterBalloons', 'balloonSpotterId', 'balloonSpotters', 'beautifulBalloons', 'birthdate', 'body', 'collars', 'color', 'compositionAssetAudits', 'compositionAssetId', 'compositionAssets', 'compositionId', 'compositions', 'content', 'createdAt', 'deletedAt', 'edgeCaseAttributes', 'edgeId', 'email', 'extraRateableId', 'extraRateableType', 'extraRatings', 'favoriteTreats', 'featuredPostPosition', 'graphEdgeNodes', 'graphEdges', 'graphNodes', 'id', 'incompatibleForeignKeyTypeExamples', 'kPop', 'likesChalupas', 'locale', 'localizableId', 'localizableType', 'localizedTexts', 'lost', 'material', 'metadata', 'metadata2', 'metadata3', 'multiScopedPosition', 'multicolor', 'name', 'nickname', 'nodeId', 'notes', 'omittedEdgePosition', 'passwordDigest', 'petId', 'petUnderstudyJoinModels', 'pets', 'popK', 'popKPop', 'position', 'positionAlpha', 'positionBeta', 'positionWithinSpecies', 'postVisibilities', 'postVisibilityId', 'posts', 'primary', 'rateableId', 'rateableType', 'rating', 'ratings', 'sandbags', 'score', 'socialSecurityNumber', 'species', 'src', 'tagName', 'targetRating', 'title', 'type', 'understudyId', 'updatedAt', 'userId', 'userSettings', 'users', 'visibility', 'volume', 'weight'] as const
+export const AllColumns = ['approval', 'balloonId', 'balloonLines', 'balloonSpotterBalloons', 'balloonSpotterId', 'balloonSpotters', 'beautifulBalloons', 'birthdate', 'body', 'cantUpdateThis', 'collars', 'color', 'compositionAssetAudits', 'compositionAssetId', 'compositionAssets', 'compositionId', 'compositions', 'content', 'createdAt', 'deletedAt', 'edgeCaseAttributes', 'edgeId', 'email', 'extraRateableId', 'extraRateableType', 'extraRatings', 'favoriteTreats', 'featuredPostPosition', 'graphEdgeNodes', 'graphEdges', 'graphNodes', 'id', 'incompatibleForeignKeyTypeExamples', 'kPop', 'likesChalupas', 'locale', 'localizableId', 'localizableType', 'localizedTexts', 'lost', 'material', 'metadata', 'metadata2', 'metadata3', 'modelWithoutUpdatedAt', 'multiScopedPosition', 'multicolor', 'name', 'nickname', 'nodeId', 'notes', 'omittedEdgePosition', 'passwordDigest', 'petId', 'petUnderstudyJoinModels', 'pets', 'popK', 'popKPop', 'position', 'positionAlpha', 'positionBeta', 'positionWithinSpecies', 'postVisibilities', 'postVisibilityId', 'posts', 'primary', 'rateableId', 'rateableType', 'rating', 'ratings', 'sandbags', 'score', 'socialSecurityNumber', 'species', 'src', 'tagName', 'targetRating', 'title', 'type', 'understudyId', 'updatedAt', 'userId', 'userSettings', 'users', 'visibility', 'volume', 'weight'] as const
 
 export interface BalloonLineAttributes {
   balloonId: IdType
@@ -541,6 +550,13 @@ export interface LocalizedTextAttributes {
   name: string | null
   title: string | null
   updatedAt: DateTime
+}  
+
+export interface ModelWithoutUpdatedAtAttributes {
+  cantUpdateThis: string | null
+  createdAt: DateTime
+  id: IdType
+  name: string | null
 }  
 
 export interface PetAttributes {
@@ -770,6 +786,13 @@ export const LocalizedTextsDBTypeMap = {
   updatedAt: 'timestamp without time zone'
 }
 
+export const ModelWithoutUpdatedAtDBTypeMap = {
+  cantUpdateThis: 'character varying',
+  createdAt: 'timestamp without time zone',
+  id: 'bigint',
+  name: 'character varying'
+}
+
 export const PetsDBTypeMap = {
   createdAt: 'timestamp without time zone',
   deletedAt: 'timestamp without time zone',
@@ -868,6 +891,7 @@ export class DBClass {
   graph_nodes: GraphNodes
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples
   localized_texts: LocalizedTexts
+  model_without_updated_at: ModelWithoutUpdatedAt
   pet_understudy_join_models: PetUnderstudyJoinModels
   pets: Pets
   post_visibilities: PostVisibilities
@@ -894,6 +918,7 @@ export interface InterpretedDB {
   graph_nodes: GraphNodeAttributes,
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExampleAttributes,
   localized_texts: LocalizedTextAttributes,
+  model_without_updated_at: ModelWithoutUpdatedAtAttributes,
   pet_understudy_join_models: PetUnderstudyJoinModelAttributes,
   pets: PetAttributes,
   post_visibilities: PostVisibilityAttributes,
@@ -920,6 +945,7 @@ export class InterpretedDBClass {
   graph_nodes: GraphNodeAttributes
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExampleAttributes
   localized_texts: LocalizedTextAttributes
+  model_without_updated_at: ModelWithoutUpdatedAtAttributes
   pet_understudy_join_models: PetUnderstudyJoinModelAttributes
   pets: PetAttributes
   post_visibilities: PostVisibilityAttributes
@@ -946,6 +972,7 @@ export const DBColumns = {
   graph_nodes: GraphNodeColumns,
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExampleColumns,
   localized_texts: LocalizedTextColumns,
+  model_without_updated_at: ModelWithoutUpdatedAtColumns,
   pet_understudy_join_models: PetUnderstudyJoinModelColumns,
   pets: PetColumns,
   post_visibilities: PostVisibilityColumns,
@@ -972,6 +999,7 @@ export const DBTypeCache = {
   graph_nodes: GraphNodesDBTypeMap,
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamplesDBTypeMap,
   localized_texts: LocalizedTextsDBTypeMap,
+  model_without_updated_at: ModelWithoutUpdatedAtDBTypeMap,
   pet_understudy_join_models: PetUnderstudyJoinModelsDBTypeMap,
   pets: PetsDBTypeMap,
   post_visibilities: PostVisibilitiesDBTypeMap,
