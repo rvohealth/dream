@@ -36,7 +36,7 @@ import {
   GreaterThanSix,
 } from './dream/types'
 import Query, { FindEachOpts } from './dream/query'
-import checkValidationsFor from './dream/internal/checkValidationsFor'
+import runValidations from './dream/internal/runValidations'
 import DreamTransaction from './dream/transaction'
 import DreamClassTransactionBuilder from './dream/class-transaction-builder'
 import saveDream from './dream/internal/saveDream'
@@ -124,6 +124,7 @@ export default class Dream {
   } = blankHooksFactory(this)
 
   protected static validations: ValidationStatement[] = []
+  protected static customValidations: string[] = []
   protected static replicaSafe = false
 
   public static get isDream() {
@@ -886,7 +887,8 @@ export default class Dream {
   }
 
   public get isValid(): boolean {
-    this.errors = checkValidationsFor(this)
+    this._errors = {}
+    runValidations(this)
     return !Object.keys(this.errors).filter(key => !!this.errors[key].length).length
   }
 
@@ -949,7 +951,7 @@ export default class Dream {
     return unsaved
   }
 
-  public errors: { [key: string]: ValidationType[] } = {}
+  private _errors: { [key: string]: ValidationType[] } = {}
   private frozenAttributes: { [key: string]: any } = {}
   private originalAttributes: { [key: string]: any } = {}
   private currentAttributes: { [key: string]: any } = {}
@@ -1086,6 +1088,37 @@ export default class Dream {
         }
       }
     })
+  }
+
+  public get errors(): { [key: string]: ValidationType[] } {
+    return { ...this._errors }
+  }
+
+  /**
+   * ### #addError
+   *
+   * adds an error to the model. Any errors added to the model
+   * will cause the record to be invalid, and will prevent the
+   * record from saving.
+   *
+   * ```ts
+   *  class User extends ApplicationModel {
+   *    ...
+   *    @Validate()
+   *    public async validateName() {
+   *      if (typeof this.name === 'number')
+   *        this.addError('name', 'name cannot be a number')
+   *    }
+   *  }
+   * ```
+   */
+  public addError<I extends Dream, Key extends AttributeKeys<I>>(
+    this: I,
+    column: Key & string,
+    error: string
+  ) {
+    this._errors[column] ||= []
+    this._errors[column].push(error as any)
   }
 
   /**

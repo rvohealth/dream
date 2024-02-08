@@ -33,11 +33,11 @@ export default class Pet extends ApplicationModel {
   public createdAt: DateTime
 
   public get nickname() {
-    return (this.getAttribute('nickname') || this.name) as typeof this.name
+    return ((this as Pet).getAttribute('nickname') || this.name) as typeof this.name
   }
 
   public set nickname(nickname: string) {
-    this.setAttribute('nickname', `Li’l ${nickname}`)
+    ;(this as Pet).setAttribute('nickname', `Li’l ${nickname}`)
   }
 
   @Sortable({ scope: 'species' })
