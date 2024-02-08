@@ -50,11 +50,8 @@ export type UpdateablePropertiesForClass<DreamClass extends typeof Dream> =
 
 export type AttributeKeys<I extends Dream> =
   | keyof Updateable<I['DB'][I['table'] & AssociationTableNames<I['DB'], I['syncedAssociations']>]>
-  | keyof (I['dreamconf']['virtualColumns'][I['table'] & keyof I['dreamconf']['virtualColumns']] extends any[]
-      ? Record<
-          I['dreamconf']['virtualColumns'][I['table'] & keyof I['dreamconf']['virtualColumns']][number],
-          any
-        >
+  | (I['dreamconf']['virtualColumns'][I['table'] & keyof I['dreamconf']['virtualColumns']] extends any[]
+      ? I['dreamconf']['virtualColumns'][I['table'] & keyof I['dreamconf']['virtualColumns']][number]
       : never)
 
 export type UpdateableProperties<I extends Dream> =

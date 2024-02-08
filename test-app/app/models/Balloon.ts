@@ -27,11 +27,11 @@ export default class Balloon extends ApplicationModel {
   public updatedAt: DateTime
 
   public get type() {
-    return this.getAttribute('type') as BalloonTypesEnum
+    return (this as Balloon).getAttribute('type') as BalloonTypesEnum
   }
 
   public set type(newType: BalloonTypesEnum) {
-    this.setAttribute('type', newType)
+    ;(this as Balloon).setAttribute('type', newType)
   }
 
   @Sortable({ scope: 'user' })

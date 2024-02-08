@@ -2,7 +2,7 @@ import ValidationStatement from '../../decorators/validations/shared'
 import Dream from '../../dream'
 import NonLoadedAssociation from '../../exceptions/associations/non-loaded-association'
 
-export default function isValid(dream: Dream, validation: ValidationStatement) {
+export default function checkSingleValidation(dream: Dream, validation: ValidationStatement) {
   let value: any
   try {
     value = (dream as any)[validation.column]
@@ -54,7 +54,7 @@ export default function isValid(dream: Dream, validation: ValidationStatement) {
       return !!(value || (dream as any)[dream.associationMap()[validation.column].foreignKey()])
 
     default:
-      throw `Unhandled validation type found while running validations: ${validation.type}`
+      throw new Error(`Unhandled validation type found while running validations: ${validation.type}`)
   }
 }
 

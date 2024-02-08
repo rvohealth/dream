@@ -8,6 +8,8 @@ export async function up(db: Kysely<any>): Promise<void> {
       col.references('beautiful_balloons.id').onDelete('cascade').notNull()
     )
     .addColumn('weight', 'integer')
+    .addColumn('weight_kgs', 'integer')
+    .addColumn('weight_tons', 'integer')
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()

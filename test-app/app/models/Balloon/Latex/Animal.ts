@@ -5,10 +5,10 @@ import Latex from '../Latex'
 @STI(Latex)
 export default class Animal extends Latex {
   public get type() {
-    return this.getAttribute('type') as BalloonTypesEnum
+    return (this as Animal).getAttribute('type') as BalloonTypesEnum
   }
 
   public set type(newType: BalloonTypesEnum) {
-    this.setAttribute('type', 'Animal')
+    ;(this as Animal).setAttribute('type', 'Animal')
   }
 }
