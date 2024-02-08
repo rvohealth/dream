@@ -28,9 +28,9 @@ export default class DreamTransaction<DB extends any> {
     this.commitHooks.push({ dreamInstance, hookStatement })
   }
 
-  public async runAfterCommitHooks() {
+  public async runAfterCommitHooks(txn: DreamTransaction<any>) {
     for (const hook of this.commitHooks) {
-      await runHook(hook.hookStatement, hook.dreamInstance)
+      await runHook(hook.hookStatement, hook.dreamInstance, txn)
     }
   }
 }

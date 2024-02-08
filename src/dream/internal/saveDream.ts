@@ -17,9 +17,9 @@ export default async function saveDream<DreamInstance extends Dream>(
 
   const alreadyPersisted = dream.isPersisted
 
-  await runHooksFor('beforeSave', dream)
-  if (alreadyPersisted) await runHooksFor('beforeUpdate', dream)
-  else await runHooksFor('beforeCreate', dream)
+  await runHooksFor('beforeSave', dream, txn as DreamTransaction<any>)
+  if (alreadyPersisted) await runHooksFor('beforeUpdate', dream, txn as DreamTransaction<any>)
+  else await runHooksFor('beforeCreate', dream, txn as DreamTransaction<any>)
 
   // need to check validations after running before hooks, or else
   // model hooks that might make a model valid cannot run
@@ -61,9 +61,9 @@ export default async function saveDream<DreamInstance extends Dream>(
   dream['attributesFromBeforeLastSave'] = dream['originalAttributes']
   dream['originalAttributes'] = dream.attributes()
 
-  await runHooksFor('afterSave', dream)
-  if (alreadyPersisted) await runHooksFor('afterUpdate', dream)
-  else await runHooksFor('afterCreate', dream)
+  await runHooksFor('afterSave', dream, txn as DreamTransaction<any>)
+  if (alreadyPersisted) await runHooksFor('afterUpdate', dream, txn as DreamTransaction<any>)
+  else await runHooksFor('afterCreate', dream, txn as DreamTransaction<any>)
 
   const commitHookType = alreadyPersisted ? 'afterUpdateCommit' : 'afterCreateCommit'
   await safelyRunCommitHooks(dream, 'afterSaveCommit', txn)
