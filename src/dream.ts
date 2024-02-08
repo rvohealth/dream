@@ -793,7 +793,7 @@ export default class Dream {
         )
       })
 
-    await dreamTransaction.runAfterCommitHooks()
+    await dreamTransaction.runAfterCommitHooks(dreamTransaction)
 
     return res
   }

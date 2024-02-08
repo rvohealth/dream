@@ -1,10 +1,9 @@
 import Dream from '../../../dream'
 import Query from '../../../dream/query'
 import clearCachedSortableValues from '../helpers/clearCachedSortableValues'
-import setPosition from '../helpers/setPosition'
-import sortableCacheKeyName from '../helpers/sortableCacheKeyName'
+import decrementPositionForScopedRecordsGreaterThanPosition from '../helpers/decrementScopedRecordsGreaterThanPosition'
 
-export default async function afterSortableCreateCommit({
+export default async function afterSortableDestroy({
   positionField,
   dream,
   query,
@@ -15,15 +14,11 @@ export default async function afterSortableCreateCommit({
   query: Query<typeof Dream>
   scope?: string | string[]
 }) {
-  const cacheKey = sortableCacheKeyName(positionField)
-
-  await setPosition({
-    position: (dream as any)[cacheKey],
+  await decrementPositionForScopedRecordsGreaterThanPosition((dream as any)[positionField], {
     dream,
     positionField,
     scope,
     query,
   })
-
   clearCachedSortableValues(dream, positionField)
 }

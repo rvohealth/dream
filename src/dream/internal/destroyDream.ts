@@ -5,11 +5,10 @@ import { DreamConstructorType } from '../types'
 import runHooksFor from './runHooksFor'
 import safelyRunCommitHooks from './safelyRunCommitHooks'
 
-export default async function destroyDream<
-  I extends Dream,
-  DB extends I['DB'],
-  TableName extends keyof DB = I['table'] & keyof DB
->(dream: I, txn: DreamTransaction<I['DB']> | null = null): Promise<I> {
+export default async function destroyDream<I extends Dream>(
+  dream: I,
+  txn: DreamTransaction<I['DB']> | null = null
+): Promise<I> {
   await runHooksFor('beforeDestroy', dream)
   if (dream['_preventDeletion']) return dream.unpreventDeletion()
   const db = txn?.kyselyTransaction || _db('primary', dream.dreamconf)
@@ -21,7 +20,7 @@ export default async function destroyDream<
     .where(Base.primaryKey as any, '=', (dream as any)[Base.primaryKey])
     .execute()
 
-  await runHooksFor('afterDestroy', dream)
+  await runHooksFor('afterDestroy', dream, txn as DreamTransaction<any>)
 
   await safelyRunCommitHooks(dream, 'afterDestroyCommit', txn)
 

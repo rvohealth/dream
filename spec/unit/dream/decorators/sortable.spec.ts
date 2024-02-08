@@ -10,6 +10,7 @@ import Node from '../../../../test-app/app/models/Graph/Node'
 import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
 import SortableDecoratorRequiresColumnOrBelongsToAssociation from '../../../../src/exceptions/sortable-decorator-requires-column-or-belongs-to-association'
 import Pet from '../../../../test-app/app/models/Pet'
+import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 
 describe('@Sortable', () => {
   let user: User
@@ -391,6 +392,32 @@ describe('@Sortable', () => {
           expect((await post4.reload()).position).toEqual(2)
         })
       })
+
+      context('within a transaction', () => {
+        it('leverages the provided transaction and correctly sorts', async () => {
+          await ApplicationModel.transaction(async txn => {
+            let post1 = await Post.txn(txn).create({ body: 'hello', user })
+            let post2 = await Post.txn(txn).create({ body: 'hello', user })
+            let post3 = await Post.txn(txn).create({ body: 'hello', user })
+            post1 = (await Post.txn(txn).find(post1.id))!
+            post2 = (await Post.txn(txn).find(post2.id))!
+            post3 = (await Post.txn(txn).find(post3.id))!
+
+            expect(post1.position).toEqual(1)
+            expect(post2.position).toEqual(2)
+            expect(post3.position).toEqual(3)
+
+            await post1.txn(txn).update({ position: 2 })
+            post1 = (await Post.txn(txn).find(post1.id))!
+            post2 = (await Post.txn(txn).find(post2.id))!
+            post3 = (await Post.txn(txn).find(post3.id))!
+
+            expect(post1.position).toEqual(2)
+            expect(post2.position).toEqual(1)
+            expect(post3.position).toEqual(3)
+          })
+        })
+      })
     })
   })
 
@@ -408,6 +435,25 @@ describe('@Sortable', () => {
       expect((await post3.reload()).position).toEqual(2)
       expect((await post4.reload()).position).toEqual(3)
       expect((await unrelatedPost.reload()).position).toEqual(1)
+    })
+
+    context('within a transaction', () => {
+      it('adjusts the positions of related records', async () => {
+        await ApplicationModel.transaction(async txn => {
+          const unrelatedPost = await Post.txn(txn).create({ body: 'hello', user: user2 })
+          const post1 = await Post.txn(txn).create({ body: 'hello', user })
+          const post2 = await Post.txn(txn).create({ body: 'hello', user })
+          const post3 = await Post.txn(txn).create({ body: 'hello', user })
+          const post4 = await Post.txn(txn).create({ body: 'hello', user })
+
+          await post2.txn(txn).destroy()
+
+          expect((await post1.txn(txn).reload()).position).toEqual(1)
+          expect((await post3.txn(txn).reload()).position).toEqual(2)
+          expect((await post4.txn(txn).reload()).position).toEqual(3)
+          expect((await unrelatedPost.txn(txn).reload()).position).toEqual(1)
+        })
+      })
     })
   })
 
