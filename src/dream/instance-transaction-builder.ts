@@ -77,7 +77,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     //
     G extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanSix
       ? FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
-      : any
+      : any,
   >(this: I, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     return this.queryInstance().pluckThrough(a, b, c as any, d as any, e as any, f as any, g as any)
   }
@@ -127,7 +127,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     //
     G extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanSix
       ? FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
-      : any
+      : any,
   >(
     this: I,
     a: A,
@@ -208,7 +208,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
       ? FTableName extends never
         ? never
         : NextPreloadArgumentType<SyncedAssociations, FTableName>
-      : any
+      : any,
   >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G): LoadBuilder<DreamInstance> {
     return new LoadBuilder<DreamInstance>(this.dreamInstance, this.dreamTransaction).load(
       a as any,
@@ -253,14 +253,14 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
 
   public associationQuery<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    AssociationName extends keyof DreamInstance['syncedAssociations'][DreamInstance['table']]
+    AssociationName extends keyof DreamInstance['syncedAssociations'][DreamInstance['table']],
   >(this: I, associationName: AssociationName): any {
     return associationQuery(this.dreamInstance, this.dreamTransaction, associationName)
   }
 
   public associationUpdateQuery<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    AssociationName extends keyof DreamInstance['syncedAssociations'][DreamInstance['table']]
+    AssociationName extends keyof DreamInstance['syncedAssociations'][DreamInstance['table']],
   >(this: I, associationName: AssociationName): any {
     return associationUpdateQuery(this.dreamInstance, this.dreamTransaction, associationName)
   }
@@ -271,7 +271,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
     AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
       ? ElementType
-      : PossibleArrayAssociationType
+      : PossibleArrayAssociationType,
   >(
     this: I,
     associationName: AssociationName,
@@ -286,7 +286,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
     AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
       ? ElementType
-      : PossibleArrayAssociationType
+      : PossibleArrayAssociationType,
   >(
     this: I,
     associationName: AssociationName,
@@ -297,7 +297,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
 
   private queryInstance<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DreamClass extends DreamConstructorType<DreamInstance>
+    DreamClass extends DreamConstructorType<DreamInstance>,
   >(this: I): Query<DreamClass> {
     const dreamClass = this.dreamInstance.constructor as DreamClass
     const id = this.dreamInstance.primaryKeyValue

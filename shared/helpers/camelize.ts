@@ -7,10 +7,10 @@ export default function camelize<
   RT extends T extends string
     ? string
     : T extends { [key: string]: any }
-    ? { [key: string]: any }
-    : T extends (string | { [key: string]: any })[]
-    ? (string | { [key: string]: any })[]
-    : never
+      ? { [key: string]: any }
+      : T extends (string | { [key: string]: any })[]
+        ? (string | { [key: string]: any })[]
+        : never,
 >(target: T): RT {
   if (Array.isArray(target)) {
     return target.map(s => camelize(s)) as RT

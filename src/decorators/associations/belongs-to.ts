@@ -55,7 +55,7 @@ export default function BelongsTo(
 export interface BelongsToStatement<
   DB extends any,
   SyncedAssociations extends any,
-  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB
+  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
 > {
   modelCB: () => typeof Dream | (typeof Dream)[]
   type: 'BelongsTo'

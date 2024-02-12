@@ -13,7 +13,7 @@ export default async function createAssociation<
   PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
   AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
     ? ElementType
-    : PossibleArrayAssociationType
+    : PossibleArrayAssociationType,
 >(
   dream: DreamInstance,
   txn: DreamTransaction<DreamConstructorType<DreamInstance>> | null = null,

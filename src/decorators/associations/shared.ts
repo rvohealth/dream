@@ -20,14 +20,14 @@ type AssociatedModelType<
   I extends Dream,
   AssociationName extends keyof I['dreamconf']['syncedBelongsToAssociations'][I['table'] &
     keyof I['dreamconf']['syncedBelongsToAssociations']],
-  PossibleArrayAssociationType = I[AssociationName & keyof I]
+  PossibleArrayAssociationType = I[AssociationName & keyof I],
 > = PossibleArrayAssociationType extends (infer ElementType)[] ? ElementType : PossibleArrayAssociationType
 
 export type AssociatedModelParam<
   I extends Dream,
   AssociationName = keyof I['dreamconf']['syncedBelongsToAssociations'][I['table'] &
     keyof I['dreamconf']['syncedBelongsToAssociations']] &
-    string
+    string,
 > = Partial<{ [K in AssociationName & string]: AssociatedModelType<I, K> | null }>
 
 export type PassthroughWhere<AllColumns extends string[]> = Partial<Record<AllColumns[number], any>>
@@ -35,7 +35,7 @@ export type PassthroughWhere<AllColumns extends string[]> = Partial<Record<AllCo
 type DreamSelectable<
   DB extends any,
   SyncedAssociations extends any,
-  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB
+  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
 > = Partial<
   Record<
     keyof DB[TableName],
@@ -52,7 +52,7 @@ type DreamSelectable<
 type AssociationDreamSelectable<
   DB extends any,
   SyncedAssociations extends any,
-  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB
+  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
 > = Partial<
   Record<
     keyof DB[TableName],
@@ -70,7 +70,7 @@ type AssociationDreamSelectable<
 export type WhereStatement<
   DB extends any,
   SyncedAssociations extends any,
-  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB
+  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
 > = Partial<
   MergeUnionOfRecordTypes<Updateable<DB[TableName]> | DreamSelectable<DB, SyncedAssociations, TableName>>
 >
@@ -78,7 +78,7 @@ export type WhereStatement<
 export type AssociationWhereStatement<
   DB extends any,
   SyncedAssociations extends any,
-  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB
+  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
 > = Partial<
   MergeUnionOfRecordTypes<
     Updateable<DB[TableName]> | AssociationDreamSelectable<DB, SyncedAssociations, TableName>
@@ -88,13 +88,13 @@ export type AssociationWhereStatement<
 export type WhereSelfStatement<
   DB extends any,
   SyncedAssociations extends any,
-  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB
+  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
 > = Partial<Record<keyof DB[TableName], string>>
 
 export type OrderStatement<
   DB extends any,
   SyncedAssociations extends any,
-  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB
+  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
 > =
   | TableColumnName<DB, SyncedAssociations, TableName>
   | [TableColumnName<DB, SyncedAssociations, TableName>, 'asc' | 'desc']
@@ -112,14 +112,14 @@ export type TableColumnName<
   SyncedAssociations extends any,
   TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
   Table extends DB[keyof DB] = DB[TableName],
-  ColumnName extends keyof Table & string = keyof Table & string
+  ColumnName extends keyof Table & string = keyof Table & string,
 > = ColumnName
 
 export interface HasStatement<
   DB extends any,
   SyncedAssociations extends any,
   ForeignTableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
-  HasType extends 'HasOne' | 'HasMany'
+  HasType extends 'HasOne' | 'HasMany',
 > {
   modelCB: () => typeof Dream
   type: HasType

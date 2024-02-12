@@ -4,7 +4,7 @@ import PetUnderstudyJoinModel from '../models/PetUnderstudyJoinModel'
 import Pet from '../models/Pet'
 
 export default class PetUnderstudyJoinModelSerializer<
-  DataType extends PetUnderstudyJoinModel
+  DataType extends PetUnderstudyJoinModel,
 > extends DreamSerializer<DataType> {
   @RendersOne()
   public pet: Pet

@@ -17,7 +17,7 @@ export default class LoadIntoModels<
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
-  AllColumns extends DreamInstance['allColumns'] = DreamInstance['allColumns']
+  AllColumns extends DreamInstance['allColumns'] = DreamInstance['allColumns'],
 > {
   private readonly preloadStatements: RelaxedPreloadStatement
   private readonly passthroughWhereStatement: PassthroughWhere<AllColumns> | null = null

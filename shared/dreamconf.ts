@@ -8,7 +8,7 @@ export default class Dreamconf<
   VirtualColumns extends any = any,
   AllColumns extends any = any,
   DBColumns extends any = any,
-  DBTypeCache extends any = any
+  DBTypeCache extends any = any,
 > {
   public DB: DB
   public interpretedDB: InterpretedDB

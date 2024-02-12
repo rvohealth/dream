@@ -5,10 +5,10 @@ export default async function executeDatabaseQuery<
   ReturnType extends Command extends 'execute'
     ? any[]
     : Command extends 'executeTakeFirst'
-    ? any
-    : Command extends 'executeTakeFirstOrThrow'
-    ? any
-    : never
+      ? any
+      : Command extends 'executeTakeFirstOrThrow'
+        ? any
+        : never,
 >(kyselyQuery: any, command: Command): Promise<ReturnType> {
   const debugging = process.env.DEBUG === '1'
   const sqlString = debugging ? kyselyQuery.compile().sql : null

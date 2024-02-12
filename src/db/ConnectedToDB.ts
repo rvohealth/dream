@@ -8,7 +8,7 @@ export default class ConnectedToDB<
   DreamClass extends typeof Dream,
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
-  ColumnType = keyof DB[keyof DB] extends never ? unknown : keyof DB[keyof DB]
+  ColumnType = keyof DB[keyof DB] extends never ? unknown : keyof DB[keyof DB],
 > {
   public readonly dreamClass: DreamClass
   public dreamTransaction: DreamTransaction<DB> | null = null
@@ -50,7 +50,7 @@ export interface ConnectedToDBOpts<
     : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']],
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
-  SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations']
+  SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
 > {
   transaction?: DreamTransaction<DB> | null | undefined
   connection?: DbConnectionType

@@ -29,8 +29,8 @@ export default function similaritySelectSql<DreamClass extends typeof Dream>({
         to_tsvector(
           'simple',
           coalesce(${eb.ref(validateTable(dbTypeCache, tableName))}.${eb.ref(
-    validateColumn(dbTypeCache, tableName, columnName)
-  )} :: text, '')
+            validateColumn(dbTypeCache, tableName, columnName)
+          )} :: text, '')
         )
       ),
       (to_tsquery('simple', ''' ' || ${opsStatement.value}::text || ' ''')),

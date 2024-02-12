@@ -3,7 +3,7 @@ import Attribute from '../../../src/serializer/decorators/attribute'
 import EdgeCaseAttribute from '../models/EdgeCaseAttribute'
 
 export default class EdgeCaseAttributeSerializer<
-  DataType extends EdgeCaseAttribute
+  DataType extends EdgeCaseAttribute,
 > extends DreamSerializer<DataType> {
   @Attribute('boolean')
   public kPop: any

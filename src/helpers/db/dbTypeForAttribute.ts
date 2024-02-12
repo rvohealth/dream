@@ -8,7 +8,7 @@ export default function dbTypeForAttribute<
     SyncedAssociations
   > &
     keyof DB,
-  Table extends DB[TableName] = DB[TableName]
+  Table extends DB[TableName] = DB[TableName],
 >(attribute: keyof Table, { table, dbTypeCache }: { table: TableName; dbTypeCache: any }): string {
   return (dbTypeCache[table] as any)[attribute]
 }

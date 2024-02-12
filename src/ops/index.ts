@@ -13,7 +13,7 @@ const ops = {
     new CurriedOpsStatement(function <
       T extends typeof Dream,
       DB extends InstanceType<T>['DB'],
-      FN extends keyof DB[InstanceType<T>['table']] & string
+      FN extends keyof DB[InstanceType<T>['table']] & string,
     >(dreamClass: T, fieldName: FN) {
       const column = fieldName.replace(/^.*\./, '')
       if (!isDatabaseArrayColumn(dreamClass, column)) throw new AnyRequiresArrayColumn(dreamClass, column)

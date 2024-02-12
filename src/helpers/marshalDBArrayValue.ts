@@ -7,7 +7,7 @@ export default function marshalDBArrayValue<
   DB extends InstanceType<T>['DB'],
   TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
   Table extends DB[keyof DB] = DB[TableName],
-  Column extends keyof Table = keyof Table
+  Column extends keyof Table = keyof Table,
 >(dreamClass: T, value: string | any[] | null | undefined): Table[Column] | null | undefined {
   if (value === null) return null
   if (value === undefined) return undefined

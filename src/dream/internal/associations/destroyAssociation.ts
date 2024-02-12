@@ -10,7 +10,7 @@ export default async function destroyAssociation<
   PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
   AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
     ? ElementType
-    : PossibleArrayAssociationType
+    : PossibleArrayAssociationType,
 >(
   dream: DreamInstance,
   txn: DreamTransaction<DreamInstance['DB']> | null = null,
