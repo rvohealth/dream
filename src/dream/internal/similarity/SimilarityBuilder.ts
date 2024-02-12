@@ -20,7 +20,7 @@ export default class SimilarityBuilder<
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
-  ColumnType = keyof DB[keyof DB] extends never ? unknown : keyof DB[keyof DB]
+  ColumnType = keyof DB[keyof DB] extends never ? unknown : keyof DB[keyof DB],
 > extends ConnectedToDB<DreamClass> {
   public readonly whereStatement: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
   public readonly whereNotStatement: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze(
@@ -79,7 +79,7 @@ export default class SimilarityBuilder<
   public select<T extends SimilarityBuilder<DreamClass>>(
     this: T,
     kyselyQuery: SelectQueryBuilder<DB, any, {}>,
-    { includeGroupBy = false }: { includeGroupBy?: boolean } = {}
+    { bypassOrder = false }: { bypassOrder?: boolean } = {}
   ): SelectQueryBuilder<DB, any, {}> {
     this.whereStatementsWithSimilarityClauses().forEach((similarityStatement, index) => {
       kyselyQuery = this.addStatementToSelectQuery({
@@ -87,7 +87,7 @@ export default class SimilarityBuilder<
         similarityStatement,
         statementType: 'where',
         index,
-        includeGroupBy,
+        bypassOrder,
       })
     })
 
@@ -97,7 +97,7 @@ export default class SimilarityBuilder<
         similarityStatement,
         statementType: 'where_joins',
         index,
-        includeGroupBy,
+        bypassOrder,
       })
     })
 
@@ -269,13 +269,13 @@ export default class SimilarityBuilder<
       similarityStatement,
       index,
       statementType,
-      includeGroupBy,
+      bypassOrder,
     }: {
       kyselyQuery: SelectQueryBuilder<DB, any, {}>
       similarityStatement: SimilarityStatement
       index: number
       statementType: SimilarityStatementType
-      includeGroupBy: boolean
+      bypassOrder: boolean
     }
   ) {
     const dbTypeCache = this.dreamClass.prototype.dreamconf.dbTypeCache
@@ -302,11 +302,9 @@ export default class SimilarityBuilder<
       )
     )
 
-    const rankSQLAlias = this.rankSQLAlias(statementType, index)
-    kyselyQuery = kyselyQuery.orderBy(ref(`${trigramSearchAlias}.${rankSQLAlias}`), 'desc')
-
-    if (includeGroupBy) {
-      kyselyQuery = kyselyQuery.groupBy(ref(`${trigramSearchAlias}.${rankSQLAlias}`))
+    if (!bypassOrder) {
+      const rankSQLAlias = this.rankSQLAlias(statementType, index)
+      kyselyQuery = kyselyQuery.orderBy(ref(`${trigramSearchAlias}.${rankSQLAlias}`), 'desc')
     }
 
     return kyselyQuery
@@ -454,7 +452,7 @@ export interface SimilarityBuilderOpts<
     : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']],
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
-  SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations']
+  SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
 > {
   where?: WhereStatement<DB, SyncedAssociations, any>[]
   whereNot?: WhereStatement<DB, SyncedAssociations, any>[]

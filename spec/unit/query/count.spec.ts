@@ -21,6 +21,9 @@ describe('Query#count', () => {
 
       const count = await User.where({ name: ops.similarity('fred') }).count()
       expect(count).toEqual(2)
+
+      const count2 = await User.where({ name: ops.similarity('zzzz') }).count()
+      expect(count2).toEqual(0)
     })
   })
 
