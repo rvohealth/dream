@@ -165,7 +165,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
-  >(): (keyof Table & string)[] {
+  >(): Set<keyof Table & string> {
     return (this.prototype.dreamconf.dbColumns as any)[this.prototype.table]
   }
 
@@ -1162,7 +1162,7 @@ export default class Dream {
     const columns = (this.constructor as typeof Dream).columns()
     const self = this as any
 
-    if (columns.includes(attr)) {
+    if (columns.has(attr)) {
       self.currentAttributes[attr] = isJsonColumn(this.constructor as typeof Dream, attr)
         ? isString(val)
           ? val
@@ -1177,7 +1177,7 @@ export default class Dream {
     const columns = (this.constructor as typeof Dream).columns()
     const self = this as any
 
-    if (columns.includes(attr)) {
+    if (columns.has(attr)) {
       return self.currentAttributes[attr]
     } else {
       return self[attr]
@@ -1279,7 +1279,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends keyof DB = I['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName]
-  >(this: I): (keyof Table)[] {
+  >(this: I): Set<keyof Table> {
     return (this.constructor as DreamConstructorType<I>).columns()
   }
 

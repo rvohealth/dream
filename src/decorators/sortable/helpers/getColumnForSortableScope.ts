@@ -10,7 +10,7 @@ export default function getColumnForSortableScope(dream: Dream, scope?: string) 
 
   const dreamClass = dream.constructor as typeof Dream
 
-  if (dreamClass.columns().includes(scope)) return scope
+  if (dreamClass.columns().has(scope)) return scope
 
   const associationMetadata = (dream.associationMap() as any)[scope] as
     | BelongsToStatement<any, any, string>

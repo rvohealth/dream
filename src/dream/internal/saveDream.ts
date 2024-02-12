@@ -32,9 +32,9 @@ export default async function saveDream<DreamInstance extends Dream>(
   let query: any
 
   const now = DateTime.now()
-  if (!alreadyPersisted && !(dream as any).createdAt && (dream.columns() as any[]).includes('createdAt'))
+  if (!alreadyPersisted && !(dream as any).createdAt && dream.columns().has('createdAt'))
     (dream as any).createdAt = now
-  if (!(dream.dirtyAttributes() as any).updatedAt && (dream.columns() as any[]).includes('updatedAt'))
+  if (!(dream.dirtyAttributes() as any).updatedAt && dream.columns().has('updatedAt'))
     (dream as any).updatedAt = now
 
   const sqlifiedAttributes = sqlAttributes(dream)
@@ -52,7 +52,7 @@ export default async function saveDream<DreamInstance extends Dream>(
   // BeforeSave/Update actions may clear all the data that we intended to save, leaving us with
   // an invalid update command. The Sortable decorator is an example of this.
   if (!alreadyPersisted || Object.keys(sqlifiedAttributes).length) {
-    const data = await executeDatabaseQuery(query.returning(dream.columns()), 'executeTakeFirstOrThrow')
+    const data = await executeDatabaseQuery(query.returning([...dream.columns()]), 'executeTakeFirstOrThrow')
     dream.setAttributes(data)
   }
 

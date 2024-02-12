@@ -201,7 +201,7 @@ function indexInterfaceKeys(str: string) {
 
   const keys = tableInterfaceToColumns(str)
 
-  return `export const ${pluralize.singular(name)}Columns = [${keys.join(', ')}] as const`
+  return `export const ${pluralize.singular(name)}Columns = new Set([${keys.join(', ')}])`
 }
 
 function allColumns(tableInterfaces: string[]) {

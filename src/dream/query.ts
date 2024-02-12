@@ -1277,12 +1277,12 @@ export default class Query<
     if ((association.polymorphic && association.type === 'BelongsTo') || Array.isArray(dreamClassToHydrate))
       return this.preloadPolymorphicBelongsTo(association as BelongsToStatement<any, any, string>, dreams)
 
-    const dreamClassToHydrateColumns = dreamClassToHydrate.columns()
+    const dreamClassToHydrateColumns = [...dreamClassToHydrate.columns()]
     const throughColumnsToHydrate: any[] = []
 
-    const columnsToPluck = [
-      ...(dreamClassToHydrateColumns.map(column => `${associationName}.${column.toString()}`) as any[]),
-    ]
+    const columnsToPluck = dreamClassToHydrateColumns.map(
+      column => `${associationName}.${column.toString()}`
+    ) as any[]
 
     const asHasAssociation = association as HasManyStatement<any, any, any> | HasOneStatement<any, any, any>
 

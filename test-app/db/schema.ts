@@ -381,30 +381,30 @@ export interface DB {
 }
 
 
-export const BalloonLineColumns = ['balloonId', 'createdAt', 'id', 'material', 'updatedAt'] as const
-export const BalloonSpotterBalloonColumns = ['balloonId', 'balloonSpotterId', 'createdAt', 'id', 'updatedAt', 'userId'] as const
-export const BalloonSpotterColumns = ['createdAt', 'id', 'name', 'updatedAt'] as const
-export const BeautifulBalloonColumns = ['color', 'createdAt', 'deletedAt', 'id', 'multicolor', 'positionAlpha', 'positionBeta', 'type', 'updatedAt', 'userId', 'volume'] as const
-export const CollarColumns = ['balloonId', 'createdAt', 'id', 'lost', 'petId', 'tagName', 'updatedAt'] as const
-export const CompositionAssetAuditColumns = ['approval', 'compositionAssetId', 'createdAt', 'id', 'notes', 'updatedAt'] as const
-export const CompositionAssetColumns = ['compositionId', 'createdAt', 'id', 'name', 'primary', 'score', 'src', 'updatedAt'] as const
-export const CompositionColumns = ['content', 'createdAt', 'id', 'metadata', 'metadata2', 'metadata3', 'primary', 'updatedAt', 'userId'] as const
-export const EdgeCaseAttributeColumns = ['createdAt', 'id', 'kPop', 'popK', 'popKPop', 'updatedAt'] as const
-export const ExtraRatingColumns = ['body', 'createdAt', 'extraRateableId', 'extraRateableType', 'id', 'rating', 'type', 'updatedAt', 'userId'] as const
-export const GraphEdgeNodeColumns = ['createdAt', 'edgeId', 'id', 'multiScopedPosition', 'nodeId', 'position', 'updatedAt'] as const
-export const GraphEdgeColumns = ['createdAt', 'id', 'name', 'updatedAt', 'weight'] as const
-export const GraphNodeColumns = ['createdAt', 'id', 'name', 'omittedEdgePosition', 'updatedAt'] as const
-export const IncompatibleForeignKeyTypeExampleColumns = ['createdAt', 'id', 'updatedAt', 'userId'] as const
-export const LocalizedTextColumns = ['body', 'createdAt', 'id', 'locale', 'localizableId', 'localizableType', 'name', 'title', 'updatedAt'] as const
-export const ModelWithoutUpdatedAtColumns = ['cantUpdateThis', 'createdAt', 'id', 'name'] as const
-export const PetColumns = ['createdAt', 'deletedAt', 'favoriteTreats', 'id', 'name', 'nickname', 'positionWithinSpecies', 'species', 'userId'] as const
-export const PetUnderstudyJoinModelColumns = ['createdAt', 'id', 'petId', 'understudyId', 'updatedAt'] as const
-export const PostColumns = ['body', 'createdAt', 'deletedAt', 'id', 'position', 'postVisibilityId', 'updatedAt', 'userId'] as const
-export const PostVisibilityColumns = ['createdAt', 'id', 'notes', 'updatedAt', 'visibility'] as const
-export const RatingColumns = ['body', 'createdAt', 'id', 'rateableId', 'rateableType', 'rating', 'updatedAt', 'userId'] as const
-export const SandbagColumns = ['balloonId', 'createdAt', 'id', 'updatedAt', 'weight', 'weightKgs', 'weightTons'] as const
-export const UserColumns = ['birthdate', 'createdAt', 'deletedAt', 'email', 'featuredPostPosition', 'id', 'name', 'passwordDigest', 'socialSecurityNumber', 'targetRating', 'updatedAt'] as const
-export const UserSettingColumns = ['createdAt', 'id', 'likesChalupas', 'updatedAt', 'userId'] as const
+export const BalloonLineColumns = new Set(['balloonId', 'createdAt', 'id', 'material', 'updatedAt'])
+export const BalloonSpotterBalloonColumns = new Set(['balloonId', 'balloonSpotterId', 'createdAt', 'id', 'updatedAt', 'userId'])
+export const BalloonSpotterColumns = new Set(['createdAt', 'id', 'name', 'updatedAt'])
+export const BeautifulBalloonColumns = new Set(['color', 'createdAt', 'deletedAt', 'id', 'multicolor', 'positionAlpha', 'positionBeta', 'type', 'updatedAt', 'userId', 'volume'])
+export const CollarColumns = new Set(['balloonId', 'createdAt', 'id', 'lost', 'petId', 'tagName', 'updatedAt'])
+export const CompositionAssetAuditColumns = new Set(['approval', 'compositionAssetId', 'createdAt', 'id', 'notes', 'updatedAt'])
+export const CompositionAssetColumns = new Set(['compositionId', 'createdAt', 'id', 'name', 'primary', 'score', 'src', 'updatedAt'])
+export const CompositionColumns = new Set(['content', 'createdAt', 'id', 'metadata', 'metadata2', 'metadata3', 'primary', 'updatedAt', 'userId'])
+export const EdgeCaseAttributeColumns = new Set(['createdAt', 'id', 'kPop', 'popK', 'popKPop', 'updatedAt'])
+export const ExtraRatingColumns = new Set(['body', 'createdAt', 'extraRateableId', 'extraRateableType', 'id', 'rating', 'type', 'updatedAt', 'userId'])
+export const GraphEdgeNodeColumns = new Set(['createdAt', 'edgeId', 'id', 'multiScopedPosition', 'nodeId', 'position', 'updatedAt'])
+export const GraphEdgeColumns = new Set(['createdAt', 'id', 'name', 'updatedAt', 'weight'])
+export const GraphNodeColumns = new Set(['createdAt', 'id', 'name', 'omittedEdgePosition', 'updatedAt'])
+export const IncompatibleForeignKeyTypeExampleColumns = new Set(['createdAt', 'id', 'updatedAt', 'userId'])
+export const LocalizedTextColumns = new Set(['body', 'createdAt', 'id', 'locale', 'localizableId', 'localizableType', 'name', 'title', 'updatedAt'])
+export const ModelWithoutUpdatedAtColumns = new Set(['cantUpdateThis', 'createdAt', 'id', 'name'])
+export const PetColumns = new Set(['createdAt', 'deletedAt', 'favoriteTreats', 'id', 'name', 'nickname', 'positionWithinSpecies', 'species', 'userId'])
+export const PetUnderstudyJoinModelColumns = new Set(['createdAt', 'id', 'petId', 'understudyId', 'updatedAt'])
+export const PostColumns = new Set(['body', 'createdAt', 'deletedAt', 'id', 'position', 'postVisibilityId', 'updatedAt', 'userId'])
+export const PostVisibilityColumns = new Set(['createdAt', 'id', 'notes', 'updatedAt', 'visibility'])
+export const RatingColumns = new Set(['body', 'createdAt', 'id', 'rateableId', 'rateableType', 'rating', 'updatedAt', 'userId'])
+export const SandbagColumns = new Set(['balloonId', 'createdAt', 'id', 'updatedAt', 'weight', 'weightKgs', 'weightTons'])
+export const UserColumns = new Set(['birthdate', 'createdAt', 'deletedAt', 'email', 'featuredPostPosition', 'id', 'name', 'passwordDigest', 'socialSecurityNumber', 'targetRating', 'updatedAt'])
+export const UserSettingColumns = new Set(['createdAt', 'id', 'likesChalupas', 'updatedAt', 'userId'])
 
 export const AllColumns = ['approval', 'balloonId', 'balloonLines', 'balloonSpotterBalloons', 'balloonSpotterId', 'balloonSpotters', 'beautifulBalloons', 'birthdate', 'body', 'cantUpdateThis', 'collars', 'color', 'compositionAssetAudits', 'compositionAssetId', 'compositionAssets', 'compositionId', 'compositions', 'content', 'createdAt', 'deletedAt', 'edgeCaseAttributes', 'edgeId', 'email', 'extraRateableId', 'extraRateableType', 'extraRatings', 'favoriteTreats', 'featuredPostPosition', 'graphEdgeNodes', 'graphEdges', 'graphNodes', 'id', 'incompatibleForeignKeyTypeExamples', 'kPop', 'likesChalupas', 'locale', 'localizableId', 'localizableType', 'localizedTexts', 'lost', 'material', 'metadata', 'metadata2', 'metadata3', 'modelWithoutUpdatedAt', 'multiScopedPosition', 'multicolor', 'name', 'nickname', 'nodeId', 'notes', 'omittedEdgePosition', 'passwordDigest', 'petId', 'petUnderstudyJoinModels', 'pets', 'popK', 'popKPop', 'position', 'positionAlpha', 'positionBeta', 'positionWithinSpecies', 'postVisibilities', 'postVisibilityId', 'posts', 'primary', 'rateableId', 'rateableType', 'rating', 'ratings', 'sandbags', 'score', 'socialSecurityNumber', 'species', 'src', 'tagName', 'targetRating', 'title', 'type', 'understudyId', 'updatedAt', 'userId', 'userSettings', 'users', 'visibility', 'volume', 'weight', 'weightKgs', 'weightTons'] as const
 
