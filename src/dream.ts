@@ -164,7 +164,7 @@ export default class Dream {
     I extends InstanceType<T>,
     DB extends I['DB'],
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName]
+    Table extends DB[keyof DB] = DB[TableName],
   >(): Set<keyof Table & string> {
     return (this.prototype.dreamconf.dbColumns as any)[this.prototype.table]
   }
@@ -173,7 +173,7 @@ export default class Dream {
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations']
+    SyncedAssociations extends I['syncedAssociations'],
   >(this: T, associationName: SyncedAssociations[DB][number]) {
     return this.associationMap()[associationName]
   }
@@ -182,7 +182,7 @@ export default class Dream {
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations']
+    SyncedAssociations extends I['syncedAssociations'],
   >(this: T) {
     const allAssociations = [
       ...this.associations.belongsTo,
@@ -237,7 +237,7 @@ export default class Dream {
     I extends InstanceType<DreamClass>,
     TableName extends I['table'],
     DB extends I['DB'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]>
+    SimpleFieldType extends keyof Updateable<DB[TableName]>,
   >(this: DreamClass, field: SimpleFieldType): Promise<number> {
     return await this.query().max(field as any)
   }
@@ -247,7 +247,7 @@ export default class Dream {
     I extends InstanceType<DreamClass>,
     TableName extends I['table'],
     DB extends I['DB'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]>
+    SimpleFieldType extends keyof Updateable<DB[TableName]>,
   >(this: DreamClass, field: SimpleFieldType): Promise<number> {
     return await this.query().min(field as any)
   }
@@ -286,7 +286,7 @@ export default class Dream {
     I extends InstanceType<T>,
     DB extends I['DB'],
     SyncedAssociations extends I['syncedAssociations'],
-    TableName extends InstanceType<T>['table']
+    TableName extends InstanceType<T>['table'],
   >(this: T, columnName?: TableColumnName<DB, SyncedAssociations, TableName> | null | boolean) {
     return this.query().distinct(columnName as any)
   }
@@ -294,7 +294,7 @@ export default class Dream {
   public static async find<
     T extends typeof Dream,
     InterpretedDB extends InstanceType<T>['dreamconf']['interpretedDB'],
-    TableName extends keyof InterpretedDB = InstanceType<T>['table'] & keyof InterpretedDB
+    TableName extends keyof InterpretedDB = InstanceType<T>['table'] & keyof InterpretedDB,
   >(
     this: T,
     id: InterpretedDB[TableName][T['primaryKey'] & keyof InterpretedDB[TableName]]
@@ -381,7 +381,7 @@ export default class Dream {
       ? FTableName extends never
         ? never
         : NextPreloadArgumentType<SyncedAssociations, FTableName>
-      : any
+      : any,
   >(this: T, models: Dream[], a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     await this.query().loadInto(models, a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
@@ -477,7 +477,7 @@ export default class Dream {
       ? FTableName extends never
         ? never
         : NextPreloadArgumentType<SyncedAssociations, FTableName>
-      : any
+      : any,
   >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     return this.query().preload(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
@@ -539,7 +539,7 @@ export default class Dream {
       ? FTableName extends never
         ? never
         : NextJoinsWhereArgumentType<DB, SyncedAssociations, FTableName>
-      : any
+      : any,
   >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     return this.query().joins(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
@@ -602,7 +602,7 @@ export default class Dream {
       ? FTableName extends never
         ? never
         : FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
-      : any
+      : any,
   >(this: T, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     return await this.query().pluckThrough(
       a as any,
@@ -674,7 +674,7 @@ export default class Dream {
       ? FTableName extends never
         ? never
         : FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
-      : any
+      : any,
   >(
     this: T,
     a: A,
@@ -706,7 +706,7 @@ export default class Dream {
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<T>['table']>>
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<T>['table']>>,
   >(this: T, selection: SelectArg<DB, ExtractTableAlias<DB, InstanceType<T>['table']>, SE>) {
     return this.query().nestedSelect(selection as any)
   }
@@ -718,7 +718,7 @@ export default class Dream {
     SyncedAssociations extends I['syncedAssociations'],
     ColumnName extends keyof Table & string,
     TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = I['table'],
-    Table extends DB[keyof DB] = DB[TableName]
+    Table extends DB[keyof DB] = DB[TableName],
   >(this: T, column: ColumnName, direction: 'asc' | 'desc' = 'asc') {
     return this.query().order(column as any, direction)
   }
@@ -727,7 +727,7 @@ export default class Dream {
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, I['table']>>
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, I['table']>>,
   >(this: T, ...fields: SelectArg<DB, ExtractTableAlias<DB, I['table']>, SE>[]) {
     return await this.query().pluck(...(fields as any[]))
   }
@@ -737,7 +737,7 @@ export default class Dream {
     I extends InstanceType<T>,
     DB extends I['DB'],
     TableName extends I['table'],
-    CB extends (plucked: any) => void | Promise<void>
+    CB extends (plucked: any) => void | Promise<void>,
   >(
     this: T,
 
@@ -755,7 +755,7 @@ export default class Dream {
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, I['table']>>
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, I['table']>>,
   >(this: T, ...fields: SelectArg<DB, ExtractTableAlias<DB, I['table']>, SE>[]) {
     for (const field of fields) {
       const sortableMetadata = this.sortableFields.find(conf => conf.positionField === field)
@@ -802,7 +802,7 @@ export default class Dream {
   public static passthrough<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    AllColumns extends I['allColumns']
+    AllColumns extends I['allColumns'],
   >(this: T, passthroughWhereStatement: PassthroughWhere<AllColumns>): Query<T> {
     return this.query().passthrough(passthroughWhereStatement)
   }
@@ -812,7 +812,7 @@ export default class Dream {
     I extends InstanceType<T>,
     DB extends I['DB'],
     SyncedAssociations extends I['syncedAssociations'],
-    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<T>['table']
+    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<T>['table'],
   >(this: T, attributes: WhereStatement<DB, SyncedAssociations, TableName>): Query<T> {
     return this.query().where(attributes)
   }
@@ -822,7 +822,7 @@ export default class Dream {
     I extends InstanceType<T>,
     DB extends I['DB'],
     SyncedAssociations extends I['syncedAssociations'],
-    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<T>['table']
+    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<T>['table'],
   >(this: T, attributes: WhereStatement<DB, SyncedAssociations, TableName>[]): Query<T> {
     return this.query().whereAny(attributes)
   }
@@ -832,7 +832,7 @@ export default class Dream {
     I extends InstanceType<T>,
     DB extends I['DB'],
     SyncedAssociations extends I['syncedAssociations'],
-    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<T>['table']
+    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<T>['table'],
   >(this: T, attributes: WhereStatement<DB, SyncedAssociations, TableName>): Query<T> {
     return this.query().whereNot(attributes)
   }
@@ -840,7 +840,7 @@ export default class Dream {
   public getAssociation<
     I extends Dream,
     DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations']
+    SyncedAssociations extends I['syncedAssociations'],
   >(this: I, associationName: SyncedAssociations[DB][number]) {
     return (this.constructor as typeof Dream).getAssociation(associationName)
   }
@@ -1192,7 +1192,7 @@ export default class Dream {
     T extends typeof Dream,
     DB extends InstanceType<T>['DB'],
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName]
+    Table extends DB[keyof DB] = DB[TableName],
   >(this: T, attribute: keyof Table): string {
     return cachedTypeForAttribute(this, attribute)
   }
@@ -1203,7 +1203,7 @@ export default class Dream {
     SyncedAssociations extends I['syncedAssociations'],
     TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = I['table'] &
       AssociationTableNames<DB, SyncedAssociations>,
-    Table extends DB[keyof DB] = DB[TableName]
+    Table extends DB[keyof DB] = DB[TableName],
   >(this: I): Updateable<Table> {
     const obj: Updateable<Table> = {}
 
@@ -1223,7 +1223,7 @@ export default class Dream {
         keyof Updateable<Table>,
         { was: Updateable<Table>[keyof Updateable<Table>]; now: Updateable<Table>[keyof Updateable<Table>] }
       >
-    >
+    >,
   >(this: I): RetType {
     const obj: RetType = {} as RetType
 
@@ -1245,7 +1245,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Table extends DB[TableName],
-    Attr extends keyof Updateable<Table> & string
+    Attr extends keyof Updateable<Table> & string,
   >(this: I, attribute: Attr): Updateable<Table>[Attr] {
     if (this.frozenAttributes[attribute] !== (this as any)[attribute]) return this.frozenAttributes[attribute]
     return (this.attributesFromBeforeLastSave as any)[attribute]
@@ -1256,7 +1256,7 @@ export default class Dream {
     TableName extends I['table'],
     DB extends I['DB'],
     Table extends DB[TableName],
-    Attr extends keyof Updateable<Table> & string
+    Attr extends keyof Updateable<Table> & string,
   >(this: I, attribute: Attr): boolean {
     const changes = this.changes()
     const now = (changes as any)?.[attribute]?.now
@@ -1269,7 +1269,7 @@ export default class Dream {
     TableName extends I['table'],
     DB extends I['DB'],
     Table extends DB[TableName],
-    Attr extends keyof Updateable<Table> & string
+    Attr extends keyof Updateable<Table> & string,
   >(this: I, attribute: Attr): boolean {
     return this.attributeIsDirty(attribute as any)
   }
@@ -1278,7 +1278,7 @@ export default class Dream {
     I extends Dream,
     DB extends I['DB'],
     TableName extends keyof DB = I['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName]
+    Table extends DB[keyof DB] = DB[TableName],
   >(this: I): Set<keyof Table> {
     return (this.constructor as DreamConstructorType<I>).columns()
   }
@@ -1289,7 +1289,7 @@ export default class Dream {
     SyncedAssociations extends I['syncedAssociations'],
     TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = I['table'] &
       AssociationTableNames<DB, SyncedAssociations>,
-    Table extends DB[keyof DB] = DB[TableName]
+    Table extends DB[keyof DB] = DB[TableName],
   >(this: I): Updateable<Table> {
     const obj: Updateable<Table> = {}
 
@@ -1306,7 +1306,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Table extends DB[TableName],
-    Attr extends keyof Updateable<Table> & string
+    Attr extends keyof Updateable<Table> & string,
   >(this: I, attribute: Attr): boolean {
     const frozenValue = (this.frozenAttributes as any)[attribute]
     const currentValue = (this.attributes() as any)[attribute]
@@ -1385,7 +1385,7 @@ export default class Dream {
       ? FTableName extends never
         ? never
         : FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
-      : any
+      : any,
   >(this: I, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G): Promise<any[]> {
     const construct = this.constructor as DreamConstructorType<I>
     return await construct
@@ -1443,7 +1443,7 @@ export default class Dream {
       ? FTableName extends never
         ? never
         : FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
-      : any
+      : any,
   >(
     this: I,
     a: A,
@@ -1490,7 +1490,7 @@ export default class Dream {
     PossibleArrayAssociationType = I[AssociationName & keyof I],
     AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
       ? ElementType
-      : PossibleArrayAssociationType
+      : PossibleArrayAssociationType,
   >(
     this: I,
     associationName: AssociationName,
@@ -1506,7 +1506,7 @@ export default class Dream {
     PossibleArrayAssociationType = I[AssociationName & keyof I],
     AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
       ? ElementType
-      : PossibleArrayAssociationType
+      : PossibleArrayAssociationType,
   >(
     this: I,
     associationName: AssociationName,
@@ -1518,7 +1518,7 @@ export default class Dream {
   public associationQuery<
     I extends Dream,
     SyncedAssociations extends I['syncedAssociations'],
-    AssociationName extends keyof SyncedAssociations[I['table']]
+    AssociationName extends keyof SyncedAssociations[I['table']],
   >(this: I, associationName: AssociationName) {
     return associationQuery(this, null, associationName)
   }
@@ -1526,7 +1526,7 @@ export default class Dream {
   public associationUpdateQuery<
     I extends Dream,
     SyncedAssociations extends I['syncedAssociations'],
-    AssociationName extends keyof SyncedAssociations[I['table']]
+    AssociationName extends keyof SyncedAssociations[I['table']],
   >(this: I, associationName: AssociationName) {
     return associationUpdateQuery(this, null, associationName)
   }
@@ -1593,7 +1593,7 @@ export default class Dream {
       ? FTableName extends never
         ? never
         : NextPreloadArgumentType<SyncedAssociations, FTableName>
-      : any
+      : any,
   >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G): LoadBuilder<I> {
     return new LoadBuilder<I>(this).load(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
@@ -1603,7 +1603,7 @@ export default class Dream {
     TableName extends I['table'],
     SyncedAssociations extends I['syncedAssociations'],
     //
-    A extends NextPreloadArgumentType<SyncedAssociations, TableName>
+    A extends NextPreloadArgumentType<SyncedAssociations, TableName>,
   >(this: I, a: A) {
     try {
       ;(this as any)[a]
@@ -1645,7 +1645,7 @@ export default class Dream {
     I extends Dream,
     DB extends I['DB'],
     TableName extends keyof DB = I['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName]
+    Table extends DB[keyof DB] = DB[TableName],
   >(this: I, attributes: Updateable<Table> | AssociatedModelParam<I>) {
     return this._setAttributes(attributes, { bypassUserDefinedSetters: false })
   }
@@ -1669,7 +1669,7 @@ export default class Dream {
     I extends Dream,
     DB extends I['DB'],
     TableName extends keyof DB = I['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName]
+    Table extends DB[keyof DB] = DB[TableName],
   >(this: I, attributes: Updateable<Table> | AssociatedModelParam<I>) {
     return this._setAttributes(attributes, { bypassUserDefinedSetters: true })
   }
@@ -1678,7 +1678,7 @@ export default class Dream {
     I extends Dream,
     DB extends I['DB'],
     TableName extends keyof DB = I['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName]
+    Table extends DB[keyof DB] = DB[TableName],
   >(
     this: I,
     attributes: Updateable<Table> | AssociatedModelParam<I>,

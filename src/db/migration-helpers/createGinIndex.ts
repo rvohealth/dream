@@ -8,7 +8,7 @@ export default async function createGinIndex(
 ) {
   await sql`
     CREATE INDEX IF NOT EXISTS ${sql.raw(indexName)} ON ${sql.raw(tableName)} USING GIN (${sql.raw(
-    `${column} gin_trgm_ops`
-  )});
+      `${column} gin_trgm_ops`
+    )});
   `.execute(db)
 }

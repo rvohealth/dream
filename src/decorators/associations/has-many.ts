@@ -68,7 +68,7 @@ export default function HasMany<AssociationDreamClass extends typeof Dream>(
 export interface HasManyStatement<
   DB extends any,
   SyncedAssociations extends any,
-  ForeignTableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB
+  ForeignTableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
 > extends HasStatement<DB, SyncedAssociations, ForeignTableName, 'HasMany'> {}
 
 export type HasManyOptions<AssociationDreamClass extends typeof Dream> = {

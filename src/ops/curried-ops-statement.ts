@@ -4,7 +4,7 @@ import Dream from '../dream'
 export default class CurriedOpsStatement<
   T extends typeof Dream,
   DB extends InstanceType<T>['DB'],
-  FN extends keyof DB[InstanceType<T>['table']] & string
+  FN extends keyof DB[InstanceType<T>['table']] & string,
 > {
   public factoryFn: (dreamClass: T, fieldName: FN) => OpsStatement<any, any>
 

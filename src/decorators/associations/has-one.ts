@@ -124,5 +124,5 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
 export interface HasOneStatement<
   DB extends any,
   SyncedAssociations extends any,
-  ForeignTableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB
+  ForeignTableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
 > extends HasStatement<DB, SyncedAssociations, ForeignTableName, 'HasOne'> {}

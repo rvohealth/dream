@@ -11,7 +11,7 @@ export default function associationQuery<
   PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
   AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
     ? ElementType
-    : PossibleArrayAssociationType
+    : PossibleArrayAssociationType,
   // AssociationQuery = Query<DreamConstructorType<AssociationType & Dream>>
 >(
   dream: DreamInstance,

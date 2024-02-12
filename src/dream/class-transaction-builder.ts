@@ -58,7 +58,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     I extends DreamClassTransactionBuilder<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
     DB extends InstanceType<DreamClass>['DB'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]>
+    SimpleFieldType extends keyof Updateable<DB[TableName]>,
   >(this: I, field: SimpleFieldType): Promise<number> {
     return this.queryInstance().max(field as any)
   }
@@ -67,7 +67,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     I extends DreamClassTransactionBuilder<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
     DB extends InstanceType<DreamClass>['DB'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]>
+    SimpleFieldType extends keyof Updateable<DB[TableName]>,
   >(this: I, field: SimpleFieldType): Promise<number> {
     return this.queryInstance().min(field as any)
   }
@@ -85,7 +85,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     TableName extends keyof InstanceType<I['dreamClass']>['dreamconf']['interpretedDB'] = InstanceType<
       I['dreamClass']
     >['table'] &
-      keyof InstanceType<I['dreamClass']>['dreamconf']['interpretedDB']
+      keyof InstanceType<I['dreamClass']>['dreamconf']['interpretedDB'],
   >(
     this: I,
     id: InstanceType<I['dreamClass']>['dreamconf']['interpretedDB'][TableName][DreamClass['primaryKey'] &
@@ -98,7 +98,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
 
   public async findBy<
     I extends DreamClassTransactionBuilder<DreamClass>,
-    DB extends InstanceType<DreamClass>['DB']
+    DB extends InstanceType<DreamClass>['DB'],
   >(
     this: I,
     attributes: Updateable<DB[InstanceType<DreamClass>['table']]>
@@ -165,7 +165,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
       : any,
     G extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanSix
       ? NextPreloadArgumentType<SyncedAssociations, FTableName>
-      : any
+      : any,
   >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     return this.queryInstance().preload(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
@@ -212,7 +212,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
       : never,
     G extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanSix
       ? NextJoinsWhereArgumentType<DB, SyncedAssociations, FTableName>
-      : never
+      : never,
   >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     return this.queryInstance().joins(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
@@ -260,7 +260,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     //
     G extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanSix
       ? FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
-      : any
+      : any,
   >(this: I, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     return this.queryInstance().pluckThrough(a, b, c as any, d as any, e as any, f as any, g as any)
   }
@@ -309,7 +309,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     //
     G extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanSix
       ? FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
-      : any
+      : any,
   >(
     this: I,
     a: A,
@@ -352,7 +352,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
   public nestedSelect<
     I extends DreamClassTransactionBuilder<DreamClass>,
     DB extends InstanceType<DreamClass>['DB'],
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>>
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>>,
   >(this: I, selection: SelectArg<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, SE>) {
     return this.queryInstance().nestedSelect(selection as any)
   }
@@ -364,7 +364,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
     TableName extends AssociationTableNames<DB, SyncedAssociations> &
       keyof DB = InstanceType<DreamClass>['table'],
-    Table extends DB[keyof DB] = DB[TableName]
+    Table extends DB[keyof DB] = DB[TableName],
   >(this: I, column: ColumnName, direction: 'asc' | 'desc' = 'asc') {
     return this.queryInstance().order(column as any, direction)
   }
@@ -372,7 +372,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
   public async pluck<
     I extends DreamClassTransactionBuilder<DreamClass>,
     DB extends InstanceType<DreamClass>['DB'],
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>>
+    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>>,
   >(this: I, ...fields: SelectArg<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, SE>[]) {
     return await this.queryInstance().pluck(...(fields as any[]))
   }
@@ -381,7 +381,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     I extends DreamClassTransactionBuilder<DreamClass>,
     DB extends InstanceType<DreamClass>['DB'],
     TableName extends InstanceType<DreamClass>['table'],
-    CB extends (plucked: any) => void | Promise<void>
+    CB extends (plucked: any) => void | Promise<void>,
   >(
     this: I,
     ...fields: (
@@ -396,7 +396,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
 
   public passthrough<
     I extends DreamClassTransactionBuilder<DreamClass>,
-    AllColumns extends InstanceType<DreamClass>['allColumns']
+    AllColumns extends InstanceType<DreamClass>['allColumns'],
   >(this: I, passthroughWhereStatement: PassthroughWhere<AllColumns>): Query<DreamClass> {
     return this.queryInstance().passthrough(passthroughWhereStatement as any)
   }
@@ -408,7 +408,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<
       I['dreamClass']
     >['table'] &
-      keyof DB
+      keyof DB,
   >(this: I, attributes: WhereStatement<DB, SyncedAssociations, TableName>): Query<DreamClass> {
     return this.queryInstance().where(attributes as any)
   }
@@ -420,7 +420,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<
       I['dreamClass']
     >['table'] &
-      keyof DB
+      keyof DB,
   >(this: I, attributes: WhereStatement<DB, SyncedAssociations, TableName>[]): Query<DreamClass> {
     return this.queryInstance().whereAny(attributes as any)
   }
@@ -432,7 +432,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<
       I['dreamClass']
     >['table'] &
-      keyof DB
+      keyof DB,
   >(this: I, attributes: WhereStatement<DB, SyncedAssociations, TableName>): Query<DreamClass> {
     return this.queryInstance().whereNot(attributes as any)
   }

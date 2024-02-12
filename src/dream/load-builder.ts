@@ -69,7 +69,7 @@ export default class LoadBuilder<DreamInstance extends Dream> {
       F
     >,
     //
-    G extends NextPreloadArgumentType<DreamInstance['syncedAssociations'], FTableName>
+    G extends NextPreloadArgumentType<DreamInstance['syncedAssociations'], FTableName>,
   >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     this.query = this.query.preload(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
     return this

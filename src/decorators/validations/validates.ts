@@ -6,10 +6,10 @@ export default function Validates<
   VTArgs extends VT extends 'numericality'
     ? { min?: number; max?: number }
     : VT extends 'length'
-    ? { min: number; max?: number }
-    : VT extends 'contains'
-    ? string | RegExp
-    : never
+      ? { min: number; max?: number }
+      : VT extends 'contains'
+        ? string | RegExp
+        : never,
 >(type: VT, args?: VTArgs): any {
   return function (target: any, key: string, _: any) {
     const t = target.constructor as typeof Dream

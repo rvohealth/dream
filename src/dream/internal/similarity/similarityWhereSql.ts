@@ -22,8 +22,8 @@ export default function similarityWhereSql<DreamClass extends typeof Dream>({
     similarity(
       ${opsStatement.value}::text,
       (coalesce(${eb.ref(validateTable(dbTypeCache, tableName))}.${eb.ref(
-    validateColumn(dbTypeCache, tableName, columnName)
-  )} :: text, ''))
+        validateColumn(dbTypeCache, tableName, columnName)
+      )} :: text, ''))
     ) >= ${opsStatement.minTrigramScore}
   )` as any
 }

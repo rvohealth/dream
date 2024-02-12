@@ -43,8 +43,8 @@ There are two possible fixes:
 class ${this.dreamClass.name} {
   ...
   @HasMany(() => ${this.throughClass.name}, { through: '${
-      this.association.through
-    }', source: '<a valid association on ${this.throughClass.name}>'})
+    this.association.through
+  }', source: '<a valid association on ${this.throughClass.name}>'})
   public ${this.association.as}: ${this.throughClass.name}[]
 }
 

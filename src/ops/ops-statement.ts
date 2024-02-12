@@ -12,7 +12,7 @@ export default class OpsStatement<
   COE extends ComparisonOperatorExpression,
   ExtraArgs extends COE extends '%' | '<%' | '<<%'
     ? ExtraSimilarityArgs | undefined
-    : ExtraOpsArgs | undefined
+    : ExtraOpsArgs | undefined,
 > {
   public operator: ComparisonOperatorExpression
   public value: any
