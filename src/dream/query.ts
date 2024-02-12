@@ -126,7 +126,7 @@ export default class Query<
     ? unknown
     : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] = keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
     ? unknown
-    : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']]
+    : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']],
 > extends ConnectedToDB<DreamClass> {
   public static readonly BATCH_SIZES = {
     FIND_EACH: 1000,
@@ -204,8 +204,8 @@ export default class Query<
         opts.limit === null || opts.offset === null
           ? null
           : opts.offset !== undefined
-          ? opts.offset
-          : this.offsetStatement || null,
+            ? opts.offset
+            : this.offsetStatement || null,
       or: opts.or === null ? [] : [...this.orStatements, ...(opts.or || [])],
       order: opts.order !== undefined ? opts.order : this.orderStatement || null,
       distinctColumn: (opts.distinctColumn !== undefined
@@ -228,8 +228,9 @@ export default class Query<
 
   public async find<
     T extends Query<DreamClass>,
-    TableName extends keyof InstanceType<DreamClass>['dreamconf']['interpretedDB'] = InstanceType<DreamClass>['table'] &
-      keyof InstanceType<DreamClass>['dreamconf']['interpretedDB']
+    TableName extends
+      keyof InstanceType<DreamClass>['dreamconf']['interpretedDB'] = InstanceType<DreamClass>['table'] &
+      keyof InstanceType<DreamClass>['dreamconf']['interpretedDB'],
   >(
     this: T,
     id: InstanceType<DreamClass>['dreamconf']['interpretedDB'][TableName][DreamClass['primaryKey'] &
@@ -320,7 +321,7 @@ export default class Query<
       : never,
     G extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanSix
       ? NextPreloadArgumentType<SyncedAssociations, FTableName>
-      : any
+      : any,
   >(this: T, models: Dream[], a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     const query = this.preload(a as any, b as any, c as any, d as any, e as any, f as any, g as any)
     await new LoadIntoModels<DreamClass>(query.preloadStatements, query.passthroughWhereStatement).loadInto(
@@ -367,7 +368,7 @@ export default class Query<
       : never,
     G extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanSix
       ? NextPreloadArgumentType<SyncedAssociations, FTableName>
-      : any
+      : any,
   >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     const preloadStatements = { ...this.preloadStatements }
     this.fleshOutPreloadStatements(preloadStatements, [a, b, c, d, e, f, g])
@@ -440,7 +441,7 @@ export default class Query<
       : never,
     G extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanSix
       ? NextJoinsWhereArgumentType<DB, SyncedAssociations, FTableName>
-      : any
+      : any,
   >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     const joinsStatements = { ...this.joinsStatements }
 
@@ -541,7 +542,7 @@ export default class Query<
     //
     G extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanSix
       ? FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
-      : any
+      : any,
   >(this: T, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     const joinsStatements = { ...this.joinsStatements }
 
@@ -632,7 +633,7 @@ export default class Query<
     //
     G extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanSix
       ? FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
-      : any
+      : any,
   >(
     this: T,
     a: A,
@@ -847,11 +848,7 @@ export default class Query<
     DB extends InstanceType<DreamClass>['DB'],
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>,
-    PluckThroughFieldType extends any
-    // PluckThroughFieldType extends PluckThroughAssociationExpression<
-    //   InstanceType<DreamClass>['table'],
-    //   T['joinsStatements'][number]
-    // >
+    PluckThroughFieldType extends any,
   >(this: T, selection: SimpleFieldType | PluckThroughFieldType) {
     let query = this.buildSelect({ bypassSelectAll: true }) as SelectQueryBuilder<
       DB,
@@ -859,7 +856,7 @@ export default class Query<
       any
     >
 
-    query = this.conditionallyAttachSimilarityColumnsToSelect(query as any, { includeGroupBy: false }) as any
+    query = this.conditionallyAttachSimilarityColumnsToSelect(query as any, { bypassOrder: true }) as any
 
     return query.select(selection as any)
   }
@@ -894,10 +891,10 @@ export default class Query<
     ToKyselyReturnType = QueryType extends 'select'
       ? SelectQueryBuilder<any, string, {}>
       : QueryType extends 'delete'
-      ? DeleteQueryBuilder<any, string, {}>
-      : QueryType extends 'update'
-      ? UpdateQueryBuilder<any, string, any, {}>
-      : never
+        ? DeleteQueryBuilder<any, string, {}>
+        : QueryType extends 'update'
+          ? UpdateQueryBuilder<any, string, any, {}>
+          : never,
   >(this: T, type: QueryType): ToKyselyReturnType {
     switch (type) {
       case 'select':
@@ -924,7 +921,7 @@ export default class Query<
 
     kyselyQuery = kyselyQuery.select(count(this.namespaceColumn(this.dreamClass.primaryKey)).as('tablecount'))
 
-    kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery, { includeGroupBy: true })
+    kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery, { bypassOrder: true })
 
     const data = (await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')) as any
 
@@ -959,13 +956,13 @@ export default class Query<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>,
-    PluckThroughFieldType extends any
+    PluckThroughFieldType extends any,
   >(this: T, field: SimpleFieldType | PluckThroughFieldType) {
     const { max } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
 
     kyselyQuery = kyselyQuery.select(max(field as any) as any)
-    kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery, { includeGroupBy: true })
+    kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery, { bypassOrder: true })
 
     const data = (await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')) as any
 
@@ -976,13 +973,13 @@ export default class Query<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>,
-    PluckThroughFieldType extends any
+    PluckThroughFieldType extends any,
   >(this: T, field: SimpleFieldType | PluckThroughFieldType) {
     const { min } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
 
     kyselyQuery = kyselyQuery.select(min(field as any) as any)
-    kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery, { includeGroupBy: true })
+    kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery, { bypassOrder: true })
     const data = (await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')) as any
 
     return data.min
@@ -992,7 +989,7 @@ export default class Query<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]> & string,
-    TablePrefixedFieldType extends `${TableName}.${SimpleFieldType}`
+    TablePrefixedFieldType extends `${TableName}.${SimpleFieldType}`,
   >(this: T, ...fields: (SimpleFieldType | TablePrefixedFieldType)[]): Promise<any[]> {
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
     const aliases: string[] = []
@@ -1014,7 +1011,7 @@ export default class Query<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]> & string,
-    TablePrefixedFieldType extends `${TableName}.${SimpleFieldType}`
+    TablePrefixedFieldType extends `${TableName}.${SimpleFieldType}`,
   >(this: T, ...fields: (SimpleFieldType | TablePrefixedFieldType)[]): Promise<any[]> {
     const vals = await this.pluckWithoutMarshalling(...fields)
     const mapFn = (val: any, index: number) => marshalDBValue(this.dreamClass, fields[index] as any, val)
@@ -1026,7 +1023,7 @@ export default class Query<
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]> & string,
     TablePrefixedFieldType extends `${TableName}.${SimpleFieldType}`,
-    CB extends (plucked: any) => void | Promise<void>
+    CB extends (plucked: any) => void | Promise<void>,
   >(
     this: T,
     // NOTE: cannot use abbreviated types captured in generics to type fields, since
@@ -1803,7 +1800,7 @@ export default class Query<
 
   private applyWhereStatements<
     T extends Query<DreamClass>,
-    WS extends WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
+    WS extends WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>,
   >(
     this: T,
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
@@ -2121,7 +2118,7 @@ export default class Query<
       InstanceType<DreamClass>['DB'],
       InstanceType<DreamClass>['syncedAssociations']
     > &
-      keyof InstanceType<DreamClass>['syncedAssociations']
+      keyof InstanceType<DreamClass>['syncedAssociations'],
   >(
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
     whereJoinsStatement: RelaxedJoinsWhereStatement<DB, SyncedAssociations>,
@@ -2313,7 +2310,7 @@ export default class Query<
     T extends Query<DreamClass>,
     QueryType extends
       | UpdateQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, any, {}>
-      | DeleteQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
+      | DeleteQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
   >(this: T, kyselyQuery: QueryType): { kyselyQuery: QueryType; clone: T } {
     if (this.limitStatement || this.orderStatement) {
       kyselyQuery = (kyselyQuery as any).where((eb: any) => {
@@ -2351,11 +2348,11 @@ export default class Query<
       ExtractTableAlias<InstanceType<DreamClass>['DB'], InstanceType<DreamClass>['table']>,
       {}
     >,
-    { includeGroupBy = false }: { includeGroupBy?: boolean } = {}
+    { bypassOrder = false }: { bypassOrder?: boolean } = {}
   ) {
     const similarityBuilder = this.similarityStatementBuilder()
     if (similarityBuilder.hasSimilarityClauses) {
-      kyselyQuery = similarityBuilder.select(kyselyQuery, { includeGroupBy })
+      kyselyQuery = similarityBuilder.select(kyselyQuery, { bypassOrder })
     }
 
     return kyselyQuery
@@ -2388,7 +2385,7 @@ export interface QueryOpts<
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
-  AllColumns extends DreamInstance['allColumns'] = DreamInstance['allColumns']
+  AllColumns extends DreamInstance['allColumns'] = DreamInstance['allColumns'],
 > {
   baseSqlAlias?: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
   baseSelectQuery?: Query<any> | null
