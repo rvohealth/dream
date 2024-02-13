@@ -72,14 +72,17 @@ describe('Query#where', () => {
     beforeEach(async () => {
       user1 = await User.create({
         email: 'fred@frewd',
+        name: 'fred',
         password: 'howyadoin',
       })
       user2 = await User.create({
         email: 'frez@frewd',
+        name: 'fred',
         password: 'howyadoin',
       })
       user3 = await User.create({
         email: 'frez@fishman',
+        name: null,
         password: 'howyadoin',
       })
     })
@@ -89,6 +92,46 @@ describe('Query#where', () => {
         .where({ id: ops.in([user1.id, user2.id]) })
         .pluck('id')
       expect(records).toEqual([user1.id, user2.id])
+    })
+
+    context('with an array containing some real values and some null values', () => {
+      it('does not include records with null values for that field', async () => {
+        const records = await User.query()
+          .where({ name: ops.in(['fred', null]) })
+          .pluck('id')
+        expect(records).toEqual([user1.id, user2.id])
+      })
+
+      context('updateAll', () => {
+        it('does not update records with null values for that field', async () => {
+          await User.query()
+            .where({ name: ops.in(['fred', null]) })
+            .updateAll({ name: 'chalupatown' })
+
+          const records = await User.pluck('name')
+          expect(records).toEqual(expect.arrayContaining([null, 'chalupatown', 'chalupatown']))
+        })
+      })
+
+      context('destroy', () => {
+        it('does not destroy records with null values for that field', async () => {
+          await User.query()
+            .where({ name: ops.in(['fred', null]) })
+            .destroy()
+
+          const records = await User.pluck('name')
+          expect(records).toEqual(expect.arrayContaining([null]))
+        })
+      })
+
+      context('destroyBy', () => {
+        it('does not destroy records with null values for that field', async () => {
+          await User.query().destroyBy({ name: ops.in(['fred', null]) })
+
+          const records = await User.pluck('name')
+          expect(records).toEqual(expect.arrayContaining([null]))
+        })
+      })
     })
 
     context('with a blank array', () => {

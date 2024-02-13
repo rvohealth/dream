@@ -2064,7 +2064,11 @@ export default class Query<
     } else if (Array.isArray(val)) {
       a = attr
       b = 'in'
-      c = val
+
+      // postgres explicitly ignores null values within an IN query, but we want to be
+      // explicit about the fact that we do not support null values in an array, so
+      // we compact the value.
+      c = compact(val)
     } else if (val.constructor === CurriedOpsStatement) {
       val = val.toOpsStatement(this.dreamClass, attr)
       a = attr
