@@ -29,6 +29,13 @@ export type ComparisonOperatorExpression = KyselyComparisonOperatorExpression | 
 //   columnValue: any
 // }
 
+export type DreamColumn<
+  I extends Dream,
+  DB = I['DB'],
+  TableName extends keyof DB = I['table'] & keyof DB,
+  Table extends DB[keyof DB] = DB[TableName]
+> = keyof Table
+
 export type UpdateableColumns<DreamInstance extends Dream> = Updateable<
   DreamInstance['DB'][DreamInstance['table']]
 >
