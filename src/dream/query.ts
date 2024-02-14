@@ -1880,9 +1880,9 @@ export default class Query<
         //    then it is the same as the where statement not being present at all,
         //    resulting in a noop on our end
         if (b === 'in' && Array.isArray(c) && c.length === 0) {
-          query = negate ? query.where(sql`TRUE`) : query.where(sql`FALSE`)
+          query = negate ? query.where(sql<boolean>`TRUE`) : query.where(sql<boolean>`FALSE`)
         } else if (b === 'not in' && Array.isArray(c) && c.length === 0) {
-          query = negate ? query.where(sql`FALSE`) : query.where(sql`TRUE`)
+          query = negate ? query.where(sql<boolean>`FALSE`) : query.where(sql<boolean>`TRUE`)
         } else if (negate) {
           // @ts-ignore
           const negatedB = OPERATION_NEGATION_MAP[b]
@@ -1947,9 +1947,9 @@ export default class Query<
             //    then it is the same as the where statement not being present at all,
             //    resulting in a noop on our end
             if (b === 'in' && Array.isArray(c) && c.length === 0) {
-              return negate ? sql`TRUE` : sql`FALSE`
+              return negate ? sql<boolean>`TRUE` : sql<boolean>`FALSE`
             } else if (b === 'not in' && Array.isArray(c) && c.length === 0) {
-              return negate ? sql`FALSE` : sql`TRUE`
+              return negate ? sql<boolean>`FALSE` : sql<boolean>`TRUE`
             } else if (negate) {
               // @ts-ignore
               const negatedB = OPERATION_NEGATION_MAP[b]
@@ -1979,13 +1979,11 @@ export default class Query<
     eb: ExpressionBuilder<any, any>,
     orStatement: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
   ): ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any> {
-    let useAnd = false
-
     return Object.keys(orStatement)
       .filter(key => (orStatement as any)[key] !== undefined)
       .reduce(
         (
-          expressionBuilderOrWrap: ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any>,
+          expressionBuilderOrWrap: ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any> | null,
           attr: any
         ): ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any> => {
           let val = (orStatement as any)[attr]
@@ -2008,32 +2006,33 @@ export default class Query<
           //    then it is the same as the where statement not being present at all,
           //    resulting in a noop on our end
           if (b === 'in' && Array.isArray(c) && c.length === 0) {
-            if (useAnd) {
-              return expressionBuilderOrWrap.and(sql`FALSE`) as any
+            if (expressionBuilderOrWrap === null) {
+              return sql<boolean>`FALSE` as any
             } else {
-              useAnd = true
-              return sql`FALSE` as any
+              return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
+                sql<boolean>`FALSE`
+              ) as any
             }
           } else if (b === 'not in' && Array.isArray(c) && c.length === 0) {
-            if (useAnd) {
-              return expressionBuilderOrWrap.and(sql`TRUE`) as any
+            if (expressionBuilderOrWrap === null) {
+              return sql<boolean>`TRUE` as any
             } else {
-              useAnd = true
-              return sql`TRUE` as any
+              return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
+                sql<boolean>`TRUE`
+              ) as any
             }
           } else {
-            if (useAnd) {
-              expressionBuilderOrWrap = (expressionBuilderOrWrap as any).and(eb(a, b, c))
-            } else {
-              useAnd = true
+            if (expressionBuilderOrWrap === null) {
               expressionBuilderOrWrap = eb(a, b, c)
+            } else {
+              expressionBuilderOrWrap = (expressionBuilderOrWrap as any).and(eb(a, b, c))
             }
             if (b2) expressionBuilderOrWrap = (expressionBuilderOrWrap as any).and(eb(a2, b2, c2))
-            return expressionBuilderOrWrap
+            return expressionBuilderOrWrap as any
           }
         },
-        eb
-      )
+        null
+      ) as ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any>
   }
 
   private dreamWhereStatementToExpressionBuilderParts(attr: string, val: any) {

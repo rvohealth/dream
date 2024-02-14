@@ -15,6 +15,7 @@ describe('Dream.whereAny', () => {
     let user1: User | null = null
     let user2: User | null = null
     let records: User[] = []
+
     it('finds records matching specified conditions', async () => {
       await ApplicationModel.transaction(async txn => {
         user1 = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
