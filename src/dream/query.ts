@@ -850,14 +850,8 @@ export default class Query<
     SimpleFieldType extends keyof Updateable<DB[TableName]>,
     PluckThroughFieldType extends any,
   >(this: T, selection: SimpleFieldType | PluckThroughFieldType) {
-    let query = this.buildSelect({ bypassSelectAll: true }) as SelectQueryBuilder<
-      DB,
-      ExtractTableAlias<DB, TableName>,
-      any
-    >
-
-    query = this.conditionallyAttachSimilarityColumnsToSelect(query as any, { bypassOrder: true }) as any
-
+    let query = this.buildSelect({ bypassSelectAll: true }) as SelectQueryBuilder<any, any, any>
+    query = this.conditionallyAttachSimilarityColumnsToSelect(query, { bypassOrder: true }) as any
     return query.select(selection as any)
   }
 
