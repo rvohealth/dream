@@ -9,6 +9,7 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "declaration": true,
+    "skipLibCheck": true,
 
     /* do not require all properties to be initialized in constructor */
     "strictPropertyInitialization": false,

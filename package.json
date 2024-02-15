@@ -1,12 +1,21 @@
 {
   "name": "@rvohealth/dream",
-  "version": "0.1.70",
+  "version": "0.1.72",
   "description": "dream orm",
   "main": "src/index.ts",
   "repository": "https://github.com/rvohealth/dream.git",
   "author": "avocadojesust",
   "license": "MIT",
   "private": false,
+  "files": [
+    "tsconfig.boot.json",
+    "tsconfig.build.json",
+    "tsconfig.json",
+    "boot/**/*",
+    "shared/**/*",
+    "spec-helpers/**/*",
+    "src/**/*"
+  ],
   "scripts": {
     "dream": "yarn dreamts",
     "dreamcore": "APP_ROOT_PATH=$(pwd)/test-app DREAM_CORE_DEVELOPMENT=1 yarn dreamts",
