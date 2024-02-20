@@ -11,6 +11,7 @@ import LocalizedText from '../../../../test-app/app/models/LocalizedText'
 import Node from '../../../../test-app/app/models/Graph/Node'
 import Edge from '../../../../test-app/app/models/Graph/Edge'
 import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
+import Collar from '../../../../test-app/app/models/Collar'
 
 describe('Query#preload with simple associations', () => {
   context('HasOne', () => {
@@ -326,13 +327,26 @@ describe('Query#preload with simple associations', () => {
     })
   })
 
-  context('default scopes on the included models', () => {
-    it('applies the default scope to the included models', async () => {
-      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const snoopy = await Pet.create({ user, name: 'Snoopy' })
-      await Pet.create({ user, name: 'Woodstock', deletedAt: DateTime.now() })
-      const reloadedUser = await User.where({ email: user.email }).preload('pets').first()
-      expect(reloadedUser!.pets).toMatchDreamModels([snoopy])
+  context('with default scopes on the preloaded models', () => {
+    context('preloading a HasMany', () => {
+      it('applies default scopes when joining', async () => {
+        const pet = await Pet.create({ name: 'aster' })
+        const collar = await pet.createAssociation('collars', { tagName: 'Aster', pet, hidden: true })
+
+        const result = await Pet.preload('collars').first()
+        expect(result!.collars).toHaveLength(0)
+      })
+    })
+
+    context('preloading a BelongsTo', () => {
+      it('applies default scopes when joining', async () => {
+        const pet = await Pet.create({ name: 'aster' })
+        const collar = await pet.createAssociation('collars', { tagName: 'Aster', pet })
+        await pet.destroy()
+
+        const result = await Collar.preload('pet').first()
+        expect(result!.pet).toBeNull()
+      })
     })
   })
 

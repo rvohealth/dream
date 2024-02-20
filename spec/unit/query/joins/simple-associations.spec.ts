@@ -9,6 +9,7 @@ import Balloon from '../../../../test-app/app/models/Balloon'
 import ops from '../../../../src/ops'
 import OpsStatement from '../../../../src/ops/ops-statement'
 import LocalizedText from '../../../../test-app/app/models/LocalizedText'
+import Collar from '../../../../test-app/app/models/Collar'
 
 describe('Query#joins with simple associations', () => {
   it('joins a HasOne association', async () => {
@@ -419,6 +420,29 @@ describe('Query#joins with simple associations', () => {
     it('is able to apply date ranges to where clause', async () => {
       const pets = await Pet.joins('user', { createdAt: range(begin.plus({ hour: 1 })) }).all()
       expect(pets).toMatchDreamModels([pet1])
+    })
+  })
+
+  context('with default scopes on the joined models', () => {
+    context('joining a HasMany', () => {
+      it('applies default scopes when joining', async () => {
+        const pet = await Pet.create({ name: 'aster' })
+        const collar = await pet.createAssociation('collars', { tagName: 'Aster', pet, hidden: true })
+
+        const results = await Pet.joins('collars').all()
+        expect(results).toHaveLength(0)
+      })
+    })
+
+    context('joining a BelongsTo', () => {
+      it('applies default scopes when joining', async () => {
+        const pet = await Pet.create({ name: 'aster' })
+        const collar = await pet.createAssociation('collars', { tagName: 'Aster', pet })
+        await pet.destroy()
+
+        const results = await Collar.joins('pet').all()
+        expect(results).toHaveLength(0)
+      })
     })
   })
 

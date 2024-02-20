@@ -1646,22 +1646,6 @@ export default class Query<
         )
       }
 
-      if (!this.bypassDefaultScopes) {
-        let scopesQuery = new Query<DreamClass>(this.dreamClass)
-        const associationClass = association.modelCB() as any
-        const associationScopes = associationClass.scopes.default
-
-        for (const scope of associationScopes) {
-          const tempQuery = associationClass[scope.method](scopesQuery)
-          if (tempQuery && tempQuery.constructor === this.constructor) scopesQuery = tempQuery
-        }
-
-        query = this.applyWhereStatements(
-          query,
-          this.aliasWhereStatements(scopesQuery.whereStatements, currentAssociationTableOrAlias)
-        )
-      }
-
       if (association.where) {
         query = this.applyWhereStatements(
           query,
@@ -1729,6 +1713,22 @@ export default class Query<
           }) as any
         )
       }
+    }
+
+    if (!this.bypassDefaultScopes) {
+      let scopesQuery = new Query<DreamClass>(this.dreamClass)
+      const associationClass = association.modelCB() as any
+      const associationScopes = associationClass.scopes.default
+
+      for (const scope of associationScopes) {
+        const tempQuery = associationClass[scope.method](scopesQuery)
+        if (tempQuery && tempQuery.constructor === this.constructor) scopesQuery = tempQuery
+      }
+
+      query = this.applyWhereStatements(
+        query,
+        this.aliasWhereStatements(scopesQuery.whereStatements, currentAssociationTableOrAlias)
+      )
     }
 
     return {

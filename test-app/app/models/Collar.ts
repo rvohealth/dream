@@ -5,6 +5,8 @@ import CollarSerializer from '../../../test-app/app/serializers/CollarSerializer
 import Pet from './Pet'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
+import Scope from '../../../src/decorators/scope'
+import Query from '../../../src/dream/query'
 
 export default class Collar extends ApplicationModel {
   public get table() {
@@ -28,4 +30,9 @@ export default class Collar extends ApplicationModel {
   @BelongsTo(() => Balloon, { foreignKey: 'balloonId', optional: true })
   public balloon: Balloon
   public balloonId: IdType
+
+  @Scope({ default: true })
+  public static hideHiddenCollars(query: Query<typeof Collar>) {
+    return query.where({ hidden: false })
+  }
 }
