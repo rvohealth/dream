@@ -370,7 +370,7 @@ export default class Query<
       ? NextPreloadArgumentType<SyncedAssociations, FTableName>
       : any,
   >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
-    const preloadStatements = { ...this.preloadStatements }
+    const preloadStatements = cloneDeep(this.preloadStatements)
     this.fleshOutPreloadStatements(preloadStatements, [a, b, c, d, e, f, g])
     return this.clone({ preloadStatements })
   }
@@ -443,11 +443,11 @@ export default class Query<
       ? NextJoinsWhereArgumentType<DB, SyncedAssociations, FTableName>
       : any,
   >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
-    const joinsStatements = { ...this.joinsStatements }
+    const joinsStatements = cloneDeep(this.joinsStatements)
 
-    const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = {
-      ...this.joinsWhereStatements,
-    }
+    const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = cloneDeep(
+      this.joinsWhereStatements
+    )
     this.fleshOutJoinsStatements(joinsStatements, joinsWhereStatements, null, [a, b, c, d, e, f, g])
     return this.clone({ joinsStatements, joinsWhereStatements })
   }
@@ -544,11 +544,11 @@ export default class Query<
       ? FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
       : any,
   >(this: T, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
-    const joinsStatements = { ...this.joinsStatements }
+    const joinsStatements = cloneDeep(this.joinsStatements)
 
-    const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = {
-      ...this.joinsWhereStatements,
-    }
+    const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = cloneDeep(
+      this.joinsWhereStatements
+    )
     const pluckStatement = [
       this.fleshOutPluckThroughStatements(joinsStatements, joinsWhereStatements, null, [
         a,
@@ -658,11 +658,11 @@ export default class Query<
 
     const batchSize = providedOpts?.batchSize || Query.BATCH_SIZES.PLUCK_EACH_THROUGH
 
-    const joinsStatements = { ...this.joinsStatements }
+    const joinsStatements = cloneDeep(this.joinsStatements)
 
-    const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = {
-      ...this.joinsWhereStatements,
-    }
+    const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = cloneDeep(
+      this.joinsWhereStatements
+    )
 
     const fieldArgs = [a, b as any, c, d, e, f, g]
     const onlyColumns: any = fieldArgs.filter((_, index) => index < providedCbIndex)
