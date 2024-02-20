@@ -159,6 +159,7 @@ export interface BeautifulBalloons {
 export interface Collars {
   balloonId: Int8 | null;
   createdAt: Timestamp;
+  hidden: Generated<boolean | null>;
   id: Generated<Int8>;
   lost: boolean | null;
   petId: Int8;
@@ -385,7 +386,7 @@ export const BalloonLineColumns = new Set(['balloonId', 'createdAt', 'id', 'mate
 export const BalloonSpotterBalloonColumns = new Set(['balloonId', 'balloonSpotterId', 'createdAt', 'id', 'updatedAt', 'userId'])
 export const BalloonSpotterColumns = new Set(['createdAt', 'id', 'name', 'updatedAt'])
 export const BeautifulBalloonColumns = new Set(['color', 'createdAt', 'deletedAt', 'id', 'multicolor', 'positionAlpha', 'positionBeta', 'type', 'updatedAt', 'userId', 'volume'])
-export const CollarColumns = new Set(['balloonId', 'createdAt', 'id', 'lost', 'petId', 'tagName', 'updatedAt'])
+export const CollarColumns = new Set(['balloonId', 'createdAt', 'hidden', 'id', 'lost', 'petId', 'tagName', 'updatedAt'])
 export const CompositionAssetAuditColumns = new Set(['approval', 'compositionAssetId', 'createdAt', 'id', 'notes', 'updatedAt'])
 export const CompositionAssetColumns = new Set(['compositionId', 'createdAt', 'id', 'name', 'primary', 'score', 'src', 'updatedAt'])
 export const CompositionColumns = new Set(['content', 'createdAt', 'id', 'metadata', 'metadata2', 'metadata3', 'primary', 'updatedAt', 'userId'])
@@ -406,7 +407,7 @@ export const SandbagColumns = new Set(['balloonId', 'createdAt', 'id', 'updatedA
 export const UserColumns = new Set(['birthdate', 'createdAt', 'deletedAt', 'email', 'featuredPostPosition', 'id', 'name', 'passwordDigest', 'socialSecurityNumber', 'targetRating', 'updatedAt'])
 export const UserSettingColumns = new Set(['createdAt', 'id', 'likesChalupas', 'updatedAt', 'userId'])
 
-export const AllColumns = ['approval', 'balloonId', 'balloonLines', 'balloonSpotterBalloons', 'balloonSpotterId', 'balloonSpotters', 'beautifulBalloons', 'birthdate', 'body', 'cantUpdateThis', 'collars', 'color', 'compositionAssetAudits', 'compositionAssetId', 'compositionAssets', 'compositionId', 'compositions', 'content', 'createdAt', 'deletedAt', 'edgeCaseAttributes', 'edgeId', 'email', 'extraRateableId', 'extraRateableType', 'extraRatings', 'favoriteTreats', 'featuredPostPosition', 'graphEdgeNodes', 'graphEdges', 'graphNodes', 'id', 'incompatibleForeignKeyTypeExamples', 'kPop', 'likesChalupas', 'locale', 'localizableId', 'localizableType', 'localizedTexts', 'lost', 'material', 'metadata', 'metadata2', 'metadata3', 'modelWithoutUpdatedAt', 'multiScopedPosition', 'multicolor', 'name', 'nickname', 'nodeId', 'notes', 'omittedEdgePosition', 'passwordDigest', 'petId', 'petUnderstudyJoinModels', 'pets', 'popK', 'popKPop', 'position', 'positionAlpha', 'positionBeta', 'positionWithinSpecies', 'postVisibilities', 'postVisibilityId', 'posts', 'primary', 'rateableId', 'rateableType', 'rating', 'ratings', 'sandbags', 'score', 'socialSecurityNumber', 'species', 'src', 'tagName', 'targetRating', 'title', 'type', 'understudyId', 'updatedAt', 'userId', 'userSettings', 'users', 'visibility', 'volume', 'weight', 'weightKgs', 'weightTons'] as const
+export const AllColumns = ['approval', 'balloonId', 'balloonLines', 'balloonSpotterBalloons', 'balloonSpotterId', 'balloonSpotters', 'beautifulBalloons', 'birthdate', 'body', 'cantUpdateThis', 'collars', 'color', 'compositionAssetAudits', 'compositionAssetId', 'compositionAssets', 'compositionId', 'compositions', 'content', 'createdAt', 'deletedAt', 'edgeCaseAttributes', 'edgeId', 'email', 'extraRateableId', 'extraRateableType', 'extraRatings', 'favoriteTreats', 'featuredPostPosition', 'graphEdgeNodes', 'graphEdges', 'graphNodes', 'hidden', 'id', 'incompatibleForeignKeyTypeExamples', 'kPop', 'likesChalupas', 'locale', 'localizableId', 'localizableType', 'localizedTexts', 'lost', 'material', 'metadata', 'metadata2', 'metadata3', 'modelWithoutUpdatedAt', 'multiScopedPosition', 'multicolor', 'name', 'nickname', 'nodeId', 'notes', 'omittedEdgePosition', 'passwordDigest', 'petId', 'petUnderstudyJoinModels', 'pets', 'popK', 'popKPop', 'position', 'positionAlpha', 'positionBeta', 'positionWithinSpecies', 'postVisibilities', 'postVisibilityId', 'posts', 'primary', 'rateableId', 'rateableType', 'rating', 'ratings', 'sandbags', 'score', 'socialSecurityNumber', 'species', 'src', 'tagName', 'targetRating', 'title', 'type', 'understudyId', 'updatedAt', 'userId', 'userSettings', 'users', 'visibility', 'volume', 'weight', 'weightKgs', 'weightTons'] as const
 
 export interface BalloonLineAttributes {
   balloonId: IdType
@@ -449,6 +450,7 @@ export interface BeautifulBalloonAttributes {
 export interface CollarAttributes {
   balloonId: IdType | null
   createdAt: DateTime
+  hidden: boolean | null
   id: IdType
   lost: boolean | null
   petId: IdType
@@ -685,6 +687,7 @@ export const BeautifulBalloonsDBTypeMap = {
 export const CollarsDBTypeMap = {
   balloonId: 'bigint',
   createdAt: 'timestamp without time zone',
+  hidden: 'boolean',
   id: 'bigint',
   lost: 'boolean',
   petId: 'bigint',
