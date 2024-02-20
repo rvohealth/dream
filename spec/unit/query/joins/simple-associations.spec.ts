@@ -418,8 +418,31 @@ describe('Query#joins with simple associations', () => {
 
     it('is able to apply date ranges to where clause', async () => {
       const pets = await Pet.joins('user', { createdAt: range(begin.plus({ hour: 1 })) }).all()
-
       expect(pets).toMatchDreamModels([pet1])
+    })
+  })
+
+  context('join + where statement more than one level deep', () => {
+    it('does not leak between clones', async () => {
+      const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      const pet = await user.createAssociation('pets', { name: 'aster' })
+      const collar = await pet.createAssociation('collars', { tagName: 'Aster', pet })
+      const baseScope = User.joins('pets')
+
+      const results = await baseScope
+        .joins('pets', 'collars')
+        .whereAny([
+          {
+            id: baseScope.joins('pets', 'collars', { tagName: 'Aster' }).nestedSelect('pets.userId'),
+          },
+          {
+            id: baseScope.joins('pets', 'collars', { tagName: 'Snoopy' }).nestedSelect('pets.userId'),
+          },
+        ])
+        .limit(1)
+        .all()
+
+      expect(results).toMatchDreamModels([user])
     })
   })
 
