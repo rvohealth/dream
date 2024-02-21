@@ -158,7 +158,7 @@ function generateBelongsToStr(attributeName: string, { useUUID }: { useUUID: boo
   return `.addColumn('${snakeify(attributeName).replace(
     /_id$/,
     ''
-  )}_id', '${dataType}', col => col.references('${references}.id').onDelete('cascade').notNull())`
+  )}_id', '${dataType}', col => col.references('${references}.id').onDelete('restrict').notNull())`
 }
 
 function generateIdStr({ useUUID }: { useUUID: boolean }) {

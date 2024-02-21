@@ -7,7 +7,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('user_id', 'bigint', col => col.references('users.id').onDelete('cascade').notNull())
     .addColumn('post_visibility_id', 'bigint', col =>
-      col.references('post_visibilities.id').onDelete('cascade')
+      col.references('post_visibilities.id').onDelete('set null')
     )
     .addColumn('body', 'text')
     .addColumn('position', 'integer', col => col.notNull())

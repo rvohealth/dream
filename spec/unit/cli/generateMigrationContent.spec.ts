@@ -170,7 +170,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('compositions')
     .addColumn('id', 'bigserial', col => col.primaryKey())
-    .addColumn('admin_user_id', 'bigint', col => col.references('admin_users.id').onDelete('cascade').notNull())
+    .addColumn('admin_user_id', 'bigint', col => col.references('admin_users.id').onDelete('restrict').notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
@@ -200,7 +200,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('compositions')
     .addColumn('id', 'uuid', col => col.primaryKey())
-    .addColumn('user_id', 'uuid', col => col.references('users.id').onDelete('cascade').notNull())
+    .addColumn('user_id', 'uuid', col => col.references('users.id').onDelete('restrict').notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()

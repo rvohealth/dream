@@ -12,7 +12,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('pets')
     .addColumn('id', 'bigserial', col => col.primaryKey())
-    .addColumn('user_id', 'bigint', col => col.references('users.id').onDelete('cascade'))
+    .addColumn('user_id', 'bigint', col => col.references('users.id').onDelete('set null'))
     .addColumn('favorite_treats', sql`cat_treats[]`)
     .addColumn('species', sql`species`)
     .addColumn('position_within_species', 'integer', col => col.notNull())

@@ -54,7 +54,7 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
-export type Int8 = ColumnType<string, string | number | bigint, string | number | bigint>;
+export type Int8 = ColumnType<string, bigint | number | string, bigint | number | string>;
 
 export type Json = ColumnType<JsonValue, string | JsonValue, string | JsonValue>;
 
@@ -64,7 +64,7 @@ export type JsonObject = {
   [K in string]?: JsonValue;
 };
 
-export type JsonPrimitive = boolean | null | number | string;
+export type JsonPrimitive = boolean | number | string | null;
 
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
@@ -106,7 +106,7 @@ export const LocalizableTypesEnumValues = [
 ] as const
 
 
-export type Numeric = ColumnType<string, string | number, string | number>;
+export type Numeric = ColumnType<string, number | string, number | string>;
 
 export type Species = "cat" | "dog" | "frog";
 export const SpeciesValues = [
