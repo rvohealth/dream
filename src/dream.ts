@@ -62,7 +62,7 @@ import Dreamconf, { AssociationDepths } from '../shared/dreamconf'
 import resortAllRecords from './decorators/sortable/helpers/resortAllRecords'
 import { SortableFieldConfig } from './decorators/sortable'
 import NonExistentScopeProvidedToResort from './exceptions/non-existent-scope-provided-to-resort'
-import cloneDeep from 'lodash.clonedeep'
+import cloneDeepSafe from './helpers/cloneDeepSafe'
 import NonLoadedAssociation from './exceptions/associations/non-loaded-association'
 import associationToGetterSetterProp from './decorators/associations/associationToGetterSetterProp'
 import { isString } from './helpers/typechecks'
@@ -1475,7 +1475,7 @@ export default class Dream {
     )
 
     Object.keys(this).forEach(property => {
-      if (!associationDataKeys.includes(property)) clone[property] = cloneDeep(self[property])
+      if (!associationDataKeys.includes(property)) clone[property] = cloneDeepSafe(self[property])
     })
 
     associationDataKeys.forEach(associationDataKey => (clone[associationDataKey] = self[associationDataKey]))

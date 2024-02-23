@@ -68,7 +68,7 @@ import CannotNegateSimilarityClause from '../exceptions/cannot-negate-similarity
 import SimilarityBuilder from './internal/similarity/SimilarityBuilder'
 import ConnectedToDB from '../db/ConnectedToDB'
 import SimilarityOperatorNotSupportedOnDestroyQueries from '../exceptions/similarity-operator-not-supported-on-destroy-queries'
-import cloneDeep from 'lodash.clonedeep'
+import cloneDeepSafe from '../helpers/cloneDeepSafe'
 import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment'
 import associationToGetterSetterProp from '../decorators/associations/associationToGetterSetterProp'
 import compact from '../helpers/compact'
@@ -176,6 +176,10 @@ export default class Query<
     this.dreamTransaction = opts.transaction || null
     this.distinctColumn = opts.distinctColumn || null
     this.connectionOverride = opts.connection
+  }
+
+  public get isDreamQuery() {
+    return true
   }
 
   private symmetricalQueryForDreamClass<D extends typeof Dream>(
@@ -370,7 +374,7 @@ export default class Query<
       ? NextPreloadArgumentType<SyncedAssociations, FTableName>
       : any,
   >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
-    const preloadStatements = cloneDeep(this.preloadStatements)
+    const preloadStatements = cloneDeepSafe(this.preloadStatements)
     this.fleshOutPreloadStatements(preloadStatements, [a, b, c, d, e, f, g])
     return this.clone({ preloadStatements })
   }
@@ -443,9 +447,9 @@ export default class Query<
       ? NextJoinsWhereArgumentType<DB, SyncedAssociations, FTableName>
       : any,
   >(this: T, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
-    const joinsStatements = cloneDeep(this.joinsStatements)
+    const joinsStatements = cloneDeepSafe(this.joinsStatements)
 
-    const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = cloneDeep(
+    const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = cloneDeepSafe(
       this.joinsWhereStatements
     )
     this.fleshOutJoinsStatements(joinsStatements, joinsWhereStatements, null, [a, b, c, d, e, f, g])
@@ -482,7 +486,7 @@ export default class Query<
         associationStatements
       )
     } else if (isObject(nextAssociationStatement) && previousAssociationName) {
-      const clonedNextAssociationStatement = cloneDeep(nextAssociationStatement)
+      const clonedNextAssociationStatement = cloneDeepSafe(nextAssociationStatement)
 
       Object.keys(clonedNextAssociationStatement).forEach((key: string) => {
         joinsWhereStatements[protectAgainstPollutingAssignment(key)] = (
@@ -544,9 +548,9 @@ export default class Query<
       ? FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
       : any,
   >(this: T, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
-    const joinsStatements = cloneDeep(this.joinsStatements)
+    const joinsStatements = cloneDeepSafe(this.joinsStatements)
 
-    const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = cloneDeep(
+    const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = cloneDeepSafe(
       this.joinsWhereStatements
     )
     const pluckStatement = [
@@ -658,9 +662,9 @@ export default class Query<
 
     const batchSize = providedOpts?.batchSize || Query.BATCH_SIZES.PLUCK_EACH_THROUGH
 
-    const joinsStatements = cloneDeep(this.joinsStatements)
+    const joinsStatements = cloneDeepSafe(this.joinsStatements)
 
-    const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = cloneDeep(
+    const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = cloneDeepSafe(
       this.joinsWhereStatements
     )
 
@@ -777,7 +781,7 @@ export default class Query<
         associationStatements
       )
     } else if (isObject(nextAssociationStatement) && previousAssociationName) {
-      const clonedNextAssociationStatement = cloneDeep(nextAssociationStatement)
+      const clonedNextAssociationStatement = cloneDeepSafe(nextAssociationStatement)
 
       Object.keys(clonedNextAssociationStatement).forEach((key: string) => {
         joinsWhereStatements[protectAgainstPollutingAssignment(key)] = (

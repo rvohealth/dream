@@ -24,6 +24,22 @@ describe('Query#pluckThrough', () => {
     expect(plucked).toEqual([[edge1.id, edge1.name]])
   })
 
+  it('can use nestedSelect in a where clause', async () => {
+    const node = await Node.create({ name: 'N1' })
+    const edge1 = await Edge.create({ name: 'E1' })
+    const edge2 = await Edge.create({ name: 'E2' })
+    await EdgeNode.create({ node, edge: edge1 })
+    await EdgeNode.create({ node, edge: edge2 })
+
+    const plucked = await Node.query().pluckThrough(
+      'edgeNodes',
+      'edge',
+      { id: Edge.where({ name: 'E1' }).nestedSelect('id') },
+      ['edge.id', 'edge.name']
+    )
+    expect(plucked).toEqual([[edge1.id, edge1.name]])
+  })
+
   context('columns that get transformed during marshalling', () => {
     it('are properly marshalled', async () => {
       const node = await Node.create({ name: 'N1' })
