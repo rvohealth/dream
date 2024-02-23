@@ -14,6 +14,20 @@ describe('Query#whereAny', () => {
     })
   })
 
+  context('chained', () => {
+    it('combines the separate OR statements using AND', async () => {
+      const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const user2 = await User.create({ email: 'aster@brown', password: 'howyadoin' })
+      const user3 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+
+      const records = await User.query()
+        .whereAny([{ email: 'fred@frewd' }, { email: 'aster@brown' }])
+        .whereAny([{ email: 'how@yadoin' }, { email: 'aster@brown' }])
+        .all()
+      expect(records).toMatchDreamModels([user2])
+    })
+  })
+
   context('between where-objects', () => {
     it('treats the separate object as OR statements', async () => {
       const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })

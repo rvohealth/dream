@@ -145,7 +145,7 @@ export default class Query<
   )
   private readonly limitStatement: LimitStatement | null
   private readonly offsetStatement: OffsetStatement | null
-  private readonly orStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
+  private readonly orStatements: readonly WhereStatement<DB, SyncedAssociations, any>[][] = Object.freeze([])
   private readonly orderStatement: OrderQueryStatement<ColumnType> | null = null
   private readonly preloadStatements: RelaxedPreloadStatement = Object.freeze({})
   private readonly joinsStatements: RelaxedJoinsStatement = Object.freeze({})
@@ -822,7 +822,7 @@ export default class Query<
     attributes: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>[]
   ): Query<DreamClass> {
     return this.clone({
-      or: attributes.map(obj => ({ ...obj })),
+      or: [attributes.map(obj => ({ ...obj }))],
     })
   }
 
@@ -2174,16 +2174,18 @@ export default class Query<
           .aliasWhereStatements(query.whereNotStatements, query.baseSqlAlias)
           .flatMap(statement => this.whereStatementsToExpressionWrappers(eb, statement, { negate: true }))
 
-        let orEb: ExpressionWrapper<any, any, any> | undefined
+        let orEbs: ExpressionWrapper<any, any, any>[] = []
 
         if (query.orStatements.length) {
-          const orStatement = query
-            .aliasWhereStatements(query.orStatements, query.baseSqlAlias)
-            .map(orStatement => this.orStatementsToExpressionWrappers(eb, orStatement))
-          orEb = eb.or(orStatement)
+          query.orStatements.forEach(orStatement => {
+            const aliasedOrStatementExpressionWrapper = query
+              .aliasWhereStatements(orStatement, query.baseSqlAlias)
+              .map(aliasedOrStatement => this.orStatementsToExpressionWrappers(eb, aliasedOrStatement))
+            orEbs.push(eb.or(aliasedOrStatementExpressionWrapper))
+          })
         }
 
-        return eb.and(compact([...whereStatement, ...whereNotStatement, orEb]))
+        return eb.and(compact([...whereStatement, ...whereNotStatement, ...orEbs]))
       })
     }
 
@@ -2391,7 +2393,7 @@ export interface QueryOpts<
   whereNot?: readonly WhereStatement<DB, SyncedAssociations, any>[] | null
   limit?: LimitStatement | null
   offset?: OffsetStatement | null
-  or?: WhereStatement<DB, SyncedAssociations, any>[] | null
+  or?: WhereStatement<DB, SyncedAssociations, any>[][] | null
   order?: OrderQueryStatement<ColumnType> | null
   preloadStatements?: RelaxedPreloadStatement
   distinctColumn?: ColumnType | null
