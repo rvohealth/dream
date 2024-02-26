@@ -3,7 +3,14 @@ export { default as Dreamconf, AssociationDepths } from '../shared/dreamconf'
 export { default as Query } from './dream/query'
 export { default as DreamTransaction } from './dream/transaction'
 export { default as db } from './db'
-export { DreamConst, IdType, Timestamp, UpdateableProperties, UpdateableColumns, DreamColumn } from './dream/types'
+export {
+  DreamConst,
+  IdType,
+  Timestamp,
+  UpdateableProperties,
+  UpdateableColumns,
+  DreamColumn,
+} from './dream/types'
 export { default as ops } from './ops'
 export { default as BelongsTo } from './decorators/associations/belongs-to'
 export { default as HasMany } from './decorators/associations/has-many'
