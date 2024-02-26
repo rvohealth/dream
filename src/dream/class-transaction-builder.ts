@@ -392,8 +392,9 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     TableName extends AssociationTableNames<DB, SyncedAssociations> &
       keyof DB = InstanceType<DreamClass>['table'],
     Table extends DB[keyof DB] = DB[TableName],
-  >(this: I, column: ColumnName, direction: 'asc' | 'desc' = 'asc') {
-    return this.queryInstance().order(column as any, direction)
+    OrderDir extends 'asc' | 'desc' = 'asc' | 'desc',
+  >(this: I, arg: ColumnName | Partial<Record<ColumnName, OrderDir>> | null) {
+    return this.queryInstance().order(arg)
   }
 
   public async pluck<

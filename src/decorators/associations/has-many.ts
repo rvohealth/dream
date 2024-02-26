@@ -125,15 +125,25 @@ export type HasManyOptions<AssociationDreamClass extends typeof Dream> = {
       >
   >
 
-  order?: OrderStatement<
-    InstanceType<AssociationDreamClass>['DB'],
-    InstanceType<AssociationDreamClass>['syncedAssociations'],
-    InstanceType<AssociationDreamClass>['table'] &
-      AssociationTableNames<
+  order?:
+    | OrderStatement<
         InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['syncedAssociations']
+        InstanceType<AssociationDreamClass>['syncedAssociations'],
+        InstanceType<AssociationDreamClass>['table'] &
+          AssociationTableNames<
+            InstanceType<AssociationDreamClass>['DB'],
+            InstanceType<AssociationDreamClass>['syncedAssociations']
+          >
       >
-  >
+    | OrderStatement<
+        InstanceType<AssociationDreamClass>['DB'],
+        InstanceType<AssociationDreamClass>['syncedAssociations'],
+        InstanceType<AssociationDreamClass>['table'] &
+          AssociationTableNames<
+            InstanceType<AssociationDreamClass>['DB'],
+            InstanceType<AssociationDreamClass>['syncedAssociations']
+          >
+      >[]
   through?: string
   preloadThroughColumns?: string[]
 }

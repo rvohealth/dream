@@ -183,7 +183,7 @@ describe('Query#preload through', () => {
         const mylar = await Mylar.create({ color: 'red', user })
         const sandbag = await Sandbag.create({ mylar })
 
-        const reloaded = await User.query().preload('balloons', 'sandbags').order('id', 'asc').first()
+        const reloaded = await User.query().preload('balloons', 'sandbags').order('id').first()
         expect(reloaded!.balloons).toMatchDreamModels([latex, mylar])
         if (reloaded!.balloons[1].constructor === Mylar)
           expect((reloaded!.balloons[1] as Mylar).sandbags).toMatchDreamModels([sandbag])
@@ -195,7 +195,7 @@ describe('Query#preload through', () => {
           const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
           const latex = await Latex.create({ color: 'blue', user })
 
-          const reloaded = await User.query().preload('balloons', 'sandbags').order('id', 'asc').first()
+          const reloaded = await User.query().preload('balloons', 'sandbags').order('id').first()
           expect(reloaded!.balloons[0]).toMatchDreamModel(latex)
         })
       })

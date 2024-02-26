@@ -120,6 +120,22 @@ describe('Dream#associationUpdateQuery', () => {
         expect(composition1.content).toEqual('1')
       })
 
+      it('respects multiple order statements', async () => {
+        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        const composition1 = await Composition.create({ user, content: '1' })
+        const composition2 = await Composition.create({ user, content: '2' })
+        const composition3 = await Composition.create({ user, content: '2' })
+
+        await user.associationUpdateQuery('firstComposition2').updateAll({ content: 'zoomba' })
+        await composition1.reload()
+        await composition2.reload()
+        await composition3.reload()
+
+        expect(composition2.content).toEqual('zoomba')
+        expect(composition1.content).toEqual('1')
+        expect(composition3.content).toEqual('2')
+      })
+
       it('respects scopes on the associated model', async () => {
         const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
         const pet1 = await Pet.create({ user, name: 'petb' })
@@ -141,7 +157,7 @@ describe('Dream#associationUpdateQuery', () => {
           const pet1 = await Pet.create({ user, name: 'petb' })
           const pet2 = await Pet.create({ user, name: 'peta' })
 
-          await user.associationUpdateQuery('firstPet').order('id', 'asc').updateAll({ name: 'coolidge' })
+          await user.associationUpdateQuery('firstPet').order('id').updateAll({ name: 'coolidge' })
 
           await pet1.reload()
           await pet2.reload()
@@ -156,7 +172,10 @@ describe('Dream#associationUpdateQuery', () => {
           const pet2 = await Pet.create({ user, name: 'peta' })
           await pet2.destroy()
 
-          await user.associationUpdateQuery('firstPet').order('name', 'desc').updateAll({ name: 'coolidge' })
+          await user
+            .associationUpdateQuery('firstPet')
+            .order({ name: 'desc' })
+            .updateAll({ name: 'coolidge' })
 
           await pet1.reload()
           const reloadedPet2 = await Pet.unscoped().find(pet2.id)

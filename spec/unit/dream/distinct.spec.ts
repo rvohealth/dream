@@ -55,7 +55,7 @@ describe('Dream.distinct', () => {
 
       let ids = await Node.distinct('name')
         .where({ name: ops.similarity('mynod') })
-        .order('name', 'desc')
+        .order({ name: 'desc' })
         .pluck('graph_nodes.id')
       expect(ids).toEqual([node1.id])
     })

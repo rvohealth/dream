@@ -8,7 +8,7 @@ export default async function resortAllRecords(
   positionField: string,
   scope?: string | string[]
 ) {
-  const dreams = await dreamClass.order(positionField, 'asc').all()
+  const dreams = await dreamClass.order({ [positionField]: 'asc' }).all()
   const hash: any = {}
   for (const dream of dreams) {
     const foreignKeys = foreignKeysForScope(dream, scope)

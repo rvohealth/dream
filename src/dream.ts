@@ -716,11 +716,12 @@ export default class Dream {
     I extends InstanceType<T>,
     DB extends I['DB'],
     SyncedAssociations extends I['syncedAssociations'],
-    ColumnName extends keyof Table & string,
     TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = I['table'],
     Table extends DB[keyof DB] = DB[TableName],
-  >(this: T, column: ColumnName, direction: 'asc' | 'desc' = 'asc') {
-    return this.query().order(column as any, direction)
+    ColumnName extends keyof Table & string = keyof Table & string,
+    OrderDir extends 'asc' | 'desc' = 'asc' | 'desc',
+  >(this: T, arg: ColumnName | Partial<Record<ColumnName, OrderDir>> | null): Query<T> {
+    return this.query().order(arg)
   }
 
   public static async pluck<
