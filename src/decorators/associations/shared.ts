@@ -97,7 +97,7 @@ export type OrderStatement<
   TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
 > =
   | TableColumnName<DB, SyncedAssociations, TableName>
-  | [TableColumnName<DB, SyncedAssociations, TableName>, 'asc' | 'desc']
+  | Partial<Record<TableColumnName<DB, SyncedAssociations, TableName>, 'asc' | 'desc'>>
 
 export type LimitStatement = number
 export type OffsetStatement = number

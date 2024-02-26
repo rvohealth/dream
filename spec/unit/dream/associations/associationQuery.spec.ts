@@ -1,12 +1,9 @@
 import { DateTime } from 'luxon'
-import { Dream } from '../../../../src'
 import Composition from '../../../../test-app/app/models/Composition'
 import User from '../../../../test-app/app/models/User'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
-import Pet from '../../../../test-app/app/models/Pet'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
-import Collar from '../../../../test-app/app/models/Collar'
 
 describe('Dream#associationQuery', () => {
   context('with a HasMany association', () => {
@@ -145,6 +142,22 @@ describe('Dream#associationQuery', () => {
         expect(results[3]).toMatchDreamModel(composition4)
       })
     })
+
+    context('with multiple order statements applied to the association', () => {
+      it('applies order', async () => {
+        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        const composition1 = await Composition.create({ user, content: 'a' })
+        const composition3 = await Composition.create({ user, content: 'a' })
+        const composition4 = await Composition.create({ user, content: 'b' })
+        const composition2 = await Composition.create({ user, content: 'b' })
+
+        const results = await user.associationQuery('sortedCompositions2').all()
+        expect(results[0]).toMatchDreamModel(composition3)
+        expect(results[1]).toMatchDreamModel(composition1)
+        expect(results[2]).toMatchDreamModel(composition2)
+        expect(results[3]).toMatchDreamModel(composition4)
+      })
+    })
   })
 
   context('when in a transaction', () => {
@@ -179,6 +192,18 @@ describe('Dream#associationQuery', () => {
 
         const lastResults = await user.associationQuery('lastComposition').first()
         expect(lastResults).toMatchDreamModel(composition2)
+      })
+    })
+
+    context('with multiple order statements applied to the association', () => {
+      it('applies order', async () => {
+        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        const composition1 = await Composition.create({ user, content: 'a' })
+        const composition2 = await Composition.create({ user, content: 'b' })
+        const composition3 = await Composition.create({ user, content: 'b' })
+
+        const firstResults = await user.associationQuery('firstComposition2').first()
+        expect(firstResults).toMatchDreamModel(composition2)
       })
     })
   })

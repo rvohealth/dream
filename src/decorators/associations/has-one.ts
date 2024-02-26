@@ -73,15 +73,25 @@ export default function HasOne<AssociationDreamClass extends typeof Dream>(
         >
     >
 
-    order?: OrderStatement<
-      InstanceType<AssociationDreamClass>['DB'],
-      InstanceType<AssociationDreamClass>['syncedAssociations'],
-      InstanceType<AssociationDreamClass>['table'] &
-        AssociationTableNames<
+    order?:
+      | OrderStatement<
           InstanceType<AssociationDreamClass>['DB'],
-          InstanceType<AssociationDreamClass>['syncedAssociations']
+          InstanceType<AssociationDreamClass>['syncedAssociations'],
+          InstanceType<AssociationDreamClass>['table'] &
+            AssociationTableNames<
+              InstanceType<AssociationDreamClass>['DB'],
+              InstanceType<AssociationDreamClass>['syncedAssociations']
+            >
         >
-    >
+      | OrderStatement<
+          InstanceType<AssociationDreamClass>['DB'],
+          InstanceType<AssociationDreamClass>['syncedAssociations'],
+          InstanceType<AssociationDreamClass>['table'] &
+            AssociationTableNames<
+              InstanceType<AssociationDreamClass>['DB'],
+              InstanceType<AssociationDreamClass>['syncedAssociations']
+            >
+        >[]
   } = {}
 ): any {
   return function (target: any, key: string, _: any) {

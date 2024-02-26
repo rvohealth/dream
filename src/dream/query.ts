@@ -4,6 +4,7 @@ import {
   LimitStatement,
   OffsetStatement,
   OrderQueryStatement,
+  OrderStatement,
   PassthroughWhere,
   TableColumnName,
   WhereSelfStatement,
@@ -144,7 +145,7 @@ export default class Query<
   private readonly limitStatement: LimitStatement | null
   private readonly offsetStatement: OffsetStatement | null
   private readonly orStatements: readonly WhereStatement<DB, SyncedAssociations, any>[][] = Object.freeze([])
-  private readonly orderStatement: OrderQueryStatement<ColumnType> | null = null
+  private readonly orderStatements: readonly OrderQueryStatement<ColumnType>[] = Object.freeze([])
   private readonly preloadStatements: RelaxedPreloadStatement = Object.freeze({})
   private readonly joinsStatements: RelaxedJoinsStatement = Object.freeze({})
   private readonly joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = Object.freeze(
@@ -165,7 +166,7 @@ export default class Query<
     this.limitStatement = Object.freeze(opts.limit || null)
     this.offsetStatement = Object.freeze(opts.offset || null)
     this.orStatements = Object.freeze(opts.or || [])
-    this.orderStatement = Object.freeze(opts.order || null)
+    this.orderStatements = Object.freeze(opts.order || [])
     this.preloadStatements = Object.freeze(opts.preloadStatements || {})
     this.joinsStatements = Object.freeze(opts.joinsStatements || {})
     this.joinsWhereStatements = Object.freeze(opts.joinsWhereStatements || {})
@@ -208,7 +209,7 @@ export default class Query<
             ? opts.offset
             : this.offsetStatement || null,
       or: opts.or === null ? [] : [...this.orStatements, ...(opts.or || [])],
-      order: opts.order !== undefined ? opts.order : this.orderStatement || null,
+      order: opts.order === null ? [] : [...this.orderStatements, ...(opts.order || [])],
       distinctColumn: (opts.distinctColumn !== undefined
         ? opts.distinctColumn
         : this.distinctColumn) as ColumnType | null,
@@ -873,24 +874,39 @@ export default class Query<
   }
 
   public nestedSelect<
-    T extends Query<DreamClass>,
     DB extends InstanceType<DreamClass>['DB'],
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>,
     PluckThroughFieldType extends any,
-  >(this: T, selection: SimpleFieldType | PluckThroughFieldType) {
+  >(this: Query<DreamClass>, selection: SimpleFieldType | PluckThroughFieldType) {
     let query = this.buildSelect({ bypassSelectAll: true }) as SelectQueryBuilder<any, any, any>
     query = this.conditionallyAttachSimilarityColumnsToSelect(query, { bypassOrder: true }) as any
     return query.select(selection as any)
   }
 
-  public order<ColumnName extends keyof Table & string>(
-    column: ColumnName,
-    direction: 'asc' | 'desc' = 'asc'
-  ) {
-    return this.clone({
-      order: { column: this.namespaceColumn(column) as any, direction },
+  public order<
+    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
+    TableName extends AssociationTableNames<DB, SyncedAssociations> &
+      keyof DB = InstanceType<DreamClass>['table'],
+    Table extends DB[keyof DB] = DB[TableName],
+    ColumnName extends keyof Table & string = keyof Table & string,
+    OrderDir extends 'asc' | 'desc' = 'asc' | 'desc',
+  >(arg: ColumnName | Partial<Record<ColumnName, OrderDir>> | null): Query<DreamClass> {
+    if (arg === null) return this.clone({ order: null })
+    if (isString(arg)) return this.clone({ order: [{ column: arg as any, direction: 'asc' }] })
+
+    let query = this.clone()
+
+    Object.keys(arg).forEach(key => {
+      const column = this.namespaceColumn(key as ColumnName)
+      const direction = (arg as any)[key] as OrderDir
+
+      query = query.clone({
+        order: [{ column, direction }],
+      })
     })
+
+    return query
   }
 
   public limit(limit: number | null) {
@@ -1127,7 +1143,9 @@ export default class Query<
   }
 
   public async first<T extends Query<DreamClass>>(this: T) {
-    const query = this.orderStatement ? this : this.order(this.dreamClass.primaryKey as any, 'asc')
+    const query = this.orderStatements.length
+      ? this
+      : this.order({ [this.dreamClass.primaryKey as any]: 'asc' } as any)
     return await query.takeOne()
   }
 
@@ -1369,9 +1387,9 @@ export default class Query<
   }
 
   public async last<T extends Query<DreamClass>>(this: T) {
-    const query = this.orderStatement
-      ? this.order(this.orderStatement.column, this.orderStatement.direction === 'desc' ? 'asc' : 'desc')
-      : this.order((this.dreamClass as typeof Dream).primaryKey as any, 'desc')
+    const query = this.orderStatements.length
+      ? this.invertOrder()
+      : this.order({ [this.dreamClass.primaryKey as any]: 'desc' } as any)
 
     return await query.takeOne()
   }
@@ -1855,10 +1873,13 @@ export default class Query<
   ) {
     const orderStatement = association.order
 
-    if (Array.isArray(orderStatement)) {
-      query = query.orderBy(`${tableNameOrAlias}.${orderStatement[0]}`, orderStatement[1])
-    } else {
+    if (isString(orderStatement)) {
       query = query.orderBy(`${tableNameOrAlias}.${orderStatement}`, 'asc')
+    } else {
+      Object.keys(orderStatement as Record<string, 'asc' | 'desc'>).forEach(column => {
+        const direction = (orderStatement as any)[column]
+        query = query.orderBy(`${tableNameOrAlias}.${column}`, direction)
+      })
     }
 
     if (association.type === 'HasOne') {
@@ -2304,8 +2325,11 @@ export default class Query<
 
     kyselyQuery = this.buildCommon(kyselyQuery)
 
-    if (this.orderStatement && !bypassOrder)
-      kyselyQuery = kyselyQuery.orderBy(this.orderStatement.column as any, this.orderStatement.direction)
+    if (this.orderStatements.length && !bypassOrder) {
+      this.orderStatements.forEach(orderStatement => {
+        kyselyQuery = kyselyQuery.orderBy(orderStatement.column as any, orderStatement.direction)
+      })
+    }
 
     if (this.limitStatement) kyselyQuery = kyselyQuery.limit(this.limitStatement)
     if (this.offsetStatement) kyselyQuery = kyselyQuery.offset(this.offsetStatement)
@@ -2341,7 +2365,7 @@ export default class Query<
       | UpdateQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, any, {}>
       | DeleteQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
   >(this: T, kyselyQuery: QueryType): { kyselyQuery: QueryType; clone: T } {
-    if (this.limitStatement || this.orderStatement) {
+    if (this.limitStatement || this.orderStatements.length) {
       kyselyQuery = (kyselyQuery as any).where((eb: any) => {
         let subquery = this.nestedSelect(this.dreamClass.primaryKey)
         return eb(this.dreamClass.primaryKey as any, 'in', subquery)
@@ -2402,6 +2426,18 @@ export default class Query<
     }
     return kyselyQuery
   }
+
+  private invertOrder() {
+    let query = this.clone({ order: null })
+
+    for (const orderStatement of this.orderStatements) {
+      query = query.order({
+        [orderStatement.column]: orderStatement.direction === 'desc' ? 'asc' : 'desc',
+      } as any)
+    }
+
+    return query
+  }
 }
 
 export interface QueryOpts<
@@ -2424,7 +2460,7 @@ export interface QueryOpts<
   limit?: LimitStatement | null
   offset?: OffsetStatement | null
   or?: WhereStatement<DB, SyncedAssociations, any>[][] | null
-  order?: OrderQueryStatement<ColumnType> | null
+  order?: OrderQueryStatement<ColumnType>[] | null
   preloadStatements?: RelaxedPreloadStatement
   distinctColumn?: ColumnType | null
   joinsStatements?: RelaxedJoinsStatement

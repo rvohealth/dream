@@ -90,12 +90,17 @@ export default class User extends ApplicationModel {
   public mainCompositionAsset: CompositionAsset
 
   @HasOne(() => Composition, {
-    order: ['id', 'asc'],
+    order: 'id',
   })
   public firstComposition: Composition
 
   @HasOne(() => Composition, {
-    order: ['id', 'desc'],
+    order: { content: 'desc', id: 'asc' },
+  })
+  public firstComposition2: Composition
+
+  @HasOne(() => Composition, {
+    order: { id: 'desc' },
   })
   public lastComposition: Composition
 
@@ -105,9 +110,17 @@ export default class User extends ApplicationModel {
   public firstPet: Pet
 
   @HasMany(() => Composition, {
-    order: ['content', 'asc'],
+    order: { content: 'asc', id: 'desc' },
   })
   public sortedCompositions: Composition[]
+
+  @HasMany(() => Composition, {
+    order: {
+      content: 'asc',
+      id: 'desc',
+    },
+  })
+  public sortedCompositions2: Composition[]
 
   @HasMany(() => CompositionAssetAudit, {
     through: 'compositionAssets',
