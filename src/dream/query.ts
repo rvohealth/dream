@@ -2221,8 +2221,6 @@ export default class Query<
     })
   }
 
-  // selfAlias and selfWhereClause are hard-coded into the model. They are never
-  // populated with untrusted data, so the use of `sql.raw` is safe.
   private rawifiedSelfWhereClause({
     associationAlias,
     selfAlias,
@@ -2232,8 +2230,11 @@ export default class Query<
     selfAlias: string
     selfWhereClause: WhereSelfStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
   }) {
+    const alphanumericUnderscoreRegexp = /[^a-zA-Z0-9_]/g
+    selfAlias = selfAlias.replaceAll(alphanumericUnderscoreRegexp, '')
+
     return Object.keys(selfWhereClause).reduce((acc, key) => {
-      const selfColumn = selfWhereClause[key]
+      const selfColumn = selfWhereClause[key]?.replaceAll(alphanumericUnderscoreRegexp, '')
       if (!selfColumn) return acc
 
       acc[`${associationAlias}.${key}`] = sql.raw(`"${snakeify(selfAlias)}"."${snakeify(selfColumn)}"`)
