@@ -57,26 +57,40 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
       ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>
       : never,
     D extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanThree
-      ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>
+      ? CTableName extends never
+        ? never
+        : NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>
       : any,
     DTableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanThree
-      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>
+      ? CTableName extends never
+        ? never
+        : JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>
       : never,
     E extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFour
-      ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>
+      ? DTableName extends never
+        ? never
+        : NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>
       : any,
     ETableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFour
-      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>
+      ? DTableName extends never
+        ? never
+        : JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>
       : never,
     F extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFive
-      ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>
+      ? ETableName extends never
+        ? never
+        : NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>
       : any,
     FTableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFive
-      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>
+      ? ETableName extends never
+        ? never
+        : JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>
       : never,
     //
     G extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanSix
-      ? FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
+      ? FTableName extends never
+        ? never
+        : FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
       : any,
   >(this: I, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     return this.queryInstance().pluckThrough(a, b, c as any, d as any, e as any, f as any, g as any)
@@ -107,26 +121,40 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
       ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>
       : never,
     D extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanThree
-      ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>
+      ? CTableName extends never
+        ? never
+        : NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>
       : any,
     DTableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanThree
-      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>
+      ? CTableName extends never
+        ? never
+        : JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>
       : never,
     E extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFour
-      ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>
+      ? DTableName extends never
+        ? never
+        : NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>
       : any,
     ETableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFour
-      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>
+      ? DTableName extends never
+        ? never
+        : JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>
       : never,
     F extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFive
-      ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>
+      ? ETableName extends never
+        ? never
+        : NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>
       : any,
     FTableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFive
-      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>
+      ? ETableName extends never
+        ? never
+        : JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>
       : never,
     //
     G extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanSix
-      ? FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
+      ? FTableName extends never
+        ? never
+        : FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
       : any,
   >(
     this: I,

@@ -13,6 +13,7 @@ export default class ConnectedToDB<
   public readonly dreamClass: DreamClass
   public dreamTransaction: DreamTransaction<DB> | null = null
   public connectionOverride?: DbConnectionType
+
   constructor(DreamClass: DreamClass, opts: ConnectedToDBOpts<DreamClass, ColumnType> = {}) {
     this.dreamClass = DreamClass
     this.dreamTransaction = opts.transaction || null
