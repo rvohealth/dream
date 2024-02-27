@@ -14,6 +14,7 @@ export default async function runMigration({
   const dreamconf = await loadDreamconfFile()
   const migrator = new Migrator({
     db: db('primary', dreamconf),
+    allowUnorderedMigrations: true,
     provider: new FileMigrationProvider({
       fs,
       path,
