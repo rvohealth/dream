@@ -2,7 +2,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "moduleResolution": "node",
-    "target": "ESNext",
+    "target": "es2021",
     "strict": true,
     "noImplicitAny": true,
     "experimentalDecorators": true,
