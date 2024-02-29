@@ -28,6 +28,7 @@ import {
   GreaterThanFour,
   GreaterThanFive,
   GreaterThanSix,
+  UpdateableColumns,
 } from './types'
 import {
   AliasedExpression,
@@ -1417,7 +1418,7 @@ export default class Query<
 
   public async updateAll<T extends Query<DreamClass>>(
     this: T,
-    attributes: Updateable<InstanceType<DreamClass>['table']>
+    attributes: UpdateableColumns<InstanceType<DreamClass>>
   ) {
     if (this.baseSelectQuery) throw new NoUpdateAllOnAssociationQuery()
 
