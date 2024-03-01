@@ -1,5 +1,3 @@
-import Dream from '../dream'
-
 export default class NoUpdateAllOnAssociationQuery extends Error {
   public get message() {
     return `

@@ -80,6 +80,7 @@ import { allNestedObjectKeys } from '../helpers/allNestedObjectKeys'
 import { extractValueFromJoinsPluckResponse } from './internal/extractValueFromJoinsPluckResponse'
 import MissingRequiredCallbackFunctionToPluckEach from '../exceptions/missing-required-callback-function-to-pluck-each'
 import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../exceptions/cannot-pass-additional-fields-to-pluck-each-after-callback-function'
+import NoUpdateAllOnJoins from '../exceptions/no-updateall-on-joins'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -1427,6 +1428,7 @@ export default class Query<
     attributes: UpdateableColumns<InstanceType<DreamClass>>
   ) {
     if (this.baseSelectQuery) throw new NoUpdateAllOnAssociationQuery()
+    if (Object.keys(this.joinsStatements).length) throw new NoUpdateAllOnJoins()
 
     const kyselyQuery = this.buildUpdate(attributes)
     const res = await executeDatabaseQuery(kyselyQuery, 'execute')

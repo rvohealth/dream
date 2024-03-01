@@ -3,6 +3,8 @@ import ReplicaSafe from '../../../src/decorators/replica-safe'
 import DreamDbConnection from '../../../src/db/dream-db-connection'
 import NoUpdateAllOnAssociationQuery from '../../../src/exceptions/no-updateall-on-association-query'
 import ops from '../../../src/ops'
+import Composition from '../../../test-app/app/models/Composition'
+import NoUpdateAllOnJoins from '../../../src/exceptions/no-updateall-on-joins'
 
 describe('Query#updateAll', () => {
   it('takes passed params and sends them through to all models matchin query', async () => {
@@ -38,9 +40,18 @@ describe('Query#updateAll', () => {
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
       const composition = await user.createAssociation('compositions', { content: 'Opus' })
 
-      await expect(user.associationQuery('compositions').updateAll({ content: 'cool' })).rejects.toThrowError(
+      await expect(user.associationQuery('compositions').updateAll({ content: 'cool' })).rejects.toThrow(
         NoUpdateAllOnAssociationQuery
       )
+    })
+  })
+
+  context('with joins', () => {
+    it('raises an exception', async () => {
+      const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      const composition = await user.createAssociation('compositions', { content: 'Opus' })
+
+      await expect(User.joins('compositions').updateAll({ name: 'cool' })).rejects.toThrow(NoUpdateAllOnJoins)
     })
   })
 
