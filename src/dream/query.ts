@@ -957,11 +957,17 @@ export default class Query<
 
   public async count<T extends Query<DreamClass>>(this: T) {
     const { count } = this.dbFor('select').fn
-    let kyselyQuery = this.buildSelect({ bypassSelectAll: true, bypassOrder: true })
+    const distinctColumn = this.distinctColumn
+    const query = this.clone({ distinctColumn: null })
 
-    kyselyQuery = kyselyQuery.select(count(this.namespaceColumn(this.dreamClass.primaryKey)).as('tablecount'))
+    let kyselyQuery = query.buildSelect({ bypassSelectAll: true, bypassOrder: true })
 
-    kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery, { bypassOrder: true })
+    const countClause = distinctColumn
+      ? count(sql`DISTINCT ${distinctColumn}`)
+      : count(query.namespaceColumn(query.dreamClass.primaryKey))
+
+    kyselyQuery = kyselyQuery.select(countClause.as('tablecount'))
+    kyselyQuery = query.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery, { bypassOrder: true })
 
     const data = (await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')) as any
 
