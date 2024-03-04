@@ -5,7 +5,7 @@ import saveDream from './saveDream'
 
 export default async function saveUnsavedAssociations<DreamInstance extends Dream>(
   dream: DreamInstance,
-  txn: DreamTransaction<DreamConstructorType<DreamInstance>> | null
+  txn: DreamTransaction<Dream> | null
 ) {
   const self = dream as any
 

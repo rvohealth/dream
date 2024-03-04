@@ -7,7 +7,7 @@ import safelyRunCommitHooks from './safelyRunCommitHooks'
 
 export default async function destroyDream<I extends Dream>(
   dream: I,
-  txn: DreamTransaction<I['DB']> | null = null
+  txn: DreamTransaction<I> | null = null
 ): Promise<I> {
   await runHooksFor('beforeDestroy', dream)
   if (dream['_preventDeletion']) return dream.unpreventDeletion()

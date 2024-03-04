@@ -121,10 +121,8 @@ export default class Query<
   DreamClass extends typeof Dream,
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
-  DBTypeCache extends DreamInstance['dreamconf']['dbTypeCache'] = DreamInstance['dreamconf']['dbTypeCache'],
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
   AllColumns extends DreamInstance['allColumns'] = DreamInstance['allColumns'],
-  Table extends DB[DreamInstance['table']] = DB[DreamInstance['table']],
   ColumnType extends keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
     ? unknown
     : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] = keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
@@ -137,7 +135,7 @@ export default class Query<
     PLUCK_EACH_THROUGH: 1000,
   }
 
-  public dreamTransaction: DreamTransaction<DB> | null = null
+  public dreamTransaction: DreamTransaction<Dream> | null = null
 
   private readonly passthroughWhereStatement: PassthroughWhere<AllColumns> = Object.freeze({})
   private readonly whereStatements: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
@@ -950,7 +948,7 @@ export default class Query<
     }
   }
 
-  public txn(dreamTransaction: DreamTransaction<DreamClass>) {
+  public txn(dreamTransaction: DreamTransaction<Dream>) {
     return this.clone({ transaction: dreamTransaction })
   }
 
@@ -2467,7 +2465,7 @@ export interface QueryOpts<
   joinsStatements?: RelaxedJoinsStatement
   joinsWhereStatements?: RelaxedJoinsWhereStatement<DB, SyncedAssociations>
   bypassDefaultScopes?: boolean
-  transaction?: DreamTransaction<DB> | null | undefined
+  transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType
 }
 

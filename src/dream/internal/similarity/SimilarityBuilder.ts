@@ -20,14 +20,13 @@ export default class SimilarityBuilder<
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
-  ColumnType = keyof DB[keyof DB] extends never ? unknown : keyof DB[keyof DB],
 > extends ConnectedToDB<DreamClass> {
   public readonly whereStatement: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
   public readonly whereNotStatement: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze(
     []
   )
   public readonly joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = Object.freeze({})
-  constructor(DreamClass: DreamClass, opts: SimilarityBuilderOpts<DreamClass, ColumnType> = {}) {
+  constructor(DreamClass: DreamClass, opts: SimilarityBuilderOpts<DreamClass, DreamInstance> = {}) {
     super(DreamClass, opts)
     this.whereStatement = Object.freeze(opts.where || [])
     this.whereNotStatement = Object.freeze(opts.whereNot || [])
@@ -447,9 +446,6 @@ export default class SimilarityBuilder<
 
 export interface SimilarityBuilderOpts<
   DreamClass extends typeof Dream,
-  ColumnType = keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
-    ? unknown
-    : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']],
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
@@ -457,7 +453,7 @@ export interface SimilarityBuilderOpts<
   where?: WhereStatement<DB, SyncedAssociations, any>[]
   whereNot?: WhereStatement<DB, SyncedAssociations, any>[]
   joinsWhereStatements?: RelaxedJoinsWhereStatement<DB, SyncedAssociations>
-  transaction?: DreamTransaction<DB> | null | undefined
+  transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType
 }
 

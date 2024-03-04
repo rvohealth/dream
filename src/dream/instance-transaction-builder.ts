@@ -28,8 +28,9 @@ import LoadBuilder from './load-builder'
 
 export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream> {
   public dreamInstance: DreamInstance
-  public dreamTransaction: DreamTransaction<DreamInstance['DB']>
-  constructor(dreamInstance: DreamInstance, txn: DreamTransaction<DreamInstance['DB']>) {
+  public dreamTransaction: DreamTransaction<Dream>
+
+  constructor(dreamInstance: DreamInstance, txn: DreamTransaction<Dream>) {
     this.dreamInstance = dreamInstance
     this.dreamTransaction = txn
   }
@@ -252,7 +253,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   public async destroy<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I
   ): Promise<DreamInstance> {
-    return destroyDream(this.dreamInstance, this.dreamTransaction)
+    return destroyDream<DreamInstance>(this.dreamInstance, this.dreamTransaction)
   }
 
   public async update<I extends DreamInstanceTransactionBuilder<DreamInstance>>(

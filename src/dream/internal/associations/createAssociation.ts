@@ -16,7 +16,7 @@ export default async function createAssociation<
     : PossibleArrayAssociationType,
 >(
   dream: DreamInstance,
-  txn: DreamTransaction<DreamConstructorType<DreamInstance>> | null = null,
+  txn: DreamTransaction<Dream> | null = null,
   associationName: AssociationName,
   opts: UpdateablePropertiesForClass<AssociationType & typeof Dream> = {}
 ): Promise<NonNullable<AssociationType>> {
@@ -58,7 +58,7 @@ export default async function createAssociation<
 
     case 'BelongsTo':
       let belongstoresult: AssociationType
-      const fn = async (txn: DreamTransaction<DreamConstructorType<DreamInstance>>) => {
+      const fn = async (txn: DreamTransaction<Dream>) => {
         belongstoresult = await (associationClass as any).txn(txn).create({
           ...opts,
         })

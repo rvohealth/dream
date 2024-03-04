@@ -12,7 +12,7 @@ export interface TransactionCommitHookStatement {
 // a transaction class, as much as a collector for various callbacks
 // that must be run after the underlying transaction is commited (i.e.
 // AfterCreateCommit, AfterUpdateCommit, etc...).
-export default class DreamTransaction<DB extends any> {
+export default class DreamTransaction<T extends Dream, DB extends T['DB'] = T['DB']> {
   private _kyselyTransaction: Transaction<DB>
   private commitHooks: TransactionCommitHookStatement[] = []
 

@@ -11,7 +11,7 @@ import executeDatabaseQuery from './executeDatabaseQuery'
 
 export default async function saveDream<DreamInstance extends Dream>(
   dream: DreamInstance,
-  txn: DreamTransaction<DreamInstance['DB']> | null = null
+  txn: DreamTransaction<Dream> | null = null
 ) {
   const db = txn?.kyselyTransaction || _db('primary', dream.dreamconf)
 

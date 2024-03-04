@@ -13,7 +13,7 @@ export default async function destroyAssociation<
     : PossibleArrayAssociationType,
 >(
   dream: DreamInstance,
-  txn: DreamTransaction<DreamInstance['DB']> | null = null,
+  txn: DreamTransaction<Dream> | null = null,
   associationName: AssociationName,
   opts: UpdateablePropertiesForClass<AssociationType & typeof Dream> = {}
 ): Promise<number> {

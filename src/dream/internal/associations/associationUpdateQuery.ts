@@ -15,11 +15,7 @@ export default function associationUpdateQuery<
     ? ElementType
     : PossibleArrayAssociationType,
   AssociationQuery = Query<DreamConstructorType<AssociationType & Dream>>,
->(
-  dream: DreamInstance,
-  txn: DreamTransaction<DreamInstance['DB']> | null = null,
-  associationName: AssociationName
-) {
+>(dream: DreamInstance, txn: DreamTransaction<Dream> | null = null, associationName: AssociationName) {
   const association = dream.associationMap()[associationName] as
     | HasManyStatement<any, any, any>
     | HasOneStatement<any, any, any>

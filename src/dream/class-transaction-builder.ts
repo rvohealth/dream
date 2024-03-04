@@ -23,11 +23,12 @@ import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import saveDream from './internal/saveDream'
 
 export default class DreamClassTransactionBuilder<DreamClass extends typeof Dream> {
-  public dreamClass: DreamClass
-  public dreamTransaction: DreamTransaction<DreamClass>
-  constructor(dreamClass: DreamClass, txn: DreamTransaction<DreamClass>) {
+  constructor(
+    public dreamClass: DreamClass,
+    public dreamTransaction: DreamTransaction<Dream>
+  ) {
     this.dreamClass = dreamClass
-    this.dreamTransaction = txn
+    this.dreamTransaction = dreamTransaction
   }
 
   public async all<I extends DreamClassTransactionBuilder<DreamClass>>(

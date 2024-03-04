@@ -766,14 +766,14 @@ export default class Dream {
 
   public static txn<T extends typeof Dream>(
     this: T,
-    txn: DreamTransaction<InstanceType<T>['DB']>
+    txn: DreamTransaction<InstanceType<T>>
   ): DreamClassTransactionBuilder<T> {
     return new DreamClassTransactionBuilder<T>(this, txn)
   }
 
   public static async transaction<T extends typeof Dream>(
     this: T,
-    callback: (txn: DreamTransaction<InstanceType<T>['DB']>) => Promise<unknown>
+    callback: (txn: DreamTransaction<InstanceType<T>>) => Promise<unknown>
   ) {
     const dreamTransaction = new DreamTransaction()
 
@@ -781,9 +781,7 @@ export default class Dream {
       .transaction()
       .execute(async kyselyTransaction => {
         dreamTransaction.kyselyTransaction = kyselyTransaction
-        await (callback as (txn: DreamTransaction<InstanceType<T>['DB']>) => Promise<unknown>)(
-          dreamTransaction
-        )
+        await (callback as (txn: DreamTransaction<InstanceType<T>>) => Promise<unknown>)(dreamTransaction)
       })
 
     await dreamTransaction.runAfterCommitHooks(dreamTransaction)
@@ -1696,7 +1694,7 @@ export default class Dream {
     }
   }
 
-  public txn<I extends Dream>(this: I, txn: DreamTransaction<I['DB']>): DreamInstanceTransactionBuilder<I> {
+  public txn<I extends Dream>(this: I, txn: DreamTransaction<Dream>): DreamInstanceTransactionBuilder<I> {
     return new DreamInstanceTransactionBuilder<I>(this, txn)
   }
 

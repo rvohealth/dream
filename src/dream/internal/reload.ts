@@ -6,7 +6,7 @@ import { DreamConstructorType } from '../types'
 
 export default async function reload<DreamInstance extends Dream>(
   dream: DreamInstance,
-  txn: DreamTransaction<DreamConstructorType<DreamInstance>> | null = null
+  txn: DreamTransaction<Dream> | null = null
 ) {
   if (dream.isNewRecord) throw new CannotReloadUnsavedDream(dream)
 
