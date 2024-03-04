@@ -1,5 +1,15 @@
 import { DateTime } from 'luxon'
-import { CompiledQuery, SelectArg, SelectExpression, Updateable } from 'kysely'
+import {
+  CompiledQuery,
+  DeleteQueryBuilder,
+  InsertQueryBuilder,
+  SelectArg,
+  SelectExpression,
+  SelectQueryBuilder,
+  Updateable,
+  UpdateQueryBuilder,
+} from 'kysely'
+
 import db from './db'
 import { HasManyStatement } from './decorators/associations/has-many'
 import { BelongsToStatement } from './decorators/associations/belongs-to'
@@ -74,8 +84,8 @@ import { marshalDBValue } from './helpers/marshalDBValue'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
 
 export default class Dream {
-  public static get primaryKey(): string {
-    return 'id'
+  public static get primaryKey() {
+    return 'id' as const
   }
 
   public static createdAtField = 'createdAt'
@@ -762,6 +772,37 @@ export default class Dream {
 
   public static sql<T extends typeof Dream>(this: T): CompiledQuery<{}> {
     return this.query().sql()
+  }
+
+  public static toKysely<
+    T extends typeof Dream,
+    QueryType extends 'select' | 'delete' | 'update' | 'insert',
+    ToKyselyReturnType = QueryType extends 'select'
+      ? SelectQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], any>
+      : QueryType extends 'delete'
+        ? DeleteQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], any>
+        : QueryType extends 'update'
+          ? UpdateQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], InstanceType<T>['table'], any>
+          : QueryType extends 'insert'
+            ? InsertQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], any>
+            : never,
+  >(this: T, type: QueryType) {
+    switch (type) {
+      case 'select':
+        return this.query().dbFor('select').selectFrom(this.prototype.table) as ToKyselyReturnType
+
+      case 'delete':
+        return this.query().dbFor('delete').deleteFrom(this.prototype.table) as ToKyselyReturnType
+
+      case 'update':
+        return this.query().dbFor('update').updateTable(this.prototype.table) as ToKyselyReturnType
+
+      case 'insert':
+        return this.query().dbFor('insert').insertInto(this.prototype.table) as ToKyselyReturnType
+
+      default:
+        throw new Error('never')
+    }
   }
 
   public static txn<T extends typeof Dream>(

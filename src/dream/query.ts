@@ -241,7 +241,7 @@ export default class Query<
     if (!id) return null
     // @ts-ignore
     return await this.where({
-      [this.dreamClass.primaryKey]: id,
+      [this.dreamClass.primaryKey as string]: id,
     }).first()
   }
 
@@ -926,13 +926,13 @@ export default class Query<
     T extends Query<DreamClass>,
     QueryType extends 'select' | 'delete' | 'update',
     ToKyselyReturnType = QueryType extends 'select'
-      ? SelectQueryBuilder<any, string, {}>
+      ? SelectQueryBuilder<DreamInstance['DB'], DreamInstance['table'], any>
       : QueryType extends 'delete'
-        ? DeleteQueryBuilder<any, string, {}>
+        ? DeleteQueryBuilder<DreamInstance['DB'], DreamInstance['table'], any>
         : QueryType extends 'update'
-          ? UpdateQueryBuilder<any, string, any, {}>
+          ? UpdateQueryBuilder<DreamInstance['DB'], DreamInstance['table'], DreamInstance['table'], any>
           : never,
-  >(this: T, type: QueryType): ToKyselyReturnType {
+  >(this: T, type: QueryType) {
     switch (type) {
       case 'select':
         return this.buildSelect() as ToKyselyReturnType
