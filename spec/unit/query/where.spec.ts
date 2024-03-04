@@ -419,7 +419,7 @@ describe('Query#where', () => {
     })
   })
 
-  // BEGIN: trigram search
+  // BEGIN: similarity search
   context('ops.similarity statement is passed', () => {
     let user1: User
     let user2: User
@@ -539,7 +539,7 @@ describe('Query#where', () => {
       const records = await User.query()
         .where({ name: ops.wordSimilarity('world') })
         .all()
-      expect(records).toMatchDreamModels([user1])
+      expect(records).toMatchDreamModels([user1, user2])
     })
 
     context('when overriding score', () => {
@@ -548,6 +548,22 @@ describe('Query#where', () => {
           .where({ name: ops.wordSimilarity('world', { score: 0.1 }) })
           .all()
         expect(records).toMatchDreamModels([user1, user2, user3])
+      })
+    })
+
+    context('matching a single word within a long string', () => {
+      it('matches with a score of 1', async () => {
+        await user3.update({ name: 'Snoopy, Lucy, Charlie, Woodstock, Linus, Pigpen, Schroeder' })
+
+        const records = await User.query()
+          .where({ name: ops.wordSimilarity('linus', { score: 1 }) })
+          .all()
+        expect(records).toMatchDreamModels([user3])
+
+        const records2 = await User.query()
+          .where({ name: ops.wordSimilarity('stock', { score: 0.5 }) })
+          .all()
+        expect(records2).toMatchDreamModels([user3])
       })
     })
   })
@@ -589,8 +605,24 @@ describe('Query#where', () => {
         expect(records).toMatchDreamModels([user1, user2, user3])
       })
     })
+
+    context('matching a single word within a long string', () => {
+      it('matches with a score of 1', async () => {
+        await user3.update({ name: 'Snoopy, Lucy, Charlie, Woodstock, Linus, Pigpen, Schroeder' })
+
+        const records = await User.query()
+          .where({ name: ops.strictWordSimilarity('linus', { score: 1 }) })
+          .all()
+        expect(records).toMatchDreamModels([user3])
+
+        const records2 = await User.query()
+          .where({ name: ops.strictWordSimilarity('stock', { score: 0.5 }) })
+          .all()
+        expect(records2).toHaveLength(0)
+      })
+    })
   })
-  // END: trigram search
+  // END: similarity search
 
   context('ops.match statement is passed', () => {
     it('uses a "~" operator for comparison', async () => {

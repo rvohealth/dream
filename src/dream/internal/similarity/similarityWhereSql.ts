@@ -17,13 +17,22 @@ export default function similarityWhereSql<DreamClass extends typeof Dream>({
   opsStatement: OpsStatement<any, any>
   dbTypeCache: any
 }) {
-  return sql`
-  (
-    similarity(
+  let functionName: 'similarity' | 'word_similarity' | 'strict_word_similarity' = 'similarity'
+
+  switch (opsStatement.operator) {
+    case '<%':
+      functionName = 'word_similarity'
+      break
+
+    case '<<%':
+      functionName = 'strict_word_similarity'
+      break
+  }
+
+  return sql`(${sql.raw(functionName)}(
       ${opsStatement.value}::text,
       (coalesce(${eb.ref(validateTable(dbTypeCache, tableName))}.${eb.ref(
         validateColumn(dbTypeCache, tableName, columnName)
       )} :: text, ''))
-    ) >= ${opsStatement.minTrigramScore}
-  )` as any
+    ) >= ${opsStatement.minTrigramScore})` as any
 }
