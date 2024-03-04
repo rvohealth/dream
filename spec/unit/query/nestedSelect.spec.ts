@@ -38,6 +38,20 @@ describe('Query#nestedSelect', () => {
       }).all()
       expect(edges).toMatchDreamModels([edge1, edge2])
     })
+
+    context('without a namespaced field', () => {
+      it('automatically applies the namespace of the root model we are querying from', async () => {
+        const node0 = await Node.create({ name: 'N0' })
+        const node = await Node.create({ name: 'N1' })
+        const edge = await Edge.create({ name: 'E1' })
+        await EdgeNode.create({ node, edge })
+
+        const nodes = await Node.where({
+          id: Node.joins('edges').nestedSelect('id'),
+        }).all()
+        expect(nodes).toMatchDreamModels([node])
+      })
+    })
   })
 
   context('with a similarity operator', () => {

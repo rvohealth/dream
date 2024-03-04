@@ -36,9 +36,12 @@ export type DreamColumn<
   Table extends DB[keyof DB] = DB[TableName],
 > = keyof Table
 
-export type UpdateableColumns<DreamInstance extends Dream> = Updateable<
+export type DreamTableSchema<DreamInstance extends Dream> = Updateable<
   DreamInstance['DB'][DreamInstance['table']]
 >
+
+export type DreamClassColumns<DreamClass extends typeof Dream> =
+  keyof InstanceType<DreamClass>['DB'][InstanceType<DreamClass>['table']] & string
 
 export type UpdateablePropertiesForClass<DreamClass extends typeof Dream> =
   | Updateable<

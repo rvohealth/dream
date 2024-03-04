@@ -4,7 +4,6 @@ import {
   LimitStatement,
   OffsetStatement,
   OrderQueryStatement,
-  OrderStatement,
   PassthroughWhere,
   TableColumnName,
   WhereSelfStatement,
@@ -28,7 +27,8 @@ import {
   GreaterThanFour,
   GreaterThanFive,
   GreaterThanSix,
-  UpdateableColumns,
+  DreamTableSchema,
+  DreamClassColumns,
 } from './types'
 import {
   AliasedExpression,
@@ -876,14 +876,12 @@ export default class Query<
   }
 
   public nestedSelect<
-    DB extends InstanceType<DreamClass>['DB'],
-    TableName extends InstanceType<DreamClass>['table'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]>,
+    SimpleFieldType extends keyof DreamClassColumns<DreamClass>,
     PluckThroughFieldType extends any,
   >(this: Query<DreamClass>, selection: SimpleFieldType | PluckThroughFieldType) {
     let query = this.buildSelect({ bypassSelectAll: true }) as SelectQueryBuilder<any, any, any>
     query = this.conditionallyAttachSimilarityColumnsToSelect(query, { bypassOrder: true }) as any
-    return query.select(selection as any)
+    return query.select(this.namespaceColumn(selection as any))
   }
 
   public order<
@@ -1032,19 +1030,17 @@ export default class Query<
     return data.min
   }
 
-  private async pluckWithoutMarshalling<
-    T extends Query<DreamClass>,
-    TableName extends InstanceType<DreamClass>['table'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]> & string,
-    TablePrefixedFieldType extends `${TableName}.${SimpleFieldType}`,
-  >(this: T, ...fields: (SimpleFieldType | TablePrefixedFieldType)[]): Promise<any[]> {
+  private async pluckWithoutMarshalling<T extends Query<DreamClass>>(
+    this: T,
+    ...fields: DreamClassColumns<DreamClass>[]
+  ): Promise<any[]> {
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
     const aliases: string[] = []
 
     fields.forEach((field: string, index: number) => {
       const alias = `dr${index}`
       aliases.push(alias)
-      kyselyQuery = kyselyQuery.select(`${field} as ${alias}` as any)
+      kyselyQuery = kyselyQuery.select(`${this.namespaceColumn(field)} as ${alias}` as any)
     })
 
     kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery)
@@ -1054,12 +1050,10 @@ export default class Query<
     )
   }
 
-  public async pluck<
-    T extends Query<DreamClass>,
-    TableName extends InstanceType<DreamClass>['table'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]> & string,
-    TablePrefixedFieldType extends `${TableName}.${SimpleFieldType}`,
-  >(this: T, ...fields: (SimpleFieldType | TablePrefixedFieldType)[]): Promise<any[]> {
+  public async pluck<T extends Query<DreamClass>>(
+    this: T,
+    ...fields: DreamClassColumns<DreamClass>[]
+  ): Promise<any[]> {
     const vals = await this.pluckWithoutMarshalling(...fields)
     const mapFn = (val: any, index: number) => marshalDBValue(this.dreamClass, fields[index] as any, val)
     return this.pluckValuesToPluckResponse(fields, vals, mapFn)
@@ -1068,8 +1062,6 @@ export default class Query<
   public async pluckEach<
     T extends Query<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]> & string,
-    TablePrefixedFieldType extends `${TableName}.${SimpleFieldType}`,
     CB extends (plucked: any) => void | Promise<void>,
   >(
     this: T,
@@ -1090,9 +1082,9 @@ export default class Query<
     if (providedOpts !== undefined && !providedOpts?.batchSize)
       throw new CannotPassAdditionalFieldsToPluckEachAfterCallback('pluckEach', fields)
 
-    const onlyColumns: (SimpleFieldType | TablePrefixedFieldType)[] = fields.filter(
+    const onlyColumns = fields.filter(
       (_, index) => index < providedCbIndex
-    ) as (SimpleFieldType | TablePrefixedFieldType)[]
+    ) as DreamClassColumns<DreamClass>[]
 
     const batchSize = providedOpts?.batchSize || Query.BATCH_SIZES.PLUCK_EACH_THROUGH
 
@@ -1425,7 +1417,7 @@ export default class Query<
 
   public async updateAll<T extends Query<DreamClass>>(
     this: T,
-    attributes: UpdateableColumns<InstanceType<DreamClass>>
+    attributes: DreamTableSchema<InstanceType<DreamClass>>
   ) {
     if (this.baseSelectQuery) throw new NoUpdateAllOnAssociationQuery()
     if (Object.keys(this.joinsStatements).length) throw new NoUpdateAllOnJoins()

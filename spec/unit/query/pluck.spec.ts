@@ -18,6 +18,14 @@ describe('Query#pluck', () => {
     expect(plucked).toEqual([user1.id, user2.id, user3.id])
   })
 
+  context('plucking from base model when joining associations', () => {
+    it('plucks the specified attributes from the base model', async () => {
+      await user2.createAssociation('compositions')
+      const plucked = await User.joins('compositions').pluck('id')
+      expect(plucked).toEqual([user2.id])
+    })
+  })
+
   context('columns that get transformed during marshalling', () => {
     context('a single value', () => {
       it('are properly marshalled', async () => {

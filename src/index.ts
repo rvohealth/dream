@@ -8,7 +8,7 @@ export {
   IdType,
   Timestamp,
   UpdateableProperties,
-  UpdateableColumns,
+  DreamTableSchema,
   DreamColumn,
 } from './dream/types'
 export { default as ops } from './ops'

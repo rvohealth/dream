@@ -34,6 +34,7 @@ import {
   GreaterThanOne,
   GreaterThanFive,
   GreaterThanSix,
+  DreamClassColumns,
 } from './dream/types'
 import Query, { FindEachOpts } from './dream/query'
 import runValidations from './dream/internal/runValidations'
@@ -702,12 +703,7 @@ export default class Dream {
     return this.query().offset(offset)
   }
 
-  public static nestedSelect<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    DB extends I['DB'],
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<T>['table']>>,
-  >(this: T, selection: SelectArg<DB, ExtractTableAlias<DB, InstanceType<T>['table']>, SE>) {
+  public static nestedSelect<T extends typeof Dream>(this: T, selection: DreamClassColumns<T>) {
     return this.query().nestedSelect(selection as any)
   }
 
@@ -724,12 +720,7 @@ export default class Dream {
     return this.query().order(arg)
   }
 
-  public static async pluck<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    DB extends I['DB'],
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, I['table']>>,
-  >(this: T, ...fields: SelectArg<DB, ExtractTableAlias<DB, I['table']>, SE>[]) {
+  public static async pluck<T extends typeof Dream>(this: T, ...fields: DreamClassColumns<T>[]) {
     return await this.query().pluck(...(fields as any[]))
   }
 
