@@ -10,6 +10,19 @@ describe('Query#order', () => {
     expect(records[1].id).toEqual(user2.id)
   })
 
+  context('associationQuery', () => {
+    it('namespaces the column to avoid ambiguity', async () => {
+      const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+
+      const composition2 = await user2.createAssociation('compositions', { content: 'Hello' })
+      const composition1 = await user1.createAssociation('compositions', { content: 'Goodbye' })
+
+      const plucked = await user2.associationQuery('compositions').order('id').pluck('id', 'content')
+      expect(plucked).toEqual([[composition2.id, 'Hello']])
+    })
+  })
+
   context('when passed null', () => {
     it('un-orders results', async () => {
       const user1 = await User.create({ email: 'b@bbbbbb', password: 'howyadoin' })

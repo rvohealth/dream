@@ -896,7 +896,7 @@ export default class Query<
     let query = this.clone()
 
     Object.keys(arg).forEach(key => {
-      const column = this.namespaceColumn(key as ColumnName)
+      const column = key as ColumnName
       const direction = (arg as any)[key] as OrderDir
 
       query = query.clone({
@@ -2326,7 +2326,10 @@ export default class Query<
 
     if (this.orderStatements.length && !bypassOrder) {
       this.orderStatements.forEach(orderStatement => {
-        kyselyQuery = kyselyQuery.orderBy(orderStatement.column as any, orderStatement.direction)
+        kyselyQuery = kyselyQuery.orderBy(
+          this.namespaceColumn(orderStatement.column),
+          orderStatement.direction
+        )
       })
     }
 
