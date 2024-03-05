@@ -52,7 +52,7 @@ export default class Balloon extends ApplicationModel {
     await new Query(this.constructor as typeof Balloon)
       .toKysely('update')
       .set({ deletedAt: DateTime.now(), positionAlpha: null, positionBeta: null })
-      .where(this.primaryKey, '=', this.primaryKeyValue!.toString())
+      .where(this.primaryKey as any, '=', this.primaryKeyValue!.toString())
       .execute()
 
     this.preventDeletion()

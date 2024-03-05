@@ -84,8 +84,8 @@ import { marshalDBValue } from './helpers/marshalDBValue'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
 
 export default class Dream {
-  public static get primaryKey() {
-    return 'id' as const
+  public static get primaryKey(): string {
+    return 'id'
   }
 
   public static createdAtField = 'createdAt'
