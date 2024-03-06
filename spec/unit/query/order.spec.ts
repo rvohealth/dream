@@ -35,6 +35,20 @@ describe('Query#order', () => {
     })
   })
 
+  context('when one of the records has a null value', () => {
+    it('prioritizes null values last', async () => {
+      const user1 = await User.create({ email: 'c@cccccc', targetRating: 4, password: 'howyadoin' })
+      const user2 = await User.create({ email: 'b@bbbbbb', targetRating: 5, password: 'howyadoin' })
+      const user3 = await User.create({ email: 'a@aaaaaa', targetRating: null, password: 'howyadoin' })
+
+      const records = await User.query().order({ targetRating: 'desc' }).all()
+      expect(records.length).toEqual(3)
+      expect(records[0]).toMatchDreamModel(user2)
+      expect(records[1]).toMatchDreamModel(user1)
+      expect(records[2]).toMatchDreamModel(user3)
+    })
+  })
+
   it('when passed an object with a single column', async () => {
     const user1 = await User.create({ email: 'fred3@frewd', name: 'b', password: 'howyadoin' })
     const user2 = await User.create({ email: 'fred1@frewd', name: 'c', password: 'howyadoin' })
@@ -70,6 +84,38 @@ describe('Query#order', () => {
       expect(pets[0]).toMatchDreamModel(pet3)
       expect(pets[1]).toMatchDreamModel(pet1)
       expect(pets[2]).toMatchDreamModel(pet2)
+    })
+
+    context('when one of the records has a null value', () => {
+      it('prioritizes null values last', async () => {
+        const user1 = await User.create({
+          email: 'a@aaaaaa',
+          password: 'howyadoin',
+          name: 'Chia',
+          targetRating: 2,
+        })
+        const user2 = await User.create({
+          email: 'b@bbbbb',
+          password: 'howyadoin',
+          name: 'Chia',
+          targetRating: null,
+        })
+        const user3 = await User.create({
+          email: 'c@ccccc',
+          password: 'howyadoin',
+          name: 'Chia',
+          targetRating: 1,
+        })
+
+        const users = await User.where({ name: ops.wordSimilarity('Chia', { score: 0.4 }) })
+          .order({ targetRating: 'desc' })
+          .all()
+
+        expect(users).toHaveLength(3)
+        expect(users[0]).toMatchDreamModel(user1)
+        expect(users[1]).toMatchDreamModel(user3)
+        expect(users[2]).toMatchDreamModel(user2)
+      })
     })
 
     context('plucking', () => {

@@ -81,6 +81,7 @@ import { extractValueFromJoinsPluckResponse } from './internal/extractValueFromJ
 import MissingRequiredCallbackFunctionToPluckEach from '../exceptions/missing-required-callback-function-to-pluck-each'
 import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../exceptions/cannot-pass-additional-fields-to-pluck-each-after-callback-function'
 import NoUpdateAllOnJoins from '../exceptions/no-updateall-on-joins'
+import orderByDirection from './internal/orderByDirection'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -2332,7 +2333,7 @@ export default class Query<
       this.orderStatements.forEach(orderStatement => {
         kyselyQuery = kyselyQuery.orderBy(
           this.namespaceColumn(orderStatement.column),
-          orderStatement.direction
+          orderByDirection(orderStatement.direction)
         )
       })
     }
