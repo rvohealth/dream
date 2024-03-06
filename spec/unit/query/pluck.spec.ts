@@ -69,10 +69,8 @@ describe('Query#pluck', () => {
 
     context('with a similarity operator', () => {
       it('respects the similarity operator', async () => {
-        const plucked = await User.order('id')
-          .where({ name: ops.similarity('hello world') })
-          .pluck('id')
-        expect(plucked).toEqual([user1.id, user2.id])
+        const plucked = await User.where({ name: ops.similarity('hello world') }).pluck('id')
+        expect(plucked).toEqual([user2.id, user1.id])
       })
     })
   })

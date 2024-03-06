@@ -877,8 +877,11 @@ export default class Query<
     SimpleFieldType extends keyof DreamClassColumns<DreamClass>,
     PluckThroughFieldType extends any,
   >(this: Query<DreamClass>, selection: SimpleFieldType | PluckThroughFieldType) {
-    let query = this.buildSelect({ bypassSelectAll: true }) as SelectQueryBuilder<any, any, any>
-    query = this.conditionallyAttachSimilarityColumnsToSelect(query, { bypassOrder: true }) as any
+    let query = this.buildSelect({ bypassSelectAll: true, bypassOrder: true }) as SelectQueryBuilder<
+      any,
+      any,
+      any
+    >
     return query.select(this.namespaceColumn(selection as any))
   }
 
@@ -964,7 +967,6 @@ export default class Query<
       : count(query.namespaceColumn(query.dreamClass.primaryKey))
 
     kyselyQuery = kyselyQuery.select(countClause.as('tablecount'))
-    kyselyQuery = query.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery, { bypassOrder: true })
 
     const data = (await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')) as any
 
@@ -1002,10 +1004,9 @@ export default class Query<
     PluckThroughFieldType extends any,
   >(this: T, field: SimpleFieldType | PluckThroughFieldType) {
     const { max } = this.dbFor('select').fn
-    let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
+    let kyselyQuery = this.buildSelect({ bypassSelectAll: true, bypassOrder: true })
 
     kyselyQuery = kyselyQuery.select(max(field as any) as any)
-    kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery, { bypassOrder: true })
 
     const data = (await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')) as any
 
@@ -1019,10 +1020,9 @@ export default class Query<
     PluckThroughFieldType extends any,
   >(this: T, field: SimpleFieldType | PluckThroughFieldType) {
     const { min } = this.dbFor('select').fn
-    let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
+    let kyselyQuery = this.buildSelect({ bypassSelectAll: true, bypassOrder: true })
 
     kyselyQuery = kyselyQuery.select(min(field as any) as any)
-    kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery, { bypassOrder: true })
     const data = (await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')) as any
 
     return data.min
@@ -1040,8 +1040,6 @@ export default class Query<
       aliases.push(alias)
       kyselyQuery = kyselyQuery.select(`${this.namespaceColumn(field)} as ${alias}` as any)
     })
-
-    kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery)
 
     return (await executeDatabaseQuery(kyselyQuery, 'execute')).map(singleResult =>
       aliases.map(alias => singleResult[alias])
@@ -2303,7 +2301,10 @@ export default class Query<
     {
       bypassSelectAll = false,
       bypassOrder = false,
-    }: { bypassSelectAll?: boolean; bypassOrder?: boolean } = {}
+    }: {
+      bypassSelectAll?: boolean
+      bypassOrder?: boolean
+    } = {}
   ): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
     let kyselyQuery: SelectQueryBuilder<DB, any, {}>
 
@@ -2323,6 +2324,9 @@ export default class Query<
     }
 
     kyselyQuery = this.buildCommon(kyselyQuery)
+    kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery, {
+      bypassOrder: bypassOrder || !!this.distinctColumn,
+    })
 
     if (this.orderStatements.length && !bypassOrder) {
       this.orderStatements.forEach(orderStatement => {
@@ -2340,8 +2344,6 @@ export default class Query<
       kyselyQuery = kyselyQuery.selectAll(
         this.baseSqlAlias as ExtractTableAlias<DB, InstanceType<DreamClass>['table']>
       )
-
-      kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery)
     }
 
     return kyselyQuery

@@ -1,4 +1,6 @@
+import Pet from '../../../test-app/app/models/Pet'
 import User from '../../../test-app/app/models/User'
+import ops from '../../../src/ops'
 
 describe('Query#order', () => {
   it('orders by ascending direction when passed a single column', async () => {
@@ -53,5 +55,34 @@ describe('Query#order', () => {
     expect(records[0].id).toEqual(user3.id)
     expect(records[1].id).toEqual(user2.id)
     expect(records[2].id).toEqual(user1.id)
+  })
+
+  context('with similarity match', () => {
+    it('orders first by similarity match, then by explicit order', async () => {
+      const pet1 = await Pet.create({ name: 'Chia' })
+      const pet2 = await Pet.create({ name: 'Chai' })
+      const pet3 = await Pet.create({ name: 'Chia' })
+
+      const pets = await Pet.where({ name: ops.wordSimilarity('Chia', { score: 0.4 }) })
+        .order({ id: 'desc' })
+        .all()
+      expect(pets).toHaveLength(3)
+      expect(pets[0]).toMatchDreamModel(pet3)
+      expect(pets[1]).toMatchDreamModel(pet1)
+      expect(pets[2]).toMatchDreamModel(pet2)
+    })
+
+    context('plucking', () => {
+      it('orders first by similarity match, then by explicit order', async () => {
+        const pet1 = await Pet.create({ name: 'Chia' })
+        const pet2 = await Pet.create({ name: 'Chai' })
+        const pet3 = await Pet.create({ name: 'Chia' })
+
+        const petIds = await Pet.where({ name: ops.wordSimilarity('Chia', { score: 0.4 }) })
+          .order({ id: 'desc' })
+          .pluck('id')
+        expect(petIds).toEqual([pet3.id, pet1.id, pet2.id])
+      })
+    })
   })
 })

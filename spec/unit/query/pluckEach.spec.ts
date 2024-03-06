@@ -100,13 +100,11 @@ describe('Query#pluckEach', () => {
     context('with a similarity operator', () => {
       it('respects the similarity operator', async () => {
         const plucked: any[] = []
-        await User.order('id')
-          .where({ name: ops.similarity('hello world') })
-          .pluckEach('id', id => {
-            plucked.push(id)
-          })
+        await User.where({ name: ops.similarity('hello world') }).pluckEach('id', id => {
+          plucked.push(id)
+        })
 
-        expect(plucked).toEqual([user1.id, user2.id])
+        expect(plucked).toEqual([user2.id, user1.id])
       })
     })
   })
