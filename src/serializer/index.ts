@@ -5,15 +5,15 @@ import snakeify from '../../shared/helpers/snakeify'
 import { DateTime } from 'luxon'
 import { AttributeStatement } from './decorators/attribute'
 import { AssociationStatement } from './decorators/associations/shared'
-import { DelegateStatement } from './decorators/delegate'
 import MissingSerializer from '../exceptions/missing-serializer'
 import round from '../helpers/round'
 import NonLoadedAssociation from '../exceptions/associations/non-loaded-association'
+import { isArray } from 'lodash'
+import FailedToRenderThroughAssociationForSerializer from '../exceptions/serializers/failed-to-render-through-association'
 
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
   public static attributeStatements: AttributeStatement[] = []
   public static associationStatements: AssociationStatement[] = []
-  public static delegateStatements: DelegateStatement[] = []
   private _data: DataType
   private _casing: 'snake' | 'camel' | null = null
   constructor(data: DataType) {
@@ -119,9 +119,6 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
         }
       }
     })
-    ;(this.constructor as typeof DreamSerializer).delegateStatements.forEach(delegateStatement => {
-      returnObj[this.applyCasingToField(delegateStatement.field)] = this.applyDelegation(delegateStatement)
-    })
 
     return returnObj
   }
@@ -159,25 +156,52 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
 
     if (associationStatement.through) {
       associationStatement.through.split('.').forEach(throughField => {
-        self = self[throughField]
+        if (isArray(self)) {
+          self = self.map(singleField => singleField[throughField])
+        } else {
+          self = self[throughField]
+        }
+        if (isArray(self)) self = self.flat()
+
+        if (self === undefined) {
+          throw new FailedToRenderThroughAssociationForSerializer(this.constructor.name, throughField)
+        }
       })
     }
 
-    if (delegateToPassthroughData) return self[associationStatement.field]
-    return self[associationStatement.source as string]
-  }
+    if (isArray(self)) {
+      const vals = self.map(item => {
+        let returnValue: any
+        if (delegateToPassthroughData) returnValue = item[associationStatement.field]
+        returnValue = item[associationStatement.source as string]
 
-  private applyDelegation(delegateStatement: DelegateStatement) {
-    return (this.data as any)[delegateStatement.delegateTo][delegateStatement.field]
+        return isArray(returnValue) ? returnValue.flat() : returnValue
+      })
+      return vals.flat()
+    } else {
+      if (delegateToPassthroughData) return self[associationStatement.field]
+      return self[associationStatement.source as string]
+    }
   }
 
   private getAttributeValue(attributeStatement: AttributeStatement) {
     const { field } = attributeStatement
 
+    let pathToValue: any = this as any
+    if (attributeStatement.options?.delegate) {
+      pathToValue = (this as any).data
+      const delegations = attributeStatement.options?.delegate.split('.')
+      delegations.forEach(delegationField => {
+        pathToValue = pathToValue?.[delegationField] || null
+      })
+    }
+
+    const valueOrCb = pathToValue[field]
+
     if (attributeStatement.functional) {
-      return (this as any)[field](this.data)
+      return valueOrCb.call(this, this.data)
     } else {
-      return (this.data as any)[field]
+      return valueOrCb
     }
   }
 

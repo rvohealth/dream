@@ -56,6 +56,11 @@ export interface GraphEdge {
       expect(file).toContain('species: Species')
     })
 
+    it('handles type attributes', async () => {
+      const file = await generateApiSchemaContent()
+      expect(file).toContain('type: BalloonTypesEnum')
+    })
+
     it('generates any for unspecified types', async () => {
       const file = await generateApiSchemaContent()
       expect(file).toContain(`\
@@ -77,6 +82,7 @@ export interface GraphNode {
           const file = await generateApiSchemaContent()
           expect(file).toContain(`\
 export interface Collar {
+  id: any
   lost: any
   pet: Pet
 }`)

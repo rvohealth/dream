@@ -26,11 +26,12 @@ export type SerializableTypes =
   | SerializableBaseArrayTypes
   | SerializableNonArrayTypes
   | `enum:${string}`
+  | `type:${string}`
 export type SerializableBaseArrayTypes = `${SerializableBaseTypes}[]`
 export type SerializableBaseTypes = 'date' | 'decimal' | 'string' | 'number' | 'boolean' | 'datetime'
 export type SerializableNonArrayTypes = 'json'
 
-type AttributeRenderOptions = { precision?: RoundingPrecision }
+type AttributeRenderOptions = { precision?: RoundingPrecision; delegate?: string }
 
 export interface AttributeStatement {
   field: string

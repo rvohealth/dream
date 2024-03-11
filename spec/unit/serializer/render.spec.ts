@@ -6,10 +6,12 @@ import RendersMany from '../../../src/serializer/decorators/associations/renders
 import RendersOne from '../../../src/serializer/decorators/associations/renders-one'
 import User from '../../../test-app/app/models/User'
 import Pet from '../../../test-app/app/models/Pet'
-import Delegate from '../../../src/serializer/decorators/delegate'
 import MissingSerializer from '../../../src/exceptions/missing-serializer'
 import Balloon from '../../../test-app/app/models/Balloon'
 import { NonLoadedAssociation } from '../../../src'
+import Collar from '../../../test-app/app/models/Collar'
+import Latex from '../../../test-app/app/models/Balloon/Latex'
+import FailedToRenderThroughAssociationForSerializer from '../../../src/exceptions/serializers/failed-to-render-through-association'
 
 describe('DreamSerializer#render', () => {
   it('renders a single attribute', async () => {
@@ -407,6 +409,106 @@ describe('DreamSerializer#render', () => {
           })
         })
 
+        context('with an attribute that is not present in the serializer data passed as a through', () => {
+          class PersonSerializer extends DreamSerializer {
+            @RendersMany(() => ChalupaSerializer, { through: 'a.b' })
+            public chalupas: any[]
+          }
+
+          it('raises a targeted exception', () => {
+            const serializer = new PersonSerializer({
+              a: { chalupas: [{ deliciousness: 5000 }, { deliciousness: 7000 }] },
+            })
+
+            expect(() => serializer.render()).toThrowError(FailedToRenderThroughAssociationForSerializer)
+          })
+        })
+
+        context('when traveling through nested associations', () => {
+          context('when it is traveling through nested BelongsTo/HasOne statement', () => {
+            class UserSerializer extends DreamSerializer {
+              @RendersMany(() => CollarSerializer2, { through: 'firstPet' })
+              public collars: any[]
+            }
+
+            class CollarSerializer2 extends DreamSerializer {
+              @Attribute()
+              public tagName: string
+            }
+
+            it('correctly traverses nested objects to reach through target', async () => {
+              let user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+              const pet = await Pet.create({ user })
+              await Collar.create({ pet, tagName: 'collar 1' })
+              await Collar.create({ pet, tagName: 'collar 2' })
+
+              user = await user.load('firstPet', 'collars').execute()
+
+              const serializer = new UserSerializer(user)
+              expect(serializer.render()).toEqual({
+                collars: [{ tagName: 'collar 1' }, { tagName: 'collar 2' }],
+              })
+            })
+          })
+
+          context('when it is traveling through nested HasMany statement', () => {
+            class UserSerializer extends DreamSerializer {
+              @RendersMany(() => CollarSerializer2, { through: 'pets' })
+              public collars: any[]
+            }
+
+            class CollarSerializer2 extends DreamSerializer {
+              @Attribute()
+              public tagName: string
+            }
+
+            it('correctly traverses nested objects to reach through target', async () => {
+              let user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+              const pet1 = await Pet.create({ user })
+              await Collar.create({ pet: pet1, tagName: 'collar 1' })
+              const pet2 = await Pet.create({ user })
+              await Collar.create({ pet: pet2, tagName: 'collar 2' })
+
+              user = await user.load('pets', 'collars').execute()
+
+              const serializer = new UserSerializer(user)
+              expect(serializer.render()).toEqual({
+                collars: [{ tagName: 'collar 1' }, { tagName: 'collar 2' }],
+              })
+            })
+          })
+
+          context('when it is traveling through a double-nested HasMany statement', () => {
+            class UserSerializer extends DreamSerializer {
+              @RendersMany(() => BalloonSerializer2, { through: 'pets.collars', source: 'balloon' })
+              public balloons: any[]
+            }
+
+            class BalloonSerializer2 extends DreamSerializer {
+              @Attribute()
+              public color: string
+            }
+
+            it('correctly traverses nested objects to reach through target', async () => {
+              let user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+              const pet1 = await Pet.create({ user })
+              const balloon1 = await Latex.create({ color: 'red' })
+              await Collar.create({ pet: pet1, balloon: balloon1, tagName: 'collar 1' })
+
+              const pet2 = await Pet.create({ user })
+              const balloon2 = await Latex.create({ color: 'blue' })
+              await Collar.create({ pet: pet2, balloon: balloon2, tagName: 'collar 2' })
+
+              user = await user.load('pets', 'collars', 'balloon').execute()
+
+              const serializer = new UserSerializer(user)
+              expect(serializer.render()).toEqual({
+                balloons: [{ color: 'red' }, { color: 'blue' }],
+              })
+            })
+          })
+        })
+
         context('with nested fields to traverse', () => {
           class PersonSerializer2 extends DreamSerializer {
             @RendersMany(() => ChalupaSerializer, { through: 'chalupatowns.greatest.hits' })
@@ -765,7 +867,7 @@ describe('DreamSerializer#render', () => {
     context('with attribute delegations', () => {
       it('returns the delegated attributes in the payload', async () => {
         class PetSerializer extends DreamSerializer {
-          @Delegate('user')
+          @Attribute('string', { delegate: 'user' })
           public email: string
         }
 
@@ -777,10 +879,26 @@ describe('DreamSerializer#render', () => {
         expect(serializer.render()).toEqual({ email: 'how@yadoin' })
       })
 
+      context('with dot separators in delegate statement', () => {
+        it('returns the delegated attributes in the payload', async () => {
+          class PetSerializer extends DreamSerializer {
+            @Attribute('string', { delegate: 'a.b.user' })
+            public email: string
+          }
+
+          const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+          let pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+          pet = await pet.load('user').execute()
+
+          const serializer = new PetSerializer({ a: { b: { user } } })
+          expect(serializer.render()).toEqual({ email: 'how@yadoin' })
+        })
+      })
+
       context('with casing', () => {
         it('returns the delegated attributes in the correct casing in the payload', async () => {
           class PetSerializer extends DreamSerializer {
-            @Delegate('user')
+            @Attribute('date', { delegate: 'user' })
             public updatedAt: string
           }
 
@@ -789,7 +907,7 @@ describe('DreamSerializer#render', () => {
           pet = await pet.load('user').execute()
 
           const serializer = new PetSerializer(pet)
-          expect(serializer.casing('camel').render()).toEqual({ updatedAt: user.updatedAt })
+          expect(serializer.casing('camel').render()).toEqual({ updatedAt: user.updatedAt.toISODate() })
         })
       })
     })
@@ -827,19 +945,66 @@ describe('DreamSerializer#render', () => {
     })
 
     context('when a config is passed as the first argument', () => {
-      class UserSerializer extends DreamSerializer {
-        @RendersOne({ through: 'howyadoin' })
-        public pet: Pet
-      }
+      context('through option is specified', () => {
+        context('through argument points to an arbitrary field', () => {
+          class UserSerializer extends DreamSerializer {
+            @RendersOne({ through: 'howyadoin' })
+            public pet: Pet
+          }
 
-      it('leverages the default serializer and applies the config', async () => {
-        const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-        let pet = await Pet.create({ user, name: 'aster', species: 'cat' })
-        pet = await pet.load('ratings').execute()
+          it('leverages the default serializer and applies the config', async () => {
+            const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+            let pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+            pet = await pet.load('ratings').execute()
 
-        const serializer = new UserSerializer({ howyadoin: { pet } })
-        expect(serializer.render()).toEqual({
-          pet: { id: pet.id, name: 'aster', species: 'cat', ratings: [] },
+            const serializer = new UserSerializer({ howyadoin: { pet } })
+            expect(serializer.render()).toEqual({
+              pet: { id: pet.id, name: 'aster', species: 'cat', ratings: [] },
+            })
+          })
+        })
+
+        context('through argument points to a HasOne association', () => {
+          class UserSerializer extends DreamSerializer {
+            @RendersOne({ through: 'firstPet' })
+            public currentCollar: Collar
+          }
+
+          it('correctly traverses nested objects to reach through target', async () => {
+            let user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+            const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+            const collar = await pet.createAssociation('collars', { lost: false })
+            user = await user.load('firstPet', 'currentCollar', 'pet', 'ratings').execute()
+
+            const serializer = new UserSerializer(user)
+            expect(serializer.render()).toEqual({
+              currentCollar: expect.objectContaining({ id: collar.id, lost: false }),
+            })
+          })
+        })
+
+        context('through argument points to a BelongsTo association', () => {
+          class UserSerializer extends DreamSerializer {
+            @Attribute()
+            public email: string
+          }
+
+          class CollarSerializer extends DreamSerializer {
+            @RendersOne(() => UserSerializer, { through: 'pet' })
+            public user: User
+          }
+
+          it('correctly traverses nested objects to reach through target', async () => {
+            const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+            const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+            let collar = await pet.createAssociation('collars', { lost: false })
+            collar = await collar.load('pet', 'user').execute()
+
+            const serializer = new CollarSerializer(collar)
+            expect(serializer.render()).toEqual({
+              user: { email: 'how@yadoin' },
+            })
+          })
         })
       })
     })

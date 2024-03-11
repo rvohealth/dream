@@ -1,12 +1,12 @@
 export type BalloonColorsEnum = 'blue' | 'green' | 'red'
-export const BalloonColorsEnumArray = [
+export const BalloonColorsEnumValues = [
   'blue',
   'green',
   'red'
 ]
 
 export type BalloonLineMaterialsEnum = 'nylon' | 'ribbon' | 'twine' | 'yarn'
-export const BalloonLineMaterialsEnumArray = [
+export const BalloonLineMaterialsEnumValues = [
   'nylon',
   'ribbon',
   'twine',
@@ -14,14 +14,14 @@ export const BalloonLineMaterialsEnumArray = [
 ]
 
 export type BalloonTypesEnum = 'Animal' | 'Latex' | 'Mylar'
-export const BalloonTypesEnumArray = [
+export const BalloonTypesEnumValues = [
   'Animal',
   'Latex',
   'Mylar'
 ]
 
 export type CatTreats = 'cat-safe chalupas (catlupas,supaloopas)' | 'chicken' | 'ocean fish' | 'tuna'
-export const CatTreatsArray = [
+export const CatTreatsValues = [
   'cat-safe chalupas (catlupas,supaloopas)',
   'chicken',
   'ocean fish',
@@ -29,20 +29,20 @@ export const CatTreatsArray = [
 ]
 
 export type ExtraRateableTypesEnum = 'Balloon' | 'Composition' | 'Post'
-export const ExtraRateableTypesEnumArray = [
+export const ExtraRateableTypesEnumValues = [
   'Balloon',
   'Composition',
   'Post'
 ]
 
 export type ExtraRatingTypesEnum = 'HeartRating' | 'StarRating'
-export const ExtraRatingTypesEnumArray = [
+export const ExtraRatingTypesEnumValues = [
   'HeartRating',
   'StarRating'
 ]
 
 export type LocalesEnum = 'de-DE' | 'en-AU' | 'en-BZ' | 'en-CA' | 'en-cb' | 'en-GB' | 'en-IE' | 'en-IN' | 'en-JM' | 'en-MT' | 'en-MY' | 'en-NZ' | 'en-PH' | 'en-SG' | 'en-TT' | 'en-US' | 'en-ZA' | 'en-ZW' | 'es-ES' | 'fr-FR' | 'it-IT' | 'ja-JP' | 'ko-KR' | 'pt-BR' | 'zh-CN' | 'zh-TW'
-export const LocalesEnumArray = [
+export const LocalesEnumValues = [
   'de-DE',
   'en-AU',
   'en-BZ',
@@ -72,13 +72,13 @@ export const LocalesEnumArray = [
 ]
 
 export type LocalizableTypesEnum = 'Composition' | 'CompositionAsset'
-export const LocalizableTypesEnumArray = [
+export const LocalizableTypesEnumValues = [
   'Composition',
   'CompositionAsset'
 ]
 
 export type Species = 'cat' | 'dog' | 'frog'
-export const SpeciesArray = [
+export const SpeciesValues = [
   'cat',
   'dog',
   'frog'
@@ -87,26 +87,40 @@ export const SpeciesArray = [
 export interface BalloonLine {
   balloon: any
   material: any
+  createdAt: string
 }
 
 export interface BalloonSpotterBalloon {
-  BalloonSpotter: any
-  Balloon: any
+  balloonSpotter: any
+  balloon: BalloonSummary
 }
 
 export interface BalloonSpotter {
   name: any
+  balloons: BalloonSummary[]
+}
+
+export interface BalloonSummary {
+  type: BalloonTypesEnum
+  name: any
 }
 
 export interface Collar {
-  pet: any
+  id: any
   lost: any
+  pet: Pet
+}
+
+export interface Composition {
+  id: any
+  metadata: any
 }
 
 export interface EdgeCaseAttribute {
-  kPop: any
-  popK: any
-  popKPop: any
+  kPop: boolean
+  popK: string
+  popKPop: number
+  roundedPopKPop: number
 }
 
 export interface GraphEdgeNode {
@@ -115,7 +129,7 @@ export interface GraphEdgeNode {
 }
 
 export interface GraphEdge {
-  name: any
+  name: string
 }
 
 export interface GraphNode {
@@ -126,12 +140,20 @@ export interface Pet {
   id: string
   name: string
   species: Species
+  ratings: Rating[]
 }
 
 export interface PetUnderstudyJoinModel {
+  pet: Pet
+  understudy: Pet
+}
+
+export interface Rating {
+  id: any
 }
 
 export interface Sandbag {
   weight: any
+  updatedAt: string
 }
 
