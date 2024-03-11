@@ -4,6 +4,9 @@ import RendersOne from '../../../src/serializer/decorators/associations/renders-
 
 export default class CollarSerializer extends DreamSerializer {
   @Attribute()
+  public id: any
+
+  @Attribute()
   public lost: any
 
   @RendersOne()

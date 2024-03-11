@@ -70,6 +70,11 @@ function renderAsToType(renderAs: SerializableTypes, schema: any) {
     return renderAsType
   }
 
+  if (/^type:/.test(renderAs)) {
+    const renderAsType = renderAs.replace(/^type:/, '')
+    return renderAsType
+  }
+
   const typeCoersions = {
     date: 'string',
     datetime: 'string',
