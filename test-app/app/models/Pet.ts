@@ -48,19 +48,19 @@ export default class Pet extends ApplicationModel {
     return query.where({ deletedAt: null })
   }
 
-  @BelongsTo(() => User, {
+  @Pet.BelongsTo(() => User, {
     optional: true,
   })
   public user: User | null
   public userId: IdType
 
-  @HasOne(() => Post, { through: 'user' })
+  @Pet.HasOne(() => Post, { through: 'user' })
   public featuredPost: Post
 
   @HasMany(() => Rating, { through: 'user' })
   public ratings: Rating[]
 
-  @HasMany(() => Rating, { through: 'user' })
+  @Pet.HasMany(() => Rating, { through: 'user' })
   public featuredRatings: Rating[]
 
   @HasMany(() => Collar)
@@ -76,7 +76,7 @@ export default class Pet extends ApplicationModel {
   @HasMany(() => Collar, { distinct: 'tagName' })
   public uniqueCollars: Collar
 
-  @HasMany(() => Balloon, { through: 'uniqueCollars', source: 'balloon' })
+  @Pet.HasMany(() => Balloon, { through: 'uniqueCollars', source: 'balloon' })
   public uniqueBalloons: Balloon
 
   @HasMany(() => Balloon, { through: 'collars', source: 'balloon', distinct: true })
@@ -91,7 +91,7 @@ export default class Pet extends ApplicationModel {
   @HasMany(() => PetUnderstudyJoinModel, { foreignKey: 'petId' })
   public petUnderstudies: PetUnderstudyJoinModel[]
 
-  @HasMany(() => Pet, {
+  @Pet.HasMany(() => Pet, {
     through: 'petUnderstudies',
     source: 'understudy',
     distinct: true,

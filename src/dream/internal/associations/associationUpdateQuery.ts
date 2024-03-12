@@ -16,10 +16,10 @@ export default function associationUpdateQuery<
     : PossibleArrayAssociationType,
   AssociationQuery = Query<DreamConstructorType<AssociationType & Dream>>,
 >(dream: DreamInstance, txn: DreamTransaction<Dream> | null = null, associationName: AssociationName) {
-  const association = dream.associationMap()[associationName] as
-    | HasManyStatement<any, any, any>
-    | HasOneStatement<any, any, any>
-    | BelongsToStatement<any, any, any>
+  const association = dream.associationMap()[associationName as any] as
+    | HasManyStatement<any, any, any, any>
+    | HasOneStatement<any, any, any, any>
+    | BelongsToStatement<any, any, any, any>
 
   const associationClass = association.modelCB()
   if (Array.isArray(associationClass)) {

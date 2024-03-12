@@ -11,9 +11,9 @@ import {
 } from 'kysely'
 
 import db from './db'
-import { HasManyStatement } from './decorators/associations/has-many'
-import { BelongsToStatement } from './decorators/associations/belongs-to'
-import { HasOneStatement } from './decorators/associations/has-one'
+import HasMany, { HasManyOptions, HasManyStatement } from './decorators/associations/has-many'
+import BelongsTo, { BelongsToOptions, BelongsToStatement } from './decorators/associations/belongs-to'
+import HasOne, { HasOneOptions, HasOneStatement } from './decorators/associations/has-one'
 import { ScopeStatement } from './decorators/scope'
 import { HookStatement, blankHooksFactory } from './decorators/hooks/shared'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
@@ -91,9 +91,9 @@ export default class Dream {
   public static createdAtField = 'createdAt'
 
   protected static associations: {
-    belongsTo: BelongsToStatement<any, any, any>[]
-    hasMany: HasManyStatement<any, any, any>[]
-    hasOne: HasOneStatement<any, any, any>[]
+    belongsTo: BelongsToStatement<any, any, any, any>[]
+    hasMany: HasManyStatement<any, any, any, any>[]
+    hasOne: HasOneStatement<any, any, any, any>[]
   } = blankAssociationsFactory(this)
 
   protected static scopes: {
@@ -165,6 +165,30 @@ export default class Dream {
     this.hooks[hookType] = [...this.hooks[hookType], statement]
   }
 
+  public static HasMany<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
+    this: T,
+    modelCB: () => AssociationDreamClass,
+    options: HasManyOptions<InstanceType<T>, AssociationDreamClass> = {}
+  ) {
+    return HasMany<InstanceType<T>, AssociationDreamClass>(modelCB, options)
+  }
+
+  public static BelongsTo<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
+    this: T,
+    modelCB: () => AssociationDreamClass,
+    options: BelongsToOptions<InstanceType<T>, AssociationDreamClass> = {}
+  ) {
+    return BelongsTo<InstanceType<T>, AssociationDreamClass>(modelCB, options)
+  }
+
+  public static HasOne<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
+    this: T,
+    modelCB: () => AssociationDreamClass,
+    options: HasOneOptions<InstanceType<T>, AssociationDreamClass> = {}
+  ) {
+    return HasOne<InstanceType<T>, AssociationDreamClass>(modelCB, options)
+  }
+
   public static async globalName<T extends typeof Dream>(this: T): Promise<any> {
     const modelKey = await getModelKey(this)
     return pascalize(modelKey!)
@@ -203,9 +227,24 @@ export default class Dream {
 
     const map = {} as {
       [key: (typeof allAssociations)[number]['as']]:
-        | BelongsToStatement<DB, SyncedAssociations, AssociationTableNames<DB, SyncedAssociations> & keyof DB>
-        | HasManyStatement<DB, SyncedAssociations, AssociationTableNames<DB, SyncedAssociations> & keyof DB>
-        | HasOneStatement<DB, SyncedAssociations, AssociationTableNames<DB, SyncedAssociations> & keyof DB>
+        | BelongsToStatement<
+            any,
+            DB,
+            SyncedAssociations,
+            AssociationTableNames<DB, SyncedAssociations> & keyof DB
+          >
+        | HasManyStatement<
+            any,
+            DB,
+            SyncedAssociations,
+            AssociationTableNames<DB, SyncedAssociations> & keyof DB
+          >
+        | HasOneStatement<
+            any,
+            DB,
+            SyncedAssociations,
+            AssociationTableNames<DB, SyncedAssociations> & keyof DB
+          >
     }
 
     for (const association of allAssociations) {
@@ -226,7 +265,7 @@ export default class Dream {
     })
   }
 
-  public static unscoped<T extends typeof Dream>(this: T) {
+  public static unscoped<T extends typeof Dream>(this: T): Query<T> {
     return this.query().unscoped()
   }
 
@@ -960,14 +999,14 @@ export default class Dream {
   }
 
   public get unsavedAssociations(): (
-    | BelongsToStatement<any, any, any>
-    | HasOneStatement<any, any, any>
-    | HasManyStatement<any, any, any>
+    | BelongsToStatement<any, any, any, any>
+    | HasOneStatement<any, any, any, any>
+    | HasManyStatement<any, any, any, any>
   )[] {
     const unsaved: (
-      | BelongsToStatement<any, any, any>
-      | HasOneStatement<any, any, any>
-      | HasManyStatement<any, any, any>
+      | BelongsToStatement<any, any, any, any>
+      | HasOneStatement<any, any, any, any>
+      | HasManyStatement<any, any, any, any>
     )[] = []
     for (const associationName in this.associationMap()) {
       const associationMetadata = this.getAssociation(associationName)
@@ -1049,16 +1088,16 @@ export default class Dream {
       if (associationMetaData && associationMetaData.type !== 'BelongsTo') {
         throw new CanOnlyPassBelongsToModelParam(this, associationMetaData)
       } else if (associationMetaData) {
-        const belongsToAssociationMetaData = associationMetaData as BelongsToStatement<any, any, any>
+        const belongsToAssociationMetaData = associationMetaData as BelongsToStatement<any, any, any, any>
         const associatedObject = (attributes as any)[attr]
 
         // if dream instance is passed, set the loaded association
         if (dreamInstance && associatedObject !== undefined) (dreamInstance as any)[attr] = associatedObject
 
-        if (!(associationMetaData as BelongsToStatement<any, any, any>).optional && !associatedObject)
+        if (!(associationMetaData as BelongsToStatement<any, any, any, any>).optional && !associatedObject)
           throw new CannotPassNullOrUndefinedToRequiredBelongsTo(
             this,
-            associationMetaData as BelongsToStatement<any, any, any>
+            associationMetaData as BelongsToStatement<any, any, any, any>
           )
 
         const foreignKey = belongsToAssociationMetaData.foreignKey()

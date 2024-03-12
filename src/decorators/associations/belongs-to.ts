@@ -8,21 +8,17 @@ import {
   foreignKeyTypeField,
 } from './shared'
 import Validates from '../validations/validates'
+import { DreamColumn } from '../../dream/types'
 
-export default function BelongsTo(
-  modelCB: () => typeof Dream | (typeof Dream)[],
-  {
-    foreignKey,
-    optional = false,
-    polymorphic = false,
-  }: {
-    foreignKey?: string
-    optional?: boolean
-    polymorphic?: boolean
-  } = {}
+export default function BelongsTo<
+  BaseInstance extends Dream,
+  AssociationDreamClass extends typeof Dream = typeof Dream,
+>(
+  modelCB: () => AssociationDreamClass | AssociationDreamClass[],
+  { foreignKey, optional = false, polymorphic = false }: BelongsToOptions<BaseInstance> = {}
 ): any {
-  return function (target: any, key: string, _: any) {
-    const dreamClass: typeof Dream = target.constructor
+  return function (target: BaseInstance, key: string, _: any) {
+    const dreamClass: typeof Dream = (target as any).constructor
 
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'associations'))
       dreamClass['associations'] = blankAssociationsFactory(dreamClass)
@@ -44,7 +40,7 @@ export default function BelongsTo(
       foreignKeyTypeField() {
         return foreignKeyTypeField(foreignKey, dreamClass, partialAssociation)
       },
-    } as BelongsToStatement<any, any, any>
+    } as BelongsToStatement<any, any, any, any>
 
     dreamClass['associations']['belongsTo'].push(association)
     applyGetterAndSetter(target, association, { isBelongsTo: true, foreignKeyBase: foreignKey })
@@ -53,6 +49,7 @@ export default function BelongsTo(
 }
 
 export interface BelongsToStatement<
+  BaseInstance extends Dream,
   DB extends any,
   SyncedAssociations extends any,
   TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
@@ -65,4 +62,13 @@ export interface BelongsToStatement<
   optional: boolean
   distinct: null
   polymorphic: boolean
+}
+
+export interface BelongsToOptions<
+  BaseInstance extends Dream,
+  AssociationDreamClass extends typeof Dream = typeof Dream,
+> {
+  foreignKey?: DreamColumn<BaseInstance>
+  optional?: boolean
+  polymorphic?: boolean
 }
