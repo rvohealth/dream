@@ -166,15 +166,15 @@ ${JSON.stringify(association, null, 2)}
 
   private bridgeOriginalPreloadAssociation(
     originalAssociation:
-      | HasOneStatement<DB, SyncedAssociations, any>
-      | HasManyStatement<DB, SyncedAssociations, any>
-      | BelongsToStatement<DB, SyncedAssociations, any>,
+      | HasOneStatement<any, DB, SyncedAssociations, any>
+      | HasManyStatement<any, DB, SyncedAssociations, any>
+      | BelongsToStatement<any, DB, SyncedAssociations, any>,
     associationQuery: Query<any>
   ) {
     if ((originalAssociation as any)?.through) {
       const assoc = originalAssociation as
-        | HasManyStatement<any, any, string>
-        | HasOneStatement<any, any, string>
+        | HasManyStatement<any, any, any, string>
+        | HasOneStatement<any, any, any, string>
 
       if (assoc.where) {
         associationQuery = associationQuery.where(assoc.where)
@@ -192,15 +192,15 @@ ${JSON.stringify(association, null, 2)}
     dreamClass: typeof Dream,
     dreams: Dream[],
     association:
-      | HasOneStatement<DB, SyncedAssociations, any>
-      | HasManyStatement<DB, SyncedAssociations, any>
-      | BelongsToStatement<DB, SyncedAssociations, any>
+      | HasOneStatement<any, DB, SyncedAssociations, any>
+      | HasManyStatement<any, DB, SyncedAssociations, any>
+      | BelongsToStatement<any, DB, SyncedAssociations, any>
   ): Promise<{
     dreams: Dream[]
     association:
-      | HasOneStatement<DB, SyncedAssociations, any>
-      | HasManyStatement<DB, SyncedAssociations, any>
-      | BelongsToStatement<DB, SyncedAssociations, any>
+      | HasOneStatement<any, DB, SyncedAssociations, any>
+      | HasManyStatement<any, DB, SyncedAssociations, any>
+      | BelongsToStatement<any, DB, SyncedAssociations, any>
   }> {
     if (association.type === 'BelongsTo' || !association.through) {
       return { dreams: compact(dreams), association }
@@ -222,7 +222,9 @@ ${JSON.stringify(association, null, 2)}
 
   private followThroughAssociation(
     dreamClass: typeof Dream,
-    association: HasOneStatement<DB, SyncedAssociations, any> | HasManyStatement<DB, SyncedAssociations, any>
+    association:
+      | HasOneStatement<any, DB, SyncedAssociations, any>
+      | HasManyStatement<any, DB, SyncedAssociations, any>
   ) {
     const throughAssociation = association.through && dreamClass.associationMap()[association.through]
     if (!throughAssociation)
@@ -252,9 +254,9 @@ ${JSON.stringify(association, null, 2)}
   public hydrateAssociation(
     dreams: Dream[],
     association:
-      | HasManyStatement<DB, SyncedAssociations, any>
-      | HasOneStatement<DB, SyncedAssociations, any>
-      | BelongsToStatement<DB, SyncedAssociations, any>,
+      | HasManyStatement<any, DB, SyncedAssociations, any>
+      | HasOneStatement<any, DB, SyncedAssociations, any>
+      | BelongsToStatement<any, DB, SyncedAssociations, any>,
     loadedAssociations: Dream[]
   ) {
     switch (association.type) {

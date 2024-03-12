@@ -4,7 +4,7 @@ import { SelectQueryBuilder, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
 import { Range } from '../../helpers/range'
 import { AssociationTableNames } from '../../db/reflections'
-import { DreamConst, IdType } from '../../dream/types'
+import { DreamColumn, DreamConst, IdType } from '../../dream/types'
 import OpsStatement from '../../ops/ops-statement'
 import { BelongsToStatement } from './belongs-to'
 import { HasManyStatement } from './has-many'
@@ -86,10 +86,11 @@ export type AssociationWhereStatement<
 >
 
 export type WhereSelfStatement<
+  BaseInstance extends Dream,
   DB extends any,
   SyncedAssociations extends any,
   TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
-> = Partial<Record<keyof DB[TableName], string>>
+> = Partial<Record<keyof DB[TableName], DreamColumn<BaseInstance>>>
 
 export type OrderStatement<
   DB extends any,
@@ -116,6 +117,7 @@ export type TableColumnName<
 > = ColumnName
 
 export interface HasStatement<
+  BaseInstance extends Dream,
   DB extends any,
   SyncedAssociations extends any,
   ForeignTableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
@@ -132,16 +134,84 @@ export interface HasStatement<
   preloadThroughColumns?: string[]
   where?: AssociationWhereStatement<DB, SyncedAssociations, ForeignTableName>
   whereNot?: WhereStatement<DB, SyncedAssociations, ForeignTableName>
-  selfWhere?: WhereSelfStatement<DB, SyncedAssociations, ForeignTableName>
-  selfWhereNot?: WhereSelfStatement<DB, SyncedAssociations, ForeignTableName>
+  selfWhere?: WhereSelfStatement<BaseInstance, DB, SyncedAssociations, ForeignTableName>
+  selfWhereNot?: WhereSelfStatement<BaseInstance, DB, SyncedAssociations, ForeignTableName>
   distinct?: TableColumnName<DB, SyncedAssociations, ForeignTableName>
   order?: OrderStatement<DB, SyncedAssociations, ForeignTableName>
 }
 
+export interface HasOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream> {
+  foreignKey?: DreamColumn<InstanceType<AssociationDreamClass>>
+  through?: keyof BaseInstance['syncedAssociations'][BaseInstance['table']]
+  polymorphic?: boolean
+  source?: string
+  where?: AssociationWhereStatement<
+    InstanceType<AssociationDreamClass>['DB'],
+    InstanceType<AssociationDreamClass>['syncedAssociations'],
+    InstanceType<AssociationDreamClass>['table'] &
+      AssociationTableNames<
+        InstanceType<AssociationDreamClass>['DB'],
+        InstanceType<AssociationDreamClass>['syncedAssociations']
+      >
+  >
+  whereNot?: WhereStatement<
+    InstanceType<AssociationDreamClass>['DB'],
+    InstanceType<AssociationDreamClass>['syncedAssociations'],
+    InstanceType<AssociationDreamClass>['table'] &
+      AssociationTableNames<
+        InstanceType<AssociationDreamClass>['DB'],
+        InstanceType<AssociationDreamClass>['syncedAssociations']
+      >
+  >
+
+  selfWhere?: WhereSelfStatement<
+    BaseInstance,
+    InstanceType<AssociationDreamClass>['DB'],
+    InstanceType<AssociationDreamClass>['syncedAssociations'],
+    InstanceType<AssociationDreamClass>['table'] &
+      AssociationTableNames<
+        InstanceType<AssociationDreamClass>['DB'],
+        InstanceType<AssociationDreamClass>['syncedAssociations']
+      >
+  >
+
+  selfWhereNot?: WhereSelfStatement<
+    BaseInstance,
+    InstanceType<AssociationDreamClass>['DB'],
+    InstanceType<AssociationDreamClass>['syncedAssociations'],
+    InstanceType<AssociationDreamClass>['table'] &
+      AssociationTableNames<
+        InstanceType<AssociationDreamClass>['DB'],
+        InstanceType<AssociationDreamClass>['syncedAssociations']
+      >
+  >
+
+  order?:
+    | OrderStatement<
+        InstanceType<AssociationDreamClass>['DB'],
+        InstanceType<AssociationDreamClass>['syncedAssociations'],
+        InstanceType<AssociationDreamClass>['table'] &
+          AssociationTableNames<
+            InstanceType<AssociationDreamClass>['DB'],
+            InstanceType<AssociationDreamClass>['syncedAssociations']
+          >
+      >
+    | OrderStatement<
+        InstanceType<AssociationDreamClass>['DB'],
+        InstanceType<AssociationDreamClass>['syncedAssociations'],
+        InstanceType<AssociationDreamClass>['table'] &
+          AssociationTableNames<
+            InstanceType<AssociationDreamClass>['DB'],
+            InstanceType<AssociationDreamClass>['syncedAssociations']
+          >
+      >[]
+  preloadThroughColumns?: string[]
+}
+
 export function blankAssociationsFactory(dreamClass: typeof Dream): {
-  belongsTo: BelongsToStatement<any, any, any>[]
-  hasMany: HasManyStatement<any, any, any>[]
-  hasOne: HasOneStatement<any, any, any>[]
+  belongsTo: BelongsToStatement<any, any, any, any>[]
+  hasMany: HasManyStatement<any, any, any, any>[]
+  hasOne: HasOneStatement<any, any, any, any>[]
 } {
   return {
     belongsTo: [...(dreamClass['associations']?.belongsTo || [])],
@@ -162,9 +232,9 @@ type hasOneManySpecificFields =
 type belongsToSpecificFields = 'optional'
 
 export type PartialAssociationStatement =
-  | Pick<HasManyStatement<any, any, any>, partialTypeFields | hasOneManySpecificFields>
-  | Pick<HasOneStatement<any, any, any>, partialTypeFields | hasOneManySpecificFields>
-  | Pick<BelongsToStatement<any, any, any>, partialTypeFields | belongsToSpecificFields>
+  | Pick<HasManyStatement<any, any, any, any>, partialTypeFields | hasOneManySpecificFields>
+  | Pick<HasOneStatement<any, any, any, any>, partialTypeFields | hasOneManySpecificFields>
+  | Pick<BelongsToStatement<any, any, any, any>, partialTypeFields | belongsToSpecificFields>
 
 export function finalForeignKey(
   foreignKey: string | undefined,

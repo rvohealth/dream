@@ -4,14 +4,14 @@ import Dream from '../../dream'
 
 export default class CannotCreateAssociationWithThroughContext extends Error {
   public dreamClass: typeof Dream
-  public association: HasManyStatement<any, any, any> | HasOneStatement<any, any, any>
+  public association: HasManyStatement<any, any, any, any> | HasOneStatement<any, any, any, any>
 
   constructor({
     dreamClass,
     association,
   }: {
     dreamClass: typeof Dream
-    association: HasOneStatement<any, any, any> | HasManyStatement<any, any, any>
+    association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
   }) {
     super()
     this.dreamClass = dreamClass

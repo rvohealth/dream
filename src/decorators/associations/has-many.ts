@@ -1,35 +1,37 @@
 import Dream from '../../dream'
 import {
-  AssociationWhereStatement,
   HasStatement,
-  OrderStatement,
   PartialAssociationStatement,
   TableColumnName,
-  WhereSelfStatement,
-  WhereStatement,
   applyGetterAndSetter,
   blankAssociationsFactory,
   finalForeignKey,
   foreignKeyTypeField,
+  HasOptions,
 } from './shared'
 import { AssociationTableNames } from '../../db/reflections'
 
-export default function HasMany<AssociationDreamClass extends typeof Dream>(
+export default function HasMany<
+  BaseInstance extends Dream = Dream,
+  AssociationDreamClass extends typeof Dream = typeof Dream,
+>(
   modelCB: () => AssociationDreamClass,
-  options: HasManyOptions<AssociationDreamClass> = {}
+  {
+    foreignKey,
+    polymorphic = false,
+    source,
+    through,
+    preloadThroughColumns,
+    where,
+    whereNot,
+    selfWhere,
+    selfWhereNot,
+    distinct,
+    order,
+  }: HasManyOptions<BaseInstance, AssociationDreamClass> = {}
 ): any {
-  return function (target: any, key: string, _: any) {
-    const { foreignKey, polymorphic = false, source } = options
-    const through = options.through
-    const preloadThroughColumns = options.preloadThroughColumns
-    const where = options.where
-    const whereNot = options.whereNot
-    const selfWhere = options.selfWhere
-    const selfWhereNot = options.selfWhereNot
-    const distinct = options.distinct
-    const order = options.order
-
-    const dreamClass: typeof Dream = target.constructor
+  return function (target: BaseInstance, key: string, _: any) {
+    const dreamClass: typeof Dream = (target as any).constructor
 
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'associations'))
       dreamClass['associations'] = blankAssociationsFactory(dreamClass)
@@ -58,23 +60,22 @@ export default function HasMany<AssociationDreamClass extends typeof Dream>(
       foreignKeyTypeField() {
         return foreignKeyTypeField(foreignKey, dreamClass, partialAssociation)
       },
-    } as HasManyStatement<any, any, any>
+    } as HasManyStatement<any, any, any, any>
 
     dreamClass['associations']['hasMany'].push(association)
-    applyGetterAndSetter(target, association)
+    applyGetterAndSetter(target as any, association)
   }
 }
 
 export interface HasManyStatement<
+  BaseInstance extends Dream,
   DB extends any,
   SyncedAssociations extends any,
   ForeignTableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
-> extends HasStatement<DB, SyncedAssociations, ForeignTableName, 'HasMany'> {}
+> extends HasStatement<BaseInstance, DB, SyncedAssociations, ForeignTableName, 'HasMany'> {}
 
-export type HasManyOptions<AssociationDreamClass extends typeof Dream> = {
-  foreignKey?: string
-  polymorphic?: boolean
-  source?: string
+export interface HasManyOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream>
+  extends HasOptions<BaseInstance, AssociationDreamClass> {
   distinct?:
     | TableColumnName<
         InstanceType<AssociationDreamClass>['DB'],
@@ -86,64 +87,4 @@ export type HasManyOptions<AssociationDreamClass extends typeof Dream> = {
           >
       >
     | boolean
-  where?: AssociationWhereStatement<
-    InstanceType<AssociationDreamClass>['DB'],
-    InstanceType<AssociationDreamClass>['syncedAssociations'],
-    InstanceType<AssociationDreamClass>['table'] &
-      AssociationTableNames<
-        InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['syncedAssociations']
-      >
-  >
-  whereNot?: WhereStatement<
-    InstanceType<AssociationDreamClass>['DB'],
-    InstanceType<AssociationDreamClass>['syncedAssociations'],
-    InstanceType<AssociationDreamClass>['table'] &
-      AssociationTableNames<
-        InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['syncedAssociations']
-      >
-  >
-
-  selfWhere?: WhereSelfStatement<
-    InstanceType<AssociationDreamClass>['DB'],
-    InstanceType<AssociationDreamClass>['syncedAssociations'],
-    InstanceType<AssociationDreamClass>['table'] &
-      AssociationTableNames<
-        InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['syncedAssociations']
-      >
-  >
-
-  selfWhereNot?: WhereSelfStatement<
-    InstanceType<AssociationDreamClass>['DB'],
-    InstanceType<AssociationDreamClass>['syncedAssociations'],
-    InstanceType<AssociationDreamClass>['table'] &
-      AssociationTableNames<
-        InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['syncedAssociations']
-      >
-  >
-
-  order?:
-    | OrderStatement<
-        InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['syncedAssociations'],
-        InstanceType<AssociationDreamClass>['table'] &
-          AssociationTableNames<
-            InstanceType<AssociationDreamClass>['DB'],
-            InstanceType<AssociationDreamClass>['syncedAssociations']
-          >
-      >
-    | OrderStatement<
-        InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['syncedAssociations'],
-        InstanceType<AssociationDreamClass>['table'] &
-          AssociationTableNames<
-            InstanceType<AssociationDreamClass>['DB'],
-            InstanceType<AssociationDreamClass>['syncedAssociations']
-          >
-      >[]
-  through?: string
-  preloadThroughColumns?: string[]
 }

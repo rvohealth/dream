@@ -14,7 +14,7 @@ export default function associationQuery<
     : PossibleArrayAssociationType,
   // AssociationQuery = Query<DreamConstructorType<AssociationType & Dream>>
 >(dream: DreamInstance, txn: DreamTransaction<Dream> | null = null, associationName: AssociationName) {
-  const association = dream.associationMap()[associationName] as HasManyStatement<any, any, any>
+  const association = dream.associationMap()[associationName as any] as HasManyStatement<any, any, any, any>
   const associationClass = association.modelCB()
 
   const dreamClass = dream.constructor as typeof Dream

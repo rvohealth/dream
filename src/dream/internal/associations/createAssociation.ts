@@ -20,10 +20,10 @@ export default async function createAssociation<
   associationName: AssociationName,
   opts: UpdateablePropertiesForClass<AssociationType & typeof Dream> = {}
 ): Promise<NonNullable<AssociationType>> {
-  const association = dream.associationMap()[associationName] as
-    | HasManyStatement<any, any, any>
-    | HasOneStatement<any, any, any>
-    | BelongsToStatement<any, any, any>
+  const association = dream.associationMap()[associationName as any] as
+    | HasManyStatement<any, any, any, any>
+    | HasOneStatement<any, any, any, any>
+    | BelongsToStatement<any, any, any, any>
 
   if (Array.isArray(association.modelCB())) {
     throw new Error(`
@@ -35,7 +35,7 @@ export default async function createAssociation<
   switch (association.type) {
     case 'HasMany':
     case 'HasOne':
-      if ((association as HasManyStatement<any, any, any>).through)
+      if ((association as HasManyStatement<any, any, any, any>).through)
         throw new CannotCreateAssociationWithThroughContext({
           dreamClass: dream.constructor as typeof Dream,
           association,

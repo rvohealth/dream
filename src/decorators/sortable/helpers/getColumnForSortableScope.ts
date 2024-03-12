@@ -13,9 +13,9 @@ export default function getColumnForSortableScope(dream: Dream, scope?: string) 
   if (dreamClass.columns().has(scope)) return scope
 
   const associationMetadata = (dream.associationMap() as any)[scope] as
-    | BelongsToStatement<any, any, string>
-    | HasManyStatement<any, any, string>
-    | HasOneStatement<any, any, string>
+    | BelongsToStatement<any, any, any, string>
+    | HasManyStatement<any, any, any, string>
+    | HasOneStatement<any, any, any, string>
 
   if (!associationMetadata) throw new SortableDecoratorRequiresColumnOrBelongsToAssociation(scope, dreamClass)
 

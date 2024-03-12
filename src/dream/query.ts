@@ -1160,9 +1160,9 @@ export default class Query<
   private hydrateAssociation(
     dreams: Dream[],
     association:
-      | HasManyStatement<any, any, any>
-      | HasOneStatement<any, any, any>
-      | BelongsToStatement<any, any, any>,
+      | HasManyStatement<any, any, any, any>
+      | HasOneStatement<any, any, any, any>
+      | BelongsToStatement<any, any, any, any>,
     preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[]
   ) {
     switch (association.type) {
@@ -1205,7 +1205,7 @@ export default class Query<
 
   private followThroughAssociation(
     dreamClass: typeof Dream,
-    association: HasOneStatement<any, any, any> | HasManyStatement<any, any, any>
+    association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
   ) {
     const throughAssociation = association.through && dreamClass.getAssociation(association.through)
     if (!throughAssociation)
@@ -1235,7 +1235,7 @@ export default class Query<
   // Polymorphic BelongsTo. Preload by loading each target class separately.
   private async preloadPolymorphicBelongsTo(
     this: Query<DreamClass>,
-    association: BelongsToStatement<any, any, string>,
+    association: BelongsToStatement<any, any, any, string>,
     dreams: Dream[]
   ) {
     if (!association.polymorphic)
@@ -1310,7 +1310,10 @@ export default class Query<
     const dreamClassToHydrate = association.modelCB() as typeof Dream
 
     if ((association.polymorphic && association.type === 'BelongsTo') || Array.isArray(dreamClassToHydrate))
-      return this.preloadPolymorphicBelongsTo(association as BelongsToStatement<any, any, string>, dreams)
+      return this.preloadPolymorphicBelongsTo(
+        association as BelongsToStatement<any, any, any, string>,
+        dreams
+      )
 
     const dreamClassToHydrateColumns = [...dreamClassToHydrate.columns()]
     const throughColumnsToHydrate: any[] = []
@@ -1319,7 +1322,9 @@ export default class Query<
       column => `${associationName}.${column.toString()}`
     ) as any[]
 
-    const asHasAssociation = association as HasManyStatement<any, any, any> | HasOneStatement<any, any, any>
+    const asHasAssociation = association as
+      | HasManyStatement<any, any, any, any>
+      | HasOneStatement<any, any, any, any>
 
     if (asHasAssociation.through && asHasAssociation.preloadThroughColumns) {
       asHasAssociation.preloadThroughColumns!.forEach(preloadThroughColumn => {
@@ -1451,18 +1456,18 @@ export default class Query<
       query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
       dreamClass: typeof Dream
       association:
-        | HasOneStatement<any, any, any>
-        | HasManyStatement<any, any, any>
-        | BelongsToStatement<any, any, any>
+        | HasOneStatement<any, any, any, any>
+        | HasManyStatement<any, any, any, any>
+        | BelongsToStatement<any, any, any, any>
       previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
     }
   ): {
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
     dreamClass: typeof Dream
     association:
-      | HasOneStatement<any, any, any>
-      | HasManyStatement<any, any, any>
-      | BelongsToStatement<any, any, any>
+      | HasOneStatement<any, any, any, any>
+      | HasManyStatement<any, any, any, any>
+      | BelongsToStatement<any, any, any, any>
     throughClass?: typeof Dream | null
     previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
   } {
@@ -1537,7 +1542,7 @@ export default class Query<
       dreamClass: typeof Dream
       previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
       currentAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
-      originalAssociation?: HasOneStatement<any, any, any> | HasManyStatement<any, any, any>
+      originalAssociation?: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
     }
   ): {
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
@@ -1866,7 +1871,7 @@ export default class Query<
     }: {
       query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>
       tableNameOrAlias: string
-      association: HasOneStatement<any, any, any> | HasManyStatement<any, any, any>
+      association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
     }
   ) {
     const orderStatement = association.order
@@ -2272,7 +2277,7 @@ export default class Query<
   }: {
     associationAlias: string
     selfAlias: string
-    selfWhereClause: WhereSelfStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
+    selfWhereClause: WhereSelfStatement<any, DB, SyncedAssociations, InstanceType<DreamClass>['table']>
   }) {
     const alphanumericUnderscoreRegexp = /[^a-zA-Z0-9_]/g
     selfAlias = selfAlias.replaceAll(alphanumericUnderscoreRegexp, '')

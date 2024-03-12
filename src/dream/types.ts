@@ -34,7 +34,7 @@ export type DreamColumn<
   DB = I['DB'],
   TableName extends keyof DB = I['table'] & keyof DB,
   Table extends DB[keyof DB] = DB[TableName],
-> = keyof Table
+> = keyof Table & string
 
 export type DreamTableSchema<DreamInstance extends Dream> = Updateable<
   DreamInstance['DB'][DreamInstance['table']]
