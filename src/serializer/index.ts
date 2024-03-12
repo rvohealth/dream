@@ -155,29 +155,27 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     let self = (delegateToPassthroughData ? this.passthroughData : this.data) as any
 
     if (associationStatement.through) {
-      associationStatement.through.split('.').forEach(throughField => {
-        if (isArray(self)) {
-          self = self.map(singleField => singleField[throughField])
-        } else {
-          self = self[throughField]
-        }
-        if (isArray(self)) self = self.flat()
+      const throughField = associationStatement.through
 
-        if (self === undefined) {
-          throw new FailedToRenderThroughAssociationForSerializer(this.constructor.name, throughField)
-        }
-      })
+      if (isArray(self)) {
+        self = self.flatMap(singleField => singleField[throughField])
+      } else {
+        self = self[throughField]
+      }
+
+      if (self === undefined) {
+        throw new FailedToRenderThroughAssociationForSerializer(this.constructor.name, throughField)
+      }
     }
 
     if (isArray(self)) {
-      const vals = self.map(item => {
+      return self.flatMap(item => {
         let returnValue: any
         if (delegateToPassthroughData) returnValue = item[associationStatement.field]
         returnValue = item[associationStatement.source as string]
 
         return isArray(returnValue) ? returnValue.flat() : returnValue
       })
-      return vals.flat()
     } else {
       if (delegateToPassthroughData) return self[associationStatement.field]
       return self[associationStatement.source as string]
@@ -189,11 +187,8 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
 
     let pathToValue: any = this as any
     if (attributeStatement.options?.delegate) {
-      pathToValue = (this as any).data
-      const delegations = attributeStatement.options?.delegate.split('.')
-      delegations.forEach(delegationField => {
-        pathToValue = pathToValue?.[delegationField] || null
-      })
+      const delegateField = attributeStatement.options?.delegate
+      pathToValue = (this as any).data?.[delegateField] || null
     }
 
     const valueOrCb = pathToValue[field]
