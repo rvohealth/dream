@@ -60,8 +60,20 @@ describe('Dream.create', () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
       const composition = await Composition.create({ user })
       expect(composition.userId).toEqual(user.id)
+
       const reloadedComposition = await Composition.find(composition.id)
       expect(reloadedComposition!.userId).toEqual(user.id)
+    })
+
+    context('when the association being set has an overridden primary key', () => {
+      it('sets the foreign key to the overriden primary key value', async () => {
+        const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+        const pet = await Pet.create({ userThroughUuid: user })
+        expect(pet.userUuid).toEqual(user.uuid)
+
+        const reloaded = await Pet.find(pet.id)
+        expect(pet!.userUuid).toEqual(user.uuid)
+      })
     })
 
     it('sets the reference to that model', async () => {

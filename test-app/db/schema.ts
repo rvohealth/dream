@@ -282,6 +282,7 @@ export interface Pets {
   positionWithinSpecies: number;
   species: Species | null;
   userId: Int8 | null;
+  userUuid: string | null;
 }
 
 export interface PetUnderstudyJoinModels {
@@ -344,6 +345,7 @@ export interface Users {
   socialSecurityNumber: string | null;
   targetRating: number | null;
   updatedAt: Timestamp;
+  uuid: Generated<string>;
 }
 
 export interface UserSettings {
@@ -398,16 +400,16 @@ export const GraphNodeColumns = new Set(['createdAt', 'id', 'name', 'omittedEdge
 export const IncompatibleForeignKeyTypeExampleColumns = new Set(['createdAt', 'id', 'updatedAt', 'userId'])
 export const LocalizedTextColumns = new Set(['body', 'createdAt', 'id', 'locale', 'localizableId', 'localizableType', 'name', 'title', 'updatedAt'])
 export const ModelWithoutUpdatedAtColumns = new Set(['cantUpdateThis', 'createdAt', 'id', 'name'])
-export const PetColumns = new Set(['createdAt', 'deletedAt', 'favoriteTreats', 'id', 'name', 'nickname', 'positionWithinSpecies', 'species', 'userId'])
+export const PetColumns = new Set(['createdAt', 'deletedAt', 'favoriteTreats', 'id', 'name', 'nickname', 'positionWithinSpecies', 'species', 'userId', 'userUuid'])
 export const PetUnderstudyJoinModelColumns = new Set(['createdAt', 'id', 'petId', 'understudyId', 'updatedAt'])
 export const PostColumns = new Set(['body', 'createdAt', 'deletedAt', 'id', 'position', 'postVisibilityId', 'updatedAt', 'userId'])
 export const PostVisibilityColumns = new Set(['createdAt', 'id', 'notes', 'updatedAt', 'visibility'])
 export const RatingColumns = new Set(['body', 'createdAt', 'id', 'rateableId', 'rateableType', 'rating', 'updatedAt', 'userId'])
 export const SandbagColumns = new Set(['balloonId', 'createdAt', 'id', 'updatedAt', 'weight', 'weightKgs', 'weightTons'])
-export const UserColumns = new Set(['birthdate', 'createdAt', 'deletedAt', 'email', 'featuredPostPosition', 'id', 'name', 'passwordDigest', 'socialSecurityNumber', 'targetRating', 'updatedAt'])
+export const UserColumns = new Set(['birthdate', 'createdAt', 'deletedAt', 'email', 'featuredPostPosition', 'id', 'name', 'passwordDigest', 'socialSecurityNumber', 'targetRating', 'updatedAt', 'uuid'])
 export const UserSettingColumns = new Set(['createdAt', 'id', 'likesChalupas', 'updatedAt', 'userId'])
 
-export const AllColumns = ['approval', 'balloonId', 'balloonLines', 'balloonSpotterBalloons', 'balloonSpotterId', 'balloonSpotters', 'beautifulBalloons', 'birthdate', 'body', 'cantUpdateThis', 'collars', 'color', 'compositionAssetAudits', 'compositionAssetId', 'compositionAssets', 'compositionId', 'compositions', 'content', 'createdAt', 'deletedAt', 'edgeCaseAttributes', 'edgeId', 'email', 'extraRateableId', 'extraRateableType', 'extraRatings', 'favoriteTreats', 'featuredPostPosition', 'graphEdgeNodes', 'graphEdges', 'graphNodes', 'hidden', 'id', 'incompatibleForeignKeyTypeExamples', 'kPop', 'likesChalupas', 'locale', 'localizableId', 'localizableType', 'localizedTexts', 'lost', 'material', 'metadata', 'metadata2', 'metadata3', 'modelWithoutUpdatedAt', 'multiScopedPosition', 'multicolor', 'name', 'nickname', 'nodeId', 'notes', 'omittedEdgePosition', 'passwordDigest', 'petId', 'petUnderstudyJoinModels', 'pets', 'popK', 'popKPop', 'position', 'positionAlpha', 'positionBeta', 'positionWithinSpecies', 'postVisibilities', 'postVisibilityId', 'posts', 'primary', 'rateableId', 'rateableType', 'rating', 'ratings', 'sandbags', 'score', 'socialSecurityNumber', 'species', 'src', 'tagName', 'targetRating', 'title', 'type', 'understudyId', 'updatedAt', 'userId', 'userSettings', 'users', 'visibility', 'volume', 'weight', 'weightKgs', 'weightTons'] as const
+export const AllColumns = ['approval', 'balloonId', 'balloonLines', 'balloonSpotterBalloons', 'balloonSpotterId', 'balloonSpotters', 'beautifulBalloons', 'birthdate', 'body', 'cantUpdateThis', 'collars', 'color', 'compositionAssetAudits', 'compositionAssetId', 'compositionAssets', 'compositionId', 'compositions', 'content', 'createdAt', 'deletedAt', 'edgeCaseAttributes', 'edgeId', 'email', 'extraRateableId', 'extraRateableType', 'extraRatings', 'favoriteTreats', 'featuredPostPosition', 'graphEdgeNodes', 'graphEdges', 'graphNodes', 'hidden', 'id', 'incompatibleForeignKeyTypeExamples', 'kPop', 'likesChalupas', 'locale', 'localizableId', 'localizableType', 'localizedTexts', 'lost', 'material', 'metadata', 'metadata2', 'metadata3', 'modelWithoutUpdatedAt', 'multiScopedPosition', 'multicolor', 'name', 'nickname', 'nodeId', 'notes', 'omittedEdgePosition', 'passwordDigest', 'petId', 'petUnderstudyJoinModels', 'pets', 'popK', 'popKPop', 'position', 'positionAlpha', 'positionBeta', 'positionWithinSpecies', 'postVisibilities', 'postVisibilityId', 'posts', 'primary', 'rateableId', 'rateableType', 'rating', 'ratings', 'sandbags', 'score', 'socialSecurityNumber', 'species', 'src', 'tagName', 'targetRating', 'title', 'type', 'understudyId', 'updatedAt', 'userId', 'userSettings', 'userUuid', 'users', 'uuid', 'visibility', 'volume', 'weight', 'weightKgs', 'weightTons'] as const
 
 export interface BalloonLineAttributes {
   balloonId: IdType
@@ -573,6 +575,7 @@ export interface PetAttributes {
   positionWithinSpecies: number
   species: Species | null
   userId: IdType | null
+  userUuid: string | null
 }  
 
 export interface PetUnderstudyJoinModelAttributes {
@@ -635,6 +638,7 @@ export interface UserAttributes {
   socialSecurityNumber: string | null
   targetRating: number | null
   updatedAt: DateTime
+  uuid: string
 }  
 
 export interface UserSettingAttributes {
@@ -809,7 +813,8 @@ export const PetsDBTypeMap = {
   nickname: 'text',
   positionWithinSpecies: 'integer',
   species: 'species',
-  userId: 'bigint'
+  userId: 'bigint',
+  userUuid: 'uuid'
 }
 
 export const PetUnderstudyJoinModelsDBTypeMap = {
@@ -871,7 +876,8 @@ export const UsersDBTypeMap = {
   passwordDigest: 'character varying',
   socialSecurityNumber: 'character varying',
   targetRating: 'integer',
-  updatedAt: 'timestamp without time zone'
+  updatedAt: 'timestamp without time zone',
+  uuid: 'uuid'
 }
 
 export const UserSettingsDBTypeMap = {

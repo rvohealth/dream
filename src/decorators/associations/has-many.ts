@@ -8,6 +8,7 @@ import {
   finalForeignKey,
   foreignKeyTypeField,
   HasOptions,
+  associationPrimaryKeyAccessors,
 } from './shared'
 import { AssociationTableNames } from '../../db/reflections'
 
@@ -28,6 +29,7 @@ export default function HasMany<
     selfWhereNot,
     distinct,
     order,
+    primaryKeyOverride = null,
   }: HasManyOptions<BaseInstance, AssociationDreamClass> = {}
 ): any {
   return function (target: BaseInstance, key: string, _: any) {
@@ -36,24 +38,28 @@ export default function HasMany<
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'associations'))
       dreamClass['associations'] = blankAssociationsFactory(dreamClass)
 
-    const partialAssociation = {
-      modelCB,
-      type: 'HasMany',
-      as: key,
-      polymorphic,
-      source: source || key,
-      through,
-      preloadThroughColumns,
-      where,
-      whereNot,
-      selfWhere,
-      selfWhereNot,
-      distinct,
-      order,
-    } as PartialAssociationStatement
+    const partialAssociation = associationPrimaryKeyAccessors(
+      {
+        modelCB,
+        type: 'HasMany',
+        as: key,
+        polymorphic,
+        source: source || key,
+        preloadThroughColumns,
+        where,
+        whereNot,
+        selfWhere,
+        selfWhereNot,
+        primaryKeyOverride,
+      } as any,
+      dreamClass
+    )
 
     const association = {
       ...partialAssociation,
+      through,
+      distinct,
+      order,
       foreignKey() {
         return finalForeignKey(foreignKey, dreamClass, partialAssociation)
       },

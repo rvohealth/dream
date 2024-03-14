@@ -82,9 +82,8 @@ export default class LoadIntoModels<
             if (this.passthroughWhereStatement)
               associationQuery = associationQuery.passthrough(this.passthroughWhereStatement)
 
-            // @ts-ignore
             associationQuery = associationQuery.where({
-              [associatedModel.primaryKey]: relevantAssociatedModels.map(
+              [association.primaryKey()]: relevantAssociatedModels.map(
                 (dream: any) => (dream as any)[association.foreignKey()]
               ),
             })
@@ -101,9 +100,8 @@ export default class LoadIntoModels<
         if (this.passthroughWhereStatement)
           associationQuery = associationQuery.passthrough(this.passthroughWhereStatement)
 
-        // @ts-ignore
         associationQuery = associationQuery.where({
-          [associatedModel.primaryKey]: dreams.map(dream => (dream as any)[association.foreignKey()]),
+          [association.primaryKey()]: dreams.map(dream => (dream as any)[association.foreignKey()]),
         })
 
         associationQuery = this.bridgeOriginalPreloadAssociation(originalAssociation, associationQuery)
@@ -117,9 +115,8 @@ export default class LoadIntoModels<
       if (this.passthroughWhereStatement)
         associationQuery = associationQuery.passthrough(this.passthroughWhereStatement)
 
-      // @ts-ignore
       associationQuery = associationQuery.where({
-        [association.foreignKey()]: dreams.map(dream => dream.primaryKeyValue),
+        [association.foreignKey()]: dreams.map(dream => association.primaryKeyValue(dream)),
       })
 
       // REMOVING THIS BECAUSE WE NEED TO MATCH DIFFERENT POLYMORPHIC MODELS. CHECK TYPES DURING ASSOCIATION, NOT QUERY
@@ -286,10 +283,10 @@ ${JSON.stringify(association, null, 2)}
               return (
                 dream[association.foreignKeyTypeField()] ===
                   loadedAssociation['stiBaseClassOrOwnClass'].name &&
-                dream[association.foreignKey()] === loadedAssociation.primaryKeyValue
+                dream[association.foreignKey()] === association.primaryKeyValue(loadedAssociation)
               )
             } else {
-              return dream[association.foreignKey()] === loadedAssociation.primaryKeyValue
+              return dream[association.foreignKey()] === association.primaryKeyValue(loadedAssociation)
             }
           })
           .forEach((dream: any) => {
@@ -303,10 +300,12 @@ ${JSON.stringify(association, null, 2)}
               return (
                 (loadedAssociation as any)[association.foreignKeyTypeField()] ===
                   dream['stiBaseClassOrOwnClass'].name &&
-                (loadedAssociation as any)[association.foreignKey()] === dream.primaryKeyValue
+                (loadedAssociation as any)[association.foreignKey()] === association.primaryKeyValue(dream)
               )
             } else {
-              return (loadedAssociation as any)[association.foreignKey()] === dream.primaryKeyValue
+              return (
+                (loadedAssociation as any)[association.foreignKey()] === association.primaryKeyValue(dream)
+              )
             }
           })
           .forEach((dream: any) => {

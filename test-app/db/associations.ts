@@ -197,6 +197,9 @@ export default {
     ]
   },
   "pets": {
+    "userThroughUuid": [
+      "users"
+    ],
     "user": [
       "users"
     ],
@@ -303,6 +306,12 @@ export default {
     "firstPet": [
       "pets"
     ],
+    "firstPetFromUuid": [
+      "pets"
+    ],
+    "firstCollarFromUuid": [
+      "collars"
+    ],
     "posts": [
       "posts"
     ],
@@ -359,6 +368,15 @@ export default {
     ],
     "pets": [
       "pets"
+    ],
+    "petsFromUuid": [
+      "pets"
+    ],
+    "collarsFromUuid": [
+      "collars"
+    ],
+    "balloonsFromUuid": [
+      "beautiful_balloons"
     ]
   }
 }
@@ -562,6 +580,9 @@ export interface SyncedAssociations {
     ]
   },
   "pets": {
+    "userThroughUuid": [
+      "users"
+    ],
     "user": [
       "users"
     ],
@@ -668,6 +689,12 @@ export interface SyncedAssociations {
     "firstPet": [
       "pets"
     ],
+    "firstPetFromUuid": [
+      "pets"
+    ],
+    "firstCollarFromUuid": [
+      "collars"
+    ],
     "posts": [
       "posts"
     ],
@@ -724,6 +751,15 @@ export interface SyncedAssociations {
     ],
     "pets": [
       "pets"
+    ],
+    "petsFromUuid": [
+      "pets"
+    ],
+    "collarsFromUuid": [
+      "collars"
+    ],
+    "balloonsFromUuid": [
+      "beautiful_balloons"
     ]
   }
 }
@@ -816,6 +852,9 @@ export interface SyncedBelongsToAssociations {
     ]
   },
   "pets": {
+    "userThroughUuid": [
+      "users"
+    ],
     "user": [
       "users"
     ]

@@ -8,6 +8,6 @@ export default async function createExtension(
   const ifNotExistsText = ifNotExists ? ' IF NOT EXISTS ' : ' '
   const publicSchemaText = publicSchema ? ' WITH SCHEMA public' : ''
   await sql`
-    CREATE EXTENSION${sql.raw(ifNotExistsText)}${sql.raw(extensionName)}${sql.raw(publicSchemaText)};
+    CREATE EXTENSION${sql.raw(ifNotExistsText)}"${sql.raw(extensionName)}"${sql.raw(publicSchemaText)};
   `.execute(db)
 }

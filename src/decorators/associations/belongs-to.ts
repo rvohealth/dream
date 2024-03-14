@@ -6,16 +6,23 @@ import {
   blankAssociationsFactory,
   finalForeignKey,
   foreignKeyTypeField,
+  associationPrimaryKeyAccessors,
 } from './shared'
 import Validates from '../validations/validates'
 import { DreamColumn } from '../../dream/types'
+import { isArray } from 'lodash'
 
 export default function BelongsTo<
   BaseInstance extends Dream,
   AssociationDreamClass extends typeof Dream = typeof Dream,
 >(
   modelCB: () => AssociationDreamClass | AssociationDreamClass[],
-  { foreignKey, optional = false, polymorphic = false }: BelongsToOptions<BaseInstance> = {}
+  {
+    foreignKey,
+    optional = false,
+    polymorphic = false,
+    primaryKeyOverride = null,
+  }: BelongsToOptions<BaseInstance> = {}
 ): any {
   return function (target: BaseInstance, key: string, _: any) {
     const dreamClass: typeof Dream = (target as any).constructor
@@ -23,14 +30,17 @@ export default function BelongsTo<
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'associations'))
       dreamClass['associations'] = blankAssociationsFactory(dreamClass)
 
-    const partialAssociation = {
-      modelCB,
-      type: 'BelongsTo',
-      distinct: null,
-      as: key,
-      optional,
-      polymorphic,
-    } as PartialAssociationStatement
+    const partialAssociation = associationPrimaryKeyAccessors(
+      {
+        modelCB,
+        type: 'BelongsTo',
+        as: key,
+        optional,
+        polymorphic,
+        primaryKeyOverride,
+      } as any,
+      dreamClass
+    )
 
     const association = {
       ...partialAssociation,
@@ -57,8 +67,11 @@ export interface BelongsToStatement<
   modelCB: () => typeof Dream | (typeof Dream)[]
   type: 'BelongsTo'
   as: string
-  foreignKey: () => keyof DB[TableName]
-  foreignKeyTypeField: () => keyof DB[TableName]
+  primaryKey: (associationInstance?: Dream) => keyof DB[TableName] & string
+  primaryKeyValue: (associationInstance: Dream) => any
+  primaryKeyOverride?: (keyof DB[TableName] & string) | null
+  foreignKey: () => DreamColumn<BaseInstance> & string
+  foreignKeyTypeField: () => DreamColumn<BaseInstance> & string
   optional: boolean
   distinct: null
   polymorphic: boolean
@@ -69,6 +82,7 @@ export interface BelongsToOptions<
   AssociationDreamClass extends typeof Dream = typeof Dream,
 > {
   foreignKey?: DreamColumn<BaseInstance>
+  primaryKeyOverride?: DreamColumn<InstanceType<AssociationDreamClass>> | null
   optional?: boolean
   polymorphic?: boolean
 }

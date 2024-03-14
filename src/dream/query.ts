@@ -1283,10 +1283,10 @@ export default class Query<
                 return (
                   dream[association.foreignKeyTypeField()] ===
                     loadedAssociation['stiBaseClassOrOwnClass'].name &&
-                  dream[association.foreignKey()] === loadedAssociation.primaryKeyValue
+                  dream[association.foreignKey()] === association.primaryKeyValue(loadedAssociation)
                 )
               } else {
-                return dream[association.foreignKey()] === loadedAssociation.primaryKeyValue
+                return dream[association.foreignKey()] === association.primaryKeyValue(loadedAssociation)
               }
             })
             .forEach((dream: any) => {
@@ -1592,7 +1592,7 @@ export default class Query<
           this.distinctColumnNameForAssociation({
             association: originalAssociation,
             tableNameOrAlias: originalAssociation.as,
-            foreignKey: originalAssociation.modelCB().primaryKey,
+            foreignKey: originalAssociation.primaryKey(),
           }) as any
         )
       }
@@ -1663,7 +1663,7 @@ export default class Query<
         // @ts-ignore
         joinTableExpression,
         `${previousAssociationTableOrAlias}.${association.foreignKey() as string}`,
-        `${currentAssociationTableOrAlias as string}.${(association.modelCB() as typeof Dream).primaryKey}`
+        `${currentAssociationTableOrAlias as string}.${association.primaryKey()}`
       )
     } else {
       const to = association.modelCB().prototype.table
@@ -1676,7 +1676,7 @@ export default class Query<
       query = query.innerJoin(
         // @ts-ignore
         joinTableExpression,
-        `${previousAssociationTableOrAlias}.${association.modelCB().primaryKey}`,
+        `${previousAssociationTableOrAlias}.${association.primaryKey()}`,
         `${currentAssociationTableOrAlias as string}.${association.foreignKey() as string}`
       )
 

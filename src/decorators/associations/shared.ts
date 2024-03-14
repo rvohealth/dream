@@ -126,6 +126,9 @@ export interface HasStatement<
   modelCB: () => typeof Dream
   type: HasType
   as: string
+  primaryKeyValue: (associationInstance: Dream) => any
+  primaryKeyOverride?: DreamColumn<BaseInstance> | null
+  primaryKey: (associationInstance?: Dream) => DreamColumn<BaseInstance>
   foreignKey: () => keyof DB[ForeignTableName] & string
   foreignKeyTypeField: () => keyof DB[ForeignTableName] & string
   polymorphic: boolean
@@ -142,6 +145,7 @@ export interface HasStatement<
 
 export interface HasOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream> {
   foreignKey?: DreamColumn<InstanceType<AssociationDreamClass>>
+  primaryKeyOverride?: DreamColumn<BaseInstance> | null
   through?: keyof BaseInstance['syncedAssociations'][BaseInstance['table']]
   polymorphic?: boolean
   source?: string
@@ -220,7 +224,14 @@ export function blankAssociationsFactory(dreamClass: typeof Dream): {
   }
 }
 
-type partialTypeFields = 'modelCB' | 'type' | 'polymorphic' | 'as'
+type partialTypeFields =
+  | 'modelCB'
+  | 'type'
+  | 'polymorphic'
+  | 'as'
+  | 'primaryKey'
+  | 'primaryKeyValue'
+  | 'primaryKeyOverride'
 type hasOneManySpecificFields =
   | 'source'
   | 'through'
@@ -305,13 +316,42 @@ export function applyGetterAndSetter(
 
         if (isBelongsTo) {
           this[finalForeignKey(foreignKeyBase, dreamClass, partialAssociation)] =
-            associatedModel?.primaryKeyValue
+            partialAssociation.primaryKeyValue(associatedModel)
           if (partialAssociation.polymorphic)
             this[foreignKeyTypeField(foreignKeyBase, dreamClass, partialAssociation)] =
               associatedModel?.constructor?.name
         }
       },
     })
+  }
+}
+
+export function associationPrimaryKeyAccessors(
+  partialAssociation: Exclude<PartialAssociationStatement, 'primaryKey' | 'primaryKeyValue'>,
+  dreamClass: typeof Dream
+): PartialAssociationStatement {
+  return {
+    ...partialAssociation,
+
+    primaryKey(associationInstance?: Dream) {
+      if (this.primaryKeyOverride) return this.primaryKeyOverride
+      if (associationInstance) return associationInstance.primaryKey
+
+      const associationClass = this.modelCB()
+      if (Array.isArray(associationClass) && this.type === 'BelongsTo')
+        throw new Error(`
+Cannot lookup primaryKey on polymorphic association:
+dream class: ${dreamClass.name}
+association: ${this.as}
+          `)
+
+      return (associationClass as any).primaryKey
+    },
+
+    primaryKeyValue(associationInstance: Dream) {
+      if (!associationInstance) return null
+      return (associationInstance as any)[this.primaryKey(associationInstance)]
+    },
   }
 }
 

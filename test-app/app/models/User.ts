@@ -20,6 +20,7 @@ import ApplicationModel from './ApplicationModel'
 import BalloonLine from './BalloonLine'
 import Post from './Post'
 import Rating from './Rating'
+import Collar from './Collar'
 
 export default class User extends ApplicationModel {
   public get table() {
@@ -27,6 +28,7 @@ export default class User extends ApplicationModel {
   }
 
   public id: IdType
+  public uuid: string
   public type: string
   public name: string
   public birthdate: DateTime
@@ -171,6 +173,21 @@ export default class User extends ApplicationModel {
 
   @HasMany(() => Pet)
   public pets: Pet[]
+
+  @User.HasMany(() => Pet, { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
+  public petsFromUuid: Pet[]
+
+  @User.HasOne(() => Pet, { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
+  public firstPetFromUuid: Pet
+
+  @User.HasMany(() => Collar, { through: 'petsFromUuid', source: 'collars' })
+  public collarsFromUuid: Collar[]
+
+  @User.HasOne(() => Collar, { through: 'firstPetFromUuid', source: 'collars' })
+  public firstCollarFromUuid: Collar[]
+
+  @User.HasMany(() => Balloon, { through: 'collarsFromUuid', source: 'balloon' })
+  public balloonsFromUuid: Collar[]
 
   @Scope()
   public static withFunnyName(query: Query<typeof User>) {
