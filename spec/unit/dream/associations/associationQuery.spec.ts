@@ -4,6 +4,8 @@ import User from '../../../../test-app/app/models/User'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
+import Pet from '../../../../test-app/app/models/Pet'
+import Collar from '../../../../test-app/app/models/Collar'
 
 describe('Dream#associationQuery', () => {
   context('with a HasMany association', () => {
@@ -19,6 +21,18 @@ describe('Dream#associationQuery', () => {
       })
 
       expect(await user.associationQuery('recentCompositions').all()).toMatchDreamModels([recentComposition])
+    })
+
+    context('with a primary key override', () => {
+      it('utilizies primary key override', async () => {
+        const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const otherPet = await Pet.create({ userThroughUuid: otherUser })
+
+        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        const pet = await Pet.create({ userUuid: user.uuid })
+
+        expect(await user.associationQuery('petsFromUuid').all()).toMatchDreamModels([pet])
+      })
     })
 
     context('hasMany through', () => {
@@ -39,6 +53,20 @@ describe('Dream#associationQuery', () => {
         expect(await user.associationQuery('recentCompositionAssets').all()).toMatchDreamModels([
           compositionAsset1,
         ])
+      })
+
+      context('with a primary key override', () => {
+        it('utilizies primary key override', async () => {
+          const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+          const otherPet = await Pet.create({ userThroughUuid: otherUser })
+          const otherCollar = await Collar.create({ pet: otherPet })
+
+          const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+          const pet = await Pet.create({ userUuid: user.uuid })
+          const collar = await Collar.create({ pet })
+
+          expect(await user.associationQuery('collarsFromUuid').all()).toMatchDreamModels([collar])
+        })
       })
     })
 
@@ -176,6 +204,24 @@ describe('Dream#associationQuery', () => {
         expect(await user.txn(txn).associationQuery('recentCompositions').all()).toMatchDreamModels([
           recentComposition,
         ])
+      })
+    })
+
+    context('with a primary key override', () => {
+      it('utilizies primary key override', async () => {
+        let user: User | undefined = undefined
+        let otherUser: User | undefined = undefined
+        let pet: Pet | undefined = undefined
+
+        await ApplicationModel.transaction(async txn => {
+          otherUser = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
+          await Pet.txn(txn).create({ userThroughUuid: otherUser })
+
+          user = await User.txn(txn).create({ email: 'fred@fred', password: 'howyadoin' })
+          pet = await Pet.txn(txn).create({ userUuid: user.uuid })
+        })
+
+        expect(await user!.associationQuery('petsFromUuid').all()).toMatchDreamModels([pet])
       })
     })
   })

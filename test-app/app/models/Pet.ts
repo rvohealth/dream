@@ -5,7 +5,7 @@ import HasOne from '../../../src/decorators/associations/has-one'
 import Scope from '../../../src/decorators/scope'
 import Sortable from '../../../src/decorators/sortable'
 import User from './User'
-import { IdType } from '../../../src/dream/types'
+import { DreamConst, IdType } from '../../../src/dream/types'
 import BeforeDestroy from '../../../src/decorators/hooks/before-destroy'
 import Collar from './Collar'
 import PetSerializer from '../serializers/PetSerializer'
@@ -47,6 +47,14 @@ export default class Pet extends ApplicationModel {
   public static hideDeleted(query: any) {
     return query.where({ deletedAt: null })
   }
+
+  @Pet.BelongsTo(() => User, {
+    optional: true,
+    primaryKeyOverride: 'uuid',
+    foreignKey: 'userUuid',
+  })
+  public userThroughUuid: User | null
+  public userUuid: string
 
   @Pet.BelongsTo(() => User, {
     optional: true,

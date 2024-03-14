@@ -2,9 +2,9 @@ import { DateTime } from 'luxon'
 import User from '../../../../test-app/app/models/User'
 import Post from '../../../../test-app/app/models/Post'
 import CannotCreateAssociationWithThroughContext from '../../../../src/exceptions/associations/cannot-create-association-with-through-context'
-import { Dream } from '../../../../src'
 import PostVisibility from '../../../../test-app/app/models/PostVisibility'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
+import Pet from '../../../../test-app/app/models/Pet'
 
 describe('Dream#createAssociation', () => {
   context('with a HasMany association', () => {
@@ -15,6 +15,16 @@ describe('Dream#createAssociation', () => {
 
       expect(composition.createdAt).toEqual(createdAt.toUTC())
       expect(await user.associationQuery('compositions').all()).toMatchDreamModels([composition])
+    })
+
+    context('with a primary key override on the association', () => {
+      it('creates the related association', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const pet = await user.createAssociation('petsFromUuid', { name: 'Aster' })
+
+        expect(pet.name).toEqual('Aster')
+        expect(await user.associationQuery('petsFromUuid').all()).toMatchDreamModels([pet])
+      })
     })
   })
 
@@ -35,6 +45,16 @@ describe('Dream#createAssociation', () => {
 
       expect(userSettings.createdAt).toEqual(createdAt.toUTC())
       expect(await user.associationQuery('userSettings').all()).toMatchDreamModels([userSettings])
+    })
+
+    context('with a primary key override on the association', () => {
+      it('creates the related association', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const pet = await user.createAssociation('firstPetFromUuid', { name: 'Aster' })
+
+        expect(pet.name).toEqual('Aster')
+        expect(await user.associationQuery('firstPetFromUuid').all()).toMatchDreamModels([pet])
+      })
     })
   })
 
@@ -57,6 +77,19 @@ describe('Dream#createAssociation', () => {
       expect(postVisibility.createdAt).toEqual(createdAt.toUTC())
       expect(await post.associationQuery('postVisibility').first()).toMatchDreamModel(postVisibility)
     })
+
+    context('with a primary key override on the association', () => {
+      it('creates the related association', async () => {
+        const pet = await Pet.create({ name: 'Aster' })
+        const user = await pet.createAssociation('userThroughUuid', {
+          email: 'fred@fred',
+          password: 'howyadoin',
+        })
+
+        expect(pet.name).toEqual('Aster')
+        expect(await pet.associationQuery('userThroughUuid').all()).toMatchDreamModels([user])
+      })
+    })
   })
 
   context('when in a transaction', () => {
@@ -69,6 +102,23 @@ describe('Dream#createAssociation', () => {
 
         expect(composition.createdAt).toEqual(createdAt.toUTC())
         expect(await user.txn(txn).associationQuery('compositions').all()).toMatchDreamModels([composition])
+      })
+    })
+
+    context('with a primary key override', () => {
+      it('creates the related association', async () => {
+        let pet: Pet | undefined = undefined
+        let user: User | undefined = undefined
+        await ApplicationModel.transaction(async txn => {
+          pet = await Pet.txn(txn).create({ name: 'Aster' })
+          user = await pet.txn(txn).createAssociation('userThroughUuid', {
+            email: 'fred@fred',
+            password: 'howyadoin',
+          })
+        })
+
+        expect(pet!.name).toEqual('Aster')
+        expect(await pet!.associationQuery('userThroughUuid').all()).toMatchDreamModels([user])
       })
     })
 

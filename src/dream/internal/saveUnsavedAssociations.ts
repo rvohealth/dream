@@ -1,6 +1,5 @@
 import Dream from '../../dream'
 import DreamTransaction from '../transaction'
-import { DreamConstructorType } from '../types'
 import saveDream from './saveDream'
 
 export default async function saveUnsavedAssociations<DreamInstance extends Dream>(
@@ -14,6 +13,6 @@ export default async function saveUnsavedAssociations<DreamInstance extends Drea
 
     await saveDream(associationRecord, txn)
 
-    self[associationMetadata.foreignKey()] = associationRecord.primaryKeyValue
+    self[associationMetadata.foreignKey()] = associationMetadata.primaryKeyValue(associationRecord)
   }
 }

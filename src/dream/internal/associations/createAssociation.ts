@@ -45,12 +45,12 @@ export default async function createAssociation<
 
       if (txn) {
         hasresult = await associationClass.txn(txn).create({
-          [association.foreignKey()]: dream.primaryKeyValue,
+          [association.foreignKey()]: association.primaryKeyValue(dream),
           ...opts,
         })
       } else {
         hasresult = await associationClass.create({
-          [association.foreignKey()]: dream.primaryKeyValue,
+          [association.foreignKey()]: association.primaryKeyValue(dream),
           ...opts,
         })
       }
@@ -63,7 +63,7 @@ export default async function createAssociation<
           ...opts,
         })
         await dream.txn(txn).update({
-          [association.foreignKey() as any]: (belongstoresult as any).primaryKeyValue,
+          [association.foreignKey() as any]: association.primaryKeyValue(belongstoresult as any),
         })
       }
 

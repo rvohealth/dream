@@ -1101,7 +1101,7 @@ export default class Dream {
           )
 
         const foreignKey = belongsToAssociationMetaData.foreignKey()
-        marshalledOpts[foreignKey] = associatedObject?.primaryKeyValue
+        marshalledOpts[foreignKey] = belongsToAssociationMetaData.primaryKeyValue(associatedObject)
         setAttributeOnDreamInstance(foreignKey, marshalledOpts[foreignKey])
 
         if (belongsToAssociationMetaData.polymorphic) {

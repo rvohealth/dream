@@ -3,9 +3,17 @@ import createGinIndex from '../../../src/db/migration-helpers/createGinIndex'
 import createExtension from '../../../src/db/migration-helpers/createExtension'
 
 export async function up(db: Kysely<any>): Promise<void> {
+  await createExtension('uuid-ossp', db)
+
   await db.schema
     .createTable('users')
     .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('uuid', 'uuid', col =>
+      col
+        .notNull()
+        .defaultTo(sql`gen_random_uuid()`)
+        .unique()
+    )
     .addColumn('name', 'varchar')
     .addColumn('email', 'varchar', col => col.notNull().unique())
     .addColumn('social_security_number', 'varchar', col => col.unique())
