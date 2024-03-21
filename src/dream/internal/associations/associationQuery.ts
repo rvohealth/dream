@@ -43,5 +43,7 @@ export default function associationQuery<
   // ts-ignore prior to refactoring to use ApplicationModel
   return (txn ? associationClass.txn(txn).queryInstance() : associationClass.query())
     ['setBaseSQLAlias'](association.as as TableOrAssociationName<DreamInstance['syncedAssociations']>)
-    ['setBaseSelectQuery'](baseSelectQuery as Query<any>) as AssociationQuery
+    ['setBaseSelectQuery'](baseSelectQuery as Query<any>) as Query<
+    DreamConstructorType<AssociationType & Dream>
+  > as Query<DreamConstructorType<DreamInstance>>
 }
