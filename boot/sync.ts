@@ -215,7 +215,7 @@ function tableInterfaceToColumns(str: string): string[] {
 }
 
 function alphaSortInterfaceProperties(str: string) {
-  return str.replaceAll(/(export interface [^\n{]+){\n([^}]+)\n}/g, (_match, interfaceDeclaration, lines) => {
+  return str.replace(/(export interface [^\n{]+){\n([^}]+)\n}/g, (_match, interfaceDeclaration, lines) => {
     const props = lines.split(/\n/)
 
     return `${interfaceDeclaration}{
@@ -236,7 +236,7 @@ function exportedTypesToExportedTypeValues(str: string) {
     'JsonValue',
   ]
 
-  return str.replaceAll(/export type ([^=]*) = ([^;\n]*);/g, (_match, typeDeclaration, types) => {
+  return str.replace(/export type ([^=]*) = ([^;\n]*);/g, (_match, typeDeclaration, types) => {
     const originalType = `export type ${typeDeclaration} = ${types};`
     if (ommitedTypes.some(type => type === typeDeclaration)) {
       return originalType

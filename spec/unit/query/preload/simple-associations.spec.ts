@@ -353,6 +353,11 @@ describe('Query#preload with simple associations', () => {
   // from args a-g, which does not actually need to be run, since if this is
   // broken, tests will fail to compile due to type errors
   it.skip('permits types a-g', () => {
+    Composition.query().preload(['compositionAssetAudits', 'heartRatings'])
     Composition.query().preload('user', 'balloons', 'user', 'balloons', 'user', 'balloons')
+    Composition.query().preload('user', 'balloons', 'user', 'balloons', 'user', 'balloons', [
+      'balloonLine',
+      'sandbags',
+    ])
   })
 })
