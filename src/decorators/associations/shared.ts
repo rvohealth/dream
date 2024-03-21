@@ -30,10 +30,16 @@ type AssociatedModelType<
 
 export type AssociatedModelParam<
   I extends Dream,
-  AssociationName = keyof I['dreamconf']['syncedBelongsToAssociations'][I['table'] &
-    keyof I['dreamconf']['syncedBelongsToAssociations']] &
-    string,
-> = Partial<{ [K in AssociationName & string]: AssociatedModelType<I, K> | null }>
+  AssociationExists = I['dreamconf']['syncedBelongsToAssociations'][I['table'] &
+    keyof I['dreamconf']['syncedBelongsToAssociations']],
+  AssociationName = AssociationExists extends false
+    ? never
+    : keyof I['dreamconf']['syncedBelongsToAssociations'][I['table'] &
+        keyof I['dreamconf']['syncedBelongsToAssociations']] &
+        string,
+> = AssociationExists extends false
+  ? never
+  : Partial<{ [K in AssociationName & string]: AssociatedModelType<I, K> | null }>
 
 export type PassthroughWhere<AllColumns extends string[]> = Partial<Record<AllColumns[number], any>>
 

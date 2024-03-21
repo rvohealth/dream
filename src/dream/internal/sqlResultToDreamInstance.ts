@@ -2,6 +2,7 @@ import { Updateable } from 'kysely'
 import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../dream'
 import STIChildMissing from '../../exceptions/sti/sti-child-missing'
+import { UpdateablePropertiesForClass } from '../types'
 
 export default function sqlResultToDreamInstance<
   DreamClass extends typeof Dream,
@@ -20,7 +21,9 @@ export default function sqlResultToDreamInstance<
 
     return extendingDreamClass.new(sqlResult as Updateable<Table>, { bypassUserDefinedSetters: true })
   } else {
-    return dreamClass.new(sqlResult as Updateable<Table>, { bypassUserDefinedSetters: true })
+    return dreamClass.new(sqlResult as UpdateablePropertiesForClass<Table>, {
+      bypassUserDefinedSetters: true,
+    })
   }
 }
 

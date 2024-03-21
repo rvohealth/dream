@@ -19,7 +19,6 @@ import { HookStatement, blankHooksFactory } from './decorators/hooks/shared'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import {
-  AssociatedModelParam,
   PassthroughWhere,
   TableColumnName,
   WhereStatement,
@@ -1565,25 +1564,10 @@ export default class Dream {
     RestrictedAssociationType extends AssociationType extends Dream
       ? AssociationType
       : never = AssociationType extends Dream ? AssociationType : never,
-    AssociationTableName extends
-      SyncedAssociations[I['table']][AssociationName] extends (keyof SyncedAssociations)[]
-        ? SyncedAssociations[I['table']][AssociationName][0]
-        : never = SyncedAssociations[I['table']][AssociationName] extends (keyof SyncedAssociations)[]
-      ? SyncedAssociations[I['table']][AssociationName][0]
-      : never,
-    RestrictedAssociationTableName extends AssociationTableName &
-      AssociationTableNames<I['DB'], SyncedAssociations> &
-      keyof I['DB'] = AssociationTableName &
-      AssociationTableNames<I['DB'], SyncedAssociations> &
-      keyof I['DB'],
   >(
     this: I,
     associationName: AssociationName,
-    opts: UpdateablePropertiesForAssociatedClass<
-      I,
-      RestrictedAssociationType,
-      RestrictedAssociationTableName
-    > = {}
+    opts: UpdateablePropertiesForAssociatedClass<I, RestrictedAssociationType> = {} as any
   ): Promise<NonNullable<AssociationType>> {
     return createAssociation(this, null, associationName, opts)
   }
@@ -1737,12 +1721,7 @@ export default class Dream {
    * if you are interested in bypassing custom-defined setters,
    * use `#setAttributes` instead.
    */
-  public assignAttributes<
-    I extends Dream,
-    DB extends I['DB'],
-    TableName extends keyof DB = I['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName],
-  >(this: I, attributes: Updateable<Table> | AssociatedModelParam<I>) {
+  public assignAttributes<I extends Dream>(this: I, attributes: UpdateableProperties<I>) {
     return this._setAttributes(attributes, { bypassUserDefinedSetters: false })
   }
 
@@ -1761,12 +1740,7 @@ export default class Dream {
    * if you are interested in leveraging custom-defined setters,
    * use `#assignAttributes` instead.
    */
-  public setAttributes<
-    I extends Dream,
-    DB extends I['DB'],
-    TableName extends keyof DB = I['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName],
-  >(this: I, attributes: Updateable<Table> | AssociatedModelParam<I>) {
+  public setAttributes<I extends Dream>(this: I, attributes: UpdateableProperties<I>) {
     return this._setAttributes(attributes, { bypassUserDefinedSetters: true })
   }
 
@@ -1777,7 +1751,7 @@ export default class Dream {
     Table extends DB[keyof DB] = DB[TableName],
   >(
     this: I,
-    attributes: Updateable<Table> | AssociatedModelParam<I>,
+    attributes: UpdateableProperties<I>,
     additionalOpts: { bypassUserDefinedSetters?: boolean } = {}
   ) {
     const dreamClass = this.constructor as typeof Dream

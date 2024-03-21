@@ -18,26 +18,11 @@ export default async function createAssociation<
   RestrictedAssociationType extends AssociationType extends Dream
     ? AssociationType
     : never = AssociationType extends Dream ? AssociationType : never,
-  AssociationTableName extends
-    SyncedAssociations[DreamInstance['table']][AssociationName] extends (keyof SyncedAssociations)[]
-      ? SyncedAssociations[DreamInstance['table']][AssociationName][0]
-      : never = SyncedAssociations[DreamInstance['table']][AssociationName] extends (keyof SyncedAssociations)[]
-    ? SyncedAssociations[DreamInstance['table']][AssociationName][0]
-    : never,
-  RestrictedAssociationTableName extends AssociationTableName &
-    AssociationTableNames<DreamInstance['DB'], SyncedAssociations> &
-    keyof DreamInstance['DB'] = AssociationTableName &
-    AssociationTableNames<DreamInstance['DB'], SyncedAssociations> &
-    keyof DreamInstance['DB'],
 >(
   dream: DreamInstance,
   txn: DreamTransaction<Dream> | null = null,
   associationName: AssociationName,
-  opts: UpdateablePropertiesForAssociatedClass<
-    DreamInstance,
-    RestrictedAssociationType,
-    RestrictedAssociationTableName
-  > = {}
+  opts: UpdateablePropertiesForAssociatedClass<DreamInstance, RestrictedAssociationType> = {} as any
 ): Promise<NonNullable<AssociationType>> {
   const association = dream.associationMap()[associationName as any] as
     | HasManyStatement<any, any, any, any>
@@ -82,8 +67,8 @@ export default async function createAssociation<
           ...opts,
         })
         await dream.txn(txn).update({
-          [association.foreignKey() as any]: association.primaryKeyValue(belongstoresult as any),
-        })
+          [association.foreignKey()]: association.primaryKeyValue(belongstoresult as any),
+        } as any)
       }
 
       if (txn) await fn(txn)

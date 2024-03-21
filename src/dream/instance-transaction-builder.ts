@@ -308,25 +308,10 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     RestrictedAssociationType extends AssociationType extends Dream
       ? AssociationType
       : never = AssociationType extends Dream ? AssociationType : never,
-    AssociationTableName extends
-      SyncedAssociations[DreamInstance['table']][AssociationName] extends (keyof SyncedAssociations)[]
-        ? SyncedAssociations[DreamInstance['table']][AssociationName][0]
-        : never = SyncedAssociations[DreamInstance['table']][AssociationName] extends (keyof SyncedAssociations)[]
-      ? SyncedAssociations[DreamInstance['table']][AssociationName][0]
-      : never,
-    RestrictedAssociationTableName extends AssociationTableName &
-      AssociationTableNames<DreamInstance['DB'], SyncedAssociations> &
-      keyof DreamInstance['DB'] = AssociationTableName &
-      AssociationTableNames<DreamInstance['DB'], SyncedAssociations> &
-      keyof DreamInstance['DB'],
   >(
     this: I,
     associationName: AssociationName,
-    opts: UpdateablePropertiesForAssociatedClass<
-      DreamInstance,
-      RestrictedAssociationType,
-      RestrictedAssociationTableName
-    > = {}
+    opts: UpdateablePropertiesForAssociatedClass<DreamInstance, RestrictedAssociationType> = {} as any
   ): Promise<NonNullable<AssociationType>> {
     return await createAssociation(this.dreamInstance, this.dreamTransaction, associationName, opts)
   }

@@ -50,14 +50,22 @@ export type UpdateablePropertiesForClass<
     InstanceType<DreamClass>['syncedAssociations']
   > &
     InstanceType<DreamClass>['table'] = InstanceType<DreamClass>['table'],
-  VirtualColumnTableName extends keyof InstanceType<DreamClass>['dreamconf']['virtualColumns'] &
-    InstanceType<DreamClass>['table'] = InstanceType<DreamClass>['table'],
+  VirtualColumns = InstanceType<DreamClass>['dreamconf']['virtualColumns'][TableName],
 > =
-  | Updateable<InstanceType<DreamClass>['DB'][TableName]>
-  | AssociatedModelParam<InstanceType<DreamClass>>
-  | (InstanceType<DreamClass>['dreamconf']['virtualColumns'][VirtualColumnTableName] extends any[]
-      ? Record<InstanceType<DreamClass>['dreamconf']['virtualColumns'][VirtualColumnTableName][number], any>
-      : never)
+  AssociatedModelParam<InstanceType<DreamClass>> extends never
+    ? VirtualColumns extends any[]
+      ? Partial<Updateable<InstanceType<DreamClass>['DB'][TableName]> & Record<VirtualColumns[number], any>>
+      : Updateable<InstanceType<DreamClass>['DB'][TableName]>
+    : VirtualColumns extends any[]
+      ? Partial<
+          Updateable<InstanceType<DreamClass>['DB'][TableName]> &
+            AssociatedModelParam<InstanceType<DreamClass>> &
+            Record<VirtualColumns[number], any>
+        >
+      : Partial<
+          Updateable<InstanceType<DreamClass>['DB'][TableName]> &
+            AssociatedModelParam<InstanceType<DreamClass>>
+        >
 
 export type UpdateablePropertiesForAssociatedClass<
   DreamInstance extends Dream,
@@ -66,36 +74,45 @@ export type UpdateablePropertiesForAssociatedClass<
     DreamInstance['DB'],
     DreamInstance['syncedAssociations']
   > &
-    keyof DreamInstance['DB'],
-  VirtualColumnTableName extends keyof DreamInstance['dreamconf']['virtualColumns'] &
-    keyof DreamInstance['DB'] = keyof DreamInstance['DB'],
+    keyof DreamInstance['DB'] = AssociationClass['table'],
+  VirtualColumns = DreamInstance['dreamconf']['virtualColumns'][AssociationTableName],
 > =
-  | Updateable<DreamInstance['DB'][AssociationTableName]>
-  | AssociatedModelParam<AssociationClass>
-  | (DreamInstance['dreamconf']['virtualColumns'][VirtualColumnTableName] extends any[]
-      ? Record<DreamInstance['dreamconf']['virtualColumns'][VirtualColumnTableName][number], any>
-      : never)
+  AssociatedModelParam<AssociationClass> extends never
+    ? VirtualColumns extends any[]
+      ? Partial<Updateable<DreamInstance['DB'][AssociationTableName]> & Record<VirtualColumns[number], any>>
+      : Updateable<DreamInstance['DB'][AssociationTableName]>
+    : VirtualColumns extends any[]
+      ? Partial<
+          Updateable<DreamInstance['DB'][AssociationTableName]> &
+            AssociatedModelParam<AssociationClass> &
+            Record<VirtualColumns[number], any>
+        >
+      : Partial<
+          Updateable<DreamInstance['DB'][AssociationTableName]> & AssociatedModelParam<AssociationClass>
+        >
 
 export type AttributeKeys<
   I extends Dream,
   TableName extends AssociationTableNames<I['DB'], I['syncedAssociations']> & I['table'] = I['table'],
-  VirtualColumnTableName extends keyof I['dreamconf']['virtualColumns'] & I['table'] = I['table'],
-> =
-  | Updateable<I['DB'][TableName]>
-  | (I['dreamconf']['virtualColumns'][VirtualColumnTableName] extends any[]
-      ? Record<I['dreamconf']['virtualColumns'][VirtualColumnTableName][number], any>
-      : never)
+  VirtualColumns = I['dreamconf']['virtualColumns'][TableName],
+> = VirtualColumns extends any[]
+  ? keyof (Updateable<I['DB'][TableName]> & Record<VirtualColumns[number], any>)
+  : keyof Updateable<I['DB'][TableName]>
 
 export type UpdateableProperties<
   I extends Dream,
   TableName extends AssociationTableNames<I['DB'], I['syncedAssociations']> & I['table'] = I['table'],
-  VirtualColumnTableName extends keyof I['dreamconf']['virtualColumns'] & I['table'] = I['table'],
+  VirtualColumns = I['dreamconf']['virtualColumns'][TableName],
 > =
-  | Updateable<I['DB'][TableName]>
-  | AssociatedModelParam<I>
-  | (I['dreamconf']['virtualColumns'][VirtualColumnTableName] extends any[]
-      ? Record<I['dreamconf']['virtualColumns'][VirtualColumnTableName][number], any>
-      : never)
+  AssociatedModelParam<I> extends never
+    ? VirtualColumns extends any[]
+      ? Partial<Updateable<I['DB'][TableName]> & Record<VirtualColumns[number], any>>
+      : Updateable<I['DB'][TableName]>
+    : VirtualColumns extends any[]
+      ? Partial<
+          Updateable<I['DB'][TableName]> & AssociatedModelParam<I> & Record<VirtualColumns[number], any>
+        >
+      : Partial<Updateable<I['DB'][TableName]> & AssociatedModelParam<I>>
 
 export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) => T) & typeof Dream
 
