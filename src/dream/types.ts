@@ -84,15 +84,18 @@ export type AttributeKeys<I extends Dream> =
       ? I['dreamconf']['virtualColumns'][I['table'] & keyof I['dreamconf']['virtualColumns']][number]
       : never)
 
-export type UpdateableProperties<I extends Dream> =
-  | Updateable<I['DB'][I['table'] & AssociationTableNames<I['DB'], I['syncedAssociations']>]>
-  | AssociatedModelParam<I>
-  | (I['dreamconf']['virtualColumns'][I['table'] & keyof I['dreamconf']['virtualColumns']] extends any[]
-      ? Record<
+export type UpdateableProperties<I extends Dream> = Updateable<
+  I['DB'][I['table'] & AssociationTableNames<I['DB'], I['syncedAssociations']>]
+> &
+  AssociatedModelParam<I> &
+  (I['dreamconf']['virtualColumns'][I['table'] & keyof I['dreamconf']['virtualColumns']] extends any[]
+    ? Partial<
+        Record<
           I['dreamconf']['virtualColumns'][I['table'] & keyof I['dreamconf']['virtualColumns']][number],
           any
         >
-      : never)
+      >
+    : never)
 
 export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) => T) & typeof Dream
 
