@@ -31,6 +31,7 @@ import {
   DreamTableSchema,
   DreamClassColumns,
   OrderDir,
+  VariadicJoinsArgs,
 } from './types'
 import {
   AliasedExpression,
@@ -401,52 +402,15 @@ export default class Query<
 
   public joins<
     TableName extends InstanceType<DreamClass>['table'],
-    //
-    A extends keyof SyncedAssociations[TableName] & string,
-    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
-      string[])[number],
-    //
-    B extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanOne
-      ? NextJoinsWhereArgumentType<DB, SyncedAssociations, ATableName>
-      : any,
-    BTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanOne
-      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>
-      : never,
-    C extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanTwo
-      ? NextJoinsWhereArgumentType<DB, SyncedAssociations, BTableName>
-      : any,
-    CTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanTwo
-      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>
-      : never,
-    D extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanThree
-      ? NextJoinsWhereArgumentType<DB, SyncedAssociations, CTableName>
-      : any,
-    DTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanThree
-      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>
-      : never,
-    E extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFour
-      ? NextJoinsWhereArgumentType<DB, SyncedAssociations, DTableName>
-      : any,
-    ETableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFour
-      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>
-      : never,
-    F extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFive
-      ? NextJoinsWhereArgumentType<DB, SyncedAssociations, ETableName>
-      : any,
-    FTableName extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanFive
-      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>
-      : never,
-    G extends InstanceType<DreamClass>['maxAssociationTypeDepth'] extends GreaterThanSix
-      ? NextJoinsWhereArgumentType<DB, SyncedAssociations, FTableName>
-      : any,
-  >(a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
+    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
+    Arr extends any[],
+  >(...args: Arr & VariadicJoinsArgs<SyncedAssociations, TableName, Arr>) {
     const joinsStatements = cloneDeepSafe(this.joinsStatements)
 
     const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = cloneDeepSafe(
       this.joinsWhereStatements
     )
-
-    this.fleshOutJoinsStatements(joinsStatements, joinsWhereStatements, null, [a, b, c, d, e, f, g])
+    this.fleshOutJoinsStatements(joinsStatements, joinsWhereStatements, null, args as any)
 
     return this.clone({ joinsStatements, joinsWhereStatements })
   }

@@ -11,6 +11,8 @@ import OpsStatement from '../../../../src/ops/ops-statement'
 import LocalizedText from '../../../../test-app/app/models/LocalizedText'
 import Collar from '../../../../test-app/app/models/Collar'
 
+User.query().joins('mainCompositionAsset', 'composition', 'compositionAssetAudits')
+
 describe('Query#joins with simple associations', () => {
   it('joins a HasOne association', async () => {
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })

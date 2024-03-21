@@ -20,7 +20,10 @@ describe('Dream#associationQuery', () => {
         createdAt: DateTime.now().minus({ year: 1 }),
       })
 
-      expect(await user.associationQuery('recentCompositions').all()).toMatchDreamModels([recentComposition])
+      const q = user.associationQuery('recentCompositions')
+      expect(await user.associationQuery('recentCompositions').where({ abc: 1 }).all()).toMatchDreamModels([
+        recentComposition,
+      ])
     })
 
     context('with a primary key override', () => {

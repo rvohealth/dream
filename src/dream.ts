@@ -93,6 +93,7 @@ import CanOnlyPassBelongsToModelParam from './exceptions/associations/can-only-p
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
 import { marshalDBValue } from './helpers/marshalDBValue'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
+import { Decrement, Inc } from './helpers/typeutils'
 
 export default class Dream {
   public static get primaryKey(): string {
@@ -1643,7 +1644,7 @@ export default class Dream {
     I extends Dream,
     SyncedAssociations extends I['syncedAssociations'],
     AssociationName extends keyof SyncedAssociations[I['table']],
-  >(this: I, associationName: AssociationName) {
+  >(this: I, associationName: AssociationName): Query<DreamConstructorType<I>> {
     return associationQuery(this, null, associationName)
   }
 
@@ -1885,3 +1886,43 @@ export interface CreateOrFindByExtraOps<T extends typeof Dream> {
     | WhereStatement<InstanceType<T>['DB'], InstanceType<T>['syncedAssociations'], InstanceType<T>['table']>
     | UpdateablePropertiesForClass<T>
 }
+
+function variadicFunc<T extends any[]>(...args: T & VariadicArgs<T>) {}
+interface DataTree {
+  a: {
+    yo1: {
+      a1: number
+    }
+  }
+  b: {
+    yo2: {
+      b1: number
+    }
+  }
+}
+
+type RecurseVariadicArgs<
+  ArrType extends any[],
+  BaseArr extends any[],
+  Tree extends object,
+  Index extends number,
+  CurrVal extends ArrType[Index] & keyof Tree & string = ArrType[Index] & keyof Tree & string,
+> =
+  Index extends Decrement<ArrType['length']>
+    ? [...BaseArr, keyof Tree]
+    : Tree[CurrVal] extends Record<any, any>
+      ? CurrVal extends keyof Tree & string
+        ? RecurseVariadicArgs<ArrType, [...BaseArr, CurrVal], Tree[CurrVal], Inc<Index>>
+        : never
+      : never
+
+type VariadicArgs<T extends any[]> = RecurseVariadicArgs<T, [], DataTree, 0>
+
+// should pass:
+variadicFunc('a')
+variadicFunc('b', 'yo2')
+variadicFunc('a', 'yo1', 'a1')
+variadicFunc('b', 'yo2', 'b1')
+
+// should fail:
+variadicFunc('b', 'yo1', 'a1')

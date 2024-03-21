@@ -3,7 +3,7 @@ import { DateTime } from 'luxon'
 import { Updateable, ColumnType } from 'kysely'
 import { AssociationTableNames } from '../db/reflections'
 import Dream from '../dream'
-import { Inc } from '../helpers/typeutils'
+import { Decrement, Inc } from '../helpers/typeutils'
 import { AssociatedModelParam, WhereStatement } from '../decorators/associations/shared'
 import OpsStatement from '../ops/ops-statement'
 
@@ -366,3 +366,34 @@ export type GreaterThanFour =
 export type GreaterThanFive = AssociationDepths.SIX | AssociationDepths.SEVEN | AssociationDepths.EIGHT
 export type GreaterThanSix = AssociationDepths.SEVEN | AssociationDepths.EIGHT
 export type GreaterThanSeven = AssociationDepths.EIGHT
+
+type RecurseVariadicJoinsArgs<
+  ArrType extends any[],
+  BaseArr extends any[],
+  SyncedAssociations extends object,
+  TableName extends keyof SyncedAssociations,
+  Index extends number,
+  CurrVal extends ArrType[Index] & keyof SyncedAssociations[TableName] & string = ArrType[Index] &
+    keyof SyncedAssociations[TableName] &
+    string,
+> = Index extends 3
+  ? never
+  : Index extends Decrement<ArrType['length']>
+    ? [...BaseArr, keyof SyncedAssociations[TableName]]
+    : SyncedAssociations[TableName][CurrVal] extends (keyof SyncedAssociations)[]
+      ? CurrVal extends keyof SyncedAssociations[TableName] & keyof SyncedAssociations & string
+        ? RecurseVariadicJoinsArgs<
+            ArrType,
+            [...BaseArr, CurrVal],
+            SyncedAssociations,
+            SyncedAssociations[TableName][CurrVal][0] & keyof SyncedAssociations,
+            Inc<Index>
+          >
+        : never
+      : never
+
+export type VariadicJoinsArgs<
+  SyncedAssociations extends object,
+  TableName extends keyof SyncedAssociations,
+  T extends any[],
+> = RecurseVariadicJoinsArgs<T, [], SyncedAssociations, TableName, 0>
