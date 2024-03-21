@@ -20,8 +20,13 @@ type AssociatedModelType<
   I extends Dream,
   AssociationName extends keyof I['dreamconf']['syncedBelongsToAssociations'][I['table'] &
     keyof I['dreamconf']['syncedBelongsToAssociations']],
-  PossibleArrayAssociationType = I[AssociationName & keyof I],
-> = PossibleArrayAssociationType extends (infer ElementType)[] ? ElementType : PossibleArrayAssociationType
+  PossibleArrayAssociationType extends I[AssociationName & keyof I] = I[AssociationName & keyof I],
+  AssociationType extends PossibleArrayAssociationType extends (infer ElementType)[]
+    ? ElementType
+    : PossibleArrayAssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
+    ? ElementType
+    : PossibleArrayAssociationType,
+> = AssociationType & Dream
 
 export type AssociatedModelParam<
   I extends Dream,

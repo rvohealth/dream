@@ -45,6 +45,7 @@ import {
   GreaterThanFive,
   GreaterThanSix,
   DreamClassColumns,
+  UpdateablePropertiesForAssociatedClass,
 } from './dream/types'
 import Query, { FindEachOpts } from './dream/query'
 import runValidations from './dream/internal/runValidations'
@@ -1561,10 +1562,28 @@ export default class Dream {
     AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
       ? ElementType
       : PossibleArrayAssociationType,
+    RestrictedAssociationType extends AssociationType extends Dream
+      ? AssociationType
+      : never = AssociationType extends Dream ? AssociationType : never,
+    AssociationTableName extends
+      SyncedAssociations[I['table']][AssociationName] extends (keyof SyncedAssociations)[]
+        ? SyncedAssociations[I['table']][AssociationName][0]
+        : never = SyncedAssociations[I['table']][AssociationName] extends (keyof SyncedAssociations)[]
+      ? SyncedAssociations[I['table']][AssociationName][0]
+      : never,
+    RestrictedAssociationTableName extends AssociationTableName &
+      AssociationTableNames<I['DB'], SyncedAssociations> &
+      keyof I['DB'] = AssociationTableName &
+      AssociationTableNames<I['DB'], SyncedAssociations> &
+      keyof I['DB'],
   >(
     this: I,
     associationName: AssociationName,
-    opts: UpdateablePropertiesForClass<AssociationType & typeof Dream> = {}
+    opts: UpdateablePropertiesForAssociatedClass<
+      I,
+      RestrictedAssociationType,
+      RestrictedAssociationTableName
+    > = {}
   ): Promise<NonNullable<AssociationType>> {
     return createAssociation(this, null, associationName, opts)
   }
@@ -1573,14 +1592,21 @@ export default class Dream {
     I extends Dream,
     SyncedAssociations extends I['syncedAssociations'],
     AssociationName extends keyof SyncedAssociations[I['table']],
-    PossibleArrayAssociationType = I[AssociationName & keyof I],
-    AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
-      ? ElementType
-      : PossibleArrayAssociationType,
+    AssociationTableName extends
+      SyncedAssociations[I['table']][AssociationName] extends (keyof SyncedAssociations)[]
+        ? SyncedAssociations[I['table']][AssociationName][0]
+        : never = SyncedAssociations[I['table']][AssociationName] extends (keyof SyncedAssociations)[]
+      ? SyncedAssociations[I['table']][AssociationName][0]
+      : never,
+    RestrictedAssociationTableName extends AssociationTableName &
+      AssociationTableNames<I['DB'], SyncedAssociations> &
+      keyof I['DB'] = AssociationTableName &
+      AssociationTableNames<I['DB'], SyncedAssociations> &
+      keyof I['DB'],
   >(
     this: I,
     associationName: AssociationName,
-    opts: UpdateablePropertiesForClass<AssociationType & typeof Dream> = {}
+    opts: WhereStatement<I['DB'], SyncedAssociations, RestrictedAssociationTableName> = {}
   ): Promise<number> {
     return destroyAssociation(this, null, associationName, opts)
   }

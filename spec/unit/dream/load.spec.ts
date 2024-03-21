@@ -58,7 +58,7 @@ describe('Dream#load', () => {
 
   context('through associations', () => {
     it('loads the association', async () => {
-      const composition = await user.createAssociation('compositions', { name: 'composition A' })
+      const composition = await user.createAssociation('compositions')
       const compositionAsset = await composition?.createAssociation('compositionAssets', {
         name: 'compositionAsset X',
       })
@@ -88,7 +88,7 @@ describe('Dream#load', () => {
 
     context('through associations', () => {
       it('loads the association fresh from the database', async () => {
-        const composition = await user.createAssociation('compositions', { name: 'composition A' })
+        const composition = await user.createAssociation('compositions')
         const compositionAsset = await composition?.createAssociation('compositionAssets', {
           name: 'compositionAsset X',
         })
@@ -100,7 +100,7 @@ describe('Dream#load', () => {
     })
 
     it('allows chaining load statements', async () => {
-      const composition = await user.createAssociation('compositions', { name: 'composition A' })
+      const composition = await user.createAssociation('compositions')
       await composition?.createAssociation('compositionAssets', {
         name: 'compositionAsset X',
       })

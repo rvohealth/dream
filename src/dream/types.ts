@@ -58,6 +58,26 @@ export type UpdateablePropertiesForClass<DreamClass extends typeof Dream> =
         >
       : never)
 
+export type UpdateablePropertiesForAssociatedClass<
+  DreamInstance extends Dream,
+  AssociationClass extends Dream,
+  AssociationTableName extends AssociationTableNames<
+    DreamInstance['DB'],
+    DreamInstance['syncedAssociations']
+  > &
+    keyof DreamInstance['DB'],
+> =
+  | Updateable<DreamInstance['DB'][AssociationTableName]>
+  | AssociatedModelParam<AssociationClass>
+  | (DreamInstance['dreamconf']['virtualColumns'][AssociationTableName &
+      keyof DreamInstance['dreamconf']['virtualColumns']] extends any[]
+      ? Record<
+          DreamInstance['dreamconf']['virtualColumns'][AssociationTableName &
+            keyof DreamInstance['dreamconf']['virtualColumns']][number],
+          any
+        >
+      : never)
+
 export type AttributeKeys<I extends Dream> =
   | keyof Updateable<I['DB'][I['table'] & AssociationTableNames<I['DB'], I['syncedAssociations']>]>
   | (I['dreamconf']['virtualColumns'][I['table'] & keyof I['dreamconf']['virtualColumns']] extends any[]

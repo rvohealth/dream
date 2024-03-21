@@ -12,8 +12,21 @@ export default function associationQuery<
   AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
     ? ElementType
     : PossibleArrayAssociationType,
-  // AssociationQuery = Query<DreamConstructorType<AssociationType & Dream>>
->(dream: DreamInstance, txn: DreamTransaction<Dream> | null = null, associationName: AssociationName) {
+  AssociationQuery = Query<
+    DreamConstructorType<AssociationType & Dream>,
+    AssociationType & Dream,
+    DreamInstance['DB'],
+    DreamInstance['syncedAssociations'],
+    DreamInstance['allColumns'],
+    keyof DreamInstance['DB'][keyof DreamInstance['DB']] extends never
+      ? unknown
+      : keyof DreamInstance['DB'][keyof DreamInstance['DB']]
+  >,
+>(
+  dream: DreamInstance,
+  txn: DreamTransaction<Dream> | null = null,
+  associationName: AssociationName
+): AssociationQuery {
   const association = dream.associationMap()[associationName as any] as HasManyStatement<any, any, any, any>
   const associationClass = association.modelCB()
 
@@ -30,7 +43,5 @@ export default function associationQuery<
   // ts-ignore prior to refactoring to use ApplicationModel
   return (txn ? associationClass.txn(txn).queryInstance() : associationClass.query())
     ['setBaseSQLAlias'](association.as as TableOrAssociationName<DreamInstance['syncedAssociations']>)
-    ['setBaseSelectQuery'](baseSelectQuery as Query<any>) as Query<
-    DreamConstructorType<AssociationType & Dream>
-  >
+    ['setBaseSelectQuery'](baseSelectQuery as Query<any>) as AssociationQuery
 }

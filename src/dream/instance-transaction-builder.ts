@@ -17,6 +17,7 @@ import {
   GreaterThanSix,
   NextPreloadArgumentType,
   PreloadArgumentTypeAssociatedTableNames,
+  UpdateablePropertiesForAssociatedClass,
 } from './types'
 import associationQuery from './internal/associations/associationQuery'
 import associationUpdateQuery from './internal/associations/associationUpdateQuery'
@@ -25,6 +26,8 @@ import reload from './internal/reload'
 import destroyAssociation from './internal/associations/destroyAssociation'
 import Query, { FindEachOpts } from './query'
 import LoadBuilder from './load-builder'
+import { AssociationTableNames } from '../db/reflections'
+import { WhereStatement } from '../decorators/associations/shared'
 
 export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream> {
   public dreamInstance: DreamInstance
@@ -93,7 +96,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
         ? never
         : FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
       : any,
-  >(this: I, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
+  >(this: I, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G): Promise<any[]> {
     return this.queryInstance().pluckThrough(a, b, c as any, d as any, e as any, f as any, g as any)
   }
 
@@ -297,29 +300,56 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   public async createAssociation<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends keyof DreamInstance['syncedAssociations'][DreamInstance['table']],
+    SyncedAssociations extends DreamInstance['syncedAssociations'],
     PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
     AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
       ? ElementType
       : PossibleArrayAssociationType,
+    RestrictedAssociationType extends AssociationType extends Dream
+      ? AssociationType
+      : never = AssociationType extends Dream ? AssociationType : never,
+    AssociationTableName extends
+      SyncedAssociations[DreamInstance['table']][AssociationName] extends (keyof SyncedAssociations)[]
+        ? SyncedAssociations[DreamInstance['table']][AssociationName][0]
+        : never = SyncedAssociations[DreamInstance['table']][AssociationName] extends (keyof SyncedAssociations)[]
+      ? SyncedAssociations[DreamInstance['table']][AssociationName][0]
+      : never,
+    RestrictedAssociationTableName extends AssociationTableName &
+      AssociationTableNames<DreamInstance['DB'], SyncedAssociations> &
+      keyof DreamInstance['DB'] = AssociationTableName &
+      AssociationTableNames<DreamInstance['DB'], SyncedAssociations> &
+      keyof DreamInstance['DB'],
   >(
     this: I,
     associationName: AssociationName,
-    opts: UpdateablePropertiesForClass<AssociationType & typeof Dream> = {}
+    opts: UpdateablePropertiesForAssociatedClass<
+      DreamInstance,
+      RestrictedAssociationType,
+      RestrictedAssociationTableName
+    > = {}
   ): Promise<NonNullable<AssociationType>> {
     return await createAssociation(this.dreamInstance, this.dreamTransaction, associationName, opts)
   }
 
   public async destroyAssociation<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    AssociationName extends keyof DreamInstance['syncedAssociations'][DreamInstance['table']],
-    PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
-    AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
-      ? ElementType
-      : PossibleArrayAssociationType,
+    SyncedAssociations extends DreamInstance['syncedAssociations'],
+    AssociationName extends keyof SyncedAssociations[DreamInstance['table']],
+    AssociationTableName extends
+      SyncedAssociations[DreamInstance['table']][AssociationName] extends (keyof SyncedAssociations)[]
+        ? SyncedAssociations[DreamInstance['table']][AssociationName][0]
+        : never = SyncedAssociations[DreamInstance['table']][AssociationName] extends (keyof SyncedAssociations)[]
+      ? SyncedAssociations[DreamInstance['table']][AssociationName][0]
+      : never,
+    RestrictedAssociationTableName extends AssociationTableName &
+      AssociationTableNames<DreamInstance['DB'], SyncedAssociations> &
+      keyof DreamInstance['DB'] = AssociationTableName &
+      AssociationTableNames<DreamInstance['DB'], SyncedAssociations> &
+      keyof DreamInstance['DB'],
   >(
     this: I,
     associationName: AssociationName,
-    opts: UpdateablePropertiesForClass<AssociationType & typeof Dream> = {}
+    opts: WhereStatement<DreamInstance['DB'], SyncedAssociations, RestrictedAssociationTableName> = {}
   ): Promise<number> {
     return await destroyAssociation(this.dreamInstance, this.dreamTransaction, associationName, opts)
   }

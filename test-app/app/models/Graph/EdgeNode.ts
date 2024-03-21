@@ -20,7 +20,6 @@ export default class EdgeNode extends ApplicationModel {
   }
 
   public id: IdType
-  public focus_name: string
   public createdAt: DateTime
   public updatedAt: DateTime
 

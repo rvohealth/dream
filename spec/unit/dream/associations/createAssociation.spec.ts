@@ -41,7 +41,7 @@ describe('Dream#createAssociation', () => {
     it('creates the related association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const createdAt = DateTime.now().minus({ days: 1 })
-      const userSettings = await user.createAssociation('userSettings', { createdAt: createdAt })
+      const userSettings = await user.createAssociation('userSettings', { createdAt })
 
       expect(userSettings.createdAt).toEqual(createdAt.toUTC())
       expect(await user.associationQuery('userSettings').all()).toMatchDreamModels([userSettings])

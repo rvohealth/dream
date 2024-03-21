@@ -560,7 +560,7 @@ export default class Query<
         ? never
         : FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
       : any,
-  >(this: T, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
+  >(this: T, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G): Promise<any[]> {
     const joinsStatements = cloneDeepSafe(this.joinsStatements)
 
     const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = cloneDeepSafe(

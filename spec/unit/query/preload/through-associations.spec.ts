@@ -624,8 +624,8 @@ describe('Query#preload through', () => {
       const edge2 = await Edge.create({ name: 'myedge2' })
 
       // position automatically set by Sortable decorator
-      const edgeNode1 = await node.createAssociation('edgeNodes', { name: 'graph_edge_1', edge: edge1 })
-      const edgeNode2 = await node.createAssociation('edgeNodes', { name: 'graph_edge_2', edge: edge2 })
+      const edgeNode1 = await node.createAssociation('edgeNodes', { edge: edge1 })
+      const edgeNode2 = await node.createAssociation('edgeNodes', { edge: edge2 })
 
       const reloadedNode = await Node.preload('edges').first()
 
