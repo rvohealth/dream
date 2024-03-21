@@ -5,25 +5,17 @@ import destroyDream from './internal/destroyDream'
 import {
   UpdateableProperties,
   DreamConstructorType,
-  NextJoinsWherePluckArgumentType,
-  JoinsArgumentTypeAssociatedTableNames,
-  FinalJoinsWherePluckArgumentType,
-  GreaterThanOne,
-  GreaterThanTwo,
-  GreaterThanThree,
-  GreaterThanFour,
-  GreaterThanFive,
-  GreaterThanSix,
-  NextPreloadArgumentType,
-  PreloadArgumentTypeAssociatedTableNames,
   UpdateableAssociationProperties,
+  VariadicPluckThroughArgs,
+  VariadicPluckEachThroughArgs,
+  VariadicLoadArgs,
 } from './types'
 import associationQuery from './internal/associations/associationQuery'
 import associationUpdateQuery from './internal/associations/associationUpdateQuery'
 import createAssociation from './internal/associations/createAssociation'
 import reload from './internal/reload'
 import destroyAssociation from './internal/associations/destroyAssociation'
-import Query, { FindEachOpts } from './query'
+import Query from './query'
 import LoadBuilder from './load-builder'
 import { AssociationTableNames } from '../db/reflections'
 import { WhereStatement } from '../decorators/associations/shared'
@@ -42,61 +34,12 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     DB extends DreamInstance['DB'],
     SyncedAssociations extends DreamInstance['syncedAssociations'],
     TableName extends DreamInstance['table'],
-    //
-    A extends keyof SyncedAssociations[TableName] & string,
-    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
-      string[])[number],
-    //
-    B extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanOne
-      ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>
-      : any,
-    BTableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanOne
-      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>
-      : never,
-    C extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanTwo
-      ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>
-      : any,
-    CTableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanTwo
-      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>
-      : never,
-    D extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanThree
-      ? CTableName extends never
-        ? never
-        : NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>
-      : any,
-    DTableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanThree
-      ? CTableName extends never
-        ? never
-        : JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>
-      : never,
-    E extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFour
-      ? DTableName extends never
-        ? never
-        : NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>
-      : any,
-    ETableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFour
-      ? DTableName extends never
-        ? never
-        : JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>
-      : never,
-    F extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFive
-      ? ETableName extends never
-        ? never
-        : NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>
-      : any,
-    FTableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFive
-      ? ETableName extends never
-        ? never
-        : JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>
-      : never,
-    //
-    G extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanSix
-      ? FTableName extends never
-        ? never
-        : FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
-      : any,
-  >(this: I, a: A, b: B, c?: C, d?: D, e?: E, f?: F, g?: G): Promise<any[]> {
-    return this.queryInstance().pluckThrough(a, b, c as any, d as any, e as any, f as any, g as any)
+    const Arr extends readonly unknown[],
+  >(
+    this: I,
+    ...args: [...Arr, VariadicPluckThroughArgs<DB, SyncedAssociations, TableName, Arr>]
+  ): Promise<any[]> {
+    return this.queryInstance().pluckThrough(...(args as any))
   }
 
   public async pluckEachThrough<
@@ -104,151 +47,21 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     DB extends DreamInstance['DB'],
     SyncedAssociations extends DreamInstance['syncedAssociations'],
     TableName extends DreamInstance['table'],
-    CB extends (data: any) => void | Promise<void>,
-    //
-    A extends keyof SyncedAssociations[TableName] & string,
-    ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
-      string[])[number],
-    //
-    B extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanOne
-      ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, A, A, ATableName>
-      : any,
-    BTableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanOne
-      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ATableName, B>
-      : never,
-    C extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanTwo
-      ? NextJoinsWherePluckArgumentType<DB, SyncedAssociations, B, A, BTableName>
-      : any,
-    CTableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanTwo
-      ? JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, BTableName, C>
-      : never,
-    D extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanThree
-      ? CTableName extends never
-        ? never
-        : NextJoinsWherePluckArgumentType<DB, SyncedAssociations, C, B, CTableName>
-      : any,
-    DTableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanThree
-      ? CTableName extends never
-        ? never
-        : JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, CTableName, D>
-      : never,
-    E extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFour
-      ? DTableName extends never
-        ? never
-        : NextJoinsWherePluckArgumentType<DB, SyncedAssociations, D, C, DTableName>
-      : any,
-    ETableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFour
-      ? DTableName extends never
-        ? never
-        : JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, DTableName, E>
-      : never,
-    F extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFive
-      ? ETableName extends never
-        ? never
-        : NextJoinsWherePluckArgumentType<DB, SyncedAssociations, E, D, ETableName>
-      : any,
-    FTableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFive
-      ? ETableName extends never
-        ? never
-        : JoinsArgumentTypeAssociatedTableNames<DB, SyncedAssociations, ETableName, F>
-      : never,
-    //
-    G extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanSix
-      ? FTableName extends never
-        ? never
-        : FinalJoinsWherePluckArgumentType<DB, SyncedAssociations, F, E, FTableName>
-      : any,
-  >(
-    this: I,
-    a: A,
-    b: B | CB,
-    c?: C | CB | FindEachOpts,
-    d?: D | CB | FindEachOpts,
-    e?: E | CB | FindEachOpts,
-    f?: F | CB | FindEachOpts,
-    g?: G | CB | FindEachOpts,
-    cb?: CB,
-    opts?: FindEachOpts
-  ) {
-    return this.queryInstance().pluckEachThrough(
-      a,
-      b,
-      c as any,
-      d as any,
-      e as any,
-      f as any,
-      g as any,
-      cb,
-      opts
-    )
+    const Arr extends readonly unknown[],
+  >(this: I, ...args: [...Arr, VariadicPluckEachThroughArgs<DB, SyncedAssociations, TableName, Arr>]) {
+    return this.queryInstance().pluckEachThrough(...(args as any))
   }
 
   public load<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     TableName extends DreamInstance['table'],
     SyncedAssociations extends DreamInstance['syncedAssociations'],
-    //
-    A extends NextPreloadArgumentType<SyncedAssociations, TableName>,
-    ATableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, TableName, A>,
-    B extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanOne
-      ? NextPreloadArgumentType<SyncedAssociations, ATableName>
-      : any,
-    BTableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanOne
-      ? PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ATableName, B>
-      : never,
-    C extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanTwo
-      ? BTableName extends never
-        ? never
-        : NextPreloadArgumentType<SyncedAssociations, BTableName>
-      : any,
-    CTableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanTwo
-      ? PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, BTableName, C>
-      : never,
-    D extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanThree
-      ? CTableName extends never
-        ? never
-        : NextPreloadArgumentType<SyncedAssociations, CTableName>
-      : any,
-    DTableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanThree
-      ? CTableName extends never
-        ? never
-        : PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, CTableName, D>
-      : never,
-    E extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFour
-      ? DTableName extends never
-        ? never
-        : NextPreloadArgumentType<SyncedAssociations, DTableName>
-      : any,
-    ETableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFive
-      ? DTableName extends never
-        ? never
-        : PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, DTableName, E>
-      : never,
-    F extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFive
-      ? ETableName extends never
-        ? never
-        : NextPreloadArgumentType<SyncedAssociations, ETableName>
-      : any,
-    FTableName extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanFive
-      ? ETableName extends never
-        ? never
-        : PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, ETableName, F>
-      : never,
-    G extends DreamInstance['maxAssociationTypeDepth'] extends GreaterThanSix
-      ? FTableName extends never
-        ? never
-        : NextPreloadArgumentType<SyncedAssociations, FTableName>
-      : any,
-  >(this: I, a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G): LoadBuilder<DreamInstance> {
-    return new LoadBuilder<DreamInstance>(this.dreamInstance, this.dreamTransaction).load(
-      a as any,
-      b as any,
-      c as any,
-      d as any,
-      e as any,
-      f as any,
-      g as any
-    )
+    const Arr extends readonly unknown[],
+  >(
+    this: I,
+    ...args: [...Arr, VariadicLoadArgs<SyncedAssociations, TableName, Arr>]
+  ): LoadBuilder<DreamInstance> {
+    return new LoadBuilder<DreamInstance>(this.dreamInstance, this.dreamTransaction).load(...(args as any))
   }
 
   public async destroy<I extends DreamInstanceTransactionBuilder<DreamInstance>>(

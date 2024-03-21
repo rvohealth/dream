@@ -45,7 +45,7 @@ describe('Query#pluckEachThrough', () => {
     context('when additional pluck arguments are following the call to pluckEachThrough', () => {
       it('raises a targeted exception', async () => {
         await expect(
-          async () => await Node.query().pluckEachThrough('edgeNodes', 'edge', () => {}, ['edge.id'])
+          async () => await Node.query().pluckEachThrough('edgeNodes', 'edge', () => {}, ['edge.id'] as any)
         ).rejects.toThrowError(CannotPassAdditionalFieldsToPluckEachAfterCallback)
       })
     })
@@ -161,7 +161,7 @@ describe('Query#pluckEachThrough', () => {
           'compositions',
           'compositionAssets',
           ['compositionAssets.name'],
-          data => {
+          (data: any) => {
             plucked.push(data)
           },
           { batchSize: 1 }
