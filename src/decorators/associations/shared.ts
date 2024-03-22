@@ -360,7 +360,7 @@ association: ${this.as}
     },
 
     primaryKeyValue(associationInstance: Dream) {
-      if (!associationInstance) return null
+      if (!associationInstance) return undefined
       return (associationInstance as any)[this.primaryKey(associationInstance)]
     },
   }
