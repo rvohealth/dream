@@ -436,8 +436,19 @@ export default class Dream {
     await this.query().loadInto(models, a as any, b as any, c as any, d as any, e as any, f as any, g as any)
   }
 
-  public static query<T extends typeof Dream>(this: T): Query<T> {
-    return new Query<T>(this)
+  public static query<T extends typeof Dream>(
+    this: T
+  ): Query<
+    T,
+    InstanceType<T>,
+    InstanceType<T>['DB'],
+    InstanceType<T>['syncedAssociations'],
+    InstanceType<T>['allColumns'],
+    keyof InstanceType<T>['DB'][keyof InstanceType<T>['DB']] extends never
+      ? unknown
+      : keyof InstanceType<T>['DB'][keyof InstanceType<T>['DB']]
+  > {
+    return new Query(this)
   }
 
   public static async findBy<T extends typeof Dream>(

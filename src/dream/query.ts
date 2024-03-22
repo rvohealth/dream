@@ -182,7 +182,7 @@ export default class Query<
   }
 
   private symmetricalQueryForDreamClass<D extends typeof Dream>(
-    this: Query<DreamClass>,
+    this: Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
     dreamClass: D
   ): Query<D> {
     const associationQuery: Query<D> = (
@@ -191,46 +191,52 @@ export default class Query<
     return this.dreamTransaction ? associationQuery.txn(this.dreamTransaction) : associationQuery
   }
 
-  public clone(opts: QueryOpts<DreamClass, ColumnType> = {}): Query<DreamClass> {
-    return new Query(this.dreamClass, {
-      baseSqlAlias: opts.baseSqlAlias || this.baseSqlAlias,
-      baseSelectQuery: opts.baseSelectQuery || this.baseSelectQuery,
-      passthroughWhereStatement: Object.freeze({
-        ...this.passthroughWhereStatement,
-        ...(opts.passthroughWhereStatement || {}),
-      }),
-      where: opts.where === null ? [] : Object.freeze([...this.whereStatements, ...(opts.where || [])]),
-      whereNot:
-        opts.whereNot === null ? [] : Object.freeze([...this.whereNotStatements, ...(opts.whereNot || [])]),
-      limit: opts.limit === null ? null : opts.limit !== undefined ? opts.limit : this.limitStatement || null,
-      offset:
-        opts.limit === null || opts.offset === null
-          ? null
-          : opts.offset !== undefined
-            ? opts.offset
-            : this.offsetStatement || null,
-      or: opts.or === null ? [] : [...this.orStatements, ...(opts.or || [])],
-      order: opts.order === null ? [] : [...this.orderStatements, ...(opts.order || [])],
-      distinctColumn: (opts.distinctColumn !== undefined
-        ? opts.distinctColumn
-        : this.distinctColumn) as ColumnType | null,
+  public clone(
+    opts: QueryOpts<DreamClass, ColumnType> = {}
+  ): Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType> {
+    return new Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>(
+      this.dreamClass,
+      {
+        baseSqlAlias: opts.baseSqlAlias || this.baseSqlAlias,
+        baseSelectQuery: opts.baseSelectQuery || this.baseSelectQuery,
+        passthroughWhereStatement: Object.freeze({
+          ...this.passthroughWhereStatement,
+          ...(opts.passthroughWhereStatement || {}),
+        }),
+        where: opts.where === null ? [] : Object.freeze([...this.whereStatements, ...(opts.where || [])]),
+        whereNot:
+          opts.whereNot === null ? [] : Object.freeze([...this.whereNotStatements, ...(opts.whereNot || [])]),
+        limit:
+          opts.limit === null ? null : opts.limit !== undefined ? opts.limit : this.limitStatement || null,
+        offset:
+          opts.limit === null || opts.offset === null
+            ? null
+            : opts.offset !== undefined
+              ? opts.offset
+              : this.offsetStatement || null,
+        or: opts.or === null ? [] : [...this.orStatements, ...(opts.or || [])],
+        order: opts.order === null ? [] : [...this.orderStatements, ...(opts.order || [])],
+        distinctColumn: (opts.distinctColumn !== undefined
+          ? opts.distinctColumn
+          : this.distinctColumn) as ColumnType | null,
 
-      // when passed, preloadStatements, joinsStatements, and joinsWhereStatements are already
-      // cloned versions of the `this.` versions, handled in the `preload` and `joins` methods
-      preloadStatements: opts.preloadStatements || this.preloadStatements,
-      joinsStatements: opts.joinsStatements || this.joinsStatements,
-      joinsWhereStatements: opts.joinsWhereStatements || this.joinsWhereStatements,
-      // end:when passed, preloadStatements, joinsStatements, and joinsWhereStatements are already...
+        // when passed, preloadStatements, joinsStatements, and joinsWhereStatements are already
+        // cloned versions of the `this.` versions, handled in the `preload` and `joins` methods
+        preloadStatements: opts.preloadStatements || this.preloadStatements,
+        joinsStatements: opts.joinsStatements || this.joinsStatements,
+        joinsWhereStatements: opts.joinsWhereStatements || this.joinsWhereStatements,
+        // end:when passed, preloadStatements, joinsStatements, and joinsWhereStatements are already...
 
-      bypassDefaultScopes:
-        opts.bypassDefaultScopes !== undefined ? opts.bypassDefaultScopes : this.bypassDefaultScopes,
-      transaction: opts.transaction || this.dreamTransaction,
-      connection: opts.connection,
-    }) as Query<DreamClass>
+        bypassDefaultScopes:
+          opts.bypassDefaultScopes !== undefined ? opts.bypassDefaultScopes : this.bypassDefaultScopes,
+        transaction: opts.transaction || this.dreamTransaction,
+        connection: opts.connection,
+      }
+    )
   }
 
   public async find<
-    T extends Query<DreamClass>,
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
     TableName extends
       keyof InstanceType<DreamClass>['dreamconf']['interpretedDB'] = InstanceType<DreamClass>['table'] &
       keyof InstanceType<DreamClass>['dreamconf']['interpretedDB'],
@@ -246,14 +252,18 @@ export default class Query<
     }).first()
   }
 
-  public async findBy<T extends Query<DreamClass>>(
+  public async findBy<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(
     this: T,
     attributes: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
   ): Promise<(InstanceType<DreamClass> & Dream) | null> {
     return await this.where(attributes).first()
   }
 
-  public async findEach<T extends Query<DreamClass>>(
+  public async findEach<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(
     this: T,
     cb: (instance: InstanceType<DreamClass>) => void | Promise<void>,
     { batchSize = Query.BATCH_SIZES.FIND_EACH }: { batchSize?: number } = {}
@@ -286,9 +296,8 @@ export default class Query<
   //  * @returns
   //  */
   public async loadInto<
-    T extends Query<DreamClass>,
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
     TableName extends InstanceType<DreamClass>['table'],
-    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
     //
     A extends NextPreloadArgumentType<SyncedAssociations, TableName>,
     ATableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, TableName, A>,
@@ -333,9 +342,8 @@ export default class Query<
   }
 
   public preload<
-    T extends Query<DreamClass>,
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
     TableName extends InstanceType<DreamClass>['table'],
-    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
     //
     A extends NextPreloadArgumentType<SyncedAssociations, TableName>,
     ATableName extends PreloadArgumentTypeAssociatedTableNames<SyncedAssociations, TableName, A>,
@@ -403,10 +411,9 @@ export default class Query<
   }
 
   public joins<
-    T extends Query<DreamClass>,
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
     TableName extends InstanceType<DreamClass>['table'],
     DB extends InstanceType<DreamClass>['DB'],
-    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
     //
     A extends keyof SyncedAssociations[TableName] & string,
     ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
@@ -503,9 +510,8 @@ export default class Query<
   }
 
   public async pluckThrough<
-    T extends Query<DreamClass>,
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
     DB extends InstanceType<DreamClass>['DB'],
-    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
     TableName extends InstanceType<DreamClass>['table'],
     //
     A extends keyof SyncedAssociations[TableName] & string,
@@ -607,9 +613,8 @@ export default class Query<
   }
 
   public async pluckEachThrough<
-    T extends Query<DreamClass>,
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
     DB extends InstanceType<DreamClass>['DB'],
-    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
     TableName extends InstanceType<DreamClass>['table'],
     CB extends (data: any | any[]) => void | Promise<void>,
     //
@@ -833,7 +838,9 @@ export default class Query<
     return this.clone({ baseSelectQuery })
   }
 
-  public unscoped<T extends Query<DreamClass>>(this: T): Query<DreamClass> {
+  public unscoped<T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>>(
+    this: T
+  ): Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType> {
     return this.clone({ bypassDefaultScopes: true, baseSelectQuery: this.baseSelectQuery?.unscoped() })
   }
 
@@ -841,34 +848,34 @@ export default class Query<
     return this.clone({ passthroughWhereStatement })
   }
 
-  public where<T extends Query<DreamClass>>(
+  public where<T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>>(
     this: T,
     attributes: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
-  ): Query<DreamClass> {
+  ): Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType> {
     return this._where(attributes, 'where')
   }
 
-  public whereAny<T extends Query<DreamClass>>(
+  public whereAny<T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>>(
     this: T,
     attributes: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>[]
-  ): Query<DreamClass> {
+  ): Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType> {
     return this.clone({
       or: [attributes.map(obj => ({ ...obj }))],
     })
   }
 
-  public whereNot<T extends Query<DreamClass>>(
+  public whereNot<T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>>(
     this: T,
     attributes: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
-  ): Query<DreamClass> {
+  ): Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType> {
     return this._where(attributes, 'whereNot')
   }
 
-  private _where<T extends Query<DreamClass>>(
+  private _where<T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>>(
     this: T,
     attributes: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>,
     typeOfWhere: 'where' | 'whereNot'
-  ): Query<DreamClass> {
+  ): Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType> {
     return this.clone({
       [typeOfWhere]: [{ ...attributes }],
     })
@@ -877,7 +884,10 @@ export default class Query<
   public nestedSelect<
     SimpleFieldType extends keyof DreamClassColumns<DreamClass>,
     PluckThroughFieldType extends any,
-  >(this: Query<DreamClass>, selection: SimpleFieldType | PluckThroughFieldType) {
+  >(
+    this: Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+    selection: SimpleFieldType | PluckThroughFieldType
+  ) {
     let query = this.buildSelect({ bypassSelectAll: true, bypassOrder: true }) as SelectQueryBuilder<
       any,
       any,
@@ -887,13 +897,14 @@ export default class Query<
   }
 
   public order<
-    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
     TableName extends AssociationTableNames<DB, SyncedAssociations> &
       keyof DB = InstanceType<DreamClass>['table'],
     Table extends DB[keyof DB] = DB[TableName],
     ColumnName extends keyof Table & string = keyof Table & string,
     OrderDir extends 'asc' | 'desc' = 'asc' | 'desc',
-  >(arg: ColumnName | Partial<Record<ColumnName, OrderDir>> | null): Query<DreamClass> {
+  >(
+    arg: ColumnName | Partial<Record<ColumnName, OrderDir>> | null
+  ): Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType> {
     if (arg === null) return this.clone({ order: null })
     if (isString(arg)) return this.clone({ order: [{ column: arg as any, direction: 'asc' }] })
 
@@ -904,7 +915,7 @@ export default class Query<
       const direction = (arg as any)[key] as OrderDir
 
       query = query.clone({
-        order: [{ column, direction }],
+        order: [{ column: column as any, direction }],
       })
     })
 
@@ -927,7 +938,7 @@ export default class Query<
   // TODO: in the future, we should support insert type, but don't yet, since inserts are done outside
   // the query class for some reason.
   public toKysely<
-    T extends Query<DreamClass>,
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
     QueryType extends 'select' | 'delete' | 'update',
     ToKyselyReturnType = QueryType extends 'select'
       ? SelectQueryBuilder<DreamInstance['DB'], DreamInstance['table'], any>
@@ -956,7 +967,9 @@ export default class Query<
     return this.clone({ transaction: dreamTransaction })
   }
 
-  public async count<T extends Query<DreamClass>>(this: T) {
+  public async count<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(this: T) {
     const { count } = this.dbFor('select').fn
     const distinctColumn = this.distinctColumn
     const query = this.clone({ distinctColumn: null })
@@ -974,7 +987,7 @@ export default class Query<
     return parseInt(data.tablecount.toString())
   }
 
-  public distinct<T extends Query<DreamClass>>(
+  public distinct<T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>>(
     this: T,
     column:
       | TableColumnName<
@@ -985,11 +998,11 @@ export default class Query<
       | boolean = true
   ) {
     if (column === true) {
-      return this.clone({ distinctColumn: this.namespaceColumn(this.dreamClass.primaryKey) })
+      return this.clone({ distinctColumn: this.namespaceColumn(this.dreamClass.primaryKey) as ColumnType })
     } else if (column === false) {
       return this.clone({ distinctColumn: null })
     } else {
-      return this.clone({ distinctColumn: this.namespaceColumn(column) })
+      return this.clone({ distinctColumn: this.namespaceColumn(column) as ColumnType })
     }
   }
 
@@ -999,7 +1012,7 @@ export default class Query<
   }
 
   public async max<
-    T extends Query<DreamClass>,
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>,
     PluckThroughFieldType extends any,
@@ -1015,7 +1028,7 @@ export default class Query<
   }
 
   public async min<
-    T extends Query<DreamClass>,
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
     TableName extends InstanceType<DreamClass>['table'],
     SimpleFieldType extends keyof Updateable<DB[TableName]>,
     PluckThroughFieldType extends any,
@@ -1029,10 +1042,9 @@ export default class Query<
     return data.min
   }
 
-  private async pluckWithoutMarshalling<T extends Query<DreamClass>>(
-    this: T,
-    ...fields: DreamClassColumns<DreamClass>[]
-  ): Promise<any[]> {
+  private async pluckWithoutMarshalling<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(this: T, ...fields: DreamClassColumns<DreamClass>[]): Promise<any[]> {
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
     const aliases: string[] = []
 
@@ -1047,17 +1059,16 @@ export default class Query<
     )
   }
 
-  public async pluck<T extends Query<DreamClass>>(
-    this: T,
-    ...fields: DreamClassColumns<DreamClass>[]
-  ): Promise<any[]> {
+  public async pluck<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(this: T, ...fields: DreamClassColumns<DreamClass>[]): Promise<any[]> {
     const vals = await this.pluckWithoutMarshalling(...fields)
     const mapFn = (val: any, index: number) => marshalDBValue(this.dreamClass, fields[index] as any, val)
     return this.pluckValuesToPluckResponse(fields, vals, mapFn)
   }
 
   public async pluckEach<
-    T extends Query<DreamClass>,
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
     TableName extends InstanceType<DreamClass>['table'],
     CB extends (plucked: any) => void | Promise<void>,
   >(
@@ -1111,7 +1122,9 @@ export default class Query<
     }
   }
 
-  public async all<T extends Query<DreamClass>>(this: T) {
+  public async all<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(this: T) {
     const kyselyQuery = this.buildSelect()
 
     const results = await executeDatabaseQuery(kyselyQuery, 'execute')
@@ -1125,28 +1138,36 @@ export default class Query<
     return theAll
   }
 
-  protected connection<T extends Query<DreamClass>>(
+  protected connection<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(
     this: T,
     connection: DbConnectionType
-  ): Query<DreamClass> {
+  ): Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType> {
     return this.clone({ connection })
   }
 
-  public async exists<T extends Query<DreamClass>>(this: T): Promise<boolean> {
+  public async exists<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(this: T): Promise<boolean> {
     // Implementing via `limit(1).all()`, rather than the simpler `!!(await this.first())`
     // because it avoids the step of finding the first. Just find any, and return
     // that one.
     return (await this.limit(1).all()).length > 0
   }
 
-  public async first<T extends Query<DreamClass>>(this: T) {
+  public async first<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(this: T) {
     const query = this.orderStatements.length
       ? this
       : this.order({ [this.dreamClass.primaryKey as any]: 'asc' } as any)
     return await query.takeOne()
   }
 
-  private async takeOne<T extends Query<DreamClass>>(this: T) {
+  private async takeOne<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(this: T) {
     const kyselyQuery = this.buildSelect()
     const results = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirst')
 
@@ -1234,7 +1255,7 @@ export default class Query<
 
   // Polymorphic BelongsTo. Preload by loading each target class separately.
   private async preloadPolymorphicBelongsTo(
-    this: Query<DreamClass>,
+    this: Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
     association: BelongsToStatement<any, any, any, string>,
     dreams: Dream[]
   ) {
@@ -1299,7 +1320,11 @@ export default class Query<
     return associatedDreams
   }
 
-  private async applyOnePreload(this: Query<DreamClass>, associationName: string, dreams: Dream | Dream[]) {
+  private async applyOnePreload(
+    this: Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+    associationName: string,
+    dreams: Dream | Dream[]
+  ) {
     if (!Array.isArray(dreams)) dreams = [dreams as Dream]
 
     const dream = dreams.find(dream => dream.getAssociation(associationName))!
@@ -1371,12 +1396,15 @@ export default class Query<
     return preloadedDreamsAndWhatTheyPointTo.map(obj => obj.dream)
   }
 
-  private async hydratePreload(this: Query<DreamClass>, dream: Dream) {
+  private async hydratePreload(
+    this: Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+    dream: Dream
+  ) {
     await this.applyPreload(this.preloadStatements as any, dream)
   }
 
   private async applyPreload(
-    this: Query<DreamClass>,
+    this: Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
     preloadStatement: RelaxedPreloadStatement,
     dream: Dream | Dream[]
   ) {
@@ -1388,7 +1416,9 @@ export default class Query<
     }
   }
 
-  public async last<T extends Query<DreamClass>>(this: T) {
+  public async last<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(this: T) {
     const query = this.orderStatements.length
       ? this.invertOrder()
       : this.order({ [this.dreamClass.primaryKey as any]: 'desc' } as any)
@@ -1396,7 +1426,9 @@ export default class Query<
     return await query.takeOne()
   }
 
-  public async destroy<T extends Query<DreamClass>>(this: T): Promise<number> {
+  public async destroy<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(this: T): Promise<number> {
     const deletionResult = (await executeDatabaseQuery(
       this.buildDelete(),
       'executeTakeFirst'
@@ -1404,10 +1436,9 @@ export default class Query<
     return Number(deletionResult?.numDeletedRows || 0)
   }
 
-  public async destroyBy<T extends Query<DreamClass>>(
-    this: T,
-    attributes: Updateable<InstanceType<DreamClass>['table']>
-  ) {
+  public async destroyBy<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(this: T, attributes: Updateable<InstanceType<DreamClass>['table']>) {
     const query = this.where(attributes as any)
 
     if (query.hasSimilarityClauses) {
@@ -1417,10 +1448,9 @@ export default class Query<
     return query.destroy()
   }
 
-  public async updateAll<T extends Query<DreamClass>>(
-    this: T,
-    attributes: DreamTableSchema<InstanceType<DreamClass>>
-  ) {
+  public async updateAll<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(this: T, attributes: DreamTableSchema<InstanceType<DreamClass>>) {
     if (this.baseSelectQuery) throw new NoUpdateAllOnAssociationQuery()
     if (Object.keys(this.joinsStatements).length) throw new NoUpdateAllOnJoins()
 
@@ -1430,11 +1460,13 @@ export default class Query<
     return Number((resultData as any)?.numUpdatedRows || 0)
   }
 
-  private conditionallyApplyScopes(this: Query<DreamClass>): Query<DreamClass> {
+  private conditionallyApplyScopes(
+    this: Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>
+  ): Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType> {
     if (this.bypassDefaultScopes) return this
 
     const thisScopes = this.dreamClass['scopes'].default
-    let query: Query<DreamClass> = this
+    let query: Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType> = this
     for (const scope of thisScopes) {
       query = (this.dreamClass as any)[scope.method](query)
     }
@@ -1445,7 +1477,9 @@ export default class Query<
   // Through associations don't get written into the SQL; they
   // locate the next association we need to build into the SQL
   // AND the source to reference on the other side
-  private joinsBridgeThroughAssociations<T extends Query<DreamClass>>(
+  private joinsBridgeThroughAssociations<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(
     this: T,
     {
       query,
@@ -1529,7 +1563,9 @@ export default class Query<
     }
   }
 
-  private applyOneJoin<T extends Query<DreamClass>>(
+  private applyOneJoin<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(
     this: T,
     {
       query,
@@ -1766,7 +1802,9 @@ export default class Query<
     }
 
     if (!this.bypassDefaultScopes) {
-      let scopesQuery = new Query<DreamClass>(this.dreamClass)
+      let scopesQuery = new Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>(
+        this.dreamClass
+      )
       const associationClass = association.modelCB() as any
       const associationScopes = associationClass.scopes.default
 
@@ -1803,7 +1841,9 @@ export default class Query<
     return `${tableNameOrAlias}.${association.distinct}`
   }
 
-  private recursivelyJoin<T extends Query<DreamClass>>(
+  private recursivelyJoin<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(
     this: T,
     {
       query,
@@ -1843,7 +1883,7 @@ export default class Query<
   }
 
   private applyWhereStatements<
-    T extends Query<DreamClass>,
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
     WS extends WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>,
   >(
     this: T,
@@ -1862,7 +1902,9 @@ export default class Query<
     return query
   }
 
-  private applyOrderStatementForAssociation<T extends Query<DreamClass>>(
+  private applyOrderStatementForAssociation<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(
     this: T,
     {
       query,
@@ -1892,7 +1934,9 @@ export default class Query<
     return query
   }
 
-  private applySingleWhereStatement<T extends Query<DreamClass>>(
+  private applySingleWhereStatement<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(
     this: T,
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
     whereStatement: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>,
@@ -1951,7 +1995,9 @@ export default class Query<
     return query
   }
 
-  private whereStatementsToExpressionWrappers<T extends Query<DreamClass>>(
+  private whereStatementsToExpressionWrappers<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(
     this: T,
     eb: ExpressionBuilder<any, any>,
     whereStatement: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>,
@@ -2021,7 +2067,9 @@ export default class Query<
     )
   }
 
-  private orStatementsToExpressionWrappers<T extends Query<DreamClass>>(
+  private orStatementsToExpressionWrappers<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(
     this: T,
     eb: ExpressionBuilder<any, any>,
     orStatement: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>
@@ -2203,7 +2251,9 @@ export default class Query<
     return query
   }
 
-  private buildCommon<T extends Query<DreamClass>>(this: T, kyselyQuery: any) {
+  private buildCommon<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(this: T, kyselyQuery: any) {
     this.checkForQueryViolations()
 
     let query = this.conditionallyApplyScopes()
@@ -2253,7 +2303,9 @@ export default class Query<
     return kyselyQuery
   }
 
-  private checkForQueryViolations<T extends Query<DreamClass>>(this: T) {
+  private checkForQueryViolations<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(this: T) {
     const invalidWhereNotClauses = this.similarityStatementBuilder().whereNotStatementsWithSimilarityClauses()
     if (invalidWhereNotClauses.length) {
       const { tableName, tableAlias, columnName, opsStatement } = invalidWhereNotClauses[0]
@@ -2291,9 +2343,9 @@ export default class Query<
     }, {} as any)
   }
 
-  private buildDelete<T extends Query<DreamClass>>(
-    this: T
-  ): DeleteQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
+  private buildDelete<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(this: T): DeleteQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}> {
     let kyselyQuery = this.dbFor('delete').deleteFrom(
       this.baseSqlAlias as unknown as AliasedExpression<any, any>
     )
@@ -2302,7 +2354,11 @@ export default class Query<
     return results.clone.buildCommon(results.kyselyQuery)
   }
 
-  private buildSelect<T extends Query<DreamClass>, DI extends InstanceType<DreamClass>, DB extends DI['DB']>(
+  private buildSelect<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+    DI extends InstanceType<DreamClass>,
+    DB extends DI['DB'],
+  >(
     this: T,
     {
       bypassSelectAll = false,
@@ -2355,7 +2411,9 @@ export default class Query<
     return kyselyQuery
   }
 
-  private buildUpdate<T extends Query<DreamClass>>(
+  private buildUpdate<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(
     this: T,
     attributes: Updateable<InstanceType<DreamClass>['table']>
   ): UpdateQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, any, {}> {
@@ -2370,7 +2428,7 @@ export default class Query<
   }
 
   private attachLimitAndOrderStatementsToNonSelectQuery<
-    T extends Query<DreamClass>,
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
     QueryType extends
       | UpdateQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, any, {}>
       | DeleteQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, {}>,
@@ -2394,7 +2452,9 @@ export default class Query<
     return (this as any).similarityStatementBuilder().hasSimilarityClauses
   }
 
-  private similarityStatementBuilder<T extends Query<DreamClass>>(this: T) {
+  private similarityStatementBuilder<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(this: T) {
     return new SimilarityBuilder(this.dreamClass, {
       where: [...this.whereStatements],
       whereNot: [...this.whereNotStatements],
@@ -2404,7 +2464,9 @@ export default class Query<
     })
   }
 
-  private conditionallyAttachSimilarityColumnsToSelect<T extends Query<DreamClass>>(
+  private conditionallyAttachSimilarityColumnsToSelect<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(
     this: T,
     kyselyQuery: SelectQueryBuilder<
       InstanceType<DreamClass>['DB'],
@@ -2421,7 +2483,9 @@ export default class Query<
     return kyselyQuery
   }
 
-  private conditionallyAttachSimilarityColumnsToUpdate<T extends Query<DreamClass>>(
+  private conditionallyAttachSimilarityColumnsToUpdate<
+    T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
+  >(
     this: T,
     kyselyQuery: UpdateQueryBuilder<
       InstanceType<DreamClass>['DB'],
