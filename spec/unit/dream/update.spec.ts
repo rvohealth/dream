@@ -117,6 +117,30 @@ describe('Dream#update', () => {
       expect(composition.user).toEqual(otherUser)
     })
 
+    context('when being set from a real value to undefined', () => {
+      it('does not update the value to null', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const pet = await Pet.create({ user })
+        await pet.update({ user: undefined })
+
+        expect(pet.userId).toEqual(user.id)
+        const reloadedPet = await Pet.find(pet.id)
+        expect(reloadedPet!.userId).toEqual(user.id)
+      })
+    })
+
+    context('when being set from a real value to null', () => {
+      it('updates the value to null', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const pet = await Pet.create({ user })
+        await pet.update({ userId: null })
+
+        expect(pet.userId).toBeNull()
+        const reloadedPet = await Pet.find(pet.id)
+        expect(reloadedPet!.userId).toBeNull()
+      })
+    })
+
     context('when the association being set has been loaded with a different model', () => {
       it('sets the reference to that model', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
