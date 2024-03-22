@@ -78,6 +78,18 @@ type AssociationDreamSelectable<
   >
 >
 
+export type WhereStatementForDreamClass<DreamClass extends typeof Dream> = WhereStatement<
+  InstanceType<DreamClass>['DB'],
+  InstanceType<DreamClass>['syncedAssociations'],
+  InstanceType<DreamClass>['table']
+>
+
+export type WhereStatementForDream<DreamInstance extends Dream> = WhereStatement<
+  DreamInstance['DB'],
+  DreamInstance['syncedAssociations'],
+  DreamInstance['table']
+>
+
 export type WhereStatement<
   DB extends any,
   SyncedAssociations extends any,

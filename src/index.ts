@@ -62,3 +62,4 @@ export { default as createGinIndex } from './db/migration-helpers/createGinIndex
 export { dreamDbConnections, closeAllDbConnections } from './db/dream-db-connection'
 export { default as validateColumn } from './db/validators/validateColumn'
 export { default as validateTable } from './db/validators/validateTable'
+export { WhereStatementForDream, WhereStatementForDreamClass } from './decorators/associations/shared'
