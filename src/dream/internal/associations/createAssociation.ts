@@ -1,6 +1,6 @@
 import Dream from '../../../dream'
 import DreamTransaction from '../../transaction'
-import { UpdateablePropertiesForAssociatedClass, UpdateablePropertiesForClass } from '../../types'
+import { UpdateableAssociationProperties, UpdateablePropertiesForClass } from '../../types'
 import { HasManyStatement } from '../../../decorators/associations/has-many'
 import { HasOneStatement } from '../../../decorators/associations/has-one'
 import { BelongsToStatement } from '../../../decorators/associations/belongs-to'
@@ -22,7 +22,7 @@ export default async function createAssociation<
   dream: DreamInstance,
   txn: DreamTransaction<Dream> | null = null,
   associationName: AssociationName,
-  opts: UpdateablePropertiesForAssociatedClass<DreamInstance, RestrictedAssociationType> = {} as any
+  opts: UpdateableAssociationProperties<DreamInstance, RestrictedAssociationType> = {} as any
 ): Promise<NonNullable<AssociationType>> {
   const association = dream.associationMap()[associationName as any] as
     | HasManyStatement<any, any, any, any>

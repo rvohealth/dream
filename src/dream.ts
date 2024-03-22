@@ -44,7 +44,7 @@ import {
   GreaterThanFive,
   GreaterThanSix,
   DreamClassColumns,
-  UpdateablePropertiesForAssociatedClass,
+  UpdateableAssociationProperties,
 } from './dream/types'
 import Query, { FindEachOpts } from './dream/query'
 import runValidations from './dream/internal/runValidations'
@@ -1581,7 +1581,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    opts: UpdateablePropertiesForAssociatedClass<I, RestrictedAssociationType> = {} as any
+    opts: UpdateableAssociationProperties<I, RestrictedAssociationType> = {} as any
   ): Promise<NonNullable<AssociationType>> {
     return createAssociation(this, null, associationName, opts)
   }

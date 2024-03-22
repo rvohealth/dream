@@ -17,7 +17,7 @@ import {
   GreaterThanSix,
   NextPreloadArgumentType,
   PreloadArgumentTypeAssociatedTableNames,
-  UpdateablePropertiesForAssociatedClass,
+  UpdateableAssociationProperties,
 } from './types'
 import associationQuery from './internal/associations/associationQuery'
 import associationUpdateQuery from './internal/associations/associationUpdateQuery'
@@ -311,7 +311,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    opts: UpdateablePropertiesForAssociatedClass<DreamInstance, RestrictedAssociationType> = {} as any
+    opts: UpdateableAssociationProperties<DreamInstance, RestrictedAssociationType> = {} as any
   ): Promise<NonNullable<AssociationType>> {
     return await createAssociation(this.dreamInstance, this.dreamTransaction, associationName, opts)
   }

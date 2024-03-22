@@ -59,7 +59,7 @@ export type UpdateablePropertiesForClass<
       : AssociatedModelParam<InstanceType<DreamClass>>)
 >
 
-export type UpdateablePropertiesForAssociatedClass<
+export type UpdateableAssociationProperties<
   DreamInstance extends Dream,
   AssociationClass extends Dream,
   AssociationTableName extends AssociationTableNames<
