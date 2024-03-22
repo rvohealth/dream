@@ -8,6 +8,7 @@ export {
   IdType,
   Timestamp,
   UpdateableProperties,
+  UpdateableAssociationProperties,
   DreamTableSchema,
   DreamColumn,
 } from './dream/types'

@@ -371,8 +371,9 @@ association: ${this.as}
       return (associationClass as any).primaryKey
     },
 
-    primaryKeyValue(associationInstance: Dream) {
-      if (!associationInstance) return undefined
+    primaryKeyValue(associationInstance: Dream | null) {
+      if (associationInstance === undefined) return undefined
+      if (associationInstance === null) return null
       return (associationInstance as any)[this.primaryKey(associationInstance)]
     },
   }

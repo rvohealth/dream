@@ -124,11 +124,10 @@ export default class Query<
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
   AllColumns extends DreamInstance['allColumns'] = DreamInstance['allColumns'],
-  ColumnType extends keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
-    ? unknown
-    : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] = keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
-    ? unknown
-    : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']],
+  ColumnType extends keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] &
+    string = keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
+    ? never
+    : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] & string,
 > extends ConnectedToDB<DreamClass> {
   public static readonly BATCH_SIZES = {
     FIND_EACH: 1000,
@@ -2516,11 +2515,10 @@ export default class Query<
 
 export interface QueryOpts<
   DreamClass extends typeof Dream,
-  ColumnType extends keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
-    ? unknown
-    : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] = keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
-    ? unknown
-    : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']],
+  ColumnType extends keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] &
+    string = keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
+    ? never
+    : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] & string,
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],

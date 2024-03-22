@@ -141,6 +141,18 @@ describe('Dream#update', () => {
       })
     })
 
+    context('when being set from a real value to a null association', () => {
+      it('updates the value to null', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const pet = await Pet.create({ user })
+        await pet.update({ user: null })
+
+        expect(pet.userId).toBeNull()
+        const reloadedPet = await Pet.find(pet.id)
+        expect(reloadedPet!.userId).toBeNull()
+      })
+    })
+
     context('when the association being set has been loaded with a different model', () => {
       it('sets the reference to that model', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })

@@ -445,8 +445,8 @@ export default class Dream {
     InstanceType<T>['syncedAssociations'],
     InstanceType<T>['allColumns'],
     keyof InstanceType<T>['DB'][keyof InstanceType<T>['DB']] extends never
-      ? unknown
-      : keyof InstanceType<T>['DB'][keyof InstanceType<T>['DB']]
+      ? never
+      : keyof InstanceType<T>['DB'][keyof InstanceType<T>['DB']] & string
   > {
     return new Query(this)
   }
@@ -1100,7 +1100,7 @@ export default class Dream {
         throw new CanOnlyPassBelongsToModelParam(this, associationMetaData)
       } else if (associationMetaData) {
         const belongsToAssociationMetaData = associationMetaData as BelongsToStatement<any, any, any, any>
-        const associatedObject = (attributes as any)[attr]
+        const associatedObject = (attributes as any)[attr] as Dream | null
 
         // if dream instance is passed, set the loaded association
         if (dreamInstance && associatedObject !== undefined) (dreamInstance as any)[attr] = associatedObject

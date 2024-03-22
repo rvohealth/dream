@@ -68,7 +68,7 @@ export interface BelongsToStatement<
   type: 'BelongsTo'
   as: string
   primaryKey: (associationInstance?: Dream) => keyof DB[TableName] & string
-  primaryKeyValue: (associationInstance: Dream) => any
+  primaryKeyValue: (associationInstance: Dream | null) => any
   primaryKeyOverride?: (keyof DB[TableName] & string) | null
   foreignKey: () => DreamColumn<BaseInstance> & string
   foreignKeyTypeField: () => DreamColumn<BaseInstance> & string
