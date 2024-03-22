@@ -11,7 +11,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('uuid', 'uuid', col =>
       col
         .notNull()
-        .defaultTo(sql`gen_random_uuid()`)
+        .defaultTo(sql`uuid_generate_v4()`)
         .unique()
     )
     .addColumn('name', 'varchar')
