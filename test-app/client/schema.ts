@@ -114,6 +114,8 @@ export interface Collar {
 export interface Composition {
   id: any
   metadata: any
+  localizedTexts: LocalizedTextBase[]
+  currentLocalizedText: LocalizedTextBase
 }
 
 export interface EdgeCaseAttribute {
@@ -136,6 +138,9 @@ export interface GraphNode {
   name: any
 }
 
+export interface LocalizedTextBase {
+}
+
 export interface Pet {
   id: string
   name: string
@@ -144,6 +149,15 @@ export interface Pet {
 }
 
 export interface PetUnderstudyJoinModel {
+  pet: Pet
+  understudy: Pet
+}
+
+export interface Post {
+  postVisibility: PostVisibility
+}
+
+export interface PostVisibility {
   pet: Pet
   understudy: Pet
 }

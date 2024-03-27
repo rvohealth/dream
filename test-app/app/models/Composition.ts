@@ -16,10 +16,15 @@ import User from './User'
 import HeartRating from './ExtraRating/HeartRating'
 import ApplicationModel from './ApplicationModel'
 import LocalizedText from './LocalizedText'
+import CompositionSerializer from '../serializers/CompositionSerializer'
 
 export default class Composition extends ApplicationModel {
   public get table() {
     return 'compositions' as const
+  }
+
+  public get serializer() {
+    return CompositionSerializer
   }
 
   public id: IdType

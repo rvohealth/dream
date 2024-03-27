@@ -14,8 +14,12 @@ import FailedToRenderThroughAssociationForSerializer from '../exceptions/seriali
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
   public static attributeStatements: AttributeStatement[] = []
   public static associationStatements: AssociationStatement[] = []
+  public static readonly isDreamSerializer = true
+
   private _data: DataType
   private _casing: 'snake' | 'camel' | null = null
+  public readonly isDreamSerializerInstance = true
+
   constructor(data: DataType) {
     this._data = data
 

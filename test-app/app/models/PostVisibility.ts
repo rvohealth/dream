@@ -4,10 +4,15 @@ import HasOne from '../../../src/decorators/associations/has-one'
 import { IdType } from '../../../src/dream/types'
 import Post from './Post'
 import ApplicationModel from './ApplicationModel'
+import { PostVisibilitySerializer } from '../serializers/PostVisibilitySerializer'
 
 export default class PostVisibility extends ApplicationModel {
   public get table() {
     return 'post_visibilities' as const
+  }
+
+  public get serializer() {
+    return PostVisibilitySerializer<any>
   }
 
   public id: IdType

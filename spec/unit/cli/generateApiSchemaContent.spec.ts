@@ -70,10 +70,46 @@ export interface GraphNode {
     })
   })
 
+  it('renders valid serializer even when serializer is not exported default', async () => {
+    const file = await generateApiSchemaContent()
+    expect(file).toContain(`\
+export interface PostVisibility {
+  pet: Pet
+  understudy: Pet
+}`)
+  })
+
   context('associations', () => {
     it('ignores invalid associations', async () => {
       const file = await generateApiSchemaContent()
       expect(file).not.toContain('gobbledeegook')
+    })
+
+    it('renders valid associations even when serializers are not exported default', async () => {
+      const file = await generateApiSchemaContent()
+      expect(file).toContain(`\
+export interface Post {
+  postVisibility: PostVisibility
+}`)
+    })
+
+    it('allows passing of serializer path and export to override default path/export expectations', async () => {
+      const file = await generateApiSchemaContent()
+      expect(file).toContain(`\
+export interface Composition {
+  id: any
+  metadata: any
+  localizedTexts: LocalizedTextBase[]
+  currentLocalizedText: LocalizedTextBase
+}`)
+    })
+
+    context('given a serializer which is not exported as default, nor as the name of the file', () => {
+      it('still catalogues serializer, but does not include non-serializers exported from the same file', async () => {
+        const file = await generateApiSchemaContent()
+        expect(file).toContain('export interface LocalizedTextBase')
+        expect(file).not.toContain('thisFunctionShouldNotBePartOfClientApiExport')
+      })
     })
 
     context('RendersOne', () => {

@@ -1,6 +1,9 @@
+import { RendersMany, RendersOne } from '../../../src'
 import DreamSerializer from '../../../src/serializer'
 import Attribute from '../../../src/serializer/decorators/attribute'
 import { CompositionMetadata } from '../models/Composition'
+import LocalizedText from '../models/LocalizedText'
+import { LocalizedTextBaseSerializer } from './LocalizedText/BaseSerializer'
 
 export default class CompositionSerializer extends DreamSerializer {
   @Attribute()
@@ -8,4 +11,16 @@ export default class CompositionSerializer extends DreamSerializer {
 
   @Attribute('json')
   public metadata: CompositionMetadata
+
+  @RendersMany(() => LocalizedTextBaseSerializer<any>, {
+    path: 'LocalizedText/BaseSerializer',
+    exportedAs: 'LocalizedTextBaseSerializer',
+  })
+  public localizedTexts: LocalizedText[]
+
+  @RendersOne(() => LocalizedTextBaseSerializer<any>, {
+    path: 'LocalizedText/BaseSerializer',
+    exportedAs: 'LocalizedTextBaseSerializer',
+  })
+  public currentLocalizedText: LocalizedText
 }

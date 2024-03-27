@@ -5,6 +5,7 @@ import { SerializableTypes } from '../../serializer/decorators/attribute'
 import { modelsPath, schemaPath } from '../path'
 import { AssociationStatement } from '../../serializer/decorators/associations/shared'
 import Dream from '../../dream'
+import path from 'node:path'
 
 export default async function generateApiSchemaContent() {
   const serializersBasePath = await serializersPath()
@@ -14,31 +15,37 @@ export default async function generateApiSchemaContent() {
   let file = await renderExportedTypeDeclarations()
 
   for (const serializerFile of serializerFiles) {
-    const serializer = (await import(serializerFile)).default as typeof DreamSerializer
-    const attributes = serializer.attributeStatements
-    const finalAttributes: string[] = []
+    const serializers = await loadSerializerFromPath(serializerFile, null)
+    for (const serializer of serializers) {
+      if (!serializer?.isDreamSerializer) continue
 
-    for (const attr of attributes) {
-      finalAttributes.push(`\n  ${attr.field}: ${renderAsToType(attr.renderAs as any, schema) || 'any'}`)
-    }
+      const attributes = serializer.attributeStatements
+      const finalAttributesHash: any = {}
 
-    for (const association of serializer.associationStatements) {
-      const associatedSerializer = await loadAssociatedSerializer(serializerFile, association)
-      const expectedType = associatedSerializer?.name?.replace(/Serializer$/, '')
-
-      if (expectedType) {
-        finalAttributes.push(
-          `\n  ${association.field}: ${expectedType}${association.type === 'RendersMany' ? '[]' : ''}`
-        )
+      for (const attr of attributes) {
+        finalAttributesHash[attr.field] =
+          `\n  ${attr.field}: ${renderAsToType(attr.renderAs as any, schema) || 'any'}`
       }
-    }
+      const finalAttributes: string[] = Object.values(finalAttributesHash)
 
-    const typeStr = `\
+      for (const association of serializer.associationStatements) {
+        const associatedSerializer = await loadAssociatedSerializer(serializerFile, association)
+        const expectedType = associatedSerializer?.name?.replace(/Serializer$/, '')
+
+        if (expectedType) {
+          finalAttributes.push(
+            `\n  ${association.field}: ${expectedType}${association.type === 'RendersMany' ? '[]' : ''}`
+          )
+        }
+      }
+
+      const typeStr = `\
 export interface ${serializer.name.replace(/Serializer$/, '')} {${finalAttributes.join('')}
 }
 
 `
-    file += typeStr
+      file += typeStr
+    }
   }
 
   return file
@@ -87,16 +94,28 @@ function renderAsToType(renderAs: SerializableTypes, schema: any) {
 
 async function loadAssociatedSerializer(serializerPath: string, association: AssociationStatement) {
   if (association.serializerClassCB) {
-    return association.serializerClassCB()
+    const serializersBasePath = await serializersPath()
+
+    const pathToSerializer = association.path || association.serializerClassCB().name
+    const exportedAs = association.exportedAs || null
+    const expectedPath = path.join(serializersBasePath, pathToSerializer)
+    const serializer = await loadSerializerFromPath(expectedPath, exportedAs)
+
+    return serializer[0]
   }
 
   const expectedDreamModelPath = serializerPath
     .replace(new RegExp(await serializersPath()), await modelsPath())
     .replace(/Serializer\.ts$/, '.ts')
 
-  const dreamClass = (await import(expectedDreamModelPath))?.default as typeof Dream
-  if (!dreamClass) return null
+  let dreamClass: undefined | typeof Dream = undefined
 
+  try {
+    dreamClass = (await import(expectedDreamModelPath))?.default as typeof Dream
+    if (!dreamClass) return null
+  } catch (_) {}
+
+  if (!dreamClass) return null
   const associationMetadata = dreamClass.associationMap()[association.field]
 
   if (!associationMetadata) return null
@@ -107,7 +126,7 @@ async function loadAssociatedSerializer(serializerPath: string, association: Ass
     // TODO: find best approach to handling polymorphic associations on serializer
     return null
   } else {
-    const serializerClass = associationDreamClass.prototype.serializer
+    const serializerClass = associationDreamClass?.prototype?.serializer
     return serializerClass || null
   }
 
@@ -119,4 +138,23 @@ async function loadSchema() {
   if (_schema) return _schema
   _schema = await import(await schemaPath())
   return _schema
+}
+
+async function loadSerializerFromPath(
+  serializerPath: string,
+  exportedAs: string | null
+): Promise<(typeof DreamSerializer)[]> {
+  try {
+    const importedFile = await import(serializerPath)
+
+    if (exportedAs) {
+      return [importedFile[exportedAs] as typeof DreamSerializer]
+    } else {
+      return Object.values(importedFile).filter(
+        value => (value as any)?.isDreamSerializer
+      ) as (typeof DreamSerializer)[]
+    }
+  } catch (err) {
+    return []
+  }
 }
