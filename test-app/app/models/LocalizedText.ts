@@ -5,10 +5,15 @@ import { IdType } from '../../../src/dream/types'
 import Composition from './Composition'
 import CompositionAsset from './CompositionAsset'
 import { LocalesEnum, LocalizableTypesEnum } from '../../db/schema'
+import { LocalizedTextBaseSerializer } from '../serializers/LocalizedText/BaseSerializer'
 
 export default class LocalizedText extends ApplicationModel {
   public get table() {
     return 'localized_texts' as const
+  }
+
+  public get serializer() {
+    return LocalizedTextBaseSerializer<any>
   }
 
   public id: IdType

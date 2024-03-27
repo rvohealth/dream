@@ -10,10 +10,15 @@ import User from './User'
 import HeartRating from './ExtraRating/HeartRating'
 import ApplicationModel from './ApplicationModel'
 import Sortable from '../../../src/decorators/sortable'
+import PostSerializer from '../serializers/PostSerializer'
 
 export default class Post extends ApplicationModel {
   public get table() {
     return 'posts' as const
+  }
+
+  public get serializer() {
+    return PostSerializer<any>
   }
 
   public id: IdType

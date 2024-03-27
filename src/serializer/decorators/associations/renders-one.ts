@@ -1,6 +1,5 @@
 import DreamSerializer from '../..'
-import { DreamConst } from '../../../dream/types'
-import { AssociationStatement, DreamSerializerClassCB } from './shared'
+import { AssociationStatement, DreamSerializerClassCB, RendersOneOrManyOpts } from './shared'
 
 export default function RendersOne(
   serializerClassCB: DreamSerializerClassCB | RendersOneOpts | null = null,
@@ -28,14 +27,13 @@ export default function RendersOne(
         serializerClassCB,
         source: opts.source || key,
         through: opts.through || null,
+        path: opts.path || null,
+        exportedAs: opts.exportedAs || null,
       } as AssociationStatement,
     ]
   }
 }
 
-export interface RendersOneOpts {
+export interface RendersOneOpts extends RendersOneOrManyOpts {
   flatten?: boolean
-  optional?: boolean
-  source?: string | typeof DreamConst.passthrough
-  through?: string
 }
