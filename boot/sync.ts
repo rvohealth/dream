@@ -26,18 +26,12 @@ async function writeSchema() {
   const dbConf = await new ConnectionConfRetriever().getConnectionConf('primary')
 
   const updirsToDreamRoot = shouldOmitDistFolder() ? ['..'] : ['..', '..']
-  let absoluteSchemaPath = path.join(__dirname, ...updirsToDreamRoot, yamlConf.schema_path)
-  let absoluteSchemaWritePath = path.join(
-    __dirname,
-    ...updirsToDreamRoot,
-    '..',
-    '..',
-    '..',
-    yamlConf.schema_path
-  )
+  const schemaPath = path.join(yamlConf.db_path, 'schema.ts')
+  let absoluteSchemaPath = path.join(__dirname, ...updirsToDreamRoot, schemaPath)
+  let absoluteSchemaWritePath = path.join(__dirname, ...updirsToDreamRoot, '..', '..', '..', schemaPath)
   if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-    absoluteSchemaWritePath = path.join(__dirname, '..', yamlConf.schema_path)
-    absoluteSchemaPath = path.join(__dirname, '..', yamlConf.schema_path)
+    absoluteSchemaWritePath = path.join(__dirname, '..', schemaPath)
+    absoluteSchemaPath = path.join(__dirname, '..', schemaPath)
   }
 
   await sspawn(
