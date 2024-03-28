@@ -4,7 +4,7 @@ export interface DreamYamlFile {
   associations_path: string
   client_api_schema_path: string
   conf_path: string
-  migrations_path: string
+  db_path: string
   schema_path: string
   db_config_path: string
   db_seed_path: string
