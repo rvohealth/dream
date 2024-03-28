@@ -1,4 +1,3 @@
-import { DbConfig } from './types'
 import dreamconfPath from './dreamconfPath'
 import Dreamconf from '../../dreamconf'
 

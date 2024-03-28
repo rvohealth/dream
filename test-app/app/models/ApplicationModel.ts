@@ -6,7 +6,7 @@ import SyncedAssociationsVal, {
   VirtualColumns,
 } from '../../db/associations'
 import Dreamconf, { AssociationDepths } from '../../../shared/dreamconf'
-import dreamconf from '../../conf/dreamconf'
+import dreamconf from '../conf/dreamconf'
 
 export default class ApplicationModel extends Dream {
   public get maxAssociationTypeDepth() {

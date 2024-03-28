@@ -6,7 +6,7 @@ import CannotJoinPolymorphicBelongsToError from '../../../../src/exceptions/asso
 import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating'
 import { sql } from 'kysely'
 import db from '../../../../src/db'
-import dreamconf from '../../../../test-app/conf/dreamconf'
+import dreamconf from '../../../../test-app/app/conf/dreamconf'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal'
