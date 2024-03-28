@@ -1,8 +1,8 @@
 import repl from 'node:repl'
 import fs from 'fs/promises'
 import path from 'path'
-import { modelsPath } from '../../src/helpers/path'
-import importFileWithDefault from '../../src/helpers/importFileWithDefault'
+import { modelsPath } from '../../../src/helpers/path'
+import importFileWithDefault from '../../../src/helpers/importFileWithDefault'
 
 const replServer = repl.start('> ')
 export default (async function () {

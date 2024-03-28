@@ -1,10 +1,10 @@
-import Dreamconf from '../../shared/dreamconf'
+import Dreamconf from '../../../shared/dreamconf'
 import SyncedAssociationsVal, {
   SyncedAssociations,
   SyncedBelongsToAssociations,
   VirtualColumns,
-} from '../db/associations'
-import { DBClass, DBColumns, DBTypeCache, InterpretedDBClass } from '../db/schema'
+} from '../../db/associations'
+import { DBClass, DBColumns, DBTypeCache, InterpretedDBClass } from '../../db/schema'
 
 const env = {
   db: {

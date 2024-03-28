@@ -4,7 +4,7 @@ import Post from '../../../../test-app/app/models/Post'
 import Rating from '../../../../test-app/app/models/Rating'
 import User from '../../../../test-app/app/models/User'
 import db from '../../../../src/db'
-import dreamconf from '../../../../test-app/conf/dreamconf'
+import dreamconf from '../../../../test-app/app/conf/dreamconf'
 
 describe('BelongsTo setters', () => {
   it('the getter is updated to the new model', async () => {

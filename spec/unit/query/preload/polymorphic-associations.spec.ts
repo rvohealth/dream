@@ -1,6 +1,6 @@
 import { sql } from 'kysely'
 import db from '../../../../src/db'
-import dreamconf from '../../../../test-app/conf/dreamconf'
+import dreamconf from '../../../../test-app/app/conf/dreamconf'
 import User from '../../../../test-app/app/models/User'
 import Composition from '../../../../test-app/app/models/Composition'
 import Post from '../../../../test-app/app/models/Post'
