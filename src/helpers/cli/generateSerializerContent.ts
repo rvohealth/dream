@@ -48,9 +48,10 @@ export default async function generateSerializerContent(
   })
 
   if (!!enumImports.length) {
+    const schemaPath = path.join(yamlConf.db_path, 'schema.ts')
     const relativePath = path.join(
       await relativePathToSrcRoot(fullyQualifiedSerializerName),
-      yamlConf.schema_path.replace(/\.ts$/, '')
+      schemaPath.replace(/\.ts$/, '')
     )
     const enumImport = `import { ${enumImports.join(', ')} } from '${relativePath}'`
     additionalImports.push(enumImport)

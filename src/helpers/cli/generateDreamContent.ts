@@ -123,10 +123,8 @@ public ${camelize(attributeName)}: ${getAttributeType(attribute)}\
 
   const yamlConf = await loadDreamYamlFile()
   if (!!enumImports.length) {
-    const relativePath = path.join(
-      await relativePathToSrcRoot(modelName),
-      yamlConf.schema_path.replace(/\.ts$/, '')
-    )
+    const schemaPath = path.join(yamlConf.db_path, 'schema.ts')
+    const relativePath = path.join(await relativePathToSrcRoot(modelName), schemaPath.replace(/\.ts$/, ''))
     const enumImport = `import { ${enumImports.join(', ')} } from '${relativePath}'`
     additionalImports.push(enumImport)
   }
