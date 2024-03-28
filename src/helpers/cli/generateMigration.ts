@@ -1,3 +1,4 @@
+import path from 'path'
 import fs from 'fs/promises'
 import migrationVersion from '../migrationVersion'
 import hyphenize from '../hyphenize'
@@ -14,7 +15,7 @@ export default async function generateMigration(
   } = {}
 ) {
   const yamlConf = await loadDreamYamlFile()
-  const migrationBasePath = absoluteFilePath(yamlConf.migrations_path)
+  const migrationBasePath = absoluteFilePath(path.join(yamlConf.db_path, 'migrations'))
   const version = migrationVersion()
   const migrationFilename = `${hyphenize(migrationName)}`
   const versionedMigrationFilename = `${version}-${migrationFilename}`

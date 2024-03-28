@@ -75,7 +75,7 @@ export default async function generateDream(
   const version = migrationVersion()
   const migrationPath = `${migrationBasePath}/${version}-create-${pluralize(hyphenize(dreamName))}.ts`
   const relativeMigrationPath = migrationPath.replace(
-    new RegExp(`^.*${ymlConfig.migrations_path}`),
+    new RegExp(`^.*${path.join(ymlConfig.db_path, 'migrations')}`),
     ymlConfig.migrations_path
   )
 
