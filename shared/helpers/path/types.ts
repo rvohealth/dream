@@ -1,7 +1,6 @@
 export interface DreamYamlFile {
   models_path: string
   serializers_path: string
-  associations_path: string
   client_api_schema_path: string
   conf_path: string
   db_path: string
