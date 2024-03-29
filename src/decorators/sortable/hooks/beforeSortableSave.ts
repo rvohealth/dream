@@ -1,6 +1,8 @@
 import Dream from '../../../dream'
 import Query from '../../../dream/query'
+import getColumnForSortableScope from '../helpers/getColumnForSortableScope'
 import positionIsInvalid from '../helpers/positionIsInvalid'
+import scopeArray from '../helpers/scopeArray'
 import sortableCacheKeyName from '../helpers/sortableCacheKeyName'
 import sortableCacheValuesName from '../helpers/sortableCacheValuesName'
 
@@ -18,16 +20,27 @@ export default async function beforeSortableSave({
   const cacheKey = sortableCacheKeyName(positionField)
   const cachedValuesName = sortableCacheValuesName(positionField)
 
-  if (!dream.willSaveChangeToAttribute(positionField)) return
+  const savingChangeToScopeField = scopeArray(scope).filter(
+    scopeField =>
+      (!dream.getAssociation(scopeField) && dream.willSaveChangeToAttribute(scopeField as any)) ||
+      (dream.getAssociation(scopeField) &&
+        Object.keys(dream.changedAttributes()).includes(dream.getAssociation(scopeField)!.foreignKey()))
+  ).length
+
+  if (!dream.willSaveChangeToAttribute(positionField) && !savingChangeToScopeField) return
 
   const position = (dream as any)[positionField]
 
   if (await positionIsInvalid({ query, dream: dream, scope, position })) {
-    if (dream.isPersisted) {
-      ;(dream as any)[positionField] = undefined
-      return
-    } else {
+    if (savingChangeToScopeField) {
       ;(dream as any)[cacheKey] = dream.changes()[positionField]?.was
+    } else {
+      if (dream.isPersisted) {
+        ;(dream as any)[positionField] = undefined
+        return
+      } else {
+        ;(dream as any)[cacheKey] = dream.changes()[positionField]?.was
+      }
     }
   } else {
     ;(dream as any)[cacheKey] = position
