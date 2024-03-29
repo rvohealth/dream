@@ -55,6 +55,7 @@ export { default as RendersMany } from './serializer/decorators/associations/ren
 export { default as Attribute } from './serializer/decorators/attribute'
 export { default as range, Range } from './helpers/range'
 export { default as developmentOrTestEnv } from './helpers/developmentOrTestEnv'
+export { default as testEnv } from './helpers/testEnv'
 export { default as Benchmark } from '../shared/helpers/benchmark'
 export { default as debug } from '../shared/helpers/debug'
 export { default as loadModels } from './helpers/loadModels'
