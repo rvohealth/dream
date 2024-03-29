@@ -7,6 +7,9 @@ import { Inc } from '../helpers/typeutils'
 import { AssociatedModelParam, WhereStatement } from '../decorators/associations/shared'
 import OpsStatement from '../ops/ops-statement'
 
+export const primaryKeyTypes = ['bigserial', 'bigint', 'uuid', 'integer'] as const
+export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
+
 export type IdType = string | number | bigint | undefined
 export type Timestamp = ColumnType<DateTime>
 

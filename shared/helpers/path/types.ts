@@ -1,3 +1,5 @@
+import { PrimaryKeyType } from '../../../src/dream/types'
+
 export interface DreamYamlFile {
   models_path: string
   serializers_path: string
@@ -5,6 +7,7 @@ export interface DreamYamlFile {
   conf_path: string
   db_path: string
   unit_spec_path: string
+  primary_key_type: PrimaryKeyType
 }
 
 export interface DreamConfig {

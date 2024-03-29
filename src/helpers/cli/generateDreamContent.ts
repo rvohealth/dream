@@ -5,8 +5,8 @@ import camelize from '../../../shared/helpers/camelize'
 import snakeify from '../../../shared/helpers/snakeify'
 import uniq from '../uniq'
 import { loadDreamYamlFile } from '../path'
-import confPath from '../../../shared/helpers/path/confPath'
 import initializeDream from '../../../shared/helpers/initializeDream'
+import { PrimaryKeyType } from '../../dream/types'
 
 const cooercedTypes = {
   bigint: 'string',
@@ -54,15 +54,7 @@ const cooercedTypes = {
   xml: 'string',
 }
 
-export default async function generateDreamContent(
-  modelName: string,
-  attributes: string[],
-  {
-    useUUID = false,
-  }: {
-    useUUID?: boolean
-  } = {}
-) {
+export default async function generateDreamContent(modelName: string, attributes: string[]) {
   await initializeDream()
 
   const dreamImports: string[] = ['Dream', 'IdType']

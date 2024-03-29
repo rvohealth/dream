@@ -5,6 +5,7 @@ import hyphenize from '../hyphenize'
 import generateMigrationContent from '../cli/generateMigrationContent'
 import absoluteFilePath from '../absoluteFilePath'
 import { loadDreamYamlFile } from '../path'
+import primaryKeyType from '../db/primaryKeyType'
 
 export default async function generateMigration(
   migrationName: string,
@@ -24,7 +25,10 @@ export default async function generateMigration(
 
   try {
     console.log(`generating migration: ${migrationPath}`)
-    await thisfs.writeFile(migrationPath, generateMigrationContent())
+    await thisfs.writeFile(
+      migrationPath,
+      generateMigrationContent({ primaryKeyType: await primaryKeyType() })
+    )
   } catch (error) {
     const err = `
       Something happened while trying to create the migration file:
