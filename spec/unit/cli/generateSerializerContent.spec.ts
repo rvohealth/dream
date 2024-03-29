@@ -161,6 +161,60 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
         })
       })
 
+      context('one of those attributes is an integer', () => {
+        it('adds a number attribute, rounded to the precision of the decimal', async () => {
+          const res = await generateSerializerContent('UserSerializer', 'User', ['howyadoin:integer'])
+
+          expect(res).toEqual(
+            `\
+import { DreamSerializer, Attribute } from '@rvohealth/dream'
+import User from '../models/User'
+
+export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+  @Attribute('number')
+  public howyadoin: number
+}\
+`
+          )
+        })
+      })
+
+      context('one of those attributes is a bigint', () => {
+        it('adds a number attribute, rounded to the precision of the decimal', async () => {
+          const res = await generateSerializerContent('UserSerializer', 'User', ['howyadoin:bigint'])
+
+          expect(res).toEqual(
+            `\
+import { DreamSerializer, Attribute } from '@rvohealth/dream'
+import User from '../models/User'
+
+export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+  @Attribute('string')
+  public howyadoin: string
+}\
+`
+          )
+        })
+      })
+
+      context('one of those attributes is a uuid', () => {
+        it('adds a number attribute, rounded to the precision of the decimal', async () => {
+          const res = await generateSerializerContent('UserSerializer', 'User', ['howyadoin:uuid'])
+
+          expect(res).toEqual(
+            `\
+import { DreamSerializer, Attribute } from '@rvohealth/dream'
+import User from '../models/User'
+
+export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+  @Attribute('string')
+  public howyadoin: string
+}\
+`
+          )
+        })
+      })
+
       context('one of those attributes is a datetime', () => {
         it('adds a DateTime type to the field', async () => {
           const res = await generateSerializerContent('UserSerializer', 'User', ['logged_in_at:datetime'])
