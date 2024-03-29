@@ -11,6 +11,7 @@ export {
   UpdateableAssociationProperties,
   DreamTableSchema,
   DreamColumn,
+  PrimaryKeyType,
 } from './dream/types'
 export { default as ops } from './ops'
 export { default as BelongsTo } from './decorators/associations/belongs-to'
