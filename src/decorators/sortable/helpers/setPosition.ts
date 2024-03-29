@@ -1,4 +1,4 @@
-import { ExpressionBuilder, Kysely } from 'kysely'
+import { ExpressionBuilder, Kysely, UpdateQueryBuilder } from 'kysely'
 import db from '../../../db'
 import Dream from '../../../dream'
 import Query from '../../../dream/query'
@@ -207,12 +207,7 @@ async function updateConflictingRecords({
       }
     })
 
-  for (const singleScope of scopeArray(scope)) {
-    const column = getColumnForSortableScope(dream, singleScope)
-    if (column) {
-      kyselyQuery = kyselyQuery.where(column, '=', (dream as any)[column])
-    }
-  }
+  kyselyQuery = applyScopesToQuery(dream, kyselyQuery, column => (dream as any)[column], scope)
 
   await kyselyQuery.execute()
 }
@@ -245,13 +240,12 @@ async function updatePreviousScope({
         dream.savedChangeToAttribute(dream.getAssociation(scopeField)!.foreignKey()))
   ).length
 
-  if (dream.changes().id && dream.changes().id?.was === undefined) return
+  if (dream.changes()[dream.primaryKey] && dream.changes()[dream.primaryKey]!.was === undefined) return
   if (!savingChangeToScopeField) return
 
   let kyselyQuery = query
     .txn(txn)
     .whereNot({ [dream.primaryKey]: dream.primaryKeyValue as any })
-    .order({ position: 'asc' })
     .where({
       [positionField]: ops.greaterThan(position),
     })
@@ -263,14 +257,30 @@ async function updatePreviousScope({
     })
 
   const changes = dream.changes()
+  kyselyQuery = applyScopesToQuery(
+    dream,
+    kyselyQuery,
+    column => changes[column as any]?.was || (dream as any)[column],
+    scope
+  )
+
+  await kyselyQuery.execute()
+}
+
+function applyScopesToQuery(
+  dream: Dream,
+  kyselyQuery: UpdateQueryBuilder<any, string, string, any>,
+  whereValueCB: (column: string) => any,
+  scope?: string | string[]
+) {
   for (const singleScope of scopeArray(scope)) {
     const column = getColumnForSortableScope(dream, singleScope)
     if (column) {
-      kyselyQuery = kyselyQuery.where(column, '=', changes[column as any]?.was || (dream as any)[column])
+      kyselyQuery = kyselyQuery.where(column, '=', whereValueCB(column))
     }
   }
 
-  await kyselyQuery.execute()
+  return kyselyQuery
 }
 
 async function updatePositionForRecord(

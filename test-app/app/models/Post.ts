@@ -9,7 +9,6 @@ import Rating from './Rating'
 import User from './User'
 import HeartRating from './ExtraRating/HeartRating'
 import ApplicationModel from './ApplicationModel'
-import Sortable from '../../../src/decorators/sortable'
 import PostSerializer from '../serializers/PostSerializer'
 
 export default class Post extends ApplicationModel {
@@ -24,7 +23,7 @@ export default class Post extends ApplicationModel {
   public id: IdType
   public deletedAt: DateTime
 
-  @Sortable({ scope: 'user' })
+  @Post.Sortable({ scope: 'user' })
   public position: number
 
   public body: string | null

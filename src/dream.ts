@@ -45,6 +45,7 @@ import {
   GreaterThanSix,
   DreamClassColumns,
   UpdateableAssociationProperties,
+  DreamColumn,
 } from './dream/types'
 import Query, { FindEachOpts } from './dream/query'
 import runValidations from './dream/internal/runValidations'
@@ -71,7 +72,7 @@ import { DbConnectionType } from './db/types'
 import MissingDB from './exceptions/missing-db'
 import Dreamconf, { AssociationDepths } from '../shared/dreamconf'
 import resortAllRecords from './decorators/sortable/helpers/resortAllRecords'
-import { SortableFieldConfig } from './decorators/sortable'
+import Sortable, { SortableFieldConfig } from './decorators/sortable'
 import NonExistentScopeProvidedToResort from './exceptions/non-existent-scope-provided-to-resort'
 import cloneDeepSafe from './helpers/cloneDeepSafe'
 import NonLoadedAssociation from './exceptions/associations/non-loaded-association'
@@ -187,6 +188,23 @@ export default class Dream {
     options: HasOneOptions<InstanceType<T>, AssociationDreamClass> = {}
   ) {
     return HasOne<InstanceType<T>, AssociationDreamClass>(modelCB, options)
+  }
+
+  public static Sortable<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
+    this: T,
+    {
+      scope,
+    }: {
+      scope:
+        | keyof InstanceType<T>['dreamconf']['syncedBelongsToAssociations'][InstanceType<T>['table']]
+        | DreamColumn<InstanceType<T>>
+        | (
+            | keyof InstanceType<T>['dreamconf']['syncedBelongsToAssociations'][InstanceType<T>['table']]
+            | DreamColumn<InstanceType<T>>
+          )[]
+    }
+  ) {
+    return Sortable({ scope: scope as any })
   }
 
   public static async globalName<T extends typeof Dream>(this: T): Promise<any> {

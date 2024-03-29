@@ -7,7 +7,6 @@ import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
 import Scope from '../../../src/decorators/scope'
 import Query from '../../../src/dream/query'
-import { Sortable } from '../../../src'
 
 export default class Collar extends ApplicationModel {
   public get table() {
@@ -24,7 +23,7 @@ export default class Collar extends ApplicationModel {
   public createdAt: DateTime
   public updatedAt: DateTime
 
-  @Sortable({ scope: ['pet', 'tagName'] })
+  @Collar.Sortable({ scope: ['pet', 'tagName'] })
   public position: number
 
   @BelongsTo(() => Pet)

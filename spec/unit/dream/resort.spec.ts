@@ -8,6 +8,8 @@ import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
 import User from '../../../test-app/app/models/User'
 import Balloon from '../../../test-app/app/models/Balloon'
+import Pet from '../../../test-app/app/models/Pet'
+import Collar from '../../../test-app/app/models/Collar'
 
 describe('Dream#resort', () => {
   let edge1: Edge
@@ -123,6 +125,52 @@ describe('Dream#resort', () => {
       expect((await balloon4.reload()).positionAlpha).toEqual(3)
       expect((await balloon1.reload()).positionAlpha).toEqual(4)
       expect((await unrelatedBalloon.reload()).positionAlpha).toEqual(1)
+    })
+  })
+
+  context('when part of the scope is pointing to a column', () => {
+    let pet: Pet
+    let pet2: Pet
+    let collar1: Collar
+    let collar2: Collar
+    let collar3: Collar
+    let collar4: Collar
+    beforeEach(async () => {
+      pet = await Pet.create()
+      pet2 = await Pet.create()
+      collar1 = await Collar.create({ tagName: 'hello', pet })
+      collar2 = await Collar.create({ tagName: 'hello', pet })
+      collar3 = await Collar.create({ tagName: 'goodbye', pet })
+      collar4 = await Collar.create({ tagName: 'goodbye', pet })
+    })
+
+    it('correctly resorts among multiple scopes', async () => {
+      await Collar.where({ id: collar1.id }).updateAll({ position: 10 })
+      await Collar.where({ id: collar2.id }).updateAll({ position: 20 })
+      await Collar.where({ id: collar3.id }).updateAll({ position: 30 })
+      await Collar.where({ id: collar4.id }).updateAll({ position: 40 })
+
+      await collar1.reload()
+      await collar2.reload()
+      await collar3.reload()
+      await collar4.reload()
+
+      expect(collar1.position).toEqual(10)
+      expect(collar2.position).toEqual(20)
+      expect(collar3.position).toEqual(30)
+      expect(collar4.position).toEqual(40)
+
+      await Collar.resort('position')
+
+      await collar1.reload()
+      await collar2.reload()
+      await collar3.reload()
+      await collar4.reload()
+
+      expect(collar1.position).toEqual(1)
+      expect(collar2.position).toEqual(2)
+      expect(collar3.position).toEqual(1)
+      expect(collar4.position).toEqual(2)
     })
   })
 })
