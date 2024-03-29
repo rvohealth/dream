@@ -100,6 +100,11 @@ function attributeSpecifier(type: string, originalAttribute: string) {
     case 'enum':
       const coercedType = pascalize(originalAttribute.split(':')[2])
       return `'enum:${coercedType}Enum'`
+    case 'bigint':
+    case 'uuid':
+      return "'string'"
+    case 'integer':
+      return "'number'"
     default:
       return type ? `'${type}'` : ''
   }
@@ -126,9 +131,13 @@ function jsType(type: string, originalAttribute: string) {
 
     case 'string':
     case 'text':
+    case 'bigint':
+    case 'uuid':
       return 'string'
     case 'enum':
       return pascalize(originalAttribute.split(':')[2]) + 'Enum'
+    case 'integer':
+      return 'number'
 
     default:
       return 'any'
