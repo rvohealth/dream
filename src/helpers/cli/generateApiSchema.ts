@@ -6,6 +6,6 @@ export default async function generateApiSchema() {
   const yamlConf = await loadDreamYamlFile()
   const fileContents = await generateApiSchemaContent()
 
-  const filePath = projectRootPath({ filepath: yamlConf.client_api_schema_path })
+  const filePath = projectRootPath({ filepath: yamlConf.client_schema_path })
   await fs.writeFile(filePath, fileContents)
 }
