@@ -15,7 +15,7 @@ describe('dream generate:model <name> [...attributes]', () => {
             'finished_chalupa_on:date',
             'finished_chalupa_at:timestamp',
           ],
-          useUUID: false,
+          primaryKeyType: 'bigserial',
         })
 
         expect(res).toEqual(
@@ -51,7 +51,7 @@ export async function down(db: Kysely<any>): Promise<void> {
         const res = generateMigrationContent({
           table: 'chalupas',
           attributes: ['deliciousness:decimal:4,2'],
-          useUUID: false,
+          primaryKeyType: 'bigserial',
         })
 
         expect(res).toEqual(
@@ -81,7 +81,7 @@ export async function down(db: Kysely<any>): Promise<void> {
             generateMigrationContent({
               table: 'chalupas',
               attributes: ['deliciousness:decimal'],
-              useUUID: false,
+              primaryKeyType: 'bigserial',
             })
           }).toThrowError(InvalidDecimalFieldPassedToGenerator)
         })
@@ -93,7 +93,7 @@ export async function down(db: Kysely<any>): Promise<void> {
             generateMigrationContent({
               table: 'chalupas',
               attributes: ['deliciousness:decimal:4'],
-              useUUID: false,
+              primaryKeyType: 'bigserial',
             })
           }).toThrowError(InvalidDecimalFieldPassedToGenerator)
         })
@@ -109,7 +109,7 @@ export async function down(db: Kysely<any>): Promise<void> {
             'protein_type:enum:protein:beef,nonbeef',
             'existing_enum:enum:my_existing_enum',
           ],
-          useUUID: false,
+          primaryKeyType: 'bigserial',
         })
         expect(res).toEqual(
           `\
@@ -159,7 +159,7 @@ export async function down(db: Kysely<any>): Promise<void> {
         const res = generateMigrationContent({
           table: 'compositions',
           attributes: ['admin/user:belongs_to'],
-          useUUID: false,
+          primaryKeyType: 'bigserial',
         })
 
         expect(res).toEqual(
@@ -189,7 +189,7 @@ export async function down(db: Kysely<any>): Promise<void> {
         const res = generateMigrationContent({
           table: 'compositions',
           attributes: ['user:belongs_to'],
-          useUUID: true,
+          primaryKeyType: 'uuid',
         })
 
         expect(res).toEqual(
@@ -219,7 +219,7 @@ export async function down(db: Kysely<any>): Promise<void> {
         const res = generateMigrationContent({
           table: 'compositions',
           attributes: ['user:has_one'],
-          useUUID: true,
+          primaryKeyType: 'uuid',
         })
 
         expect(res).toEqual(
@@ -248,7 +248,7 @@ export async function down(db: Kysely<any>): Promise<void> {
         const res = generateMigrationContent({
           table: 'compositions',
           attributes: ['user:has_many'],
-          useUUID: true,
+          primaryKeyType: 'uuid',
         })
 
         expect(res).toEqual(

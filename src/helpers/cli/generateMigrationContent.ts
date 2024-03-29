@@ -1,23 +1,24 @@
 import pluralize from 'pluralize'
-import pascalize from '../../../src/helpers/pascalize'
 import snakeify from '../../../shared/helpers/snakeify'
+import { PrimaryKeyType } from '../../dream/types'
 import InvalidDecimalFieldPassedToGenerator from '../../exceptions/invalid-decimal-field-passed-to-generator'
+import foreignKeyTypeFromPrimaryKey from '../db/foreignKeyTypeFromPrimaryKey'
 
 export default function generateMigrationContent({
   table,
   attributes = [],
-  useUUID = false,
+  primaryKeyType = 'bigserial',
 }: {
   table?: string
   attributes?: string[]
-  useUUID?: boolean
+  primaryKeyType?: PrimaryKeyType
 } = {}) {
   let requireCitextExtension = false
   const columnDefs = attributes
     .map(attribute => {
       const [attributeName, attributeType, ...descriptors] = attribute.split(':')
       if (['has_one', 'has_many'].includes(attributeType)) return null
-      if (attributeType === 'belongs_to') return generateBelongsToStr(attributeName, { useUUID })
+      if (attributeType === 'belongs_to') return generateBelongsToStr(attributeName, { primaryKeyType })
 
       if (attributeType === 'citext') requireCitextExtension = true
 
@@ -59,7 +60,7 @@ import { ${kyselyImports.join(', ')} } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   ${citextExtension}${generateEnumStatements(attributes)}await db.schema
     .createTable('${table}')
-    ${generateIdStr({ useUUID })}${columnDefs.length ? '\n    ' + columnDefs.join('\n    ') : ''}
+    ${generateIdStr({ primaryKeyType })}${columnDefs.length ? '\n    ' + columnDefs.join('\n    ') : ''}
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
@@ -152,8 +153,8 @@ function generateColumnStr(attributeName: string, attributeType: string, descrip
   return `${returnStr}${hasExtraValues ? '))' : ')'}`
 }
 
-function generateBelongsToStr(attributeName: string, { useUUID }: { useUUID: boolean }) {
-  const dataType = `${useUUID ? 'uuid' : 'bigint'}`
+function generateBelongsToStr(attributeName: string, { primaryKeyType }: { primaryKeyType: PrimaryKeyType }) {
+  const dataType = foreignKeyTypeFromPrimaryKey(primaryKeyType)
   const references = pluralize(snakeify(attributeName).replace(/_id$/, ''))
   return `.addColumn('${snakeify(attributeName).replace(
     /_id$/,
@@ -161,7 +162,6 @@ function generateBelongsToStr(attributeName: string, { useUUID }: { useUUID: boo
   )}_id', '${dataType}', col => col.references('${references}.id').onDelete('restrict').notNull())`
 }
 
-function generateIdStr({ useUUID }: { useUUID: boolean }) {
-  if (useUUID) return `.addColumn('id', 'uuid', col => col.primaryKey())`
-  return `.addColumn('id', 'bigserial', col => col.primaryKey())`
+function generateIdStr({ primaryKeyType }: { primaryKeyType: PrimaryKeyType }) {
+  return `.addColumn('id', '${primaryKeyType}', col => col.primaryKey())`
 }

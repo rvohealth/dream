@@ -12,6 +12,7 @@ import absoluteFilePath from '../absoluteFilePath'
 import generateUnitSpec from './generateUnitSpec'
 import serializersPath from '../../../shared/helpers/path/serializersPath'
 import path from 'path'
+import primaryKeyType from '../db/primaryKeyType'
 
 export default async function generateDream(
   dreamName: string,
@@ -23,8 +24,6 @@ export default async function generateDream(
   } = {}
 ) {
   const ymlConfig = await loadDreamYamlFile()
-  // TODO: add uuid support
-  const useUUID = false
 
   const dreamBasePath = await modelsPath()
   const formattedDreamName = pluralize
@@ -50,7 +49,7 @@ export default async function generateDream(
     await thisfs.mkdir(fullPath, { recursive: true })
   }
 
-  const content = await generateDreamContent(dreamName, attributes, { useUUID })
+  const content = await generateDreamContent(dreamName, attributes)
 
   try {
     console.log(`generating dream: ${relativeDreamPath}`)
@@ -83,7 +82,7 @@ export default async function generateDream(
   const finalContent = generateMigrationContent({
     table: snakeify(pluralize(dreamName)),
     attributes,
-    useUUID,
+    primaryKeyType: await primaryKeyType(),
   })
   try {
     console.log(`generating migration: ${relativeMigrationPath}`)
