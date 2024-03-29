@@ -7,6 +7,7 @@ import range from '../../../helpers/range'
 import getColumnForSortableScope from './getColumnForSortableScope'
 import sortableQueryExcludingDream from './sortableQueryExcludingDream'
 import scopeArray from './scopeArray'
+import ops from '../../../ops'
 
 export default async function setPosition({
   position,
@@ -66,7 +67,7 @@ async function setPositionFromValue({
   const newPosition = position
 
   if (txn) {
-    await updateConflictingRecords({
+    await applyUpdates({
       position,
       previousPosition,
       dream,
@@ -74,12 +75,11 @@ async function setPositionFromValue({
       query,
       scope,
       txn,
+      newPosition,
     })
-
-    await updatePositionForRecord(txn, dream, positionField, newPosition, scope)
   } else {
     await (dream.constructor as typeof Dream).transaction(async txn => {
-      await updateConflictingRecords({
+      await applyUpdates({
         position,
         previousPosition,
         dream,
@@ -87,9 +87,8 @@ async function setPositionFromValue({
         query,
         scope,
         txn,
+        newPosition,
       })
-
-      await updatePositionForRecord(txn, dream, positionField, newPosition, scope)
     })
   }
 
@@ -98,6 +97,48 @@ async function setPositionFromValue({
   } else {
     await dream.reload()
   }
+}
+
+async function applyUpdates({
+  position,
+  previousPosition,
+  dream,
+  positionField,
+  query,
+  scope,
+  txn,
+  newPosition,
+}: {
+  dream: Dream
+  position: number
+  previousPosition?: number
+  positionField: string
+  query: Query<typeof Dream>
+  scope?: string | string[]
+  txn: DreamTransaction<any>
+  newPosition: number
+}) {
+  await updateConflictingRecords({
+    position,
+    previousPosition,
+    dream,
+    positionField,
+    query,
+    scope,
+    txn,
+  })
+
+  await updatePreviousScope({
+    position,
+    previousPosition,
+    dream,
+    positionField,
+    query,
+    scope,
+    txn,
+  })
+
+  await updatePositionForRecord(txn, dream, positionField, newPosition, scope)
 }
 
 async function setNewPosition({
@@ -170,6 +211,62 @@ async function updateConflictingRecords({
     const column = getColumnForSortableScope(dream, singleScope)
     if (column) {
       kyselyQuery = kyselyQuery.where(column, '=', (dream as any)[column])
+    }
+  }
+
+  await kyselyQuery.execute()
+}
+
+// this function allows us to handle the case where, rather than a position being updated,
+// an attribute or association that is tied to the scope is updated. In these contexts, A
+// dream is now leaving the scope and entering a new one, in which case we need to make
+// sure the previous scope is updated so that holes in the positioning are correctly adapted.
+async function updatePreviousScope({
+  position,
+  previousPosition,
+  dream,
+  positionField,
+  query,
+  scope,
+  txn,
+}: {
+  dream: Dream
+  position: number
+  previousPosition?: number
+  positionField: string
+  query: Query<typeof Dream>
+  scope?: string | string[]
+  txn: DreamTransaction<any>
+}) {
+  const savingChangeToScopeField = scopeArray(scope).filter(
+    scopeField =>
+      (!dream.getAssociation(scopeField) && dream.savedChangeToAttribute(scopeField as any)) ||
+      (dream.getAssociation(scopeField) &&
+        dream.savedChangeToAttribute(dream.getAssociation(scopeField)!.foreignKey()))
+  ).length
+
+  if (dream.changes().id && dream.changes().id?.was === undefined) return
+  if (!savingChangeToScopeField) return
+
+  let kyselyQuery = query
+    .txn(txn)
+    .whereNot({ [dream.primaryKey]: dream.primaryKeyValue as any })
+    .order({ position: 'asc' })
+    .where({
+      [positionField]: ops.greaterThan(position),
+    })
+    .toKysely('update')
+    .set((eb: ExpressionBuilder<(typeof dream)['DB'], typeof dream.table>) => {
+      return {
+        [positionField]: eb(positionField, '-', 1),
+      }
+    })
+
+  const changes = dream.changes()
+  for (const singleScope of scopeArray(scope)) {
+    const column = getColumnForSortableScope(dream, singleScope)
+    if (column) {
+      kyselyQuery = kyselyQuery.where(column, '=', changes[column as any]?.was || (dream as any)[column])
     }
   }
 

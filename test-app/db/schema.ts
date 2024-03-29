@@ -163,6 +163,7 @@ export interface Collars {
   id: Generated<Int8>;
   lost: boolean | null;
   petId: Int8;
+  position: number;
   tagName: string | null;
   updatedAt: Timestamp;
 }
@@ -388,7 +389,7 @@ export const BalloonLineColumns = new Set(['balloonId', 'createdAt', 'id', 'mate
 export const BalloonSpotterBalloonColumns = new Set(['balloonId', 'balloonSpotterId', 'createdAt', 'id', 'updatedAt', 'userId'])
 export const BalloonSpotterColumns = new Set(['createdAt', 'id', 'name', 'updatedAt'])
 export const BeautifulBalloonColumns = new Set(['color', 'createdAt', 'deletedAt', 'id', 'multicolor', 'positionAlpha', 'positionBeta', 'type', 'updatedAt', 'userId', 'volume'])
-export const CollarColumns = new Set(['balloonId', 'createdAt', 'hidden', 'id', 'lost', 'petId', 'tagName', 'updatedAt'])
+export const CollarColumns = new Set(['balloonId', 'createdAt', 'hidden', 'id', 'lost', 'petId', 'position', 'tagName', 'updatedAt'])
 export const CompositionAssetAuditColumns = new Set(['approval', 'compositionAssetId', 'createdAt', 'id', 'notes', 'updatedAt'])
 export const CompositionAssetColumns = new Set(['compositionId', 'createdAt', 'id', 'name', 'primary', 'score', 'src', 'updatedAt'])
 export const CompositionColumns = new Set(['content', 'createdAt', 'id', 'metadata', 'metadata2', 'metadata3', 'primary', 'updatedAt', 'userId'])
@@ -456,6 +457,7 @@ export interface CollarAttributes {
   id: IdType
   lost: boolean | null
   petId: IdType
+  position: number
   tagName: string | null
   updatedAt: DateTime
 }  
@@ -695,6 +697,7 @@ export const CollarsDBTypeMap = {
   id: 'bigint',
   lost: 'boolean',
   petId: 'bigint',
+  position: 'integer',
   tagName: 'character varying',
   updatedAt: 'timestamp without time zone'
 }

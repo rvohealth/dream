@@ -11,6 +11,7 @@ import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
 import SortableDecoratorRequiresColumnOrBelongsToAssociation from '../../../../src/exceptions/sortable-decorator-requires-column-or-belongs-to-association'
 import Pet from '../../../../test-app/app/models/Pet'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
+import Collar from '../../../../test-app/app/models/Collar'
 
 describe('@Sortable', () => {
   let user: User
@@ -285,6 +286,54 @@ describe('@Sortable', () => {
         expect((await post2.reload()).position).toEqual(2)
         expect((await post3.reload()).position).toEqual(4)
         expect((await unrelatedPost.reload()).position).toEqual(1)
+      })
+
+      context('when part of the scope is pointing to a column', () => {
+        let pet: Pet
+        let pet2: Pet
+        let collar1: Collar
+        let collar2: Collar
+        let collar3: Collar
+        let collar4: Collar
+        beforeEach(async () => {
+          pet = await Pet.create()
+          pet2 = await Pet.create()
+          collar1 = await Collar.create({ tagName: 'hello', pet })
+          collar2 = await Collar.create({ tagName: 'hello', pet })
+          collar3 = await Collar.create({ tagName: 'goodbye', pet })
+          collar4 = await Collar.create({ tagName: 'goodbye', pet })
+
+          await collar1.reload()
+          await collar2.reload()
+          await collar3.reload()
+          await collar4.reload()
+
+          expect(collar1.position).toEqual(1)
+          expect(collar2.position).toEqual(2)
+          expect(collar3.position).toEqual(1)
+          expect(collar4.position).toEqual(2)
+        })
+
+        it('includes column as part of scope when considering which records to update', async () => {
+          await collar3.update({ position: 2 })
+          expect((await collar3.reload()).position).toEqual(2)
+          expect((await collar4.reload()).position).toEqual(1)
+        })
+
+        context('when updating a scope column, rather than the position', () => {
+          it('also affects the ordering of the previous scope to close positional gaps left behind', async () => {
+            await collar3.update({ position: 2 })
+            await collar3.update({ tagName: 'hello' })
+            expect((await collar1.reload()).position).toEqual(1)
+            expect((await collar3.reload()).position).toEqual(2)
+            expect((await collar2.reload()).position).toEqual(3)
+
+            await collar3.update({ pet: pet2 })
+            expect((await collar3.reload()).position).toEqual(1)
+            expect((await collar1.reload()).position).toEqual(1)
+            expect((await collar2.reload()).position).toEqual(2)
+          })
+        })
       })
 
       context('updating with content', () => {
