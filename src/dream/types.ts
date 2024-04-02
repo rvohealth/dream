@@ -371,29 +371,37 @@ type RecurseVariadicJoinsArgs<
   ArrType extends any[],
   BaseArr extends any[],
   SyncedAssociations extends object,
-  TableName extends keyof SyncedAssociations,
+  TableName extends keyof SyncedAssociations & string,
   Index extends number,
-  CurrVal extends ArrType[Index] & keyof SyncedAssociations[TableName] & string = ArrType[Index] &
+  AssociationName extends ArrType[Index] & keyof SyncedAssociations[TableName] & string = ArrType[Index] &
     keyof SyncedAssociations[TableName] &
     string,
-> = Index extends 3
+  NextTableName = SyncedAssociations[TableName][AssociationName] extends (keyof SyncedAssociations & string)[]
+    ? SyncedAssociations[TableName][AssociationName][0]
+    : never,
+> = Index extends 5
   ? never
   : Index extends Decrement<ArrType['length']>
     ? [...BaseArr, keyof SyncedAssociations[TableName]]
-    : SyncedAssociations[TableName][CurrVal] extends (keyof SyncedAssociations)[]
-      ? CurrVal extends keyof SyncedAssociations[TableName] & keyof SyncedAssociations & string
-        ? RecurseVariadicJoinsArgs<
-            ArrType,
-            [...BaseArr, CurrVal],
-            SyncedAssociations,
-            SyncedAssociations[TableName][CurrVal][0] & keyof SyncedAssociations,
-            Inc<Index>
-          >
-        : never
+    : NextTableName extends (SyncedAssociations[TableName][ArrType[Index]] &
+          (keyof SyncedAssociations)[])[0] &
+          keyof SyncedAssociations &
+          string
+      ? RecurseVariadicJoinsArgs<
+          ArrType,
+          [...BaseArr, ArrType[Index]],
+          SyncedAssociations,
+          NextTableName,
+          // 'pets' & keyof SyncedAssociations,
+          // (SyncedAssociations[TableName][ArrType[Index]] & (keyof SyncedAssociations)[])[0] &
+          //   keyof SyncedAssociations &
+          //   string,
+          Inc<Index>
+        >
       : never
 
 export type VariadicJoinsArgs<
   SyncedAssociations extends object,
-  TableName extends keyof SyncedAssociations,
+  TableName extends keyof SyncedAssociations & string,
   T extends any[],
 > = RecurseVariadicJoinsArgs<T, [], SyncedAssociations, TableName, 0>

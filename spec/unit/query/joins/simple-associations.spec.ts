@@ -11,7 +11,11 @@ import OpsStatement from '../../../../src/ops/ops-statement'
 import LocalizedText from '../../../../test-app/app/models/LocalizedText'
 import Collar from '../../../../test-app/app/models/Collar'
 
-User.query().joins('mainCompositionAsset', 'composition', 'compositionAssetAudits')
+Collar.query().joins('pet', 'collars')
+// Collar.query().joins('pet', 'collars', '')
+// Balloon.query().joins('sandbags', 'mylar')
+
+// Pet.joins('user', 'firstPet', '')
 
 describe('Query#joins with simple associations', () => {
   it('joins a HasOne association', async () => {

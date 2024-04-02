@@ -1909,7 +1909,7 @@ type RecurseVariadicArgs<
   CurrVal extends ArrType[Index] & keyof Tree & string = ArrType[Index] & keyof Tree & string,
 > =
   Index extends Decrement<ArrType['length']>
-    ? [...BaseArr, keyof Tree]
+    ? [...BaseArr, CurrVal]
     : Tree[CurrVal] extends Record<any, any>
       ? CurrVal extends keyof Tree & string
         ? RecurseVariadicArgs<ArrType, [...BaseArr, CurrVal], Tree[CurrVal], Inc<Index>>
@@ -1919,10 +1919,11 @@ type RecurseVariadicArgs<
 type VariadicArgs<T extends any[]> = RecurseVariadicArgs<T, [], DataTree, 0>
 
 // should pass:
+variadicFunc('a', 'yo1')
 variadicFunc('a')
 variadicFunc('b', 'yo2')
 variadicFunc('a', 'yo1', 'a1')
 variadicFunc('b', 'yo2', 'b1')
 
 // should fail:
-variadicFunc('b', 'yo1', 'a1')
+variadicFunc('b', 'yo1')
