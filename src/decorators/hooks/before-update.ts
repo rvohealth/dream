@@ -1,7 +1,7 @@
 import Dream from '../../dream'
-import { HookStatement, blankHooksFactory, BeforeBeforeHookOpts } from './shared'
+import { HookStatement, blankHooksFactory, BeforeHookOpts } from './shared'
 
-export default function BeforeUpdate(opts: BeforeBeforeHookOpts = {}): any {
+export default function BeforeUpdate(opts: BeforeHookOpts = {}): any {
   return function (target: any, key: string, _: any) {
     const dreamClass: typeof Dream = target.constructor
 

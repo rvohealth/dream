@@ -1,5 +1,7 @@
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import Composition from '../../../../test-app/app/models/Composition'
+import Sandbag from '../../../../test-app/app/models/Sandbag'
 import User from '../../../../test-app/app/models/User'
 
 describe('Dream AfterUpdateCommit decorator', () => {
@@ -27,6 +29,33 @@ describe('Dream AfterUpdateCommit decorator', () => {
         })
       })
       expect(composition!.content).toEqual('changed after update commit')
+    })
+  })
+
+  context('with ifChanging set on hook decorator', () => {
+    let sandbag: Sandbag
+
+    beforeEach(async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const mylar = await Mylar.create({ user, color: 'red' })
+      sandbag = await mylar.createAssociation('sandbags', { weightTons: 10 })
+    })
+
+    context('one of the attributes specified in the "ifChanging" clause is changing', () => {
+      it('calls hook', async () => {
+        jest.spyOn(Sandbag.prototype, 'afterConditionalCommitHook')
+        await sandbag.update({ weightTons: 11 })
+        expect(Sandbag.prototype.afterConditionalCommitHook).toHaveBeenCalled()
+      })
+    })
+
+    context('none of the attributes specified in the "ifChanging" clause are changing', () => {
+      it('calls hook', async () => {
+        await sandbag.update({ weightTons: null })
+        jest.spyOn(Sandbag.prototype, 'afterConditionalCommitHook')
+        await sandbag.update({ weightKgs: 120 })
+        expect(Sandbag.prototype.afterConditionalCommitHook).not.toHaveBeenCalled()
+      })
     })
   })
 })

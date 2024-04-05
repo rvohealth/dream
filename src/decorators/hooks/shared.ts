@@ -22,10 +22,15 @@ export interface HookStatement {
   className: string
   method: string
   ifChanging?: string[]
+  ifChanged?: string[]
 }
 
 export interface BeforeHookOpts {
   ifChanging?: string[]
+}
+
+export interface AfterHookOpts {
+  ifChanged?: string[]
 }
 
 export function blankHooksFactory(dreamClass: typeof Dream): {
