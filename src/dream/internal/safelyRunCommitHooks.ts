@@ -7,6 +7,8 @@ import runHooksFor from './runHooksFor'
 export default async function safelyRunCommitHooks<DreamInstance extends Dream>(
   dream: DreamInstance,
   hookType: CommitHookType,
+  alreadyPersisted: boolean,
+  beforeSaveChanges: Partial<Record<string, { was: any; now: any }>> | null,
   txn: DreamTransaction<Dream> | null = null
 ) {
   const Base = dream.constructor as DreamConstructorType<DreamInstance>
@@ -15,6 +17,6 @@ export default async function safelyRunCommitHooks<DreamInstance extends Dream>(
       txn!.addCommitHook(hook, dream)
     })
   } else {
-    await runHooksFor(hookType, dream)
+    await runHooksFor(hookType, dream, alreadyPersisted, beforeSaveChanges)
   }
 }

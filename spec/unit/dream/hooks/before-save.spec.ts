@@ -32,18 +32,18 @@ describe('Dream BeforeSave decorator', () => {
 
     context('one of the attributes specified in the "ifChanging" clause is changing', () => {
       it('calls hook', async () => {
-        jest.spyOn(Sandbag.prototype, 'conditionalHook')
+        jest.spyOn(Sandbag.prototype, 'conditionalBeforeSaveHook')
         await sandbag.update({ weight: 11 })
-        expect(Sandbag.prototype.conditionalHook).toHaveBeenCalled()
+        expect(Sandbag.prototype.conditionalBeforeSaveHook).toHaveBeenCalled()
       })
     })
 
     context('none of the attributes specified in the "ifChanging" clause are changing', () => {
       it('calls hook', async () => {
         await sandbag.update({ weight: null })
-        jest.spyOn(Sandbag.prototype, 'conditionalHook')
+        jest.spyOn(Sandbag.prototype, 'conditionalBeforeSaveHook')
         await sandbag.update({ weightKgs: 120 })
-        expect(Sandbag.prototype.conditionalHook).not.toHaveBeenCalled()
+        expect(Sandbag.prototype.conditionalBeforeSaveHook).not.toHaveBeenCalled()
       })
     })
   })

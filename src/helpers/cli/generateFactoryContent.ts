@@ -1,7 +1,4 @@
-import path from 'path'
-import pluralize from 'pluralize'
 import pascalize from '../../../src/helpers/pascalize'
-import snakeify from '../../../shared/helpers/snakeify'
 import camelize from '../../../shared/helpers/camelize'
 import uniq from '../uniq'
 import { loadDreamYamlFile } from '../path'
@@ -40,14 +37,10 @@ export default async function generateFactoryContent(
     }
   }
 
-  const yamlConf = await loadDreamYamlFile()
-  const tableName = snakeify(pluralize(modelName.replace(/\//g, '_')))
   const relativePath = await relativePathToModelRoot()
+  const modelClassName = pascalize(modelName.split('/').pop()!)
 
-  const args = [
-    ...belongsToTypedNames,
-    `overrides: UpdateableProperties<${pascalize(modelName.split('/').pop()!)}> = {}`,
-  ]
+  const args = [...belongsToTypedNames, `overrides: UpdateableProperties<${modelClassName}> = {}`]
 
   return `\
 import { ${uniq(dreamImports).join(', ')} } from '@rvohealth/dream'
@@ -55,8 +48,8 @@ import ${pascalize(modelName.split('/').pop()!)} from '${relativePath}${modelNam
     !!additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
   }
 
-export default async function create${pascalize(modelName.split('/').pop()!)}(${args.join(', ')}) {
-  return await ${pascalize(modelName.split('/').pop()!)}.create({
+export default async function create${modelClassName}(${args.join(', ')}) {
+  return await ${modelClassName}.create({
     ${belongsToNames.join(',\n    ')}${belongsToNames.length ? ',\n    ' : ''}...overrides,
   })
 }`
@@ -76,65 +69,12 @@ async function buildImportStatement(modelName: string, attribute: string) {
   return associationImportStatement
 }
 
-async function buildSerializerImportStatement(modelName: string) {
-  const yamlConf = await loadDreamYamlFile()
-  const relativePath = await relativePathToSrcRoot(modelName)
-
-  const serializerPath = path.join(
-    relativePath,
-    yamlConf.serializers_path,
-    relativeSerializerPathFromModelName(modelName)
-  )
-  const serializerClassName = serializerNameFromModelName(modelName)
-  const importStatement = `import ${serializerClassName} from '${serializerPath}'`
-  return importStatement
-}
-
-function serializerNameFromModelName(modelName: string) {
-  return (
-    modelName
-      .split('/')
-      .map(part => pascalize(part))
-      .join('') + 'Serializer'
-  )
-}
-
-function relativeSerializerPathFromModelName(modelName: string) {
-  return (
-    modelName
-      .split('/')
-      .map(part => pascalize(part))
-      .join('/') + 'Serializer'
-  )
-}
-
 async function relativePathToModelRoot() {
   const yamlConf = await loadDreamYamlFile()
   const pathToFactories = await factoriesRelativePath()
   const updirsArr = [...pathToFactories.split('/').map(() => '../')]
 
   return updirsArr.join('') + yamlConf.models_path.replace(/\/$/, '') + '/'
-}
-
-function relativePathToFactoryRoot(modelName: string) {
-  const numNestedDirsForModel = modelName.split('/').length - 1
-  let updirs = ''
-  for (let i = 0; i < numNestedDirsForModel; i++) {
-    updirs += '../'
-  }
-  return numNestedDirsForModel > 0 ? updirs : './'
-}
-
-async function relativePathToSrcRoot(modelName: string) {
-  const yamlConf = await loadDreamYamlFile()
-  const rootPath = relativePathToFactoryRoot(modelName)
-  const numUpdirsInRootPath = yamlConf.models_path.split('/').length
-  let updirs = ''
-  for (let i = 0; i < numUpdirsInRootPath; i++) {
-    updirs += '../'
-  }
-
-  return rootPath === './' ? updirs : path.join(rootPath, updirs)
 }
 
 function dreamClassNameFromAttributeName(attributeName: string) {

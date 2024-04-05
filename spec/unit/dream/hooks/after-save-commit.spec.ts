@@ -72,18 +72,18 @@ describe('Dream AfterSaveCommit decorator', () => {
 
     context('one of the attributes specified in the "ifChanging" clause is changing', () => {
       it('calls hook', async () => {
-        jest.spyOn(Sandbag.prototype, 'afterConditionalCommitHook')
+        jest.spyOn(Sandbag.prototype, 'conditionalAfterSaveCommitHook')
         await sandbag.update({ weight: 11 })
-        expect(Sandbag.prototype.afterConditionalCommitHook).toHaveBeenCalled()
+        expect(Sandbag.prototype.conditionalAfterSaveCommitHook).toHaveBeenCalled()
       })
     })
 
     context('none of the attributes specified in the "ifChanging" clause are changing', () => {
       it('calls hook', async () => {
         await sandbag.update({ weight: null })
-        jest.spyOn(Sandbag.prototype, 'afterConditionalCommitHook')
+        jest.spyOn(Sandbag.prototype, 'conditionalAfterSaveCommitHook')
         await sandbag.update({ weightKgs: 120 })
-        expect(Sandbag.prototype.afterConditionalCommitHook).not.toHaveBeenCalled()
+        expect(Sandbag.prototype.conditionalAfterSaveCommitHook).not.toHaveBeenCalled()
       })
     })
   })

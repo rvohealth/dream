@@ -19,19 +19,19 @@ describe('Dream AfterCreate decorator', () => {
       mylar = await Mylar.create({ user, color: 'red' })
     })
 
-    context('one of the attributes specified in the "ifChanging" clause is changing', () => {
+    context('one of the attributes specified in the "ifChanging" clause is changing to non-null', () => {
       it('calls hook', async () => {
-        jest.spyOn(Sandbag.prototype, 'afterConditionalHook')
+        jest.spyOn(Sandbag.prototype, 'conditionalAfterCreateHook')
         sandbag = await mylar.createAssociation('sandbags', { weightKgs: 10 })
-        expect(Sandbag.prototype.afterConditionalHook).toHaveBeenCalled()
+        expect(Sandbag.prototype.conditionalAfterCreateHook).toHaveBeenCalled()
       })
     })
 
     context('none of the attributes specified in the "ifChanging" clause are changing', () => {
       it('calls hook', async () => {
-        jest.spyOn(Sandbag.prototype, 'afterConditionalHook')
-        sandbag = await mylar.createAssociation('sandbags', { weight: 10 })
-        expect(Sandbag.prototype.afterConditionalHook).not.toHaveBeenCalled()
+        jest.spyOn(Sandbag.prototype, 'conditionalAfterCreateHook')
+        sandbag = await mylar.createAssociation('sandbags', { weightTons: 10 })
+        expect(Sandbag.prototype.conditionalAfterCreateHook).not.toHaveBeenCalled()
       })
     })
   })

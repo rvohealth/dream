@@ -5,18 +5,6 @@ import SandbagSerializer from '../../../test-app/app/serializers/SandbagSerializ
 import Mylar from './Balloon/Mylar'
 import ApplicationModel from './ApplicationModel'
 import Validate from '../../../src/decorators/validations/validate'
-import BeforeSave from '../../../src/decorators/hooks/before-save'
-import {
-  AfterCreate,
-  AfterCreateCommit,
-  AfterSave,
-  AfterSaveCommit,
-  AfterUpdate,
-  AfterUpdateCommit,
-  BeforeCreate,
-  BeforeDestroy,
-  BeforeUpdate,
-} from '../../../src'
 
 export default class Sandbag extends ApplicationModel {
   public get table() {
@@ -49,18 +37,30 @@ export default class Sandbag extends ApplicationModel {
   public mylar: Mylar
   public balloonId: IdType
 
-  @BeforeCreate({ ifChanging: ['weightKgs'] })
-  @BeforeSave({ ifChanging: ['weight'] })
-  @BeforeUpdate({ ifChanging: ['weightTons'] })
-  public conditionalHook() {}
+  @Sandbag.BeforeCreate({ ifChanging: ['weightKgs'] })
+  public conditionalBeforeCreateHook() {}
 
-  @AfterCreate({ ifChanged: ['weightKgs'] })
-  @AfterSave({ ifChanged: ['weight'] })
-  @AfterUpdate({ ifChanged: ['weightTons'] })
-  public afterConditionalHook() {}
+  @Sandbag.BeforeSave({ ifChanging: ['weight'] })
+  public conditionalBeforeSaveHook() {}
 
-  @AfterCreateCommit({ ifChanged: ['weightKgs'] })
-  @AfterSaveCommit({ ifChanged: ['weight'] })
-  @AfterUpdateCommit({ ifChanged: ['weightTons'] })
-  public afterConditionalCommitHook() {}
+  @Sandbag.BeforeUpdate({ ifChanging: ['weightTons'] })
+  public conditionalBeforeUpdateHook() {}
+
+  @Sandbag.AfterCreate({ ifChanged: ['weightKgs'] })
+  public conditionalAfterCreateHook() {}
+
+  @Sandbag.AfterSave({ ifChanged: ['weight'] })
+  public conditionalAfterSaveHook() {}
+
+  @Sandbag.AfterUpdate({ ifChanged: ['weightTons'] })
+  public conditionalAfterUpdateHook() {}
+
+  @Sandbag.AfterCreateCommit({ ifChanged: ['weightKgs'] })
+  public conditionalAfterCreateCommitHook() {}
+
+  @Sandbag.AfterSaveCommit({ ifChanged: ['weight'] })
+  public conditionalAfterSaveCommitHook() {}
+
+  @Sandbag.AfterUpdateCommit({ ifChanged: ['weightTons'] })
+  public conditionalAfterUpdateCommitHook() {}
 }
