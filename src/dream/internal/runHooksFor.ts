@@ -13,7 +13,30 @@ export default async function runHooksFor<T extends Dream>(
 
   const Base = dream.constructor as typeof Dream
   for (const statement of Base['hooks'][key]) {
-    await runHook(statement, dream, txn)
+    if (statement.ifChanging?.length) {
+      switch (key) {
+        case 'beforeCreate':
+        case 'beforeSave':
+        case 'beforeUpdate':
+          // case 'beforeDestroy':
+          let shouldRun = false
+
+          for (const attribute of statement.ifChanging) {
+            if (dream.isNewRecord && (dream as any)[attribute] !== undefined) shouldRun = true
+            if (dream.isPersisted && dream.willSaveChangeToAttribute(attribute as any)) {
+              shouldRun = true
+            }
+          }
+
+          if (shouldRun) await runHook(statement, dream, txn)
+          break
+
+        default:
+          await runHook(statement, dream, txn)
+      }
+    } else {
+      await runHook(statement, dream, txn)
+    }
   }
 }
 

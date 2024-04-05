@@ -1,7 +1,7 @@
 import Dream from '../../dream'
-import { HookStatement, blankHooksFactory } from './shared'
+import { HookStatement, blankHooksFactory, BeforeBeforeHookOpts } from './shared'
 
-export default function BeforeSave(): any {
+export default function BeforeSave(opts: BeforeBeforeHookOpts = {}): any {
   return function (target: any, key: string, _: any) {
     const dreamClass: typeof Dream = target.constructor
 
@@ -11,6 +11,7 @@ export default function BeforeSave(): any {
     dreamClass['addHook']('beforeSave', {
       method: key,
       type: 'beforeSave',
+      ifChanging: opts.ifChanging,
     } as HookStatement)
   }
 }
