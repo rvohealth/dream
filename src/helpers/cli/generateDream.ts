@@ -13,6 +13,7 @@ import generateUnitSpec from './generateUnitSpec'
 import serializersPath from '../../../shared/helpers/path/serializersPath'
 import path from 'path'
 import primaryKeyType from '../db/primaryKeyType'
+import generateFactory from './generateFactory'
 
 export default async function generateDream(
   dreamName: string,
@@ -69,6 +70,7 @@ export default async function generateDream(
   }
 
   await generateUnitSpec(dreamName, 'models', { rootPath })
+  await generateFactory(dreamName, attributes)
 
   const migrationBasePath = await migrationsPath()
   const version = migrationVersion()
