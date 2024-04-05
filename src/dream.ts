@@ -15,7 +15,19 @@ import HasMany, { HasManyOptions, HasManyStatement } from './decorators/associat
 import BelongsTo, { BelongsToOptions, BelongsToStatement } from './decorators/associations/belongs-to'
 import HasOne, { HasOneOptions, HasOneStatement } from './decorators/associations/has-one'
 import { ScopeStatement } from './decorators/scope'
-import { HookStatement, blankHooksFactory } from './decorators/hooks/shared'
+import { HookStatement, blankHooksFactory, BeforeHookOpts, AfterHookOpts } from './decorators/hooks/shared'
+import BeforeCreate from './decorators/hooks/before-create'
+import BeforeSave from './decorators/hooks/before-save'
+import BeforeUpdate from './decorators/hooks/before-update'
+import BeforeDestroy from './decorators/hooks/before-destroy'
+import AfterCreate from './decorators/hooks/after-create'
+import AfterCreateCommit from './decorators/hooks/after-create-commit'
+import AfterSave from './decorators/hooks/after-save'
+import AfterSaveCommit from './decorators/hooks/after-save-commit'
+import AfterUpdate from './decorators/hooks/after-update'
+import AfterUpdateCommit from './decorators/hooks/after-update-commit'
+import AfterDestroy from './decorators/hooks/after-destroy'
+import AfterDestroyCommit from './decorators/hooks/after-destroy-commit'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import {
@@ -205,6 +217,54 @@ export default class Dream {
     }
   ) {
     return Sortable({ scope: scope as any })
+  }
+
+  public static BeforeCreate<T extends typeof Dream>(this: T, opts: BeforeHookOpts<InstanceType<T>>) {
+    return BeforeCreate<InstanceType<T>>(opts)
+  }
+
+  public static BeforeSave<T extends typeof Dream>(this: T, opts: BeforeHookOpts<InstanceType<T>>) {
+    return BeforeSave<InstanceType<T>>(opts)
+  }
+
+  public static BeforeUpdate<T extends typeof Dream>(this: T, opts: BeforeHookOpts<InstanceType<T>>) {
+    return BeforeUpdate<InstanceType<T>>(opts)
+  }
+
+  public static BeforeDestroy<T extends typeof Dream>(this: T) {
+    return BeforeDestroy()
+  }
+
+  public static AfterCreate<T extends typeof Dream>(this: T, opts: AfterHookOpts<InstanceType<T>>) {
+    return AfterCreate<InstanceType<T>>(opts)
+  }
+
+  public static AfterCreateCommit<T extends typeof Dream>(this: T, opts: AfterHookOpts<InstanceType<T>>) {
+    return AfterCreateCommit<InstanceType<T>>(opts)
+  }
+
+  public static AfterSave<T extends typeof Dream>(this: T, opts: AfterHookOpts<InstanceType<T>>) {
+    return AfterSave<InstanceType<T>>(opts)
+  }
+
+  public static AfterSaveCommit<T extends typeof Dream>(this: T, opts: AfterHookOpts<InstanceType<T>>) {
+    return AfterSaveCommit<InstanceType<T>>(opts)
+  }
+
+  public static AfterUpdate<T extends typeof Dream>(this: T, opts: AfterHookOpts<InstanceType<T>>) {
+    return AfterUpdate<InstanceType<T>>(opts)
+  }
+
+  public static AfterUpdateCommit<T extends typeof Dream>(this: T, opts: AfterHookOpts<InstanceType<T>>) {
+    return AfterUpdateCommit<InstanceType<T>>(opts)
+  }
+
+  public static AfterDestroy<T extends typeof Dream>(this: T) {
+    return AfterDestroy()
+  }
+
+  public static AfterDestroyCommit<T extends typeof Dream>(this: T) {
+    return AfterDestroyCommit()
   }
 
   public static async globalName<T extends typeof Dream>(this: T): Promise<any> {

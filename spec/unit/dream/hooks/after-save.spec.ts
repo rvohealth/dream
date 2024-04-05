@@ -24,27 +24,28 @@ describe('Dream AfterSave decorator', () => {
 
   context('with ifChanging set on hook decorator', () => {
     let sandbag: Sandbag
+    let mylar: Mylar
 
     beforeEach(async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const mylar = await Mylar.create({ user, color: 'red' })
+      mylar = await Mylar.create({ user, color: 'red' })
       sandbag = await mylar.createAssociation('sandbags', { weight: 10 })
     })
 
     context('one of the attributes specified in the "ifChanging" clause is changing', () => {
       it('calls hook', async () => {
-        jest.spyOn(Sandbag.prototype, 'afterConditionalHook')
+        jest.spyOn(Sandbag.prototype, 'conditionalAfterSaveHook')
         await sandbag.update({ weight: 11 })
-        expect(Sandbag.prototype.afterConditionalHook).toHaveBeenCalled()
+        expect(Sandbag.prototype.conditionalAfterSaveHook).toHaveBeenCalled()
       })
     })
 
     context('none of the attributes specified in the "ifChanging" clause are changing', () => {
       it('calls hook', async () => {
         await sandbag.update({ weight: null })
-        jest.spyOn(Sandbag.prototype, 'afterConditionalHook')
+        jest.spyOn(Sandbag.prototype, 'conditionalAfterSaveHook')
         await sandbag.update({ weightKgs: 120 })
-        expect(Sandbag.prototype.afterConditionalHook).not.toHaveBeenCalled()
+        expect(Sandbag.prototype.conditionalAfterSaveHook).not.toHaveBeenCalled()
       })
     })
   })

@@ -1,7 +1,7 @@
 import Dream from '../../dream'
 import { HookStatement, blankHooksFactory, AfterHookOpts } from './shared'
 
-export default function AfterUpdateCommit(opts: AfterHookOpts = {}): any {
+export default function AfterUpdateCommit<T extends Dream | null = null>(opts: AfterHookOpts<T> = {}): any {
   return function (target: any, key: string, _: any) {
     const dreamClass: typeof Dream = target.constructor
 

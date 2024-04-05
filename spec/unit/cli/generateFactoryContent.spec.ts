@@ -19,7 +19,7 @@ export default async function createUser(overrides: UpdateableProperties<User> =
   })
 
   context('with a nested name', () => {
-    it('generates a factory with the given name', async () => {
+    it('applies nesting to name and directory structure', async () => {
       const res = await generateFactoryContent('My/Nested/User', [])
       expect(res).toEqual(
         `\
@@ -36,7 +36,7 @@ export default async function createUser(overrides: UpdateableProperties<User> =
   })
 
   context('with belongs_to attributes', () => {
-    it('generates a factory with the given name', async () => {
+    it('includes belongs to attributes as preliminary arguments before overrides', async () => {
       const res = await generateFactoryContent('My/Nested/User', [
         'name:string',
         'My/Nested/Organization:belongs_to',

@@ -22,20 +22,30 @@ describe('Dream AfterUpdate decorator', () => {
       sandbag = await mylar.createAssociation('sandbags', { weightTons: 10 })
     })
 
-    context('one of the attributes specified in the "ifChanging" clause is changing', () => {
+    context('one of the attributes specified in the "ifChanging" clause is changing to non-null', () => {
       it('calls hook', async () => {
-        jest.spyOn(Sandbag.prototype, 'afterConditionalHook')
+        jest.spyOn(Sandbag.prototype, 'conditionalAfterUpdateHook')
         await sandbag.update({ weightTons: 11 })
-        expect(Sandbag.prototype.afterConditionalHook).toHaveBeenCalled()
+        expect(Sandbag.prototype.conditionalAfterUpdateHook).toHaveBeenCalled()
+      })
+    })
+
+    context('one of the attributes specified in the "ifChanging" clause is changing to null', () => {
+      it('calls hook', async () => {
+        await sandbag.update({ weightTons: 11 })
+
+        jest.spyOn(Sandbag.prototype, 'conditionalAfterUpdateHook')
+        await sandbag.update({ weightTons: null })
+        expect(Sandbag.prototype.conditionalAfterUpdateHook).toHaveBeenCalled()
       })
     })
 
     context('none of the attributes specified in the "ifChanging" clause are changing', () => {
       it('calls hook', async () => {
         await sandbag.update({ weightTons: null })
-        jest.spyOn(Sandbag.prototype, 'afterConditionalHook')
+        jest.spyOn(Sandbag.prototype, 'conditionalAfterUpdateHook')
         await sandbag.update({ weightKgs: 120 })
-        expect(Sandbag.prototype.afterConditionalHook).not.toHaveBeenCalled()
+        expect(Sandbag.prototype.conditionalAfterUpdateHook).not.toHaveBeenCalled()
       })
     })
   })

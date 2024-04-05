@@ -28,20 +28,20 @@ describe('Dream BeforeUpdate decorator', () => {
       sandbag = await mylar.createAssociation('sandbags', { weightTons: 10 })
     })
 
-    context('one of the attributes specified in the "ifChanging" clause is changing', () => {
+    context('one of the attributes specified in the "ifChanging" clause is changing to non-null', () => {
       it('calls hook', async () => {
-        jest.spyOn(Sandbag.prototype, 'conditionalHook')
+        jest.spyOn(Sandbag.prototype, 'conditionalBeforeUpdateHook')
         await sandbag.update({ weightTons: 11 })
-        expect(Sandbag.prototype.conditionalHook).toHaveBeenCalled()
+        expect(Sandbag.prototype.conditionalBeforeUpdateHook).toHaveBeenCalled()
       })
     })
 
     context('none of the attributes specified in the "ifChanging" clause are changing', () => {
       it('calls hook', async () => {
         await sandbag.update({ weightTons: null })
-        jest.spyOn(Sandbag.prototype, 'conditionalHook')
+        jest.spyOn(Sandbag.prototype, 'conditionalBeforeUpdateHook')
         await sandbag.update({ weightKgs: 120 })
-        expect(Sandbag.prototype.conditionalHook).not.toHaveBeenCalled()
+        expect(Sandbag.prototype.conditionalBeforeUpdateHook).not.toHaveBeenCalled()
       })
     })
   })
