@@ -387,12 +387,13 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
 
   public order<
     I extends DreamClassTransactionBuilder<DreamClass>,
-    ColumnName extends keyof Table & string,
-    DB extends InstanceType<DreamClass>['DB'],
-    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
-    TableName extends AssociationTableNames<DB, SyncedAssociations> &
-      keyof DB = InstanceType<DreamClass>['table'],
-    Table extends DB[keyof DB] = DB[TableName],
+    DB extends InstanceType<DreamClass>['DB'] = InstanceType<DreamClass>['DB'],
+    TableName extends InstanceType<DreamClass>['table'] & keyof DB = InstanceType<DreamClass>['table'] &
+      keyof DB,
+    ColumnName extends keyof Updateable<DB[TableName & keyof DB]> & string = keyof Updateable<
+      DB[TableName & keyof DB]
+    > &
+      string,
     OrderDir extends 'asc' | 'desc' = 'asc' | 'desc',
   >(this: I, arg: ColumnName | Partial<Record<ColumnName, OrderDir>> | null) {
     return this.queryInstance().order(arg)
