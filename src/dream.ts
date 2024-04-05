@@ -522,9 +522,9 @@ export default class Dream {
     InstanceType<T>['DB'],
     InstanceType<T>['syncedAssociations'],
     InstanceType<T>['allColumns'],
-    keyof InstanceType<T>['DB'][keyof InstanceType<T>['DB']] extends never
+    keyof InstanceType<T>['DB'][InstanceType<T>['table']] extends never
       ? never
-      : keyof InstanceType<T>['DB'][keyof InstanceType<T>['DB']] & string
+      : keyof InstanceType<T>['DB'][InstanceType<T>['table']] & string
   > {
     return new Query(this)
   }
@@ -847,12 +847,12 @@ export default class Dream {
 
   public static order<
     T extends typeof Dream,
-    I extends InstanceType<T>,
-    DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
-    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = I['table'],
-    Table extends DB[keyof DB] = DB[TableName],
-    ColumnName extends keyof Table & string = keyof Table & string,
+    DB extends InstanceType<T>['DB'] = InstanceType<T>['DB'],
+    TableName extends InstanceType<T>['table'] & keyof DB = InstanceType<T>['table'] & keyof DB,
+    ColumnName extends keyof Updateable<DB[TableName & keyof DB]> & string = keyof Updateable<
+      DB[TableName & keyof DB]
+    > &
+      string,
     OrderDir extends 'asc' | 'desc' = 'asc' | 'desc',
   >(this: T, arg: ColumnName | Partial<Record<ColumnName, OrderDir>> | null): Query<T> {
     return this.query().order(arg)

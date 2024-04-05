@@ -876,10 +876,11 @@ export default class Query<
   }
 
   public order<
-    TableName extends AssociationTableNames<DB, SyncedAssociations> &
-      keyof DB = InstanceType<DreamClass>['table'],
-    Table extends DB[keyof DB] = DB[TableName],
-    ColumnName extends keyof Table & string = keyof Table & string,
+    TableName extends DreamInstance['table'] & keyof DB = DreamInstance['table'] & keyof DB,
+    ColumnName extends keyof Updateable<DB[TableName & keyof DB]> & string = keyof Updateable<
+      DB[TableName & keyof DB]
+    > &
+      string,
     OrderDir extends 'asc' | 'desc' = 'asc' | 'desc',
   >(
     arg: ColumnName | Partial<Record<ColumnName, OrderDir>> | null
