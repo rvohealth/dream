@@ -21,6 +21,11 @@ export interface HookStatement {
   type: HookType
   className: string
   method: string
+  ifChanging?: string[]
+}
+
+export interface BeforeHookOpts {
+  ifChanging?: string[]
 }
 
 export function blankHooksFactory(dreamClass: typeof Dream): {

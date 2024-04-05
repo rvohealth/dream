@@ -1,5 +1,5 @@
 import Dream from '../../dream'
-import { HookStatement, blankHooksFactory } from './shared'
+import { HookStatement, blankHooksFactory, BeforeHookOpts } from './shared'
 
 export default function BeforeDestroy(): any {
   return function (target: any, key: string, _: any) {

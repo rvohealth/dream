@@ -5,6 +5,8 @@ import SandbagSerializer from '../../../test-app/app/serializers/SandbagSerializ
 import Mylar from './Balloon/Mylar'
 import ApplicationModel from './ApplicationModel'
 import Validate from '../../../src/decorators/validations/validate'
+import BeforeSave from '../../../src/decorators/hooks/before-save'
+import { BeforeCreate, BeforeDestroy, BeforeUpdate } from '../../../src'
 
 export default class Sandbag extends ApplicationModel {
   public get table() {
@@ -36,4 +38,9 @@ export default class Sandbag extends ApplicationModel {
   @BelongsTo(() => Mylar, { foreignKey: 'balloonId' })
   public mylar: Mylar
   public balloonId: IdType
+
+  @BeforeCreate({ ifChanging: ['weightKgs'] })
+  @BeforeSave({ ifChanging: ['weight'] })
+  @BeforeUpdate({ ifChanging: ['weightTons'] })
+  public conditionalHook() {}
 }
