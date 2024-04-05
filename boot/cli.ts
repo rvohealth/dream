@@ -51,13 +51,11 @@ program
   })
 
 program
-  .command('generate')
-  .alias('g')
-  .alias('generate:dream')
+  .command('generate:dream')
   .alias('generate:model')
   .alias('g:model')
   .alias('g:dream')
-  .description('generate <name> [...attributes] create a new dream')
+  .description('generate:dream <name> [...attributes] create a new dream')
   .argument('<name>', 'name of the dream')
   .option('--core', 'sets core to true')
   .option('--tsnode', 'runs the command using ts-node instead of node')
@@ -66,6 +64,23 @@ program
 
     await sspawn(
       nodeOrTsnodeCmd('src/bin/generate-dream.ts', cmdargs(), {
+        fileArgs: [name, ...omitCoreDev(attributes)],
+      })
+    )
+  })
+
+program
+  .command('generate:factory')
+  .alias('g:factory')
+  .description('generate:factory [...attributes] create a new factory for a dream')
+  .argument('<name>', 'name of the dream')
+  .option('--core', 'sets core to true')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
+  .action(async () => {
+    const [name, ...attributes] = cmdargs()
+
+    await sspawn(
+      nodeOrTsnodeCmd('src/bin/generate-factory.ts', cmdargs(), {
         fileArgs: [name, ...omitCoreDev(attributes)],
       })
     )
