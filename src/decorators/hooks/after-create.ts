@@ -1,7 +1,7 @@
 import Dream from '../../dream'
-import { HookStatement, blankHooksFactory } from './shared'
+import { HookStatement, blankHooksFactory, AfterHookOpts } from './shared'
 
-export default function AfterCreate(): any {
+export default function AfterCreate(opts: AfterHookOpts = {}): any {
   return function (target: any, key: string, _: any) {
     const dreamClass: typeof Dream = target.constructor
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'hooks'))
@@ -10,6 +10,7 @@ export default function AfterCreate(): any {
     dreamClass['hooks']['afterCreate'].push({
       method: key,
       type: 'afterCreate',
+      ifChanged: opts.ifChanged,
     } as HookStatement)
   }
 }

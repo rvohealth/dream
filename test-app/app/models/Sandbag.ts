@@ -6,7 +6,17 @@ import Mylar from './Balloon/Mylar'
 import ApplicationModel from './ApplicationModel'
 import Validate from '../../../src/decorators/validations/validate'
 import BeforeSave from '../../../src/decorators/hooks/before-save'
-import { BeforeCreate, BeforeDestroy, BeforeUpdate } from '../../../src'
+import {
+  AfterCreate,
+  AfterCreateCommit,
+  AfterSave,
+  AfterSaveCommit,
+  AfterUpdate,
+  AfterUpdateCommit,
+  BeforeCreate,
+  BeforeDestroy,
+  BeforeUpdate,
+} from '../../../src'
 
 export default class Sandbag extends ApplicationModel {
   public get table() {
@@ -43,4 +53,14 @@ export default class Sandbag extends ApplicationModel {
   @BeforeSave({ ifChanging: ['weight'] })
   @BeforeUpdate({ ifChanging: ['weightTons'] })
   public conditionalHook() {}
+
+  @AfterCreate({ ifChanged: ['weightKgs'] })
+  @AfterSave({ ifChanged: ['weight'] })
+  @AfterUpdate({ ifChanged: ['weightTons'] })
+  public afterConditionalHook() {}
+
+  @AfterCreateCommit({ ifChanged: ['weightKgs'] })
+  @AfterSaveCommit({ ifChanged: ['weight'] })
+  @AfterUpdateCommit({ ifChanged: ['weightTons'] })
+  public afterConditionalCommitHook() {}
 }
