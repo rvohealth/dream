@@ -57,7 +57,7 @@ import {
   GreaterThanSix,
   DreamClassColumns,
   UpdateableAssociationProperties,
-  DreamColumn,
+  DreamColumns,
 } from './dream/types'
 import Query, { FindEachOpts } from './dream/query'
 import runValidations from './dream/internal/runValidations'
@@ -209,10 +209,10 @@ export default class Dream {
     }: {
       scope:
         | keyof InstanceType<T>['dreamconf']['syncedBelongsToAssociations'][InstanceType<T>['table']]
-        | DreamColumn<InstanceType<T>>
+        | DreamColumns<InstanceType<T>>
         | (
             | keyof InstanceType<T>['dreamconf']['syncedBelongsToAssociations'][InstanceType<T>['table']]
-            | DreamColumn<InstanceType<T>>
+            | DreamColumns<InstanceType<T>>
           )[]
     }
   ) {
@@ -360,23 +360,17 @@ export default class Dream {
     return await this.query().count()
   }
 
-  public static async max<
-    DreamClass extends typeof Dream,
-    I extends InstanceType<DreamClass>,
-    TableName extends I['table'],
-    DB extends I['DB'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]>,
-  >(this: DreamClass, field: SimpleFieldType): Promise<number> {
+  public static async max<DreamClass extends typeof Dream>(
+    this: DreamClass,
+    field: DreamClassColumns<DreamClass>
+  ): Promise<number> {
     return await this.query().max(field as any)
   }
 
-  public static async min<
-    DreamClass extends typeof Dream,
-    I extends InstanceType<DreamClass>,
-    TableName extends I['table'],
-    DB extends I['DB'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]>,
-  >(this: DreamClass, field: SimpleFieldType): Promise<number> {
+  public static async min<DreamClass extends typeof Dream>(
+    this: DreamClass,
+    field: DreamClassColumns<DreamClass>
+  ): Promise<number> {
     return await this.query().min(field as any)
   }
 
@@ -522,9 +516,7 @@ export default class Dream {
     InstanceType<T>['DB'],
     InstanceType<T>['syncedAssociations'],
     InstanceType<T>['allColumns'],
-    keyof InstanceType<T>['DB'][InstanceType<T>['table']] extends never
-      ? never
-      : keyof InstanceType<T>['DB'][InstanceType<T>['table']] & string
+    DreamClassColumns<T>
   > {
     return new Query(this)
   }
@@ -845,17 +837,11 @@ export default class Dream {
     return this.query().nestedSelect(selection as any)
   }
 
-  public static order<
-    T extends typeof Dream,
-    DB extends InstanceType<T>['DB'] = InstanceType<T>['DB'],
-    TableName extends InstanceType<T>['table'] & keyof DB = InstanceType<T>['table'] & keyof DB,
-    ColumnName extends keyof Updateable<DB[TableName & keyof DB]> & string = keyof Updateable<
-      DB[TableName & keyof DB]
-    > &
-      string,
-    OrderDir extends 'asc' | 'desc' = 'asc' | 'desc',
-  >(this: T, arg: ColumnName | Partial<Record<ColumnName, OrderDir>> | null): Query<T> {
-    return this.query().order(arg)
+  public static order<DreamClass extends typeof Dream, OrderDir extends 'asc' | 'desc'>(
+    this: DreamClass,
+    arg: DreamClassColumns<DreamClass> | Partial<Record<DreamClassColumns<DreamClass>, OrderDir>> | null
+  ): Query<DreamClass> {
+    return this.query().order(arg as any) as Query<DreamClass>
   }
 
   public static async pluck<T extends typeof Dream>(this: T, ...fields: DreamClassColumns<T>[]) {
@@ -863,30 +849,16 @@ export default class Dream {
   }
 
   public static async pluckEach<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    DB extends I['DB'],
-    TableName extends I['table'],
+    DreamClass extends typeof Dream,
     CB extends (plucked: any) => void | Promise<void>,
-  >(
-    this: T,
-
-    ...fields: (
-      | (keyof Updateable<DB[TableName]> & string)
-      | `${TableName}.${keyof Updateable<DB[TableName]> & string}`
-      | CB
-      | FindEachOpts
-    )[]
-  ) {
+  >(this: DreamClass, ...fields: (DreamClassColumns<DreamClass> | CB | FindEachOpts)[]) {
     return await this.query().pluckEach(...(fields as any))
   }
 
-  public static async resort<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    DB extends I['DB'],
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, I['table']>>,
-  >(this: T, ...fields: SelectArg<DB, ExtractTableAlias<DB, I['table']>, SE>[]) {
+  public static async resort<DreamClass extends typeof Dream>(
+    this: DreamClass,
+    ...fields: DreamClassColumns<DreamClass>[]
+  ) {
     for (const field of fields) {
       const sortableMetadata = this.sortableFields.find(conf => conf.positionField === field)
       if (!sortableMetadata) throw new NonExistentScopeProvidedToResort(fields as string[], this)
@@ -1380,10 +1352,10 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Table extends DB[TableName],
-    RetType extends Partial<
+    RetType = Partial<
       Record<
-        keyof Updateable<Table>,
-        { was: Updateable<Table>[keyof Updateable<Table>]; now: Updateable<Table>[keyof Updateable<Table>] }
+        DreamColumns<I>,
+        { was: Updateable<Table>[DreamColumns<I>]; now: Updateable<Table>[DreamColumns<I>] }
       >
     >,
   >(this: I): RetType {
@@ -1407,32 +1379,20 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Table extends DB[TableName],
-    Attr extends keyof Updateable<Table> & string,
-  >(this: I, attribute: Attr): Updateable<Table>[Attr] {
+    ColumnName extends DreamColumns<I>,
+  >(this: I, attribute: ColumnName): Updateable<Table>[ColumnName] {
     if (this.frozenAttributes[attribute] !== (this as any)[attribute]) return this.frozenAttributes[attribute]
     return (this.attributesFromBeforeLastSave as any)[attribute]
   }
 
-  public savedChangeToAttribute<
-    I extends Dream,
-    TableName extends I['table'],
-    DB extends I['DB'],
-    Table extends DB[TableName],
-    Attr extends keyof Updateable<Table> & string,
-  >(this: I, attribute: Attr): boolean {
+  public savedChangeToAttribute<I extends Dream>(this: I, attribute: DreamColumns<I>): boolean {
     const changes = this.changes()
     const now = (changes as any)?.[attribute]?.now
     const was = (changes as any)?.[attribute]?.was
     return this.isPersisted && now !== was
   }
 
-  public willSaveChangeToAttribute<
-    I extends Dream,
-    TableName extends I['table'],
-    DB extends I['DB'],
-    Table extends DB[TableName],
-    Attr extends keyof Updateable<Table> & string,
-  >(this: I, attribute: Attr): boolean {
+  public willSaveChangeToAttribute<I extends Dream>(this: I, attribute: DreamColumns<I>): boolean {
     return this.attributeIsDirty(attribute as any)
   }
 
@@ -1463,13 +1423,7 @@ export default class Dream {
     return obj
   }
 
-  private attributeIsDirty<
-    I extends Dream,
-    DB extends I['DB'],
-    TableName extends I['table'],
-    Table extends DB[TableName],
-    Attr extends keyof Updateable<Table> & string,
-  >(this: I, attribute: Attr): boolean {
+  private attributeIsDirty<I extends Dream>(this: I, attribute: DreamColumns<I>): boolean {
     const frozenValue = (this.frozenAttributes as any)[attribute]
     const currentValue = (this.attributes() as any)[attribute]
 

@@ -32,19 +32,24 @@ export type ComparisonOperatorExpression = KyselyComparisonOperatorExpression | 
 //   columnValue: any
 // }
 
-export type DreamColumn<
-  I extends Dream,
-  DB = I['DB'],
-  TableName extends keyof DB = I['table'] & keyof DB,
+export type DreamColumns<
+  DreamInstance extends Dream,
+  DB = DreamInstance['DB'],
+  TableName extends keyof DB = DreamInstance['table'] & keyof DB,
+  Table extends DB[keyof DB] = DB[TableName],
+> = keyof Table & string
+
+export type DreamClassColumns<
+  DreamClass extends typeof Dream,
+  DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
+  DB = DreamInstance['DB'],
+  TableName extends keyof DB = DreamInstance['table'] & keyof DB,
   Table extends DB[keyof DB] = DB[TableName],
 > = keyof Table & string
 
 export type DreamTableSchema<DreamInstance extends Dream> = Updateable<
   DreamInstance['DB'][DreamInstance['table']]
 >
-
-export type DreamClassColumns<DreamClass extends typeof Dream> =
-  keyof InstanceType<DreamClass>['DB'][InstanceType<DreamClass>['table']] & string
 
 export type UpdateablePropertiesForClass<
   DreamClass extends typeof Dream,

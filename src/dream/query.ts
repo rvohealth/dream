@@ -124,10 +124,7 @@ export default class Query<
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
   AllColumns extends DreamInstance['allColumns'] = DreamInstance['allColumns'],
-  ColumnType extends keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] &
-    string = keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
-    ? never
-    : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] & string,
+  ColumnType extends DreamClassColumns<DreamClass> = DreamClassColumns<DreamClass>,
 > extends ConnectedToDB<DreamClass> {
   public static readonly BATCH_SIZES = {
     FIND_EACH: 1000,
@@ -401,7 +398,6 @@ export default class Query<
 
   public joins<
     TableName extends InstanceType<DreamClass>['table'],
-    DB extends InstanceType<DreamClass>['DB'],
     //
     A extends keyof SyncedAssociations[TableName] & string,
     ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
@@ -498,7 +494,6 @@ export default class Query<
   }
 
   public async pluckThrough<
-    DB extends InstanceType<DreamClass>['DB'],
     TableName extends InstanceType<DreamClass>['table'],
     //
     A extends keyof SyncedAssociations[TableName] & string,
@@ -600,7 +595,6 @@ export default class Query<
   }
 
   public async pluckEachThrough<
-    DB extends InstanceType<DreamClass>['DB'],
     TableName extends InstanceType<DreamClass>['table'],
     CB extends (data: any | any[]) => void | Promise<void>,
     //
@@ -875,15 +869,8 @@ export default class Query<
     return query.select(this.namespaceColumn(selection as any))
   }
 
-  public order<
-    TableName extends DreamInstance['table'] & keyof DB = DreamInstance['table'] & keyof DB,
-    ColumnName extends keyof Updateable<DB[TableName & keyof DB]> & string = keyof Updateable<
-      DB[TableName & keyof DB]
-    > &
-      string,
-    OrderDir extends 'asc' | 'desc' = 'asc' | 'desc',
-  >(
-    arg: ColumnName | Partial<Record<ColumnName, OrderDir>> | null
+  public order<OrderDir extends 'asc' | 'desc' = 'asc' | 'desc'>(
+    arg: ColumnType | Partial<Record<ColumnType, OrderDir>> | null
   ): Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType> {
     if (arg === null) return this.clone({ order: null })
     if (isString(arg)) return this.clone({ order: [{ column: arg as any, direction: 'asc' }] })
@@ -891,7 +878,7 @@ export default class Query<
     let query = this.clone()
 
     Object.keys(arg).forEach(key => {
-      const column = key as ColumnName
+      const column = key as ColumnType
       const direction = (arg as any)[key] as OrderDir
 
       query = query.clone({
@@ -987,11 +974,7 @@ export default class Query<
     return `${this.baseSqlAlias}.${column}`
   }
 
-  public async max<
-    TableName extends InstanceType<DreamClass>['table'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]>,
-    PluckThroughFieldType extends any,
-  >(field: SimpleFieldType | PluckThroughFieldType) {
+  public async max<PluckThroughFieldType extends any>(field: ColumnType | PluckThroughFieldType) {
     const { max } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true, bypassOrder: true })
 
@@ -1002,11 +985,7 @@ export default class Query<
     return data.max
   }
 
-  public async min<
-    TableName extends InstanceType<DreamClass>['table'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]>,
-    PluckThroughFieldType extends any,
-  >(field: SimpleFieldType | PluckThroughFieldType) {
+  public async min<PluckThroughFieldType extends any>(field: ColumnType | PluckThroughFieldType) {
     const { min } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true, bypassOrder: true })
 
@@ -1031,25 +1010,18 @@ export default class Query<
     )
   }
 
-  public async pluck(...fields: DreamClassColumns<DreamClass>[]): Promise<any[]> {
+  public async pluck<TableName extends DreamInstance['table']>(
+    ...fields: (ColumnType | `${TableName}.${ColumnType}`)[]
+  ): Promise<any[]> {
     const vals = await this.pluckWithoutMarshalling(...fields)
     const mapFn = (val: any, index: number) => marshalDBValue(this.dreamClass, fields[index] as any, val)
     return this.pluckValuesToPluckResponse(fields, vals, mapFn)
   }
 
   public async pluckEach<
-    TableName extends InstanceType<DreamClass>['table'],
+    TableName extends DreamInstance['table'],
     CB extends (plucked: any) => void | Promise<void>,
-  >(
-    // NOTE: cannot use abbreviated types captured in generics to type fields, since
-    // they will break types in real world use.
-    ...fields: (
-      | (keyof Updateable<DB[TableName]> & string)
-      | `${TableName}.${keyof Updateable<DB[TableName]> & string}`
-      | CB
-      | FindEachOpts
-    )[]
-  ): Promise<void> {
+  >(...fields: (ColumnType | `${TableName}.${ColumnType}` | CB | FindEachOpts)[]): Promise<void> {
     const providedCbIndex = fields.findIndex(v => typeof v === 'function')
     const providedCb = fields[providedCbIndex] as CB
     const providedOpts = fields[providedCbIndex + 1] as FindEachOpts
@@ -2275,7 +2247,7 @@ export default class Query<
     return results.clone.buildCommon(results.kyselyQuery)
   }
 
-  private buildSelect<DI extends InstanceType<DreamClass>, DB extends DI['DB']>({
+  private buildSelect({
     bypassSelectAll = false,
     bypassOrder = false,
   }: {
@@ -2419,10 +2391,7 @@ export default class Query<
 
 export interface QueryOpts<
   DreamClass extends typeof Dream,
-  ColumnType extends keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] &
-    string = keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
-    ? never
-    : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] & string,
+  ColumnType extends DreamClassColumns<DreamClass>,
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],

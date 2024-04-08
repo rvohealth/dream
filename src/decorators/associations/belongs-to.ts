@@ -9,7 +9,7 @@ import {
   associationPrimaryKeyAccessors,
 } from './shared'
 import Validates from '../validations/validates'
-import { DreamColumn } from '../../dream/types'
+import { DreamColumns } from '../../dream/types'
 import { isArray } from 'lodash'
 
 export default function BelongsTo<
@@ -70,8 +70,8 @@ export interface BelongsToStatement<
   primaryKey: (associationInstance?: Dream) => keyof DB[TableName] & string
   primaryKeyValue: (associationInstance: Dream | null) => any
   primaryKeyOverride?: (keyof DB[TableName] & string) | null
-  foreignKey: () => DreamColumn<BaseInstance> & string
-  foreignKeyTypeField: () => DreamColumn<BaseInstance> & string
+  foreignKey: () => DreamColumns<BaseInstance> & string
+  foreignKeyTypeField: () => DreamColumns<BaseInstance> & string
   optional: boolean
   distinct: null
   polymorphic: boolean
@@ -81,8 +81,8 @@ export interface BelongsToOptions<
   BaseInstance extends Dream,
   AssociationDreamClass extends typeof Dream = typeof Dream,
 > {
-  foreignKey?: DreamColumn<BaseInstance>
-  primaryKeyOverride?: DreamColumn<InstanceType<AssociationDreamClass>> | null
+  foreignKey?: DreamColumns<BaseInstance>
+  primaryKeyOverride?: DreamColumns<InstanceType<AssociationDreamClass>> | null
   optional?: boolean
   polymorphic?: boolean
 }

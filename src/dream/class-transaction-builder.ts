@@ -18,6 +18,7 @@ import {
   GreaterThanFour,
   GreaterThanFive,
   GreaterThanSix,
+  DreamClassColumns,
 } from './types'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import saveDream from './internal/saveDream'
@@ -55,21 +56,17 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     return this.queryInstance().offset(offset)
   }
 
-  public async max<
-    I extends DreamClassTransactionBuilder<DreamClass>,
-    TableName extends InstanceType<DreamClass>['table'],
-    DB extends InstanceType<DreamClass>['DB'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]>,
-  >(this: I, field: SimpleFieldType): Promise<number> {
+  public async max<I extends DreamClassTransactionBuilder<DreamClass>>(
+    this: I,
+    field: DreamClassColumns<DreamClass>
+  ): Promise<number> {
     return this.queryInstance().max(field as any)
   }
 
-  public async min<
-    I extends DreamClassTransactionBuilder<DreamClass>,
-    TableName extends InstanceType<DreamClass>['table'],
-    DB extends InstanceType<DreamClass>['DB'],
-    SimpleFieldType extends keyof Updateable<DB[TableName]>,
-  >(this: I, field: SimpleFieldType): Promise<number> {
+  public async min<I extends DreamClassTransactionBuilder<DreamClass>>(
+    this: I,
+    field: DreamClassColumns<DreamClass>
+  ): Promise<number> {
     return this.queryInstance().min(field as any)
   }
 
@@ -387,40 +384,28 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
 
   public order<
     I extends DreamClassTransactionBuilder<DreamClass>,
-    DB extends InstanceType<DreamClass>['DB'] = InstanceType<DreamClass>['DB'],
-    TableName extends InstanceType<DreamClass>['table'] & keyof DB = InstanceType<DreamClass>['table'] &
-      keyof DB,
-    ColumnName extends keyof Updateable<DB[TableName & keyof DB]> & string = keyof Updateable<
-      DB[TableName & keyof DB]
-    > &
-      string,
     OrderDir extends 'asc' | 'desc' = 'asc' | 'desc',
-  >(this: I, arg: ColumnName | Partial<Record<ColumnName, OrderDir>> | null) {
-    return this.queryInstance().order(arg)
+  >(
+    this: I,
+    arg: DreamClassColumns<DreamClass> | Partial<Record<DreamClassColumns<DreamClass>, OrderDir>> | null
+  ) {
+    return this.queryInstance().order(arg as any) as Query<DreamClass>
   }
 
   public async pluck<
     I extends DreamClassTransactionBuilder<DreamClass>,
-    DB extends InstanceType<DreamClass>['DB'],
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>>,
-  >(this: I, ...fields: SelectArg<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, SE>[]) {
+    TableName extends InstanceType<DreamClass>['table'],
+    ColumnType extends DreamClassColumns<DreamClass>,
+  >(this: I, ...fields: (ColumnType | `${TableName}.${ColumnType}`)[]) {
     return await this.queryInstance().pluck(...(fields as any[]))
   }
 
   public async pluckEach<
     I extends DreamClassTransactionBuilder<DreamClass>,
-    DB extends InstanceType<DreamClass>['DB'],
     TableName extends InstanceType<DreamClass>['table'],
+    ColumnType extends DreamClassColumns<DreamClass>,
     CB extends (plucked: any) => void | Promise<void>,
-  >(
-    this: I,
-    ...fields: (
-      | (keyof Updateable<DB[TableName]> & string)
-      | `${TableName}.${keyof Updateable<DB[TableName]> & string}`
-      | CB
-      | FindEachOpts
-    )[]
-  ): Promise<void> {
+  >(this: I, ...fields: (ColumnType | `${TableName}.${ColumnType}` | CB | FindEachOpts)[]): Promise<void> {
     await this.queryInstance().pluckEach(...fields)
   }
 

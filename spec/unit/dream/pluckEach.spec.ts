@@ -36,6 +36,7 @@ describe('Dream#pluckEach', () => {
     it('plucks the specified attributes and returns them as raw data', async () => {
       let user3: User | null = null
       let ids: any[] = []
+
       await ApplicationModel.transaction(async txn => {
         user3 = await User.txn(txn).create({ email: 'fred@txn', password: 'howyadoin' })
         await User.txn(txn).pluckEach('id', id => {

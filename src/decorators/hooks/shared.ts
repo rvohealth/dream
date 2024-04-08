@@ -1,5 +1,5 @@
 import Dream from '../../dream'
-import { DreamColumn } from '../../dream/types'
+import { DreamColumns } from '../../dream/types'
 
 export type HookType =
   | 'beforeCreate'
@@ -27,11 +27,11 @@ export interface HookStatement {
 }
 
 export interface BeforeHookOpts<T extends Dream | null = null> {
-  ifChanging?: T extends null ? string[] : DreamColumn<T & Dream>[]
+  ifChanging?: T extends null ? string[] : DreamColumns<T & Dream>[]
 }
 
 export interface AfterHookOpts<T extends Dream | null = null> {
-  ifChanged?: T extends Dream ? DreamColumn<T>[] : string[]
+  ifChanged?: T extends Dream ? DreamColumns<T>[] : string[]
 }
 
 export function blankHooksFactory(dreamClass: typeof Dream): {

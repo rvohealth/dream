@@ -4,7 +4,7 @@ import { SelectQueryBuilder, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
 import { Range } from '../../helpers/range'
 import { AssociationTableNames } from '../../db/reflections'
-import { DreamColumn, DreamConst, IdType } from '../../dream/types'
+import { DreamColumns, DreamConst, IdType } from '../../dream/types'
 import OpsStatement from '../../ops/ops-statement'
 import { BelongsToStatement } from './belongs-to'
 import { HasManyStatement } from './has-many'
@@ -113,7 +113,7 @@ export type WhereSelfStatement<
   DB extends any,
   SyncedAssociations extends any,
   TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
-> = Partial<Record<keyof DB[TableName], DreamColumn<BaseInstance>>>
+> = Partial<Record<keyof DB[TableName], DreamColumns<BaseInstance>>>
 
 export type OrderStatement<
   DB extends any,
@@ -150,8 +150,8 @@ export interface HasStatement<
   type: HasType
   as: string
   primaryKeyValue: (associationInstance: Dream) => any
-  primaryKeyOverride?: DreamColumn<BaseInstance> | null
-  primaryKey: (associationInstance?: Dream) => DreamColumn<BaseInstance>
+  primaryKeyOverride?: DreamColumns<BaseInstance> | null
+  primaryKey: (associationInstance?: Dream) => DreamColumns<BaseInstance>
   foreignKey: () => keyof DB[ForeignTableName] & string
   foreignKeyTypeField: () => keyof DB[ForeignTableName] & string
   polymorphic: boolean
@@ -167,8 +167,8 @@ export interface HasStatement<
 }
 
 export interface HasOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream> {
-  foreignKey?: DreamColumn<InstanceType<AssociationDreamClass>>
-  primaryKeyOverride?: DreamColumn<BaseInstance> | null
+  foreignKey?: DreamColumns<InstanceType<AssociationDreamClass>>
+  primaryKeyOverride?: DreamColumns<BaseInstance> | null
   through?: keyof BaseInstance['syncedAssociations'][BaseInstance['table']]
   polymorphic?: boolean
   source?: string
