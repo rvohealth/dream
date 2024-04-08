@@ -8,9 +8,12 @@ export default function AfterDestroy(): any {
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'hooks'))
       dreamClass['hooks'] = blankHooksFactory(dreamClass)
 
-    dreamClass['hooks']['afterDestroy'].push({
+    const hookStatement: HookStatement = {
+      className: dreamClass.name,
       method: key,
       type: 'afterDestroy',
-    } as HookStatement)
+    }
+
+    dreamClass['addHook']('afterDestroy', hookStatement)
   }
 }

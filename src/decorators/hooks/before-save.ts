@@ -8,10 +8,13 @@ export default function BeforeSave<T extends Dream | null = null>(opts: BeforeHo
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'hooks'))
       dreamClass['hooks'] = blankHooksFactory(dreamClass)
 
-    dreamClass['addHook']('beforeSave', {
+    const hookStatement: HookStatement = {
+      className: dreamClass.name,
       method: key,
       type: 'beforeSave',
       ifChanging: opts.ifChanging,
-    } as HookStatement)
+    }
+
+    dreamClass['addHook']('beforeSave', hookStatement)
   }
 }

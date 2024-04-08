@@ -8,10 +8,13 @@ export default function BeforeUpdate<T extends Dream>(opts: BeforeHookOpts<T> = 
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'hooks'))
       dreamClass['hooks'] = blankHooksFactory(dreamClass)
 
-    dreamClass['hooks']['beforeUpdate'].push({
+    const hookStatement: HookStatement = {
+      className: dreamClass.name,
       method: key,
       type: 'beforeUpdate',
       ifChanging: opts.ifChanging,
-    } as HookStatement)
+    }
+
+    dreamClass['addHook']('beforeUpdate', hookStatement)
   }
 }

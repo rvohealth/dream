@@ -8,10 +8,13 @@ export default function AfterSave<T extends Dream | null = null>(opts: AfterHook
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'hooks'))
       dreamClass['hooks'] = blankHooksFactory(dreamClass)
 
-    dreamClass['hooks']['afterSave'].push({
+    const hookStatement: HookStatement = {
+      className: dreamClass.name,
       method: key,
       type: 'afterSave',
       ifChanged: opts.ifChanged,
-    } as HookStatement)
+    }
+
+    dreamClass['addHook']('afterSave', hookStatement)
   }
 }

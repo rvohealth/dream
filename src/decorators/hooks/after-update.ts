@@ -8,10 +8,13 @@ export default function AfterUpdate<T extends Dream | null = null>(opts: AfterHo
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'hooks'))
       dreamClass['hooks'] = blankHooksFactory(dreamClass)
 
-    dreamClass['hooks']['afterUpdate'].push({
+    const hookStatement: HookStatement = {
+      className: dreamClass.name,
       method: key,
       type: 'afterUpdate',
       ifChanged: opts.ifChanged,
-    } as HookStatement)
+    }
+
+    dreamClass['addHook']('afterUpdate', hookStatement)
   }
 }

@@ -8,10 +8,13 @@ export default function BeforeCreate<T extends Dream | null = null>(opts: Before
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'hooks'))
       dreamClass['hooks'] = blankHooksFactory(dreamClass)
 
-    dreamClass['hooks']['beforeCreate'].push({
+    const hookStatement: HookStatement = {
+      className: dreamClass.name,
       method: key,
       type: 'beforeCreate',
       ifChanging: opts.ifChanging,
-    } as HookStatement)
+    }
+
+    dreamClass['addHook']('beforeCreate', hookStatement)
   }
 }
