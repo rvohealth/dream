@@ -19,9 +19,9 @@ export default function associationUpdateQuery<
     AssociationType & Dream,
     DreamInstance['DB'],
     DreamInstance['syncedAssociations'],
-    keyof DreamInstance['DB'][keyof DreamInstance['DB']] extends never
+    keyof DreamInstance['DB'][(AssociationType & Dream)['table']] extends never
       ? never
-      : keyof DreamInstance['DB'][keyof DreamInstance['DB']] & string
+      : keyof DreamInstance['DB'][(AssociationType & Dream)['table']] & string
   >,
 >(
   dream: DreamInstance,
