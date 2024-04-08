@@ -123,10 +123,10 @@ export default class Query<
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
-  ColumnType extends keyof DreamInstance['DB'][keyof DreamInstance['DB']] &
-    string = keyof DreamInstance['DB'][keyof DreamInstance['DB']] extends never
+  ColumnType extends keyof DreamInstance['DB'][DreamInstance['table']] &
+    string = keyof DreamInstance['DB'][DreamInstance['table']] extends never
     ? never
-    : keyof DreamInstance['DB'][keyof DreamInstance['DB']] & string,
+    : keyof DreamInstance['DB'][DreamInstance['table']] & string,
 > extends ConnectedToDB<DreamClass> {
   public static readonly BATCH_SIZES = {
     FIND_EACH: 1000,
@@ -2400,10 +2400,10 @@ export default class Query<
 
 export interface QueryOpts<
   DreamClass extends typeof Dream,
-  ColumnType extends keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] &
-    string = keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
+  ColumnType extends keyof InstanceType<DreamClass>['DB'][InstanceType<DreamClass>['table']] &
+    string = keyof InstanceType<DreamClass>['DB'][InstanceType<DreamClass>['table']] extends never
     ? never
-    : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] & string,
+    : keyof InstanceType<DreamClass>['DB'][InstanceType<DreamClass>['table']] & string,
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
