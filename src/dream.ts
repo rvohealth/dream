@@ -521,7 +521,6 @@ export default class Dream {
     InstanceType<T>,
     InstanceType<T>['DB'],
     InstanceType<T>['syncedAssociations'],
-    InstanceType<T>['allColumns'],
     keyof InstanceType<T>['DB'][InstanceType<T>['table']] extends never
       ? never
       : keyof InstanceType<T>['DB'][InstanceType<T>['table']] & string
@@ -958,11 +957,10 @@ export default class Dream {
     return res
   }
 
-  public static passthrough<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    AllColumns extends I['allColumns'],
-  >(this: T, passthroughWhereStatement: PassthroughWhere<AllColumns>): Query<T> {
+  public static passthrough<T extends typeof Dream>(
+    this: T,
+    passthroughWhereStatement: PassthroughWhere
+  ): Query<T> {
     return this.query().passthrough(passthroughWhereStatement)
   }
 
@@ -1069,10 +1067,6 @@ export default class Dream {
 
   public get syncedAssociations(): any {
     throw 'must have get syncedAssociations defined on child'
-  }
-
-  public get allColumns(): any {
-    throw 'must have get allColumns defined on child'
   }
 
   public get dreamconf(): Dreamconf {
@@ -1703,10 +1697,7 @@ export default class Dream {
     return associationUpdateQuery(this, null, associationName)
   }
 
-  public passthrough<I extends Dream, AllColumns extends I['allColumns']>(
-    this: I,
-    passthroughWhereStatement: PassthroughWhere<AllColumns>
-  ): LoadBuilder<I> {
+  public passthrough<I extends Dream>(this: I, passthroughWhereStatement: PassthroughWhere): LoadBuilder<I> {
     return new LoadBuilder<I>(this).passthrough(passthroughWhereStatement)
   }
 

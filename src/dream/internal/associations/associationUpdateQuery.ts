@@ -19,7 +19,6 @@ export default function associationUpdateQuery<
     AssociationType & Dream,
     DreamInstance['DB'],
     DreamInstance['syncedAssociations'],
-    DreamInstance['allColumns'],
     keyof DreamInstance['DB'][keyof DreamInstance['DB']] extends never
       ? never
       : keyof DreamInstance['DB'][keyof DreamInstance['DB']] & string

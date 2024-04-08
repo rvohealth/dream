@@ -20,9 +20,9 @@ export default class LoadBuilder<DreamInstance extends Dream> {
     this.dreamTransaction = txn
   }
 
-  public passthrough<I extends LoadBuilder<DreamInstance>, AllColumns extends DreamInstance['allColumns']>(
+  public passthrough<I extends LoadBuilder<DreamInstance>>(
     this: I,
-    passthroughWhereStatement: PassthroughWhere<AllColumns>
+    passthroughWhereStatement: PassthroughWhere
   ) {
     this.query = this.query.passthrough(passthroughWhereStatement)
     return this

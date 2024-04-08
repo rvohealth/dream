@@ -68,7 +68,6 @@ async function enhanceSchema(file: string) {
   file = addCustomImports(file)
 
   const interfaceKeyIndexes = compact(results.map(result => indexInterfaceKeys(result)))
-  const allColumnsString = allColumns(results)
 
   const dreamCoercedInterfaces = results.map(result => buildDreamCoercedInterfaces(result))
 
@@ -83,8 +82,6 @@ async function enhanceSchema(file: string) {
   const newFileContents = `${fileWithCoercedTypes}
 
 ${interfaceKeyIndexes.join('\n')}
-
-${allColumnsString}
 
 ${dreamCoercedInterfaces.join('\n\n')}
 ${dbTypeMap.join('\n\n')}
@@ -196,14 +193,6 @@ function indexInterfaceKeys(str: string) {
   const keys = tableInterfaceToColumns(str)
 
   return `export const ${pluralize.singular(name)}Columns = new Set([${keys.join(', ')}])`
-}
-
-function allColumns(tableInterfaces: string[]) {
-  const columns: string[] = uniq(
-    compact(tableInterfaces.flatMap(tableInterface => tableInterfaceToColumns(tableInterface)))
-  ).sort() as string[]
-
-  return `export const AllColumns = [${columns.join(', ')}] as const`
 }
 
 function tableInterfaceToColumns(str: string): string[] {

@@ -41,7 +41,7 @@ export type AssociatedModelParam<
   ? never
   : Partial<{ [K in AssociationName & string]: AssociatedModelType<I, K> | null }>
 
-export type PassthroughWhere<AllColumns extends string[]> = Partial<Record<AllColumns[number], any>>
+export type PassthroughWhere = Partial<Record<string, any>>
 
 type DreamSelectable<
   DB extends any,

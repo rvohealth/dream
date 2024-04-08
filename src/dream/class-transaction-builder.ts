@@ -424,10 +424,10 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     await this.queryInstance().pluckEach(...fields)
   }
 
-  public passthrough<
-    I extends DreamClassTransactionBuilder<DreamClass>,
-    AllColumns extends InstanceType<DreamClass>['allColumns'],
-  >(this: I, passthroughWhereStatement: PassthroughWhere<AllColumns>): Query<DreamClass> {
+  public passthrough<I extends DreamClassTransactionBuilder<DreamClass>>(
+    this: I,
+    passthroughWhereStatement: PassthroughWhere
+  ): Query<DreamClass> {
     return this.queryInstance().passthrough(passthroughWhereStatement as any)
   }
 
