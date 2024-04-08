@@ -396,7 +396,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
       string,
     OrderDir extends 'asc' | 'desc' = 'asc' | 'desc',
   >(this: I, arg: ColumnName | Partial<Record<ColumnName, OrderDir>> | null) {
-    return this.queryInstance().order(arg)
+    return this.queryInstance().order(arg as any) as Query<DreamClass>
   }
 
   public async pluck<

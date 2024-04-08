@@ -854,7 +854,7 @@ export default class Dream {
       string,
     OrderDir extends 'asc' | 'desc' = 'asc' | 'desc',
   >(this: T, arg: ColumnName | Partial<Record<ColumnName, OrderDir>> | null): Query<T> {
-    return this.query().order(arg)
+    return this.query().order(arg as any) as Query<T>
   }
 
   public static async pluck<T extends typeof Dream>(this: T, ...fields: DreamClassColumns<T>[]) {

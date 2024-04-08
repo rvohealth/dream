@@ -123,10 +123,10 @@ export default class Query<
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
-  ColumnType extends keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] &
-    string = keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] extends never
+  ColumnType extends keyof DreamInstance['DB'][keyof DreamInstance['DB']] &
+    string = keyof DreamInstance['DB'][keyof DreamInstance['DB']] extends never
     ? never
-    : keyof InstanceType<DreamClass>['DB'][keyof InstanceType<DreamClass>['DB']] & string,
+    : keyof DreamInstance['DB'][keyof DreamInstance['DB']] & string,
 > extends ConnectedToDB<DreamClass> {
   public static readonly BATCH_SIZES = {
     FIND_EACH: 1000,
@@ -870,15 +870,8 @@ export default class Query<
     return query.select(this.namespaceColumn(selection as any))
   }
 
-  public order<
-    TableName extends DreamInstance['table'] & keyof DB = DreamInstance['table'] & keyof DB,
-    ColumnName extends keyof Updateable<DB[TableName & keyof DB]> & string = keyof Updateable<
-      DB[TableName & keyof DB]
-    > &
-      string,
-    OrderDir extends 'asc' | 'desc' = 'asc' | 'desc',
-  >(
-    arg: ColumnName | Partial<Record<ColumnName, OrderDir>> | null
+  public order<OrderDir extends 'asc' | 'desc' = 'asc' | 'desc'>(
+    arg: ColumnType | Partial<Record<ColumnType, OrderDir>> | null
   ): Query<DreamClass, DreamInstance, DB, SyncedAssociations, ColumnType> {
     if (arg === null) return this.clone({ order: null })
     if (isString(arg)) return this.clone({ order: [{ column: arg as any, direction: 'asc' }] })
@@ -886,7 +879,7 @@ export default class Query<
     let query = this.clone()
 
     Object.keys(arg).forEach(key => {
-      const column = key as ColumnName
+      const column = key as ColumnType
       const direction = (arg as any)[key] as OrderDir
 
       query = query.clone({
