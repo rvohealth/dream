@@ -29,6 +29,7 @@ import {
   GreaterThanSix,
   DreamTableSchema,
   DreamClassColumns,
+  OrderDir,
 } from './types'
 import {
   AliasedExpression,
@@ -869,7 +870,7 @@ export default class Query<
     return query.select(this.namespaceColumn(selection as any))
   }
 
-  public order<OrderDir extends 'asc' | 'desc' = 'asc' | 'desc'>(
+  public order(
     arg: ColumnType | Partial<Record<ColumnType, OrderDir>> | null
   ): Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType> {
     if (arg === null) return this.clone({ order: null })
@@ -1825,7 +1826,7 @@ export default class Query<
     if (isString(orderStatement)) {
       query = query.orderBy(`${tableNameOrAlias}.${orderStatement}`, 'asc')
     } else {
-      Object.keys(orderStatement as Record<string, 'asc' | 'desc'>).forEach(column => {
+      Object.keys(orderStatement as Record<string, OrderDir>).forEach(column => {
         const direction = (orderStatement as any)[column]
         query = query.orderBy(`${tableNameOrAlias}.${column}`, direction)
       })

@@ -4,7 +4,7 @@ import { SelectQueryBuilder, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
 import { Range } from '../../helpers/range'
 import { AssociationTableNames } from '../../db/reflections'
-import { DreamColumns, DreamConst, IdType } from '../../dream/types'
+import { DreamColumns, DreamConst, IdType, OrderDir } from '../../dream/types'
 import OpsStatement from '../../ops/ops-statement'
 import { BelongsToStatement } from './belongs-to'
 import { HasManyStatement } from './has-many'
@@ -121,14 +121,14 @@ export type OrderStatement<
   TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
 > =
   | TableColumnName<DB, SyncedAssociations, TableName>
-  | Partial<Record<TableColumnName<DB, SyncedAssociations, TableName>, 'asc' | 'desc'>>
+  | Partial<Record<TableColumnName<DB, SyncedAssociations, TableName>, OrderDir>>
 
 export type LimitStatement = number
 export type OffsetStatement = number
 
 export type OrderQueryStatement<ColumnType extends any> = {
   column: ColumnType & string
-  direction: 'asc' | 'desc'
+  direction: OrderDir
 }
 
 export type TableColumnName<

@@ -58,6 +58,7 @@ import {
   DreamClassColumns,
   UpdateableAssociationProperties,
   DreamColumns,
+  OrderDir,
 } from './dream/types'
 import Query, { FindEachOpts } from './dream/query'
 import runValidations from './dream/internal/runValidations'
@@ -837,7 +838,7 @@ export default class Dream {
     return this.query().nestedSelect(selection as any)
   }
 
-  public static order<DreamClass extends typeof Dream, OrderDir extends 'asc' | 'desc'>(
+  public static order<DreamClass extends typeof Dream>(
     this: DreamClass,
     arg: DreamClassColumns<DreamClass> | Partial<Record<DreamClassColumns<DreamClass>, OrderDir>> | null
   ): Query<DreamClass> {

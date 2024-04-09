@@ -1,6 +1,7 @@
 import { sql } from 'kysely'
+import { OrderDir } from '../types'
 
-export default function orderByDirection(dir: 'asc' | 'desc' | null) {
+export default function orderByDirection(dir: OrderDir | null) {
   switch (dir) {
     case 'asc':
     case null:

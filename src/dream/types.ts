@@ -24,6 +24,7 @@ export const DreamConst = {
 export const TRIGRAM_OPERATORS = ['%', '<%', '<<%'] as const
 export type TrigramOperator = (typeof TRIGRAM_OPERATORS)[number]
 export type ComparisonOperatorExpression = KyselyComparisonOperatorExpression | TrigramOperator
+export type OrderDir = 'asc' | 'desc'
 
 // export interface AliasCondition<DB extends any, PreviousTableNames extends AssociationTableNames<DB>> {
 //   conditionToExecute: boolean

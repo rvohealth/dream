@@ -19,6 +19,7 @@ import {
   GreaterThanFive,
   GreaterThanSix,
   DreamClassColumns,
+  OrderDir,
 } from './types'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import saveDream from './internal/saveDream'
@@ -382,10 +383,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     return this.queryInstance().nestedSelect(selection as any)
   }
 
-  public order<
-    I extends DreamClassTransactionBuilder<DreamClass>,
-    OrderDir extends 'asc' | 'desc' = 'asc' | 'desc',
-  >(
+  public order<I extends DreamClassTransactionBuilder<DreamClass>>(
     this: I,
     arg: DreamClassColumns<DreamClass> | Partial<Record<DreamClassColumns<DreamClass>, OrderDir>> | null
   ) {
