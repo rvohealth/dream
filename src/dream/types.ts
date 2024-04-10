@@ -6,6 +6,7 @@ import Dream from '../dream'
 import { Decrement, Inc } from '../helpers/typeutils'
 import { AssociatedModelParam, WhereStatement } from '../decorators/associations/shared'
 import OpsStatement from '../ops/ops-statement'
+import { Shift } from 'meta-types'
 
 export const primaryKeyTypes = ['bigserial', 'bigint', 'uuid', 'integer'] as const
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
@@ -368,40 +369,148 @@ export type GreaterThanSix = AssociationDepths.SEVEN | AssociationDepths.EIGHT
 export type GreaterThanSeven = AssociationDepths.EIGHT
 
 type RecurseVariadicJoinsArgs<
-  ArrType extends any[],
-  BaseArr extends any[],
+  InputArr extends readonly any[],
+  OutputArr extends readonly any[],
+  DB extends object,
   SyncedAssociations extends object,
   TableName extends keyof SyncedAssociations & string,
   Index extends number,
-  AssociationName extends ArrType[Index] & keyof SyncedAssociations[TableName] & string = ArrType[Index] &
+  AssociationName extends InputArr[Index] & keyof SyncedAssociations[TableName] & string = InputArr[Index] &
     keyof SyncedAssociations[TableName] &
     string,
-  NextTableName = SyncedAssociations[TableName][AssociationName] extends (keyof SyncedAssociations & string)[]
-    ? SyncedAssociations[TableName][AssociationName][0]
+  NextTableName extends SyncedAssociations[TableName][AssociationName &
+    keyof SyncedAssociations[TableName] &
+    string] extends (keyof SyncedAssociations & string)[]
+    ? SyncedAssociations[TableName][AssociationName & keyof SyncedAssociations[TableName] & string][0] &
+        keyof SyncedAssociations &
+        string
+    : never = SyncedAssociations[TableName][AssociationName &
+    keyof SyncedAssociations[TableName] &
+    string] extends (keyof SyncedAssociations & string)[]
+    ? SyncedAssociations[TableName][AssociationName & keyof SyncedAssociations[TableName] & string][0] &
+        keyof SyncedAssociations &
+        string
     : never,
 > = Index extends 5
-  ? never
-  : Index extends Decrement<ArrType['length']>
-    ? [...BaseArr, keyof SyncedAssociations[TableName]]
-    : NextTableName extends (SyncedAssociations[TableName][ArrType[Index]] &
-          (keyof SyncedAssociations)[])[0] &
-          keyof SyncedAssociations &
-          string
-      ? RecurseVariadicJoinsArgs<
-          ArrType,
-          [...BaseArr, ArrType[Index]],
-          SyncedAssociations,
-          NextTableName,
-          // 'pets' & keyof SyncedAssociations,
-          // (SyncedAssociations[TableName][ArrType[Index]] & (keyof SyncedAssociations)[])[0] &
-          //   keyof SyncedAssociations &
-          //   string,
-          Inc<Index>
-        >
+  ? [...OutputArr, ...any[]]
+  : Index extends Decrement<InputArr['length']>
+    ? [...OutputArr, NextJoinsWhereArgumentType<DB, SyncedAssociations, TableName>]
+    : InputArr[Index] extends keyof SyncedAssociations[TableName] & string
+      ? SyncedAssociations[TableName][InputArr[Index]] extends (keyof SyncedAssociations & string)[]
+        ? NextTableName extends (SyncedAssociations[TableName][InputArr[Index]] &
+            (keyof SyncedAssociations)[])[0] &
+            keyof SyncedAssociations &
+            string
+          ? RecurseVariadicJoinsArgs<
+              InputArr,
+              [...OutputArr, InputArr[Index] & NextJoinsWhereArgumentType<DB, SyncedAssociations, TableName>],
+              DB,
+              SyncedAssociations,
+              NextTableName,
+              // SyncedAssociations[TableName][ArrType[Index]][0],
+              // NextTableName & keyof SyncedAssociations & string,
+              // 'pets' & keyof SyncedAssociations,
+              // (SyncedAssociations[TableName][ArrType[Index]] & (keyof SyncedAssociations)[])[0] &
+              //   keyof SyncedAssociations &
+              //   string,
+              Inc<Index>
+            >
+          : never
+        : never
       : never
 
 export type VariadicJoinsArgs<
+  DB extends object,
   SyncedAssociations extends object,
   TableName extends keyof SyncedAssociations & string,
-  T extends any[],
-> = RecurseVariadicJoinsArgs<T, [], SyncedAssociations, TableName, 0>
+  T extends readonly any[],
+> = RecurseVariadicJoinsArgs<T, [], DB, SyncedAssociations, TableName, 0>
+
+export type VariadicJoinsArgs2<
+  DB extends object,
+  SyncedAssociations extends object,
+  TableName extends keyof SyncedAssociations & string,
+  T extends readonly any[],
+  // > = RecurseVariadicJoinsArgs2<T, [], DB, SyncedAssociations, TableName>
+> = T['length'] extends 0 | 1
+  ? [keyof SyncedAssociations[TableName] & string]
+  : RecurseVariadicJoinsArgs2<T, [], DB, SyncedAssociations, TableName>
+
+type RecurseVariadicJoinsArgs2<
+  InputArr extends readonly any[],
+  OutputArr extends readonly any[],
+  DB extends object,
+  SyncedAssociations extends object,
+  TableName extends keyof SyncedAssociations & string,
+  AssociationName extends InputArr[0] & keyof SyncedAssociations[TableName] & string = InputArr[0] &
+    keyof SyncedAssociations[TableName] &
+    string,
+  NextTableName extends keyof SyncedAssociations &
+    string = SyncedAssociations[TableName][AssociationName] extends any[]
+    ? SyncedAssociations[TableName][AssociationName][0] & keyof SyncedAssociations & string
+    : never,
+> = InputArr['length'] extends 0
+  ? [...OutputArr, keyof SyncedAssociations[TableName]]
+  : // : NextTableName extends (SyncedAssociations[TableName][InputArr[0]] & (keyof SyncedAssociations)[])[0] &
+    //       keyof SyncedAssociations &
+    //       string
+    //   ? // ? SyncedAssociations[TableName][ArrType[Index]][0] extends keyof SyncedAssociations & string
+
+    RecurseVariadicJoinsArgs2<
+      Shift<InputArr, 1>,
+      [...OutputArr, AssociationName],
+      DB,
+      SyncedAssociations,
+      NextTableName
+    >
+// : never
+// : Shift<InputArr, 1> extends [keyof SyncedAssociations[NextTableName] & string, ...any[]]
+//   ? RecurseVariadicJoinsArgs2<
+//       Shift<InputArr, 1> & [keyof SyncedAssociations[NextTableName] & string, ...any[]],
+//       [...OutputArr, TableName],
+//       DB,
+//       SyncedAssociations,
+//       NextTableName
+//     >
+//   : never
+
+export type VariadicJoinsArgs3<
+  DB extends object,
+  SyncedAssociations extends object,
+  TableName extends keyof SyncedAssociations & string,
+  ConcreteArgs extends readonly any[],
+> = ConcreteArgs['length'] extends 0 | 1
+  ? [keyof SyncedAssociations[TableName] & string]
+  : MapTypes<ConcreteArgs, DB, SyncedAssociations, TableName, [keyof SyncedAssociations[TableName]]>
+
+type MapTypes<
+  ConcreteArgs extends readonly any[],
+  DB extends object,
+  SyncedAssociations extends object,
+  ConcreteTableName extends keyof SyncedAssociations & string,
+  Accumulator extends any[],
+  Depth extends number = 0,
+  TypedFirstArg = ConcreteArgs extends [infer T extends keyof SyncedAssociations[ConcreteTableName], ...any[]]
+    ? T
+    : never,
+  ConcreteAssociationName extends ConcreteArgs[0] &
+    keyof SyncedAssociations[ConcreteTableName] &
+    string = ConcreteArgs[0] & keyof SyncedAssociations[ConcreteTableName] & string,
+  NextTableName extends keyof SyncedAssociations &
+    string = SyncedAssociations[ConcreteTableName][ConcreteAssociationName] extends any[]
+    ? SyncedAssociations[ConcreteTableName][ConcreteAssociationName][0] & keyof SyncedAssociations & string
+    : never,
+  PossibleNextAssociationNames = keyof SyncedAssociations[NextTableName] & string,
+> = ConcreteArgs['length'] extends 1
+  ? [...Accumulator, keyof SyncedAssociations[ConcreteTableName]]
+  : Depth extends 31
+    ? never
+    : MapTypes<
+        // Tail<ConcreteArgs>,
+        Shift<ConcreteArgs, 1>,
+        DB,
+        SyncedAssociations,
+        NextTableName,
+        [...Accumulator, PossibleNextAssociationNames],
+        Inc<Depth>
+      >

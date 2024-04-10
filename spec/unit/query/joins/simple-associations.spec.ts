@@ -10,9 +10,10 @@ import ops from '../../../../src/ops'
 import OpsStatement from '../../../../src/ops/ops-statement'
 import LocalizedText from '../../../../test-app/app/models/LocalizedText'
 import Collar from '../../../../test-app/app/models/Collar'
+import Edge from '../../../../test-app/app/models/Graph/Edge'
 
-Collar.query().joins('pet', 'collars')
-// Collar.query().joins('pet', 'collars', '')
+Edge.query().joins('edgeNodes', '')
+Collar.query().joins('pet' as const, 'collars')
 // Balloon.query().joins('sandbags', 'mylar')
 
 // Pet.joins('user', 'firstPet', '')

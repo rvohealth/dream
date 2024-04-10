@@ -32,6 +32,8 @@ import {
   DreamClassColumns,
   OrderDir,
   VariadicJoinsArgs,
+  VariadicJoinsArgs2,
+  VariadicJoinsArgs3,
 } from './types'
 import {
   AliasedExpression,
@@ -403,8 +405,8 @@ export default class Query<
   public joins<
     TableName extends InstanceType<DreamClass>['table'],
     SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
-    Arr extends any[],
-  >(...args: Arr & VariadicJoinsArgs<SyncedAssociations, TableName, Arr>) {
+    Arr extends readonly any[],
+  >(...args: Arr & VariadicJoinsArgs<DB, SyncedAssociations, TableName, Arr>) {
     const joinsStatements = cloneDeepSafe(this.joinsStatements)
 
     const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = cloneDeepSafe(

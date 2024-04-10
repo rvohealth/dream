@@ -66,6 +66,7 @@
     "lodash.uniq": "^4.5.0",
     "lodash.uniqwith": "^4.5.0",
     "luxon": "^3.4.4",
+    "meta-types": "^2.0.0",
     "pg": "^8.11.3",
     "pluralize": "^8.0.0",
     "ts-jest": "^29.1.2",
