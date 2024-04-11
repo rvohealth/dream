@@ -80,11 +80,6 @@ export interface PostVisibility {
   })
 
   context('associations', () => {
-    it('ignores invalid associations', async () => {
-      const file = await generateApiSchemaContent()
-      expect(file).not.toContain('gobbledeegook')
-    })
-
     it('renders valid associations even when serializers are not exported default', async () => {
       const file = await generateApiSchemaContent()
       expect(file).toContain(`\
@@ -99,6 +94,7 @@ export interface Post {
 export interface Composition {
   id: any
   metadata: any
+  compositionAssets: any[]
   localizedTexts: LocalizedTextBase[]
   currentLocalizedText: LocalizedTextBase
 }`)
@@ -132,6 +128,7 @@ export interface Collar {
 export interface BalloonSpotterBalloon {
   balloonSpotter: any
   balloon: BalloonSummary
+  gobbledeegook: any
 }`)
         })
       })

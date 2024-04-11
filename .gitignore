@@ -101,6 +101,9 @@ dist
 # DynamoDB Local files
 .dynamodb/
 
+# vim files
+.vim/
+
 # TernJS port file
 .tern-port
 
