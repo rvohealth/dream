@@ -30,13 +30,11 @@ export default async function generateApiSchemaContent() {
 
       for (const association of serializer.associationStatements) {
         const associatedSerializer = await loadAssociatedSerializer(serializerFile, association)
-        const expectedType = associatedSerializer?.name?.replace(/Serializer$/, '')
+        const expectedType = associatedSerializer?.name?.replace(/Serializer$/, '') || 'any'
 
-        if (expectedType) {
-          finalAttributes.push(
-            `\n  ${association.field}: ${expectedType}${association.type === 'RendersMany' ? '[]' : ''}`
-          )
-        }
+        finalAttributes.push(
+          `\n  ${association.field}: ${expectedType}${association.type === 'RendersMany' ? '[]' : ''}`
+        )
       }
 
       const typeStr = `\
@@ -126,7 +124,11 @@ async function loadAssociatedSerializer(serializerPath: string, association: Ass
     // TODO: find best approach to handling polymorphic associations on serializer
     return null
   } else {
-    const serializerClass = associationDreamClass?.prototype?.serializer
+    let serializerClass: any
+    try {
+      serializerClass = associationDreamClass?.prototype?.serializer
+    } catch (_) {}
+
     return serializerClass || null
   }
 
