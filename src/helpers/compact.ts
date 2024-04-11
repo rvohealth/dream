@@ -1,16 +1,37 @@
+export function compact<T extends any[], CompactedArrayElementType extends T extends (infer U)[] ? U : never>(
+  obj: T
+): Exclude<CompactedArrayElementType, null | undefined>[]
+//
+export function compact<
+  T extends { [key: string]: any },
+  NonNullKeys extends {
+    [K in keyof T]: T[K] extends undefined | null ? never : K
+  }[keyof T],
+>(obj: T): { [K in NonNullKeys]: T[K] }
+//
 export default function compact<
-  T extends any,
-  R extends T extends (infer Item)[]
-    ? Exclude<Item, null | undefined>[]
+  T extends any[] | { [key: string]: any },
+  //
+  CompactedArrayElementType extends T extends (infer U)[] ? U : never,
+  //
+  NonNullKeys extends T extends { [key: string]: any }
+    ? {
+        [K in keyof T]: T[K] extends undefined | null ? never : K
+      }[keyof T]
+    : never,
+  //
+  RetType extends T extends any[]
+    ? Exclude<CompactedArrayElementType, null | undefined>[]
     : T extends { [key: string]: any }
-      ? CompactedObject<T>
+      ? { [K in NonNullKeys]: T[K] }
       : never,
->(obj: T): R {
+>(obj: T): RetType {
   if (Array.isArray(obj)) {
-    return obj.filter(val => ![undefined, null].includes(val as any)) as R
+    return obj.filter(val => ![undefined, null].includes(val)) as RetType
   } else {
-    return Object.fromEntries(Object.entries(obj as any).filter(([, v]) => v != null)) as R
+    return Object.fromEntries(Object.entries(obj).filter(([, v]) => v != null)) as RetType
   }
 }
 
-type CompactedObject<T> = { [K in keyof T as T[K] extends null | undefined ? never : K]: T[K] }
+const x = compact(['a', 2, null, undefined])
+const y = compact({ a: 1, b: 'b', c: null, d: undefined })
