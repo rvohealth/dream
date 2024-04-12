@@ -34,8 +34,8 @@
     "console": "yarn dream console --core",
     "types:trace": "rm -rf dist && APP_ROOT_PATH=$(pwd) npx tsc -p ./tsconfig.build.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
     "types:trace-test-app": "rm -rf dist && APP_ROOT_PATH=$(pwd) npx tsc -p ./tsconfig.trace.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
-    "format": "yarn run prettier . --write && yarn run eslint src/ spec/ --ext .ts --fix",
-    "lint": "yarn run eslint src/ spec/ --ext .ts && yarn run prettier . --check"
+    "format": "yarn run prettier . --write",
+    "lint": "yarn run eslint --no-warn-ignored src/**/*.ts spec/**/*.ts test-app/**/*.ts && yarn run prettier . --check"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
@@ -74,19 +74,17 @@
     "typescript": "^5.3.3"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
     "@types/bcrypt": "^5.0.0",
     "@types/jest-plugin-context": "^2.9.5",
-    "@typescript-eslint/eslint-plugin": "^6.15.0",
-    "@typescript-eslint/parser": "^6.15.0",
     "@typescript/analyze-trace": "^0.10.1",
     "bcrypt": "^5.1.0",
-    "eslint": "^8.56.0",
-    "eslint-config-prettier": "^9.1.0",
+    "eslint": "^9.0.0",
     "jest-plugin-context": "^2.9.0",
     "luxon-jest-matchers": "^0.1.14",
     "prettier": "^3.2.5",
-    "prettier-eslint": "^16.3.0",
     "typedoc": "^0.24.6",
-    "typescript": "^5.3.3"
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^7.6.0"
   }
 }
