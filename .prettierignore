@@ -1,4 +1,5 @@
 # Ignore generated files
+docs/*
 test-app/db/schema*
 test-app/db/associations.ts
 test-app/client/schema.ts
