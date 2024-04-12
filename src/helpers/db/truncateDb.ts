@@ -1,4 +1,3 @@
-import { Client } from 'pg'
 import loadPgClient from './loadPgClient'
 
 export default async function truncate() {

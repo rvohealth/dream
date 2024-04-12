@@ -22,7 +22,7 @@ export default class ApplicationModel extends Dream {
   }
 
   public get allColumns(): typeof AllColumns {
-    return AllColumns as typeof AllColumns
+    return AllColumns
   }
 
   public get dreamconf(): Dreamconf<

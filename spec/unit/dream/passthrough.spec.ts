@@ -8,7 +8,7 @@ describe('Dream.passthrough', () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
     const composition = await Composition.create({ user })
-    const compositionText1 = await LocalizedText.create({ localizable: composition, locale: 'en-US' })
+    await LocalizedText.create({ localizable: composition, locale: 'en-US' })
     const compositionText2 = await LocalizedText.create({ localizable: composition, locale: 'es-ES' })
 
     const reloadedUser = await User.passthrough({ locale: 'es-ES' })
@@ -23,7 +23,7 @@ describe('Dream.passthrough', () => {
         const user = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
 
         const composition = await Composition.txn(txn).create({ user })
-        const compositionText1 = await LocalizedText.txn(txn).create({
+        await LocalizedText.txn(txn).create({
           localizable: composition,
           locale: 'en-US',
         })
@@ -47,13 +47,14 @@ describe('Dream#passthrough', () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
     const composition = await Composition.create({ user })
-    const compositionText1 = await LocalizedText.create({ localizable: composition, locale: 'en-US' })
+    await LocalizedText.create({ localizable: composition, locale: 'en-US' })
     const compositionText2 = await LocalizedText.create({ localizable: composition, locale: 'es-ES' })
 
     const reloadedUser = await user
       .passthrough({ locale: 'es-ES' })
       .load('compositions', 'currentLocalizedText')
       .execute()
-    expect(reloadedUser!.compositions[0].currentLocalizedText).toMatchDreamModel(compositionText2)
+
+    expect(reloadedUser.compositions[0].currentLocalizedText).toMatchDreamModel(compositionText2)
   })
 })

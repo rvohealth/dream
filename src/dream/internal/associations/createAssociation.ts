@@ -1,11 +1,10 @@
 import Dream from '../../../dream'
 import DreamTransaction from '../../transaction'
-import { UpdateableAssociationProperties, UpdateablePropertiesForClass } from '../../types'
+import { UpdateableAssociationProperties } from '../../types'
 import { HasManyStatement } from '../../../decorators/associations/has-many'
 import { HasOneStatement } from '../../../decorators/associations/has-one'
 import { BelongsToStatement } from '../../../decorators/associations/belongs-to'
 import CannotCreateAssociationWithThroughContext from '../../../exceptions/associations/cannot-create-association-with-through-context'
-import { AssociationTableNames } from '../../../db/reflections'
 
 export default async function createAssociation<
   DreamInstance extends Dream,
@@ -35,6 +34,9 @@ export default async function createAssociation<
       `)
   }
   const associationClass = association.modelCB() as typeof Dream
+  let hasresult: unknown
+  let belongstoresult: AssociationType
+  let belongstoFn: (txn: DreamTransaction<Dream>) => Promise<void>
 
   switch (association.type) {
     case 'HasMany':
@@ -44,8 +46,6 @@ export default async function createAssociation<
           dreamClass: dream.constructor as typeof Dream,
           association,
         })
-
-      let hasresult
 
       if (txn) {
         hasresult = await associationClass.txn(txn).create({
@@ -58,11 +58,10 @@ export default async function createAssociation<
           ...opts,
         })
       }
-      return hasresult! as unknown as NonNullable<AssociationType>
+      return hasresult! as NonNullable<AssociationType>
 
     case 'BelongsTo':
-      let belongstoresult: AssociationType
-      const fn = async (txn: DreamTransaction<Dream>) => {
+      belongstoFn = async (txn: DreamTransaction<Dream>) => {
         belongstoresult = await (associationClass as any).txn(txn).create({
           ...opts,
         })
@@ -71,8 +70,8 @@ export default async function createAssociation<
         } as any)
       }
 
-      if (txn) await fn(txn)
-      else await (dream.constructor as any).transaction(fn)
+      if (txn) await belongstoFn(txn)
+      else await (dream.constructor as any).transaction(belongstoFn)
 
       return belongstoresult! as unknown as NonNullable<AssociationType>
   }

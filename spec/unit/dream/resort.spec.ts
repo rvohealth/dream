@@ -130,14 +130,13 @@ describe('Dream#resort', () => {
 
   context('when part of the scope is pointing to a column', () => {
     let pet: Pet
-    let pet2: Pet
     let collar1: Collar
     let collar2: Collar
     let collar3: Collar
     let collar4: Collar
     beforeEach(async () => {
       pet = await Pet.create()
-      pet2 = await Pet.create()
+      await Pet.create()
       collar1 = await Collar.create({ tagName: 'hello', pet })
       collar2 = await Collar.create({ tagName: 'hello', pet })
       collar3 = await Collar.create({ tagName: 'goodbye', pet })

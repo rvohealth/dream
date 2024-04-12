@@ -44,8 +44,8 @@ export type AssociatedModelParam<
 export type PassthroughWhere<AllColumns extends string[]> = Partial<Record<AllColumns[number], any>>
 
 type DreamSelectable<
-  DB extends any,
-  SyncedAssociations extends any,
+  DB,
+  SyncedAssociations,
   TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
 > = Partial<
   Record<
@@ -61,8 +61,8 @@ type DreamSelectable<
 >
 
 type AssociationDreamSelectable<
-  DB extends any,
-  SyncedAssociations extends any,
+  DB,
+  SyncedAssociations,
   TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
 > = Partial<
   Record<
@@ -91,16 +91,16 @@ export type WhereStatementForDream<DreamInstance extends Dream> = WhereStatement
 >
 
 export type WhereStatement<
-  DB extends any,
-  SyncedAssociations extends any,
+  DB,
+  SyncedAssociations,
   TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
 > = Partial<
   MergeUnionOfRecordTypes<Updateable<DB[TableName]> | DreamSelectable<DB, SyncedAssociations, TableName>>
 >
 
 export type AssociationWhereStatement<
-  DB extends any,
-  SyncedAssociations extends any,
+  DB,
+  SyncedAssociations,
   TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
 > = Partial<
   MergeUnionOfRecordTypes<
@@ -110,14 +110,14 @@ export type AssociationWhereStatement<
 
 export type WhereSelfStatement<
   BaseInstance extends Dream,
-  DB extends any,
-  SyncedAssociations extends any,
+  DB,
+  SyncedAssociations,
   TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
 > = Partial<Record<keyof DB[TableName], DreamColumns<BaseInstance>>>
 
 export type OrderStatement<
-  DB extends any,
-  SyncedAssociations extends any,
+  DB,
+  SyncedAssociations,
   TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
 > =
   | TableColumnName<DB, SyncedAssociations, TableName>
@@ -126,14 +126,14 @@ export type OrderStatement<
 export type LimitStatement = number
 export type OffsetStatement = number
 
-export type OrderQueryStatement<ColumnType extends any> = {
+export type OrderQueryStatement<ColumnType> = {
   column: ColumnType & string
   direction: OrderDir
 }
 
 export type TableColumnName<
-  DB extends any,
-  SyncedAssociations extends any,
+  DB,
+  SyncedAssociations,
   TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
   Table extends DB[keyof DB] = DB[TableName],
   ColumnName extends keyof Table & string = keyof Table & string,
@@ -141,8 +141,8 @@ export type TableColumnName<
 
 export interface HasStatement<
   BaseInstance extends Dream,
-  DB extends any,
-  SyncedAssociations extends any,
+  DB,
+  SyncedAssociations,
   ForeignTableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
   HasType extends 'HasOne' | 'HasMany',
 > {
@@ -270,6 +270,11 @@ export type PartialAssociationStatement =
   | Pick<HasOneStatement<any, any, any, any>, partialTypeFields | hasOneManySpecificFields>
   | Pick<BelongsToStatement<any, any, any, any>, partialTypeFields | belongsToSpecificFields>
 
+export type AssociationStatement =
+  | HasManyStatement<any, any, any, any>
+  | HasOneStatement<any, any, any, any>
+  | BelongsToStatement<any, any, any, any>
+
 export function finalForeignKey(
   foreignKey: string | undefined,
   dreamClass: typeof Dream,
@@ -379,8 +384,8 @@ association: ${this.as}
   }
 }
 
-function hydratedSourceValue(dream: Dream | typeof Dream | undefined, sourceName: string) {
-  if (!dream) return
-  if (!sourceName) return
-  return (dream as any)[sourceName] || (dream as any)[singular(sourceName)]
-}
+// function hydratedSourceValue(dream: Dream | typeof Dream | undefined, sourceName: string) {
+//   if (!dream) return
+//   if (!sourceName) return
+//   return (dream as any)[sourceName] || (dream as any)[singular(sourceName)]
+// }

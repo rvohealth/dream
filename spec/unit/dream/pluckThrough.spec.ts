@@ -88,7 +88,7 @@ describe('Dream#pluckThrough', () => {
 
     const composition1 = await Composition.create({ user })
     const compositionAsset1 = await CompositionAsset.create({ composition: composition1 })
-    const compositionAssetAudit1 = await CompositionAssetAudit.create({
+    await CompositionAssetAudit.create({
       compositionAsset: compositionAsset1,
       approval: true,
     })

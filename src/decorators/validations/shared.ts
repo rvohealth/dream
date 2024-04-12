@@ -2,7 +2,7 @@ export default interface ValidationStatement {
   type: ValidationType
   column: string
   options?: {
-    presence?: {}
+    presence?: object
     numericality?: {
       max?: number
       min?: number

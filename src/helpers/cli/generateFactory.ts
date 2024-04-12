@@ -23,7 +23,7 @@ export default async function generateFactory(dreamName: string, attributes: str
         ${relativeSpecPath}
 
       Does this file already exist? Here is the error that was raised:
-        ${error}
+        ${(error as Error).message}
     `
     throw err
   }

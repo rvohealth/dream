@@ -47,7 +47,7 @@ export default async function generateSerializerContent(
     }
   })
 
-  if (!!enumImports.length) {
+  if (enumImports.length) {
     const schemaPath = path.join(yamlConf.db_path, 'schema.ts')
     const relativePath = path.join(
       await relativePathToSrcRoot(fullyQualifiedSerializerName),
@@ -57,7 +57,7 @@ export default async function generateSerializerContent(
     additionalImports.push(enumImport)
   }
 
-  const additionalImportsStr = !!additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
+  const additionalImportsStr = additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
 
   return `\
 ${luxonImport}import { ${dreamImports.join(
@@ -98,8 +98,7 @@ function attributeSpecifier(type: string, originalAttribute: string) {
     case 'json':
       return "'json'"
     case 'enum':
-      const coercedType = pascalize(originalAttribute.split(':')[2])
-      return `'enum:${coercedType}Enum'`
+      return `'enum:${pascalize(originalAttribute.split(':')[2])}Enum'`
     case 'bigint':
     case 'uuid':
       return "'string'"
@@ -124,6 +123,7 @@ function jsType(type: string, originalAttribute: string) {
     case 'datetime':
     case 'date':
       return 'DateTime'
+
     case 'decimal':
     case 'integer':
     case 'number':
@@ -134,10 +134,9 @@ function jsType(type: string, originalAttribute: string) {
     case 'bigint':
     case 'uuid':
       return 'string'
+
     case 'enum':
       return pascalize(originalAttribute.split(':')[2]) + 'Enum'
-    case 'integer':
-      return 'number'
 
     default:
       return 'any'

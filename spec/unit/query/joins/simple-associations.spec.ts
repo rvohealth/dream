@@ -15,7 +15,7 @@ describe('Query#joins with simple associations', () => {
   it('joins a HasOne association', async () => {
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-    const composition = await Composition.create({ userId: user.id, primary: true })
+    await Composition.create({ userId: user.id, primary: true })
 
     const reloadedUsers = await User.query().joins('mainComposition').all()
     expect(reloadedUsers).toMatchDreamModels([user])
@@ -24,7 +24,7 @@ describe('Query#joins with simple associations', () => {
   it('joins a HasMany association', async () => {
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-    const composition = await Composition.create({ userId: user.id })
+    await Composition.create({ userId: user.id })
 
     const reloadedUsers = await User.query().joins('compositions').all()
     expect(reloadedUsers).toMatchDreamModels([user])
@@ -36,7 +36,7 @@ describe('Query#joins with simple associations', () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
 
       const composition = await Composition.create({ userId: user.id, primary: true })
-      const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
+      await CompositionAsset.create({ compositionId: composition.id })
 
       const reloadedUsers = await User.query().joins('mainComposition', 'compositionAssets').all()
 
@@ -98,7 +98,7 @@ describe('Query#joins with simple associations', () => {
         const user3 = await User.create({ email: 'how@frewd', password: 'howyadoin', name: 'George' })
         const balloon1 = await Mylar.create({ user: user1 })
         const balloon2 = await Mylar.create({ user: user2 })
-        const balloon3 = await Mylar.create({ user: user3 })
+        await Mylar.create({ user: user3 })
 
         const balloons = await Balloon.joins('user', { name: ops.similarity('hello') }).all()
         expect(balloons).toMatchDreamModels([balloon1, balloon2])
@@ -110,7 +110,7 @@ describe('Query#joins with simple associations', () => {
         const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'Hello World' })
         const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin', name: 'Hallo' })
         const balloon1 = await Mylar.create({ user: user1 })
-        const balloon2 = await Mylar.create({ user: user2 })
+        await Mylar.create({ user: user2 })
 
         const whereClause: Record<string, OpsStatement<any, any>> = { id: ops.equal(user1.id) }
         const query = Balloon.joins('user', whereClause)
@@ -398,7 +398,6 @@ describe('Query#joins with simple associations', () => {
 
     let user0: User
     let user1: User
-    let pet0: Pet
     let pet1: Pet
 
     beforeEach(async () => {
@@ -413,7 +412,7 @@ describe('Query#joins with simple associations', () => {
         createdAt: begin.plus({ day: 1 }),
       })
 
-      pet0 = await Pet.create({ user: user0 })
+      await Pet.create({ user: user0 })
       pet1 = await Pet.create({ user: user1 })
     })
 
@@ -427,7 +426,7 @@ describe('Query#joins with simple associations', () => {
     context('joining a HasMany', () => {
       it('applies default scopes when joining', async () => {
         const pet = await Pet.create({ name: 'aster' })
-        const collar = await pet.createAssociation('collars', { tagName: 'Aster', pet, hidden: true })
+        await pet.createAssociation('collars', { tagName: 'Aster', pet, hidden: true })
 
         const results = await Pet.joins('collars').all()
         expect(results).toHaveLength(0)
@@ -437,7 +436,7 @@ describe('Query#joins with simple associations', () => {
     context('joining a BelongsTo', () => {
       it('applies default scopes when joining', async () => {
         const pet = await Pet.create({ name: 'aster' })
-        const collar = await pet.createAssociation('collars', { tagName: 'Aster', pet })
+        await pet.createAssociation('collars', { tagName: 'Aster', pet })
         await pet.destroy()
 
         const results = await Collar.joins('pet').all()
@@ -450,7 +449,7 @@ describe('Query#joins with simple associations', () => {
     it('does not leak between clones', async () => {
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
       const pet = await user.createAssociation('pets', { name: 'aster' })
-      const collar = await pet.createAssociation('collars', { tagName: 'Aster', pet })
+      await pet.createAssociation('collars', { tagName: 'Aster', pet })
       const baseScope = User.joins('pets')
 
       const results = await baseScope
@@ -473,7 +472,7 @@ describe('Query#joins with simple associations', () => {
   // this is skipped, since it is only here to ensure that types are working
   // from args a-g, which does not actually need to be run, since if this is
   // broken, tests will fail to compile due to type errors
-  it.skip('permits types a-g', async () => {
+  it.skip('permits types a-g', () => {
     Composition.query().joins('user', 'balloons', 'user', 'balloons', 'user', 'balloons')
   })
 })

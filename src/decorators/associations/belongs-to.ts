@@ -1,7 +1,6 @@
 import Dream from '../../dream'
 import { AssociationTableNames } from '../../db/reflections'
 import {
-  PartialAssociationStatement,
   applyGetterAndSetter,
   blankAssociationsFactory,
   finalForeignKey,
@@ -10,7 +9,6 @@ import {
 } from './shared'
 import Validates from '../validations/validates'
 import { DreamColumns } from '../../dream/types'
-import { isArray } from 'lodash'
 
 export default function BelongsTo<
   BaseInstance extends Dream,
@@ -24,7 +22,12 @@ export default function BelongsTo<
     primaryKeyOverride = null,
   }: BelongsToOptions<BaseInstance> = {}
 ): any {
-  return function (target: BaseInstance, key: string, _: any) {
+  return function (
+    target: BaseInstance,
+    key: string,
+    // eslint-disable-next-line
+    _: any
+  ) {
     const dreamClass: typeof Dream = (target as any).constructor
 
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'associations'))
@@ -60,8 +63,8 @@ export default function BelongsTo<
 
 export interface BelongsToStatement<
   BaseInstance extends Dream,
-  DB extends any,
-  SyncedAssociations extends any,
+  DB,
+  SyncedAssociations,
   TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
 > {
   modelCB: () => typeof Dream | (typeof Dream)[]

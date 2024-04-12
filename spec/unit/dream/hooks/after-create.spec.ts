@@ -12,7 +12,6 @@ describe('Dream AfterCreate decorator', () => {
 
   context('with ifChanging set on hook decorator', () => {
     let mylar: Mylar
-    let sandbag: Sandbag
 
     beforeEach(async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
@@ -22,7 +21,9 @@ describe('Dream AfterCreate decorator', () => {
     context('one of the attributes specified in the "ifChanging" clause is changing to non-null', () => {
       it('calls hook', async () => {
         jest.spyOn(Sandbag.prototype, 'conditionalAfterCreateHook')
-        sandbag = await mylar.createAssociation('sandbags', { weightKgs: 10 })
+        await mylar.createAssociation('sandbags', { weightKgs: 10 })
+
+        // eslint-disable-next-line
         expect(Sandbag.prototype.conditionalAfterCreateHook).toHaveBeenCalled()
       })
     })
@@ -30,7 +31,9 @@ describe('Dream AfterCreate decorator', () => {
     context('none of the attributes specified in the "ifChanging" clause are changing', () => {
       it('calls hook', async () => {
         jest.spyOn(Sandbag.prototype, 'conditionalAfterCreateHook')
-        sandbag = await mylar.createAssociation('sandbags', { weightTons: 10 })
+        await mylar.createAssociation('sandbags', { weightTons: 10 })
+
+        // eslint-disable-next-line
         expect(Sandbag.prototype.conditionalAfterCreateHook).not.toHaveBeenCalled()
       })
     })

@@ -1,4 +1,3 @@
-import { Client } from 'pg'
 import loadPgClient from './loadPgClient'
 import { DbConnectionType } from '../../db/types'
 import ConnectionConfRetriever from '../../db/connection-conf-retriever'

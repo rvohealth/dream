@@ -13,7 +13,7 @@ describe('Query#preload with simple associations and overriding primary key', ()
 
     context('when the association does not exist', () => {
       it('sets it to null', async () => {
-        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
         const reloadedUser = await User.query().preload('firstPetFromUuid').first()
         expect(reloadedUser!.firstPetFromUuid).toBeNull()
@@ -33,7 +33,7 @@ describe('Query#preload with simple associations and overriding primary key', ()
 
     context('when no association exists', () => {
       it('sets it to an empty array', async () => {
-        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
         const reloadedUser = await User.query().preload('petsFromUuid').first()
         expect(reloadedUser!.petsFromUuid).toEqual([])

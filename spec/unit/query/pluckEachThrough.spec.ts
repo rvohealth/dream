@@ -45,7 +45,7 @@ describe('Query#pluckEachThrough', () => {
     context('when additional pluck arguments are following the call to pluckEachThrough', () => {
       it('raises a targeted exception', async () => {
         await expect(
-          async () => await Node.query().pluckEachThrough('edgeNodes', 'edge', arr => {}, ['edge.id'])
+          async () => await Node.query().pluckEachThrough('edgeNodes', 'edge', () => {}, ['edge.id'])
         ).rejects.toThrowError(CannotPassAdditionalFieldsToPluckEachAfterCallback)
       })
     })
@@ -60,7 +60,7 @@ describe('Query#pluckEachThrough', () => {
       await EdgeNode.create({ node, edge: edge2 })
 
       const plucked: any[] = []
-      await Node.query().pluckEachThrough('edgeNodes', 'edge', { name: 'E1' }, 'edge.weight', async data => {
+      await Node.query().pluckEachThrough('edgeNodes', 'edge', { name: 'E1' }, 'edge.weight', data => {
         plucked.push(data)
       })
       expect(plucked[0]).toEqual(2.3)
@@ -90,10 +90,10 @@ describe('Query#pluckEachThrough', () => {
   context('with a similarity operator', () => {
     it('respects the similarity operator', async () => {
       const user1 = await User.create({ name: 'jeremy', email: 'hello@world1', password: 'howyadoin' })
-      const composition1 = await Composition.create({ content: 'howyadoin', user: user1 })
+      await Composition.create({ content: 'howyadoin', user: user1 })
 
       const user2 = await User.create({ name: 'cheeseman', email: 'hello@world2', password: 'howyadoin' })
-      const composition2 = await Composition.create({ content: 'howyadoin', user: user2 })
+      await Composition.create({ content: 'howyadoin', user: user2 })
 
       const plucked: any[] = []
       await Composition.query().pluckEachThrough(
@@ -111,7 +111,7 @@ describe('Query#pluckEachThrough', () => {
   context('with a default scope', () => {
     it('applies the default scope to the included results', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const snoopy = await Pet.create({ user, name: 'Snoopy' })
+      await Pet.create({ user, name: 'Snoopy' })
       await Pet.create({ user, name: 'Woodstock', deletedAt: DateTime.now() })
 
       const names: any[] = []
@@ -145,13 +145,13 @@ describe('Query#pluckEachThrough', () => {
         const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
         const composition = await Composition.create({ user })
         const composition2 = await Composition.create({ user: user2 })
-        const compositionAsset1 = await CompositionAsset.create({ composition, name: 'asset 1' })
-        const compositionAsset2 = await CompositionAsset.create({ composition, name: 'asset 2' })
-        const compositionAsset3 = await CompositionAsset.create({
+        await CompositionAsset.create({ composition, name: 'asset 1' })
+        await CompositionAsset.create({ composition, name: 'asset 2' })
+        await CompositionAsset.create({
           composition: composition2,
           name: 'asset 3',
         })
-        const compositionAsset4 = await CompositionAsset.create({
+        await CompositionAsset.create({
           composition: composition2,
           name: 'asset 4',
         })

@@ -1,10 +1,7 @@
 import User from '../../../test-app/app/models/User'
-import Composition from '../../../test-app/app/models/Composition'
-import { Dream } from '../../../src'
 import Animal from '../../../test-app/app/models/Balloon/Latex/Animal'
 import Balloon from '../../../test-app/app/models/Balloon'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
-import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import ReplicaSafe from '../../../src/decorators/replica-safe'
 import DreamDbConnection from '../../../src/db/dream-db-connection'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
@@ -48,6 +45,8 @@ describe('Dream.all', () => {
 
     it('uses primary connection', async () => {
       await User.all()
+
+      // eslint-disable-next-line
       expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
     })
 
@@ -57,13 +56,19 @@ describe('Dream.all', () => {
 
       it('uses the replica connection', async () => {
         await CustomUser.all()
+
+        // eslint-disable-next-line
         expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('replica', expect.objectContaining({}))
       })
 
       context('with explicit primary connection override', () => {
         it('uses the replica connection', async () => {
           await CustomUser['connection']('primary').all()
+
+          // eslint-disable-next-line
           expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
+
+          // eslint-disable-next-line
           expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith(
             'replica',
             expect.objectContaining({})

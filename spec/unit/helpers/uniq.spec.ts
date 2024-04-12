@@ -2,13 +2,13 @@ import uniq from '../../../src/helpers/uniq'
 import GraphNode from '../../../test-app/app/models/Graph/Node'
 
 describe('uniq', () => {
-  let subject = () => uniq(array(), comparator)
+  const subject = () => uniq(array(), comparator)
   let comparator: ((a: any, b: any) => boolean) | undefined
 
   let item1: any
   let item2: any
   let item1Reloaded: any
-  let array = () => [item1, item2, item1Reloaded]
+  const array = () => [item1, item2, item1Reloaded]
 
   beforeEach(() => {
     comparator = undefined
@@ -21,12 +21,12 @@ describe('uniq', () => {
       item1Reloaded = await GraphNode.find(item1.id)
     })
 
-    it('uses the custom Dream comparator', async () => {
+    it('uses the custom Dream comparator', () => {
       expect(subject()).toMatchObject([item1, item2])
     })
 
     context('when a custom comparator is passed', () => {
-      it('uses the custom comparator', async () => {
+      it('uses the custom comparator', () => {
         comparator = (a, b) => a.name === b.name
         expect(subject()).toMatchObject([item1])
       })
@@ -45,7 +45,7 @@ describe('uniq', () => {
     })
 
     context('when a custom comparator is passed', () => {
-      it('uses the custom comparator', async () => {
+      it('uses the custom comparator', () => {
         comparator = (a, b) => a.constructor === b.constructor
         expect(subject()).toMatchObject([item1])
       })

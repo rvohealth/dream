@@ -22,7 +22,7 @@ describe('Dream.create', () => {
 
   it('sets createdAt', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    expect(user!.createdAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+    expect(user.createdAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
     const reloadedUser = await User.find(user.id)
     expect(reloadedUser!.createdAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
   })
@@ -30,7 +30,7 @@ describe('Dream.create', () => {
   it('sets updatedAt', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const now = DateTime.now()
-    expect(user!.updatedAt.toSeconds()).toBeWithin(1, now.toSeconds())
+    expect(user.updatedAt.toSeconds()).toBeWithin(1, now.toSeconds())
     const reloadedUser = await User.find(user.id)
     expect(reloadedUser!.updatedAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
   })
@@ -50,7 +50,7 @@ describe('Dream.create', () => {
 
   it('allows saving of valid blank objects', async () => {
     const pet = await Pet.create()
-    expect(typeof pet!.id).toBe('string')
+    expect(typeof pet.id).toBe('string')
     const reloadedPet = await Pet.find(pet.id)
     expect(typeof reloadedPet!.id).toBe('string')
   })
@@ -72,7 +72,7 @@ describe('Dream.create', () => {
         expect(pet.userUuid).toEqual(user.uuid)
 
         const reloaded = await Pet.find(pet.id)
-        expect(pet!.userUuid).toEqual(user.uuid)
+        expect(reloaded!.userUuid).toEqual(user.uuid)
       })
     })
 
@@ -160,19 +160,20 @@ describe('Dream.create', () => {
     it('raises an exception', async () => {
       const userSettings = UserSettings.new({ likesChalupas: true })
       await expect(
-        // @ts-ignore
-        User.create({ email: 'fred@fishman', password: 'howyadoin', userSettings })
+        User.create({ email: 'fred@fishman', password: 'howyadoin', userSettings } as any)
       ).rejects.toThrowError(CanOnlyPassBelongsToModelParam)
     })
   })
 
   context('regarding connections', () => {
-    beforeEach(async () => {
+    beforeEach(() => {
       jest.spyOn(DreamDbConnection, 'getConnection')
     })
 
     it('uses primary connection', async () => {
       await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+
+      // eslint-disable-next-line
       expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
     })
 
@@ -182,7 +183,9 @@ describe('Dream.create', () => {
 
       it('uses the primary connection', async () => {
         await CustomUser.create({ email: 'how@yadoin', password: 'howyadoin' })
+
         // should always call to primary for update, regardless of replica-safe status
+        // eslint-disable-next-line
         expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
       })
     })

@@ -2,6 +2,7 @@ import Dream from '../../dream'
 import { HookStatement, blankHooksFactory } from './shared'
 
 export default function BeforeDestroy(): any {
+  // eslint-disable-next-line
   return function (target: any, key: string, _: any) {
     const dreamClass: typeof Dream = target.constructor
 

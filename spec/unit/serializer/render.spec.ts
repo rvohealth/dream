@@ -10,11 +10,10 @@ import MissingSerializer from '../../../src/exceptions/missing-serializer'
 import Balloon from '../../../test-app/app/models/Balloon'
 import { NonLoadedAssociation } from '../../../src'
 import Collar from '../../../test-app/app/models/Collar'
-import Latex from '../../../test-app/app/models/Balloon/Latex'
 import FailedToRenderThroughAssociationForSerializer from '../../../src/exceptions/serializers/failed-to-render-through-association'
 
 describe('DreamSerializer#render', () => {
-  it('renders a single attribute', async () => {
+  it('renders a single attribute', () => {
     class MySerializer extends DreamSerializer {
       @Attribute()
       public email: string
@@ -23,7 +22,7 @@ describe('DreamSerializer#render', () => {
     expect(serializer.render()).toEqual({ email: 'abc' })
   })
 
-  it('renders an attribute from this serializer and the ancestor', async () => {
+  it('renders an attribute from this serializer and the ancestor', () => {
     class BaseSerializer extends DreamSerializer {
       @Attribute()
       public name: string
@@ -38,7 +37,7 @@ describe('DreamSerializer#render', () => {
     expect(serializer.render()).toEqual({ email: 'abc', name: 'Frodo' })
   })
 
-  it('renders a single attribute with no neighboring attributes', async () => {
+  it('renders a single attribute with no neighboring attributes', () => {
     class MySerializer extends DreamSerializer {
       @Attribute()
       public email: string
@@ -54,7 +53,7 @@ describe('DreamSerializer#render', () => {
     expect(serializer.render()).toEqual({ email: 'abc' })
   })
 
-  it('renders multiple attributes', async () => {
+  it('renders multiple attributes', () => {
     class MySerializer extends DreamSerializer {
       @Attribute()
       public email: string
@@ -66,7 +65,7 @@ describe('DreamSerializer#render', () => {
     expect(serializer.render()).toEqual({ email: 'abc', name: 'james' })
   })
 
-  it('excludes hidden attributes', async () => {
+  it('excludes hidden attributes', () => {
     class MySerializer extends DreamSerializer {
       @Attribute()
       public email: string
@@ -78,7 +77,7 @@ describe('DreamSerializer#render', () => {
     expect(serializer.render()).toEqual({ email: 'abc' })
   })
 
-  it('provides type helping with custom data and passthrough types set', async () => {
+  it('provides type helping with custom data and passthrough types set', () => {
     class MySerializer extends DreamSerializer<{ email: string }, { howyadoin: string }> {
       @Attribute()
       public email: string
@@ -94,7 +93,7 @@ describe('DreamSerializer#render', () => {
 
   context('with decorated attributes', () => {
     context('one of the fields is a date', () => {
-      let subject = () => new MySerializer({ createdAt }).render()
+      const subject = () => new MySerializer({ createdAt }).render()
       let createdAt: DateTime | null | undefined
 
       beforeEach(() => {
@@ -110,7 +109,7 @@ describe('DreamSerializer#render', () => {
           createdAt = DateTime.fromFormat('2002-10-02', 'yyyy-MM-dd')
         })
 
-        it('renders unique format for dates', async () => {
+        it('renders unique format for dates', () => {
           expect(subject()).toEqual({ createdAt: '2002-10-02' })
         })
       })
@@ -136,14 +135,15 @@ describe('DreamSerializer#render', () => {
     })
 
     context('decimal', () => {
-      let kilos: Number | null | undefined
+      let kilos: number | null | undefined
 
       beforeEach(() => {
         kilos = null
       })
 
       context('without an explicit precision', () => {
-        let subject = () => new MySerializer({ kilos }).render()
+        const subject = () => new MySerializer({ kilos }).render()
+
         class MySerializer extends DreamSerializer {
           @Attribute('decimal')
           public kilos: number
@@ -154,7 +154,7 @@ describe('DreamSerializer#render', () => {
             kilos = 7.9351
           })
 
-          it('rounds the number to an integer', async () => {
+          it('rounds the number to an integer', () => {
             expect(subject()).toEqual({ kilos: 8 })
           })
         })
@@ -180,7 +180,8 @@ describe('DreamSerializer#render', () => {
       })
 
       context('with an explicit precision', () => {
-        let subject = () => new MySerializer({ kilos }).render()
+        const subject = () => new MySerializer({ kilos }).render()
+
         class MySerializer extends DreamSerializer {
           @Attribute('decimal', { precision: 2 })
           public kilos: number
@@ -191,7 +192,7 @@ describe('DreamSerializer#render', () => {
             kilos = 7.9351
           })
 
-          it('rounds the number to the specified precision', async () => {
+          it('rounds the number to the specified precision', () => {
             expect(subject()).toEqual({ kilos: 7.94 })
           })
         })
@@ -220,7 +221,7 @@ describe('DreamSerializer#render', () => {
 
   context('with casing specified', () => {
     context('snake casing is specified', () => {
-      it('renders all attribute keys in snake case', async () => {
+      it('renders all attribute keys in snake case', () => {
         class MySerializer extends DreamSerializer {
           @Attribute('date')
           public createdAt: string
@@ -231,7 +232,7 @@ describe('DreamSerializer#render', () => {
     })
 
     context('camel casing is specified', () => {
-      it('renders all attribute keys in camel case', async () => {
+      it('renders all attribute keys in camel case', () => {
         class MySerializer extends DreamSerializer {
           @Attribute('date')
           public createdAt: string
@@ -263,7 +264,7 @@ describe('DreamSerializer#render', () => {
       }
     }
 
-    it('serializes the attributes of the dream', async () => {
+    it('serializes the attributes of the dream', () => {
       const serializer = new MySerializer({ email: 'fish@fish' })
       expect(serializer.render()).toEqual({ email: 'fish#fish' })
     })
@@ -293,7 +294,7 @@ describe('DreamSerializer#render', () => {
         expect(serializer.render()).toEqual({ pets: [{ name: 'aster', species: 'cat' }] })
       })
 
-      it('renders many from this serializer and the ancestor', async () => {
+      it('renders many from this serializer and the ancestor', () => {
         class ChildSerializer extends UserSerializer {
           @RendersMany(() => BalloonSerializer)
           public balloons: Balloon[]
@@ -579,7 +580,7 @@ describe('DreamSerializer#render', () => {
         expect(serializer.render()).toEqual({ user: { email: 'how@yadoin' } })
       })
 
-      it('renders one from this serializer and the ancestor', async () => {
+      it('renders one from this serializer and the ancestor', () => {
         class UserSerializer extends DreamSerializer {
           @RendersOne(() => PetSerializer)
           public pet: Pet
@@ -691,11 +692,6 @@ describe('DreamSerializer#render', () => {
 
           class HelloSerializer extends DreamSerializer {
             @RendersOne({ source: DreamConst.passthrough, through: 'hello' })
-            public howdy: Howdy
-          }
-
-          class WorldSerializer extends DreamSerializer {
-            @RendersOne({ source: DreamConst.passthrough, through: 'hello.world' })
             public howdy: Howdy
           }
 

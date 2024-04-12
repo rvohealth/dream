@@ -8,7 +8,7 @@ import Rating from '../../../test-app/app/models/Rating'
 
 describe('Query#offset', () => {
   it('applies offset to results', async () => {
-    const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
     const user3 = await User.create({ email: 'chalupas@dujour', password: 'howyadoin' })
 
@@ -20,8 +20,8 @@ describe('Query#offset', () => {
     context('with a similarity operator passed', () => {
       it('respects the similarity operator', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
-        const post1 = await Post.create({ user, body: 'universe' })
-        const post2 = await Post.create({ user, body: 'world' })
+        await Post.create({ user, body: 'universe' })
+        await Post.create({ user, body: 'world' })
         const post3 = await Post.create({ user, body: 'world' })
 
         const results = await Post.where({ body: ops.similarity('world') })
@@ -39,7 +39,7 @@ describe('Query#offset', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
       const composition = await Composition.create({ user })
 
-      const compositionAsset1 = await CompositionAsset.create({ composition, score: 7 })
+      await CompositionAsset.create({ composition, score: 7 })
       const compositionAsset2 = await CompositionAsset.create({ composition, score: 3 })
 
       const results = await composition.associationQuery('compositionAssets').limit(1).offset(1).all()
@@ -52,7 +52,7 @@ describe('Query#offset', () => {
 
         const post1 = await Post.create({ user })
 
-        const rating1 = await Rating.create({ user, rateable: post1, rating: 3 })
+        await Rating.create({ user, rateable: post1, rating: 3 })
         const rating2 = await Rating.create({ user, rateable: post1, rating: 4 })
         const rating3 = await Rating.create({ user, rateable: post1, rating: 1 })
 
@@ -67,7 +67,7 @@ describe('Query#offset', () => {
         const composition1 = await Composition.create({ user })
         const composition2 = await Composition.create({ user })
 
-        const compositionAsset1 = await CompositionAsset.create({ composition: composition1, score: 7 })
+        await CompositionAsset.create({ composition: composition1, score: 7 })
         const compositionAsset2 = await CompositionAsset.create({ composition: composition2, score: 3 })
 
         const results = await user.associationQuery('compositionAssets').limit(1).offset(1).all()

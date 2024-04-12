@@ -3,7 +3,6 @@ import ReplicaSafe from '../../../src/decorators/replica-safe'
 import DreamDbConnection from '../../../src/db/dream-db-connection'
 import NoUpdateAllOnAssociationQuery from '../../../src/exceptions/no-updateall-on-association-query'
 import ops from '../../../src/ops'
-import Composition from '../../../test-app/app/models/Composition'
 import NoUpdateAllOnJoins from '../../../src/exceptions/no-updateall-on-joins'
 
 describe('Query#updateAll', () => {
@@ -38,7 +37,7 @@ describe('Query#updateAll', () => {
   context('within an associationQuery', () => {
     it('raises an exception', async () => {
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-      const composition = await user.createAssociation('compositions', { content: 'Opus' })
+      await user.createAssociation('compositions', { content: 'Opus' })
 
       await expect(user.associationQuery('compositions').updateAll({ content: 'cool' })).rejects.toThrow(
         NoUpdateAllOnAssociationQuery
@@ -49,7 +48,7 @@ describe('Query#updateAll', () => {
   context('with joins', () => {
     it('raises an exception', async () => {
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-      const composition = await user.createAssociation('compositions', { content: 'Opus' })
+      await user.createAssociation('compositions', { content: 'Opus' })
 
       await expect(User.joins('compositions').updateAll({ name: 'cool' })).rejects.toThrow(NoUpdateAllOnJoins)
     })
@@ -177,6 +176,7 @@ describe('Query#updateAll', () => {
 
     it('uses primary connection', async () => {
       await User.where({ email: 'fred@fred' }).updateAll({ email: 'how@yadoin' })
+      // eslint-disable-next-line
       expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
     })
 
@@ -186,7 +186,9 @@ describe('Query#updateAll', () => {
 
       it('uses the primary connection', async () => {
         await CustomUser.where({ email: 'fred@fred' }).updateAll({ email: 'how@yadoin' })
+
         // should always call to primary for update, regardless of replica-safe status
+        // eslint-disable-next-line
         expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
       })
     })

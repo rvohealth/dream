@@ -3,7 +3,6 @@ import Composition from '../../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
 import { DateTime } from 'luxon'
-import Query from '../../../../src/dream/query'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import BalloonSpotter from '../../../../test-app/app/models/BalloonSpotter'
 import BalloonSpotterBalloon from '../../../../test-app/app/models/BalloonSpotterBalloon'
@@ -11,8 +10,6 @@ import MissingThroughAssociationSource from '../../../../src/exceptions/associat
 import JoinAttemptedOnMissingAssociation from '../../../../src/exceptions/associations/join-attempted-with-missing-association'
 import ops from '../../../../src/ops'
 import Pet from '../../../../test-app/app/models/Pet'
-import Collar from '../../../../test-app/app/models/Collar'
-import Balloon from '../../../../test-app/app/models/Balloon'
 import Post from '../../../../test-app/app/models/Post'
 import Rating from '../../../../test-app/app/models/Rating'
 
@@ -22,7 +19,7 @@ describe('Query#joins through with simple associations', () => {
       await BalloonSpotter.create()
       const balloon = await Latex.create()
       const balloonSpotter = await BalloonSpotter.create()
-      const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
+      await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
 
       const reloaded = await BalloonSpotter.query().joins('balloonSpotterBalloons', 'balloon').all()
       expect(reloaded).toMatchDreamModels([balloonSpotter])
@@ -34,7 +31,7 @@ describe('Query#joins through with simple associations', () => {
       await BalloonSpotter.create()
       const balloon = await Latex.create()
       const balloonSpotter = await BalloonSpotter.create()
-      const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
+      await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
 
       const reloaded = await BalloonSpotter.query().joins('balloons').all()
       expect(reloaded).toMatchDreamModels([balloonSpotter])
@@ -45,7 +42,7 @@ describe('Query#joins through with simple associations', () => {
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
     const composition = await Composition.create({ userId: user.id, primary: true })
-    const compositionAsset = await CompositionAsset.create({
+    await CompositionAsset.create({
       compositionId: composition.id,
       primary: true,
     })
@@ -70,7 +67,7 @@ describe('Query#joins through with simple associations', () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
       const composition = await Composition.create({ userId: user.id })
       const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
-      const compositionAssetAudit = await CompositionAssetAudit.create({
+      await CompositionAssetAudit.create({
         compositionAssetId: compositionAsset.id,
       })
 
@@ -121,7 +118,7 @@ describe('Query#joins through with simple associations', () => {
             userId: user.id,
             primary: true,
           })
-          const compositionAsset = await CompositionAsset.create({
+          await CompositionAsset.create({
             compositionId: composition.id,
             primary: true,
             name: 'hello',
@@ -139,7 +136,7 @@ describe('Query#joins through with simple associations', () => {
           await User.create({ email: 'fred@frewd', password: 'howyadoin' })
           const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
           const composition = await Composition.create({ userId: user.id, primary: true })
-          const compositionAsset = await CompositionAsset.create({
+          await CompositionAsset.create({
             compositionId: composition.id,
             primary: true,
           })
@@ -243,7 +240,7 @@ describe('Query#joins through with simple associations', () => {
               compositionId: composition1.id,
               primary: true,
             })
-            const compositionAssetAudit1 = await CompositionAssetAudit.create({
+            await CompositionAssetAudit.create({
               compositionAsset: compositionAsset1,
               notes: 'Hello',
             })
@@ -254,7 +251,7 @@ describe('Query#joins through with simple associations', () => {
               compositionId: composition2.id,
               primary: true,
             })
-            const compositionAssetAudit2 = await CompositionAssetAudit.create({
+            await CompositionAssetAudit.create({
               compositionAsset: compositionAsset2,
               notes: 'Goodbye',
             })
@@ -276,7 +273,7 @@ describe('Query#joins through with simple associations', () => {
                 primary: true,
                 name: 'hello',
               })
-              const compositionAssetAudit1 = await CompositionAssetAudit.create({
+              await CompositionAssetAudit.create({
                 compositionAsset: compositionAsset1,
                 notes: 'Hello',
               })
@@ -288,7 +285,7 @@ describe('Query#joins through with simple associations', () => {
                 primary: true,
                 name: 'gabye',
               })
-              const compositionAssetAudit2 = await CompositionAssetAudit.create({
+              await CompositionAssetAudit.create({
                 compositionAsset: compositionAsset2,
                 notes: 'Goodbye',
               })
@@ -337,7 +334,7 @@ describe('Query#joins through with simple associations', () => {
           const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
           const recentComposition = await Composition.create({ user })
 
-          const compositionAsset1 = await CompositionAsset.create({
+          await CompositionAsset.create({
             name: 'Hello',
             composition: recentComposition,
           })
@@ -351,7 +348,7 @@ describe('Query#joins through with simple associations', () => {
             const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
             const recentComposition = await Composition.create({ user })
 
-            const compositionAsset1 = await CompositionAsset.create({
+            await CompositionAsset.create({
               name: 'Hello',
               composition: recentComposition,
               primary: true,
@@ -371,7 +368,7 @@ describe('Query#joins through with simple associations', () => {
             createdAt: DateTime.now().minus({ year: 1 }),
           })
 
-          const compositionAsset2 = await CompositionAsset.create({
+          await CompositionAsset.create({
             name: 'World',
             composition: olderComposition,
           })
@@ -388,7 +385,7 @@ describe('Query#joins through with simple associations', () => {
               createdAt: DateTime.now().minus({ year: 1 }),
             })
 
-            const compositionAsset2 = await CompositionAsset.create({
+            await CompositionAsset.create({
               name: 'World',
               composition: olderComposition,
               primary: true,
@@ -408,8 +405,8 @@ describe('Query#joins through with simple associations', () => {
       const redBalloon = await Latex.create({ color: 'red' })
       const greenBalloon = await Latex.create({ color: 'green' })
 
-      const collar1 = await pet.createAssociation('collars', { balloon: redBalloon })
-      const collar2 = await pet.createAssociation('collars', { balloon: greenBalloon })
+      await pet.createAssociation('collars', { balloon: redBalloon })
+      await pet.createAssociation('collars', { balloon: greenBalloon })
 
       const ids = await pet.pluckThrough('redBalloons', ['redBalloons.id'])
       expect(ids).toEqual([redBalloon.id])
@@ -425,7 +422,7 @@ describe('Query#joins through with simple associations', () => {
       })
 
       // position is automatically set by sortable
-      const post1 = await Post.create({ user, body: 'hello' })
+      await Post.create({ user, body: 'hello' })
       const post2 = await Post.create({ user, body: 'world' })
 
       const plucked = await User.query().pluckThrough('featuredPost', [
@@ -443,11 +440,11 @@ describe('Query#joins through with simple associations', () => {
           targetRating: 7,
         })
         const post1 = await Post.create({ user })
-        const rating1a = await Rating.create({ user, rateable: post1, rating: 3 })
+        await Rating.create({ user, rateable: post1, rating: 3 })
         const rating1b = await Rating.create({ user, rateable: post1, rating: 7 })
         const post2 = await Post.create({ user })
         const rating2a = await Rating.create({ user, rateable: post2, rating: 7 })
-        const rating2b = await Rating.create({ user, rateable: post2, rating: 5 })
+        await Rating.create({ user, rateable: post2, rating: 5 })
 
         const plucked = await User.query().pluckThrough('ratingsThroughPostsThatMatchUserTargetRating', [
           'ratingsThroughPostsThatMatchUserTargetRating.id',
@@ -471,9 +468,9 @@ describe('Query#joins through with simple associations', () => {
       const greenBalloon = await Latex.create({ color: 'green' })
       const blueBalloon = await Latex.create({ color: 'blue' })
 
-      const collar1 = await pet.createAssociation('collars', { balloon: redBalloon })
-      const collar2 = await pet.createAssociation('collars', { balloon: greenBalloon })
-      const collar3 = await pet.createAssociation('collars', { balloon: blueBalloon })
+      await pet.createAssociation('collars', { balloon: redBalloon })
+      await pet.createAssociation('collars', { balloon: greenBalloon })
+      await pet.createAssociation('collars', { balloon: blueBalloon })
 
       const ids = await pet.pluckThrough('notRedBalloons', ['notRedBalloons.id'])
       expect(ids).toEqual([greenBalloon.id, blueBalloon.id])
@@ -482,7 +479,7 @@ describe('Query#joins through with simple associations', () => {
 
   context('with a missing source', () => {
     it('throws MissingThroughAssociationSource', async () => {
-      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
       const query = User.query().joins('nonExtantCompositionAssets1').first()
 
@@ -492,7 +489,7 @@ describe('Query#joins through with simple associations', () => {
 
   context('with a missing source', () => {
     it('throws MissingThroughAssociationSource', async () => {
-      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
       const query = User.query().joins('nonExtantCompositionAssets2').first()
 

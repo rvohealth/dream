@@ -1,12 +1,11 @@
-import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import DreamDbConnection from '../../../src/db/dream-db-connection'
 import ReplicaSafe from '../../../src/decorators/replica-safe'
 import User from '../../../test-app/app/models/User'
 
 describe('Query#destroy', () => {
   it('destroys all records matching the query', async () => {
-    const user1 = await User.create({ email: 'fred@frewd', name: 'howyadoin', password: 'hamz' })
-    const user2 = await User.create({ email: 'how@yadoin', name: 'howyadoin', password: 'hamz' })
+    await User.create({ email: 'fred@frewd', name: 'howyadoin', password: 'hamz' })
+    await User.create({ email: 'how@yadoin', name: 'howyadoin', password: 'hamz' })
     const user3 = await User.create({ email: 'fish@yadoin', name: 'cheese', password: 'hamz' })
 
     await User.where({ name: 'howyadoin' }).destroy()
@@ -24,6 +23,8 @@ describe('Query#destroy', () => {
 
     it('uses primary connection', async () => {
       await User.where({ email: 'fred@fred' }).destroy()
+
+      // eslint-disable-next-line
       expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
     })
 
@@ -33,7 +34,9 @@ describe('Query#destroy', () => {
 
       it('uses the primary connection', async () => {
         await CustomUser.where({ email: 'fred@fred' }).destroy()
+
         // should always call to primary for update, regardless of replica-safe status
+        // eslint-disable-next-line
         expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
       })
     })

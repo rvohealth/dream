@@ -6,10 +6,10 @@ import importFileWithDefault from '../../../src/helpers/importFileWithDefault'
 
 const replServer = repl.start('> ')
 export default (async function () {
-  const dreamPaths = await (await getFiles(await modelsPath())).filter(filename => /\.js$/.test(filename))
+  const dreamPaths = (await getFiles(await modelsPath())).filter(filename => /\.js$/.test(filename))
   for (const dreamPath of dreamPaths) {
     const DreamClass = await importFileWithDefault(dreamPath)
-    replServer.context[(DreamClass as any).name] = DreamClass
+    replServer.context[DreamClass.name] = DreamClass
   }
 })()
 

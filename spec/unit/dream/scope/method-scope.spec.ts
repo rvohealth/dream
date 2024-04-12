@@ -2,7 +2,7 @@ import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import User from '../../../../test-app/app/models/User'
 
 describe('Dream Scope (method variant)', () => {
-  it('builds scope mapping', async () => {
+  it('builds scope mapping', () => {
     const scopes = User['scopes'].named
     expect(scopes[0].method).toEqual('withFunnyName')
     expect(scopes[0].default).toEqual(false)
@@ -11,7 +11,7 @@ describe('Dream Scope (method variant)', () => {
   it('exposes a method which auto-applies scope', async () => {
     const user1 = await User.create({ email: 'how@ya0', password: 'doin', name: 'Chalupas jr' })
     const user2 = await User.create({ email: 'how@ya1', password: 'doin', name: 'Chalupas jr' })
-    const user3 = await User.create({ email: 'how@ya2', password: 'doin', name: 'Chalupas sr' })
+    await User.create({ email: 'how@ya2', password: 'doin', name: 'Chalupas sr' })
     const results = await User.scope('withFunnyName').all()
     expect(results.map(r => r.id)).toEqual([user1.id, user2.id])
   })
@@ -20,7 +20,7 @@ describe('Dream Scope (method variant)', () => {
     it('allows scopes to be applied', async () => {
       const user = await User.create({ email: 'how@ya', password: 'howyadoin' })
       const mylar = await Mylar.create({ user, color: 'red' })
-      const mylar2 = await Mylar.create({ user, color: 'blue' })
+      await Mylar.create({ user, color: 'blue' })
       expect(await Mylar.scope('red').all()).toMatchDreamModels([mylar])
     })
   })

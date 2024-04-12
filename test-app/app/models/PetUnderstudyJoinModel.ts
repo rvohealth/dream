@@ -1,5 +1,4 @@
 import { DateTime } from 'luxon'
-import Dream from '../../../src/dream'
 import { IdType } from '../../../src/dream/types'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import PetUnderstudyJoinModelSerializer from '../../../test-app/app/serializers/PetUnderstudyJoinModelSerializer'

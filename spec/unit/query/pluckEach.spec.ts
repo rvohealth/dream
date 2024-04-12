@@ -35,7 +35,7 @@ describe('Query#pluckEach', () => {
 
     context('when additional pluck arguments are following the call to pluckEachThrough', () => {
       it('raises a targeted exception', async () => {
-        await expect(async () => await User.query().pluckEach('id', arr => {}, 'email')).rejects.toThrowError(
+        await expect(async () => await User.query().pluckEach('id', () => {}, 'email')).rejects.toThrowError(
           CannotPassAdditionalFieldsToPluckEachAfterCallback
         )
       })
@@ -45,8 +45,8 @@ describe('Query#pluckEach', () => {
   context('columns that get transformed during marshalling', () => {
     context('a single value', () => {
       it('are properly marshalled', async () => {
-        const edge1 = await Edge.create({ name: 'E1', weight: 2.3 })
-        const edge2 = await Edge.create({ name: 'E2', weight: 7.1 })
+        await Edge.create({ name: 'E1', weight: 2.3 })
+        await Edge.create({ name: 'E2', weight: 7.1 })
 
         const plucked: any[] = []
         await Edge.query().pluckEach('weight', weight => {
@@ -59,8 +59,8 @@ describe('Query#pluckEach', () => {
 
     context('multiple values', () => {
       it('are properly marshalled', async () => {
-        const edge1 = await Edge.create({ name: 'E1', weight: 2.3 })
-        const edge2 = await Edge.create({ name: 'E2', weight: 7.1 })
+        await Edge.create({ name: 'E1', weight: 2.3 })
+        await Edge.create({ name: 'E2', weight: 7.1 })
 
         const plucked: any[] = []
         await Edge.query().pluckEach('name', 'weight', arr => {

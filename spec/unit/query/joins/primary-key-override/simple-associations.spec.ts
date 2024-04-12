@@ -6,7 +6,7 @@ describe('Query#joins with simple associations and overriding primary key', () =
   it('joins a HasOne association', async () => {
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-    const pet = await Pet.create({ userUuid: user.uuid })
+    await Pet.create({ userUuid: user.uuid })
 
     const reloadedUsers = await User.query().joins('firstPetFromUuid').all()
     expect(reloadedUsers).toMatchDreamModels([user])
@@ -15,7 +15,7 @@ describe('Query#joins with simple associations and overriding primary key', () =
   it('joins a HasMany association', async () => {
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-    const pet = await Pet.create({ userUuid: user.uuid })
+    await Pet.create({ userUuid: user.uuid })
 
     const reloadedUsers = await User.query().joins('petsFromUuid').all()
     expect(reloadedUsers).toMatchDreamModels([user])
@@ -48,7 +48,7 @@ describe('Query#joins with simple associations and overriding primary key', () =
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const user = await User.create({ email: 'danny@boy', password: 'howyadoin' })
       const pet = await Pet.create({ userUuid: user.uuid, name: 'Violet' })
-      const collar = await Collar.create({ pet, tagName: 'Violet' })
+      await Collar.create({ pet, tagName: 'Violet' })
 
       const reloadedUsers = await User.query()
         .joins('petsFromUuid', { name: 'Violet' })

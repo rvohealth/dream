@@ -53,7 +53,7 @@ describe('Query#where', () => {
         email: 'frez@frewd',
         password: 'howyadoin',
       })
-      const user3 = await User.create({
+      await User.create({
         email: 'frez@fishman',
         password: 'howyadoin',
       })
@@ -177,7 +177,7 @@ describe('Query#where', () => {
 
   context('ops.equal is passed', () => {
     it('uses an "=" operator for comparison', async () => {
-      const user1 = await User.create({
+      await User.create({
         email: 'fred@frewd',
         password: 'howyadoin',
       })
@@ -219,7 +219,7 @@ describe('Query#where', () => {
     it('uses a "<" operator for comparison', async () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
       const post = await Post.create({ user })
-      const rating5 = await Rating.create({ user, rateable: post, rating: 5 })
+      await Rating.create({ user, rateable: post, rating: 5 })
       const rating3 = await Rating.create({ user, rateable: post, rating: 3 })
 
       const records = await Rating.query()
@@ -233,7 +233,7 @@ describe('Query#where', () => {
     it('uses a "<=" operator for comparison', async () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
       const post = await Post.create({ user })
-      const rating5 = await Rating.create({ user, rateable: post, rating: 5 })
+      await Rating.create({ user, rateable: post, rating: 5 })
       const rating4 = await Rating.create({ user, rateable: post, rating: 4 })
       const rating3 = await Rating.create({ user, rateable: post, rating: 3 })
 
@@ -249,7 +249,7 @@ describe('Query#where', () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
       const post = await Post.create({ user })
       const rating5 = await Rating.create({ user, rateable: post, rating: 5 })
-      const rating3 = await Rating.create({ user, rateable: post, rating: 3 })
+      await Rating.create({ user, rateable: post, rating: 3 })
 
       const records = await Rating.query()
         .where({ rating: ops.greaterThan(4) })
@@ -264,7 +264,7 @@ describe('Query#where', () => {
       const post = await Post.create({ user })
       const rating5 = await Rating.create({ user, rateable: post, rating: 5 })
       const rating4 = await Rating.create({ user, rateable: post, rating: 4 })
-      const rating3 = await Rating.create({ user, rateable: post, rating: 3 })
+      await Rating.create({ user, rateable: post, rating: 3 })
 
       const records = await Rating.query()
         .where({ rating: ops.greaterThanOrEqualTo(4) })
@@ -286,7 +286,7 @@ describe('Query#where', () => {
         multicolor: ['green'],
       })
 
-      const blueBalloon = await Mylar.create({
+      await Mylar.create({
         user,
         multicolor: ['blue'],
       })
@@ -299,7 +299,7 @@ describe('Query#where', () => {
 
     context('when passed a non-array column', () => {
       it('raises an exception', async () => {
-        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        await User.create({ email: 'fred@fred', password: 'howyadoin' })
         await expect(
           User.query()
             .where({ email: ops.any('fred@fred') })
@@ -337,11 +337,11 @@ describe('Query#where', () => {
         email: 'aaa@aaa',
         password: 'howyadoin',
       })
-      const user2 = await User.create({
+      await User.create({
         email: 'Aaa@zzz',
         password: 'howyadoin',
       })
-      const user3 = await User.create({
+      await User.create({
         email: 'zzz@zzz',
         password: 'howyadoin',
       })
@@ -355,7 +355,7 @@ describe('Query#where', () => {
 
   context('ops.not.like statement is passed', () => {
     it('uses a "not like" operator for comparison', async () => {
-      const user1 = await User.create({
+      await User.create({
         email: 'aaa@aaa',
         password: 'howyadoin',
       })
@@ -385,7 +385,7 @@ describe('Query#where', () => {
         email: 'Aaa@zzz',
         password: 'howyadoin',
       })
-      const user3 = await User.create({
+      await User.create({
         email: 'zzz@zzz',
         password: 'howyadoin',
       })
@@ -399,11 +399,11 @@ describe('Query#where', () => {
 
   context('ops.not.ilike statement is passed', () => {
     it('uses a "not ilike" operator for comparison', async () => {
-      const user1 = await User.create({
+      await User.create({
         email: 'aaa@aaa',
         password: 'howyadoin',
       })
-      const user2 = await User.create({
+      await User.create({
         email: 'Aaa@zzz',
         password: 'howyadoin',
       })
@@ -630,11 +630,11 @@ describe('Query#where', () => {
         email: 'aaa@aaa',
         password: 'howyadoin',
       })
-      const user2 = await User.create({
+      await User.create({
         email: 'Aaa@zzz',
         password: 'howyadoin',
       })
-      const user3 = await User.create({
+      await User.create({
         email: 'zzz@zzz',
         password: 'howyadoin',
       })
@@ -655,7 +655,7 @@ describe('Query#where', () => {
           email: 'Aaa@zzz',
           password: 'howyadoin',
         })
-        const user3 = await User.create({
+        await User.create({
           email: 'zzz@zzz',
           password: 'howyadoin',
         })
@@ -670,7 +670,7 @@ describe('Query#where', () => {
 
   context('ops.not.match statement is passed', () => {
     it('uses a "!~" operator for comparison', async () => {
-      const user1 = await User.create({
+      await User.create({
         email: 'aaa@aaa',
         password: 'howyadoin',
       })
@@ -691,11 +691,11 @@ describe('Query#where', () => {
 
     context('case insensitive option passed', () => {
       it('uses a "!~*" operator for comparison', async () => {
-        const user1 = await User.create({
+        await User.create({
           email: 'aaa@aaa',
           password: 'howyadoin',
         })
-        const user2 = await User.create({
+        await User.create({
           email: 'Aaa@zzz',
           password: 'howyadoin',
         })
@@ -796,12 +796,10 @@ describe('Query#where', () => {
     const begin = DateTime.now()
     const end = DateTime.now().plus({ day: 1 })
 
-    let user1: User
     let user2: User
-    let user3: User
 
     beforeEach(async () => {
-      user1 = await User.create({
+      await User.create({
         email: 'fred@frewd',
         password: 'howyadoin',
         createdAt: begin.minus({ hour: 1 }),
@@ -811,7 +809,7 @@ describe('Query#where', () => {
         password: 'howyadoin',
         createdAt: begin.plus({ hour: 1 }),
       })
-      user3 = await User.create({
+      await User.create({
         email: 'fred@frwewdzsd',
         password: 'howyadoin',
         createdAt: end.plus({ hour: 1 }),

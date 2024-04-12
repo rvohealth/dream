@@ -35,12 +35,8 @@ export default function associationQuery<
 
   const baseSelectQuery = dreamClassOrTransaction
     .where({ [dream.primaryKey]: dream.primaryKeyValue })
-    // @ts-ignore
     .joins(association.as as any)
 
-  // @ts-ignore
-  // TODO: figure out why this type regression was caused. This was workign without
-  // ts-ignore prior to refactoring to use ApplicationModel
   return (txn ? associationClass.txn(txn).queryInstance() : associationClass.query())
     ['setBaseSQLAlias'](association.as as TableOrAssociationName<DreamInstance['syncedAssociations']>)
     ['setBaseSelectQuery'](baseSelectQuery as Query<any>) as AssociationQuery

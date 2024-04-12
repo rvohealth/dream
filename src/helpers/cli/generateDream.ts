@@ -8,22 +8,13 @@ import { loadDreamYamlFile, migrationsPath, modelsPath } from '../path'
 import hyphenize from '../hyphenize'
 import snakeify from '../../../shared/helpers/snakeify'
 import pascalize from '../pascalize'
-import absoluteFilePath from '../absoluteFilePath'
 import generateUnitSpec from './generateUnitSpec'
 import serializersPath from '../../../shared/helpers/path/serializersPath'
 import path from 'path'
 import primaryKeyType from '../db/primaryKeyType'
 import generateFactory from './generateFactory'
 
-export default async function generateDream(
-  dreamName: string,
-  attributes: string[],
-  {
-    rootPath = absoluteFilePath(''),
-  }: {
-    rootPath?: string
-  } = {}
-) {
+export default async function generateDream(dreamName: string, attributes: string[]) {
   const ymlConfig = await loadDreamYamlFile()
 
   const dreamBasePath = await modelsPath()
@@ -37,15 +28,9 @@ export default async function generateDream(
   const dreamPathParts = formattedDreamName.split('/')
   const thisfs = fs ? fs : await import('fs/promises')
 
-  // we don't need this value, just doing it so we can discard the file name and
-  // thus only have the filepath left. This helps us handle a case where one wants
-  // to generate a nested controller, like so:
-  //    howl g:controller api/v1/users
-  const dreamActualFilename = dreamPathParts.pop()
-
   // if they are generating a nested model path,
   // we need to make sure the nested directories exist
-  if (!!dreamPathParts.length) {
+  if (dreamPathParts.length) {
     const fullPath = [...dreamBasePath.split('/'), ...dreamPathParts].join('/')
     await thisfs.mkdir(fullPath, { recursive: true })
   }
@@ -61,7 +46,7 @@ export default async function generateDream(
         ${dreamPath}
 
       Does this file already exist? Here is the error that was raised:
-        ${error}
+        ${(error as Error).message}
     `
     console.error(err)
     console.error(error)
@@ -69,7 +54,7 @@ export default async function generateDream(
     throw error
   }
 
-  await generateUnitSpec(dreamName, 'models', { rootPath })
+  await generateUnitSpec(dreamName, 'models')
   await generateFactory(dreamName, attributes)
 
   const migrationBasePath = await migrationsPath()
@@ -95,7 +80,7 @@ export default async function generateDream(
         ${migrationPath}
 
       Does this file already exist? Here is the error that was raised:
-        ${error}
+        ${(error as Error).message}
     `
     console.log(err)
     throw err
@@ -115,7 +100,7 @@ export default async function generateDream(
   )
   const serializerPathParts = fullyQualifiedSerializerName.split('/')
 
-  if (!!serializerPathParts.length) {
+  if (serializerPathParts.length) {
     const fullSerializerPath = [...serializerBasePath.split('/'), ...serializerPathParts.slice(0, -1)].join(
       '/'
     )
@@ -134,7 +119,7 @@ export default async function generateDream(
         ${dreamPath}
 
       Does this file already exist? Here is the error that was raised:
-        ${error}
+        ${(error as Error).message}
     `
     console.error(err)
     throw error

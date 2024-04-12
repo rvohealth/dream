@@ -47,7 +47,7 @@ export default class CompositionAsset extends ApplicationModel {
     const reloaded = this.loaded('composition') ? this : await this.load('composition').execute()
     this.compositionToUpdateDuringDestroy = reloaded.composition
     if (this.src === 'mark before destroy')
-      await reloaded.composition!.update({ content: 'something was destroyed' })
+      await reloaded.composition.update({ content: 'something was destroyed' })
   }
 
   @AfterDestroy()

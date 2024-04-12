@@ -1,7 +1,7 @@
 import round, { RoundingPrecision } from '../../../src/helpers/round'
 
 describe('round', () => {
-  let subject = () => round(value, precision)
+  const subject = () => round(value, precision)
   let value: number
   let precision: RoundingPrecision | undefined
 

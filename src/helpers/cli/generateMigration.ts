@@ -7,14 +7,7 @@ import absoluteFilePath from '../absoluteFilePath'
 import { loadDreamYamlFile } from '../path'
 import primaryKeyType from '../db/primaryKeyType'
 
-export default async function generateMigration(
-  migrationName: string,
-  {
-    rootPath = absoluteFilePath(''),
-  }: {
-    rootPath?: string
-  } = {}
-) {
+export default async function generateMigration(migrationName: string) {
   const yamlConf = await loadDreamYamlFile()
   const migrationBasePath = absoluteFilePath(path.join(yamlConf.db_path, 'migrations'))
   const version = migrationVersion()
@@ -35,7 +28,7 @@ export default async function generateMigration(
         ${migrationPath}
 
       Does this file already exist? Here is the error that was raised:
-        ${error}
+        ${(error as Error).message}
     `
     console.log(err)
     throw err

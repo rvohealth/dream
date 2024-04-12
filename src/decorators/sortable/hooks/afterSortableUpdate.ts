@@ -25,7 +25,7 @@ export default async function afterUpdateSortable({
   if (!(dream as any)[cacheKey]) return
   if ((dream as any)[cachedValuesName]) {
     await setPosition({
-      ...((dream as any)[cachedValuesName] as any),
+      ...(dream as any)[cachedValuesName],
       txn,
     })
   } else {

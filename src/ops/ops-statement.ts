@@ -45,7 +45,7 @@ export default class OpsStatement<
 
   public get minTrigramScore() {
     if (TRIGRAM_OPERATORS.includes(this.operator as any)) {
-      return (this.extraArgs as ExtraSimilarityArgs)?.score!
+      return (this.extraArgs as ExtraSimilarityArgs)?.score
     } else {
       return null
     }

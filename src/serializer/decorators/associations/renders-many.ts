@@ -5,6 +5,7 @@ export default function RendersMany(
   serializerClassCB: DreamSerializerClassCB | RendersManyOpts | null = null,
   opts?: RendersManyOpts
 ): any {
+  // eslint-disable-next-line
   return function (target: any, key: string, def: any) {
     const serializerClass: typeof DreamSerializer = target.constructor
     opts ||= (serializerClassCB || {}) as RendersManyOpts

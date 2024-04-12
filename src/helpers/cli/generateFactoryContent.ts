@@ -18,19 +18,20 @@ export default async function generateFactoryContent(
   const belongsToTypedNames: string[] = []
 
   for (const attribute of attributes) {
-    const [attributeName, attributeType, ...descriptors] = attribute.split(':')
-    const associationImportStatement = buildImportStatement(modelName, attribute)
+    const [attributeName, attributeType] = attribute.split(':')
+    const associationImportStatement = buildImportStatement(attribute)
     const attributeNameParts = attributeName.split('/')
     const associationName = attributeNameParts[attributeNameParts.length - 1]
+    const camelizedName = camelize(associationName)
 
     if (!attributeType) throw `must pass a column type for ${attributeName} (i.e. ${attributeName}:string)`
 
     switch (attributeType) {
       case 'belongs_to':
-        const camelizedName = camelize(associationName)
         belongsToNames.push(camelizedName)
         belongsToTypedNames.push(`${camelizedName}: ${dreamClassNameFromAttributeName(attributeName)}`)
         additionalImports.push(await associationImportStatement)
+        break
 
       default:
       // noop
@@ -45,7 +46,7 @@ export default async function generateFactoryContent(
   return `\
 import { ${uniq(dreamImports).join(', ')} } from '@rvohealth/dream'
 import ${pascalize(modelName.split('/').pop()!)} from '${relativePath}${modelName.replace(/^\//, '')}'${
-    !!additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
+    additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
   }
 
 export default async function create${modelClassName}(${args.join(', ')}) {
@@ -55,7 +56,7 @@ export default async function create${modelClassName}(${args.join(', ')}) {
 }`
 }
 
-async function buildImportStatement(modelName: string, attribute: string) {
+async function buildImportStatement(attribute: string) {
   const relativePath = await relativePathToModelRoot()
 
   const [attributeName] = attribute.split(':')

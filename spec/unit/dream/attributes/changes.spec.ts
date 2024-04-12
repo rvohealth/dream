@@ -1,6 +1,5 @@
 import { DateTime } from 'luxon'
 import Pet from '../../../../test-app/app/models/Pet'
-import User from '../../../../test-app/app/models/User'
 
 describe('Dream#changes', () => {
   context('with a newly-created record', () => {
@@ -73,11 +72,11 @@ describe('Dream#changes', () => {
       })
     })
 
-    it("datetimes that don't change are not included", async () => {
+    it("datetimes that don't change are not included", () => {
       expect(pet.changes()).toEqual({})
     })
 
-    it('datetimes that are changed are included', async () => {
+    it('datetimes that are changed are included', () => {
       const originalCreatedAt = pet.createdAt
       const otherDatetime = DateTime.now().minus({ minutes: 1 })
       pet.createdAt = otherDatetime

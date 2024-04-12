@@ -15,7 +15,7 @@ export default async function primaryKeyType() {
       throw new Error(`
 ATTENTION!
 
-  unrecognized primary key type "${yamlConf.primary_key_type}" found in .dream.yml.
+  unrecognized primary key type "${yamlConf.primary_key_type as string}" found in .dream.yml.
   please use one of the allowed primary key types:
     ${primaryKeyTypes.join(', ')}
       `)

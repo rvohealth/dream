@@ -1,18 +1,9 @@
 import fs from 'fs/promises'
 import { loadDreamYamlFile } from '../path'
-import absoluteFilePath from '../absoluteFilePath'
 import unitSpecsPath from '../../../shared/helpers/path/unitSpecsPath'
 import path from 'path'
 
-export default async function generateUnitSpec(
-  dreamName: string,
-  specSubpath: 'models' | 'controllers',
-  {
-    rootPath = absoluteFilePath(''),
-  }: {
-    rootPath?: string
-  } = {}
-) {
+export default async function generateUnitSpec(dreamName: string, specSubpath: 'models' | 'controllers') {
   const ymlConfig = await loadDreamYamlFile()
   const specBasePath = await unitSpecsPath()
   const specPath = path.join(specBasePath, specSubpath, `${dreamName}.spec.ts`)
@@ -33,7 +24,7 @@ export default async function generateUnitSpec(
         ${relativeSpecPath}
 
       Does this file already exist? Here is the error that was raised:
-        ${error}
+        ${(error as Error).message}
     `
     throw err
   }

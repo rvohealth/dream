@@ -8,7 +8,6 @@ import { DateTime } from 'luxon'
 import Pet from '../../../test-app/app/models/Pet'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar'
-import Balloon from '../../../test-app/app/models/Balloon'
 import Animal from '../../../test-app/app/models/Balloon/Latex/Animal'
 import ModelWithoutUpdatedAt from '../../../test-app/app/models/ModelWithoutUpdatedAt'
 
@@ -75,10 +74,10 @@ describe('Dream#update', () => {
       name: 'Charlie Brown',
       updatedAt: updatedAt,
     })
-    expect(user!.updatedAt.toSeconds()).toBeWithin(1, updatedAt.toSeconds())
+    expect(user.updatedAt.toSeconds()).toBeWithin(1, updatedAt.toSeconds())
 
     await user.update({ email: 'how@yadoin' })
-    expect(user!.updatedAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
+    expect(user.updatedAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
     const reloadedUser = await User.find(user.id)
     expect(reloadedUser!.updatedAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
   })
@@ -230,10 +229,7 @@ describe('Dream#update', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const userSettings = UserSettings.new({ likesChalupas: true })
 
-      await expect(
-        // @ts-ignore
-        user.update({ userSettings })
-      ).rejects.toThrowError(CanOnlyPassBelongsToModelParam)
+      await expect(user.update({ userSettings } as any)).rejects.toThrowError(CanOnlyPassBelongsToModelParam)
     })
   })
 

@@ -8,6 +8,8 @@ describe('Dream#destroy', () => {
 
     await user.destroy()
     expect(await User.count()).toEqual(1)
+
+    // eslint-disable-next-line
     expect((await User.first())!.attributes).toEqual(user2.attributes)
   })
 
@@ -22,7 +24,9 @@ describe('Dream#destroy', () => {
           beforeFailureCount = await User.txn(txn).count()
           throw 'throwing to kill transaction'
         })
-      } catch (err) {}
+      } catch (err) {
+        // noop
+      }
 
       expect(beforeFailureCount).toEqual(0)
       expect(await User.count()).toEqual(1)

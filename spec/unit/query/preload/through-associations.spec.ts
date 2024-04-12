@@ -36,7 +36,7 @@ describe('Query#preload through', () => {
     it('sets HasMany property', async () => {
       const balloon = await Latex.create()
       const balloonSpotter = await BalloonSpotter.create()
-      const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
+      await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
 
       const reloaded = await BalloonSpotter.query().preload('balloons').first()
       expect(reloaded!.balloons).toMatchDreamModels([balloon])
@@ -46,7 +46,7 @@ describe('Query#preload through', () => {
       it('returns an array without null values', async () => {
         const balloon = await Latex.create()
         const balloonSpotter = await BalloonSpotter.create()
-        const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
+        await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
 
         const reloaded = await BalloonSpotter.query().preload('users').first()
         expect(reloaded!.users).toEqual([])
@@ -119,7 +119,7 @@ describe('Query#preload through', () => {
     context('when the join model does not have an associated HasOne', () => {
       it('returns an array without null values', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-        const balloon = await Latex.create({ user })
+        await Latex.create({ user })
         const reloaded = await User.preload('balloonLines').first()
         expect(reloaded!.balloonLines).toEqual([])
       })
@@ -152,7 +152,7 @@ describe('Query#preload through', () => {
       it('sets HasMany association to an empty array', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })
-        const compositionAsset = await CompositionAsset.create({
+        await CompositionAsset.create({
           composition,
           primary: true,
         })
@@ -167,7 +167,7 @@ describe('Query#preload through', () => {
     context('when the join model doesn’t exist', () => {
       it('sets HasOne association property on the base model to null', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-        const composition = await Composition.create({ user })
+        await Composition.create({ user })
 
         const reloadedComposition = await Composition.query()
           .preload('mainCompositionAsset', 'compositionAssetAudits')
@@ -222,7 +222,7 @@ describe('Query#preload through', () => {
       it('sets the HasMany association to an empty array', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })
-        const compositionAsset = await CompositionAsset.create({
+        await CompositionAsset.create({
           composition,
           primary: true,
         })
@@ -238,7 +238,7 @@ describe('Query#preload through', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ user, primary: true })
       await CompositionAsset.create({ composition })
-      const compositionAsset = await CompositionAsset.create({
+      await CompositionAsset.create({
         composition,
         primary: false,
       })
@@ -313,7 +313,7 @@ describe('Query#preload through', () => {
         })
 
         const compositionAsset1 = await CompositionAsset.create({ composition: recentComposition })
-        const compositionAsset2 = await CompositionAsset.create({ composition: olderComposition })
+        await CompositionAsset.create({ composition: olderComposition })
 
         const reloadedUser = await User.query().preload('recentCompositions', 'compositionAssets').first()
         expect(reloadedUser!.recentCompositions[0].compositionAssets).toMatchDreamModels([compositionAsset1])
@@ -330,7 +330,7 @@ describe('Query#preload through', () => {
         })
 
         const compositionAsset1 = await CompositionAsset.create({ composition: recentComposition })
-        const compositionAsset2 = await CompositionAsset.create({ composition: olderComposition })
+        await CompositionAsset.create({ composition: olderComposition })
 
         const reloadedUser = await User.query().preload('recentCompositionAssets').first()
         expect(reloadedUser).toMatchDreamModel(user)
@@ -350,7 +350,7 @@ describe('Query#preload through', () => {
             composition: recentComposition,
             primary: true,
           })
-          const compositionAsset2 = await CompositionAsset.create({
+          await CompositionAsset.create({
             composition: olderComposition,
             primary: true,
           })
@@ -390,11 +390,11 @@ describe('Query#preload through', () => {
               targetRating: 7,
             })
             const post1 = await Post.create({ user })
-            const rating1a = await Rating.create({ user, rateable: post1, rating: 3 })
+            await Rating.create({ user, rateable: post1, rating: 3 })
             const rating1b = await Rating.create({ user, rateable: post1, rating: 7 })
             const post2 = await Post.create({ user })
             const rating2a = await Rating.create({ user, rateable: post2, rating: 7 })
-            const rating2b = await Rating.create({ user, rateable: post2, rating: 5 })
+            await Rating.create({ user, rateable: post2, rating: 5 })
 
             const reloadedUser = await User.query()
               .preload('ratingsThroughPostsThatMatchUserTargetRating')
@@ -422,7 +422,7 @@ describe('Query#preload through', () => {
               const post2 = await Post.create({ user })
               const rating2 = await Rating.create({ user, rateable: post2 })
 
-              const pet = await Pet.create({ user })
+              await Pet.create({ user })
 
               const sanityCheckPet = await Pet.query().preload('ratings').first()
               expect(sanityCheckPet!.ratings).toMatchDreamModels([rating1, rating2])
@@ -447,14 +447,14 @@ describe('Query#preload through', () => {
             const edgeNode3 = await EdgeNode.create({ node, edge: edge3 })
 
             const sanityCheckEdgeNode = await edgeNode2.load('siblingsIncludingMe').execute()
-            expect(sanityCheckEdgeNode!.siblingsIncludingMe).toMatchDreamModels([
+            expect(sanityCheckEdgeNode.siblingsIncludingMe).toMatchDreamModels([
               edgeNode1,
               edgeNode2,
               edgeNode3,
             ])
 
             const reloadedEdgeNode = await edgeNode2.load('justThisSibling').execute()
-            expect(reloadedEdgeNode!.justThisSibling).toMatchDreamModel(edgeNode2)
+            expect(reloadedEdgeNode.justThisSibling).toMatchDreamModel(edgeNode2)
           })
         })
       })
@@ -501,14 +501,14 @@ describe('Query#preload through', () => {
         context('through a BelongsTo', () => {
           it('applies conditional to selectively bring in records', async () => {
             const sanityCheckEdgeNode = await edgeNode2.load('siblingsIncludingMe').execute()
-            expect(sanityCheckEdgeNode!.siblingsIncludingMe).toMatchDreamModels([
+            expect(sanityCheckEdgeNode.siblingsIncludingMe).toMatchDreamModels([
               edgeNode1,
               edgeNode2,
               edgeNode3,
             ])
 
             const reloadedEdgeNode = await edgeNode2.load('siblings').execute()
-            expect(reloadedEdgeNode!.siblings).toMatchDreamModels([edgeNode1, edgeNode3])
+            expect(reloadedEdgeNode.siblings).toMatchDreamModels([edgeNode1, edgeNode3])
           })
         })
       })
@@ -524,10 +524,10 @@ describe('Query#preload through', () => {
         // position is automatically set by sortable
         const edgeNode1 = await EdgeNode.create({ node, edge: edge1 })
         const edgeNode2 = await EdgeNode.create({ node, edge: edge2 })
-        const edgeNode3 = await EdgeNode.create({ node, edge: edge3 })
+        await EdgeNode.create({ node, edge: edge3 })
 
         const reloadedEdgeNode = await edgeNode2.load('headSibling').execute()
-        expect(reloadedEdgeNode!.headSibling).toMatchDreamModel(edgeNode1)
+        expect(reloadedEdgeNode.headSibling).toMatchDreamModel(edgeNode1)
       })
     })
   })
@@ -538,8 +538,8 @@ describe('Query#preload through', () => {
       const redBalloon = await Latex.create({ color: 'red' })
       const greenBalloon = await Latex.create({ color: 'green' })
 
-      const collar1 = await pet.createAssociation('collars', { balloon: redBalloon })
-      const collar2 = await pet.createAssociation('collars', { balloon: greenBalloon })
+      await pet.createAssociation('collars', { balloon: redBalloon })
+      await pet.createAssociation('collars', { balloon: greenBalloon })
 
       const reloaded = await Pet.preload('redBalloons').first()
       expect(reloaded!.redBalloons).toMatchDreamModels([redBalloon])
@@ -553,9 +553,9 @@ describe('Query#preload through', () => {
       const greenBalloon = await Latex.create({ color: 'green' })
       const blueBalloon = await Latex.create({ color: 'blue' })
 
-      const collar1 = await pet.createAssociation('collars', { balloon: redBalloon })
-      const collar2 = await pet.createAssociation('collars', { balloon: greenBalloon })
-      const collar3 = await pet.createAssociation('collars', { balloon: blueBalloon })
+      await pet.createAssociation('collars', { balloon: redBalloon })
+      await pet.createAssociation('collars', { balloon: greenBalloon })
+      await pet.createAssociation('collars', { balloon: blueBalloon })
 
       const reloaded = await Pet.preload('notRedBalloons').first()
       expect(reloaded!.notRedBalloons).toMatchDreamModels([greenBalloon, blueBalloon])
@@ -569,19 +569,19 @@ describe('Query#preload through', () => {
         const edge3 = await Edge.create({ name: 'goodbye' })
 
         // position is automatically set by sortable
-        const edgeNode1 = await EdgeNode.create({ node, edge: edge1 })
+        await EdgeNode.create({ node, edge: edge1 })
         const edgeNode2 = await EdgeNode.create({ node, edge: edge2 })
         const edgeNode3 = await EdgeNode.create({ node, edge: edge3 })
 
         const reloadedEdgeNode = await edgeNode2.load('tailSiblings').execute()
-        expect(reloadedEdgeNode!.tailSiblings).toMatchDreamModels([edgeNode2, edgeNode3])
+        expect(reloadedEdgeNode.tailSiblings).toMatchDreamModels([edgeNode2, edgeNode3])
       })
     })
   })
 
   context('with a missing association', () => {
     it('throws JoinAttemptedOnMissingAssociation', async () => {
-      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
       const query = User.query().preload('nonExtantCompositionAssets1').first()
 
@@ -591,7 +591,7 @@ describe('Query#preload through', () => {
 
   context('with a missing source', () => {
     it('throws MissingThroughAssociationSource', async () => {
-      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
       const query = User.query().preload('nonExtantCompositionAssets2').first()
 
@@ -608,7 +608,7 @@ describe('Query#preload through', () => {
       })
       const pet = await Pet.create({ user })
       const balloon = await Latex.create({ color: 'red', deletedAt: DateTime.now() })
-      const collar = await Collar.create({ pet, balloon })
+      await Collar.create({ pet, balloon })
 
       const unscopedReloadedUser = await User.unscoped().preload('pets', 'redBalloons').first()
       expect(unscopedReloadedUser).toMatchDreamModel(user)
@@ -681,16 +681,16 @@ describe('Query#preload through', () => {
     context('through a BelongsTo association', () => {
       it('orders the results based on the order specified in the root association', async () => {
         const node = await edgeNode2.load('orderedSiblings').execute()
-        expect(node!.orderedSiblings[0]).toMatchDreamModel(edgeNode3)
-        expect(node!.orderedSiblings[1]).toMatchDreamModel(edgeNode1)
-        expect(node!.orderedSiblings[2]).toMatchDreamModel(edgeNode2)
+        expect(node.orderedSiblings[0]).toMatchDreamModel(edgeNode3)
+        expect(node.orderedSiblings[1]).toMatchDreamModel(edgeNode1)
+        expect(node.orderedSiblings[2]).toMatchDreamModel(edgeNode2)
       })
 
       it('orders the results based on the order specified in the source association', async () => {
         const node = await edgeNode2.load('orderedSiblingsWithOrderOnSource').execute()
-        expect(node!.orderedSiblingsWithOrderOnSource[0]).toMatchDreamModel(edgeNode3)
-        expect(node!.orderedSiblingsWithOrderOnSource[1]).toMatchDreamModel(edgeNode1)
-        expect(node!.orderedSiblingsWithOrderOnSource[2]).toMatchDreamModel(edgeNode2)
+        expect(node.orderedSiblingsWithOrderOnSource[0]).toMatchDreamModel(edgeNode3)
+        expect(node.orderedSiblingsWithOrderOnSource[1]).toMatchDreamModel(edgeNode1)
+        expect(node.orderedSiblingsWithOrderOnSource[2]).toMatchDreamModel(edgeNode2)
       })
     })
   })

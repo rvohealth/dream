@@ -10,7 +10,6 @@ import path from 'node:path'
 export default async function generateApiSchemaContent() {
   const serializersBasePath = await serializersPath()
   const serializerFiles = (await getFiles(serializersBasePath)).filter(fileName => /\.ts$/.test(fileName))
-  const schema = await import(await schemaPath())
 
   let file = await renderExportedTypeDeclarations()
 
@@ -24,7 +23,7 @@ export default async function generateApiSchemaContent() {
 
       for (const attr of attributes) {
         finalAttributesHash[attr.field] =
-          `\n  ${attr.field}: ${renderAsToType(attr.renderAs as any, schema) || 'any'}`
+          `\n  ${attr.field}: ${renderAsToType(attr.renderAs as any) || 'any'}`
       }
       const finalAttributes: string[] = Object.values(finalAttributesHash)
 
@@ -69,7 +68,7 @@ export const ${key} = [
     }, '')
 }
 
-function renderAsToType(renderAs: SerializableTypes, schema: any) {
+function renderAsToType(renderAs: SerializableTypes) {
   if (/^enum:/.test(renderAs)) {
     const renderAsType = renderAs.replace(/^enum:/, '')
     return renderAsType
@@ -111,7 +110,9 @@ async function loadAssociatedSerializer(serializerPath: string, association: Ass
   try {
     dreamClass = (await import(expectedDreamModelPath))?.default as typeof Dream
     if (!dreamClass) return null
-  } catch (_) {}
+  } catch (_) {
+    // noop
+  }
 
   if (!dreamClass) return null
   const associationMetadata = dreamClass.associationMap()[association.field]
@@ -127,12 +128,12 @@ async function loadAssociatedSerializer(serializerPath: string, association: Ass
     let serializerClass: any
     try {
       serializerClass = associationDreamClass?.prototype?.serializer
-    } catch (_) {}
+    } catch (_) {
+      // noop
+    }
 
     return serializerClass || null
   }
-
-  return null
 }
 
 let _schema: any

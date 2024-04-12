@@ -46,8 +46,7 @@ export default function associationUpdateQuery<
     : dreamClass.joins(association.as as any)
 
   const nestedSelect = nestedScope
-    // @ts-ignore
-    .where({ [dream.primaryKey]: dream.primaryKeyValue })
+    .where({ [dream.primaryKey]: dream.primaryKeyValue as any })
     .nestedSelect(`${association.as}.${associationClass.primaryKey}`)
 
   const whereClause = {

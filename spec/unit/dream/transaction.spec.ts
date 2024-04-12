@@ -13,7 +13,7 @@ describe('ApplicationModel.transaction', () => {
     })
 
     expect(await Composition.count()).toEqual(1)
-    const reloadedUser = await User.find(user.id)
+    await User.find(user.id)
     expect(user.email).toEqual('fred@fishman')
   })
 
@@ -24,9 +24,7 @@ describe('ApplicationModel.transaction', () => {
       await expect(
         ApplicationModel.transaction(async txn => {
           await Composition.txn(txn).create({ user })
-          // ts-ignore because we are setting this to a disallowed type intentionally to force the transaction to fail
-          // @ts-ignore
-          await user.txn(txn).update({ email: null })
+          await user.txn(txn).update({ email: null } as any)
         })
       ).rejects.toThrowError(ValidationError)
 

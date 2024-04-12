@@ -1,4 +1,4 @@
-import { ExpressionBuilder, Kysely, UpdateQueryBuilder } from 'kysely'
+import { ExpressionBuilder, UpdateQueryBuilder } from 'kysely'
 import db from '../../../db'
 import Dream from '../../../dream'
 import Query from '../../../dream/query'
@@ -138,7 +138,7 @@ async function applyUpdates({
     txn,
   })
 
-  await updatePositionForRecord(txn, dream, positionField, newPosition, scope)
+  await updatePositionForRecord(txn, dream, positionField, newPosition)
 }
 
 async function setNewPosition({
@@ -156,7 +156,7 @@ async function setNewPosition({
 }) {
   const newPosition = (await sortableQueryExcludingDream(dream, query, scope).max(positionField)) + 1
 
-  const dbOrTxn = (txn ? txn.kyselyTransaction : db('primary', dream.dreamconf)) as Kysely<any>
+  const dbOrTxn = txn ? txn.kyselyTransaction : db('primary', dream.dreamconf)
   await dbOrTxn
     .updateTable(dream.table as any)
     .where(dream.primaryKey as any, '=', dream.primaryKeyValue)
@@ -218,7 +218,6 @@ async function updateConflictingRecords({
 // sure the previous scope is updated so that holes in the positioning are correctly adapted.
 async function updatePreviousScope({
   position,
-  previousPosition,
   dream,
   positionField,
   query,
@@ -237,7 +236,7 @@ async function updatePreviousScope({
     scopeField =>
       (!dream.getAssociation(scopeField) && dream.savedChangeToAttribute(scopeField as any)) ||
       (dream.getAssociation(scopeField) &&
-        dream.savedChangeToAttribute(dream.getAssociation(scopeField)!.foreignKey()))
+        dream.savedChangeToAttribute(dream.getAssociation(scopeField).foreignKey()))
   ).length
 
   if (dream.changes()[dream.primaryKey] && dream.changes()[dream.primaryKey]!.was === undefined) return
@@ -287,8 +286,7 @@ async function updatePositionForRecord(
   txn: DreamTransaction<any>,
   dream: Dream,
   positionField: string,
-  position: number,
-  scope?: string | string[]
+  position: number
 ) {
   await txn.kyselyTransaction
     .updateTable(dream.table as any)

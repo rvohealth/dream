@@ -33,5 +33,5 @@ export default function compact<
   }
 }
 
-const x = compact(['a', 2, null, undefined])
-const y = compact({ a: 1, b: 'b', c: null, d: undefined })
+// const x = compact(['a', 2, null, undefined])
+// const y = compact({ a: 1, b: 'b', c: null, d: undefined })

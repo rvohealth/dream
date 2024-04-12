@@ -11,7 +11,7 @@ describe('Dream.preload', () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ userId: user.id })
     const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
-    const compositionAssetAudit = await CompositionAssetAudit.create({
+    await CompositionAssetAudit.create({
       compositionAssetId: compositionAsset.id,
     })
 
@@ -43,7 +43,7 @@ describe('Dream.preload', () => {
     // from args a-g, which does not actually need to be run, since if this is
     // broken, tests will fail to compile due to type errors
     it.skip('permits types a-g', async () => {
-      await ApplicationModel.transaction(async txn => {
+      await ApplicationModel.transaction(txn => {
         Composition.txn(txn).preload('user', 'balloons', 'user', 'balloons', 'user', 'balloons', 'user')
       })
     })
@@ -63,7 +63,7 @@ describe('Dream.preload', () => {
   // this is skipped, since it is only here to ensure that types are working
   // from args a-g, which does not actually need to be run, since if this is
   // broken, tests will fail to compile due to type errors
-  it.skip('permits types a-g', async () => {
+  it.skip('permits types a-g', () => {
     Composition.preload('user', 'balloons', 'user', 'balloons', 'user', 'balloons')
   })
 })

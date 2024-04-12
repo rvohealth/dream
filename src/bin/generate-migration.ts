@@ -5,8 +5,7 @@ async function _generateMigration() {
   await initializeDream()
 
   const argv = process.argv.filter(arg => !/^--/.test(arg))
-  let name = argv[2]
-  const args = argv.slice(3, argv.length)
+  const name = argv[2]
   await generateMigration(name)
   process.exit()
 }

@@ -1,6 +1,5 @@
 import Dream from '../../../dream'
 import Query from '../../../dream/query'
-import getColumnForSortableScope from '../helpers/getColumnForSortableScope'
 import positionIsInvalid from '../helpers/positionIsInvalid'
 import scopeArray from '../helpers/scopeArray'
 import sortableCacheKeyName from '../helpers/sortableCacheKeyName'
@@ -24,7 +23,7 @@ export default async function beforeSortableSave({
     scopeField =>
       (!dream.getAssociation(scopeField) && dream.willSaveChangeToAttribute(scopeField as any)) ||
       (dream.getAssociation(scopeField) &&
-        Object.keys(dream.changedAttributes()).includes(dream.getAssociation(scopeField)!.foreignKey()))
+        Object.keys(dream.changedAttributes()).includes(dream.getAssociation(scopeField).foreignKey()))
   ).length
 
   if (!dream.willSaveChangeToAttribute(positionField) && !savingChangeToScopeField) return

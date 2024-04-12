@@ -1,7 +1,5 @@
 import User from '../../../../test-app/app/models/User'
 import Composition from '../../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
-import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
 
 describe('Dream#load', () => {
   it('loads (by deferring to #preload)', async () => {

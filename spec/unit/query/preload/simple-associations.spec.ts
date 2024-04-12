@@ -25,7 +25,7 @@ describe('Query#preload with simple associations', () => {
 
     context('when the association does not exist', () => {
       it('sets it to null', async () => {
-        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
         const reloadedUser = await User.query().preload('mainComposition').first()
         expect(reloadedUser!.mainComposition).toBeNull()
@@ -55,7 +55,7 @@ describe('Query#preload with simple associations', () => {
 
     context('when no association exists', () => {
       it('sets it to an empty array', async () => {
-        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
         const reloadedUser = await User.query().preload('compositions').first()
         expect(reloadedUser!.compositions).toEqual([])
@@ -75,7 +75,7 @@ describe('Query#preload with simple associations', () => {
 
   context('when there are HasMany results', () => {
     it('sets the association to an empty array', async () => {
-      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
       const reloadedUser = await User.query().preload('compositions').first()
       expect(reloadedUser!.compositions).toEqual([])
@@ -93,7 +93,7 @@ describe('Query#preload with simple associations', () => {
     context('pointing to an STI model', () => {
       it('loads the association', async () => {
         const balloon = await Latex.create({ color: 'blue' })
-        const line = await BalloonLine.create({ balloon, material: 'ribbon' })
+        await BalloonLine.create({ balloon, material: 'ribbon' })
 
         const reloaded = await BalloonLine.query().preload('balloon').first()
         expect(reloaded!.balloon).toMatchDreamModel(balloon)
@@ -145,7 +145,7 @@ describe('Query#preload with simple associations', () => {
           const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
           const composition = await Composition.create({ user })
-          const compositionText1 = await LocalizedText.create({ localizable: composition, locale: 'en-US' })
+          await LocalizedText.create({ localizable: composition, locale: 'en-US' })
           const compositionText2 = await LocalizedText.create({ localizable: composition, locale: 'es-ES' })
 
           const compositionAsset = await CompositionAsset.create({ composition })
@@ -153,7 +153,7 @@ describe('Query#preload with simple associations', () => {
             localizable: compositionAsset,
             locale: 'es-ES',
           })
-          const compositionAssetText2 = await LocalizedText.create({
+          await LocalizedText.create({
             localizable: compositionAsset,
             locale: 'en-US',
           })
@@ -193,7 +193,7 @@ describe('Query#preload with simple associations', () => {
         })
 
         // position is automatically set by sortable
-        const post1 = await Post.create({ user })
+        await Post.create({ user })
         const post2 = await Post.create({ user })
 
         const reloadedUser = await User.query().preload('featuredPost').first()
@@ -206,7 +206,6 @@ describe('Query#preload with simple associations', () => {
       let edge1: Edge
       let edge2: Edge
       let edge3: Edge
-      let edgeNode1: EdgeNode
       let edgeNode2: EdgeNode
       let edgeNode3: EdgeNode
 
@@ -217,7 +216,7 @@ describe('Query#preload with simple associations', () => {
         edge3 = await Edge.create({ name: 'goodbye' })
 
         // position is automatically set by sortable
-        edgeNode1 = await EdgeNode.create({ node, edge: edge1 })
+        await EdgeNode.create({ node, edge: edge1 })
         edgeNode2 = await EdgeNode.create({ node, edge: edge2 })
         edgeNode3 = await EdgeNode.create({ node, edge: edge3 })
       })
@@ -262,7 +261,7 @@ describe('Query#preload with simple associations', () => {
     context('with matching where-clause-on-the-association', () => {
       it('loads the associated object', async () => {
         const pet = await Pet.create()
-        const lostCollar = await pet.createAssociation('collars', {
+        await pet.createAssociation('collars', {
           lost: true,
         })
         const currentCollar = await pet.createAssociation('collars', {
@@ -320,7 +319,7 @@ describe('Query#preload with simple associations', () => {
           user,
         })
 
-        let reloadedUser = await User.preload('firstComposition').preload('lastComposition').first()
+        const reloadedUser = await User.preload('firstComposition').preload('lastComposition').first()
         expect(reloadedUser!.firstComposition).toMatchDreamModel(firstComposition)
         expect(reloadedUser!.lastComposition).toMatchDreamModel(lastComposition)
       })
@@ -331,7 +330,7 @@ describe('Query#preload with simple associations', () => {
     context('preloading a HasMany', () => {
       it('applies default scopes when joining', async () => {
         const pet = await Pet.create({ name: 'aster' })
-        const collar = await pet.createAssociation('collars', { tagName: 'Aster', pet, hidden: true })
+        await pet.createAssociation('collars', { tagName: 'Aster', pet, hidden: true })
 
         const result = await Pet.preload('collars').first()
         expect(result!.collars).toHaveLength(0)
@@ -341,7 +340,7 @@ describe('Query#preload with simple associations', () => {
     context('preloading a BelongsTo', () => {
       it('applies default scopes when joining', async () => {
         const pet = await Pet.create({ name: 'aster' })
-        const collar = await pet.createAssociation('collars', { tagName: 'Aster', pet })
+        await pet.createAssociation('collars', { tagName: 'Aster', pet })
         await pet.destroy()
 
         const result = await Collar.preload('pet').first()
@@ -353,7 +352,7 @@ describe('Query#preload with simple associations', () => {
   // this is skipped, since it is only here to ensure that types are working
   // from args a-g, which does not actually need to be run, since if this is
   // broken, tests will fail to compile due to type errors
-  it.skip('permits types a-g', async () => {
+  it.skip('permits types a-g', () => {
     Composition.query().preload('user', 'balloons', 'user', 'balloons', 'user', 'balloons')
   })
 })

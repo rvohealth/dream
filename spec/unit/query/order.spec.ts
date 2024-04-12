@@ -18,7 +18,7 @@ describe('Query#order', () => {
       const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
       const composition2 = await user2.createAssociation('compositions', { content: 'Hello' })
-      const composition1 = await user1.createAssociation('compositions', { content: 'Goodbye' })
+      await user1.createAssociation('compositions', { content: 'Goodbye' })
 
       const plucked = await user2.associationQuery('compositions').order('id').pluck('id', 'content')
       expect(plucked).toEqual([[composition2.id, 'Hello']])

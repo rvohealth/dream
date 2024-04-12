@@ -41,7 +41,7 @@ describe('Query#nestedSelect', () => {
 
     context('without a namespaced field', () => {
       it('automatically applies the namespace of the root model we are querying from', async () => {
-        const node0 = await Node.create({ name: 'N0' })
+        await Node.create({ name: 'N0' })
         const node = await Node.create({ name: 'N1' })
         const edge = await Edge.create({ name: 'E1' })
         await EdgeNode.create({ node, edge })

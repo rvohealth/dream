@@ -13,7 +13,7 @@ describe('Dream.first', () => {
     it('can find the first record within a transaction', async () => {
       let user: User | null = null
       await ApplicationModel.transaction(async txn => {
-        const u = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
+        await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
         user = await User.txn(txn).first()
       })
       expect(user!.email).toEqual('fred@frewd')

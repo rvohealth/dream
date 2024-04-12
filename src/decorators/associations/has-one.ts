@@ -1,7 +1,6 @@
 import Dream from '../../dream'
 import {
   HasStatement,
-  PartialAssociationStatement,
   applyGetterAndSetter,
   blankAssociationsFactory,
   finalForeignKey,
@@ -30,6 +29,7 @@ export default function HasOne<
     primaryKeyOverride,
   }: HasOneOptions<BaseInstance, AssociationDreamClass> = {}
 ): any {
+  // eslint-disable-next-line
   return function (target: BaseInstance, key: string, _: any) {
     const dreamClass: typeof Dream = (target as any).constructor
 
@@ -73,8 +73,8 @@ export default function HasOne<
 
 export interface HasOneStatement<
   BaseInstance extends Dream,
-  DB extends any,
-  SyncedAssociations extends any,
+  DB,
+  SyncedAssociations,
   ForeignTableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
 > extends HasStatement<BaseInstance, DB, SyncedAssociations, ForeignTableName, 'HasOne'> {}
 

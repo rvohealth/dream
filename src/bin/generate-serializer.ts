@@ -5,7 +5,7 @@ async function _generateSerializer() {
   await initializeDream()
 
   const argv = process.argv.filter(arg => !/^--/.test(arg))
-  let name = argv[2]
+  const name = argv[2]
   const args = argv.slice(3, argv.length)
   await generateSerializer(name, args)
   process.exit()

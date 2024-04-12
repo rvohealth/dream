@@ -1,4 +1,3 @@
-import Balloon from '../../../../test-app/app/models/Balloon'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal'
 import Pet from '../../../../test-app/app/models/Pet'

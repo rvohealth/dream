@@ -15,7 +15,7 @@ export default function marshalDBArrayValue<
   if (Array.isArray(value)) {
     return value as Table[Column]
   } else if (isString(value)) {
-    return parsePostgresArray(value as string, (val: string) => val) as Table[Column]
+    return parsePostgresArray(value, (val: string) => val) as Table[Column]
   } else {
     throw new AttemptingToMarshalInvalidArrayType(value)
   }

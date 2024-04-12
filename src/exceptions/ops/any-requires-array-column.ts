@@ -1,4 +1,3 @@
-import pluralize from 'pluralize'
 import Dream from '../../dream'
 
 export default class AnyRequiresArrayColumn extends Error {

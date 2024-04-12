@@ -14,9 +14,8 @@ describe('Dream.createOrFindBy', () => {
   })
 
   context('when a conflicting record already exists in the db', () => {
-    let existingUser: User
     beforeEach(async () => {
-      existingUser = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      await User.create({ email: 'fred@fred', password: 'howyadoin' })
     })
 
     it('returns the existing record, leaving existing attributes untouched', async () => {
@@ -33,10 +32,8 @@ describe('Dream.createOrFindBy', () => {
   context(
     'when createOrFindBy attribute doesn’t match an existing record, but a `createWith` field conflicts with an existing record',
     () => {
-      let existingUser: User
-
       beforeEach(async () => {
-        existingUser = await User.create({
+        await User.create({
           email: 'fred@fred',
           socialSecurityNumber: '1234567890',
           password: 'howyadoin',

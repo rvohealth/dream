@@ -26,8 +26,7 @@ export default async function resortAllRecords(
       for (const dream of dreams) {
         await dreamClass
           .txn(txn)
-          // @ts-ignore
-          .where({ [dream.primaryKey]: dream.primaryKeyValue })
+          .where({ [dream.primaryKey]: dream.primaryKeyValue } as any)
           .toKysely('update')
           .set({
             [positionField]: counter++,

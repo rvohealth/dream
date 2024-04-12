@@ -2,7 +2,7 @@ import ValidationError from '../../../../src/exceptions/validation-error'
 import User from '../../../../test-app/app/models/User'
 
 describe('Dream contains validation', () => {
-  it('builds scope mapping', async () => {
+  it('builds scope mapping', () => {
     const validation = User['validations'].find(v => v.column === 'email' && v.type === 'contains')!
     expect(validation.type).toEqual('contains')
     expect(validation.column).toEqual('email')

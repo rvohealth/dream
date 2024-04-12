@@ -20,9 +20,9 @@ describe('Query#min', () => {
     context('with a similarity operator passed', () => {
       it('respects the similarity operator', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
-        const post1 = await Post.create({ user, body: 'universe' })
+        await Post.create({ user, body: 'universe' })
         const post2 = await Post.create({ user, body: 'world' })
-        const post3 = await Post.create({ user, body: 'world' })
+        await Post.create({ user, body: 'world' })
 
         const min = await Post.where({ body: ops.similarity('world') }).min('id')
 
@@ -36,8 +36,8 @@ describe('Query#min', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
       const composition = await Composition.create({ user })
 
-      const compositionAsset1 = await CompositionAsset.create({ composition, score: 7 })
-      const compositionAsset2 = await CompositionAsset.create({ composition, score: 3 })
+      await CompositionAsset.create({ composition, score: 7 })
+      await CompositionAsset.create({ composition, score: 3 })
 
       const min = await composition.associationQuery('compositionAssets').min('score')
 
@@ -51,10 +51,10 @@ describe('Query#min', () => {
         const post1 = await Post.create({ user })
         const post2 = await Post.create({ user })
 
-        const rating1 = await Rating.create({ user, rateable: post1, rating: 3 })
-        const rating2 = await Rating.create({ user, rateable: post1, rating: 4 })
-        const rating3 = await Rating.create({ user, rateable: post2, rating: 1 })
-        const rating4 = await Rating.create({ user, rateable: post1, rating: 2 })
+        await Rating.create({ user, rateable: post1, rating: 3 })
+        await Rating.create({ user, rateable: post1, rating: 4 })
+        await Rating.create({ user, rateable: post2, rating: 1 })
+        await Rating.create({ user, rateable: post1, rating: 2 })
 
         const min = await post1.associationQuery('ratings').min('rating')
 
@@ -69,8 +69,8 @@ describe('Query#min', () => {
       const composition1 = await Composition.create({ user })
       const composition2 = await Composition.create({ user })
 
-      const compositionAsset1 = await CompositionAsset.create({ composition: composition1, score: 7 })
-      const compositionAsset2 = await CompositionAsset.create({ composition: composition2, score: 3 })
+      await CompositionAsset.create({ composition: composition1, score: 7 })
+      await CompositionAsset.create({ composition: composition2, score: 3 })
 
       const min = await user.associationQuery('compositionAssets').min('score')
 

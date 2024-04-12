@@ -17,6 +17,7 @@ export default class MealType extends ApplicationModel {
   }
 
   public get serializer() {
+    // eslint-disable-next-line
     return MealTypeSerializer<any>
   }
 
@@ -46,6 +47,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return UserSerializer<any>
     }
 
@@ -81,6 +83,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return ChalupaSerializer<any>
     }
 
@@ -112,6 +115,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return PaperSerializer<any>
     }
 
@@ -128,56 +132,56 @@ export default class MealType extends ApplicationModel {
     context('with an integer attribute', () => {
       it('generates a dream model with a number field', async () => {
         const res = await generateDreamContent('user', ['chalupa_count:integer'])
-        expectSingleColumnWithType(res, 'chalupaCount', 'number', 'integer')
+        expectSingleColumnWithType(res, 'chalupaCount', 'number')
       })
     })
 
     context('with a decimal attribute', () => {
       it('generates a dream model with a number field', async () => {
         const res = await generateDreamContent('user', ['chalupa_count:decimal'])
-        expectSingleColumnWithType(res, 'chalupaCount', 'number', 'decimal')
+        expectSingleColumnWithType(res, 'chalupaCount', 'number')
       })
     })
 
     context('with a float attribute', () => {
       it('generates a dream model with a number field', async () => {
         const res = await generateDreamContent('user', ['chalupa_count:float'])
-        expectSingleColumnWithType(res, 'chalupaCount', 'number', 'float')
+        expectSingleColumnWithType(res, 'chalupaCount', 'number')
       })
     })
 
     context('with a datetime attribute', () => {
       it('generates a dream model with a timestamp field', async () => {
         const res = await generateDreamContent('user', ['chalupafied_at:datetime'])
-        expectSingleColumnWithType(res, 'chalupafiedAt', 'DateTime', 'datetime')
+        expectSingleColumnWithType(res, 'chalupafiedAt', 'DateTime')
       })
     })
 
     context('with a timestamp attribute', () => {
       it('generates a dream model with a timestamp field', async () => {
         const res = await generateDreamContent('user', ['chalupafied_at:timestamp'])
-        expectSingleColumnWithType(res, 'chalupafiedAt', 'DateTime', 'datetime')
+        expectSingleColumnWithType(res, 'chalupafiedAt', 'DateTime')
       })
     })
 
     context('with a citext attribute', () => {
       it('generates a dream model with a citext field', async () => {
         const res = await generateDreamContent('user', ['name:citext'])
-        expectSingleColumnWithType(res, 'name', 'string', 'citext')
+        expectSingleColumnWithType(res, 'name', 'string')
       })
     })
 
     context('with a json attribute', () => {
       it('generates a dream model with a string field', async () => {
         const res = await generateDreamContent('user', ['chalupa_data:json'])
-        expectSingleColumnWithType(res, 'chalupaData', 'string', 'json')
+        expectSingleColumnWithType(res, 'chalupaData', 'string')
       })
     })
 
     context('with a jsonb attribute', () => {
       it('generates a dream model with a string field', async () => {
         const res = await generateDreamContent('user', ['chalupa_data:jsonb'])
-        expectSingleColumnWithType(res, 'chalupaData', 'string', 'jsonb')
+        expectSingleColumnWithType(res, 'chalupaData', 'string')
       })
     })
 
@@ -199,6 +203,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return CompositionSerializer<any>
     }
 
@@ -231,6 +236,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return CatToySerializer<any>
     }
 
@@ -262,6 +268,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return CatToySerializer<any>
     }
 
@@ -292,6 +299,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return CatToySerializer<any>
     }
 
@@ -322,6 +330,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return PetDomesticCatSerializer<any>
     }
 
@@ -353,6 +362,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return PetDomesticCatSerializer<any>
     }
 
@@ -384,6 +394,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return PetWildCatSerializer<any>
     }
 
@@ -417,6 +428,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return CompositionSerializer<any>
     }
 
@@ -454,6 +466,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return CompositionSerializer<any>
     }
 
@@ -486,6 +499,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return UserSerializer<any>
     }
 
@@ -518,6 +532,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return CompositionSerializer<any>
     }
 
@@ -537,7 +552,7 @@ export default class MealType extends ApplicationModel {
   })
 })
 
-function expectSingleColumnWithType(response: string, name: string, type: string, dbType: string = type) {
+function expectSingleColumnWithType(response: string, name: string, type: string) {
   expect(response).toEqual(
     `\
 import { DateTime } from 'luxon'
@@ -551,6 +566,7 @@ export default class User extends ApplicationModel {
   }
 
   public get serializer() {
+    // eslint-disable-next-line
     return UserSerializer<any>
   }
 

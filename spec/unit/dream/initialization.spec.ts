@@ -52,15 +52,15 @@ describe('Dream initialization', () => {
   })
 
   context('a string is passed into a datetime field', () => {
-    it('converts the datetime string to a luxon date', async () => {
+    it('converts the datetime string to a luxon date', () => {
       const nowString = DateTime.now().toISO()
       const user = User.new({ deletedAt: nowString as any })
-      expect(user.deletedAt).toEqual(DateTime.fromISO(nowString!))
+      expect(user.deletedAt).toEqual(DateTime.fromISO(nowString))
     })
   })
 
   context('a string is passed into a date field', () => {
-    it('converts the date string to a luxon date', async () => {
+    it('converts the date string to a luxon date', () => {
       const user = User.new({ birthdate: '2000-10-10' as any })
       expect(user.birthdate).toEqual(DateTime.fromISO('2000-10-10'))
     })

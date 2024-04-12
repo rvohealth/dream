@@ -1,4 +1,3 @@
-import { Dream } from '../../../src'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import User from '../../../test-app/app/models/User'
 
@@ -35,7 +34,7 @@ describe('Dream#pluckEach', () => {
   context('when encased in a transaction', () => {
     it('plucks the specified attributes and returns them as raw data', async () => {
       let user3: User | null = null
-      let ids: any[] = []
+      const ids: any[] = []
 
       await ApplicationModel.transaction(async txn => {
         user3 = await User.txn(txn).create({ email: 'fred@txn', password: 'howyadoin' })

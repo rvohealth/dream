@@ -46,7 +46,6 @@ export default async function saveDream<DreamInstance extends Dream>(
     query = db
       .updateTable(dream.table)
       .set(sqlifiedAttributes as any)
-      // @ts-ignore
       .where(`${dream.table}.${dream.primaryKey}`, '=', dream.primaryKeyValue)
   } else {
     query = db.insertInto(dream.table).values(sqlifiedAttributes as any)

@@ -15,6 +15,7 @@ import afterSortableCreate from './hooks/afterSortableCreate'
 import afterUpdateSortable from './hooks/afterSortableUpdate'
 
 export default function Sortable(opts: SortableOpts = {}): any {
+  // eslint-disable-next-line
   return function (target: any, key: string, _: any) {
     const dreamClass: typeof Dream = target.constructor
 
@@ -52,7 +53,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
     ;(dreamClass as any).prototype[afterUpdateMethodName] = async function (txn?: DreamTransaction<any>) {
       // if no transaction is provided, leverage update commit hook instead
       if (!txn) return
-      let query = dreamClass.query().txn(txn)
+      const query = dreamClass.query().txn(txn)
 
       await afterUpdateSortable({
         dream: this,
@@ -67,7 +68,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
     ) {
       // if transaction is provided, leverage update hook instead
       if (txn) return
-      let query = dreamClass.query()
+      const query = dreamClass.query()
 
       await afterUpdateSortable({
         dream: this,
@@ -83,7 +84,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
     ;(dreamClass as any).prototype[afterCreateMethodName] = async function (txn?: DreamTransaction<any>) {
       // if no transaction is provided, leverage create commit hook instead
       if (!txn) return
-      let query = dreamClass.query().txn(txn)
+      const query = dreamClass.query().txn(txn)
 
       await afterSortableCreate({
         dream: this,
@@ -98,7 +99,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
     ) {
       // if transaction is provided, leverage create hook instead
       if (txn) return
-      let query = dreamClass.query()
+      const query = dreamClass.query()
 
       await afterSortableCreate({
         dream: this,
@@ -113,7 +114,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
     ;(dreamClass as any).prototype[afterDestroyMethodName] = async function (txn?: DreamTransaction<any>) {
       // if no transaction is provided, leverage destroy commit hook instead
       if (!txn) return
-      let query = dreamClass.query().txn(txn)
+      const query = dreamClass.query().txn(txn)
 
       await afterSortableDestroy({
         dream: this,
@@ -127,7 +128,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
     ) {
       // if transaction is provided, leverage destroy hook instead
       if (txn) return
-      let query = dreamClass.query()
+      const query = dreamClass.query()
 
       await afterSortableDestroy({
         dream: this,
@@ -148,7 +149,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
 }
 
 export interface SortableOpts {
-  scope?: string | string[] | string[]
+  scope?: string | string[]
 }
 
 export interface SortableFieldConfig {

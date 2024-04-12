@@ -4,7 +4,7 @@ import Sandbag from '../../../../test-app/app/models/Sandbag'
 import User from '../../../../test-app/app/models/User'
 
 describe('Dream "validate" validation (the "validate" decorator is used to run custom validations)', () => {
-  it('builds scope mapping', async () => {
+  it('builds scope mapping', () => {
     expect(Sandbag['customValidations']).toEqual(expect.arrayContaining(['validateWeight']))
   })
 

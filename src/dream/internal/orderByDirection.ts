@@ -11,6 +11,6 @@ export default function orderByDirection(dir: OrderDir | null) {
       return sql`desc nulls last`
 
     default:
-      throw new Error(`Unrecognized orderBy direction: ${dir}`)
+      throw new Error(`Unrecognized orderBy direction: ${dir as string}`)
   }
 }

@@ -1,4 +1,4 @@
-import { Dream, NonLoadedAssociation } from '../../../src'
+import { NonLoadedAssociation } from '../../../src'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import Pet from '../../../test-app/app/models/Pet'
@@ -89,13 +89,13 @@ describe('Dream#load', () => {
     context('through associations', () => {
       it('loads the association fresh from the database', async () => {
         const composition = await user.createAssociation('compositions')
-        const compositionAsset = await composition?.createAssociation('compositionAssets', {
+        await composition.createAssociation('compositionAssets', {
           name: 'compositionAsset X',
         })
         const clone = await user.load('compositionAssets').execute()
         await CompositionAsset.query().updateAll({ name: 'hello' })
         const clone2 = await clone.load('compositionAssets').execute()
-        expect(clone2.compositionAssets![0].name).toEqual('hello')
+        expect(clone2.compositionAssets[0].name).toEqual('hello')
       })
     })
 
@@ -105,8 +105,8 @@ describe('Dream#load', () => {
         name: 'compositionAsset X',
       })
       const clone = await user.load('compositionAssets').load('pets').execute()
-      expect(clone.compositionAssets![0].name).toEqual('compositionAsset X')
-      expect(clone.pets![0].name).toEqual('aster')
+      expect(clone.compositionAssets[0].name).toEqual('compositionAsset X')
+      expect(clone.pets[0].name).toEqual('aster')
     })
   })
 })

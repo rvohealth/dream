@@ -1,7 +1,7 @@
 import isSortedCorrectly from '../../../../../src/decorators/sortable/helpers/isSortedCorrectly'
 
 describe('isSortedCorrectly', () => {
-  let subject = () => isSortedCorrectly(data, 'position')
+  const subject = () => isSortedCorrectly(data, 'position')
   let data: any[]
 
   context('with valid positions passed', () => {

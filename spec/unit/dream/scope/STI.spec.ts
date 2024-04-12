@@ -90,7 +90,7 @@ describe('Dream STI', () => {
     })
   })
 
-  it('builds scope mapping', async () => {
+  it('builds scope mapping', () => {
     expect(Balloon['sti'].value).toBeNull()
 
     expect(Mylar['sti'].value).toEqual('Mylar')
@@ -124,7 +124,7 @@ describe('Dream STI', () => {
 
   context('STI extending an STI model', () => {
     it('applies the default scope one time (spec added when the sql included the type clause twice)', async () => {
-      const animal = await Animal.create({
+      await Animal.create({
         user: user!,
         color: 'blue',
       })

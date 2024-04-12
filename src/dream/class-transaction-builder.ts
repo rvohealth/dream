@@ -75,8 +75,8 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     this: I,
     opts?: UpdateablePropertiesForClass<DreamClass>
   ): Promise<InstanceType<DreamClass>> {
-    const dream = this.dreamClass.new(opts) as InstanceType<DreamClass>
-    return saveDream<InstanceType<DreamClass>>(dream, this.dreamTransaction as any)
+    const dream = this.dreamClass.new(opts)
+    return saveDream<InstanceType<DreamClass>>(dream, this.dreamTransaction)
   }
 
   public async find<
@@ -283,7 +283,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     DB extends I['DB'],
     SyncedAssociations extends I['syncedAssociations'],
     TableName extends I['table'],
-    CB extends (data: any | any[]) => void | Promise<void>,
+    CB extends (data: any) => void | Promise<void>,
     //
     A extends keyof SyncedAssociations[TableName] & string,
     ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
@@ -387,7 +387,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     this: I,
     arg: DreamClassColumns<DreamClass> | Partial<Record<DreamClassColumns<DreamClass>, OrderDir>> | null
   ) {
-    return this.queryInstance().order(arg as any) as Query<DreamClass>
+    return this.queryInstance().order(arg as any)
   }
 
   public async pluck<

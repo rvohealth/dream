@@ -4,7 +4,7 @@ import { DbConnectionConfig } from '../../../shared/helpers/path/types'
 import Dreamconf from '../../../shared/dreamconf'
 
 describe('ConnectionConfRetriever', () => {
-  let getConfig = () =>
+  const getConfig = () =>
     new Dreamconf({
       DB: {},
       dbColumns: {},
@@ -92,7 +92,7 @@ describe('ConnectionConfRetriever', () => {
   })
 
   describe('#getConnectionConf', () => {
-    let subject = () => {
+    const subject = () => {
       const connectionRetriever = new ConnectionConfRetriever(getConfig())
       return connectionRetriever.getConnectionConf(connection)
     }
@@ -184,7 +184,7 @@ describe('ConnectionConfRetriever', () => {
   })
 
   describe('#hasReplicaConfig', () => {
-    let subject = () => {
+    const subject = () => {
       const connectionRetriever = new ConnectionConfRetriever(getConfig())
       return connectionRetriever.hasReplicaConfig()
     }

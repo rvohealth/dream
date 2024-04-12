@@ -10,11 +10,11 @@ describe('Dream#associationUpdateQuery', () => {
   context('with a HasMany association', () => {
     it('returns a chainable query encapsulating that association', async () => {
       const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const otherRecentComposition = await Composition.create({ user: otherUser })
+      await Composition.create({ user: otherUser })
 
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       const recentComposition = await Composition.create({ user })
-      const olderComposition = await Composition.create({
+      await Composition.create({
         user,
         createdAt: DateTime.now().minus({ year: 1 }),
       })
@@ -27,7 +27,7 @@ describe('Dream#associationUpdateQuery', () => {
     context('with a primary key override', () => {
       it('leverages primary key override', async () => {
         const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-        const otherPet = await Pet.create({ userUuid: otherUser.uuid })
+        await Pet.create({ userUuid: otherUser.uuid })
 
         const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
         const pet = await Pet.create({ userUuid: user.uuid })
@@ -39,7 +39,7 @@ describe('Dream#associationUpdateQuery', () => {
     context('hasMany through', () => {
       it('returns a chainable query encapsulating that association', async () => {
         const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-        const otherRecentComposition = await Composition.create({ user: otherUser })
+        await Composition.create({ user: otherUser })
 
         const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
         const recentComposition = await Composition.create({ user })
@@ -49,7 +49,7 @@ describe('Dream#associationUpdateQuery', () => {
         })
 
         const compositionAsset1 = await CompositionAsset.create({ composition: recentComposition })
-        const compositionAsset2 = await CompositionAsset.create({ composition: olderComposition })
+        await CompositionAsset.create({ composition: olderComposition })
 
         expect(await user.associationUpdateQuery('recentCompositionAssets').all()).toMatchDreamModels([
           compositionAsset1,
@@ -60,7 +60,7 @@ describe('Dream#associationUpdateQuery', () => {
         it('leverages primary key override', async () => {
           const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
           const otherPet = await Pet.create({ userUuid: otherUser.uuid })
-          const otherCollar = await Collar.create({ pet: otherPet })
+          await Collar.create({ pet: otherPet })
 
           const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
           const pet = await Pet.create({ userUuid: user.uuid })
@@ -76,7 +76,7 @@ describe('Dream#associationUpdateQuery', () => {
 
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       const composition = await Composition.create({ user, content: 'howyadoin' })
-      const otherCompositionAsset = await CompositionAsset.create({
+      await CompositionAsset.create({
         composition,
         name: 'asset 0',
         score: 1,
@@ -99,16 +99,16 @@ describe('Dream#associationUpdateQuery', () => {
     })
 
     it('supports chaining of subsequent joins', async () => {
-      const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       const composition = await Composition.create({ user, content: 'howyadoin' })
-      const otherCompositionAsset = await CompositionAsset.create({
+      await CompositionAsset.create({
         composition,
         name: 'asset 0',
         score: 1,
       })
-      const compositionAsset = await CompositionAsset.create({
+      await CompositionAsset.create({
         composition,
         name: 'asset 1',
         score: 3,
@@ -216,11 +216,11 @@ describe('Dream#associationUpdateQuery', () => {
   context('when in a transaction', () => {
     it('returns a chainable query encapsulating that association', async () => {
       const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const otherRecentComposition = await Composition.create({ user: otherUser })
+      await Composition.create({ user: otherUser })
 
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       const recentComposition = await Composition.create({ user })
-      const olderComposition = await Composition.create({
+      await Composition.create({
         user,
         createdAt: DateTime.now().minus({ year: 1 }),
       })
@@ -238,7 +238,7 @@ describe('Dream#associationUpdateQuery', () => {
         let user: User | undefined = undefined
         await ApplicationModel.transaction(async txn => {
           const otherUser = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
-          const otherPet = await Pet.txn(txn).create({ userUuid: otherUser.uuid })
+          await Pet.txn(txn).create({ userUuid: otherUser.uuid })
 
           user = await User.txn(txn).create({ email: 'fred@fred', password: 'howyadoin' })
           pet = await Pet.txn(txn).create({ userUuid: user.uuid })

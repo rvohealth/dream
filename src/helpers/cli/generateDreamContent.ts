@@ -6,7 +6,6 @@ import snakeify from '../../../shared/helpers/snakeify'
 import uniq from '../uniq'
 import { loadDreamYamlFile } from '../path'
 import initializeDream from '../../../shared/helpers/initializeDream'
-import { PrimaryKeyType } from '../../dream/types'
 
 const cooercedTypes = {
   bigint: 'string',
@@ -114,7 +113,7 @@ public ${camelize(attributeName)}: ${getAttributeType(attribute)}\
   })
 
   const yamlConf = await loadDreamYamlFile()
-  if (!!enumImports.length) {
+  if (enumImports.length) {
     const schemaPath = path.join(yamlConf.db_path, 'schema.ts')
     const relativePath = path.join(await relativePathToSrcRoot(modelName), schemaPath.replace(/\.ts$/, ''))
     const enumImport = `import { ${enumImports.join(', ')} } from '${relativePath}'`
@@ -134,7 +133,7 @@ public ${camelize(attributeName)}: ${getAttributeType(attribute)}\
 import { DateTime } from 'luxon'
 import { ${uniq(dreamImports).join(', ')} } from '@rvohealth/dream'
 import ApplicationModel from '${relativePath}ApplicationModel'${
-    !!additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
+    additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
   }
 
 export default class ${pascalize(modelName.split('/').pop()!)} extends ApplicationModel {
@@ -143,6 +142,7 @@ export default class ${pascalize(modelName.split('/').pop()!)} extends Applicati
   }
 
   public get serializer() {
+    // eslint-disable-next-line
     return ${serializerNameFromModelName(modelName)}<any>
   }
 
@@ -155,7 +155,7 @@ export default class ${pascalize(modelName.split('/').pop()!)} extends Applicati
     .join('\n  ')}\
 }`
     .replace(/^\s*$/gm, '')
-    .replace(/  }$/, '}')
+    .replace(/ {2}}$/, '}')
 }
 
 function buildImportStatement(modelName: string, attribute: string) {
@@ -226,7 +226,7 @@ async function relativePathToSrcRoot(modelName: string) {
 }
 
 function getAttributeType(attribute: string) {
-  const [_, attributeType, ...descriptors] = attribute.split(':')
+  const [, attributeType, ...descriptors] = attribute.split(':')
 
   if (attributeType === 'enum') return pascalize(descriptors[0].split('(')[0] + '_enum')
   else return (cooercedTypes as any)[attributeType] || attributeType

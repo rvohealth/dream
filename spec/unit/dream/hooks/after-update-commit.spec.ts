@@ -45,6 +45,8 @@ describe('Dream AfterUpdateCommit decorator', () => {
       it('calls hook', async () => {
         jest.spyOn(Sandbag.prototype, 'conditionalAfterUpdateCommitHook')
         await sandbag.update({ weightTons: 11 })
+
+        // eslint-disable-next-line
         expect(Sandbag.prototype.conditionalAfterUpdateCommitHook).toHaveBeenCalled()
       })
     })
@@ -54,6 +56,8 @@ describe('Dream AfterUpdateCommit decorator', () => {
         await sandbag.update({ weightTons: null })
         jest.spyOn(Sandbag.prototype, 'conditionalAfterUpdateCommitHook')
         await sandbag.update({ weightKgs: 120 })
+
+        // eslint-disable-next-line
         expect(Sandbag.prototype.conditionalAfterUpdateCommitHook).not.toHaveBeenCalled()
       })
     })

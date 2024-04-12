@@ -7,7 +7,7 @@ import loadDreamconfFile from '../../../shared/helpers/path/loadDreamconfFile'
 
 export default async function runMigration({
   mode = 'migrate',
-  step = 1,
+  // step = 1,
 }: { mode?: 'migrate' | 'rollback'; step?: number } = {}) {
   const migrationFolder = await migrationsPath()
 

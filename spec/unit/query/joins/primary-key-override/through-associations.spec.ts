@@ -9,7 +9,7 @@ describe('Query#joins through with simple associations and overriding primary ke
       await User.create({ email: 'danny@boy', password: 'howyadoin' })
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       const pet = await Pet.create({ name: 'Aster', userUuid: user.uuid })
-      const collar = await Collar.create({ pet })
+      await Collar.create({ pet })
 
       const reloaded = await User.query().joins('petsFromUuid', 'collars').all()
       expect(reloaded).toMatchDreamModels([user])
@@ -21,7 +21,7 @@ describe('Query#joins through with simple associations and overriding primary ke
       await User.create({ email: 'danny@boy', password: 'howyadoin' })
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       const pet = await Pet.create({ name: 'Aster', userUuid: user.uuid })
-      const collar = await Collar.create({ pet })
+      await Collar.create({ pet })
 
       const reloaded = await User.query().joins('collarsFromUuid').all()
       expect(reloaded).toMatchDreamModels([user])
@@ -32,7 +32,7 @@ describe('Query#joins through with simple associations and overriding primary ke
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
     const pet = await Pet.create({ name: 'Aster', userUuid: user.uuid })
-    const collar = await Collar.create({ pet })
+    await Collar.create({ pet })
 
     const reloadedUsers = await User.query().joins('firstCollarFromUuid').all()
     expect(reloadedUsers).toMatchDreamModels([user])
@@ -44,7 +44,7 @@ describe('Query#joins through with simple associations and overriding primary ke
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
       const pet = await Pet.create({ name: 'Aster', userUuid: user.uuid })
       const balloon = await Mylar.create({ color: 'red', user })
-      const collar = await Collar.create({ pet, balloon })
+      await Collar.create({ pet, balloon })
 
       const reloadedUsers = await User.query().joins('balloonsFromUuid').all()
       expect(reloadedUsers).toMatchDreamModels([user])

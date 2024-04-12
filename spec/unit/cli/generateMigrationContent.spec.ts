@@ -4,7 +4,7 @@ import generateMigrationContent from '../../../src/helpers/cli/generateMigration
 describe('dream generate:model <name> [...attributes]', () => {
   context('when provided attributes', () => {
     context('string attributes', () => {
-      it('generates a kysely migration with multiple text fields', async () => {
+      it('generates a kysely migration with multiple text fields', () => {
         const res = generateMigrationContent({
           table: 'users',
           attributes: [
@@ -47,7 +47,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     })
 
     context('decimal attributes', () => {
-      it('generates a kysely migration with decimal field', async () => {
+      it('generates a kysely migration with decimal field', () => {
         const res = generateMigrationContent({
           table: 'chalupas',
           attributes: ['deliciousness:decimal:4,2'],
@@ -101,7 +101,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     })
 
     context('enum attributes', () => {
-      it('generates a kysely migration with enum', async () => {
+      it('generates a kysely migration with enum', () => {
         const res = generateMigrationContent({
           table: 'chalupas',
           attributes: [
@@ -155,7 +155,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     })
 
     context('belongs_to attribute is passed', () => {
-      it('generates a kysely model with the belongsTo association', async () => {
+      it('generates a kysely model with the belongsTo association', () => {
         const res = generateMigrationContent({
           table: 'compositions',
           attributes: ['admin/user:belongs_to'],
@@ -185,7 +185,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     })
 
     context('belongs_to attribute is passed AND useUUID=false', () => {
-      it('generates a kysely model with the belongsTo association', async () => {
+      it('generates a kysely model with the belongsTo association', () => {
         const res = generateMigrationContent({
           table: 'compositions',
           attributes: ['user:belongs_to'],
@@ -215,7 +215,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     })
 
     context('has_one attribute is passed', () => {
-      it('ignores the attribute', async () => {
+      it('ignores the attribute', () => {
         const res = generateMigrationContent({
           table: 'compositions',
           attributes: ['user:has_one'],
@@ -244,7 +244,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     })
 
     context('has_many attribute is passed', () => {
-      it('ignores the attribute', async () => {
+      it('ignores the attribute', () => {
         const res = generateMigrationContent({
           table: 'compositions',
           attributes: ['user:has_many'],

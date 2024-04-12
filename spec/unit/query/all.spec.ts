@@ -16,7 +16,7 @@ describe('Query#all', () => {
   context('where clause is passed', () => {
     it('respects where clause', async () => {
       const userb = await User.create({ email: 'b@b.com', password: 'howyadoin' })
-      const userc = await User.create({ email: 'c@c.com', password: 'howyadoin' })
+      await User.create({ email: 'c@c.com', password: 'howyadoin' })
       const usera = await User.create({ email: 'a@a.com', password: 'howyadoin' })
 
       const record = await User.where({ email: ['b@b.com', 'a@a.com'] })
@@ -29,7 +29,7 @@ describe('Query#all', () => {
       it('filters out non-matching records', async () => {
         const userb = await User.create({ email: 'b@b.com', password: 'howyadoin', name: 'fred' })
         const userc = await User.create({ email: 'c@c.com', password: 'howyadoin', name: 'fredd' })
-        const usera = await User.create({ email: 'a@a.com', password: 'howyadoin', name: 'calvin' })
+        await User.create({ email: 'a@a.com', password: 'howyadoin', name: 'calvin' })
 
         const record = await User.where({ name: ops.similarity('fred') })
           .order('email')
@@ -55,7 +55,11 @@ describe('Query#all', () => {
 
     it('uses primary connection', async () => {
       await User.all()
+
+      // eslint-disable-next-line
       expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
+
+      // eslint-disable-next-line
       expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith('replica', expect.objectContaining({}))
     })
 
@@ -65,13 +69,19 @@ describe('Query#all', () => {
 
       it('uses the replica connection', async () => {
         await CustomUser.query().all()
+
+        // eslint-disable-next-line
         expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('replica', expect.objectContaining({}))
       })
 
       context('with explicit primary connection override', () => {
         it('uses the primary connection, despite being ReplicaSafe', async () => {
           await CustomUser.query()['connection']('primary').all()
+
+          // eslint-disable-next-line
           expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
+
+          // eslint-disable-next-line
           expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith(
             'replica',
             expect.objectContaining({})

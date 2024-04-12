@@ -12,9 +12,8 @@ describe('Dream.findOrCreateBy', () => {
   })
 
   context('when a conflicting record already exists in the db', () => {
-    let existingUser: User
     beforeEach(async () => {
-      existingUser = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      await User.create({ email: 'fred@fred', password: 'howyadoin' })
     })
 
     it('returns the existing record, leaving existing attributes untouched', async () => {
@@ -31,12 +30,12 @@ describe('Dream.findOrCreateBy', () => {
   it('respects associations in primary opts', async () => {
     const user = await User.create({ email: 'fred@fred.fred', password: 'howyadoin' })
     const composition = await Composition.findOrCreateBy({ user }, { createWith: { content: 'howyadoin' } })
-    expect(composition!.userId).toEqual(user.id)
+    expect(composition.userId).toEqual(user.id)
   })
 
   it('respects associations in secondary opts', async () => {
     const user = await User.create({ email: 'fred@fred.fred', password: 'howyadoin' })
     const composition = await Composition.findOrCreateBy({ content: 'howyadoin' }, { createWith: { user } })
-    expect(composition!.userId).toEqual(user.id)
+    expect(composition.userId).toEqual(user.id)
   })
 })

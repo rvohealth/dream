@@ -6,7 +6,7 @@ import CannotNegateSimilarityClause from '../../../src/exceptions/cannot-negate-
 
 describe('Query#whereNot', () => {
   it('negates a query', async () => {
-    const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user2 = await User.create({ email: 'danny@nelso', password: 'howyadoin' })
     const user3 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
@@ -84,7 +84,7 @@ describe('Query#whereNot', () => {
 
     context('ops.equal is passed', () => {
       it('uses an "=" operator for comparison', async () => {
-        const user1 = await User.create({
+        await User.create({
           email: 'fred@frewd',
           password: 'howyadoin',
         })
@@ -126,7 +126,7 @@ describe('Query#whereNot', () => {
       it('uses a "<" operator for comparison', async () => {
         const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
         const post = await Post.create({ user })
-        const rating5 = await Rating.create({ user, rateable: post, rating: 5 })
+        await Rating.create({ user, rateable: post, rating: 5 })
         const rating3 = await Rating.create({ user, rateable: post, rating: 3 })
 
         const records = await Rating.query()
@@ -140,7 +140,7 @@ describe('Query#whereNot', () => {
       it('uses a "<=" operator for comparison', async () => {
         const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
         const post = await Post.create({ user })
-        const rating5 = await Rating.create({ user, rateable: post, rating: 5 })
+        await Rating.create({ user, rateable: post, rating: 5 })
         const rating4 = await Rating.create({ user, rateable: post, rating: 4 })
         const rating3 = await Rating.create({ user, rateable: post, rating: 3 })
 
@@ -156,7 +156,7 @@ describe('Query#whereNot', () => {
         const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
         const post = await Post.create({ user })
         const rating5 = await Rating.create({ user, rateable: post, rating: 5 })
-        const rating3 = await Rating.create({ user, rateable: post, rating: 3 })
+        await Rating.create({ user, rateable: post, rating: 3 })
 
         const records = await Rating.query()
           .whereNot({ rating: ops.lessThanOrEqualTo(4) })
@@ -171,7 +171,7 @@ describe('Query#whereNot', () => {
         const post = await Post.create({ user })
         const rating5 = await Rating.create({ user, rateable: post, rating: 5 })
         const rating4 = await Rating.create({ user, rateable: post, rating: 4 })
-        const rating3 = await Rating.create({ user, rateable: post, rating: 3 })
+        await Rating.create({ user, rateable: post, rating: 3 })
 
         const records = await Rating.query()
           .whereNot({ rating: ops.lessThan(4) })
@@ -208,11 +208,11 @@ describe('Query#whereNot', () => {
           email: 'aaa@aaa',
           password: 'howyadoin',
         })
-        const user2 = await User.create({
+        await User.create({
           email: 'Aaa@zzz',
           password: 'howyadoin',
         })
-        const user3 = await User.create({
+        await User.create({
           email: 'zzz@zzz',
           password: 'howyadoin',
         })
@@ -226,7 +226,7 @@ describe('Query#whereNot', () => {
 
     context('ops.not.like statement is passed', () => {
       it('uses a "not like" operator for comparison', async () => {
-        const user1 = await User.create({
+        await User.create({
           email: 'aaa@aaa',
           password: 'howyadoin',
         })
@@ -256,7 +256,7 @@ describe('Query#whereNot', () => {
           email: 'Aaa@zzz',
           password: 'howyadoin',
         })
-        const user3 = await User.create({
+        await User.create({
           email: 'zzz@zzz',
           password: 'howyadoin',
         })
@@ -270,11 +270,11 @@ describe('Query#whereNot', () => {
 
     context('ops.not.ilike statement is passed', () => {
       it('uses a "not ilike" operator for comparison', async () => {
-        const user1 = await User.create({
+        await User.create({
           email: 'aaa@aaa',
           password: 'howyadoin',
         })
-        const user2 = await User.create({
+        await User.create({
           email: 'Aaa@zzz',
           password: 'howyadoin',
         })
@@ -322,11 +322,11 @@ describe('Query#whereNot', () => {
           email: 'aaa@aaa',
           password: 'howyadoin',
         })
-        const user2 = await User.create({
+        await User.create({
           email: 'Aaa@zzz',
           password: 'howyadoin',
         })
-        const user3 = await User.create({
+        await User.create({
           email: 'zzz@zzz',
           password: 'howyadoin',
         })
@@ -347,7 +347,7 @@ describe('Query#whereNot', () => {
             email: 'Aaa@zzz',
             password: 'howyadoin',
           })
-          const user3 = await User.create({
+          await User.create({
             email: 'zzz@zzz',
             password: 'howyadoin',
           })
@@ -362,7 +362,7 @@ describe('Query#whereNot', () => {
 
     context('ops.not.match statement is passed', () => {
       it('uses a "!~" operator for comparison', async () => {
-        const user1 = await User.create({
+        await User.create({
           email: 'aaa@aaa',
           password: 'howyadoin',
         })
@@ -383,11 +383,11 @@ describe('Query#whereNot', () => {
 
       context('case insensitive option passed', () => {
         it('uses a "!~*" operator for comparison', async () => {
-          const user1 = await User.create({
+          await User.create({
             email: 'aaa@aaa',
             password: 'howyadoin',
           })
-          const user2 = await User.create({
+          await User.create({
             email: 'Aaa@zzz',
             password: 'howyadoin',
           })

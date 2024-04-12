@@ -43,7 +43,7 @@ describe('Dream.pluckEachThrough', () => {
       await EdgeNode.create({ node, edge: edge1 })
       await EdgeNode.create({ node, edge: edge2 })
 
-      let plucked: any[] = []
+      const plucked: any[] = []
       await Node.transaction(async txn => {
         await Node.txn(txn).pluckEachThrough(
           'edgeNodes',
@@ -99,7 +99,7 @@ describe('Dream#pluckEachThrough', () => {
 
     const composition1 = await Composition.create({ user })
     const compositionAsset1 = await CompositionAsset.create({ composition: composition1 })
-    const compositionAssetAudit1 = await CompositionAssetAudit.create({
+    await CompositionAssetAudit.create({
       compositionAsset: compositionAsset1,
       approval: true,
     })
@@ -138,7 +138,7 @@ describe('Dream#pluckEachThrough', () => {
       const edge3 = await Edge.create({ name: 'E1' })
       await EdgeNode.create({ node: node2, edge: edge3 })
 
-      let plucked: any[] = []
+      const plucked: any[] = []
       await Node.transaction(async txn => {
         await node
           .txn(txn)

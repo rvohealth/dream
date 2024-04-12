@@ -3,8 +3,6 @@ import {
   CompiledQuery,
   DeleteQueryBuilder,
   InsertQueryBuilder,
-  SelectArg,
-  SelectExpression,
   SelectQueryBuilder,
   Updateable,
   UpdateQueryBuilder,
@@ -29,7 +27,6 @@ import AfterUpdateCommit from './decorators/hooks/after-update-commit'
 import AfterDestroy from './decorators/hooks/after-destroy'
 import AfterDestroyCommit from './decorators/hooks/after-destroy-commit'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
-import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import {
   PassthroughWhere,
   TableColumnName,
@@ -203,7 +200,7 @@ export default class Dream {
     return HasOne<InstanceType<T>, AssociationDreamClass>(modelCB, options)
   }
 
-  public static Sortable<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
+  public static Sortable<T extends typeof Dream>(
     this: T,
     {
       scope,
@@ -280,7 +277,7 @@ export default class Dream {
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName],
   >(): Set<keyof Table & string> {
-    return (this.prototype.dreamconf.dbColumns as any)[this.prototype.table]
+    return this.prototype.dreamconf.dbColumns[this.prototype.table]
   }
 
   public static getAssociation<
@@ -548,7 +545,7 @@ export default class Dream {
   }
 
   public static async first<T extends typeof Dream>(this: T): Promise<InstanceType<T> | null> {
-    return (await this.query().first()) as InstanceType<T> | null
+    return await this.query().first()
   }
 
   public static async exists<T extends typeof Dream>(this: T): Promise<boolean> {
@@ -753,7 +750,7 @@ export default class Dream {
     DB extends I['DB'],
     SyncedAssociations extends I['syncedAssociations'],
     TableName extends I['table'],
-    CB extends (data: any | any[]) => void | Promise<void>,
+    CB extends (data: any) => void | Promise<void>,
     //
     A extends keyof SyncedAssociations[TableName] & string,
     ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
@@ -823,7 +820,7 @@ export default class Dream {
   }
 
   public static async last<T extends typeof Dream>(this: T): Promise<InstanceType<T> | null> {
-    return (await this.query().last()) as InstanceType<T> | null
+    return await this.query().last()
   }
 
   public static limit<T extends typeof Dream>(this: T, count: number | null) {
@@ -842,7 +839,7 @@ export default class Dream {
     this: DreamClass,
     arg: DreamClassColumns<DreamClass> | Partial<Record<DreamClassColumns<DreamClass>, OrderDir>> | null
   ): Query<DreamClass> {
-    return this.query().order(arg as any) as Query<DreamClass>
+    return this.query().order(arg as any)
   }
 
   public static async pluck<T extends typeof Dream>(this: T, ...fields: DreamClassColumns<T>[]) {
@@ -863,7 +860,7 @@ export default class Dream {
     for (const field of fields) {
       const sortableMetadata = this.sortableFields.find(conf => conf.positionField === field)
       if (!sortableMetadata) throw new NonExistentScopeProvidedToResort(fields as string[], this)
-      await resortAllRecords(this, field as string, sortableMetadata.scope)
+      await resortAllRecords(this, field, sortableMetadata.scope)
     }
   }
 
@@ -871,7 +868,7 @@ export default class Dream {
     return (this as any)[scopeName](this.query()) as Query<T>
   }
 
-  public static sql<T extends typeof Dream>(this: T): CompiledQuery<{}> {
+  public static sql<T extends typeof Dream>(this: T): CompiledQuery<object> {
     return this.query().sql()
   }
 
@@ -915,7 +912,7 @@ export default class Dream {
 
   public static async transaction<T extends typeof Dream>(
     this: T,
-    callback: (txn: DreamTransaction<InstanceType<T>>) => Promise<unknown>
+    callback: (txn: DreamTransaction<InstanceType<T>>) => unknown
   ) {
     const dreamTransaction = new DreamTransaction()
 
@@ -1108,7 +1105,7 @@ export default class Dream {
     this.defineAttributeAccessors()
 
     if (opts) {
-      const marshalledOpts = this._setAttributes(opts as any, additionalOpts)
+      const marshalledOpts = this._setAttributes(opts, additionalOpts)
 
       // if id is set, then we freeze attributes after setting them, so that
       // any modifications afterwards will indicate updates.
@@ -1515,7 +1512,7 @@ export default class Dream {
     DB extends I['DB'],
     SyncedAssociations extends I['syncedAssociations'],
     TableName extends I['table'],
-    CB extends (data: any | any[]) => void | Promise<void>,
+    CB extends (data: any) => void | Promise<void>,
     //
     A extends keyof SyncedAssociations[TableName] & string,
     ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
@@ -1791,12 +1788,7 @@ export default class Dream {
     return this._setAttributes(attributes, { bypassUserDefinedSetters: true })
   }
 
-  private _setAttributes<
-    I extends Dream,
-    DB extends I['DB'],
-    TableName extends keyof DB = I['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName],
-  >(
+  private _setAttributes<I extends Dream>(
     this: I,
     attributes: UpdateableProperties<I>,
     additionalOpts: { bypassUserDefinedSetters?: boolean } = {}

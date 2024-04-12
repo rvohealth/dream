@@ -4,8 +4,8 @@ import ops from '../../../src/ops'
 describe('Query#first', () => {
   it('returns first record found, ordered by id', async () => {
     const userb = await User.create({ email: 'b@b.com', password: 'howyadoin' })
-    const userc = await User.create({ email: 'c@c.com', password: 'howyadoin' })
-    const usera = await User.create({ email: 'a@a.com', password: 'howyadoin' })
+    await User.create({ email: 'c@c.com', password: 'howyadoin' })
+    await User.create({ email: 'a@a.com', password: 'howyadoin' })
 
     const record = await User.first()
     expect(record).toMatchDreamModel(userb)
@@ -14,8 +14,8 @@ describe('Query#first', () => {
   context('where clause is passed', () => {
     it('respects where', async () => {
       const userb = await User.create({ email: 'b@b.com', password: 'howyadoin' })
-      const userc = await User.create({ email: 'c@c.com', password: 'howyadoin' })
-      const usera = await User.create({ email: 'a@a.com', password: 'howyadoin' })
+      await User.create({ email: 'c@c.com', password: 'howyadoin' })
+      await User.create({ email: 'a@a.com', password: 'howyadoin' })
 
       const record = await User.order('email').where({ email: 'b@b.com' }).first()
       expect(record).toMatchDreamModel(userb)
@@ -24,7 +24,7 @@ describe('Query#first', () => {
     context('similarity operator is used', () => {
       it('correctly filters on similarity text', async () => {
         const user = await User.create({ name: 'fred o', email: 'fred@fred', password: 'howyadoin' })
-        const user2 = await User.create({ name: 'fred o', email: 'frewd@fred', password: 'howyadoin' })
+        await User.create({ name: 'fred o', email: 'frewd@fred', password: 'howyadoin' })
 
         expect(
           await User.query()
@@ -41,8 +41,8 @@ describe('Query#first', () => {
   })
 
   it('respects order', async () => {
-    const userb = await User.create({ email: 'b@b.com', password: 'howyadoin' })
-    const userc = await User.create({ email: 'c@c.com', password: 'howyadoin' })
+    await User.create({ email: 'b@b.com', password: 'howyadoin' })
+    await User.create({ email: 'c@c.com', password: 'howyadoin' })
     const usera = await User.create({ email: 'a@a.com', password: 'howyadoin' })
 
     const record = await User.order('email').first()

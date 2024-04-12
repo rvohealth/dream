@@ -36,6 +36,8 @@ describe('Dream AfterSave decorator', () => {
       it('calls hook', async () => {
         jest.spyOn(Sandbag.prototype, 'conditionalAfterSaveHook')
         await sandbag.update({ weight: 11 })
+
+        // eslint-disable-next-line
         expect(Sandbag.prototype.conditionalAfterSaveHook).toHaveBeenCalled()
       })
     })
@@ -45,6 +47,8 @@ describe('Dream AfterSave decorator', () => {
         await sandbag.update({ weight: null })
         jest.spyOn(Sandbag.prototype, 'conditionalAfterSaveHook')
         await sandbag.update({ weightKgs: 120 })
+
+        // eslint-disable-next-line
         expect(Sandbag.prototype.conditionalAfterSaveHook).not.toHaveBeenCalled()
       })
     })

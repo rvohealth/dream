@@ -248,8 +248,7 @@ describe('@Sortable', () => {
           const post3 = await UnscopedPost.create({ body: 'post3', user: user2 })
           const post4 = await UnscopedPost.create({ body: 'post4', user })
 
-          // @ts-ignore
-          await post2.update({ position: null })
+          await post2.update({ position: null } as any)
           expect((await post1.reload()).position).toEqual(1)
           expect((await post2.reload()).position).toEqual(2)
           expect((await post3.reload()).position).toEqual(3)
@@ -433,8 +432,7 @@ describe('@Sortable', () => {
           const post3 = await Post.create({ body: 'post3', user: user2 })
           const post4 = await Post.create({ body: 'post4', user })
 
-          // @ts-ignore
-          await post2.update({ position: null })
+          await post2.update({ position: null } as any)
           expect((await post1.reload()).position).toEqual(1)
           expect((await post2.reload()).position).toEqual(1)
           expect((await post3.reload()).position).toEqual(2)

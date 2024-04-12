@@ -34,6 +34,8 @@ describe('Dream BeforeSave decorator', () => {
       it('calls hook', async () => {
         jest.spyOn(Sandbag.prototype, 'conditionalBeforeSaveHook')
         await sandbag.update({ weight: 11 })
+
+        // eslint-disable-next-line
         expect(Sandbag.prototype.conditionalBeforeSaveHook).toHaveBeenCalled()
       })
     })
@@ -43,6 +45,8 @@ describe('Dream BeforeSave decorator', () => {
         await sandbag.update({ weight: null })
         jest.spyOn(Sandbag.prototype, 'conditionalBeforeSaveHook')
         await sandbag.update({ weightKgs: 120 })
+
+        // eslint-disable-next-line
         expect(Sandbag.prototype.conditionalBeforeSaveHook).not.toHaveBeenCalled()
       })
     })

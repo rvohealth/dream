@@ -201,8 +201,8 @@ describe('Dream#destroyAssociation', () => {
           pet2 = await user2.txn(txn).createAssociation('petsFromUuid')
 
           expect(await Pet.txn(txn).all()).toMatchDreamModels([pet, pet2])
-          expect(await user!.txn(txn).associationQuery('petsFromUuid').all()).toMatchDreamModels([pet])
-          await user!.txn(txn).destroyAssociation('petsFromUuid')
+          expect(await user.txn(txn).associationQuery('petsFromUuid').all()).toMatchDreamModels([pet])
+          await user.txn(txn).destroyAssociation('petsFromUuid')
         })
 
         expect(await user!.associationQuery('petsFromUuid').all()).toEqual([])

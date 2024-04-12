@@ -3,14 +3,13 @@ import User from '../../../test-app/app/models/User'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
 
 describe('Dream#save', () => {
   context('a new record', () => {
     let user: User
 
-    beforeEach(async () => {
+    beforeEach(() => {
       user = User.new({ email: 'fred@frewd', password: 'howyadoin' })
     })
 

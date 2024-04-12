@@ -10,15 +10,15 @@ describe('Dream.distinct', () => {
     const node2 = await Node.create({ name: 'mynode' })
     const node3 = await Node.create({ name: 'chalupas' })
 
-    let ids = await Node.distinct().pluck('id')
+    const ids = await Node.distinct().pluck('id')
     expect(ids).toEqual([node1.id, node2.id, node3.id])
   })
 
   context('with a specific column name passed', () => {
     it('returns unique results', async () => {
-      const node1 = await Node.create({ name: 'mynode' })
-      const node2 = await Node.create({ name: 'mynode' })
-      const node3 = await Node.create({ name: 'chalupas' })
+      await Node.create({ name: 'mynode' })
+      await Node.create({ name: 'mynode' })
+      await Node.create({ name: 'chalupas' })
 
       const names = await Node.distinct('name').pluck('name')
       expect(names).toEqual(['chalupas', 'mynode'])
@@ -31,16 +31,16 @@ describe('Dream.distinct', () => {
       const node2 = await Node.create({ name: 'mynode' })
       const node3 = await Node.create({ name: 'chalupas' })
 
-      let ids = await Node.distinct(true).pluck('id')
+      const ids = await Node.distinct(true).pluck('id')
       expect(ids).toEqual([node1.id, node2.id, node3.id])
     })
   })
 
   context('with "false" passed', () => {
     it('unsets distinct clause', async () => {
-      const node1 = await Node.create({ name: 'mynode' })
-      const node2 = await Node.create({ name: 'mynode' })
-      const node3 = await Node.create({ name: 'chalupas' })
+      await Node.create({ name: 'mynode' })
+      await Node.create({ name: 'mynode' })
+      await Node.create({ name: 'chalupas' })
 
       const names = await Node.distinct('name').distinct(false).pluck('name')
       expect(names).toEqual(['mynode', 'mynode', 'chalupas'])
@@ -50,10 +50,10 @@ describe('Dream.distinct', () => {
   context('with a similarity operator passed', () => {
     it('respects the similarity operator', async () => {
       const node1 = await Node.create({ name: 'mynode' })
-      const node2 = await Node.create({ name: 'mynode' })
-      const node3 = await Node.create({ name: 'chalupas' })
+      await Node.create({ name: 'mynode' })
+      await Node.create({ name: 'chalupas' })
 
-      let ids = await Node.distinct('name')
+      const ids = await Node.distinct('name')
         .where({ name: ops.similarity('mynod') })
         .order({ name: 'desc' })
         .pluck('id')
@@ -69,7 +69,7 @@ describe('Dream.distinct', () => {
           const collar1 = await pet.createAssociation('collars', {
             tagName: 'chalupas jr',
           })
-          const collar2 = await pet.createAssociation('collars', {
+          await pet.createAssociation('collars', {
             tagName: 'chalupas jr',
           })
 
@@ -82,11 +82,11 @@ describe('Dream.distinct', () => {
         it('applies distinct clause to association upon loading', async () => {
           const pet = await Pet.create()
           const balloon = await Latex.create()
-          const collar1 = await pet.createAssociation('collars', {
+          await pet.createAssociation('collars', {
             tagName: 'chalupas jr',
             balloon,
           })
-          const collar2 = await pet.createAssociation('collars', {
+          await pet.createAssociation('collars', {
             tagName: 'chalupas jr',
             balloon,
           })
@@ -100,10 +100,10 @@ describe('Dream.distinct', () => {
         it('applies distinct clause to association upon loading', async () => {
           const pet = await Pet.create()
           const balloon = await Latex.create()
-          const collar1 = await pet.createAssociation('collars', {
+          await pet.createAssociation('collars', {
             balloon,
           })
-          const collar2 = await pet.createAssociation('collars', {
+          await pet.createAssociation('collars', {
             balloon,
           })
 
@@ -134,11 +134,11 @@ describe('Dream.distinct', () => {
         it('applies distinct clause to association upon loading', async () => {
           const pet = await Pet.create()
           const balloon = await Latex.create()
-          const collar1 = await pet.createAssociation('collars', {
+          await pet.createAssociation('collars', {
             tagName: 'chalupas jr',
             balloon,
           })
-          const collar2 = await pet.createAssociation('collars', {
+          await pet.createAssociation('collars', {
             tagName: 'chalupas jr',
             balloon,
           })
@@ -152,10 +152,10 @@ describe('Dream.distinct', () => {
         it('applies distinct clause to association upon loading', async () => {
           const pet = await Pet.create()
           const balloon = await Latex.create()
-          const collar1 = await pet.createAssociation('collars', {
+          await pet.createAssociation('collars', {
             balloon,
           })
-          const collar2 = await pet.createAssociation('collars', {
+          await pet.createAssociation('collars', {
             balloon,
           })
 

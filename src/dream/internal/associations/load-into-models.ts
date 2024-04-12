@@ -44,7 +44,7 @@ export default class LoadIntoModels<
   }
 
   private async applyOnePreload(currentAssociationTableOrAlias: string, dreams: Dream | Dream[]) {
-    if (!Array.isArray(dreams)) dreams = [dreams as Dream]
+    if (!Array.isArray(dreams)) dreams = [dreams] as Dream[]
 
     const dream = dreams.find(dream => dream.associationMap()[currentAssociationTableOrAlias])!
     if (!dream) return
@@ -68,10 +68,7 @@ export default class LoadIntoModels<
         // for each of Composition and Post
         for (const associatedModel of association.modelCB() as (typeof Dream)[]) {
           const relevantAssociatedModels = dreams.filter((dream: any) => {
-            return (
-              (dream as any)[association.foreignKeyTypeField()] ===
-              associatedModel['stiBaseClassOrOwnClass'].name
-            )
+            return dream[association.foreignKeyTypeField()] === associatedModel['stiBaseClassOrOwnClass'].name
           })
 
           if (relevantAssociatedModels.length) {
@@ -84,7 +81,7 @@ export default class LoadIntoModels<
 
             associationQuery = associationQuery.where({
               [association.primaryKey()]: relevantAssociatedModels.map(
-                (dream: any) => (dream as any)[association.foreignKey()]
+                dream => (dream as any)[association.foreignKey()]
               ),
             })
 
@@ -109,7 +106,7 @@ export default class LoadIntoModels<
         this.hydrateAssociation(dreams, association, await associationQuery.all())
       }
     } else {
-      const associatedModel = association.modelCB() as typeof Dream
+      const associatedModel = association.modelCB()
       // associationQuery = this.dreamTransaction ? associatedModel.txn(this.dreamTransaction) : associatedModel
       associationQuery = associatedModel
       if (this.passthroughWhereStatement)

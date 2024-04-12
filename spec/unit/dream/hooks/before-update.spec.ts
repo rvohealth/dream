@@ -32,6 +32,8 @@ describe('Dream BeforeUpdate decorator', () => {
       it('calls hook', async () => {
         jest.spyOn(Sandbag.prototype, 'conditionalBeforeUpdateHook')
         await sandbag.update({ weightTons: 11 })
+
+        // eslint-disable-next-line
         expect(Sandbag.prototype.conditionalBeforeUpdateHook).toHaveBeenCalled()
       })
     })
@@ -41,6 +43,8 @@ describe('Dream BeforeUpdate decorator', () => {
         await sandbag.update({ weightTons: null })
         jest.spyOn(Sandbag.prototype, 'conditionalBeforeUpdateHook')
         await sandbag.update({ weightKgs: 120 })
+
+        // eslint-disable-next-line
         expect(Sandbag.prototype.conditionalBeforeUpdateHook).not.toHaveBeenCalled()
       })
     })

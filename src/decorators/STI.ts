@@ -18,6 +18,7 @@ export default function STI(dreamClass: typeof Dream, { value }: { value?: strin
     ;(stiChildClass as any)['applySTIScope'] = function (query: any) {
       return query.where({ type: stiChildClass['sti'].value })
     }
+
     Scope({ default: true })(stiChildClass, 'applySTIScope')
   }
 }

@@ -63,7 +63,7 @@ describe('Dream#isDirty', () => {
 
   context('CalendarDate', () => {
     let user: User
-    let originalBirthdateString = '1988-10-13'
+    const originalBirthdateString = '1988-10-13'
 
     beforeEach(async () => {
       user = await User.create({

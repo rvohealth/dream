@@ -1,7 +1,7 @@
 import User from '../../../test-app/app/models/User'
 
 describe('Dream#isNewRecord', () => {
-  it('returns true when the record is new', async () => {
+  it('returns true when the record is new', () => {
     const user = User.new({ email: 'hi@there', password: 'howyadoin' })
     expect(user.isNewRecord).toBe(true)
   })

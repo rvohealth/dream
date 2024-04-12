@@ -31,7 +31,7 @@ describe('Query#loadInto', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
       const composition = await Composition.create({ user })
-      const compositionText1 = await LocalizedText.create({ localizable: composition, locale: 'en-US' })
+      await LocalizedText.create({ localizable: composition, locale: 'en-US' })
       const compositionText2 = await LocalizedText.create({ localizable: composition, locale: 'es-ES' })
 
       const compositionAsset = await CompositionAsset.create({ composition })
@@ -39,7 +39,7 @@ describe('Query#loadInto', () => {
         localizable: compositionAsset,
         locale: 'es-ES',
       })
-      const compositionAssetText2 = await LocalizedText.create({
+      await LocalizedText.create({
         localizable: compositionAsset,
         locale: 'en-US',
       })

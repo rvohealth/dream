@@ -10,7 +10,7 @@ describe('Dream.limit', () => {
 
     const compositionAsset1 = await CompositionAsset.create({ composition })
     const compositionAsset2 = await CompositionAsset.create({ composition })
-    const compositionAsset3 = await CompositionAsset.create({ composition })
+    await CompositionAsset.create({ composition })
 
     const results = await CompositionAsset.limit(2).all()
 
@@ -39,12 +39,11 @@ describe('Dream.limit', () => {
 
       const compositionAsset1 = await CompositionAsset.create({ composition, score: 7 })
       let compositionAsset2: CompositionAsset | undefined = undefined
-      let compositionAsset3: CompositionAsset | undefined = undefined
       let results: CompositionAsset[] = []
 
       await ApplicationModel.transaction(async txn => {
         compositionAsset2 = await CompositionAsset.txn(txn).create({ composition, score: 3 })
-        compositionAsset3 = await CompositionAsset.txn(txn).create({ composition, score: 3 })
+        await CompositionAsset.txn(txn).create({ composition, score: 3 })
 
         results = await CompositionAsset.txn(txn).limit(2).all()
       })

@@ -3,9 +3,9 @@ import User from '../../../test-app/app/models/User'
 describe('Query#whereAny', () => {
   context('within where-object', () => {
     it('treats keys within the object as AND statements', async () => {
-      const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const user2 = await User.create({ email: 'aster@brown', password: 'howyadoin' })
-      const user3 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
       const records = await User.query()
         .whereAny([{ email: 'fred@frewd', id: user2.id }])
@@ -16,9 +16,9 @@ describe('Query#whereAny', () => {
 
   context('chained', () => {
     it('combines the separate OR statements using AND', async () => {
-      const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const user2 = await User.create({ email: 'aster@brown', password: 'howyadoin' })
-      const user3 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
       const records = await User.query()
         .whereAny([{ email: 'fred@frewd' }, { email: 'aster@brown' }])
@@ -32,7 +32,7 @@ describe('Query#whereAny', () => {
     it('treats the separate object as OR statements', async () => {
       const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const user2 = await User.create({ email: 'aster@brown', password: 'howyadoin' })
-      const user3 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
       const records = await User.query()
         .whereAny([{ email: 'fred@frewd' }, { id: user2.id }])
@@ -43,7 +43,7 @@ describe('Query#whereAny', () => {
     it('the same key can be specified in multiple clauses', async () => {
       const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const user2 = await User.create({ email: 'aster@brown', password: 'howyadoin' })
-      const user3 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
       const records = await User.query()
         .whereAny([{ id: user1.id }, { id: user2.id }])
@@ -58,7 +58,7 @@ describe('Query#whereAny', () => {
       const user1b = await User.create({ email: 'fred2@frewd', password: 'howyadoin' })
       const user2a = await User.create({ email: 'aster@brown', password: 'howyadoin' })
       const user2b = await User.create({ email: 'aster2@brown', password: 'howyadoin' })
-      const user3 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
       const records = await User.query()
         .whereAny([{ id: [user1a.id, user1b.id] }, { id: [user2a.id, user2b.id] }])
@@ -77,7 +77,7 @@ describe('Query#whereAny', () => {
         email: 'frez@frewd',
         password: 'howyadoin',
       })
-      const user3 = await User.create({
+      await User.create({
         email: 'frez@fishman',
         password: 'howyadoin',
       })

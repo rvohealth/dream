@@ -1,4 +1,3 @@
-import { Dream } from '../../../src'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import User from '../../../test-app/app/models/User'
 

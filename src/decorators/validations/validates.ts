@@ -11,6 +11,7 @@ export default function Validates<
         ? string | RegExp
         : never,
 >(type: VT, args?: VTArgs): any {
+  // eslint-disable-next-line
   return function (target: any, key: string, _: any) {
     const t = target.constructor as typeof Dream
     if (!Object.getOwnPropertyDescriptor(t, 'validations'))
@@ -63,7 +64,7 @@ function extractValidationOptionsFromArgs(type: ValidationType, args: any) {
       return {}
 
     default:
-      throw new Error(`Unhandled validation type when caching options: ${type}`)
+      throw new Error(`Unhandled validation type when caching options: ${type as string}`)
   }
 }
 

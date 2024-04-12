@@ -1,6 +1,5 @@
 import { DateTime } from 'luxon'
 import camelize from '../../../shared/helpers/camelize'
-import User from '../../../test-app/app/models/User'
 
 describe('camelize', () => {
   context('when passed a string', () => {

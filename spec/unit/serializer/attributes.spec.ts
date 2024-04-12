@@ -2,7 +2,7 @@ import DreamSerializer from '../../../src/serializer'
 import Attribute from '../../../src/serializer/decorators/attribute'
 
 describe('DreamSerializer attribute accessors', () => {
-  it('allows accessing attributes from serializer', async () => {
+  it('allows accessing attributes from serializer', () => {
     class MySerializer extends DreamSerializer {
       @Attribute()
       public email: string
@@ -11,7 +11,7 @@ describe('DreamSerializer attribute accessors', () => {
     expect(serializer.email).toEqual('abc')
   })
 
-  it('allows setting of attributes from serializer', async () => {
+  it('allows setting of attributes from serializer', () => {
     class MySerializer extends DreamSerializer {
       @Attribute()
       public email: string

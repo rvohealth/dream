@@ -14,7 +14,7 @@ export default class ModelWithoutUpdatedAt extends ApplicationModel {
   public createdAt: DateTime
 
   @BeforeUpdate()
-  public async clearCantUpdateThis() {
+  public clearCantUpdateThis() {
     this.cantUpdateThis = undefined
   }
 }

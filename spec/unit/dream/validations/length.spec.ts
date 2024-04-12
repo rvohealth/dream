@@ -2,7 +2,7 @@ import ValidationError from '../../../../src/exceptions/validation-error'
 import User from '../../../../test-app/app/models/User'
 
 describe('Dream length validation', () => {
-  it('builds scope mapping', async () => {
+  it('builds scope mapping', () => {
     const validation = User['validations'].find(v => v.column === 'email' && v.type === 'length')!
     expect(validation.type).toEqual('length')
     expect(validation.column).toEqual('email')
@@ -10,7 +10,7 @@ describe('Dream length validation', () => {
     expect(validation.options!.length!.max).toEqual(18)
   })
 
-  it('permits saving a record that passes length validations', async () => {
+  it('permits saving a record that passes length validations', () => {
     const user = User.new({ email: 'fred@', password: 'morethan4' })
     expect(user.isInvalid).toEqual(false)
   })

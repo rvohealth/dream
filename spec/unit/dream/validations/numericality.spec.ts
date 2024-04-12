@@ -3,7 +3,7 @@ import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import User from '../../../../test-app/app/models/User'
 
 describe('Dream presence numericality', () => {
-  it('appplies validation configuration to dream class', async () => {
+  it('appplies validation configuration to dream class', () => {
     const validation = Mylar['validations'].find(v => v.column === 'volume' && v.type === 'numericality')!
     expect(validation.type).toEqual('numericality')
     expect(validation.column).toEqual('volume')

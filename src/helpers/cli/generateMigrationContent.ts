@@ -22,7 +22,7 @@ export default function generateMigrationContent({
 
       if (attributeType === 'citext') requireCitextExtension = true
 
-      let coercedAttributeType = getAttributeType(attribute)
+      const coercedAttributeType = getAttributeType(attribute)
       switch (attributeType) {
         case 'enum':
           return generateEnumStr(attribute)
@@ -73,9 +73,9 @@ export async function down(db: Kysely<any>): Promise<void> {
 }
 
 function getAttributeType(attribute: string) {
-  const [attributeName, attributeType, ...descriptors] = attribute.split(':')
+  const [, attributeType, ...descriptors] = attribute.split(':')
   if (attributeType === 'enum') {
-    return enumAttributeType(attribute)[0] as string
+    return enumAttributeType(attribute)[0]
   }
 
   switch (attributeType) {
@@ -91,12 +91,12 @@ function getAttributeType(attribute: string) {
 }
 
 function enumAttributeType(attribute: string) {
-  const [_, __, ...descriptors] = attribute.split(':')
+  const [, , ...descriptors] = attribute.split(':')
   return `sql\`${descriptors[0]}_enum\``
 }
 
 function generateEnumStatements(attributes: string[]) {
-  const enumStatements = attributes.filter(attribute => /:enum:.*\:/.test(attribute))
+  const enumStatements = attributes.filter(attribute => /:enum:.*:/.test(attribute))
   const finalStatements = enumStatements.map(statement => {
     const enumName = statement.split(':')[2]
     const attributes = statement.split(':')[3].split(/,\s{0,}/)
@@ -112,10 +112,9 @@ function generateEnumStatements(attributes: string[]) {
 }
 
 function generateEnumDropStatements(attributes: string[]) {
-  const enumStatements = attributes.filter(attribute => /:enum:.*\:/.test(attribute))
+  const enumStatements = attributes.filter(attribute => /:enum:.*:/.test(attribute))
   const finalStatements = enumStatements.map(statement => {
     const enumName = statement.split(':')[2]
-    const attributes = statement.split(':')[3].split(/,\s{0,}/)
     return `await db.schema.dropType('${enumName}_enum').execute()`
   })
 
@@ -128,7 +127,7 @@ function generateEnumStr(attribute: string) {
 }
 
 function generateDecimalStr(attribute: string) {
-  const [attributeName, attributeType, ...descriptors] = attribute.split(':')
+  const [, , ...descriptors] = attribute.split(':')
   const [scale, precision] = descriptors[0]?.split(',') || [null, null]
   if (!scale || !precision) throw new InvalidDecimalFieldPassedToGenerator(attribute)
 

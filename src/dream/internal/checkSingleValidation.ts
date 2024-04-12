@@ -10,6 +10,7 @@ export default function checkSingleValidation(dream: Dream, validation: Validati
     if ((error as any).constructor !== NonLoadedAssociation) throw error
   }
 
+  let parsedFloat: number
   switch (validation.type) {
     case 'presence':
       return !isBlank(value)
@@ -18,16 +19,16 @@ export default function checkSingleValidation(dream: Dream, validation: Validati
       if (isBlank(value)) return true
       if (isNaN(value)) return false
 
-      const parsed = parseFloat(value)
+      parsedFloat = parseFloat(value)
       if (
         validation.options?.numericality?.max?.constructor === Number &&
-        parsed > validation.options?.numericality?.max
+        parsedFloat > validation.options?.numericality?.max
       )
         return false
 
       if (
         validation.options?.numericality?.min?.constructor === Number &&
-        parsed < validation.options?.numericality?.min
+        parsedFloat < validation.options?.numericality?.min
       )
         return false
 
@@ -40,21 +41,23 @@ export default function checkSingleValidation(dream: Dream, validation: Validati
         case RegExp:
           return (validation.options!.contains!.value as RegExp).test(value)
       }
+      break
 
     case 'length':
-      const length = value?.length
       return (
-        length &&
-        length >= validation.options!.length!.min &&
+        value?.length &&
+        value.length >= validation.options!.length!.min &&
         validation.options!.length!.max &&
-        length <= validation.options!.length!.max
+        value.length <= validation.options!.length!.max
       )
 
     case 'requiredBelongsTo':
       return !!(value || (dream as any)[dream.associationMap()[validation.column].foreignKey()])
 
     default:
-      throw new Error(`Unhandled validation type found while running validations: ${validation.type}`)
+      throw new Error(
+        `Unhandled validation type found while running validations: ${validation.type as string}`
+      )
   }
 }
 

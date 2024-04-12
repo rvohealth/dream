@@ -17,13 +17,10 @@ export default async function reload<DreamInstance extends Dream>(
 
   query = query
     .unscoped()
-    // @ts-ignore
-    .where({ [base.primaryKey as any]: dream[base.primaryKey] } as Updateable<Table>)
+    .where({ [base.primaryKey as any]: dream[base.primaryKey as keyof typeof dream] } as any)
 
-  // TODO: cleanup type chaos
-  // @ts-ignore
-  const newRecord = (await query.first()) as I
-  dream.setAttributes(newRecord.attributes())
+  const newRecord = (await query.first()) as DreamInstance
+  dream.setAttributes(newRecord.attributes() as any)
 
   dream['freezeAttributes']()
 

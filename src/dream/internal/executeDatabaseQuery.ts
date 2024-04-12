@@ -1,5 +1,3 @@
-import benchmark from '../../../shared/helpers/benchmark'
-
 export default async function executeDatabaseQuery<
   Command extends 'execute' | 'executeTakeFirst' | 'executeTakeFirstOrThrow',
   ReturnType extends Command extends 'execute'
@@ -37,7 +35,7 @@ export default async function executeDatabaseQuery<
     if (debugging) {
       console.error(`
           Error executing the following SQL:
-          ${error}
+          ${(error as Error).message}
 
           ${sqlDebugMessage}
         `)

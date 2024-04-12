@@ -29,8 +29,8 @@ describe('Query#pluck', () => {
   context('columns that get transformed during marshalling', () => {
     context('a single value', () => {
       it('are properly marshalled', async () => {
-        const edge1 = await Edge.create({ name: 'E1', weight: 2.3 })
-        const edge2 = await Edge.create({ name: 'E2', weight: 7.1 })
+        await Edge.create({ name: 'E1', weight: 2.3 })
+        await Edge.create({ name: 'E2', weight: 7.1 })
 
         const plucked = await Edge.query().pluck('weight')
         expect(plucked[0]).toEqual(2.3)
@@ -40,8 +40,8 @@ describe('Query#pluck', () => {
 
     context('multiple values', () => {
       it('are properly marshalled', async () => {
-        const edge1 = await Edge.create({ name: 'E1', weight: 2.3 })
-        const edge2 = await Edge.create({ name: 'E2', weight: 7.1 })
+        await Edge.create({ name: 'E1', weight: 2.3 })
+        await Edge.create({ name: 'E2', weight: 7.1 })
 
         const plucked = await Edge.query().pluck('name', 'weight')
         expect(plucked[0]).toEqual(['E1', 2.3])

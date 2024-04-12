@@ -3,7 +3,6 @@ import { WhereStatement } from '../../../decorators/associations/shared'
 import Dream from '../../../dream'
 import DreamTransaction from '../../transaction'
 import { RelaxedJoinsWhereStatement, SimilarityStatement, TRIGRAM_OPERATORS } from '../../types'
-import _db from '../../../db'
 import OpsStatement from '../../../ops/ops-statement'
 import { SelectQueryBuilder, UpdateQueryBuilder, sql } from 'kysely'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
@@ -77,9 +76,9 @@ export default class SimilarityBuilder<
   */
   public select<T extends SimilarityBuilder<DreamClass>>(
     this: T,
-    kyselyQuery: SelectQueryBuilder<DB, any, {}>,
+    kyselyQuery: SelectQueryBuilder<DB, any, object>,
     { bypassOrder = false }: { bypassOrder?: boolean } = {}
-  ): SelectQueryBuilder<DB, any, {}> {
+  ): SelectQueryBuilder<DB, any, object> {
     this.whereStatementsWithSimilarityClauses().forEach((similarityStatement, index) => {
       kyselyQuery = this.addStatementToSelectQuery({
         kyselyQuery,
@@ -225,7 +224,7 @@ export default class SimilarityBuilder<
       const tableName = associationDreamClass.prototype.table
 
       Object.keys(tableValues).forEach(columnOrAssociationName => {
-        const statementOrValueOrNestedObject = (tableValues as any)[columnOrAssociationName]
+        const statementOrValueOrNestedObject = tableValues[columnOrAssociationName]
         if (
           statementOrValueOrNestedObject?.isOpsStatement &&
           TRIGRAM_OPERATORS.includes(statementOrValueOrNestedObject?.operator)
@@ -270,7 +269,7 @@ export default class SimilarityBuilder<
       statementType,
       bypassOrder,
     }: {
-      kyselyQuery: SelectQueryBuilder<DB, any, {}>
+      kyselyQuery: SelectQueryBuilder<DB, any, object>
       similarityStatement: SimilarityStatement
       index: number
       statementType: SimilarityStatementType
@@ -280,12 +279,14 @@ export default class SimilarityBuilder<
     const dbTypeCache = this.dreamClass.prototype.dreamconf.dbTypeCache
     const primaryKeyName = this.dreamClass.prototype.primaryKey
     const { tableName, tableAlias, columnName } = similarityStatement
+
+    // eslint-disable-next-line
     const { ref } = this.dbFor('select').dynamic
 
     const validatedTableAlias = validateTableAlias(tableAlias)
     const validatedPrimaryKey = validateColumn(dbTypeCache, tableName, primaryKeyName)
 
-    let nestedQuery = this.buildNestedSelectQuery({
+    const nestedQuery = this.buildNestedSelectQuery({
       primaryKeyName,
       similarityStatement,
       statementIndex: index,
@@ -340,7 +341,7 @@ export default class SimilarityBuilder<
     const validatedTableAlias = validateTableAlias(tableAlias)
     const validatedPrimaryKey = validateColumn(dbTypeCache, tableName, primaryKeyName)
 
-    let nestedQuery = this.buildNestedSelectQuery({
+    const nestedQuery = this.buildNestedSelectQuery({
       primaryKeyName: validatedPrimaryKey,
       similarityStatement,
       statementIndex: index,
@@ -375,7 +376,7 @@ export default class SimilarityBuilder<
     similarityStatement: SimilarityStatement
   }) {
     const dbTypeCache = this.dreamClass.prototype.dreamconf.dbTypeCache
-    const { columnName, opsStatement, tableAlias, tableName } = similarityStatement
+    const { columnName, opsStatement, tableName } = similarityStatement
     const validatedTable = validateTable(dbTypeCache, tableName)
     const validatedPrimaryKey = validateColumn(dbTypeCache, tableName, primaryKeyName)
 

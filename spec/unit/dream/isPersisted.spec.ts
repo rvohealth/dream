@@ -6,7 +6,7 @@ describe('Dream#isPersisted', () => {
     expect(user.isPersisted).toBe(true)
   })
 
-  it('returns false when the record is new', async () => {
+  it('returns false when the record is new', () => {
     const user = User.new({ email: 'hi@there', password: 'howyadoin' })
     expect(user.isPersisted).toBe(false)
   })
