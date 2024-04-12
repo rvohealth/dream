@@ -16,6 +16,7 @@ import Edge from '../../../../test-app/app/models/Graph/Edge'
 Collar.query().joins('pet' as const, 'collars' as const, 'pet' as const, 'collars' as const, 'pet')
 Collar.query().joins('pet' as const, 'collars')
 Collar.query().joins('pet', '')
+Collar.query().joinsExperiment('pet.collars.pet.collars.')
 // Collar.query().joins('pet', '')
 // Balloon.query().joins('sandbags', 'mylar')
 

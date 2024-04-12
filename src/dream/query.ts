@@ -35,6 +35,7 @@ import {
   VariadicJoinsArgs2,
   VariadicJoinsArgs3,
   BruteForceVariadicJoinsArgs,
+  Choose,
 } from './types'
 import {
   AliasedExpression,
@@ -87,6 +88,7 @@ import MissingRequiredCallbackFunctionToPluckEach from '../exceptions/missing-re
 import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../exceptions/cannot-pass-additional-fields-to-pluck-each-after-callback-function'
 import NoUpdateAllOnJoins from '../exceptions/no-updateall-on-joins'
 import orderByDirection from './internal/orderByDirection'
+import { Path } from './dotpathtypes'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -402,6 +404,12 @@ export default class Query<
       })
     }
   }
+
+  public joinsExperiment<
+    TableName extends InstanceType<DreamClass>['table'],
+    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
+    const Str extends string,
+  >(args: Str & Path<SyncedAssociations, TableName>) {}
 
   public joins<
     TableName extends InstanceType<DreamClass>['table'],

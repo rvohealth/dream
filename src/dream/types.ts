@@ -369,6 +369,61 @@ export type GreaterThanFive = AssociationDepths.SIX | AssociationDepths.SEVEN | 
 export type GreaterThanSix = AssociationDepths.SEVEN | AssociationDepths.EIGHT
 export type GreaterThanSeven = AssociationDepths.EIGHT
 
+// type BuildInterfaceFromArrayRecursive<T extends any[], FinalInterface, > =
+// type BuildInterfaceFromArray<T extends any[]> = BuildInterfaceFromArrayRecursive<T, {}, {}>
+
+type RecurseJoinsInterface<
+  InputArr extends readonly [keyof SyncedAssociations[TableName] & string, ...any[]],
+  OutputArr extends readonly any[],
+  DB extends object,
+  SyncedAssociations extends object,
+  TableName extends keyof SyncedAssociations & string,
+  Index extends number,
+  CurrValue = InputArr extends [infer T & keyof SyncedAssociations[TableName] & string, ...any[]] ? T : never,
+  AssociationName extends InputArr[0] & keyof SyncedAssociations[TableName] & string = InputArr[0] &
+    keyof SyncedAssociations[TableName] &
+    string,
+  NextTableName extends keyof SyncedAssociations &
+    string = SyncedAssociations[TableName][AssociationName] extends any[]
+    ? SyncedAssociations[TableName][AssociationName][0] & keyof SyncedAssociations & string
+    : never,
+> = CurrValue extends never
+  ? never
+  : Index extends 4
+    ? never
+    : InputArr['length'] extends 1
+      ? Record<InputArr[0], keyof SyncedAssociations[TableName]>
+      : NextTableName extends (SyncedAssociations[TableName][CurrValue & InputArr[0]] &
+            (keyof SyncedAssociations)[])[0] &
+            keyof SyncedAssociations &
+            string
+        ? RecurseVariadicJoinsArgs<
+            Shift<InputArr, 1> & [keyof SyncedAssociations[NextTableName] & string, ...any[]],
+            [...OutputArr, CurrValue & NextJoinsWhereArgumentType<DB, SyncedAssociations, NextTableName>],
+            DB,
+            SyncedAssociations,
+            NextTableName,
+            Inc<Index>
+          >
+        : never
+// : never
+// : never
+
+export type GetFinalTableName<
+  DB extends object,
+  SyncedAssociations extends object,
+  TableName extends keyof SyncedAssociations & string,
+> = keyof SyncedAssociations[TableName]
+
+export type JoinsInterface<
+  DB extends object,
+  SyncedAssociations extends object,
+  TableName extends keyof SyncedAssociations & string,
+  T extends readonly [...any[]],
+> = T['length'] extends 1
+  ? [keyof SyncedAssociations[TableName]]
+  : RecurseJoinsInterface<T, {}, DB, SyncedAssociations, TableName, 0>
+
 type RecurseVariadicJoinsArgs<
   InputArr extends readonly [keyof SyncedAssociations[TableName] & string, ...any[]],
   OutputArr extends readonly any[],
