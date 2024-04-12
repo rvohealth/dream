@@ -1,5 +1,4 @@
 import { Kysely, PostgresDialect, CamelCasePlugin } from 'kysely'
-import fs from 'fs'
 import ConnectionConfRetriever from './connection-conf-retriever'
 import { DbConnectionType } from './types'
 import { Pool } from 'pg'
@@ -9,10 +8,7 @@ import { DbConnectionConfig } from '../../shared/helpers/path/types'
 const connections = {} as { [key: string]: Kysely<any> }
 
 export default class DreamDbConnection {
-  public static getConnection<DB extends any>(
-    connectionType: DbConnectionType,
-    dreamconf: Dreamconf
-  ): Kysely<DB> {
+  public static getConnection<DB>(connectionType: DbConnectionType, dreamconf: Dreamconf): Kysely<DB> {
     const connection = connections[connectionType]
     if (connection) return connection
 
@@ -42,6 +38,7 @@ export default class DreamDbConnection {
   }
 }
 
+// eslint-disable-next-line
 function sslConfig(connectionConf: DbConnectionConfig) {
   // TODO: properly configure (https://rvohealth.atlassian.net/browse/PDTC-2914)
   return {

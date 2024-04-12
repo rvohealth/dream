@@ -8,13 +8,16 @@ export default class InvalidTableName extends Error {
   }
 
   public get message() {
+    // eslint-disable-next-line
+    const keys: string[] = Object.keys(this.dbTypeCache)
+
     return `
 Invalid table name passed to an underlying sql function.
 The invalid table name received was:
   ${this.tableName}
 
 Please make sure to only pass a valid table name. Valid table names are:
-  ${Object.keys(this.dbTypeCache).join(',\n        ')}
+  ${keys.join(',\n        ')}
     `
   }
 }

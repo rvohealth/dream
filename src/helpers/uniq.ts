@@ -2,7 +2,7 @@ import uniqWith from 'lodash.uniqwith'
 import lodashUniq from 'lodash.uniq'
 import Dream from '../dream'
 
-export default function uniq<T extends Dream | any>(
+export default function uniq<T>(
   arr: T[],
   comparator: ((a: any, b: any) => boolean) | undefined = undefined
 ): T[] {

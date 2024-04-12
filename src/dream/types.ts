@@ -62,9 +62,9 @@ export type UpdateablePropertiesForClass<
   VirtualColumns = InstanceType<DreamClass>['dreamconf']['virtualColumns'][TableName],
 > = Partial<
   Updateable<InstanceType<DreamClass>['DB'][TableName]> &
-    (VirtualColumns extends any[] ? Record<VirtualColumns[number], any> : {}) &
+    (VirtualColumns extends any[] ? Record<VirtualColumns[number], any> : object) &
     (AssociatedModelParam<InstanceType<DreamClass>> extends never
-      ? {}
+      ? object
       : AssociatedModelParam<InstanceType<DreamClass>>)
 >
 
@@ -79,8 +79,8 @@ export type UpdateableAssociationProperties<
   VirtualColumns = DreamInstance['dreamconf']['virtualColumns'][AssociationTableName],
 > = Partial<
   Updateable<DreamInstance['DB'][AssociationTableName]> &
-    (VirtualColumns extends any[] ? Record<VirtualColumns[number], any> : {}) &
-    (AssociatedModelParam<AssociationClass> extends never ? {} : AssociatedModelParam<AssociationClass>)
+    (VirtualColumns extends any[] ? Record<VirtualColumns[number], any> : object) &
+    (AssociatedModelParam<AssociationClass> extends never ? object : AssociatedModelParam<AssociationClass>)
 >
 
 export type AttributeKeys<
@@ -88,7 +88,7 @@ export type AttributeKeys<
   TableName extends AssociationTableNames<I['DB'], I['syncedAssociations']> & I['table'] = I['table'],
   VirtualColumns = I['dreamconf']['virtualColumns'][TableName],
 > = keyof (Updateable<I['DB'][TableName]> &
-  (VirtualColumns extends any[] ? Record<VirtualColumns[number], any> : {}))
+  (VirtualColumns extends any[] ? Record<VirtualColumns[number], any> : object))
 
 export type UpdateableProperties<
   I extends Dream,
@@ -96,15 +96,15 @@ export type UpdateableProperties<
   VirtualColumns = I['dreamconf']['virtualColumns'][TableName],
 > = Partial<
   Updateable<I['DB'][TableName]> &
-    (VirtualColumns extends any[] ? Record<VirtualColumns[number], any> : {}) &
-    (AssociatedModelParam<I> extends never ? {} : AssociatedModelParam<I>)
+    (VirtualColumns extends any[] ? Record<VirtualColumns[number], any> : object) &
+    (AssociatedModelParam<I> extends never ? object : AssociatedModelParam<I>)
 >
 
 export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) => T) & typeof Dream
 
 // preload
 export type NextPreloadArgumentType<
-  SyncedAssociations extends any,
+  SyncedAssociations,
   PreviousTableNames,
   PreviousSyncedAssociations = PreviousTableNames extends undefined
     ? undefined
@@ -114,7 +114,7 @@ export type NextPreloadArgumentType<
   : (keyof PreviousSyncedAssociations & string) | (keyof PreviousSyncedAssociations & string)[]
 
 export type PreloadArgumentTypeAssociatedTableNames<
-  SyncedAssociations extends any,
+  SyncedAssociations,
   PreviousTableNames,
   ArgumentType,
   PreviousSyncedAssociations = PreviousTableNames extends undefined
@@ -128,8 +128,8 @@ export type PreloadArgumentTypeAssociatedTableNames<
 
 // joins
 export type NextJoinsWhereArgumentType<
-  DB extends any,
-  SyncedAssociations extends any,
+  DB,
+  SyncedAssociations,
   PreviousTableNames,
   PreviousSyncedAssociations = PreviousTableNames extends undefined
     ? undefined
@@ -145,8 +145,8 @@ export type NextJoinsWhereArgumentType<
         >
 
 export type JoinsArgumentTypeAssociatedTableNames<
-  DB extends any,
-  SyncedAssociations extends any,
+  DB,
+  SyncedAssociations,
   PreviousTableNames,
   ArgumentType,
   PreviousSyncedAssociations = PreviousTableNames extends undefined
@@ -164,8 +164,8 @@ export type JoinsArgumentTypeAssociatedTableNames<
 
 // pluckThrough
 export type NextJoinsWherePluckArgumentType<
-  DB extends any,
-  SyncedAssociations extends any,
+  DB,
+  SyncedAssociations,
   PreviousAssociationName,
   PreviousPreviousAssociationName,
   PreviousTableNames,
@@ -230,8 +230,8 @@ export type NextJoinsWherePluckArgumentType<
 // type Z = Y extends X ? 'yes' : 'no'
 
 export type FinalJoinsWherePluckArgumentType<
-  DB extends any,
-  SyncedAssociations extends any,
+  DB,
+  SyncedAssociations,
   PreviousAssociationName,
   PreviousPreviousAssociationName,
   PreviousTableNames,
@@ -284,8 +284,8 @@ export type FinalJoinsWherePluckArgumentType<
 // end:pluckThrough
 
 export type AssociationNameToDotReference<
-  DB extends any,
-  SyncedAssociations extends any,
+  DB,
+  SyncedAssociations,
   AssociationName,
   TableNames extends keyof SyncedAssociations & string,
 > = `${AssociationName & string}.${keyof Updateable<DB[TableNames & keyof DB]> & string}`
@@ -297,24 +297,23 @@ export type AssociationNameToDotReference<
 // type Y = NextJoinsWherePluckArgumentType<WhereStatement<any, any, any>, 'mylar', 'beautiful_balloons'>
 
 export type RelaxedPreloadStatement<Depth extends number = 0> = Depth extends 7
-  ? {}
-  : { [key: string]: RelaxedPreloadStatement<Inc<Depth>> | {} }
+  ? object
+  : { [key: string]: RelaxedPreloadStatement<Inc<Depth>> | object }
 
 export type RelaxedJoinsStatement<Depth extends number = 0> = Depth extends 7
-  ? {}
-  : { [key: string]: RelaxedJoinsStatement<Inc<Depth>> | {} }
+  ? object
+  : { [key: string]: RelaxedJoinsStatement<Inc<Depth>> | object }
 
-export type RelaxedJoinsWhereStatement<
-  DB extends any,
-  SyncedAssociations extends any,
-  Depth extends number = 0,
-> = Depth extends 7
-  ? {}
+export type RelaxedJoinsWhereStatement<DB, SyncedAssociations, Depth extends number = 0> = Depth extends 7
+  ? object
   : {
-      [key: string]: RelaxedPreloadStatement<Inc<Depth>> | {} | WhereStatement<DB, SyncedAssociations, any>
+      [key: string]:
+        | RelaxedPreloadStatement<Inc<Depth>>
+        | object
+        | WhereStatement<DB, SyncedAssociations, any>
     }
 
-export type TableOrAssociationName<SyncedAssociations extends any> =
+export type TableOrAssociationName<SyncedAssociations> =
   | (keyof SyncedAssociations & string)
   | (keyof SyncedAssociations[keyof SyncedAssociations] & string)
 

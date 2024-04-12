@@ -16,8 +16,11 @@ export default function STI(dreamClass: typeof Dream, { value }: { value?: strin
       value: value || stiChildClass.name,
     }
     ;(stiChildClass as any)['applySTIScope'] = function (query: any) {
+      // eslint-disable-next-line
       return query.where({ type: stiChildClass['sti'].value })
     }
+
+    // eslint-disable-next-line
     Scope({ default: true })(stiChildClass, 'applySTIScope')
   }
 }

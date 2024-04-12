@@ -17,6 +17,7 @@ export default class MealType extends ApplicationModel {
   }
 
   public get serializer() {
+    // eslint-disable-next-line
     return MealTypeSerializer<any>
   }
 
@@ -46,6 +47,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return UserSerializer<any>
     }
 
@@ -81,6 +83,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return ChalupaSerializer<any>
     }
 
@@ -112,6 +115,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return PaperSerializer<any>
     }
 
@@ -199,6 +203,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return CompositionSerializer<any>
     }
 
@@ -231,6 +236,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return CatToySerializer<any>
     }
 
@@ -262,6 +268,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return CatToySerializer<any>
     }
 
@@ -292,6 +299,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return CatToySerializer<any>
     }
 
@@ -322,6 +330,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return PetDomesticCatSerializer<any>
     }
 
@@ -353,6 +362,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return PetDomesticCatSerializer<any>
     }
 
@@ -384,6 +394,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return PetWildCatSerializer<any>
     }
 
@@ -417,6 +428,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return CompositionSerializer<any>
     }
 
@@ -454,6 +466,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return CompositionSerializer<any>
     }
 
@@ -486,6 +499,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return UserSerializer<any>
     }
 
@@ -518,6 +532,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
+      // eslint-disable-next-line
       return CompositionSerializer<any>
     }
 
@@ -551,6 +566,7 @@ export default class User extends ApplicationModel {
   }
 
   public get serializer() {
+    // eslint-disable-next-line
     return UserSerializer<any>
   }
 

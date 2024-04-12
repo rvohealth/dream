@@ -27,11 +27,12 @@ export default function compact<
       : never,
 >(obj: T): RetType {
   if (Array.isArray(obj)) {
+    // eslint-disable-next-line
     return obj.filter(val => ![undefined, null].includes(val)) as RetType
   } else {
     return Object.fromEntries(Object.entries(obj).filter(([, v]) => v != null)) as RetType
   }
 }
 
-const x = compact(['a', 2, null, undefined])
-const y = compact({ a: 1, b: 'b', c: null, d: undefined })
+// const x = compact(['a', 2, null, undefined])
+// const y = compact({ a: 1, b: 'b', c: null, d: undefined })

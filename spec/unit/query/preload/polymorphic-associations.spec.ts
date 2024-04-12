@@ -21,7 +21,7 @@ describe('Query#preload with polymorphic associations', () => {
   it('loads a HasMany association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ user })
-    const compositionRating = await Rating.create({ user, rateable: composition })
+    await Rating.create({ user, rateable: composition })
     const post = await Post.create({ user })
     const postRating = await Rating.create({ user, rateable: post })
 

@@ -20,7 +20,6 @@ export default async function fileWriter({
   contentFunctionAttrs?: any[]
 }) {
   const thisfs = fs ? fs : await import('fs/promises')
-  const srcPath = process.env.DREAM_CORE_DEVELOPMENT === '1' ? 'test-app' : 'src'
   const fullyQualifiedNewfileClassName = pluralizeBeforePostfix
     ? `${pluralize(filePath)}${filePostfix}`
     : `${filePath}${filePostfix}`
@@ -30,11 +29,13 @@ export default async function fileWriter({
     .map(str => pascalize(str))
     .join('/')
   const dirPartsRelativeToTypeRoot = filepathRelativeToTypeRoot.split('/').slice(0, -1)
+
+  // eslint-disable-next-line
   const newfileFileContents = await contentFunction(newfileClassName, ...contentFunctionAttrs)
 
   // if they are generating a nested newfile path,
   // we need to make sure the nested directories exist
-  if (!!dirPartsRelativeToTypeRoot.length) {
+  if (dirPartsRelativeToTypeRoot.length) {
     const fullDirectoryPath = [...rootPath.split('/'), ...dirPartsRelativeToTypeRoot].join('/')
     await thisfs.mkdir(fullDirectoryPath, { recursive: true })
   }

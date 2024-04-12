@@ -105,14 +105,18 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
       if (attributeStatement) {
         const { field, renderAs, options } = attributeStatement
         const fieldWithCasing = this.applyCasingToField(field)
+
+        let dateValue: DateTime | null | undefined
+        let roundValue: number | null | undefined
+
         switch (renderAs) {
           case 'date':
-            const dateValue: DateTime | null | undefined = this.getAttributeValue(attributeStatement)
+            dateValue = this.getAttributeValue(attributeStatement)
             returnObj[fieldWithCasing] = dateValue?.toFormat('yyyy-MM-dd') || null
             break
 
           case 'decimal':
-            const roundValue: number | null | undefined = this.getAttributeValue(attributeStatement)
+            roundValue = this.getAttributeValue(attributeStatement)
 
             returnObj[fieldWithCasing] =
               typeof roundValue === 'number' ? round(roundValue, options?.precision) : null
@@ -150,7 +154,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
       ? associationStatement.serializerClassCB()
       : (associatedData as Dream)?.serializer
 
-    if (!serializerClass) throw new MissingSerializer(associatedData.constructor)
+    if (!serializerClass) throw new MissingSerializer(associatedData.constructor as typeof Dream)
     return new serializerClass(associatedData).passthrough(this.passthroughData).render()
   }
 
@@ -198,6 +202,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     const valueOrCb = pathToValue[field]
 
     if (attributeStatement.functional) {
+      // eslint-disable-next-line
       return valueOrCb.call(this, this.data)
     } else {
       return valueOrCb

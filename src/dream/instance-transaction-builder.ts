@@ -3,7 +3,6 @@ import DreamTransaction from './transaction'
 import saveDream from './internal/saveDream'
 import destroyDream from './internal/destroyDream'
 import {
-  UpdateablePropertiesForClass,
   UpdateableProperties,
   DreamConstructorType,
   NextJoinsWherePluckArgumentType,
@@ -102,11 +101,10 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
 
   public async pluckEachThrough<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DreamClass extends DreamConstructorType<DreamInstance>,
     DB extends DreamInstance['DB'],
     SyncedAssociations extends DreamInstance['syncedAssociations'],
     TableName extends DreamInstance['table'],
-    CB extends (data: any | any[]) => void | Promise<void>,
+    CB extends (data: any) => void | Promise<void>,
     //
     A extends keyof SyncedAssociations[TableName] & string,
     ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
@@ -300,7 +298,6 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   public async createAssociation<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends keyof DreamInstance['syncedAssociations'][DreamInstance['table']],
-    SyncedAssociations extends DreamInstance['syncedAssociations'],
     PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
     AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
       ? ElementType
@@ -346,6 +343,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     const dreamClass = this.dreamInstance.constructor as DreamClass
     const id = this.dreamInstance.primaryKeyValue
 
+    // eslint-disable-next-line
     return dreamClass.txn(this.dreamTransaction).where({ [this.dreamInstance.primaryKey]: id } as any)
   }
 }

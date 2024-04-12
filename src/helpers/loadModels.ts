@@ -7,7 +7,7 @@ import importFileWithDefault from './importFileWithDefault'
 
 let models: { [key: string]: typeof Dream } | null = null
 export default async function loadModels() {
-  if (models) return models!
+  if (models) return models
 
   const pathToModels = await modelsPath()
   const yamlConf = await loadDreamYamlFile()
@@ -17,14 +17,13 @@ export default async function loadModels() {
       : /\.js$/.test(path) && !/index\.js$/.test(path)
   )
   const relativeModelPaths = modelPaths.map(path =>
-    path.replace(new RegExp(`^.*${yamlConf.models_path}\/`), '')
+    path.replace(new RegExp(`^.*${yamlConf.models_path}/`), '')
   )
   models = {}
 
   const modelsObj: { [key: string]: typeof Dream | { [key: string]: typeof Dream } } = {}
   let currentRef: any = modelsObj
   for (const modelPath of relativeModelPaths) {
-    const fullPath = path.join(pathToModels, modelPath)
     const relativePath = path.join(
       pathToModels,
       modelPath
@@ -37,7 +36,9 @@ export default async function loadModels() {
     try {
       PossibleModelClass?.prototype?.table
       hasValidTable = true
-    } catch (err) {}
+    } catch (err) {
+      // noop
+    }
 
     if (PossibleModelClass?.isDream && hasValidTable) {
       const ModelClass: typeof Dream = PossibleModelClass
@@ -45,15 +46,14 @@ export default async function loadModels() {
       const pathParts = modelKey.split('/')
       pathParts.forEach((pathPart, index) => {
         const pascalized = pascalize(pathPart)
-        if (index === pathParts.length - 1) {
-        } else {
+        if (index !== pathParts.length - 1) {
           currentRef[pascalized] ||= {}
           currentRef = currentRef[pascalized]
         }
       })
 
       if (pathParts.length > 1) {
-        currentRef[ModelClass!.name] = ModelClass!
+        currentRef[ModelClass.name] = ModelClass
       }
       currentRef = modelsObj
 

@@ -10,7 +10,9 @@ async function dbSeed() {
 
   if (!seed.default) throw 'db/seed.ts file must have an async function as the default export'
 
+  // eslint-disable-next-line
   await seed.default()
+
   console.log('done seeding db!')
   process.exit()
 }

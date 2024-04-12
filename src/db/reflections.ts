@@ -1,5 +1,4 @@
-export type AssociationTableNames<DB extends any, SyncedAssociations extends any> = keyof DB &
-  keyof SyncedAssociations extends never
+export type AssociationTableNames<DB, SyncedAssociations> = keyof DB & keyof SyncedAssociations extends never
   ? unknown
   : keyof DB & keyof SyncedAssociations & string
 export type Tables<DB> = keyof DB

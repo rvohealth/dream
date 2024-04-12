@@ -73,7 +73,7 @@ describe('Query#joins with polymorphic associations', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
       const mylar = await Mylar.create({ user })
-      const latex = await Latex.create({ user })
+      await Latex.create({ user })
       const animal = await Animal.create({ user })
 
       await HeartRating.create({
@@ -96,7 +96,7 @@ describe('Query#joins with polymorphic associations', () => {
   it('from a BelongsTo association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const post = await Post.create({ user })
-    const rating = await Rating.create({ user, rateable: post })
+    await Rating.create({ user, rateable: post })
 
     await expect(Rating.limit(2).joins('rateable').first()).rejects.toThrowError(
       CannotJoinPolymorphicBelongsToError

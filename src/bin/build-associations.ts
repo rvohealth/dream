@@ -1,9 +1,7 @@
 import '../helpers/loadEnv'
-import path from 'path'
 import { promises as fs } from 'fs'
 import loadModels from '../helpers/loadModels'
-import { associationsPath, loadDreamYamlFile } from '../helpers/path'
-import Dream from '../dream'
+import { associationsPath } from '../helpers/path'
 import sortBy from 'lodash.sortby'
 import initializeDream from '../../shared/helpers/initializeDream'
 
@@ -24,7 +22,7 @@ export default async function buildAssociations() {
 buildAssociations()
 
 async function getDBColumns() {
-  const models = sortBy(Object.values(await loadModels()) as (typeof Dream)[], m => m.prototype.table)
+  const models = sortBy(Object.values(await loadModels()), m => m.prototype.table)
   const dbColumns: any = {}
   models.forEach(m => {
     dbColumns[m.prototype.table] = m.prototype.dreamconf.dbColumns[m.prototype.table]
@@ -33,11 +31,14 @@ async function getDBColumns() {
 }
 
 async function writeVirtualColumns(fileStr: string) {
-  const models = Object.values(await loadModels()) as (typeof Dream)[]
+  const models = Object.values(await loadModels())
   const modelsBeforeAdaption: { [key: string]: string[] } = {}
   const dbColumns: any = await getDBColumns()
 
-  Object.keys(dbColumns).forEach(column => {
+  // eslint-disable-next-line
+  const keys = Object.keys(dbColumns)
+
+  keys.forEach(column => {
     modelsBeforeAdaption[column] = []
   })
 
@@ -84,19 +85,25 @@ async function fleshOutAssociations(targetAssociationType?: string) {
   const finalModels: { [key: string]: { [key: string]: string[] } } = {}
   const dbColumns: any = await getDBColumns()
 
-  Object.keys(dbColumns).forEach(column => {
+  // eslint-disable-next-line
+  const keys = Object.keys(dbColumns)
+
+  keys.forEach(column => {
     finalModels[column] = {}
   })
 
   for (const model of models) {
     for (const associationName of model.associationNames) {
+      // eslint-disable-next-line
       const associationMetaData = model.associationMap()[associationName]
       if (targetAssociationType && associationMetaData.type !== targetAssociationType) continue
 
       finalModels[model.prototype.table] ||= {}
 
+      // eslint-disable-next-line
       const dreamClassOrClasses = associationMetaData.modelCB()
       if (Array.isArray(dreamClassOrClasses)) {
+        // eslint-disable-next-line
         const tables: string[] = (dreamClassOrClasses as any[]).map(dreamClass => dreamClass.prototype.table)
         finalModels[model.prototype.table][associationName] ||= []
         finalModels[model.prototype.table][associationName] = [
@@ -105,6 +112,7 @@ async function fleshOutAssociations(targetAssociationType?: string) {
         ]
       } else {
         finalModels[model.prototype.table][associationName] ||= []
+        // eslint-disable-next-line
         finalModels[model.prototype.table][associationName].push(dreamClassOrClasses.prototype.table)
       }
 
@@ -122,7 +130,11 @@ async function setEmptyAssociationObjectsToFalse(models: {
   [key: string]: { [key: string]: string[] } | boolean
 }) {
   const dbColumns: any = await getDBColumns()
-  Object.keys(dbColumns).forEach(column => {
+
+  // eslint-disable-next-line
+  const keys = Object.keys(dbColumns)
+
+  keys.forEach(column => {
     if (Object.keys(models[column]).length === 0) models[column] = false
   })
 }

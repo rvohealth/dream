@@ -12,7 +12,8 @@ export function marshalDBValue<
   TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
   Table extends DB[keyof DB] = DB[TableName],
 >(dreamClass: T, column: keyof Table, value: any) {
-  if (value !== null && value !== undefined && isDecimalColumn(dreamClass, column)) return parseFloat(value)
+  if (value !== null && value !== undefined && isDecimalColumn(dreamClass, column))
+    return parseFloat(value as string)
 
   if (value?.constructor === Date) {
     if (isDateColumn(dreamClass, column)) {
@@ -31,7 +32,7 @@ export function marshalDBValue<
   }
 
   if (isDatabaseArrayColumn(dreamClass, column)) {
-    return marshalDBArrayValue(dreamClass, value)
+    return marshalDBArrayValue(dreamClass, value as string)
   }
 
   return value

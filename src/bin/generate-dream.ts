@@ -5,7 +5,7 @@ async function _generateDream() {
   await initializeDream()
 
   const argv = process.argv.filter(arg => !/^--/.test(arg))
-  let name = argv[2]
+  const name = argv[2]
   const args = argv.slice(3, argv.length)
   await generateDream(name, args)
   process.exit()

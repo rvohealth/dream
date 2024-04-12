@@ -77,6 +77,7 @@ export default class LoadBuilder<DreamInstance extends Dream> {
 
   public async execute(): Promise<DreamInstance> {
     if (this.dreamTransaction) {
+      // eslint-disable-next-line
       this.query = this.query.txn(this.dreamTransaction)
     }
 

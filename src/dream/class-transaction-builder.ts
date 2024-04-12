@@ -75,8 +75,8 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     this: I,
     opts?: UpdateablePropertiesForClass<DreamClass>
   ): Promise<InstanceType<DreamClass>> {
-    const dream = this.dreamClass.new(opts) as InstanceType<DreamClass>
-    return saveDream<InstanceType<DreamClass>>(dream, this.dreamTransaction as any)
+    const dream = this.dreamClass.new(opts)
+    return saveDream<InstanceType<DreamClass>>(dream, this.dreamTransaction)
   }
 
   public async find<
@@ -91,6 +91,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
       keyof InstanceType<I['dreamClass']>['dreamconf']['interpretedDB'][TableName]]
   ): Promise<InstanceType<DreamClass> | null> {
     return await this.queryInstance()
+      // eslint-disable-next-line
       .where({ [this.dreamClass.primaryKey]: id } as any)
       .first()
   }
@@ -103,6 +104,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     attributes: Updateable<DB[InstanceType<DreamClass>['table']]>
   ): Promise<InstanceType<DreamClass> | null> {
     return await this.queryInstance()
+      // eslint-disable-next-line
       .where(attributes as any)
       .first()
   }
@@ -283,7 +285,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     DB extends I['DB'],
     SyncedAssociations extends I['syncedAssociations'],
     TableName extends I['table'],
-    CB extends (data: any | any[]) => void | Promise<void>,
+    CB extends (data: any) => void | Promise<void>,
     //
     A extends keyof SyncedAssociations[TableName] & string,
     ATableName extends (SyncedAssociations[TableName][A & keyof SyncedAssociations[TableName]] &
@@ -387,6 +389,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     this: I,
     arg: DreamClassColumns<DreamClass> | Partial<Record<DreamClassColumns<DreamClass>, OrderDir>> | null
   ) {
+    // eslint-disable-next-line
     return this.queryInstance().order(arg as any) as Query<DreamClass>
   }
 
@@ -395,6 +398,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     TableName extends InstanceType<DreamClass>['table'],
     ColumnType extends DreamClassColumns<DreamClass>,
   >(this: I, ...fields: (ColumnType | `${TableName}.${ColumnType}`)[]) {
+    // eslint-disable-next-line
     return await this.queryInstance().pluck(...(fields as any[]))
   }
 
@@ -411,6 +415,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     I extends DreamClassTransactionBuilder<DreamClass>,
     AllColumns extends InstanceType<DreamClass>['allColumns'],
   >(this: I, passthroughWhereStatement: PassthroughWhere<AllColumns>): Query<DreamClass> {
+    // eslint-disable-next-line
     return this.queryInstance().passthrough(passthroughWhereStatement as any)
   }
 
@@ -423,6 +428,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     >['table'] &
       keyof DB,
   >(this: I, attributes: WhereStatement<DB, SyncedAssociations, TableName>): Query<DreamClass> {
+    // eslint-disable-next-line
     return this.queryInstance().where(attributes as any)
   }
 
@@ -435,6 +441,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     >['table'] &
       keyof DB,
   >(this: I, attributes: WhereStatement<DB, SyncedAssociations, TableName>[]): Query<DreamClass> {
+    // eslint-disable-next-line
     return this.queryInstance().whereAny(attributes as any)
   }
 
@@ -447,6 +454,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     >['table'] &
       keyof DB,
   >(this: I, attributes: WhereStatement<DB, SyncedAssociations, TableName>): Query<DreamClass> {
+    // eslint-disable-next-line
     return this.queryInstance().whereNot(attributes as any)
   }
 }
