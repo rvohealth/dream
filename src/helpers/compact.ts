@@ -27,7 +27,6 @@ export default function compact<
       : never,
 >(obj: T): RetType {
   if (Array.isArray(obj)) {
-    // eslint-disable-next-line
     return obj.filter(val => ![undefined, null].includes(val)) as RetType
   } else {
     return Object.fromEntries(Object.entries(obj).filter(([, v]) => v != null)) as RetType

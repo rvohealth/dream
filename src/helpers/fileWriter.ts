@@ -30,7 +30,6 @@ export default async function fileWriter({
     .join('/')
   const dirPartsRelativeToTypeRoot = filepathRelativeToTypeRoot.split('/').slice(0, -1)
 
-  // eslint-disable-next-line
   const newfileFileContents = await contentFunction(newfileClassName, ...contentFunctionAttrs)
 
   // if they are generating a nested newfile path,

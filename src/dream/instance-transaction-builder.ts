@@ -343,7 +343,6 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     const dreamClass = this.dreamInstance.constructor as DreamClass
     const id = this.dreamInstance.primaryKeyValue
 
-    // eslint-disable-next-line
     return dreamClass.txn(this.dreamTransaction).where({ [this.dreamInstance.primaryKey]: id } as any)
   }
 }

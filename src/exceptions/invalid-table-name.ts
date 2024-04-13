@@ -8,7 +8,6 @@ export default class InvalidTableName extends Error {
   }
 
   public get message() {
-    // eslint-disable-next-line
     const keys: string[] = Object.keys(this.dbTypeCache)
 
     return `

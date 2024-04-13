@@ -35,7 +35,6 @@ async function writeVirtualColumns(fileStr: string) {
   const modelsBeforeAdaption: { [key: string]: string[] } = {}
   const dbColumns: any = await getDBColumns()
 
-  // eslint-disable-next-line
   const keys = Object.keys(dbColumns)
 
   keys.forEach(column => {
@@ -85,7 +84,6 @@ async function fleshOutAssociations(targetAssociationType?: string) {
   const finalModels: { [key: string]: { [key: string]: string[] } } = {}
   const dbColumns: any = await getDBColumns()
 
-  // eslint-disable-next-line
   const keys = Object.keys(dbColumns)
 
   keys.forEach(column => {
@@ -112,7 +110,6 @@ async function fleshOutAssociations(targetAssociationType?: string) {
         ]
       } else {
         finalModels[model.prototype.table][associationName] ||= []
-        // eslint-disable-next-line
         finalModels[model.prototype.table][associationName].push(dreamClassOrClasses.prototype.table)
       }
 
@@ -130,8 +127,6 @@ async function setEmptyAssociationObjectsToFalse(models: {
   [key: string]: { [key: string]: string[] } | boolean
 }) {
   const dbColumns: any = await getDBColumns()
-
-  // eslint-disable-next-line
   const keys = Object.keys(dbColumns)
 
   keys.forEach(column => {

@@ -267,7 +267,6 @@ export default class Query<
       records = (await this.offset(offset).limit(batchSize).all()) as DreamInstance[]
 
       for (const record of records) {
-        // eslint-disable-next-line
         await cb(record)
       }
 
@@ -374,7 +373,6 @@ export default class Query<
   >(a: A, b?: B, c?: C, d?: D, e?: E, f?: F, g?: G) {
     const preloadStatements = cloneDeepSafe(this.preloadStatements)
 
-    // eslint-disable-next-line
     this.fleshOutPreloadStatements(preloadStatements, [a, b, c, d, e, f, g])
 
     return this.clone({ preloadStatements })
@@ -395,7 +393,6 @@ export default class Query<
         preloadStatements[protectAgainstPollutingAssignment(nextStatement)] = {}
       const nextPreload = preloadStatements[nextStatement] as any
 
-      // eslint-disable-next-line
       this.fleshOutPreloadStatements(nextPreload, associationStatements)
     } else if (Array.isArray(nextAssociationStatement)) {
       const nextStatement = nextAssociationStatement
@@ -453,7 +450,6 @@ export default class Query<
       this.joinsWhereStatements
     )
 
-    // eslint-disable-next-line
     this.fleshOutJoinsStatements(joinsStatements, joinsWhereStatements, null, [a, b, c, d, e, f, g])
 
     return this.clone({ joinsStatements, joinsWhereStatements })
@@ -483,7 +479,6 @@ export default class Query<
       >
 
       this.fleshOutJoinsStatements(
-        // eslint-disable-next-line
         nextJoinsStatements as any,
         nextJoinsWhereStatements,
         nextStatement,
@@ -492,7 +487,6 @@ export default class Query<
     } else if (isObject(nextAssociationStatement) && previousAssociationName) {
       const clonedNextAssociationStatement = cloneDeepSafe(nextAssociationStatement)
 
-      // eslint-disable-next-line
       const keys = Object.keys(clonedNextAssociationStatement)
 
       keys.forEach((key: string) => {
@@ -570,7 +564,6 @@ export default class Query<
       this.joinsWhereStatements
     )
     const pluckStatement = [
-      // eslint-disable-next-line
       this.fleshOutPluckThroughStatements(joinsStatements, joinsWhereStatements, null, [
         a,
         b as any,
@@ -583,11 +576,9 @@ export default class Query<
     ].flat() as any[]
 
     const vals = await this.clone({ joinsStatements, joinsWhereStatements }).pluckWithoutMarshalling(
-      // eslint-disable-next-line
       ...pluckStatement
     )
 
-    // eslint-disable-next-line
     const associationNamesToDreamClasses = this.pluckThroughStatementsToDreamClassesMap([
       a,
       b as any,
@@ -701,11 +692,9 @@ export default class Query<
     const onlyColumns: any = fieldArgs.filter((_, index) => index < providedCbIndex)
 
     const pluckStatement = [
-      // eslint-disable-next-line
       this.fleshOutPluckThroughStatements(joinsStatements, joinsWhereStatements, null, onlyColumns),
     ].flat() as any[]
 
-    // eslint-disable-next-line
     const associationNamesToDreamClasses = this.pluckThroughStatementsToDreamClassesMap(fieldArgs)
 
     const baseQuery = this.clone({ joinsStatements, joinsWhereStatements })
@@ -725,7 +714,6 @@ export default class Query<
       results = await baseQuery
         .offset(offset)
         .limit(batchSize)
-        // eslint-disable-next-line
         .pluckWithoutMarshalling(...pluckStatement)
       const plucked = this.pluckValuesToPluckResponse(pluckStatement, results, mapFn)
 
@@ -813,7 +801,6 @@ export default class Query<
       >
 
       return this.fleshOutPluckThroughStatements(
-        // eslint-disable-next-line
         nextJoinsStatements as any,
         nextJoinsWhereStatements,
         nextStatement,
@@ -822,7 +809,6 @@ export default class Query<
     } else if (isObject(nextAssociationStatement) && previousAssociationName) {
       const clonedNextAssociationStatement = cloneDeepSafe(nextAssociationStatement)
 
-      // eslint-disable-next-line
       const keys = Object.keys(clonedNextAssociationStatement)
 
       keys.forEach((key: string) => {
@@ -893,7 +879,6 @@ export default class Query<
       any
     >
 
-    // eslint-disable-next-line
     return query.select(this.namespaceColumn(selection as any))
   }
 
@@ -1047,7 +1032,6 @@ export default class Query<
   ): Promise<any[]> {
     const vals = await this.pluckWithoutMarshalling(...fields)
 
-    // eslint-disable-next-line
     const mapFn = (val: any, index: number) => marshalDBValue(this.dreamClass, fields[index] as any, val)
     return this.pluckValuesToPluckResponse(fields, vals, mapFn)
   }
@@ -1070,7 +1054,6 @@ export default class Query<
 
     const batchSize = providedOpts?.batchSize || Query.BATCH_SIZES.PLUCK_EACH_THROUGH
 
-    // eslint-disable-next-line
     const mapFn = (val: any, index: number) => marshalDBValue(this.dreamClass, fields[index] as any, val)
 
     let offset = 0
@@ -1108,7 +1091,6 @@ export default class Query<
       sqlResultToDreamInstance(this.dreamClass, r)
     ) as InstanceType<DreamClass>[]
 
-    // eslint-disable-next-line
     await this.applyPreload(this.preloadStatements as any, theAll)
 
     return theAll
@@ -1130,8 +1112,7 @@ export default class Query<
   public async first() {
     const query = this.orderStatements.length
       ? this
-      : // eslint-disable-next-line
-        this.order({ [this.dreamClass.primaryKey as any]: 'asc' } as any)
+      : this.order({ [this.dreamClass.primaryKey as any]: 'asc' } as any)
     return await query.takeOne()
   }
 
@@ -1142,7 +1123,6 @@ export default class Query<
     if (results) {
       const theFirst = sqlResultToDreamInstance(this.dreamClass, results) as InstanceType<DreamClass>
 
-      // eslint-disable-next-line
       if (theFirst) await this.applyPreload(this.preloadStatements as any, [theFirst])
 
       return theFirst
@@ -1370,7 +1350,6 @@ export default class Query<
     this: Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
     dream: Dream
   ) {
-    // eslint-disable-next-line
     await this.applyPreload(this.preloadStatements as any, dream)
   }
 
@@ -1379,13 +1358,11 @@ export default class Query<
     preloadStatement: RelaxedPreloadStatement,
     dream: Dream | Dream[]
   ) {
-    // eslint-disable-next-line
     const keys = Object.keys(preloadStatement as any)
 
     for (const key of keys) {
       const nestedDreams = await this.applyOnePreload(key, dream)
       if (nestedDreams) {
-        // eslint-disable-next-line
         await this.applyPreload((preloadStatement as any)[key], nestedDreams)
       }
     }
@@ -1394,8 +1371,7 @@ export default class Query<
   public async last() {
     const query = this.orderStatements.length
       ? this.invertOrder()
-      : // eslint-disable-next-line
-        this.order({ [this.dreamClass.primaryKey as any]: 'desc' } as any)
+      : this.order({ [this.dreamClass.primaryKey as any]: 'desc' } as any)
 
     return await query.takeOne()
   }
@@ -1406,7 +1382,6 @@ export default class Query<
   }
 
   public async destroyBy(attributes: Updateable<InstanceType<DreamClass>['table']>) {
-    // eslint-disable-next-line
     const query = this.where(attributes as any)
 
     if (query.hasSimilarityClauses) {
@@ -2031,7 +2006,6 @@ export default class Query<
             throw new Error('Similarity operator may not be used in whereAny')
           }
 
-          // eslint-disable-next-line
           const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val)
 
           // postgres is unable to handle WHERE IN statements with blank arrays, such as in
@@ -2221,12 +2195,10 @@ export default class Query<
       kyselyQuery = kyselyQuery.where((eb: ExpressionBuilder<any, any>) => {
         const whereStatement = query
           .aliasWhereStatements(query.whereStatements, query.baseSqlAlias)
-          // eslint-disable-next-line
           .flatMap(statement => this.whereStatementsToExpressionWrappers(eb, statement))
 
         const whereNotStatement = query
           .aliasWhereStatements(query.whereNotStatements, query.baseSqlAlias)
-          // eslint-disable-next-line
           .flatMap(statement => this.whereStatementsToExpressionWrappers(eb, statement, { negate: true }))
 
         const orEbs: ExpressionWrapper<any, any, any>[] = []
@@ -2235,7 +2207,6 @@ export default class Query<
           query.orStatements.forEach(orStatement => {
             const aliasedOrStatementExpressionWrapper = query
               .aliasWhereStatements(orStatement, query.baseSqlAlias)
-              // eslint-disable-next-line
               .map(aliasedOrStatement => this.orStatementsToExpressionWrappers(eb, aliasedOrStatement))
             orEbs.push(eb.or(aliasedOrStatementExpressionWrapper))
           })
@@ -2247,7 +2218,6 @@ export default class Query<
 
     if (!isEmpty(query.joinsWhereStatements)) {
       kyselyQuery = query.recursivelyApplyJoinWhereStatement(
-        // eslint-disable-next-line
         kyselyQuery,
         query.joinsWhereStatements,
         query.baseSqlAlias
@@ -2334,7 +2304,6 @@ export default class Query<
 
     kyselyQuery = this.buildCommon(kyselyQuery)
 
-    // eslint-disable-next-line
     kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery as any, {
       bypassOrder: bypassOrder || !!this.distinctColumn,
     }) as typeof kyselyQuery
@@ -2365,7 +2334,6 @@ export default class Query<
   ): UpdateQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, any, object> {
     let kyselyQuery = this.dbFor('update')
       .updateTable(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
-      // eslint-disable-next-line
       .set(attributes as any)
 
     kyselyQuery = this.conditionallyAttachSimilarityColumnsToUpdate(kyselyQuery)
@@ -2448,7 +2416,6 @@ export default class Query<
     let query = this.clone({ order: null })
 
     for (const orderStatement of this.orderStatements) {
-      // eslint-disable-next-line
       query = query.order({
         [orderStatement.column]: orderStatement.direction === 'desc' ? 'asc' : 'desc',
       } as any)
