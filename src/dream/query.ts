@@ -1457,11 +1457,7 @@ export default class Query<
     association,
     previousAssociationTableOrAlias,
   }: {
-    query: SelectQueryBuilder<
-      DB,
-      ExtractTableAlias<DB, InstanceType<DreamClass>['table']>,
-      Record<string, never>
-    >
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>
     dreamClass: typeof Dream
     association:
       | HasOneStatement<any, any, any, any>
@@ -1469,11 +1465,7 @@ export default class Query<
       | BelongsToStatement<any, any, any, any>
     previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
   }): {
-    query: SelectQueryBuilder<
-      DB,
-      ExtractTableAlias<DB, InstanceType<DreamClass>['table']>,
-      Record<string, never>
-    >
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>
     dreamClass: typeof Dream
     association:
       | HasOneStatement<any, any, any, any>
@@ -1547,21 +1539,13 @@ export default class Query<
     currentAssociationTableOrAlias,
     originalAssociation,
   }: {
-    query: SelectQueryBuilder<
-      DB,
-      ExtractTableAlias<DB, InstanceType<DreamClass>['table']>,
-      Record<string, never>
-    >
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>
     dreamClass: typeof Dream
     previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
     currentAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
     originalAssociation?: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
   }): {
-    query: SelectQueryBuilder<
-      DB,
-      ExtractTableAlias<DB, InstanceType<DreamClass>['table']>,
-      Record<string, never>
-    >
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>
     association: any
     previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
     currentAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
@@ -1826,19 +1810,11 @@ export default class Query<
     dreamClass,
     previousAssociationTableOrAlias,
   }: {
-    query: SelectQueryBuilder<
-      DB,
-      ExtractTableAlias<DB, InstanceType<DreamClass>['table']>,
-      Record<string, never>
-    >
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>
     joinsStatement: RelaxedJoinsWhereStatement<DB, SyncedAssociations>
     dreamClass: typeof Dream
     previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
-  }): SelectQueryBuilder<
-    DB,
-    ExtractTableAlias<DB, InstanceType<DreamClass>['table']>,
-    Record<string, never>
-  > {
+  }): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object> {
     for (const currentAssociationTableOrAlias of Object.keys(joinsStatement) as TableOrAssociationName<
       InstanceType<DreamClass>['syncedAssociations']
     >[]) {
@@ -1869,11 +1845,7 @@ export default class Query<
   private applyWhereStatements<
     WS extends WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>,
   >(
-    query: SelectQueryBuilder<
-      DB,
-      ExtractTableAlias<DB, InstanceType<DreamClass>['table']>,
-      Record<string, never>
-    >,
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>,
     whereStatements: WS | WS[],
     {
       negate = false,
@@ -1893,11 +1865,7 @@ export default class Query<
     tableNameOrAlias,
     association,
   }: {
-    query: SelectQueryBuilder<
-      DB,
-      ExtractTableAlias<DB, InstanceType<DreamClass>['table']>,
-      Record<string, never>
-    >
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>
     tableNameOrAlias: string
     association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
   }) {
@@ -1920,11 +1888,7 @@ export default class Query<
   }
 
   private applySingleWhereStatement(
-    query: SelectQueryBuilder<
-      DB,
-      ExtractTableAlias<DB, InstanceType<DreamClass>['table']>,
-      Record<string, never>
-    >,
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>,
     whereStatement: WhereStatement<DB, SyncedAssociations, InstanceType<DreamClass>['table']>,
     {
       negate = false,
@@ -2202,11 +2166,7 @@ export default class Query<
     > &
       keyof InstanceType<DreamClass>['syncedAssociations'],
   >(
-    query: SelectQueryBuilder<
-      DB,
-      ExtractTableAlias<DB, InstanceType<DreamClass>['table']>,
-      Record<string, never>
-    >,
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>,
     whereJoinsStatement: RelaxedJoinsWhereStatement<DB, SyncedAssociations>,
     previousAssociationTableOrAlias: TableOrAssociationName<InstanceType<DreamClass>['syncedAssociations']>
   ) {
@@ -2338,7 +2298,7 @@ export default class Query<
   private buildDelete(): DeleteQueryBuilder<
     DB,
     ExtractTableAlias<DB, InstanceType<DreamClass>['table']>,
-    Record<string, never>
+    object
   > {
     const kyselyQuery = this.dbFor('delete').deleteFrom(
       this.baseSqlAlias as unknown as AliasedExpression<any, any>
@@ -2354,12 +2314,8 @@ export default class Query<
   }: {
     bypassSelectAll?: boolean
     bypassOrder?: boolean
-  } = {}): SelectQueryBuilder<
-    DB,
-    ExtractTableAlias<DB, InstanceType<DreamClass>['table']>,
-    Record<string, never>
-  > {
-    let kyselyQuery: SelectQueryBuilder<DB, any, Record<string, never>>
+  } = {}): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object> {
+    let kyselyQuery: SelectQueryBuilder<DB, any, object>
 
     if (this.baseSelectQuery) {
       kyselyQuery = this.baseSelectQuery.buildSelect({ bypassSelectAll: true })
@@ -2406,12 +2362,7 @@ export default class Query<
 
   private buildUpdate(
     attributes: Updateable<InstanceType<DreamClass>['table']>
-  ): UpdateQueryBuilder<
-    DB,
-    ExtractTableAlias<DB, InstanceType<DreamClass>['table']>,
-    any,
-    Record<string, never>
-  > {
+  ): UpdateQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, any, object> {
     let kyselyQuery = this.dbFor('update')
       .updateTable(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
       // eslint-disable-next-line
@@ -2426,17 +2377,8 @@ export default class Query<
   private attachLimitAndOrderStatementsToNonSelectQuery<
     T extends Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType>,
     QueryType extends
-      | UpdateQueryBuilder<
-          DB,
-          ExtractTableAlias<DB, InstanceType<DreamClass>['table']>,
-          any,
-          Record<string, never>
-        >
-      | DeleteQueryBuilder<
-          DB,
-          ExtractTableAlias<DB, InstanceType<DreamClass>['table']>,
-          Record<string, never>
-        >,
+      | UpdateQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, any, object>
+      | DeleteQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>,
   >(this: T, kyselyQuery: QueryType): { kyselyQuery: QueryType; clone: T } {
     if (this.limitStatement || this.orderStatements.length) {
       // eslint-disable-next-line
