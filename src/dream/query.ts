@@ -1,6 +1,7 @@
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { AssociationTableNames } from '../db/reflections'
 import {
+  AssociationStatement,
   LimitStatement,
   OffsetStatement,
   OrderQueryStatement,
@@ -243,11 +244,9 @@ export default class Query<
   ): Promise<(InstanceType<DreamClass> & Dream) | null> {
     if (!id) return null
 
-    // @ts-expect-error too tricky to get the types right here, and not worth the effort since
-    // it does not have an affect on the return type
     return await this.where({
       [this.dreamClass.primaryKey]: id,
-    }).first()
+    } as any).first()
   }
 
   public async findBy(
@@ -1633,12 +1632,11 @@ export default class Query<
           ? currentAssociationTableOrAlias
           : `${to} as ${currentAssociationTableOrAlias}`
 
-      // @ts-expect-error too difficult to compute correct types and no payoff, since this is internal
       query = query.innerJoin(
         joinTableExpression,
         `${previousAssociationTableOrAlias}.${association.foreignKey()}`,
         `${currentAssociationTableOrAlias}.${association.primaryKey()}`
-      )
+      ) as typeof query
     } else {
       const to = association.modelCB().prototype.table
       const joinTableExpression =
@@ -1646,12 +1644,11 @@ export default class Query<
           ? currentAssociationTableOrAlias
           : `${to} as ${currentAssociationTableOrAlias}`
 
-      // @ts-expect-error too difficult to compute correct types and no payoff, since this is internal
       query = query.innerJoin(
         joinTableExpression,
         `${previousAssociationTableOrAlias}.${association.primaryKey()}`,
         `${currentAssociationTableOrAlias}.${association.foreignKey()}`
-      )
+      ) as typeof query
 
       if (association.polymorphic) {
         query = this.applyWhereStatements(
@@ -1801,15 +1798,13 @@ export default class Query<
       })
 
       query = results.query
-      const association = results.association
+      const association = results.association as AssociationStatement
 
       query = this.recursivelyJoin({
         query,
-        // @ts-expect-error too difficult to compute correct types and no payoff, since this is internal
-        joinsStatement: joinsStatement[currentAssociationTableOrAlias],
+        joinsStatement: joinsStatement[currentAssociationTableOrAlias] as any,
 
-        // eslint-disable-next-line
-        dreamClass: association.modelCB(),
+        dreamClass: association.modelCB() as typeof Dream,
         previousAssociationTableOrAlias: currentAssociationTableOrAlias,
       })
     }
@@ -2164,10 +2159,7 @@ export default class Query<
 
         query = this.recursivelyApplyJoinWhereStatement<any>(
           query,
-
-          // @ts-expect-error too difficult to compute correct types and no payoff, since this is internal
-          whereJoinsStatement[currentAssociationTableOrAlias],
-
+          whereJoinsStatement[currentAssociationTableOrAlias] as any,
           currentAssociationTableOrAlias
         )
       }
