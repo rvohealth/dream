@@ -414,12 +414,11 @@ export default class Query<
   public joins<
     TableName extends InstanceType<DreamClass>['table'],
     SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
-    const Const extends any,
-    ConstArr extends readonly any[],
+    ConstArr extends readonly [...any[]],
     // ConstArr extends readonly [keyof SyncedAssociations[TableName] & string, ...any[]],
     // Arr extends readonly [...ConstArr],
     const Arr extends readonly any[] = [...ConstArr, any],
-  >(...args: ConstArr & BruteForceVariadicJoinsArgs<DB, SyncedAssociations, TableName, ConstArr>) {
+  >(...args: ConstArr & VariadicJoinsArgs<DB, SyncedAssociations, TableName, ConstArr>) {
     const joinsStatements = cloneDeepSafe(this.joinsStatements)
 
     const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = cloneDeepSafe(
