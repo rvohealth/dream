@@ -49,7 +49,6 @@ function parsePostgresArray(source: string, transform: any, nested = false) {
       }
 
       if (entry !== null && transform) {
-        // eslint-disable-next-line
         entry = transform(entry)
       }
 

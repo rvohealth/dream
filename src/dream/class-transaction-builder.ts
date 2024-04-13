@@ -387,8 +387,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     this: I,
     arg: DreamClassColumns<DreamClass> | Partial<Record<DreamClassColumns<DreamClass>, OrderDir>> | null
   ) {
-    // eslint-disable-next-line
-    return this.queryInstance().order(arg as any) as Query<DreamClass>
+    return this.queryInstance().order(arg as any)
   }
 
   public async pluck<

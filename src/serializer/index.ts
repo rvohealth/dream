@@ -202,7 +202,6 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     const valueOrCb = pathToValue[field]
 
     if (attributeStatement.functional) {
-      // eslint-disable-next-line
       return valueOrCb.call(this, this.data)
     } else {
       return valueOrCb

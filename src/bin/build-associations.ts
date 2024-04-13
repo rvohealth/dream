@@ -92,17 +92,14 @@ async function fleshOutAssociations(targetAssociationType?: string) {
 
   for (const model of models) {
     for (const associationName of model.associationNames) {
-      // eslint-disable-next-line
       const associationMetaData = model.associationMap()[associationName]
       if (targetAssociationType && associationMetaData.type !== targetAssociationType) continue
 
       finalModels[model.prototype.table] ||= {}
 
-      // eslint-disable-next-line
       const dreamClassOrClasses = associationMetaData.modelCB()
       if (Array.isArray(dreamClassOrClasses)) {
-        // eslint-disable-next-line
-        const tables: string[] = (dreamClassOrClasses as any[]).map(dreamClass => dreamClass.prototype.table)
+        const tables: string[] = dreamClassOrClasses.map(dreamClass => dreamClass.prototype.table)
         finalModels[model.prototype.table][associationName] ||= []
         finalModels[model.prototype.table][associationName] = [
           ...finalModels[model.prototype.table][associationName],

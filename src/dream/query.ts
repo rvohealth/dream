@@ -214,10 +214,7 @@ export default class Query<
         or: opts.or === null ? [] : [...this.orStatements, ...(opts.or || [])],
         order: opts.order === null ? [] : [...this.orderStatements, ...(opts.order || [])],
 
-        // eslint-disable-next-line
-        distinctColumn: (opts.distinctColumn !== undefined
-          ? opts.distinctColumn
-          : this.distinctColumn) as ColumnType | null,
+        distinctColumn: opts.distinctColumn !== undefined ? opts.distinctColumn : this.distinctColumn,
 
         // when passed, preloadStatements, joinsStatements, and joinsWhereStatements are already
         // cloned versions of the `this.` versions, handled in the `preload` and `joins` methods
@@ -961,7 +958,6 @@ export default class Query<
 
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
 
-    // eslint-disable-next-line
     return parseInt(data.tablecount.toString())
   }
 
@@ -1073,11 +1069,9 @@ export default class Query<
 
   private pluckValuesToPluckResponse(fields: any[], vals: any[], mapFn: (value: any, index: number) => any) {
     if (fields.length > 1) {
-      // eslint-disable-next-line
-      return vals.map(arr => arr.map(mapFn)) as any[]
+      return vals.map(arr => arr.map(mapFn))
     } else {
-      // eslint-disable-next-line
-      return vals.flat().map(val => mapFn(val, 0)) as any[]
+      return vals.flat().map(val => mapFn(val, 0))
     }
   }
 
@@ -1159,7 +1153,6 @@ export default class Query<
         .filter(dream => dream.primaryKeyValue === preloadedDreamAndWhatItPointsTo.pointsToPrimaryKey)
         .forEach((dream: any) => {
           if (association.type === 'HasMany') {
-            // eslint-disable-next-line
             dream[association.as].push(preloadedDreamAndWhatItPointsTo.dream)
           } else {
             // in a HasOne context, order clauses will be applied in advance,
@@ -1398,8 +1391,7 @@ export default class Query<
     const res = await executeDatabaseQuery(kyselyQuery, 'execute')
     const resultData = Array.from(res.entries())?.[0]?.[1]
 
-    // eslint-disable-next-line
-    return Number((resultData as any)?.numUpdatedRows || 0)
+    return Number(resultData?.numUpdatedRows || 0)
   }
 
   private conditionallyApplyScopes(): Query<
@@ -1415,7 +1407,6 @@ export default class Query<
     const thisScopes = this.dreamClass['scopes'].default
     let query: Query<DreamClass, DreamInstance, DB, SyncedAssociations, AllColumns, ColumnType> = this
     for (const scope of thisScopes) {
-      // eslint-disable-next-line
       query = (this.dreamClass as any)[scope.method](query)
     }
 
@@ -1743,7 +1734,6 @@ export default class Query<
       const associationScopes = associationClass.scopes.default
 
       for (const scope of associationScopes) {
-        // eslint-disable-next-line
         const tempQuery = associationClass[scope.method](scopesQuery)
         if (tempQuery && tempQuery.constructor === this.constructor) scopesQuery = tempQuery
       }
@@ -2031,11 +2021,9 @@ export default class Query<
             if (expressionBuilderOrWrap === null) {
               expressionBuilderOrWrap = eb(a, b, c)
             } else {
-              // eslint-disable-next-line
               expressionBuilderOrWrap = (expressionBuilderOrWrap as any).and(eb(a, b, c))
             }
 
-            // eslint-disable-next-line
             if (b2) expressionBuilderOrWrap = (expressionBuilderOrWrap as any).and(eb(a2, b2, c2))
             return expressionBuilderOrWrap as any
           }
@@ -2053,7 +2041,6 @@ export default class Query<
     let c2: any = null
 
     if (val instanceof Function && val !== DreamConst.passthrough) {
-      // eslint-disable-next-line
       val = val()
     }
 
@@ -2092,9 +2079,7 @@ export default class Query<
       let rangeEnd = null
 
       if ((val.begin?.constructor || val.end?.constructor) === DateTime) {
-        // eslint-disable-next-line
         rangeStart = val.begin?.toJSDate()
-        // eslint-disable-next-line
         rangeEnd = val.end?.toJSDate()
       } else if ((val.begin?.constructor || val.end?.constructor) === Number) {
         rangeStart = val.begin
@@ -2148,7 +2133,6 @@ export default class Query<
       ]
 
       if (columnValue!.constructor !== Object) {
-        // eslint-disable-next-line
         query = (this as any).applyWhereStatements(query, {
           [`${previousAssociationTableOrAlias}.${String(key)}`]: columnValue,
         })
@@ -2183,7 +2167,6 @@ export default class Query<
     }
 
     if (query.whereStatements.length || query.whereNotStatements.length || query.orStatements.length) {
-      // eslint-disable-next-line
       kyselyQuery = kyselyQuery.where((eb: ExpressionBuilder<any, any>) => {
         const whereStatement = query
           .aliasWhereStatements(query.whereStatements, query.baseSqlAlias)
@@ -2341,11 +2324,9 @@ export default class Query<
       | DeleteQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>,
   >(this: T, kyselyQuery: QueryType): { kyselyQuery: QueryType; clone: T } {
     if (this.limitStatement || this.orderStatements.length) {
-      // eslint-disable-next-line
       kyselyQuery = (kyselyQuery as any).where((eb: any) => {
         const subquery = this.nestedSelect(this.dreamClass.primaryKey)
 
-        // eslint-disable-next-line
         return eb(this.dreamClass.primaryKey as any, 'in', subquery)
       }) as typeof kyselyQuery
 
@@ -2359,7 +2340,6 @@ export default class Query<
   }
 
   private get hasSimilarityClauses() {
-    // eslint-disable-next-line
     return (this as any).similarityStatementBuilder().hasSimilarityClauses
   }
 
