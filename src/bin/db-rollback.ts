@@ -18,5 +18,4 @@ async function dbRollback() {
   process.exit()
 }
 
-// eslint-disable-next-line
-dbRollback()
+void dbRollback()

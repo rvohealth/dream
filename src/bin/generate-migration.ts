@@ -10,5 +10,4 @@ async function _generateMigration() {
   process.exit()
 }
 
-// eslint-disable-next-line
-_generateMigration()
+void _generateMigration()

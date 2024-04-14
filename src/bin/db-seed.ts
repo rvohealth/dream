@@ -16,5 +16,4 @@ async function dbSeed() {
   process.exit()
 }
 
-// eslint-disable-next-line
-dbSeed()
+void dbSeed()

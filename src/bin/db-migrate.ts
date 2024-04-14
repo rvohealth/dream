@@ -14,5 +14,4 @@ async function migrateToLatest() {
   process.exit()
 }
 
-// eslint-disable-next-line
-migrateToLatest()
+void migrateToLatest()

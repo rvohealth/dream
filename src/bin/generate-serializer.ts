@@ -11,5 +11,4 @@ async function _generateSerializer() {
   process.exit()
 }
 
-// eslint-disable-next-line
-_generateSerializer()
+void _generateSerializer()

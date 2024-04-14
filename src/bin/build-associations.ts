@@ -18,8 +18,7 @@ export default async function buildAssociations() {
   process.exit()
 }
 
-// eslint-disable-next-line
-buildAssociations()
+void buildAssociations()
 
 async function getDBColumns() {
   const models = sortBy(Object.values(await loadModels()), m => m.prototype.table)

@@ -27,5 +27,4 @@ async function dbCreate() {
   process.exit()
 }
 
-// eslint-disable-next-line
-dbCreate()
+void dbCreate()

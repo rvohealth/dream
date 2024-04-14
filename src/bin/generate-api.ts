@@ -7,5 +7,4 @@ async function _generateApi() {
   process.exit()
 }
 
-// eslint-disable-next-line
-_generateApi()
+void _generateApi()

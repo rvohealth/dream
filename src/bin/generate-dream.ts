@@ -11,5 +11,4 @@ async function _generateDream() {
   process.exit()
 }
 
-// eslint-disable-next-line
-_generateDream()
+void _generateDream()

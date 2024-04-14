@@ -38,7 +38,7 @@ export default class DreamDbConnection {
   }
 }
 
-// eslint-disable-next-line
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function sslConfig(connectionConf: DbConnectionConfig) {
   // TODO: properly configure (https://rvohealth.atlassian.net/browse/PDTC-2914)
   return {
