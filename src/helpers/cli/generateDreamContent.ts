@@ -142,7 +142,7 @@ export default class ${pascalize(modelName.split('/').pop()!)} extends Applicati
   }
 
   public get serializer() {
-    // eslint-disable-next-line
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return ${serializerNameFromModelName(modelName)}<any>
   }
 

@@ -39,7 +39,7 @@ describe('Dream AfterCreateCommit decorator', () => {
         jest.spyOn(Sandbag.prototype, 'conditionalAfterCreateCommitHook')
         await mylar.createAssociation('sandbags', { weightKgs: 10 })
 
-        // eslint-disable-next-line
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(Sandbag.prototype.conditionalAfterCreateCommitHook).toHaveBeenCalled()
       })
     })
@@ -49,7 +49,7 @@ describe('Dream AfterCreateCommit decorator', () => {
         jest.spyOn(Sandbag.prototype, 'conditionalAfterCreateCommitHook')
         await mylar.createAssociation('sandbags', { weight: 10 })
 
-        // eslint-disable-next-line
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(Sandbag.prototype.conditionalAfterCreateCommitHook).not.toHaveBeenCalled()
       })
     })

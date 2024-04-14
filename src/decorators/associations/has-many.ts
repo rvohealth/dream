@@ -31,7 +31,7 @@ export default function HasMany<
     primaryKeyOverride = null,
   }: HasManyOptions<BaseInstance, AssociationDreamClass> = {}
 ): any {
-  // eslint-disable-next-line
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return function (target: BaseInstance, key: string, _: any) {
     const dreamClass: typeof Dream = (target as any).constructor
 

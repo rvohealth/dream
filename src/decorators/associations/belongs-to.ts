@@ -25,7 +25,7 @@ export default function BelongsTo<
   return function (
     target: BaseInstance,
     key: string,
-    // eslint-disable-next-line
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _: any
   ) {
     const dreamClass: typeof Dream = (target as any).constructor

@@ -56,10 +56,10 @@ describe('Query#all', () => {
     it('uses primary connection', async () => {
       await User.all()
 
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
 
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith('replica', expect.objectContaining({}))
     })
 
@@ -70,7 +70,7 @@ describe('Query#all', () => {
       it('uses the replica connection', async () => {
         await CustomUser.query().all()
 
-        // eslint-disable-next-line
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('replica', expect.objectContaining({}))
       })
 
@@ -78,10 +78,10 @@ describe('Query#all', () => {
         it('uses the primary connection, despite being ReplicaSafe', async () => {
           await CustomUser.query()['connection']('primary').all()
 
-          // eslint-disable-next-line
+          // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
 
-          // eslint-disable-next-line
+          // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith(
             'replica',
             expect.objectContaining({})

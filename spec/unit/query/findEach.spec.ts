@@ -62,10 +62,10 @@ describe('Query#findEach', () => {
     it('uses primary connection', async () => {
       await User.all()
 
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
 
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith('replica', expect.objectContaining({}))
     })
   })

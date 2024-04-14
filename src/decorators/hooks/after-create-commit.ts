@@ -2,7 +2,7 @@ import Dream from '../../dream'
 import { HookStatement, blankHooksFactory, AfterHookOpts } from './shared'
 
 export default function AfterCreateCommit<T extends Dream | null = null>(opts: AfterHookOpts<T> = {}): any {
-  // eslint-disable-next-line
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return function (target: any, key: string, _: any) {
     const dreamClass: typeof Dream = target.constructor
 

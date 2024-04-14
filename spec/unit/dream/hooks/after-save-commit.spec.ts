@@ -75,7 +75,7 @@ describe('Dream AfterSaveCommit decorator', () => {
         jest.spyOn(Sandbag.prototype, 'conditionalAfterSaveCommitHook')
         await sandbag.update({ weight: 11 })
 
-        // eslint-disable-next-line
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(Sandbag.prototype.conditionalAfterSaveCommitHook).toHaveBeenCalled()
       })
     })
@@ -86,7 +86,7 @@ describe('Dream AfterSaveCommit decorator', () => {
         jest.spyOn(Sandbag.prototype, 'conditionalAfterSaveCommitHook')
         await sandbag.update({ weightKgs: 120 })
 
-        // eslint-disable-next-line
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(Sandbag.prototype.conditionalAfterSaveCommitHook).not.toHaveBeenCalled()
       })
     })

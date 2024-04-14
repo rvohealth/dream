@@ -10,8 +10,7 @@ export type Int8 = ColumnType<string, string | number | bigint, string | number 
 export type Timestamp = ColumnType<DateTime>
 
 export interface DB {
-  // eslint-disable-next-line
-  __placeholder__: {}
+  __placeholder__: object
 }
 
 export const DBColumns = {

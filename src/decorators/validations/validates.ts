@@ -11,7 +11,7 @@ export default function Validates<
         ? string | RegExp
         : never,
 >(type: VT, args?: VTArgs): any {
-  // eslint-disable-next-line
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return function (target: any, key: string, _: any) {
     const t = target.constructor as typeof Dream
     if (!Object.getOwnPropertyDescriptor(t, 'validations'))

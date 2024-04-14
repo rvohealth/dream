@@ -2,7 +2,7 @@ import Dream from '../../dream'
 import { HookStatement, blankHooksFactory } from './shared'
 
 export default function AfterDestroyCommit(): any {
-  // eslint-disable-next-line
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return function (target: any, key: string, _: any) {
     const dreamClass: typeof Dream = target.constructor
 

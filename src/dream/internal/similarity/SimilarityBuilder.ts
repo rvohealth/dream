@@ -280,7 +280,7 @@ export default class SimilarityBuilder<
     const primaryKeyName = this.dreamClass.prototype.primaryKey
     const { tableName, tableAlias, columnName } = similarityStatement
 
-    // eslint-disable-next-line
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     const { ref } = this.dbFor('select').dynamic
 
     const validatedTableAlias = validateTableAlias(tableAlias)

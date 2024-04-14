@@ -5,7 +5,7 @@ export default function Scope(
     default?: boolean
   } = {}
 ): any {
-  // eslint-disable-next-line
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return function (target: any, key: string, _: any) {
     // target is already a typeof Dream here, because scopes
     // can only be set on static methods

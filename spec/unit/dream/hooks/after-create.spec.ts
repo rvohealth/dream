@@ -23,7 +23,7 @@ describe('Dream AfterCreate decorator', () => {
         jest.spyOn(Sandbag.prototype, 'conditionalAfterCreateHook')
         await mylar.createAssociation('sandbags', { weightKgs: 10 })
 
-        // eslint-disable-next-line
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(Sandbag.prototype.conditionalAfterCreateHook).toHaveBeenCalled()
       })
     })
@@ -33,7 +33,7 @@ describe('Dream AfterCreate decorator', () => {
         jest.spyOn(Sandbag.prototype, 'conditionalAfterCreateHook')
         await mylar.createAssociation('sandbags', { weightTons: 10 })
 
-        // eslint-disable-next-line
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(Sandbag.prototype.conditionalAfterCreateHook).not.toHaveBeenCalled()
       })
     })

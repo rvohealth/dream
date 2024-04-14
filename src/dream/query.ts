@@ -727,7 +727,7 @@ export default class Query<
       | WhereStatement<DB, SyncedAssociations, any>
       // TODO: once we find a way to consolidate join types,
       // using dot util helpers being developed over there.
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
       | `${any}.${any}`
       | `${any}.${any}`[]
       | undefined
@@ -769,7 +769,7 @@ export default class Query<
       | WhereStatement<DB, SyncedAssociations, any>
       // TODO: once we find a way to consolidate join types,
       // using dot util helpers being developed over there.
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
       | `${any}.${any}`
       | `${any}.${any}`[]
       | undefined
@@ -943,7 +943,7 @@ export default class Query<
   }
 
   public async count() {
-    // eslint-disable-next-line
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     const { count } = this.dbFor('select').fn
     const distinctColumn = this.distinctColumn
     const query = this.clone({ distinctColumn: null })
@@ -985,7 +985,7 @@ export default class Query<
   }
 
   public async max<PluckThroughFieldType>(field: ColumnType | PluckThroughFieldType) {
-    // eslint-disable-next-line
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     const { max } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true, bypassOrder: true })
 
@@ -997,7 +997,7 @@ export default class Query<
   }
 
   public async min<PluckThroughFieldType>(field: ColumnType | PluckThroughFieldType) {
-    // eslint-disable-next-line
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     const { min } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true, bypassOrder: true })
 
