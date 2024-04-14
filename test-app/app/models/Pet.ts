@@ -21,7 +21,7 @@ export default class Pet extends ApplicationModel {
   }
 
   public get serializer() {
-    return PetSerializer
+    return PetSerializer<any, any>
   }
 
   public id: IdType

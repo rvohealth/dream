@@ -43,7 +43,10 @@ export default class UserSerializer extends DreamSerializer {
 import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
-export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
   @Attribute()
   public loggedInAt: any
 }\
@@ -62,7 +65,10 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
 import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import Admin from '../../models/User/Admin'
 
-export default class UserAdminSerializer<DataType extends Admin> extends DreamSerializer<DataType> {
+export default class UserAdminSerializer<
+  DataType extends Admin,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
   
 }`
           )
@@ -80,7 +86,10 @@ export default class UserAdminSerializer<DataType extends Admin> extends DreamSe
 import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
-export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
   @Attribute('string')
   public howyadoin: string
 }\
@@ -98,7 +107,10 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
 import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
-export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
   @Attribute('number')
   public howyadoin: number
 }\
@@ -116,7 +128,10 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
 import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
-export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
   @Attribute('json')
   public howyadoin: any
 }\
@@ -134,7 +149,10 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
 import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
-export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
   @Attribute('json')
   public howyadoin: any
 }\
@@ -152,7 +170,10 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
 import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
-export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
   @Attribute('decimal', { precision: 2 })
   public howyadoin: number
 }\
@@ -170,7 +191,10 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
 import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
-export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
   @Attribute('number')
   public howyadoin: number
 }\
@@ -188,7 +212,10 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
 import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
-export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
   @Attribute('string')
   public howyadoin: string
 }\
@@ -206,7 +233,10 @@ export default class UserSerializer<DataType extends User> extends DreamSerializ
 import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
-export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
   @Attribute('string')
   public howyadoin: string
 }\
@@ -225,7 +255,10 @@ import { DateTime } from 'luxon'
 import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
-export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
   @Attribute('datetime')
   public loggedInAt: DateTime
 }\
@@ -244,7 +277,10 @@ import { DateTime } from 'luxon'
 import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import User from '../models/User'
 
-export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
   @Attribute('date')
   public loggedInOn: DateTime
 }\
@@ -265,7 +301,10 @@ import { DreamSerializer, Attribute } from '@rvohealth/dream'
 import { ToppingEnum } from '../../../test-app/db/schema'
 import User from '../models/User'
 
-export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
   @Attribute('enum:ToppingEnum')
   public topping: ToppingEnum
 }\
@@ -285,7 +324,10 @@ import { DreamSerializer, Attribute, RendersOne } from '@rvohealth/dream'
 import User from '../models/User'
 import Organization from '../models/Organization'
 
-export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
   @RendersOne()
   public organization: Organization
 }`
@@ -303,7 +345,10 @@ import { DreamSerializer, Attribute, RendersOne } from '@rvohealth/dream'
 import User from '../models/User'
 import Organization from '../models/Organization'
 
-export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
   @RendersOne()
   public organization: Organization
 }`
@@ -321,7 +366,10 @@ import { DreamSerializer, Attribute, RendersMany } from '@rvohealth/dream'
 import User from '../models/User'
 import Organization from '../models/Organization'
 
-export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
   @RendersMany()
   public organizations: Organization[]
 }`
@@ -338,7 +386,10 @@ import { DreamSerializer, Attribute, RendersMany } from '@rvohealth/dream'
 import User from '../models/User'
 import Paper from '../models/Paper'
 
-export default class UserSerializer<DataType extends User> extends DreamSerializer<DataType> {
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
   @RendersMany()
   public paper: Paper[]
 }`
@@ -359,7 +410,10 @@ import { DreamSerializer, Attribute, RendersOne } from '@rvohealth/dream'
 import Admin from '../../models/User/Admin'
 import MyModel from '../../models/Double/Nested/MyModel'
 
-export default class UserAdminSerializer<DataType extends Admin> extends DreamSerializer<DataType> {
+export default class UserAdminSerializer<
+  DataType extends Admin,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
   @RendersOne()
   public myModel: MyModel
 }`

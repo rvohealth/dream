@@ -18,7 +18,7 @@ export default class MealType extends ApplicationModel {
 
   public get serializer() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return MealTypeSerializer<any>
+    return MealTypeSerializer<any, any>
   }
 
   public id: IdType
@@ -48,7 +48,7 @@ export default class MealType extends ApplicationModel {
 
     public get serializer() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return UserSerializer<any>
+      return UserSerializer<any, any>
     }
 
     public id: IdType
@@ -84,7 +84,7 @@ export default class MealType extends ApplicationModel {
 
     public get serializer() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return ChalupaSerializer<any>
+      return ChalupaSerializer<any, any>
     }
 
     public id: IdType
@@ -116,7 +116,7 @@ export default class MealType extends ApplicationModel {
 
     public get serializer() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return PaperSerializer<any>
+      return PaperSerializer<any, any>
     }
 
     public id: IdType
@@ -204,7 +204,7 @@ export default class MealType extends ApplicationModel {
 
     public get serializer() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return CompositionSerializer<any>
+      return CompositionSerializer<any, any>
     }
 
     public id: IdType
@@ -237,7 +237,7 @@ export default class MealType extends ApplicationModel {
 
     public get serializer() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return CatToySerializer<any>
+      return CatToySerializer<any, any>
     }
 
     public id: IdType
@@ -269,7 +269,7 @@ export default class MealType extends ApplicationModel {
 
     public get serializer() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return CatToySerializer<any>
+      return CatToySerializer<any, any>
     }
 
     public id: IdType
@@ -300,7 +300,7 @@ export default class MealType extends ApplicationModel {
 
     public get serializer() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return CatToySerializer<any>
+      return CatToySerializer<any, any>
     }
 
     public id: IdType
@@ -331,7 +331,7 @@ export default class MealType extends ApplicationModel {
 
     public get serializer() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return PetDomesticCatSerializer<any>
+      return PetDomesticCatSerializer<any, any>
     }
 
     public id: IdType
@@ -363,7 +363,7 @@ export default class MealType extends ApplicationModel {
 
     public get serializer() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return PetDomesticCatSerializer<any>
+      return PetDomesticCatSerializer<any, any>
     }
 
     public id: IdType
@@ -395,7 +395,7 @@ export default class MealType extends ApplicationModel {
 
     public get serializer() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return PetWildCatSerializer<any>
+      return PetWildCatSerializer<any, any>
     }
 
     public id: IdType
@@ -429,7 +429,7 @@ export default class MealType extends ApplicationModel {
 
     public get serializer() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return CompositionSerializer<any>
+      return CompositionSerializer<any, any>
     }
 
     public id: IdType
@@ -467,7 +467,7 @@ export default class MealType extends ApplicationModel {
 
     public get serializer() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return CompositionSerializer<any>
+      return CompositionSerializer<any, any>
     }
 
     public id: IdType
@@ -500,7 +500,7 @@ export default class MealType extends ApplicationModel {
 
     public get serializer() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return UserSerializer<any>
+      return UserSerializer<any, any>
     }
 
     public id: IdType
@@ -533,7 +533,7 @@ export default class MealType extends ApplicationModel {
 
     public get serializer() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return CompositionSerializer<any>
+      return CompositionSerializer<any, any>
     }
 
     public id: IdType
@@ -567,7 +567,7 @@ export default class User extends ApplicationModel {
 
   public get serializer() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return UserSerializer<any>
+    return UserSerializer<any, any>
   }
 
   public id: IdType

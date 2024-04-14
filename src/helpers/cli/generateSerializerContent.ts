@@ -24,8 +24,11 @@ export default async function generateSerializerContent(
   if (fullyQualifiedModelName) {
     relatedModelImport = importStatementForModel(fullyQualifiedSerializerName, fullyQualifiedModelName)
     modelClass = classNameFromRawStr(fullyQualifiedModelName)
-    dataTypeCapture = `<DataType extends ${modelClass}>`
-    dreamSerializerTypeArgs = `<DataType>`
+    dataTypeCapture = `<
+  DataType extends ${modelClass},
+  Passthrough extends object
+>`
+    dreamSerializerTypeArgs = `<DataType, Passthrough>`
   }
 
   const luxonImport = hasDateTimeType(attributes) ? "import { DateTime } from 'luxon'\n" : ''
