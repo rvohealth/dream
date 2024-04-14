@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import snakeify from '../../../shared/helpers/snakeify'
+import snakeify from '../../../src/helpers/snakeify'
 
 describe('snakeify', () => {
   context('when passed a string', () => {

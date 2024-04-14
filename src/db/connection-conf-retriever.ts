@@ -1,6 +1,6 @@
-import { DbConfig, DbConnectionConfig } from '../../shared/helpers/path/types'
+import { DbConfig, DbConnectionConfig } from '../helpers/path/types'
 import { DbConnectionType } from './types'
-import Dreamconf from '../../shared/dreamconf'
+import Dreamconf from '../helpers/dreamconf'
 
 export default class ConnectionConfRetriever {
   public dbConfig: DbConfig

@@ -1,7 +1,7 @@
 import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import { DbConnectionType } from '../../../src/db/types'
-import { DbConnectionConfig } from '../../../shared/helpers/path/types'
-import Dreamconf from '../../../shared/dreamconf'
+import { DbConnectionConfig } from '../../../src/helpers/path/types'
+import Dreamconf from '../../../src/helpers/dreamconf'
 
 describe('ConnectionConfRetriever', () => {
   const getConfig = () =>

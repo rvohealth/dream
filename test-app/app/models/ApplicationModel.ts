@@ -5,7 +5,7 @@ import SyncedAssociationsVal, {
   SyncedBelongsToAssociations,
   VirtualColumns,
 } from '../../db/associations'
-import Dreamconf, { AssociationDepths } from '../../../shared/dreamconf'
+import Dreamconf, { AssociationDepths } from '../../../src/helpers/dreamconf'
 import dreamconf from '../conf/dreamconf'
 
 export default class ApplicationModel extends Dream {

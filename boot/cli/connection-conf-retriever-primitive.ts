@@ -1,5 +1,5 @@
-import loadDreamconfFile from '../../shared/helpers/path/loadDreamconfFile'
-import { DbConnectionConfig } from '../../shared/helpers/path/types'
+import loadDreamconfFile from '../../src/helpers/path/loadDreamconfFile'
+import { DbConnectionConfig } from '../../src/helpers/path/types'
 
 export type DbConnectionType = 'primary' | 'replica'
 

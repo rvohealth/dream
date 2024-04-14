@@ -12,7 +12,7 @@ import { HasOneStatement } from './has-one'
 import CurriedOpsStatement from '../../ops/curried-ops-statement'
 import { MergeUnionOfRecordTypes } from '../../helpers/typeutils'
 import { checkForeignKey } from '../../exceptions/associations/explicit-foreign-key'
-import camelize from '../../../shared/helpers/camelize'
+import camelize from '../../helpers/camelize'
 import NonLoadedAssociation from '../../exceptions/associations/non-loaded-association'
 import associationToGetterSetterProp from './associationToGetterSetterProp'
 

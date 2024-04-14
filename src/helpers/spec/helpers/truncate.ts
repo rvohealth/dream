@@ -1,5 +1,5 @@
 import { Client } from 'pg'
-import loadDBConfig from '../../../src/helpers/loadDBConfig'
+import loadDBConfig from '../../loadDBConfig'
 
 export default async function truncate() {
   // this was only ever written to clear the db between tests,

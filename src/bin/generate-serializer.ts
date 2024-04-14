@@ -1,4 +1,4 @@
-import initializeDream from '../../shared/helpers/initializeDream'
+import initializeDream from '../helpers/initializeDream'
 import generateSerializer from '../helpers/cli/generateSerializer'
 
 async function _generateSerializer() {

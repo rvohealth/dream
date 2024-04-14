@@ -1,9 +1,9 @@
 import pascalize from '../../../src/helpers/pascalize'
-import camelize from '../../../shared/helpers/camelize'
+import camelize from '../camelize'
 import uniq from '../uniq'
 import { loadDreamYamlFile } from '../path'
-import initializeDream from '../../../shared/helpers/initializeDream'
-import factoriesRelativePath from '../../../shared/helpers/path/factoriesRelativePath'
+import initializeDream from '../initializeDream'
+import factoriesRelativePath from '../path/factoriesRelativePath'
 
 export default async function generateFactoryContent(
   modelName: string,

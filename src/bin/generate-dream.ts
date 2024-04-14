@@ -1,4 +1,4 @@
-import initializeDream from '../../shared/helpers/initializeDream'
+import initializeDream from '../helpers/initializeDream'
 import generateDream from '../helpers/cli/generateDream'
 
 async function _generateDream() {

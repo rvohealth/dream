@@ -1,4 +1,4 @@
-import { exec, spawn } from 'child_process'
+import { spawn } from 'child_process'
 
 export default function sspawn(command: string, opts: any = {}) {
   return new Promise((accept, reject) => {

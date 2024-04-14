@@ -1,5 +1,5 @@
 import pluralize from 'pluralize'
-import snakeify from '../../../shared/helpers/snakeify'
+import snakeify from '../snakeify'
 import { PrimaryKeyType } from '../../dream/types'
 import InvalidDecimalFieldPassedToGenerator from '../../exceptions/invalid-decimal-field-passed-to-generator'
 import foreignKeyTypeFromPrimaryKey from '../db/foreignKeyTypeFromPrimaryKey'

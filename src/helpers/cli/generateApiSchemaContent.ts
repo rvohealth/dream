@@ -1,4 +1,4 @@
-import serializersPath from '../../../shared/helpers/path/serializersPath'
+import serializersPath from '../path/serializersPath'
 import getFiles from '../getFiles'
 import DreamSerializer from '../../serializer'
 import { SerializableTypes } from '../../serializer/decorators/attribute'

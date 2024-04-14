@@ -1,8 +1,8 @@
 import '../helpers/loadEnv'
 import createDb from '../helpers/db/createDb'
 import ConnectionConfRetriever from '../db/connection-conf-retriever'
-import loadDreamconfFile from '../../shared/helpers/path/loadDreamconfFile'
-import initializeDream from '../../shared/helpers/initializeDream'
+import loadDreamconfFile from '../helpers/path/loadDreamconfFile'
+import initializeDream from '../helpers/initializeDream'
 
 async function dbCreate() {
   await initializeDream()

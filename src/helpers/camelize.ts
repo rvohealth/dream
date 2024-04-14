@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
-import uncapitalize from '../../src/helpers/uncapitalize'
-import { isObject } from '../../src/helpers/typechecks'
+import uncapitalize from './uncapitalize'
+import { isObject } from './typechecks'
 
 export default function camelize<
   T extends string | { [key: string]: any } | (string | { [key: string]: any })[],
@@ -23,13 +23,13 @@ export default function camelize<
     return Object.keys(obj).reduce((agg, s) => {
       switch (obj[s]?.constructor) {
         case DateTime:
-          agg[camelize(s) as string] = obj[s]
+          agg[camelize(s)] = obj[s]
           break
 
         default:
-          if ([null, undefined].includes(obj[s])) agg[camelize(s) as string] = obj[s]
+          if ([null, undefined].includes(obj[s])) agg[camelize(s)] = obj[s]
           else if (isObject(obj[s])) return camelize(obj[s])
-          else agg[camelize(s) as string] = obj[s]
+          else agg[camelize(s)] = obj[s]
       }
       return agg
     }, agg) as RT

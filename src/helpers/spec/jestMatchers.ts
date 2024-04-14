@@ -3,23 +3,22 @@ import sortBy from 'lodash.sortby'
 import {
   EXPECTED_COLOR,
   RECEIVED_COLOR,
-  matcherErrorMessage,
   matcherHint,
   printDiffOrStringify,
   printExpected,
   printReceived,
-  printWithType,
   stringify,
 } from 'jest-matcher-utils'
-import Dream from '../../src/dream'
+import Dream from '../../dream'
 
 const EXPECTED_LABEL = 'Expected'
 const RECEIVED_LABEL = 'Received'
 const ERROR_COLOR = RECEIVED_COLOR
-const isExpand = (expand?: boolean): boolean => expand !== false
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Matchers<R> {
       toMatchDreamModel(expected: any): CustomMatcherResult
       toMatchDreamModels(expected: any): CustomMatcherResult
@@ -131,7 +130,6 @@ export function expectMatchingDreamModels(
 
     message = pass
       ? () =>
-          // eslint-disable-next-line prefer-template
           matcherHint(matcherName) +
           '\n\n' +
           `Expected: not ${printExpected(comparableExpected)}` +
@@ -139,7 +137,6 @@ export function expectMatchingDreamModels(
             ? `\nReceived:     ${printReceived(comparableReceived)}`
             : '')
       : () =>
-          // eslint-disable-next-line prefer-template
           matcherHint(matcherName) +
           '\n\n' +
           printDiffOrStringify(

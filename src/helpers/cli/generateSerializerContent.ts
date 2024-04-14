@@ -1,8 +1,8 @@
 import path from 'path'
 import pluralize from 'pluralize'
-import camelize from '../../../shared/helpers/camelize'
+import camelize from '../camelize'
 import pascalize from '../pascalize'
-import initializeDream from '../../../shared/helpers/initializeDream'
+import initializeDream from '../initializeDream'
 import { loadDreamYamlFile } from '../path'
 import uniq from '../uniq'
 

@@ -1,4 +1,4 @@
-import loadDreamconfFile from '../../shared/helpers/path/loadDreamconfFile'
+import loadDreamconfFile from './path/loadDreamconfFile'
 import ConnectionConfRetriever from '../db/connection-conf-retriever'
 import { DbConnectionType } from '../db/types'
 

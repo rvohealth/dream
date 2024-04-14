@@ -1,11 +1,11 @@
 import path from 'path'
 import pluralize from 'pluralize'
 import pascalize from '../../../src/helpers/pascalize'
-import camelize from '../../../shared/helpers/camelize'
-import snakeify from '../../../shared/helpers/snakeify'
+import camelize from '../camelize'
+import snakeify from '../snakeify'
 import uniq from '../uniq'
 import { loadDreamYamlFile } from '../path'
-import initializeDream from '../../../shared/helpers/initializeDream'
+import initializeDream from '../initializeDream'
 
 const cooercedTypes = {
   bigint: 'string',

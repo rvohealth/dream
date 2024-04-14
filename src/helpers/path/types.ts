@@ -1,4 +1,4 @@
-import { PrimaryKeyType } from '../../../src/dream/types'
+import { PrimaryKeyType } from '../../dream/types'
 
 export interface DreamYamlFile {
   models_path: string

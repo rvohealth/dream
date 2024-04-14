@@ -1,6 +1,6 @@
 {
   "name": "@rvohealth/dream",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "dream orm",
   "main": "src/index.ts",
   "repository": "https://github.com/rvohealth/dream.git",
@@ -35,7 +35,7 @@
     "types:trace": "rm -rf dist && APP_ROOT_PATH=$(pwd) npx tsc -p ./tsconfig.build.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
     "types:trace-test-app": "rm -rf dist && APP_ROOT_PATH=$(pwd) npx tsc -p ./tsconfig.trace.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
     "format": "yarn run prettier . --write",
-    "lint": "yarn run eslint --no-warn-ignored \"src/**/*.ts\" \"spec/**/*.ts\" \"test-app/**/*.ts\" && yarn run prettier . --check"
+    "lint": "yarn run eslint --no-warn-ignored \"src/**/*.ts\" \"spec/**/*.ts\" \"test-app/**/*.ts\" \"boot/**/*.ts\" && yarn run prettier . --check"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"

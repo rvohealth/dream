@@ -3,7 +3,7 @@
 // would be the most stable moving forward, especially if we ever decide to
 // build to dist, since directory structures morph in those contexts.
 import path from 'path'
-import dreamOrPsychicCoreDevelopment from '../../shared/helpers/dreamOrPsychicCoreDevelopment'
+import dreamOrPsychicCoreDevelopment from './dreamOrPsychicCoreDevelopment'
 
 export default function absoluteFilePath(filePath: string) {
   if (dreamOrPsychicCoreDevelopment()) {

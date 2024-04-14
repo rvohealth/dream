@@ -1,4 +1,4 @@
-import initializeDream from '../../shared/helpers/initializeDream'
+import initializeDream from '../helpers/initializeDream'
 import generateMigration from '../helpers/cli/generateMigration'
 
 async function _generateMigration() {

@@ -1,5 +1,5 @@
 import dreamconfPath from './dreamconfPath'
-import Dreamconf from '../../dreamconf'
+import Dreamconf from '../dreamconf'
 
 let _dreamconfCache: Dreamconf | null = null
 

@@ -17,7 +17,7 @@ export default class MealType extends ApplicationModel {
   }
 
   public get serializer() {
-    // eslint-disable-next-line
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return MealTypeSerializer<any>
   }
 
@@ -47,7 +47,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return UserSerializer<any>
     }
 
@@ -83,7 +83,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return ChalupaSerializer<any>
     }
 
@@ -115,7 +115,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return PaperSerializer<any>
     }
 
@@ -203,7 +203,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return CompositionSerializer<any>
     }
 
@@ -236,7 +236,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return CatToySerializer<any>
     }
 
@@ -268,7 +268,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return CatToySerializer<any>
     }
 
@@ -299,7 +299,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return CatToySerializer<any>
     }
 
@@ -330,7 +330,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return PetDomesticCatSerializer<any>
     }
 
@@ -362,7 +362,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return PetDomesticCatSerializer<any>
     }
 
@@ -394,7 +394,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return PetWildCatSerializer<any>
     }
 
@@ -428,7 +428,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return CompositionSerializer<any>
     }
 
@@ -466,7 +466,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return CompositionSerializer<any>
     }
 
@@ -499,7 +499,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return UserSerializer<any>
     }
 
@@ -532,7 +532,7 @@ export default class MealType extends ApplicationModel {
     }
 
     public get serializer() {
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return CompositionSerializer<any>
     }
 
@@ -566,7 +566,7 @@ export default class User extends ApplicationModel {
   }
 
   public get serializer() {
-    // eslint-disable-next-line
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return UserSerializer<any>
   }
 

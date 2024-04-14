@@ -1,5 +1,5 @@
 import './cli/helpers/loadAppEnvFromBoot'
-import sspawn from '../shared/helpers/sspawn'
+import sspawn from '../src/helpers/sspawn'
 import pack from '../package.json'
 
 export default async function buildDocs() {
@@ -7,4 +7,5 @@ export default async function buildDocs() {
   await sspawn(`yarn typedoc src/index.ts --tsconfig ./tsconfig.build.json --out docs/${pack.version}`)
   console.log('done!')
 }
-buildDocs()
+
+void buildDocs()

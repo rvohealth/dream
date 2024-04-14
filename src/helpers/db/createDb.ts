@@ -1,7 +1,7 @@
 import loadPgClient from './loadPgClient'
 import { DbConnectionType } from '../../db/types'
 import ConnectionConfRetriever from '../../db/connection-conf-retriever'
-import loadDreamconfFile from '../../../shared/helpers/path/loadDreamconfFile'
+import loadDreamconfFile from '../path/loadDreamconfFile'
 
 export default async function createDb(connection: DbConnectionType, dbName?: string | null) {
   // this was only ever written to clear the db between tests or in development,

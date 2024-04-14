@@ -1,8 +1,8 @@
 import '../helpers/loadEnv'
 import db from '../db'
 import runMigration from '../helpers/db/runMigration'
-import loadDreamconfFile from '../../shared/helpers/path/loadDreamconfFile'
-import initializeDream from '../../shared/helpers/initializeDream'
+import loadDreamconfFile from '../helpers/path/loadDreamconfFile'
+import initializeDream from '../helpers/initializeDream'
 
 async function dbRollback() {
   await initializeDream()

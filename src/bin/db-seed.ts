@@ -1,4 +1,4 @@
-import initializeDream from '../../shared/helpers/initializeDream'
+import initializeDream from '../helpers/initializeDream'
 import '../helpers/loadEnv'
 import { dbSeedPath } from '../helpers/path'
 

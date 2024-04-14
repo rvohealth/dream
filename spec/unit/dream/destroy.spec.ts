@@ -9,7 +9,7 @@ describe('Dream#destroy', () => {
     await user.destroy()
     expect(await User.count()).toEqual(1)
 
-    // eslint-disable-next-line
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect((await User.first())!.attributes).toEqual(user2.attributes)
   })
 

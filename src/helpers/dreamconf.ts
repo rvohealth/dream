@@ -1,14 +1,13 @@
-import { DbConfig } from './helpers/path/types'
+import { DbConfig } from './path/types'
 
 export default class Dreamconf<
-  DB extends any = any,
-  InterpretedDB extends any = any,
-  SyncedAssociations extends any = any,
-  SyncedBelongsToAssociations extends any = any,
-  VirtualColumns extends any = any,
-  AllColumns extends any = any,
-  DBColumns extends any = any,
-  DBTypeCache extends any = any,
+  DB = any,
+  InterpretedDB = any,
+  SyncedAssociations = any,
+  SyncedBelongsToAssociations = any,
+  VirtualColumns = any,
+  DBColumns = any,
+  DBTypeCache = any,
 > {
   public DB: DB
   public interpretedDB: InterpretedDB

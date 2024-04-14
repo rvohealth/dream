@@ -7,7 +7,7 @@
 
 import './cli/helpers/loadAppEnvFromBoot'
 import { Command } from 'commander'
-import sspawn from '../shared/helpers/sspawn'
+import sspawn from '../src/helpers/sspawn'
 import setCoreDevelopmentFlag from './cli/helpers/setCoreDevelopmentFlag'
 import developmentOrTestEnv from './cli/helpers/developmentOrTestEnv'
 import nodeOrTsnodeCmd from './cli/helpers/nodeOrTsnodeCmd'
@@ -218,7 +218,7 @@ program
   )
   .action(async () => {
     const stepArg = cmdargs().find(arg => /--step=\d+/.test(arg))
-    const step = stepArg ? parseInt(stepArg!.replace('--step=', '')) : 1
+    const step = stepArg ? parseInt(stepArg.replace('--step=', '')) : 1
     await sspawn(nodeOrTsnodeCmd(`src/bin/db-rollback.ts`, cmdargs(), { fileArgs: [`${step}`] }))
     await sspawn(
       dreamjsOrDreamtsCmd('sync:types', cmdargs(), {

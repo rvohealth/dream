@@ -2,8 +2,8 @@ import { Kysely, PostgresDialect, CamelCasePlugin } from 'kysely'
 import ConnectionConfRetriever from './connection-conf-retriever'
 import { DbConnectionType } from './types'
 import { Pool } from 'pg'
-import Dreamconf from '../../shared/dreamconf'
-import { DbConnectionConfig } from '../../shared/helpers/path/types'
+import Dreamconf from '../helpers/dreamconf'
+import { DbConnectionConfig } from '../helpers/path/types'
 
 const connections = {} as { [key: string]: Kysely<any> }
 

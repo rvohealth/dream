@@ -9,7 +9,7 @@ import CannotAssociateThroughPolymorphic from '../../../exceptions/associations/
 import MissingThroughAssociation from '../../../exceptions/associations/missing-through-association'
 import MissingThroughAssociationSource from '../../../exceptions/associations/missing-through-association-source'
 import compact from '../../../helpers/compact'
-import debug from '../../../../shared/helpers/debug'
+import debug from '../../../helpers/debug'
 import { singular } from 'pluralize'
 
 export default class LoadIntoModels<

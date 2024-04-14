@@ -3,7 +3,7 @@ import { migrationsPath } from '../path'
 import { promises as fs } from 'fs'
 import path from 'path'
 import db from '../../db'
-import loadDreamconfFile from '../../../shared/helpers/path/loadDreamconfFile'
+import loadDreamconfFile from '../path/loadDreamconfFile'
 
 export default async function runMigration({
   mode = 'migrate',

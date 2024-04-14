@@ -3,7 +3,7 @@ import { Kysely } from 'kysely'
 import Dream from '../dream'
 import { DbConnectionType } from './types'
 import DreamDbConnection from './dream-db-connection'
-import Dreamconf from '../../shared/dreamconf'
+import Dreamconf from '../helpers/dreamconf'
 import { Settings } from 'luxon'
 
 if (process.env.TZ) Settings.defaultZone = process.env.TZ

@@ -1,6 +1,6 @@
 import pluralize from 'pluralize'
 import Dream from '../dream'
-import snakeify from '../../shared/helpers/snakeify'
+import snakeify from '../helpers/snakeify'
 
 export default class MissingTable extends Error {
   public dreamClass: typeof Dream

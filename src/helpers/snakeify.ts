@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { isObject } from '../../src/helpers/typechecks'
+import { isObject } from './typechecks'
 
 export default function snakeify<
   T extends string | { [key: string]: any } | (string | { [key: string]: any })[],
@@ -22,13 +22,13 @@ export default function snakeify<
     return Object.keys(obj).reduce((agg, s) => {
       switch (obj[s]?.constructor) {
         case DateTime:
-          agg[snakeify(s) as string] = obj[s]
+          agg[snakeify(s)] = obj[s]
           break
 
         default:
-          if ([null, undefined].includes(obj[s])) agg[snakeify(s) as string] = obj[s]
+          if ([null, undefined].includes(obj[s])) agg[snakeify(s)] = obj[s]
           else if (isObject(obj[s])) return snakeify(obj[s])
-          else agg[snakeify(s) as string] = obj[s]
+          else agg[snakeify(s)] = obj[s]
       }
 
       return agg

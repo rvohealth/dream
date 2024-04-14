@@ -3,7 +3,7 @@ import { promises as fs } from 'fs'
 import loadModels from '../helpers/loadModels'
 import { associationsPath } from '../helpers/path'
 import sortBy from 'lodash.sortby'
-import initializeDream from '../../shared/helpers/initializeDream'
+import initializeDream from '../helpers/initializeDream'
 
 export default async function buildAssociations() {
   await initializeDream()

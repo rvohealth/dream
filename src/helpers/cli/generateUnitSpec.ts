@@ -1,6 +1,6 @@
 import fs from 'fs/promises'
 import { loadDreamYamlFile } from '../path'
-import unitSpecsPath from '../../../shared/helpers/path/unitSpecsPath'
+import unitSpecsPath from '../path/unitSpecsPath'
 import path from 'path'
 
 export default async function generateUnitSpec(dreamName: string, specSubpath: 'models' | 'controllers') {

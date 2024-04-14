@@ -1,7 +1,7 @@
 import fs from 'fs/promises'
 import path from 'path'
 import generateFactoryContent from './generateFactoryContent'
-import factoriesPath from '../../../shared/helpers/path/factoriesPath'
+import factoriesPath from '../path/factoriesPath'
 
 export default async function generateFactory(dreamName: string, attributes: string[]) {
   const factoriesBasePath = await factoriesPath()

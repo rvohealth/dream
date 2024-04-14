@@ -1,16 +1,16 @@
 import '../src/helpers/loadEnv'
 import _db from '../src/db'
-import loadDreamconfFile from '../shared/helpers/path/loadDreamconfFile'
+import loadDreamconfFile from '../src/helpers/path/loadDreamconfFile'
 import pluralize from 'pluralize'
 import path from 'path'
 import { promises as fs } from 'fs'
-import sspawn from '../shared/helpers/sspawn'
-import compact from '../shared/helpers/compact'
-import snakeify from '../shared/helpers/snakeify'
-import camelize from '../shared/helpers/camelize'
+import sspawn from '../src/helpers/sspawn'
+import compact from '../src/helpers/compact'
+import snakeify from '../src/helpers/snakeify'
+import camelize from '../src/helpers/camelize'
 import ConnectionConfRetriever from './cli/connection-conf-retriever-primitive'
-import loadDreamYamlFile from '../shared/helpers/path/loadDreamYamlFile'
-import shouldOmitDistFolder from '../shared/helpers/path/shouldOmitDistFolder'
+import loadDreamYamlFile from '../src/helpers/path/loadDreamYamlFile'
+import shouldOmitDistFolder from '../src/helpers/path/shouldOmitDistFolder'
 import { Kysely, sql } from 'kysely'
 import uniq from 'lodash.uniq'
 
@@ -18,8 +18,7 @@ export default async function sync() {
   console.log('writing schema...')
   await writeSchema()
 }
-// eslint-disable-next-line
-sync()
+void sync()
 
 async function writeSchema() {
   const yamlConf = await loadDreamYamlFile()
@@ -45,7 +44,7 @@ async function writeSchema() {
   const file = (await fs.readFile(absoluteSchemaPath)).toString()
   const enhancedSchema = await enhanceSchema(file)
 
-  await fs.writeFile(absoluteSchemaWritePath, enhancedSchema as string)
+  await fs.writeFile(absoluteSchemaWritePath, enhancedSchema)
 
   console.log('done enhancing schema!')
   process.exit()
@@ -76,7 +75,7 @@ async function enhanceSchema(file: string) {
   const db = _db('primary', dreamconf)
   const dbTypeMap = await Promise.all(results.map(async result => await buildDBTypeMap(db, result)))
 
-  let transformedNames = compact(results.map(result => transformName(result))) as string[]
+  const transformedNames = compact(results.map(result => transformName(result)))
   const fileWithCoercedTypes = exportedTypesToExportedTypeValues(file)
 
   // BEGIN FILE CONTENTS BUILDING
@@ -201,7 +200,7 @@ function indexInterfaceKeys(str: string) {
 function allColumns(tableInterfaces: string[]) {
   const columns: string[] = uniq(
     compact(tableInterfaces.flatMap(tableInterface => tableInterfaceToColumns(tableInterface)))
-  ).sort() as string[]
+  ).sort()
 
   return `export const AllColumns = [${columns.join(', ')}] as const`
 }
