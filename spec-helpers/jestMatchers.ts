@@ -9,7 +9,7 @@ import {
   printReceived,
   stringify,
 } from 'jest-matcher-utils'
-import Dream from '../../dream'
+import Dream from '../src/dream'
 
 const EXPECTED_LABEL = 'Expected'
 const RECEIVED_LABEL = 'Received'

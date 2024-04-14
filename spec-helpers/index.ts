@@ -1,4 +1,4 @@
-import '../shared/spec/jestMatchers'
-export { default as truncate } from '../shared/spec/helpers/truncate'
+import './jestMatchers'
+export { default as truncate } from './truncate'
 
 export default {}

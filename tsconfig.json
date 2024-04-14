@@ -22,5 +22,5 @@
     "rootDir": "./",
     "outDir": "./dist"
   },
-  "include": ["src/**/*", "shared/**/*", "test-app/**/*", "spec/**/*", "boot/**/*"]
+  "include": ["src/**/*", "shared/**/*", "test-app/**/*", "spec/**/*", "spec-helpers/**/*", "boot/**/*"]
 }

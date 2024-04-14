@@ -1,5 +1,5 @@
-import truncate from '../../src/helpers/spec/helpers/truncate'
-import '../../src/helpers/spec/jestMatchers'
+import truncate from '../../spec-helpers/truncate'
+import '../../spec-helpers/jestMatchers'
 import 'luxon-jest-matchers'
 
 beforeEach(async () => {
