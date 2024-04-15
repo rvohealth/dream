@@ -117,7 +117,7 @@ const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: Compar
   // '@@@',
   // '!!',
   // '<->',
-}
+} as const
 
 export default class Query<
   DreamClass extends typeof Dream,
@@ -1890,7 +1890,7 @@ export default class Query<
           query = query.where(a, negatedB, c)
 
           if (b2) {
-            const negatedB2 = OPERATION_NEGATION_MAP[b2]
+            const negatedB2 = OPERATION_NEGATION_MAP[b2 as keyof typeof OPERATION_NEGATION_MAP]
             if (!negatedB2) throw new Error(`no negation available for comparison operator ${b2}`)
             query.where(a2, negatedB2, c2)
           }
