@@ -14,7 +14,6 @@ import {
   DreamConst,
   JoinsArgumentTypeAssociatedTableNames,
   PreloadArgumentTypeAssociatedTableNames,
-  NextJoinsWhereArgumentType,
   NextPreloadArgumentType,
   RelaxedPreloadStatement,
   RelaxedJoinsStatement,
@@ -31,11 +30,8 @@ import {
   DreamTableSchema,
   DreamClassColumns,
   OrderDir,
-  VariadicJoinsArgs,
-  VariadicJoinsArgs2,
-  VariadicJoinsArgs3,
-  BruteForceVariadicJoinsArgs,
-  Choose,
+  GetLastTableNameFromInput,
+  NextJoinsWhereArgumentType,
 } from './types'
 import {
   AliasedExpression,
@@ -89,6 +85,8 @@ import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../exceptions/ca
 import NoUpdateAllOnJoins from '../exceptions/no-updateall-on-joins'
 import orderByDirection from './internal/orderByDirection'
 import { Path } from './dotpathtypes'
+import { FindString, StringArray } from './meta-types'
+import { Reverse } from 'meta-types'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -414,11 +412,25 @@ export default class Query<
   public joins<
     TableName extends InstanceType<DreamClass>['table'],
     SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
-    ConstArr extends readonly [...any[]],
-    // ConstArr extends readonly [keyof SyncedAssociations[TableName] & string, ...any[]],
-    // Arr extends readonly [...ConstArr],
-    const Arr extends readonly any[] = [...ConstArr, any],
-  >(...args: ConstArr & VariadicJoinsArgs<DB, SyncedAssociations, TableName, ConstArr>) {
+    const T extends readonly any[],
+    FilteredT extends StringArray<T>,
+    SecondToLastTableName = GetLastTableNameFromInput<FilteredT, SyncedAssociations, DreamInstance['table']>,
+    LastAssociations = SyncedAssociations[SecondToLastTableName & keyof SyncedAssociations],
+    LastAssociationName = FindString<Reverse<T>>,
+    LastTableName = (LastAssociations[LastAssociationName & keyof LastAssociations] &
+      (keyof SyncedAssociations)[])[0],
+  >(
+    ...args: [
+      ...T,
+      NextJoinsWhereArgumentType<
+        DB,
+        SyncedAssociations,
+        T['length'] extends 0
+          ? DreamInstance['table'] & keyof SyncedAssociations
+          : LastTableName & keyof SyncedAssociations
+      >,
+    ]
+  ) {
     const joinsStatements = cloneDeepSafe(this.joinsStatements)
 
     const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = cloneDeepSafe(

@@ -14,8 +14,17 @@ import Edge from '../../../../test-app/app/models/Graph/Edge'
 
 // Edge.query().joins('edgeNodes', '')
 Collar.query().joins('pet' as const, 'collars' as const, 'pet' as const, 'collars' as const, 'pet')
-Collar.query().joins('pet' as const, '')
-Collar.query().joins('pet', 'collars')
+Collar.query().joins(
+  'pet',
+  'collars',
+  { hidden: true },
+  'pet',
+  'user',
+  { email: '' },
+  'balloonLines',
+  'balloon'
+)
+Collar.query().joins('pet')
 // Collar.query().joinsExperiment('pet.collars.pet.collars.')
 // Collar.query().joins('pet', '')
 // Balloon.query().joins('sandbags', 'mylar')
