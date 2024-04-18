@@ -242,13 +242,10 @@ type VariadicLoadArgsRecurse<
   ConcreteArgs extends readonly unknown[],
   Depth extends number,
   //
-  ConcreteNthArg extends
-    | (keyof SyncedAssociations[ConcreteTableName] & string)
-    | object = ConcreteArgs[0] extends keyof SyncedAssociations[ConcreteTableName] & string
+  ConcreteNthArg extends keyof SyncedAssociations[ConcreteTableName] &
+    string = ConcreteArgs[0] extends keyof SyncedAssociations[ConcreteTableName] & string
     ? ConcreteArgs[0] & keyof SyncedAssociations[ConcreteTableName] & string
-    : ConcreteArgs[0] extends object
-      ? object
-      : never,
+    : never,
   //
   NextTableName extends keyof SyncedAssociations &
     string = ConcreteNthArg extends keyof SyncedAssociations[ConcreteTableName] & string
