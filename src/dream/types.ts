@@ -330,6 +330,25 @@ export type VariadicPluckThroughArgs<
 ///////////////////////////////
 // VARIADIC PLUCK EACH THROUGH
 ///////////////////////////////
+export type VariadicPluckEachThroughArgs<
+  DB,
+  SyncedAssociations extends object,
+  ConcreteTableName extends keyof SyncedAssociations & string,
+  ConcreteArgs extends readonly unknown[],
+> = VariadicCheckThenRecurse<
+  DB,
+  SyncedAssociations,
+  ConcreteTableName,
+  ConcreteArgs,
+  'pluckEachThrough',
+  0,
+  never,
+  keyof SyncedAssociations[ConcreteTableName] & string
+>
+///////////////////////////////
+// end: VARIADIC PLUCK EACH THROUGH
+///////////////////////////////
+
 type VariadicCheckThenRecurse<
   DB,
   SyncedAssociations extends object,
@@ -457,25 +476,6 @@ type VariadicRecurse<
       NextAssociationName,
       AllowedNextArgValues
     >
-
-export type VariadicPluckEachThroughArgs<
-  DB,
-  SyncedAssociations extends object,
-  ConcreteTableName extends keyof SyncedAssociations & string,
-  ConcreteArgs extends readonly unknown[],
-> = VariadicCheckThenRecurse<
-  DB,
-  SyncedAssociations,
-  ConcreteTableName,
-  ConcreteArgs,
-  'pluckEachThrough',
-  0,
-  never,
-  keyof SyncedAssociations[ConcreteTableName] & string
->
-///////////////////////////////
-// end: VARIADIC PLUCK EACH THROUGH
-///////////////////////////////
 
 type AllowedNextArgValuesForJoins<
   DB,
