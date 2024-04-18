@@ -1969,10 +1969,10 @@ export default class Query<
     selfWhereClause: WhereSelfStatement<any, DB, SyncedAssociations, InstanceType<DreamClass>['table']>
   }) {
     const alphanumericUnderscoreRegexp = /[^a-zA-Z0-9_]/g
-    selfAlias = selfAlias.replaceAll(alphanumericUnderscoreRegexp, '')
+    selfAlias = selfAlias.replace(alphanumericUnderscoreRegexp, '')
 
     return Object.keys(selfWhereClause).reduce((acc, key) => {
-      const selfColumn = selfWhereClause[key]?.replaceAll(alphanumericUnderscoreRegexp, '')
+      const selfColumn = selfWhereClause[key]?.replace(alphanumericUnderscoreRegexp, '')
       if (!selfColumn) return acc
 
       acc[`${associationAlias}.${key}`] = sql.raw(`"${snakeify(selfAlias)}"."${snakeify(selfColumn)}"`)
