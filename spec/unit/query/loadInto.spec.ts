@@ -52,11 +52,4 @@ describe('Query#loadInto', () => {
       expect(compositionAsset.currentLocalizedText).toMatchDreamModel(compositionAssetText1)
     })
   })
-
-  // this is skipped, since it is only here to ensure that types are working
-  // from args a-g, which does not actually need to be run, since if this is
-  // broken, tests will fail to compile due to type errors
-  it.skip('permits types a-g', async () => {
-    await Composition.query().loadInto([], 'user', 'balloons', 'user', 'balloons', 'user', 'balloons')
-  })
 })

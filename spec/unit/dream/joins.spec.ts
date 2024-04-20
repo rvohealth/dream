@@ -24,21 +24,5 @@ describe('Dream.joins', () => {
         expect(reloadedUsers).toMatchDreamModels([user])
       })
     })
-
-    // this is skipped, since it is only here to ensure that types are working
-    // from args a-g, which does not actually need to be run, since if this is
-    // broken, tests will fail to compile due to type errors
-    it.skip('permits types a-g', async () => {
-      await ApplicationModel.transaction(txn => {
-        User.txn(txn).joins('pets', 'collars', 'pet', 'collars', 'pet', 'collars', 'pet')
-      })
-    })
-  })
-
-  // this is skipped, since it is only here to ensure that types are working
-  // from args a-g, which does not actually need to be run, since if this is
-  // broken, tests will fail to compile due to type errors
-  it.skip('permits types a-g', () => {
-    User.joins('pets', 'collars', 'pet', 'collars', 'pet', 'collars', 'pet')
   })
 })

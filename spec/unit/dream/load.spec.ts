@@ -22,13 +22,6 @@ describe('Dream#load', () => {
     expect(() => user.pets).toThrowError(NonLoadedAssociation)
   })
 
-  // this is skipped, since it is only here to ensure that types are working
-  // from args a-g, which does not actually need to be run, since if this is
-  // broken, tests will fail to compile due to type errors
-  it.skip('permits types a-g', async () => {
-    await user.load('pets', 'collars', 'pet', 'collars', 'pet').execute()
-  })
-
   context('with a transaction', () => {
     it('loads the association', async () => {
       let pets: Pet[] = []

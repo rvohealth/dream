@@ -58,24 +58,6 @@ describe('Dream.pluckEachThrough', () => {
 
       expect(plucked).toEqual([[edge1.id, edge1.name]])
     })
-
-    // this is skipped, since it is only here to ensure that types are working
-    // from args a-g, which does not actually need to be run, since if this is
-    // broken, tests will fail to compile due to type errors
-    it.skip('permits types a-g', async () => {
-      await Node.transaction(async txn => {
-        await Node.txn(txn).pluckEachThrough('edgeNodes', 'edge', 'edgeNodes', 'edge', 'edgeNodes', 'edge', [
-          'edge.id',
-        ])
-      })
-    })
-  })
-
-  // this is skipped, since it is only here to ensure that types are working
-  // from args a-g, which does not actually need to be run, since if this is
-  // broken, tests will fail to compile due to type errors
-  it.skip('permits types a-g', async () => {
-    await Node.pluckEachThrough('edgeNodes', 'edge', 'edgeNodes', 'edge', 'edgeNodes', 'edge', ['edge.id'])
   })
 })
 
@@ -149,25 +131,5 @@ describe('Dream#pluckEachThrough', () => {
 
       expect(plucked).toEqual([[edge1.id, edge1.name]])
     })
-
-    // this is skipped, since it is only here to ensure that types are working
-    // from args a-g, which does not actually need to be run, since if this is
-    // broken, tests will fail to compile due to type errors
-    it.skip('permits types a-g', async () => {
-      await Node.transaction(async txn => {
-        const node = await Node.create({ name: 'N1' })
-        await node
-          .txn(txn)
-          .pluckEachThrough('edgeNodes', 'edge', 'edgeNodes', 'edge', 'edgeNodes', 'edge', ['edge.id'])
-      })
-    })
-  })
-
-  // this is skipped, since it is only here to ensure that types are working
-  // from args a-g, which does not actually need to be run, since if this is
-  // broken, tests will fail to compile due to type errors
-  it.skip('permits types a-g', async () => {
-    const node = await Node.create({ name: 'N1' })
-    await node.pluckEachThrough('edgeNodes', 'edge', 'edgeNodes', 'edge', 'edgeNodes', 'edge', ['edge.id'])
   })
 })

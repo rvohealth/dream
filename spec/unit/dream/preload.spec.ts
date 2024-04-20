@@ -38,15 +38,6 @@ describe('Dream.preload', () => {
 
       expect(reloadedCompositionAssetAudit!.compositionAsset).toMatchDreamModel(compositionAsset)
     })
-
-    // this is skipped, since it is only here to ensure that types are working
-    // from args a-g, which does not actually need to be run, since if this is
-    // broken, tests will fail to compile due to type errors
-    it.skip('permits types a-g', async () => {
-      await ApplicationModel.transaction(txn => {
-        Composition.txn(txn).preload('user', 'balloons', 'user', 'balloons', 'user', 'balloons', 'user')
-      })
-    })
   })
 
   context('STI associations are loaded', () => {
@@ -58,12 +49,5 @@ describe('Dream.preload', () => {
       const users = await User.preload('balloons').all()
       expect(users[0].balloons).toMatchDreamModels([mylar, latex])
     })
-  })
-
-  // this is skipped, since it is only here to ensure that types are working
-  // from args a-g, which does not actually need to be run, since if this is
-  // broken, tests will fail to compile due to type errors
-  it.skip('permits types a-g', () => {
-    Composition.preload('user', 'balloons', 'user', 'balloons', 'user', 'balloons')
   })
 })

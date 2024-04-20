@@ -223,6 +223,7 @@ type VariadicLoadArgsCheckThenRecurse<
   SyncedAssociations extends object,
   ConcreteTableName extends keyof SyncedAssociations & string,
   ConcreteArgs extends readonly unknown[],
+  UsedNamespaces,
   Depth extends number,
   AssociationNamesOrWhereClause,
   NthArgument extends VALID | INVALID = ConcreteArgs['length'] extends 0
@@ -234,18 +235,22 @@ type VariadicLoadArgsCheckThenRecurse<
   ? `invalid where clause in argument ${Inc<Depth>}`
   : ConcreteArgs['length'] extends 0
     ? AssociationNamesOrWhereClause
-    : VariadicLoadArgsRecurse<SyncedAssociations, ConcreteTableName, ConcreteArgs, Depth>
+    : VariadicLoadArgsRecurse<SyncedAssociations, ConcreteTableName, ConcreteArgs, UsedNamespaces, Depth>
 
 type VariadicLoadArgsRecurse<
   SyncedAssociations extends object,
   ConcreteTableName extends keyof SyncedAssociations & string,
   ConcreteArgs extends readonly unknown[],
+  UsedNamespaces,
   Depth extends number,
   //
   ConcreteNthArg extends keyof SyncedAssociations[ConcreteTableName] &
     string = ConcreteArgs[0] extends keyof SyncedAssociations[ConcreteTableName] & string
     ? ConcreteArgs[0] & keyof SyncedAssociations[ConcreteTableName] & string
     : never,
+  NextUsedNamespaces = ConcreteArgs[0] extends keyof SyncedAssociations[ConcreteTableName] & string
+    ? UsedNamespaces | ConcreteNthArg
+    : UsedNamespaces,
   //
   NextTableName extends keyof SyncedAssociations &
     string = ConcreteNthArg extends keyof SyncedAssociations[ConcreteTableName] & string
@@ -253,31 +258,32 @@ type VariadicLoadArgsRecurse<
       ? SyncedAssociations[ConcreteTableName][ConcreteNthArg][0] & keyof SyncedAssociations & string
       : never
     : ConcreteTableName,
+  AllowedNextArgValues = Exclude<keyof SyncedAssociations[NextTableName] & string, NextUsedNamespaces>,
   //
-  AllowedNextArgValues =
-    | (keyof SyncedAssociations[NextTableName] & string)
-    | (keyof SyncedAssociations[NextTableName] & string)[],
 > = Depth extends MAX_VARIADIC_DEPTH
   ? never
   : VariadicLoadArgsCheckThenRecurse<
       SyncedAssociations,
       NextTableName,
       Tail<ConcreteArgs>,
+      NextUsedNamespaces,
       Inc<Depth>,
-      AllowedNextArgValues
+      AllowedNextArgValues | AllowedNextArgValues[]
     >
 
 export type VariadicLoadArgs<
   SyncedAssociations extends object,
   ConcreteTableName extends keyof SyncedAssociations & string,
   ConcreteArgs extends readonly unknown[],
+  //
+  AllowedNextArgValues = keyof SyncedAssociations[ConcreteTableName] & string,
 > = VariadicLoadArgsCheckThenRecurse<
   SyncedAssociations,
   ConcreteTableName,
   ConcreteArgs,
+  never,
   0,
-  | (keyof SyncedAssociations[ConcreteTableName] & string)
-  | (keyof SyncedAssociations[ConcreteTableName] & string)[]
+  AllowedNextArgValues | AllowedNextArgValues[]
 >
 ///////////////////////////////
 // end: VARIADIC LOAD
@@ -291,15 +297,18 @@ export type VariadicJoinsArgs<
   SyncedAssociations extends object,
   ConcreteTableName extends keyof SyncedAssociations & string,
   ConcreteArgs extends readonly unknown[],
+  //
+  AllowedNextArgValues = keyof SyncedAssociations[ConcreteTableName] & string,
 > = VariadicCheckThenRecurse<
   DB,
   SyncedAssociations,
   ConcreteTableName,
   ConcreteArgs,
   'joins',
+  never,
   0,
   never,
-  keyof SyncedAssociations[ConcreteTableName] & string
+  AllowedNextArgValues
 >
 ///////////////////////////////
 // end: VARIADIC JOINS
@@ -313,15 +322,17 @@ export type VariadicPluckThroughArgs<
   SyncedAssociations extends object,
   ConcreteTableName extends keyof SyncedAssociations & string,
   ConcreteArgs extends readonly unknown[],
+  AllowedNextArgValues = keyof SyncedAssociations[ConcreteTableName] & string,
 > = VariadicCheckThenRecurse<
   DB,
   SyncedAssociations,
   ConcreteTableName,
   ConcreteArgs,
   'pluckThrough',
+  never,
   0,
   never,
-  keyof SyncedAssociations[ConcreteTableName] & string
+  AllowedNextArgValues
 >
 ///////////////////////////////
 // end: VARIADIC PLUCK THROUGH
@@ -335,15 +346,17 @@ export type VariadicPluckEachThroughArgs<
   SyncedAssociations extends object,
   ConcreteTableName extends keyof SyncedAssociations & string,
   ConcreteArgs extends readonly unknown[],
+  AllowedNextArgValues = keyof SyncedAssociations[ConcreteTableName] & string,
 > = VariadicCheckThenRecurse<
   DB,
   SyncedAssociations,
   ConcreteTableName,
   ConcreteArgs,
   'pluckEachThrough',
+  never,
   0,
   never,
-  keyof SyncedAssociations[ConcreteTableName] & string
+  AllowedNextArgValues
 >
 ///////////////////////////////
 // end: VARIADIC PLUCK EACH THROUGH
@@ -355,6 +368,7 @@ type VariadicCheckThenRecurse<
   ConcreteTableName extends keyof SyncedAssociations & string,
   ConcreteArgs extends readonly unknown[],
   RecursionType extends RecursionTypes,
+  UsedNamespaces,
   Depth extends number,
   //
   ConcreteAssociationName,
@@ -407,6 +421,7 @@ type VariadicCheckThenRecurse<
         ConcreteTableName,
         ConcreteArgs,
         RecursionType,
+        UsedNamespaces,
         Depth,
         ConcreteAssociationName
       >
@@ -419,6 +434,7 @@ type VariadicRecurse<
   ConcreteTableName extends keyof SyncedAssociations & string,
   ConcreteArgs extends readonly unknown[],
   RecursionType extends RecursionTypes,
+  UsedNamespaces,
   Depth extends number,
   //
   ConcreteAssociationName,
@@ -430,6 +446,9 @@ type VariadicRecurse<
     : ConcreteArgs[0] extends object
       ? object
       : never,
+  NextUsedNamespaces = ConcreteArgs[0] extends keyof SyncedAssociations[ConcreteTableName] & string
+    ? UsedNamespaces | ConcreteNthArg
+    : UsedNamespaces,
   //
   NextTableName extends keyof SyncedAssociations &
     string = ConcreteNthArg extends keyof SyncedAssociations[ConcreteTableName] & string
@@ -442,10 +461,10 @@ type VariadicRecurse<
     : ConcreteAssociationName,
   //
   AllowedNextArgValues = RecursionType extends 'joins'
-    ? AllowedNextArgValuesForJoins<DB, SyncedAssociations, NextTableName>
+    ? AllowedNextArgValuesForJoins<DB, SyncedAssociations, NextTableName, NextUsedNamespaces>
     : RecursionType extends 'pluckThrough'
       ?
-          | AllowedNextArgValuesForJoins<DB, SyncedAssociations, NextTableName>
+          | AllowedNextArgValuesForJoins<DB, SyncedAssociations, NextTableName, NextUsedNamespaces>
           | ExtraAllowedNextArgValuesForPluckThrough<
               DB,
               SyncedAssociations,
@@ -454,7 +473,7 @@ type VariadicRecurse<
             >
       : RecursionType extends 'pluckEachThrough'
         ?
-            | AllowedNextArgValuesForJoins<DB, SyncedAssociations, NextTableName>
+            | AllowedNextArgValuesForJoins<DB, SyncedAssociations, NextTableName, NextUsedNamespaces>
             | ExtraAllowedNextArgValuesForPluckThrough<
                 DB,
                 SyncedAssociations,
@@ -472,6 +491,7 @@ type VariadicRecurse<
       NextTableName,
       Tail<ConcreteArgs>,
       RecursionType,
+      NextUsedNamespaces,
       Inc<Depth>,
       NextAssociationName,
       AllowedNextArgValues
@@ -481,8 +501,9 @@ type AllowedNextArgValuesForJoins<
   DB,
   SyncedAssociations extends object,
   TableName extends keyof SyncedAssociations,
+  UsedNamespaces,
 > =
-  | (keyof SyncedAssociations[TableName] & string)
+  | Exclude<keyof SyncedAssociations[TableName] & string, UsedNamespaces>
   | WhereStatement<
       DB,
       SyncedAssociations,
