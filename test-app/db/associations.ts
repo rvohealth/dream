@@ -891,7 +891,7 @@ export interface SyncedBelongsToAssociations {
 }
   
 
-export interface VirtualColumns {
+export const VirtualColumns = {
   "balloon_lines": false,
   "balloon_spotter_balloons": false,
   "balloon_spotters": false,
@@ -918,4 +918,4 @@ export interface VirtualColumns {
   "users": [
     "password"
   ]
-}
+} as const

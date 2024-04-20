@@ -11,6 +11,9 @@ export {
   UpdateableAssociationProperties,
   DreamTableSchema,
   DreamColumns,
+  DreamColumn,
+  DreamClassColumns,
+  DreamClassColumn,
   PrimaryKeyType,
 } from './dream/types'
 export { default as ops } from './ops'

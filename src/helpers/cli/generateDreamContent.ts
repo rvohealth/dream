@@ -7,58 +7,13 @@ import uniq from '../uniq'
 import { loadDreamYamlFile } from '../path'
 import initializeDream from '../initializeDream'
 
-const cooercedTypes = {
-  bigint: 'string',
-  bigserial: 'IdType',
-  bit: 'string',
-  boolean: 'boolean',
-  box: 'string',
-  bytea: 'string',
-  character: 'string',
-  cidr: 'string',
-  circle: 'string',
-  citext: 'string',
-  decimal: 'number',
-  date: 'DateTime',
-  datetime: 'DateTime',
-  double: 'string',
-  float: 'number', // custom
-  inet: 'string',
-  integer: 'number',
-  interval: 'string',
-  json: 'string',
-  jsonb: 'string',
-  line: 'string',
-  lseg: 'string',
-  macaddr: 'string',
-  macaddr8: 'string',
-  money: 'string',
-  numeric: 'number',
-  path: 'string',
-  pg_lsn: 'string',
-  pg_snapshot: 'string',
-  point: 'string',
-  polygon: 'string',
-  real: 'string',
-  smallint: 'string',
-  smallserial: 'string',
-  serial: 'string',
-  text: 'string',
-  time: 'DateTime',
-  timestamp: 'DateTime',
-  tsquery: 'string',
-  tsvector: 'string',
-  txid_snapshot: 'string',
-  uuid: 'string',
-  xml: 'string',
-}
-
 export default async function generateDreamContent(modelName: string, attributes: string[]) {
   await initializeDream()
+  const modelClassName = pascalize(modelName.split('/').pop()!)
 
-  const dreamImports: string[] = ['Dream', 'IdType']
+  const dreamImports: string[] = ['DreamColumn']
 
-  const idTypescriptType = 'IdType'
+  const idTypescriptType = `DreamColumn<${modelClassName}, 'id'>`
 
   const additionalImports: string[] = []
   const enumImports: string[] = []
@@ -86,7 +41,7 @@ export default async function generateDreamContent(modelName: string, attributes
         return `
 @BelongsTo(() => ${dreamClassNameFromAttributeName(attributeName)})
 public ${camelize(associationName)}: ${dreamClassNameFromAttributeName(attributeName)}
-public ${camelize(associationName)}Id: ${idTypescriptType}
+public ${camelize(associationName)}Id: DreamColumn<${modelClassName}, '${camelize(associationName)}Id'>
 `
 
       case 'has_one':
@@ -107,7 +62,7 @@ public ${pluralize(camelize(associationName))}: ${dreamClassNameFromAttributeNam
 
       default:
         return `
-public ${camelize(attributeName)}: ${getAttributeType(attribute)}\
+public ${camelize(attributeName)}: ${getAttributeType(attribute, modelClassName)}\
 `
     }
   })
@@ -121,8 +76,8 @@ public ${camelize(attributeName)}: ${getAttributeType(attribute)}\
   }
 
   const timestamps = `
-  public createdAt: DateTime
-  public updatedAt: DateTime
+  public createdAt: DreamColumn<${modelClassName}, 'createdAt'>
+  public updatedAt: DreamColumn<${modelClassName}, 'updatedAt'>
 `
 
   const tableName = snakeify(pluralize(modelName.replace(/\//g, '_')))
@@ -136,7 +91,7 @@ import ApplicationModel from '${relativePath}ApplicationModel'${
     additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
   }
 
-export default class ${pascalize(modelName.split('/').pop()!)} extends ApplicationModel {
+export default class ${modelClassName} extends ApplicationModel {
   public get table() {
     return '${tableName}' as const
   }
@@ -225,11 +180,8 @@ async function relativePathToSrcRoot(modelName: string) {
   return rootPath === './' ? updirs : path.join(rootPath, updirs)
 }
 
-function getAttributeType(attribute: string) {
-  const [, attributeType, ...descriptors] = attribute.split(':')
-
-  if (attributeType === 'enum') return pascalize(descriptors[0].split('(')[0] + '_enum')
-  else return (cooercedTypes as any)[attributeType] || attributeType
+function getAttributeType(attribute: string, modelClassName: string) {
+  return `DreamColumn<${modelClassName}, '${camelize(attribute.split(':')[0])}'>`
 }
 
 function dreamClassNameFromAttributeName(attributeName: string) {

@@ -49,6 +49,7 @@ import {
   VariadicPluckEachThroughArgs,
   VariadicJoinsArgs,
   VariadicLoadArgs,
+  DreamColumn,
 } from './dream/types'
 import Query, { FindEachOpts } from './dream/query'
 import runValidations from './dream/internal/runValidations'

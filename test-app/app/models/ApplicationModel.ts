@@ -30,7 +30,7 @@ export default class ApplicationModel extends Dream {
     InterpretedDBClass,
     SyncedAssociations,
     SyncedBelongsToAssociations,
-    VirtualColumns,
+    typeof VirtualColumns,
     typeof DBColumns,
     typeof DBTypeCache
   > {
