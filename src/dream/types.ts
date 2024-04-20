@@ -36,14 +36,14 @@ export type OrderDir = 'asc' | 'desc'
 //   columnValue: any
 // }
 
-export type DreamColumns<
+export type DreamColumnNames<
   DreamInstance extends Dream,
   DB = DreamInstance['DB'],
   TableName extends keyof DB = DreamInstance['table'] & keyof DB,
   Table extends DB[keyof DB] = DB[TableName],
 > = keyof Table & string
 
-export type DreamClassColumns<
+export type DreamClassColumnNames<
   DreamClass extends typeof Dream,
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB = DreamInstance['DB'],
@@ -53,20 +53,52 @@ export type DreamClassColumns<
 
 export type DreamColumn<
   DreamInstance extends Dream,
-  Column extends keyof InterpretedDB[TableName],
-  InterpretedDB extends
-    DreamInstance['dreamconf']['interpretedDB'] = DreamInstance['dreamconf']['interpretedDB'],
-  TableName extends keyof InterpretedDB = DreamInstance['table'] & keyof InterpretedDB,
-> = InterpretedDB[TableName][Column & keyof InterpretedDB[TableName]]
+  Column extends keyof Attrs,
+  Attrs = DreamAttributes<DreamInstance>,
+> = Attrs[Column & keyof Attrs]
 
 export type DreamClassColumn<
   DreamClass extends typeof Dream,
-  Column extends keyof InterpretedDB[TableName],
+  Column extends keyof DreamAttributes<DreamInstance>,
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
-  InterpretedDB extends
-    DreamInstance['dreamconf']['interpretedDB'] = DreamInstance['dreamconf']['interpretedDB'],
-  TableName extends keyof InterpretedDB = DreamInstance['table'] & keyof InterpretedDB,
 > = DreamColumn<DreamInstance, Column>
+
+export type DreamAssociationMetadata<
+  DreamInstance extends Dream,
+  Schema = DreamInstance['dreamconf']['schema'],
+  AssociationMetadata = Schema[DreamInstance['table'] & keyof Schema]['associations' &
+    keyof Schema[DreamInstance['table'] & keyof Schema]],
+> = AssociationMetadata
+
+type VirtualColumnsForTable<
+  Schema,
+  TableName extends keyof Schema,
+  TableSchema = Schema[TableName],
+> = TableSchema['virtualColumns' & keyof TableSchema]
+
+export type DreamVirtualColumns<
+  DreamInstance extends Dream,
+  Schema = DreamInstance['dreamconf']['schema'],
+> = VirtualColumnsForTable<Schema, DreamInstance['table'] & keyof Schema>
+
+export type DreamBelongsToAssociationMetadata<
+  DreamInstance extends Dream,
+  SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
+> = {
+  [K in keyof SchemaAssociations]: SchemaAssociations[K]['type' &
+    keyof SchemaAssociations[K]] extends 'BelongsTo'
+    ? SchemaAssociations[K]['type' & keyof SchemaAssociations[K]]
+    : never
+}
+
+export type DreamAttributes<
+  DreamInstance extends Dream,
+  Schema = DreamInstance['dreamconf']['schema'],
+  SchemaColumns = Schema[DreamInstance['table'] & keyof Schema]['columns' &
+    keyof Schema[DreamInstance['table'] & keyof Schema]],
+> = {
+  [K in keyof SchemaColumns]: SchemaColumns[K]['coercedType' & keyof SchemaColumns[K]]
+}
 
 export type DreamTableSchema<DreamInstance extends Dream> = Updateable<
   DreamInstance['DB'][DreamInstance['table']]
@@ -76,10 +108,10 @@ export type UpdateablePropertiesForClass<
   DreamClass extends typeof Dream,
   TableName extends AssociationTableNames<
     InstanceType<DreamClass>['DB'],
-    InstanceType<DreamClass>['syncedAssociations']
+    InstanceType<DreamClass>['dreamconf']['schema']
   > &
     InstanceType<DreamClass>['table'] = InstanceType<DreamClass>['table'],
-  VirtualColumns = InstanceType<DreamClass>['dreamconf']['virtualColumns'][TableName],
+  VirtualColumns = DreamVirtualColumns<InstanceType<DreamClass>>,
 > = Partial<
   Updateable<InstanceType<DreamClass>['DB'][TableName]> &
     (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object) &
@@ -91,12 +123,13 @@ export type UpdateablePropertiesForClass<
 export type UpdateableAssociationProperties<
   DreamInstance extends Dream,
   AssociationClass extends Dream,
+  Schema = DreamInstance['dreamconf']['schema'],
   AssociationTableName extends AssociationTableNames<
     DreamInstance['DB'],
-    DreamInstance['syncedAssociations']
+    DreamInstance['dreamconf']['schema']
   > &
     keyof DreamInstance['DB'] = AssociationClass['table'],
-  VirtualColumns = DreamInstance['dreamconf']['virtualColumns'][AssociationTableName],
+  VirtualColumns = VirtualColumnsForTable<Schema, AssociationTableName>,
 > = Partial<
   Updateable<DreamInstance['DB'][AssociationTableName]> &
     (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object) &
@@ -105,15 +138,15 @@ export type UpdateableAssociationProperties<
 
 export type AttributeKeys<
   I extends Dream,
-  TableName extends AssociationTableNames<I['DB'], I['syncedAssociations']> & I['table'] = I['table'],
-  VirtualColumns = I['dreamconf']['virtualColumns'][TableName],
+  TableName extends AssociationTableNames<I['DB'], I['dreamconf']['schema']> & I['table'] = I['table'],
+  VirtualColumns = DreamVirtualColumns<I>,
 > = keyof (Updateable<I['DB'][TableName]> &
   (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object))
 
 export type UpdateableProperties<
   I extends Dream,
-  TableName extends AssociationTableNames<I['DB'], I['syncedAssociations']> & I['table'] = I['table'],
-  VirtualColumns = I['dreamconf']['virtualColumns'][TableName],
+  TableName extends AssociationTableNames<I['DB'], I['dreamconf']['schema']> & I['table'] = I['table'],
+  VirtualColumns = DreamVirtualColumns<I>,
 > = Partial<
   Updateable<I['DB'][TableName]> &
     (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object) &
@@ -124,33 +157,34 @@ export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) 
 
 // preload
 export type NextPreloadArgumentType<
-  SyncedAssociations,
+  Schema,
   PreviousTableNames,
-  PreviousSyncedAssociations = PreviousTableNames extends undefined
+  PreviousSchemaAssociations = PreviousTableNames extends undefined
     ? undefined
-    : SyncedAssociations[PreviousTableNames & keyof SyncedAssociations],
+    : Schema[PreviousTableNames & keyof Schema]['associations' &
+        keyof Schema[PreviousTableNames & keyof Schema]],
 > = PreviousTableNames extends undefined
   ? undefined
-  : (keyof PreviousSyncedAssociations & string) | (keyof PreviousSyncedAssociations & string)[]
+  : (keyof PreviousSchemaAssociations & string) | (keyof PreviousSchemaAssociations & string)[]
 
 export type PreloadArgumentTypeAssociatedTableNames<
-  SyncedAssociations,
+  Schema,
   PreviousTableNames,
   ArgumentType,
-  PreviousSyncedAssociations = PreviousTableNames extends undefined
+  PreviousSchemaAssociations = PreviousTableNames extends undefined
     ? undefined
-    : SyncedAssociations[PreviousTableNames & keyof SyncedAssociations],
+    : Schema[PreviousTableNames & keyof Schema],
 > = ArgumentType extends string[]
   ? undefined
-  : (PreviousSyncedAssociations[ArgumentType & (keyof PreviousSyncedAssociations & string)] &
+  : (PreviousSchemaAssociations[ArgumentType & (keyof PreviousSchemaAssociations & string)] &
       string[])[number]
 // end:preload
 
 export type AssociationNameToDotReference<
   DB,
-  SyncedAssociations,
+  Schema,
   AssociationName,
-  TableNames extends keyof SyncedAssociations & string,
+  TableNames extends keyof Schema & string,
 > = `${AssociationName & string}.${keyof Updateable<DB[TableNames & keyof DB]> & string}`
 
 // type X = AssociationNameToDotReference<'mylar', 'beautiful_balloons'>
@@ -167,18 +201,13 @@ export type RelaxedJoinsStatement<Depth extends number = 0> = Depth extends 7
   ? object
   : { [key: string]: RelaxedJoinsStatement<Inc<Depth>> | object }
 
-export type RelaxedJoinsWhereStatement<DB, SyncedAssociations, Depth extends number = 0> = Depth extends 7
+export type RelaxedJoinsWhereStatement<DB, Schema, Depth extends number = 0> = Depth extends 7
   ? object
   : {
-      [key: string]:
-        | RelaxedPreloadStatement<Inc<Depth>>
-        | object
-        | WhereStatement<DB, SyncedAssociations, any>
+      [key: string]: RelaxedPreloadStatement<Inc<Depth>> | object | WhereStatement<DB, Schema, any>
     }
 
-export type TableOrAssociationName<SyncedAssociations> =
-  | (keyof SyncedAssociations & string)
-  | (keyof SyncedAssociations[keyof SyncedAssociations] & string)
+export type TableOrAssociationName<Schema> = (keyof Schema & string) | (keyof Schema[keyof Schema] & string)
 
 export type SqlCommandType = 'select' | 'update' | 'delete' | 'insert'
 
@@ -189,47 +218,6 @@ export interface SimilarityStatement {
   opsStatement: OpsStatement<any, any>
 }
 
-export enum AssociationDepths {
-  ONE = 'ONE',
-  TWO = 'TWO',
-  THREE = 'THREE',
-  FOUR = 'FOUR',
-  FIVE = 'FIVE',
-  SIX = 'SIX',
-  SEVEN = 'SEVEN',
-  EIGHT = 'EIGHT',
-}
-
-export type GreaterThanOne =
-  | AssociationDepths.TWO
-  | AssociationDepths.THREE
-  | AssociationDepths.FOUR
-  | AssociationDepths.FIVE
-  | AssociationDepths.SIX
-  | AssociationDepths.SEVEN
-  | AssociationDepths.EIGHT
-export type GreaterThanTwo =
-  | AssociationDepths.THREE
-  | AssociationDepths.FOUR
-  | AssociationDepths.FIVE
-  | AssociationDepths.SIX
-  | AssociationDepths.SEVEN
-  | AssociationDepths.EIGHT
-export type GreaterThanThree =
-  | AssociationDepths.FOUR
-  | AssociationDepths.FIVE
-  | AssociationDepths.SIX
-  | AssociationDepths.SEVEN
-  | AssociationDepths.EIGHT
-export type GreaterThanFour =
-  | AssociationDepths.FIVE
-  | AssociationDepths.SIX
-  | AssociationDepths.SEVEN
-  | AssociationDepths.EIGHT
-export type GreaterThanFive = AssociationDepths.SIX | AssociationDepths.SEVEN | AssociationDepths.EIGHT
-export type GreaterThanSix = AssociationDepths.SEVEN | AssociationDepths.EIGHT
-export type GreaterThanSeven = AssociationDepths.EIGHT
-
 type VALID = 'valid'
 type INVALID = 'invalid'
 
@@ -237,50 +225,53 @@ type INVALID = 'invalid'
 // VARIADIC LOAD
 ///////////////////////////////
 type VariadicLoadArgsCheckThenRecurse<
-  SyncedAssociations extends object,
-  ConcreteTableName extends keyof SyncedAssociations & string,
+  Schema,
+  ConcreteTableName extends keyof Schema & string,
   ConcreteArgs extends readonly unknown[],
   UsedNamespaces,
   Depth extends number,
   AssociationNamesOrWhereClause,
+  SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
   NthArgument extends VALID | INVALID = ConcreteArgs['length'] extends 0
     ? VALID
-    : ConcreteArgs[0] extends keyof SyncedAssociations[ConcreteTableName] & string
+    : ConcreteArgs[0] extends keyof SchemaAssociations & string
       ? VALID
       : INVALID,
 > = NthArgument extends INVALID
   ? `invalid where clause in argument ${Inc<Depth>}`
   : ConcreteArgs['length'] extends 0
     ? AssociationNamesOrWhereClause
-    : VariadicLoadArgsRecurse<SyncedAssociations, ConcreteTableName, ConcreteArgs, UsedNamespaces, Depth>
+    : VariadicLoadArgsRecurse<Schema, ConcreteTableName, ConcreteArgs, UsedNamespaces, Depth>
 
 type VariadicLoadArgsRecurse<
-  SyncedAssociations extends object,
-  ConcreteTableName extends keyof SyncedAssociations & string,
+  Schema,
+  ConcreteTableName extends keyof Schema & string,
   ConcreteArgs extends readonly unknown[],
   UsedNamespaces,
   Depth extends number,
   //
-  ConcreteNthArg extends keyof SyncedAssociations[ConcreteTableName] &
-    string = ConcreteArgs[0] extends keyof SyncedAssociations[ConcreteTableName] & string
-    ? ConcreteArgs[0] & keyof SyncedAssociations[ConcreteTableName] & string
+  SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
+  ConcreteNthArg extends keyof SchemaAssociations &
+    string = ConcreteArgs[0] extends keyof SchemaAssociations & string
+    ? ConcreteArgs[0] & keyof SchemaAssociations & string
     : never,
-  NextUsedNamespaces = ConcreteArgs[0] extends keyof SyncedAssociations[ConcreteTableName] & string
+  NextUsedNamespaces = ConcreteArgs[0] extends keyof SchemaAssociations & string
     ? UsedNamespaces | ConcreteNthArg
     : UsedNamespaces,
   //
-  NextTableName extends keyof SyncedAssociations &
-    string = ConcreteNthArg extends keyof SyncedAssociations[ConcreteTableName] & string
-    ? SyncedAssociations[ConcreteTableName][ConcreteNthArg] extends any[]
-      ? SyncedAssociations[ConcreteTableName][ConcreteNthArg][0] & keyof SyncedAssociations & string
-      : never
+  NextTableName extends keyof Schema & string = ConcreteNthArg extends keyof SchemaAssociations & string
+    ? (SchemaAssociations[ConcreteNthArg]['tables' & keyof SchemaAssociations[ConcreteNthArg]] &
+        (keyof Schema & string)[])[0]
     : ConcreteTableName,
-  AllowedNextArgValues = Exclude<keyof SyncedAssociations[NextTableName] & string, NextUsedNamespaces>,
+  AllowedNextArgValues = Exclude<
+    keyof Schema[NextTableName]['associations' & keyof Schema[NextTableName]] & string,
+    NextUsedNamespaces
+  >,
   //
 > = Depth extends MAX_VARIADIC_DEPTH
   ? never
   : VariadicLoadArgsCheckThenRecurse<
-      SyncedAssociations,
+      Schema,
       NextTableName,
       Tail<ConcreteArgs>,
       NextUsedNamespaces,
@@ -289,13 +280,14 @@ type VariadicLoadArgsRecurse<
     >
 
 export type VariadicLoadArgs<
-  SyncedAssociations extends object,
-  ConcreteTableName extends keyof SyncedAssociations & string,
+  Schema,
+  ConcreteTableName extends keyof Schema & string,
   ConcreteArgs extends readonly unknown[],
   //
-  AllowedNextArgValues = keyof SyncedAssociations[ConcreteTableName] & string,
+  SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
+  AllowedNextArgValues = keyof SchemaAssociations & string,
 > = VariadicLoadArgsCheckThenRecurse<
-  SyncedAssociations,
+  Schema,
   ConcreteTableName,
   ConcreteArgs,
   never,
@@ -311,14 +303,15 @@ export type VariadicLoadArgs<
 ///////////////////////////////
 export type VariadicJoinsArgs<
   DB,
-  SyncedAssociations extends object,
-  ConcreteTableName extends keyof SyncedAssociations & string,
+  Schema,
+  ConcreteTableName extends keyof Schema & string,
   ConcreteArgs extends readonly unknown[],
   //
-  AllowedNextArgValues = keyof SyncedAssociations[ConcreteTableName] & string,
+  AllowedNextArgValues = keyof Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]] &
+    string,
 > = VariadicCheckThenRecurse<
   DB,
-  SyncedAssociations,
+  Schema,
   ConcreteTableName,
   ConcreteArgs,
   'joins',
@@ -336,13 +329,14 @@ export type VariadicJoinsArgs<
 ///////////////////////////////
 export type VariadicPluckThroughArgs<
   DB,
-  SyncedAssociations extends object,
-  ConcreteTableName extends keyof SyncedAssociations & string,
+  Schema,
+  ConcreteTableName extends keyof Schema & string,
   ConcreteArgs extends readonly unknown[],
-  AllowedNextArgValues = keyof SyncedAssociations[ConcreteTableName] & string,
+  AllowedNextArgValues = keyof Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]] &
+    string,
 > = VariadicCheckThenRecurse<
   DB,
-  SyncedAssociations,
+  Schema,
   ConcreteTableName,
   ConcreteArgs,
   'pluckThrough',
@@ -360,13 +354,14 @@ export type VariadicPluckThroughArgs<
 ///////////////////////////////
 export type VariadicPluckEachThroughArgs<
   DB,
-  SyncedAssociations extends object,
-  ConcreteTableName extends keyof SyncedAssociations & string,
+  Schema,
+  ConcreteTableName extends keyof Schema & string,
   ConcreteArgs extends readonly unknown[],
-  AllowedNextArgValues = keyof SyncedAssociations[ConcreteTableName] & string,
+  AllowedNextArgValues = keyof Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]] &
+    string,
 > = VariadicCheckThenRecurse<
   DB,
-  SyncedAssociations,
+  Schema,
   ConcreteTableName,
   ConcreteArgs,
   'pluckEachThrough',
@@ -381,8 +376,8 @@ export type VariadicPluckEachThroughArgs<
 
 type VariadicCheckThenRecurse<
   DB,
-  SyncedAssociations extends object,
-  ConcreteTableName extends keyof SyncedAssociations & string,
+  Schema,
+  ConcreteTableName extends keyof Schema & string,
   ConcreteArgs extends readonly unknown[],
   RecursionType extends RecursionTypes,
   UsedNamespaces,
@@ -391,36 +386,31 @@ type VariadicCheckThenRecurse<
   ConcreteAssociationName,
   //
   AssociationNamesOrWhereClause,
+  SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
   NthArgument extends VALID | INVALID = ConcreteArgs['length'] extends 0
     ? VALID
-    : ConcreteArgs[0] extends keyof SyncedAssociations[ConcreteTableName] & string
+    : ConcreteArgs[0] extends keyof SchemaAssociations & string
       ? VALID
       : ConcreteArgs[0] extends WhereStatement<
             DB,
-            SyncedAssociations,
-            ConcreteTableName & AssociationTableNames<DB, SyncedAssociations> & keyof DB
+            Schema,
+            ConcreteTableName & AssociationTableNames<DB, Schema> & keyof DB
           >
         ? VALID
         : RecursionType extends 'joins'
           ? INVALID
           : ConcreteArgs[0] extends AssociationNameToDotReference<
                 DB,
-                SyncedAssociations,
+                Schema,
                 ConcreteAssociationName,
-                ConcreteTableName &
-                  AssociationTableNames<DB, SyncedAssociations> &
-                  keyof SyncedAssociations &
-                  string
+                ConcreteTableName & AssociationTableNames<DB, Schema> & keyof Schema & string
               >
             ? VALID
             : ConcreteArgs[0] extends readonly AssociationNameToDotReference<
                   DB,
-                  SyncedAssociations,
+                  Schema,
                   ConcreteAssociationName,
-                  ConcreteTableName &
-                    AssociationTableNames<DB, SyncedAssociations> &
-                    keyof SyncedAssociations &
-                    string
+                  ConcreteTableName & AssociationTableNames<DB, Schema> & keyof Schema & string
                 >[]
               ? VALID
               : RecursionType extends 'pluckThrough'
@@ -434,7 +424,7 @@ type VariadicCheckThenRecurse<
     ? AssociationNamesOrWhereClause
     : VariadicRecurse<
         DB,
-        SyncedAssociations,
+        Schema,
         ConcreteTableName,
         ConcreteArgs,
         RecursionType,
@@ -447,8 +437,8 @@ type RecursionTypes = 'joins' | 'pluckThrough' | 'pluckEachThrough'
 
 type VariadicRecurse<
   DB,
-  SyncedAssociations extends object,
-  ConcreteTableName extends keyof SyncedAssociations & string,
+  Schema,
+  ConcreteTableName extends keyof Schema & string,
   ConcreteArgs extends readonly unknown[],
   RecursionType extends RecursionTypes,
   UsedNamespaces,
@@ -456,47 +446,37 @@ type VariadicRecurse<
   //
   ConcreteAssociationName,
   //
+  SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
   ConcreteNthArg extends
-    | (keyof SyncedAssociations[ConcreteTableName] & string)
-    | object = ConcreteArgs[0] extends keyof SyncedAssociations[ConcreteTableName] & string
-    ? ConcreteArgs[0] & keyof SyncedAssociations[ConcreteTableName] & string
+    | (keyof SchemaAssociations & string)
+    | object = ConcreteArgs[0] extends keyof SchemaAssociations & string
+    ? ConcreteArgs[0] & keyof SchemaAssociations & string
     : ConcreteArgs[0] extends object
       ? object
       : never,
-  NextUsedNamespaces = ConcreteArgs[0] extends keyof SyncedAssociations[ConcreteTableName] & string
+  NextUsedNamespaces = ConcreteArgs[0] extends keyof SchemaAssociations & string
     ? UsedNamespaces | ConcreteNthArg
     : UsedNamespaces,
   //
-  NextTableName extends keyof SyncedAssociations &
-    string = ConcreteNthArg extends keyof SyncedAssociations[ConcreteTableName] & string
-    ? SyncedAssociations[ConcreteTableName][ConcreteNthArg] extends any[]
-      ? SyncedAssociations[ConcreteTableName][ConcreteNthArg][0] & keyof SyncedAssociations & string
-      : never
+  NextTableName extends keyof Schema & string = ConcreteNthArg extends keyof SchemaAssociations & string
+    ? (SchemaAssociations[ConcreteNthArg & keyof SchemaAssociations]['tables' &
+        keyof SchemaAssociations[ConcreteNthArg & keyof SchemaAssociations]] &
+        any[])[0]
     : ConcreteTableName,
-  NextAssociationName = ConcreteNthArg extends keyof SyncedAssociations[ConcreteTableName] & string
-    ? ConcreteArgs[0] & keyof SyncedAssociations[ConcreteTableName] & string
+  NextAssociationName = ConcreteNthArg extends keyof SchemaAssociations & string
+    ? ConcreteArgs[0] & keyof SchemaAssociations & string
     : ConcreteAssociationName,
   //
   AllowedNextArgValues = RecursionType extends 'joins'
-    ? AllowedNextArgValuesForJoins<DB, SyncedAssociations, NextTableName, NextUsedNamespaces>
+    ? AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
     : RecursionType extends 'pluckThrough'
       ?
-          | AllowedNextArgValuesForJoins<DB, SyncedAssociations, NextTableName, NextUsedNamespaces>
-          | ExtraAllowedNextArgValuesForPluckThrough<
-              DB,
-              SyncedAssociations,
-              NextTableName,
-              NextAssociationName
-            >
+          | AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
+          | ExtraAllowedNextArgValuesForPluckThrough<DB, Schema, NextTableName, NextAssociationName>
       : RecursionType extends 'pluckEachThrough'
         ?
-            | AllowedNextArgValuesForJoins<DB, SyncedAssociations, NextTableName, NextUsedNamespaces>
-            | ExtraAllowedNextArgValuesForPluckThrough<
-                DB,
-                SyncedAssociations,
-                NextTableName,
-                NextAssociationName
-              >
+            | AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
+            | ExtraAllowedNextArgValuesForPluckThrough<DB, Schema, NextTableName, NextAssociationName>
             | ((...args: any[]) => Promise<void> | void)
             | FindEachOpts
         : never,
@@ -504,7 +484,7 @@ type VariadicRecurse<
   ? never
   : VariadicCheckThenRecurse<
       DB,
-      SyncedAssociations,
+      Schema,
       NextTableName,
       Tail<ConcreteArgs>,
       RecursionType,
@@ -514,34 +494,20 @@ type VariadicRecurse<
       AllowedNextArgValues
     >
 
-type AllowedNextArgValuesForJoins<
-  DB,
-  SyncedAssociations extends object,
-  TableName extends keyof SyncedAssociations,
-  UsedNamespaces,
-> =
-  | Exclude<keyof SyncedAssociations[TableName] & string, UsedNamespaces>
-  | WhereStatement<
-      DB,
-      SyncedAssociations,
-      TableName & AssociationTableNames<DB, SyncedAssociations> & keyof DB
-    >
+type AllowedNextArgValuesForJoins<DB, Schema, TableName extends keyof Schema, UsedNamespaces> =
+  | Exclude<keyof Schema[TableName]['associations' & keyof Schema[TableName]] & string, UsedNamespaces>
+  | WhereStatement<DB, Schema, TableName & AssociationTableNames<DB, Schema> & keyof DB>
 
-type ExtraAllowedNextArgValuesForPluckThrough<
-  DB,
-  SyncedAssociations extends object,
-  TableName extends keyof SyncedAssociations,
-  AssociationName,
-> =
+type ExtraAllowedNextArgValuesForPluckThrough<DB, Schema, TableName extends keyof Schema, AssociationName> =
   | AssociationNameToDotReference<
       DB,
-      SyncedAssociations,
+      Schema,
       AssociationName,
-      TableName & AssociationTableNames<DB, SyncedAssociations> & keyof SyncedAssociations & string
+      TableName & AssociationTableNames<DB, Schema> & keyof Schema & string
     >
   | AssociationNameToDotReference<
       DB,
-      SyncedAssociations,
+      Schema,
       AssociationName,
-      TableName & AssociationTableNames<DB, SyncedAssociations> & keyof SyncedAssociations & string
+      TableName & AssociationTableNames<DB, Schema> & keyof Schema & string
     >[]

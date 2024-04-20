@@ -13,6 +13,4 @@ export interface DB {
   __placeholder__: object
 }
 
-export const DBColumns = {
-  __placeholder__: [] as string[],
-}
+export const schema = {} as const

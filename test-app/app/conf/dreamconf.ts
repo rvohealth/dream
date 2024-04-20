@@ -1,10 +1,5 @@
 import Dreamconf from '../../../src/helpers/dreamconf'
-import SyncedAssociationsVal, {
-  SyncedAssociations,
-  SyncedBelongsToAssociations,
-  VirtualColumns,
-} from '../../db/associations'
-import { DBClass, DBColumns, DBTypeCache, InterpretedDBClass } from '../../db/schema'
+import { DBClass, schema } from '../../db/schema'
 
 const env = {
   db: {
@@ -65,22 +60,9 @@ const env = {
   },
 }
 
-const dreamconf = new Dreamconf<
-  DBClass,
-  InterpretedDBClass,
-  SyncedAssociations,
-  SyncedBelongsToAssociations,
-  typeof VirtualColumns,
-  typeof DBColumns,
-  typeof DBTypeCache
->({
+const dreamconf = new Dreamconf<DBClass, typeof schema>({
   DB: new DBClass(),
-  interpretedDB: new InterpretedDBClass(),
-  syncedAssociations: SyncedAssociationsVal as SyncedAssociations,
-  syncedBelongsToAssociations: {} as SyncedBelongsToAssociations,
-  virtualColumns: VirtualColumns,
-  dbColumns: DBColumns,
-  dbTypeCache: DBTypeCache,
+  schema,
   env,
 })
 

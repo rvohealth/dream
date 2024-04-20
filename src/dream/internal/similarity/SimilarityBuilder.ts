@@ -18,13 +18,11 @@ export default class SimilarityBuilder<
   DreamClass extends typeof Dream,
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
-  SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
+  Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
 > extends ConnectedToDB<DreamClass> {
-  public readonly whereStatement: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze([])
-  public readonly whereNotStatement: readonly WhereStatement<DB, SyncedAssociations, any>[] = Object.freeze(
-    []
-  )
-  public readonly joinsWhereStatements: RelaxedJoinsWhereStatement<DB, SyncedAssociations> = Object.freeze({})
+  public readonly whereStatement: readonly WhereStatement<DB, Schema, any>[] = Object.freeze([])
+  public readonly whereNotStatement: readonly WhereStatement<DB, Schema, any>[] = Object.freeze([])
+  public readonly joinsWhereStatements: RelaxedJoinsWhereStatement<DB, Schema> = Object.freeze({})
   constructor(DreamClass: DreamClass, opts: SimilarityBuilderOpts<DreamClass, DreamInstance> = {}) {
     super(DreamClass, opts)
     this.whereStatement = Object.freeze(opts.where || [])
@@ -276,7 +274,7 @@ export default class SimilarityBuilder<
       bypassOrder: boolean
     }
   ) {
-    const dbTypeCache = this.dreamClass.prototype.dreamconf.dbTypeCache
+    const schema = this.dreamClass.prototype.dreamconf.schema
     const primaryKeyName = this.dreamClass.prototype.primaryKey
     const { tableName, tableAlias, columnName } = similarityStatement
 
@@ -284,7 +282,7 @@ export default class SimilarityBuilder<
     const { ref } = this.dbFor('select').dynamic
 
     const validatedTableAlias = validateTableAlias(tableAlias)
-    const validatedPrimaryKey = validateColumn(dbTypeCache, tableName, primaryKeyName)
+    const validatedPrimaryKey = validateColumn(schema, tableName, primaryKeyName)
 
     const nestedQuery = this.buildNestedSelectQuery({
       primaryKeyName,
@@ -335,11 +333,11 @@ export default class SimilarityBuilder<
     any
   > {
     const { tableName, tableAlias, columnName } = similarityStatement
-    const dbTypeCache = this.dreamClass.prototype.dreamconf.dbTypeCache
+    const schema = this.dreamClass.prototype.dreamconf.schema
     const primaryKeyName = this.dreamClass.prototype.primaryKey
 
     const validatedTableAlias = validateTableAlias(tableAlias)
-    const validatedPrimaryKey = validateColumn(dbTypeCache, tableName, primaryKeyName)
+    const validatedPrimaryKey = validateColumn(schema, tableName, primaryKeyName)
 
     const nestedQuery = this.buildNestedSelectQuery({
       primaryKeyName: validatedPrimaryKey,
@@ -375,10 +373,10 @@ export default class SimilarityBuilder<
     statementIndex: number
     similarityStatement: SimilarityStatement
   }) {
-    const dbTypeCache = this.dreamClass.prototype.dreamconf.dbTypeCache
+    const schema = this.dreamClass.prototype.dreamconf.schema
     const { columnName, opsStatement, tableName } = similarityStatement
-    const validatedTable = validateTable(dbTypeCache, tableName)
-    const validatedPrimaryKey = validateColumn(dbTypeCache, tableName, primaryKeyName)
+    const validatedTable = validateTable(schema, tableName)
+    const validatedPrimaryKey = validateColumn(schema, tableName, primaryKeyName)
 
     let nestedQuery = this.dbFor('select')
       .selectFrom(tableName as any)
@@ -396,7 +394,7 @@ export default class SimilarityBuilder<
           tableName,
           columnName,
           opsStatement,
-          dbTypeCache,
+          schema,
           rankSQLAlias,
         })
       )
@@ -406,14 +404,14 @@ export default class SimilarityBuilder<
           tableName,
           columnName,
           opsStatement,
-          dbTypeCache,
+          schema,
         })
       )
 
     return nestedQuery
   }
 
-  private similarityStatementFilter(statements: readonly WhereStatement<DB, SyncedAssociations, any>[]) {
+  private similarityStatementFilter(statements: readonly WhereStatement<DB, Schema, any>[]) {
     const similar: SimilarityStatement[] = []
     const tableName = this.dreamClass.prototype.table
 
@@ -449,11 +447,11 @@ export interface SimilarityBuilderOpts<
   DreamClass extends typeof Dream,
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
-  SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
+  Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
 > {
-  where?: WhereStatement<DB, SyncedAssociations, any>[]
-  whereNot?: WhereStatement<DB, SyncedAssociations, any>[]
-  joinsWhereStatements?: RelaxedJoinsWhereStatement<DB, SyncedAssociations>
+  where?: WhereStatement<DB, Schema, any>[]
+  whereNot?: WhereStatement<DB, Schema, any>[]
+  joinsWhereStatements?: RelaxedJoinsWhereStatement<DB, Schema>
   transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType
 }

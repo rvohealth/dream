@@ -8,7 +8,7 @@ import {
   associationPrimaryKeyAccessors,
 } from './shared'
 import Validates from '../validations/validates'
-import { DreamColumns } from '../../dream/types'
+import { DreamColumnNames } from '../../dream/types'
 
 export default function BelongsTo<
   BaseInstance extends Dream,
@@ -64,8 +64,8 @@ export default function BelongsTo<
 export interface BelongsToStatement<
   BaseInstance extends Dream,
   DB,
-  SyncedAssociations,
-  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
+  Schema,
+  TableName extends AssociationTableNames<DB, Schema> & keyof DB,
 > {
   modelCB: () => typeof Dream | (typeof Dream)[]
   type: 'BelongsTo'
@@ -73,8 +73,8 @@ export interface BelongsToStatement<
   primaryKey: (associationInstance?: Dream) => keyof DB[TableName] & string
   primaryKeyValue: (associationInstance: Dream | null) => any
   primaryKeyOverride?: (keyof DB[TableName] & string) | null
-  foreignKey: () => DreamColumns<BaseInstance> & string
-  foreignKeyTypeField: () => DreamColumns<BaseInstance> & string
+  foreignKey: () => DreamColumnNames<BaseInstance> & string
+  foreignKeyTypeField: () => DreamColumnNames<BaseInstance> & string
   optional: boolean
   distinct: null
   polymorphic: boolean
@@ -84,8 +84,8 @@ export interface BelongsToOptions<
   BaseInstance extends Dream,
   AssociationDreamClass extends typeof Dream = typeof Dream,
 > {
-  foreignKey?: DreamColumns<BaseInstance>
-  primaryKeyOverride?: DreamColumns<InstanceType<AssociationDreamClass>> | null
+  foreignKey?: DreamColumnNames<BaseInstance>
+  primaryKeyOverride?: DreamColumnNames<InstanceType<AssociationDreamClass>> | null
   optional?: boolean
   polymorphic?: boolean
 }

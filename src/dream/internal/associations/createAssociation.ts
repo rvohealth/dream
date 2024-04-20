@@ -8,8 +8,9 @@ import CannotCreateAssociationWithThroughContext from '../../../exceptions/assoc
 
 export default async function createAssociation<
   DreamInstance extends Dream,
-  SyncedAssociations extends DreamInstance['syncedAssociations'],
-  AssociationName extends keyof SyncedAssociations[DreamInstance['table']],
+  Schema extends DreamInstance['dreamconf']['schema'],
+  AssociationName extends keyof Schema[DreamInstance['table']]['associations' &
+    keyof Schema[DreamInstance['table']]],
   PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
   AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
     ? ElementType & typeof Dream

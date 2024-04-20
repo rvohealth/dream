@@ -1,5 +1,5 @@
 export { default as Dream } from './dream'
-export { default as Dreamconf, AssociationDepths } from './helpers/dreamconf'
+export { default as Dreamconf } from './helpers/dreamconf'
 export { default as Query } from './dream/query'
 export { default as DreamTransaction } from './dream/transaction'
 export { default as db } from './db'
@@ -10,9 +10,9 @@ export {
   UpdateableProperties,
   UpdateableAssociationProperties,
   DreamTableSchema,
-  DreamColumns,
+  DreamColumnNames,
   DreamColumn,
-  DreamClassColumns,
+  DreamClassColumnNames,
   DreamClassColumn,
   PrimaryKeyType,
 } from './dream/types'

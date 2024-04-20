@@ -21,7 +21,7 @@ describe('Query#loadInto', () => {
       locale: 'en-US',
     })
 
-    await Composition.loadInto([composition, compositionAsset], 'localizedTexts')
+    await Composition.query().loadInto([composition, compositionAsset], 'localizedTexts')
     expect(composition.localizedTexts).toMatchDreamModels([compositionText1, compositionText2])
     expect(compositionAsset.localizedTexts).toMatchDreamModels([compositionAssetText1, compositionAssetText2])
   })
@@ -44,10 +44,9 @@ describe('Query#loadInto', () => {
         locale: 'en-US',
       })
 
-      await Composition.passthrough({ locale: 'es-ES' }).loadInto(
-        [composition, compositionAsset],
-        'currentLocalizedText'
-      )
+      await Composition.query()
+        .passthrough({ locale: 'es-ES' })
+        .loadInto([composition, compositionAsset], 'currentLocalizedText')
       expect(composition.currentLocalizedText).toMatchDreamModel(compositionText2)
       expect(compositionAsset.currentLocalizedText).toMatchDreamModel(compositionAssetText1)
     })

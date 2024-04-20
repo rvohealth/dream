@@ -1,6 +1,6 @@
-export type AssociationTableNames<DB, SyncedAssociations> = keyof DB & keyof SyncedAssociations extends never
+export type AssociationTableNames<DB, Schema> = keyof DB & keyof Schema extends never
   ? unknown
-  : keyof DB & keyof SyncedAssociations & string
+  : keyof DB & keyof Schema & string
 export type Tables<DB> = keyof DB
 export type TableInterfaces<DB> = valueof<DB>
 

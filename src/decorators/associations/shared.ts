@@ -4,7 +4,13 @@ import { SelectQueryBuilder, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
 import { Range } from '../../helpers/range'
 import { AssociationTableNames } from '../../db/reflections'
-import { DreamColumns, DreamConst, IdType, OrderDir } from '../../dream/types'
+import {
+  DreamBelongsToAssociationMetadata,
+  DreamColumnNames,
+  DreamConst,
+  IdType,
+  OrderDir,
+} from '../../dream/types'
 import OpsStatement from '../../ops/ops-statement'
 import { BelongsToStatement } from './belongs-to'
 import { HasManyStatement } from './has-many'
@@ -18,8 +24,7 @@ import associationToGetterSetterProp from './associationToGetterSetterProp'
 
 type AssociatedModelType<
   I extends Dream,
-  AssociationName extends keyof I['dreamconf']['syncedBelongsToAssociations'][I['table'] &
-    keyof I['dreamconf']['syncedBelongsToAssociations']],
+  AssociationName extends keyof DreamBelongsToAssociationMetadata<I>,
   PossibleArrayAssociationType extends I[AssociationName & keyof I] = I[AssociationName & keyof I],
   AssociationType extends PossibleArrayAssociationType extends (infer ElementType)[]
     ? ElementType
@@ -30,24 +35,17 @@ type AssociatedModelType<
 
 export type AssociatedModelParam<
   I extends Dream,
-  AssociationExists = I['dreamconf']['syncedBelongsToAssociations'][I['table'] &
-    keyof I['dreamconf']['syncedBelongsToAssociations']],
+  AssociationExists = keyof DreamBelongsToAssociationMetadata<I> extends never ? false : true,
   AssociationName = AssociationExists extends false
     ? never
-    : keyof I['dreamconf']['syncedBelongsToAssociations'][I['table'] &
-        keyof I['dreamconf']['syncedBelongsToAssociations']] &
-        string,
+    : keyof DreamBelongsToAssociationMetadata<I> & string,
 > = AssociationExists extends false
   ? never
   : Partial<{ [K in AssociationName & string]: AssociatedModelType<I, K> | null }>
 
 export type PassthroughWhere<AllColumns extends string[]> = Partial<Record<AllColumns[number], any>>
 
-type DreamSelectable<
-  DB,
-  SyncedAssociations,
-  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
-> = Partial<
+type DreamSelectable<DB, Schema, TableName extends AssociationTableNames<DB, Schema> & keyof DB> = Partial<
   Record<
     keyof DB[TableName],
     | Range<DateTime>
@@ -62,8 +60,8 @@ type DreamSelectable<
 
 type AssociationDreamSelectable<
   DB,
-  SyncedAssociations,
-  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
+  Schema,
+  TableName extends AssociationTableNames<DB, Schema> & keyof DB,
 > = Partial<
   Record<
     keyof DB[TableName],
@@ -80,48 +78,40 @@ type AssociationDreamSelectable<
 
 export type WhereStatementForDreamClass<DreamClass extends typeof Dream> = WhereStatement<
   InstanceType<DreamClass>['DB'],
-  InstanceType<DreamClass>['syncedAssociations'],
+  InstanceType<DreamClass>['dreamconf']['schema'],
   InstanceType<DreamClass>['table']
 >
 
 export type WhereStatementForDream<DreamInstance extends Dream> = WhereStatement<
   DreamInstance['DB'],
-  DreamInstance['syncedAssociations'],
+  DreamInstance['dreamconf']['schema'],
   DreamInstance['table']
 >
 
 export type WhereStatement<
   DB,
-  SyncedAssociations,
-  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
-> = Partial<
-  MergeUnionOfRecordTypes<Updateable<DB[TableName]> | DreamSelectable<DB, SyncedAssociations, TableName>>
->
+  Schema,
+  TableName extends AssociationTableNames<DB, Schema> & keyof DB,
+> = Partial<MergeUnionOfRecordTypes<Updateable<DB[TableName]> | DreamSelectable<DB, Schema, TableName>>>
 
 export type AssociationWhereStatement<
   DB,
-  SyncedAssociations,
-  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
+  Schema,
+  TableName extends AssociationTableNames<DB, Schema> & keyof DB,
 > = Partial<
-  MergeUnionOfRecordTypes<
-    Updateable<DB[TableName]> | AssociationDreamSelectable<DB, SyncedAssociations, TableName>
-  >
+  MergeUnionOfRecordTypes<Updateable<DB[TableName]> | AssociationDreamSelectable<DB, Schema, TableName>>
 >
 
 export type WhereSelfStatement<
   BaseInstance extends Dream,
   DB,
-  SyncedAssociations,
-  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
-> = Partial<Record<keyof DB[TableName], DreamColumns<BaseInstance>>>
+  Schema,
+  TableName extends AssociationTableNames<DB, Schema> & keyof DB,
+> = Partial<Record<keyof DB[TableName], DreamColumnNames<BaseInstance>>>
 
-export type OrderStatement<
-  DB,
-  SyncedAssociations,
-  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
-> =
-  | TableColumnName<DB, SyncedAssociations, TableName>
-  | Partial<Record<TableColumnName<DB, SyncedAssociations, TableName>, OrderDir>>
+export type OrderStatement<DB, Schema, TableName extends AssociationTableNames<DB, Schema> & keyof DB> =
+  | TableColumnName<DB, Schema, TableName>
+  | Partial<Record<TableColumnName<DB, Schema, TableName>, OrderDir>>
 
 export type LimitStatement = number
 export type OffsetStatement = number
@@ -133,8 +123,8 @@ export type OrderQueryStatement<ColumnType> = {
 
 export type TableColumnName<
   DB,
-  SyncedAssociations,
-  TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
+  Schema,
+  TableName extends AssociationTableNames<DB, Schema> & keyof DB,
   Table extends DB[keyof DB] = DB[TableName],
   ColumnName extends keyof Table & string = keyof Table & string,
 > = ColumnName
@@ -142,94 +132,94 @@ export type TableColumnName<
 export interface HasStatement<
   BaseInstance extends Dream,
   DB,
-  SyncedAssociations,
-  ForeignTableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
+  Schema,
+  ForeignTableName extends AssociationTableNames<DB, Schema> & keyof DB,
   HasType extends 'HasOne' | 'HasMany',
 > {
   modelCB: () => typeof Dream
   type: HasType
   as: string
   primaryKeyValue: (associationInstance: Dream) => any
-  primaryKeyOverride?: DreamColumns<BaseInstance> | null
-  primaryKey: (associationInstance?: Dream) => DreamColumns<BaseInstance>
+  primaryKeyOverride?: DreamColumnNames<BaseInstance> | null
+  primaryKey: (associationInstance?: Dream) => DreamColumnNames<BaseInstance>
   foreignKey: () => keyof DB[ForeignTableName] & string
   foreignKeyTypeField: () => keyof DB[ForeignTableName] & string
   polymorphic: boolean
   source: string
   through?: string
   preloadThroughColumns?: string[]
-  where?: AssociationWhereStatement<DB, SyncedAssociations, ForeignTableName>
-  whereNot?: WhereStatement<DB, SyncedAssociations, ForeignTableName>
-  selfWhere?: WhereSelfStatement<BaseInstance, DB, SyncedAssociations, ForeignTableName>
-  selfWhereNot?: WhereSelfStatement<BaseInstance, DB, SyncedAssociations, ForeignTableName>
-  distinct?: TableColumnName<DB, SyncedAssociations, ForeignTableName>
-  order?: OrderStatement<DB, SyncedAssociations, ForeignTableName>
+  where?: AssociationWhereStatement<DB, Schema, ForeignTableName>
+  whereNot?: WhereStatement<DB, Schema, ForeignTableName>
+  selfWhere?: WhereSelfStatement<BaseInstance, DB, Schema, ForeignTableName>
+  selfWhereNot?: WhereSelfStatement<BaseInstance, DB, Schema, ForeignTableName>
+  distinct?: TableColumnName<DB, Schema, ForeignTableName>
+  order?: OrderStatement<DB, Schema, ForeignTableName>
 }
 
 export interface HasOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream> {
-  foreignKey?: DreamColumns<InstanceType<AssociationDreamClass>>
-  primaryKeyOverride?: DreamColumns<BaseInstance> | null
-  through?: keyof BaseInstance['syncedAssociations'][BaseInstance['table']]
+  foreignKey?: DreamColumnNames<InstanceType<AssociationDreamClass>>
+  primaryKeyOverride?: DreamColumnNames<BaseInstance> | null
+  through?: keyof BaseInstance['dreamconf']['schema'][BaseInstance['table']]['associations']
   polymorphic?: boolean
   source?: string
   where?: AssociationWhereStatement<
     InstanceType<AssociationDreamClass>['DB'],
-    InstanceType<AssociationDreamClass>['syncedAssociations'],
+    InstanceType<AssociationDreamClass>['dreamconf']['schema'],
     InstanceType<AssociationDreamClass>['table'] &
       AssociationTableNames<
         InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['syncedAssociations']
+        InstanceType<AssociationDreamClass>['dreamconf']['schema']
       >
   >
   whereNot?: WhereStatement<
     InstanceType<AssociationDreamClass>['DB'],
-    InstanceType<AssociationDreamClass>['syncedAssociations'],
+    InstanceType<AssociationDreamClass>['dreamconf']['schema'],
     InstanceType<AssociationDreamClass>['table'] &
       AssociationTableNames<
         InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['syncedAssociations']
+        InstanceType<AssociationDreamClass>['dreamconf']['schema']
       >
   >
 
   selfWhere?: WhereSelfStatement<
     BaseInstance,
     InstanceType<AssociationDreamClass>['DB'],
-    InstanceType<AssociationDreamClass>['syncedAssociations'],
+    InstanceType<AssociationDreamClass>['dreamconf']['schema'],
     InstanceType<AssociationDreamClass>['table'] &
       AssociationTableNames<
         InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['syncedAssociations']
+        InstanceType<AssociationDreamClass>['dreamconf']['schema']
       >
   >
 
   selfWhereNot?: WhereSelfStatement<
     BaseInstance,
     InstanceType<AssociationDreamClass>['DB'],
-    InstanceType<AssociationDreamClass>['syncedAssociations'],
+    InstanceType<AssociationDreamClass>['dreamconf']['schema'],
     InstanceType<AssociationDreamClass>['table'] &
       AssociationTableNames<
         InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['syncedAssociations']
+        InstanceType<AssociationDreamClass>['dreamconf']['schema']
       >
   >
 
   order?:
     | OrderStatement<
         InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['syncedAssociations'],
+        InstanceType<AssociationDreamClass>['dreamconf']['schema'],
         InstanceType<AssociationDreamClass>['table'] &
           AssociationTableNames<
             InstanceType<AssociationDreamClass>['DB'],
-            InstanceType<AssociationDreamClass>['syncedAssociations']
+            InstanceType<AssociationDreamClass>['dreamconf']['schema']
           >
       >
     | OrderStatement<
         InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['syncedAssociations'],
+        InstanceType<AssociationDreamClass>['dreamconf']['schema'],
         InstanceType<AssociationDreamClass>['table'] &
           AssociationTableNames<
             InstanceType<AssociationDreamClass>['DB'],
-            InstanceType<AssociationDreamClass>['syncedAssociations']
+            InstanceType<AssociationDreamClass>['dreamconf']['schema']
           >
       >[]
   preloadThroughColumns?: string[]

@@ -21,7 +21,7 @@ describe('Query#find', () => {
 
   context('when passed null', () => {
     it('returns null', async () => {
-      expect(await User.query().find(null)).toBeNull()
+      expect(await User.query().find(null as any)).toBeNull()
     })
   })
 

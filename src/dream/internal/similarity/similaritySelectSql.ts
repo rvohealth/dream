@@ -9,7 +9,7 @@ export default function similaritySelectSql<DreamClass extends typeof Dream>({
   tableName,
   columnName,
   opsStatement,
-  dbTypeCache,
+  schema,
   rankSQLAlias,
 }: {
   eb: ExpressionBuilder<
@@ -19,7 +19,7 @@ export default function similaritySelectSql<DreamClass extends typeof Dream>({
   tableName: InstanceType<DreamClass>['table']
   columnName: string
   opsStatement: OpsStatement<any, any>
-  dbTypeCache: any
+  schema: any
   rankSQLAlias: string
 }) {
   return sql<string>`
@@ -28,8 +28,8 @@ export default function similaritySelectSql<DreamClass extends typeof Dream>({
       (
         to_tsvector(
           'simple',
-          coalesce(${eb.ref(validateTable(dbTypeCache, tableName))}.${eb.ref(
-            validateColumn(dbTypeCache, tableName, columnName)
+          coalesce(${eb.ref(validateTable(schema, tableName))}.${eb.ref(
+            validateColumn(schema, tableName, columnName)
           )} :: text, '')
         )
       ),

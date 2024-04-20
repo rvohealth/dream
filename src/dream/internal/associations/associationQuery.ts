@@ -7,7 +7,8 @@ import { HasManyStatement } from '../../../decorators/associations/has-many'
 export default function associationQuery<
   DreamInstance extends Dream,
   TableName extends DreamInstance['table'],
-  AssociationName extends keyof DreamInstance['syncedAssociations'][TableName],
+  AssociationName extends keyof DreamInstance['dreamconf']['schema'][TableName &
+    keyof DreamInstance['dreamconf']['schema']]['associations'],
   PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
   AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
     ? ElementType & Dream
@@ -16,7 +17,7 @@ export default function associationQuery<
     DreamConstructorType<AssociationType & Dream>,
     AssociationType & Dream,
     DreamInstance['DB'],
-    DreamInstance['syncedAssociations'],
+    DreamInstance['dreamconf']['schema'],
     DreamInstance['allColumns'],
     keyof DreamInstance['DB'][(AssociationType & Dream)['table']] extends never
       ? never
@@ -38,7 +39,7 @@ export default function associationQuery<
     .joins(association.as as any)
 
   return (txn ? associationClass.txn(txn).queryInstance() : associationClass.query())
-    ['setBaseSQLAlias'](association.as as TableOrAssociationName<DreamInstance['syncedAssociations']>)
+    ['setBaseSQLAlias'](association.as as TableOrAssociationName<DreamInstance['dreamconf']['schema']>)
     ['setBaseSelectQuery'](baseSelectQuery as Query<any>) as Query<
     DreamConstructorType<AssociationType & Dream>
   > as AssociationQuery

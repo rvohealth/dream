@@ -4,12 +4,12 @@ import User from '../../../../test-app/app/models/User'
 
 describe('validateTable', () => {
   it('returns the table string with a valid table', () => {
-    expect(validateTable(User.prototype.dreamconf.dbTypeCache, 'compositions')).toEqual('compositions')
+    expect(validateTable(User.prototype.dreamconf.schema, 'compositions')).toEqual('compositions')
   })
 
   it('raises an exception with an invalid table', () => {
     expect(() => {
-      validateTable(User.prototype.dreamconf.dbTypeCache, 'compositionz')
+      validateTable(User.prototype.dreamconf.schema, 'compositionz' as any)
     }).toThrowError(InvalidTableName)
   })
 })

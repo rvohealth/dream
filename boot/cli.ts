@@ -118,27 +118,12 @@ program
   })
 
 program
-  .command('sync:types')
+  .command('sync')
+  .alias('sync:schema')
   .alias('sync:all')
-  .description('runs yarn dream sync:schema, then yarn dream sync:associations')
-  .option('--core', 'sets core to true')
-  .option('--tsnode', 'runs the command using ts-node instead of node')
-  .option(
-    '--bypass-config-cache',
-    'bypasses running type cache build (this is typically used internally only)'
-  )
-  .action(async () => {
-    await sspawn(dreamjsOrDreamtsCmd('sync:schema', cmdargs()))
-    await sspawn(
-      dreamjsOrDreamtsCmd('sync:associations', cmdargs(), {
-        cmdArgs: ['--bypass-config-cache'],
-      })
-    )
-  })
-
-program
-  .command('sync:schema')
+  .alias('sync:types')
   .alias('introspect')
+  .alias('sync:associations')
   .description(
     'sync introspects your database, updating your schema to reflect, and then syncs the new schema with the installed dream node module, allowing it provide your schema to the underlying kysely integration'
   )
@@ -151,22 +136,9 @@ program
         tsnodeFlags: ['--transpile-only'],
       })
     )
-  })
 
-program
-  .command('sync:associations')
-  .description(
-    'examines your current models, building a type-map of the associations so that the ORM can understand your relational setup. This is commited to your repo, and synced to the dream repo for consumption within the underlying library.'
-  )
-  .option('--core', 'sets core to true')
-  .option('--tsnode', 'runs the command using ts-node instead of node')
-  .option(
-    '--bypass-config-cache',
-    'bypasses running type cache build (this is typically used internally only)'
-  )
-  .action(async () => {
     await sspawn(
-      nodeOrTsnodeCmd('src/bin/build-associations.ts', cmdargs(), { tsnodeFlags: ['--transpile-only'] })
+      nodeOrTsnodeCmd('src/bin/build-dream-schema.ts', cmdargs(), { tsnodeFlags: ['--transpile-only'] })
     )
   })
 
@@ -198,11 +170,7 @@ program
     await sspawn(nodeOrTsnodeCmd('src/bin/db-migrate.ts', cmdargs(), { tsnodeFlags: ['--transpile-only'] }))
 
     if (developmentOrTestEnv()) {
-      await sspawn(
-        dreamjsOrDreamtsCmd('sync:types', cmdargs(), {
-          cmdArgs: ['--bypass-config-cache'],
-        })
-      )
+      await sspawn(dreamjsOrDreamtsCmd('sync', cmdargs()))
     }
   })
 
@@ -220,11 +188,7 @@ program
     const stepArg = cmdargs().find(arg => /--step=\d+/.test(arg))
     const step = stepArg ? parseInt(stepArg.replace('--step=', '')) : 1
     await sspawn(nodeOrTsnodeCmd(`src/bin/db-rollback.ts`, cmdargs(), { fileArgs: [`${step}`] }))
-    await sspawn(
-      dreamjsOrDreamtsCmd('sync:types', cmdargs(), {
-        cmdArgs: ['--bypass-config-cache'],
-      })
-    )
+    await sspawn(dreamjsOrDreamtsCmd('sync', cmdargs()))
   })
 
 program
@@ -289,26 +253,6 @@ program
   })
 
 program
-  .command('spec')
-  .description('runs core dev specs')
-  .option('--core', 'sets core to true')
-  .option('--tsnode', 'runs the command using ts-node instead of node')
-  .action(async () => {
-    setCoreDevelopmentFlag(cmdargs())
-    const files = cmdargs().filter(arg => /\.spec\.ts$/.test(arg))
-    if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-      await sspawn(dreamjsOrDreamtsCmd('sync:associations', cmdargs()))
-      await sspawn(
-        `DREAM_CORE_DEVELOPMENT=1 NODE_ENV=test DREAM_CORE_SPEC_RUN=1 jest --runInBand --forceExit ${files.join(
-          ' '
-        )}`
-      )
-    } else {
-      throw 'this command is not meant for use outside core development'
-    }
-  })
-
-program
   .command('console')
   .description('initiates a repl, loading the models from the development test-app into scope for easy use')
   .option('--core', 'sets core to true')
@@ -317,7 +261,7 @@ program
     setCoreDevelopmentFlag(cmdargs())
     if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
       await sspawn(
-        `yarn dream sync:types --core && DREAM_CORE_DEVELOPMENT=1 NODE_ENV=development npx ts-node ./test-app/conf/repl.js`
+        `yarn dream sync --core && DREAM_CORE_DEVELOPMENT=1 NODE_ENV=development npx ts-node ./test-app/conf/repl.js`
       )
     } else {
       throw 'this command is not meant for use outside core development'
