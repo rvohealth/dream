@@ -7,8 +7,8 @@ describe('marshalling postgres datetimes from db', () => {
 
     const user = await Pet.create({ deletedAt: datetime })
     const reloadedPet = await Pet.unscoped().find(user.id)
-    expect(reloadedPet!.deletedAt.toISO()).toEqual(datetime.toUTC().toISO())
-    expect(reloadedPet!.deletedAt.zoneName).toEqual('UTC')
+    expect(reloadedPet!.deletedAt!.toISO()).toEqual(datetime.toUTC().toISO())
+    expect(reloadedPet!.deletedAt!.zoneName).toEqual('UTC')
   })
 
   context('when date value is set to null', () => {

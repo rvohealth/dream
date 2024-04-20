@@ -4,11 +4,10 @@ import HasOne from '../../../src/decorators/associations/has-one'
 import Scope from '../../../src/decorators/scope'
 import Sortable from '../../../src/decorators/sortable'
 import User from './User'
-import { IdType } from '../../../src/dream/types'
+import { DreamColumn, IdType } from '../../../src/dream/types'
 import BeforeDestroy from '../../../src/decorators/hooks/before-destroy'
 import Collar from './Collar'
 import PetSerializer from '../serializers/PetSerializer'
-import { CatTreats, Species } from '../../db/schema'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
 import PetUnderstudyJoinModel from './PetUnderstudyJoinModel'
@@ -24,15 +23,15 @@ export default class Pet extends ApplicationModel {
     return PetSerializer<any, any>
   }
 
-  public id: IdType
-  public species: Species
-  public name: string
-  public favoriteTreats: CatTreats[]
-  public deletedAt: DateTime
-  public createdAt: DateTime
+  public id: DreamColumn<Pet, 'id'>
+  public species: DreamColumn<Pet, 'species'>
+  public name: DreamColumn<Pet, 'name'>
+  public favoriteTreats: DreamColumn<Pet, 'favoriteTreats'>
+  public deletedAt: DreamColumn<Pet, 'deletedAt'>
+  public createdAt: DreamColumn<Pet, 'createdAt'>
 
   public get nickname() {
-    return ((this as Pet).getAttribute('nickname') || this.name) as typeof this.name
+    return ((this as Pet).getAttribute('nickname') || this.name) as NonNullable<typeof this.name>
   }
 
   public set nickname(nickname: string) {

@@ -59,7 +59,7 @@ async function writeVirtualColumns(fileStr: string) {
   return `\
 ${fileStr}
 
-export interface VirtualColumns ${JSON.stringify(finalModels, null, 2)}
+export const VirtualColumns = ${JSON.stringify(finalModels, null, 2)} as const
 `
 }
 
