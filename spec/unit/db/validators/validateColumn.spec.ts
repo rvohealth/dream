@@ -4,18 +4,18 @@ import User from '../../../../test-app/app/models/User'
 
 describe('validateColumn', () => {
   it('returns the table string with a valid table', () => {
-    expect(validateColumn(User.prototype.dreamconf.dbTypeCache, 'compositions', 'content')).toEqual('content')
+    expect(validateColumn(User.prototype.dreamconf.schema, 'compositions', 'content')).toEqual('content')
   })
 
   it('raises an exception with an invalid table', () => {
     expect(() => {
-      validateColumn(User.prototype.dreamconf.dbTypeCache, 'compositionz', 'content')
+      validateColumn(User.prototype.dreamconf.schema, 'compositionz' as any, 'content')
     }).toThrowError(InvalidColumnName)
   })
 
   it('raises an exception with an invalid columnName', () => {
     expect(() => {
-      validateColumn(User.prototype.dreamconf.dbTypeCache, 'compositions', 'contenz')
+      validateColumn(User.prototype.dreamconf.schema, 'compositions', 'contenz' as any)
     }).toThrowError(InvalidColumnName)
   })
 })

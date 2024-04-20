@@ -9,7 +9,8 @@ import { BelongsToStatement } from '../../../decorators/associations/belongs-to'
 export default function associationUpdateQuery<
   DreamInstance extends Dream,
   TableName extends DreamInstance['table'],
-  AssociationName extends keyof DreamInstance['syncedAssociations'][TableName],
+  AssociationName extends keyof DreamInstance['dreamconf']['schema'][TableName &
+    keyof DreamInstance['dreamconf']['schema']]['associations'],
   PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
   AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
     ? ElementType
@@ -18,7 +19,7 @@ export default function associationUpdateQuery<
     DreamConstructorType<AssociationType & Dream>,
     AssociationType & Dream,
     DreamInstance['DB'],
-    DreamInstance['syncedAssociations'],
+    DreamInstance['dreamconf']['schema'],
     DreamInstance['allColumns'],
     keyof DreamInstance['DB'][(AssociationType & Dream)['table']] extends never
       ? never

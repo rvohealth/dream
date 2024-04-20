@@ -74,9 +74,9 @@ export default function HasOne<
 export interface HasOneStatement<
   BaseInstance extends Dream,
   DB,
-  SyncedAssociations,
-  ForeignTableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
-> extends HasStatement<BaseInstance, DB, SyncedAssociations, ForeignTableName, 'HasOne'> {}
+  Schema,
+  ForeignTableName extends AssociationTableNames<DB, Schema> & keyof DB,
+> extends HasStatement<BaseInstance, DB, Schema, ForeignTableName, 'HasOne'> {}
 
 export interface HasOneOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream>
   extends HasOptions<BaseInstance, AssociationDreamClass> {}

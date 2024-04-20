@@ -7,10 +7,9 @@ import { UpdateablePropertiesForClass } from '../types'
 export default function sqlResultToDreamInstance<
   DreamClass extends typeof Dream,
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
-  SyncedAssociations extends DreamInstance['syncedAssociations'] = DreamInstance['syncedAssociations'],
+  Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
-  TableName extends AssociationTableNames<DB, SyncedAssociations> &
-    keyof DB = InstanceType<DreamClass>['table'],
+  TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<DreamClass>['table'],
   Table extends DB[TableName] = DB[TableName],
 >(dreamClass: DreamClass, sqlResult: any): InstanceType<DreamClass> | Dream {
   if (dreamClass['isSTIBase']) {

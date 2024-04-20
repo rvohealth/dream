@@ -76,20 +76,20 @@ export default function HasMany<
 export interface HasManyStatement<
   BaseInstance extends Dream,
   DB,
-  SyncedAssociations,
-  ForeignTableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB,
-> extends HasStatement<BaseInstance, DB, SyncedAssociations, ForeignTableName, 'HasMany'> {}
+  Schema,
+  ForeignTableName extends AssociationTableNames<DB, Schema> & keyof DB,
+> extends HasStatement<BaseInstance, DB, Schema, ForeignTableName, 'HasMany'> {}
 
 export interface HasManyOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream>
   extends HasOptions<BaseInstance, AssociationDreamClass> {
   distinct?:
     | TableColumnName<
         InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['syncedAssociations'],
+        InstanceType<AssociationDreamClass>['dreamconf']['schema'],
         InstanceType<AssociationDreamClass>['table'] &
           AssociationTableNames<
             InstanceType<AssociationDreamClass>['DB'],
-            InstanceType<AssociationDreamClass>['syncedAssociations']
+            InstanceType<AssociationDreamClass>['dreamconf']['schema']
           >
       >
     | boolean

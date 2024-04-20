@@ -7,12 +7,7 @@ describe('ConnectionConfRetriever', () => {
   const getConfig = () =>
     new Dreamconf({
       DB: {},
-      dbColumns: {},
-      dbTypeCache: {},
-      interpretedDB: {},
-      syncedAssociations: {},
-      syncedBelongsToAssociations: {},
-      virtualColumns: {},
+      schema: {},
       env: {
         db: {
           production: {

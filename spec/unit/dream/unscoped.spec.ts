@@ -5,7 +5,7 @@ import { IdType } from '../../../src/dream/types'
 describe('Dream#unscoped', () => {
   let user: User
   let pet: Pet
-  let petId: IdType | null = null
+  let petId: IdType
   beforeEach(async () => {
     user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     pet = await Pet.create({ user })

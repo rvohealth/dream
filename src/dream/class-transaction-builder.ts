@@ -6,7 +6,7 @@ import Query, { FindEachOpts } from './query'
 import { AssociationTableNames } from '../db/reflections'
 import {
   UpdateablePropertiesForClass,
-  DreamClassColumns,
+  DreamClassColumnNames,
   OrderDir,
   VariadicPluckThroughArgs,
   VariadicPluckEachThroughArgs,
@@ -51,14 +51,14 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
 
   public async max<I extends DreamClassTransactionBuilder<DreamClass>>(
     this: I,
-    field: DreamClassColumns<DreamClass>
+    field: DreamClassColumnNames<DreamClass>
   ): Promise<number> {
     return this.queryInstance().max(field as any)
   }
 
   public async min<I extends DreamClassTransactionBuilder<DreamClass>>(
     this: I,
-    field: DreamClassColumns<DreamClass>
+    field: DreamClassColumnNames<DreamClass>
   ): Promise<number> {
     return this.queryInstance().min(field as any)
   }
@@ -73,15 +73,9 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
 
   public async find<
     I extends DreamClassTransactionBuilder<DreamClass>,
-    TableName extends keyof InstanceType<I['dreamClass']>['dreamconf']['interpretedDB'] = InstanceType<
-      I['dreamClass']
-    >['table'] &
-      keyof InstanceType<I['dreamClass']>['dreamconf']['interpretedDB'],
-  >(
-    this: I,
-    id: InstanceType<I['dreamClass']>['dreamconf']['interpretedDB'][TableName][DreamClass['primaryKey'] &
-      keyof InstanceType<I['dreamClass']>['dreamconf']['interpretedDB'][TableName]]
-  ): Promise<InstanceType<DreamClass> | null> {
+    Schema extends InstanceType<DreamClass>['dreamconf']['schema'],
+    SchemaIdType = Schema[InstanceType<DreamClass>['table']]['columns'][DreamClass['primaryKey']]['coercedType'],
+  >(this: I, id: SchemaIdType): Promise<InstanceType<DreamClass> | null> {
     return await this.queryInstance()
       .where({ [this.dreamClass.primaryKey]: id } as any)
       .first()
@@ -120,9 +114,9 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
   public preload<
     I extends DreamClassTransactionBuilder<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
-    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
+    Schema extends InstanceType<DreamClass>['dreamconf']['schema'],
     const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicLoadArgs<SyncedAssociations, TableName, Arr>]) {
+  >(this: I, ...args: [...Arr, VariadicLoadArgs<Schema, TableName, Arr>]) {
     return this.queryInstance().preload(...(args as any))
   }
 
@@ -130,32 +124,29 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
     I extends DreamClassTransactionBuilder<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
     DB extends InstanceType<DreamClass>['DB'],
-    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
+    Schema extends InstanceType<DreamClass>['dreamconf']['schema'],
     const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicJoinsArgs<DB, SyncedAssociations, TableName, Arr>]) {
+  >(this: I, ...args: [...Arr, VariadicJoinsArgs<DB, Schema, TableName, Arr>]) {
     return this.queryInstance().joins(...(args as any))
   }
 
   public async pluckThrough<
     I extends DreamClassTransactionBuilder<DreamClass>,
     DB extends InstanceType<DreamClass>['DB'],
-    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
+    Schema extends InstanceType<DreamClass>['dreamconf']['schema'],
     TableName extends InstanceType<DreamClass>['table'],
     const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicPluckThroughArgs<DB, SyncedAssociations, TableName, Arr>]) {
+  >(this: I, ...args: [...Arr, VariadicPluckThroughArgs<DB, Schema, TableName, Arr>]) {
     return this.queryInstance().pluckThrough(...(args as any))
   }
 
   public async pluckEachThrough<
     I extends DreamClassTransactionBuilder<DreamClass>,
     DB extends InstanceType<DreamClass>['DB'],
-    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
+    Schema extends InstanceType<DreamClass>['dreamconf']['schema'],
     TableName extends InstanceType<DreamClass>['table'],
     const Arr extends readonly unknown[],
-  >(
-    this: I,
-    ...args: [...Arr, VariadicPluckEachThroughArgs<DB, SyncedAssociations, TableName, Arr>]
-  ): Promise<void> {
+  >(this: I, ...args: [...Arr, VariadicPluckEachThroughArgs<DB, Schema, TableName, Arr>]): Promise<void> {
     return this.queryInstance().pluckEachThrough(...(args as any))
   }
 
@@ -183,7 +174,10 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
 
   public order<I extends DreamClassTransactionBuilder<DreamClass>>(
     this: I,
-    arg: DreamClassColumns<DreamClass> | Partial<Record<DreamClassColumns<DreamClass>, OrderDir>> | null
+    arg:
+      | DreamClassColumnNames<DreamClass>
+      | Partial<Record<DreamClassColumnNames<DreamClass>, OrderDir>>
+      | null
   ) {
     return this.queryInstance().order(arg as any)
   }
@@ -191,7 +185,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
   public async pluck<
     I extends DreamClassTransactionBuilder<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
-    ColumnType extends DreamClassColumns<DreamClass>,
+    ColumnType extends DreamClassColumnNames<DreamClass>,
   >(this: I, ...fields: (ColumnType | `${TableName}.${ColumnType}`)[]) {
     return await this.queryInstance().pluck(...(fields as any[]))
   }
@@ -199,7 +193,7 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
   public async pluckEach<
     I extends DreamClassTransactionBuilder<DreamClass>,
     TableName extends InstanceType<DreamClass>['table'],
-    ColumnType extends DreamClassColumns<DreamClass>,
+    ColumnType extends DreamClassColumnNames<DreamClass>,
     CB extends (plucked: any) => void | Promise<void>,
   >(this: I, ...fields: (ColumnType | `${TableName}.${ColumnType}` | CB | FindEachOpts)[]): Promise<void> {
     await this.queryInstance().pluckEach(...fields)
@@ -215,36 +209,30 @@ export default class DreamClassTransactionBuilder<DreamClass extends typeof Drea
   public where<
     I extends DreamClassTransactionBuilder<DreamClass>,
     DB extends InstanceType<DreamClass>['DB'],
-    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
-    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<
-      I['dreamClass']
-    >['table'] &
+    Schema extends InstanceType<DreamClass>['dreamconf']['schema'],
+    TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<I['dreamClass']>['table'] &
       keyof DB,
-  >(this: I, attributes: WhereStatement<DB, SyncedAssociations, TableName>): Query<DreamClass> {
+  >(this: I, attributes: WhereStatement<DB, Schema, TableName>): Query<DreamClass> {
     return this.queryInstance().where(attributes as any)
   }
 
   public whereAny<
     I extends DreamClassTransactionBuilder<DreamClass>,
     DB extends InstanceType<DreamClass>['DB'],
-    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
-    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<
-      I['dreamClass']
-    >['table'] &
+    Schema extends InstanceType<DreamClass>['dreamconf']['schema'],
+    TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<I['dreamClass']>['table'] &
       keyof DB,
-  >(this: I, attributes: WhereStatement<DB, SyncedAssociations, TableName>[]): Query<DreamClass> {
+  >(this: I, attributes: WhereStatement<DB, Schema, TableName>[]): Query<DreamClass> {
     return this.queryInstance().whereAny(attributes as any)
   }
 
   public whereNot<
     I extends DreamClassTransactionBuilder<DreamClass>,
     DB extends InstanceType<DreamClass>['DB'],
-    SyncedAssociations extends InstanceType<DreamClass>['syncedAssociations'],
-    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<
-      I['dreamClass']
-    >['table'] &
+    Schema extends InstanceType<DreamClass>['dreamconf']['schema'],
+    TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<I['dreamClass']>['table'] &
       keyof DB,
-  >(this: I, attributes: WhereStatement<DB, SyncedAssociations, TableName>): Query<DreamClass> {
+  >(this: I, attributes: WhereStatement<DB, Schema, TableName>): Query<DreamClass> {
     return this.queryInstance().whereNot(attributes as any)
   }
 }

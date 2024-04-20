@@ -1,14 +1,14 @@
 export default class InvalidTableName extends Error {
-  private dbTypeCache: any
+  private schema: any
   private tableName: string
-  constructor(dbTypeCache: any, tableName: string) {
+  constructor(schema: any, tableName: string) {
     super()
-    this.dbTypeCache = dbTypeCache
+    this.schema = schema
     this.tableName = tableName
   }
 
   public get message() {
-    const keys: string[] = Object.keys(this.dbTypeCache)
+    const keys: string[] = Object.keys(this.schema)
 
     return `
 Invalid table name passed to an underlying sql function.

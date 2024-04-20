@@ -41,14 +41,15 @@ import {
   UpdateablePropertiesForClass,
   UpdateableProperties,
   AttributeKeys,
-  DreamClassColumns,
+  DreamClassColumnNames,
   UpdateableAssociationProperties,
-  DreamColumns,
+  DreamColumnNames,
   OrderDir,
   VariadicPluckThroughArgs,
   VariadicPluckEachThroughArgs,
   VariadicJoinsArgs,
   VariadicLoadArgs,
+  DreamBelongsToAssociationMetadata,
 } from './dream/types'
 import Query, { FindEachOpts } from './dream/query'
 import runValidations from './dream/internal/runValidations'
@@ -73,7 +74,7 @@ import { DatabaseError } from 'pg'
 import LoadBuilder from './dream/load-builder'
 import { DbConnectionType } from './db/types'
 import MissingDB from './exceptions/missing-db'
-import Dreamconf, { AssociationDepths } from './helpers/dreamconf'
+import Dreamconf from './helpers/dreamconf'
 import resortAllRecords from './decorators/sortable/helpers/resortAllRecords'
 import Sortable, { SortableFieldConfig } from './decorators/sortable'
 import NonExistentScopeProvidedToResort from './exceptions/non-existent-scope-provided-to-resort'
@@ -88,8 +89,8 @@ import { marshalDBValue } from './helpers/marshalDBValue'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
 
 export default class Dream {
-  public static get primaryKey(): string {
-    return 'id'
+  public static get primaryKey() {
+    return 'id' as const
   }
 
   public static createdAtField = 'createdAt'
@@ -199,12 +200,9 @@ export default class Dream {
       scope,
     }: {
       scope:
-        | keyof InstanceType<T>['dreamconf']['syncedBelongsToAssociations'][InstanceType<T>['table']]
-        | DreamColumns<InstanceType<T>>
-        | (
-            | keyof InstanceType<T>['dreamconf']['syncedBelongsToAssociations'][InstanceType<T>['table']]
-            | DreamColumns<InstanceType<T>>
-          )[]
+        | keyof DreamBelongsToAssociationMetadata<InstanceType<T>>
+        | DreamColumnNames<InstanceType<T>>
+        | (keyof DreamBelongsToAssociationMetadata<InstanceType<T>> | DreamColumnNames<InstanceType<T>>)[]
     }
   ) {
     return Sortable({ scope: scope as any })
@@ -270,15 +268,15 @@ export default class Dream {
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName],
   >(): Set<keyof Table & string> {
-    return this.prototype.dreamconf.dbColumns[this.prototype.table]
+    const columns = this.prototype.dreamconf.schema[this.prototype.table]?.columns
+    return new Set(columns ? Object.keys(columns) : [])
   }
 
   public static getAssociation<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
-  >(this: T, associationName: SyncedAssociations[DB][number]) {
+    Schema extends I['dreamconf']['schema'],
+  >(this: T, associationName: Schema[I['table']]['associations'][number]) {
     return this.associationMap()[associationName]
   }
 
@@ -286,7 +284,7 @@ export default class Dream {
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
+    Schema extends I['dreamconf']['schema'],
   >(this: T) {
     const allAssociations = [
       ...this.associations.belongsTo,
@@ -296,24 +294,9 @@ export default class Dream {
 
     const map = {} as {
       [key: (typeof allAssociations)[number]['as']]:
-        | BelongsToStatement<
-            any,
-            DB,
-            SyncedAssociations,
-            AssociationTableNames<DB, SyncedAssociations> & keyof DB
-          >
-        | HasManyStatement<
-            any,
-            DB,
-            SyncedAssociations,
-            AssociationTableNames<DB, SyncedAssociations> & keyof DB
-          >
-        | HasOneStatement<
-            any,
-            DB,
-            SyncedAssociations,
-            AssociationTableNames<DB, SyncedAssociations> & keyof DB
-          >
+        | BelongsToStatement<any, DB, Schema, AssociationTableNames<DB, Schema> & keyof DB>
+        | HasManyStatement<any, DB, Schema, AssociationTableNames<DB, Schema> & keyof DB>
+        | HasOneStatement<any, DB, Schema, AssociationTableNames<DB, Schema> & keyof DB>
     }
 
     for (const association of allAssociations) {
@@ -353,14 +336,14 @@ export default class Dream {
 
   public static async max<DreamClass extends typeof Dream>(
     this: DreamClass,
-    field: DreamClassColumns<DreamClass>
+    field: DreamClassColumnNames<DreamClass>
   ): Promise<number> {
     return await this.query().max(field as any)
   }
 
   public static async min<DreamClass extends typeof Dream>(
     this: DreamClass,
-    field: DreamClassColumns<DreamClass>
+    field: DreamClassColumnNames<DreamClass>
   ): Promise<number> {
     return await this.query().min(field as any)
   }
@@ -398,20 +381,18 @@ export default class Dream {
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
+    Schema extends I['dreamconf']['schema'],
     TableName extends InstanceType<T>['table'],
-  >(this: T, columnName?: TableColumnName<DB, SyncedAssociations, TableName> | null | boolean) {
+  >(this: T, columnName?: TableColumnName<DB, Schema, TableName> | null | boolean) {
     return this.query().distinct(columnName as any)
   }
 
   public static async find<
     T extends typeof Dream,
-    InterpretedDB extends InstanceType<T>['dreamconf']['interpretedDB'],
-    TableName extends keyof InterpretedDB = InstanceType<T>['table'] & keyof InterpretedDB,
-  >(
-    this: T,
-    id: InterpretedDB[TableName][T['primaryKey'] & keyof InterpretedDB[TableName]]
-  ): Promise<InstanceType<T> | null> {
+    I extends InstanceType<T>,
+    Schema extends I['dreamconf']['schema'],
+    SchemaIdType = Schema[InstanceType<T>['table']]['columns'][T['primaryKey']]['coercedType'],
+  >(this: T, id: SchemaIdType): Promise<InstanceType<T> | null> {
     return await this.query().find(id)
   }
 
@@ -427,9 +408,9 @@ export default class Dream {
     T extends typeof Dream,
     I extends InstanceType<T>,
     TableName extends I['table'],
-    SyncedAssociations extends I['syncedAssociations'],
+    Schema extends I['dreamconf']['schema'],
     const Arr extends readonly unknown[],
-  >(this: T, models: Dream[], ...args: [...Arr, VariadicLoadArgs<SyncedAssociations, TableName, Arr>]) {
+  >(this: T, models: Dream[], ...args: [...Arr, VariadicLoadArgs<Schema, TableName, Arr>]) {
     await this.query().loadInto(models, ...(args as any))
   }
 
@@ -439,9 +420,9 @@ export default class Dream {
     T,
     InstanceType<T>,
     InstanceType<T>['DB'],
-    InstanceType<T>['syncedAssociations'],
+    InstanceType<T>['dreamconf']['schema'],
     InstanceType<T>['allColumns'],
-    DreamClassColumns<T>
+    DreamClassColumnNames<T>
   > {
     return new Query(this)
   }
@@ -450,7 +431,7 @@ export default class Dream {
     this: T,
     attributes: WhereStatement<
       InstanceType<T>['DB'],
-      InstanceType<T>['syncedAssociations'],
+      InstanceType<T>['dreamconf']['schema'],
       InstanceType<T>['table']
     >
   ): Promise<InstanceType<T> | null> {
@@ -482,10 +463,10 @@ export default class Dream {
   public static preload<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    SyncedAssociations extends I['syncedAssociations'],
+    Schema extends I['dreamconf']['schema'],
     TableName extends InstanceType<T>['table'],
     const Arr extends readonly unknown[],
-  >(this: T, ...args: [...Arr, VariadicLoadArgs<SyncedAssociations, TableName, Arr>]) {
+  >(this: T, ...args: [...Arr, VariadicLoadArgs<Schema, TableName, Arr>]) {
     return this.query().preload(...(args as any))
   }
 
@@ -493,10 +474,10 @@ export default class Dream {
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
-    TableName extends I['table'] & keyof SyncedAssociations,
+    Schema extends I['dreamconf']['schema'],
+    TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
-  >(this: T, ...args: [...Arr, VariadicJoinsArgs<DB, SyncedAssociations, TableName, Arr>]) {
+  >(this: T, ...args: [...Arr, VariadicJoinsArgs<DB, Schema, TableName, Arr>]) {
     return this.query().joins(...(args as any))
   }
 
@@ -504,13 +485,10 @@ export default class Dream {
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
+    Schema extends I['dreamconf']['schema'],
     TableName extends I['table'],
     const Arr extends readonly unknown[],
-  >(
-    this: T,
-    ...args: [...Arr, VariadicPluckThroughArgs<DB, SyncedAssociations, TableName, Arr>]
-  ): Promise<any[]> {
+  >(this: T, ...args: [...Arr, VariadicPluckThroughArgs<DB, Schema, TableName, Arr>]): Promise<any[]> {
     return await this.query().pluckThrough(...(args as any))
   }
 
@@ -518,13 +496,10 @@ export default class Dream {
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
+    Schema extends I['dreamconf']['schema'],
     TableName extends I['table'],
     const Arr extends readonly unknown[],
-  >(
-    this: T,
-    ...args: [...Arr, VariadicPluckEachThroughArgs<DB, SyncedAssociations, TableName, Arr>]
-  ): Promise<void> {
+  >(this: T, ...args: [...Arr, VariadicPluckEachThroughArgs<DB, Schema, TableName, Arr>]): Promise<void> {
     await this.query().pluckEachThrough(...(args as any))
   }
 
@@ -540,31 +515,34 @@ export default class Dream {
     return this.query().offset(offset)
   }
 
-  public static nestedSelect<T extends typeof Dream>(this: T, selection: DreamClassColumns<T>) {
+  public static nestedSelect<T extends typeof Dream>(this: T, selection: DreamClassColumnNames<T>) {
     return this.query().nestedSelect(selection as any)
   }
 
   public static order<DreamClass extends typeof Dream>(
     this: DreamClass,
-    arg: DreamClassColumns<DreamClass> | Partial<Record<DreamClassColumns<DreamClass>, OrderDir>> | null
+    arg:
+      | DreamClassColumnNames<DreamClass>
+      | Partial<Record<DreamClassColumnNames<DreamClass>, OrderDir>>
+      | null
   ): Query<DreamClass> {
     return this.query().order(arg as any)
   }
 
-  public static async pluck<T extends typeof Dream>(this: T, ...fields: DreamClassColumns<T>[]) {
+  public static async pluck<T extends typeof Dream>(this: T, ...fields: DreamClassColumnNames<T>[]) {
     return await this.query().pluck(...(fields as any[]))
   }
 
   public static async pluckEach<
     DreamClass extends typeof Dream,
     CB extends (plucked: any) => void | Promise<void>,
-  >(this: DreamClass, ...fields: (DreamClassColumns<DreamClass> | CB | FindEachOpts)[]) {
+  >(this: DreamClass, ...fields: (DreamClassColumnNames<DreamClass> | CB | FindEachOpts)[]) {
     return await this.query().pluckEach(...(fields as any))
   }
 
   public static async resort<DreamClass extends typeof Dream>(
     this: DreamClass,
-    ...fields: DreamClassColumns<DreamClass>[]
+    ...fields: DreamClassColumnNames<DreamClass>[]
   ) {
     for (const field of fields) {
       const sortableMetadata = this.sortableFields.find(conf => conf.positionField === field)
@@ -649,9 +627,9 @@ export default class Dream {
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
-    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<T>['table'],
-  >(this: T, attributes: WhereStatement<DB, SyncedAssociations, TableName>): Query<T> {
+    Schema extends I['dreamconf']['schema'],
+    TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
+  >(this: T, attributes: WhereStatement<DB, Schema, TableName>): Query<T> {
     return this.query().where(attributes)
   }
 
@@ -659,9 +637,9 @@ export default class Dream {
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
-    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<T>['table'],
-  >(this: T, attributes: WhereStatement<DB, SyncedAssociations, TableName>[]): Query<T> {
+    Schema extends I['dreamconf']['schema'],
+    TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
+  >(this: T, attributes: WhereStatement<DB, Schema, TableName>[]): Query<T> {
     return this.query().whereAny(attributes)
   }
 
@@ -669,17 +647,16 @@ export default class Dream {
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
-    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = InstanceType<T>['table'],
-  >(this: T, attributes: WhereStatement<DB, SyncedAssociations, TableName>): Query<T> {
+    Schema extends I['dreamconf']['schema'],
+    TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
+  >(this: T, attributes: WhereStatement<DB, Schema, TableName>): Query<T> {
     return this.query().whereNot(attributes)
   }
 
-  public getAssociation<
-    I extends Dream,
-    DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
-  >(this: I, associationName: SyncedAssociations[DB][number]) {
+  public getAssociation<I extends Dream, Schema extends I['dreamconf']['schema']>(
+    this: I,
+    associationName: keyof Schema[I['table']]['associations']
+  ) {
     return (this.constructor as typeof Dream).getAssociation(associationName)
   }
 
@@ -740,14 +717,6 @@ export default class Dream {
 
   public get DB(): any {
     throw new MissingDB()
-  }
-
-  public get maxAssociationTypeDepth(): AssociationDepths {
-    return AssociationDepths.EIGHT
-  }
-
-  public get syncedAssociations(): any {
-    throw 'must have get syncedAssociations defined on child'
   }
 
   public get allColumns(): any {
@@ -837,7 +806,7 @@ export default class Dream {
     attributes: UpdateablePropertiesForClass<T>,
     dreamInstance?: InstanceType<T>,
     { bypassUserDefinedSetters = false }: { bypassUserDefinedSetters?: boolean } = {}
-  ): WhereStatement<InstanceType<T>['DB'], InstanceType<T>['syncedAssociations'], InstanceType<T>['table']> {
+  ): WhereStatement<InstanceType<T>['DB'], InstanceType<T>['dreamconf']['schema'], InstanceType<T>['table']> {
     const marshalledOpts: any = {}
 
     const setAttributeOnDreamInstance = (attr: any, value: any) => {
@@ -1041,9 +1010,9 @@ export default class Dream {
   public changedAttributes<
     I extends Dream,
     DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
-    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = I['table'] &
-      AssociationTableNames<DB, SyncedAssociations>,
+    Schema extends I['dreamconf']['schema'],
+    TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['table'] &
+      AssociationTableNames<DB, Schema>,
     Table extends DB[keyof DB] = DB[TableName],
   >(this: I): Updateable<Table> {
     const obj: Updateable<Table> = {}
@@ -1061,8 +1030,8 @@ export default class Dream {
     Table extends DB[TableName],
     RetType = Partial<
       Record<
-        DreamColumns<I>,
-        { was: Updateable<Table>[DreamColumns<I>]; now: Updateable<Table>[DreamColumns<I>] }
+        DreamColumnNames<I>,
+        { was: Updateable<Table>[DreamColumnNames<I>]; now: Updateable<Table>[DreamColumnNames<I>] }
       >
     >,
   >(this: I): RetType {
@@ -1086,20 +1055,20 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Table extends DB[TableName],
-    ColumnName extends DreamColumns<I>,
+    ColumnName extends DreamColumnNames<I>,
   >(this: I, attribute: ColumnName): Updateable<Table>[ColumnName] {
     if (this.frozenAttributes[attribute] !== (this as any)[attribute]) return this.frozenAttributes[attribute]
     return (this.attributesFromBeforeLastSave as any)[attribute]
   }
 
-  public savedChangeToAttribute<I extends Dream>(this: I, attribute: DreamColumns<I>): boolean {
+  public savedChangeToAttribute<I extends Dream>(this: I, attribute: DreamColumnNames<I>): boolean {
     const changes = this.changes()
     const now = (changes as any)?.[attribute]?.now
     const was = (changes as any)?.[attribute]?.was
     return this.isPersisted && now !== was
   }
 
-  public willSaveChangeToAttribute<I extends Dream>(this: I, attribute: DreamColumns<I>): boolean {
+  public willSaveChangeToAttribute<I extends Dream>(this: I, attribute: DreamColumnNames<I>): boolean {
     return this.attributeIsDirty(attribute as any)
   }
 
@@ -1115,9 +1084,9 @@ export default class Dream {
   public dirtyAttributes<
     I extends Dream,
     DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
-    TableName extends AssociationTableNames<DB, SyncedAssociations> & keyof DB = I['table'] &
-      AssociationTableNames<DB, SyncedAssociations>,
+    Schema extends I['dreamconf']['schema'],
+    TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['table'] &
+      AssociationTableNames<DB, Schema>,
     Table extends DB[keyof DB] = DB[TableName],
   >(this: I): Updateable<Table> {
     const obj: Updateable<Table> = {}
@@ -1130,7 +1099,7 @@ export default class Dream {
     return obj
   }
 
-  private attributeIsDirty<I extends Dream>(this: I, attribute: DreamColumns<I>): boolean {
+  private attributeIsDirty<I extends Dream>(this: I, attribute: DreamColumnNames<I>): boolean {
     const frozenValue = (this.frozenAttributes as any)[attribute]
     const currentValue = (this.attributes() as any)[attribute]
 
@@ -1162,13 +1131,10 @@ export default class Dream {
   public async pluckThrough<
     I extends Dream,
     DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
+    Schema extends I['dreamconf']['schema'],
     TableName extends I['table'],
     const Arr extends readonly unknown[],
-  >(
-    this: I,
-    ...args: [...Arr, VariadicPluckThroughArgs<DB, SyncedAssociations, TableName, Arr>]
-  ): Promise<any[]> {
+  >(this: I, ...args: [...Arr, VariadicPluckThroughArgs<DB, Schema, TableName, Arr>]): Promise<any[]> {
     const construct = this.constructor as DreamConstructorType<I>
     return await construct
       .where({ [this.primaryKey]: this.primaryKeyValue } as any)
@@ -1178,13 +1144,10 @@ export default class Dream {
   public async pluckEachThrough<
     I extends Dream,
     DB extends I['DB'],
-    SyncedAssociations extends I['syncedAssociations'],
+    Schema extends I['dreamconf']['schema'],
     TableName extends I['table'],
     const Arr extends readonly unknown[],
-  >(
-    this: I,
-    ...args: [...Arr, VariadicPluckEachThroughArgs<DB, SyncedAssociations, TableName, Arr>]
-  ): Promise<void> {
+  >(this: I, ...args: [...Arr, VariadicPluckEachThroughArgs<DB, Schema, TableName, Arr>]): Promise<void> {
     const construct = this.constructor as DreamConstructorType<I>
     await construct
       .where({ [this.primaryKey]: this.primaryKeyValue } as any)
@@ -1214,8 +1177,8 @@ export default class Dream {
 
   public async createAssociation<
     I extends Dream,
-    SyncedAssociations extends I['syncedAssociations'],
-    AssociationName extends keyof SyncedAssociations[I['table']],
+    Schema extends I['dreamconf']['schema'],
+    AssociationName extends keyof Schema[I['table']]['associations'],
     PossibleArrayAssociationType = I[AssociationName & keyof I],
     AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
       ? ElementType
@@ -1233,39 +1196,32 @@ export default class Dream {
 
   public async destroyAssociation<
     I extends Dream,
-    SyncedAssociations extends I['syncedAssociations'],
-    AssociationName extends keyof SyncedAssociations[I['table']],
-    AssociationTableName extends
-      SyncedAssociations[I['table']][AssociationName] extends (keyof SyncedAssociations)[]
-        ? SyncedAssociations[I['table']][AssociationName][0]
-        : never = SyncedAssociations[I['table']][AssociationName] extends (keyof SyncedAssociations)[]
-      ? SyncedAssociations[I['table']][AssociationName][0]
-      : never,
+    Schema extends I['dreamconf']['schema'],
+    AssociationName extends keyof Schema[I['table']]['associations'],
+    AssociationTableName extends Schema[I['table']]['associations'][AssociationName]['tables'][0],
     RestrictedAssociationTableName extends AssociationTableName &
-      AssociationTableNames<I['DB'], SyncedAssociations> &
-      keyof I['DB'] = AssociationTableName &
-      AssociationTableNames<I['DB'], SyncedAssociations> &
-      keyof I['DB'],
+      AssociationTableNames<I['DB'], Schema> &
+      keyof I['DB'] = AssociationTableName & AssociationTableNames<I['DB'], Schema> & keyof I['DB'],
   >(
     this: I,
     associationName: AssociationName,
-    opts: WhereStatement<I['DB'], SyncedAssociations, RestrictedAssociationTableName> = {}
+    opts: WhereStatement<I['DB'], Schema, RestrictedAssociationTableName> = {}
   ): Promise<number> {
     return destroyAssociation(this, null, associationName, opts)
   }
 
   public associationQuery<
     I extends Dream,
-    SyncedAssociations extends I['syncedAssociations'],
-    AssociationName extends keyof SyncedAssociations[I['table']],
+    Schema extends I['dreamconf']['schema'],
+    AssociationName extends keyof Schema[I['table']]['associations'],
   >(this: I, associationName: AssociationName) {
     return associationQuery(this, null, associationName)
   }
 
   public associationUpdateQuery<
     I extends Dream,
-    SyncedAssociations extends I['syncedAssociations'],
-    AssociationName extends keyof SyncedAssociations[I['table']],
+    Schema extends I['dreamconf']['schema'],
+    AssociationName extends keyof Schema[I['table']]['associations'],
   >(this: I, associationName: AssociationName) {
     return associationUpdateQuery(this, null, associationName)
   }
@@ -1280,18 +1236,18 @@ export default class Dream {
   public load<
     I extends Dream,
     TableName extends I['table'],
-    SyncedAssociations extends I['syncedAssociations'],
+    Schema extends I['dreamconf']['schema'],
     const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicLoadArgs<SyncedAssociations, TableName, Arr>]): LoadBuilder<I> {
+  >(this: I, ...args: [...Arr, VariadicLoadArgs<Schema, TableName, Arr>]): LoadBuilder<I> {
     return new LoadBuilder<I>(this).load(...(args as any))
   }
 
   public loaded<
     I extends Dream,
     TableName extends I['table'],
-    SyncedAssociations extends I['syncedAssociations'],
+    Schema extends I['dreamconf']['schema'],
     //
-    A extends NextPreloadArgumentType<SyncedAssociations, TableName>,
+    A extends NextPreloadArgumentType<Schema, TableName>,
   >(this: I, a: A) {
     try {
       ;(this as any)[a]
@@ -1446,6 +1402,6 @@ export default class Dream {
 
 export interface CreateOrFindByExtraOps<T extends typeof Dream> {
   createWith?:
-    | WhereStatement<InstanceType<T>['DB'], InstanceType<T>['syncedAssociations'], InstanceType<T>['table']>
+    | WhereStatement<InstanceType<T>['DB'], InstanceType<T>['dreamconf']['schema'], InstanceType<T>['table']>
     | UpdateablePropertiesForClass<T>
 }

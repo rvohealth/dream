@@ -1,10 +1,14 @@
 import InvalidColumnName from '../../exceptions/invalid-column-name'
 
-export default function validateColumn(DBTypeCache: any, tableName: string, columnName: string) {
-  if (!Object.prototype.hasOwnProperty.call(DBTypeCache, tableName))
+export default function validateColumn<Schema, TableName extends keyof Schema & string>(
+  schema: Schema,
+  tableName: TableName,
+  columnName: keyof Schema[TableName]['columns' & keyof Schema[TableName]] & string
+) {
+  if (!Object.prototype.hasOwnProperty.call(schema, tableName))
     throw new InvalidColumnName(tableName, columnName)
 
-  if (!Object.prototype.hasOwnProperty.call(DBTypeCache[tableName], columnName))
+  if (!Object.prototype.hasOwnProperty.call((schema[tableName] as any)?.columns, columnName))
     throw new InvalidColumnName(tableName, columnName)
 
   return columnName

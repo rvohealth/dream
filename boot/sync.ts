@@ -1,7 +1,4 @@
 import '../src/helpers/loadEnv'
-import _db from '../src/db'
-import loadDreamconfFile from '../src/helpers/path/loadDreamconfFile'
-import pluralize from 'pluralize'
 import path from 'path'
 import { promises as fs } from 'fs'
 import sspawn from '../src/helpers/sspawn'
@@ -11,7 +8,6 @@ import camelize from '../src/helpers/camelize'
 import ConnectionConfRetriever from './cli/connection-conf-retriever-primitive'
 import loadDreamYamlFile from '../src/helpers/path/loadDreamYamlFile'
 import shouldOmitDistFolder from '../src/helpers/path/shouldOmitDistFolder'
-import { Kysely, sql } from 'kysely'
 import uniq from 'lodash.uniq'
 
 export default async function sync() {
@@ -42,7 +38,7 @@ async function writeSchema() {
   // intentionally bypassing helpers here, since they often end up referencing
   // from the dist folder, whereas dirname here is pointing to true src folder.
   const file = (await fs.readFile(absoluteSchemaPath)).toString()
-  const enhancedSchema = await enhanceSchema(file)
+  const enhancedSchema = enhanceSchema(file)
 
   await fs.writeFile(absoluteSchemaWritePath, enhancedSchema)
 
@@ -52,7 +48,7 @@ async function writeSchema() {
 
 // begin: schema helpers
 
-async function enhanceSchema(file: string) {
+function enhanceSchema(file: string) {
   file = removeUnwantedExports(file)
   file = replaceBlankExport(file)
   file = replaceJsonType(file)
@@ -66,14 +62,7 @@ async function enhanceSchema(file: string) {
   file = file.replace(camelDbInterface, dbInterface)
   file = addCustomImports(file)
 
-  const interfaceKeyIndexes = compact(results.map(result => indexInterfaceKeys(result)))
   const allColumnsString = allColumns(results)
-
-  const dreamCoercedInterfaces = results.map(result => buildDreamCoercedInterfaces(result))
-
-  const dreamconf = await loadDreamconfFile()
-  const db = _db('primary', dreamconf)
-  const dbTypeMap = await Promise.all(results.map(async result => await buildDBTypeMap(db, result)))
 
   const transformedNames = compact(results.map(result => transformName(result)))
   const fileWithCoercedTypes = exportedTypesToExportedTypeValues(file)
@@ -81,12 +70,7 @@ async function enhanceSchema(file: string) {
   // BEGIN FILE CONTENTS BUILDING
   const newFileContents = `${fileWithCoercedTypes}
 
-${interfaceKeyIndexes.join('\n')}
-
 ${allColumnsString}
-
-${dreamCoercedInterfaces.join('\n\n')}
-${dbTypeMap.join('\n\n')}
 
 export class DBClass {
   ${
@@ -98,50 +82,6 @@ export class DBClass {
       : 'placeholder: []'
   }
 }
-
-export interface InterpretedDB {
-  ${
-    transformedNames.length
-      ? transformedNames
-          .map(name => `${snakeify(name)}: ${pluralize.singular(name)}Attributes`)
-          .sort()
-          .join(',\n  ')
-      : 'placeholder: []'
-  }
-}
-
-export class InterpretedDBClass {
-  ${
-    transformedNames.length
-      ? transformedNames
-          .map(name => `${snakeify(name)}: ${pluralize.singular(name)}Attributes`)
-          .sort()
-          .join('\n  ')
-      : 'placeholder: []'
-  }
-}
-
-export const DBColumns = {
-  ${
-    transformedNames.length
-      ? transformedNames
-          .map(name => `${snakeify(name)}: ${pluralize.singular(name)}Columns`)
-          .sort()
-          .join(',\n  ')
-      : 'placeholder: []'
-  }
-}
-
-export const DBTypeCache = {
-  ${
-    transformedNames.length
-      ? transformedNames
-          .map(name => `${snakeify(name)}: ${name}DBTypeMap`)
-          .sort()
-          .join(',\n  ')
-      : 'placeholder: []'
-  }
-} as Partial<Record<keyof DB, any>>
 `
 
   const sortedFileContents = alphaSortInterfaceProperties(newFileContents)
@@ -186,15 +126,6 @@ function _camelcasify(str: string): string {
   )
 
   return camelString === str ? camelString : _camelcasify(camelString)
-}
-
-function indexInterfaceKeys(str: string) {
-  const name = str.split(' {')[0].replace(/\s/g, '')
-  if (name === 'DB') return null
-
-  const keys = tableInterfaceToColumns(str)
-
-  return `export const ${pluralize.singular(name)}Columns = new Set([${keys.join(', ')}])`
 }
 
 function allColumns(tableInterfaces: string[]) {
@@ -249,66 +180,6 @@ export const ${typeDeclaration}Values = [
 ] as const
 `
   })
-}
-
-async function buildDBTypeMap(db: Kysely<any>, str: string) {
-  const name = str.split(' {')[0].replace(/\s/g, '')
-  if (name === 'DB') return null
-
-  const tableName = snakeify(name)
-  const sqlQuery = sql`SELECT column_name, udt_name::regtype FROM information_schema.columns WHERE table_name = ${tableName}`
-  const columnToDBTypeMap = await sqlQuery.execute(db)
-
-  return `export const ${name}DBTypeMap = {
-  ${(columnToDBTypeMap.rows as { columnName: string; udtName: string }[])
-    .map(mapping => `${camelize(mapping.columnName)}: '${mapping.udtName}'`)
-    .sort()
-    .join(',\n  ')}
-}\
-`
-}
-
-function buildDreamCoercedInterfaces(str: string) {
-  const name = str.split(' {')[0].replace(/\s/g, '')
-  if (name === 'DB') return null
-
-  const keysAndValues = str
-    .split('{')[1]
-    .split('\n')
-    .filter(str => !['', '}'].includes(str.replace(/\s/g, '')))
-    .map(attr => [attr.split(':')[0].replace(/\s/g, ''), attr.split(':')[1].replace(/;$/, '')])
-
-  return `export interface ${pluralize.singular(name)}Attributes {
-  ${keysAndValues
-    .map(([key, value]) => `${camelize(key)}: ${coercedTypeString(value)}`)
-    .sort()
-    .join('\n  ')}
-}\
-  `
-}
-
-function coercedTypeString(typeString: string) {
-  return typeString
-    .replace(/\s/g, '')
-    .replace(/Generated<(.*)>/, '$1')
-    .split('|')
-    .map(individualType => {
-      const withoutGenerated = individualType.replace(/Generated<(.*)>/, '$1')
-      switch (withoutGenerated) {
-        case 'Numeric':
-          return 'number'
-
-        case 'Timestamp':
-          return 'DateTime'
-
-        case 'Int8':
-          return 'IdType'
-
-        default:
-          return withoutGenerated
-      }
-    })
-    .join(' | ')
 }
 
 function transformName(str: string): string | null {

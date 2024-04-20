@@ -9,13 +9,13 @@ export default function similarityWhereSql<DreamClass extends typeof Dream>({
   tableName,
   columnName,
   opsStatement,
-  dbTypeCache,
+  schema,
 }: {
   eb: ExpressionBuilder<any, any>
   tableName: InstanceType<DreamClass>['table']
   columnName: string
   opsStatement: OpsStatement<any, any>
-  dbTypeCache: any
+  schema: any
 }) {
   let functionName: 'similarity' | 'word_similarity' | 'strict_word_similarity' = 'similarity'
 
@@ -31,8 +31,8 @@ export default function similarityWhereSql<DreamClass extends typeof Dream>({
 
   return sql`(${sql.raw(functionName)}(
       ${opsStatement.value}::text,
-      (coalesce(${eb.ref(validateTable(dbTypeCache, tableName))}.${eb.ref(
-        validateColumn(dbTypeCache, tableName, columnName)
+      (coalesce(${eb.ref(validateTable(schema, tableName))}.${eb.ref(
+        validateColumn(schema, tableName, columnName)
       )} :: text, ''))
     ) >= ${opsStatement.minTrigramScore})` as any
 }
