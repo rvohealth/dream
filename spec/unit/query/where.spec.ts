@@ -447,6 +447,18 @@ describe('Query#where', () => {
       expect(records).toMatchDreamModels([user1, user2])
     })
 
+    context('with a string that is not a valid tsquery', () => {
+      it('uses websearch_to_tsquery to reformat input to a valid tsquery input', async () => {
+        const user4 = await User.create({
+          email: 'pizza@d',
+          password: 'howyadoin',
+          name: "wendy's",
+        })
+        const records = await User.where({ name: ops.similarity("wendy's", { score: 0.9 }) }).all()
+        expect(records).toMatchDreamModels([user4])
+      })
+    })
+
     context('when applying a score', () => {
       context('when applying a very strict score', () => {
         it('only includes precise matches', async () => {

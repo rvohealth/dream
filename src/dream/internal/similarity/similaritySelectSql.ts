@@ -33,7 +33,7 @@ export default function similaritySelectSql<DreamClass extends typeof Dream>({
           )} :: text, '')
         )
       ),
-      (to_tsquery('simple', ''' ' || ${opsStatement.value}::text || ' ''')),
+      (websearch_to_tsquery('simple', ''' ' || ${opsStatement.value}::text || ' ''')),
       0
     )
   )`.as(eb.ref(rankSQLAlias))
