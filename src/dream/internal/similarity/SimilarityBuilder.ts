@@ -53,7 +53,7 @@ export default class SimilarityBuilder<
                 coalesce("users"."name" :: text, '')
               )
             ),
-            (to_tsquery('simple', ''' ' || $ 1 :: text || ' ''')),
+            (websearch_to_tsquery('simple', ''' ' || $ 1 :: text || ' ''')),
             0
           )
         ) as "where_rank_1"
@@ -129,7 +129,7 @@ export default class SimilarityBuilder<
                     coalesce("compositions"."content" :: text, '')
                   )
                 ),
-                (to_tsquery('simple', ''' ' || $ 2 :: text || ' ''')),
+                (websearch_to_tsquery('simple', ''' ' || $ 2 :: text || ' ''')),
                 0
               )
             ) as "where_rank_1"
