@@ -9,6 +9,36 @@ orbs:
   aws-ecs: circleci/aws-ecs@2.3.0
 
 jobs:
+  check-build:
+    docker:
+      - image: cimg/node:18.18.0
+    environment:
+      NODE_ENV: production
+    steps:
+      - checkout
+      - node/install-packages:
+          pkg-manager: yarn
+          app-dir: ~/project
+          cache-version: v8
+      - run:
+          name: Test ability to build
+          command: cd ~/project && yarn build
+
+  check-lint:
+    docker:
+      - image: cimg/node:18.18.0
+    environment:
+      NODE_ENV: development
+    steps:
+      - checkout
+      - node/install-packages:
+          pkg-manager: yarn
+          app-dir: ~/project
+          cache-version: v8
+      - run:
+          name: Test linting
+          command: cd ~/project && yarn lint
+
   specs:
     docker:
       - image: cimg/redis:6.2.6
@@ -55,4 +85,8 @@ workflows:
   test:
     jobs:
       - specs:
+          context: github-packages
+      - check-build:
+          context: github-packages
+      - check-lint:
           context: github-packages
