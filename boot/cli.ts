@@ -103,7 +103,8 @@ program
   })
 
 program
-  .command('generate:api')
+  .command('sync:client:schema')
+  .alias('generate:api')
   .alias('g:api')
   .description('generate:api generates a new type file to be imported by the client')
   .option('--core', 'sets core to true')
