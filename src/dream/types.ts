@@ -97,7 +97,7 @@ export type DreamAttributes<
   SchemaColumns = Schema[DreamInstance['table'] & keyof Schema]['columns' &
     keyof Schema[DreamInstance['table'] & keyof Schema]],
 > = {
-  [K in keyof SchemaColumns]: SchemaColumns[K]['coercedType' & keyof SchemaColumns[K]]
+  -readonly [K in keyof SchemaColumns]: SchemaColumns[K]['coercedType' & keyof SchemaColumns[K]]
 }
 
 export type DreamTableSchema<DreamInstance extends Dream> = Updateable<
