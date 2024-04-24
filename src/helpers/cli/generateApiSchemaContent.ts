@@ -91,14 +91,16 @@ function renderAsToType(renderAs: SerializableTypes) {
 
 async function loadAssociatedSerializer(serializerPath: string, association: AssociationStatement) {
   if (association.serializerClassCB) {
-    const serializersBasePath = await serializersPath()
+    return association.serializerClassCB()
+  }
 
-    const pathToSerializer = association.path || association.serializerClassCB().name
+  if (association.path) {
+    const serializersBasePath = await serializersPath()
+    const pathToSerializer = association.path
     const exportedAs = association.exportedAs || null
     const expectedPath = path.join(serializersBasePath, pathToSerializer)
-    const serializer = await loadSerializerFromPath(expectedPath, exportedAs)
-
-    return serializer[0]
+    const serializers = await loadSerializerFromPath(expectedPath, exportedAs)
+    return serializers[0]
   }
 
   const expectedDreamModelPath = serializerPath

@@ -93,6 +93,7 @@ export interface BalloonLine {
 export interface BalloonSpotterBalloon {
   balloonSpotter: any
   balloon: BalloonSummary
+  gobbledeegook: any
 }
 
 export interface BalloonSpotter {
@@ -111,9 +112,18 @@ export interface Collar {
   pet: Pet
 }
 
+export interface CompositionAlternate {
+  id: any
+  metadata: any
+  compositionAssets: any[]
+  localizedTexts: LocalizedTextBase[]
+  currentLocalizedText: LocalizedTextBase
+}
+
 export interface Composition {
   id: any
   metadata: any
+  compositionAssets: any[]
   localizedTexts: LocalizedTextBase[]
   currentLocalizedText: LocalizedTextBase
 }
@@ -158,8 +168,7 @@ export interface Post {
 }
 
 export interface PostVisibility {
-  pet: Pet
-  understudy: Pet
+  post: Post
 }
 
 export interface Rating {

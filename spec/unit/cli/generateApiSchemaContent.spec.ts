@@ -70,16 +70,6 @@ export interface GraphNode {
     })
   })
 
-  it('renders valid serializer even when serializer is not exported default', async () => {
-    const file = await generateApiSchemaContent()
-    // TODO: https://rvohealth.atlassian.net/browse/PDTC-5068
-    expect(file).toContain(`\
-export interface PostVisibility {
-  pet: any
-  understudy: any
-}`)
-  })
-
   context('associations', () => {
     it('renders valid associations even when serializers are not exported default', async () => {
       const file = await generateApiSchemaContent()
@@ -89,10 +79,22 @@ export interface Post {
 }`)
     })
 
-    it('allows passing of serializer path and export to override default path/export expectations', async () => {
+    it('infers serializers from related models when spelling of serializer is identical to the model name', async () => {
       const file = await generateApiSchemaContent()
       expect(file).toContain(`\
 export interface Composition {
+  id: any
+  metadata: any
+  compositionAssets: any[]
+  localizedTexts: LocalizedTextBase[]
+  currentLocalizedText: LocalizedTextBase
+}`)
+    })
+
+    it('allows passing of serializer path and export to override default path/export expectations', async () => {
+      const file = await generateApiSchemaContent()
+      expect(file).toContain(`\
+export interface CompositionAlternate {
   id: any
   metadata: any
   compositionAssets: any[]
