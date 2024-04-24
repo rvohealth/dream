@@ -3,6 +3,7 @@
 // written
 
 import User from '../../../../test-app/app/models/User'
+import { BalloonColorsEnumValues } from '../../../../test-app/db/schema'
 
 describe('SchemaBuilder', () => {
   describe('#build', () => {
@@ -36,6 +37,37 @@ describe('SchemaBuilder', () => {
           expect(User.prototype.dreamconf.schema.collars.columns.createdAt.dbType).toEqual(
             'timestamp without time zone'
           )
+        })
+      })
+
+      context('enum', () => {
+        it('renders the enum name for dbType', () => {
+          expect(User.prototype.dreamconf.schema.beautiful_balloons.columns.color.dbType).toEqual(
+            'balloon_colors_enum'
+          )
+        })
+
+        it('sets enum-specific fields', () => {
+          expect(User.prototype.dreamconf.schema.beautiful_balloons.columns.color.enumValues).toEqual(
+            BalloonColorsEnumValues
+          )
+        })
+
+        context('enum array', () => {
+          it('renders the enum name[] for dbType', () => {
+            expect(User.prototype.dreamconf.schema.beautiful_balloons.columns.multicolor.dbType).toEqual(
+              'balloon_colors_enum[]'
+            )
+          })
+
+          it('sets enum-specific fields', () => {
+            expect(User.prototype.dreamconf.schema.beautiful_balloons.columns.multicolor.enumValues).toEqual(
+              BalloonColorsEnumValues
+            )
+            expect(User.prototype.dreamconf.schema.beautiful_balloons.columns.multicolor.isArray).toEqual(
+              true
+            )
+          })
         })
       })
 

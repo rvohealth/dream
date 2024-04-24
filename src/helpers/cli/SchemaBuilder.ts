@@ -6,6 +6,7 @@ import loadDreamconfFile from '../path/loadDreamconfFile'
 import sortBy from 'lodash.sortby'
 import loadModels from '../loadModels'
 import camelize from '../camelize'
+import pascalize from '../pascalize'
 
 export default class SchemaBuilder {
   public async build() {
@@ -41,8 +42,11 @@ ${tableName}: {
           const kyselyType = this.kyselyType(tableName, columnName, fileContents)
           return `${columnName}: {
         coercedType: {} as ${this.coercedType(kyselyType)},
+        enumType: ${columnData.enumType ? `{} as ${columnData.enumType}` : 'null'},
+        enumValues: ${columnData.enumValues ?? 'null'},
         dbType: '${columnData.dbType}',
         allowNull: ${columnData.allowNull},
+        isArray: ${columnData.isArray},
       },`
         })
         .join('\n      ')}
@@ -89,19 +93,28 @@ ${tableName}: {
   private async getColumnData(tableName: string) {
     const dreamconf = await loadDreamconfFile()
     const db = _db('primary', dreamconf)
-    const sqlQuery = sql`SELECT column_name, udt_name::regtype, is_nullable FROM information_schema.columns WHERE table_name = ${tableName}`
+    const sqlQuery = sql`SELECT column_name, udt_name::regtype, is_nullable, data_type FROM information_schema.columns WHERE table_name = ${tableName}`
     const columnToDBTypeMap = await sqlQuery.execute(db)
     const rows = columnToDBTypeMap.rows as InformationSchemaRow[]
 
     const columnData: any = {}
     rows.forEach(row => {
+      const isEnum = ['USER-DEFINED', 'ARRAY'].includes(row.dataType)
       columnData[camelize(row.columnName)] = {
         dbType: row.udtName,
         allowNull: row.isNullable === 'YES',
+        enumType: isEnum ? this.enumType(row) : null,
+        enumValues: isEnum ? `${this.enumType(row)}Values` : null,
+        isArray: /\[\]$/.test(row.udtName),
       }
     })
 
     return columnData
+  }
+
+  private enumType(row: InformationSchemaRow) {
+    const enumName = pascalize(row.udtName.replace(/\[\]$/, ''))
+    return enumName
   }
 
   private async getVirtualColumns(tableName: string) {
@@ -214,5 +227,6 @@ ${tableName}: {
 interface InformationSchemaRow {
   columnName: string
   udtName: string
+  dataType: string
   isNullable: 'YES' | 'NO'
 }
