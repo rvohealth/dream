@@ -15,6 +15,9 @@ export {
   DreamClassColumnNames,
   DreamClassColumn,
   PrimaryKeyType,
+  DreamAttributes,
+  DreamAssociationMetadata,
+  DreamVirtualColumns,
 } from './dream/types'
 export { default as ops } from './ops'
 export { default as BelongsTo } from './decorators/associations/belongs-to'
