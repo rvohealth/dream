@@ -9,7 +9,7 @@ describe('camelize', () => {
 
     context('when the string is snake case, and a number starts one of the sections of the string', () => {
       it('camelizes string', () => {
-        expect(camelize('fiber_2016_2018')).toEqual('fiber20162018')
+        expect(camelize('fiber_2016_2018_2020_2022_2024')).toEqual('fiber20162018202020222024')
       })
     })
   })

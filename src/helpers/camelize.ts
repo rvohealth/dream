@@ -36,8 +36,6 @@ export default function camelize<
   }
 
   return uncapitalize(
-    (target as string).replace(/([-_][a-z0-9])/g, group =>
-      group.toUpperCase().replace('-', '').replace('_', '')
-    )
+    (target as string).replace(/([-_][a-z0-9])/g, group => group.toUpperCase().replace(/[-_]/, ''))
   ) as RT
 }
