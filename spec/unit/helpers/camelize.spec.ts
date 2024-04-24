@@ -6,6 +6,12 @@ describe('camelize', () => {
     it('camelizes string', () => {
       expect(camelize('HelloWorld-how-are-you')).toEqual('helloWorldHowAreYou')
     })
+
+    context('when the string is snake case, and a number starts one of the sections of the string', () => {
+      it('camelizes string', () => {
+        expect(camelize('fiber_2016_2018')).toEqual('fiber20162018')
+      })
+    })
   })
 
   context('when passed an object', () => {
