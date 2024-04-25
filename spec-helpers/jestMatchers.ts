@@ -15,21 +15,39 @@ const EXPECTED_LABEL = 'Expected'
 const RECEIVED_LABEL = 'Received'
 const ERROR_COLOR = RECEIVED_COLOR
 
+type OwnMatcher<Params extends unknown[]> = (
+  this: jest.MatcherContext,
+  received: unknown,
+  ...params: Params
+) => jest.CustomMatcherResult
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Matchers<R> {
-      toMatchDreamModel(expected: any): CustomMatcherResult
-      toMatchDreamModels(expected: any): CustomMatcherResult
-      toBeWithin(precision: number, expected: number): CustomMatcherResult
+      toMatchDreamModel(expected: any): jest.CustomMatcherResult
+      toMatchDreamModels(expected: any): jest.CustomMatcherResult
+      toBeWithin(precision: number, expected: number): jest.CustomMatcherResult
+    }
+    interface Expect {
+      toMatchDreamModel<T extends any>(expected: T): T
+    }
+    interface ExpectExtendMap {
+      toMatchDreamModel: OwnMatcher<[expected: any]>
+      toMatchDreamModels: OwnMatcher<[expected: any]>
+      toBeWithin: OwnMatcher<[precision: number, expected: number]>
     }
   }
 }
 
 expect.extend({
   // https://stackoverflow.com/questions/50896753/jest-tobeclosetos-precision-not-working-as-expected#answer-75639525
-  toBeWithin(received: number, precision: number, expected: number) {
+  toBeWithin(received: any, precision: number, expected: number) {
+    if (typeof received !== 'number') {
+      throw new TypeError('These must be of type number!')
+    }
+
     const pass = Math.abs(received - expected) < precision
     return {
       pass,
