@@ -45,7 +45,7 @@ expect.extend({
   // https://stackoverflow.com/questions/50896753/jest-tobeclosetos-precision-not-working-as-expected#answer-75639525
   toBeWithin(received: any, precision: number, expected: number) {
     if (typeof received !== 'number') {
-      throw new TypeError('These must be of type number!')
+      throw new TypeError('This must be of type number')
     }
 
     const pass = Math.abs(received - expected) < precision
