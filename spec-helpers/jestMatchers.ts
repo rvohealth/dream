@@ -31,7 +31,7 @@ declare global {
       toBeWithin(precision: number, expected: number): jest.CustomMatcherResult
     }
     interface Expect {
-      toMatchDreamModel<T extends any>(expected: T): T
+      toMatchDreamModel<T>(expected: T): T
     }
     interface ExpectExtendMap {
       toMatchDreamModel: OwnMatcher<[expected: any]>

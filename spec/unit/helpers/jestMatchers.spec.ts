@@ -11,16 +11,16 @@ describe('jestMatchers', () => {
       balloon = await Balloon.create({ type: 'Animal' })
     })
 
-    it('can match with asymmetrical matchers', async () => {
-      const mock = jest.fn(x => undefined)
+    it('can match with asymmetrical matchers', () => {
+      const mock = jest.fn()
       mock(user)
 
       expect(mock).toHaveBeenCalledWith(expect.toMatchDreamModel(user))
       expect(mock).not.toHaveBeenCalledWith(expect.toMatchDreamModel(balloon))
     })
 
-    it('can be used with toHaveBeenCalledWith multiple times', async () => {
-      const mock = jest.fn((x, y) => undefined)
+    it('can be used with toHaveBeenCalledWith multiple times', () => {
+      const mock = jest.fn()
       mock(user, balloon)
 
       expect(mock).toHaveBeenCalledWith(expect.toMatchDreamModel(user), expect.toMatchDreamModel(balloon))
