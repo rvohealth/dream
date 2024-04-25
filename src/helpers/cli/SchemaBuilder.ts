@@ -7,6 +7,7 @@ import sortBy from 'lodash.sortby'
 import loadModels from '../loadModels'
 import camelize from '../camelize'
 import pascalize from '../pascalize'
+import { isPrimitiveDataType } from '../../db/dataTypes'
 
 export default class SchemaBuilder {
   public async build() {
@@ -99,13 +100,15 @@ ${tableName}: {
 
     const columnData: any = {}
     rows.forEach(row => {
-      const isEnum = ['USER-DEFINED', 'ARRAY'].includes(row.dataType)
+      const isEnum = ['USER-DEFINED', 'ARRAY'].includes(row.dataType) && !isPrimitiveDataType(row.udtName)
+      const isArray = ['ARRAY'].includes(row.dataType)
+
       columnData[camelize(row.columnName)] = {
         dbType: row.udtName,
         allowNull: row.isNullable === 'YES',
         enumType: isEnum ? this.enumType(row) : null,
         enumValues: isEnum ? `${this.enumType(row)}Values` : null,
-        isArray: /\[\]$/.test(row.udtName),
+        isArray,
       }
     })
 

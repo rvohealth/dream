@@ -15,6 +15,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('user_id', 'bigint', col => col.references('users.id').onDelete('set null'))
     .addColumn('user_uuid', 'uuid', col => col.references('users.uuid').onDelete('set null'))
     .addColumn('favorite_treats', sql`cat_treats[]`)
+    .addColumn('favorite_days_of_week', sql`integer[]`)
     .addColumn('species', sql`species`)
     .addColumn('position_within_species', 'integer', col => col.notNull())
     .addColumn('name', 'text')

@@ -33,6 +33,7 @@ export default class User extends ApplicationModel {
   public name: string
   public birthdate: DateTime
   public socialSecurityNumber: string
+  public favoriteNumbers: number[]
   public featuredPostPosition: number | null
   public targetRating: number | null
   public deletedAt: DateTime

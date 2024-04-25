@@ -15,6 +15,9 @@ export default class PetSerializer<DataType extends Pet, Passthrough extends obj
   @Attribute('string')
   public name: string
 
+  @Attribute('number[]')
+  public favoriteDaysOfWeek: number[]
+
   @Attribute('enum:Species')
   public species: string
 

@@ -40,6 +40,13 @@ describe('SchemaBuilder', () => {
         })
       })
 
+      context('primitive (in this case, integer) array type', () => {
+        it('renders "integer[]" for dbType', () => {
+          expect(User.prototype.dreamconf.schema.users.columns.favoriteNumbers.dbType).toEqual('integer[]')
+          expect(User.prototype.dreamconf.schema.users.columns.favoriteNumbers.enumValues).toBeNull()
+        })
+      })
+
       context('enum', () => {
         it('renders the enum name for dbType', () => {
           expect(User.prototype.dreamconf.schema.beautiful_balloons.columns.color.dbType).toEqual(

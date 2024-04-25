@@ -276,6 +276,7 @@ export interface ModelWithoutUpdatedAt {
 export interface Pets {
   createdAt: Timestamp;
   deletedAt: Timestamp | null;
+  favoriteDaysOfWeek: number[] | null;
   favoriteTreats: CatTreats[] | null;
   id: Generated<Int8>;
   name: string | null;
@@ -339,6 +340,7 @@ export interface Users {
   createdAt: Timestamp;
   deletedAt: Timestamp | null;
   email: string;
+  favoriteNumbers: number[] | null;
   featuredPostPosition: number | null;
   id: Generated<Int8>;
   name: string | null;
@@ -385,7 +387,7 @@ export interface DB {
 }
 
 
-export const AllColumns = ['approval', 'balloonId', 'balloonLines', 'balloonSpotterBalloons', 'balloonSpotterId', 'balloonSpotters', 'beautifulBalloons', 'birthdate', 'body', 'cantUpdateThis', 'collars', 'color', 'compositionAssetAudits', 'compositionAssetId', 'compositionAssets', 'compositionId', 'compositions', 'content', 'createdAt', 'deletedAt', 'edgeCaseAttributes', 'edgeId', 'email', 'extraRateableId', 'extraRateableType', 'extraRatings', 'favoriteTreats', 'featuredPostPosition', 'graphEdgeNodes', 'graphEdges', 'graphNodes', 'hidden', 'id', 'incompatibleForeignKeyTypeExamples', 'kPop', 'likesChalupas', 'locale', 'localizableId', 'localizableType', 'localizedTexts', 'lost', 'material', 'metadata', 'metadata2', 'metadata3', 'modelWithoutUpdatedAt', 'multiScopedPosition', 'multicolor', 'name', 'nickname', 'nodeId', 'notes', 'omittedEdgePosition', 'passwordDigest', 'petId', 'petUnderstudyJoinModels', 'pets', 'popK', 'popKPop', 'position', 'positionAlpha', 'positionBeta', 'positionWithinSpecies', 'postVisibilities', 'postVisibilityId', 'posts', 'primary', 'rateableId', 'rateableType', 'rating', 'ratings', 'sandbags', 'score', 'socialSecurityNumber', 'species', 'src', 'tagName', 'targetRating', 'title', 'type', 'understudyId', 'updatedAt', 'userId', 'userSettings', 'userUuid', 'users', 'uuid', 'visibility', 'volume', 'weight', 'weightKgs', 'weightTons'] as const
+export const AllColumns = ['approval', 'balloonId', 'balloonLines', 'balloonSpotterBalloons', 'balloonSpotterId', 'balloonSpotters', 'beautifulBalloons', 'birthdate', 'body', 'cantUpdateThis', 'collars', 'color', 'compositionAssetAudits', 'compositionAssetId', 'compositionAssets', 'compositionId', 'compositions', 'content', 'createdAt', 'deletedAt', 'edgeCaseAttributes', 'edgeId', 'email', 'extraRateableId', 'extraRateableType', 'extraRatings', 'favoriteDaysOfWeek', 'favoriteNumbers', 'favoriteTreats', 'featuredPostPosition', 'graphEdgeNodes', 'graphEdges', 'graphNodes', 'hidden', 'id', 'incompatibleForeignKeyTypeExamples', 'kPop', 'likesChalupas', 'locale', 'localizableId', 'localizableType', 'localizedTexts', 'lost', 'material', 'metadata', 'metadata2', 'metadata3', 'modelWithoutUpdatedAt', 'multiScopedPosition', 'multicolor', 'name', 'nickname', 'nodeId', 'notes', 'omittedEdgePosition', 'passwordDigest', 'petId', 'petUnderstudyJoinModels', 'pets', 'popK', 'popKPop', 'position', 'positionAlpha', 'positionBeta', 'positionWithinSpecies', 'postVisibilities', 'postVisibilityId', 'posts', 'primary', 'rateableId', 'rateableType', 'rating', 'ratings', 'sandbags', 'score', 'socialSecurityNumber', 'species', 'src', 'tagName', 'targetRating', 'title', 'type', 'understudyId', 'updatedAt', 'userId', 'userSettings', 'userUuid', 'users', 'uuid', 'visibility', 'volume', 'weight', 'weightKgs', 'weightTons'] as const
 
 export class DBClass {
   balloon_lines: BalloonLines
@@ -1736,6 +1738,14 @@ export const schema = {
         allowNull: true,
         isArray: true,
       },
+      favoriteDaysOfWeek: {
+        coercedType: {} as number[] | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'integer[]',
+        allowNull: true,
+        isArray: true,
+      },
       species: {
         coercedType: {} as Species | null,
         enumType: {} as Species,
@@ -2273,6 +2283,14 @@ export const schema = {
         dbType: 'integer',
         allowNull: true,
         isArray: false,
+      },
+      favoriteNumbers: {
+        coercedType: {} as number[] | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'integer[]',
+        allowNull: true,
+        isArray: true,
       },
       passwordDigest: {
         coercedType: {} as string,
