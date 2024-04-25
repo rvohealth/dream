@@ -26,5 +26,24 @@ describe('jestMatchers', () => {
       expect(mock).toHaveBeenCalledWith(expect.toMatchDreamModel(user), expect.toMatchDreamModel(balloon))
       expect(mock).not.toHaveBeenCalledWith(expect.toMatchDreamModel(balloon), expect.toMatchDreamModel(user))
     })
+
+    it('can work with objects', () => {
+      expect({ user }).toEqual(expect.objectContaining({ user: expect.toMatchDreamModel(user) }))
+      expect({ user }).not.toEqual(expect.objectContaining({ user: expect.toMatchDreamModel(balloon) }))
+      expect({ user, balloon }).toEqual(
+        expect.objectContaining({
+          user: expect.toMatchDreamModel(user),
+          balloon: expect.toMatchDreamModel(balloon),
+        })
+      )
+    })
+
+    it('can work with arrays', () => {
+      expect([user]).toEqual(expect.arrayContaining([expect.toMatchDreamModel(user)]))
+      expect([user]).not.toEqual(expect.arrayContaining([expect.toMatchDreamModel(balloon)]))
+      expect([user, balloon]).toEqual(
+        expect.arrayContaining([expect.toMatchDreamModel(user), expect.toMatchDreamModel(balloon)])
+      )
+    })
   })
 })
