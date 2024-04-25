@@ -45,6 +45,7 @@ export const postgresDatatypes = [
   'time with time zone',
   'timestamp',
   'timestamp with time zone',
+  'timestamp without time zone',
   'tsquery',
   'tsvector',
   'txid_snapshot',

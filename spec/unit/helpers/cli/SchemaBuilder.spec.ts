@@ -41,9 +41,16 @@ describe('SchemaBuilder', () => {
       })
 
       context('primitive (in this case, integer) array type', () => {
-        it('renders "integer[]" for dbType', () => {
+        it('renders "integer[]" for integer[] dbType', () => {
           expect(User.prototype.dreamconf.schema.users.columns.favoriteNumbers.dbType).toEqual('integer[]')
           expect(User.prototype.dreamconf.schema.users.columns.favoriteNumbers.enumValues).toBeNull()
+        })
+
+        it('renders "timestamp[]" for timestamp[] dbType', () => {
+          expect(User.prototype.dreamconf.schema.users.columns.favoriteDatetimes.dbType).toEqual(
+            'timestamp without time zone[]'
+          )
+          expect(User.prototype.dreamconf.schema.users.columns.favoriteDatetimes.enumValues).toBeNull()
         })
       })
 

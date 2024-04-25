@@ -21,6 +21,8 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('featured_post_position', 'integer')
     .addColumn('target_rating', 'integer')
     .addColumn('favorite_numbers', sql`integer[]`)
+    .addColumn('favorite_dates', sql`date[]`)
+    .addColumn('favorite_datetimes', sql`timestamp[]`)
     .addColumn('password_digest', 'varchar', col => col.notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())

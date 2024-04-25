@@ -522,7 +522,7 @@ describe('DreamSerializer#render', () => {
 
           const serializer = new UserSerializer({ pets: [pet] })
           expect(serializer.render()).toEqual({
-            pets: [{ id: pet.id, name: 'aster', species: 'cat', ratings: [] }],
+            pets: [{ id: pet.id, name: 'aster', species: 'cat', ratings: [], favoriteDaysOfWeek: null }],
           })
         })
 
@@ -554,7 +554,7 @@ describe('DreamSerializer#render', () => {
 
           const serializer = new UserSerializer({ howyadoin: { pets: [pet] } })
           expect(serializer.render()).toEqual({
-            pets: [{ id: pet.id, name: 'aster', species: 'cat', ratings: [] }],
+            pets: [{ id: pet.id, name: 'aster', species: 'cat', ratings: [], favoriteDaysOfWeek: null }],
           })
         })
       })
@@ -804,7 +804,7 @@ describe('DreamSerializer#render', () => {
 
         const serializer = new UserSerializer({ pet })
         expect(serializer.render()).toEqual({
-          pet: { id: pet.id, name: 'aster', species: 'cat', ratings: [] },
+          pet: { id: pet.id, name: 'aster', species: 'cat', ratings: [], favoriteDaysOfWeek: null },
         })
       })
 
@@ -838,7 +838,7 @@ describe('DreamSerializer#render', () => {
 
             const serializer = new UserSerializer({ howyadoin: { pet } })
             expect(serializer.render()).toEqual({
-              pet: { id: pet.id, name: 'aster', species: 'cat', ratings: [] },
+              pet: { id: pet.id, name: 'aster', species: 'cat', ratings: [], favoriteDaysOfWeek: null },
             })
           })
         })
