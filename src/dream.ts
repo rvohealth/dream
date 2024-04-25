@@ -50,6 +50,7 @@ import {
   VariadicJoinsArgs,
   VariadicLoadArgs,
   DreamBelongsToAssociationMetadata,
+  DreamAttributes,
 } from './dream/types'
 import Query, { FindEachOpts } from './dream/query'
 import runValidations from './dream/internal/runValidations'
@@ -983,7 +984,10 @@ export default class Dream {
     }
   }
 
-  public getAttribute<I extends Dream, Key extends AttributeKeys<I>>(this: I, attr: Key & string): unknown {
+  public getAttribute<I extends Dream, Key extends AttributeKeys<I>>(
+    this: I,
+    attr: Key & string
+  ): DreamAttributes<I>[Key] {
     const columns = (this.constructor as typeof Dream).columns()
     const self = this as any
 

@@ -27,7 +27,7 @@ export default class Balloon extends ApplicationModel {
   public updatedAt: DateTime
 
   public get type() {
-    return (this as Balloon).getAttribute('type') as BalloonTypesEnum
+    return (this as Balloon).getAttribute('type')
   }
 
   public set type(newType: BalloonTypesEnum) {
