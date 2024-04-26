@@ -22,7 +22,7 @@ export default async function setPosition({
   position: number
   previousPosition?: number
   positionField: string
-  query: Query<typeof Dream>
+  query: Query<Dream>
   scope?: string | string[]
   txn?: DreamTransaction<any>
 }) {
@@ -60,7 +60,7 @@ async function setPositionFromValue({
   position: number
   previousPosition?: number
   positionField: string
-  query: Query<typeof Dream>
+  query: Query<Dream>
   scope?: string | string[]
   txn?: DreamTransaction<any>
 }) {
@@ -113,7 +113,7 @@ async function applyUpdates({
   position: number
   previousPosition?: number
   positionField: string
-  query: Query<typeof Dream>
+  query: Query<Dream>
   scope?: string | string[]
   txn: DreamTransaction<any>
   newPosition: number
@@ -150,7 +150,7 @@ async function setNewPosition({
 }: {
   dream: Dream
   positionField: string
-  query: Query<typeof Dream>
+  query: Query<Dream>
   scope?: string | string[]
   txn?: DreamTransaction<any>
 }) {
@@ -185,7 +185,7 @@ async function updateConflictingRecords({
   position: number
   previousPosition?: number
   positionField: string
-  query: Query<typeof Dream>
+  query: Query<Dream>
   scope?: string | string[]
   txn: DreamTransaction<any>
 }) {
@@ -228,7 +228,7 @@ async function updatePreviousScope({
   position: number
   previousPosition?: number
   positionField: string
-  query: Query<typeof Dream>
+  query: Query<Dream>
   scope?: string | string[]
   txn: DreamTransaction<any>
 }) {

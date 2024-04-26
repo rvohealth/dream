@@ -48,8 +48,8 @@ export default class Balloon extends ApplicationModel {
   }
 
   @BeforeDestroy()
-  public async softDelete() {
-    await new Query(this.constructor as typeof Balloon)
+  public async softDelete(this: Balloon) {
+    await new Query(this)
       .toKysely('update')
       .set({ deletedAt: DateTime.now(), positionAlpha: null, positionBeta: null })
       .where(this.primaryKey as any, '=', this.primaryKeyValue!.toString())

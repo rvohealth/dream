@@ -4,7 +4,7 @@ import OpsStatement from '../../../ops/ops-statement'
 import validateTable from '../../../db/validators/validateTable'
 import validateColumn from '../../../db/validators/validateColumn'
 
-export default function similaritySelectSql<DreamClass extends typeof Dream>({
+export default function similaritySelectSql<DreamInstance extends Dream>({
   eb,
   tableName,
   columnName,
@@ -12,11 +12,8 @@ export default function similaritySelectSql<DreamClass extends typeof Dream>({
   schema,
   rankSQLAlias,
 }: {
-  eb: ExpressionBuilder<
-    InstanceType<DreamClass>['DB'],
-    string | (any extends keyof InstanceType<DreamClass>['DB'] ? any : never)
-  >
-  tableName: InstanceType<DreamClass>['table']
+  eb: ExpressionBuilder<DreamInstance['DB'], string | (any extends keyof DreamInstance['DB'] ? any : never)>
+  tableName: DreamInstance['table']
   columnName: string
   opsStatement: OpsStatement<any, any>
   schema: any

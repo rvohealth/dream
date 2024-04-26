@@ -2,7 +2,6 @@ import Dream from '../../dream'
 import CannotReloadUnsavedDream from '../../exceptions/cannot-reload-unsaved-dream'
 import Query from '../query'
 import DreamTransaction from '../transaction'
-import { DreamConstructorType } from '../types'
 
 export default async function reload<DreamInstance extends Dream>(
   dream: DreamInstance,
@@ -10,14 +9,11 @@ export default async function reload<DreamInstance extends Dream>(
 ) {
   if (dream.isNewRecord) throw new CannotReloadUnsavedDream(dream)
 
-  const base = dream.constructor as DreamConstructorType<DreamInstance>
-  let query: Query<DreamConstructorType<DreamInstance>> = new Query<DreamConstructorType<DreamInstance>>(base)
+  let query: Query<DreamInstance> = new Query<DreamInstance>(dream)
 
   if (txn) query = query.txn(txn)
 
-  query = query
-    .unscoped()
-    .where({ [base.primaryKey as any]: dream[base.primaryKey as keyof typeof dream] } as any)
+  query = query.unscoped().where({ [dream.primaryKey as any]: dream.primaryKeyValue } as any)
 
   const newRecord = (await query.first()) as DreamInstance
   dream.setAttributes(newRecord.attributes() as any)

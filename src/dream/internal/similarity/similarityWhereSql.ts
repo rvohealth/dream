@@ -4,7 +4,7 @@ import OpsStatement from '../../../ops/ops-statement'
 import validateTable from '../../../db/validators/validateTable'
 import validateColumn from '../../../db/validators/validateColumn'
 
-export default function similarityWhereSql<DreamClass extends typeof Dream>({
+export default function similarityWhereSql<DreamInstance extends Dream>({
   eb,
   tableName,
   columnName,
@@ -12,7 +12,7 @@ export default function similarityWhereSql<DreamClass extends typeof Dream>({
   schema,
 }: {
   eb: ExpressionBuilder<any, any>
-  tableName: InstanceType<DreamClass>['table']
+  tableName: DreamInstance['table']
   columnName: string
   opsStatement: OpsStatement<any, any>
   schema: any

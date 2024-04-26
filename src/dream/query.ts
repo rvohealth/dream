@@ -16,13 +16,13 @@ import {
   RelaxedJoinsWhereStatement,
   TableOrAssociationName,
   DreamTableSchema,
-  DreamClassColumnNames,
   OrderDir,
   VariadicJoinsArgs,
   VariadicLoadArgs,
   VariadicPluckThroughArgs,
   VariadicPluckEachThroughArgs,
   TableColumnNames,
+  DreamColumnNames,
 } from './types'
 import {
   AliasedExpression,
@@ -112,13 +112,12 @@ const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: Compar
 } as const
 
 export default class Query<
-  DreamClass extends typeof Dream,
-  DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
+  DreamInstance extends Dream,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
   AllColumns extends DreamInstance['allColumns'] = DreamInstance['allColumns'],
-  ColumnType extends DreamClassColumnNames<DreamClass> = TableColumnNames<DB, DreamInstance['table']>,
-> extends ConnectedToDB<DreamClass> {
+  ColumnType extends DreamColumnNames<DreamInstance> = TableColumnNames<DB, DreamInstance['table']>,
+> extends ConnectedToDB<DreamInstance> {
   public static readonly BATCH_SIZES = {
     FIND_EACH: 1000,
     PLUCK_EACH: 10000,
@@ -142,9 +141,9 @@ export default class Query<
   private baseSqlAlias: TableOrAssociationName<Schema>
   private baseSelectQuery: Query<any> | null
 
-  constructor(DreamClass: DreamClass, opts: QueryOpts<DreamClass, ColumnType> = {}) {
-    super(DreamClass, opts)
-    this.baseSqlAlias = opts.baseSqlAlias || this.dreamClass.prototype['table']
+  constructor(dreamInstance: DreamInstance, opts: QueryOpts<DreamInstance, ColumnType> = {}) {
+    super(dreamInstance, opts)
+    this.baseSqlAlias = opts.baseSqlAlias || this.dreamInstance['table']
     this.baseSelectQuery = opts.baseSelectQuery || null
     this.passthroughWhereStatement = Object.freeze(opts.passthroughWhereStatement || {})
     this.whereStatements = Object.freeze(opts.where || [])
@@ -166,20 +165,23 @@ export default class Query<
     return true
   }
 
-  private symmetricalQueryForDreamClass<D extends typeof Dream>(
-    this: Query<DreamClass, DreamInstance, DB, Schema, AllColumns, ColumnType>,
-    dreamClass: D
-  ): Query<D> {
-    const associationQuery: Query<D> = (
-      this.bypassDefaultScopes ? dreamClass.unscoped() : dreamClass.query()
-    ).clone({ passthroughWhereStatement: this.passthroughWhereStatement })
+  private symmetricalQueryForDreamClass<T extends typeof Dream>(
+    this: Query<DreamInstance, DB, Schema, AllColumns, ColumnType>,
+    dreamClass: T
+  ): Query<InstanceType<T>> {
+    const baseScope = this.bypassDefaultScopes ? dreamClass.unscoped() : dreamClass.query()
+
+    const associationQuery: Query<InstanceType<T>> = baseScope.clone({
+      passthroughWhereStatement: this.passthroughWhereStatement,
+    })
+
     return this.dreamTransaction ? associationQuery.txn(this.dreamTransaction) : associationQuery
   }
 
   public clone(
-    opts: QueryOpts<DreamClass, ColumnType> = {}
-  ): Query<DreamClass, DreamInstance, DB, Schema, AllColumns, ColumnType> {
-    return new Query<DreamClass, DreamInstance, DB, Schema, AllColumns, ColumnType>(this.dreamClass, {
+    opts: QueryOpts<DreamInstance, ColumnType> = {}
+  ): Query<DreamInstance, DB, Schema, AllColumns, ColumnType> {
+    return new Query<DreamInstance, DB, Schema, AllColumns, ColumnType>(this.dreamInstance, {
       baseSqlAlias: opts.baseSqlAlias || this.baseSqlAlias,
       baseSelectQuery: opts.baseSelectQuery || this.baseSelectQuery,
       passthroughWhereStatement: Object.freeze({
@@ -215,32 +217,32 @@ export default class Query<
     })
   }
 
-  public async find<TableName extends keyof Schema = InstanceType<DreamClass>['table'] & keyof Schema>(
-    id: Schema[TableName]['columns'][DreamClass['primaryKey'] &
+  public async find<TableName extends keyof Schema = DreamInstance['table'] & keyof Schema>(
+    id: Schema[TableName]['columns'][DreamInstance['primaryKey'] &
       keyof Schema[TableName]['columns']]['coercedType']
-  ): Promise<(InstanceType<DreamClass> & Dream) | null> {
+  ): Promise<(DreamInstance & Dream) | null> {
     if (!id) return null
 
     return await this.where({
-      [this.dreamClass.primaryKey]: id,
+      [this.dreamInstance.primaryKey]: id,
     } as any).first()
   }
 
   public async findBy(
-    attributes: WhereStatement<DB, Schema, InstanceType<DreamClass>['table']>
-  ): Promise<(InstanceType<DreamClass> & Dream) | null> {
+    attributes: WhereStatement<DB, Schema, DreamInstance['table']>
+  ): Promise<DreamInstance | null> {
     return await this.where(attributes).first()
   }
 
   public async findEach(
-    cb: (instance: InstanceType<DreamClass>) => void | Promise<void>,
+    cb: (instance: DreamInstance) => void | Promise<void>,
     { batchSize = Query.BATCH_SIZES.FIND_EACH }: { batchSize?: number } = {}
   ): Promise<void> {
     let offset = 0
     let records: any[]
 
     do {
-      records = (await this.offset(offset).limit(batchSize).all()) as DreamInstance[]
+      records = await this.offset(offset).limit(batchSize).all()
 
       for (const record of records) {
         await cb(record)
@@ -250,17 +252,18 @@ export default class Query<
     } while (records.length > 0 && records.length === batchSize)
   }
 
-  public async loadInto<
-    TableName extends InstanceType<DreamClass>['table'],
-    const Arr extends readonly unknown[],
-  >(models: Dream[], ...args: [...Arr, VariadicLoadArgs<Schema, TableName, Arr>]) {
+  public async loadInto<TableName extends DreamInstance['table'], const Arr extends readonly unknown[]>(
+    models: Dream[],
+    ...args: [...Arr, VariadicLoadArgs<Schema, TableName, Arr>]
+  ) {
     const query = this.preload(...(args as any))
-    await new LoadIntoModels<DreamClass>(query.preloadStatements, query.passthroughWhereStatement).loadInto(
-      models
-    )
+    await new LoadIntoModels<DreamInstance>(
+      query.preloadStatements,
+      query.passthroughWhereStatement
+    ).loadInto(models)
   }
 
-  public preload<TableName extends InstanceType<DreamClass>['table'], const Arr extends readonly unknown[]>(
+  public preload<TableName extends DreamInstance['table'], const Arr extends readonly unknown[]>(
     ...args: [...Arr, VariadicLoadArgs<Schema, TableName, Arr>]
   ) {
     const preloadStatements = cloneDeepSafe(this.preloadStatements)
@@ -293,7 +296,7 @@ export default class Query<
     }
   }
 
-  public joins<TableName extends InstanceType<DreamClass>['table'], const Arr extends readonly unknown[]>(
+  public joins<TableName extends DreamInstance['table'], const Arr extends readonly unknown[]>(
     ...args: [...Arr, VariadicJoinsArgs<DB, Schema, TableName, Arr>]
   ) {
     const joinsStatements = cloneDeepSafe(this.joinsStatements)
@@ -352,10 +355,9 @@ export default class Query<
     }
   }
 
-  public async pluckThrough<
-    TableName extends InstanceType<DreamClass>['table'],
-    const Arr extends readonly unknown[],
-  >(...args: [...Arr, VariadicPluckThroughArgs<DB, Schema, TableName, Arr>]): Promise<any[]> {
+  public async pluckThrough<TableName extends DreamInstance['table'], const Arr extends readonly unknown[]>(
+    ...args: [...Arr, VariadicPluckThroughArgs<DB, Schema, TableName, Arr>]
+  ): Promise<any[]> {
     const joinsStatements = cloneDeepSafe(this.joinsStatements)
 
     const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, Schema> = cloneDeepSafe(
@@ -386,7 +388,7 @@ export default class Query<
   }
 
   public async pluckEachThrough<
-    TableName extends InstanceType<DreamClass>['table'],
+    TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
   >(...args: [...Arr, VariadicPluckEachThroughArgs<DB, Schema, TableName, Arr>]): Promise<void> {
     const allOpts = [...args]
@@ -549,7 +551,7 @@ export default class Query<
     return this.clone({ baseSelectQuery })
   }
 
-  public unscoped(): Query<DreamClass, DreamInstance, DB, Schema, AllColumns, ColumnType> {
+  public unscoped(): Query<DreamInstance, DB, Schema, AllColumns, ColumnType> {
     return this.clone({ bypassDefaultScopes: true, baseSelectQuery: this.baseSelectQuery?.unscoped() })
   }
 
@@ -558,36 +560,36 @@ export default class Query<
   }
 
   public where(
-    attributes: WhereStatement<DB, Schema, InstanceType<DreamClass>['table']>
-  ): Query<DreamClass, DreamInstance, DB, Schema, AllColumns, ColumnType> {
+    attributes: WhereStatement<DB, Schema, DreamInstance['table']>
+  ): Query<DreamInstance, DB, Schema, AllColumns, ColumnType> {
     return this._where(attributes, 'where')
   }
 
   public whereAny(
-    attributes: WhereStatement<DB, Schema, InstanceType<DreamClass>['table']>[]
-  ): Query<DreamClass, DreamInstance, DB, Schema, AllColumns, ColumnType> {
+    attributes: WhereStatement<DB, Schema, DreamInstance['table']>[]
+  ): Query<DreamInstance, DB, Schema, AllColumns, ColumnType> {
     return this.clone({
       or: [attributes.map(obj => ({ ...obj }))],
     })
   }
 
   public whereNot(
-    attributes: WhereStatement<DB, Schema, InstanceType<DreamClass>['table']>
-  ): Query<DreamClass, DreamInstance, DB, Schema, AllColumns, ColumnType> {
+    attributes: WhereStatement<DB, Schema, DreamInstance['table']>
+  ): Query<DreamInstance, DB, Schema, AllColumns, ColumnType> {
     return this._where(attributes, 'whereNot')
   }
 
   private _where(
-    attributes: WhereStatement<DB, Schema, InstanceType<DreamClass>['table']>,
+    attributes: WhereStatement<DB, Schema, DreamInstance['table']>,
     typeOfWhere: 'where' | 'whereNot'
-  ): Query<DreamClass, DreamInstance, DB, Schema, AllColumns, ColumnType> {
+  ): Query<DreamInstance, DB, Schema, AllColumns, ColumnType> {
     return this.clone({
       [typeOfWhere]: [{ ...attributes }],
     })
   }
 
-  public nestedSelect<SimpleFieldType extends keyof DreamClassColumnNames<DreamClass>, PluckThroughFieldType>(
-    this: Query<DreamClass, DreamInstance, DB, Schema, AllColumns, ColumnType>,
+  public nestedSelect<SimpleFieldType extends keyof DreamColumnNames<DreamInstance>, PluckThroughFieldType>(
+    this: Query<DreamInstance, DB, Schema, AllColumns, ColumnType>,
     selection: SimpleFieldType | PluckThroughFieldType
   ) {
     const query = this.buildSelect({ bypassSelectAll: true, bypassOrder: true }) as SelectQueryBuilder<
@@ -601,7 +603,7 @@ export default class Query<
 
   public order(
     arg: ColumnType | Partial<Record<ColumnType, OrderDir>> | null
-  ): Query<DreamClass, DreamInstance, DB, Schema, AllColumns, ColumnType> {
+  ): Query<DreamInstance, DB, Schema, AllColumns, ColumnType> {
     if (arg === null) return this.clone({ order: null })
     if (isString(arg)) return this.clone({ order: [{ column: arg as any, direction: 'asc' }] })
 
@@ -673,7 +675,7 @@ export default class Query<
 
     const countClause = distinctColumn
       ? count(sql`DISTINCT ${distinctColumn}`)
-      : count(query.namespaceColumn(query.dreamClass.primaryKey))
+      : count(query.namespaceColumn(query.dreamInstance.primaryKey))
 
     kyselyQuery = kyselyQuery.select(countClause.as('tablecount'))
 
@@ -683,12 +685,10 @@ export default class Query<
   }
 
   public distinct(
-    column:
-      | TableColumnNames<InstanceType<DreamClass>['dreamconf']['DB'], InstanceType<DreamClass>['table']>
-      | boolean = true
+    column: TableColumnNames<DreamInstance['dreamconf']['DB'], DreamInstance['table']> | boolean = true
   ) {
     if (column === true) {
-      return this.clone({ distinctColumn: this.namespaceColumn(this.dreamClass.primaryKey) as ColumnType })
+      return this.clone({ distinctColumn: this.namespaceColumn(this.dreamInstance.primaryKey) as ColumnType })
     } else if (column === false) {
       return this.clone({ distinctColumn: null })
     } else {
@@ -724,7 +724,7 @@ export default class Query<
     return data.min
   }
 
-  private async pluckWithoutMarshalling(...fields: DreamClassColumnNames<DreamClass>[]): Promise<any[]> {
+  private async pluckWithoutMarshalling(...fields: DreamColumnNames<DreamInstance>[]): Promise<any[]> {
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
     const aliases: string[] = []
 
@@ -762,7 +762,7 @@ export default class Query<
 
     const onlyColumns = fields.filter(
       (_, index) => index < providedCbIndex
-    ) as DreamClassColumnNames<DreamClass>[]
+    ) as DreamColumnNames<DreamInstance>[]
 
     const batchSize = providedOpts?.batchSize || Query.BATCH_SIZES.PLUCK_EACH_THROUGH
 
@@ -797,9 +797,7 @@ export default class Query<
 
     const results = await executeDatabaseQuery(kyselyQuery, 'execute')
 
-    const theAll = results.map(r =>
-      sqlResultToDreamInstance(this.dreamClass, r)
-    ) as InstanceType<DreamClass>[]
+    const theAll = results.map(r => sqlResultToDreamInstance(this.dreamClass, r)) as DreamInstance[]
 
     await this.applyPreload(this.preloadStatements as any, theAll)
 
@@ -808,7 +806,7 @@ export default class Query<
 
   protected connection(
     connection: DbConnectionType
-  ): Query<DreamClass, DreamInstance, DB, Schema, AllColumns, ColumnType> {
+  ): Query<DreamInstance, DB, Schema, AllColumns, ColumnType> {
     return this.clone({ connection })
   }
 
@@ -822,7 +820,7 @@ export default class Query<
   public async first() {
     const query = this.orderStatements.length
       ? this
-      : this.order({ [this.dreamClass.primaryKey as any]: 'asc' } as any)
+      : this.order({ [this.dreamInstance.primaryKey as any]: 'asc' } as any)
     return await query.takeOne()
   }
 
@@ -831,7 +829,7 @@ export default class Query<
     const results = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirst')
 
     if (results) {
-      const theFirst = sqlResultToDreamInstance(this.dreamClass, results) as InstanceType<DreamClass>
+      const theFirst = sqlResultToDreamInstance(this.dreamClass, results) as DreamInstance
 
       if (theFirst) await this.applyPreload(this.preloadStatements as any, [theFirst])
 
@@ -916,7 +914,7 @@ export default class Query<
 
   // Polymorphic BelongsTo. Preload by loading each target class separately.
   private async preloadPolymorphicBelongsTo(
-    this: Query<DreamClass, DreamInstance, DB, Schema, AllColumns, ColumnType>,
+    this: Query<DreamInstance, DB, Schema, AllColumns, ColumnType>,
     association: BelongsToStatement<any, any, any, string>,
     dreams: Dream[]
   ) {
@@ -943,7 +941,7 @@ export default class Query<
 
         const loadedAssociations = await this.symmetricalQueryForDreamClass(associatedModel)
           .where({
-            [associatedModel.primaryKey]: relevantAssociatedModels.map(
+            [associatedModel.prototype.primaryKey]: relevantAssociatedModels.map(
               (dream: any) => dream[association.foreignKey()]
             ),
           })
@@ -980,7 +978,7 @@ export default class Query<
   }
 
   private async applyOnePreload(
-    this: Query<DreamClass, DreamInstance, DB, Schema, AllColumns, ColumnType>,
+    this: Query<DreamInstance, DB, Schema, AllColumns, ColumnType>,
     associationName: string,
     dreams: Dream | Dream[]
   ) {
@@ -1017,14 +1015,14 @@ export default class Query<
       })
     }
 
-    columnsToPluck.push(`${dreamClass.prototype.table}.${dreamClass.primaryKey}`)
+    columnsToPluck.push(`${dreamClass.prototype.table}.${dreamClass.prototype.primaryKey}`)
 
     const baseClass = dreamClass['stiBaseClassOrOwnClass'].getAssociation(associationName)
       ? dreamClass['stiBaseClassOrOwnClass']
       : dreamClass
 
     const hydrationData: any[][] = await this.symmetricalQueryForDreamClass(baseClass)
-      .where({ [dreamClass.primaryKey]: dreams.map(obj => obj.primaryKeyValue) })
+      .where({ [dreamClass.prototype.primaryKey]: dreams.map(obj => obj.primaryKeyValue) })
       .pluckThrough(associationName, columnsToPluck)
 
     const preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[] = hydrationData.map(
@@ -1055,15 +1053,12 @@ export default class Query<
     return preloadedDreamsAndWhatTheyPointTo.map(obj => obj.dream)
   }
 
-  private async hydratePreload(
-    this: Query<DreamClass, DreamInstance, DB, Schema, AllColumns, ColumnType>,
-    dream: Dream
-  ) {
+  private async hydratePreload(this: Query<DreamInstance, DB, Schema, AllColumns, ColumnType>, dream: Dream) {
     await this.applyPreload(this.preloadStatements as any, dream)
   }
 
   private async applyPreload(
-    this: Query<DreamClass, DreamInstance, DB, Schema, AllColumns, ColumnType>,
+    this: Query<DreamInstance, DB, Schema, AllColumns, ColumnType>,
     preloadStatement: RelaxedPreloadStatement,
     dream: Dream | Dream[]
   ) {
@@ -1080,7 +1075,7 @@ export default class Query<
   public async last() {
     const query = this.orderStatements.length
       ? this.invertOrder()
-      : this.order({ [this.dreamClass.primaryKey as any]: 'desc' } as any)
+      : this.order({ [this.dreamInstance.primaryKey as any]: 'desc' } as any)
 
     return await query.takeOne()
   }
@@ -1090,7 +1085,7 @@ export default class Query<
     return Number(deletionResult?.numDeletedRows || 0)
   }
 
-  public async destroyBy(attributes: Updateable<InstanceType<DreamClass>['table']>) {
+  public async destroyBy(attributes: Updateable<DreamInstance['table']>) {
     const query = this.where(attributes as any)
 
     if (query.hasSimilarityClauses) {
@@ -1100,7 +1095,7 @@ export default class Query<
     return query.destroy()
   }
 
-  public async updateAll(attributes: DreamTableSchema<InstanceType<DreamClass>>) {
+  public async updateAll(attributes: DreamTableSchema<DreamInstance>) {
     if (this.baseSelectQuery) throw new NoUpdateAllOnAssociationQuery()
     if (Object.keys(this.joinsStatements).length) throw new NoUpdateAllOnJoins()
 
@@ -1111,11 +1106,11 @@ export default class Query<
     return Number(resultData?.numUpdatedRows || 0)
   }
 
-  private conditionallyApplyScopes(): Query<DreamClass, DreamInstance, DB, Schema, AllColumns, ColumnType> {
+  private conditionallyApplyScopes(): Query<DreamInstance, DB, Schema, AllColumns, ColumnType> {
     if (this.bypassDefaultScopes) return this
 
     const thisScopes = this.dreamClass['scopes'].default
-    let query: Query<DreamClass, DreamInstance, DB, Schema, AllColumns, ColumnType> = this
+    let query: Query<DreamInstance, DB, Schema, AllColumns, ColumnType> = this
     for (const scope of thisScopes) {
       query = (this.dreamClass as any)[scope.method](query)
     }
@@ -1132,7 +1127,7 @@ export default class Query<
     association,
     previousAssociationTableOrAlias,
   }: {
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>
     dreamClass: typeof Dream
     association:
       | HasOneStatement<any, any, any, any>
@@ -1140,7 +1135,7 @@ export default class Query<
       | BelongsToStatement<any, any, any, any>
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
   }): {
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>
     dreamClass: typeof Dream
     association:
       | HasOneStatement<any, any, any, any>
@@ -1208,13 +1203,13 @@ export default class Query<
     currentAssociationTableOrAlias,
     originalAssociation,
   }: {
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>
     dreamClass: typeof Dream
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
     currentAssociationTableOrAlias: TableOrAssociationName<Schema>
     originalAssociation?: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
   }): {
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>
     association: any
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
     currentAssociationTableOrAlias: TableOrAssociationName<Schema>
@@ -1365,7 +1360,7 @@ export default class Query<
         query = this.applyWhereStatements(
           query,
           this.aliasWhereStatements(
-            [association.where as WhereStatement<DB, Schema, InstanceType<DreamClass>['table']>],
+            [association.where as WhereStatement<DB, Schema, DreamInstance['table']>],
             currentAssociationTableOrAlias
           )
         )
@@ -1375,7 +1370,7 @@ export default class Query<
         query = this.applyWhereStatements(
           query,
           this.aliasWhereStatements(
-            [association.whereNot as WhereStatement<DB, Schema, InstanceType<DreamClass>['table']>],
+            [association.whereNot as WhereStatement<DB, Schema, DreamInstance['table']>],
             currentAssociationTableOrAlias
           ),
           { negate: true }
@@ -1425,9 +1420,7 @@ export default class Query<
     }
 
     if (!this.bypassDefaultScopes) {
-      let scopesQuery = new Query<DreamClass, DreamInstance, DB, Schema, AllColumns, ColumnType>(
-        this.dreamClass
-      )
+      let scopesQuery = new Query<DreamInstance, DB, Schema, AllColumns, ColumnType>(this.dreamInstance)
       const associationClass = association.modelCB() as any
       const associationScopes = associationClass.scopes.default
 
@@ -1470,11 +1463,11 @@ export default class Query<
     dreamClass,
     previousAssociationTableOrAlias,
   }: {
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>
     joinsStatement: RelaxedJoinsWhereStatement<DB, Schema>
     dreamClass: typeof Dream
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
-  }): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object> {
+  }): SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object> {
     for (const currentAssociationTableOrAlias of Object.keys(
       joinsStatement
     ) as TableOrAssociationName<Schema>[]) {
@@ -1500,8 +1493,8 @@ export default class Query<
     return query
   }
 
-  private applyWhereStatements<WS extends WhereStatement<DB, Schema, InstanceType<DreamClass>['table']>>(
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>,
+  private applyWhereStatements<WS extends WhereStatement<DB, Schema, DreamInstance['table']>>(
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>,
     whereStatements: WS | WS[],
     {
       negate = false,
@@ -1521,7 +1514,7 @@ export default class Query<
     tableNameOrAlias,
     association,
   }: {
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>
     tableNameOrAlias: string
     association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
   }) {
@@ -1544,8 +1537,8 @@ export default class Query<
   }
 
   private applySingleWhereStatement(
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>,
-    whereStatement: WhereStatement<DB, Schema, InstanceType<DreamClass>['table']>,
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>,
+    whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>,
     {
       negate = false,
     }: {
@@ -1601,7 +1594,7 @@ export default class Query<
 
   private whereStatementsToExpressionWrappers(
     eb: ExpressionBuilder<any, any>,
-    whereStatement: WhereStatement<DB, Schema, InstanceType<DreamClass>['table']>,
+    whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>,
     {
       negate = false,
     }: {
@@ -1669,7 +1662,7 @@ export default class Query<
 
   private orStatementsToExpressionWrappers(
     eb: ExpressionBuilder<any, any>,
-    orStatement: WhereStatement<DB, Schema, InstanceType<DreamClass>['table']>
+    orStatement: WhereStatement<DB, Schema, DreamInstance['table']>
   ): ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any> {
     return Object.keys(orStatement)
       .filter(key => (orStatement as any)[key] !== undefined)
@@ -1810,9 +1803,9 @@ export default class Query<
   }
 
   private recursivelyApplyJoinWhereStatement<
-    PreviousTableName extends AssociationTableNames<InstanceType<DreamClass>['DB'], Schema> & keyof Schema,
+    PreviousTableName extends AssociationTableNames<DreamInstance['DB'], Schema> & keyof Schema,
   >(
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>,
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>,
     whereJoinsStatement: RelaxedJoinsWhereStatement<DB, Schema>,
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
   ) {
@@ -1842,7 +1835,7 @@ export default class Query<
     return query
   }
 
-  private buildCommon(kyselyQuery: any) {
+  private buildCommon(this: Query<DreamInstance, DB, Schema, AllColumns, ColumnType>, kyselyQuery: any) {
     this.checkForQueryViolations()
 
     const query = this.conditionallyApplyScopes()
@@ -1892,7 +1885,7 @@ export default class Query<
     return kyselyQuery
   }
 
-  private checkForQueryViolations() {
+  private checkForQueryViolations(this: Query<DreamInstance, DB, Schema, AllColumns, ColumnType>) {
     const invalidWhereNotClauses = this.similarityStatementBuilder().whereNotStatementsWithSimilarityClauses()
     if (invalidWhereNotClauses.length) {
       const { tableName, columnName, opsStatement } = invalidWhereNotClauses[0]
@@ -1916,7 +1909,7 @@ export default class Query<
   }: {
     associationAlias: string
     selfAlias: string
-    selfWhereClause: WhereSelfStatement<any, DB, Schema, InstanceType<DreamClass>['table']>
+    selfWhereClause: WhereSelfStatement<any, DB, Schema, DreamInstance['table']>
   }) {
     const alphanumericUnderscoreRegexp = /[^a-zA-Z0-9_]/g
     selfAlias = selfAlias.replace(alphanumericUnderscoreRegexp, '')
@@ -1930,11 +1923,9 @@ export default class Query<
     }, {} as any)
   }
 
-  private buildDelete(): DeleteQueryBuilder<
-    DB,
-    ExtractTableAlias<DB, InstanceType<DreamClass>['table']>,
-    object
-  > {
+  private buildDelete(
+    this: Query<DreamInstance, DB, Schema, AllColumns, ColumnType>
+  ): DeleteQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object> {
     const kyselyQuery = this.dbFor('delete').deleteFrom(
       this.baseSqlAlias as unknown as AliasedExpression<any, any>
     )
@@ -1943,13 +1934,16 @@ export default class Query<
     return results.clone.buildCommon(results.kyselyQuery)
   }
 
-  private buildSelect({
-    bypassSelectAll = false,
-    bypassOrder = false,
-  }: {
-    bypassSelectAll?: boolean
-    bypassOrder?: boolean
-  } = {}): SelectQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object> {
+  private buildSelect(
+    this: Query<DreamInstance, DB, Schema, AllColumns, ColumnType>,
+    {
+      bypassSelectAll = false,
+      bypassOrder = false,
+    }: {
+      bypassSelectAll?: boolean
+      bypassOrder?: boolean
+    } = {}
+  ): SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object> {
     let kyselyQuery: SelectQueryBuilder<DB, any, object>
 
     if (this.baseSelectQuery) {
@@ -1986,19 +1980,17 @@ export default class Query<
     if (this.offsetStatement) kyselyQuery = kyselyQuery.offset(this.offsetStatement)
 
     if (!bypassSelectAll) {
-      kyselyQuery = kyselyQuery.selectAll(
-        this.baseSqlAlias as ExtractTableAlias<DB, InstanceType<DreamClass>['table']>
-      )
+      kyselyQuery = kyselyQuery.selectAll(this.baseSqlAlias as ExtractTableAlias<DB, DreamInstance['table']>)
     }
 
     return kyselyQuery
   }
 
   private buildUpdate(
-    attributes: Updateable<InstanceType<DreamClass>['table']>
-  ): UpdateQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, any, object> {
+    attributes: Updateable<DreamInstance['table']>
+  ): UpdateQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, any, object> {
     let kyselyQuery = this.dbFor('update')
-      .updateTable(this.dreamClass.prototype.table as InstanceType<DreamClass>['table'])
+      .updateTable(this.dreamClass.prototype.table as DreamInstance['table'])
       .set(attributes as any)
 
     kyselyQuery = this.conditionallyAttachSimilarityColumnsToUpdate(kyselyQuery)
@@ -2008,16 +2000,16 @@ export default class Query<
   }
 
   private attachLimitAndOrderStatementsToNonSelectQuery<
-    T extends Query<DreamClass, DreamInstance, DB, Schema, AllColumns, ColumnType>,
+    T extends Query<DreamInstance, DB, Schema, AllColumns, ColumnType>,
     QueryType extends
-      | UpdateQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, any, object>
-      | DeleteQueryBuilder<DB, ExtractTableAlias<DB, InstanceType<DreamClass>['table']>, object>,
+      | UpdateQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, any, object>
+      | DeleteQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>,
   >(this: T, kyselyQuery: QueryType): { kyselyQuery: QueryType; clone: T } {
     if (this.limitStatement || this.orderStatements.length) {
       kyselyQuery = (kyselyQuery as any).where((eb: any) => {
-        const subquery = this.nestedSelect(this.dreamClass.primaryKey)
+        const subquery = this.nestedSelect(this.dreamInstance.primaryKey)
 
-        return eb(this.dreamClass.primaryKey as any, 'in', subquery)
+        return eb(this.dreamInstance.primaryKey as any, 'in', subquery)
       }) as typeof kyselyQuery
 
       return {
@@ -2033,8 +2025,8 @@ export default class Query<
     return (this as any).similarityStatementBuilder().hasSimilarityClauses
   }
 
-  private similarityStatementBuilder() {
-    return new SimilarityBuilder(this.dreamClass, {
+  private similarityStatementBuilder(this: Query<DreamInstance, DB, Schema, AllColumns, ColumnType>) {
+    return new SimilarityBuilder(this.dreamInstance, {
       where: [...this.whereStatements],
       whereNot: [...this.whereNotStatements],
       joinsWhereStatements: this.joinsWhereStatements,
@@ -2044,9 +2036,10 @@ export default class Query<
   }
 
   private conditionallyAttachSimilarityColumnsToSelect(
+    this: Query<DreamInstance, DB, Schema, AllColumns, ColumnType>,
     kyselyQuery: SelectQueryBuilder<
-      InstanceType<DreamClass>['DB'],
-      ExtractTableAlias<InstanceType<DreamClass>['DB'], InstanceType<DreamClass>['table']>,
+      DreamInstance['DB'],
+      ExtractTableAlias<DreamInstance['DB'], DreamInstance['table']>,
       object
     >,
     { bypassOrder = false }: { bypassOrder?: boolean } = {}
@@ -2060,9 +2053,10 @@ export default class Query<
   }
 
   private conditionallyAttachSimilarityColumnsToUpdate(
+    this: Query<DreamInstance, DB, Schema, AllColumns, ColumnType>,
     kyselyQuery: UpdateQueryBuilder<
-      InstanceType<DreamClass>['DB'],
-      ExtractTableAlias<InstanceType<DreamClass>['DB'], InstanceType<DreamClass>['table']>,
+      DreamInstance['DB'],
+      ExtractTableAlias<DreamInstance['DB'], DreamInstance['table']>,
       ExtractTableAlias<any, any>,
       any
     >
@@ -2088,9 +2082,8 @@ export default class Query<
 }
 
 export interface QueryOpts<
-  DreamClass extends typeof Dream,
-  ColumnType extends DreamClassColumnNames<DreamClass>,
-  DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
+  DreamInstance extends Dream,
+  ColumnType extends DreamColumnNames<DreamInstance>,
   Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   AllColumns extends DreamInstance['allColumns'] = DreamInstance['allColumns'],

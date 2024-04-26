@@ -146,11 +146,10 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     return await destroyAssociation(this.dreamInstance, this.dreamTransaction, associationName, opts)
   }
 
-  private queryInstance<
-    I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DreamClass extends DreamConstructorType<DreamInstance>,
-  >(this: I): Query<DreamClass> {
-    const dreamClass = this.dreamInstance.constructor as DreamClass
+  private queryInstance<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
+    this: I
+  ): Query<DreamInstance> {
+    const dreamClass = this.dreamInstance.constructor as DreamConstructorType<DreamInstance>
     const id = this.dreamInstance.primaryKeyValue
 
     return dreamClass.txn(this.dreamTransaction).where({ [this.dreamInstance.primaryKey]: id } as any)

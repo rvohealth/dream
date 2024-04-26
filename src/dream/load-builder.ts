@@ -2,17 +2,16 @@ import { PassthroughWhere } from '../decorators/associations/shared'
 import Dream from '../dream'
 import Query from './query'
 import DreamTransaction from './transaction'
-import { DreamConstructorType, VariadicLoadArgs } from './types'
+import { VariadicLoadArgs } from './types'
 
 export default class LoadBuilder<DreamInstance extends Dream> {
   private dream: Dream
   private dreamTransaction: DreamTransaction<any> | undefined
-  private query: Query<DreamConstructorType<DreamInstance>>
+  private query: Query<DreamInstance>
 
   constructor(dream: Dream, txn?: DreamTransaction<any>) {
     this.dream = dream.clone()
-    const base = this.dream.constructor as DreamConstructorType<DreamInstance>
-    this.query = new Query<DreamConstructorType<DreamInstance>>(base)
+    this.query = new Query<DreamInstance>(this.dream as DreamInstance)
     this.dreamTransaction = txn
   }
 

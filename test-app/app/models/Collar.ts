@@ -35,7 +35,7 @@ export default class Collar extends ApplicationModel {
   public balloonId: IdType
 
   @Scope({ default: true })
-  public static hideHiddenCollars(query: Query<typeof Collar>) {
+  public static hideHiddenCollars(query: Query<Collar>) {
     return query.where({ hidden: false })
   }
 }

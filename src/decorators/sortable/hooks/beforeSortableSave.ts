@@ -13,7 +13,7 @@ export default async function beforeSortableSave({
 }: {
   positionField: string
   dream: Dream
-  query: Query<typeof Dream>
+  query: Query<Dream>
   scope?: string | string[]
 }) {
   const cacheKey = sortableCacheKeyName(positionField)

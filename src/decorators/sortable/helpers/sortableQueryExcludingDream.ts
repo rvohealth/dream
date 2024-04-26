@@ -4,7 +4,7 @@ import applySortableScopeToQuery from './applySortableScopeToQuery'
 
 export default function sortableQueryExcludingDream(
   dream: Dream,
-  query: Query<typeof Dream>,
+  query: Query<Dream>,
   scope?: string | string[]
 ) {
   query = query.whereNot({

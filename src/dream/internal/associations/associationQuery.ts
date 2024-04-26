@@ -1,7 +1,7 @@
 import Dream from '../../../dream'
 import DreamTransaction from '../../transaction'
 import Query from '../../query'
-import { DreamConstructorType, TableOrAssociationName } from '../../types'
+import { TableOrAssociationName } from '../../types'
 import { HasManyStatement } from '../../../decorators/associations/has-many'
 
 export default function associationQuery<
@@ -14,7 +14,6 @@ export default function associationQuery<
     ? ElementType & Dream
     : PossibleArrayAssociationType & Dream,
   AssociationQuery = Query<
-    DreamConstructorType<AssociationType & Dream>,
     AssociationType & Dream,
     DreamInstance['DB'],
     DreamInstance['dreamconf']['schema'],
@@ -40,7 +39,5 @@ export default function associationQuery<
 
   return (txn ? associationClass.txn(txn).queryInstance() : associationClass.query())
     ['setBaseSQLAlias'](association.as as TableOrAssociationName<DreamInstance['dreamconf']['schema']>)
-    ['setBaseSelectQuery'](baseSelectQuery as Query<any>) as Query<
-    DreamConstructorType<AssociationType & Dream>
-  > as AssociationQuery
+    ['setBaseSelectQuery'](baseSelectQuery as Query<any>) as AssociationQuery
 }

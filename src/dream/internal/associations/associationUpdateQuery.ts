@@ -1,7 +1,6 @@
 import Dream from '../../../dream'
 import DreamTransaction from '../../transaction'
 import Query from '../../query'
-import { DreamConstructorType } from '../../types'
 import { HasManyStatement } from '../../../decorators/associations/has-many'
 import { HasOneStatement } from '../../../decorators/associations/has-one'
 import { BelongsToStatement } from '../../../decorators/associations/belongs-to'
@@ -16,7 +15,6 @@ export default function associationUpdateQuery<
     ? ElementType
     : PossibleArrayAssociationType,
   AssociationQuery = Query<
-    DreamConstructorType<AssociationType & Dream>,
     AssociationType & Dream,
     DreamInstance['DB'],
     DreamInstance['dreamconf']['schema'],
@@ -48,10 +46,10 @@ export default function associationUpdateQuery<
 
   const nestedSelect = nestedScope
     .where({ [dream.primaryKey]: dream.primaryKeyValue as any })
-    .nestedSelect(`${association.as}.${associationClass.primaryKey}`)
+    .nestedSelect(`${association.as}.${associationClass.prototype.primaryKey}`)
 
   const whereClause = {
-    [associationClass.primaryKey]: nestedSelect,
+    [associationClass.prototype.primaryKey]: nestedSelect,
   }
 
   const query = txn ? associationClass.txn(txn).where(whereClause) : associationClass.where(whereClause)

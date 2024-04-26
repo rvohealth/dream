@@ -190,12 +190,12 @@ export default class User extends ApplicationModel {
   public balloonsFromUuid: Collar[]
 
   @Scope()
-  public static withFunnyName(query: Query<typeof User>) {
+  public static withFunnyName(query: Query<User>) {
     return query.where({ name: 'Chalupas jr' })
   }
 
   @Scope({ default: true })
-  public static hideDeleted(query: Query<typeof User>) {
+  public static hideDeleted(query: Query<User>) {
     return query.where({ deletedAt: null })
   }
 

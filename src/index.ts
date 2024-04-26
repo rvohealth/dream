@@ -12,7 +12,6 @@ export {
   DreamTableSchema,
   DreamColumnNames,
   DreamColumn,
-  DreamClassColumnNames,
   DreamClassColumn,
   PrimaryKeyType,
   DreamAttributes,

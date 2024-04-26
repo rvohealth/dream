@@ -36,7 +36,6 @@ import {
   UpdateablePropertiesForClass,
   UpdateableProperties,
   AttributeKeys,
-  DreamClassColumnNames,
   UpdateableAssociationProperties,
   DreamColumnNames,
   OrderDir,
@@ -86,10 +85,6 @@ import { marshalDBValue } from './helpers/marshalDBValue'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
 
 export default class Dream {
-  public static get primaryKey() {
-    return 'id' as const
-  }
-
   public static createdAtField = 'createdAt'
 
   protected static associations: {
@@ -314,7 +309,7 @@ export default class Dream {
     })
   }
 
-  public static unscoped<T extends typeof Dream>(this: T): Query<T> {
+  public static unscoped<T extends typeof Dream>(this: T): Query<InstanceType<T>> {
     return this.query().unscoped()
   }
 
@@ -322,25 +317,29 @@ export default class Dream {
     return await this.query().all()
   }
 
-  protected static connection<T extends typeof Dream>(this: T, connection: DbConnectionType): Query<T> {
-    const query: Query<T> = new Query<T>(this, { connection })
-    return query
+  protected static connection<T extends typeof Dream>(
+    this: T,
+    connection: DbConnectionType
+  ): Query<InstanceType<T>> {
+    return new Query<InstanceType<T>>(this.prototype as InstanceType<T>, {
+      connection,
+    })
   }
 
   public static async count<T extends typeof Dream>(this: T): Promise<number> {
     return await this.query().count()
   }
 
-  public static async max<DreamClass extends typeof Dream>(
-    this: DreamClass,
-    field: DreamClassColumnNames<DreamClass>
+  public static async max<T extends typeof Dream>(
+    this: T,
+    field: DreamColumnNames<InstanceType<T>>
   ): Promise<number> {
     return await this.query().max(field as any)
   }
 
-  public static async min<DreamClass extends typeof Dream>(
-    this: DreamClass,
-    field: DreamClassColumnNames<DreamClass>
+  public static async min<T extends typeof Dream>(
+    this: T,
+    field: DreamColumnNames<InstanceType<T>>
   ): Promise<number> {
     return await this.query().min(field as any)
   }
@@ -387,7 +386,7 @@ export default class Dream {
     T extends typeof Dream,
     I extends InstanceType<T>,
     Schema extends I['dreamconf']['schema'],
-    SchemaIdType = Schema[InstanceType<T>['table']]['columns'][T['primaryKey']]['coercedType'],
+    SchemaIdType = Schema[InstanceType<T>['table']]['columns'][I['primaryKey']]['coercedType'],
   >(this: T, id: SchemaIdType): Promise<InstanceType<T> | null> {
     return await this.query().find(id)
   }
@@ -410,26 +409,15 @@ export default class Dream {
     await this.query().loadInto(models, ...(args as any))
   }
 
-  public static query<T extends typeof Dream>(
+  public static query<T extends typeof Dream, I extends InstanceType<T>>(
     this: T
-  ): Query<
-    T,
-    InstanceType<T>,
-    InstanceType<T>['DB'],
-    InstanceType<T>['dreamconf']['schema'],
-    InstanceType<T>['allColumns'],
-    DreamClassColumnNames<T>
-  > {
-    return new Query(this)
+  ): Query<I, I['DB'], I['dreamconf']['schema'], I['allColumns'], DreamColumnNames<I>> {
+    return new Query(this.prototype as I)
   }
 
-  public static async findBy<T extends typeof Dream>(
+  public static async findBy<T extends typeof Dream, I extends InstanceType<T>>(
     this: T,
-    attributes: WhereStatement<
-      InstanceType<T>['DB'],
-      InstanceType<T>['dreamconf']['schema'],
-      InstanceType<T>['table']
-    >
+    attributes: WhereStatement<I['DB'], I['dreamconf']['schema'], I['table']>
   ): Promise<InstanceType<T> | null> {
     return await this.query().findBy(attributes)
   }
@@ -511,34 +499,31 @@ export default class Dream {
     return this.query().offset(offset)
   }
 
-  public static nestedSelect<T extends typeof Dream>(this: T, selection: DreamClassColumnNames<T>) {
+  public static nestedSelect<T extends typeof Dream>(this: T, selection: DreamColumnNames<InstanceType<T>>) {
     return this.query().nestedSelect(selection as any)
   }
 
-  public static order<DreamClass extends typeof Dream>(
-    this: DreamClass,
-    arg:
-      | DreamClassColumnNames<DreamClass>
-      | Partial<Record<DreamClassColumnNames<DreamClass>, OrderDir>>
-      | null
-  ): Query<DreamClass> {
+  public static order<T extends typeof Dream, I extends InstanceType<T>>(
+    this: T,
+    arg: DreamColumnNames<I> | Partial<Record<DreamColumnNames<I>, OrderDir>> | null
+  ): Query<InstanceType<T>> {
     return this.query().order(arg as any)
   }
 
-  public static async pluck<T extends typeof Dream>(this: T, ...fields: DreamClassColumnNames<T>[]) {
+  public static async pluck<T extends typeof Dream>(this: T, ...fields: DreamColumnNames<InstanceType<T>>[]) {
     return await this.query().pluck(...(fields as any[]))
   }
 
-  public static async pluckEach<
-    DreamClass extends typeof Dream,
-    CB extends (plucked: any) => void | Promise<void>,
-  >(this: DreamClass, ...fields: (DreamClassColumnNames<DreamClass> | CB | FindEachOpts)[]) {
+  public static async pluckEach<T extends typeof Dream, CB extends (plucked: any) => void | Promise<void>>(
+    this: T,
+    ...fields: (DreamColumnNames<InstanceType<T>> | CB | FindEachOpts)[]
+  ) {
     return await this.query().pluckEach(...(fields as any))
   }
 
-  public static async resort<DreamClass extends typeof Dream>(
-    this: DreamClass,
-    ...fields: DreamClassColumnNames<DreamClass>[]
+  public static async resort<T extends typeof Dream>(
+    this: T,
+    ...fields: DreamColumnNames<InstanceType<T>>[]
   ) {
     for (const field of fields) {
       const sortableMetadata = this.sortableFields.find(conf => conf.positionField === field)
@@ -548,7 +533,7 @@ export default class Dream {
   }
 
   public static scope<T extends typeof Dream>(this: T, scopeName: string) {
-    return (this as any)[scopeName](this.query()) as Query<T>
+    return (this as any)[scopeName](this.query()) as Query<InstanceType<T>>
   }
 
   public static sql<T extends typeof Dream>(this: T): CompiledQuery<object> {
@@ -586,11 +571,11 @@ export default class Dream {
     }
   }
 
-  public static txn<T extends typeof Dream>(
+  public static txn<T extends typeof Dream, I extends InstanceType<T>>(
     this: T,
-    txn: DreamTransaction<InstanceType<T>>
-  ): DreamClassTransactionBuilder<T> {
-    return new DreamClassTransactionBuilder<T>(this, txn)
+    txn: DreamTransaction<I>
+  ): DreamClassTransactionBuilder<I> {
+    return new DreamClassTransactionBuilder<I>(this.prototype as I, txn)
   }
 
   public static async transaction<T extends typeof Dream>(
@@ -615,7 +600,7 @@ export default class Dream {
     T extends typeof Dream,
     I extends InstanceType<T>,
     AllColumns extends I['allColumns'],
-  >(this: T, passthroughWhereStatement: PassthroughWhere<AllColumns>): Query<T> {
+  >(this: T, passthroughWhereStatement: PassthroughWhere<AllColumns>): Query<InstanceType<T>> {
     return this.query().passthrough(passthroughWhereStatement)
   }
 
@@ -625,7 +610,7 @@ export default class Dream {
     DB extends I['DB'],
     Schema extends I['dreamconf']['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
-  >(this: T, attributes: WhereStatement<DB, Schema, TableName>): Query<T> {
+  >(this: T, attributes: WhereStatement<DB, Schema, TableName>): Query<InstanceType<T>> {
     return this.query().where(attributes)
   }
 
@@ -635,7 +620,7 @@ export default class Dream {
     DB extends I['DB'],
     Schema extends I['dreamconf']['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
-  >(this: T, attributes: WhereStatement<DB, Schema, TableName>[]): Query<T> {
+  >(this: T, attributes: WhereStatement<DB, Schema, TableName>[]): Query<InstanceType<T>> {
     return this.query().whereAny(attributes)
   }
 
@@ -645,7 +630,7 @@ export default class Dream {
     DB extends I['DB'],
     Schema extends I['dreamconf']['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
-  >(this: T, attributes: WhereStatement<DB, Schema, TableName>): Query<T> {
+  >(this: T, attributes: WhereStatement<DB, Schema, TableName>): Query<InstanceType<T>> {
     return this.query().whereNot(attributes)
   }
 
@@ -704,7 +689,7 @@ export default class Dream {
   }
 
   public get primaryKey() {
-    return (this.constructor as typeof Dream).primaryKey
+    return 'id' as const
   }
 
   public get primaryKeyValue(): IdType {

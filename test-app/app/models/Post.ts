@@ -49,7 +49,7 @@ export default class Post extends ApplicationModel {
   public heartRatings: HeartRating[]
 
   @Scope({ default: true })
-  public static hideDeleted(query: Query<typeof Post>) {
+  public static hideDeleted(query: Query<Post>) {
     return query.where({ deletedAt: null })
   }
 }

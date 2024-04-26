@@ -14,7 +14,7 @@ export default async function afterSortableCreate({
 }: {
   positionField: string
   dream: Dream
-  query: Query<typeof Dream>
+  query: Query<Dream>
   txn?: DreamTransaction<any>
   scope?: string | string[]
 }) {

@@ -8,7 +8,7 @@ export default async function positionIsInvalid({
   position,
   scope,
 }: {
-  query: Query<typeof Dream>
+  query: Query<Dream>
   dream: Dream
   position: number | null | undefined
   scope?: string | string[]

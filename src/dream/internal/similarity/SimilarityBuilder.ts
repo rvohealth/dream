@@ -15,16 +15,16 @@ import validateTableAlias from '../../../db/validators/validateTableAlias'
 import { isObject } from '../../../helpers/typechecks'
 
 export default class SimilarityBuilder<
-  DreamClass extends typeof Dream,
-  DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
+  DreamInstance extends Dream,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
-> extends ConnectedToDB<DreamClass> {
-  public readonly whereStatement: readonly WhereStatement<DB, Schema, any>[] = Object.freeze([])
-  public readonly whereNotStatement: readonly WhereStatement<DB, Schema, any>[] = Object.freeze([])
+> extends ConnectedToDB<DreamInstance> {
+  public readonly whereStatement: readonly WhereStatement<DB, Schema, any>[]
+  public readonly whereNotStatement: readonly WhereStatement<DB, Schema, any>[]
   public readonly joinsWhereStatements: RelaxedJoinsWhereStatement<DB, Schema> = Object.freeze({})
-  constructor(DreamClass: DreamClass, opts: SimilarityBuilderOpts<DreamClass, DreamInstance> = {}) {
-    super(DreamClass, opts)
+
+  constructor(dreamInstance: DreamInstance, opts: SimilarityBuilderOpts<DreamInstance> = {}) {
+    super(dreamInstance, opts)
     this.whereStatement = Object.freeze(opts.where || [])
     this.whereNotStatement = Object.freeze(opts.whereNot || [])
     this.joinsWhereStatements = Object.freeze(opts.joinsWhereStatements || {})
@@ -72,7 +72,7 @@ export default class SimilarityBuilder<
 
   [ world, world, 0.5 ]
   */
-  public select<T extends SimilarityBuilder<DreamClass>>(
+  public select<T extends SimilarityBuilder<DreamInstance>>(
     this: T,
     kyselyQuery: SelectQueryBuilder<DB, any, object>,
     { bypassOrder = false }: { bypassOrder?: boolean } = {}
@@ -151,21 +151,21 @@ export default class SimilarityBuilder<
       where
         "users"."id" = $ 5
         and "users"."deleted_at" is null
-    ) 
+    )
 
   [ cool, Opus, Opus, 0.3, 8818 ]
   */
-  public update<T extends SimilarityBuilder<DreamClass>>(
+  public update<T extends SimilarityBuilder<DreamInstance>>(
     this: T,
     kyselyQuery: UpdateQueryBuilder<
-      InstanceType<DreamClass>['DB'],
-      ExtractTableAlias<InstanceType<DreamClass>['DB'], InstanceType<DreamClass>['table']>,
+      DreamInstance['DB'],
+      ExtractTableAlias<DreamInstance['DB'], DreamInstance['table']>,
       ExtractTableAlias<any, any>,
       any
     >
   ): UpdateQueryBuilder<
-    InstanceType<DreamClass>['DB'],
-    ExtractTableAlias<InstanceType<DreamClass>['DB'], InstanceType<DreamClass>['table']>,
+    DreamInstance['DB'],
+    ExtractTableAlias<DreamInstance['DB'], DreamInstance['table']>,
     ExtractTableAlias<any, any>,
     any
   > {
@@ -258,7 +258,7 @@ export default class SimilarityBuilder<
     ]
   }
 
-  private addStatementToSelectQuery<T extends SimilarityBuilder<DreamClass>>(
+  private addStatementToSelectQuery<T extends SimilarityBuilder<DreamInstance>>(
     this: T,
     {
       kyselyQuery,
@@ -308,7 +308,7 @@ export default class SimilarityBuilder<
     return kyselyQuery
   }
 
-  private addStatementToUpdateQuery<T extends SimilarityBuilder<DreamClass>>(
+  private addStatementToUpdateQuery<T extends SimilarityBuilder<DreamInstance>>(
     this: T,
     {
       kyselyQuery,
@@ -317,8 +317,8 @@ export default class SimilarityBuilder<
       index,
     }: {
       kyselyQuery: UpdateQueryBuilder<
-        InstanceType<DreamClass>['DB'],
-        ExtractTableAlias<InstanceType<DreamClass>['DB'], InstanceType<DreamClass>['table']>,
+        DreamInstance['DB'],
+        ExtractTableAlias<DreamInstance['DB'], DreamInstance['table']>,
         ExtractTableAlias<any, any>,
         any
       >
@@ -327,8 +327,8 @@ export default class SimilarityBuilder<
       index: number
     }
   ): UpdateQueryBuilder<
-    InstanceType<DreamClass>['DB'],
-    ExtractTableAlias<InstanceType<DreamClass>['DB'], InstanceType<DreamClass>['table']>,
+    DreamInstance['DB'],
+    ExtractTableAlias<DreamInstance['DB'], DreamInstance['table']>,
     ExtractTableAlias<any, any>,
     any
   > {
@@ -389,7 +389,7 @@ export default class SimilarityBuilder<
     const rankSQLAlias = this.rankSQLAlias(statementType, statementIndex)
     nestedQuery = nestedQuery
       .select(eb =>
-        similaritySelectSql<DreamClass>({
+        similaritySelectSql<DreamInstance>({
           eb,
           tableName,
           columnName,
@@ -399,7 +399,7 @@ export default class SimilarityBuilder<
         })
       )
       .where(eb =>
-        similarityWhereSql<DreamClass>({
+        similarityWhereSql<DreamInstance>({
           eb,
           tableName,
           columnName,
@@ -444,8 +444,7 @@ export default class SimilarityBuilder<
 }
 
 export interface SimilarityBuilderOpts<
-  DreamClass extends typeof Dream,
-  DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
+  DreamInstance extends Dream,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
 > {

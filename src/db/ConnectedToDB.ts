@@ -1,20 +1,20 @@
 import { Kysely, Transaction as KyselyTransaction } from 'kysely'
 import DreamTransaction from '../dream/transaction'
-import { SqlCommandType } from '../dream/types'
+import { DreamConstructorType, SqlCommandType } from '../dream/types'
 import { DbConnectionType } from './types'
 import _db from '../db'
 import Dream from '../dream'
 
-export default class ConnectedToDB<
-  DreamClass extends typeof Dream,
-  DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
-> {
-  public readonly dreamClass: DreamClass
+export default class ConnectedToDB<DreamInstance extends Dream> {
+  public readonly dreamClass: DreamConstructorType<DreamInstance>
   public dreamTransaction: DreamTransaction<Dream> | null = null
   public connectionOverride?: DbConnectionType
 
-  constructor(DreamClass: DreamClass, opts: ConnectedToDBOpts = {}) {
-    this.dreamClass = DreamClass
+  constructor(
+    public dreamInstance: DreamInstance,
+    opts: ConnectedToDBOpts = {}
+  ) {
+    this.dreamClass = dreamInstance.constructor as DreamConstructorType<DreamInstance>
     this.dreamTransaction = opts.transaction || null
     this.connectionOverride = opts.connection
   }

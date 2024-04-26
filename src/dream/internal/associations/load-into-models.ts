@@ -13,8 +13,7 @@ import debug from '../../../helpers/debug'
 import { singular } from 'pluralize'
 
 export default class LoadIntoModels<
-  DreamClass extends typeof Dream,
-  DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
+  DreamInstance extends Dream,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
   AllColumns extends DreamInstance['allColumns'] = DreamInstance['allColumns'],

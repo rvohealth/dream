@@ -1,6 +1,6 @@
 {
   "name": "@rvohealth/dream",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "description": "dream orm",
   "main": "src/index.ts",
   "repository": "https://github.com/rvohealth/dream.git",

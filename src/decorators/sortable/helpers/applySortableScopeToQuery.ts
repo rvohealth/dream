@@ -4,7 +4,7 @@ import getColumnForSortableScope from './getColumnForSortableScope'
 import scopeArray from './scopeArray'
 
 export default function applySortableScopeToQuery(
-  query: Query<typeof Dream>,
+  query: Query<Dream>,
   dream: Dream,
   scope?: string | string[]
 ) {
