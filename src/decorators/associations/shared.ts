@@ -356,7 +356,7 @@ dream class: ${dreamClass.name}
 association: ${this.as}
           `)
 
-      return (associationClass as any).primaryKey
+      return (associationClass as any).prototype.primaryKey
     },
 
     primaryKeyValue(associationInstance: Dream | null) {
