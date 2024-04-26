@@ -27,12 +27,7 @@ import AfterUpdateCommit from './decorators/hooks/after-update-commit'
 import AfterDestroy from './decorators/hooks/after-destroy'
 import AfterDestroyCommit from './decorators/hooks/after-destroy-commit'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
-import {
-  PassthroughWhere,
-  TableColumnName,
-  WhereStatement,
-  blankAssociationsFactory,
-} from './decorators/associations/shared'
+import { PassthroughWhere, WhereStatement, blankAssociationsFactory } from './decorators/associations/shared'
 import { AssociationTableNames } from './db/reflections'
 import {
   DreamConstructorType,
@@ -51,6 +46,7 @@ import {
   VariadicLoadArgs,
   DreamBelongsToAssociationMetadata,
   DreamAttributes,
+  TableColumnNames,
 } from './dream/types'
 import Query, { FindEachOpts } from './dream/query'
 import runValidations from './dream/internal/runValidations'
@@ -382,9 +378,8 @@ export default class Dream {
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
-    Schema extends I['dreamconf']['schema'],
     TableName extends InstanceType<T>['table'],
-  >(this: T, columnName?: TableColumnName<DB, Schema, TableName> | null | boolean) {
+  >(this: T, columnName?: TableColumnNames<DB, TableName> | null | boolean) {
     return this.query().distinct(columnName as any)
   }
 

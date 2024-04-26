@@ -51,6 +51,12 @@ export type DreamClassColumnNames<
   Table extends DB[keyof DB] = DB[TableName],
 > = keyof Table & string
 
+export type TableColumnNames<
+  DB,
+  TableName extends keyof DB,
+  Table extends DB[keyof DB] = DB[TableName],
+> = keyof Table & string
+
 export type DreamColumn<
   DreamInstance extends Dream,
   Column extends keyof Attrs,

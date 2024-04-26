@@ -10,6 +10,7 @@ import {
   DreamConst,
   IdType,
   OrderDir,
+  TableColumnNames,
 } from '../../dream/types'
 import OpsStatement from '../../ops/ops-statement'
 import { BelongsToStatement } from './belongs-to'
@@ -110,8 +111,8 @@ export type WhereSelfStatement<
 > = Partial<Record<keyof DB[TableName], DreamColumnNames<BaseInstance>>>
 
 export type OrderStatement<DB, Schema, TableName extends AssociationTableNames<DB, Schema> & keyof DB> =
-  | TableColumnName<DB, Schema, TableName>
-  | Partial<Record<TableColumnName<DB, Schema, TableName>, OrderDir>>
+  | TableColumnNames<DB, TableName>
+  | Partial<Record<TableColumnNames<DB, TableName>, OrderDir>>
 
 export type LimitStatement = number
 export type OffsetStatement = number
@@ -120,14 +121,6 @@ export type OrderQueryStatement<ColumnType> = {
   column: ColumnType & string
   direction: OrderDir
 }
-
-export type TableColumnName<
-  DB,
-  Schema,
-  TableName extends AssociationTableNames<DB, Schema> & keyof DB,
-  Table extends DB[keyof DB] = DB[TableName],
-  ColumnName extends keyof Table & string = keyof Table & string,
-> = ColumnName
 
 export interface HasStatement<
   BaseInstance extends Dream,
@@ -152,7 +145,7 @@ export interface HasStatement<
   whereNot?: WhereStatement<DB, Schema, ForeignTableName>
   selfWhere?: WhereSelfStatement<BaseInstance, DB, Schema, ForeignTableName>
   selfWhereNot?: WhereSelfStatement<BaseInstance, DB, Schema, ForeignTableName>
-  distinct?: TableColumnName<DB, Schema, ForeignTableName>
+  distinct?: TableColumnNames<DB, ForeignTableName>
   order?: OrderStatement<DB, Schema, ForeignTableName>
 }
 

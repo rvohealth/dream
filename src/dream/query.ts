@@ -6,7 +6,6 @@ import {
   OffsetStatement,
   OrderQueryStatement,
   PassthroughWhere,
-  TableColumnName,
   WhereSelfStatement,
   WhereStatement,
 } from '../decorators/associations/shared'
@@ -23,6 +22,7 @@ import {
   VariadicLoadArgs,
   VariadicPluckThroughArgs,
   VariadicPluckEachThroughArgs,
+  TableColumnNames,
 } from './types'
 import {
   AliasedExpression,
@@ -117,7 +117,7 @@ export default class Query<
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
   AllColumns extends DreamInstance['allColumns'] = DreamInstance['allColumns'],
-  ColumnType extends DreamClassColumnNames<DreamClass> = DreamClassColumnNames<DreamClass>,
+  ColumnType extends DreamClassColumnNames<DreamClass> = TableColumnNames<DB, DreamInstance['table']>,
 > extends ConnectedToDB<DreamClass> {
   public static readonly BATCH_SIZES = {
     FIND_EACH: 1000,
@@ -684,11 +684,7 @@ export default class Query<
 
   public distinct(
     column:
-      | TableColumnName<
-          InstanceType<DreamClass>['dreamconf']['DB'],
-          Schema,
-          InstanceType<DreamClass>['table']
-        >
+      | TableColumnNames<InstanceType<DreamClass>['dreamconf']['DB'], InstanceType<DreamClass>['table']>
       | boolean = true
   ) {
     if (column === true) {

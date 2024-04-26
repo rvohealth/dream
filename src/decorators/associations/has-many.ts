@@ -1,7 +1,6 @@
 import Dream from '../../dream'
 import {
   HasStatement,
-  TableColumnName,
   applyGetterAndSetter,
   blankAssociationsFactory,
   finalForeignKey,
@@ -10,6 +9,7 @@ import {
   associationPrimaryKeyAccessors,
 } from './shared'
 import { AssociationTableNames } from '../../db/reflections'
+import { TableColumnNames } from '../../dream/types'
 
 export default function HasMany<
   BaseInstance extends Dream = Dream,
@@ -83,9 +83,8 @@ export interface HasManyStatement<
 export interface HasManyOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream>
   extends HasOptions<BaseInstance, AssociationDreamClass> {
   distinct?:
-    | TableColumnName<
+    | TableColumnNames<
         InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['dreamconf']['schema'],
         InstanceType<AssociationDreamClass>['table'] &
           AssociationTableNames<
             InstanceType<AssociationDreamClass>['DB'],
