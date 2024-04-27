@@ -244,7 +244,7 @@ describe('Dream.create', () => {
       })
 
       const reloaded = await User.unscoped().find(user.id)
-      expect(reloaded!.birthdate.toISODate()).toEqual(dateString)
+      expect(reloaded!.birthdate!.toISODate()).toEqual(dateString)
     })
 
     context('with a string representation of a date', () => {
@@ -256,7 +256,7 @@ describe('Dream.create', () => {
         })
 
         const reloaded = await User.unscoped().find(user.id)
-        expect(reloaded!.birthdate.toISODate()).toEqual(dateString)
+        expect(reloaded!.birthdate!.toISODate()).toEqual(dateString)
       })
     })
   })

@@ -289,14 +289,14 @@ describe('Dream#update', () => {
       const newDate = DateTime.fromISO(dateString)
       await user.update({ birthdate: newDate })
       const reloaded = await User.unscoped().find(user.id)
-      expect(reloaded!.birthdate.toISODate()).toEqual(dateString)
+      expect(reloaded!.birthdate!.toISODate()).toEqual(dateString)
     })
 
     context('with a string representation of a date', () => {
       it('updates to the date', async () => {
         await user.update({ birthdate: dateString as any })
         const reloaded = await User.unscoped().find(user.id)
-        expect(reloaded!.birthdate.toISODate()).toEqual(dateString)
+        expect(reloaded!.birthdate!.toISODate()).toEqual(dateString)
       })
     })
   })

@@ -4,6 +4,7 @@ import createExtension from '../../../src/db/migration-helpers/createExtension'
 
 export async function up(db: Kysely<any>): Promise<void> {
   await createExtension('uuid-ossp', db)
+  await createExtension('citext', db)
 
   await db.schema
     .createTable('users')
@@ -18,6 +19,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('email', 'varchar', col => col.notNull().unique())
     .addColumn('social_security_number', 'varchar', col => col.unique())
     .addColumn('birthdate', 'date')
+    .addColumn('favorite_word', sql`citext`)
     .addColumn('featured_post_position', 'integer')
     .addColumn('target_rating', 'integer')
     .addColumn('favorite_numbers', sql`integer[]`)

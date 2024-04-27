@@ -9,8 +9,8 @@ describe('marshalling postgres dates from db', () => {
 
     const user = await User.create({ ...userOptions, birthdate: date })
     const reloadedUser = await User.find(user.id)
-    expect(reloadedUser!.birthdate.toISODate()).toEqual('2023-10-18')
-    expect(reloadedUser!.birthdate.zoneName).toEqual('UTC')
+    expect(reloadedUser!.birthdate!.toISODate()).toEqual('2023-10-18')
+    expect(reloadedUser!.birthdate!.zoneName).toEqual('UTC')
   })
 
   context('when date value is set to null', () => {
