@@ -80,8 +80,15 @@ ${tableName}: {
   }
 
   private async getSchemaImports(schemaContent: string) {
-    const allExports = await this.getExportedModulesFromDbts()
-    return allExports.filter(exportedModule => schemaContent.includes(exportedModule))
+    const allExports = await this.getExportedModulesFromDbSync()
+
+    const schemaContentWithoutImports = schemaContent.replace(/import {[^}]*}/gm, '')
+    return allExports.filter(exportedModule => {
+      if (new RegExp(`coercedType: {} as ${exportedModule}`).test(schemaContentWithoutImports)) return true
+      if (new RegExp(`enumType: {} as ${exportedModule}`).test(schemaContentWithoutImports)) return true
+      if (new RegExp(`enumValues: ${exportedModule}`).test(schemaContentWithoutImports)) return true
+      return false
+    })
   }
 
   private async tableData(tableName: string) {
@@ -201,7 +208,7 @@ ${tableName}: {
     return tableAssociationData
   }
 
-  private async getExportedModulesFromDbts() {
+  private async getExportedModulesFromDbSync() {
     const fileContents: string = await this.loadDbTypesFile()
     const exportedConsts = [...fileContents.matchAll(/export const ([^ ]*) /g)].map(res => res[1])
     const exportedTypes = [...fileContents.matchAll(/export type ([^( |<)]*) /g)].map(res => res[1])
