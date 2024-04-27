@@ -208,7 +208,12 @@ program
   .action(async () => {
     const stepArg = cmdargs().find(arg => /--step=\d+/.test(arg))
     const step = stepArg ? parseInt(stepArg.replace('--step=', '')) : 1
-    await sspawn(nodeOrTsnodeCmd(`src/bin/db-rollback.ts`, cmdargs(), { fileArgs: [`${step}`] }))
+    await sspawn(
+      nodeOrTsnodeCmd(`src/bin/db-rollback.ts`, cmdargs(), {
+        fileArgs: [`${step}`],
+        tsnodeFlags: ['--transpile-only'],
+      })
+    )
     await sspawn(dreamjsOrDreamtsCmd('sync', cmdargs()))
   })
 
