@@ -21,26 +21,26 @@ async function writeSchema() {
   const dbConf = await new ConnectionConfRetriever().getConnectionConf('primary')
 
   const updirsToDreamRoot = shouldOmitDistFolder() ? ['..'] : ['..', '..']
-  const dbtsFilePath = path.join(yamlConf.db_path, 'types.ts')
-  let absoluteDbtsPath = path.join(__dirname, ...updirsToDreamRoot, dbtsFilePath)
-  let absoluteDbtsWritePath = path.join(__dirname, ...updirsToDreamRoot, '..', '..', '..', dbtsFilePath)
+  const dbSyncFilePath = path.join(yamlConf.db_path, 'sync.ts')
+  let absoluteDbSyncPath = path.join(__dirname, ...updirsToDreamRoot, dbSyncFilePath)
+  let absoluteDbSyncWritePath = path.join(__dirname, ...updirsToDreamRoot, '..', '..', '..', dbSyncFilePath)
   if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-    absoluteDbtsWritePath = path.join(__dirname, '..', dbtsFilePath)
-    absoluteDbtsPath = path.join(__dirname, '..', dbtsFilePath)
+    absoluteDbSyncWritePath = path.join(__dirname, '..', dbSyncFilePath)
+    absoluteDbSyncPath = path.join(__dirname, '..', dbSyncFilePath)
   }
 
   await sspawn(
     `kysely-codegen --url=postgres://${process.env[dbConf.user]}@${process.env[dbConf.host]}:${
       process.env[dbConf.port]
-    }/${process.env[dbConf.name]} --out-file=${absoluteDbtsPath}`
+    }/${process.env[dbConf.name]} --out-file=${absoluteDbSyncPath}`
   )
 
   // intentionally bypassing helpers here, since they often end up referencing
   // from the dist folder, whereas dirname here is pointing to true src folder.
-  const file = (await fs.readFile(absoluteDbtsPath)).toString()
+  const file = (await fs.readFile(absoluteDbSyncPath)).toString()
   const enhancedSchema = enhanceSchema(file)
 
-  await fs.writeFile(absoluteDbtsWritePath, enhancedSchema)
+  await fs.writeFile(absoluteDbSyncWritePath, enhancedSchema)
 
   console.log('done enhancing schema!')
   process.exit()

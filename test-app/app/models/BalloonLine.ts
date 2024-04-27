@@ -3,7 +3,7 @@ import { IdType } from '../../../src/dream/types'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import BalloonLineSerializer from '../../../test-app/app/serializers/BalloonLineSerializer'
 import Balloon from './Balloon'
-import { BalloonLineMaterialsEnum } from '../../../test-app/db/types'
+import { BalloonLineMaterialsEnum } from '../../../test-app/db/sync'
 import ApplicationModel from './ApplicationModel'
 
 export default class BalloonLine extends ApplicationModel {

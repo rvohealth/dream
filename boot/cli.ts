@@ -131,7 +131,7 @@ program
   .option('--core', 'sets core to true')
   .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
-    // this builds db/types.ts (which contains the DB type used by kysely and parts of dream internals)
+    // this builds db/sync.ts (which contains the DB type used by kysely and parts of dream internals)
     await sspawn(
       nodeOrTsnodeCmd('boot/sync.ts', cmdargs(), {
         nodeFlags: ['--experimental-modules'],

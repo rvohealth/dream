@@ -75,7 +75,7 @@ import { DateTime } from 'luxon'
 import { DreamColumn } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import ChalupaSerializer from '../../../test-app/app/serializers/ChalupaSerializer'
-import { ToppingEnum, ProteinEnum, MyExistingEnumEnum } from '../../../test-app/db/types'
+import { ToppingEnum, ProteinEnum, MyExistingEnumEnum } from '../../../test-app/db/sync'
 
 export default class Chalupa extends ApplicationModel {
   public get table() {

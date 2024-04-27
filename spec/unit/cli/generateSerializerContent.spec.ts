@@ -298,7 +298,7 @@ export default class UserSerializer<
           expect(res).toEqual(
             `\
 import { DreamSerializer, Attribute } from '@rvohealth/dream'
-import { ToppingEnum } from '../../../test-app/db/types'
+import { ToppingEnum } from '../../../test-app/db/sync'
 import User from '../models/User'
 
 export default class UserSerializer<
