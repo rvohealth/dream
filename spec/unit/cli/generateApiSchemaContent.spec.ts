@@ -56,6 +56,11 @@ export interface GraphEdge {
       expect(file).toContain('species: Species')
     })
 
+    it('handles primitive array types', async () => {
+      const file = await generateApiSchemaContent()
+      expect(file).toContain('favoriteDaysOfWeek: number[]')
+    })
+
     it('handles type attributes', async () => {
       const file = await generateApiSchemaContent()
       expect(file).toContain('type: BalloonTypesEnum')
@@ -157,6 +162,7 @@ export interface BalloonSpotter {
 export interface Pet {
   id: string
   name: string
+  favoriteDaysOfWeek: number[]
   species: Species
   ratings: Rating[]
 }`)

@@ -3,6 +3,7 @@
 // written
 
 import User from '../../../../test-app/app/models/User'
+import { BalloonColorsEnumValues } from '../../../../test-app/db/schema'
 
 describe('SchemaBuilder', () => {
   describe('#build', () => {
@@ -39,6 +40,51 @@ describe('SchemaBuilder', () => {
         })
       })
 
+      context('primitive (in this case, integer) array type', () => {
+        it('renders "integer[]" for integer[] dbType', () => {
+          expect(User.prototype.dreamconf.schema.users.columns.favoriteNumbers.dbType).toEqual('integer[]')
+          expect(User.prototype.dreamconf.schema.users.columns.favoriteNumbers.enumValues).toBeNull()
+        })
+
+        it('renders "timestamp[]" for timestamp[] dbType', () => {
+          expect(User.prototype.dreamconf.schema.users.columns.favoriteDatetimes.dbType).toEqual(
+            'timestamp without time zone[]'
+          )
+          expect(User.prototype.dreamconf.schema.users.columns.favoriteDatetimes.enumValues).toBeNull()
+        })
+      })
+
+      context('enum', () => {
+        it('renders the enum name for dbType', () => {
+          expect(User.prototype.dreamconf.schema.beautiful_balloons.columns.color.dbType).toEqual(
+            'balloon_colors_enum'
+          )
+        })
+
+        it('sets enum-specific fields', () => {
+          expect(User.prototype.dreamconf.schema.beautiful_balloons.columns.color.enumValues).toEqual(
+            BalloonColorsEnumValues
+          )
+        })
+
+        context('enum array', () => {
+          it('renders the enum name[] for dbType', () => {
+            expect(User.prototype.dreamconf.schema.beautiful_balloons.columns.multicolor.dbType).toEqual(
+              'balloon_colors_enum[]'
+            )
+          })
+
+          it('sets enum-specific fields', () => {
+            expect(User.prototype.dreamconf.schema.beautiful_balloons.columns.multicolor.enumValues).toEqual(
+              BalloonColorsEnumValues
+            )
+            expect(User.prototype.dreamconf.schema.beautiful_balloons.columns.multicolor.isArray).toEqual(
+              true
+            )
+          })
+        })
+      })
+
       context('for a column that allows null', () => {
         it('sets allowNull to true', () => {
           expect(User.prototype.dreamconf.schema.collars.columns.balloonId.allowNull).toEqual(true)
@@ -52,6 +98,7 @@ describe('SchemaBuilder', () => {
           type: 'BelongsTo',
           tables: ['pets'],
           optional: false,
+          foreignKey: 'petId',
         })
       })
     })

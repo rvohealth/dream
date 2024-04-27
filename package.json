@@ -80,7 +80,7 @@
     "@types/bcrypt": "^5.0.0",
     "@types/jest-plugin-context": "^2.9.5",
     "@typescript/analyze-trace": "^0.10.1",
-    "bcrypt": "^5.1.0",
+    "bcrypt": "^5.1.1",
     "eslint": "^9.0.0",
     "jest-plugin-context": "^2.9.0",
     "luxon-jest-matchers": "^0.1.14",

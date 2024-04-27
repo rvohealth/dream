@@ -154,6 +154,7 @@ export interface LocalizedTextBase {
 export interface Pet {
   id: string
   name: string
+  favoriteDaysOfWeek: number[]
   species: Species
   ratings: Rating[]
 }
