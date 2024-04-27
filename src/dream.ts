@@ -302,15 +302,13 @@ export default class Dream {
       return true
     }) as DreamParamSafeColumnNames<I>[]
 
-    return new Set([...columns, ...this.virtualColumns()]) as Set<DreamParamSafeColumnNames<I>>
-  }
-
-  public static virtualColumns(): string[] {
-    return (this.prototype.dreamconf.schema?.[this.prototype.table]?.virtualColumns || []) as string[]
+    return new Set([...columns, ...this.virtualAttributes.map(attr => attr.property)]) as Set<
+      DreamParamSafeColumnNames<I>
+    >
   }
 
   public static isVirtualColumn<T extends typeof Dream>(this: T, columnName: string): boolean {
-    return this.virtualColumns().includes(columnName)
+    return this.prototype.isVirtualColumn(columnName)
   }
 
   public static getAssociation<
@@ -959,6 +957,12 @@ export default class Dream {
         }
       }
     })
+  }
+
+  public isVirtualColumn<T extends Dream>(this: T, columnName: string): boolean {
+    return (this.constructor as typeof Dream).virtualAttributes
+      .map(attr => attr.property)
+      .includes(columnName)
   }
 
   public get errors(): { [key: string]: ValidationType[] } {
