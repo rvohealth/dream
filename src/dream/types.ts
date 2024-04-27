@@ -49,6 +49,7 @@ export type DreamParamSafeColumnNames<
 > = Exclude<
   DreamColumnNames<DreamInstance>,
   | BelongsToForeignKeys
+  | DreamVirtualColumns<DreamInstance>
   | DreamInstance['primaryKey']
   | DreamInstance['createdAtField']
   | DreamInstance['updatedAtField']

@@ -17,6 +17,7 @@ describe('Dream#paramSafeColumns', () => {
         'favoriteNumbers',
         'featuredPostPosition',
         'targetRating',
+        'password',
       ])
     )
   })

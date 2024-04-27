@@ -302,7 +302,7 @@ export default class Dream {
       return true
     }) as DreamParamSafeColumnNames<I>[]
 
-    return new Set(columns)
+    return new Set([...columns, ...this.virtualColumns()]) as Set<DreamParamSafeColumnNames<I>>
   }
 
   private static isBelongsToAssociationForeignKey<T extends typeof Dream>(
@@ -334,6 +334,14 @@ export default class Dream {
       .map(belongsToKey => associationMap[belongsToKey].foreignKeyTypeField())
     if (associationPolymorphicTypeFields.includes(column)) return true
     return false
+  }
+
+  private static virtualColumns(): string[] {
+    return (this.prototype.dreamconf.schema?.[this.prototype.table]?.virtualColumns || []) as string[]
+  }
+
+  private static isVirtualColumn<T extends typeof Dream>(this: T, columnName: string): boolean {
+    return this.virtualColumns().includes(columnName)
   }
 
   public static getAssociation<
