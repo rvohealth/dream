@@ -8,26 +8,31 @@ import loadModels from '../loadModels'
 import camelize from '../camelize'
 import pascalize from '../pascalize'
 import { isPrimitiveDataType } from '../../db/dataTypes'
+import dbTypesPath from '../path/dbTypesPath'
 
 export default class SchemaBuilder {
   public async build() {
     const schemaConstContent = await this.buildSchemaContent()
     const schemaFileContents = await this.loadSchemaFile()
+    const imports = await this.getSchemaImports(schemaFileContents)
 
     const newSchemaFileContents = `\
-${schemaFileContents
-  .replace(/export const schema = {(.*)\n} as const/ms, '')
-  .replace(/export interface SchemaType {(.*)\n}/ms, '')
-  .replace(/\n(\n*)$/, '\n')}
+import { DateTime } from 'luxon'
+import {
+  ${imports.join(',\n  ')}
+} from './types'
+
 ${schemaConstContent}
 `
+    // const newSchemaFileContents = `\
+    // ${schemaConstContent}
+    // `
     await fs.writeFile(await schemaPath(), newSchemaFileContents)
   }
 
   private async buildSchemaContent() {
     const schemaData = await this.getSchemaData()
-    const fileContents = await this.loadSchemaFile()
-    schemaData
+    const fileContents = await this.loadDbTypesFile()
 
     return `\
 export const schema = {
@@ -74,15 +79,9 @@ ${tableName}: {
 } as const`
   }
 
-  private async getSchemaData() {
-    const tables = await this.getTables()
-
-    const schemaData: SchemaData = {}
-    for (const table of tables) {
-      schemaData[table] = await this.tableData(table)
-    }
-
-    return schemaData
+  private async getSchemaImports(schemaContent: string) {
+    const allExports = await this.getExportedModulesFromDbts()
+    return allExports.filter(exportedModule => schemaContent.includes(exportedModule))
   }
 
   private async tableData(tableName: string) {
@@ -132,6 +131,17 @@ ${tableName}: {
     const model = models.find(model => model.table === tableName)
     if (!model) throw new Error(`Failed to find a model matching the table name: ${tableName}`)
     return model['virtualAttributes']?.map(prop => prop.property) || []
+  }
+
+  private async getSchemaData() {
+    const tables = await this.getTables()
+
+    const schemaData: SchemaData = {}
+    for (const table of tables) {
+      schemaData[table] = await this.tableData(table)
+    }
+
+    return schemaData
   }
 
   private async getAssociationData(tableName: string, targetAssociationType?: string) {
@@ -191,8 +201,18 @@ ${tableName}: {
     return tableAssociationData
   }
 
+  private async getExportedModulesFromDbts() {
+    const fileContents: string = await this.loadDbTypesFile()
+    const exportedConsts = [...fileContents.matchAll(/export const ([^ ]*) /g)].map(res => res[1])
+    const exportedTypes = [...fileContents.matchAll(/export type ([^( |<)]*) /g)].map(res => res[1])
+    const exportedInterfaces = [...fileContents.matchAll(/export interface ([^ ]*) /g)].map(res => res[1])
+
+    const allExports: string[] = [...exportedConsts, ...exportedTypes, ...exportedInterfaces]
+    return allExports
+  }
+
   private async getTables() {
-    const fileContents = await this.loadSchemaFile()
+    const fileContents = await this.loadDbTypesFile()
     const tableLines = /export interface DB {([^}]*)}/.exec(fileContents)![1]
     const tables = tableLines
       .split('\n')
@@ -243,6 +263,10 @@ ${tableName}: {
         }
       })
       .join(' | ')
+  }
+
+  private async loadDbTypesFile() {
+    return (await fs.readFile(await dbTypesPath())).toString()
   }
 
   private async loadSchemaFile() {

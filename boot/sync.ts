@@ -21,26 +21,26 @@ async function writeSchema() {
   const dbConf = await new ConnectionConfRetriever().getConnectionConf('primary')
 
   const updirsToDreamRoot = shouldOmitDistFolder() ? ['..'] : ['..', '..']
-  const schemaPath = path.join(yamlConf.db_path, 'schema.ts')
-  let absoluteSchemaPath = path.join(__dirname, ...updirsToDreamRoot, schemaPath)
-  let absoluteSchemaWritePath = path.join(__dirname, ...updirsToDreamRoot, '..', '..', '..', schemaPath)
+  const dbtsFilePath = path.join(yamlConf.db_path, 'types.ts')
+  let absoluteDbtsPath = path.join(__dirname, ...updirsToDreamRoot, dbtsFilePath)
+  let absoluteDbtsWritePath = path.join(__dirname, ...updirsToDreamRoot, '..', '..', '..', dbtsFilePath)
   if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-    absoluteSchemaWritePath = path.join(__dirname, '..', schemaPath)
-    absoluteSchemaPath = path.join(__dirname, '..', schemaPath)
+    absoluteDbtsWritePath = path.join(__dirname, '..', dbtsFilePath)
+    absoluteDbtsPath = path.join(__dirname, '..', dbtsFilePath)
   }
 
   await sspawn(
     `kysely-codegen --url=postgres://${process.env[dbConf.user]}@${process.env[dbConf.host]}:${
       process.env[dbConf.port]
-    }/${process.env[dbConf.name]} --out-file=${absoluteSchemaPath}`
+    }/${process.env[dbConf.name]} --out-file=${absoluteDbtsPath}`
   )
 
   // intentionally bypassing helpers here, since they often end up referencing
   // from the dist folder, whereas dirname here is pointing to true src folder.
-  const file = (await fs.readFile(absoluteSchemaPath)).toString()
+  const file = (await fs.readFile(absoluteDbtsPath)).toString()
   const enhancedSchema = enhanceSchema(file)
 
-  await fs.writeFile(absoluteSchemaWritePath, enhancedSchema)
+  await fs.writeFile(absoluteDbtsWritePath, enhancedSchema)
 
   console.log('done enhancing schema!')
   process.exit()
@@ -92,8 +92,8 @@ function removeUnwantedExports(file: string) {
   return file.replace(
     '\nexport type Timestamp = ColumnType<Date, Date | string, Date | string>;',
     `\
-type IdType = string | number | bigint | undefined
-type Timestamp = ColumnType<DateTime>`
+export type IdType = string | number | bigint | undefined
+export type Timestamp = ColumnType<DateTime>`
   )
 }
 

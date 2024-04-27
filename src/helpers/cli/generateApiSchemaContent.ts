@@ -2,10 +2,11 @@ import serializersPath from '../path/serializersPath'
 import getFiles from '../getFiles'
 import DreamSerializer from '../../serializer'
 import { SerializableTypes } from '../../serializer/decorators/attribute'
-import { modelsPath, schemaPath } from '../path'
+import { modelsPath } from '../path'
 import { AssociationStatement } from '../../serializer/decorators/associations/shared'
 import Dream from '../../dream'
 import path from 'node:path'
+import dbTypesPath from '../path/dbTypesPath'
 
 export default async function generateApiSchemaContent() {
   const serializersBasePath = await serializersPath()
@@ -49,7 +50,7 @@ export interface ${serializer.name.replace(/Serializer$/, '')} {${finalAttribute
 }
 
 async function renderExportedTypeDeclarations() {
-  const schema = await loadSchema()
+  const schema = await loadDbTypes()
 
   return Object.keys(schema)
     .filter(key => /Values$/.test(key))
@@ -138,11 +139,11 @@ async function loadAssociatedSerializer(serializerPath: string, association: Ass
   }
 }
 
-let _schema: any
-async function loadSchema() {
-  if (_schema) return _schema
-  _schema = await import(await schemaPath())
-  return _schema
+let _dbTypes: any
+async function loadDbTypes() {
+  if (_dbTypes) return _dbTypes
+  _dbTypes = await import(await dbTypesPath())
+  return _dbTypes
 }
 
 async function loadSerializerFromPath(

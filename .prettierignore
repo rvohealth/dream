@@ -1,5 +1,6 @@
 # Ignore generated files
 docs/*
 test-app/db/schema*
+test-app/db/types*
 test-app/client/schema.ts
 .github/

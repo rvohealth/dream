@@ -1,5 +1,6 @@
 import Dreamconf from '../../../src/helpers/dreamconf'
-import { DBClass, schema } from '../../db/schema'
+import { DBClass } from '../../db/types'
+import { schema } from '../../db/schema'
 
 const env = {
   db: {
