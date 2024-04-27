@@ -336,11 +336,11 @@ export default class Dream {
     return false
   }
 
-  private static virtualColumns(): string[] {
+  public static virtualColumns(): string[] {
     return (this.prototype.dreamconf.schema?.[this.prototype.table]?.virtualColumns || []) as string[]
   }
 
-  private static isVirtualColumn<T extends typeof Dream>(this: T, columnName: string): boolean {
+  public static isVirtualColumn<T extends typeof Dream>(this: T, columnName: string): boolean {
     return this.virtualColumns().includes(columnName)
   }
 
