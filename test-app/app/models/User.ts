@@ -29,7 +29,6 @@ export default class User extends ApplicationModel {
 
   public id: IdType
   public uuid: string
-  public type: string
   public name: string
   public birthdate: DateTime
   public socialSecurityNumber: string

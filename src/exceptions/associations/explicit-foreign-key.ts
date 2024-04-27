@@ -69,9 +69,7 @@ export function checkForeignKey(
   if (partialAssociation.type === 'BelongsTo') table = dreamClass.table
   else table = modelCBtoSingleDreamClass(dreamClass, partialAssociation).table
 
-  const validForeignKey = Object.keys(dreamClass.prototype.dreamconf.schema[table]?.columns || {}).includes(
-    computedForeignKey
-  )
+  const validForeignKey = dreamClass.columns().has(computedForeignKey)
   if (validForeignKey) return
 
   if (explicitForeignKey)

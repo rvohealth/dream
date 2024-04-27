@@ -138,6 +138,26 @@ program
       })
     )
 
+    // this builds db/schema.ts
+    await sspawn(
+      nodeOrTsnodeCmd('src/bin/build-dream-schema.ts', cmdargs(), { tsnodeFlags: ['--transpile-only'] })
+    )
+
+    // NOTE:
+    // it may be tempting to remove this second call to the same bin module twice, but i assure you it is unfortunately
+    // necessary at the moment. The reason this is here is because in order to write our foreignKey to the schema const,
+    // we must call to each associationMetadata's foreignKey(), which will cause the loaded model to introspect the schema
+    // const. However, the schema const was wiped out when kysely decided to regenerate our schema earlier in this sync call.
+    // This is a temporary hack to prevent from destabilizing dream further at the moment.
+    //
+    // Ultimately, the ideal solution is to have what kysely spits out be put into a separate file inside the db folder
+    // (i.e. db/db.ts) so that kysely doesn't mistakenly wipe that file out. Unfortunately, this would break a lot of import
+    // statements both internally and externally, but it would be the best solution, since the primary export of kysely is
+    // the DB type, where the primary export of db/schema.ts can be the schema const.
+    //
+    // For now, just doing this to keep this PR from bloating beyond repair, since it is fairly quick to just run it a second
+    // time, and after running it once, the schema const will be adequately in place and calling `foreignKey` on associationMetadata
+    // for belongs to associations will stop raising and give us the real value
     await sspawn(
       nodeOrTsnodeCmd('src/bin/build-dream-schema.ts', cmdargs(), { tsnodeFlags: ['--transpile-only'] })
     )

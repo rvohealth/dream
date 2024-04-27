@@ -27,6 +27,7 @@ ${schemaConstContent}
   private async buildSchemaContent() {
     const schemaData = await this.getSchemaData()
     const fileContents = await this.loadSchemaFile()
+    schemaData
 
     return `\
 export const schema = {
@@ -59,6 +60,7 @@ ${tableName}: {
           const associationMetadata = tableData.associations[associationName as keyof typeof tableData]
           return `${associationName}: {
         type: '${associationMetadata.type}',
+        foreignKey: ${associationMetadata.foreignKey ? `'${associationMetadata.foreignKey}'` : 'null'},
         tables: [${associationMetadata.tables.map((table: string) => `'${table}'`).join(', ')}],
         optional: ${associationMetadata.optional},
       },`
@@ -75,7 +77,7 @@ ${tableName}: {
   private async getSchemaData() {
     const tables = await this.getTables()
 
-    const schemaData: any = {}
+    const schemaData: SchemaData = {}
     for (const table of tables) {
       schemaData[table] = await this.tableData(table)
     }
@@ -84,24 +86,28 @@ ${tableName}: {
   }
 
   private async tableData(tableName: string) {
+    const associationData = await this.getAssociationData(tableName)
     return {
-      columns: await this.getColumnData(tableName),
+      columns: await this.getColumnData(tableName, associationData),
       virtualColumns: await this.getVirtualColumns(tableName),
-      associations: await this.getAssociationData(tableName),
+      associations: associationData,
     }
   }
 
-  private async getColumnData(tableName: string) {
+  private async getColumnData(tableName: string, associationData: { [key: string]: AssociationData }) {
     const dreamconf = await loadDreamconfFile()
     const db = _db('primary', dreamconf)
     const sqlQuery = sql`SELECT column_name, udt_name::regtype, is_nullable, data_type FROM information_schema.columns WHERE table_name = ${tableName}`
     const columnToDBTypeMap = await sqlQuery.execute(db)
     const rows = columnToDBTypeMap.rows as InformationSchemaRow[]
 
-    const columnData: any = {}
+    const columnData: {
+      [key: string]: ColumnData
+    } = {}
     rows.forEach(row => {
       const isEnum = ['USER-DEFINED', 'ARRAY'].includes(row.dataType) && !isPrimitiveDataType(row.udtName)
       const isArray = ['ARRAY'].includes(row.dataType)
+      const associationMetadata = associationData[row.columnName]
 
       columnData[camelize(row.columnName)] = {
         dbType: row.udtName,
@@ -109,6 +115,7 @@ ${tableName}: {
         enumType: isEnum ? this.enumType(row) : null,
         enumValues: isEnum ? `${this.enumType(row)}Values` : null,
         isArray,
+        foreignKey: associationMetadata?.foreignKey || null,
       }
     })
 
@@ -129,7 +136,7 @@ ${tableName}: {
 
   private async getAssociationData(tableName: string, targetAssociationType?: string) {
     const models = sortBy(Object.values(await loadModels()), m => m.table)
-    const tableAssociationData: any = {}
+    const tableAssociationData: { [key: string]: AssociationData } = {}
 
     for (const model of models.filter(model => model.table === tableName)) {
       for (const associationName of model.associationNames) {
@@ -140,12 +147,29 @@ ${tableName}: {
         const optional =
           associationMetaData.type === 'BelongsTo' ? (associationMetaData as any).optional === true : null
 
+        // NOTE
+        // this try-catch is here because the SchemaBuilder currently needs to be run twice to generate foreignKey
+        // correctly. The first time will raise, since calling Dream.columns is dependant on the schema const to
+        // introspect columns during a foreign key check. This will be repaired once kysely types have been successfully
+        // split off into a separate file from the types we diliver in schema.ts
+        let foreignKey: string | null = null
+        try {
+          const _foreignKey = associationMetaData.foreignKey()
+          foreignKey = _foreignKey
+        } catch (_) {
+          // noop
+        }
+
         tableAssociationData[associationName] ||= {
           tables: [],
           type: associationMetaData.type,
           polymorphic: associationMetaData.polymorphic,
+          foreignKey,
           optional,
         }
+
+        if (foreignKey) tableAssociationData[associationName]['foreignKey'] = foreignKey
+        if (foreignKey) console.log(associationMetaData, foreignKey)
 
         if (Array.isArray(dreamClassOrClasses)) {
           const tables: string[] = dreamClassOrClasses.map(dreamClass => dreamClass.table)
@@ -164,6 +188,8 @@ ${tableName}: {
         ]
       }
     }
+
+    // console.log(tableAssociationData)
 
     return tableAssociationData
   }
@@ -225,6 +251,33 @@ ${tableName}: {
   private async loadSchemaFile() {
     return (await fs.readFile(await schemaPath())).toString()
   }
+}
+
+interface SchemaData {
+  [key: string]: TableData
+}
+
+interface TableData {
+  columns: { [key: string]: ColumnData }
+  virtualColumns: string[]
+  associations: { [key: string]: AssociationData }
+}
+
+interface AssociationData {
+  tables: string[]
+  type: 'BelongsTo' | 'HasOne' | 'HasMany'
+  polymorphic: boolean
+  optional: boolean | null
+  foreignKey: string | null
+}
+
+interface ColumnData {
+  dbType: string
+  allowNull: boolean
+  enumType: string | null
+  enumValues: string | null
+  isArray: boolean
+  foreignKey: string | null
 }
 
 interface InformationSchemaRow {
