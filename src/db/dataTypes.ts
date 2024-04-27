@@ -21,6 +21,7 @@ export const postgresDatatypes = [
   'char',
   'cidr',
   'circle',
+  'citext',
   'date',
   'double precision',
   'inet',

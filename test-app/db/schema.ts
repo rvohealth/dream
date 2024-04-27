@@ -343,6 +343,7 @@ export interface Users {
   favoriteDates: Timestamp[] | null;
   favoriteDatetimes: Timestamp[] | null;
   favoriteNumbers: number[] | null;
+  favoriteWord: string | null;
   featuredPostPosition: number | null;
   id: Generated<Int8>;
   name: string | null;
@@ -389,7 +390,7 @@ export interface DB {
 }
 
 
-export const AllColumns = ['approval', 'balloonId', 'balloonLines', 'balloonSpotterBalloons', 'balloonSpotterId', 'balloonSpotters', 'beautifulBalloons', 'birthdate', 'body', 'cantUpdateThis', 'collars', 'color', 'compositionAssetAudits', 'compositionAssetId', 'compositionAssets', 'compositionId', 'compositions', 'content', 'createdAt', 'deletedAt', 'edgeCaseAttributes', 'edgeId', 'email', 'extraRateableId', 'extraRateableType', 'extraRatings', 'favoriteDates', 'favoriteDatetimes', 'favoriteDaysOfWeek', 'favoriteNumbers', 'favoriteTreats', 'featuredPostPosition', 'graphEdgeNodes', 'graphEdges', 'graphNodes', 'hidden', 'id', 'incompatibleForeignKeyTypeExamples', 'kPop', 'likesChalupas', 'locale', 'localizableId', 'localizableType', 'localizedTexts', 'lost', 'material', 'metadata', 'metadata2', 'metadata3', 'modelWithoutUpdatedAt', 'multiScopedPosition', 'multicolor', 'name', 'nickname', 'nodeId', 'notes', 'omittedEdgePosition', 'passwordDigest', 'petId', 'petUnderstudyJoinModels', 'pets', 'popK', 'popKPop', 'position', 'positionAlpha', 'positionBeta', 'positionWithinSpecies', 'postVisibilities', 'postVisibilityId', 'posts', 'primary', 'rateableId', 'rateableType', 'rating', 'ratings', 'sandbags', 'score', 'socialSecurityNumber', 'species', 'src', 'tagName', 'targetRating', 'title', 'type', 'understudyId', 'updatedAt', 'userId', 'userSettings', 'userUuid', 'users', 'uuid', 'visibility', 'volume', 'weight', 'weightKgs', 'weightTons'] as const
+export const AllColumns = ['approval', 'balloonId', 'balloonLines', 'balloonSpotterBalloons', 'balloonSpotterId', 'balloonSpotters', 'beautifulBalloons', 'birthdate', 'body', 'cantUpdateThis', 'collars', 'color', 'compositionAssetAudits', 'compositionAssetId', 'compositionAssets', 'compositionId', 'compositions', 'content', 'createdAt', 'deletedAt', 'edgeCaseAttributes', 'edgeId', 'email', 'extraRateableId', 'extraRateableType', 'extraRatings', 'favoriteDates', 'favoriteDatetimes', 'favoriteDaysOfWeek', 'favoriteNumbers', 'favoriteTreats', 'favoriteWord', 'featuredPostPosition', 'graphEdgeNodes', 'graphEdges', 'graphNodes', 'hidden', 'id', 'incompatibleForeignKeyTypeExamples', 'kPop', 'likesChalupas', 'locale', 'localizableId', 'localizableType', 'localizedTexts', 'lost', 'material', 'metadata', 'metadata2', 'metadata3', 'modelWithoutUpdatedAt', 'multiScopedPosition', 'multicolor', 'name', 'nickname', 'nodeId', 'notes', 'omittedEdgePosition', 'passwordDigest', 'petId', 'petUnderstudyJoinModels', 'pets', 'popK', 'popKPop', 'position', 'positionAlpha', 'positionBeta', 'positionWithinSpecies', 'postVisibilities', 'postVisibilityId', 'posts', 'primary', 'rateableId', 'rateableType', 'rating', 'ratings', 'sandbags', 'score', 'socialSecurityNumber', 'species', 'src', 'tagName', 'targetRating', 'title', 'type', 'understudyId', 'updatedAt', 'userId', 'userSettings', 'userUuid', 'users', 'uuid', 'visibility', 'volume', 'weight', 'weightKgs', 'weightTons'] as const
 
 export class DBClass {
   balloon_lines: BalloonLines
@@ -584,7 +585,7 @@ export const schema = {
     associations: {
       balloonSpotterBalloons: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'balloonSpotterId',
         tables: ['balloon_spotter_balloons'],
         optional: null,
       },
@@ -703,19 +704,19 @@ export const schema = {
       },
       balloonLine: {
         type: 'HasOne',
-        foreignKey: null,
+        foreignKey: 'balloonId',
         tables: ['balloon_lines'],
         optional: null,
       },
       heartRatings: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'extraRateableId',
         tables: ['extra_ratings'],
         optional: null,
       },
       sandbags: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'balloonId',
         tables: ['sandbags'],
         optional: null,
       },
@@ -968,19 +969,19 @@ export const schema = {
       },
       currentLocalizedText: {
         type: 'HasOne',
-        foreignKey: null,
+        foreignKey: 'localizableId',
         tables: ['localized_texts'],
         optional: null,
       },
       compositionAssetAudits: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'compositionAssetId',
         tables: ['composition_asset_audits'],
         optional: null,
       },
       localizedTexts: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'localizableId',
         tables: ['localized_texts'],
         optional: null,
       },
@@ -1071,19 +1072,19 @@ export const schema = {
       },
       mainCompositionAsset: {
         type: 'HasOne',
-        foreignKey: null,
+        foreignKey: 'compositionId',
         tables: ['composition_assets'],
         optional: null,
       },
       currentLocalizedText: {
         type: 'HasOne',
-        foreignKey: null,
+        foreignKey: 'localizableId',
         tables: ['localized_texts'],
         optional: null,
       },
       compositionAssets: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'compositionId',
         tables: ['composition_assets'],
         optional: null,
       },
@@ -1101,13 +1102,13 @@ export const schema = {
       },
       heartRatings: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'extraRateableId',
         tables: ['extra_ratings'],
         optional: null,
       },
       localizedTexts: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'localizableId',
         tables: ['localized_texts'],
         optional: null,
       },
@@ -1424,7 +1425,7 @@ export const schema = {
     associations: {
       edgeNodes: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'edgeId',
         tables: ['graph_edge_nodes'],
         optional: null,
       },
@@ -1483,13 +1484,13 @@ export const schema = {
     associations: {
       edgeNodes: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'nodeId',
         tables: ['graph_edge_nodes'],
         optional: null,
       },
       orderedEdgeNodes: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'nodeId',
         tables: ['graph_edge_nodes'],
         optional: null,
       },
@@ -1513,7 +1514,7 @@ export const schema = {
       },
       nonOmittedPositionEdgeNodes: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'nodeId',
         tables: ['graph_edge_nodes'],
         optional: null,
       },
@@ -1873,13 +1874,13 @@ export const schema = {
       },
       currentCollar: {
         type: 'HasOne',
-        foreignKey: null,
+        foreignKey: 'petId',
         tables: ['collars'],
         optional: null,
       },
       notLostCollar: {
         type: 'HasOne',
-        foreignKey: null,
+        foreignKey: 'petId',
         tables: ['collars'],
         optional: null,
       },
@@ -1897,13 +1898,13 @@ export const schema = {
       },
       collars: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'petId',
         tables: ['collars'],
         optional: null,
       },
       uniqueCollars: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'petId',
         tables: ['collars'],
         optional: null,
       },
@@ -1933,7 +1934,7 @@ export const schema = {
       },
       petUnderstudies: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'petId',
         tables: ['pet_understudy_join_models'],
         optional: null,
       },
@@ -1992,7 +1993,7 @@ export const schema = {
     associations: {
       post: {
         type: 'HasOne',
-        foreignKey: null,
+        foreignKey: 'postVisibilityId',
         tables: ['posts'],
         optional: null,
       },
@@ -2081,13 +2082,13 @@ export const schema = {
       },
       ratings: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'rateableId',
         tables: ['ratings'],
         optional: null,
       },
       heartRatings: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'extraRateableId',
         tables: ['extra_ratings'],
         optional: null,
       },
@@ -2348,6 +2349,14 @@ export const schema = {
         allowNull: true,
         isArray: false,
       },
+      favoriteWord: {
+        coercedType: {} as string | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'citext',
+        allowNull: true,
+        isArray: false,
+      },
       featuredPostPosition: {
         coercedType: {} as number | null,
         enumType: null,
@@ -2425,19 +2434,19 @@ export const schema = {
     associations: {
       userSettings: {
         type: 'HasOne',
-        foreignKey: null,
+        foreignKey: 'userId',
         tables: ['user_settings'],
         optional: null,
       },
       featuredPost: {
         type: 'HasOne',
-        foreignKey: null,
+        foreignKey: 'userId',
         tables: ['posts'],
         optional: null,
       },
       mainComposition: {
         type: 'HasOne',
-        foreignKey: null,
+        foreignKey: 'userId',
         tables: ['compositions'],
         optional: null,
       },
@@ -2449,31 +2458,31 @@ export const schema = {
       },
       firstComposition: {
         type: 'HasOne',
-        foreignKey: null,
+        foreignKey: 'userId',
         tables: ['compositions'],
         optional: null,
       },
       firstComposition2: {
         type: 'HasOne',
-        foreignKey: null,
+        foreignKey: 'userId',
         tables: ['compositions'],
         optional: null,
       },
       lastComposition: {
         type: 'HasOne',
-        foreignKey: null,
+        foreignKey: 'userId',
         tables: ['compositions'],
         optional: null,
       },
       firstPet: {
         type: 'HasOne',
-        foreignKey: null,
+        foreignKey: 'userId',
         tables: ['pets'],
         optional: null,
       },
       firstPetFromUuid: {
         type: 'HasOne',
-        foreignKey: null,
+        foreignKey: 'userUuid',
         tables: ['pets'],
         optional: null,
       },
@@ -2485,37 +2494,37 @@ export const schema = {
       },
       posts: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'userId',
         tables: ['posts'],
         optional: null,
       },
       ratings: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'userId',
         tables: ['ratings'],
         optional: null,
       },
       featuredRatings: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'userId',
         tables: ['ratings'],
         optional: null,
       },
       ratingsThroughPostsThatMatchUserTargetRating: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'userId',
         tables: ['ratings'],
         optional: null,
       },
       compositions: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'userId',
         tables: ['compositions'],
         optional: null,
       },
       incompatibleForeignKeyTypeExamples: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'userId',
         tables: ['incompatible_foreign_key_type_examples'],
         optional: null,
       },
@@ -2527,13 +2536,13 @@ export const schema = {
       },
       sortedCompositions: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'userId',
         tables: ['compositions'],
         optional: null,
       },
       sortedCompositions2: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'userId',
         tables: ['compositions'],
         optional: null,
       },
@@ -2545,13 +2554,13 @@ export const schema = {
       },
       recentCompositions: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'userId',
         tables: ['compositions'],
         optional: null,
       },
       notRecentCompositions: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'userId',
         tables: ['compositions'],
         optional: null,
       },
@@ -2581,7 +2590,7 @@ export const schema = {
       },
       balloons: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'userId',
         tables: ['beautiful_balloons'],
         optional: null,
       },
@@ -2593,13 +2602,13 @@ export const schema = {
       },
       pets: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'userId',
         tables: ['pets'],
         optional: null,
       },
       petsFromUuid: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'userUuid',
         tables: ['pets'],
         optional: null,
       },
@@ -2611,7 +2620,7 @@ export const schema = {
       },
       balloonsFromUuid: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'userId',
         tables: ['beautiful_balloons'],
         optional: null,
       },

@@ -75,14 +75,14 @@ describe('Dream#isDirty', () => {
 
     context('when the DateTime is a different object at the same time', () => {
       it('is false', () => {
-        user.birthdate = DateTime.fromISO(user.birthdate.toISO()!)
+        user.birthdate = DateTime.fromISO(user.birthdate!.toISO()!)
         expect(user.isDirty).toBe(false)
       })
     })
 
     context('when the DateTime is a different time', () => {
       it('is true', () => {
-        user.birthdate = user.birthdate.plus({ second: 1 })
+        user.birthdate = user.birthdate!.plus({ second: 1 })
         expect(user.isDirty).toBe(true)
       })
     })

@@ -7,7 +7,7 @@ import CompositionAsset from './CompositionAsset'
 import CompositionAssetAudit from './CompositionAssetAudit'
 import Validates from '../../../src/decorators/validations/validates'
 import UserSettings from './UserSettings'
-import { IdType } from '../../../src/dream/types'
+import { DreamColumn } from '../../../src/dream/types'
 import { DateTime } from 'luxon'
 import Balloon from './Balloon'
 import IncompatibleForeignKeyTypeExample from './IncompatibleForeignKeyTypeExample'
@@ -27,26 +27,27 @@ export default class User extends ApplicationModel {
     return 'users' as const
   }
 
-  public id: IdType
-  public uuid: string
-  public name: string
-  public birthdate: DateTime
-  public socialSecurityNumber: string
-  public favoriteNumbers: number[]
-  public featuredPostPosition: number | null
-  public targetRating: number | null
-  public deletedAt: DateTime
-  public createdAt: DateTime
-  public updatedAt: DateTime
+  public id: DreamColumn<User, 'id'>
+  public uuid: DreamColumn<User, 'uuid'>
+  public name: DreamColumn<User, 'name'>
+  public birthdate: DreamColumn<User, 'birthdate'>
+  public socialSecurityNumber: DreamColumn<User, 'socialSecurityNumber'>
+  public favoriteWord: DreamColumn<User, 'favoriteWord'>
+  public favoriteNumbers: DreamColumn<User, 'favoriteNumbers'>
+  public featuredPostPosition: DreamColumn<User, 'featuredPostPosition'>
+  public targetRating: DreamColumn<User, 'targetRating'>
+  public deletedAt: DreamColumn<User, 'deletedAt'>
+  public createdAt: DreamColumn<User, 'createdAt'>
+  public updatedAt: DreamColumn<User, 'updatedAt'>
 
   @Virtual()
   public password: string | undefined
-  public passwordDigest: string
+  public passwordDigest: DreamColumn<User, 'passwordDigest'>
 
   @Validates('contains', '@')
   @Validates('presence')
   @Validates('length', { min: 4, max: 18 })
-  public email: string
+  public email: DreamColumn<User, 'email'>
 
   @HasOne(() => UserSettings)
   public userSettings: UserSettings

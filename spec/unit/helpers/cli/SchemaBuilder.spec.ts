@@ -32,11 +32,9 @@ describe('SchemaBuilder', () => {
         })
       })
 
-      context('integer', () => {
-        it('renders "integer" for dbType', () => {
-          expect(User.prototype.dreamconf.schema.collars.columns.createdAt.dbType).toEqual(
-            'timestamp without time zone'
-          )
+      context('citext', () => {
+        it('renders "citext" for dbType', () => {
+          expect(User.prototype.dreamconf.schema.users.columns.favoriteWord.dbType).toEqual('citext')
         })
       })
 
