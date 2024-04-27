@@ -169,7 +169,6 @@ ${tableName}: {
         }
 
         if (foreignKey) tableAssociationData[associationName]['foreignKey'] = foreignKey
-        if (foreignKey) console.log(associationMetaData, foreignKey)
 
         if (Array.isArray(dreamClassOrClasses)) {
           const tables: string[] = dreamClassOrClasses.map(dreamClass => dreamClass.table)
@@ -188,8 +187,6 @@ ${tableName}: {
         ]
       }
     }
-
-    // console.log(tableAssociationData)
 
     return tableAssociationData
   }
