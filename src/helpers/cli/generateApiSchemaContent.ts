@@ -6,7 +6,7 @@ import { modelsPath } from '../path'
 import { AssociationStatement } from '../../serializer/decorators/associations/shared'
 import Dream from '../../dream'
 import path from 'node:path'
-import dbTypesPath from '../path/dbTypesPath'
+import dbSyncPath from '../path/dbSyncPath'
 
 export default async function generateApiSchemaContent() {
   const serializersBasePath = await serializersPath()
@@ -142,7 +142,7 @@ async function loadAssociatedSerializer(serializerPath: string, association: Ass
 let _dbTypes: any
 async function loadDbTypes() {
   if (_dbTypes) return _dbTypes
-  _dbTypes = await import(await dbTypesPath())
+  _dbTypes = await import(await dbSyncPath())
   return _dbTypes
 }
 

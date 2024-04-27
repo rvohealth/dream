@@ -4,7 +4,7 @@ import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import { IdType } from '../../../src/dream/types'
 import Composition from './Composition'
 import CompositionAsset from './CompositionAsset'
-import { LocalesEnum, LocalizableTypesEnum } from '../../db/types'
+import { LocalesEnum, LocalizableTypesEnum } from '../../db/sync'
 import { LocalizedTextBaseSerializer } from '../serializers/LocalizedText/BaseSerializer'
 
 export default class LocalizedText extends ApplicationModel {

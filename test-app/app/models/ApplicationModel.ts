@@ -1,6 +1,6 @@
 import Dream from '../../../src/dream'
 import { schema } from '../../db/schema'
-import { AllColumns, DBClass } from '../../db/types'
+import { AllColumns, DBClass } from '../../db/sync'
 import Dreamconf from '../../../src/helpers/dreamconf'
 import dreamconf from '../conf/dreamconf'
 

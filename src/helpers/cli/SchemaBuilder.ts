@@ -8,7 +8,7 @@ import loadModels from '../loadModels'
 import camelize from '../camelize'
 import pascalize from '../pascalize'
 import { isPrimitiveDataType } from '../../db/dataTypes'
-import dbTypesPath from '../path/dbTypesPath'
+import dbSyncPath from '../path/dbSyncPath'
 
 export default class SchemaBuilder {
   public async build() {
@@ -20,7 +20,7 @@ export default class SchemaBuilder {
 import { DateTime } from 'luxon'
 import {
   ${imports.join(',\n  ')}
-} from './types'
+} from './sync'
 
 ${schemaConstContent}
 `
@@ -266,7 +266,7 @@ ${tableName}: {
   }
 
   private async loadDbTypesFile() {
-    return (await fs.readFile(await dbTypesPath())).toString()
+    return (await fs.readFile(await dbSyncPath())).toString()
   }
 
   private async loadSchemaFile() {
