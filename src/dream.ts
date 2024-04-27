@@ -305,37 +305,6 @@ export default class Dream {
     return new Set([...columns, ...this.virtualColumns()]) as Set<DreamParamSafeColumnNames<I>>
   }
 
-  private static isBelongsToAssociationForeignKey<T extends typeof Dream>(
-    this: T,
-    column: DreamColumnNames<InstanceType<T>>
-  ) {
-    const associationMap = this.associationMap()
-    const belongsToKeys = Object.keys(associationMap).filter(key => associationMap[key].type === 'BelongsTo')
-    const associationForeignKeys = belongsToKeys.map(belongsToKey =>
-      associationMap[belongsToKey].foreignKey()
-    )
-    if (associationForeignKeys.includes(column)) return true
-
-    const associationPolymorphicTypeFields = belongsToKeys
-      .filter(key => associationMap[key].polymorphic)
-      .map(belongsToKey => associationMap[belongsToKey].foreignKeyTypeField())
-    if (associationPolymorphicTypeFields.includes(column)) return true
-    return false
-  }
-
-  private static isBelongsToAssociationPolymorphicTypeField<T extends typeof Dream>(
-    this: T,
-    column: DreamColumnNames<InstanceType<T>>
-  ) {
-    const associationMap = this.associationMap()
-    const belongsToKeys = Object.keys(associationMap).filter(key => associationMap[key].type === 'BelongsTo')
-    const associationPolymorphicTypeFields = belongsToKeys
-      .filter(key => associationMap[key].polymorphic)
-      .map(belongsToKey => associationMap[belongsToKey].foreignKeyTypeField())
-    if (associationPolymorphicTypeFields.includes(column)) return true
-    return false
-  }
-
   public static virtualColumns(): string[] {
     return (this.prototype.dreamconf.schema?.[this.prototype.table]?.virtualColumns || []) as string[]
   }
@@ -712,6 +681,37 @@ export default class Dream {
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
   >(this: T, attributes: WhereStatement<DB, Schema, TableName>): Query<InstanceType<T>> {
     return this.query().whereNot(attributes)
+  }
+
+  private static isBelongsToAssociationForeignKey<T extends typeof Dream>(
+    this: T,
+    column: DreamColumnNames<InstanceType<T>>
+  ) {
+    const associationMap = this.associationMap()
+    const belongsToKeys = Object.keys(associationMap).filter(key => associationMap[key].type === 'BelongsTo')
+    const associationForeignKeys = belongsToKeys.map(belongsToKey =>
+      associationMap[belongsToKey].foreignKey()
+    )
+    if (associationForeignKeys.includes(column)) return true
+
+    const associationPolymorphicTypeFields = belongsToKeys
+      .filter(key => associationMap[key].polymorphic)
+      .map(belongsToKey => associationMap[belongsToKey].foreignKeyTypeField())
+    if (associationPolymorphicTypeFields.includes(column)) return true
+    return false
+  }
+
+  private static isBelongsToAssociationPolymorphicTypeField<T extends typeof Dream>(
+    this: T,
+    column: DreamColumnNames<InstanceType<T>>
+  ) {
+    const associationMap = this.associationMap()
+    const belongsToKeys = Object.keys(associationMap).filter(key => associationMap[key].type === 'BelongsTo')
+    const associationPolymorphicTypeFields = belongsToKeys
+      .filter(key => associationMap[key].polymorphic)
+      .map(belongsToKey => associationMap[belongsToKey].foreignKeyTypeField())
+    if (associationPolymorphicTypeFields.includes(column)) return true
+    return false
   }
 
   public getAssociation<I extends Dream, Schema extends I['dreamconf']['schema']>(

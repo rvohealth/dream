@@ -27,7 +27,9 @@ describe('Dream#paramSafeColumns', () => {
   })
 
   it('omits internal datetime columns', () => {
-    expect(subject(Pet)).not.toEqual(expect.arrayContaining(['createdAt', 'updatedAt', 'deletedAt']))
+    expect(subject(Pet)).not.toEqual(expect.arrayContaining(['createdAt']))
+    expect(subject(Pet)).not.toEqual(expect.arrayContaining(['updatedAt']))
+    expect(subject(Pet)).not.toEqual(expect.arrayContaining(['deletedAt']))
   })
 
   it('omits association foreign keys', () => {
