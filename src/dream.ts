@@ -685,31 +685,31 @@ export default class Dream {
     this: T,
     column: DreamColumnNames<InstanceType<T>>
   ) {
-    const associationMap = this.associationMap()
-    const belongsToKeys = Object.keys(associationMap).filter(key => associationMap[key].type === 'BelongsTo')
-    const associationForeignKeys = belongsToKeys.map(belongsToKey =>
-      associationMap[belongsToKey].foreignKey()
-    )
-    if (associationForeignKeys.includes(column)) return true
-
-    const associationPolymorphicTypeFields = belongsToKeys
-      .filter(key => associationMap[key].polymorphic)
-      .map(belongsToKey => associationMap[belongsToKey].foreignKeyTypeField())
-    if (associationPolymorphicTypeFields.includes(column)) return true
-    return false
+    return this.belongsToAssociationForeignKeys().includes(column)
   }
 
   private static isBelongsToAssociationPolymorphicTypeField<T extends typeof Dream>(
     this: T,
     column: DreamColumnNames<InstanceType<T>>
   ) {
+    return this.polymorphicTypeColumns().includes(column)
+  }
+
+  private static belongsToAssociationForeignKeys() {
     const associationMap = this.associationMap()
-    const belongsToKeys = Object.keys(associationMap).filter(key => associationMap[key].type === 'BelongsTo')
-    const associationPolymorphicTypeFields = belongsToKeys
+    return this.belongsToAssociationNames().map(belongsToKey => associationMap[belongsToKey].foreignKey())
+  }
+
+  private static polymorphicTypeColumns() {
+    const associationMap = this.associationMap()
+    return this.belongsToAssociationNames()
       .filter(key => associationMap[key].polymorphic)
       .map(belongsToKey => associationMap[belongsToKey].foreignKeyTypeField())
-    if (associationPolymorphicTypeFields.includes(column)) return true
-    return false
+  }
+
+  private static belongsToAssociationNames() {
+    const associationMap = this.associationMap()
+    return Object.keys(associationMap).filter(key => associationMap[key].type === 'BelongsTo')
   }
 
   public getAssociation<I extends Dream, Schema extends I['dreamconf']['schema']>(
