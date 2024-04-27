@@ -18,6 +18,7 @@ export {
   DreamAssociationMetadata,
   DreamVirtualColumns,
   DreamParamSafeColumnNames,
+  DreamParamSafeAttributes,
 } from './dream/types'
 export { default as ops } from './ops'
 export { default as BelongsTo } from './decorators/associations/belongs-to'

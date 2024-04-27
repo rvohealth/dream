@@ -45,15 +45,7 @@ export type DreamColumnNames<
 
 export type DreamParamSafeColumnNames<
   DreamInstance extends Dream,
-  Schema = DreamInstance['dreamconf']['schema'],
-  TableSchema = Schema[DreamInstance['table'] & keyof Schema],
-  AssociationSchema = TableSchema['associations' & keyof TableSchema],
   BelongsToForeignKeys = DreamBelongsToForeignKeys<DreamInstance>,
-  // AllColumnNames = DreamColumnNames<DreamInstance>,
-  // BelongsToForeignKeys = BelongsToMetadata[keyof BelongsToMetadata]['foreignKey'],
-  // BelongsToForeignKeys = BelongsToMetadata[keyof BelongsToMetadata],
-  // > = TableSchema['associations' & keyof TableSchema][keyof DreamBelongsToAssociationMetadata<DreamInstance>]
-  // > = AssociationSchema[keyof DreamBelongsToAssociationMetadata<DreamInstance> & keyof AssociationSchema]
 > = Exclude<
   DreamColumnNames<DreamInstance>,
   | BelongsToForeignKeys
@@ -137,6 +129,11 @@ export type DreamAttributes<
     keyof Schema[DreamInstance['table'] & keyof Schema]],
 > = {
   -readonly [K in keyof SchemaColumns]: SchemaColumns[K]['coercedType' & keyof SchemaColumns[K]]
+}
+
+export type DreamParamSafeAttributes<DreamInstance extends Dream> = {
+  [K in keyof DreamAttributes<DreamInstance> &
+    DreamParamSafeColumnNames<DreamInstance>]: DreamAttributes<DreamInstance>[K]
 }
 
 export type DreamTableSchema<DreamInstance extends Dream> = Updateable<
