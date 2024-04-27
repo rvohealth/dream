@@ -98,6 +98,7 @@ describe('SchemaBuilder', () => {
           type: 'BelongsTo',
           tables: ['pets'],
           optional: false,
+          foreignKey: 'petId',
         })
       })
     })
