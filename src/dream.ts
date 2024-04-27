@@ -85,6 +85,14 @@ import { marshalDBValue } from './helpers/marshalDBValue'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
 
 export default class Dream {
+  public static get primaryKey() {
+    return this.prototype.primaryKey
+  }
+
+  public static get table() {
+    return this.prototype.table
+  }
+
   public static createdAtField = 'createdAt'
 
   protected static associations: {
@@ -260,7 +268,7 @@ export default class Dream {
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName],
   >(): Set<keyof Table & string> {
-    const columns = this.prototype.dreamconf.schema[this.prototype.table]?.columns
+    const columns = this.prototype.dreamconf.schema[this.table]?.columns
     return new Set(columns ? Object.keys(columns) : [])
   }
 
@@ -555,16 +563,16 @@ export default class Dream {
   >(this: T, type: QueryType) {
     switch (type) {
       case 'select':
-        return this.query().dbFor('select').selectFrom(this.prototype.table) as ToKyselyReturnType
+        return this.query().dbFor('select').selectFrom(this.table) as ToKyselyReturnType
 
       case 'delete':
-        return this.query().dbFor('delete').deleteFrom(this.prototype.table) as ToKyselyReturnType
+        return this.query().dbFor('delete').deleteFrom(this.table) as ToKyselyReturnType
 
       case 'update':
-        return this.query().dbFor('update').updateTable(this.prototype.table) as ToKyselyReturnType
+        return this.query().dbFor('update').updateTable(this.table) as ToKyselyReturnType
 
       case 'insert':
-        return this.query().dbFor('insert').insertInto(this.prototype.table) as ToKyselyReturnType
+        return this.query().dbFor('insert').insertInto(this.table) as ToKyselyReturnType
 
       default:
         throw new Error('never')

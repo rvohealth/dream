@@ -268,8 +268,8 @@ export function finalForeignKey(
   if (!computedForeignKey) {
     const table =
       partialAssociation.type === 'BelongsTo'
-        ? modelCBtoSingleDreamClass(dreamClass, partialAssociation).prototype.table
-        : dreamClass.prototype.table
+        ? modelCBtoSingleDreamClass(dreamClass, partialAssociation).table
+        : dreamClass.table
 
     computedForeignKey = camelize(singular(table)) + 'Id'
   }
@@ -356,7 +356,7 @@ dream class: ${dreamClass.name}
 association: ${this.as}
           `)
 
-      return (associationClass as any).prototype.primaryKey
+      return (associationClass as typeof Dream).primaryKey
     },
 
     primaryKeyValue(associationInstance: Dream | null) {

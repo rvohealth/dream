@@ -6,7 +6,5 @@ export default function cachedTypeForAttribute<
   TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
   Table extends DB[keyof DB] = DB[TableName],
 >(dreamClass: T, attribute: keyof Table): string {
-  return dreamClass.prototype.dreamconf.schema[dreamClass.prototype.table]?.['columns']?.[attribute]?.[
-    'dbType'
-  ]
+  return dreamClass.prototype.dreamconf.schema[dreamClass.table]?.['columns']?.[attribute]?.['dbType']
 }

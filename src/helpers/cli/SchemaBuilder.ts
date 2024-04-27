@@ -105,17 +105,17 @@ ${tableName}: {
   }
 
   private async getVirtualColumns(tableName: string) {
-    const models = sortBy(Object.values(await loadModels()), m => m.prototype.table)
-    const model = models.find(model => model.prototype.table === tableName)
+    const models = sortBy(Object.values(await loadModels()), m => m.table)
+    const model = models.find(model => model.table === tableName)
     if (!model) throw new Error(`Failed to find a model matching the table name: ${tableName}`)
     return model['virtualAttributes']?.map(prop => prop.property) || []
   }
 
   private async getAssociationData(tableName: string, targetAssociationType?: string) {
-    const models = sortBy(Object.values(await loadModels()), m => m.prototype.table)
+    const models = sortBy(Object.values(await loadModels()), m => m.table)
     const tableAssociationData: any = {}
 
-    for (const model of models.filter(model => model.prototype.table === tableName)) {
+    for (const model of models.filter(model => model.table === tableName)) {
       for (const associationName of model.associationNames) {
         const associationMetaData = model.associationMap()[associationName]
         if (targetAssociationType && associationMetaData.type !== targetAssociationType) continue
@@ -132,14 +132,14 @@ ${tableName}: {
         }
 
         if (Array.isArray(dreamClassOrClasses)) {
-          const tables: string[] = dreamClassOrClasses.map(dreamClass => dreamClass.prototype.table)
+          const tables: string[] = dreamClassOrClasses.map(dreamClass => dreamClass.table)
 
           tableAssociationData[associationName].tables = [
             ...tableAssociationData[associationName].tables,
             ...tables,
           ]
         } else {
-          tableAssociationData[associationName].tables.push(dreamClassOrClasses.prototype.table)
+          tableAssociationData[associationName].tables.push(dreamClassOrClasses.table)
         }
 
         // guarantee unique

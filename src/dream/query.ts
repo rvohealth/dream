@@ -941,7 +941,7 @@ export default class Query<
 
         const loadedAssociations = await this.symmetricalQueryForDreamClass(associatedModel)
           .where({
-            [associatedModel.prototype.primaryKey]: relevantAssociatedModels.map(
+            [associatedModel.primaryKey]: relevantAssociatedModels.map(
               (dream: any) => dream[association.foreignKey()]
             ),
           })
@@ -1015,14 +1015,14 @@ export default class Query<
       })
     }
 
-    columnsToPluck.push(`${dreamClass.prototype.table}.${dreamClass.prototype.primaryKey}`)
+    columnsToPluck.push(`${dreamClass.table}.${dreamClass.primaryKey}`)
 
     const baseClass = dreamClass['stiBaseClassOrOwnClass'].getAssociation(associationName)
       ? dreamClass['stiBaseClassOrOwnClass']
       : dreamClass
 
     const hydrationData: any[][] = await this.symmetricalQueryForDreamClass(baseClass)
-      .where({ [dreamClass.prototype.primaryKey]: dreams.map(obj => obj.primaryKeyValue) })
+      .where({ [dreamClass.primaryKey]: dreams.map(obj => obj.primaryKeyValue) })
       .pluckThrough(associationName, columnsToPluck)
 
     const preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[] = hydrationData.map(
@@ -1316,7 +1316,7 @@ export default class Query<
           joinsStatements: this.joinsStatements,
         })
 
-      const to = (association.modelCB() as typeof Dream).prototype.table
+      const to = (association.modelCB() as typeof Dream).table
       const joinTableExpression =
         currentAssociationTableOrAlias === to
           ? currentAssociationTableOrAlias
@@ -1328,7 +1328,7 @@ export default class Query<
         `${currentAssociationTableOrAlias}.${association.primaryKey()}`
       ) as typeof query
     } else {
-      const to = association.modelCB().prototype.table
+      const to = association.modelCB().table
       const joinTableExpression =
         currentAssociationTableOrAlias === to
           ? currentAssociationTableOrAlias
@@ -1950,9 +1950,9 @@ export default class Query<
       kyselyQuery = this.baseSelectQuery.buildSelect({ bypassSelectAll: true })
     } else {
       const from =
-        this.baseSqlAlias === this.dreamClass.prototype.table
-          ? this.dreamClass.prototype.table
-          : `${this.dreamClass.prototype.table} as ${this.baseSqlAlias}`
+        this.baseSqlAlias === this.dreamClass.table
+          ? this.dreamClass.table
+          : `${this.dreamClass.table} as ${this.baseSqlAlias}`
 
       kyselyQuery = this.dbFor('select').selectFrom(from as any)
     }
@@ -1990,7 +1990,7 @@ export default class Query<
     attributes: Updateable<DreamInstance['table']>
   ): UpdateQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, any, object> {
     let kyselyQuery = this.dbFor('update')
-      .updateTable(this.dreamClass.prototype.table as DreamInstance['table'])
+      .updateTable(this.dreamClass.table as DreamInstance['table'])
       .set(attributes as any)
 
     kyselyQuery = this.conditionallyAttachSimilarityColumnsToUpdate(kyselyQuery)

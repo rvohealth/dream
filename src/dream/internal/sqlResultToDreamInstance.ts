@@ -16,7 +16,7 @@ export default function sqlResultToDreamInstance<
     const extendingDreamClass = findExtendingDreamClass(dreamClass, sqlResult.type)
 
     if (!extendingDreamClass)
-      throw new STIChildMissing(dreamClass, sqlResult.type, sqlResult[dreamClass.prototype.primaryKey])
+      throw new STIChildMissing(dreamClass, sqlResult.type, sqlResult[dreamClass.primaryKey])
 
     return extendingDreamClass.new(sqlResult as Updateable<Table>, { bypassUserDefinedSetters: true })
   } else {

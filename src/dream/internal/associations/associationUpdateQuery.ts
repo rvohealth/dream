@@ -46,10 +46,10 @@ export default function associationUpdateQuery<
 
   const nestedSelect = nestedScope
     .where({ [dream.primaryKey]: dream.primaryKeyValue as any })
-    .nestedSelect(`${association.as}.${associationClass.prototype.primaryKey}`)
+    .nestedSelect(`${association.as}.${associationClass.primaryKey}`)
 
   const whereClause = {
-    [associationClass.prototype.primaryKey]: nestedSelect,
+    [associationClass.primaryKey]: nestedSelect,
   }
 
   const query = txn ? associationClass.txn(txn).where(whereClause) : associationClass.where(whereClause)

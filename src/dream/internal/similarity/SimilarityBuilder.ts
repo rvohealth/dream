@@ -219,7 +219,7 @@ export default class SimilarityBuilder<
 
       let associationDreamClass: typeof Dream = associationMetadata.modelCB() as typeof Dream
       if (Array.isArray(associationDreamClass)) associationDreamClass = associationDreamClass[0]
-      const tableName = associationDreamClass.prototype.table
+      const tableName = associationDreamClass.table
 
       Object.keys(tableValues).forEach(columnOrAssociationName => {
         const statementOrValueOrNestedObject = tableValues[columnOrAssociationName]
@@ -275,7 +275,7 @@ export default class SimilarityBuilder<
     }
   ) {
     const schema = this.dreamClass.prototype.dreamconf.schema
-    const primaryKeyName = this.dreamClass.prototype.primaryKey
+    const primaryKeyName = this.dreamClass.primaryKey
     const { tableName, tableAlias, columnName } = similarityStatement
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -334,7 +334,7 @@ export default class SimilarityBuilder<
   > {
     const { tableName, tableAlias, columnName } = similarityStatement
     const schema = this.dreamClass.prototype.dreamconf.schema
-    const primaryKeyName = this.dreamClass.prototype.primaryKey
+    const primaryKeyName = this.dreamClass.primaryKey
 
     const validatedTableAlias = validateTableAlias(tableAlias)
     const validatedPrimaryKey = validateColumn(schema, tableName, primaryKeyName)
@@ -413,7 +413,7 @@ export default class SimilarityBuilder<
 
   private similarityStatementFilter(statements: readonly WhereStatement<DB, Schema, any>[]) {
     const similar: SimilarityStatement[] = []
-    const tableName = this.dreamClass.prototype.table
+    const tableName = this.dreamClass.table
 
     statements.forEach(statement => {
       Object.keys(statement).forEach(key => {

@@ -17,7 +17,7 @@ export default class STIChildMissing extends Error {
 Missing STI child class
 Base Dream class: ${this.baseDreamClass.name}
 Type specified in DB record: ${this.extendingDreamClassName}
-Table: ${this.baseDreamClass.prototype.table}
+Table: ${this.baseDreamClass.table}
 Primary key value: ${this.primaryKeyValue}
     `
   }
