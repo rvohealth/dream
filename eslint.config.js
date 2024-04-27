@@ -8,7 +8,7 @@ const config = typescriptEslint.config(
   eslint.configs.recommended,
   ...typescriptEslint.configs.recommendedTypeChecked,
   {
-    ignores: ['docs/**/*', 'test-app/db/schema.ts', 'test-app/client/schema.ts'],
+    ignores: ['docs/**/*', 'test-app/db/schema.ts', 'test-app/db/types.ts', 'test-app/client/schema.ts'],
   },
 
   {
