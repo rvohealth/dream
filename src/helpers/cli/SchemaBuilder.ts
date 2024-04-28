@@ -13,8 +13,7 @@ import dbSyncPath from '../path/dbSyncPath'
 export default class SchemaBuilder {
   public async build() {
     const schemaConstContent = await this.buildSchemaContent()
-    const schemaFileContents = await this.loadSchemaFile()
-    const imports = await this.getSchemaImports(schemaFileContents)
+    const imports = await this.getSchemaImports(schemaConstContent)
 
     const importStr = imports.length
       ? `\
@@ -37,7 +36,7 @@ ${schemaConstContent}
 
   private async buildSchemaContent() {
     const schemaData = await this.getSchemaData()
-    const fileContents = await this.loadDbTypesFile()
+    const fileContents = await this.loadDbSyncFile()
 
     return `\
 export const schema = {
@@ -214,7 +213,7 @@ ${tableName}: {
   }
 
   private async getExportedModulesFromDbSync() {
-    const fileContents: string = await this.loadDbTypesFile()
+    const fileContents: string = await this.loadDbSyncFile()
     const exportedConsts = [...fileContents.matchAll(/export\s+const\s+([a-zA-Z0-9_]+)/g)].map(res => res[1])
     const exportedTypes = [...fileContents.matchAll(/export\s+type\s+([a-zA-Z0-9_]+)/g)].map(res => res[1])
     const exportedInterfaces = [...fileContents.matchAll(/export\s+interface\s+([a-zA-Z0-9_]+)/g)].map(
@@ -226,7 +225,7 @@ ${tableName}: {
   }
 
   private async getTables() {
-    const fileContents = await this.loadDbTypesFile()
+    const fileContents = await this.loadDbSyncFile()
     const tableLines = /export interface DB {([^}]*)}/.exec(fileContents)![1]
     const tables = tableLines
       .split('\n')
@@ -279,7 +278,7 @@ ${tableName}: {
       .join(' | ')
   }
 
-  private async loadDbTypesFile() {
+  private async loadDbSyncFile() {
     return (await fs.readFile(await dbSyncPath())).toString()
   }
 
