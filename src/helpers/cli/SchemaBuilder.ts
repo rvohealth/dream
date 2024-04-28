@@ -215,9 +215,11 @@ ${tableName}: {
 
   private async getExportedModulesFromDbSync() {
     const fileContents: string = await this.loadDbTypesFile()
-    const exportedConsts = [...fileContents.matchAll(/export const ([^ ]*) /g)].map(res => res[1])
-    const exportedTypes = [...fileContents.matchAll(/export type ([^( |<)]*) /g)].map(res => res[1])
-    const exportedInterfaces = [...fileContents.matchAll(/export interface ([^ ]*) /g)].map(res => res[1])
+    const exportedConsts = [...fileContents.matchAll(/export\s+const\s+([a-zA-Z0-9_]+)/g)].map(res => res[1])
+    const exportedTypes = [...fileContents.matchAll(/export\s+type\s+([a-zA-Z0-9_]+)/g)].map(res => res[1])
+    const exportedInterfaces = [...fileContents.matchAll(/export\s+interface\s+([a-zA-Z0-9_]+)/g)].map(
+      res => res[1]
+    )
 
     const allExports: string[] = [...exportedConsts, ...exportedTypes, ...exportedInterfaces]
     return allExports
