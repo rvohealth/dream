@@ -16,11 +16,16 @@ export default class SchemaBuilder {
     const schemaFileContents = await this.loadSchemaFile()
     const imports = await this.getSchemaImports(schemaFileContents)
 
-    const newSchemaFileContents = `\
-import { DateTime } from 'luxon'
+    const importStr = imports.length
+      ? `\
 import {
   ${imports.join(',\n  ')}
-} from './sync'
+} from './sync'`
+      : ''
+
+    const newSchemaFileContents = `\
+import { DateTime } from 'luxon'
+${importStr}
 
 ${schemaConstContent}
 `
