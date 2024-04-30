@@ -26,7 +26,7 @@ import {
 export const schema = {
   balloon_lines: {
     columns: {
-      id: {
+      balloonId: {
         coercedType: {} as IdType,
         enumType: null,
         enumValues: null,
@@ -34,7 +34,15 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
-      balloonId: {
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+      id: {
         coercedType: {} as IdType,
         enumType: null,
         enumValues: null,
@@ -48,14 +56,6 @@ export const schema = {
         enumValues: BalloonLineMaterialsEnumValues,
         dbType: 'balloon_line_materials_enum',
         allowNull: true,
-        isArray: false,
-      },
-      createdAt: {
-        coercedType: {} as DateTime,
-        enumType: null,
-        enumValues: null,
-        dbType: 'timestamp without time zone',
-        allowNull: false,
         isArray: false,
       },
       updatedAt: {
@@ -79,31 +79,15 @@ export const schema = {
   },
   balloon_spotter_balloons: {
     columns: {
-      id: {
+      balloonId: {
         coercedType: {} as IdType,
         enumType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
-        isArray: false,
-      },
-      userId: {
-        coercedType: {} as IdType | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'bigint',
-        allowNull: true,
         isArray: false,
       },
       balloonSpotterId: {
-        coercedType: {} as IdType,
-        enumType: null,
-        enumValues: null,
-        dbType: 'bigint',
-        allowNull: false,
-        isArray: false,
-      },
-      balloonId: {
         coercedType: {} as IdType,
         enumType: null,
         enumValues: null,
@@ -119,6 +103,14 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
+      id: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
@@ -127,14 +119,22 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
+      userId: {
+        coercedType: {} as IdType | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: true,
+        isArray: false,
+      },
     },
     virtualColumns: [],
     associations: {
-      user: {
+      balloon: {
         type: 'BelongsTo',
-        foreignKey: 'userId',
-        tables: ['users'],
-        optional: true,
+        foreignKey: 'balloonId',
+        tables: ['beautiful_balloons'],
+        optional: false,
       },
       balloonSpotter: {
         type: 'BelongsTo',
@@ -142,16 +142,24 @@ export const schema = {
         tables: ['balloon_spotters'],
         optional: false,
       },
-      balloon: {
+      user: {
         type: 'BelongsTo',
-        foreignKey: 'balloonId',
-        tables: ['beautiful_balloons'],
-        optional: false,
+        foreignKey: 'userId',
+        tables: ['users'],
+        optional: true,
       },
     },
   },
   balloon_spotters: {
     columns: {
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
       id: {
         coercedType: {} as IdType,
         enumType: null,
@@ -166,14 +174,6 @@ export const schema = {
         enumValues: null,
         dbType: 'character varying',
         allowNull: true,
-        isArray: false,
-      },
-      createdAt: {
-        coercedType: {} as DateTime,
-        enumType: null,
-        enumValues: null,
-        dbType: 'timestamp without time zone',
-        allowNull: false,
         isArray: false,
       },
       updatedAt: {
@@ -209,6 +209,30 @@ export const schema = {
   },
   beautiful_balloons: {
     columns: {
+      color: {
+        coercedType: {} as BalloonColorsEnum | null,
+        enumType: {} as BalloonColorsEnum,
+        enumValues: BalloonColorsEnumValues,
+        dbType: 'balloon_colors_enum',
+        allowNull: true,
+        isArray: false,
+      },
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+      deletedAt: {
+        coercedType: {} as DateTime | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: true,
+        isArray: false,
+      },
       id: {
         coercedType: {} as IdType,
         enumType: null,
@@ -217,37 +241,13 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
-      userId: {
-        coercedType: {} as IdType | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'bigint',
-        allowNull: true,
-        isArray: false,
-      },
-      type: {
-        coercedType: {} as BalloonTypesEnum,
-        enumType: {} as BalloonTypesEnum,
-        enumValues: BalloonTypesEnumValues,
-        dbType: 'balloon_types_enum',
-        allowNull: false,
-        isArray: false,
-      },
-      volume: {
-        coercedType: {} as number | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'numeric',
-        allowNull: true,
-        isArray: false,
-      },
-      color: {
-        coercedType: {} as BalloonColorsEnum | null,
+      multicolor: {
+        coercedType: {} as BalloonColorsEnum[] | null,
         enumType: {} as BalloonColorsEnum,
         enumValues: BalloonColorsEnumValues,
-        dbType: 'balloon_colors_enum',
+        dbType: 'balloon_colors_enum[]',
         allowNull: true,
-        isArray: false,
+        isArray: true,
       },
       positionAlpha: {
         coercedType: {} as number | null,
@@ -265,27 +265,11 @@ export const schema = {
         allowNull: true,
         isArray: false,
       },
-      multicolor: {
-        coercedType: {} as BalloonColorsEnum[] | null,
-        enumType: {} as BalloonColorsEnum,
-        enumValues: BalloonColorsEnumValues,
-        dbType: 'balloon_colors_enum[]',
-        allowNull: true,
-        isArray: true,
-      },
-      deletedAt: {
-        coercedType: {} as DateTime | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'timestamp without time zone',
-        allowNull: true,
-        isArray: false,
-      },
-      createdAt: {
-        coercedType: {} as DateTime,
-        enumType: null,
-        enumValues: null,
-        dbType: 'timestamp without time zone',
+      type: {
+        coercedType: {} as BalloonTypesEnum,
+        enumType: {} as BalloonTypesEnum,
+        enumValues: BalloonTypesEnumValues,
+        dbType: 'balloon_types_enum',
         allowNull: false,
         isArray: false,
       },
@@ -297,15 +281,25 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
+      userId: {
+        coercedType: {} as IdType | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: true,
+        isArray: false,
+      },
+      volume: {
+        coercedType: {} as number | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'numeric',
+        allowNull: true,
+        isArray: false,
+      },
     },
     virtualColumns: [],
     associations: {
-      user: {
-        type: 'BelongsTo',
-        foreignKey: 'userId',
-        tables: ['users'],
-        optional: true,
-      },
       balloonLine: {
         type: 'HasOne',
         foreignKey: 'balloonId',
@@ -324,26 +318,16 @@ export const schema = {
         tables: ['sandbags'],
         optional: null,
       },
+      user: {
+        type: 'BelongsTo',
+        foreignKey: 'userId',
+        tables: ['users'],
+        optional: true,
+      },
     },
   },
   collars: {
     columns: {
-      id: {
-        coercedType: {} as IdType,
-        enumType: null,
-        enumValues: null,
-        dbType: 'bigint',
-        allowNull: false,
-        isArray: false,
-      },
-      petId: {
-        coercedType: {} as IdType,
-        enumType: null,
-        enumValues: null,
-        dbType: 'bigint',
-        allowNull: false,
-        isArray: false,
-      },
       balloonId: {
         coercedType: {} as IdType | null,
         enumType: null,
@@ -352,12 +336,12 @@ export const schema = {
         allowNull: true,
         isArray: false,
       },
-      lost: {
-        coercedType: {} as boolean | null,
+      createdAt: {
+        coercedType: {} as DateTime,
         enumType: null,
         enumValues: null,
-        dbType: 'boolean',
-        allowNull: true,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
         isArray: false,
       },
       hidden: {
@@ -368,12 +352,28 @@ export const schema = {
         allowNull: true,
         isArray: false,
       },
-      tagName: {
-        coercedType: {} as string | null,
+      id: {
+        coercedType: {} as IdType,
         enumType: null,
         enumValues: null,
-        dbType: 'character varying',
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
+      lost: {
+        coercedType: {} as boolean | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'boolean',
         allowNull: true,
+        isArray: false,
+      },
+      petId: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
         isArray: false,
       },
       position: {
@@ -384,12 +384,12 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
-      createdAt: {
-        coercedType: {} as DateTime,
+      tagName: {
+        coercedType: {} as string | null,
         enumType: null,
         enumValues: null,
-        dbType: 'timestamp without time zone',
-        allowNull: false,
+        dbType: 'character varying',
+        allowNull: true,
         isArray: false,
       },
       updatedAt: {
@@ -403,23 +403,31 @@ export const schema = {
     },
     virtualColumns: [],
     associations: {
-      pet: {
-        type: 'BelongsTo',
-        foreignKey: 'petId',
-        tables: ['pets'],
-        optional: false,
-      },
       balloon: {
         type: 'BelongsTo',
         foreignKey: 'balloonId',
         tables: ['beautiful_balloons'],
         optional: true,
       },
+      pet: {
+        type: 'BelongsTo',
+        foreignKey: 'petId',
+        tables: ['pets'],
+        optional: false,
+      },
     },
   },
   composition_asset_audits: {
     columns: {
-      id: {
+      approval: {
+        coercedType: {} as boolean | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'boolean',
+        allowNull: true,
+        isArray: false,
+      },
+      compositionAssetId: {
         coercedType: {} as IdType,
         enumType: null,
         enumValues: null,
@@ -427,7 +435,15 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
-      compositionAssetId: {
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+      id: {
         coercedType: {} as IdType,
         enumType: null,
         enumValues: null,
@@ -443,22 +459,6 @@ export const schema = {
         allowNull: true,
         isArray: false,
       },
-      approval: {
-        coercedType: {} as boolean | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'boolean',
-        allowNull: true,
-        isArray: false,
-      },
-      createdAt: {
-        coercedType: {} as DateTime,
-        enumType: null,
-        enumValues: null,
-        dbType: 'timestamp without time zone',
-        allowNull: false,
-        isArray: false,
-      },
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
@@ -470,17 +470,17 @@ export const schema = {
     },
     virtualColumns: [],
     associations: {
-      compositionAsset: {
-        type: 'BelongsTo',
-        foreignKey: 'compositionAssetId',
-        tables: ['composition_assets'],
-        optional: false,
-      },
       composition: {
         type: 'HasOne',
         foreignKey: 'compositionAssetAuditId',
         tables: ['compositions'],
         optional: null,
+      },
+      compositionAsset: {
+        type: 'BelongsTo',
+        foreignKey: 'compositionAssetId',
+        tables: ['composition_assets'],
+        optional: false,
       },
       user: {
         type: 'HasOne',
@@ -492,7 +492,7 @@ export const schema = {
   },
   composition_assets: {
     columns: {
-      id: {
+      compositionId: {
         coercedType: {} as IdType,
         enumType: null,
         enumValues: null,
@@ -500,7 +500,15 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
-      compositionId: {
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+      id: {
         coercedType: {} as IdType,
         enumType: null,
         enumValues: null,
@@ -513,14 +521,6 @@ export const schema = {
         enumType: null,
         enumValues: null,
         dbType: 'character varying',
-        allowNull: true,
-        isArray: false,
-      },
-      src: {
-        coercedType: {} as string | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'text',
         allowNull: true,
         isArray: false,
       },
@@ -540,12 +540,12 @@ export const schema = {
         allowNull: true,
         isArray: false,
       },
-      createdAt: {
-        coercedType: {} as DateTime,
+      src: {
+        coercedType: {} as string | null,
         enumType: null,
         enumValues: null,
-        dbType: 'timestamp without time zone',
-        allowNull: false,
+        dbType: 'text',
+        allowNull: true,
         isArray: false,
       },
       updatedAt: {
@@ -565,10 +565,10 @@ export const schema = {
         tables: ['compositions'],
         optional: false,
       },
-      user: {
-        type: 'HasOne',
+      compositionAssetAudits: {
+        type: 'HasMany',
         foreignKey: 'compositionAssetId',
-        tables: ['users'],
+        tables: ['composition_asset_audits'],
         optional: null,
       },
       currentLocalizedText: {
@@ -577,44 +577,44 @@ export const schema = {
         tables: ['localized_texts'],
         optional: null,
       },
-      compositionAssetAudits: {
-        type: 'HasMany',
-        foreignKey: 'compositionAssetId',
-        tables: ['composition_asset_audits'],
-        optional: null,
-      },
       localizedTexts: {
         type: 'HasMany',
         foreignKey: 'localizableId',
         tables: ['localized_texts'],
         optional: null,
       },
+      user: {
+        type: 'HasOne',
+        foreignKey: 'compositionAssetId',
+        tables: ['users'],
+        optional: null,
+      },
     },
   },
   compositions: {
     columns: {
-      id: {
-        coercedType: {} as IdType,
-        enumType: null,
-        enumValues: null,
-        dbType: 'bigint',
-        allowNull: false,
-        isArray: false,
-      },
-      userId: {
-        coercedType: {} as IdType,
-        enumType: null,
-        enumValues: null,
-        dbType: 'bigint',
-        allowNull: false,
-        isArray: false,
-      },
       content: {
         coercedType: {} as string | null,
         enumType: null,
         enumValues: null,
         dbType: 'text',
         allowNull: true,
+        isArray: false,
+      },
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+      id: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
         isArray: false,
       },
       metadata: {
@@ -649,14 +649,6 @@ export const schema = {
         allowNull: true,
         isArray: false,
       },
-      createdAt: {
-        coercedType: {} as DateTime,
-        enumType: null,
-        enumValues: null,
-        dbType: 'timestamp without time zone',
-        allowNull: false,
-        isArray: false,
-      },
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
@@ -665,25 +657,21 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
+      userId: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
     },
     virtualColumns: [],
     associations: {
-      user: {
-        type: 'BelongsTo',
-        foreignKey: 'userId',
-        tables: ['users'],
-        optional: false,
-      },
-      mainCompositionAsset: {
-        type: 'HasOne',
-        foreignKey: 'compositionId',
-        tables: ['composition_assets'],
-        optional: null,
-      },
-      currentLocalizedText: {
-        type: 'HasOne',
-        foreignKey: 'localizableId',
-        tables: ['localized_texts'],
+      compositionAssetAudits: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['composition_asset_audits'],
         optional: null,
       },
       compositionAssets: {
@@ -692,16 +680,10 @@ export const schema = {
         tables: ['composition_assets'],
         optional: null,
       },
-      compositionAssetAudits: {
-        type: 'HasMany',
-        foreignKey: null,
-        tables: ['composition_asset_audits'],
-        optional: null,
-      },
-      mainCompositionAssetAudits: {
-        type: 'HasMany',
-        foreignKey: null,
-        tables: ['composition_asset_audits'],
+      currentLocalizedText: {
+        type: 'HasOne',
+        foreignKey: 'localizableId',
+        tables: ['localized_texts'],
         optional: null,
       },
       heartRatings: {
@@ -716,10 +698,36 @@ export const schema = {
         tables: ['localized_texts'],
         optional: null,
       },
+      mainCompositionAsset: {
+        type: 'HasOne',
+        foreignKey: 'compositionId',
+        tables: ['composition_assets'],
+        optional: null,
+      },
+      mainCompositionAssetAudits: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['composition_asset_audits'],
+        optional: null,
+      },
+      user: {
+        type: 'BelongsTo',
+        foreignKey: 'userId',
+        tables: ['users'],
+        optional: false,
+      },
     },
   },
   edge_case_attributes: {
     columns: {
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
       id: {
         coercedType: {} as IdType,
         enumType: null,
@@ -752,14 +760,6 @@ export const schema = {
         allowNull: true,
         isArray: false,
       },
-      createdAt: {
-        coercedType: {} as DateTime,
-        enumType: null,
-        enumValues: null,
-        dbType: 'timestamp without time zone',
-        allowNull: false,
-        isArray: false,
-      },
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
@@ -776,27 +776,19 @@ export const schema = {
   },
   extra_ratings: {
     columns: {
-      type: {
-        coercedType: {} as ExtraRatingTypesEnum,
-        enumType: {} as ExtraRatingTypesEnum,
-        enumValues: ExtraRatingTypesEnumValues,
-        dbType: 'extra_rating_types_enum',
-        allowNull: false,
-        isArray: false,
-      },
-      id: {
-        coercedType: {} as IdType,
+      body: {
+        coercedType: {} as string | null,
         enumType: null,
         enumValues: null,
-        dbType: 'bigint',
-        allowNull: false,
+        dbType: 'text',
+        allowNull: true,
         isArray: false,
       },
-      userId: {
-        coercedType: {} as IdType,
+      createdAt: {
+        coercedType: {} as DateTime,
         enumType: null,
         enumValues: null,
-        dbType: 'bigint',
+        dbType: 'timestamp without time zone',
         allowNull: false,
         isArray: false,
       },
@@ -816,6 +808,14 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
+      id: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
       rating: {
         coercedType: {} as number | null,
         enumType: null,
@@ -824,19 +824,11 @@ export const schema = {
         allowNull: true,
         isArray: false,
       },
-      body: {
-        coercedType: {} as string | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'text',
-        allowNull: true,
-        isArray: false,
-      },
-      createdAt: {
-        coercedType: {} as DateTime,
-        enumType: null,
-        enumValues: null,
-        dbType: 'timestamp without time zone',
+      type: {
+        coercedType: {} as ExtraRatingTypesEnum,
+        enumType: {} as ExtraRatingTypesEnum,
+        enumValues: ExtraRatingTypesEnumValues,
+        dbType: 'extra_rating_types_enum',
         allowNull: false,
         isArray: false,
       },
@@ -848,30 +840,38 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
+      userId: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
     },
     virtualColumns: [],
     associations: {
-      user: {
-        type: 'BelongsTo',
-        foreignKey: 'userId',
-        tables: ['users'],
-        optional: false,
-      },
       extraRateable: {
         type: 'BelongsTo',
         foreignKey: 'extraRateableId',
         tables: ['compositions', 'posts', 'beautiful_balloons'],
         optional: false,
       },
+      user: {
+        type: 'BelongsTo',
+        foreignKey: 'userId',
+        tables: ['users'],
+        optional: false,
+      },
     },
   },
   graph_edge_nodes: {
     columns: {
-      id: {
-        coercedType: {} as IdType,
+      createdAt: {
+        coercedType: {} as DateTime,
         enumType: null,
         enumValues: null,
-        dbType: 'bigint',
+        dbType: 'timestamp without time zone',
         allowNull: false,
         isArray: false,
       },
@@ -880,6 +880,22 @@ export const schema = {
         enumType: null,
         enumValues: null,
         dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
+      id: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
+      multiScopedPosition: {
+        coercedType: {} as number,
+        enumType: null,
+        enumValues: null,
+        dbType: 'integer',
         allowNull: false,
         isArray: false,
       },
@@ -896,22 +912,6 @@ export const schema = {
         enumType: null,
         enumValues: null,
         dbType: 'integer',
-        allowNull: false,
-        isArray: false,
-      },
-      multiScopedPosition: {
-        coercedType: {} as number,
-        enumType: null,
-        enumValues: null,
-        dbType: 'integer',
-        allowNull: false,
-        isArray: false,
-      },
-      createdAt: {
-        coercedType: {} as DateTime,
-        enumType: null,
-        enumValues: null,
-        dbType: 'timestamp without time zone',
         allowNull: false,
         isArray: false,
       },
@@ -932,11 +932,11 @@ export const schema = {
         tables: ['graph_edges'],
         optional: false,
       },
-      node: {
-        type: 'BelongsTo',
-        foreignKey: 'nodeId',
-        tables: ['graph_nodes'],
-        optional: false,
+      headSibling: {
+        type: 'HasOne',
+        foreignKey: 'graphEdgeNodeId',
+        tables: ['graph_edge_nodes'],
+        optional: null,
       },
       justThisSibling: {
         type: 'HasOne',
@@ -944,13 +944,19 @@ export const schema = {
         tables: ['graph_edge_nodes'],
         optional: null,
       },
-      headSibling: {
-        type: 'HasOne',
-        foreignKey: 'graphEdgeNodeId',
+      node: {
+        type: 'BelongsTo',
+        foreignKey: 'nodeId',
+        tables: ['graph_nodes'],
+        optional: false,
+      },
+      orderedSiblings: {
+        type: 'HasMany',
+        foreignKey: null,
         tables: ['graph_edge_nodes'],
         optional: null,
       },
-      siblingsIncludingMe: {
+      orderedSiblingsWithOrderOnSource: {
         type: 'HasMany',
         foreignKey: null,
         tables: ['graph_edge_nodes'],
@@ -962,13 +968,7 @@ export const schema = {
         tables: ['graph_edge_nodes'],
         optional: null,
       },
-      orderedSiblings: {
-        type: 'HasMany',
-        foreignKey: null,
-        tables: ['graph_edge_nodes'],
-        optional: null,
-      },
-      orderedSiblingsWithOrderOnSource: {
+      siblingsIncludingMe: {
         type: 'HasMany',
         foreignKey: null,
         tables: ['graph_edge_nodes'],
@@ -984,6 +984,14 @@ export const schema = {
   },
   graph_edges: {
     columns: {
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
       id: {
         coercedType: {} as IdType,
         enumType: null,
@@ -1000,28 +1008,20 @@ export const schema = {
         allowNull: true,
         isArray: false,
       },
-      weight: {
-        coercedType: {} as number | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'numeric',
-        allowNull: true,
-        isArray: false,
-      },
-      createdAt: {
-        coercedType: {} as DateTime,
-        enumType: null,
-        enumValues: null,
-        dbType: 'timestamp without time zone',
-        allowNull: false,
-        isArray: false,
-      },
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
+        isArray: false,
+      },
+      weight: {
+        coercedType: {} as number | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'numeric',
+        allowNull: true,
         isArray: false,
       },
     },
@@ -1043,6 +1043,14 @@ export const schema = {
   },
   graph_nodes: {
     columns: {
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
       id: {
         coercedType: {} as IdType,
         enumType: null,
@@ -1067,14 +1075,6 @@ export const schema = {
         allowNull: true,
         isArray: false,
       },
-      createdAt: {
-        coercedType: {} as DateTime,
-        enumType: null,
-        enumValues: null,
-        dbType: 'timestamp without time zone',
-        allowNull: false,
-        isArray: false,
-      },
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
@@ -1087,12 +1087,6 @@ export const schema = {
     virtualColumns: [],
     associations: {
       edgeNodes: {
-        type: 'HasMany',
-        foreignKey: 'nodeId',
-        tables: ['graph_edge_nodes'],
-        optional: null,
-      },
-      orderedEdgeNodes: {
         type: 'HasMany',
         foreignKey: 'nodeId',
         tables: ['graph_edge_nodes'],
@@ -1116,6 +1110,12 @@ export const schema = {
         tables: ['graph_edges'],
         optional: null,
       },
+      nonNodeNameEdgesOnThroughAssociation: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['graph_edges'],
+        optional: null,
+      },
       nonOmittedPositionEdgeNodes: {
         type: 'HasMany',
         foreignKey: 'nodeId',
@@ -1128,32 +1128,16 @@ export const schema = {
         tables: ['graph_edges'],
         optional: null,
       },
-      nonNodeNameEdgesOnThroughAssociation: {
+      orderedEdgeNodes: {
         type: 'HasMany',
-        foreignKey: null,
-        tables: ['graph_edges'],
+        foreignKey: 'nodeId',
+        tables: ['graph_edge_nodes'],
         optional: null,
       },
     },
   },
   incompatible_foreign_key_type_examples: {
     columns: {
-      id: {
-        coercedType: {} as IdType,
-        enumType: null,
-        enumValues: null,
-        dbType: 'bigint',
-        allowNull: false,
-        isArray: false,
-      },
-      userId: {
-        coercedType: {} as number,
-        enumType: null,
-        enumValues: null,
-        dbType: 'integer',
-        allowNull: false,
-        isArray: false,
-      },
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
@@ -1162,11 +1146,27 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
+      id: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+      userId: {
+        coercedType: {} as number,
+        enumType: null,
+        enumValues: null,
+        dbType: 'integer',
         allowNull: false,
         isArray: false,
       },
@@ -1183,23 +1183,23 @@ export const schema = {
   },
   localized_texts: {
     columns: {
-      id: {
-        coercedType: {} as IdType,
+      body: {
+        coercedType: {} as string | null,
         enumType: null,
         enumValues: null,
-        dbType: 'bigint',
+        dbType: 'text',
+        allowNull: true,
+        isArray: false,
+      },
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
         allowNull: false,
         isArray: false,
       },
-      localizableType: {
-        coercedType: {} as LocalizableTypesEnum,
-        enumType: {} as LocalizableTypesEnum,
-        enumValues: LocalizableTypesEnumValues,
-        dbType: 'localizable_types_enum',
-        allowNull: false,
-        isArray: false,
-      },
-      localizableId: {
+      id: {
         coercedType: {} as IdType,
         enumType: null,
         enumValues: null,
@@ -1212,6 +1212,22 @@ export const schema = {
         enumType: {} as LocalesEnum,
         enumValues: LocalesEnumValues,
         dbType: 'locales_enum',
+        allowNull: false,
+        isArray: false,
+      },
+      localizableId: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
+      localizableType: {
+        coercedType: {} as LocalizableTypesEnum,
+        enumType: {} as LocalizableTypesEnum,
+        enumValues: LocalizableTypesEnumValues,
+        dbType: 'localizable_types_enum',
         allowNull: false,
         isArray: false,
       },
@@ -1229,22 +1245,6 @@ export const schema = {
         enumValues: null,
         dbType: 'character varying',
         allowNull: true,
-        isArray: false,
-      },
-      body: {
-        coercedType: {} as string | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'text',
-        allowNull: true,
-        isArray: false,
-      },
-      createdAt: {
-        coercedType: {} as DateTime,
-        enumType: null,
-        enumValues: null,
-        dbType: 'timestamp without time zone',
-        allowNull: false,
         isArray: false,
       },
       updatedAt: {
@@ -1268,22 +1268,6 @@ export const schema = {
   },
   model_without_updated_at: {
     columns: {
-      id: {
-        coercedType: {} as IdType,
-        enumType: null,
-        enumValues: null,
-        dbType: 'bigint',
-        allowNull: false,
-        isArray: false,
-      },
-      name: {
-        coercedType: {} as string | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'character varying',
-        allowNull: true,
-        isArray: false,
-      },
       cantUpdateThis: {
         coercedType: {} as string | null,
         enumType: null,
@@ -1300,6 +1284,22 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
+      id: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
+      name: {
+        coercedType: {} as string | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'character varying',
+        allowNull: true,
+        isArray: false,
+      },
     },
     virtualColumns: [],
     associations: {
@@ -1308,6 +1308,14 @@ export const schema = {
   },
   pet_understudy_join_models: {
     columns: {
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
       id: {
         coercedType: {} as IdType,
         enumType: null,
@@ -1329,14 +1337,6 @@ export const schema = {
         enumType: null,
         enumValues: null,
         dbType: 'bigint',
-        allowNull: false,
-        isArray: false,
-      },
-      createdAt: {
-        coercedType: {} as DateTime,
-        enumType: null,
-        enumValues: null,
-        dbType: 'timestamp without time zone',
         allowNull: false,
         isArray: false,
       },
@@ -1367,37 +1367,21 @@ export const schema = {
   },
   pets: {
     columns: {
-      id: {
-        coercedType: {} as IdType,
+      createdAt: {
+        coercedType: {} as DateTime,
         enumType: null,
         enumValues: null,
-        dbType: 'bigint',
+        dbType: 'timestamp without time zone',
         allowNull: false,
         isArray: false,
       },
-      userId: {
-        coercedType: {} as IdType | null,
+      deletedAt: {
+        coercedType: {} as DateTime | null,
         enumType: null,
         enumValues: null,
-        dbType: 'bigint',
+        dbType: 'timestamp without time zone',
         allowNull: true,
         isArray: false,
-      },
-      userUuid: {
-        coercedType: {} as string | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'uuid',
-        allowNull: true,
-        isArray: false,
-      },
-      favoriteTreats: {
-        coercedType: {} as CatTreats[] | null,
-        enumType: {} as CatTreats,
-        enumValues: CatTreatsValues,
-        dbType: 'cat_treats[]',
-        allowNull: true,
-        isArray: true,
       },
       favoriteDaysOfWeek: {
         coercedType: {} as number[] | null,
@@ -1407,19 +1391,19 @@ export const schema = {
         allowNull: true,
         isArray: true,
       },
-      species: {
-        coercedType: {} as Species | null,
-        enumType: {} as Species,
-        enumValues: SpeciesValues,
-        dbType: 'species',
+      favoriteTreats: {
+        coercedType: {} as CatTreats[] | null,
+        enumType: {} as CatTreats,
+        enumValues: CatTreatsValues,
+        dbType: 'cat_treats[]',
         allowNull: true,
-        isArray: false,
+        isArray: true,
       },
-      positionWithinSpecies: {
-        coercedType: {} as number,
+      id: {
+        coercedType: {} as IdType,
         enumType: null,
         enumValues: null,
-        dbType: 'integer',
+        dbType: 'bigint',
         allowNull: false,
         isArray: false,
       },
@@ -1439,41 +1423,45 @@ export const schema = {
         allowNull: true,
         isArray: false,
       },
-      deletedAt: {
-        coercedType: {} as DateTime | null,
+      positionWithinSpecies: {
+        coercedType: {} as number,
         enumType: null,
         enumValues: null,
-        dbType: 'timestamp without time zone',
+        dbType: 'integer',
+        allowNull: false,
+        isArray: false,
+      },
+      species: {
+        coercedType: {} as Species | null,
+        enumType: {} as Species,
+        enumValues: SpeciesValues,
+        dbType: 'species',
         allowNull: true,
         isArray: false,
       },
-      createdAt: {
-        coercedType: {} as DateTime,
+      userId: {
+        coercedType: {} as IdType | null,
         enumType: null,
         enumValues: null,
-        dbType: 'timestamp without time zone',
-        allowNull: false,
+        dbType: 'bigint',
+        allowNull: true,
+        isArray: false,
+      },
+      userUuid: {
+        coercedType: {} as string | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'uuid',
+        allowNull: true,
         isArray: false,
       },
     },
     virtualColumns: [],
     associations: {
-      userThroughUuid: {
-        type: 'BelongsTo',
-        foreignKey: 'userUuid',
-        tables: ['users'],
-        optional: true,
-      },
-      user: {
-        type: 'BelongsTo',
-        foreignKey: 'userId',
-        tables: ['users'],
-        optional: true,
-      },
-      featuredPost: {
-        type: 'HasOne',
+      collars: {
+        type: 'HasMany',
         foreignKey: 'petId',
-        tables: ['posts'],
+        tables: ['collars'],
         optional: null,
       },
       currentCollar: {
@@ -1482,16 +1470,16 @@ export const schema = {
         tables: ['collars'],
         optional: null,
       },
-      notLostCollar: {
-        type: 'HasOne',
-        foreignKey: 'petId',
-        tables: ['collars'],
-        optional: null,
-      },
-      ratings: {
+      distinctBalloons: {
         type: 'HasMany',
         foreignKey: null,
-        tables: ['ratings'],
+        tables: ['beautiful_balloons'],
+        optional: null,
+      },
+      featuredPost: {
+        type: 'HasOne',
+        foreignKey: 'petId',
+        tables: ['posts'],
         optional: null,
       },
       featuredRatings: {
@@ -1500,34 +1488,10 @@ export const schema = {
         tables: ['ratings'],
         optional: null,
       },
-      collars: {
-        type: 'HasMany',
+      notLostCollar: {
+        type: 'HasOne',
         foreignKey: 'petId',
         tables: ['collars'],
-        optional: null,
-      },
-      uniqueCollars: {
-        type: 'HasMany',
-        foreignKey: 'petId',
-        tables: ['collars'],
-        optional: null,
-      },
-      uniqueBalloons: {
-        type: 'HasMany',
-        foreignKey: null,
-        tables: ['beautiful_balloons'],
-        optional: null,
-      },
-      distinctBalloons: {
-        type: 'HasMany',
-        foreignKey: null,
-        tables: ['beautiful_balloons'],
-        optional: null,
-      },
-      redBalloons: {
-        type: 'HasMany',
-        foreignKey: null,
-        tables: ['beautiful_balloons'],
         optional: null,
       },
       notRedBalloons: {
@@ -1542,30 +1506,66 @@ export const schema = {
         tables: ['pet_understudy_join_models'],
         optional: null,
       },
+      ratings: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['ratings'],
+        optional: null,
+      },
+      redBalloons: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['beautiful_balloons'],
+        optional: null,
+      },
       understudies: {
         type: 'HasMany',
         foreignKey: null,
         tables: ['pets'],
         optional: null,
       },
+      uniqueBalloons: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['beautiful_balloons'],
+        optional: null,
+      },
+      uniqueCollars: {
+        type: 'HasMany',
+        foreignKey: 'petId',
+        tables: ['collars'],
+        optional: null,
+      },
+      user: {
+        type: 'BelongsTo',
+        foreignKey: 'userId',
+        tables: ['users'],
+        optional: true,
+      },
+      userThroughUuid: {
+        type: 'BelongsTo',
+        foreignKey: 'userUuid',
+        tables: ['users'],
+        optional: true,
+      },
     },
   },
   post_visibilities: {
     columns: {
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
       id: {
         coercedType: {} as IdType,
         enumType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
-        isArray: false,
-      },
-      visibility: {
-        coercedType: {} as boolean | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'boolean',
-        allowNull: true,
         isArray: false,
       },
       notes: {
@@ -1576,7 +1576,7 @@ export const schema = {
         allowNull: true,
         isArray: false,
       },
-      createdAt: {
+      updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
         enumValues: null,
@@ -1584,12 +1584,12 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
-      updatedAt: {
-        coercedType: {} as DateTime,
+      visibility: {
+        coercedType: {} as boolean | null,
         enumType: null,
         enumValues: null,
-        dbType: 'timestamp without time zone',
-        allowNull: false,
+        dbType: 'boolean',
+        allowNull: true,
         isArray: false,
       },
     },
@@ -1605,51 +1605,11 @@ export const schema = {
   },
   posts: {
     columns: {
-      id: {
-        coercedType: {} as IdType,
-        enumType: null,
-        enumValues: null,
-        dbType: 'bigint',
-        allowNull: false,
-        isArray: false,
-      },
-      userId: {
-        coercedType: {} as IdType,
-        enumType: null,
-        enumValues: null,
-        dbType: 'bigint',
-        allowNull: false,
-        isArray: false,
-      },
-      postVisibilityId: {
-        coercedType: {} as IdType | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'bigint',
-        allowNull: true,
-        isArray: false,
-      },
       body: {
         coercedType: {} as string | null,
         enumType: null,
         enumValues: null,
         dbType: 'text',
-        allowNull: true,
-        isArray: false,
-      },
-      position: {
-        coercedType: {} as number,
-        enumType: null,
-        enumValues: null,
-        dbType: 'integer',
-        allowNull: false,
-        isArray: false,
-      },
-      deletedAt: {
-        coercedType: {} as DateTime | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'timestamp without time zone',
         allowNull: true,
         isArray: false,
       },
@@ -1661,6 +1621,38 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
+      deletedAt: {
+        coercedType: {} as DateTime | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: true,
+        isArray: false,
+      },
+      id: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
+      position: {
+        coercedType: {} as number,
+        enumType: null,
+        enumValues: null,
+        dbType: 'integer',
+        allowNull: false,
+        isArray: false,
+      },
+      postVisibilityId: {
+        coercedType: {} as IdType | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: true,
+        isArray: false,
+      },
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
@@ -1669,14 +1661,22 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
+      userId: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
     },
     virtualColumns: [],
     associations: {
-      user: {
-        type: 'BelongsTo',
-        foreignKey: 'userId',
-        tables: ['users'],
-        optional: false,
+      heartRatings: {
+        type: 'HasMany',
+        foreignKey: 'extraRateableId',
+        tables: ['extra_ratings'],
+        optional: null,
       },
       postVisibility: {
         type: 'BelongsTo',
@@ -1690,25 +1690,33 @@ export const schema = {
         tables: ['ratings'],
         optional: null,
       },
-      heartRatings: {
-        type: 'HasMany',
-        foreignKey: 'extraRateableId',
-        tables: ['extra_ratings'],
-        optional: null,
+      user: {
+        type: 'BelongsTo',
+        foreignKey: 'userId',
+        tables: ['users'],
+        optional: false,
       },
     },
   },
   ratings: {
     columns: {
-      id: {
-        coercedType: {} as IdType,
+      body: {
+        coercedType: {} as string | null,
         enumType: null,
         enumValues: null,
-        dbType: 'bigint',
+        dbType: 'text',
+        allowNull: true,
+        isArray: false,
+      },
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
         allowNull: false,
         isArray: false,
       },
-      userId: {
+      id: {
         coercedType: {} as IdType,
         enumType: null,
         enumValues: null,
@@ -1740,12 +1748,47 @@ export const schema = {
         allowNull: true,
         isArray: false,
       },
-      body: {
-        coercedType: {} as string | null,
+      updatedAt: {
+        coercedType: {} as DateTime,
         enumType: null,
         enumValues: null,
-        dbType: 'text',
-        allowNull: true,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+      userId: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
+    },
+    virtualColumns: [],
+    associations: {
+      rateable: {
+        type: 'BelongsTo',
+        foreignKey: 'rateableId',
+        tables: ['compositions', 'posts'],
+        optional: false,
+      },
+      user: {
+        type: 'BelongsTo',
+        foreignKey: 'userId',
+        tables: ['users'],
+        optional: false,
+      },
+    },
+  },
+  sandbags: {
+    columns: {
+      balloonId: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
         isArray: false,
       },
       createdAt: {
@@ -1756,33 +1799,6 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
-      updatedAt: {
-        coercedType: {} as DateTime,
-        enumType: null,
-        enumValues: null,
-        dbType: 'timestamp without time zone',
-        allowNull: false,
-        isArray: false,
-      },
-    },
-    virtualColumns: [],
-    associations: {
-      user: {
-        type: 'BelongsTo',
-        foreignKey: 'userId',
-        tables: ['users'],
-        optional: false,
-      },
-      rateable: {
-        type: 'BelongsTo',
-        foreignKey: 'rateableId',
-        tables: ['compositions', 'posts'],
-        optional: false,
-      },
-    },
-  },
-  sandbags: {
-    columns: {
       id: {
         coercedType: {} as IdType,
         enumType: null,
@@ -1791,11 +1807,11 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
-      balloonId: {
-        coercedType: {} as IdType,
+      updatedAt: {
+        coercedType: {} as DateTime,
         enumType: null,
         enumValues: null,
-        dbType: 'bigint',
+        dbType: 'timestamp without time zone',
         allowNull: false,
         isArray: false,
       },
@@ -1823,22 +1839,6 @@ export const schema = {
         allowNull: true,
         isArray: false,
       },
-      createdAt: {
-        coercedType: {} as DateTime,
-        enumType: null,
-        enumValues: null,
-        dbType: 'timestamp without time zone',
-        allowNull: false,
-        isArray: false,
-      },
-      updatedAt: {
-        coercedType: {} as DateTime,
-        enumType: null,
-        enumValues: null,
-        dbType: 'timestamp without time zone',
-        allowNull: false,
-        isArray: false,
-      },
     },
     virtualColumns: [],
     associations: {
@@ -1852,15 +1852,15 @@ export const schema = {
   },
   user_settings: {
     columns: {
-      id: {
-        coercedType: {} as IdType,
+      createdAt: {
+        coercedType: {} as DateTime,
         enumType: null,
         enumValues: null,
-        dbType: 'bigint',
+        dbType: 'timestamp without time zone',
         allowNull: false,
         isArray: false,
       },
-      userId: {
+      id: {
         coercedType: {} as IdType,
         enumType: null,
         enumValues: null,
@@ -1876,7 +1876,7 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
-      createdAt: {
+      updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
         enumValues: null,
@@ -1884,11 +1884,11 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
-      updatedAt: {
-        coercedType: {} as DateTime,
+      userId: {
+        coercedType: {} as IdType,
         enumType: null,
         enumValues: null,
-        dbType: 'timestamp without time zone',
+        dbType: 'bigint',
         allowNull: false,
         isArray: false,
       },
@@ -1905,27 +1905,27 @@ export const schema = {
   },
   users: {
     columns: {
-      id: {
-        coercedType: {} as IdType,
+      birthdate: {
+        coercedType: {} as DateTime | null,
         enumType: null,
         enumValues: null,
-        dbType: 'bigint',
+        dbType: 'date',
+        allowNull: true,
+        isArray: false,
+      },
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
         allowNull: false,
         isArray: false,
       },
-      uuid: {
-        coercedType: {} as string,
+      deletedAt: {
+        coercedType: {} as DateTime | null,
         enumType: null,
         enumValues: null,
-        dbType: 'uuid',
-        allowNull: false,
-        isArray: false,
-      },
-      name: {
-        coercedType: {} as string | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'character varying',
+        dbType: 'timestamp without time zone',
         allowNull: true,
         isArray: false,
       },
@@ -1936,54 +1936,6 @@ export const schema = {
         dbType: 'character varying',
         allowNull: false,
         isArray: false,
-      },
-      socialSecurityNumber: {
-        coercedType: {} as string | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'character varying',
-        allowNull: true,
-        isArray: false,
-      },
-      birthdate: {
-        coercedType: {} as DateTime | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'date',
-        allowNull: true,
-        isArray: false,
-      },
-      favoriteWord: {
-        coercedType: {} as string | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'citext',
-        allowNull: true,
-        isArray: false,
-      },
-      featuredPostPosition: {
-        coercedType: {} as number | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'integer',
-        allowNull: true,
-        isArray: false,
-      },
-      targetRating: {
-        coercedType: {} as number | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'integer',
-        allowNull: true,
-        isArray: false,
-      },
-      favoriteNumbers: {
-        coercedType: {} as number[] | null,
-        enumType: null,
-        enumValues: null,
-        dbType: 'integer[]',
-        allowNull: true,
-        isArray: true,
       },
       favoriteDates: {
         coercedType: {} as Timestamp[] | null,
@@ -2001,6 +1953,46 @@ export const schema = {
         allowNull: true,
         isArray: true,
       },
+      favoriteNumbers: {
+        coercedType: {} as number[] | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'integer[]',
+        allowNull: true,
+        isArray: true,
+      },
+      favoriteWord: {
+        coercedType: {} as string | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'citext',
+        allowNull: true,
+        isArray: false,
+      },
+      featuredPostPosition: {
+        coercedType: {} as number | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'integer',
+        allowNull: true,
+        isArray: false,
+      },
+      id: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
+      name: {
+        coercedType: {} as string | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'character varying',
+        allowNull: true,
+        isArray: false,
+      },
       passwordDigest: {
         coercedType: {} as string,
         enumType: null,
@@ -2009,12 +2001,20 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
-      createdAt: {
-        coercedType: {} as DateTime,
+      socialSecurityNumber: {
+        coercedType: {} as string | null,
         enumType: null,
         enumValues: null,
-        dbType: 'timestamp without time zone',
-        allowNull: false,
+        dbType: 'character varying',
+        allowNull: true,
+        isArray: false,
+      },
+      targetRating: {
+        coercedType: {} as number | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'integer',
+        allowNull: true,
         isArray: false,
       },
       updatedAt: {
@@ -2025,21 +2025,57 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
-      deletedAt: {
-        coercedType: {} as DateTime | null,
+      uuid: {
+        coercedType: {} as string,
         enumType: null,
         enumValues: null,
-        dbType: 'timestamp without time zone',
-        allowNull: true,
+        dbType: 'uuid',
+        allowNull: false,
         isArray: false,
       },
     },
     virtualColumns: ['password'],
     associations: {
-      userSettings: {
-        type: 'HasOne',
+      balloonLines: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['balloon_lines'],
+        optional: null,
+      },
+      balloons: {
+        type: 'HasMany',
         foreignKey: 'userId',
-        tables: ['user_settings'],
+        tables: ['beautiful_balloons'],
+        optional: null,
+      },
+      balloonsFromUuid: {
+        type: 'HasMany',
+        foreignKey: 'userId',
+        tables: ['beautiful_balloons'],
+        optional: null,
+      },
+      collarsFromUuid: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['collars'],
+        optional: null,
+      },
+      compositionAssetAudits: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['composition_asset_audits'],
+        optional: null,
+      },
+      compositionAssets: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['composition_assets'],
+        optional: null,
+      },
+      compositions: {
+        type: 'HasMany',
+        foreignKey: 'userId',
+        tables: ['compositions'],
         optional: null,
       },
       featuredPost: {
@@ -2048,16 +2084,16 @@ export const schema = {
         tables: ['posts'],
         optional: null,
       },
-      mainComposition: {
-        type: 'HasOne',
+      featuredRatings: {
+        type: 'HasMany',
         foreignKey: 'userId',
-        tables: ['compositions'],
+        tables: ['ratings'],
         optional: null,
       },
-      mainCompositionAsset: {
+      firstCollarFromUuid: {
         type: 'HasOne',
         foreignKey: 'userId',
-        tables: ['composition_assets'],
+        tables: ['collars'],
         optional: null,
       },
       firstComposition: {
@@ -2067,12 +2103,6 @@ export const schema = {
         optional: null,
       },
       firstComposition2: {
-        type: 'HasOne',
-        foreignKey: 'userId',
-        tables: ['compositions'],
-        optional: null,
-      },
-      lastComposition: {
         type: 'HasOne',
         foreignKey: 'userId',
         tables: ['compositions'],
@@ -2090,10 +2120,64 @@ export const schema = {
         tables: ['pets'],
         optional: null,
       },
-      firstCollarFromUuid: {
+      incompatibleForeignKeyTypeExamples: {
+        type: 'HasMany',
+        foreignKey: 'userId',
+        tables: ['incompatible_foreign_key_type_examples'],
+        optional: null,
+      },
+      lastComposition: {
         type: 'HasOne',
         foreignKey: 'userId',
-        tables: ['collars'],
+        tables: ['compositions'],
+        optional: null,
+      },
+      mainComposition: {
+        type: 'HasOne',
+        foreignKey: 'userId',
+        tables: ['compositions'],
+        optional: null,
+      },
+      mainCompositionAsset: {
+        type: 'HasOne',
+        foreignKey: 'userId',
+        tables: ['composition_assets'],
+        optional: null,
+      },
+      nonExtantCompositionAssets1: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['composition_assets'],
+        optional: null,
+      },
+      nonExtantCompositionAssets2: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['composition_assets'],
+        optional: null,
+      },
+      notRecentCompositions: {
+        type: 'HasMany',
+        foreignKey: 'userId',
+        tables: ['compositions'],
+        optional: null,
+      },
+      pets: {
+        type: 'HasMany',
+        foreignKey: 'userId',
+        tables: ['pets'],
+        optional: null,
+      },
+      petsFromUuid: {
+        type: 'HasMany',
+        foreignKey: 'userUuid',
+        tables: ['pets'],
+        optional: null,
+      },
+      postRatings: {
+        type: 'HasMany',
+        foreignKey: 'userId',
+        tables: ['ratings'],
         optional: null,
       },
       posts: {
@@ -2108,31 +2192,25 @@ export const schema = {
         tables: ['ratings'],
         optional: null,
       },
-      featuredRatings: {
-        type: 'HasMany',
-        foreignKey: 'userId',
-        tables: ['ratings'],
-        optional: null,
-      },
       ratingsThroughPostsThatMatchUserTargetRating: {
         type: 'HasMany',
         foreignKey: 'userId',
         tables: ['ratings'],
         optional: null,
       },
-      compositions: {
+      recentCompositionAssets: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['composition_assets'],
+        optional: null,
+      },
+      recentCompositions: {
         type: 'HasMany',
         foreignKey: 'userId',
         tables: ['compositions'],
         optional: null,
       },
-      incompatibleForeignKeyTypeExamples: {
-        type: 'HasMany',
-        foreignKey: 'userId',
-        tables: ['incompatible_foreign_key_type_examples'],
-        optional: null,
-      },
-      compositionAssets: {
+      recentMainCompositionAssets: {
         type: 'HasMany',
         foreignKey: null,
         tables: ['composition_assets'],
@@ -2150,82 +2228,10 @@ export const schema = {
         tables: ['compositions'],
         optional: null,
       },
-      compositionAssetAudits: {
-        type: 'HasMany',
-        foreignKey: null,
-        tables: ['composition_asset_audits'],
-        optional: null,
-      },
-      recentCompositions: {
-        type: 'HasMany',
+      userSettings: {
+        type: 'HasOne',
         foreignKey: 'userId',
-        tables: ['compositions'],
-        optional: null,
-      },
-      notRecentCompositions: {
-        type: 'HasMany',
-        foreignKey: 'userId',
-        tables: ['compositions'],
-        optional: null,
-      },
-      recentCompositionAssets: {
-        type: 'HasMany',
-        foreignKey: null,
-        tables: ['composition_assets'],
-        optional: null,
-      },
-      recentMainCompositionAssets: {
-        type: 'HasMany',
-        foreignKey: null,
-        tables: ['composition_assets'],
-        optional: null,
-      },
-      nonExtantCompositionAssets1: {
-        type: 'HasMany',
-        foreignKey: null,
-        tables: ['composition_assets'],
-        optional: null,
-      },
-      nonExtantCompositionAssets2: {
-        type: 'HasMany',
-        foreignKey: null,
-        tables: ['composition_assets'],
-        optional: null,
-      },
-      balloons: {
-        type: 'HasMany',
-        foreignKey: 'userId',
-        tables: ['beautiful_balloons'],
-        optional: null,
-      },
-      balloonLines: {
-        type: 'HasMany',
-        foreignKey: null,
-        tables: ['balloon_lines'],
-        optional: null,
-      },
-      pets: {
-        type: 'HasMany',
-        foreignKey: 'userId',
-        tables: ['pets'],
-        optional: null,
-      },
-      petsFromUuid: {
-        type: 'HasMany',
-        foreignKey: 'userUuid',
-        tables: ['pets'],
-        optional: null,
-      },
-      collarsFromUuid: {
-        type: 'HasMany',
-        foreignKey: null,
-        tables: ['collars'],
-        optional: null,
-      },
-      balloonsFromUuid: {
-        type: 'HasMany',
-        foreignKey: 'userId',
-        tables: ['beautiful_balloons'],
+        tables: ['user_settings'],
         optional: null,
       },
     },

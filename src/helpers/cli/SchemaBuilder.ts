@@ -129,7 +129,15 @@ ${tableName}: {
       }
     })
 
-    return columnData
+    return Object.keys(columnData)
+      .sort()
+      .reduce(
+        (acc, key) => {
+          acc[key] = columnData[key]
+          return acc
+        },
+        {} as { [key: string]: ColumnData }
+      )
   }
 
   private enumType(row: InformationSchemaRow) {
@@ -209,7 +217,15 @@ ${tableName}: {
       }
     }
 
-    return tableAssociationData
+    return Object.keys(tableAssociationData)
+      .sort()
+      .reduce(
+        (acc, key) => {
+          acc[key] = tableAssociationData[key]
+          return acc
+        },
+        {} as { [key: string]: AssociationData }
+      )
   }
 
   private async getExportedModulesFromDbSync() {

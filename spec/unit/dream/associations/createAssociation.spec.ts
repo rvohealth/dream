@@ -5,6 +5,7 @@ import CannotCreateAssociationWithThroughContext from '../../../../src/exception
 import PostVisibility from '../../../../test-app/app/models/PostVisibility'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 import Pet from '../../../../test-app/app/models/Pet'
+import Composition from '../../../../test-app/app/models/Composition'
 
 describe('Dream#createAssociation', () => {
   context('with a HasMany association', () => {
@@ -88,6 +89,25 @@ describe('Dream#createAssociation', () => {
 
         expect(pet.name).toEqual('Aster')
         expect(await pet.associationQuery('userThroughUuid').all()).toMatchDreamModels([user])
+      })
+    })
+  })
+
+  context('with a polymorphic association', () => {
+    it('assigns class name of base model to polymorphic type field', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const post = await Post.create({ user, body: 'howyadoin' })
+      const rating = await post.createAssociation('ratings', { body: 'my rating', user })
+      expect(rating.rateableType).toEqual('Post')
+    })
+
+    context('when the polymorphic association is passed as an argument', () => {
+      it('assigns class name of base model to polymorphic type field', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user })
+
+        const rating = await user.createAssociation('ratings', { rateable: composition })
+        expect(rating.rateableType).toEqual('Composition')
       })
     })
   })
