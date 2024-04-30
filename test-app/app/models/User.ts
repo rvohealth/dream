@@ -55,8 +55,11 @@ export default class User extends ApplicationModel {
   @HasMany(() => Post)
   public posts: Post[]
 
-  @HasMany(() => Rating, { through: 'posts', source: 'ratings' })
+  @HasMany(() => Rating)
   public ratings: Rating[]
+
+  @HasMany(() => Rating, { through: 'posts', source: 'ratings' })
+  public postRatings: Rating[]
 
   @HasOne(() => Post, { selfWhere: { position: 'featuredPostPosition' } })
   public featuredPost: Post

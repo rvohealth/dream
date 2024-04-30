@@ -39,25 +39,29 @@ export default async function createAssociation<
   let belongstoresult: AssociationType
   let belongstoFn: (txn: DreamTransaction<Dream>) => Promise<void>
 
+  const hasAssociation = association as HasManyStatement<any, any, any, any>
+  let modifiedOpts: Record<string, any>
   switch (association.type) {
     case 'HasMany':
     case 'HasOne':
-      if ((association as HasManyStatement<any, any, any, any>).through)
+      if (hasAssociation.through)
         throw new CannotCreateAssociationWithThroughContext({
           dreamClass: dream.constructor as typeof Dream,
           association,
         })
 
+      modifiedOpts = {
+        [association.foreignKey()]: association.primaryKeyValue(dream),
+        ...opts,
+      }
+      if (hasAssociation.polymorphic) {
+        modifiedOpts[hasAssociation.foreignKeyTypeField()] = dream.constructor.name
+      }
+
       if (txn) {
-        hasresult = await associationClass.txn(txn).create({
-          [association.foreignKey()]: association.primaryKeyValue(dream),
-          ...opts,
-        })
+        hasresult = await associationClass.txn(txn).create(modifiedOpts)
       } else {
-        hasresult = await associationClass.create({
-          [association.foreignKey()]: association.primaryKeyValue(dream),
-          ...opts,
-        })
+        hasresult = await associationClass.create(modifiedOpts)
       }
       return hasresult! as NonNullable<AssociationType>
 
