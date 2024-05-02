@@ -3,7 +3,7 @@ import { DateTime } from 'luxon'
 import { Updateable, ColumnType } from 'kysely'
 import { AssociationTableNames } from '../db/reflections'
 import Dream from '../dream'
-import { Inc, Tail } from '../helpers/typeutils'
+import { Inc, ReadonlyTail } from '../helpers/typeutils'
 import { AssociatedModelParam, WhereStatement } from '../decorators/associations/shared'
 import OpsStatement from '../ops/ops-statement'
 import { FindEachOpts } from './query'
@@ -310,7 +310,7 @@ type VariadicLoadArgsRecurse<
   : VariadicLoadArgsCheckThenRecurse<
       Schema,
       NextTableName,
-      Tail<ConcreteArgs>,
+      ReadonlyTail<ConcreteArgs>,
       NextUsedNamespaces,
       Inc<Depth>,
       AllowedNextArgValues | AllowedNextArgValues[]
@@ -523,7 +523,7 @@ type VariadicRecurse<
       DB,
       Schema,
       NextTableName,
-      Tail<ConcreteArgs>,
+      ReadonlyTail<ConcreteArgs>,
       RecursionType,
       NextUsedNamespaces,
       Inc<Depth>,

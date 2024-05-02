@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
 import camelize from '../../../src/helpers/camelize'
+import Balloon from '../../../test-app/app/models/Balloon'
 
 describe('camelize', () => {
   context('when passed a string', () => {
@@ -7,35 +8,131 @@ describe('camelize', () => {
       expect(camelize('HelloWorld-how-are-you')).toEqual('helloWorldHowAreYou')
     })
 
+    it.skip('type test', () => {
+      const alteredCase = camelize('HelloWorld-how-are-you')
+      if (alteredCase === 'helloWorldHowAreYou') {
+        // The previous line will start being a type error if `alteredCase` is anything other
+        // than what we've written in conditional
+      }
+    })
+
+    it('removes leading and trailing underscores', () => {
+      expect(camelize('_hello_world_')).toEqual('helloWorld')
+    })
+
+    it.skip('type test', () => {
+      const alteredCase = camelize('_hello_world_')
+      if (alteredCase === 'helloWorld') {
+        // The previous line will start being a type error if `alteredCase` is anything other
+        // than what we've written in conditional
+      }
+    })
+
+    it('camelizes string', () => {
+      expect(camelize('HelloWorld-how-are---you')).toEqual('helloWorldHowAreYou')
+    })
+
+    it.skip('type test', () => {
+      const alteredCase = camelize('HelloWorld-how-are---you')
+      if (alteredCase === 'helloWorldHowAreYou') {
+        // The previous line will start being a type error if `alteredCase` is anything other
+        // than what we've written in conditional
+      }
+    })
+
     context('when the string is snake case, and a number starts one of the sections of the string', () => {
       it('camelizes string', () => {
         expect(camelize('fiber_2016_2018_2020_2022_2024')).toEqual('fiber20162018202020222024')
       })
+
+      it.skip('type test', () => {
+        const alteredCase = camelize('fiber_2016_2018_2020_2022_2024')
+        if (alteredCase === 'fiber20162018202020222024') {
+          // The previous line will start being a type error if `alteredCase` is anything other
+          // than what we've written in conditional
+        }
+      })
+    })
+
+    context('periods', () => {
+      it('are ignored', () => {
+        expect(camelize('hello.world')).toEqual('hello.world')
+      })
+    })
+
+    it.skip('type test', () => {
+      const alteredCase = camelize('hello.world')
+      if (alteredCase === 'hello.world') {
+        // The previous line will start being a type error if `alteredCase` is anything other
+        // than what we've written in conditional
+      }
     })
   })
 
   context('when passed an object', () => {
-    it('undercases keys', () => {
-      expect(camelize({ helloWorld: 'HowAreYou' })).toEqual({ helloWorld: 'HowAreYou' })
+    it('camelizes keys, not values', () => {
+      expect(camelize({ hello_world: 'how_are_you' })).toEqual({ helloWorld: 'how_are_you' })
+    })
+
+    it.skip('type test', () => {
+      const alteredCase = camelize({ hello_world: 'how_are_you' })
+      if (alteredCase.helloWorld === 'how_are_you') {
+        // The previous line will start being a type error if `alteredCase` is anything other
+        // than what we've written in conditional
+      }
     })
 
     context('when passed a key with a date time value', () => {
-      it('does not try to parse the DateTime as an object', () => {
+      it('does not alter DateTimes', () => {
         const now = DateTime.now()
-        expect(camelize({ helloWorld: now })).toEqual({ helloWorld: now })
+        expect(camelize({ hello_world: now })).toEqual({ helloWorld: now })
+      })
+    })
+
+    context('when passed a key with a date time value', () => {
+      it('does not alter Dream models', () => {
+        const balloon = new Balloon()
+        expect(camelize({ hello_world: balloon })).toEqual({ helloWorld: balloon })
       })
     })
 
     context('when passed a key with a null value', () => {
-      it('does not crash', () => {
-        expect(camelize({ helloWorld: null })).toEqual({ helloWorld: null })
+      it('camelizes the key', () => {
+        expect(camelize({ hello_world: null })).toEqual({ helloWorld: null })
       })
     })
 
     context('when passed a key with an undefined value', () => {
       it('does not crash', () => {
-        expect(camelize({ helloWorld: undefined })).toEqual({})
+        expect(camelize({ hello_world: undefined })).toEqual({})
       })
+    })
+  })
+
+  context('recurses', () => {
+    const object = {
+      hello_world: [{ goodbye_world: 'kind_world' }, 'for_now'],
+      world_home: { earth_home: 'home_sweet_home' },
+    } as const
+
+    it('camelizes keys', () => {
+      expect(camelize(object)).toEqual({
+        helloWorld: [{ goodbyeWorld: 'kind_world' }, 'for_now'],
+        worldHome: { earthHome: 'home_sweet_home' },
+      })
+    })
+
+    it.skip('type test', () => {
+      const alteredCase = camelize(object)
+
+      if (
+        alteredCase.worldHome.earthHome === 'home_sweet_home' ||
+        alteredCase.helloWorld[0].goodbyeWorld === 'kind_world' ||
+        alteredCase.helloWorld[1] === 'for_now'
+      ) {
+        // The previous line will start being a type error if `alteredCase` is anything other
+        // than what we've written in conditional
+      }
     })
   })
 })

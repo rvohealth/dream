@@ -1,29 +1,21 @@
 import { DateTime } from 'luxon'
-import snakeify from '../../../src/helpers/snakeify'
+import hyphenize from '../../../src/helpers/hyphenize'
 import Balloon from '../../../test-app/app/models/Balloon'
 
-describe('snakeify', () => {
+describe('hyphenize', () => {
   context('when passed a string', () => {
-    it('undercases string', () => {
-      expect(snakeify('HelloWorld-how-are---you')).toEqual('hello_world_how_are_you')
-    })
-
-    it.skip('type test', () => {
-      const alteredCase = snakeify('HelloWorld-how-are---you')
-      if (alteredCase === 'hello_world_how_are_you') {
-        // The previous line will start being a type error if `alteredCase` is anything other
-        // than what we've written in conditional
-      }
+    it('hyphenizes string', () => {
+      expect(hyphenize('HelloWorld_how_are___you')).toEqual('hello-world-how-are-you')
     })
 
     context('periods', () => {
       it('are ignored', () => {
-        expect(snakeify('Hello.World')).toEqual('hello.world')
+        expect(hyphenize('Hello.World')).toEqual('hello.world')
       })
     })
 
     it.skip('type test', () => {
-      const alteredCase = snakeify('Hello.World')
+      const alteredCase = hyphenize('Hello.World')
       if (alteredCase === 'hello.world') {
         // The previous line will start being a type error if `alteredCase` is anything other
         // than what we've written in conditional
@@ -32,12 +24,12 @@ describe('snakeify', () => {
 
     context('slashes', () => {
       it('are ignored', () => {
-        expect(snakeify('Hello/World')).toEqual('hello/world')
+        expect(hyphenize('Hello/World')).toEqual('hello/world')
       })
     })
 
     it.skip('type test', () => {
-      const alteredCase = snakeify('Hello/World')
+      const alteredCase = hyphenize('Hello/World')
       if (alteredCase === 'hello/world') {
         // The previous line will start being a type error if `alteredCase` is anything other
         // than what we've written in conditional
@@ -46,33 +38,33 @@ describe('snakeify', () => {
   })
 
   context('when passed an object', () => {
-    it('undercases keys, not values', () => {
-      expect(snakeify({ helloWorld: 'howAreYou' })).toEqual({ hello_world: 'howAreYou' })
+    it('hyphenizes keys, not values', () => {
+      expect(hyphenize({ helloWorld: 'howAreYou' })).toEqual({ 'hello-world': 'howAreYou' })
     })
 
     context('when passed a key with a date time value', () => {
       it('does not alter DateTimes', () => {
         const now = DateTime.now()
-        expect(snakeify({ helloWorld: now })).toEqual({ hello_world: now })
+        expect(hyphenize({ helloWorld: now })).toEqual({ 'hello-world': now })
       })
     })
 
     context('when passed a key with a date time value', () => {
       it('does not alter Dream models', () => {
         const balloon = new Balloon()
-        expect(snakeify({ helloWorld: balloon })).toEqual({ hello_world: balloon })
+        expect(hyphenize({ helloWorld: balloon })).toEqual({ 'hello-world': balloon })
       })
     })
 
     context('when passed a key with a null value', () => {
-      it('undercases the key', () => {
-        expect(snakeify({ helloWorld: null })).toEqual({ hello_world: null })
+      it('hyphenizes the key', () => {
+        expect(hyphenize({ helloWorld: null })).toEqual({ 'hello-world': null })
       })
     })
 
     context('when passed a key with an undefined value', () => {
       it('does not crash', () => {
-        expect(snakeify({ helloWorld: undefined })).toEqual({})
+        expect(hyphenize({ helloWorld: undefined })).toEqual({})
       })
     })
   })
@@ -83,20 +75,20 @@ describe('snakeify', () => {
       worldHome: { earthHome: 'homeSweetHome' },
     } as const
 
-    it('undercases keys', () => {
-      expect(snakeify(object)).toEqual({
-        hello_world: [{ goodbye_world: 'kindWorld' }, 'forNow'],
-        world_home: { earth_home: 'homeSweetHome' },
+    it('hyphenizes keys', () => {
+      expect(hyphenize(object)).toEqual({
+        'hello-world': [{ 'goodbye-world': 'kindWorld' }, 'forNow'],
+        'world-home': { 'earth-home': 'homeSweetHome' },
       })
     })
 
     it.skip('type test', () => {
-      const alteredCase = snakeify(object)
+      const alteredCase = hyphenize(object)
 
       if (
-        alteredCase['world_home']['earth_home'] === 'homeSweetHome' ||
-        alteredCase['hello_world'][0]['goodbye_world'] === 'kindWorld' ||
-        alteredCase['hello_world'][1] === 'forNow'
+        alteredCase['world-home']['earth-home'] === 'homeSweetHome' ||
+        alteredCase['hello-world'][0]['goodbye-world'] === 'kindWorld' ||
+        alteredCase['hello-world'][1] === 'forNow'
       ) {
         // The previous line will start being a type error if `alteredCase` is anything other
         // than what we've written in conditional

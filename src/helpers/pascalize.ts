@@ -1,8 +1,11 @@
-export default function pascalize(str: string) {
-  return `${str}`
-    .replace(new RegExp(/[-_]+/, 'g'), ' ')
-    .replace(new RegExp(/[^\w\s/]/, 'g'), '')
-    .replace(new RegExp(/[\s/]+(.)(\w+)/, 'g'), (_, $2, $3) => ($2 as string).toUpperCase() + $3)
-    .replace(new RegExp(/\s/, 'g'), '')
-    .replace(new RegExp(/\w/), s => s.toUpperCase())
+import stringCase, { Pascalized } from './stringCasing'
+import { camelizeString } from './camelize'
+import capitalize from './capitalize'
+
+export default function pascalize<const T, RT extends Pascalized<T>>(target: T): RT {
+  return stringCase(target, pascalizeString)
+}
+
+function pascalizeString(str: string): string {
+  return capitalize(camelizeString(str))
 }

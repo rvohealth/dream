@@ -154,11 +154,13 @@ function generateColumnStr(attributeName: string, attributeType: string, descrip
 
 function generateBelongsToStr(attributeName: string, { primaryKeyType }: { primaryKeyType: PrimaryKeyType }) {
   const dataType = foreignKeyTypeFromPrimaryKey(primaryKeyType)
-  const references = pluralize(snakeify(attributeName).replace(/_id$/, ''))
-  return `.addColumn('${snakeify(attributeName).replace(
-    /_id$/,
-    ''
-  )}_id', '${dataType}', col => col.references('${references}.id').onDelete('restrict').notNull())`
+  const references = pluralize(snakeify(attributeName).replace(/\//g, '_').replace(/_id$/, ''))
+  return `.addColumn('${snakeify(attributeName)
+    .replace(/\//g, '_')
+    .replace(
+      /_id$/,
+      ''
+    )}_id', '${dataType}', col => col.references('${references}.id').onDelete('restrict').notNull())`
 }
 
 function generateIdStr({ primaryKeyType }: { primaryKeyType: PrimaryKeyType }) {

@@ -83,10 +83,17 @@ export type MergeUnionOfRecordTypes<U extends Record<string, unknown>> = {
 }
 
 // type T = Tail<[1, 2, 3]> // [2, 3]
-export type Tail<T extends readonly any[]> = T extends [any, ...infer Tail] ? Tail : []
+export type ReadonlyTail<T extends readonly any[]> = T extends readonly [any, ...infer Tail]
+  ? Tail
+  : readonly []
+
+export type NotReadonlyTail<T extends any[]> = T extends [any, ...infer Tail] ? Tail : []
 
 // type H = Head<[1, 2, 3]> // 1
-// export type Head<T extends readonly any[]> = T extends [infer Head, ...infer _Tail] ? Head : []
+export type ReadonlyHead<T extends readonly any[]> = T extends readonly [infer Head, ...any]
+  ? Head
+  : undefined
+export type NotReadonlyHead<T extends readonly any[]> = T extends [infer Head, ...any] ? Head : undefined
 
 // type U = Unshift<[1, 2, 3], 0> // [0, 1, 2, 3]
 // export type Unshift<T extends readonly any[], E> = [E, ...T]
