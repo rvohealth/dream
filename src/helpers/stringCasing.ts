@@ -146,4 +146,6 @@ function recursiveStringCase(target: any, stringCaser: (x: string) => string): a
       {} as { [key: string]: any }
     )
   }
+
+  return target
 }

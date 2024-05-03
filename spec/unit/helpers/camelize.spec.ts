@@ -102,6 +102,20 @@ describe('camelize', () => {
       })
     })
 
+    context('when passed a key with a boolean value', () => {
+      it('camelizes the key', () => {
+        expect(camelize({ hello_world: false })).toEqual({ helloWorld: false })
+      })
+    })
+
+    it.skip('type test', () => {
+      const alteredCase = camelize({ hello_world: false })
+      if (alteredCase.helloWorld === false) {
+        // The previous line will start being a type error if `alteredCase` is anything other
+        // than what we've written in conditional
+      }
+    })
+
     context('when passed a key with an undefined value', () => {
       it('does not crash', () => {
         expect(camelize({ hello_world: undefined })).toEqual({})
