@@ -456,9 +456,7 @@ export default class Dream {
     await this.query().loadInto(models, ...(args as any))
   }
 
-  public static query<T extends typeof Dream, I extends InstanceType<T>>(
-    this: T
-  ): Query<I, I['DB'], I['dreamconf']['schema'], I['allColumns'], DreamColumnNames<I>> {
+  public static query<T extends typeof Dream, I extends InstanceType<T>>(this: T): Query<I> {
     return new Query(this.prototype as I)
   }
 

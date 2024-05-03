@@ -10,18 +10,14 @@ export default function associationQuery<
   AssociationName extends keyof DreamInstance['dreamconf']['schema'][TableName &
     keyof DreamInstance['dreamconf']['schema']]['associations'],
   PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
-  AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
-    ? ElementType & Dream
-    : PossibleArrayAssociationType & Dream,
-  AssociationQuery = Query<
-    AssociationType & Dream,
-    DreamInstance['DB'],
-    DreamInstance['dreamconf']['schema'],
-    DreamInstance['allColumns'],
-    keyof DreamInstance['DB'][(AssociationType & Dream)['table']] extends never
-      ? never
-      : keyof DreamInstance['DB'][(AssociationType & Dream)['table']] & string
-  >,
+  AssociationType extends Dream = PossibleArrayAssociationType extends (infer ElementType)[]
+    ? ElementType extends Dream
+      ? ElementType
+      : never
+    : PossibleArrayAssociationType extends Dream
+      ? PossibleArrayAssociationType
+      : never,
+  AssociationQuery = Query<AssociationType>,
 >(
   dream: DreamInstance,
   txn: DreamTransaction<Dream> | null = null,

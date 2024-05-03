@@ -14,15 +14,7 @@ export default function associationUpdateQuery<
   AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
     ? ElementType
     : PossibleArrayAssociationType,
-  AssociationQuery = Query<
-    AssociationType & Dream,
-    DreamInstance['DB'],
-    DreamInstance['dreamconf']['schema'],
-    DreamInstance['allColumns'],
-    keyof DreamInstance['DB'][(AssociationType & Dream)['table']] extends never
-      ? never
-      : keyof DreamInstance['DB'][(AssociationType & Dream)['table']] & string
-  >,
+  AssociationQuery = Query<AssociationType & Dream>,
 >(
   dream: DreamInstance,
   txn: DreamTransaction<Dream> | null = null,

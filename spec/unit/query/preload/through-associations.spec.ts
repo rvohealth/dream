@@ -185,8 +185,8 @@ describe('Query#preload through', () => {
 
         const reloaded = await User.query().preload('balloons', 'sandbags').order('id').first()
         expect(reloaded!.balloons).toMatchDreamModels([latex, mylar])
-        if (reloaded!.balloons[1].constructor === Mylar)
-          expect((reloaded!.balloons[1] as Mylar).sandbags).toMatchDreamModels([sandbag])
+        if (reloaded!.balloons[1] instanceof Mylar)
+          expect(reloaded!.balloons[1].sandbags).toMatchDreamModels([sandbag])
         else expect((reloaded!.balloons[0] as Mylar).sandbags).toMatchDreamModels([sandbag])
       })
 
