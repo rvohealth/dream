@@ -23,6 +23,18 @@ describe('pascalize', () => {
     })
   })
 
+  context('when passed undefined', () => {
+    it('returns undefined', () => {
+      expect(pascalize(undefined)).toBeUndefined()
+    })
+  })
+
+  context('when passed null', () => {
+    it('returns null', () => {
+      expect(pascalize(null)).toBeNull()
+    })
+  })
+
   context('when passed an object', () => {
     it('pascalizes keys, not values', () => {
       expect(pascalize({ hello_world: 'how_are_you' })).toEqual({ HelloWorld: 'how_are_you' })

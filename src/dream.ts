@@ -269,7 +269,7 @@ export default class Dream {
 
   public static async globalName<T extends typeof Dream>(this: T): Promise<any> {
     const modelKey = await getModelKey(this)
-    return pascalize(modelKey!).replace(/\//g, '')
+    return pascalize(modelKey)?.replace(/\//g, '')
   }
 
   public static columns<
