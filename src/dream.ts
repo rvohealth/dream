@@ -267,7 +267,7 @@ export default class Dream {
     return AfterDestroyCommit()
   }
 
-  public static async globalName<T extends typeof Dream>(this: T): Promise<any> {
+  public static async globalName<T extends typeof Dream>(this: T): Promise<string | undefined> {
     const modelKey = await getModelKey(this)
     return pascalize(modelKey)?.replace(/\//g, '')
   }
