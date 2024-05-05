@@ -1,3 +1,4 @@
+import CalendarDate from '../../src/helpers/CalendarDate'
 import { DateTime } from 'luxon'
 import type { ColumnType } from "kysely";
 
@@ -116,7 +117,7 @@ export const SpeciesValues = [
 ] as const
 
 export type IdType = string | number | bigint | undefined
-export type Timestamp = ColumnType<DateTime>
+export type Timestamp = ColumnType<DateTime | CalendarDate>
 
 export interface BalloonLines {
   balloonId: Int8;

@@ -4,6 +4,7 @@ import Pet from '../../../test-app/app/models/Pet'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from '../../../src/exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
 import Composition from '../../../test-app/app/models/Composition'
+import CalendarDate from '../../../src/helpers/CalendarDate'
 
 describe('Dream initialization', () => {
   it('sets attributes', () => {
@@ -62,7 +63,7 @@ describe('Dream initialization', () => {
   context('a string is passed into a date field', () => {
     it('converts the date string to a luxon date', () => {
       const user = User.new({ birthdate: '2000-10-10' as any })
-      expect(user.birthdate).toEqual(DateTime.fromISO('2000-10-10'))
+      expect(user.birthdate).toEqual(CalendarDate.fromISO('2000-10-10'))
     })
   })
 

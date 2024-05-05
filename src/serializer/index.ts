@@ -10,6 +10,7 @@ import round from '../helpers/round'
 import NonLoadedAssociation from '../exceptions/associations/non-loaded-association'
 import isArray from 'lodash.isarray'
 import FailedToRenderThroughAssociationForSerializer from '../exceptions/serializers/failed-to-render-through-association'
+import CalendarDate from '../helpers/CalendarDate'
 
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
   public static attributeStatements: AttributeStatement[] = []
@@ -106,13 +107,13 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
         const { field, renderAs, options } = attributeStatement
         const fieldWithCasing = this.applyCasingToField(field)
 
-        let dateValue: DateTime | null | undefined
+        let dateValue: CalendarDate | DateTime | null | undefined
         let roundValue: number | null | undefined
 
         switch (renderAs) {
           case 'date':
             dateValue = this.getAttributeValue(attributeStatement)
-            returnObj[fieldWithCasing] = dateValue?.toFormat('yyyy-MM-dd') || null
+            returnObj[fieldWithCasing] = dateValue?.toISODate() || null
             break
 
           case 'decimal':

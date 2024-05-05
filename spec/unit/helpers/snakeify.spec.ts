@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import snakeify from '../../../src/helpers/snakeify'
 import Balloon from '../../../test-app/app/models/Balloon'
+import { CalendarDate } from '../../../src'
 
 describe('snakeify', () => {
   context('when passed a string', () => {
@@ -50,14 +51,21 @@ describe('snakeify', () => {
       expect(snakeify({ helloWorld: 'howAreYou' })).toEqual({ hello_world: 'howAreYou' })
     })
 
-    context('when passed a key with a date time value', () => {
+    context('when passed a key with a DateTime value', () => {
       it('does not alter DateTimes', () => {
         const now = DateTime.now()
         expect(snakeify({ helloWorld: now })).toEqual({ hello_world: now })
       })
     })
 
-    context('when passed a key with a date time value', () => {
+    context('when passed a key with a CalendarDate value', () => {
+      it('does not alter CalendarDates', () => {
+        const today = CalendarDate.today()
+        expect(snakeify({ helloWorld: today })).toEqual({ hello_world: today })
+      })
+    })
+
+    context('when passed a key with a Dream value', () => {
       it('does not alter Dream models', () => {
         const balloon = new Balloon()
         expect(snakeify({ helloWorld: balloon })).toEqual({ hello_world: balloon })

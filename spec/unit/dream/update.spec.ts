@@ -10,6 +10,7 @@ import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import Animal from '../../../test-app/app/models/Balloon/Latex/Animal'
 import ModelWithoutUpdatedAt from '../../../test-app/app/models/ModelWithoutUpdatedAt'
+import { CalendarDate } from '../../../src'
 
 describe('Dream#update', () => {
   it('updates the underlying model in the db', async () => {
@@ -272,6 +273,15 @@ describe('Dream#update', () => {
         expect(reloaded!.deletedAt).toEqualDateTime(newTime)
       })
     })
+
+    context('update with a CalendarDate', () => {
+      it('updates to the date', async () => {
+        const newTime = CalendarDate.today().minus({ days: 7 })
+        await user.update({ deletedAt: newTime })
+        const reloaded = await User.unscoped().find(user.id)
+        expect(reloaded!.deletedAt?.toISODate()).toEqual(newTime.toISODate())
+      })
+    })
   })
 
   context('date field', () => {
@@ -286,7 +296,7 @@ describe('Dream#update', () => {
     })
 
     it('updates to the date', async () => {
-      const newDate = DateTime.fromISO(dateString)
+      const newDate = CalendarDate.fromISO(dateString)
       await user.update({ birthdate: newDate })
       const reloaded = await User.unscoped().find(user.id)
       expect(reloaded!.birthdate!.toISODate()).toEqual(dateString)
@@ -297,6 +307,15 @@ describe('Dream#update', () => {
         await user.update({ birthdate: dateString as any })
         const reloaded = await User.unscoped().find(user.id)
         expect(reloaded!.birthdate!.toISODate()).toEqual(dateString)
+      })
+    })
+
+    context('update with a DateTime', () => {
+      it('updates to the date', async () => {
+        const newDate = DateTime.fromISO(dateString)
+        await user.update({ birthdate: newDate })
+        const reloaded = await User.unscoped().find(user.id)
+        expect(reloaded!.birthdate!.toISO()).toEqual(dateString)
       })
     })
   })

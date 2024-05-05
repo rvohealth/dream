@@ -10,6 +10,7 @@ import {
   stringify,
 } from 'jest-matcher-utils'
 import Dream from '../src/dream'
+import CalendarDate from '../src/helpers/CalendarDate'
 
 const EXPECTED_LABEL = 'Expected'
 const RECEIVED_LABEL = 'Received'
@@ -29,23 +30,45 @@ declare global {
       toMatchDreamModel(expected: any): jest.CustomMatcherResult
       toMatchDreamModels(expected: any): jest.CustomMatcherResult
       toBeWithin(precision: number, expected: number): jest.CustomMatcherResult
+      toEqualCalendarDate(expected: any): jest.CustomMatcherResult
     }
     interface Expect {
       toMatchDreamModel<T>(expected: T): T
+      toEqualCalendarDate<T>(expected: T): T
     }
     interface ExpectExtendMap {
       toMatchDreamModel: OwnMatcher<[expected: any]>
       toMatchDreamModels: OwnMatcher<[expected: any]>
       toBeWithin: OwnMatcher<[precision: number, expected: number]>
+      toEqualCalendarDate: OwnMatcher<[expected: CalendarDate]>
     }
   }
 }
 
 expect.extend({
+  toEqualCalendarDate(received: any, expected: CalendarDate) {
+    if (!(received instanceof CalendarDate)) {
+      return {
+        pass: false,
+        message: () =>
+          `Expected received object to be an calendarDate, but was ${received?.constructor?.name}`,
+      }
+    }
+
+    const pass = expected.equals(received)
+    return {
+      pass,
+      message: () =>
+        pass
+          ? `expected ${received.toISO()} NOT to equal ${expected.toISO()}`
+          : `expected ${received.toISO()} to equal ${expected.toISO()}`,
+    }
+  },
+
   // https://stackoverflow.com/questions/50896753/jest-tobeclosetos-precision-not-working-as-expected#answer-75639525
   toBeWithin(received: any, precision: number, expected: number) {
     if (typeof received !== 'number') {
-      throw new TypeError('This must be of type number')
+      throw new TypeError(`Received ${typeof received}, but expected number`)
     }
 
     const pass = Math.abs(received - expected) < precision

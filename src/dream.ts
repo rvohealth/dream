@@ -84,6 +84,7 @@ import CanOnlyPassBelongsToModelParam from './exceptions/associations/can-only-p
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
 import { marshalDBValue } from './helpers/marshalDBValue'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
+import CalendarDate from './helpers/CalendarDate'
 
 export default class Dream {
   public static get primaryKey() {
@@ -409,8 +410,8 @@ export default class Dream {
       return record
     } catch (err) {
       if (
-        (err as DatabaseError)?.constructor === DatabaseError &&
-        (err as DatabaseError)?.message?.includes('duplicate key value violates unique constraint')
+        err instanceof DatabaseError &&
+        err.message.includes('duplicate key value violates unique constraint')
       ) {
         const dreamModel = await this.findBy(this.extractAttributesFromUpdateableProperties(opts))
         if (!dreamModel) throw new CreateOrFindByFailedToCreateAndFind(this)
@@ -1171,15 +1172,27 @@ export default class Dream {
 
     if (this.isNewRecord) return true
 
-    return frozenValue?.constructor === DateTime
-      ? (frozenValue as DateTime).toMillis() !== this.unknownValueToMillis(currentValue)
-      : frozenValue !== currentValue
+    if (frozenValue instanceof DateTime) {
+      return frozenValue.toMillis() !== this.unknownValueToMillis(currentValue)
+    } else if (frozenValue instanceof CalendarDate) {
+      return frozenValue.toISO() !== this.unknownValueToDateString(currentValue)
+    } else {
+      return frozenValue !== currentValue
+    }
   }
 
   private unknownValueToMillis(currentValue: any): number | undefined {
     if (!currentValue) return
     if (isString(currentValue)) currentValue = DateTime.fromISO(currentValue)
-    if ((currentValue as DateTime)?.isValid) return currentValue.toMillis()
+    if (currentValue instanceof CalendarDate) currentValue = currentValue.toDateTime()
+    if (currentValue instanceof DateTime && currentValue.isValid) return currentValue.toMillis()
+  }
+
+  private unknownValueToDateString(currentValue: any): string | undefined {
+    if (!currentValue) return
+    if (isString(currentValue)) currentValue = CalendarDate.fromISO(currentValue)
+    if (currentValue instanceof DateTime) currentValue = CalendarDate.fromDateTime(currentValue)
+    if (currentValue instanceof CalendarDate && currentValue.isValid) return currentValue.toISO()!
   }
 
   public async destroy<I extends Dream>(this: I): Promise<I> {

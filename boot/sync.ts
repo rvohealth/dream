@@ -93,12 +93,18 @@ function removeUnwantedExports(file: string) {
     '\nexport type Timestamp = ColumnType<Date, Date | string, Date | string>;',
     `\
 export type IdType = string | number | bigint | undefined
-export type Timestamp = ColumnType<DateTime>`
+export type Timestamp = ColumnType<DateTime | CalendarDate>`
   )
 }
 
 function addCustomImports(file: string) {
-  const customImports = `import { DateTime } from 'luxon'`
+  const calendarDateImportStatement =
+    process.env.DREAM_CORE_DEVELOPMENT === '1'
+      ? "import CalendarDate from '../../src/helpers/CalendarDate'"
+      : "import { CalendarDate } from '@rvohealth/dream'"
+
+  const customImports = `${calendarDateImportStatement}
+import { DateTime } from 'luxon'`
 
   return `${customImports}
 ${file}`

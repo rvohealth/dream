@@ -8,7 +8,7 @@ import User from '../../../test-app/app/models/User'
 import Pet from '../../../test-app/app/models/Pet'
 import MissingSerializer from '../../../src/exceptions/missing-serializer'
 import Balloon from '../../../test-app/app/models/Balloon'
-import { NonLoadedAssociation } from '../../../src'
+import { CalendarDate, NonLoadedAssociation } from '../../../src'
 import Collar from '../../../test-app/app/models/Collar'
 import FailedToRenderThroughAssociationForSerializer from '../../../src/exceptions/serializers/failed-to-render-through-association'
 
@@ -94,7 +94,7 @@ describe('DreamSerializer#render', () => {
   context('with decorated attributes', () => {
     context('one of the fields is a date', () => {
       const subject = () => new MySerializer({ createdAt }).render()
-      let createdAt: DateTime | null | undefined
+      let createdAt: CalendarDate | DateTime | null | undefined
 
       beforeEach(() => {
         createdAt = null
@@ -104,9 +104,19 @@ describe('DreamSerializer#render', () => {
         public createdAt: string
       }
 
-      context('the date field is a valid luxon date', () => {
+      context('the date field is a valid luxon DateTime', () => {
         beforeEach(() => {
-          createdAt = DateTime.fromFormat('2002-10-02', 'yyyy-MM-dd')
+          createdAt = DateTime.fromISO('2002-10-02')
+        })
+
+        it('renders unique format for dates', () => {
+          expect(subject()).toEqual({ createdAt: '2002-10-02' })
+        })
+      })
+
+      context('the date field is a valid CalendarDate', () => {
+        beforeEach(() => {
+          createdAt = CalendarDate.fromISO('2002-10-02')
         })
 
         it('renders unique format for dates', () => {

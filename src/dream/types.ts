@@ -7,12 +7,13 @@ import { Inc, ReadonlyTail } from '../helpers/typeutils'
 import { AssociatedModelParam, WhereStatement } from '../decorators/associations/shared'
 import OpsStatement from '../ops/ops-statement'
 import { FindEachOpts } from './query'
+import CalendarDate from '../helpers/CalendarDate'
 
 export const primaryKeyTypes = ['bigserial', 'bigint', 'uuid', 'integer'] as const
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
 
 export type IdType = string | number | bigint | undefined
-export type Timestamp = ColumnType<DateTime>
+export type Timestamp = ColumnType<DateTime | CalendarDate>
 
 type MAX_VARIADIC_DEPTH = 25
 

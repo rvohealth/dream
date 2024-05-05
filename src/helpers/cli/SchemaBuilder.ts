@@ -22,7 +22,13 @@ import {
 } from './sync'`
       : ''
 
+    const calendarDateImportStatement =
+      process.env.DREAM_CORE_DEVELOPMENT === '1'
+        ? "import CalendarDate from '../../src/helpers/CalendarDate'"
+        : "import { CalendarDate } from '@rvohealth/dream'"
+
     const newSchemaFileContents = `\
+${calendarDateImportStatement}
 import { DateTime } from 'luxon'
 ${importStr}
 
@@ -52,7 +58,7 @@ ${tableName}: {
           const columnData = tableData.columns[columnName as keyof typeof tableData.columns]
           const kyselyType = this.kyselyType(tableName, columnName, fileContents)
           return `${columnName}: {
-        coercedType: {} as ${this.coercedType(kyselyType)},
+        coercedType: {} as ${this.coercedType(kyselyType, columnData.dbType)},
         enumType: ${columnData.enumType ? `{} as ${columnData.enumType}` : 'null'},
         enumValues: ${columnData.enumValues ?? 'null'},
         dbType: '${columnData.dbType}',
@@ -270,7 +276,7 @@ ${tableName}: {
     return kyselyType
   }
 
-  private coercedType(kyselyType: string) {
+  private coercedType(kyselyType: string, dbType: string) {
     return kyselyType
       .replace(/\s/g, '')
       .replace(/Generated<(.*)>/, '$1')
@@ -282,7 +288,7 @@ ${tableName}: {
             return 'number'
 
           case 'Timestamp':
-            return 'DateTime'
+            return dbType === 'date' ? 'CalendarDate' : 'DateTime'
 
           case 'Int8':
             return 'IdType'

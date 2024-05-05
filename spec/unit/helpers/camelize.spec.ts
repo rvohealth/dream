@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import camelize from '../../../src/helpers/camelize'
 import Balloon from '../../../test-app/app/models/Balloon'
+import { CalendarDate } from '../../../src'
 
 describe('camelize', () => {
   context('when passed a string', () => {
@@ -82,14 +83,21 @@ describe('camelize', () => {
       }
     })
 
-    context('when passed a key with a date time value', () => {
+    context('when passed a key with a DateTime value', () => {
       it('does not alter DateTimes', () => {
         const now = DateTime.now()
         expect(camelize({ hello_world: now })).toEqual({ helloWorld: now })
       })
     })
 
-    context('when passed a key with a date time value', () => {
+    context('when passed a key with a CalendarDate value', () => {
+      it('does not alter CalendarDates', () => {
+        const today = CalendarDate.today()
+        expect(camelize({ hello_world: today })).toEqual({ helloWorld: today })
+      })
+    })
+
+    context('when passed a key with a Dream value', () => {
       it('does not alter Dream models', () => {
         const balloon = new Balloon()
         expect(camelize({ hello_world: balloon })).toEqual({ helloWorld: balloon })

@@ -22,6 +22,7 @@ import { checkForeignKey } from '../../exceptions/associations/explicit-foreign-
 import camelize from '../../helpers/camelize'
 import NonLoadedAssociation from '../../exceptions/associations/non-loaded-association'
 import associationToGetterSetterProp from './associationToGetterSetterProp'
+import CalendarDate from '../../helpers/CalendarDate'
 
 type AssociatedModelType<
   I extends Dream,
@@ -51,6 +52,8 @@ type DreamSelectable<DB, Schema, TableName extends AssociationTableNames<DB, Sch
     keyof DB[TableName],
     | Range<DateTime>
     | (() => Range<DateTime>)
+    | Range<CalendarDate>
+    | (() => Range<CalendarDate>)
     | Range<number>
     | OpsStatement<any, any>
     | CurriedOpsStatement<any, any, any>
@@ -68,6 +71,8 @@ type AssociationDreamSelectable<
     keyof DB[TableName],
     | Range<DateTime>
     | (() => Range<DateTime>)
+    | Range<CalendarDate>
+    | (() => Range<CalendarDate>)
     | Range<number>
     | OpsStatement<any, any>
     | CurriedOpsStatement<any, any, any>

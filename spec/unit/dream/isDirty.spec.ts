@@ -3,6 +3,7 @@ import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar'
+import CalendarDate from '../../../src/helpers/CalendarDate'
 
 describe('Dream#isDirty', () => {
   it('reflects being dirty when dirty', async () => {
@@ -73,28 +74,28 @@ describe('Dream#isDirty', () => {
       })
     })
 
-    context('when the DateTime is a different object at the same time', () => {
+    context('when the CalendarDate is a different object at the same date', () => {
       it('is false', () => {
-        user.birthdate = DateTime.fromISO(user.birthdate!.toISO()!)
+        user.birthdate = CalendarDate.fromISO(user.birthdate!.toISO()!)
         expect(user.isDirty).toBe(false)
       })
     })
 
-    context('when the DateTime is a different time', () => {
+    context('when the date is different', () => {
       it('is true', () => {
-        user.birthdate = user.birthdate!.plus({ second: 1 })
+        user.birthdate = user.birthdate!.plus({ day: 1 })
         expect(user.isDirty).toBe(true)
       })
     })
 
-    context('when the DateTime is a string representation of the same time', () => {
+    context('when the CalendarDate is a string representation of the same date', () => {
       it('is false', () => {
         user.birthdate = originalBirthdateString as any
         expect(user.isDirty).toBe(false)
       })
     })
 
-    context('when the DateTime is a string representation of a different time', () => {
+    context('when the DateTime is a string representation of a different date', () => {
       it('is true', () => {
         user.birthdate = '1988-10-14' as any
         expect(user.isDirty).toBe(true)

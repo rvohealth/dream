@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import hyphenize from '../../../src/helpers/hyphenize'
 import Balloon from '../../../test-app/app/models/Balloon'
+import { CalendarDate } from '../../../src'
 
 describe('hyphenize', () => {
   context('when passed a string', () => {
@@ -42,14 +43,21 @@ describe('hyphenize', () => {
       expect(hyphenize({ helloWorld: 'howAreYou' })).toEqual({ 'hello-world': 'howAreYou' })
     })
 
-    context('when passed a key with a date time value', () => {
+    context('when passed a key with a DateTime value', () => {
       it('does not alter DateTimes', () => {
         const now = DateTime.now()
         expect(hyphenize({ helloWorld: now })).toEqual({ 'hello-world': now })
       })
     })
 
-    context('when passed a key with a date time value', () => {
+    context('when passed a key with a CalendarDate value', () => {
+      it('does not alter CalendarDates', () => {
+        const today = CalendarDate.today()
+        expect(hyphenize({ helloWorld: today })).toEqual({ 'hello-world': today })
+      })
+    })
+
+    context('when passed a key with a Dream value', () => {
       it('does not alter Dream models', () => {
         const balloon = new Balloon()
         expect(hyphenize({ helloWorld: balloon })).toEqual({ 'hello-world': balloon })

@@ -1,5 +1,6 @@
 import User from '../../../test-app/app/models/User'
 import Balloon from '../../../test-app/app/models/Balloon'
+import CalendarDate from '../../../src/helpers/CalendarDate'
 
 describe('jestMatchers', () => {
   describe('toMatchDreamModel', () => {
@@ -43,6 +44,57 @@ describe('jestMatchers', () => {
       expect([user]).not.toEqual(expect.arrayContaining([expect.toMatchDreamModel(balloon)]))
       expect([user, balloon]).toEqual(
         expect.arrayContaining([expect.toMatchDreamModel(user), expect.toMatchDreamModel(balloon)])
+      )
+    })
+  })
+
+  describe('toEqualCalendarDate', () => {
+    it('can match with asymmetrical matchers', () => {
+      const mock = jest.fn()
+      const calendarDate = CalendarDate.today()
+      mock(calendarDate)
+
+      expect(mock).toHaveBeenCalledWith(expect.toEqualCalendarDate(calendarDate))
+    })
+
+    it('can be used with toHaveBeenCalledWith multiple times', () => {
+      const mock = jest.fn()
+      const today = CalendarDate.today()
+      const tomorrow = CalendarDate.tomorrow()
+      mock(today, tomorrow)
+
+      expect(mock).toHaveBeenCalledWith(
+        expect.toEqualCalendarDate(today),
+        expect.toEqualCalendarDate(tomorrow)
+      )
+      expect(mock).not.toHaveBeenCalledWith(
+        expect.toEqualCalendarDate(tomorrow),
+        expect.toEqualCalendarDate(today)
+      )
+    })
+
+    it('can work with objects', () => {
+      const today = CalendarDate.today()
+      const tomorrow = CalendarDate.tomorrow()
+
+      expect({ today }).toEqual(expect.objectContaining({ today: expect.toEqualCalendarDate(today) }))
+      expect({ today }).not.toEqual(expect.objectContaining({ today: expect.toEqualCalendarDate(tomorrow) }))
+      expect({ today, tomorrow }).toEqual(
+        expect.objectContaining({
+          today: expect.toEqualCalendarDate(today),
+          tomorrow: expect.toEqualCalendarDate(tomorrow),
+        })
+      )
+    })
+
+    it('can work with arrays', () => {
+      const today = CalendarDate.today()
+      const tomorrow = CalendarDate.tomorrow()
+
+      expect([today]).toEqual(expect.arrayContaining([expect.toEqualCalendarDate(today)]))
+      expect([today]).not.toEqual(expect.arrayContaining([expect.toEqualCalendarDate(tomorrow)]))
+      expect([today, tomorrow]).toEqual(
+        expect.arrayContaining([expect.toEqualCalendarDate(today), expect.toEqualCalendarDate(tomorrow)])
       )
     })
   })

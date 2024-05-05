@@ -75,6 +75,7 @@ import MissingRequiredCallbackFunctionToPluckEach from '../exceptions/missing-re
 import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../exceptions/cannot-pass-additional-fields-to-pluck-each-after-callback-function'
 import NoUpdateAllOnJoins from '../exceptions/no-updateall-on-joins'
 import orderByDirection from './internal/orderByDirection'
+import CalendarDate from '../helpers/CalendarDate'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -1817,27 +1818,18 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       // explicit about the fact that we do not support null values in an array, so
       // we compact the value.
       c = compact(val)
-    } else if (val.constructor === CurriedOpsStatement) {
+    } else if (val instanceof CurriedOpsStatement) {
       val = val.toOpsStatement(this.dreamClass, attr)
       a = attr
       b = val.operator
       c = val.value
-    } else if (val.constructor === OpsStatement) {
+    } else if (val instanceof OpsStatement) {
       a = attr
       b = val.operator as KyselyComparisonOperatorExpression
       c = val.value
-    } else if (val.constructor === Range) {
-      let rangeStart = null
-      let rangeEnd = null
-
-      if ((val.begin?.constructor || val.end?.constructor) === DateTime) {
-        rangeStart = val.begin?.toJSDate()
-        rangeEnd = val.end?.toJSDate()
-      } else if ((val.begin?.constructor || val.end?.constructor) === Number) {
-        rangeStart = val.begin
-        rangeEnd = val.end
-      }
-
+    } else if (val instanceof Range) {
+      const rangeStart = val.begin
+      const rangeEnd = val.end
       const excludeEnd = val.excludeEnd
 
       if (rangeStart && rangeEnd) {
@@ -1861,6 +1853,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       b = '='
       c = val
     }
+
+    if (c instanceof DateTime || c instanceof CalendarDate) c = c.toJSDate()
+    if (c2 instanceof DateTime || c2 instanceof CalendarDate) c2 = c2.toJSDate()
 
     return { a, b, c, a2, b2, c2 }
   }

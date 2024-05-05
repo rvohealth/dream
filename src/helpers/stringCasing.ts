@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import { isObject, isString } from './typechecks'
 import { ReadonlyHead, NotReadonlyHead, ReadonlyTail, NotReadonlyTail } from './typeutils'
+import CalendarDate from './CalendarDate'
 
 type RecursivelyStringCaseObjectKeysInTuple<
   T extends any[],
@@ -136,6 +137,7 @@ function recursiveStringCase(target: any, stringCaser: (x: string) => string): a
 
   if (isObject(target)) {
     if (target instanceof DateTime) return target
+    if (target instanceof CalendarDate) return target
     if (target?.isDreamInstance) return target
 
     return Object.keys(target).reduce(

@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import pascalize from '../../../src/helpers/pascalize'
 import Balloon from '../../../test-app/app/models/Balloon'
+import { CalendarDate } from '../../../src'
 
 describe('pascalize', () => {
   context('when passed a string', () => {
@@ -40,14 +41,21 @@ describe('pascalize', () => {
       expect(pascalize({ hello_world: 'how_are_you' })).toEqual({ HelloWorld: 'how_are_you' })
     })
 
-    context('when passed a key with a date time value', () => {
+    context('when passed a key with a DateTime value', () => {
       it('does not alter DateTimes', () => {
         const now = DateTime.now()
         expect(pascalize({ hello_world: now })).toEqual({ HelloWorld: now })
       })
     })
 
-    context('when passed a key with a date time value', () => {
+    context('when passed a key with a CalendarDate value', () => {
+      it('does not alter CalendarDates', () => {
+        const today = CalendarDate.today()
+        expect(pascalize({ hello_world: today })).toEqual({ HelloWorld: today })
+      })
+    })
+
+    context('when passed a key with a Dream value', () => {
       it('does not alter Dream models', () => {
         const balloon = new Balloon()
         expect(pascalize({ hello_world: balloon })).toEqual({ HelloWorld: balloon })

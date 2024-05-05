@@ -1,3 +1,4 @@
+import CalendarDate from '../../src/helpers/CalendarDate'
 import { DateTime } from 'luxon'
 import {
   BalloonColorsEnumValues,
@@ -1906,7 +1907,7 @@ export const schema = {
   users: {
     columns: {
       birthdate: {
-        coercedType: {} as DateTime | null,
+        coercedType: {} as CalendarDate | null,
         enumType: null,
         enumValues: null,
         dbType: 'date',
