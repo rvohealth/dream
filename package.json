@@ -31,7 +31,7 @@
     "after:build:core": "cp .dream.yml dist/.dream.yml && mkdir dist/test-app/conf/env && cp test-app/conf/env/db.yml dist/test-app/conf/env/db.yml && yarn build:package-json",
     "build:docs": "node dist/boot/build-docs.js",
     "spec": "APP_ROOT_PATH=$(pwd)/test-app DREAM_CORE_DEVELOPMENT=1 NODE_ENV=test DREAM_CORE_SPEC_RUN=1 jest --runInBand --forceExit",
-    "console": "yarn dream console --core",
+    "console": "DREAM_CORE_DEVELOPMENT=1 TS_SAFE=1 APP_ROOT_PATH=$(pwd)/test-app npx ts-node --transpile-only --project ./tsconfig.json ./test-app/app/conf/repl.ts",
     "types:trace": "rm -rf dist && APP_ROOT_PATH=$(pwd) npx tsc -p ./tsconfig.build.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
     "types:trace-test-app": "rm -rf dist && APP_ROOT_PATH=$(pwd) npx tsc -p ./tsconfig.trace.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
     "format": "yarn run prettier . --write",
