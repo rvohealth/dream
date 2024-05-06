@@ -153,6 +153,22 @@ describe('CalendarDate', () => {
     })
   })
 
+  describe('#toJSON', () => {
+    it('aliases toISO', () => {
+      const calendarDate = CalendarDate.today()
+      jest.spyOn(calendarDate, 'toISO').mockReturnValue('hello world')
+      expect(calendarDate.toJSON()).toEqual('hello world')
+    })
+  })
+
+  describe('#valueOf', () => {
+    it('aliases toISO', () => {
+      const calendarDate = CalendarDate.today()
+      jest.spyOn(calendarDate, 'toISO').mockReturnValue('hello world')
+      expect(calendarDate.valueOf()).toEqual('hello world')
+    })
+  })
+
   describe('#toLocaleString', () => {
     it('delegates to DateTime', () => {
       const calendarDate = CalendarDate.fromISO('2024-03-02')
@@ -287,7 +303,7 @@ describe('CalendarDate', () => {
       })
     })
 
-    context('when the date is greater than the other date', () => {
+    context('when the date is less than the other date', () => {
       it('the negative difference in the specified units', () => {
         const calendarDate = CalendarDate.fromISO('2024-02-27')
         const otherCalendarDate = CalendarDate.fromISO('2024-03-02')
@@ -308,6 +324,90 @@ describe('CalendarDate', () => {
         const calendarDate = CalendarDate.fromISO('2024-03-02')
         const otherCalendarDate = CalendarDate.newInvalidDate()
         expect(calendarDate.diff(otherCalendarDate, 'days')).toBeNull()
+      })
+    })
+  })
+
+  describe('<', () => {
+    context('when the date is greater than the other date', () => {
+      it('is false', () => {
+        const calendarDate = CalendarDate.fromISO('2024-03-02')
+        const otherCalendarDate = CalendarDate.fromISO('2024-02-27')
+        expect(calendarDate < otherCalendarDate).toBe(false)
+      })
+    })
+
+    context('when the date is less than the other date', () => {
+      it('is true', () => {
+        const calendarDate = CalendarDate.fromISO('2024-02-27')
+        const otherCalendarDate = CalendarDate.fromISO('2024-03-02')
+        expect(calendarDate < otherCalendarDate).toBe(true)
+      })
+    })
+
+    context('when the date is equal to the other date', () => {
+      it('is false', () => {
+        const calendarDate = CalendarDate.fromISO('2024-02-27')
+        const otherCalendarDate = CalendarDate.fromISO('2024-02-27')
+        expect(calendarDate < otherCalendarDate).toBe(false)
+      })
+    })
+
+    context('on an invalid CalendarDate', () => {
+      it('returns an invalid CalendarDate', () => {
+        const calendarDate = CalendarDate.newInvalidDate()
+        const otherCalendarDate = CalendarDate.fromISO('2024-02-27')
+        expect(calendarDate < otherCalendarDate).toBe(false)
+      })
+    })
+
+    context('with an invalid CalendarDate', () => {
+      it('returns an invalid CalendarDate', () => {
+        const calendarDate = CalendarDate.fromISO('2024-03-02')
+        const otherCalendarDate = CalendarDate.newInvalidDate()
+        expect(calendarDate < otherCalendarDate).toBe(false)
+      })
+    })
+  })
+
+  describe('>', () => {
+    context('when the date is greater than the other date', () => {
+      it('is true', () => {
+        const calendarDate = CalendarDate.fromISO('2024-03-02')
+        const otherCalendarDate = CalendarDate.fromISO('2024-02-27')
+        expect(calendarDate > otherCalendarDate).toBe(true)
+      })
+    })
+
+    context('when the date is less than the other date', () => {
+      it('is false', () => {
+        const calendarDate = CalendarDate.fromISO('2024-02-27')
+        const otherCalendarDate = CalendarDate.fromISO('2024-03-02')
+        expect(calendarDate > otherCalendarDate).toBe(false)
+      })
+    })
+
+    context('when the date is equal to the other date', () => {
+      it('is false', () => {
+        const calendarDate = CalendarDate.fromISO('2024-02-27')
+        const otherCalendarDate = CalendarDate.fromISO('2024-02-27')
+        expect(calendarDate > otherCalendarDate).toBe(false)
+      })
+    })
+
+    context('on an invalid CalendarDate', () => {
+      it('returns an invalid CalendarDate', () => {
+        const calendarDate = CalendarDate.newInvalidDate()
+        const otherCalendarDate = CalendarDate.fromISO('2024-02-27')
+        expect(calendarDate > otherCalendarDate).toBe(false)
+      })
+    })
+
+    context('with an invalid CalendarDate', () => {
+      it('returns an invalid CalendarDate', () => {
+        const calendarDate = CalendarDate.fromISO('2024-03-02')
+        const otherCalendarDate = CalendarDate.newInvalidDate()
+        expect(calendarDate > otherCalendarDate).toBe(false)
       })
     })
   })

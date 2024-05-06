@@ -77,6 +77,14 @@ export default class CalendarDate {
     return this.luxonDateTime.toISODate()
   }
 
+  public toJSON() {
+    return this.toISO()
+  }
+
+  public valueOf() {
+    return this.toISO()
+  }
+
   public toISODate() {
     return this.toISO()
   }
