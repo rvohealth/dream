@@ -327,7 +327,7 @@ export type VariadicLoadArgs<
   Schema,
   ConcreteTableName,
   ConcreteArgs,
-  never,
+  ConcreteTableName,
   0,
   AllowedNextArgValues | AllowedNextArgValues[]
 >
@@ -352,7 +352,7 @@ export type VariadicJoinsArgs<
   ConcreteTableName,
   ConcreteArgs,
   'joins',
-  never,
+  ConcreteTableName,
   0,
   never,
   AllowedNextArgValues
@@ -377,7 +377,7 @@ export type VariadicPluckThroughArgs<
   ConcreteTableName,
   ConcreteArgs,
   'pluckThrough',
-  never,
+  ConcreteTableName,
   0,
   never,
   AllowedNextArgValues
@@ -402,7 +402,7 @@ export type VariadicPluckEachThroughArgs<
   ConcreteTableName,
   ConcreteArgs,
   'pluckEachThrough',
-  never,
+  ConcreteTableName,
   0,
   never,
   AllowedNextArgValues
