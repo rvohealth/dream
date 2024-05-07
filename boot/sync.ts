@@ -50,7 +50,6 @@ async function writeSchema() {
 
 function enhanceSchema(file: string) {
   file = removeUnwantedExports(file)
-  file = replaceBlankExport(file)
   file = replaceJsonType(file)
 
   const interfaces = file.split(/export interface /g)
@@ -73,14 +72,10 @@ function enhanceSchema(file: string) {
 ${allColumnsString}
 
 export class DBClass {
-  ${
-    transformedNames.length
-      ? transformedNames
-          .map(name => `${snakeify(name)}: ${name}`)
-          .sort()
-          .join('\n  ')
-      : 'placeholder: []'
-  }
+  ${transformedNames
+    .map(name => `${snakeify(name)}: ${name}`)
+    .sort()
+    .join('\n  ')}
 }
 `
 
@@ -108,10 +103,6 @@ import { DateTime } from 'luxon'`
 
   return `${customImports}
 ${file}`
-}
-
-function replaceBlankExport(str: string) {
-  return str.replace(/export interface DB \{\}/, 'export interface DB { placeholder: {} }')
 }
 
 function replaceJsonType(str: string) {
