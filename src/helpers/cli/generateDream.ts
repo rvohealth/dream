@@ -59,7 +59,7 @@ export default async function generateDream(dreamName: string, attributes: strin
 
   const migrationBasePath = await migrationsPath()
   const version = migrationVersion()
-  const migrationPath = `${migrationBasePath}/${version}-create-${pluralize(hyphenize(dreamName))}.ts`
+  const migrationPath = `${migrationBasePath}/${version}-create-${pluralize(hyphenize(dreamName)).replace(/\//g, '-')}.ts`
   const migrationsRelativeBasePath = path.join(ymlConfig.db_path, 'migrations')
   const relativeMigrationPath = migrationPath.replace(
     new RegExp(`^.*${migrationsRelativeBasePath}`),
