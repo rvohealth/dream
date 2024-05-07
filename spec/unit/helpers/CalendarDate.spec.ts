@@ -72,8 +72,8 @@ describe('CalendarDate', () => {
   describe('.yesterday', () => {
     it('is today minus 1 day ', () => {
       jest.spyOn(CalendarDate, 'today').mockReturnValue(CalendarDate.fromISO('2024-01-01'))
-      const tomorrow = CalendarDate.yesterday()
-      expect(tomorrow.toISO()).toEqual('2023-12-31')
+      const yesterday = CalendarDate.yesterday()
+      expect(yesterday.toISO()).toEqual('2023-12-31')
     })
   })
 
@@ -301,6 +301,14 @@ describe('CalendarDate', () => {
         const otherCalendarDate = CalendarDate.fromISO('2024-02-27')
         expect(calendarDate.diff(otherCalendarDate, 'days')).toEqual(4)
       })
+
+      context('across daylight savings time', () => {
+        it('is the correct integer amount', () => {
+          const calendarDate = CalendarDate.fromISO('2024-03-11')
+          const otherCalendarDate = CalendarDate.fromISO('2024-03-10')
+          expect(calendarDate.diff(otherCalendarDate, 'days')).toEqual(1)
+        })
+      })
     })
 
     context('when the date is less than the other date', () => {
@@ -308,6 +316,14 @@ describe('CalendarDate', () => {
         const calendarDate = CalendarDate.fromISO('2024-02-27')
         const otherCalendarDate = CalendarDate.fromISO('2024-03-02')
         expect(calendarDate.diff(otherCalendarDate, 'days')).toEqual(-4)
+      })
+
+      context('across daylight savings time', () => {
+        it('is the correct, negative integer amount', () => {
+          const calendarDate = CalendarDate.fromISO('2024-03-10')
+          const otherCalendarDate = CalendarDate.fromISO('2024-03-11')
+          expect(calendarDate.diff(otherCalendarDate, 'days')).toEqual(-1)
+        })
       })
     })
 
