@@ -31,7 +31,7 @@ export default async function generateDream(dreamName: string, attributes: strin
   // if they are generating a nested model path,
   // we need to make sure the nested directories exist
   if (dreamPathParts.length) {
-    const fullPath = [...dreamBasePath.split('/'), ...dreamPathParts].join('/')
+    const fullPath = [...dreamBasePath.split('/'), ...dreamPathParts].slice(0, -1).join('/')
     await thisfs.mkdir(fullPath, { recursive: true })
   }
 
