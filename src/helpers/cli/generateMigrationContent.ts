@@ -40,9 +40,11 @@ export default function generateMigrationContent({
     return `\
 import { Kysely, sql } from 'kysely'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
 }\
 `
@@ -57,6 +59,7 @@ export async function down(db: Kysely<any>): Promise<void> {
   return `\
 import { ${kyselyImports.join(', ')} } from 'kysely'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
   ${citextExtension}${generateEnumStatements(attributes)}await db.schema
     .createTable('${table}')
@@ -66,6 +69,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable('${table}').execute()${generateEnumDropStatements(attributes)}
 }\

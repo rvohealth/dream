@@ -22,6 +22,7 @@ describe('dream generate:model <name> [...attributes]', () => {
           `\
 import { Kysely, sql, CompiledQuery } from 'kysely'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
   await db.executeQuery(CompiledQuery.raw('CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;'))
   await db.schema
@@ -38,6 +39,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable('users').execute()
 }\
@@ -58,6 +60,7 @@ export async function down(db: Kysely<any>): Promise<void> {
           `\
 import { Kysely, sql } from 'kysely'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('chalupas')
@@ -68,6 +71,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable('chalupas').execute()
 }\
@@ -115,6 +119,7 @@ export async function down(db: Kysely<any>): Promise<void> {
           `\
 import { Kysely, sql } from 'kysely'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createType('topping_enum')
@@ -144,6 +149,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable('chalupas').execute()
   await db.schema.dropType('topping_enum').execute()
@@ -166,6 +172,7 @@ export async function down(db: Kysely<any>): Promise<void> {
           `\
 import { Kysely, sql } from 'kysely'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('compositions')
@@ -176,6 +183,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable('compositions').execute()
 }\
@@ -196,6 +204,7 @@ export async function down(db: Kysely<any>): Promise<void> {
           `\
 import { Kysely, sql } from 'kysely'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('compositions')
@@ -206,6 +215,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable('compositions').execute()
 }\
@@ -226,6 +236,7 @@ export async function down(db: Kysely<any>): Promise<void> {
           `\
 import { Kysely, sql } from 'kysely'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('compositions')
@@ -235,6 +246,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable('compositions').execute()
 }\
@@ -255,6 +267,7 @@ export async function down(db: Kysely<any>): Promise<void> {
           `\
 import { Kysely, sql } from 'kysely'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('compositions')
@@ -264,6 +277,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable('compositions').execute()
 }\
