@@ -7,6 +7,7 @@ import { AssociationStatement } from '../../serializer/decorators/associations/s
 import Dream from '../../dream'
 import path from 'node:path'
 import dbSyncPath from '../path/dbSyncPath'
+import serializerForKey from '../serializerForKey'
 
 export default async function generateApiSchemaContent() {
   const serializersBasePath = await serializersPath()
@@ -128,13 +129,7 @@ async function loadAssociatedSerializer(serializerPath: string, association: Ass
     // TODO: find best approach to handling polymorphic associations on serializer
     return null
   } else {
-    let serializerClass: any
-    try {
-      serializerClass = associationDreamClass?.prototype?.serializer
-    } catch (_) {
-      // noop
-    }
-
+    const serializerClass = serializerForKey(associationDreamClass, association.serializerKey)
     return serializerClass || null
   }
 }

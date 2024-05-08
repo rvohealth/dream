@@ -23,8 +23,8 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializer() {
-    return CompositionSerializer
+  public get serializers() {
+    return { default: CompositionSerializer }
   }
 
   public id: IdType

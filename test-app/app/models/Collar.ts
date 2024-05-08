@@ -13,8 +13,8 @@ export default class Collar extends ApplicationModel {
     return 'collars' as const
   }
 
-  public get serializer() {
-    return CollarSerializer
+  public get serializers() {
+    return { default: CollarSerializer }
   }
 
   public id: IdType

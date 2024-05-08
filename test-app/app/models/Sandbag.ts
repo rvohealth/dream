@@ -11,8 +11,8 @@ export default class Sandbag extends ApplicationModel {
     return 'sandbags' as const
   }
 
-  public get serializer() {
-    return SandbagSerializer
+  public get serializers() {
+    return { default: SandbagSerializer }
   }
 
   public id: IdType

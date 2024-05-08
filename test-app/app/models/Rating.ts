@@ -11,8 +11,8 @@ export default class Rating extends ApplicationModel {
     return 'ratings' as const
   }
 
-  public get serializer() {
-    return RatingSerializer
+  public get serializers() {
+    return { default: RatingSerializer }
   }
 
   public id: IdType

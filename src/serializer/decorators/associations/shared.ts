@@ -15,6 +15,7 @@ export interface AssociationStatement {
   type: SerializableAssociationType
   path: string | null
   exportedAs: string | null
+  serializerKey?: string
 }
 
 export interface RendersOneOrManyOpts {
@@ -23,4 +24,5 @@ export interface RendersOneOrManyOpts {
   through?: string
   path?: string
   exportedAs?: string
+  serializerKey?: string
 }

@@ -16,8 +16,8 @@ export default class Post extends ApplicationModel {
     return 'posts' as const
   }
 
-  public get serializer() {
-    return PostSerializer<any>
+  public get serializers() {
+    return { default: PostSerializer<any> }
   }
 
   public id: IdType

@@ -12,8 +12,8 @@ export default class BalloonSpotter extends ApplicationModel {
     return 'balloon_spotters' as const
   }
 
-  public get serializer() {
-    return BalloonSpotterSerializer
+  public get serializers() {
+    return { default: BalloonSpotterSerializer }
   }
 
   public id: IdType

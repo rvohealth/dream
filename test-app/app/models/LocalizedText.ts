@@ -12,8 +12,8 @@ export default class LocalizedText extends ApplicationModel {
     return 'localized_texts' as const
   }
 
-  public get serializer() {
-    return LocalizedTextBaseSerializer<any>
+  public get serializers() {
+    return { default: LocalizedTextBaseSerializer<any> }
   }
 
   public id: IdType

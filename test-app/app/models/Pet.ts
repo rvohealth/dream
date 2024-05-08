@@ -19,8 +19,8 @@ export default class Pet extends ApplicationModel {
     return 'pets' as const
   }
 
-  public get serializer() {
-    return PetSerializer<any, any>
+  public get serializers() {
+    return { default: PetSerializer<any, any> }
   }
 
   public id: DreamColumn<Pet, 'id'>
