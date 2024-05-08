@@ -9,16 +9,21 @@ describe('dream generate:model <name> [...attributes]', () => {
 import { DateTime } from 'luxon'
 import { DreamColumn } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import MealTypeSerializer from '../../../test-app/app/serializers/MealTypeSerializer'
+import MealTypeSerializer, { MealTypeIndexSerializer } from '../../../test-app/app/serializers/MealTypeSerializer'
 
 export default class MealType extends ApplicationModel {
   public get table() {
     return 'meal_types' as const
   }
 
-  public get serializer() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return MealTypeSerializer<any, any>
+  public get serializers() {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      default: MealTypeSerializer<any, any>,
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      index: MealTypeIndexSerializer<any, any>,
+    }
   }
 
   public id: DreamColumn<MealType, 'id'>
@@ -39,16 +44,21 @@ export default class MealType extends ApplicationModel {
 import { DateTime } from 'luxon'
 import { DreamColumn } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import UserSerializer from '../../../test-app/app/serializers/UserSerializer'
+import UserSerializer, { UserIndexSerializer } from '../../../test-app/app/serializers/UserSerializer'
 
 export default class User extends ApplicationModel {
   public get table() {
     return 'users' as const
   }
 
-  public get serializer() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return UserSerializer<any, any>
+  public get serializers() {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      default: UserSerializer<any, any>,
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      index: UserIndexSerializer<any, any>,
+    }
   }
 
   public id: DreamColumn<User, 'id'>
@@ -74,7 +84,7 @@ export default class User extends ApplicationModel {
 import { DateTime } from 'luxon'
 import { DreamColumn } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import ChalupaSerializer from '../../../test-app/app/serializers/ChalupaSerializer'
+import ChalupaSerializer, { ChalupaIndexSerializer } from '../../../test-app/app/serializers/ChalupaSerializer'
 import { ToppingEnum, ProteinEnum, MyExistingEnumEnum } from '../../../test-app/db/sync'
 
 export default class Chalupa extends ApplicationModel {
@@ -82,9 +92,14 @@ export default class Chalupa extends ApplicationModel {
     return 'chalupas' as const
   }
 
-  public get serializer() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return ChalupaSerializer<any, any>
+  public get serializers() {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      default: ChalupaSerializer<any, any>,
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      index: ChalupaIndexSerializer<any, any>,
+    }
   }
 
   public id: DreamColumn<Chalupa, 'id'>
@@ -107,16 +122,21 @@ export default class Chalupa extends ApplicationModel {
 import { DateTime } from 'luxon'
 import { DreamColumn } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import PaperSerializer from '../../../test-app/app/serializers/PaperSerializer'
+import PaperSerializer, { PaperIndexSerializer } from '../../../test-app/app/serializers/PaperSerializer'
 
 export default class Paper extends ApplicationModel {
   public get table() {
     return 'paper' as const
   }
 
-  public get serializer() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return PaperSerializer<any, any>
+  public get serializers() {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      default: PaperSerializer<any, any>,
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      index: PaperIndexSerializer<any, any>,
+    }
   }
 
   public id: DreamColumn<Paper, 'id'>
@@ -138,7 +158,7 @@ export default class Paper extends ApplicationModel {
 import { DateTime } from 'luxon'
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CompositionSerializer from '../../../test-app/app/serializers/CompositionSerializer'
+import CompositionSerializer, { CompositionIndexSerializer } from '../../../test-app/app/serializers/CompositionSerializer'
 import GraphNode from './GraphNode'
 
 export default class Composition extends ApplicationModel {
@@ -146,9 +166,14 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializer() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return CompositionSerializer<any, any>
+  public get serializers() {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      default: CompositionSerializer<any, any>,
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      index: CompositionIndexSerializer<any, any>,
+    }
   }
 
   public id: DreamColumn<Composition, 'id'>
@@ -171,7 +196,7 @@ export default class Composition extends ApplicationModel {
 import { DateTime } from 'luxon'
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CatToySerializer from '../../../test-app/app/serializers/CatToySerializer'
+import CatToySerializer, { CatToyIndexSerializer } from '../../../test-app/app/serializers/CatToySerializer'
 import Cat from './Pet/Domestic/Cat'
 
 export default class CatToy extends ApplicationModel {
@@ -179,9 +204,14 @@ export default class CatToy extends ApplicationModel {
     return 'cat_toys' as const
   }
 
-  public get serializer() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return CatToySerializer<any, any>
+  public get serializers() {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      default: CatToySerializer<any, any>,
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      index: CatToyIndexSerializer<any, any>,
+    }
   }
 
   public id: DreamColumn<CatToy, 'id'>
@@ -203,7 +233,7 @@ export default class CatToy extends ApplicationModel {
 import { DateTime } from 'luxon'
 import { DreamColumn, HasMany } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CatToySerializer from '../../../test-app/app/serializers/CatToySerializer'
+import CatToySerializer, { CatToyIndexSerializer } from '../../../test-app/app/serializers/CatToySerializer'
 import Cat from './Pet/Domestic/Cat'
 
 export default class CatToy extends ApplicationModel {
@@ -211,9 +241,14 @@ export default class CatToy extends ApplicationModel {
     return 'cat_toys' as const
   }
 
-  public get serializer() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return CatToySerializer<any, any>
+  public get serializers() {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      default: CatToySerializer<any, any>,
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      index: CatToyIndexSerializer<any, any>,
+    }
   }
 
   public id: DreamColumn<CatToy, 'id'>
@@ -234,7 +269,7 @@ export default class CatToy extends ApplicationModel {
 import { DateTime } from 'luxon'
 import { DreamColumn, HasOne } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CatToySerializer from '../../../test-app/app/serializers/CatToySerializer'
+import CatToySerializer, { CatToyIndexSerializer } from '../../../test-app/app/serializers/CatToySerializer'
 import Cat from './Pet/Domestic/Cat'
 
 export default class CatToy extends ApplicationModel {
@@ -242,9 +277,14 @@ export default class CatToy extends ApplicationModel {
     return 'cat_toys' as const
   }
 
-  public get serializer() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return CatToySerializer<any, any>
+  public get serializers() {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      default: CatToySerializer<any, any>,
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      index: CatToyIndexSerializer<any, any>,
+    }
   }
 
   public id: DreamColumn<CatToy, 'id'>
@@ -265,7 +305,7 @@ export default class CatToy extends ApplicationModel {
 import { DateTime } from 'luxon'
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
-import PetDomesticCatSerializer from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
+import PetDomesticCatSerializer, { PetDomesticCatIndexSerializer } from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
 import GraphNode from '../../GraphNode'
 
 export default class Cat extends ApplicationModel {
@@ -273,9 +313,14 @@ export default class Cat extends ApplicationModel {
     return 'pet_domestic_cats' as const
   }
 
-  public get serializer() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return PetDomesticCatSerializer<any, any>
+  public get serializers() {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      default: PetDomesticCatSerializer<any, any>,
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      index: PetDomesticCatIndexSerializer<any, any>,
+    }
   }
 
   public id: DreamColumn<Cat, 'id'>
@@ -297,7 +342,7 @@ export default class Cat extends ApplicationModel {
 import { DateTime } from 'luxon'
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
-import PetDomesticCatSerializer from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
+import PetDomesticCatSerializer, { PetDomesticCatIndexSerializer } from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
 import Dog from '../../Pet/Domestic/Dog'
 
 export default class Cat extends ApplicationModel {
@@ -305,9 +350,14 @@ export default class Cat extends ApplicationModel {
     return 'pet_domestic_cats' as const
   }
 
-  public get serializer() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return PetDomesticCatSerializer<any, any>
+  public get serializers() {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      default: PetDomesticCatSerializer<any, any>,
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      index: PetDomesticCatIndexSerializer<any, any>,
+    }
   }
 
   public id: DreamColumn<Cat, 'id'>
@@ -329,7 +379,7 @@ export default class Cat extends ApplicationModel {
 import { DateTime } from 'luxon'
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
-import PetWildCatSerializer from '../../../../../test-app/app/serializers/Pet/Wild/CatSerializer'
+import PetWildCatSerializer, { PetWildCatIndexSerializer } from '../../../../../test-app/app/serializers/Pet/Wild/CatSerializer'
 import Dog from '../../Pet/Domestic/Dog'
 
 export default class Cat extends ApplicationModel {
@@ -337,9 +387,14 @@ export default class Cat extends ApplicationModel {
     return 'pet_wild_cats' as const
   }
 
-  public get serializer() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return PetWildCatSerializer<any, any>
+  public get serializers() {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      default: PetWildCatSerializer<any, any>,
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      index: PetWildCatIndexSerializer<any, any>,
+    }
   }
 
   public id: DreamColumn<Cat, 'id'>
@@ -362,7 +417,7 @@ export default class Cat extends ApplicationModel {
 import { DateTime } from 'luxon'
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CompositionSerializer from '../../../test-app/app/serializers/CompositionSerializer'
+import CompositionSerializer, { CompositionIndexSerializer } from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
 import Chalupa from './Chalupa'
 
@@ -371,9 +426,14 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializer() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return CompositionSerializer<any, any>
+  public get serializers() {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      default: CompositionSerializer<any, any>,
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      index: CompositionIndexSerializer<any, any>,
+    }
   }
 
   public id: DreamColumn<Composition, 'id'>
@@ -401,7 +461,7 @@ export default class Composition extends ApplicationModel {
 import { DateTime } from 'luxon'
 import { DreamColumn, HasOne } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CompositionSerializer from '../../../test-app/app/serializers/CompositionSerializer'
+import CompositionSerializer, { CompositionIndexSerializer } from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
 
 export default class Composition extends ApplicationModel {
@@ -409,9 +469,14 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializer() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return CompositionSerializer<any, any>
+  public get serializers() {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      default: CompositionSerializer<any, any>,
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      index: CompositionIndexSerializer<any, any>,
+    }
   }
 
   public id: DreamColumn<Composition, 'id'>
@@ -434,7 +499,7 @@ export default class Composition extends ApplicationModel {
 import { DateTime } from 'luxon'
 import { DreamColumn, HasMany } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import UserSerializer from '../../../test-app/app/serializers/UserSerializer'
+import UserSerializer, { UserIndexSerializer } from '../../../test-app/app/serializers/UserSerializer'
 import Composition from './Composition'
 
 export default class User extends ApplicationModel {
@@ -442,9 +507,14 @@ export default class User extends ApplicationModel {
     return 'users' as const
   }
 
-  public get serializer() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return UserSerializer<any, any>
+  public get serializers() {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      default: UserSerializer<any, any>,
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      index: UserIndexSerializer<any, any>,
+    }
   }
 
   public id: DreamColumn<User, 'id'>
@@ -467,7 +537,7 @@ export default class User extends ApplicationModel {
 import { DateTime } from 'luxon'
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CompositionSerializer from '../../../test-app/app/serializers/CompositionSerializer'
+import CompositionSerializer, { CompositionIndexSerializer } from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
 
 export default class Composition extends ApplicationModel {
@@ -475,9 +545,14 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializer() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return CompositionSerializer<any, any>
+  public get serializers() {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      default: CompositionSerializer<any, any>,
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      index: CompositionIndexSerializer<any, any>,
+    }
   }
 
   public id: DreamColumn<Composition, 'id'>
