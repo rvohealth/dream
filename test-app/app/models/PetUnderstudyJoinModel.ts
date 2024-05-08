@@ -10,8 +10,8 @@ export default class PetUnderstudyJoinModel extends ApplicationModel {
     return 'pet_understudy_join_models' as const
   }
 
-  public get serializer() {
-    return PetUnderstudyJoinModelSerializer<any>
+  public get serializers() {
+    return { default: PetUnderstudyJoinModelSerializer<any> }
   }
 
   public id: IdType

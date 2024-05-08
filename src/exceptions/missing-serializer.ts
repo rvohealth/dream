@@ -10,15 +10,15 @@ export default class MissingSerializer extends Error {
 
   public get message() {
     return `
-Missing serializer definition on the following class
+Missing serializers definition on the following class
 Dream class: ${this.dreamClass.name}
 
 Try something like this in your ${this.dreamClass.name}'s serializer getter:
 
 class ${this.dreamClass.name} {
   ...
-  public get serializer() {
-    return ${this.dreamClass.name}Serializer
+  public get serializers() {
+    return { default: ${this.dreamClass.name}Serializer }
   }
 }
     `

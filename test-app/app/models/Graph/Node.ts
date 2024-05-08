@@ -11,8 +11,8 @@ export default class Node extends ApplicationModel {
     return 'graph_nodes' as const
   }
 
-  public get serializer() {
-    return GraphNodeSerializer
+  public get serializers() {
+    return { default: GraphNodeSerializer }
   }
 
   public id: IdType

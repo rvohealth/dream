@@ -11,8 +11,8 @@ export default class BalloonLine extends ApplicationModel {
     return 'balloon_lines' as const
   }
 
-  public get serializer() {
-    return BalloonLineSerializer
+  public get serializers() {
+    return { default: BalloonLineSerializer }
   }
 
   public id: IdType

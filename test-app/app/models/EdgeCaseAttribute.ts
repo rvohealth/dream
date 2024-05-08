@@ -8,8 +8,8 @@ export default class EdgeCaseAttribute extends ApplicationModel {
     return 'edge_case_attributes' as const
   }
 
-  public get serializer() {
-    return EdgeCaseAttributeSerializer<any>
+  public get serializers() {
+    return { default: EdgeCaseAttributeSerializer<any> }
   }
 
   public id: IdType

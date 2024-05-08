@@ -11,8 +11,8 @@ export default class PostVisibility extends ApplicationModel {
     return 'post_visibilities' as const
   }
 
-  public get serializer() {
-    return PostVisibilitySerializer<any>
+  public get serializers() {
+    return { default: PostVisibilitySerializer<any> }
   }
 
   public id: IdType

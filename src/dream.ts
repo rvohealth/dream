@@ -85,6 +85,7 @@ import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associati
 import { marshalDBValue } from './helpers/marshalDBValue'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
 import CalendarDate from './helpers/CalendarDate'
+import serializerForKey from './helpers/serializerForKey'
 
 export default class Dream {
   public static get primaryKey() {
@@ -789,8 +790,8 @@ export default class Dream {
     throw new MissingTable(this.constructor as typeof Dream)
   }
 
-  public get serializer(): typeof DreamSerializer {
-    throw new MissingSerializer(this.constructor as typeof Dream)
+  public get serializers() {
+    return { default: DreamSerializer<any, any> }
   }
 
   public get unsavedAssociations(): (
@@ -1341,8 +1342,11 @@ export default class Dream {
     return reload(this)
   }
 
-  public serialize<I extends Dream>(this: I, { casing = null }: { casing?: 'camel' | 'snake' | null } = {}) {
-    const serializer = new this.serializer(this)
+  public serialize<I extends Dream>(this: I, { casing = null, serializerKey }: RenderOptions<I> = {}) {
+    const serializerClass = serializerForKey(this.constructor, serializerKey)
+    if (!serializerClass) throw new MissingSerializer(this.constructor as typeof Dream)
+
+    const serializer = new serializerClass(this)
     if (casing) serializer.casing(casing)
     return serializer.render()
   }
@@ -1484,3 +1488,13 @@ export interface CreateOrFindByExtraOps<T extends typeof Dream> {
     | WhereStatement<InstanceType<T>['DB'], InstanceType<T>['dreamconf']['schema'], InstanceType<T>['table']>
     | UpdateablePropertiesForClass<T>
 }
+
+export type RenderOptions<
+  T,
+  U = T extends (infer R)[] ? R : T,
+  SerializerType = U extends null
+    ? never
+    : U['serializers' & keyof U] extends object
+      ? keyof U['serializers' & keyof U]
+      : never,
+> = { serializerKey?: SerializerType; casing?: 'camel' | 'snake' | null }
