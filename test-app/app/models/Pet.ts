@@ -20,7 +20,7 @@ export default class Pet extends ApplicationModel {
   }
 
   public get serializers() {
-    return { default: PetSerializer<any, any> }
+    return { default: PetSerializer<any, any> } as const
   }
 
   public id: DreamColumn<Pet, 'id'>

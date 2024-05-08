@@ -12,7 +12,7 @@ export default class Node extends ApplicationModel {
   }
 
   public get serializers() {
-    return { default: GraphNodeSerializer }
+    return { default: GraphNodeSerializer } as const
   }
 
   public id: IdType

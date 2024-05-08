@@ -12,7 +12,7 @@ export default class Sandbag extends ApplicationModel {
   }
 
   public get serializers() {
-    return { default: SandbagSerializer }
+    return { default: SandbagSerializer } as const
   }
 
   public id: IdType

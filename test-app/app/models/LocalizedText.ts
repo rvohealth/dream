@@ -13,7 +13,7 @@ export default class LocalizedText extends ApplicationModel {
   }
 
   public get serializers() {
-    return { default: LocalizedTextBaseSerializer<any> }
+    return { default: LocalizedTextBaseSerializer<any> } as const
   }
 
   public id: IdType

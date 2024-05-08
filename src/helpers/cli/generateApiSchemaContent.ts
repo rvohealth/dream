@@ -8,6 +8,7 @@ import Dream from '../../dream'
 import path from 'node:path'
 import dbSyncPath from '../path/dbSyncPath'
 import serializerForKey from '../serializerForKey'
+import MissingSerializer from '../../exceptions/missing-serializer'
 
 export default async function generateApiSchemaContent() {
   const serializersBasePath = await serializersPath()
@@ -129,8 +130,12 @@ async function loadAssociatedSerializer(serializerPath: string, association: Ass
     // TODO: find best approach to handling polymorphic associations on serializer
     return null
   } else {
-    const serializerClass = serializerForKey(associationDreamClass, association.serializerKey)
-    return serializerClass || null
+    try {
+      return serializerForKey(associationDreamClass, association.serializerKey)
+    } catch (err) {
+      if (err instanceof MissingSerializer) return null
+      throw err
+    }
   }
 }
 

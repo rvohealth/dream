@@ -12,7 +12,7 @@ export default class Edge extends ApplicationModel {
   }
 
   public get serializers() {
-    return { default: GraphEdgeSerializer }
+    return { default: GraphEdgeSerializer } as const
   }
 
   public id: IdType

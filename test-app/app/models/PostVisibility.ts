@@ -12,7 +12,7 @@ export default class PostVisibility extends ApplicationModel {
   }
 
   public get serializers() {
-    return { default: PostVisibilitySerializer<any> }
+    return { default: PostVisibilitySerializer<any> } as const
   }
 
   public id: IdType

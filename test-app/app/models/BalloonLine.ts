@@ -12,7 +12,7 @@ export default class BalloonLine extends ApplicationModel {
   }
 
   public get serializers() {
-    return { default: BalloonLineSerializer }
+    return { default: BalloonLineSerializer } as const
   }
 
   public id: IdType

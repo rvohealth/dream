@@ -13,7 +13,7 @@ export default class BalloonSpotter extends ApplicationModel {
   }
 
   public get serializers() {
-    return { default: BalloonSpotterSerializer }
+    return { default: BalloonSpotterSerializer } as const
   }
 
   public id: IdType

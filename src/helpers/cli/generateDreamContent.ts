@@ -102,7 +102,7 @@ export default class ${modelClassName} extends ApplicationModel {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       index: ${serializerIndexNameFromModelName(modelName)}<any, any>,
-    }
+    } as const
   }
 
   public id: ${idTypescriptType}${attributeStatements

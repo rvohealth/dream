@@ -22,7 +22,7 @@ export default class MealType extends ApplicationModel {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       index: MealTypeIndexSerializer<any, any>,
-    }
+    } as const
   }
 
   public id: DreamColumn<MealType, 'id'>
@@ -56,7 +56,7 @@ export default class User extends ApplicationModel {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       index: UserIndexSerializer<any, any>,
-    }
+    } as const
   }
 
   public id: DreamColumn<User, 'id'>
@@ -96,7 +96,7 @@ export default class Chalupa extends ApplicationModel {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       index: ChalupaIndexSerializer<any, any>,
-    }
+    } as const
   }
 
   public id: DreamColumn<Chalupa, 'id'>
@@ -132,7 +132,7 @@ export default class Paper extends ApplicationModel {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       index: PaperIndexSerializer<any, any>,
-    }
+    } as const
   }
 
   public id: DreamColumn<Paper, 'id'>
@@ -168,7 +168,7 @@ export default class Composition extends ApplicationModel {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       index: CompositionIndexSerializer<any, any>,
-    }
+    } as const
   }
 
   public id: DreamColumn<Composition, 'id'>
@@ -205,7 +205,7 @@ export default class CatToy extends ApplicationModel {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       index: CatToyIndexSerializer<any, any>,
-    }
+    } as const
   }
 
   public id: DreamColumn<CatToy, 'id'>
@@ -241,7 +241,7 @@ export default class CatToy extends ApplicationModel {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       index: CatToyIndexSerializer<any, any>,
-    }
+    } as const
   }
 
   public id: DreamColumn<CatToy, 'id'>
@@ -276,7 +276,7 @@ export default class CatToy extends ApplicationModel {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       index: CatToyIndexSerializer<any, any>,
-    }
+    } as const
   }
 
   public id: DreamColumn<CatToy, 'id'>
@@ -311,7 +311,7 @@ export default class Cat extends ApplicationModel {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       index: PetDomesticCatIndexSerializer<any, any>,
-    }
+    } as const
   }
 
   public id: DreamColumn<Cat, 'id'>
@@ -347,7 +347,7 @@ export default class Cat extends ApplicationModel {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       index: PetDomesticCatIndexSerializer<any, any>,
-    }
+    } as const
   }
 
   public id: DreamColumn<Cat, 'id'>
@@ -383,7 +383,7 @@ export default class Cat extends ApplicationModel {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       index: PetWildCatIndexSerializer<any, any>,
-    }
+    } as const
   }
 
   public id: DreamColumn<Cat, 'id'>
@@ -421,7 +421,7 @@ export default class Composition extends ApplicationModel {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       index: CompositionIndexSerializer<any, any>,
-    }
+    } as const
   }
 
   public id: DreamColumn<Composition, 'id'>
@@ -463,7 +463,7 @@ export default class Composition extends ApplicationModel {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       index: CompositionIndexSerializer<any, any>,
-    }
+    } as const
   }
 
   public id: DreamColumn<Composition, 'id'>
@@ -500,7 +500,7 @@ export default class User extends ApplicationModel {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       index: UserIndexSerializer<any, any>,
-    }
+    } as const
   }
 
   public id: DreamColumn<User, 'id'>
@@ -537,7 +537,7 @@ export default class Composition extends ApplicationModel {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       index: CompositionIndexSerializer<any, any>,
-    }
+    } as const
   }
 
   public id: DreamColumn<Composition, 'id'>

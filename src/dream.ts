@@ -58,7 +58,6 @@ import pascalize from './helpers/pascalize'
 import getModelKey from './helpers/getModelKey'
 import { VirtualAttributeStatement } from './decorators/virtual'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
-import DreamSerializer from './serializer'
 import MissingSerializer from './exceptions/missing-serializer'
 import MissingTable from './exceptions/missing-table'
 import associationQuery from './dream/internal/associations/associationQuery'
@@ -790,8 +789,8 @@ export default class Dream {
     throw new MissingTable(this.constructor as typeof Dream)
   }
 
-  public get serializers() {
-    return { default: DreamSerializer<any, any> }
+  public get serializers(): Record<string, any> {
+    throw new MissingSerializer(this.constructor as typeof Dream)
   }
 
   public get unsavedAssociations(): (
@@ -1344,8 +1343,6 @@ export default class Dream {
 
   public serialize<I extends Dream>(this: I, { casing = null, serializerKey }: RenderOptions<I> = {}) {
     const serializerClass = serializerForKey(this.constructor, serializerKey)
-    if (!serializerClass) throw new MissingSerializer(this.constructor as typeof Dream)
-
     const serializer = new serializerClass(this)
     if (casing) serializer.casing(casing)
     return serializer.render()

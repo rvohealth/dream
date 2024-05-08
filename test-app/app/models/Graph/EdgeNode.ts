@@ -16,7 +16,7 @@ export default class EdgeNode extends ApplicationModel {
   }
 
   public get serializers() {
-    return { default: GraphEdgeNodeSerializer }
+    return { default: GraphEdgeNodeSerializer } as const
   }
 
   public id: IdType
