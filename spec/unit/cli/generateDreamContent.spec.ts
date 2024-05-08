@@ -6,7 +6,6 @@ describe('dream generate:model <name> [...attributes]', () => {
       const res = await generateDreamContent('MealType', [])
       expect(res).toEqual(
         `\
-import { DateTime } from 'luxon'
 import { DreamColumn } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import MealTypeSerializer, { MealTypeIndexSerializer } from '../../../test-app/app/serializers/MealTypeSerializer'
@@ -41,7 +40,6 @@ export default class MealType extends ApplicationModel {
         const res = await generateDreamContent('user', ['email:string', 'password_digest:string'])
         expect(res).toEqual(
           `\
-import { DateTime } from 'luxon'
 import { DreamColumn } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import UserSerializer, { UserIndexSerializer } from '../../../test-app/app/serializers/UserSerializer'
@@ -81,7 +79,6 @@ export default class User extends ApplicationModel {
         ])
         expect(res).toEqual(
           `\
-import { DateTime } from 'luxon'
 import { DreamColumn } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import ChalupaSerializer, { ChalupaIndexSerializer } from '../../../test-app/app/serializers/ChalupaSerializer'
@@ -119,7 +116,6 @@ export default class Chalupa extends ApplicationModel {
         const res = await generateDreamContent('paper', ['name:string'])
         expect(res).toEqual(
           `\
-import { DateTime } from 'luxon'
 import { DreamColumn } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import PaperSerializer, { PaperIndexSerializer } from '../../../test-app/app/serializers/PaperSerializer'
@@ -155,7 +151,6 @@ export default class Paper extends ApplicationModel {
           const res = await generateDreamContent('composition', ['graph_node:belongs_to'])
           expect(res).toEqual(
             `\
-import { DateTime } from 'luxon'
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import CompositionSerializer, { CompositionIndexSerializer } from '../../../test-app/app/serializers/CompositionSerializer'
@@ -193,7 +188,6 @@ export default class Composition extends ApplicationModel {
             const res = await generateDreamContent('cat_toy', ['pet/domestic/cat:belongs_to'])
             expect(res).toEqual(
               `\
-import { DateTime } from 'luxon'
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import CatToySerializer, { CatToyIndexSerializer } from '../../../test-app/app/serializers/CatToySerializer'
@@ -230,7 +224,6 @@ export default class CatToy extends ApplicationModel {
             const res = await generateDreamContent('cat_toy', ['pet/domestic/cat:has_many'])
             expect(res).toEqual(
               `\
-import { DateTime } from 'luxon'
 import { DreamColumn, HasMany } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import CatToySerializer, { CatToyIndexSerializer } from '../../../test-app/app/serializers/CatToySerializer'
@@ -266,7 +259,6 @@ export default class CatToy extends ApplicationModel {
             const res = await generateDreamContent('cat_toy', ['pet/domestic/cat:has_one'])
             expect(res).toEqual(
               `\
-import { DateTime } from 'luxon'
 import { DreamColumn, HasOne } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import CatToySerializer, { CatToyIndexSerializer } from '../../../test-app/app/serializers/CatToySerializer'
@@ -302,7 +294,6 @@ export default class CatToy extends ApplicationModel {
             const res = await generateDreamContent('pet/domestic/cat', ['graph_node:belongs_to'])
             expect(res).toEqual(
               `\
-import { DateTime } from 'luxon'
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
 import PetDomesticCatSerializer, { PetDomesticCatIndexSerializer } from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
@@ -339,7 +330,6 @@ export default class Cat extends ApplicationModel {
             const res = await generateDreamContent('pet/domestic/cat', ['pet/domestic/dog:belongs_to'])
             expect(res).toEqual(
               `\
-import { DateTime } from 'luxon'
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
 import PetDomesticCatSerializer, { PetDomesticCatIndexSerializer } from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
@@ -376,7 +366,6 @@ export default class Cat extends ApplicationModel {
             const res = await generateDreamContent('pet/wild/cat', ['pet/domestic/dog:belongs_to'])
             expect(res).toEqual(
               `\
-import { DateTime } from 'luxon'
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
 import PetWildCatSerializer, { PetWildCatIndexSerializer } from '../../../../../test-app/app/serializers/Pet/Wild/CatSerializer'
@@ -414,7 +403,6 @@ export default class Cat extends ApplicationModel {
           const res = await generateDreamContent('composition', ['user:belongs_to', 'chalupa:belongs_to'])
           expect(res).toEqual(
             `\
-import { DateTime } from 'luxon'
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import CompositionSerializer, { CompositionIndexSerializer } from '../../../test-app/app/serializers/CompositionSerializer'
@@ -458,7 +446,6 @@ export default class Composition extends ApplicationModel {
           const res = await generateDreamContent('composition', ['user:has_one'])
           expect(res).toEqual(
             `\
-import { DateTime } from 'luxon'
 import { DreamColumn, HasOne } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import CompositionSerializer, { CompositionIndexSerializer } from '../../../test-app/app/serializers/CompositionSerializer'
@@ -496,7 +483,6 @@ export default class Composition extends ApplicationModel {
           const res = await generateDreamContent('user', ['composition:has_many'])
           expect(res).toEqual(
             `\
-import { DateTime } from 'luxon'
 import { DreamColumn, HasMany } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import UserSerializer, { UserIndexSerializer } from '../../../test-app/app/serializers/UserSerializer'
@@ -534,7 +520,6 @@ export default class User extends ApplicationModel {
           const res = await generateDreamContent('composition', ['user:belongs_to'])
           expect(res).toEqual(
             `\
-import { DateTime } from 'luxon'
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import CompositionSerializer, { CompositionIndexSerializer } from '../../../test-app/app/serializers/CompositionSerializer'

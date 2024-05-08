@@ -85,7 +85,6 @@ public ${camelize(attributeName)}: ${getAttributeType(attribute, modelClassName)
   const relativePath = relativePathToModelRoot(modelName)
 
   return `\
-import { DateTime } from 'luxon'
 import { ${uniq(dreamImports).join(', ')} } from '@rvohealth/dream'
 import ApplicationModel from '${relativePath}ApplicationModel'${
     additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
