@@ -1,7 +1,7 @@
 import Dream from '../dream'
 import DreamSerializer from '../serializer'
 
-export default function serializerForKey(classDef: unknown, serializerKey: string = 'default') {
+export default function serializerForKey(classDef: unknown, serializerKey: string | undefined = undefined) {
   if (!classDef) return null
   const serializerClassMap = (classDef as typeof Dream).prototype.serializers
 
