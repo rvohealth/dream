@@ -40,17 +40,24 @@ export default class UserSerializer extends DreamSerializer {
 
         expect(res).toEqual(
           `\
-import { DreamSerializer, Attribute } from '@rvohealth/dream'
+import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
 import User from '../models/User'
+
+export class UserIndexSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
+  @Attribute('string')
+  public id: DreamColumn<User, 'id'>
+}
 
 export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
+> extends UserIndexSerializer<DataType, Passthrough> {
   @Attribute()
-  public loggedInAt: any
-}\
-`
+  public loggedInAt: DreamColumn<User, 'loggedInAt'>
+}`
         )
       })
     })
@@ -62,13 +69,21 @@ export default class UserSerializer<
 
           expect(res).toEqual(
             `\
-import { DreamSerializer, Attribute } from '@rvohealth/dream'
+import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
 import Admin from '../../models/User/Admin'
+
+export class UserAdminIndexSerializer<
+  DataType extends Admin,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
+  @Attribute('string')
+  public id: DreamColumn<Admin, 'id'>
+}
 
 export default class UserAdminSerializer<
   DataType extends Admin,
   Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
+> extends UserAdminIndexSerializer<DataType, Passthrough> {
   
 }`
           )
@@ -83,15 +98,23 @@ export default class UserAdminSerializer<
 
           expect(res).toEqual(
             `\
-import { DreamSerializer, Attribute } from '@rvohealth/dream'
+import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
 import User from '../models/User'
 
-export default class UserSerializer<
+export class UserIndexSerializer<
   DataType extends User,
   Passthrough extends object
 > extends DreamSerializer<DataType, Passthrough> {
   @Attribute('string')
-  public howyadoin: string
+  public id: DreamColumn<User, 'id'>
+}
+
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends UserIndexSerializer<DataType, Passthrough> {
+  @Attribute('string')
+  public howyadoin: DreamColumn<User, 'howyadoin'>
 }\
 `
           )
@@ -104,15 +127,23 @@ export default class UserSerializer<
 
           expect(res).toEqual(
             `\
-import { DreamSerializer, Attribute } from '@rvohealth/dream'
+import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
 import User from '../models/User'
+
+export class UserIndexSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
+  @Attribute('string')
+  public id: DreamColumn<User, 'id'>
+}
 
 export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
+> extends UserIndexSerializer<DataType, Passthrough> {
   @Attribute('number')
-  public howyadoin: number
+  public howyadoin: DreamColumn<User, 'howyadoin'>
 }\
 `
           )
@@ -125,15 +156,23 @@ export default class UserSerializer<
 
           expect(res).toEqual(
             `\
-import { DreamSerializer, Attribute } from '@rvohealth/dream'
+import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
 import User from '../models/User'
+
+export class UserIndexSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
+  @Attribute('string')
+  public id: DreamColumn<User, 'id'>
+}
 
 export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
+> extends UserIndexSerializer<DataType, Passthrough> {
   @Attribute('json')
-  public howyadoin: any
+  public howyadoin: DreamColumn<User, 'howyadoin'>
 }\
 `
           )
@@ -146,15 +185,23 @@ export default class UserSerializer<
 
           expect(res).toEqual(
             `\
-import { DreamSerializer, Attribute } from '@rvohealth/dream'
+import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
 import User from '../models/User'
+
+export class UserIndexSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
+  @Attribute('string')
+  public id: DreamColumn<User, 'id'>
+}
 
 export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
+> extends UserIndexSerializer<DataType, Passthrough> {
   @Attribute('json')
-  public howyadoin: any
+  public howyadoin: DreamColumn<User, 'howyadoin'>
 }\
 `
           )
@@ -167,15 +214,23 @@ export default class UserSerializer<
 
           expect(res).toEqual(
             `\
-import { DreamSerializer, Attribute } from '@rvohealth/dream'
+import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
 import User from '../models/User'
+
+export class UserIndexSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
+  @Attribute('string')
+  public id: DreamColumn<User, 'id'>
+}
 
 export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
+> extends UserIndexSerializer<DataType, Passthrough> {
   @Attribute('decimal', { precision: 2 })
-  public howyadoin: number
+  public howyadoin: DreamColumn<User, 'howyadoin'>
 }\
 `
           )
@@ -188,15 +243,23 @@ export default class UserSerializer<
 
           expect(res).toEqual(
             `\
-import { DreamSerializer, Attribute } from '@rvohealth/dream'
+import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
 import User from '../models/User'
+
+export class UserIndexSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
+  @Attribute('string')
+  public id: DreamColumn<User, 'id'>
+}
 
 export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
+> extends UserIndexSerializer<DataType, Passthrough> {
   @Attribute('number')
-  public howyadoin: number
+  public howyadoin: DreamColumn<User, 'howyadoin'>
 }\
 `
           )
@@ -209,15 +272,23 @@ export default class UserSerializer<
 
           expect(res).toEqual(
             `\
-import { DreamSerializer, Attribute } from '@rvohealth/dream'
+import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
 import User from '../models/User'
 
-export default class UserSerializer<
+export class UserIndexSerializer<
   DataType extends User,
   Passthrough extends object
 > extends DreamSerializer<DataType, Passthrough> {
   @Attribute('string')
-  public howyadoin: string
+  public id: DreamColumn<User, 'id'>
+}
+
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends UserIndexSerializer<DataType, Passthrough> {
+  @Attribute('string')
+  public howyadoin: DreamColumn<User, 'howyadoin'>
 }\
 `
           )
@@ -230,15 +301,23 @@ export default class UserSerializer<
 
           expect(res).toEqual(
             `\
-import { DreamSerializer, Attribute } from '@rvohealth/dream'
+import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
 import User from '../models/User'
 
-export default class UserSerializer<
+export class UserIndexSerializer<
   DataType extends User,
   Passthrough extends object
 > extends DreamSerializer<DataType, Passthrough> {
   @Attribute('string')
-  public howyadoin: string
+  public id: DreamColumn<User, 'id'>
+}
+
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends UserIndexSerializer<DataType, Passthrough> {
+  @Attribute('string')
+  public howyadoin: DreamColumn<User, 'howyadoin'>
 }\
 `
           )
@@ -251,16 +330,23 @@ export default class UserSerializer<
 
           expect(res).toEqual(
             `\
-import { DateTime } from 'luxon'
-import { DreamSerializer, Attribute } from '@rvohealth/dream'
+import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
 import User from '../models/User'
+
+export class UserIndexSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
+  @Attribute('string')
+  public id: DreamColumn<User, 'id'>
+}
 
 export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
+> extends UserIndexSerializer<DataType, Passthrough> {
   @Attribute('datetime')
-  public loggedInAt: DateTime
+  public loggedInAt: DreamColumn<User, 'loggedInAt'>
 }\
 `
           )
@@ -273,16 +359,23 @@ export default class UserSerializer<
 
           expect(res).toEqual(
             `\
-import { DateTime } from 'luxon'
-import { DreamSerializer, Attribute } from '@rvohealth/dream'
+import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
 import User from '../models/User'
+
+export class UserIndexSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
+  @Attribute('string')
+  public id: DreamColumn<User, 'id'>
+}
 
 export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
+> extends UserIndexSerializer<DataType, Passthrough> {
   @Attribute('date')
-  public loggedInOn: DateTime
+  public loggedInOn: DreamColumn<User, 'loggedInOn'>
 }\
 `
           )
@@ -297,16 +390,24 @@ export default class UserSerializer<
 
           expect(res).toEqual(
             `\
-import { DreamSerializer, Attribute } from '@rvohealth/dream'
+import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
 import { ToppingEnum } from '../../../test-app/db/sync'
 import User from '../models/User'
+
+export class UserIndexSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
+  @Attribute('string')
+  public id: DreamColumn<User, 'id'>
+}
 
 export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
+> extends UserIndexSerializer<DataType, Passthrough> {
   @Attribute('enum:ToppingEnum')
-  public topping: ToppingEnum
+  public topping: DreamColumn<User, 'topping'>
 }\
 `
           )
@@ -320,14 +421,22 @@ export default class UserSerializer<
 
             expect(res).toEqual(
               `\
-import { DreamSerializer, Attribute, RendersOne } from '@rvohealth/dream'
+import { DreamSerializer, Attribute, DreamColumn, RendersOne } from '@rvohealth/dream'
 import User from '../models/User'
 import Organization from '../models/Organization'
+
+export class UserIndexSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
+  @Attribute('string')
+  public id: DreamColumn<User, 'id'>
+}
 
 export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
+> extends UserIndexSerializer<DataType, Passthrough> {
   @RendersOne()
   public organization: Organization
 }`
@@ -341,14 +450,22 @@ export default class UserSerializer<
 
             expect(res).toEqual(
               `\
-import { DreamSerializer, Attribute, RendersOne } from '@rvohealth/dream'
+import { DreamSerializer, Attribute, DreamColumn, RendersOne } from '@rvohealth/dream'
 import User from '../models/User'
 import Organization from '../models/Organization'
+
+export class UserIndexSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
+  @Attribute('string')
+  public id: DreamColumn<User, 'id'>
+}
 
 export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
+> extends UserIndexSerializer<DataType, Passthrough> {
   @RendersOne()
   public organization: Organization
 }`
@@ -362,14 +479,22 @@ export default class UserSerializer<
 
             expect(res).toEqual(
               `\
-import { DreamSerializer, Attribute, RendersMany } from '@rvohealth/dream'
+import { DreamSerializer, Attribute, DreamColumn, RendersMany } from '@rvohealth/dream'
 import User from '../models/User'
 import Organization from '../models/Organization'
+
+export class UserIndexSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
+  @Attribute('string')
+  public id: DreamColumn<User, 'id'>
+}
 
 export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
+> extends UserIndexSerializer<DataType, Passthrough> {
   @RendersMany()
   public organizations: Organization[]
 }`
@@ -382,14 +507,22 @@ export default class UserSerializer<
 
               expect(res).toEqual(
                 `\
-import { DreamSerializer, Attribute, RendersMany } from '@rvohealth/dream'
+import { DreamSerializer, Attribute, DreamColumn, RendersMany } from '@rvohealth/dream'
 import User from '../models/User'
 import Paper from '../models/Paper'
+
+export class UserIndexSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
+  @Attribute('string')
+  public id: DreamColumn<User, 'id'>
+}
 
 export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
+> extends UserIndexSerializer<DataType, Passthrough> {
   @RendersMany()
   public paper: Paper[]
 }`
@@ -406,14 +539,22 @@ export default class UserSerializer<
 
             expect(res).toEqual(
               `\
-import { DreamSerializer, Attribute, RendersOne } from '@rvohealth/dream'
+import { DreamSerializer, Attribute, DreamColumn, RendersOne } from '@rvohealth/dream'
 import Admin from '../../models/User/Admin'
 import MyModel from '../../models/Double/Nested/MyModel'
+
+export class UserAdminIndexSerializer<
+  DataType extends Admin,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
+  @Attribute('string')
+  public id: DreamColumn<Admin, 'id'>
+}
 
 export default class UserAdminSerializer<
   DataType extends Admin,
   Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
+> extends UserAdminIndexSerializer<DataType, Passthrough> {
   @RendersOne()
   public myModel: MyModel
 }`

@@ -15,12 +15,16 @@ export default async function generateSerializerContent(
   await initializeDream()
 
   const serializerClass = fullyQualifiedClassNameFromRawStr(fullyQualifiedSerializerName)
+  const serializerIndexClass = fullyQualifiedIndexClassNameFromRawStr(fullyQualifiedSerializerName)
   const enumImports: string[] = []
   const additionalImports: string[] = []
   let relatedModelImport = ''
   let modelClass = ''
   let dataTypeCapture = ''
   let dreamSerializerTypeArgs = ''
+  const dreamImports = ['DreamSerializer', 'Attribute']
+  let extendedClass = 'DreamSerializer'
+
   if (fullyQualifiedModelName) {
     relatedModelImport = importStatementForModel(fullyQualifiedSerializerName, fullyQualifiedModelName)
     modelClass = classNameFromRawStr(fullyQualifiedModelName)
@@ -29,11 +33,16 @@ export default async function generateSerializerContent(
   Passthrough extends object
 >`
     dreamSerializerTypeArgs = `<DataType, Passthrough>`
+    dreamImports.push('DreamColumn')
+    extendedClass = serializerIndexClass
   }
 
-  const luxonImport = hasDateTimeType(attributes) ? "import { DateTime } from 'luxon'\n" : ''
+  let luxonImport = ''
+  if (!modelClass) {
+    luxonImport = hasJsType(attributes, 'DateTime') ? "import { DateTime } from 'luxon'\n" : ''
+    if (hasJsType(attributes, 'CalendarDate')) dreamImports.push('CalendarDate')
+  }
 
-  const dreamImports = ['DreamSerializer', 'Attribute']
   if (attributes.find(attr => /:belongs_to|:has_one/.test(attr))) dreamImports.push('RendersOne')
   if (attributes.find(attr => /:has_many/.test(attr))) dreamImports.push('RendersMany')
 
@@ -62,28 +71,41 @@ export default async function generateSerializerContent(
 
   const additionalImportsStr = additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
 
+  let indexSerializer = ''
+  if (modelClass) {
+    indexSerializer = `
+
+export class ${extendedClass}${dataTypeCapture} extends DreamSerializer${dreamSerializerTypeArgs} {
+  @Attribute('string')
+  public id: DreamColumn<${modelClass}, 'id'>
+}`
+  }
+
   return `\
 ${luxonImport}import { ${dreamImports.join(
     ', '
-  )} } from '@rvohealth/dream'${additionalImportsStr}${relatedModelImport}${additionalModelImports.join('')}
+  )} } from '@rvohealth/dream'${additionalImportsStr}${relatedModelImport}${additionalModelImports.join('')}${indexSerializer}
 
-export default class ${serializerClass}${dataTypeCapture} extends DreamSerializer${dreamSerializerTypeArgs} {
+export default class ${serializerClass}${dataTypeCapture} extends ${extendedClass}${dreamSerializerTypeArgs} {
   ${attributes
     .map(attr => {
       const [name, type] = attr.split(':')
+      const propertyName = camelize(name)
+      const className = classNameFromRawStr(name)
+
       switch (type) {
         case 'belongs_to':
         case 'has_one':
           return `@RendersOne()
-  public ${camelize(classNameFromRawStr(name))}: ${classNameFromRawStr(name)}`
+  public ${camelize(className)}: ${className}`
 
         case 'has_many':
           return `@RendersMany()
-  public ${pluralize(camelize(classNameFromRawStr(name)))}: ${classNameFromRawStr(name)}[]`
+  public ${pluralize(camelize(className))}: ${className}[]`
 
         default:
           return `@Attribute(${attributeSpecifier(type, attr)}${attributeOptionsSpecifier(type, attr)})
-  public ${camelize(name)}: ${jsType(type, attr)}`
+  public ${propertyName}: ${jsType(type, attr, propertyName, modelClass)}`
       }
     })
     .join('\n\n  ')}
@@ -121,10 +143,19 @@ function attributeOptionsSpecifier(type: string, attr: string) {
   }
 }
 
-function jsType(type: string, originalAttribute: string) {
+function jsType(
+  type: string,
+  originalAttribute: string,
+  propertyName: string,
+  modelClass: string | null = null
+) {
+  if (modelClass) return `DreamColumn<${modelClass}, '${propertyName}'>`
+
   switch (type) {
-    case 'datetime':
     case 'date':
+      return 'CalendarDate'
+
+    case 'datetime':
       return 'DateTime'
 
     case 'decimal':
@@ -159,8 +190,17 @@ function fullyQualifiedClassNameFromRawStr(className: string) {
     .join('')
 }
 
-function hasDateTimeType(attributes: string[]) {
-  return !!attributes.map(attr => jsType(attr.split(':')[1], attr)).find(a => a === 'DateTime')
+function fullyQualifiedIndexClassNameFromRawStr(className: string) {
+  return fullyQualifiedClassNameFromRawStr(className).replace(/Serializer$/, 'IndexSerializer')
+}
+
+function hasJsType(attributes: string[], expectedType: 'DateTime' | 'CalendarDate') {
+  return !!attributes
+    .map(attr => {
+      const [name] = attr.split(':')
+      return jsType(name, attr, camelize(name))
+    })
+    .find(a => a === expectedType)
 }
 
 function pathToModelFromSerializer(fullyQualifiedSerializerName: string, fullyQualifiedModelName: string) {
