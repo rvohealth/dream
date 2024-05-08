@@ -96,9 +96,14 @@ export default class ${modelClassName} extends ApplicationModel {
     return '${tableName}' as const
   }
 
-  public get serializer() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return ${serializerNameFromModelName(modelName)}<any, any>
+  public get serializers() {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      default: ${serializerNameFromModelName(modelName)}<any, any>,
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      index: ${serializerIndexNameFromModelName(modelName)}<any, any>,
+    }
   }
 
   public id: ${idTypescriptType}${attributeStatements
@@ -137,7 +142,8 @@ async function buildSerializerImportStatement(modelName: string) {
     relativeSerializerPathFromModelName(modelName)
   )
   const serializerClassName = serializerNameFromModelName(modelName)
-  const importStatement = `import ${serializerClassName} from '${serializerPath}'`
+  const serializerIndexClassName = serializerIndexNameFromModelName(modelName)
+  const importStatement = `import ${serializerClassName}, { ${serializerIndexClassName} } from '${serializerPath}'`
   return importStatement
 }
 
@@ -148,6 +154,10 @@ function serializerNameFromModelName(modelName: string) {
       .map(part => pascalize(part))
       .join('') + 'Serializer'
   )
+}
+
+function serializerIndexNameFromModelName(modelName: string) {
+  return serializerNameFromModelName(modelName).replace(/Serializer$/, 'IndexSerializer')
 }
 
 function relativeSerializerPathFromModelName(modelName: string) {
