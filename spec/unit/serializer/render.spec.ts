@@ -596,7 +596,7 @@ describe('DreamSerializer#render', () => {
 
       context('when a named serializer is specified', () => {
         class UserSerializer extends DreamSerializer {
-          @RendersMany({ serializer: 'index' })
+          @RendersMany({ serializer: 'summary' })
           public pets: Pet[]
         }
 
@@ -844,7 +844,7 @@ describe('DreamSerializer#render', () => {
 
       context('when a named serializer is specified', () => {
         class PetSerializer extends DreamSerializer {
-          @RendersOne({ serializer: 'index' })
+          @RendersOne({ serializer: 'summary' })
           public user: User
         }
 

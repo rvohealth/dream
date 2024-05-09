@@ -18,7 +18,7 @@ export default class UserSerializer<
   public birthdate: CalendarDate
 }
 
-export class UserIndexSerializer<DataType extends User, Passthrough extends object> extends DreamSerializer<
+export class UserSummarySerializer<DataType extends User, Passthrough extends object> extends DreamSerializer<
   DataType,
   Passthrough
 > {

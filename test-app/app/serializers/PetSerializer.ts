@@ -25,7 +25,7 @@ export default class PetSerializer<DataType extends Pet, Passthrough extends obj
   public ratings: Rating[]
 }
 
-export class PetIndexSerializer<DataType extends Pet, Passthrough extends object> extends DreamSerializer<
+export class PetSummarySerializer<DataType extends Pet, Passthrough extends object> extends DreamSerializer<
   DataType,
   Passthrough
 > {

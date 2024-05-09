@@ -101,7 +101,7 @@ export default class ${modelClassName} extends ApplicationModel {
       default: ${serializerNameFromModelName(modelName)}<any, any>,
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      index: ${serializerIndexNameFromModelName(modelName)}<any, any>,
+      summary: ${serializerSummaryNameFromModelName(modelName)}<any, any>,
     } as const
   }
 
@@ -141,8 +141,8 @@ async function buildSerializerImportStatement(modelName: string) {
     relativeSerializerPathFromModelName(modelName)
   )
   const serializerClassName = serializerNameFromModelName(modelName)
-  const serializerIndexClassName = serializerIndexNameFromModelName(modelName)
-  const importStatement = `import ${serializerClassName}, { ${serializerIndexClassName} } from '${serializerPath}'`
+  const serializerSummaryClassName = serializerSummaryNameFromModelName(modelName)
+  const importStatement = `import ${serializerClassName}, { ${serializerSummaryClassName} } from '${serializerPath}'`
   return importStatement
 }
 
@@ -155,8 +155,8 @@ function serializerNameFromModelName(modelName: string) {
   )
 }
 
-function serializerIndexNameFromModelName(modelName: string) {
-  return serializerNameFromModelName(modelName).replace(/Serializer$/, 'IndexSerializer')
+function serializerSummaryNameFromModelName(modelName: string) {
+  return serializerNameFromModelName(modelName).replace(/Serializer$/, 'SummarySerializer')
 }
 
 function relativeSerializerPathFromModelName(modelName: string) {

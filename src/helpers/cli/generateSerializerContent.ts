@@ -15,7 +15,7 @@ export default async function generateSerializerContent(
   await initializeDream()
 
   const serializerClass = fullyQualifiedClassNameFromRawStr(fullyQualifiedSerializerName)
-  const serializerIndexClass = fullyQualifiedIndexClassNameFromRawStr(fullyQualifiedSerializerName)
+  const serializerSummaryClass = fullyQualifiedSummaryClassNameFromRawStr(fullyQualifiedSerializerName)
   const enumImports: string[] = []
   const additionalImports: string[] = []
   let relatedModelImport = ''
@@ -34,7 +34,7 @@ export default async function generateSerializerContent(
 >`
     dreamSerializerTypeArgs = `<DataType, Passthrough>`
     dreamImports.push('DreamColumn')
-    extendedClass = serializerIndexClass
+    extendedClass = serializerSummaryClass
   }
 
   let luxonImport = ''
@@ -71,9 +71,9 @@ export default async function generateSerializerContent(
 
   const additionalImportsStr = additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
 
-  let indexSerializer = ''
+  let summarySerializer = ''
   if (modelClass) {
-    indexSerializer = `
+    summarySerializer = `
 
 export class ${extendedClass}${dataTypeCapture} extends DreamSerializer${dreamSerializerTypeArgs} {
   @Attribute('string')
@@ -84,7 +84,7 @@ export class ${extendedClass}${dataTypeCapture} extends DreamSerializer${dreamSe
   return `\
 ${luxonImport}import { ${dreamImports.join(
     ', '
-  )} } from '@rvohealth/dream'${additionalImportsStr}${relatedModelImport}${additionalModelImports.join('')}${indexSerializer}
+  )} } from '@rvohealth/dream'${additionalImportsStr}${relatedModelImport}${additionalModelImports.join('')}${summarySerializer}
 
 export default class ${serializerClass}${dataTypeCapture} extends ${extendedClass}${dreamSerializerTypeArgs} {
   ${attributes
@@ -190,8 +190,8 @@ function fullyQualifiedClassNameFromRawStr(className: string) {
     .join('')
 }
 
-function fullyQualifiedIndexClassNameFromRawStr(className: string) {
-  return fullyQualifiedClassNameFromRawStr(className).replace(/Serializer$/, 'IndexSerializer')
+function fullyQualifiedSummaryClassNameFromRawStr(className: string) {
+  return fullyQualifiedClassNameFromRawStr(className).replace(/Serializer$/, 'SummarySerializer')
 }
 
 function hasJsType(attributes: string[], expectedType: 'DateTime' | 'CalendarDate') {

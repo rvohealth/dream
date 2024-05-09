@@ -8,7 +8,7 @@ describe('dream generate:model <name> [...attributes]', () => {
         `\
 import { DreamColumn } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import MealTypeSerializer, { MealTypeIndexSerializer } from '../../../test-app/app/serializers/MealTypeSerializer'
+import MealTypeSerializer, { MealTypeSummarySerializer } from '../../../test-app/app/serializers/MealTypeSerializer'
 
 export default class MealType extends ApplicationModel {
   public get table() {
@@ -21,7 +21,7 @@ export default class MealType extends ApplicationModel {
       default: MealTypeSerializer<any, any>,
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      index: MealTypeIndexSerializer<any, any>,
+      summary: MealTypeSummarySerializer<any, any>,
     } as const
   }
 
@@ -42,7 +42,7 @@ export default class MealType extends ApplicationModel {
           `\
 import { DreamColumn } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import UserSerializer, { UserIndexSerializer } from '../../../test-app/app/serializers/UserSerializer'
+import UserSerializer, { UserSummarySerializer } from '../../../test-app/app/serializers/UserSerializer'
 
 export default class User extends ApplicationModel {
   public get table() {
@@ -55,7 +55,7 @@ export default class User extends ApplicationModel {
       default: UserSerializer<any, any>,
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      index: UserIndexSerializer<any, any>,
+      summary: UserSummarySerializer<any, any>,
     } as const
   }
 
@@ -81,7 +81,7 @@ export default class User extends ApplicationModel {
           `\
 import { DreamColumn } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import ChalupaSerializer, { ChalupaIndexSerializer } from '../../../test-app/app/serializers/ChalupaSerializer'
+import ChalupaSerializer, { ChalupaSummarySerializer } from '../../../test-app/app/serializers/ChalupaSerializer'
 import { ToppingEnum, ProteinEnum, MyExistingEnumEnum } from '../../../test-app/db/sync'
 
 export default class Chalupa extends ApplicationModel {
@@ -95,7 +95,7 @@ export default class Chalupa extends ApplicationModel {
       default: ChalupaSerializer<any, any>,
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      index: ChalupaIndexSerializer<any, any>,
+      summary: ChalupaSummarySerializer<any, any>,
     } as const
   }
 
@@ -118,7 +118,7 @@ export default class Chalupa extends ApplicationModel {
           `\
 import { DreamColumn } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import PaperSerializer, { PaperIndexSerializer } from '../../../test-app/app/serializers/PaperSerializer'
+import PaperSerializer, { PaperSummarySerializer } from '../../../test-app/app/serializers/PaperSerializer'
 
 export default class Paper extends ApplicationModel {
   public get table() {
@@ -131,7 +131,7 @@ export default class Paper extends ApplicationModel {
       default: PaperSerializer<any, any>,
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      index: PaperIndexSerializer<any, any>,
+      summary: PaperSummarySerializer<any, any>,
     } as const
   }
 
@@ -153,7 +153,7 @@ export default class Paper extends ApplicationModel {
             `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CompositionSerializer, { CompositionIndexSerializer } from '../../../test-app/app/serializers/CompositionSerializer'
+import CompositionSerializer, { CompositionSummarySerializer } from '../../../test-app/app/serializers/CompositionSerializer'
 import GraphNode from './GraphNode'
 
 export default class Composition extends ApplicationModel {
@@ -167,7 +167,7 @@ export default class Composition extends ApplicationModel {
       default: CompositionSerializer<any, any>,
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      index: CompositionIndexSerializer<any, any>,
+      summary: CompositionSummarySerializer<any, any>,
     } as const
   }
 
@@ -190,7 +190,7 @@ export default class Composition extends ApplicationModel {
               `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CatToySerializer, { CatToyIndexSerializer } from '../../../test-app/app/serializers/CatToySerializer'
+import CatToySerializer, { CatToySummarySerializer } from '../../../test-app/app/serializers/CatToySerializer'
 import Cat from './Pet/Domestic/Cat'
 
 export default class CatToy extends ApplicationModel {
@@ -204,7 +204,7 @@ export default class CatToy extends ApplicationModel {
       default: CatToySerializer<any, any>,
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      index: CatToyIndexSerializer<any, any>,
+      summary: CatToySummarySerializer<any, any>,
     } as const
   }
 
@@ -226,7 +226,7 @@ export default class CatToy extends ApplicationModel {
               `\
 import { DreamColumn, HasMany } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CatToySerializer, { CatToyIndexSerializer } from '../../../test-app/app/serializers/CatToySerializer'
+import CatToySerializer, { CatToySummarySerializer } from '../../../test-app/app/serializers/CatToySerializer'
 import Cat from './Pet/Domestic/Cat'
 
 export default class CatToy extends ApplicationModel {
@@ -240,7 +240,7 @@ export default class CatToy extends ApplicationModel {
       default: CatToySerializer<any, any>,
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      index: CatToyIndexSerializer<any, any>,
+      summary: CatToySummarySerializer<any, any>,
     } as const
   }
 
@@ -261,7 +261,7 @@ export default class CatToy extends ApplicationModel {
               `\
 import { DreamColumn, HasOne } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CatToySerializer, { CatToyIndexSerializer } from '../../../test-app/app/serializers/CatToySerializer'
+import CatToySerializer, { CatToySummarySerializer } from '../../../test-app/app/serializers/CatToySerializer'
 import Cat from './Pet/Domestic/Cat'
 
 export default class CatToy extends ApplicationModel {
@@ -275,7 +275,7 @@ export default class CatToy extends ApplicationModel {
       default: CatToySerializer<any, any>,
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      index: CatToyIndexSerializer<any, any>,
+      summary: CatToySummarySerializer<any, any>,
     } as const
   }
 
@@ -296,7 +296,7 @@ export default class CatToy extends ApplicationModel {
               `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
-import PetDomesticCatSerializer, { PetDomesticCatIndexSerializer } from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
+import PetDomesticCatSerializer, { PetDomesticCatSummarySerializer } from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
 import GraphNode from '../../GraphNode'
 
 export default class Cat extends ApplicationModel {
@@ -310,7 +310,7 @@ export default class Cat extends ApplicationModel {
       default: PetDomesticCatSerializer<any, any>,
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      index: PetDomesticCatIndexSerializer<any, any>,
+      summary: PetDomesticCatSummarySerializer<any, any>,
     } as const
   }
 
@@ -332,7 +332,7 @@ export default class Cat extends ApplicationModel {
               `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
-import PetDomesticCatSerializer, { PetDomesticCatIndexSerializer } from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
+import PetDomesticCatSerializer, { PetDomesticCatSummarySerializer } from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
 import Dog from '../../Pet/Domestic/Dog'
 
 export default class Cat extends ApplicationModel {
@@ -346,7 +346,7 @@ export default class Cat extends ApplicationModel {
       default: PetDomesticCatSerializer<any, any>,
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      index: PetDomesticCatIndexSerializer<any, any>,
+      summary: PetDomesticCatSummarySerializer<any, any>,
     } as const
   }
 
@@ -368,7 +368,7 @@ export default class Cat extends ApplicationModel {
               `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
-import PetWildCatSerializer, { PetWildCatIndexSerializer } from '../../../../../test-app/app/serializers/Pet/Wild/CatSerializer'
+import PetWildCatSerializer, { PetWildCatSummarySerializer } from '../../../../../test-app/app/serializers/Pet/Wild/CatSerializer'
 import Dog from '../../Pet/Domestic/Dog'
 
 export default class Cat extends ApplicationModel {
@@ -382,7 +382,7 @@ export default class Cat extends ApplicationModel {
       default: PetWildCatSerializer<any, any>,
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      index: PetWildCatIndexSerializer<any, any>,
+      summary: PetWildCatSummarySerializer<any, any>,
     } as const
   }
 
@@ -405,7 +405,7 @@ export default class Cat extends ApplicationModel {
             `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CompositionSerializer, { CompositionIndexSerializer } from '../../../test-app/app/serializers/CompositionSerializer'
+import CompositionSerializer, { CompositionSummarySerializer } from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
 import Chalupa from './Chalupa'
 
@@ -420,7 +420,7 @@ export default class Composition extends ApplicationModel {
       default: CompositionSerializer<any, any>,
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      index: CompositionIndexSerializer<any, any>,
+      summary: CompositionSummarySerializer<any, any>,
     } as const
   }
 
@@ -448,7 +448,7 @@ export default class Composition extends ApplicationModel {
             `\
 import { DreamColumn, HasOne } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CompositionSerializer, { CompositionIndexSerializer } from '../../../test-app/app/serializers/CompositionSerializer'
+import CompositionSerializer, { CompositionSummarySerializer } from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
 
 export default class Composition extends ApplicationModel {
@@ -462,7 +462,7 @@ export default class Composition extends ApplicationModel {
       default: CompositionSerializer<any, any>,
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      index: CompositionIndexSerializer<any, any>,
+      summary: CompositionSummarySerializer<any, any>,
     } as const
   }
 
@@ -485,7 +485,7 @@ export default class Composition extends ApplicationModel {
             `\
 import { DreamColumn, HasMany } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import UserSerializer, { UserIndexSerializer } from '../../../test-app/app/serializers/UserSerializer'
+import UserSerializer, { UserSummarySerializer } from '../../../test-app/app/serializers/UserSerializer'
 import Composition from './Composition'
 
 export default class User extends ApplicationModel {
@@ -499,7 +499,7 @@ export default class User extends ApplicationModel {
       default: UserSerializer<any, any>,
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      index: UserIndexSerializer<any, any>,
+      summary: UserSummarySerializer<any, any>,
     } as const
   }
 
@@ -522,7 +522,7 @@ export default class User extends ApplicationModel {
             `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CompositionSerializer, { CompositionIndexSerializer } from '../../../test-app/app/serializers/CompositionSerializer'
+import CompositionSerializer, { CompositionSummarySerializer } from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
 
 export default class Composition extends ApplicationModel {
@@ -536,7 +536,7 @@ export default class Composition extends ApplicationModel {
       default: CompositionSerializer<any, any>,
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      index: CompositionIndexSerializer<any, any>,
+      summary: CompositionSummarySerializer<any, any>,
     } as const
   }
 

@@ -7,7 +7,7 @@ import User from './User'
 import { DreamColumn, IdType } from '../../../src/dream/types'
 import BeforeDestroy from '../../../src/decorators/hooks/before-destroy'
 import Collar from './Collar'
-import PetSerializer, { PetIndexSerializer } from '../serializers/PetSerializer'
+import PetSerializer, { PetSummarySerializer } from '../serializers/PetSerializer'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
 import PetUnderstudyJoinModel from './PetUnderstudyJoinModel'
@@ -22,7 +22,7 @@ export default class Pet extends ApplicationModel {
   public get serializers() {
     return {
       default: PetSerializer<any, any>,
-      index: PetIndexSerializer<any, any>,
+      summary: PetSummarySerializer<any, any>,
     } as const
   }
 
