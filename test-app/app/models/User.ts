@@ -21,10 +21,18 @@ import BalloonLine from './BalloonLine'
 import Post from './Post'
 import Rating from './Rating'
 import Collar from './Collar'
+import UserSerializer, { UserIndexSerializer } from '../serializers/UserSerializer'
 
 export default class User extends ApplicationModel {
   public get table() {
     return 'users' as const
+  }
+
+  public get serializers() {
+    return {
+      default: UserSerializer<any, any>,
+      index: UserIndexSerializer<any, any>,
+    } as const
   }
 
   public id: DreamColumn<User, 'id'>

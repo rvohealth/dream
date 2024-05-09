@@ -12,7 +12,7 @@ describe('Dream#serialize', () => {
     }
 
     class MyDream extends User {
-      public get serializers() {
+      public get serializers(): any {
         return { default: MySerializer }
       }
     }

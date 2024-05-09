@@ -24,3 +24,14 @@ export default class PetSerializer<DataType extends Pet, Passthrough extends obj
   @RendersMany()
   public ratings: Rating[]
 }
+
+export class PetIndexSerializer<DataType extends Pet, Passthrough extends object> extends DreamSerializer<
+  DataType,
+  Passthrough
+> {
+  @Attribute('string')
+  public id: IdType
+
+  @Attribute('string')
+  public favoriteTreats: string
+}

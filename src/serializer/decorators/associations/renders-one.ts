@@ -26,7 +26,7 @@ export default function RendersOne(
         flatten: opts.flatten || false,
         optional: opts.optional || false,
         serializerClassCB,
-        serializerKey: opts.serializerKey,
+        serializerKey: opts.serializer,
         source: opts.source || key,
         through: opts.through || null,
         path: opts.path || null,

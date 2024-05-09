@@ -11,6 +11,8 @@ import Balloon from '../../../test-app/app/models/Balloon'
 import { CalendarDate, NonLoadedAssociation } from '../../../src'
 import Collar from '../../../test-app/app/models/Collar'
 import FailedToRenderThroughAssociationForSerializer from '../../../src/exceptions/serializers/failed-to-render-through-association'
+import Post from '../../../test-app/app/models/Post'
+import Rating from '../../../test-app/app/models/Rating'
 
 describe('DreamSerializer#render', () => {
   it('renders a single attribute', () => {
@@ -562,6 +564,64 @@ describe('DreamSerializer#render', () => {
           })
         })
       })
+
+      context('when no serializer class is passed', () => {
+        class UserSerializer extends DreamSerializer {
+          @RendersMany()
+          public pets: Pet[]
+        }
+
+        it('renders using the association’s default serializer', async () => {
+          const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+          const pet = await Pet.create({ user, name: 'aster', species: 'cat', favoriteDaysOfWeek: [1, 3, 7] })
+          const post = await Post.create({ user })
+          const rating = await Rating.create({ user, rateable: post, rating: 5 })
+
+          const reloaded = await user.load('pets', 'ratings').execute()
+
+          const serializer = new UserSerializer(reloaded)
+          expect(serializer.render()).toEqual({
+            pets: [
+              {
+                id: pet.id,
+                name: 'aster',
+                species: 'cat',
+                favoriteDaysOfWeek: [1, 3, 7],
+                ratings: [{ id: rating.id }],
+              },
+            ],
+          })
+        })
+      })
+
+      context('when a named serializer is specified', () => {
+        class UserSerializer extends DreamSerializer {
+          @RendersMany({ serializer: 'index' })
+          public pets: Pet[]
+        }
+
+        it('renders using the association’s named serializer', async () => {
+          const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+          const pet = await Pet.create({
+            user,
+            name: 'aster',
+            species: 'cat',
+            favoriteTreats: ['ocean fish'],
+          })
+
+          const reloaded = await user.load('pets').execute()
+
+          const serializer = new UserSerializer(reloaded)
+          expect(serializer.render()).toEqual({
+            pets: [
+              {
+                id: pet.id,
+                favoriteTreats: ['ocean fish'],
+              },
+            ],
+          })
+        })
+      })
     })
 
     context('RendersOne', () => {
@@ -755,6 +815,54 @@ describe('DreamSerializer#render', () => {
 
           const serializer = new PetSerializerFlattened(pet)
           expect(serializer.render()).toEqual({ email: 'how@yadoin' })
+        })
+      })
+
+      context('when no serializer class is passed', () => {
+        class PetSerializer extends DreamSerializer {
+          @RendersOne()
+          public user: User
+        }
+
+        it('renders using the association’s default serializer', async () => {
+          const user = await User.create({
+            email: 'how@yadoin',
+            password: 'howyadoin',
+            name: 'Charlie Brown',
+            birthdate: CalendarDate.fromISO('1983-07-29'),
+            favoriteWord: 'chalupas',
+          })
+          let pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+          pet = await pet.load('user').execute()
+
+          const serializer = new PetSerializer(pet)
+          expect(serializer.render()).toEqual({
+            user: { id: user.id, name: 'Charlie Brown', birthdate: '1983-07-29' },
+          })
+        })
+      })
+
+      context('when a named serializer is specified', () => {
+        class PetSerializer extends DreamSerializer {
+          @RendersOne({ serializer: 'index' })
+          public user: User
+        }
+
+        it('renders using the association’s named serializer', async () => {
+          const user = await User.create({
+            email: 'how@yadoin',
+            password: 'howyadoin',
+            name: 'Charlie Brown',
+            birthdate: CalendarDate.fromISO('1983-07-29'),
+            favoriteWord: 'chalupas',
+          })
+          let pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+          pet = await pet.load('user').execute()
+
+          const serializer = new PetSerializer(pet)
+          expect(serializer.render()).toEqual({
+            user: { id: user.id, favoriteWord: 'chalupas' },
+          })
         })
       })
     })

@@ -25,7 +25,7 @@ export default function RendersMany(
         field: key,
         optional: opts.optional || false,
         serializerClassCB,
-        serializerKey: opts.serializerKey,
+        serializerKey: opts.serializer,
         source: opts.source || key,
         through: opts.through || null,
         path: opts.path || null,
