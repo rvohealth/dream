@@ -8,7 +8,6 @@ import Dream from '../../dream'
 import path from 'node:path'
 import dbSyncPath from '../path/dbSyncPath'
 import serializerForKey from '../serializerForKey'
-import MissingSerializer from '../../exceptions/missing-serializer'
 
 export default async function generateApiSchemaContent() {
   const serializersBasePath = await serializersPath()
@@ -133,8 +132,9 @@ async function loadAssociatedSerializer(serializerPath: string, association: Ass
     try {
       return serializerForKey(associationDreamClass, association.serializerKey)
     } catch (err) {
-      if (err instanceof MissingSerializer) return null
-      throw err
+      // must ignore all exceptions here, since it is considered a valid pattern
+      // to define a `get serializers` getter on a dream which intentionally raises
+      // an exception
     }
   }
 }

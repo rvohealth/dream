@@ -9,6 +9,13 @@ export default class UserSettings extends ApplicationModel {
     return 'user_settings' as const
   }
 
+  public get serializers(): any {
+    throw new Error(`
+This is an intentional error meant to test generateApiSchemaContent
+In wellos-central, a model exists that raises an exception if you
+intentionally try to call .serializers on it.`)
+  }
+
   public id: IdType
   public likesChalupas: boolean
   public createdAt: DateTime
