@@ -117,10 +117,18 @@ export type DreamVirtualColumns<
 export type DreamBelongsToAssociationMetadata<
   DreamInstance extends Dream,
   SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
+  TypeRecordKeys = {
+    [K in keyof SchemaAssociations]: SchemaAssociations[K]['type' &
+      keyof SchemaAssociations[K]] extends 'BelongsTo'
+      ? K
+      : never
+  }[keyof SchemaAssociations] &
+    keyof SchemaAssociations,
+  TypeRecord = Record<TypeRecordKeys & string, any>,
 > = {
-  [K in keyof SchemaAssociations]: SchemaAssociations[K]['type' &
-    keyof SchemaAssociations[K]] extends 'BelongsTo'
-    ? SchemaAssociations[K]['type' & keyof SchemaAssociations[K]]
+  [K in keyof TypeRecord]: SchemaAssociations[K & keyof SchemaAssociations]['type' &
+    keyof SchemaAssociations[K & keyof SchemaAssociations]] extends 'BelongsTo'
+    ? SchemaAssociations[K & keyof SchemaAssociations]
     : never
 }
 

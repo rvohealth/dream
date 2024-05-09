@@ -43,7 +43,14 @@ export type AssociatedModelParam<
     : keyof DreamBelongsToAssociationMetadata<I> & string,
 > = AssociationExists extends false
   ? never
-  : Partial<{ [K in AssociationName & string]: AssociatedModelType<I, K> | null }>
+  : AssociationName extends never
+    ? never
+    : Partial<{
+        [K in AssociationName & keyof DreamBelongsToAssociationMetadata<I> & string]: AssociatedModelType<
+          I,
+          K
+        > | null
+      }>
 
 export type PassthroughWhere<AllColumns extends string[]> = Partial<Record<AllColumns[number], any>>
 
