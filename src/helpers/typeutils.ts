@@ -82,6 +82,28 @@ export type MergeUnionOfRecordTypes<U extends Record<string, unknown>> = {
   [K in U extends unknown ? keyof U : never]: U extends unknown ? (K extends keyof U ? U[K] : never) : never
 }
 
+// UnionToIntersection
+//
+// takes a type like
+//   { name: string } | { email: string }
+//
+// and turns it into
+//   { name: string } & { email: string }
+//
+// ideally, this could be replaced by MergeUnionOfRecordTypes, but
+// that type is not working for my use case, so I have brought in this
+// type helper copied from:
+//
+// https://stackoverflow.com/questions/50374908/transform-union-type-to-intersection-type
+export type UnionToIntersection<U> = (U extends any ? (x: U) => void : never) extends (x: infer I) => void
+  ? I
+  : never
+
+export type FilterInterface<Source, Condition> = Pick<
+  Source,
+  { [K in keyof Source]: Source[K] extends Condition ? K : never }[keyof Source]
+>
+
 // type T = Tail<[1, 2, 3]> // [2, 3]
 export type ReadonlyTail<T extends readonly any[]> = T extends readonly [any, ...infer Tail]
   ? Tail

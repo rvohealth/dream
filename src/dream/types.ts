@@ -3,7 +3,7 @@ import { DateTime } from 'luxon'
 import { Updateable, ColumnType } from 'kysely'
 import { AssociationTableNames } from '../db/reflections'
 import Dream from '../dream'
-import { Inc, ReadonlyTail } from '../helpers/typeutils'
+import { FilterInterface, Inc, ReadonlyTail } from '../helpers/typeutils'
 import { AssociatedModelParam, WhereStatement } from '../decorators/associations/shared'
 import OpsStatement from '../ops/ops-statement'
 import { FindEachOpts } from './query'
@@ -117,20 +117,12 @@ export type DreamVirtualColumns<
 export type DreamBelongsToAssociationMetadata<
   DreamInstance extends Dream,
   SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
-  TypeRecordKeys = {
-    [K in keyof SchemaAssociations]: SchemaAssociations[K]['type' &
-      keyof SchemaAssociations[K]] extends 'BelongsTo'
-      ? K
-      : never
-  }[keyof SchemaAssociations] &
-    keyof SchemaAssociations,
-  TypeRecord = Record<TypeRecordKeys & string, any>,
-> = {
-  [K in keyof TypeRecord]: SchemaAssociations[K & keyof SchemaAssociations]['type' &
-    keyof SchemaAssociations[K & keyof SchemaAssociations]] extends 'BelongsTo'
-    ? SchemaAssociations[K & keyof SchemaAssociations]
-    : never
-}
+  SchemaTypeInterface = {
+    [K in keyof SchemaAssociations]: SchemaAssociations[K]['type' & keyof SchemaAssociations[K]]
+  },
+  BelongsToKeys = keyof FilterInterface<SchemaTypeInterface, 'BelongsTo'> & string,
+  TypeRecord = { [K in BelongsToKeys & string]: SchemaAssociations[K & keyof SchemaAssociations] },
+> = TypeRecord
 
 export type DreamAttributes<
   DreamInstance extends Dream,

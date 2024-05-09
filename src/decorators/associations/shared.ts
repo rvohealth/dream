@@ -17,7 +17,7 @@ import { BelongsToStatement } from './belongs-to'
 import { HasManyStatement } from './has-many'
 import { HasOneStatement } from './has-one'
 import CurriedOpsStatement from '../../ops/curried-ops-statement'
-import { MergeUnionOfRecordTypes } from '../../helpers/typeutils'
+import { MergeUnionOfRecordTypes, UnionToIntersection } from '../../helpers/typeutils'
 import { checkForeignKey } from '../../exceptions/associations/explicit-foreign-key'
 import camelize from '../../helpers/camelize'
 import NonLoadedAssociation from '../../exceptions/associations/non-loaded-association'
@@ -41,16 +41,17 @@ export type AssociatedModelParam<
   AssociationName = AssociationExists extends false
     ? never
     : keyof DreamBelongsToAssociationMetadata<I> & string,
-> = AssociationExists extends false
-  ? never
-  : AssociationName extends never
+  RetObj = AssociationExists extends false
     ? never
-    : Partial<{
-        [K in AssociationName & keyof DreamBelongsToAssociationMetadata<I> & string]: AssociatedModelType<
-          I,
-          K
-        > | null
-      }>
+    : AssociationName extends never
+      ? never
+      : {
+          [K in AssociationName & keyof DreamBelongsToAssociationMetadata<I> & string]: AssociatedModelType<
+            I,
+            K
+          > | null
+        },
+> = Partial<UnionToIntersection<RetObj>>
 
 export type PassthroughWhere<AllColumns extends string[]> = Partial<Record<AllColumns[number], any>>
 
