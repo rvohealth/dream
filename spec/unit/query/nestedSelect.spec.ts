@@ -26,7 +26,7 @@ describe('Query#nestedSelect', () => {
   })
 
   context('from a joins statement', () => {
-    it('can pluck from the associated namespace', async () => {
+    it('can nestedSelect from the associated namespace', async () => {
       const node = await Node.create({ name: 'N1' })
       const edge1 = await Edge.create({ name: 'E1' })
       const edge2 = await Edge.create({ name: 'E2' })
@@ -55,7 +55,7 @@ describe('Query#nestedSelect', () => {
   })
 
   context('with a similarity operator', () => {
-    it('can pluck from the associated namespace', async () => {
+    it('can nestedSelect from the associated namespace', async () => {
       const node = await Node.create({ name: 'N1' })
       const edge1 = await Edge.create({ name: 'myedge' })
       const edge2 = await Edge.create({ name: 'other' })
@@ -68,6 +68,20 @@ describe('Query#nestedSelect', () => {
           .nestedSelect('edges.id'),
       }).all()
       expect(edges).toMatchDreamModels([edge1])
+    })
+  })
+
+  context('from an associationQuery', () => {
+    it('automatically applies the namespace of the root associationQuery', async () => {
+      await Node.create({ name: 'N0' })
+      const node = await Node.create({ name: 'N1' })
+      const edge = await Edge.create({ name: 'E1' })
+      await EdgeNode.create({ node, edge })
+
+      const edges = await Edge.where({
+        id: node.associationQuery('edges').nestedSelect('id'),
+      }).all()
+      expect(edges).toMatchDreamModels([edge])
     })
   })
 })
