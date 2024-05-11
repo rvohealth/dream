@@ -17,16 +17,16 @@ export default function HasOne<
   modelCB: () => AssociationDreamClass,
   {
     foreignKey,
+    order,
     polymorphic = false,
-    source,
-    through,
     preloadThroughColumns,
-    where,
-    whereNot,
+    primaryKeyOverride = null,
     selfWhere,
     selfWhereNot,
-    order,
-    primaryKeyOverride,
+    source,
+    through,
+    where,
+    whereNot,
   }: HasOneOptions<BaseInstance, AssociationDreamClass> = {}
 ): any {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
