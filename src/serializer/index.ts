@@ -18,6 +18,14 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   public static associationStatements: AssociationStatement[] = []
   public static readonly isDreamSerializer = true
 
+  public static render(data: any, opts: DreamSerializerStaticRenderOpts = {}) {
+    return new this(data).passthrough(opts.passthrough).render()
+  }
+
+  public static renderArray(dataArr: any[], opts: DreamSerializerStaticRenderOpts = {}) {
+    return dataArr.map(data => this.render(data, opts))
+  }
+
   private _data: DataType
   private _casing: 'snake' | 'camel' | null = null
   public readonly isDreamSerializerInstance = true
@@ -220,4 +228,8 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
         return field
     }
   }
+}
+
+export interface DreamSerializerStaticRenderOpts {
+  passthrough?: any
 }

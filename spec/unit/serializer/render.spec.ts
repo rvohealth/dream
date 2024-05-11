@@ -14,6 +14,39 @@ import FailedToRenderThroughAssociationForSerializer from '../../../src/exceptio
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
 
+describe('DreamSerailizer.render', () => {
+  it('renders a dream instance', () => {
+    class MySerializer extends DreamSerializer {
+      @Attribute()
+      public name: string
+    }
+
+    const results = MySerializer.render({ email: 'abc', name: 'Frodo', password: '123' })
+
+    expect(results).toEqual({ name: 'Frodo' })
+  })
+
+  context('passthrough is passed', () => {
+    it('sends passthrough through to the serializer instance', () => {
+      class MySerializer extends DreamSerializer {
+        @Attribute()
+        public name() {
+          return this.passthroughData.name
+        }
+      }
+
+      const results = MySerializer.render(
+        { email: 'abc' },
+        {
+          passthrough: { name: 'calvin coolidge' },
+        }
+      )
+
+      expect(results).toEqual({ name: 'calvin coolidge' })
+    })
+  })
+})
+
 describe('DreamSerializer#render', () => {
   it('renders a single attribute', () => {
     class MySerializer extends DreamSerializer {
