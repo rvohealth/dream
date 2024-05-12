@@ -638,6 +638,29 @@ describe('Query#preload through', () => {
       expect(reloadedEdge2!.preloadedThroughColumns.position).toEqual(2)
       expect(reloadedEdge2!.preloadedThroughColumns.createdAt).toEqualDateTime(edgeNode2.createdAt)
     })
+
+    context('with aliased set values', () => {
+      it('loads the specified columns onto the loaded model', async () => {
+        const node = await Node.create({ name: 'mynode' })
+        const edge1 = await Edge.create({ name: 'myedge1' })
+        const edge2 = await Edge.create({ name: 'myedge2' })
+
+        // position automatically set by Sortable decorator
+        const edgeNode1 = await node.createAssociation('edgeNodes', { edge: edge1 })
+        const edgeNode2 = await node.createAssociation('edgeNodes', { edge: edge2 })
+
+        const reloadedNode = await Node.preload('edgesWithAliasedPreloads').first()
+
+        const reloadedEdge1 = reloadedNode!.edgesWithAliasedPreloads.find(obj => obj.name === 'myedge1')
+        const reloadedEdge2 = reloadedNode!.edgesWithAliasedPreloads.find(obj => obj.name === 'myedge2')
+
+        expect(reloadedEdge1!.preloadedThroughColumns.aliasedPosition).toEqual(1)
+        expect(reloadedEdge1!.preloadedThroughColumns.aliasedCreatedAt).toEqualDateTime(edgeNode1.createdAt)
+
+        expect(reloadedEdge2!.preloadedThroughColumns.aliasedPosition).toEqual(2)
+        expect(reloadedEdge2!.preloadedThroughColumns.aliasedCreatedAt).toEqualDateTime(edgeNode2.createdAt)
+      })
+    })
   })
 
   context('with order-clause-on-the-association', () => {

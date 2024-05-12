@@ -23,6 +23,8 @@ export default class Edge extends ApplicationModel {
   public preloadedThroughColumns: {
     position?: typeof EdgeNode.prototype.position
     createdAt?: typeof EdgeNode.prototype.createdAt
+    aliasedPosition?: typeof EdgeNode.prototype.position
+    aliasedCreatedAt?: typeof EdgeNode.prototype.createdAt
   } = {}
 
   @HasMany(() => EdgeNode, { foreignKey: 'edgeId' })

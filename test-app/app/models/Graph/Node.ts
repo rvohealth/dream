@@ -30,6 +30,13 @@ export default class Node extends ApplicationModel {
   @HasMany(() => GraphEdge, { through: 'edgeNodes', preloadThroughColumns: ['position', 'createdAt'] })
   public edges: GraphEdge[]
 
+  @HasMany(() => GraphEdge, {
+    through: 'edgeNodes',
+    preloadThroughColumns: { position: 'aliasedPosition', createdAt: 'aliasedCreatedAt' },
+    source: 'edge',
+  })
+  public edgesWithAliasedPreloads: GraphEdge[]
+
   @HasMany(() => GraphEdge, { through: 'edgeNodes', order: 'name', source: 'edge' })
   public edgesOrderedByName: GraphEdge[]
 

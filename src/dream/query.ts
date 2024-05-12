@@ -1054,10 +1054,19 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       | HasOneStatement<any, any, any, any>
 
     if (asHasAssociation.through && asHasAssociation.preloadThroughColumns) {
-      asHasAssociation.preloadThroughColumns.forEach(preloadThroughColumn => {
-        throughColumnsToHydrate.push(preloadThroughColumn)
-        columnsToPluck.push(`${asHasAssociation.through}.${preloadThroughColumn}`)
-      })
+      if (isObject(asHasAssociation.preloadThroughColumns)) {
+        const preloadMap = asHasAssociation.preloadThroughColumns as Record<string, string>
+        Object.keys(preloadMap).forEach(preloadThroughColumn => {
+          throughColumnsToHydrate.push(preloadMap[preloadThroughColumn])
+          columnsToPluck.push(`${asHasAssociation.through}.${preloadThroughColumn}`)
+        })
+      } else {
+        const preloadArray = asHasAssociation.preloadThroughColumns as string[]
+        preloadArray.forEach(preloadThroughColumn => {
+          throughColumnsToHydrate.push(preloadThroughColumn)
+          columnsToPluck.push(`${asHasAssociation.through}.${preloadThroughColumn}`)
+        })
+      }
     }
 
     columnsToPluck.push(`${dreamClass.table}.${dreamClass.primaryKey}`)

@@ -153,7 +153,7 @@ export interface HasStatement<
   polymorphic: boolean
   source: string
   through?: string
-  preloadThroughColumns?: string[]
+  preloadThroughColumns?: string[] | Record<string, string>
   where?: AssociationWhereStatement<DB, Schema, ForeignTableName>
   whereNot?: WhereStatement<DB, Schema, ForeignTableName>
   selfWhere?: WhereSelfStatement<BaseInstance, DB, Schema, ForeignTableName>
@@ -228,7 +228,7 @@ export interface HasOptions<BaseInstance extends Dream, AssociationDreamClass ex
             InstanceType<AssociationDreamClass>['dreamconf']['schema']
           >
       >[]
-  preloadThroughColumns?: string[]
+  preloadThroughColumns?: string[] | Record<string, string>
 }
 
 export function blankAssociationsFactory(dreamClass: typeof Dream): {

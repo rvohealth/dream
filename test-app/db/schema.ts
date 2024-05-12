@@ -1111,6 +1111,12 @@ export const schema = {
         tables: ['graph_edges'],
         optional: null,
       },
+      edgesWithAliasedPreloads: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['graph_edges'],
+        optional: null,
+      },
       nonNodeNameEdgesOnThroughAssociation: {
         type: 'HasMany',
         foreignKey: null,
