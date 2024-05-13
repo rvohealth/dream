@@ -237,7 +237,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   >(
     id: Schema[TableName]['columns'][DreamInstance['primaryKey'] &
       keyof Schema[TableName]['columns']]['coercedType']
-  ): Promise<(DreamInstance & Dream) | null> {
+  ): Promise<DreamInstance | null> {
     if (!id) return null
 
     return await this.where({

@@ -33,7 +33,7 @@ type AssociatedModelType<
     : PossibleArrayAssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
     ? ElementType
     : PossibleArrayAssociationType,
-> = AssociationType & Dream
+> = AssociationType
 
 export type AssociatedModelParam<
   I extends Dream,

@@ -27,7 +27,7 @@ export interface HookStatement {
 }
 
 export interface BeforeHookOpts<T extends Dream | null = null> {
-  ifChanging?: T extends null ? string[] : DreamColumnNames<T & Dream>[]
+  ifChanging?: T extends Dream ? DreamColumnNames<T>[] : string[]
 }
 
 export interface AfterHookOpts<T extends Dream | null = null> {
