@@ -11,7 +11,7 @@ import NonLoadedAssociation from '../exceptions/associations/non-loaded-associat
 import isArray from 'lodash.isarray'
 import FailedToRenderThroughAssociationForSerializer from '../exceptions/serializers/failed-to-render-through-association'
 import CalendarDate from '../helpers/CalendarDate'
-import serializerForKey from '../helpers/serializerForKey'
+import instanceSerializerForKey from '../helpers/serializerForKey'
 
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
   public static attributeStatements: AttributeStatement[] = []
@@ -162,7 +162,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   private renderAssociation(associatedData: any, associationStatement: AssociationStatement) {
     const serializerClass = associationStatement.serializerClassCB
       ? associationStatement.serializerClassCB()
-      : serializerForKey(associatedData.constructor as typeof Dream, associationStatement.serializerKey)
+      : instanceSerializerForKey(associatedData, associationStatement.serializerKey)
 
     if (!serializerClass) throw new MissingSerializer(associatedData.constructor as typeof Dream)
     return new serializerClass(associatedData).passthrough(this.passthroughData).render()

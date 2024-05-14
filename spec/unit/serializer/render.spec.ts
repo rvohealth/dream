@@ -13,6 +13,7 @@ import Collar from '../../../test-app/app/models/Collar'
 import FailedToRenderThroughAssociationForSerializer from '../../../src/exceptions/serializers/failed-to-render-through-association'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
+import PetSerializer from '../../../test-app/app/serializers/PetSerializer'
 
 describe('DreamSerailizer.render', () => {
   it('renders a dream instance', () => {
@@ -958,6 +959,42 @@ describe('DreamSerializer#render', () => {
 
           const serializer = new UserSerializer({ pet })
           expect(() => serializer.render()).toThrowError(MissingSerializer)
+        })
+      })
+
+      context('when the serializer class is determined dynamically', () => {
+        class UserSerializer extends DreamSerializer {
+          @RendersMany()
+          public pets: Pet[]
+        }
+
+        class CatSerializer extends DreamSerializer {
+          @Attribute()
+          public sound() {
+            return 'meow'
+          }
+        }
+        class DogSerializer extends DreamSerializer {
+          @Attribute()
+          public sound() {
+            return 'woof'
+          }
+        }
+
+        class PetWithConditionalSerializer extends Pet {
+          public get serializers(): any {
+            if (this.species === 'cat') return { default: CatSerializer } as const
+            else if (this.species === 'dog') return { default: DogSerializer } as const
+            else return { default: PetSerializer<any, any> } as const
+          }
+        }
+
+        it('changes the serializer based on model attributes', () => {
+          const cat = PetWithConditionalSerializer.new({ name: 'aster', species: 'cat' })
+          const dog = PetWithConditionalSerializer.new({ name: 'violet', species: 'dog' })
+
+          const serializer = new UserSerializer({ pets: [cat, dog] })
+          expect(serializer.render()).toEqual({ pets: [{ sound: 'meow' }, { sound: 'woof' }] })
         })
       })
     })

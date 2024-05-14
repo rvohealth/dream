@@ -84,7 +84,7 @@ import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associati
 import { marshalDBValue } from './helpers/marshalDBValue'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
 import CalendarDate from './helpers/CalendarDate'
-import serializerForKey from './helpers/serializerForKey'
+import instanceSerializerForKey from './helpers/serializerForKey'
 
 export default class Dream {
   public static get primaryKey() {
@@ -1342,7 +1342,7 @@ export default class Dream {
   }
 
   public serialize<I extends Dream>(this: I, { casing = null, serializerKey }: RenderOptions<I> = {}) {
-    const serializerClass = serializerForKey(this.constructor, serializerKey)
+    const serializerClass = instanceSerializerForKey(this, serializerKey)
     const serializer = new serializerClass(this)
     if (casing) serializer.casing(casing)
     return serializer.render()
