@@ -25,10 +25,11 @@ export default class LoadBuilder<DreamInstance extends Dream> {
 
   public load<
     I extends LoadBuilder<DreamInstance>,
+    DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['dreamconf']['schema'],
     const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicLoadArgs<Schema, TableName, Arr>]) {
+  >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
     this.query = this.query.preload(...(args as any))
     return this
   }

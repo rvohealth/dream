@@ -23,6 +23,17 @@ describe('Query#preload with simple associations', () => {
       expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
     })
 
+    it('supports where clauses', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ userId: user.id, primary: true, content: 'Hello' })
+
+      const reloadedUser = await User.query().preload('mainComposition', { content: 'Goodbye' }).first()
+      expect(reloadedUser?.mainComposition).toBeNull()
+
+      const reloadedUser2 = await User.query().preload('mainComposition', { content: 'Hello' }).first()
+      expect(reloadedUser2!.mainComposition).toMatchDreamModel(composition)
+    })
+
     context('when the association does not exist', () => {
       it('sets it to null', async () => {
         await User.create({ email: 'fred@frewd', password: 'howyadoin' })
@@ -46,11 +57,20 @@ describe('Query#preload with simple associations', () => {
   context('HasMany', () => {
     it('loads the associations', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const composition1 = await Composition.create({ userId: user.id })
-      const composition2 = await Composition.create({ userId: user.id })
+      const composition1 = await Composition.create({ user })
+      const composition2 = await Composition.create({ user })
 
       const reloadedUser = await User.query().preload('compositions').first()
       expect(reloadedUser!.compositions).toMatchDreamModels([composition1, composition2])
+    })
+
+    it('supports where clauses', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await Composition.create({ user, content: 'Hello' })
+      const composition2 = await Composition.create({ user, content: 'Goodbye' })
+
+      const reloadedUser = await User.query().preload('compositions', { content: 'Goodbye' }).first()
+      expect(reloadedUser!.compositions).toMatchDreamModels([composition2])
     })
 
     context('when no association exists', () => {
@@ -85,7 +105,7 @@ describe('Query#preload with simple associations', () => {
   context('BelongsTo', () => {
     it('loads the association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      await Composition.create({ userId: user.id })
+      await Composition.create({ user })
       const reloadedComposition = await Composition.query().preload('user').first()
       expect(reloadedComposition!.user).toMatchDreamModel(user)
     })
@@ -103,7 +123,7 @@ describe('Query#preload with simple associations', () => {
 
   it('can handle object notation', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition = await Composition.create({ userId: user.id })
+    const composition = await Composition.create({ user })
     const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
 
     const reloaded = await User.query().preload('compositions', 'compositionAssets').first()
@@ -114,7 +134,7 @@ describe('Query#preload with simple associations', () => {
   it('can handle sibling preload', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ userId: user.id, primary: true })
-    const composition2 = await Composition.create({ userId: user.id })
+    const composition2 = await Composition.create({ user })
     const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
 
     const reloadedUser = await User.query()
@@ -347,5 +367,11 @@ describe('Query#preload with simple associations', () => {
         expect(result!.pet).toBeNull()
       })
     })
+  })
+
+  it.skip('type test', async () => {
+    // preload allows re-using of association names since preloading does not occur within a single
+    // query, so will not result in namespace collision
+    await Edge.preload('nodes', 'edges', 'nodes').all()
   })
 })

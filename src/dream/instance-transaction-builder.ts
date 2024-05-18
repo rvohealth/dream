@@ -32,8 +32,8 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   public async pluckThrough<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['dreamconf']['schema'],
     TableName extends DreamInstance['table'],
+    Schema extends DreamInstance['dreamconf']['schema'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicPluckThroughArgs<DB, Schema, TableName, Arr>]): Promise<any[]> {
     return this.queryInstance().pluckThrough(...(args as any))
@@ -51,10 +51,11 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
 
   public load<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['dreamconf']['schema'],
     const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicLoadArgs<Schema, TableName, Arr>]): LoadBuilder<DreamInstance> {
+  >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]): LoadBuilder<DreamInstance> {
     return new LoadBuilder<DreamInstance>(this.dreamInstance, this.dreamTransaction).load(...(args as any))
   }
 

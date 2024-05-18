@@ -239,6 +239,12 @@ export type RelaxedJoinsStatement<Depth extends number = 0> = Depth extends 7
   ? object
   : { [key: string]: RelaxedJoinsStatement<Inc<Depth>> | object }
 
+export type RelaxedPreloadWhereStatement<DB, Schema, Depth extends number = 0> = RelaxedJoinsWhereStatement<
+  DB,
+  Schema,
+  Depth
+>
+
 export type RelaxedJoinsWhereStatement<DB, Schema, Depth extends number = 0> = Depth extends 7
   ? object
   : {
@@ -262,74 +268,23 @@ type INVALID = 'invalid'
 ///////////////////////////////
 // VARIADIC LOAD
 ///////////////////////////////
-type VariadicLoadArgsCheckThenRecurse<
-  Schema,
-  ConcreteTableName extends keyof Schema & string,
-  ConcreteArgs extends readonly unknown[],
-  UsedNamespaces,
-  Depth extends number,
-  AssociationNamesOrWhereClause,
-  SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
-  NthArgument extends VALID | INVALID = ConcreteArgs['length'] extends 0
-    ? VALID
-    : ConcreteArgs[0] extends keyof SchemaAssociations & string
-      ? VALID
-      : INVALID,
-> = NthArgument extends INVALID
-  ? `invalid where clause in argument ${Inc<Depth>}`
-  : ConcreteArgs['length'] extends 0
-    ? AssociationNamesOrWhereClause
-    : VariadicLoadArgsRecurse<Schema, ConcreteTableName, ConcreteArgs, UsedNamespaces, Depth>
-
-type VariadicLoadArgsRecurse<
-  Schema,
-  ConcreteTableName extends keyof Schema & string,
-  ConcreteArgs extends readonly unknown[],
-  UsedNamespaces,
-  Depth extends number,
-  //
-  SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
-  ConcreteNthArg extends keyof SchemaAssociations &
-    string = ConcreteArgs[0] extends keyof SchemaAssociations & string
-    ? ConcreteArgs[0] & keyof SchemaAssociations & string
-    : never,
-  NextUsedNamespaces = ConcreteArgs[0] extends keyof SchemaAssociations & string
-    ? UsedNamespaces | ConcreteNthArg
-    : UsedNamespaces,
-  //
-  NextTableName extends keyof Schema & string = ConcreteNthArg extends keyof SchemaAssociations & string
-    ? (SchemaAssociations[ConcreteNthArg]['tables' & keyof SchemaAssociations[ConcreteNthArg]] &
-        (keyof Schema & string)[])[0]
-    : ConcreteTableName,
-  AllowedNextArgValues = Exclude<
-    keyof Schema[NextTableName]['associations' & keyof Schema[NextTableName]] & string,
-    NextUsedNamespaces
-  >,
-  //
-> = Depth extends MAX_VARIADIC_DEPTH
-  ? never
-  : VariadicLoadArgsCheckThenRecurse<
-      Schema,
-      NextTableName,
-      ReadonlyTail<ConcreteArgs>,
-      NextUsedNamespaces,
-      Inc<Depth>,
-      AllowedNextArgValues | AllowedNextArgValues[]
-    >
-
 export type VariadicLoadArgs<
+  DB,
   Schema,
   ConcreteTableName extends keyof Schema & string,
   ConcreteArgs extends readonly unknown[],
   //
   SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
   AllowedNextArgValues = keyof SchemaAssociations & string,
-> = VariadicLoadArgsCheckThenRecurse<
+> = VariadicCheckThenRecurse<
+  DB,
   Schema,
   ConcreteTableName,
   ConcreteArgs,
+  'load',
   ConcreteTableName,
   0,
+  never,
   AllowedNextArgValues | AllowedNextArgValues[]
 >
 ///////////////////////////////
@@ -435,7 +390,7 @@ type VariadicCheckThenRecurse<
             ConcreteTableName & AssociationTableNames<DB, Schema> & keyof DB
           >
         ? VALID
-        : RecursionType extends 'joins'
+        : RecursionType extends 'load' | 'joins'
           ? INVALID
           : ConcreteArgs[0] extends AssociationNameToDotReference<
                 DB,
@@ -471,7 +426,7 @@ type VariadicCheckThenRecurse<
         ConcreteAssociationName
       >
 
-type RecursionTypes = 'joins' | 'pluckThrough' | 'pluckEachThrough'
+type RecursionTypes = 'load' | 'joins' | 'pluckThrough' | 'pluckEachThrough'
 
 type VariadicRecurse<
   DB,
@@ -505,19 +460,21 @@ type VariadicRecurse<
     ? ConcreteArgs[0] & keyof SchemaAssociations & string
     : ConcreteAssociationName,
   //
-  AllowedNextArgValues = RecursionType extends 'joins'
-    ? AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
-    : RecursionType extends 'pluckThrough'
-      ?
-          | AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
-          | ExtraAllowedNextArgValuesForPluckThrough<DB, Schema, NextTableName, NextAssociationName>
-      : RecursionType extends 'pluckEachThrough'
+  AllowedNextArgValues = RecursionType extends 'load'
+    ? AllowedNextArgValuesForLoad<DB, Schema, NextTableName>
+    : RecursionType extends 'joins'
+      ? AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
+      : RecursionType extends 'pluckThrough'
         ?
             | AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
             | ExtraAllowedNextArgValuesForPluckThrough<DB, Schema, NextTableName, NextAssociationName>
-            | ((...args: any[]) => Promise<void> | void)
-            | FindEachOpts
-        : never,
+        : RecursionType extends 'pluckEachThrough'
+          ?
+              | AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
+              | ExtraAllowedNextArgValuesForPluckThrough<DB, Schema, NextTableName, NextAssociationName>
+              | ((...args: any[]) => Promise<void> | void)
+              | FindEachOpts
+          : never,
 > = Depth extends MAX_VARIADIC_DEPTH
   ? never
   : VariadicCheckThenRecurse<
@@ -532,8 +489,18 @@ type VariadicRecurse<
       AllowedNextArgValues
     >
 
+type AssociationNamesForTable<
+  Schema,
+  TableName extends keyof Schema,
+> = keyof Schema[TableName]['associations' & keyof Schema[TableName]] & string
+
+type AllowedNextArgValuesForLoad<DB, Schema, TableName extends keyof Schema> =
+  | AssociationNamesForTable<Schema, TableName>
+  | AssociationNamesForTable<Schema, TableName>[]
+  | WhereStatement<DB, Schema, TableName & AssociationTableNames<DB, Schema> & keyof DB>
+
 type AllowedNextArgValuesForJoins<DB, Schema, TableName extends keyof Schema, UsedNamespaces> =
-  | Exclude<keyof Schema[TableName]['associations' & keyof Schema[TableName]] & string, UsedNamespaces>
+  | Exclude<AssociationNamesForTable<Schema, TableName>, UsedNamespaces>
   | WhereStatement<DB, Schema, TableName & AssociationTableNames<DB, Schema> & keyof DB>
 
 type ExtraAllowedNextArgValuesForPluckThrough<DB, Schema, TableName extends keyof Schema, AssociationName> =

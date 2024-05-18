@@ -450,10 +450,11 @@ export default class Dream {
   public static async loadInto<
     T extends typeof Dream,
     I extends InstanceType<T>,
+    DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['dreamconf']['schema'],
     const Arr extends readonly unknown[],
-  >(this: T, models: Dream[], ...args: [...Arr, VariadicLoadArgs<Schema, TableName, Arr>]) {
+  >(this: T, models: Dream[], ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
     await this.query().loadInto(models, ...(args as any))
   }
 
@@ -493,10 +494,11 @@ export default class Dream {
   public static preload<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    Schema extends I['dreamconf']['schema'],
+    DB extends I['DB'],
     TableName extends InstanceType<T>['table'],
+    Schema extends I['dreamconf']['schema'],
     const Arr extends readonly unknown[],
-  >(this: T, ...args: [...Arr, VariadicLoadArgs<Schema, TableName, Arr>]) {
+  >(this: T, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
     return this.query().preload(...(args as any))
   }
 
@@ -1314,10 +1316,11 @@ export default class Dream {
 
   public load<
     I extends Dream,
+    DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['dreamconf']['schema'],
     const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicLoadArgs<Schema, TableName, Arr>]): LoadBuilder<I> {
+  >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]): LoadBuilder<I> {
     return new LoadBuilder<I>(this).load(...(args as any))
   }
 

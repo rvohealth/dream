@@ -105,17 +105,18 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
 
   public preload<
     I extends DreamClassTransactionBuilder<DreamInstance>,
+    DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['dreamconf']['schema'],
     const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicLoadArgs<Schema, TableName, Arr>]) {
+  >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
     return this.queryInstance().preload(...(args as any))
   }
 
   public joins<
     I extends DreamClassTransactionBuilder<DreamInstance>,
-    TableName extends DreamInstance['table'],
     DB extends DreamInstance['DB'],
+    TableName extends DreamInstance['table'],
     Schema extends DreamInstance['dreamconf']['schema'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicJoinsArgs<DB, Schema, TableName, Arr>]) {
@@ -125,8 +126,8 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
   public async pluckThrough<
     I extends DreamClassTransactionBuilder<DreamInstance>,
     DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['dreamconf']['schema'],
     TableName extends DreamInstance['table'],
+    Schema extends DreamInstance['dreamconf']['schema'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicPluckThroughArgs<DB, Schema, TableName, Arr>]) {
     return this.queryInstance().pluckThrough(...(args as any))

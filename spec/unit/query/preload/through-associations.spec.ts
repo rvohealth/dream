@@ -30,6 +30,20 @@ describe('Query#preload through', () => {
       expect(reloaded!.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon])
       expect(reloaded!.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon)
     })
+
+    it('supports where clauses', async () => {
+      const balloon = await Latex.create()
+      const balloon2 = await Latex.create()
+      const balloonSpotter = await BalloonSpotter.create()
+      await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
+      const balloonSpotterBalloon2 = await BalloonSpotterBalloon.create({ balloonSpotter, balloon: balloon2 })
+
+      const reloaded = await BalloonSpotter.query()
+        .preload('balloonSpotterBalloons', { id: balloonSpotterBalloon2.id }, 'balloon')
+        .first()
+      expect(reloaded!.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon2])
+      expect(reloaded!.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon2)
+    })
   })
 
   context('implicit HasMany through a BelongsTo', () => {
@@ -40,6 +54,17 @@ describe('Query#preload through', () => {
 
       const reloaded = await BalloonSpotter.query().preload('balloons').first()
       expect(reloaded!.balloons).toMatchDreamModels([balloon])
+    })
+
+    it('supports where clauses', async () => {
+      const blueBalloon = await Latex.create({ color: 'blue' })
+      const redBalloon = await Latex.create({ color: 'red' })
+      const balloonSpotter = await BalloonSpotter.create()
+      await BalloonSpotterBalloon.create({ balloonSpotter, balloon: blueBalloon })
+      await BalloonSpotterBalloon.create({ balloonSpotter, balloon: redBalloon })
+
+      const reloaded = await BalloonSpotter.query().preload('balloons', { color: 'red' }).first()
+      expect(reloaded!.balloons).toMatchDreamModels([redBalloon])
     })
 
     context('when the join model does not have an associated BelongsTo', () => {

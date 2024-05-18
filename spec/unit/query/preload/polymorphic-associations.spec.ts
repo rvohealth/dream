@@ -29,6 +29,18 @@ describe('Query#preload with polymorphic associations', () => {
     expect(reloaded!.ratings).toMatchDreamModels([postRating])
   })
 
+  it('supports where clauses', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const composition = await Composition.create({ user })
+    await Rating.create({ user, rateable: composition })
+    const post = await Post.create({ user })
+    await Rating.create({ user, rateable: post, rating: 3 })
+    const postRating = await Rating.create({ user, rateable: post, rating: 7 })
+
+    const reloaded = await Post.where({ id: post.id }).preload('ratings', { rating: 7 }).first()
+    expect(reloaded!.ratings).toMatchDreamModels([postRating])
+  })
+
   it('loads a HasMany association with STI', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     await Composition.create({ user })

@@ -10,19 +10,20 @@ import {
   WhereStatement,
 } from '../decorators/associations/shared'
 import {
+  DreamColumnNames,
   DreamConst,
-  RelaxedPreloadStatement,
-  RelaxedJoinsStatement,
-  RelaxedJoinsWhereStatement,
-  TableOrAssociationName,
   DreamTableSchema,
   OrderDir,
+  RelaxedJoinsStatement,
+  RelaxedJoinsWhereStatement,
+  RelaxedPreloadStatement,
+  RelaxedPreloadWhereStatement,
+  TableColumnNames,
+  TableOrAssociationName,
   VariadicJoinsArgs,
   VariadicLoadArgs,
-  VariadicPluckThroughArgs,
   VariadicPluckEachThroughArgs,
-  TableColumnNames,
-  DreamColumnNames,
+  VariadicPluckThroughArgs,
 } from './types'
 import {
   AliasedExpression,
@@ -144,6 +145,10 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   private readonly orderStatements: readonly OrderQueryStatement<DreamColumnNames<DreamInstance>>[] =
     Object.freeze([])
   private readonly preloadStatements: RelaxedPreloadStatement = Object.freeze({})
+  private readonly preloadWhereStatements: RelaxedPreloadWhereStatement<
+    DreamInstance['DB'],
+    DreamInstance['dreamconf']['schema']
+  > = Object.freeze({})
   private readonly joinsStatements: RelaxedJoinsStatement = Object.freeze({})
   private readonly joinsWhereStatements: RelaxedJoinsWhereStatement<
     DreamInstance['DB'],
@@ -169,6 +174,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     this.orStatements = Object.freeze(opts.or || [])
     this.orderStatements = Object.freeze(opts.order || [])
     this.preloadStatements = Object.freeze(opts.preloadStatements || {})
+    this.preloadWhereStatements = Object.freeze(opts.preloadWhereStatements || {})
     this.joinsStatements = Object.freeze(opts.joinsStatements || {})
     this.joinsWhereStatements = Object.freeze(opts.joinsWhereStatements || {})
     this.bypassDefaultScopes = Object.freeze(opts.bypassDefaultScopes || false)
@@ -217,12 +223,13 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
       distinctColumn: opts.distinctColumn !== undefined ? opts.distinctColumn : this.distinctColumn,
 
-      // when passed, preloadStatements, joinsStatements, and joinsWhereStatements are already
+      // when passed, preloadStatements, preloadWhereStatements, joinsStatements, and joinsWhereStatements are already
       // cloned versions of the `this.` versions, handled in the `preload` and `joins` methods
       preloadStatements: opts.preloadStatements || this.preloadStatements,
+      preloadWhereStatements: opts.preloadWhereStatements || this.preloadWhereStatements,
       joinsStatements: opts.joinsStatements || this.joinsStatements,
       joinsWhereStatements: opts.joinsWhereStatements || this.joinsWhereStatements,
-      // end:when passed, preloadStatements, joinsStatements, and joinsWhereStatements are already...
+      // end:when passed, preloadStatements, preloadWhereStatements, joinsStatements, and joinsWhereStatements are already...
 
       bypassDefaultScopes:
         opts.bypassDefaultScopes !== undefined ? opts.bypassDefaultScopes : this.bypassDefaultScopes,
@@ -270,10 +277,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   public async loadInto<
+    DB extends DreamInstance['DB'],
     Schema extends DreamInstance['dreamconf']['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-  >(models: Dream[], ...args: [...Arr, VariadicLoadArgs<Schema, TableName, Arr>]) {
+  >(models: Dream[], ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
     const query = this.preload(...(args as any))
     await new LoadIntoModels<DreamInstance>(
       query.preloadStatements,
@@ -282,38 +290,19 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   public preload<
+    DB extends DreamInstance['DB'],
     Schema extends DreamInstance['dreamconf']['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-  >(...args: [...Arr, VariadicLoadArgs<Schema, TableName, Arr>]) {
+  >(...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
     const preloadStatements = cloneDeepSafe(this.preloadStatements)
-    this.fleshOutPreloadStatements(preloadStatements, [...(args as any)])
-    return this.clone({ preloadStatements })
-  }
 
-  private fleshOutPreloadStatements(
-    preloadStatements: RelaxedPreloadStatement,
-    associationStatements: (string | string[] | undefined)[]
-  ) {
-    const nextAssociationStatement = associationStatements.shift()
+    const preloadWhereStatements: RelaxedPreloadWhereStatement<DB, Schema> = cloneDeepSafe(
+      this.preloadWhereStatements
+    )
 
-    if (nextAssociationStatement === undefined) {
-      // just satisfying typing
-    } else if (isString(nextAssociationStatement)) {
-      const nextStatement = nextAssociationStatement as string
-
-      if (!preloadStatements[nextStatement])
-        preloadStatements[protectAgainstPollutingAssignment(nextStatement)] = {}
-      const nextPreload = preloadStatements[nextStatement] as any
-
-      this.fleshOutPreloadStatements(nextPreload, associationStatements)
-    } else if (Array.isArray(nextAssociationStatement)) {
-      const nextStatement = nextAssociationStatement
-
-      nextStatement.forEach(associationStatement => {
-        preloadStatements[protectAgainstPollutingAssignment(associationStatement)] = {}
-      })
-    }
+    this.fleshOutJoinsStatements(preloadStatements, preloadWhereStatements, null, [...(args as any)])
+    return this.clone({ preloadStatements, preloadWhereStatements })
   }
 
   public joins<
@@ -363,6 +352,13 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         nextStatement,
         associationStatements
       )
+    } else if (Array.isArray(nextAssociationStatement)) {
+      // this supports the final argument of load/preload statements
+      const nextStatement = nextAssociationStatement
+
+      nextStatement.forEach(associationStatement => {
+        joinsStatements[protectAgainstPollutingAssignment(associationStatement)] = {}
+      })
     } else if (isObject(nextAssociationStatement) && previousAssociationName) {
       const clonedNextAssociationStatement = cloneDeepSafe(nextAssociationStatement)
 
@@ -1025,7 +1021,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   private async applyOnePreload(
     this: Query<DreamInstance>,
     associationName: string,
-    dreams: Dream | Dream[]
+    dreams: Dream | Dream[],
+    whereStatement: WhereStatement<any, any, any> = {}
   ) {
     if (!Array.isArray(dreams)) dreams = [dreams] as Dream[]
 
@@ -1077,7 +1074,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     const hydrationData: any[][] = await this.symmetricalQueryForDreamClass(baseClass)
       .where({ [dreamClass.primaryKey]: dreams.map(obj => obj.primaryKeyValue) })
-      .pluckThrough(associationName, columnsToPluck)
+      .pluckThrough(associationName, whereStatement, columnsToPluck)
 
     const preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[] = hydrationData.map(
       pluckedData => {
@@ -1119,7 +1116,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     const keys = Object.keys(preloadStatement as any)
 
     for (const key of keys) {
-      const nestedDreams = await this.applyOnePreload(key, dream)
+      const nestedDreams = await this.applyOnePreload(key, dream, this.preloadWhereStatements[key] as any)
       if (nestedDreams) {
         await this.applyPreload((preloadStatement as any)[key], nestedDreams)
       }
@@ -2171,6 +2168,7 @@ export interface QueryOpts<
   or?: WhereStatement<DB, Schema, any>[][] | null
   order?: OrderQueryStatement<ColumnType>[] | null
   preloadStatements?: RelaxedPreloadStatement
+  preloadWhereStatements?: RelaxedPreloadWhereStatement<DB, Schema>
   distinctColumn?: ColumnType | null
   joinsStatements?: RelaxedJoinsStatement
   joinsWhereStatements?: RelaxedJoinsWhereStatement<DB, Schema>

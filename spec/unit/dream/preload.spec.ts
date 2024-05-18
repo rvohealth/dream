@@ -9,7 +9,7 @@ import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 describe('Dream.preload', () => {
   it('loads a HasOne association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition = await Composition.create({ userId: user.id })
+    const composition = await Composition.create({ user })
     const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
     await CompositionAssetAudit.create({
       compositionAssetId: compositionAsset.id,
@@ -19,7 +19,16 @@ describe('Dream.preload', () => {
     expect(reloaded!.compositionAsset).toMatchDreamModel(compositionAsset)
   })
 
-  context('when encased in a transaction', () => {
+  it('supports where clauses', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    await Composition.create({ user, content: 'hello' })
+    const composition = await Composition.create({ user, content: 'goodbye' })
+
+    const reloaded = await User.preload('compositions', { content: 'goodbye' }).first()
+    expect(reloaded!.compositions).toMatchDreamModels([composition])
+  })
+
+  context('within a transaction', () => {
     it('loads a HasOne association', async () => {
       let reloadedCompositionAssetAudit: CompositionAssetAudit | null = null
       let compositionAsset: CompositionAsset | null = null
