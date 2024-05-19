@@ -69,6 +69,13 @@ export default class CompositionAsset extends ApplicationModel {
   @HasOne(() => LocalizedText, {
     polymorphic: true,
     foreignKey: 'localizableId',
+    where: { locale: DreamConst.requiredWhereClause },
+  })
+  public inlineWhereCurrentLocalizedText: LocalizedText[]
+
+  @HasOne(() => LocalizedText, {
+    polymorphic: true,
+    foreignKey: 'localizableId',
     where: { locale: DreamConst.passthrough },
   })
   public currentLocalizedText: LocalizedText[]

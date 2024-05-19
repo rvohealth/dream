@@ -10,6 +10,7 @@ import ops from '../../../../src/ops'
 import OpsStatement from '../../../../src/ops/ops-statement'
 import LocalizedText from '../../../../test-app/app/models/LocalizedText'
 import Collar from '../../../../test-app/app/models/Collar'
+import MissingRequiredAssociationWhereClause from '../../../../src/exceptions/associations/missing-required-association-where-clause'
 
 describe('Query#joins with simple associations', () => {
   it('joins a HasOne association', async () => {
@@ -88,6 +89,31 @@ describe('Query#joins with simple associations', () => {
           .joins('compositions', 'currentLocalizedText')
           .all()
         expect(reloaded).toMatchDreamModels([user2])
+      })
+    })
+
+    context('with "requiredWhereClause"', () => {
+      it('replaces requiredWhereClause with the supplied where clause when joining the associations', async () => {
+        const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition1 = await Composition.create({ user: user1 })
+        await LocalizedText.create({ localizable: composition1, locale: 'en-US' })
+
+        const user2 = await User.create({ email: 'howyya@doin', password: 'howyadoin' })
+        const composition2 = await Composition.create({ user: user2 })
+        await LocalizedText.create({ localizable: composition2, locale: 'es-ES' })
+
+        const reloaded = await User.joins('compositions', 'inlineWhereCurrentLocalizedText', {
+          locale: 'es-ES',
+        }).all()
+        expect(reloaded).toMatchDreamModels([user2])
+      })
+
+      context('when the "requiredWhereClause" isn’t passed', () => {
+        it('throws MissingRequiredAssociationWhereClause', async () => {
+          await expect(User.joins('compositions', 'inlineWhereCurrentLocalizedText').all()).rejects.toThrow(
+            MissingRequiredAssociationWhereClause
+          )
+        })
       })
     })
 

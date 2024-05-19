@@ -77,6 +77,8 @@ import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../exceptions/ca
 import NoUpdateAllOnJoins from '../exceptions/no-updateall-on-joins'
 import orderByDirection from './internal/orderByDirection'
 import CalendarDate from '../helpers/CalendarDate'
+import MissingRequiredAssociationWhereClause from '../exceptions/associations/missing-required-association-where-clause'
+import MissingRequiredPassthroughForAssociationWhereClause from '../exceptions/associations/missing-required-passthrough-for-association-where-clause'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -125,6 +127,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   private readonly passthroughWhereStatement: PassthroughWhere<DreamInstance['allColumns']> = Object.freeze(
     {}
   )
+
   private readonly whereStatements: readonly WhereStatement<
     DreamInstance['DB'],
     DreamInstance['dreamconf']['schema'],
@@ -208,6 +211,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         ...this.passthroughWhereStatement,
         ...(opts.passthroughWhereStatement || {}),
       }),
+
       where: opts.where === null ? [] : Object.freeze([...this.whereStatements, ...(opts.where || [])]),
       whereNot:
         opts.whereNot === null ? [] : Object.freeze([...this.whereNotStatements, ...(opts.whereNot || [])]),
@@ -1256,12 +1260,14 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     previousAssociationTableOrAlias,
     currentAssociationTableOrAlias,
     originalAssociation,
+    joinsWhereStatements = {},
   }: {
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>
     dreamClass: typeof Dream
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
     currentAssociationTableOrAlias: TableOrAssociationName<Schema>
     originalAssociation?: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
+    joinsWhereStatements?: RelaxedJoinsWhereStatement<DB, Schema>
   }): {
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>
     association: any
@@ -1298,6 +1304,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       association,
       previousAssociationTableOrAlias,
     })
+
     query = results.query
     dreamClass = results.dreamClass
     association = results.association
@@ -1320,6 +1327,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           query,
           this.aliasWhereStatements([originalAssociation.where], originalAssociation.as)
         )
+
+        this.throwUnlessAllRequiredWhereClausesProvided(originalAssociation, originalAssociation.as, {})
       }
 
       if (originalAssociation.whereNot) {
@@ -1417,6 +1426,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
             [association.where as WhereStatement<DB, Schema, DreamInstance['table']>],
             currentAssociationTableOrAlias
           )
+        )
+        this.throwUnlessAllRequiredWhereClausesProvided(
+          association,
+          currentAssociationTableOrAlias,
+          joinsWhereStatements
         )
       }
 
@@ -1517,22 +1531,23 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   >({
     query,
     joinsStatement,
+    joinsWhereStatements,
     dreamClass,
     previousAssociationTableOrAlias,
   }: {
     query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>
     joinsStatement: RelaxedJoinsWhereStatement<DB, Schema>
+    joinsWhereStatements: RelaxedJoinsWhereStatement<DB, Schema>
     dreamClass: typeof Dream
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
   }): SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object> {
-    for (const currentAssociationTableOrAlias of Object.keys(
-      joinsStatement
-    ) as TableOrAssociationName<Schema>[]) {
+    for (const currentAssociationTableOrAlias of Object.keys(joinsStatement)) {
       const results = this.applyOneJoin({
         query,
         dreamClass,
         previousAssociationTableOrAlias,
         currentAssociationTableOrAlias,
+        joinsWhereStatements,
       })
 
       query = results.query
@@ -1541,6 +1556,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       query = this.recursivelyJoin({
         query,
         joinsStatement: joinsStatement[currentAssociationTableOrAlias] as any,
+        joinsWhereStatements: joinsWhereStatements[currentAssociationTableOrAlias] as any,
 
         dreamClass: association.modelCB() as typeof Dream,
         previousAssociationTableOrAlias: currentAssociationTableOrAlias,
@@ -1548,6 +1564,25 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     }
 
     return query
+  }
+
+  private throwUnlessAllRequiredWhereClausesProvided(
+    association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>,
+    namespace: string,
+    joinsWhereStatements: RelaxedJoinsWhereStatement<any, any>
+  ) {
+    const whereStatement = association.where!
+    const columnsRequiringWhereStatements = Object.keys(whereStatement).reduce((agg, column) => {
+      if (whereStatement[column] === DreamConst.requiredWhereClause) agg.push(column)
+      return agg
+    }, [] as string[])
+
+    const missingRequiredWhereStatements = columnsRequiringWhereStatements.filter(
+      column => (joinsWhereStatements[namespace] as any)?.[column] === undefined
+    )
+
+    if (missingRequiredWhereStatements.length)
+      throw new MissingRequiredAssociationWhereClause(association, missingRequiredWhereStatements[0])
   }
 
   private applyWhereStatements<
@@ -1610,7 +1645,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     } = {}
   ) {
     Object.keys(whereStatement)
-      .filter(key => (whereStatement as any)[key] !== undefined)
+      .filter(
+        key =>
+          (whereStatement as any)[key] !== undefined &&
+          (whereStatement as any)[key] !== DreamConst.requiredWhereClause
+      )
       .forEach(attr => {
         const val = (whereStatement as any)[attr]
 
@@ -1805,6 +1844,10 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     if (val === DreamConst.passthrough) {
       const column = attr.split('.').pop()
+
+      if ((this.passthroughWhereStatement as any)[column!] === undefined)
+        throw new MissingRequiredPassthroughForAssociationWhereClause(column!)
+
       a = attr
       b = '='
       c = (this.passthroughWhereStatement as any)[column!]
@@ -1910,6 +1953,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       kyselyQuery = query.recursivelyJoin({
         query: kyselyQuery,
         joinsStatement: query.joinsStatements,
+        joinsWhereStatements: query.joinsWhereStatements,
         dreamClass: query.dreamClass,
         previousAssociationTableOrAlias: this.baseSqlAlias,
       })

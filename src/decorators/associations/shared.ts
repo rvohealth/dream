@@ -56,19 +56,20 @@ export type AssociatedModelParam<
 export type PassthroughWhere<AllColumns extends string[]> = Partial<Record<AllColumns[number], any>>
 
 type DreamSelectable<DB, Schema, TableName extends AssociationTableNames<DB, Schema> & keyof DB> = Partial<
-  Record<
-    keyof DB[TableName],
-    | Range<DateTime>
-    | (() => Range<DateTime>)
-    | Range<CalendarDate>
-    | (() => Range<CalendarDate>)
-    | Range<number>
-    | OpsStatement<any, any>
-    | CurriedOpsStatement<any, any, any>
-    | (IdType | string | number)[]
-    | SelectQueryBuilder<DB, keyof DB, any>
-  >
+  Record<keyof DB[TableName], WhereClauseValues<DB>>
 >
+
+type WhereClauseValues<DB> =
+  | Range<DateTime>
+  | (() => Range<DateTime>)
+  | Range<CalendarDate>
+  | (() => Range<CalendarDate>)
+  | Range<number>
+  | OpsStatement<any, any>
+  | CurriedOpsStatement<any, any, any>
+  | (IdType | string | number | bigint | boolean)
+  | (IdType | string | number | bigint)[]
+  | SelectQueryBuilder<DB, keyof DB, any>
 
 type AssociationDreamSelectable<
   DB,
@@ -77,16 +78,7 @@ type AssociationDreamSelectable<
 > = Partial<
   Record<
     keyof DB[TableName],
-    | Range<DateTime>
-    | (() => Range<DateTime>)
-    | Range<CalendarDate>
-    | (() => Range<CalendarDate>)
-    | Range<number>
-    | OpsStatement<any, any>
-    | CurriedOpsStatement<any, any, any>
-    | (IdType | string | number)[]
-    | SelectQueryBuilder<DB, keyof DB, any>
-    | typeof DreamConst.passthrough
+    WhereClauseValues<DB> | typeof DreamConst.passthrough | typeof DreamConst.requiredWhereClause
   >
 >
 

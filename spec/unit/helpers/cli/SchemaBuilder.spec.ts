@@ -97,6 +97,19 @@ describe('SchemaBuilder', () => {
           tables: ['pets'],
           optional: false,
           foreignKey: 'petId',
+          requiredWhereClauses: null,
+        })
+      })
+
+      it('renders requiredWhereClauses', () => {
+        expect(
+          User.prototype.dreamconf.schema.compositions.associations.inlineWhereCurrentLocalizedText
+        ).toEqual({
+          type: 'HasOne',
+          foreignKey: 'localizableId',
+          tables: ['localized_texts'],
+          optional: null,
+          requiredWhereClauses: ['locale'],
         })
       })
     })

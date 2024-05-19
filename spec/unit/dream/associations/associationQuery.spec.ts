@@ -6,6 +6,7 @@ import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import Pet from '../../../../test-app/app/models/Pet'
 import Collar from '../../../../test-app/app/models/Collar'
+import MissingRequiredAssociationWhereClause from '../../../../src/exceptions/associations/missing-required-association-where-clause'
 
 describe('Dream#associationQuery', () => {
   context('with a HasMany association', () => {
@@ -21,6 +22,17 @@ describe('Dream#associationQuery', () => {
       })
 
       expect(await user.associationQuery('recentCompositions').all()).toMatchDreamModels([recentComposition])
+    })
+
+    context('when the "requiredWhereClause" isn’t passed', () => {
+      it('throws MissingRequiredAssociationWhereClause', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user })
+
+        await expect(composition.associationQuery('inlineWhereCurrentLocalizedText').all()).rejects.toThrow(
+          MissingRequiredAssociationWhereClause
+        )
+      })
     })
 
     context('with a primary key override', () => {

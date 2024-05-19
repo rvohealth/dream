@@ -9,6 +9,7 @@ import camelize from '../camelize'
 import pascalize from '../pascalize'
 import { isPrimitiveDataType } from '../../db/dataTypes'
 import dbSyncPath from '../path/dbSyncPath'
+import { DreamConst } from '../../dream/types'
 
 export default class SchemaBuilder {
   public async build() {
@@ -73,11 +74,19 @@ ${tableName}: {
       ${Object.keys(schemaData[tableName as keyof typeof schemaData].associations)
         .map(associationName => {
           const associationMetadata = tableData.associations[associationName as keyof typeof tableData]
+          const whereStatement = associationMetadata.where
+          const requiredWhereClauses =
+            whereStatement === null
+              ? []
+              : Object.keys(whereStatement).filter(
+                  column => whereStatement[column] === DreamConst.requiredWhereClause
+                )
           return `${associationName}: {
         type: '${associationMetadata.type}',
         foreignKey: ${associationMetadata.foreignKey ? `'${associationMetadata.foreignKey}'` : 'null'},
         tables: [${associationMetadata.tables.map((table: string) => `'${table}'`).join(', ')}],
         optional: ${associationMetadata.optional},
+        requiredWhereClauses: ${requiredWhereClauses.length === 0 ? 'null' : `['${requiredWhereClauses.join("', '")}']`},
       },`
         })
         .join('\n      ')}
@@ -180,7 +189,12 @@ ${tableName}: {
 
         const dreamClassOrClasses = associationMetaData.modelCB()
         const optional =
-          associationMetaData.type === 'BelongsTo' ? (associationMetaData as any).optional === true : null
+          associationMetaData.type === 'BelongsTo' ? associationMetaData.optional === true : null
+
+        const where =
+          associationMetaData.type === 'HasMany' || associationMetaData.type === 'HasOne'
+            ? associationMetaData.where || null
+            : null
 
         // NOTE
         // this try-catch is here because the SchemaBuilder currently needs to be run twice to generate foreignKey
@@ -201,6 +215,7 @@ ${tableName}: {
           polymorphic: associationMetaData.polymorphic,
           foreignKey,
           optional,
+          where,
         }
 
         if (foreignKey) tableAssociationData[associationName]['foreignKey'] = foreignKey
@@ -325,6 +340,7 @@ interface AssociationData {
   polymorphic: boolean
   optional: boolean | null
   foreignKey: string | null
+  where: Record<string, string | typeof DreamConst.passthrough | typeof DreamConst.requiredWhereClause> | null
 }
 
 interface ColumnData {
