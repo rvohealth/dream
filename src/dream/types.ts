@@ -271,6 +271,11 @@ type NA = 'na'
 type VALID = 'valid'
 type INVALID = 'invalid'
 
+type IS_ASSOCIATION_NAME = 'association_name'
+type IS_NOT_ASSOCIATION_NAME = 'not_association_name'
+
+type RecursionTypes = 'load' | 'joins' | 'pluckThrough' | 'pluckEachThrough'
+
 ///////////////////////////////
 // VARIADIC LOAD
 ///////////////////////////////
@@ -381,14 +386,16 @@ export type RequiredWhereClausesType<
   Schema,
   TableName,
   AssociationName,
-  Associations = TableName extends keyof Schema & string
-    ? Schema[TableName]['associations' & keyof Schema[TableName]]
-    : null,
+  Associations = TableName extends null
+    ? null
+    : TableName extends keyof Schema & string
+      ? Schema[TableName]['associations' & keyof Schema[TableName]]
+      : never,
   Association = Associations extends null
     ? null
     : AssociationName extends keyof Associations
       ? Associations[AssociationName]
-      : null,
+      : never,
   RequiredWhereClauses = Association extends null
     ? null
     : Association['requiredWhereClauses' & keyof Association] & (string[] | null),
@@ -409,13 +416,15 @@ type VariadicCheckThenRecurse<
   AssociationNamesOrWhereClause,
   //
   RequiredWhereClauses = RequiredWhereClausesType<Schema, PreviousConcreteTableName, ConcreteAssociationName>,
-  WhereClauseRequirementsMet extends VALID | INVALID | NA = RequiredWhereClauses extends string[]
-    ? ConcreteArgs[0] extends object
-      ? keyof ConcreteArgs[0] extends RequiredWhereClauses[number]
-        ? VALID
+  WhereClauseRequirementsMet extends VALID | INVALID | NA = RequiredWhereClauses extends null
+    ? NA
+    : RequiredWhereClauses extends string[]
+      ? ConcreteArgs[0] extends object
+        ? keyof ConcreteArgs[0] extends RequiredWhereClauses[number]
+          ? VALID
+          : INVALID
         : INVALID
-      : INVALID
-    : NA,
+      : never,
   SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
   NthArgument extends VALID | INVALID = ConcreteArgs['length'] extends 0
     ? VALID
@@ -469,11 +478,6 @@ type VariadicCheckThenRecurse<
         WhereClauseRequirementsMet
       >
 
-type RecursionTypes = 'load' | 'joins' | 'pluckThrough' | 'pluckEachThrough'
-
-type IS_ASSOCIATION_NAME = 'association_name'
-type IS_NOT_ASSOCIATION_NAME = 'not_association_name'
-
 type VariadicRecurse<
   DB,
   Schema,
@@ -524,15 +528,8 @@ type VariadicRecurse<
     ? null
     : RequiredWhereClausesType<Schema, ConcreteTableName, NextAssociationName>,
   //
-  AllowedNextArgValues = RequiredWhereClauses extends string[]
-    ? Partial<Omit<WhereStatementForVariadic<DB, Schema, NextTableName>, RequiredWhereClauses[number]>> &
-        Required<
-          Pick<
-            WhereStatementForVariadic<DB, Schema, NextTableName>,
-            RequiredWhereClauses[number] & keyof WhereStatementForVariadic<DB, Schema, NextTableName>
-          >
-        >
-    : RecursionType extends 'load'
+  AllowedNextArgValues = RequiredWhereClauses extends null
+    ? RecursionType extends 'load'
       ? AllowedNextArgValuesForLoad<DB, Schema, NextTableName>
       : RecursionType extends 'joins'
         ? AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
@@ -546,7 +543,16 @@ type VariadicRecurse<
                 | ExtraAllowedNextArgValuesForPluckThrough<DB, Schema, NextTableName, NextAssociationName>
                 | ((...args: any[]) => Promise<void> | void)
                 | FindEachOpts
-            : never,
+            : never
+    : RequiredWhereClauses extends string[]
+      ? Partial<Omit<WhereStatementForVariadic<DB, Schema, NextTableName>, RequiredWhereClauses[number]>> &
+          Required<
+            Pick<
+              WhereStatementForVariadic<DB, Schema, NextTableName>,
+              RequiredWhereClauses[number] & keyof WhereStatementForVariadic<DB, Schema, NextTableName>
+            >
+          >
+      : never,
 > = Depth extends MAX_VARIADIC_DEPTH
   ? never
   : VariadicCheckThenRecurse<
