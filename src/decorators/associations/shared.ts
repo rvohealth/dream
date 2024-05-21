@@ -59,7 +59,7 @@ type DreamSelectable<DB, Schema, TableName extends AssociationTableNames<DB, Sch
   Record<keyof DB[TableName], WhereClauseValues<DB>>
 >
 
-type WhereClauseValues<DB> =
+export type WhereClauseValues<DB> =
   | Range<DateTime>
   | (() => Range<DateTime>)
   | Range<CalendarDate>
@@ -67,7 +67,6 @@ type WhereClauseValues<DB> =
   | Range<number>
   | OpsStatement<any, any>
   | CurriedOpsStatement<any, any, any>
-  | (IdType | string | number | bigint | boolean)
   | (IdType | string | number | bigint)[]
   | SelectQueryBuilder<DB, keyof DB, any>
 

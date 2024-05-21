@@ -44,6 +44,22 @@ describe('Query#preload through', () => {
       expect(reloaded!.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon2])
       expect(reloaded!.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon2)
     })
+
+    it('supports where clauses farther in', async () => {
+      const balloon = await Latex.create({ color: 'red' })
+      const balloonSpotter = await BalloonSpotter.create()
+      const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
+
+      const reloaded = await BalloonSpotter.query()
+        .preload('balloonSpotterBalloons', { id: balloonSpotterBalloon.id }, 'balloon', { color: 'red' })
+        .first()
+      expect(reloaded!.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon)
+
+      const reloaded2 = await BalloonSpotter.query()
+        .preload('balloonSpotterBalloons', 'balloon', { color: 'blue' })
+        .first()
+      expect(reloaded2!.balloonSpotterBalloons[0].balloon).toBeNull()
+    })
   })
 
   context('implicit HasMany through a BelongsTo', () => {

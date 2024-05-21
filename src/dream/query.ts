@@ -846,7 +846,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     const theAll = results.map(r => sqlResultToDreamInstance(this.dreamClass, r)) as DreamInstance[]
 
-    await this.applyPreload(this.preloadStatements as any, theAll)
+    await this.applyPreload(this.preloadStatements as any, this.preloadWhereStatements as any, theAll)
 
     return theAll
   }
@@ -876,7 +876,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     if (results) {
       const theFirst = sqlResultToDreamInstance(this.dreamClass, results) as DreamInstance
 
-      if (theFirst) await this.applyPreload(this.preloadStatements as any, [theFirst])
+      if (theFirst)
+        await this.applyPreload(this.preloadStatements as any, this.preloadWhereStatements as any, [theFirst])
 
       return theFirst
     } else return null
@@ -1026,7 +1027,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     this: Query<DreamInstance>,
     associationName: string,
     dreams: Dream | Dream[],
-    whereStatement: WhereStatement<any, any, any> = {}
+    whereStatement: RelaxedPreloadWhereStatement<any, any> = {}
   ) {
     if (!Array.isArray(dreams)) dreams = [dreams] as Dream[]
 
@@ -1076,9 +1077,17 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       ? dreamClass['stiBaseClassOrOwnClass']
       : dreamClass
 
-    const hydrationData: any[][] = await this.symmetricalQueryForDreamClass(baseClass)
-      .where({ [dreamClass.primaryKey]: dreams.map(obj => obj.primaryKeyValue) })
-      .pluckThrough(associationName, whereStatement, columnsToPluck)
+    const scope = this.symmetricalQueryForDreamClass(baseClass).where({
+      [dreamClass.primaryKey]: dreams.map(obj => obj.primaryKeyValue),
+    })
+
+    const hydrationData: any[][] = whereStatement
+      ? await scope.pluckThrough(
+          associationName,
+          whereStatement as WhereStatement<any, any, any>,
+          columnsToPluck
+        )
+      : await scope.pluckThrough(associationName, columnsToPluck)
 
     const preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[] = hydrationData.map(
       pluckedData => {
@@ -1109,22 +1118,47 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   private async hydratePreload(this: Query<DreamInstance>, dream: Dream) {
-    await this.applyPreload(this.preloadStatements as any, dream)
+    await this.applyPreload(this.preloadStatements as any, this.preloadWhereStatements as any, dream)
   }
 
   private async applyPreload(
     this: Query<DreamInstance>,
     preloadStatement: RelaxedPreloadStatement,
+    preloadWhereStatements: RelaxedPreloadWhereStatement<any, any>,
     dream: Dream | Dream[]
   ) {
     const keys = Object.keys(preloadStatement as any)
 
     for (const key of keys) {
-      const nestedDreams = await this.applyOnePreload(key, dream, this.preloadWhereStatements[key] as any)
+      const nestedDreams = await this.applyOnePreload(
+        key,
+        dream,
+        this.applyableWhereStatements(preloadWhereStatements[key] as RelaxedPreloadWhereStatement<any, any>)
+      )
       if (nestedDreams) {
-        await this.applyPreload((preloadStatement as any)[key], nestedDreams)
+        await this.applyPreload(
+          (preloadStatement as any)[key],
+          preloadWhereStatements[key] as any,
+          nestedDreams
+        )
       }
     }
+  }
+
+  private applyableWhereStatements(
+    preloadWhereStatements: RelaxedPreloadWhereStatement<any, any> | undefined
+  ): RelaxedPreloadWhereStatement<any, any> | undefined {
+    if (preloadWhereStatements === undefined) return undefined
+
+    return Object.keys(preloadWhereStatements).reduce(
+      (agg, key) => {
+        const value = preloadWhereStatements[key]
+        if (value === null || value.constructor !== Object) agg[key] = value
+
+        return agg
+      },
+      {} as RelaxedPreloadWhereStatement<any, any>
+    )
   }
 
   public async last() {
