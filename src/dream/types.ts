@@ -4,7 +4,7 @@ import { Updateable, ColumnType } from 'kysely'
 import { AssociationTableNames } from '../db/reflections'
 import Dream from '../dream'
 import { FilterInterface, Inc, ReadonlyTail } from '../helpers/typeutils'
-import { AssociatedModelParam, WhereClauseValues, WhereStatement } from '../decorators/associations/shared'
+import { AssociatedModelParam, WhereStatement } from '../decorators/associations/shared'
 import OpsStatement from '../ops/ops-statement'
 import { FindEachOpts } from './query'
 import CalendarDate from '../helpers/CalendarDate'
@@ -251,8 +251,11 @@ export type RelaxedPreloadWhereStatement<DB, Schema, Depth extends number = 0> =
 export type RelaxedJoinsWhereStatement<DB, Schema, Depth extends number = 0> = Depth extends 7
   ? object
   : {
-      [key: string]: RelaxedJoinsWhereStatement<DB, Schema, Inc<Depth>> | WhereClauseValues<DB> | object
+      [key: string]: RelaxedJoinsWhereStatement<DB, Schema, Inc<Depth>> | FakeWhereClauseValue | object
     }
+
+// Just need something that is not an object, but that could be an array and also null
+type FakeWhereClauseValue = string | string[] | number | number[] | null
 
 export type TableOrAssociationName<Schema> = (keyof Schema & string) | (keyof Schema[keyof Schema] & string)
 

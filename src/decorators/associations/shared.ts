@@ -56,10 +56,10 @@ export type AssociatedModelParam<
 export type PassthroughWhere<AllColumns extends string[]> = Partial<Record<AllColumns[number], any>>
 
 type DreamSelectable<DB, Schema, TableName extends AssociationTableNames<DB, Schema> & keyof DB> = Partial<
-  Record<keyof DB[TableName], WhereClauseValues<DB>>
+  Record<keyof DB[TableName], NonKyselySupportedSupplementalWhereClauseValues<DB>>
 >
 
-export type WhereClauseValues<DB> =
+type NonKyselySupportedSupplementalWhereClauseValues<DB> =
   | Range<DateTime>
   | (() => Range<DateTime>)
   | Range<CalendarDate>
@@ -67,6 +67,7 @@ export type WhereClauseValues<DB> =
   | Range<number>
   | OpsStatement<any, any>
   | CurriedOpsStatement<any, any, any>
+  // the non-array allowed types are set by Kysely in Updateable
   | (IdType | string | number | bigint)[]
   | SelectQueryBuilder<DB, keyof DB, any>
 
@@ -77,7 +78,9 @@ type AssociationDreamSelectable<
 > = Partial<
   Record<
     keyof DB[TableName],
-    WhereClauseValues<DB> | typeof DreamConst.passthrough | typeof DreamConst.requiredWhereClause
+    | NonKyselySupportedSupplementalWhereClauseValues<DB>
+    | typeof DreamConst.passthrough
+    | typeof DreamConst.requiredWhereClause
   >
 >
 
