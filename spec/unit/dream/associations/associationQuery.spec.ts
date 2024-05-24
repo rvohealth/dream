@@ -7,6 +7,7 @@ import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import Pet from '../../../../test-app/app/models/Pet'
 import Collar from '../../../../test-app/app/models/Collar'
 import MissingRequiredAssociationWhereClause from '../../../../src/exceptions/associations/missing-required-association-where-clause'
+import LocalizedText from '../../../../test-app/app/models/LocalizedText'
 
 describe('Dream#associationQuery', () => {
   context('with a HasMany association', () => {
@@ -24,14 +25,27 @@ describe('Dream#associationQuery', () => {
       expect(await user.associationQuery('recentCompositions').all()).toMatchDreamModels([recentComposition])
     })
 
-    context('when the "requiredWhereClause" isn’t passed', () => {
+    context('when a "requiredWhereClause" isn’t passed', () => {
       it('throws MissingRequiredAssociationWhereClause', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })
 
-        await expect(composition.associationQuery('inlineWhereCurrentLocalizedText').all()).rejects.toThrow(
-          MissingRequiredAssociationWhereClause
-        )
+        await expect(
+          (composition.associationQuery as any)('inlineWhereCurrentLocalizedText').all()
+        ).rejects.toThrow(MissingRequiredAssociationWhereClause)
+      })
+    })
+
+    context('when a "requiredWhereClause" is passed', () => {
+      it('applies the where clause to the association', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user })
+        await LocalizedText.create({ localizable: composition, locale: 'en-US' })
+        const localizedText = await LocalizedText.create({ localizable: composition, locale: 'es-ES' })
+
+        expect(
+          await composition.associationQuery('inlineWhereCurrentLocalizedText', { locale: 'es-ES' }).all()
+        ).toMatchDreamModels([localizedText])
       })
     })
 

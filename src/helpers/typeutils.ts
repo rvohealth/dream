@@ -104,6 +104,11 @@ export type FilterInterface<Source, Condition> = Pick<
   { [K in keyof Source]: Source[K] extends Condition ? K : never }[keyof Source]
 >
 
+export type RejectInterface<Source, Condition> = Pick<
+  Source,
+  { [K in keyof Source]: Source[K] extends Condition ? never : K }[keyof Source]
+>
+
 // type T = Tail<[1, 2, 3]> // [2, 3]
 export type ReadonlyTail<T extends readonly any[]> = T extends readonly [any, ...infer Tail]
   ? Tail

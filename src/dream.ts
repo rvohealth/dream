@@ -27,26 +27,34 @@ import AfterUpdateCommit from './decorators/hooks/after-update-commit'
 import AfterDestroy from './decorators/hooks/after-destroy'
 import AfterDestroyCommit from './decorators/hooks/after-destroy-commit'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
-import { PassthroughWhere, WhereStatement, blankAssociationsFactory } from './decorators/associations/shared'
+import {
+  PassthroughWhere,
+  WhereStatement,
+  WhereStatementForAssociation,
+  blankAssociationsFactory,
+} from './decorators/associations/shared'
 import { AssociationTableNames } from './db/reflections'
 import {
+  AttributeKeys,
+  DreamAssociationNamesWithoutRequiredWhereClauses,
+  DreamAssociationNamesWithRequiredWhereClauses,
+  DreamAssociationType,
+  DreamAttributes,
+  DreamBelongsToAssociationMetadata,
+  DreamColumnNames,
   DreamConstructorType,
+  DreamParamSafeColumnNames,
   IdType,
   NextPreloadArgumentType,
-  UpdateablePropertiesForClass,
-  UpdateableProperties,
-  AttributeKeys,
-  UpdateableAssociationProperties,
-  DreamColumnNames,
   OrderDir,
-  VariadicPluckThroughArgs,
-  VariadicPluckEachThroughArgs,
+  TableColumnNames,
+  UpdateableAssociationProperties,
+  UpdateableProperties,
+  UpdateablePropertiesForClass,
   VariadicJoinsArgs,
   VariadicLoadArgs,
-  DreamBelongsToAssociationMetadata,
-  DreamAttributes,
-  TableColumnNames,
-  DreamParamSafeColumnNames,
+  VariadicPluckEachThroughArgs,
+  VariadicPluckThroughArgs,
 } from './dream/types'
 import Query, { FindEachOpts } from './dream/query'
 import runValidations from './dream/internal/runValidations'
@@ -1275,37 +1283,120 @@ export default class Dream {
     return createAssociation(this, null, associationName, opts)
   }
 
-  public async destroyAssociation<
+  ///////////////////
+  // destroyAssociation
+  ///////////////////
+  public destroyAssociation<
     I extends Dream,
+    DB extends I['DB'],
+    TableName extends I['table'],
     Schema extends I['dreamconf']['schema'],
-    AssociationName extends keyof Schema[I['table']]['associations'],
-    AssociationTableName extends Schema[I['table']]['associations'][AssociationName]['tables'][0],
-    RestrictedAssociationTableName extends AssociationTableName &
-      AssociationTableNames<I['DB'], Schema> &
-      keyof I['DB'] = AssociationTableName & AssociationTableNames<I['DB'], Schema> & keyof I['DB'],
+    AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<I>,
   >(
     this: I,
     associationName: AssociationName,
-    opts: WhereStatement<I['DB'], Schema, RestrictedAssociationTableName> = {}
-  ): Promise<number> {
-    return destroyAssociation(this, null, associationName, opts)
+    whereClause: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+  ): Promise<number>
+
+  public destroyAssociation<
+    I extends Dream,
+    DB extends I['DB'],
+    TableName extends I['table'],
+    Schema extends I['dreamconf']['schema'],
+    AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<I>,
+  >(
+    this: I,
+    associationName: AssociationName,
+    whereClause?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+  ): Promise<number>
+
+  public destroyAssociation<I extends Dream, AssociationName extends keyof I>(
+    this: I,
+    associationName: AssociationName,
+    whereClause?: unknown
+  ): unknown {
+    return destroyAssociation(this, null, associationName, whereClause as any)
   }
+
+  ///////////////////
+  // end: destroyAssociation
+  ///////////////////
+
+  ///////////////////
+  // associationQuery
+  ///////////////////
+  public associationQuery<
+    I extends Dream,
+    DB extends I['DB'],
+    TableName extends I['table'],
+    Schema extends I['dreamconf']['schema'],
+    AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<I>,
+  >(
+    this: I,
+    associationName: AssociationName,
+    whereClause: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+  ): Query<DreamAssociationType<I, AssociationName>>
 
   public associationQuery<
     I extends Dream,
+    DB extends I['DB'],
+    TableName extends I['table'],
     Schema extends I['dreamconf']['schema'],
-    AssociationName extends keyof Schema[I['table']]['associations'],
-  >(this: I, associationName: AssociationName) {
-    return associationQuery(this, null, associationName)
+    AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<I>,
+  >(
+    this: I,
+    associationName: AssociationName,
+    whereClause?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+  ): Query<DreamAssociationType<I, AssociationName>>
+
+  public associationQuery<I extends Dream, AssociationName extends keyof I>(
+    this: I,
+    associationName: AssociationName,
+    whereClause?: unknown
+  ): unknown {
+    return associationQuery(this, null, associationName, whereClause as any)
   }
+  ///////////////////
+  // end: associationQuery
+  ///////////////////
+
+  ///////////////////
+  // associationUpdateQuery
+  ///////////////////
+  public associationUpdateQuery<
+    I extends Dream,
+    DB extends I['DB'],
+    TableName extends I['table'],
+    Schema extends I['dreamconf']['schema'],
+    AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<I>,
+  >(
+    this: I,
+    associationName: AssociationName,
+    whereClause: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+  ): Query<DreamAssociationType<I, AssociationName>>
 
   public associationUpdateQuery<
     I extends Dream,
+    DB extends I['DB'],
+    TableName extends I['table'],
     Schema extends I['dreamconf']['schema'],
-    AssociationName extends keyof Schema[I['table']]['associations'],
-  >(this: I, associationName: AssociationName) {
-    return associationUpdateQuery(this, null, associationName)
+    AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<I>,
+  >(
+    this: I,
+    associationName: AssociationName,
+    whereClause?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+  ): Query<DreamAssociationType<I, AssociationName>>
+
+  public associationUpdateQuery<I extends Dream, AssociationName extends keyof I>(
+    this: I,
+    associationName: AssociationName,
+    whereClause?: unknown
+  ): unknown {
+    return associationUpdateQuery(this, null, associationName, whereClause as any)
   }
+  ///////////////////
+  // end: associationUpdateQuery
+  ///////////////////
 
   public passthrough<I extends Dream, AllColumns extends I['allColumns']>(
     this: I,

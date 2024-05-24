@@ -6,6 +6,8 @@ import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import Pet from '../../../../test-app/app/models/Pet'
 import Collar from '../../../../test-app/app/models/Collar'
+import MissingRequiredAssociationWhereClause from '../../../../src/exceptions/associations/missing-required-association-where-clause'
+import LocalizedText from '../../../../test-app/app/models/LocalizedText'
 
 describe('Dream#destroyAssociation', () => {
   context('with a HasMany association', () => {
@@ -54,6 +56,34 @@ describe('Dream#destroyAssociation', () => {
 
         expect(await user.associationQuery('compositions').all()).toMatchDreamModels([composition2])
         expect(await Composition.all()).toMatchDreamModels([composition2])
+      })
+    })
+
+    context('when a "requiredWhereClause" isn’t passed', () => {
+      it('throws MissingRequiredAssociationWhereClause', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user })
+
+        await expect(
+          (composition.destroyAssociation as any)('inlineWhereCurrentLocalizedText')
+        ).rejects.toThrow(MissingRequiredAssociationWhereClause)
+      })
+    })
+
+    context('when a "requiredWhereClause" is passed', () => {
+      it('destroys the record indicated by the where clause', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user })
+        const localizedTextToKeep = await LocalizedText.create({ localizable: composition, locale: 'en-US' })
+        const localizedTextToDestroy = await LocalizedText.create({
+          localizable: composition,
+          locale: 'es-ES',
+        })
+
+        await composition.destroyAssociation('inlineWhereCurrentLocalizedText', { locale: 'es-ES' })
+
+        expect(await LocalizedText.find(localizedTextToKeep.id)).toMatchDreamModel(localizedTextToKeep)
+        expect(await LocalizedText.find(localizedTextToDestroy.id)).toBeNull()
       })
     })
   })

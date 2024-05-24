@@ -1,27 +1,23 @@
 import Dream from '../../../dream'
 import DreamTransaction from '../../transaction'
 import Query from '../../query'
-import { TableOrAssociationName } from '../../types'
+import { DreamAssociationType, TableOrAssociationName } from '../../types'
 import { HasManyStatement } from '../../../decorators/associations/has-many'
+import { WhereStatement } from '../../../decorators/associations/shared'
 
 export default function associationQuery<
   DreamInstance extends Dream,
+  DB extends DreamInstance['DB'],
   TableName extends DreamInstance['table'],
-  AssociationName extends keyof DreamInstance['dreamconf']['schema'][TableName &
-    keyof DreamInstance['dreamconf']['schema']]['associations'],
-  PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
-  AssociationType extends Dream = PossibleArrayAssociationType extends (infer ElementType)[]
-    ? ElementType extends Dream
-      ? ElementType
-      : never
-    : PossibleArrayAssociationType extends Dream
-      ? PossibleArrayAssociationType
-      : never,
-  AssociationQuery = Query<AssociationType>,
+  Schema extends DreamInstance['dreamconf']['schema'],
+  AssociationName extends keyof DreamInstance,
+  Where extends WhereStatement<DB, Schema, TableName>,
+  AssociationQuery = Query<DreamAssociationType<DreamInstance, AssociationName>>,
 >(
   dream: DreamInstance,
   txn: DreamTransaction<Dream> | null = null,
-  associationName: AssociationName
+  associationName: AssociationName,
+  associationWhereStatement?: Where
 ): AssociationQuery {
   const association = dream.associationMap()[associationName as any] as HasManyStatement<any, any, any, any>
   const associationClass = association.modelCB()
@@ -29,9 +25,11 @@ export default function associationQuery<
   const dreamClass = dream.constructor as typeof Dream
   const dreamClassOrTransaction = (txn ? dreamClass.txn(txn) : dreamClass) as any
 
-  const baseSelectQuery = dreamClassOrTransaction
-    .where({ [dream.primaryKey]: dream.primaryKeyValue })
-    .joins(association.as as any)
+  let baseSelectQuery = dreamClassOrTransaction.where({ [dream.primaryKey]: dream.primaryKeyValue })
+
+  if (associationWhereStatement)
+    baseSelectQuery = baseSelectQuery.joins(association.as, associationWhereStatement)
+  else baseSelectQuery = baseSelectQuery.joins(association.as)
 
   return (txn ? associationClass.txn(txn).queryInstance() : associationClass.query())
     ['setBaseSQLAlias'](association.as as TableOrAssociationName<DreamInstance['dreamconf']['schema']>)

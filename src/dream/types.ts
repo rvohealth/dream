@@ -3,8 +3,12 @@ import { DateTime } from 'luxon'
 import { Updateable, ColumnType } from 'kysely'
 import { AssociationTableNames } from '../db/reflections'
 import Dream from '../dream'
-import { FilterInterface, Inc, ReadonlyTail } from '../helpers/typeutils'
-import { AssociatedModelParam, WhereStatement } from '../decorators/associations/shared'
+import { FilterInterface, Inc, ReadonlyTail, RejectInterface } from '../helpers/typeutils'
+import {
+  AssociatedModelParam,
+  WhereStatement,
+  WhereStatementForAssociation,
+} from '../decorators/associations/shared'
 import OpsStatement from '../ops/ops-statement'
 import { FindEachOpts } from './query'
 import CalendarDate from '../helpers/CalendarDate'
@@ -101,12 +105,46 @@ export type DreamClassColumn<
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
 > = DreamColumn<DreamInstance, Column>
 
+export type DreamAssociationType<
+  DreamInstance extends Dream,
+  // Schema extends I['dreamconf']['schema'],
+  AssociationName extends keyof DreamInstance,
+  PossibleArrayAssociationType = DreamInstance[AssociationName],
+  AssociationType extends Dream = PossibleArrayAssociationType extends (infer ElementType)[]
+    ? ElementType extends Dream
+      ? ElementType
+      : never
+    : PossibleArrayAssociationType extends Dream
+      ? PossibleArrayAssociationType
+      : never,
+> = AssociationType
+
 export type DreamAssociationMetadata<
   DreamInstance extends Dream,
   Schema = DreamInstance['dreamconf']['schema'],
   AssociationMetadata = Schema[DreamInstance['table'] & keyof Schema]['associations' &
     keyof Schema[DreamInstance['table'] & keyof Schema]],
 > = AssociationMetadata
+
+export type DreamAssociationNamesWithRequiredWhereClauses<
+  DreamInstance extends Dream,
+  SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
+  SchemaTypeInterface = {
+    [K in keyof SchemaAssociations]: SchemaAssociations[K]['requiredWhereClauses' &
+      keyof SchemaAssociations[K]]
+  },
+  RequiredWhereClauses = keyof RejectInterface<SchemaTypeInterface, null> & string,
+> = RequiredWhereClauses
+
+export type DreamAssociationNamesWithoutRequiredWhereClauses<
+  DreamInstance extends Dream,
+  SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
+  SchemaTypeInterface = {
+    [K in keyof SchemaAssociations]: SchemaAssociations[K]['requiredWhereClauses' &
+      keyof SchemaAssociations[K]]
+  },
+  RequiredWhereClauses = keyof FilterInterface<SchemaTypeInterface, null> & string,
+> = RequiredWhereClauses
 
 type VirtualColumnsForTable<
   Schema,
@@ -146,6 +184,43 @@ export type DreamParamSafeAttributes<DreamInstance extends Dream> = {
 export type DreamTableSchema<DreamInstance extends Dream> = Updateable<
   DreamInstance['DB'][DreamInstance['table']]
 >
+
+///////////////////////////
+// Association type helpers
+///////////////////////////
+type AssociationMetadataForTable<Schema, TableName extends keyof Schema> = Schema[TableName]['associations' &
+  keyof Schema[TableName]]
+
+type AssociationNamesForTable<Schema, TableName extends keyof Schema> = keyof AssociationMetadataForTable<
+  Schema,
+  TableName
+>
+
+type MetadataForAssociation<
+  Schema,
+  TableName extends keyof Schema,
+  AssociationName,
+  AssociationMetadata = AssociationMetadataForTable<Schema, TableName>,
+> = AssociationMetadata[AssociationName & keyof AssociationMetadata]
+
+export type AssociationTableName<
+  Schema,
+  TableName extends keyof Schema,
+  AssociationName,
+  AssociationData = MetadataForAssociation<Schema, TableName, AssociationName>,
+> = (AssociationData['tables' & keyof AssociationData] & any[])[0] & keyof Schema
+
+type AllowedNextArgValuesForLoad<
+  DB,
+  Schema,
+  TableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
+> =
+  | AssociationNamesForTable<Schema, TableName>
+  | AssociationNamesForTable<Schema, TableName>[]
+  | WhereStatement<DB, Schema, TableName>
+////////////////////////////////
+// end: Association type helpers
+////////////////////////////////
 
 export type UpdateablePropertiesForClass<
   DreamClass extends typeof Dream,
@@ -391,12 +466,12 @@ export type RequiredWhereClauseKeys<
     ? null
     : TableName extends keyof Schema & string
       ? Schema[TableName]['associations' & keyof Schema[TableName]]
-      : never,
+      : null,
   Association = Associations extends null
     ? null
     : AssociationName extends keyof Associations
       ? Associations[AssociationName]
-      : never,
+      : null,
   RequiredWhereClauses = Association extends null
     ? null
     : Association['requiredWhereClauses' & keyof Association] & (string[] | null),
@@ -487,13 +562,11 @@ type VariadicRecurse<
   WhereClauseRequirementsMet extends VALID | INVALID | NA,
   //
   SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
-  ConcreteNthArg extends (keyof SchemaAssociations & string) | object = ConcreteArgs[0] extends null
+  ConcreteNthArg extends (keyof SchemaAssociations & string) | null = ConcreteArgs[0] extends null
     ? never
     : ConcreteArgs[0] extends keyof SchemaAssociations & string
       ? ConcreteArgs[0] & keyof SchemaAssociations & string
-      : ConcreteArgs[0] extends object
-        ? object
-        : never,
+      : null,
   NextUsedNamespaces = ConcreteArgs[0] extends null
     ? never
     : ConcreteArgs[0] extends keyof SchemaAssociations & string
@@ -525,7 +598,7 @@ type VariadicRecurse<
     ? ConcreteNthArg
     : ConcreteAssociationName,
   //
-  RequiredWhereClauses = WhereClauseRequirementsMet extends VALID | NA
+  RequiredWhereClauses = WhereClauseRequirementsMet extends VALID
     ? null
     : RequiredWhereClauseKeys<Schema, ConcreteTableName, NextAssociationName>,
   //
@@ -546,13 +619,7 @@ type VariadicRecurse<
                 | FindEachOpts
             : never
     : RequiredWhereClauses extends string[]
-      ? Partial<Omit<WhereStatementForVariadic<DB, Schema, NextTableName>, RequiredWhereClauses[number]>> &
-          Required<
-            Pick<
-              WhereStatementForVariadic<DB, Schema, NextTableName>,
-              RequiredWhereClauses[number] & keyof WhereStatementForVariadic<DB, Schema, NextTableName>
-            >
-          >
+      ? WhereStatementForAssociation<DB, Schema, ConcreteTableName, NextAssociationName>
       : never,
 > = Depth extends MAX_VARIADIC_DEPTH
   ? never
@@ -569,20 +636,6 @@ type VariadicRecurse<
       AllowedNextArgValues
     >
 
-type AssociationNamesForTable<
-  Schema,
-  TableName extends keyof Schema,
-> = keyof Schema[TableName]['associations' & keyof Schema[TableName]] & string
-
-type AllowedNextArgValuesForLoad<
-  DB,
-  Schema,
-  TableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
-> =
-  | AssociationNamesForTable<Schema, TableName>
-  | AssociationNamesForTable<Schema, TableName>[]
-  | WhereStatementForVariadic<DB, Schema, TableName>
-
 type AllowedNextArgValuesForJoins<
   DB,
   Schema,
@@ -590,13 +643,7 @@ type AllowedNextArgValuesForJoins<
   UsedNamespaces,
 > =
   | Exclude<AssociationNamesForTable<Schema, TableName>, UsedNamespaces>
-  | WhereStatementForVariadic<DB, Schema, TableName>
-
-type WhereStatementForVariadic<
-  DB,
-  Schema,
-  TableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
-> = WhereStatement<DB, Schema, TableName>
+  | WhereStatement<DB, Schema, TableName>
 
 type ExtraAllowedNextArgValuesForPluckThrough<DB, Schema, TableName extends keyof Schema, AssociationName> =
   | AssociationNameToDotReference<

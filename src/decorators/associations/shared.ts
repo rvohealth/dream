@@ -5,11 +5,13 @@ import { DateTime } from 'luxon'
 import { Range } from '../../helpers/range'
 import { AssociationTableNames } from '../../db/reflections'
 import {
+  AssociationTableName,
   DreamBelongsToAssociationMetadata,
   DreamColumnNames,
   DreamConst,
   IdType,
   OrderDir,
+  RequiredWhereClauseKeys,
   TableColumnNames,
 } from '../../dream/types'
 import OpsStatement from '../../ops/ops-statement'
@@ -102,7 +104,31 @@ export type WhereStatement<
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
 > = Partial<MergeUnionOfRecordTypes<Updateable<DB[TableName]> | DreamSelectable<DB, Schema, TableName>>>
 
-export type AssociationWhereStatement<
+export type WhereStatementForAssociation<
+  DB,
+  Schema,
+  TableName extends keyof Schema,
+  AssociationName,
+  TableNameForAssociation extends AssociationTableName<
+    Schema,
+    TableName,
+    AssociationName
+  > = AssociationTableName<Schema, TableName, AssociationName>,
+  RequiredWhereClauses = RequiredWhereClauseKeys<Schema, TableName, AssociationName>,
+> = RequiredWhereClauses extends null
+  ? WhereStatement<DB, Schema, TableNameForAssociation>
+  : RequiredWhereClauses extends string[]
+    ? Partial<Omit<WhereStatement<DB, Schema, TableNameForAssociation>, RequiredWhereClauses[number]>> &
+        Required<
+          Pick<
+            WhereStatement<DB, Schema, TableNameForAssociation>,
+            RequiredWhereClauses[number] & keyof WhereStatement<DB, Schema, TableNameForAssociation>
+          >
+        >
+    : never
+
+// where statement on an association definition
+type WhereStatementForAssociationDefinition<
   DB,
   Schema,
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
@@ -148,7 +174,7 @@ export interface HasStatement<
   source: string
   through?: string
   preloadThroughColumns?: string[] | Record<string, string>
-  where?: AssociationWhereStatement<DB, Schema, ForeignTableName>
+  where?: WhereStatementForAssociationDefinition<DB, Schema, ForeignTableName>
   whereNot?: WhereStatement<DB, Schema, ForeignTableName>
   selfWhere?: WhereSelfStatement<BaseInstance, DB, Schema, ForeignTableName>
   selfWhereNot?: WhereSelfStatement<BaseInstance, DB, Schema, ForeignTableName>
@@ -162,7 +188,7 @@ export interface HasOptions<BaseInstance extends Dream, AssociationDreamClass ex
   through?: keyof BaseInstance['dreamconf']['schema'][BaseInstance['table']]['associations']
   polymorphic?: boolean
   source?: string
-  where?: AssociationWhereStatement<
+  where?: WhereStatementForAssociationDefinition<
     InstanceType<AssociationDreamClass>['DB'],
     InstanceType<AssociationDreamClass>['dreamconf']['schema'],
     InstanceType<AssociationDreamClass>['table'] &

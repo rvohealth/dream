@@ -5,6 +5,8 @@ import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 import Pet from '../../../../test-app/app/models/Pet'
 import Collar from '../../../../test-app/app/models/Collar'
+import MissingRequiredAssociationWhereClause from '../../../../src/exceptions/associations/missing-required-association-where-clause'
+import LocalizedText from '../../../../test-app/app/models/LocalizedText'
 
 describe('Dream#associationUpdateQuery', () => {
   context('with a HasMany association', () => {
@@ -33,6 +35,49 @@ describe('Dream#associationUpdateQuery', () => {
         const pet = await Pet.create({ userUuid: user.uuid })
 
         expect(await user.associationUpdateQuery('petsFromUuid').all()).toMatchDreamModels([pet])
+      })
+    })
+
+    context('when a "requiredWhereClause" isn’t passed', () => {
+      it('throws MissingRequiredAssociationWhereClause', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user })
+
+        await expect(
+          async () =>
+            await (composition.associationUpdateQuery as any)('inlineWhereCurrentLocalizedText').updateAll({
+              name: 'Name was updated',
+            })
+        ).rejects.toThrow(MissingRequiredAssociationWhereClause)
+      })
+    })
+
+    context('when a "requiredWhereClause" is passed', () => {
+      it('applies the where clause to the association', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user })
+        const localizedTextToLeaveAlone = await LocalizedText.create({
+          localizable: composition,
+          locale: 'en-US',
+          name: 'Hello',
+        })
+        const localizedTextToUpdate = await LocalizedText.create({
+          localizable: composition,
+          locale: 'es-ES',
+          name: 'World',
+        })
+
+        await composition
+          .associationUpdateQuery('inlineWhereCurrentLocalizedText', { locale: 'es-ES' })
+          .updateAll({
+            name: 'Name was updated',
+          })
+
+        await localizedTextToLeaveAlone.reload()
+        await localizedTextToUpdate.reload()
+
+        expect(localizedTextToLeaveAlone.name).toEqual('Hello')
+        expect(localizedTextToUpdate.name).toEqual('Name was updated')
       })
     })
 

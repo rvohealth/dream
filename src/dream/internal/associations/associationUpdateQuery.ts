@@ -4,21 +4,22 @@ import Query from '../../query'
 import { HasManyStatement } from '../../../decorators/associations/has-many'
 import { HasOneStatement } from '../../../decorators/associations/has-one'
 import { BelongsToStatement } from '../../../decorators/associations/belongs-to'
+import { DreamAssociationType } from '../../types'
+import { WhereStatement } from '../../../decorators/associations/shared'
 
 export default function associationUpdateQuery<
   DreamInstance extends Dream,
+  DB extends DreamInstance['DB'],
   TableName extends DreamInstance['table'],
-  AssociationName extends keyof DreamInstance['dreamconf']['schema'][TableName &
-    keyof DreamInstance['dreamconf']['schema']]['associations'],
-  PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
-  AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
-    ? ElementType
-    : PossibleArrayAssociationType,
-  AssociationQuery = AssociationType extends Dream ? Query<AssociationType> : never,
+  Schema extends DreamInstance['dreamconf']['schema'],
+  AssociationName extends keyof DreamInstance,
+  Where extends WhereStatement<DB, Schema, TableName>,
+  AssociationQuery = Query<DreamAssociationType<DreamInstance, AssociationName>>,
 >(
   dream: DreamInstance,
   txn: DreamTransaction<Dream> | null = null,
-  associationName: AssociationName
+  associationName: AssociationName,
+  associationWhereStatement?: Where
 ): AssociationQuery {
   const association = dream.associationMap()[associationName as any] as
     | HasManyStatement<any, any, any, any>
@@ -32,9 +33,10 @@ export default function associationUpdateQuery<
 
   const dreamClass = dream.constructor as typeof Dream
 
-  const nestedScope = txn
-    ? dreamClass.txn(txn).joins(association.as as any)
-    : dreamClass.joins(association.as as any)
+  let nestedScope: Query<Dream> = txn ? (dreamClass.txn(txn) as unknown as Query<Dream>) : dreamClass.query()
+
+  if (associationWhereStatement) nestedScope = nestedScope.joins(association.as, associationWhereStatement)
+  else nestedScope = nestedScope.joins(association.as)
 
   const nestedSelect = nestedScope
     .where({ [dream.primaryKey]: dream.primaryKeyValue as any })
