@@ -1,5 +1,4 @@
-import { DateTime } from 'luxon'
-import { IdType } from '../../../src/dream/types'
+import { DreamColumn } from '../../../src/dream/types'
 import EdgeCaseAttributeSerializer from '../../../test-app/app/serializers/EdgeCaseAttributeSerializer'
 import ApplicationModel from './ApplicationModel'
 
@@ -12,10 +11,10 @@ export default class EdgeCaseAttribute extends ApplicationModel {
     return { default: EdgeCaseAttributeSerializer<any> } as const
   }
 
-  public id: IdType
-  public kPop: boolean
-  public popK: string
-  public popKPop: number
-  public createdAt: DateTime
-  public updatedAt: DateTime
+  public id: DreamColumn<EdgeCaseAttribute, 'id'>
+  public kPop: DreamColumn<EdgeCaseAttribute, 'kPop'>
+  public popK: DreamColumn<EdgeCaseAttribute, 'popK'>
+  public popKPop: DreamColumn<EdgeCaseAttribute, 'popKPop'>
+  public createdAt: DreamColumn<EdgeCaseAttribute, 'createdAt'>
+  public updatedAt: DreamColumn<EdgeCaseAttribute, 'updatedAt'>
 }

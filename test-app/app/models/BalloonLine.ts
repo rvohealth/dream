@@ -1,9 +1,7 @@
-import { DateTime } from 'luxon'
-import { IdType } from '../../../src/dream/types'
+import { DreamColumn } from '../../../src/dream/types'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import BalloonLineSerializer from '../../../test-app/app/serializers/BalloonLineSerializer'
 import Balloon from './Balloon'
-import { BalloonLineMaterialsEnum } from '../../../test-app/db/sync'
 import ApplicationModel from './ApplicationModel'
 
 export default class BalloonLine extends ApplicationModel {
@@ -15,12 +13,12 @@ export default class BalloonLine extends ApplicationModel {
     return { default: BalloonLineSerializer } as const
   }
 
-  public id: IdType
-  public material: BalloonLineMaterialsEnum
-  public createdAt: DateTime
-  public updatedAt: DateTime
+  public id: DreamColumn<BalloonLine, 'id'>
+  public material: DreamColumn<BalloonLine, 'material'>
+  public createdAt: DreamColumn<BalloonLine, 'createdAt'>
+  public updatedAt: DreamColumn<BalloonLine, 'updatedAt'>
 
   @BelongsTo(() => Balloon, { foreignKey: 'balloonId' })
   public balloon: Balloon
-  public balloonId: IdType
+  public balloonId: DreamColumn<BalloonLine, 'balloonId'>
 }

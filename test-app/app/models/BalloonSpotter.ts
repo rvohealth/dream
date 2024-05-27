@@ -1,5 +1,4 @@
-import { DateTime } from 'luxon'
-import { IdType } from '../../../src/dream/types'
+import { DreamColumn } from '../../../src/dream/types'
 import BalloonSpotterSerializer from '../../../test-app/app/serializers/BalloonSpotterSerializer'
 import HasMany from '../../../src/decorators/associations/has-many'
 import BalloonSpotterBalloon from './BalloonSpotterBalloon'
@@ -16,10 +15,10 @@ export default class BalloonSpotter extends ApplicationModel {
     return { default: BalloonSpotterSerializer } as const
   }
 
-  public id: IdType
-  public name: string
-  public createdAt: DateTime
-  public updatedAt: DateTime
+  public id: DreamColumn<BalloonSpotter, 'id'>
+  public name: DreamColumn<BalloonSpotter, 'name'>
+  public createdAt: DreamColumn<BalloonSpotter, 'createdAt'>
+  public updatedAt: DreamColumn<BalloonSpotter, 'updatedAt'>
 
   @HasMany(() => BalloonSpotterBalloon)
   public balloonSpotterBalloons: BalloonSpotterBalloon[]

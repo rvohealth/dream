@@ -1,5 +1,4 @@
-import { DateTime } from 'luxon'
-import { IdType } from '../../../../src/dream/types'
+import { DreamColumn } from '../../../../src/dream/types'
 import HasMany from '../../../../src/decorators/associations/has-many'
 import GraphEdgeSerializer from '../../../../test-app/app/serializers/Graph/EdgeSerializer'
 import EdgeNode from './EdgeNode'
@@ -15,16 +14,16 @@ export default class Edge extends ApplicationModel {
     return { default: GraphEdgeSerializer } as const
   }
 
-  public id: IdType
-  public name: string
-  public weight: number
-  public createdAt: DateTime
-  public updatedAt: DateTime
+  public id: DreamColumn<Edge, 'id'>
+  public name: DreamColumn<Edge, 'name'>
+  public weight: DreamColumn<Edge, 'weight'>
+  public createdAt: DreamColumn<Edge, 'createdAt'>
+  public updatedAt: DreamColumn<Edge, 'updatedAt'>
   public preloadedThroughColumns: {
-    position?: typeof EdgeNode.prototype.position
-    createdAt?: typeof EdgeNode.prototype.createdAt
-    aliasedPosition?: typeof EdgeNode.prototype.position
-    aliasedCreatedAt?: typeof EdgeNode.prototype.createdAt
+    position?: DreamColumn<EdgeNode, 'position'>
+    createdAt?: DreamColumn<EdgeNode, 'createdAt'>
+    aliasedPosition?: DreamColumn<EdgeNode, 'position'>
+    aliasedCreatedAt?: DreamColumn<EdgeNode, 'createdAt'>
   } = {}
 
   @HasMany(() => EdgeNode, { foreignKey: 'edgeId' })

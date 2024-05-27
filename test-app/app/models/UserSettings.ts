@@ -1,6 +1,5 @@
-import { DateTime } from 'luxon'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
-import { IdType } from '../../../src/dream/types'
+import { DreamColumn } from '../../../src/dream/types'
 import User from './User'
 import ApplicationModel from './ApplicationModel'
 
@@ -16,12 +15,12 @@ In wellos-central, a model exists that raises an exception if you
 intentionally try to call .serializers on it.`)
   }
 
-  public id: IdType
-  public likesChalupas: boolean
-  public createdAt: DateTime
-  public updatedAt: DateTime
+  public id: DreamColumn<UserSettings, 'id'>
+  public likesChalupas: DreamColumn<UserSettings, 'likesChalupas'>
+  public createdAt: DreamColumn<UserSettings, 'createdAt'>
+  public updatedAt: DreamColumn<UserSettings, 'updatedAt'>
 
   @BelongsTo(() => User)
   public user: User
-  public userId: IdType
+  public userId: DreamColumn<UserSettings, 'userId'>
 }

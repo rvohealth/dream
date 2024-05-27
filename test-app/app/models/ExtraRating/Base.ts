@@ -1,4 +1,4 @@
-import { IdType } from '../../../../src/dream/types'
+import { DreamColumn } from '../../../../src/dream/types'
 import ApplicationModel from '../ApplicationModel'
 
 export default class BaseExtraRating extends ApplicationModel {
@@ -6,10 +6,10 @@ export default class BaseExtraRating extends ApplicationModel {
     return 'extra_ratings' as const
   }
 
-  public id: IdType
-  public body: string | null
-  public rating: number | null
+  public id: DreamColumn<BaseExtraRating, 'id'>
+  public body: DreamColumn<BaseExtraRating, 'body'>
+  public rating: DreamColumn<BaseExtraRating, 'rating'>
 
-  public extraRateableId: IdType
-  public extraRateableType: string
+  public extraRateableId: DreamColumn<BaseExtraRating, 'extraRateableId'>
+  public extraRateableType: DreamColumn<BaseExtraRating, 'extraRateableType'>
 }

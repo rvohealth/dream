@@ -1,10 +1,8 @@
 import ApplicationModel from './ApplicationModel'
-import { DateTime } from 'luxon'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
-import { IdType } from '../../../src/dream/types'
+import { DreamColumn } from '../../../src/dream/types'
 import Composition from './Composition'
 import CompositionAsset from './CompositionAsset'
-import { LocalesEnum, LocalizableTypesEnum } from '../../db/sync'
 import { LocalizedTextBaseSerializer } from '../serializers/LocalizedText/BaseSerializer'
 
 export default class LocalizedText extends ApplicationModel {
@@ -16,12 +14,15 @@ export default class LocalizedText extends ApplicationModel {
     return { default: LocalizedTextBaseSerializer<any> } as const
   }
 
-  public id: IdType
-  public locale: LocalesEnum
-  public localizableType: LocalizableTypesEnum
-  public localizableId: string
-  public createdAt: DateTime
-  public updatedAt: DateTime
+  public id: DreamColumn<LocalizedText, 'id'>
+  public locale: DreamColumn<LocalizedText, 'locale'>
+  public localizableType: DreamColumn<LocalizedText, 'localizableType'>
+  public localizableId: DreamColumn<LocalizedText, 'localizableId'>
+  public name: DreamColumn<LocalizedText, 'name'>
+  public title: DreamColumn<LocalizedText, 'title'>
+  public body: DreamColumn<LocalizedText, 'body'>
+  public createdAt: DreamColumn<LocalizedText, 'createdAt'>
+  public updatedAt: DreamColumn<LocalizedText, 'updatedAt'>
 
   @BelongsTo(() => [Composition, CompositionAsset], {
     foreignKey: 'localizableId',

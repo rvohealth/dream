@@ -1,5 +1,4 @@
-import { DateTime } from 'luxon'
-import { IdType } from '../../../../src/dream/types'
+import { DreamColumn } from '../../../../src/dream/types'
 import BelongsTo from '../../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../../src/decorators/associations/has-many'
 import HasOne from '../../../../src/decorators/associations/has-one'
@@ -19,23 +18,23 @@ export default class EdgeNode extends ApplicationModel {
     return { default: GraphEdgeNodeSerializer } as const
   }
 
-  public id: IdType
-  public createdAt: DateTime
-  public updatedAt: DateTime
+  public id: DreamColumn<EdgeNode, 'id'>
+  public createdAt: DreamColumn<EdgeNode, 'createdAt'>
+  public updatedAt: DreamColumn<EdgeNode, 'updatedAt'>
 
   @Sortable({ scope: 'node' })
-  public position: number
+  public position: DreamColumn<EdgeNode, 'position'>
 
   @Sortable({ scope: ['edge', 'node'] })
-  public multiScopedPosition: number
+  public multiScopedPosition: DreamColumn<EdgeNode, 'multiScopedPosition'>
 
   @BelongsTo(() => GraphEdge, { foreignKey: 'edgeId' })
   public edge: GraphEdge
-  public edgeId: IdType
+  public edgeId: DreamColumn<EdgeNode, 'edgeId'>
 
   @BelongsTo(() => GraphNode, { foreignKey: 'nodeId' })
   public node: GraphNode
-  public nodeId: IdType
+  public nodeId: DreamColumn<EdgeNode, 'nodeId'>
 
   @HasMany(() => EdgeNode, {
     through: 'node',

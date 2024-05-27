@@ -1,5 +1,4 @@
-import { DateTime } from 'luxon'
-import { IdType } from '../../../src/dream/types'
+import { DreamColumn } from '../../../src/dream/types'
 import BeforeUpdate from '../../../src/decorators/hooks/before-update'
 import ApplicationModel from './ApplicationModel'
 
@@ -8,13 +7,13 @@ export default class ModelWithoutUpdatedAt extends ApplicationModel {
     return 'model_without_updated_at' as const
   }
 
-  public id: IdType
-  public name: string
-  public cantUpdateThis: string | undefined
-  public createdAt: DateTime
+  public id: DreamColumn<ModelWithoutUpdatedAt, 'id'>
+  public name: DreamColumn<ModelWithoutUpdatedAt, 'name'>
+  public cantUpdateThis: DreamColumn<ModelWithoutUpdatedAt, 'cantUpdateThis'>
+  public createdAt: DreamColumn<ModelWithoutUpdatedAt, 'createdAt'>
 
   @BeforeUpdate()
   public clearCantUpdateThis() {
-    this.cantUpdateThis = undefined
+    ;(this as any).cantUpdateThis = undefined
   }
 }

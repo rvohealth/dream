@@ -5,6 +5,7 @@ import Sortable from '../../../../src/decorators/sortable'
 import BelongsTo from '../../../../src/decorators/associations/belongs-to'
 import User from '../User'
 import Sandbag from '../Sandbag'
+import { DreamColumn } from '../../../../src'
 
 @STI(Balloon)
 export default class Mylar extends Balloon {
@@ -15,5 +16,5 @@ export default class Mylar extends Balloon {
   public sandbags: Sandbag[]
 
   @Sortable({ scope: 'user' })
-  public positionBeta: number
+  public positionBeta: DreamColumn<Mylar, 'positionBeta'>
 }

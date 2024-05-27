@@ -1,9 +1,8 @@
-import { DateTime } from 'luxon'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
 import Query from '../../../src/dream/query'
 import Scope from '../../../src/decorators/scope'
-import { IdType } from '../../../src/dream/types'
+import { DreamColumn } from '../../../src/dream/types'
 import PostVisibility from './PostVisibility'
 import Rating from './Rating'
 import User from './User'
@@ -20,21 +19,21 @@ export default class Post extends ApplicationModel {
     return { default: PostSerializer<any> } as const
   }
 
-  public id: IdType
-  public deletedAt: DateTime
+  public id: DreamColumn<Post, 'id'>
+  public deletedAt: DreamColumn<Post, 'deletedAt'>
 
   @Post.Sortable({ scope: 'user' })
-  public position: number
+  public position: DreamColumn<Post, 'position'>
 
-  public body: string | null
+  public body: DreamColumn<Post, 'body'>
 
   @BelongsTo(() => User)
   public user: User
-  public userId: IdType
+  public userId: DreamColumn<Post, 'userId'>
 
   @BelongsTo(() => PostVisibility, { optional: true })
   public postVisibility: PostVisibility | null
-  public postVisibilityId: IdType | null
+  public postVisibilityId: DreamColumn<Post, 'postVisibilityId'>
 
   @HasMany(() => Rating, {
     foreignKey: 'rateableId',

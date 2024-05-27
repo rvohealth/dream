@@ -1,6 +1,5 @@
-import { DateTime } from 'luxon'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
-import { IdType } from '../../../src/dream/types'
+import { DreamColumn } from '../../../src/dream/types'
 import SandbagSerializer from '../../../test-app/app/serializers/SandbagSerializer'
 import Mylar from './Balloon/Mylar'
 import ApplicationModel from './ApplicationModel'
@@ -15,12 +14,12 @@ export default class Sandbag extends ApplicationModel {
     return { default: SandbagSerializer } as const
   }
 
-  public id: IdType
-  public weight: number
-  public weightKgs: number
-  public weightTons: number
-  public createdAt: DateTime
-  public updatedAt: DateTime
+  public id: DreamColumn<Sandbag, 'id'>
+  public weight: DreamColumn<Sandbag, 'weight'>
+  public weightKgs: DreamColumn<Sandbag, 'weightKgs'>
+  public weightTons: DreamColumn<Sandbag, 'weightTons'>
+  public createdAt: DreamColumn<Sandbag, 'createdAt'>
+  public updatedAt: DreamColumn<Sandbag, 'updatedAt'>
 
   @Validate()
   public validateWeight(this: Sandbag) {
@@ -35,7 +34,7 @@ export default class Sandbag extends ApplicationModel {
 
   @BelongsTo(() => Mylar, { foreignKey: 'balloonId' })
   public mylar: Mylar
-  public balloonId: IdType
+  public balloonId: DreamColumn<Sandbag, 'balloonId'>
 
   @Sandbag.BeforeCreate({ ifChanging: ['weightKgs'] })
   public conditionalBeforeCreateHook() {}

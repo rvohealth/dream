@@ -1,5 +1,5 @@
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
-import { IdType } from '../../../src/dream/types'
+import { DreamColumn } from '../../../src/dream/types'
 import RatingSerializer from '../serializers/RatingSerializer'
 import ApplicationModel from './ApplicationModel'
 import Composition from './Composition'
@@ -15,19 +15,19 @@ export default class Rating extends ApplicationModel {
     return { default: RatingSerializer } as const
   }
 
-  public id: IdType
-  public body: string | null
-  public rating: number | null
+  public id: DreamColumn<Rating, 'id'>
+  public body: DreamColumn<Rating, 'body'>
+  public rating: DreamColumn<Rating, 'rating'>
 
   @BelongsTo(() => User)
   public user: User
-  public userId: IdType
+  public userId: DreamColumn<Rating, 'userId'>
 
   @BelongsTo(() => [Composition, Post], {
     foreignKey: 'rateableId',
     polymorphic: true,
   })
   public rateable: Composition | Post
-  public rateableId: IdType
-  public rateableType: string
+  public rateableId: DreamColumn<Rating, 'rateableId'>
+  public rateableType: DreamColumn<Rating, 'rateableType'>
 }

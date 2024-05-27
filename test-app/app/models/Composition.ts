@@ -1,4 +1,3 @@
-import { DateTime } from 'luxon'
 import HasOne from '../../../src/decorators/associations/has-one'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
@@ -9,7 +8,7 @@ import AfterSaveCommit from '../../../src/decorators/hooks/after-save-commit'
 import AfterUpdate from '../../../src/decorators/hooks/after-update'
 import AfterUpdateCommit from '../../../src/decorators/hooks/after-update-commit'
 import BeforeCreate from '../../../src/decorators/hooks/before-create'
-import { DreamConst, IdType } from '../../../src/dream/types'
+import { DreamColumn, DreamConst } from '../../../src/dream/types'
 import CompositionAsset from './CompositionAsset'
 import CompositionAssetAudit from './CompositionAssetAudit'
 import User from './User'
@@ -27,15 +26,15 @@ export default class Composition extends ApplicationModel {
     return { default: CompositionSerializer } as const
   }
 
-  public id: IdType
-  public content: string | null
-  public metadata: CompositionMetadata
-  public createdAt: DateTime
-  public updatedAt: DateTime
+  public id: DreamColumn<Composition, 'id'>
+  public content: DreamColumn<Composition, 'content'>
+  public metadata: DreamColumn<Composition, 'metadata'>
+  public createdAt: DreamColumn<Composition, 'createdAt'>
+  public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
   @BelongsTo(() => User)
   public user: User
-  public userId: IdType
+  public userId: DreamColumn<Composition, 'userId'>
 
   @HasMany(() => CompositionAsset)
   public compositionAssets: CompositionAsset[]

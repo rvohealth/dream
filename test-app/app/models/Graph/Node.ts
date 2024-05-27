@@ -1,5 +1,4 @@
-import { DateTime } from 'luxon'
-import { IdType } from '../../../../src/dream/types'
+import { DreamColumn } from '../../../../src/dream/types'
 import HasMany from '../../../../src/decorators/associations/has-many'
 import GraphNodeSerializer from '../../../../test-app/app/serializers/Graph/NodeSerializer'
 import EdgeNode from './EdgeNode'
@@ -15,11 +14,11 @@ export default class Node extends ApplicationModel {
     return { default: GraphNodeSerializer } as const
   }
 
-  public id: IdType
-  public name: string
-  public omittedEdgePosition: number
-  public createdAt: DateTime
-  public updatedAt: DateTime
+  public id: DreamColumn<Node, 'id'>
+  public name: DreamColumn<Node, 'name'>
+  public omittedEdgePosition: DreamColumn<Node, 'omittedEdgePosition'>
+  public createdAt: DreamColumn<Node, 'createdAt'>
+  public updatedAt: DreamColumn<Node, 'updatedAt'>
 
   @HasMany(() => EdgeNode, { foreignKey: 'nodeId' })
   public edgeNodes: EdgeNode[]

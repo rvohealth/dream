@@ -5,7 +5,7 @@ import AfterDestroy from '../../../src/decorators/hooks/after-destroy'
 import AfterDestroyCommit from '../../../src/decorators/hooks/after-destroy-commit'
 import BeforeDestroy from '../../../src/decorators/hooks/before-destroy'
 import BeforeSave from '../../../src/decorators/hooks/before-save'
-import { DreamConst, IdType } from '../../../src/dream/types'
+import { DreamColumn, DreamConst } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Composition from './Composition'
 import CompositionAssetAudit from './CompositionAssetAudit'
@@ -17,15 +17,15 @@ export default class CompositionAsset extends ApplicationModel {
     return 'composition_assets' as const
   }
 
-  public id: IdType
-  public src: string | null
-  public name: string | null
-  public primary: boolean
-  public score: number
+  public id: DreamColumn<CompositionAsset, 'id'>
+  public src: DreamColumn<CompositionAsset, 'src'>
+  public name: DreamColumn<CompositionAsset, 'name'>
+  public primary: DreamColumn<CompositionAsset, 'primary'>
+  public score: DreamColumn<CompositionAsset, 'score'>
 
   @BelongsTo(() => Composition)
   public composition: Composition
-  public compositionId: IdType
+  public compositionId: DreamColumn<CompositionAsset, 'compositionId'>
 
   @HasOne(() => User, {
     through: 'composition',

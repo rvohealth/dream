@@ -1,9 +1,9 @@
 import { DateTime } from 'luxon'
-import { IdType } from '../../../src/dream/types'
+import { DreamColumn, IdType } from '../../../src/dream/types'
 import HasOne from '../../../src/decorators/associations/has-one'
 import Scope from '../../../src/decorators/scope'
 import Validates from '../../../src/decorators/validations/validates'
-import { BalloonColorsEnum, BalloonTypesEnum } from '../../db/sync'
+import { BalloonTypesEnum } from '../../db/sync'
 import BalloonLine from './BalloonLine'
 import ApplicationModel from './ApplicationModel'
 import Sortable from '../../../src/decorators/sortable'
@@ -19,12 +19,11 @@ export default class Balloon extends ApplicationModel {
     return 'beautiful_balloons' as const
   }
 
-  public id: IdType
-  public color: BalloonColorsEnum
-  public multicolor: BalloonColorsEnum[]
-  public ribbonSizes: number[]
-  public createdAt: DateTime
-  public updatedAt: DateTime
+  public id: DreamColumn<Balloon, 'id'>
+  public color: DreamColumn<Balloon, 'color'>
+  public multicolor: DreamColumn<Balloon, 'multicolor'>
+  public createdAt: DreamColumn<Balloon, 'createdAt'>
+  public updatedAt: DreamColumn<Balloon, 'updatedAt'>
 
   public get type() {
     return (this as Balloon).getAttribute('type')
@@ -35,7 +34,7 @@ export default class Balloon extends ApplicationModel {
   }
 
   @Sortable({ scope: 'user' })
-  public positionAlpha: number
+  public positionAlpha: DreamColumn<Balloon, 'positionAlpha'>
 
   @Scope()
   public static red(query: any) {
