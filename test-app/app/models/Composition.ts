@@ -109,14 +109,14 @@ export default class Composition extends ApplicationModel {
     foreignKey: 'localizableId',
     where: { locale: DreamConst.requiredWhereClause },
   })
-  public inlineWhereCurrentLocalizedText: LocalizedText[]
+  public inlineWhereCurrentLocalizedText: LocalizedText
 
   @HasOne(() => LocalizedText, {
     polymorphic: true,
     foreignKey: 'localizableId',
     where: { locale: DreamConst.passthrough },
   })
-  public currentLocalizedText: LocalizedText[]
+  public currentLocalizedText: LocalizedText
 
   @HasMany(() => LocalizedText, { polymorphic: true, foreignKey: 'localizableId' })
   public localizedTexts: LocalizedText[]

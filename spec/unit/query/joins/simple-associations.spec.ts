@@ -75,6 +75,22 @@ describe('Query#joins with simple associations', () => {
       expect(noResults).toEqual([])
     })
 
+    it('accepts an array as the where clause value', async () => {
+      await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+      const composition = await Composition.create({ userId: user.id, primary: true })
+
+      const reloadedUsers = await User.query().joins('mainComposition', { id: composition.id }).all()
+      expect(reloadedUsers).toMatchDreamModels([user])
+
+      const noResults = await User.query()
+        .joins('mainComposition', {
+          id: [parseInt(composition.id!.toString()) + 1, parseInt(composition.id!.toString()) + 2],
+        })
+        .all()
+      expect(noResults).toEqual([])
+    })
+
     context('with "passthrough"', () => {
       it('applies the passthrough when joining the associations', async () => {
         const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })

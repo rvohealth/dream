@@ -44,8 +44,20 @@ describe('Dream#associationQuery', () => {
         const localizedText = await LocalizedText.create({ localizable: composition, locale: 'es-ES' })
 
         expect(
-          await composition.associationQuery('inlineWhereCurrentLocalizedText', { locale: 'es-ES' }).all()
-        ).toMatchDreamModels([localizedText])
+          await composition.associationQuery('inlineWhereCurrentLocalizedText', { locale: 'es-ES' }).first()
+        ).toMatchDreamModel(localizedText)
+      })
+
+      it('supports array where clauses', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user })
+        const localizedText = await LocalizedText.create({ localizable: composition, locale: 'es-ES' })
+
+        expect(
+          await composition
+            .associationQuery('inlineWhereCurrentLocalizedText', { locale: ['es-ES', 'de-DE'] })
+            .first()
+        ).toMatchDreamModel(localizedText)
       })
     })
 

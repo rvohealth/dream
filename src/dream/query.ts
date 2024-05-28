@@ -1874,18 +1874,14 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     if (val instanceof Function && val !== DreamConst.passthrough) {
       val = val()
-    }
-
-    if (val === DreamConst.passthrough) {
+    } else if (val === DreamConst.passthrough) {
       const column = attr.split('.').pop()
-
       if ((this.passthroughWhereStatement as any)[column!] === undefined)
         throw new MissingRequiredPassthroughForAssociationWhereClause(column!)
+      val = (this.passthroughWhereStatement as any)[column!]
+    }
 
-      a = attr
-      b = '='
-      c = (this.passthroughWhereStatement as any)[column!]
-    } else if (val === null) {
+    if (val === null) {
       a = attr
       b = 'is'
       c = val
