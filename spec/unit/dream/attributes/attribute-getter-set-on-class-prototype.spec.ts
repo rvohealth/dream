@@ -1,5 +1,6 @@
 import User from '../../../../test-app/app/models/User'
 import Pet from '../../../../test-app/app/models/Pet'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 
 describe('attribute getters', () => {
   it('are set based on the columns in the table', () => {
@@ -13,6 +14,13 @@ describe('attribute getters', () => {
       const pet = Pet.new()
       pet['currentAttributes']['email'] = 'hello@world'
       expect((pet as any).email).toBeUndefined()
+    })
+  })
+
+  context('STI', () => {
+    it('sets type field upon initialization', () => {
+      const mylar = Mylar.new()
+      expect(mylar.type).toEqual('Mylar')
     })
   })
 })
