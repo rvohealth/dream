@@ -9,10 +9,6 @@ export default async function runHooksFor<T extends Dream>(
   beforeSaveChanges: Partial<Record<string, { was: any; now: any }>> | null,
   txn?: DreamTransaction<any>
 ): Promise<void> {
-  if (['beforeCreate', 'beforeSave', 'beforeUpdate'].includes(key)) {
-    ensureSTITypeFieldIsSet(dream)
-  }
-
   const Base = dream.constructor as typeof Dream
   for (const statement of Base['hooks'][key]) {
     if (statement.ifChanging?.length) {
@@ -66,14 +62,6 @@ export async function runHook<T extends Dream>(
   txn?: DreamTransaction<any>
 ) {
   await (dream as any)[statement.method](txn)
-}
-
-function ensureSTITypeFieldIsSet<T extends Dream>(dream: T) {
-  // todo: turn STI logic here into before create applied by decorator
-  const Base = dream.constructor as typeof Dream
-  if (Base['sti'].value && !(dream as any).type) {
-    ;(dream as any).type = Base['sti'].value
-  }
 }
 
 async function runConditionalBeforeHooksForCreate(

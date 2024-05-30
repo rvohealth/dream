@@ -93,6 +93,7 @@ import { marshalDBValue } from './helpers/marshalDBValue'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
 import CalendarDate from './helpers/CalendarDate'
 import instanceSerializerForKey from './helpers/serializerForKey'
+import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet'
 
 export default class Dream {
   public static get primaryKey() {
@@ -927,7 +928,9 @@ export default class Dream {
   }
 
   protected defineAttributeAccessors() {
-    const columns = (this.constructor as typeof Dream).columns()
+    const dreamClass = this.constructor as typeof Dream
+    const columns = dreamClass.columns()
+
     columns.forEach(column => {
       // this ensures that the currentAttributes object will contain keys
       // for each of the properties
@@ -966,6 +969,8 @@ export default class Dream {
         }
       }
     })
+
+    ensureSTITypeFieldIsSet(this)
   }
 
   public isVirtualColumn<T extends Dream>(this: T, columnName: string): boolean {
