@@ -343,7 +343,8 @@ describe('Dream#update', () => {
 
         await modelWithoutUpdatedAt.update({ cantUpdateThis: 'goodbye' })
 
-        expect((await modelWithoutUpdatedAt.reload()).cantUpdateThis).toEqual('hello world')
+        await modelWithoutUpdatedAt.reload()
+        expect(modelWithoutUpdatedAt.cantUpdateThis).toEqual('hello world')
       })
     }
   )

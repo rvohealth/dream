@@ -234,9 +234,9 @@ async function updatePreviousScope({
 }) {
   const savingChangeToScopeField = scopeArray(scope).filter(
     scopeField =>
-      (!dream.getAssociation(scopeField) && dream.savedChangeToAttribute(scopeField as any)) ||
-      (dream.getAssociation(scopeField) &&
-        dream.savedChangeToAttribute(dream.getAssociation(scopeField).foreignKey()))
+      (!dream.getAssociationMetadata(scopeField) && dream.savedChangeToAttribute(scopeField as any)) ||
+      (dream.getAssociationMetadata(scopeField) &&
+        dream.savedChangeToAttribute(dream.getAssociationMetadata(scopeField).foreignKey()))
   ).length
 
   if (dream.changes()[dream.primaryKey] && dream.changes()[dream.primaryKey]!.was === undefined) return

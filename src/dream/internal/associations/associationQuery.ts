@@ -19,7 +19,12 @@ export default function associationQuery<
   associationName: AssociationName,
   associationWhereStatement?: Where
 ): AssociationQuery {
-  const association = dream.associationMap()[associationName as any] as HasManyStatement<any, any, any, any>
+  const association = dream.associationMetadataMap()[associationName as any] as HasManyStatement<
+    any,
+    any,
+    any,
+    any
+  >
   const associationClass = association.modelCB()
 
   const dreamClass = dream.constructor as typeof Dream

@@ -1,4 +1,3 @@
-import { DateTime } from 'luxon'
 import {
   CompiledQuery,
   DeleteQueryBuilder,
@@ -7,33 +6,54 @@ import {
   Updateable,
   UpdateQueryBuilder,
 } from 'kysely'
+import { DateTime } from 'luxon'
 
+import { DatabaseError } from 'pg'
 import db from './db'
-import HasMany, { HasManyOptions, HasManyStatement } from './decorators/associations/has-many'
+import { AssociationTableNames } from './db/reflections'
+import { DbConnectionType } from './db/types'
+import associationToGetterSetterProp from './decorators/associations/associationToGetterSetterProp'
 import BelongsTo, { BelongsToOptions, BelongsToStatement } from './decorators/associations/belongs-to'
+import HasMany, { HasManyOptions, HasManyStatement } from './decorators/associations/has-many'
 import HasOne, { HasOneOptions, HasOneStatement } from './decorators/associations/has-one'
-import { ScopeStatement } from './decorators/scope'
-import { HookStatement, blankHooksFactory, BeforeHookOpts, AfterHookOpts } from './decorators/hooks/shared'
-import BeforeCreate from './decorators/hooks/before-create'
-import BeforeSave from './decorators/hooks/before-save'
-import BeforeUpdate from './decorators/hooks/before-update'
-import BeforeDestroy from './decorators/hooks/before-destroy'
+import {
+  blankAssociationsFactory,
+  PassthroughWhere,
+  WhereStatement,
+  WhereStatementForAssociation,
+} from './decorators/associations/shared'
 import AfterCreate from './decorators/hooks/after-create'
 import AfterCreateCommit from './decorators/hooks/after-create-commit'
+import AfterDestroy from './decorators/hooks/after-destroy'
+import AfterDestroyCommit from './decorators/hooks/after-destroy-commit'
 import AfterSave from './decorators/hooks/after-save'
 import AfterSaveCommit from './decorators/hooks/after-save-commit'
 import AfterUpdate from './decorators/hooks/after-update'
 import AfterUpdateCommit from './decorators/hooks/after-update-commit'
-import AfterDestroy from './decorators/hooks/after-destroy'
-import AfterDestroyCommit from './decorators/hooks/after-destroy-commit'
+import BeforeCreate from './decorators/hooks/before-create'
+import BeforeDestroy from './decorators/hooks/before-destroy'
+import BeforeSave from './decorators/hooks/before-save'
+import BeforeUpdate from './decorators/hooks/before-update'
+import { AfterHookOpts, BeforeHookOpts, blankHooksFactory, HookStatement } from './decorators/hooks/shared'
+import { ScopeStatement } from './decorators/scope'
+import Sortable, { SortableFieldConfig } from './decorators/sortable'
+import resortAllRecords from './decorators/sortable/helpers/resortAllRecords'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
-import {
-  PassthroughWhere,
-  WhereStatement,
-  WhereStatementForAssociation,
-  blankAssociationsFactory,
-} from './decorators/associations/shared'
-import { AssociationTableNames } from './db/reflections'
+import { VirtualAttributeStatement } from './decorators/virtual'
+import DreamClassTransactionBuilder from './dream/class-transaction-builder'
+import DreamInstanceTransactionBuilder from './dream/instance-transaction-builder'
+import associationQuery from './dream/internal/associations/associationQuery'
+import associationUpdateQuery from './dream/internal/associations/associationUpdateQuery'
+import createAssociation from './dream/internal/associations/createAssociation'
+import destroyAssociation from './dream/internal/associations/destroyAssociation'
+import destroyDream from './dream/internal/destroyDream'
+import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet'
+import reload from './dream/internal/reload'
+import runValidations from './dream/internal/runValidations'
+import saveDream from './dream/internal/saveDream'
+import LoadBuilder from './dream/load-builder'
+import Query, { FindEachOpts } from './dream/query'
+import DreamTransaction from './dream/transaction'
 import {
   AttributeKeys,
   DreamAssociationNamesWithoutRequiredWhereClauses,
@@ -56,58 +76,83 @@ import {
   VariadicPluckEachThroughArgs,
   VariadicPluckThroughArgs,
 } from './dream/types'
-import Query, { FindEachOpts } from './dream/query'
-import runValidations from './dream/internal/runValidations'
-import DreamTransaction from './dream/transaction'
-import DreamClassTransactionBuilder from './dream/class-transaction-builder'
-import saveDream from './dream/internal/saveDream'
-import DreamInstanceTransactionBuilder from './dream/instance-transaction-builder'
-import pascalize from './helpers/pascalize'
-import getModelKey from './helpers/getModelKey'
-import { VirtualAttributeStatement } from './decorators/virtual'
-import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
-import MissingSerializer from './exceptions/missing-serializer'
-import MissingTable from './exceptions/missing-table'
-import associationQuery from './dream/internal/associations/associationQuery'
-import associationUpdateQuery from './dream/internal/associations/associationUpdateQuery'
-import createAssociation from './dream/internal/associations/createAssociation'
-import reload from './dream/internal/reload'
-import destroyDream from './dream/internal/destroyDream'
-import destroyAssociation from './dream/internal/associations/destroyAssociation'
-import { DatabaseError } from 'pg'
-import LoadBuilder from './dream/load-builder'
-import { DbConnectionType } from './db/types'
-import MissingDB from './exceptions/missing-db'
-import Dreamconf from './helpers/dreamconf'
-import resortAllRecords from './decorators/sortable/helpers/resortAllRecords'
-import Sortable, { SortableFieldConfig } from './decorators/sortable'
-import NonExistentScopeProvidedToResort from './exceptions/non-existent-scope-provided-to-resort'
-import cloneDeepSafe from './helpers/cloneDeepSafe'
-import NonLoadedAssociation from './exceptions/associations/non-loaded-association'
-import associationToGetterSetterProp from './decorators/associations/associationToGetterSetterProp'
-import { isString } from './helpers/typechecks'
-import CreateOrFindByFailedToCreateAndFind from './exceptions/create-or-find-by-failed-to-create-and-find'
 import CanOnlyPassBelongsToModelParam from './exceptions/associations/can-only-pass-belongs-to-model-param'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
-import { marshalDBValue } from './helpers/marshalDBValue'
-import isJsonColumn from './helpers/db/types/isJsonColumn'
+import NonLoadedAssociation from './exceptions/associations/non-loaded-association'
+import CreateOrFindByFailedToCreateAndFind from './exceptions/create-or-find-by-failed-to-create-and-find'
+import MissingDB from './exceptions/missing-db'
+import MissingSerializer from './exceptions/missing-serializer'
+import MissingTable from './exceptions/missing-table'
+import NonExistentScopeProvidedToResort from './exceptions/non-existent-scope-provided-to-resort'
 import CalendarDate from './helpers/CalendarDate'
+import cloneDeepSafe from './helpers/cloneDeepSafe'
+import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
+import isJsonColumn from './helpers/db/types/isJsonColumn'
+import Dreamconf from './helpers/dreamconf'
+import getModelKey from './helpers/getModelKey'
+import { marshalDBValue } from './helpers/marshalDBValue'
+import pascalize from './helpers/pascalize'
 import instanceSerializerForKey from './helpers/serializerForKey'
-import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet'
+import { isString } from './helpers/typechecks'
 
 export default class Dream {
+  /**
+   * Shadows #primaryKey, a getter which can be overwritten to customize the id field
+   * for a given model.
+   *
+   * @returns string
+   */
   public static get primaryKey() {
     return this.prototype.primaryKey
   }
 
+  /**
+   * Shadows #table, a getter which can be overwritten to customize the table field
+   * for a given model.
+   *
+   * @returns string
+   */
   public static get table() {
     return this.prototype.table
   }
 
+  /**
+   * A getter which can be overwritten to customize the automatic createdAt timestamp field
+   * for a given model.
+   *
+   * ```ts
+   *  class User extends ApplicationModel {
+   *    public get createdAtField() {
+   *       return 'createdAtTimestamp' as const
+   *    }
+   *  }
+   *
+   * const user = await User.first()
+   * user.createdAtTimestamp // returns the DateTime that this user was created
+   *
+   * @returns string
+   */
   public get createdAtField() {
     return 'createdAt' as const
   }
 
+  /**
+   * A getter which can be overwritten to customize the automatic updatedAt timestamp field
+   * for a given model.
+   *
+   * ```ts
+   *  class User extends ApplicationModel {
+   *    public get updatedAtField() {
+   *       return 'updatedAtTimestamp' as const
+   *    }
+   *  }
+   *
+   * const user = await User.first()
+   * user.updatedAtTimestamp // returns the DateTime that this user was updated
+   * ```
+   *
+   * @returns string
+   */
   public get updatedAtField() {
     return 'updatedAt' as const
   }
@@ -116,12 +161,25 @@ export default class Dream {
     return 'deletedAt' as const
   }
 
-  protected static associations: {
+  /**
+   * @internal
+   *
+   * Model storage for association metadata, set when using the association decorators like:
+   *   @HasOne
+   *   @HasMany
+   *   @BelongsTo
+   */
+  protected static associationMetadataByType: {
     belongsTo: BelongsToStatement<any, any, any, any>[]
     hasMany: HasManyStatement<any, any, any, any>[]
     hasOne: HasOneStatement<any, any, any, any>[]
   } = blankAssociationsFactory(this)
 
+  /**
+   * @internal
+   *
+   * Model storage for scope metadata, set when using the @Scope decorator
+   */
   protected static scopes: {
     default: ScopeStatement[]
     named: ScopeStatement[]
@@ -130,11 +188,32 @@ export default class Dream {
     named: [],
   }
 
+  /**
+   * @internal
+   *
+   * Model storage for virtual attribute metadata, set when using the @Virtual decorator
+   */
   protected static virtualAttributes: VirtualAttributeStatement[] = []
+
+  /**
+   * @internal
+   *
+   * Model storage for sortable metadata, set when using the @Sortable decorator
+   */
   protected static sortableFields: SortableFieldConfig[] = []
 
+  /**
+   * @internal
+   *
+   * Model storage for STI metadata, set when using the @STI decorator
+   */
   protected static extendedBy: (typeof Dream)[] | null = null
 
+  /**
+   * @internal
+   *
+   * Model storage for STI metadata, set when using the @STI decorator
+   */
   protected static sti: {
     active: boolean
     baseClass: typeof Dream | null
@@ -145,6 +224,23 @@ export default class Dream {
     value: null,
   }
 
+  /**
+   * @internal
+   *
+   * Model storage for model hook metadata, set when using the following decorators:
+   *   @BeforeCreate
+   *   @BeforeUpdate
+   *   @BeforeSave
+   *   @BeforeDestroy
+   *   @AfterCreate
+   *   @AfterCreateCommit
+   *   @AfterUpdate
+   *   @AfterUpdateCommit
+   *   @AfterSave
+   *   @AfterSaveCommit
+   *   @AfterDestroy
+   *   @AfterDestroyCommit
+   */
   protected static hooks: {
     beforeCreate: HookStatement[]
     beforeUpdate: HookStatement[]
@@ -160,30 +256,91 @@ export default class Dream {
     afterDestroyCommit: HookStatement[]
   } = blankHooksFactory(this)
 
+  /**
+   * @internal
+   *
+   * Model storage for validation metadata, set when using the @Validates decorator
+   */
   protected static validations: ValidationStatement[] = []
+
+  /**
+   * @internal
+   *
+   * model storage for custom validation metadata, set when using the @Validate decorator
+   */
   protected static customValidations: string[] = []
+
+  /**
+   * @internal
+   *
+   * Model storage for replica-safe metadata, set when using the @ReplicaSafe decorator
+   */
   protected static replicaSafe = false
 
+  /**
+   * @internal
+   *
+   * Provided to distinguish between Dream and other classes
+   *
+   * @returns true
+   */
   public static get isDream() {
     return true
   }
 
+  /**
+   * @internal
+   *
+   * Returns true if this model class is the base class of other STI models
+   *
+   * @returns boolean
+   */
   protected static get isSTIBase() {
     return !!this.extendedBy?.length && !this.isSTIChild
   }
 
+  /**
+   * @internal
+   *
+   * Returns true if this model class a child class of a base STI model
+   *
+   * @returns boolean
+   */
   protected static get isSTIChild() {
     return !!this.sti?.active
   }
 
+  /**
+   * @internal
+   *
+   * Returns either the base STI class, or else this class
+   *
+   * @returns A dream class
+   */
   protected static get stiBaseClassOrOwnClass(): typeof Dream {
     return this.sti.baseClass || this
   }
 
+  /**
+   * @internal
+   *
+   * Shadows .stiBaseClassOrOwnClass. Returns either the base STI class, or else this class
+   *
+   * @returns A dream class
+   */
   protected get stiBaseClassOrOwnClass(): typeof Dream {
     return (this.constructor as typeof Dream).stiBaseClassOrOwnClass
   }
 
+  /**
+   * @internal
+   *
+   * Used by model hook decorators to apply a hook to a specific model.
+   *
+   * @param hookType - the type of hook you want to attach the provided statement to
+   * @param statement - the statement to couple to the provided hookType
+   * @returns void
+   */
   protected static addHook(hookType: keyof typeof this.hooks, statement: HookStatement) {
     const existingHook = this.hooks[hookType].find(hook => hook.method === statement.method)
     if (existingHook) return
@@ -191,14 +348,14 @@ export default class Dream {
     this.hooks[hookType] = [...this.hooks[hookType], statement]
   }
 
-  public static HasMany<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
-    this: T,
-    modelCB: () => AssociationDreamClass,
-    options: HasManyOptions<InstanceType<T>, AssociationDreamClass> = {}
-  ) {
-    return HasMany<InstanceType<T>, AssociationDreamClass>(modelCB, options)
-  }
-
+  /**
+   * Shortcut to the @BelongsTo decorator, which also provides extra type protection which cannot be provided
+   * with the @BelongsTo decorator.
+   *
+   * @param modelCB - a function that immediately returns the dream class you are associating with this dream class
+   * @param options - the options you want to use to apply to this association
+   * @returns A BelongsTo decorator
+   */
   public static BelongsTo<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
     this: T,
     modelCB: () => AssociationDreamClass,
@@ -207,6 +364,30 @@ export default class Dream {
     return BelongsTo<InstanceType<T>, AssociationDreamClass>(modelCB, options)
   }
 
+  /**
+   * Shortcut to the @HasMany decorator, which also provides extra type protection which cannot be provided
+   * with the @HasMany decorator.
+   *
+   * @param modelCB - a function that immediately returns the dream class you are associating with this dream class
+   * @param options - the options you want to use to apply to this association
+   * @returns A HasMany decorator
+   */
+  public static HasMany<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
+    this: T,
+    modelCB: () => AssociationDreamClass,
+    options: HasManyOptions<InstanceType<T>, AssociationDreamClass> = {}
+  ) {
+    return HasMany<InstanceType<T>, AssociationDreamClass>(modelCB, options)
+  }
+
+  /**
+   * Shortcut to the @HasOne decorator, which also provides extra type protection which cannot be provided
+   * with the @HasOne decorator.
+   *
+   * @param modelCB - A function that immediately returns the dream class you are associating with this dream class
+   * @param options - The options you want to use to apply to this association
+   * @returns A HasOne decorator
+   */
   public static HasOne<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
     this: T,
     modelCB: () => AssociationDreamClass,
@@ -215,6 +396,13 @@ export default class Dream {
     return HasOne<InstanceType<T>, AssociationDreamClass>(modelCB, options)
   }
 
+  /**
+   * Shortcut to the @Sortable decorator, which also provides extra type protection which cannot be provided
+   * with the @Sortable decorator.
+   *
+   * @param scope - The column, association, or combination there-of which you would like to restrict the incrementing logic to
+   * @returns A Sortable decorator
+   */
   public static Sortable<T extends typeof Dream>(
     this: T,
     {
@@ -229,59 +417,256 @@ export default class Dream {
     return Sortable({ scope: scope as any })
   }
 
+  /**
+   * Shortcut to the @BeforeCreate decorator
+   *
+   * ```ts
+   * class User {
+   *   User.BeforeCreate()
+   *   public doSomething() {
+   *     console.log('hi!')
+   *   }
+   * }
+   * ```
+   *
+   * @returns The BeforeCreate decorator
+   *
+   */
   public static BeforeCreate<T extends typeof Dream>(this: T, opts: BeforeHookOpts<InstanceType<T>>) {
     return BeforeCreate<InstanceType<T>>(opts)
   }
 
+  /**
+   * Shortcut to the @BeforeSave decorator
+   *
+   * ```ts
+   * class User {
+   *   User.BeforeSave()
+   *   public doSomething() {
+   *     console.log('hi!')
+   *   }
+   * }
+   * ```
+   *
+   * @returns The BeforeSave decorator
+   *
+   */
   public static BeforeSave<T extends typeof Dream>(this: T, opts: BeforeHookOpts<InstanceType<T>>) {
     return BeforeSave<InstanceType<T>>(opts)
   }
 
+  /**
+   * Shortcut to the @BeforeUpdate decorator
+   *
+   * ```ts
+   * class User {
+   *   User.BeforeUpdate()
+   *   public doSomething() {
+   *     console.log('hi!')
+   *   }
+   * }
+   * ```
+   *
+   * @returns The BeforeUpdate decorator
+   *
+   */
   public static BeforeUpdate<T extends typeof Dream>(this: T, opts: BeforeHookOpts<InstanceType<T>>) {
     return BeforeUpdate<InstanceType<T>>(opts)
   }
 
+  /**
+   * Shortcut to the @BeforeDestroy decorator
+   *
+   * ```ts
+   * class User {
+   *   User.BeforeDestroy()
+   *   public doSomething() {
+   *     console.log('hi!')
+   *   }
+   * }
+   * ```
+   *
+   * @returns The BeforeDestroy decorator
+   */
   public static BeforeDestroy<T extends typeof Dream>(this: T) {
     return BeforeDestroy()
   }
 
+  /**
+   * Shortcut to the @AfterCreate decorator
+   *
+   * ```ts
+   * class User {
+   *   User.AfterCreate()
+   *   public doSomething() {
+   *     console.log('hi!')
+   *   }
+   * }
+   * ```
+   *
+   * @returns The AfterCreate decorator
+   *
+   */
   public static AfterCreate<T extends typeof Dream>(this: T, opts: AfterHookOpts<InstanceType<T>>) {
     return AfterCreate<InstanceType<T>>(opts)
   }
 
+  /**
+   * Shortcut to the @AfterCreateCommit decorator
+   *
+   * ```ts
+   * class User {
+   *   User.AfterCreateCommit()
+   *   public doSomething() {
+   *     console.log('hi!')
+   *   }
+   * }
+   * ```
+   *
+   * @returns The AfterCreateCommit decorator
+   */
   public static AfterCreateCommit<T extends typeof Dream>(this: T, opts: AfterHookOpts<InstanceType<T>>) {
     return AfterCreateCommit<InstanceType<T>>(opts)
   }
 
+  /**
+   * Shortcut to the @AfterSave decorator
+   *
+   * ```ts
+   * class User {
+   *   User.AfterSave()
+   *   public doSomething() {
+   *     console.log('hi!')
+   *   }
+   * }
+   * ```
+   *
+   * @returns The AfterSave decorator
+   *
+   */
   public static AfterSave<T extends typeof Dream>(this: T, opts: AfterHookOpts<InstanceType<T>>) {
     return AfterSave<InstanceType<T>>(opts)
   }
 
+  /**
+   * Shortcut to the @AfterSaveCommit decorator
+   *
+   * ```ts
+   * class User {
+   *   User.AfterSaveCommit()
+   *   public doSomething() {
+   *     console.log('hi!')
+   *   }
+   * }
+   * ```
+   *
+   * @returns The AfterSaveCommit decorator
+   *
+   */
   public static AfterSaveCommit<T extends typeof Dream>(this: T, opts: AfterHookOpts<InstanceType<T>>) {
     return AfterSaveCommit<InstanceType<T>>(opts)
   }
 
+  /**
+   * Shortcut to the @AfterUpdate decorator
+   *
+   * ```ts
+   * class User {
+   *   User.AfterUpdate()
+   *   public doSomething() {
+   *     console.log('hi!')
+   *   }
+   * }
+   * ```
+   *
+   * @returns The AfterUpdate decorator
+   *
+   */
   public static AfterUpdate<T extends typeof Dream>(this: T, opts: AfterHookOpts<InstanceType<T>>) {
     return AfterUpdate<InstanceType<T>>(opts)
   }
 
+  /**
+   * Shortcut to the @AfterUpdateCommit decorator
+   *
+   * ```ts
+   * class User {
+   *   User.AfterUpdateCommit()
+   *   public doSomething() {
+   *     console.log('hi!')
+   *   }
+   * }
+   * ```
+   *
+   * @returns The AfterUpdateCommit decorator
+   *
+   */
   public static AfterUpdateCommit<T extends typeof Dream>(this: T, opts: AfterHookOpts<InstanceType<T>>) {
     return AfterUpdateCommit<InstanceType<T>>(opts)
   }
 
+  /**
+   * Shortcut to the @AfterDestroy decorator
+   *
+   * ```ts
+   * class User {
+   *   User.AfterDestroy()
+   *   public doSomething() {
+   *     console.log('hi!')
+   *   }
+   * }
+   * ```
+   *
+   * @returns The AfterDestroy decorator
+   *
+   */
   public static AfterDestroy<T extends typeof Dream>(this: T) {
     return AfterDestroy()
   }
 
+  /**
+   * Shortcut to the @AfterDestroyCommit decorator
+   *
+   * ```ts
+   * class User {
+   *   User.AfterDestroyCommit()
+   *   public doSomething() {
+   *     console.log('hi!')
+   *   }
+   * }
+   * ```
+   *
+   * @returns The AfterDestroyCommit decorator
+   *
+   */
   public static AfterDestroyCommit<T extends typeof Dream>(this: T) {
     return AfterDestroyCommit()
   }
 
+  /**
+   * Returns a unique global name for the given model.
+   * Since in javascript/typescript, it is possible to give
+   * two Dream classes the same name, globalName
+   * provides a model name which is unique to your class,
+   * since it considers the file path to the dream as part
+   * of the name.
+   *
+   * This is used in the console so that all models can be
+   * imported to the global namespace without overriding
+   * each other.
+   *
+   * @returns A string representing a unique key for this model based on its filename and path
+   */
   public static async globalName<T extends typeof Dream>(this: T): Promise<string | undefined> {
     const modelKey = await getModelKey(this)
     return pascalize(modelKey)?.replace(/\//g, '')
   }
 
+  /**
+   * Returns the column names for the given model
+   *
+   * @returns The column names for the given model
+   */
   public static columns<
     T extends typeof Dream,
     I extends InstanceType<T>,
@@ -293,6 +678,20 @@ export default class Dream {
     return new Set(columns ? Object.keys(columns) : [])
   }
 
+  /**
+   * Returns the list of column names that are safe for
+   * casting automatically using `.paramsFor` within a
+   * psychic controller. It will return a subset of the
+   * `.columns` getter, but which filters out the following:
+   *   * createdAt
+   *   * updatedAt
+   *   * deletedAt
+   *   * type fields for STI models
+   *   * foreign key fields for belongs to associations (these should usually be verified before being set)
+   *   * type fields corresponding to polymorphic associations
+   *
+   * @returns A subset of columns for the given dream class
+   */
   public static paramSafeColumns<T extends typeof Dream, I extends InstanceType<T>>(
     this: T
   ): Set<DreamParamSafeColumnNames<I>> {
@@ -317,28 +716,67 @@ export default class Dream {
     >
   }
 
+  /**
+   * @internal
+   *
+   * Returns true if the column is virtual (set using the @Virtual decorator)
+   *
+   * @param columnName - the name of the property you are checking for
+   * @returns boolean
+   */
   public static isVirtualColumn<T extends typeof Dream>(this: T, columnName: string): boolean {
     return this.prototype.isVirtualColumn(columnName)
   }
 
-  public static getAssociation<
+  /**
+   * @internal
+   *
+   * Locates an association's metadata by key
+   *
+   * ```ts
+   * Post.getAssociationMetadata('user')
+   * // {
+   * //    modelCB: [Function (anonymous)],
+   * //    type: 'BelongsTo',
+   * //    as: 'user',
+   * //    optional: false,
+   * //    polymorphic: false,
+   * //    primaryKeyOverride: null,
+   * //    primaryKey: [Function: primaryKey],
+   * //    primaryKeyValue: [Function: primaryKeyValue],
+   * //    foreignKey: [Function: foreignKey],
+   * //    foreignKeyTypeField: [Function: foreignKeyTypeField]
+   * //  }
+   * ```
+   *
+   * @param associationName - the name of the association you wish to retrieve metadata for
+   * @returns Association metadata for the requested association
+   */
+  public static getAssociationMetadata<
     T extends typeof Dream,
     I extends InstanceType<T>,
     Schema extends I['dreamconf']['schema'],
   >(this: T, associationName: Schema[I['table']]['associations'][number]) {
-    return this.associationMap()[associationName]
+    return this.associationMetadataMap()[associationName]
   }
 
-  public static associationMap<
+  /**
+   * @internal
+   *
+   * Returns an array containing all of the associations for this dream class
+   *
+   * @returns An array containing all of the associations for this dream class
+   */
+  public static associationMetadataMap<
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
     Schema extends I['dreamconf']['schema'],
   >(this: T) {
     const allAssociations = [
-      ...this.associations.belongsTo,
-      ...this.associations.hasOne,
-      ...this.associations.hasMany,
+      ...this.associationMetadataByType.belongsTo,
+      ...this.associationMetadataByType.hasOne,
+      ...this.associationMetadataByType.hasMany,
     ]
 
     const map = {} as {
@@ -355,25 +793,58 @@ export default class Dream {
     return map
   }
 
+  /**
+   * @internal
+   *
+   * Returns all of the association names for this dream class
+   *
+   * @returns All of the association names for this dream class
+   */
   public static get associationNames() {
     const allAssociations = [
-      ...this.associations.belongsTo,
-      ...this.associations.hasOne,
-      ...this.associations.hasMany,
+      ...this.associationMetadataByType.belongsTo,
+      ...this.associationMetadataByType.hasOne,
+      ...this.associationMetadataByType.hasMany,
     ]
     return allAssociations.map(association => {
       return association.as
     })
   }
 
+  /**
+   * Returns a query for this model which disregards default scopes
+   *
+   * @returns A query for this model which disregards default scopes
+   */
   public static unscoped<T extends typeof Dream>(this: T): Query<InstanceType<T>> {
     return this.query().unscoped()
   }
 
+  /**
+   * Retrieves an array containing all records corresponding to
+   * this model. Be careful using this, since it will attempt to
+   * pull every record into memory at once. For a large number
+   * of records, consider using `.findEach`, which will pull
+   * the records in batches.
+   *
+   * ```ts
+   * await User.all()
+   * ```
+   *
+   * @returns an array of dreams
+   */
   public static async all<T extends typeof Dream>(this: T): Promise<InstanceType<T>[]> {
     return await this.query().all()
   }
 
+  /**
+   * @internal
+   *
+   * Retrieves a query with the requested connection
+   *
+   * @param connection - The connection you wish to access
+   * @returns A query with the requested connection
+   */
   protected static connection<T extends typeof Dream>(
     this: T,
     connection: DbConnectionType
@@ -383,37 +854,102 @@ export default class Dream {
     })
   }
 
+  /**
+   * Retrieves the number of records corresponding
+   * to this model.
+   *
+   * @returns The number of records corresponding to this model
+   */
   public static async count<T extends typeof Dream>(this: T): Promise<number> {
     return await this.query().count()
   }
 
-  public static async max<T extends typeof Dream>(
-    this: T,
-    field: DreamColumnNames<InstanceType<T>>
-  ): Promise<number> {
-    return await this.query().max(field as any)
+  /**
+   * Retrieves the max value of the specified column
+   * for this model's records.
+   *
+   * ```ts
+   * await User.max('id')
+   * // 99
+   * ```
+   *
+   * @param columnName - a column name on the model
+   * @returns the max value of the specified column for this model's records
+   */
+  public static async max<
+    T extends typeof Dream,
+    PluckThroughFieldType,
+    PluckField extends DreamColumnNames<InstanceType<T>> | PluckThroughFieldType,
+  >(this: T, columnName: PluckField) {
+    return await this.query().max(columnName)
   }
 
-  public static async min<T extends typeof Dream>(
-    this: T,
-    field: DreamColumnNames<InstanceType<T>>
-  ): Promise<number> {
-    return await this.query().min(field as any)
+  /**
+   * Retrieves the min value of the specified column
+   * for this model's records.
+   *
+   *
+   * ```ts
+   * await User.min('id')
+   * // 1
+   * ```
+   *
+   * @param columnName - a column name on the model
+   * @returns the min value of the specified column for this model's records
+   */
+  public static async min<
+    T extends typeof Dream,
+    PluckThroughFieldType,
+    PluckField extends DreamColumnNames<InstanceType<T>> | PluckThroughFieldType,
+  >(this: T, columnName: PluckField) {
+    return await this.query().min(columnName)
   }
 
-  public static async create<T extends typeof Dream>(this: T, opts?: UpdateablePropertiesForClass<T>) {
-    return (await new (this as any)(opts as any).save()) as InstanceType<T>
+  /**
+   * Persists a new record, setting the provided attributes
+   *
+   * ```ts
+   * const user = await User.create({ email: 'how@yadoin' })
+   * await Post.create({ body: 'howdy', user })
+   * ```
+   *
+   * @param attributes - attributes or belongs to associations you wish to set on this model before persisting
+   * @returns A newly persisted dream instance
+   */
+  public static async create<T extends typeof Dream>(this: T, attributes?: UpdateablePropertiesForClass<T>) {
+    const instance = new (this as any)(attributes as any)
+    await instance.save()
+    return instance as InstanceType<T>
   }
 
+  /**
+   * Attempt to create the model. If creation fails
+   * due to uniqueness constraint, then find the existing
+   * model.
+   *
+   * This is useful in situations where we want to avoid
+   * a race condition creating duplicate records.
+   *
+   * IMPORTANT: A unique index/uniqueness constraint must exist on
+   * at least one of the provided attributes
+   *
+   * ```ts
+   * const logEntry = await LogEntry.createOrFindBy({ externalId }, { createWith: params })
+   * ```
+   *
+   * @param attributes - The base attributes to persist, but also the attributes to use to find when create fails
+   * @param extraOpts.createWith - additional attributes to persist when creating, but not used for finding
+   * @returns A dream instance
+   */
   public static async createOrFindBy<T extends typeof Dream>(
     this: T,
-    opts: UpdateablePropertiesForClass<T>,
+    attributes: UpdateablePropertiesForClass<T>,
     extraOpts: CreateOrFindByExtraOps<T> = {}
   ): Promise<InstanceType<T> | null> {
     let record: InstanceType<T>
     try {
       record = await new (this as any)({
-        ...opts,
+        ...attributes,
         ...(extraOpts?.createWith || {}),
       }).save()
       return record
@@ -422,7 +958,7 @@ export default class Dream {
         err instanceof DatabaseError &&
         err.message.includes('duplicate key value violates unique constraint')
       ) {
-        const dreamModel = await this.findBy(this.extractAttributesFromUpdateableProperties(opts))
+        const dreamModel = await this.findBy(this.extractAttributesFromUpdateableProperties(attributes))
         if (!dreamModel) throw new CreateOrFindByFailedToCreateAndFind(this)
         return dreamModel
       }
@@ -430,6 +966,18 @@ export default class Dream {
     }
   }
 
+  /**
+   * Returns a new query instance with the distinct query applied.
+   * If no columnName is provided, then distinct will apply to the
+   * primary key by default.
+   *
+   * ```ts
+   * await User.distinct('name').pluck('name')
+   * ```
+   *
+   * @param columnName - The column name you wish to apply the distinct clause to
+   * @returns A Query scoped to this Dream model with the distinct clause applied
+   */
   public static distinct<
     T extends typeof Dream,
     I extends InstanceType<T>,
@@ -439,15 +987,48 @@ export default class Dream {
     return this.query().distinct(columnName as any)
   }
 
+  /**
+   * Finds a record for the corresponding model with the
+   * specified primary key. If not found, null
+   * is returned
+   *
+   * ```ts
+   * await User.query().find(123)
+   * // User{id: 123}
+   * ```
+   *
+   * @param primaryKey - The primaryKey of the record to look up
+   * @returns Either the found record, or else null
+   */
   public static async find<
     T extends typeof Dream,
     I extends InstanceType<T>,
     Schema extends I['dreamconf']['schema'],
     SchemaIdType = Schema[InstanceType<T>['table']]['columns'][I['primaryKey']]['coercedType'],
-  >(this: T, id: SchemaIdType): Promise<InstanceType<T> | null> {
-    return await this.query().find(id)
+  >(this: T, primaryKey: SchemaIdType): Promise<InstanceType<T> | null> {
+    return await this.query().find(primaryKey)
   }
 
+  /**
+   * Finds all records for the corresponding model in batches,
+   * and then calls the provided callback
+   * for each found record. Once all records
+   * have been passed for a given batch, the next set of
+   * records will be fetched and passed to your callback, until all
+   * records matching the corresponding model have been fetched.
+   *
+   * ```ts
+   * await User.findEach(user => {
+   *   console.log(user)
+   * })
+   * // User{email: 'hello@world'}
+   * // User{email: 'goodbye@world'}
+   * ```
+   *
+   * @param cb - The callback to call for each found record
+   * @param opts.batchSize - the batch size you wish to collect records in. If not provided, it will default to 1000
+   * @returns void
+   */
   public static async findEach<T extends typeof Dream>(
     this: T,
     cb: (instance: InstanceType<T>) => void | Promise<void>,
@@ -456,6 +1037,38 @@ export default class Dream {
     await this.query().findEach(cb, opts)
   }
 
+  /**
+   * Given a collection of records, load a common association.
+   * This can be useful to reduce database queries when multiple
+   * dream classes have identical associations that should be loaded.
+   *
+   * For example, we can sideload the associations
+   * shared by both associations called `localizedTexts`,
+   * so long as `localizedTexts` is defined identically (same
+   * association type, same target class, same association options,
+   * same association name) on both Image and Post:
+   *
+   * ```ts
+   * class Image extends ApplicationModel {
+   *   @HasMany(() => LocalizedText)
+   *   public localizedTexts: LocalizedText[]
+   * }
+   *
+   * class Post extends ApplicationModel {
+   *   @HasMany(() => LocalizedText)
+   *   public localizedTexts: LocalizedText[]
+   * }
+   *
+   * const post = await Post.preload('image').first()
+   * const image = post.image
+   *
+   * await Image.loadInto([image, post], 'localizedTexts')
+   * ```
+   *
+   * @param dreams - An array of dream instances to load associations into
+   * @param args - A chain of association names
+   * @returns A LoadIntoModels instance
+   */
   public static async loadInto<
     T extends typeof Dream,
     I extends InstanceType<T>,
@@ -463,43 +1076,111 @@ export default class Dream {
     TableName extends I['table'],
     Schema extends I['dreamconf']['schema'],
     const Arr extends readonly unknown[],
-  >(this: T, models: Dream[], ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
-    await this.query().loadInto(models, ...(args as any))
+  >(this: T, dreams: Dream[], ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
+    await this.query().loadInto(dreams, ...(args as any))
   }
 
+  /**
+   * Returns a new instance of Query scoped to the given
+   * model class
+   *
+   * ```ts
+   * await User.query().all()
+   * // [User{id: 1}, User{id: 2}, ...]
+   * ```
+   *
+   * @returns A new Query instance
+   *
+   */
   public static query<T extends typeof Dream, I extends InstanceType<T>>(this: T): Query<I> {
     return new Query(this.prototype as I)
   }
 
+  /**
+   * Finds the first record—ordered by primary key—matching
+   * the corresponding model and the specified where statement.
+   * If not found, null is returned.
+   *
+   * ```ts
+   * await User.findBy({ email: 'how@yadoin' })
+   * // User{email: 'how@yadoin'}
+   * ```
+   *
+   * @param whereStatement - The where statement used to locate the record
+   * @returns Either the first model found matching the whereStatement, or else null
+   */
   public static async findBy<T extends typeof Dream, I extends InstanceType<T>>(
     this: T,
-    attributes: WhereStatement<I['DB'], I['dreamconf']['schema'], I['table']>
+    whereStatement: WhereStatement<I['DB'], I['dreamconf']['schema'], I['table']>
   ): Promise<InstanceType<T> | null> {
-    return await this.query().findBy(attributes)
+    return await this.query().findBy(whereStatement)
   }
 
+  /**
+   * Attempt to find the model with the given attributes.
+   * If no record is found, then a new record is created.
+   *
+   * ```ts
+   * const user = await User.findOrCreateBy({ email }, { createWith: params })
+   * ```
+   *
+   * @param attributes - The base attributes for finding, but also the attributes to use when creating
+   * @param extraOpts.createWith - additional attributes to persist when creating, but not used for finding
+   * @returns A dream instance
+   */
   public static async findOrCreateBy<T extends typeof Dream>(
     this: T,
-    opts: UpdateablePropertiesForClass<T>,
+    attributes: UpdateablePropertiesForClass<T>,
     extraOpts: CreateOrFindByExtraOps<T> = {}
   ) {
-    const existingRecord = await this.findBy(this.extractAttributesFromUpdateableProperties(opts))
+    const existingRecord = await this.findBy(this.extractAttributesFromUpdateableProperties(attributes))
     if (existingRecord) return existingRecord
 
     return (await new (this as any)({
-      ...opts,
+      ...attributes,
       ...(extraOpts?.createWith || {}),
     }).save()) as InstanceType<T>
   }
 
-  public static async first<T extends typeof Dream>(this: T): Promise<InstanceType<T> | null> {
-    return await this.query().first()
-  }
-
+  /**
+   * Returns true if a record exists for the given
+   * model class
+   *
+   * ```ts
+   * await User.exists()
+   * // false
+   *
+   * await User.create({ email: 'how@yadoin' })
+   *
+   * await User.exists()
+   * // true
+   * ```
+   *
+   * @returns boolean
+   */
   public static async exists<T extends typeof Dream>(this: T): Promise<boolean> {
     return await this.query().exists()
   }
 
+  /**
+   * Applies preload statement to a Query scoped to this model.
+   * Upon instantiating records of this model type,
+   * specified associations will be preloaded.
+   *
+   * Preloading/loading is necessary prior to accessing associations
+   * on a Dream instance.
+   *
+   * Preload is useful for avoiding the N+1 query problem
+   *
+   * ```ts
+   * const user = await User.preload('posts', 'comments', { visibilty: 'public' }, 'replies').first()
+   * console.log(user.posts[0].comments[0].replies)
+   * // [Reply{id: 1}, Reply{id: 2}]
+   * ```
+   *
+   * @param args - A chain of associaition names and where clauses
+   * @returns A query for this model with the preload statement applied
+   */
   public static preload<
     T extends typeof Dream,
     I extends InstanceType<T>,
@@ -511,6 +1192,17 @@ export default class Dream {
     return this.query().preload(...(args as any))
   }
 
+  /**
+   * Returns a new Query instance with the provided
+   * joins statement attached
+   *
+   * ```ts
+   * await User.joins('posts').first()
+   * ```
+   *
+   * @param args - A chain of associaition names and where clauses
+   * @returns A Query for this model with the joins clause applied
+   */
   public static joins<
     T extends typeof Dream,
     I extends InstanceType<T>,
@@ -522,6 +1214,31 @@ export default class Dream {
     return this.query().joins(...(args as any))
   }
 
+  /**
+   * Plucks the specified fields from the join Query
+   *
+   * ```ts
+   * await User.pluckThrough(
+   *   'posts',
+   *   { createdAt: range(CalendarDate.yesterday()) },
+   *   'comments',
+   *   'replies',
+   *   ['replies.id', 'replies.body']
+   * )
+   * // [[1, 'loved it!'], [2, 'hated it :(']]
+   * ```
+   *
+   * If more than one column is requested, a multi-dimensional
+   * array is returned:
+   *
+   * ```ts
+   * await User.order('id').pluckThrough('posts', 'comments', ['id', 'body'])
+   * // [[1, 'comment 1'], [2, 'comment 2']]
+   * ```
+   *
+   * @param args - A chain of association names and where clauses ending with the column or array of columns to pluck
+   * @returns An array of pluck results
+   */
   public static async pluckThrough<
     T extends typeof Dream,
     I extends InstanceType<T>,
@@ -533,6 +1250,35 @@ export default class Dream {
     return await this.query().pluckThrough(...(args as any))
   }
 
+  /**
+   * Plucks the specified fields from the join Query in batches,
+   * passing each plucked value/set of plucked values
+   * into the provided callback function. It will continue
+   * doing this until it exhausts all results in the
+   * Query. This is useful when plucking would result in
+   * more results than would be desirable to instantiate
+   * in memory/more results than would be desirable to handle
+   * between awaits.
+   *
+   * ```ts
+   * await User.pluckEachThrough(
+   *   'posts',
+   *   { createdAt: range(CalendarDate.yesterday()) },
+   *   'comments',
+   *   'replies',
+   *   ['replies.id', 'replies.body'],
+   *   ([id, body]) => {
+   *     console.log({ id, body })
+   *   }
+   * )
+   *
+   * // { id: 1, body: 'loved it!' }
+   * // { id: 2, body: 'hated it :('}
+   * ```
+   *
+   * @param args - A chain of association names and where clauses ending with the column or array of columns to pluck and the callback function
+   * @returns void
+   */
   public static async pluckEachThrough<
     T extends typeof Dream,
     I extends InstanceType<T>,
@@ -544,33 +1290,146 @@ export default class Dream {
     await this.query().pluckEachThrough(...(args as any))
   }
 
+  /**
+   * Returns the first record corresponding to the
+   * model, ordered by primary key.
+   *
+   * ```ts
+   * await User.first()
+   * // User{id: 1}
+   * ```
+   *
+   * @returns First record, or null if no record exists
+   */
+  public static async first<T extends typeof Dream>(this: T): Promise<InstanceType<T> | null> {
+    return await this.query().first()
+  }
+
+  /**
+   * Returns the last record corresponding to the
+   * model, ordered by primary key.
+   *
+   * ```ts
+   * await User.last()
+   * // User{id: 99}
+   * ```
+   *
+   * @returns Last record, or null if no record exists
+   */
   public static async last<T extends typeof Dream>(this: T): Promise<InstanceType<T> | null> {
     return await this.query().last()
   }
 
+  /**
+   * Returns a new Query instance, specifying a limit
+   *
+   * ```ts
+   * await User.limit(2).all()
+   * // [User{}, User{}]
+   * ```
+   *
+   * @returns A Query for this model with the limit clause applied
+   */
   public static limit<T extends typeof Dream>(this: T, count: number | null) {
     return this.query().limit(count)
   }
 
+  /**
+   * Returns a new Query instance, specifying an offset
+   *
+   * ```ts
+   * await User.offset(2).order('id').limit(2).all()
+   * // [User{id: 3}, User{id: 4}]
+   * ```
+   *
+   * @returns A Query for this model with the offset clause applied
+   */
   public static offset<T extends typeof Dream>(this: T, offset: number | null) {
     return this.query().offset(offset)
   }
 
+  /**
+   * Returns a new Kysely SelectQueryBuilder instance to be used
+   * in a sub Query
+   *
+   * ```ts
+   * await User.where({
+   *   id: Post.nestedSelect('userId'),
+   * }).all()
+   * // [User{id: 1}, ...]
+   * ```
+   *
+   * @param selection - the column to use for your nested Query
+   * @returns A Kysely SelectQueryBuilder instance
+   */
   public static nestedSelect<T extends typeof Dream>(this: T, selection: DreamColumnNames<InstanceType<T>>) {
     return this.query().nestedSelect(selection as any)
   }
 
+  /**
+   * Returns a new Query instance, attaching the provided
+   * order statement
+   *
+   * ```ts
+   * await User.order('id').all()
+   * // [User{id: 1}, User{id: 2}, ...]
+   * ```
+   *
+   * ```ts
+   * await User.order({ name: 'asc', id: 'desc' }).all()
+   * // [User{name: 'a', id: 99}, User{name: 'a', id: 97}, User{ name: 'b', id: 98 } ...]
+   * ```
+   *
+   * @param orderStatement - Either a string or an object specifying order. If a string, the order is implicitly ascending. If the orderStatement is an object, statements will be provided in the order of the keys set in the object
+   * @returns A query for this model with the order clause applied
+   */
   public static order<T extends typeof Dream, I extends InstanceType<T>>(
     this: T,
-    arg: DreamColumnNames<I> | Partial<Record<DreamColumnNames<I>, OrderDir>> | null
+    orderStatement: DreamColumnNames<I> | Partial<Record<DreamColumnNames<I>, OrderDir>> | null
   ): Query<InstanceType<T>> {
-    return this.query().order(arg as any)
+    return this.query().order(orderStatement as any)
   }
 
+  /**
+   * Plucks the provided fields from the corresponding model
+   *
+   * ```ts
+   * await User.pluck('id')
+   * // [1, 3, 2]
+   * ```
+   *
+   * If more than one column is requested, a multi-dimensional
+   * array is returned:
+   *
+   * ```ts
+   * await User.order('id').pluck('id', 'email')
+   * // [[1, 'a@a.com'], [2, 'b@b.com']]
+   * ```
+   *
+   * @param fields - The column or array of columns to pluck
+   * @returns An array of pluck results
+   */
   public static async pluck<T extends typeof Dream>(this: T, ...fields: DreamColumnNames<InstanceType<T>>[]) {
     return await this.query().pluck(...(fields as any[]))
   }
 
+  /**
+   * Plucks the specified fields from the given dream class table
+   * in batches, passing each found columns into the
+   * provided callback function
+   *
+   * ```ts
+   * await User.order('id').pluckEach('id', (id) => {
+   *   console.log(id)
+   * })
+   * // 1
+   * // 2
+   * // 3
+   * ```
+   *
+   * @param fields - a list of fields to pluck, followed by a callback function to call for each set of found fields
+   * @returns void
+   */
   public static async pluckEach<T extends typeof Dream, CB extends (plucked: any) => void | Promise<void>>(
     this: T,
     ...fields: (DreamColumnNames<InstanceType<T>> | CB | FindEachOpts)[]
@@ -578,6 +1437,37 @@ export default class Dream {
     return await this.query().pluckEach(...(fields as any))
   }
 
+  /**
+   * Used in conjunction with the @Sortable decorator, `resort`
+   * takes a list of sortable fields, and for each one, finds and
+   * sorts each record in the DB matching the field based on the
+   * scope provided for each @Sortable decorator found.
+   *
+   * Calling this method shouldn't be necessary, but if
+   * the contents of the database have shifted without firing the
+   * correct callback mechanisms at the application layer, calling
+   * `resort` will ensure that all sortable fields are set from 1..n
+   * with no gaps, accounting for the scopes specified in the
+   * corresponding @Sortable decorator.
+   *
+   * ```ts
+   * class Post extends ApplicationModel {
+   *   @Sortable({ scope: ['user']})
+   *   public position: DreamColumn<User, 'position'>
+   * }
+   *
+   * await Post.all()
+   * // [Post{position: 1}, Post{position: 3}, Post{position: 5}]
+   *
+   * await Post.resort('position')
+   * await Post.all()
+   * // [Post{position: 1}, Post{position: 2}, Post{position: 3}]
+   * ```
+   *
+   * @param fields - A list of sortable fields to resort
+   * @returns void
+   *
+   */
   public static async resort<T extends typeof Dream>(
     this: T,
     ...fields: DreamColumnNames<InstanceType<T>>[]
@@ -589,14 +1479,77 @@ export default class Dream {
     }
   }
 
+  /**
+   * Returns a Query scoped to this model with
+   * the specified scope applied.
+   *
+   * ```ts
+   * class User extends ApplicationModel {
+   *   @Scope()
+   *   public visible(query: Query<User>) {
+   *     return query.where({ hidden: false })
+   *   }
+   * }
+   *
+   * await User.scope('visible').all()
+   * // [User{hidden: false}, User{hidden: false}]
+   * ```
+   *
+   * @param scopeName - The name of the scope
+   * @returns a Query scoped to this model with the specified scope applied
+   */
   public static scope<T extends typeof Dream>(this: T, scopeName: string) {
     return (this as any)[scopeName](this.query()) as Query<InstanceType<T>>
   }
 
+  /**
+   * Returns the sql that would be executed by a Query
+   * scoped to this model.
+   *
+   * ```ts
+   * User.sql()
+   * // {
+   * //  query: {
+   * //    kind: 'SelectQueryNode',
+   * //    from: { kind: 'FromNode', froms: [Array] },
+   * //    selections: [ [Object] ],
+   * //    distinctOn: undefined,
+   * //    joins: undefined,
+   * //    groupBy: undefined,
+   * //    orderBy: undefined,
+   * //    where: { kind: 'WhereNode', where: [Object] },
+   * //    frontModifiers: undefined,
+   * //    endModifiers: undefined,
+   * //    limit: undefined,
+   * //    offset: undefined,
+   * //    with: undefined,
+   * //    having: undefined,
+   * //    explain: undefined,
+   * //    setOperations: undefined
+   * //  },
+   * //  sql: 'select "users".* from "users" where "users"."deleted_at" is null',
+   * //  parameters: []
+   * //}
+   * ```
+   *
+   * @returns An object representing the underlying sql statement
+   *
+   */
   public static sql<T extends typeof Dream>(this: T): CompiledQuery<object> {
     return this.query().sql()
   }
 
+  /**
+   * Converts the given Dream class into a Kysely query, enabling
+   * you to build custom queries using the Kysely API
+   *
+   * ```ts
+   * await User.toKysely('select').where('email', '=', 'how@yadoin').execute()
+   * ```
+   *
+   * @param type - The type of Kysely query builder instance you would like to obtain
+   * @returns A Kysely query. Depending on the type passed, it will return either a SelectQueryBuilder, DeleteQueryBuilder, UpdateQueryBuilder, or an InsertQueryBuilder
+   */
   public static toKysely<
     T extends typeof Dream,
     QueryType extends 'select' | 'delete' | 'update' | 'insert',
@@ -628,6 +1581,19 @@ export default class Dream {
     }
   }
 
+  /**
+   * Applies transaction to a new Query scoped
+   * to this model
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await User.txn(txn).create({ email: 'how@yadoin' })
+   * })
+   * ```
+   *
+   * @param txn - A DreamTransaction instance (usually collected by calling `ApplicationModel.transaction`)
+   * @returns A Query scoped to this model with the transaction applied
+   */
   public static txn<T extends typeof Dream, I extends InstanceType<T>>(
     this: T,
     txn: DreamTransaction<I>
@@ -635,6 +1601,20 @@ export default class Dream {
     return new DreamClassTransactionBuilder<I>(this.prototype as I, txn)
   }
 
+  /**
+   * Builds a new DreamTransaction instance, provides
+   * the instance to the provided callback.
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   const user = await User.txn(txn).create({ email: 'how@yadoin' })
+   *   await Pet.txn(txn).create({ user })
+   * })
+   * ```
+   *
+   * @param callback - A callback function to call. The transaction provided to the callback can be passed to subsequent database calls within the transaction callback.
+   * @returns void
+   */
   public static async transaction<T extends typeof Dream>(
     this: T,
     callback: (txn: DreamTransaction<InstanceType<T>>) => unknown
@@ -653,6 +1633,29 @@ export default class Dream {
     return res
   }
 
+  /**
+   * Sends data through for use as passthrough data
+   * for the associations that require it.
+   *
+   * ```ts
+   * class Post {
+   *   @HasMany(() => LocalizedText)
+   *   public localizedTexts: LocalizedText[]
+   *
+   *   @HasOne(() => LocalizedText, {
+   *     where: { locale: DreamConst.passthrough },
+   *   })
+   *   public currentLocalizedText: LocalizedText
+   * }
+   *
+   * await User.passthrough({ locale: 'es-ES' })
+   *   .preload('posts', 'currentLocalizedText')
+   *   .first()
+   * ```
+   *
+   * @param passthroughWhereStatement - Where statement used for associations that require passthrough data
+   * @returns A Query for this model with the passthrough data
+   */
   public static passthrough<
     T extends typeof Dream,
     I extends InstanceType<T>,
@@ -661,26 +1664,62 @@ export default class Dream {
     return this.query().passthrough(passthroughWhereStatement)
   }
 
+  /**
+   * Applies a where statement to a new Query instance
+   * scoped to this model
+   *
+   * ```ts
+   * await User.where({ email: 'how@yadoin' }).first()
+   * // User{email: 'how@yadoin'}
+   * ```
+   *
+   * @param whereStatement - Where statement to apply to the Query
+   * @returns A Query for this model with the where clause applied
+   */
   public static where<
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
     Schema extends I['dreamconf']['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
-  >(this: T, attributes: WhereStatement<DB, Schema, TableName>): Query<InstanceType<T>> {
-    return this.query().where(attributes)
+  >(this: T, whereStatement: WhereStatement<DB, Schema, TableName>): Query<InstanceType<T>> {
+    return this.query().where(whereStatement)
   }
 
+  /**
+   * Applies "OR"'d where statements to a Query scoped
+   * to this model.
+   *
+   * ```ts
+   * await User.whereAny([{ email: 'how@yadoin' }, { name: 'fred' }]).first()
+   * // [User{email: 'how@yadoin'}, User{name: 'fred'}, User{name: 'fred'}]
+   * ```
+   *
+   * @param whereStatements - a list of where statements to `OR` together
+   * @returns A Query for this model with the whereAny clause applied
+   */
   public static whereAny<
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
     Schema extends I['dreamconf']['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
-  >(this: T, attributes: WhereStatement<DB, Schema, TableName>[]): Query<InstanceType<T>> {
-    return this.query().whereAny(attributes)
+  >(this: T, statements: WhereStatement<DB, Schema, TableName>[]): Query<InstanceType<T>> {
+    return this.query().whereAny(statements)
   }
 
+  /**
+   * Applies a whereNot statement to a new Query instance
+   * scoped to this model.
+   *
+   * ```ts
+   * await User.whereNot({ email: 'how@yadoin' }).first()
+   * // User{email: 'hello@world'}
+   * ```
+   *
+   * @param whereStatement - A where statement to negate and apply to the Query
+   * @returns A Query for this model with the whereNot clause applied
+   */
   public static whereNot<
     T extends typeof Dream,
     I extends InstanceType<T>,
@@ -691,6 +1730,22 @@ export default class Dream {
     return this.query().whereNot(attributes)
   }
 
+  /**
+   * @internal
+   *
+   * Given a column, checks to see if it is a foreign key
+   * belonging to a BelongsTo association
+   *
+   * ```ts
+   * Post.isBelongsToAssociationForeignKey('id')
+   * // false
+   * Post.isBelongsToAssociationForeignKey('userId')
+   * // true
+   * ```
+   *
+   * @param column - A column on this Dream class
+   * @returns A boolean
+   */
   private static isBelongsToAssociationForeignKey<T extends typeof Dream>(
     this: T,
     column: DreamColumnNames<InstanceType<T>>
@@ -698,6 +1753,22 @@ export default class Dream {
     return this.belongsToAssociationForeignKeys().includes(column)
   }
 
+  /**
+   * @internal
+   *
+   * Given a column, checks to see if it is a belongs to
+   * polymorphic type field
+   *
+   * ```ts
+   * LocalizedText.isBelongsToAssociationPolymorphicTypeField('localizableId')
+   * // false
+   * LocalizedText.isBelongsToAssociationPolymorphicTypeField('localizableType')
+   * // true
+   * ```
+   *
+   * @param column - a column on this dream class
+   * @returns A boolean
+   */
   private static isBelongsToAssociationPolymorphicTypeField<T extends typeof Dream>(
     this: T,
     column: DreamColumnNames<InstanceType<T>>
@@ -705,105 +1776,527 @@ export default class Dream {
     return this.polymorphicTypeColumns().includes(column)
   }
 
+  /**
+   * @internal
+   *
+   * Returns an array of column names that are belongs
+   * to foreign keys on this dream class
+   *
+   * ```ts
+   * Post.belongsToAssociationForeignKeys()
+   * // ['userId']
+   * ```
+   *
+   * @returns An array of column names that are belongs to foreign keys on this dream class
+   */
   private static belongsToAssociationForeignKeys() {
-    const associationMap = this.associationMap()
+    const associationMap = this.associationMetadataMap()
     return this.belongsToAssociationNames().map(belongsToKey => associationMap[belongsToKey].foreignKey())
   }
 
+  /**
+   * @internal
+   *
+   * Returns all polymorphic type columns
+   *
+   * ```ts
+   * LocalizedText.polymorphicTypeColumns()
+   * // ['localizableType']
+   * ```
+   *
+   * @returns An array of column names that are polymorphic type fields on the given dream class
+   */
   private static polymorphicTypeColumns() {
-    const associationMap = this.associationMap()
+    const associationMap = this.associationMetadataMap()
     return this.belongsToAssociationNames()
       .filter(key => associationMap[key].polymorphic)
       .map(belongsToKey => associationMap[belongsToKey].foreignKeyTypeField())
   }
 
+  /**
+   * @internal
+   *
+   * Returns a list of association names which
+   * correspond to belongs to associations
+   * on this model class.
+   *
+   * ```ts
+   * Post.belongsToAssociationNames()
+   * // ['user']
+   * ```
+   *
+   * @returns An array of belongs to association names
+   */
   private static belongsToAssociationNames() {
-    const associationMap = this.associationMap()
+    const associationMap = this.associationMetadataMap()
     return Object.keys(associationMap).filter(key => associationMap[key].type === 'BelongsTo')
   }
 
-  public getAssociation<I extends Dream, Schema extends I['dreamconf']['schema']>(
+  /**
+   * @internal
+   *
+   * Returns the metadata for the provided association
+   *
+   * ```ts
+   * new Post().getAssociationMetadata('user')
+   * // {
+   * //    modelCB: [Function (anonymous)],
+   * //    type: 'BelongsTo',
+   * //    as: 'user',
+   * //    optional: false,
+   * //    polymorphic: false,
+   * //    primaryKeyOverride: null,
+   * //    primaryKey: [Function: primaryKey],
+   * //    primaryKeyValue: [Function: primaryKeyValue],
+   * //    foreignKey: [Function: foreignKey],
+   * //    foreignKeyTypeField: [Function: foreignKeyTypeField]
+   * //  }
+   * ```
+   *
+   * @returns Association metadata
+   *
+   */
+  public getAssociationMetadata<I extends Dream, Schema extends I['dreamconf']['schema']>(
     this: I,
     associationName: keyof Schema[I['table']]['associations']
   ) {
-    return (this.constructor as typeof Dream).getAssociation(associationName)
+    return (this.constructor as typeof Dream).getAssociationMetadata(associationName)
   }
 
-  public associationMap<T extends Dream>(this: T) {
-    return (this.constructor as typeof Dream).associationMap()
+  /**
+   * @internal
+   *
+   * Returns all association metadata for the given dream class
+   *
+   * ```ts
+   * new Post().associationMetadataMap()
+   * // {
+   * //     user: {
+   * //       modelCB: [Function (anonymous)],
+   * //       type: 'BelongsTo',
+   * //       as: 'user',
+   * //       optional: false,
+   * //       polymorphic: false,
+   * //       primaryKeyOverride: null,
+   * //       primaryKey: [Function: primaryKey],
+   * //       primaryKeyValue: [Function: primaryKeyValue],
+   * //       foreignKey: [Function: foreignKey],
+   * //       foreignKeyTypeField: [Function: foreignKeyTypeField]
+   * //     },
+   * //     ratings: {
+   * //       modelCB: [Function (anonymous)],
+   * //       type: 'HasMany',
+   * //       as: 'ratings',
+   * //       polymorphic: true,
+   * //       source: 'ratings',
+   * //       preloadThroughColumns: undefined,
+   * //       where: undefined,
+   * //       whereNot: undefined,
+   * //       selfWhere: undefined,
+   * //       selfWhereNot: undefined,
+   * //       primaryKeyOverride: null,
+   * //       primaryKey: [Function: primaryKey],
+   * //       primaryKeyValue: [Function: primaryKeyValue],
+   * //       through: undefined,
+   * //       distinct: undefined,
+   * //       order: undefined,
+   * //       foreignKey: [Function: foreignKey],
+   * //       foreignKeyTypeField: [Function: foreignKeyTypeField]
+   * //     },
+   * //     ...
+   * // }
+   * ```
+   *
+   * @returns association metadata
+   *
+   */
+  public associationMetadataMap<T extends Dream>(this: T) {
+    return (this.constructor as typeof Dream).associationMetadataMap()
   }
 
-  public get associations() {
-    return (this.constructor as typeof Dream).associations
+  /**
+   * @internal
+   *
+   * returns all association data for the given dream class,
+   * organized by the type of association
+   *
+   * ```ts
+   * new Post().associationMetadataByType
+   * // {
+   * //   belongsTo: [
+   * //     {
+   * //       modelCB: [Function (anonymous)],
+   * //       type: 'BelongsTo',
+   * //       as: 'user',
+   * //       optional: false,
+   * //       polymorphic: false,
+   * //       primaryKeyOverride: null,
+   * //       primaryKey: [Function: primaryKey],
+   * //       primaryKeyValue: [Function: primaryKeyValue],
+   * //       foreignKey: [Function: foreignKey],
+   * //       foreignKeyTypeField: [Function: foreignKeyTypeField]
+   * //     },
+   * //   ],
+   * //   hasMany: [
+   * //   ],
+   * //   hasOne: []
+   * //   }
+   * // }
+   * ```
+   *
+   * @returns association metadata by type
+   *
+   */
+  public get associationMetadataByType() {
+    return (this.constructor as typeof Dream).associationMetadataByType
   }
 
+  /**
+   * @internal
+   *
+   * Returns an array of association names for the
+   * given dream class
+   *
+   * ```ts
+   * new Post().associationNames
+   * // [ 'user', 'postVisibility', 'ratings', 'heartRatings' ]
+   * ```
+   *
+   * @returns association names array
+   */
   public get associationNames() {
     return (this.constructor as typeof Dream).associationNames
   }
 
+  /**
+   * Returns true if the model has any dirty attributes
+   *
+   * ```ts
+   * const post = await Post.first()
+   * post.hasDirtyAttributes
+   * // false
+   *
+   * post.body = 'howyadoin'
+   * post.hasDirtyAttributes
+   * // true
+   * ```
+   *
+   * @returns association names array
+   */
   public get hasDirtyAttributes() {
     return !!Object.keys(this.dirtyAttributes()).length
   }
 
+  /**
+   * TODO: remove in https://rvohealth.atlassian.net/browse/PDTC-5487
+   * after removing, replace isDirty implementation with hasDirtyAttributes
+   * implementation and remove hasDirtyAttributes
+   *
+   * Returns true if there are any unsaved associations
+   * attached to the dream instance
+   *
+   * ```ts
+   * const post = Post.new({ user: User.new({ email: 'how@yadoin' }) })
+   * post.hasUnsavedAssociations
+   * // true
+   * ```
+   *
+   * @returns A boolean
+   */
   public get hasUnsavedAssociations() {
     return !!this.unsavedAssociations.length
   }
 
+  /**
+   * Returns true if any of the attributes on the instance
+   * have changed since it was last pulled from the database.
+   * It will also return true if the instance is not yet
+   * persisted.
+   *
+   * ```ts
+   * const post = Post.new({ body: 'howyadoin' })
+   * post.isDirty
+   * // true
+   *
+   * await post.save()
+   * post.isDirty
+   * // false
+   *
+   * post.body = 'groiyyyt'
+   * post.isDirty
+   * // true
+   * ```
+   *
+   * @returns A boolean
+   */
   public get isDirty() {
     return this.hasDirtyAttributes || this.hasUnsavedAssociations
   }
 
+  /**
+   * Returns true. This is useful for identifying
+   * dream instances from other objects
+   *
+   * @returns true
+   */
   public get isDreamInstance() {
     return true
   }
 
+  /**
+   * Runs validation checks against all validations
+   * declared using the @Validate and @Validates decorators,
+   * and returns true if any of them fail.
+   *
+   * ```ts
+   * class User extends ApplicationModel {
+   *   @Validates('presence')
+   *   public email: DreamColumn<User, 'email'>
+   * }
+   * const user = User.new()
+   * user.isInvalid
+   * // true
+   *
+   * user.email = 'how@yadoin'
+   * user.isInvalid
+   * // false
+   * ```
+   *
+   * @returns A boolean
+   */
   public get isInvalid(): boolean {
     return !this.isValid
   }
 
+  /**
+   * Returns true if the model has been persisted
+   * to the database.
+   *
+   * ```ts
+   * const user = User.new({ email: 'howyadoin' })
+   * user.isPersisted
+   * // false
+   *
+   * await user.save()
+   * user.isPersisted
+   * // true
+   * ```
+   *
+   * @returns A boolean
+   */
   public get isPersisted() {
-    // todo: clean up types here
     return !!(this as any)[this.primaryKey]
   }
 
+  /**
+   * Returns true if the model has not been persisted
+   * to the database.
+   *
+   * ```ts
+   * const user = User.new({ email: 'howyadoin' })
+   * user.isNewRecord
+   * // true
+   *
+   * await user.save()
+   * user.isNewRecord
+   * // false
+   * ```
+   *
+   * @returns A boolean
+   */
   public get isNewRecord() {
     return !this.isPersisted
   }
 
+  /**
+   * Runs validation checks against all validations
+   * declared using the @Validate and @Validates decorators.
+   * Returns true if none of the validations fail.
+   *
+   * NOTE: Any validations that fail will leave the errors
+   * field populated on your model instance.
+   *
+   * ```ts
+   * class User extends ApplicationModel {
+   *   @Validates('presence')
+   *   public email: DreamColumn<User, 'email'>
+   * }
+   *
+   * const user = User.new()
+   * user.isValid
+   * // false
+   *
+   * user.email = 'how@yadoin'
+   * user.isValid
+   * // true
+   * ```
+   *
+   * @returns A boolean
+   */
   public get isValid(): boolean {
     this._errors = {}
     runValidations(this)
     return !Object.keys(this.errors).filter(key => !!this.errors[key].length).length
   }
 
+  /**
+   * The name of the primary key column on this model.
+   * NOTE: Must specify `as const` when defining a custom
+   * primary key.
+   *
+   * ```ts
+   * class User extends ApplicationModel {
+   *   public customIdField: DreamColumn<User, 'customIdField'>
+   *
+   *   public get primaryKey() {
+   *     return 'customIdField' as const
+   *   }
+   * }
+   * ```
+   *
+   * @returns The primary key column name
+   */
   public get primaryKey() {
     return 'id' as const
   }
 
+  /**
+   * Returns the value of the primary key
+   *
+   * @returns The value of the primary key field for this Dream instance
+   */
   public get primaryKeyValue(): IdType {
     return (this as any)[this.primaryKey] || null
   }
 
+  /**
+   * @internal
+   *
+   * This is meant to be defined by ApplicationModel. Whenever
+   * migrations are run for your dream application, files are synced
+   * to your db folder. This is one of those types.
+   *
+   * The DB type is generated by the `kysely-codegen` tool
+   * provided by Kysely. It is used to provide the underlying
+   * types for the Kysely query building engine used by Dream,
+   * in addition to providing support for many of the custom
+   * types driving the Dream engine.
+   *
+   */
   public get DB(): any {
     throw new MissingDB()
   }
 
+  /**
+   * @internal
+   *
+   * This is meant to be defined by ApplicationModel. Whenever
+   * migrations are run for your Dream application, files are synced
+   * to your db folder. This is one of those types.
+   *
+   * The allColumns getter provides a few of the types used by
+   * Dream internals related to the passthrough api.
+   */
   public get allColumns(): any {
     throw 'must have get allColumns defined on child'
   }
 
+  /**
+   * @internal
+   *
+   * This is meant to be defined by ApplicationModel. Whenever
+   * migrations are run for your Dream application, files are synced
+   * to your db folder. This is one of those types.
+   *
+   * The dreamconf getter provides the custom type layer
+   * used by Dream to feed types for all of the methods
+   * and helpers provided by Dream.
+   *
+   */
   public get dreamconf(): Dreamconf {
     throw 'must have get dreamconf defined on child'
   }
 
+  /**
+   * This must be defined on every model, and it must point
+   * to a table in your database. In addition, you must
+   * return the value using the `as const` suffix, like so:
+   *
+   * ```ts
+   * class User extends ApplicationModel {
+   *   public get table() {
+   *     return 'users' as const
+   *   }
+   * }
+   * ```
+   *
+   * @returns The table name for this model
+   */
   public get table(): AssociationTableNames<any, any> {
     throw new MissingTable(this.constructor as typeof Dream)
   }
 
+  /**
+   * This can be left off your model definition if your
+   * application will not be rendering this instance
+   * to any front end clients.
+   *
+   * Return an object containing your serializer definitions,
+   * like so:
+   *
+   * ```ts
+   * class Post extends ApplicationModel {
+   *   public get serializers() {
+   *     return {
+   *       default: PostSerializer,
+   *       summary: PostSummarySerializer,
+   *     }
+   *   }
+   * }
+   * ```
+   *
+   * These serializer definitions will be used by Psychic
+   * to automatically render your models when you attempt
+   * to render them using Psychic's provided methods.
+   *
+   * Here is an example of this being used from your controller:
+   *
+   * ```ts
+   * class PostsController extends AuthedController {
+   *   public index() {
+   *     const posts = await this.currentUser.associationQuery('posts').all()
+   *     this.ok(posts, { serializer: 'summary' })
+   *   }
+   * }
+   * ```
+   *
+   * If the serializer option is not passed, Psychic will
+   * automatically use the `default` serializer, like so:
+   *
+   * ```ts
+   * class PostsController extends AuthedController {
+   *   public show() {
+   *     const post = await this.currentUser.associationQuery('posts').find(this.castParam('id', 'bigint'))
+   *     this.ok(post)
+   *   }
+   * }
+   * ```
+   */
   public get serializers(): Record<string, any> {
     throw new MissingSerializer(this.constructor as typeof Dream)
   }
 
+  /**
+   * @internal
+   *
+   * Returns an array of association metadata
+   * objects representing the currently unsaved associations
+   * on the given dream instance.
+   *
+   * @returns Association metadata array
+   *
+   * TODO: remove this when tackling https://rvohealth.atlassian.net/browse/PDTC-5487
+   */
   public get unsavedAssociations(): (
     | BelongsToStatement<any, any, any, any>
     | HasOneStatement<any, any, any, any>
@@ -814,8 +2307,8 @@ export default class Dream {
       | HasOneStatement<any, any, any, any>
       | HasManyStatement<any, any, any, any>
     )[] = []
-    for (const associationName in this.associationMap()) {
-      const associationMetadata = this.getAssociation(associationName)
+    for (const associationName in this.associationMetadataMap()) {
+      const associationMetadata = this.getAssociationMetadata(associationName)
       const associationRecord: Dream | null = (this as any).loaded(associationName)
         ? ((this as any)[associationName] as Dream)
         : null
@@ -827,12 +2320,54 @@ export default class Dream {
     return unsaved
   }
 
+  /**
+   * @internal
+   *
+   * _errors is used to inform validation errors,
+   * and is built whenever validations are run on
+   * a dream instance.
+   */
   private _errors: { [key: string]: ValidationType[] } = {}
+
+  /**
+   * @internal
+   *
+   * Used for the changes api
+   */
   private frozenAttributes: { [key: string]: any } = {}
+
+  /**
+   * @internal
+   *
+   * Used for the changes api
+   */
   private originalAttributes: { [key: string]: any } = {}
+
+  /**
+   * @internal
+   *
+   * Used for the changes api
+   */
   private currentAttributes: { [key: string]: any } = {}
+
+  /**
+   * @internal
+   *
+   * Used for the changes api
+   */
   private attributesFromBeforeLastSave: { [key: string]: any } = {}
 
+  /**
+   * Since typescript prevents constructor functions
+   * from absorbing type generics, we provide the `new`
+   * method to instantiate with type protection
+   *
+   * ```ts
+   * const user = User.new({ email: 'how@yadoin' })
+   * ```
+   *
+   * @returns A new (unpersisted) instance of the provided dream class
+   */
   public static new<T extends typeof Dream>(
     this: T,
     opts?: UpdateablePropertiesForClass<T>,
@@ -841,6 +2376,23 @@ export default class Dream {
     return new this(opts as any, additionalOpts) as InstanceType<T>
   }
 
+  /**
+   * @internal
+   *
+   * NOTE: avoid using the constructor function directly.
+   * Use the static `.new` method instead, which will provide
+   * type guarding for your attributes.
+   *
+   * Since typescript prevents constructor functions
+   * from absorbing type generics, we provide the `new`
+   * method to instantiate with type protection.
+   *
+   * ```ts
+   * const user = User.new({ email: 'how@yadoin' })
+   * ```
+   *
+   * @returns A new (unpersisted) instance of the provided dream class
+   */
   constructor(
     opts?: any,
     additionalOpts: { bypassUserDefinedSetters?: boolean } = {}
@@ -870,6 +2422,11 @@ export default class Dream {
     }
   }
 
+  /**
+   * @internal
+   *
+   * Used for determining which attributes to update
+   */
   protected static extractAttributesFromUpdateableProperties<T extends typeof Dream>(
     this: T,
     attributes: UpdateablePropertiesForClass<T>,
@@ -889,7 +2446,7 @@ export default class Dream {
     }
 
     Object.keys(attributes as any).forEach(attr => {
-      const associationMetaData = this.associationMap()[attr]
+      const associationMetaData = this.associationMetadataMap()[attr]
 
       if (associationMetaData && associationMetaData.type !== 'BelongsTo') {
         throw new CanOnlyPassBelongsToModelParam(this, associationMetaData)
@@ -927,6 +2484,12 @@ export default class Dream {
     return marshalledOpts
   }
 
+  /**
+   * @internal
+   *
+   * defines attribute setters and getters for every column
+   * set within your db/schema.ts file
+   */
   protected defineAttributeAccessors() {
     const dreamClass = this.constructor as typeof Dream
     const columns = dreamClass.columns()
@@ -973,22 +2536,33 @@ export default class Dream {
     ensureSTITypeFieldIsSet(this)
   }
 
+  /**
+   * Returns true if the columnName passed is marked by a
+   * Virtual attribute decorator
+   *
+   * @param columnName - A property on this model to check
+   * @returns A boolean
+   */
   public isVirtualColumn<T extends Dream>(this: T, columnName: string): boolean {
     return (this.constructor as typeof Dream).virtualAttributes
       .map(attr => attr.property)
       .includes(columnName)
   }
 
+  /**
+   * Returns an object with column names for keys, and an
+   * array of strings representing validation errors for values.
+   *
+   * @returns An error object
+   */
   public get errors(): { [key: string]: ValidationType[] } {
     return { ...this._errors }
   }
 
   /**
-   * ### #addError
-   *
-   * adds an error to the model. Any errors added to the model
-   * will cause the record to be invalid, and will prevent the
-   * record from saving.
+   * Adds an error to the model. Any errors added to the model
+   * will cause the model to be invalid, and will prevent the
+   * model from saving.
    *
    * ```ts
    *  class User extends ApplicationModel {
@@ -1000,6 +2574,8 @@ export default class Dream {
    *    }
    *  }
    * ```
+   *
+   * @returns void
    */
   public addError<I extends Dream, Key extends AttributeKeys<I>>(
     this: I,
@@ -1011,9 +2587,7 @@ export default class Dream {
   }
 
   /**
-   * ### #assignAttribute
-   *
-   * changes the attribute value for a single attribute,
+   * Changes the attribute value for a single attribute,
    * leveraging any custom-defined setters. If you would like to
    * bypass custom-defined setters, use #setAttribute instead
    *
@@ -1032,9 +2606,7 @@ export default class Dream {
   }
 
   /**
-   * ### #setAttribute
-   *
-   * changes the attribute value for a single attribute internally,
+   * Changes the attribute value for a single attribute internally,
    * bypassing any custom-defined setters. If you would like to set attributes
    * without bypassing custom-defined setters, use #assignAttribute instead
    *
@@ -1062,24 +2634,52 @@ export default class Dream {
     }
   }
 
+  /**
+   * Returns the value for a columnName provided,
+   * bypassing the getters.
+   *
+   * ```ts
+   *  const user = User.new({ email: 'how@yadoin' })
+   *  user.getAttribute('email') // 'how@yadoin'
+   * ```
+   */
   public getAttribute<I extends Dream, Key extends AttributeKeys<I>>(
     this: I,
-    attr: Key & string
+    columnName: Key & string
   ): DreamAttributes<I>[Key] {
     const columns = (this.constructor as typeof Dream).columns()
     const self = this as any
 
-    if (columns.has(attr)) {
-      return self.currentAttributes[attr]
+    if (columns.has(columnName)) {
+      return self.currentAttributes[columnName]
     } else {
-      return self[attr]
+      return self[columnName]
     }
   }
 
+  /**
+   * Returns an object containing all the columns
+   * on this dream class, as well as their values,
+   * bypassing getters.
+   *
+   * ```ts
+   *  const user = User.new({ email: 'how@yadoin' })
+   *  user.attributes()
+   *  // {
+   *  //   email: 'how@yadoin',
+   *  //   ...
+   *  // }
+   * ```
+   */
   public attributes<I extends Dream, DB extends I['DB']>(this: I): Updateable<DB[I['table']]> {
     return { ...this.currentAttributes } as Updateable<DB[I['table']]>
   }
 
+  /**
+   * @internal
+   *
+   * Returns the db type stored within the database
+   */
   protected static cachedTypeFor<
     T extends typeof Dream,
     DB extends InstanceType<T>['DB'],
@@ -1089,6 +2689,26 @@ export default class Dream {
     return cachedTypeForAttribute(this, attribute)
   }
 
+  /**
+   * Returns the attributes that have changed since
+   * being persisted to the database, with the values
+   * that were last persisted to the database.
+   *
+   * ```ts
+   *  const user = User.new({ email: 'original@email', password: 'howyadoin' })
+   *  await user.save()
+   *
+   *  user.email = 'new@email'
+   *  user.changedAttributes()
+   *  // { email: 'original@email' }
+   *
+   *  user.email = 'original@email'
+   *  user.changedAttributes()
+   *  // {}
+   * ```
+   *
+   * @returns An object containing changed attributes and their original values
+   */
   public changedAttributes<
     I extends Dream,
     DB extends I['DB'],
@@ -1105,6 +2725,52 @@ export default class Dream {
     return obj
   }
 
+  /**
+   * Returns an object containing the attributes that have
+   * changed since last persisting, along with their current
+   * and previously persisted values.
+   *
+   * ```ts
+   * const pet = Pet.new({ species: 'dog' })
+   * pet.changes()
+   * // {
+   * //   species: {
+   * //     was: undefined,
+   * //     now: 'dog',
+   * //   }
+   * // }
+   *
+   * await pet.save()
+   * pet.changes()
+   * // {
+   * //   species: {
+   * //     was: undefined,
+   * //     now: 'dog',
+   * //   }
+   * // }
+   *
+   * pet.species = 'cat'
+   * pet.species = 'frog'
+   * pet.changes()
+   * // {
+   * //   species: {
+   * //     was: 'dog',
+   * //     now: 'frog',
+   * //   }
+   * // }
+   *
+   * await pet.save()
+   * pet.changes()
+   * // {
+   * //   species: {
+   * //     was: 'dog',
+   * //     now: 'frog',
+   * //   }
+   * // }
+   * ```
+   *
+   * @returns An object containing changed attributes
+   */
   public changes<
     I extends Dream,
     DB extends I['DB'],
@@ -1132,28 +2798,78 @@ export default class Dream {
     return obj
   }
 
+  /**
+   * Returns the value most recently persisted
+   * to the database.
+   *
+   * ```ts
+   * const pet = Pet.new({ species: 'cat' })
+   * pet.previousValueForAttribute('species')
+   * // undefined
+   *
+   * await pet.save()
+   * pet.previousValueForAttribute('species')
+   * // undefined
+   *
+   * pet.species = 'dog'
+   * pet.previousValueForAttribute('species')
+   * // 'cat'
+   *
+   * await pet.save()
+   * pet.previousValueForAttribute('species')
+   * // 'cat'
+   *
+   * await pet.update({ species: 'cat' })
+   * pet.previousValueForAttribute('species')
+   * // 'dog'
+   * ```
+   *
+   * @param columName - The column name you want the previous value for
+   * @returns Returns the previous value for an attribute
+   */
   public previousValueForAttribute<
     I extends Dream,
     DB extends I['DB'],
     TableName extends I['table'],
     Table extends DB[TableName],
     ColumnName extends DreamColumnNames<I>,
-  >(this: I, attribute: ColumnName): Updateable<Table>[ColumnName] {
-    if (this.frozenAttributes[attribute] !== (this as any)[attribute]) return this.frozenAttributes[attribute]
-    return (this.attributesFromBeforeLastSave as any)[attribute]
+  >(this: I, columnName: ColumnName): Updateable<Table>[ColumnName] {
+    if (this.frozenAttributes[columnName] !== (this as any)[columnName])
+      return this.frozenAttributes[columnName]
+    return (this.attributesFromBeforeLastSave as any)[columnName]
   }
 
-  public savedChangeToAttribute<I extends Dream>(this: I, attribute: DreamColumnNames<I>): boolean {
+  /**
+   * Returns true if the columnName provided has
+   * changes that were persisted during the most
+   * recent save.
+   *
+   * @param columnName - the column name to check
+   * @returns A boolean
+   */
+  public savedChangeToAttribute<I extends Dream>(this: I, columnName: DreamColumnNames<I>): boolean {
     const changes = this.changes()
-    const now = (changes as any)?.[attribute]?.now
-    const was = (changes as any)?.[attribute]?.was
+    const now = (changes as any)?.[columnName]?.now
+    const was = (changes as any)?.[columnName]?.was
     return this.isPersisted && now !== was
   }
 
+  /**
+   * Returns true if the columnName provided has
+   * changes that have not yet been persisted.
+   *
+   * @param columnName - the column name to check
+   * @returns A boolean
+   */
   public willSaveChangeToAttribute<I extends Dream>(this: I, attribute: DreamColumnNames<I>): boolean {
     return this.attributeIsDirty(attribute as any)
   }
 
+  /**
+   * Returns the column names for the given model
+   *
+   * @returns The column names for the given model
+   */
   public columns<
     I extends Dream,
     DB extends I['DB'],
@@ -1163,6 +2879,33 @@ export default class Dream {
     return (this.constructor as DreamConstructorType<I>).columns()
   }
 
+  /**
+   * Returns an object containing the column names
+   * of columns that have changed since last persist,
+   * and their current values.
+   *
+   * ```ts
+   *  const user = User.new({ email: 'hello@world' })
+   *  user.dirtyAttributes()
+   *  // { email: 'hello@world' }
+   *
+   *  await user.save()
+   *
+   *  user.email = 'hello@world'
+   *  user.dirtyAttributes()
+   *  // {}
+   *
+   *  user.email = 'goodbye@world'
+   *  user.dirtyAttributes()
+   *  // { email: 'goodbye@world' }
+   *
+   *  user.email = 'hello@world'
+   *  user.dirtyAttributes()
+   *  // {}
+   * ```
+   *
+   * @returns An object containing the changed attributes
+   */
   public dirtyAttributes<
     I extends Dream,
     DB extends I['DB'],
@@ -1181,6 +2924,11 @@ export default class Dream {
     return obj
   }
 
+  /**
+   * Returns true if an attribute has changes since last persist
+   *
+   * @returns A boolean
+   */
   private attributeIsDirty<I extends Dream>(this: I, attribute: DreamColumnNames<I>): boolean {
     const frozenValue = (this.frozenAttributes as any)[attribute]
     const currentValue = (this.attributes() as any)[attribute]
@@ -1196,6 +2944,9 @@ export default class Dream {
     }
   }
 
+  /**
+   * @internal
+   */
   private unknownValueToMillis(currentValue: any): number | undefined {
     if (!currentValue) return
     if (isString(currentValue)) currentValue = DateTime.fromISO(currentValue)
@@ -1203,6 +2954,9 @@ export default class Dream {
     if (currentValue instanceof DateTime && currentValue.isValid) return currentValue.toMillis()
   }
 
+  /**
+   * @internal
+   */
   private unknownValueToDateString(currentValue: any): string | undefined {
     if (!currentValue) return
     if (isString(currentValue)) currentValue = CalendarDate.fromISO(currentValue)
@@ -1210,18 +2964,78 @@ export default class Dream {
     if (currentValue instanceof CalendarDate && currentValue.isValid) return currentValue.toISO()!
   }
 
+  /**
+   * Deletes the record represented by this instance
+   * from the database, calling any destroy
+   * hooks on this model.
+   *
+   * ```ts
+   * const user = await User.last()
+   * await user.destroy()
+   * ```
+   *
+   * @returns the instance that was destroyed
+   */
   public async destroy<I extends Dream>(this: I): Promise<I> {
     return destroyDream(this)
   }
 
+  /**
+   * Returns true if the argument is the same Dream class
+   * with the same primary key value.
+   *
+   * NOTE: This does not compare attribute values other than
+   * the primary key.
+   *
+   * @returns A boolean
+   */
   public equals(other: any): boolean {
     return other?.constructor === this.constructor && other.primaryKeyValue === this.primaryKeyValue
   }
 
+  /**
+   * @internal
+   *
+   * Used for changes API
+   */
   protected freezeAttributes() {
     this.frozenAttributes = { ...this.attributes() }
   }
 
+  /**
+   * Plucks the specified fields from the join Query,
+   * scoping the query to the model instance's primary
+   * key.
+   *
+   * ```ts
+   * const user = await User.first()
+   * await user.pluckThrough(
+   *   'posts',
+   *   { createdAt: range(CalendarDate.yesterday()) },
+   *   'comments',
+   *   'replies',
+   *   'replies.body'
+   * )
+   * // ['loved it!', 'hated it :(']
+   * ```
+   *
+   * If more than one column is requested, a multi-dimensional
+   * array is returned:
+   *
+   * ```ts
+   * await user.pluckThrough(
+   *   'posts',
+   *   { createdAt: range(CalendarDate.yesterday()) },
+   *   'comments',
+   *   'replies',
+   *   ['replies.body', 'replies.numLikes']
+   * )
+   * // [['loved it!', 1], ['hated it :(', 3]]
+   * ```
+   *
+   * @param args - A chain of association names and where clauses ending with the column or array of columns to pluck
+   * @returns An array of pluck results
+   */
   public async pluckThrough<
     I extends Dream,
     DB extends I['DB'],
@@ -1235,6 +3049,36 @@ export default class Dream {
       .pluckThrough(...(args as any))
   }
 
+  /**
+   * Plucks the specified fields from the join Query in batches,
+   * passing each plucked value/set of plucked values
+   * into the provided callback function. It will continue
+   * doing this until it exhausts all results in the
+   * Query. This is useful when plucking would result in
+   * more results than would be desirable to instantiate
+   * in memory/more results than would be desirable to handle
+   * between awaits.
+   *
+   * ```ts
+   * const user = await User.first()
+   * await user.pluckEachThrough(
+   *   'posts',
+   *   { createdAt: range(CalendarDate.yesterday()) },
+   *   'comments',
+   *   'replies',
+   *   ['replies.body', 'replies.numLikes'],
+   *   ([body, numLikes]) => {
+   *     console.log({ body, numLikes })
+   *   }
+   * )
+   *
+   * // { body: 'loved it!', numLikes: 2 }
+   * // { body: 'hated it :(', numLikes: 0 }
+   * ```
+   *
+   * @param args - A chain of association names and where clauses ending with the column or array of columns to pluck and the callback function
+   * @returns void
+   */
   public async pluckEachThrough<
     I extends Dream,
     DB extends I['DB'],
@@ -1256,9 +3100,9 @@ export default class Dream {
     const self: any = this
     const clone: any = new self.constructor()
 
-    const associationDataKeys = Object.values((this.constructor as typeof Dream).associationMap()).map(
-      association => associationToGetterSetterProp(association)
-    )
+    const associationDataKeys = Object.values(
+      (this.constructor as typeof Dream).associationMetadataMap()
+    ).map(association => associationToGetterSetterProp(association))
 
     Object.keys(this).forEach(property => {
       if (!associationDataKeys.includes(property)) clone[property] = cloneDeepSafe(self[property])
@@ -1269,6 +3113,19 @@ export default class Dream {
     return clone as I
   }
 
+  /**
+   * Creates an association for an instance. Automatically
+   * handles setting foreign key and, in the case of polymorphism,
+   * foreign key type.
+   *
+   * ```ts
+   * await user.createAssociation('posts', { body: 'hello world' })
+   * ```
+   *
+   * @param associationName - the name of the association to create
+   * @param attributes - the attributes with which to create the associated model
+   * @returns The created association
+   */
   public async createAssociation<
     I extends Dream,
     Schema extends I['dreamconf']['schema'],
@@ -1283,9 +3140,9 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    opts: UpdateableAssociationProperties<I, RestrictedAssociationType> = {} as any
+    attributes: UpdateableAssociationProperties<I, RestrictedAssociationType> = {} as any
   ): Promise<NonNullable<AssociationType>> {
-    return createAssociation(this, null, associationName, opts)
+    return createAssociation(this, null, associationName, attributes)
   }
 
   ///////////////////
@@ -1315,12 +3172,28 @@ export default class Dream {
     whereClause?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
   ): Promise<number>
 
+  /**
+   * Destroys models associated with the current instance,
+   * deleting their corresponding records within the database.
+   *
+   * TODO: change behavior as part of
+   * https://rvohealth.atlassian.net/browse/PDTC-5488
+   * NOTE: This bypasses destroy model hooks
+   *
+   * ```ts
+   * await user.destroyAssociation('posts', { body: 'hello world' })
+   * ```
+   *
+   * @param associationName - The name of the association to destroy
+   * @param whereStatement - Optional where statement to apply to query before destroying
+   * @returns The number of records deleted
+   */
   public destroyAssociation<I extends Dream, AssociationName extends keyof I>(
     this: I,
     associationName: AssociationName,
-    whereClause?: unknown
+    whereStatement?: unknown
   ): unknown {
-    return destroyAssociation(this, null, associationName, whereClause as any)
+    return destroyAssociation(this, null, associationName, whereStatement as any)
   }
 
   ///////////////////
@@ -1339,7 +3212,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    whereClause: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+    whereStatement: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
   ): Query<DreamAssociationType<I, AssociationName>>
 
   public associationQuery<
@@ -1351,15 +3224,27 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    whereClause?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+    whereStatement?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
   ): Query<DreamAssociationType<I, AssociationName>>
 
+  /**
+   * Returns a Query instance for the specified
+   * association on the current instance.
+   *
+   * ```ts
+   * await user.associationQuery('posts').all()
+   * // only user posts returned
+   * ```
+   *
+   * @returns A Query scoped to the specified association on the current instance
+   *
+   */
   public associationQuery<I extends Dream, AssociationName extends keyof I>(
     this: I,
     associationName: AssociationName,
-    whereClause?: unknown
+    whereStatement?: unknown
   ): unknown {
-    return associationQuery(this, null, associationName, whereClause as any)
+    return associationQuery(this, null, associationName, whereStatement as any)
   }
   ///////////////////
   // end: associationQuery
@@ -1377,7 +3262,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    whereClause: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+    whereStatement: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
   ): Query<DreamAssociationType<I, AssociationName>>
 
   public associationUpdateQuery<
@@ -1389,20 +3274,57 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    whereClause?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+    whereStatement?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
   ): Query<DreamAssociationType<I, AssociationName>>
 
+  /**
+   * Returns a Query instance for updating an association
+   *
+   * TODO: change behavior as part of
+   * https://rvohealth.atlassian.net/browse/PDTC-5488
+   * NOTE: This bypasses update and save model hooks
+   *
+   * ```ts
+   * await user.associationUpdateQuery('posts', { body: 'hello world' }).update({ body: 'goodbye world' })
+   * // only user posts updated
+   * ```
+   *
+   * @returns A Query scoped to the specified association on the current instance
+   */
   public associationUpdateQuery<I extends Dream, AssociationName extends keyof I>(
     this: I,
     associationName: AssociationName,
-    whereClause?: unknown
+    whereStatement?: unknown
   ): unknown {
-    return associationUpdateQuery(this, null, associationName, whereClause as any)
+    return associationUpdateQuery(this, null, associationName, whereStatement as any)
   }
   ///////////////////
   // end: associationUpdateQuery
   ///////////////////
 
+  /**
+   * Sends data through for use as passthrough data
+   * for the associations that require it.
+   *
+   * ```ts
+   * class Post {
+   *   @HasMany(() => LocalizedText)
+   *   public localizedTexts: LocalizedText[]
+   *
+   *   @HasOne(() => LocalizedText, {
+   *     where: { locale: DreamConst.passthrough },
+   *   })
+   *   public currentLocalizedText: LocalizedText
+   * }
+   *
+   * await User.passthrough({ locale: 'es-ES' })
+   *   .preload('posts', 'currentLocalizedText')
+   *   .first()
+   * ```
+   *
+   * @param passthroughWhereStatement - where statement used for associations that require passthrough data
+   * @returns A cloned Query with the passthrough data
+   */
   public passthrough<I extends Dream, AllColumns extends I['allColumns']>(
     this: I,
     passthroughWhereStatement: PassthroughWhere<AllColumns>
@@ -1410,6 +3332,28 @@ export default class Dream {
     return new LoadBuilder<I>(this).passthrough(passthroughWhereStatement)
   }
 
+  /**
+   * Loads the requested associations upon execution
+   *
+   * NOTE: Preload is often a preferrable way of achieving the
+   * same goal.
+   *
+   * ```ts
+   * await user
+   *  .load('posts', { body: ops.ilike('%hello world%') }, 'comments', 'replies')
+   *  .load('images')
+   *  .execute()
+   *
+   * user.posts[0].comments[0].replies[0]
+   * // Reply{}
+   *
+   * user.images[0]
+   * // Image{}
+   * ```
+   *
+   * @param args - A list of associations (and optional where clauses) to load
+   * @returns A chainable LoadBuilder instance
+   */
   public load<
     I extends Dream,
     DB extends I['DB'],
@@ -1420,15 +3364,36 @@ export default class Dream {
     return new LoadBuilder<I>(this).load(...(args as any))
   }
 
+  /**
+   * Returns true if the association specified has
+   * been loaded on this instance
+   *
+   * Since accessing associations that haven't been
+   * loaded/preloaded will raise an exception, `loaded`
+   * is useful for conditionally loading from the database
+   * in contexts where an association may not yet be loaded.
+   *
+   * ```ts
+   * user.loaded('posts')
+   * // false
+   *
+   * user = await user.load('posts').execute()
+   * user.loaded('posts')
+   * // true
+   * ```
+   *
+   * @param associationName - the association name you wish to check the loading of
+   * @returns A boolean
+   */
   public loaded<
     I extends Dream,
     TableName extends I['table'],
     Schema extends I['dreamconf']['schema'],
     //
-    A extends NextPreloadArgumentType<Schema, TableName>,
-  >(this: I, a: A) {
+    AssociationName extends NextPreloadArgumentType<Schema, TableName>,
+  >(this: I, associationName: AssociationName) {
     try {
-      ;(this as any)[a]
+      ;(this as any)[associationName]
       return true
     } catch (error) {
       if ((error as any).constructor !== NonLoadedAssociation) throw error
@@ -1436,10 +3401,38 @@ export default class Dream {
     }
   }
 
+  /**
+   * Reloads an instance, refreshing all it's attribute values
+   * to those in the database.
+   *
+   * NOTE: this does not refresh associations
+   *
+   * ```ts
+   * await user.reload()
+   * ```
+   *
+   * @returns void
+   */
   public async reload<I extends Dream>(this: I) {
-    return reload(this)
+    await reload(this)
   }
 
+  /**
+   * Serializes an instance. You can specify a serializer key,
+   * or else the default will be used
+   *
+   * ```ts
+   * // uses the default serializer provided in the model's `serializers` getter
+   * await user.serialize()
+   *
+   * // uses the summary serializer provided in the model's `serializers` getter
+   * await user.serialize({ serializerKey: 'summary' })
+   * ```
+   *
+   * @param args.casing - Which casing to use when serializing (camel or snake, default camel)
+   * @params args.serializerKey - The key to use when referencing the object returned by the `serializers` getter on the given model instance (defaults to "default")
+   * @returns A serialized representation of the model
+   */
   public serialize<I extends Dream>(this: I, { casing = null, serializerKey }: RenderOptions<I> = {}) {
     const serializerClass = instanceSerializerForKey(this, serializerKey)
     const serializer = new serializerClass(this)
@@ -1448,40 +3441,32 @@ export default class Dream {
   }
 
   /**
-   * ### #assignAttributes
+   * Takes the attributes passed in and sets their values,
+   * leveraging any custom setters defined for these attributes.
    *
-   * takes the attributes passed in and sets their values,
-   * leveraging any custom setters defined for these attributes
-   *
-   * e.g.
+   * NOTE:
+   * To bypass custom-defined setters, use `#setAttributes` instead.
    *
    * ```ts
    *  const user = new User()
    *  user.assignAttributes({ email: 'my@email', password: 'my password' })
    * ```
-   *
-   * #### NOTE:
-   * if you are interested in bypassing custom-defined setters,
-   * use `#setAttributes` instead.
    */
   public assignAttributes<I extends Dream>(this: I, attributes: UpdateableProperties<I>) {
     return this._setAttributes(attributes, { bypassUserDefinedSetters: false })
   }
 
   /**
-   * ### #setAttributes
+   * Takes the attributes passed in and sets their values internally,
+   * bypassing any custom setters defined for these attributes.
    *
-   * takes the attributes passed in and sets their values internally,
-   * bypassing any custom setters defined for these attributes
+   * NOTE:
+   * To leverage custom-defined setters, use `#assignAttributes` instead.
    *
    * ```ts
    *  const user = new User()
    *  user.setAttributes({ email: 'my@email', password: 'my password' })
    * ```
-   *
-   * #### NOTE:
-   * if you are interested in leveraging custom-defined setters,
-   * use `#assignAttributes` instead.
    */
   public setAttributes<I extends Dream>(this: I, attributes: UpdateableProperties<I>) {
     return this._setAttributes(attributes, { bypassUserDefinedSetters: true })
@@ -1501,82 +3486,179 @@ export default class Dream {
     return marshalledOpts
   }
 
-  public async save<I extends Dream>(this: I): Promise<I> {
+  /**
+   * Saves the state of the current instance to the
+   * database. For new instances (that have not been
+   * persisted), `save` and `create` model hooks will be called.
+   * For instances that have already been persisted,
+   * the `save` and `update` model hooks will be called.
+   *
+   * Upon saving a new instance, the primary key, timestamp
+   * fields (if defined), and `type` (if STI) will be set on
+   * the model.
+   *
+   * Upon updating an instance, the update timestamp (if defined)
+   * will be updated on the model.
+   *
+   * ```ts
+   * const user = User.new({ email: 'how@yadoin' })
+   * user.name = 'fred'
+   * await user.save()
+   *
+   * user.email // 'how@yadoin'
+   * user.name // 'fred'
+   * user.id // 1
+   * user.createdAt // A DateTime object
+   * user.updatedAt // A DateTime object
+   *
+   * // If User were STI:
+   * user.type // 'User'
+   * ```
+   *
+   * @returns void
+   */
+  public async save<I extends Dream>(this: I): Promise<void> {
     if (this.hasUnsavedAssociations) {
       await (this.constructor as typeof Dream).transaction(async txn => {
         await saveDream(this, txn)
       })
-      return this
     } else {
-      return await saveDream(this, null)
+      await saveDream(this, null)
     }
   }
 
+  /**
+   * Applies transaction to a new Query instance
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   const user = await User.txn(txn).create({ email: 'how@yadoin' })
+   *   await Pet.txn(txn).create({ user })
+   * })
+   * ```
+   *
+   * @param txn - A DreamTransaction instance (collected by calling `ApplicationModel.transaction`)
+   * @returns A Query scoped to this model with the transaction applied
+   */
   public txn<I extends Dream>(this: I, txn: DreamTransaction<Dream>): DreamInstanceTransactionBuilder<I> {
     return new DreamInstanceTransactionBuilder<I>(this, txn)
   }
 
   /**
-   * ### #update
+   * Applies all attribute changes passed to the Dream
+   * instance, leveraging any custom-defined setters,
+   * and then saves the Dream instance. Can be called
+   * on an unpersisted Dream instance.
    *
-   * applies all attribute changes passed to the dream,
-   * leveraging any custom-defined setters,
-   * and then saves the dream instance
+   * See {@link Dream.save | save} for details on
+   * the side effects of saving.
    *
-   * e.g.
+   * NOTE:
+   * To bypass custom-defined setters, use {@link Dream.updateAttributes | updateAttributes} instead.
    *
    * ```ts
    *  const user = await User.create({ email: 'saly@gmail.com' })
    *  await user.update({ email: 'sally@gmail.com' })
    * ```
    *
-   * #### NOTE:
-   * if you are interested in bypassing any custom-defined setters,
-   * use `#updateAttributes` instead.
-   *
+   * @param attributes - the attributes to set on the model
+   * @returns void
    */
-  public async update<I extends Dream>(this: I, attributes: UpdateableProperties<I>): Promise<I> {
+  public async update<I extends Dream>(this: I, attributes: UpdateableProperties<I>): Promise<void> {
     // use #assignAttributes to leverage any custom-defined setters
     this.assignAttributes(attributes)
 
     // call save rather than _save so that any unsaved associations in the
     // attributes are saved with this model in a transaction
-    return await this.save()
+    await this.save()
   }
 
   /**
-   * ### #updateAttributes
-   *
-   * applies all attribute changes passed to the dream,
+   * Applies all attribute changes passed to the dream,
    * bypassing any custom-defined setters,
-   * and then saves the dream instance.
+   * and then saves the dream instance. Does not bypass
+   * model hooks.
+   *
+   * See {@link Dream.save | save} for details on
+   * the side effects of saving.
+   *
+   * NOTE:
+   * To update the values without bypassing any custom-defined
+   * setters, use {@link Dream.update | update} instead.
    *
    * ```ts
-   *  const user = await User.create({ email: 'saly@gmail.com' })
-   *  await user.updateAttributes({ email: 'sally@gmail.com' })
+   * const user = await User.create({ email: 'saly@gmail.com' })
+   * await user.updateAttributes({ email: 'sally@gmail.com' })
    * ```
-   * #### NOTE:
-   * if you are interested in updating the values without bypassing
-   * any custom-defined setters, use `#update` instead.
+   *
+   * @param attributes - The attributes to update on this instance
+   * @returns - void
    */
-  public async updateAttributes<I extends Dream>(this: I, attributes: UpdateableProperties<I>): Promise<I> {
+  public async updateAttributes<I extends Dream>(
+    this: I,
+    attributes: UpdateableProperties<I>
+  ): Promise<void> {
     // use #setAttributes to bypass any custom-defined setters
     this.setAttributes(attributes)
 
+    // remove this comment when tackling:
+    // https://rvohealth.atlassian.net/browse/PDTC-5487
     // call save rather than _save so that any unsaved associations in the
     // attributes are saved with this model in a transaction
-    return await this.save()
+    await this.save()
   }
 
-  private _preventDeletion: boolean = false
+  /**
+   * Flags a dream model so that it does not
+   * actually destroy when in a destroy phase.
+   * This is usually used for a soft-delete
+   * pattern
+   *
+   * ```ts
+   * class User extends ApplicationModel {
+   *   @BeforeDestroy()
+   *   public softDelete() {
+   *     await this.update({ deletedAt: DateTime.now() })
+   *     this.preventDeletion()
+   *   }
+   * }
+   * ```
+   *
+   * @returns void
+   */
   public preventDeletion() {
     this._preventDeletion = true
   }
 
+  /**
+   * Flags a dream model so that it allows
+   * deletion once again.
+   *
+   * Undoes {@link Dream.(preventDeletion:instance) | preventDeletion}
+   *
+   * ```ts
+   * class User extends ApplicationModel {
+   *   @BeforeDestroy()
+   *   public async softDelete() {
+   *     await this.update({ deletedAt: DateTime.now() })
+   *     this.preventDeletion()
+   *   }
+   *
+   *   @BeforeDestroy()
+   *   public async undoSoftDelete() {
+   *     await this.update({ deletedAt: null })
+   *     this.unpreventDeletion()
+   *   }
+   * }
+   * ```
+   *
+   * @returns void
+   */
   public unpreventDeletion() {
     this._preventDeletion = false
     return this
   }
+  private _preventDeletion: boolean = false
 }
 
 export interface CreateOrFindByExtraOps<T extends typeof Dream> {

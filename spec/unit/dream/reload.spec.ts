@@ -8,7 +8,9 @@ describe('Dream#reload', () => {
 
     const userInAnotherInstance = await User.find(user.id)
     await userInAnotherInstance!.update({ email: 'a@b.com' })
-    expect((await user.reload()).email).toEqual('a@b.com')
+    await user.reload()
+
+    expect(user.email).toEqual('a@b.com')
   })
 
   context('in a transaction', () => {
