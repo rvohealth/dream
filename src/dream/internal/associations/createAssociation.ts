@@ -24,7 +24,7 @@ export default async function createAssociation<
   associationName: AssociationName,
   opts: UpdateableAssociationProperties<DreamInstance, RestrictedAssociationType> = {} as any
 ): Promise<NonNullable<AssociationType>> {
-  const association = dream.associationMap()[associationName as any] as
+  const association = dream.associationMetadataMap()[associationName as any] as
     | HasManyStatement<any, any, any, any>
     | HasOneStatement<any, any, any, any>
     | BelongsToStatement<any, any, any, any>

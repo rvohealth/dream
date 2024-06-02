@@ -257,9 +257,9 @@ export function blankAssociationsFactory(dreamClass: typeof Dream): {
   hasOne: HasOneStatement<any, any, any, any>[]
 } {
   return {
-    belongsTo: [...(dreamClass['associations']?.belongsTo || [])],
-    hasMany: [...(dreamClass['associations']?.hasMany || [])],
-    hasOne: [...(dreamClass['associations']?.hasOne || [])],
+    belongsTo: [...(dreamClass['associationMetadataByType']?.belongsTo || [])],
+    hasMany: [...(dreamClass['associationMetadataByType']?.hasMany || [])],
+    hasOne: [...(dreamClass['associationMetadataByType']?.hasOne || [])],
   }
 }
 

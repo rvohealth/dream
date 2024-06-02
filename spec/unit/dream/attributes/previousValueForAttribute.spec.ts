@@ -2,7 +2,7 @@ import Pet from '../../../../test-app/app/models/Pet'
 
 describe('Dream#previousValueForAttribute', () => {
   context('with a newly-created record', () => {
-    it('returns the values from the most recent save', async () => {
+    it('Returns the value most recently persisted to the database', async () => {
       const pet = Pet.new({ species: 'cat' })
       expect(pet.previousValueForAttribute('species')).toEqual(undefined)
 
@@ -21,7 +21,7 @@ describe('Dream#previousValueForAttribute', () => {
   })
 
   context('with a record loaded from the db', () => {
-    it('returns the values from the most recent save', async () => {
+    it('Returns the value most recently persisted to the database', async () => {
       let pet = await Pet.create({ species: 'cat' })
       pet = (await Pet.find(pet.id))!
       pet.species = 'dog'
