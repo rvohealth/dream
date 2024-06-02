@@ -212,7 +212,7 @@ export default class SimilarityBuilder<
     Object.keys(obj).forEach(associationName => {
       const tableValues = obj[associationName]
 
-      const associationMetadata = dreamClass.associationMap()[associationName]
+      const associationMetadata = dreamClass.associationMetadataMap()[associationName]
       if (!associationMetadata) {
         return
       }

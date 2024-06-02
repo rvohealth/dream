@@ -21,9 +21,11 @@ export default async function beforeSortableSave({
 
   const savingChangeToScopeField = scopeArray(scope).filter(
     scopeField =>
-      (!dream.getAssociation(scopeField) && dream.willSaveChangeToAttribute(scopeField as any)) ||
-      (dream.getAssociation(scopeField) &&
-        Object.keys(dream.changedAttributes()).includes(dream.getAssociation(scopeField).foreignKey()))
+      (!dream.getAssociationMetadata(scopeField) && dream.willSaveChangeToAttribute(scopeField as any)) ||
+      (dream.getAssociationMetadata(scopeField) &&
+        Object.keys(dream.changedAttributes()).includes(
+          dream.getAssociationMetadata(scopeField).foreignKey()
+        ))
   ).length
 
   if (!dream.willSaveChangeToAttribute(positionField) && !savingChangeToScopeField) return

@@ -36,7 +36,7 @@ export default function HasMany<
     const dreamClass: typeof Dream = (target as any).constructor
 
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'associations'))
-      dreamClass['associations'] = blankAssociationsFactory(dreamClass)
+      dreamClass['associationMetadataByType'] = blankAssociationsFactory(dreamClass)
 
     const partialAssociation = associationPrimaryKeyAccessors(
       {
@@ -68,7 +68,7 @@ export default function HasMany<
       },
     } as HasManyStatement<any, any, any, any>
 
-    dreamClass['associations']['hasMany'].push(association)
+    dreamClass['associationMetadataByType']['hasMany'].push(association)
     applyGetterAndSetter(target as any, association)
   }
 }

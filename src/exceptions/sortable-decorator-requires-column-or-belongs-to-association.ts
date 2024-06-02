@@ -21,7 +21,7 @@ Columns on ${this.dreamClass.name} are:
   ${[...this.dreamClass.columns()].join('\n        ')}
 
 BelongsTo scopes on ${this.dreamClass.name} are:
-  ${this.dreamClass['associations'].belongsTo.map(assoc => assoc.as).join('\n        ')}
+  ${this.dreamClass['associationMetadataByType'].belongsTo.map(assoc => assoc.as).join('\n        ')}
     `
   }
 }

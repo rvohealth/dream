@@ -184,7 +184,7 @@ ${tableName}: {
 
     for (const model of models.filter(model => model.table === tableName)) {
       for (const associationName of model.associationNames) {
-        const associationMetaData = model.associationMap()[associationName]
+        const associationMetaData = model.associationMetadataMap()[associationName]
         if (targetAssociationType && associationMetaData.type !== targetAssociationType) continue
 
         const dreamClassOrClasses = associationMetaData.modelCB()

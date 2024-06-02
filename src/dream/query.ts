@@ -116,50 +116,164 @@ const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: Compar
 } as const
 
 export default class Query<DreamInstance extends Dream> extends ConnectedToDB<DreamInstance> {
+  /**
+   * @internal
+   *
+   * stores the default batch sizes for various
+   * provided batching methods
+   */
   public static readonly BATCH_SIZES = {
     FIND_EACH: 1000,
     PLUCK_EACH: 10000,
     PLUCK_EACH_THROUGH: 1000,
   }
 
+  /**
+   * @internal
+   *
+   * stores the dream transaction applied to the
+   * current Query instance
+   */
   public dreamTransaction: DreamTransaction<Dream> | null = null
 
+  /**
+   * @internal
+   *
+   * stores the passthrough where statements applied to the
+   * current Query instance
+   */
   private readonly passthroughWhereStatement: PassthroughWhere<DreamInstance['allColumns']> = Object.freeze(
     {}
   )
 
+  /**
+   * @internal
+   *
+   * stores the where statements applied to the
+   * current Query instance
+   */
   private readonly whereStatements: readonly WhereStatement<
     DreamInstance['DB'],
     DreamInstance['dreamconf']['schema'],
     any
   >[] = Object.freeze([])
+
+  /**
+   * @internal
+   *
+   * stores the where not statements applied to the
+   * current Query instance
+   */
   private readonly whereNotStatements: readonly WhereStatement<
     DreamInstance['DB'],
     DreamInstance['dreamconf']['schema'],
     any
   >[] = Object.freeze([])
+
+  /**
+   * @internal
+   *
+   * stores the limit statements applied to the
+   * current Query instance
+   */
   private readonly limitStatement: LimitStatement | null
+
+  /**
+   * @internal
+   *
+   * stores the offset statements applied to the
+   * current Query instance
+   */
   private readonly offsetStatement: OffsetStatement | null
+
+  /**
+   * @internal
+   *
+   * stores the or statements applied to the
+   * current Query instance
+   */
   private readonly orStatements: readonly WhereStatement<
     DreamInstance['DB'],
     DreamInstance['dreamconf']['schema'],
     any
   >[][] = Object.freeze([])
+
+  /**
+   * @internal
+   *
+   * stores the order statements applied to the
+   * current Query instance
+   */
   private readonly orderStatements: readonly OrderQueryStatement<DreamColumnNames<DreamInstance>>[] =
     Object.freeze([])
+
+  /**
+   * @internal
+   *
+   * stores the preload statements applied to the
+   * current Query instance
+   */
   private readonly preloadStatements: RelaxedPreloadStatement = Object.freeze({})
+
+  /**
+   * @internal
+   *
+   * stores the preload where statements applied to the
+   * current Query instance
+   */
   private readonly preloadWhereStatements: RelaxedPreloadWhereStatement<
     DreamInstance['DB'],
     DreamInstance['dreamconf']['schema']
   > = Object.freeze({})
+
+  /**
+   * @internal
+   *
+   * stores the joins statements applied to the
+   * current Query instance
+   */
   private readonly joinsStatements: RelaxedJoinsStatement = Object.freeze({})
+
+  /**
+   * @internal
+   *
+   * stores the joins where statements applied to the
+   * current Query instance
+   */
   private readonly joinsWhereStatements: RelaxedJoinsWhereStatement<
     DreamInstance['DB'],
     DreamInstance['dreamconf']['schema']
   > = Object.freeze({})
+
+  /**
+   * @internal
+   *
+   * Whether or not to bypass default scopes for this Query
+   */
   private readonly bypassDefaultScopes: boolean = false
+
+  /**
+   * @internal
+   *
+   * The distinct column to apply to the Query
+   */
   private readonly distinctColumn: DreamColumnNames<DreamInstance> | null = null
+
+  /**
+   * @internal
+   *
+   * The base sql alias to use for the base model
+   * of this Query
+   */
   private baseSqlAlias: TableOrAssociationName<DreamInstance['dreamconf']['schema']>
+
+  /**
+   * @internal
+   *
+   * Used for unscoping Query instances. In most cases, this will be null,
+   * but when calling `unscoped`, an unscoped Query is stored as
+   * baseSelectQuery.
+   */
   private baseSelectQuery: Query<any> | null
 
   constructor(
@@ -186,10 +300,23 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     this.connectionOverride = opts.connection
   }
 
+  /**
+   * Returns true. Useful for distinguishing Query instances
+   * from other objects.
+   *
+   * @returns true
+   */
   public get isDreamQuery() {
     return true
   }
 
+  /**
+   * @internal
+   *
+   * Used for applying preload and load statements
+   *
+   * @returns An associated Query
+   */
   private symmetricalQueryForDreamClass<T extends typeof Dream>(
     this: Query<DreamInstance>,
     dreamClass: T
@@ -203,6 +330,18 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return this.dreamTransaction ? associationQuery.txn(this.dreamTransaction) : associationQuery
   }
 
+  /**
+   * @internal
+   *
+   * Returns a cloned version of the Query
+   *
+   * ```ts
+   * const clonedQuery = User.query().clone()
+   * ```
+   *
+   * @param opts - Statements to override when cloning the Query
+   * @returns A cloned Query with the provided overrides clause applied
+   */
   public clone(opts: QueryOpts<DreamInstance> = {}): Query<DreamInstance> {
     return new Query<DreamInstance>(this.dreamInstance, {
       baseSqlAlias: opts.baseSqlAlias || this.baseSqlAlias,
@@ -242,26 +381,72 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     })
   }
 
+  /**
+   * Finds a record matching the Query with the
+   * specified primary key. If not found, null
+   * is returned
+   *
+   * ```ts
+   * await User.query().find(123)
+   * // User{id: 123}
+   * ```
+   *
+   * @param primaryKey - The primaryKey of the record to look up
+   * @returns Either the found record, or else null
+   */
   public async find<
     Schema extends DreamInstance['dreamconf']['schema'],
     TableName extends keyof Schema = DreamInstance['table'] & keyof Schema,
   >(
-    id: Schema[TableName]['columns'][DreamInstance['primaryKey'] &
+    primaryKey: Schema[TableName]['columns'][DreamInstance['primaryKey'] &
       keyof Schema[TableName]['columns']]['coercedType']
   ): Promise<DreamInstance | null> {
-    if (!id) return null
+    if (!primaryKey) return null
 
     return await this.where({
-      [this.dreamInstance.primaryKey]: id,
+      [this.dreamInstance.primaryKey]: primaryKey,
     } as any).first()
   }
 
+  /**
+   * Finds a record matching the Query and the
+   * specified where statement. If not found, null
+   * is returned
+   *
+   * ```ts
+   * await User.query().findBy({ email: 'how@yadoin' })
+   * // User{email: 'how@yadoin'}
+   * ```
+   *
+   * @param whereStatement - The where statement used to locate the record
+   * @returns Either the the first record found matching the attributes, or else null
+   */
   public async findBy<DB extends DreamInstance['DB'], Schema extends DreamInstance['dreamconf']['schema']>(
-    attributes: WhereStatement<DB, Schema, DreamInstance['table']>
+    whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>
   ): Promise<DreamInstance | null> {
-    return await this.where(attributes).first()
+    return await this.where(whereStatement).first()
   }
 
+  /**
+   * Finds all records matching the Query in batches,
+   * and then calls the provided callback
+   * for each found record. Once all records
+   * have been passed for a given batch, the next set of
+   * records will be fetched and passed to your callback, until all
+   * records matching the Query have been fetched.
+   *
+   * ```ts
+   * await User.order('id').findEach(user => {
+   *   console.log(user)
+   * })
+   * // User{id: 1}
+   * // User{id: 2}
+   * ```
+   *
+   * @param cb - The callback to call for each found record
+   * @param opts.batchSize - the batch size you wish to collect records in. If not provided, it will default to 1000
+   * @returns void
+   */
   public async findEach(
     cb: (instance: DreamInstance) => void | Promise<void>,
     { batchSize = Query.BATCH_SIZES.FIND_EACH }: { batchSize?: number } = {}
@@ -280,19 +465,64 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     } while (records.length > 0 && records.length === batchSize)
   }
 
+  /**
+   * Given a collection of records, load a common association.
+   * This can be useful to reduce database queries when multiple
+   * dream classes have identical associations that should be loaded.
+   *
+   * For example, we can sideload the associations
+   * shared by both associations called `localizedTexts`,
+   * so long as `localizedTexts` points to the same class on
+   * both Image and Post:
+   *
+   * ```ts
+   * class Image extends ApplicationModel {
+   *   @HasMany(() => LocalizedText)
+   *   public localizedTexts: LocalizedText[]
+   * }
+   *
+   * class Post extends ApplicationModel {
+   *   @HasMany(() => LocalizedText)
+   *   public localizedTexts: LocalizedText[]
+   * }
+   *
+   * const post = await Post.preload('image').first()
+   * const image = post.image
+   *
+   * await Image.query().loadInto([image, post], 'localizedTexts')
+   * ```
+   *
+   * @param dreams - An array of dream instances to load associations into
+   * @param args - A chain of association names
+   * @returns A LoadIntoModels instance
+   *
+   */
   public async loadInto<
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['dreamconf']['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-  >(models: Dream[], ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
+  >(dreams: Dream[], ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
     const query = this.preload(...(args as any))
     await new LoadIntoModels<DreamInstance>(
       query.preloadStatements,
       query.passthroughWhereStatement
-    ).loadInto(models)
+    ).loadInto(dreams)
   }
 
+  /**
+   * Applies preload statement to Query, which will load the
+   * specified associations onto the instance upon execution.
+   *
+   * ```ts
+   * const user = await User.query().preload('posts', 'comments', { visibilty: 'public' }, 'replies').first()
+   * console.log(user.posts[0].comments[0].replies[0])
+   * // [Reply{id: 1}, Reply{id: 2}]
+   * ```
+   *
+   * @param args - A chain of associaition names and where clauses
+   * @returns A cloned Query with the preload statement applied
+   */
   public preload<
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['dreamconf']['schema'],
@@ -309,6 +539,17 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return this.clone({ preloadStatements, preloadWhereStatements })
   }
 
+  /**
+   * Returns a new Query instance, with the provided
+   * joins statement attached
+   *
+   * ```ts
+   * await User.query().joins('posts').first()
+   * ```
+   *
+   * @param args - A chain of associaition names and where clauses
+   * @returns A cloned Query with the joins clause applied
+   */
   public joins<
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['dreamconf']['schema'],
@@ -324,6 +565,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return this.clone({ joinsStatements, joinsWhereStatements })
   }
 
+  /**
+   * @internal
+   *
+   * Applies a join statement for an association
+   *
+   */
   private fleshOutJoinsStatements<
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['dreamconf']['schema'],
@@ -381,6 +628,31 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     }
   }
 
+  /**
+   * Plucks the specified fields from the join Query
+   *
+   * ```ts
+   * await User.query().pluckThrough(
+   *   'posts',
+   *   { createdAt: range(CalendarDate.yesterday()) },
+   *   'comments',
+   *   'replies',
+   *   ['replies.id', 'replies.body']
+   * )
+   * // [[1, 'loved it!'], [2, 'hated it :(']]
+   * ```
+   *
+   * If more than one column is requested, a multi-dimensional
+   * array is returned:
+   *
+   * ```ts
+   * await User.order('id').pluck('id', 'email')
+   * // [[1, 'a@a.com'], [2, 'b@b.com']]
+   * ```
+   *
+   * @param args - A chain of association names and where clauses ending with the column or array of columns to pluck
+   * @returns An array of pluck results
+   */
   public async pluckThrough<
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['dreamconf']['schema'],
@@ -416,6 +688,35 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return response
   }
 
+  /**
+   * Plucks the specified fields from the join Query in batches,
+   * passing each plucked value/set of plucked values
+   * into the provided callback function. It will continue
+   * doing this until it exhausts all results in the
+   * Query. This is useful when plucking would result in
+   * more results than would be desirable to instantiate
+   * in memory/more results than would be desirable to handle
+   * between awaits.
+   *
+   * ```ts
+   * await User.query().pluckEachThrough(
+   *   'posts',
+   *   { createdAt: range(CalendarDate.yesterday()) },
+   *   'comments',
+   *   'replies',
+   *   ['replies.id', 'replies.body'],
+   *   ([id, body]) => {
+   *     console.log({ id, body })
+   *   }
+   * )
+   *
+   * // { id: 1, body: 'loved it!' }
+   * // { id: 2, body: 'hated it :('}
+   * ```
+   *
+   * @param args - A chain of association names and where clauses ending with the column or array of columns to pluck and the callback function
+   * @returns void
+   */
   public async pluckEachThrough<
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['dreamconf']['schema'],
@@ -477,6 +778,13 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     } while (results.length > 0 && results.length === batchSize)
   }
 
+  /**
+   * @internal
+   *
+   * Builds an association map for use when
+   * applying pluckThrough statements
+   *
+   */
   private pluckThroughStatementsToDreamClassesMap(
     // associationStatements: (
     //   | string
@@ -494,15 +802,22 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return this.associationsToDreamClassesMap(associations)
   }
 
+  /**
+   * @internal
+   *
+   * Builds an association map for use when
+   * applying pluckThrough statements
+   *
+   */
   private associationsToDreamClassesMap(associationNames: string[]) {
     const associationsToDreamClassesMap: { [key: string]: typeof Dream } = {}
 
     associationNames.reduce((dreamClass: typeof Dream, associationName: string) => {
-      const association = dreamClass.getAssociation(associationName)
+      const association = dreamClass.getAssociationMetadata(associationName)
       const through = (association as any).through
 
       if (through) {
-        const throughAssociation = dreamClass.getAssociation(through)
+        const throughAssociation = dreamClass.getAssociationMetadata(through)
         const throughAssociationDreamClass = throughAssociation.modelCB() as typeof Dream
         associationsToDreamClassesMap[through] = throughAssociationDreamClass
       }
@@ -515,6 +830,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return associationsToDreamClassesMap
   }
 
+  /**
+   * @internal
+   *
+   * Applies pluckThrough statements
+   *
+   */
   private fleshOutPluckThroughStatements<
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['dreamconf']['schema'],
@@ -577,44 +898,124 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     }
   }
 
+  /**
+   * @internal
+   *
+   * Changes the base sql alias
+   *
+   */
   private setBaseSQLAlias<Schema extends DreamInstance['dreamconf']['schema']>(
     baseSqlAlias: TableOrAssociationName<Schema>
   ) {
     return this.clone({ baseSqlAlias })
   }
 
+  /**
+   * @internal
+   *
+   * Changes the base select Query
+   *
+   */
   private setBaseSelectQuery(baseSelectQuery: Query<any> | null) {
     return this.clone({ baseSelectQuery })
   }
 
+  /**
+   * Prevents default scopes from applying when
+   * the Query is executed
+   *
+   * @returns A new Query which will prevent default scopes from applying
+   */
   public unscoped(): Query<DreamInstance> {
     return this.clone({ bypassDefaultScopes: true, baseSelectQuery: this.baseSelectQuery?.unscoped() })
   }
 
+  /**
+   * Sends data through for use as passthrough data
+   * for the associations that require it.
+   *
+   * ```ts
+   * class Post {
+   *   @HasMany(() => LocalizedText)
+   *   public localizedTexts: LocalizedText[]
+   *
+   *   @HasOne(() => LocalizedText, {
+   *     where: { locale: DreamConst.passthrough },
+   *   })
+   *   public currentLocalizedText: LocalizedText
+   * }
+   *
+   * await User.query().passthrough({ locale: 'es-ES' })
+   *   .preload('posts', 'currentLocalizedText')
+   *   .first()
+   * ```
+   *
+   * @param passthroughWhereStatement - where statement used for associations that require passthrough data
+   * @returns A cloned Query with the passthrough data
+   */
   public passthrough(passthroughWhereStatement: PassthroughWhere<DreamInstance['allColumns']>) {
     return this.clone({ passthroughWhereStatement })
   }
 
+  /**
+   * Applies a where statement to the Query instance
+   *
+   * ```ts
+   * await User.where({ email: 'how@yadoin' }).first()
+   * // User{email: 'how@yadoin'}
+   * ```
+   *
+   * @param whereStatement - Where statement to apply to the Query
+   * @returns A cloned Query with the where clause applied
+   */
   public where<DB extends DreamInstance['DB'], Schema extends DreamInstance['dreamconf']['schema']>(
-    attributes: WhereStatement<DB, Schema, DreamInstance['table']>
+    whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>
   ): Query<DreamInstance> {
-    return this._where(attributes, 'where')
+    return this._where(whereStatement, 'where')
   }
 
+  /**
+   * Accepts a list of where statements, each of
+   * which is combined via `OR`
+   *
+   * ```ts
+   * await User.query().whereAny([{ email: 'how@yadoin' }, { name: 'fred' }]).first()
+   * // [User{email: 'how@yadoin'}, User{name: 'fred'}, User{name: 'fred'}]
+   * ```
+   *
+   * @param whereStatements - a list of where statements to `OR` together
+   * @returns A cloned Query with the whereAny clause applied
+   */
   public whereAny<DB extends DreamInstance['DB'], Schema extends DreamInstance['dreamconf']['schema']>(
-    attributes: WhereStatement<DB, Schema, DreamInstance['table']>[]
+    whereStatements: WhereStatement<DB, Schema, DreamInstance['table']>[]
   ): Query<DreamInstance> {
     return this.clone({
-      or: [attributes.map(obj => ({ ...obj }))],
+      or: [whereStatements.map(obj => ({ ...obj }))],
     })
   }
 
+  /**
+   * Applies a whereNot statement to the Query instance
+   *
+   * ```ts
+   * await User.query().whereNot({ email: 'how@yadoin' }).first()
+   * // User{email: 'hello@world'}
+   * ```
+   *
+   * @param whereStatement - A where statement to negate and apply to the Query
+   * @returns A cloned Query with the whereNot clause applied
+   */
   public whereNot<DB extends DreamInstance['DB'], Schema extends DreamInstance['dreamconf']['schema']>(
-    attributes: WhereStatement<DB, Schema, DreamInstance['table']>
+    whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>
   ): Query<DreamInstance> {
-    return this._where(attributes, 'whereNot')
+    return this._where(whereStatement, 'whereNot')
   }
 
+  /**
+   * @internal
+   *
+   * Applies a where clause
+   */
   private _where<DB extends DreamInstance['DB'], Schema extends DreamInstance['dreamconf']['schema']>(
     attributes: WhereStatement<DB, Schema, DreamInstance['table']>,
     typeOfWhere: 'where' | 'whereNot'
@@ -624,6 +1025,20 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     })
   }
 
+  /**
+   * Returns a new Kysely SelectQueryBuilder instance to be used
+   * in a sub Query
+   *
+   * ```ts
+   * const records = await User.where({
+   *   id: Post.query().nestedSelect('userId'),
+   * }).all()
+   * // [User{id: 1}, ...]
+   * ```
+   *
+   * @param selection - the column to use for your nested Query
+   * @returns A Kysely SelectQueryBuilder instance
+   */
   public nestedSelect<SimpleFieldType extends keyof DreamColumnNames<DreamInstance>, PluckThroughFieldType>(
     this: Query<DreamInstance>,
     selection: SimpleFieldType | PluckThroughFieldType
@@ -637,6 +1052,23 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return query.select(this.namespaceColumn(selection as any))
   }
 
+  /**
+   * Returns a new Query instance, attaching the provided
+   * order statement
+   *
+   * ```ts
+   * await User.query().order('id').all()
+   * // [User{id: 1}, User{id: 2}, ...]
+   * ```
+   *
+   * ```ts
+   * await User.query().order({ name: 'asc', id: 'desc' }).all()
+   * // [User{name: 'a', id: 99}, User{name: 'a', id: 97}, User{ name: 'b', id: 98 } ...]
+   * ```
+   *
+   * @param orderStatement - Either a string or an object specifying order. If a string, the order is implicitly ascending. If the orderStatement is an object, statements will be provided in the order of the keys set in the object
+   * @returns A cloned Query with the order clause applied
+   */
   public order(
     arg: DreamColumnNames<DreamInstance> | Partial<Record<DreamColumnNames<DreamInstance>, OrderDir>> | null
   ): Query<DreamInstance> {
@@ -657,21 +1089,82 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return query
   }
 
+  /**
+   * Returns a new Query instance, specifying a limit
+   *
+   * ```ts
+   * await User.order('id').limit(2).all()
+   * // [User{id: 1}, User{id: 2}]
+   * ```
+   *
+   * @returns A cloned Query with the limit clause applied
+   */
   public limit(limit: number | null) {
     return this.clone({ limit })
   }
 
+  /**
+   * Returns a new Query instance, specifying an offset
+   *
+   * ```ts
+   * await User.order('id').offset(2).limit(2).all()
+   * // [User{id: 3}, User{id: 4}]
+   * ```
+   *
+   * @returns A cloned Query with the offset clause applied
+   */
   public offset(offset: number | null) {
     return this.clone({ offset })
   }
 
+  /**
+   * Returns the sql that would be executed by this Query
+   *
+   * ```ts
+   * User.where({ email: 'how@yadoin' }).sql()
+   * // {
+   * //  query: {
+   * //    kind: 'SelectQueryNode',
+   * //    from: { kind: 'FromNode', froms: [Array] },
+   * //    selections: [ [Object] ],
+   * //    distinctOn: undefined,
+   * //    joins: undefined,
+   * //    groupBy: undefined,
+   * //    orderBy: undefined,
+   * //    where: { kind: 'WhereNode', where: [Object] },
+   * //    frontModifiers: undefined,
+   * //    endModifiers: undefined,
+   * //    limit: undefined,
+   * //    offset: undefined,
+   * //    with: undefined,
+   * //    having: undefined,
+   * //    explain: undefined,
+   * //    setOperations: undefined
+   * //  },
+   * //  sql: 'select "users".* from "users" where ("users"."email" = $1 and "users"."deleted_at" is null)',
+   * //  parameters: [ 'how@yadoin' ]
+   * //}
+   * ```
+   *
+   * @returns An object representing the underlying sql statement
+   *
+   */
   public sql() {
     const kyselyQuery = this.buildSelect()
     return kyselyQuery.compile()
   }
 
-  // TODO: in the future, we should support insert type, but don't yet, since inserts are done outside
-  // the query class for some reason.
+  /**
+   * Converts the given dream class into a Kysely query, enabling
+   * you to build custom queries using the Kysely API
+   *
+   * ```ts
+   * await User.query().toKysely('select').where('email', '=', 'how@yadoin').execute()
+   * ```
+   *
+   * @param type - the type of Kysely query builder instance you would like to obtain
+   * @returns A Kysely query. Depending on the type passed, it will return either a SelectQueryBuilder, DeleteQueryBuilder, or an UpdateQueryBuilder
+   */
   public toKysely<
     QueryType extends 'select' | 'delete' | 'update',
     ToKyselyReturnType = QueryType extends 'select'
@@ -692,15 +1185,39 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       case 'update':
         return this.buildUpdate({}) as ToKyselyReturnType
 
+      // TODO: in the future, we should support insert type, but don't yet, since inserts are done outside
+      // the query class for some reason.
       default:
         throw new Error('never')
     }
   }
 
+  /**
+   * Applies transaction to the Query instance
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await User.query().txn(txn).create({ email: 'how@yadoin' })
+   * })
+   * ```
+   *
+   * @param txn - A DreamTransaction instance (usually collected by calling `ApplicationModel.transaction`)
+   * @returns A cloned Query with the transaction applied
+   *
+   */
   public txn(dreamTransaction: DreamTransaction<Dream>) {
     return this.clone({ transaction: dreamTransaction })
   }
 
+  /**
+   * Retrieves the number of records in the database
+   *
+   * ```ts
+   * await User.query().count()
+   * ```
+   *
+   * @returns The number of records in the database
+   */
   public async count() {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { count } = this.dbFor('select').fn
@@ -720,6 +1237,15 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return parseInt(data.tablecount.toString())
   }
 
+  /**
+   * Returns new Query with distinct clause applied
+   *
+   * ```ts
+   * await User.query().distinct('name').pluck('name')
+   * ```
+   *
+   * @returns A cloned Query with the distinct clause applied
+   */
   public distinct(
     column: TableColumnNames<DreamInstance['dreamconf']['DB'], DreamInstance['table']> | boolean = true
   ) {
@@ -736,34 +1262,80 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     }
   }
 
+  /**
+   * @internal
+   *
+   * Returns a namespaced column name
+   *
+   * @returns A string
+   */
   private namespaceColumn(column: string) {
     if (column.includes('.')) return column
     return `${this.baseSqlAlias}.${column}`
   }
 
-  public async max<PluckThroughFieldType>(field: DreamColumnNames<DreamInstance> | PluckThroughFieldType) {
+  /**
+   * Retrieves the max value of the specified column
+   * for this Query
+   *
+   * ```ts
+   * await User.query().max('id')
+   * // 99
+   * ```
+   *
+   * @param columnName - a column name on the model
+   * @returns the max value of the specified column for this Query
+   *
+   */
+  public async max<PluckThroughFieldType, T extends DreamColumnNames<DreamInstance> | PluckThroughFieldType>(
+    columnName: T
+  ): Promise<DreamTableSchema<DreamInstance>[T & keyof DreamTableSchema<DreamInstance>] | null> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { max } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true, bypassOrder: true })
 
-    kyselyQuery = kyselyQuery.select(max(field as any) as any)
+    kyselyQuery = kyselyQuery.select(max(columnName as any) as any)
 
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
 
     return data.max
   }
 
-  public async min<PluckThroughFieldType>(field: DreamColumnNames<DreamInstance> | PluckThroughFieldType) {
+  /**
+   * Retrieves the min value of the specified column
+   * for this Query
+   *
+   * ```ts
+   * await User.query().min('id')
+   * // 1
+   * ```
+   *
+   * @param columnName - a column name on the model
+   * @returns the min value of the specified column for this Query
+   */
+  public async min<
+    PluckThroughcolumnNameType,
+    T extends DreamColumnNames<DreamInstance> | PluckThroughcolumnNameType,
+  >(
+    columnName: T
+  ): Promise<DreamTableSchema<DreamInstance>[T & keyof DreamTableSchema<DreamInstance>] | null> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { min } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true, bypassOrder: true })
 
-    kyselyQuery = kyselyQuery.select(min(field as any) as any)
+    kyselyQuery = kyselyQuery.select(min(columnName as any) as any)
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
 
     return data.min
   }
 
+  /**
+   * @internal
+   *
+   * Runs the query and extracts plucked values
+   *
+   * @returns An array of plucked values
+   */
   private async pluckWithoutMarshalling(...fields: DreamColumnNames<DreamInstance>[]): Promise<any[]> {
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
     const aliases: string[] = []
@@ -779,6 +1351,25 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     )
   }
 
+  /**
+   * Plucks the provided fields from the given dream class table
+   *
+   * ```ts
+   * await User.order('id').pluck('id')
+   * // [1, 2, 3]
+   * ```
+   *
+   * If more than one column is requested, a multi-dimensional
+   * array is returned:
+   *
+   * ```ts
+   * await User.order('id').pluck('id', 'email')
+   * // [[1, 'a@a.com'], [2, 'b@b.com']]
+   * ```
+   *
+   * @param fields - The column or array of columns to pluck
+   * @returns An array of pluck results
+   */
   public async pluck<TableName extends DreamInstance['table']>(
     ...fields: (DreamColumnNames<DreamInstance> | `${TableName}.${DreamColumnNames<DreamInstance>}`)[]
   ): Promise<any[]> {
@@ -788,6 +1379,23 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return this.pluckValuesToPluckResponse(fields, vals, mapFn)
   }
 
+  /**
+   * Plucks the specified fields from the given dream class table
+   * in batches, passing each found columns into the
+   * provided callback function
+   *
+   * ```ts
+   * await User.order('id').pluckEach('id', (id) => {
+   *   console.log(id)
+   * })
+   * // 1
+   * // 2
+   * // 3
+   * ```
+   *
+   * @param fields - a list of fields to pluck, followed by a callback function to call for each set of found fields
+   * @returns void
+   */
   public async pluckEach<
     TableName extends DreamInstance['table'],
     CB extends (plucked: any) => void | Promise<void>,
@@ -831,14 +1439,19 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     } while (records.length > 0 && records.length === batchSize)
   }
 
-  private pluckValuesToPluckResponse(fields: any[], vals: any[], mapFn: (value: any, index: number) => any) {
-    if (fields.length > 1) {
-      return vals.map(arr => arr.map(mapFn))
-    } else {
-      return vals.flat().map(val => mapFn(val, 0))
-    }
-  }
-
+  /**
+   * Retrieves an array containing all records matching the Query.
+   * Be careful using this, since it will attempt to pull every
+   * record into memory at once. When querying might return a large
+   * number of records, consider using `.findEach`, which will pull
+   * the records in batches.
+   *
+   * ```ts
+   * await User.query().all()
+   * ```
+   *
+   * @returns an array of dreams
+   */
   public async all() {
     const kyselyQuery = this.buildSelect()
 
@@ -851,10 +1464,34 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return theAll
   }
 
+  /**
+   * @internal
+   *
+   * Retrieves a Query with the requested connection.
+   *
+   * @param connection - The connection you wish to access
+   * @returns A Query with the requested connection
+   */
   protected connection(connection: DbConnectionType): Query<DreamInstance> {
     return this.clone({ connection })
   }
 
+  /**
+   * Returns true if a record exists for the given
+   * Query
+   *
+   * ```ts
+   * await User.query().exists()
+   * // false
+   *
+   * await User.create({ email: 'how@yadoin' })
+   *
+   * await User.query().exists()
+   * // true
+   * ```
+   *
+   * @returns boolean
+   */
   public async exists(): Promise<boolean> {
     // Implementing via `limit(1).all()`, rather than the simpler `!!(await this.first())`
     // because it avoids the step of finding the first. Just find any, and return
@@ -862,6 +1499,19 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return (await this.limit(1).all()).length > 0
   }
 
+  /**
+   * Returns the first record in the database
+   * matching the Query. If the Query is not
+   * ordered, it will automatically order
+   * by primary key.
+   *
+   * ```ts
+   * await User.query().first()
+   * // User{id: 1}
+   * ```
+   *
+   * @returns First record in the database, or null if no record exists
+   */
   public async first() {
     const query = this.orderStatements.length
       ? this
@@ -869,6 +1519,115 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return await query.takeOne()
   }
 
+  /**
+   * Returns the last record in the database
+   * matching the Query. If the Query is not
+   * ordered, it will automatically order
+   * by primary key.
+   *
+   * ```ts
+   * await User.query().last()
+   * // User{id: 99}
+   * ```
+   *
+   * @returns Last record in the database, or null if no record exists
+   */
+  public async last() {
+    const query = this.orderStatements.length
+      ? this.invertOrder()
+      : this.order({ [this.dreamInstance.primaryKey as any]: 'desc' } as any)
+
+    return await query.takeOne()
+  }
+
+  /**
+   * Destroys all records matching the Query,
+   * and returns the number of records that
+   * were destroyed
+   *
+   * ```ts
+   * await User.where({ email: ops.ilike('%burpcollaborator%')}).destroy()
+   * // 12
+   * ```
+   *
+   * @returns The number of records that were removed
+   */
+  public async destroy(): Promise<number> {
+    const deletionResult = await executeDatabaseQuery(this.buildDelete(), 'executeTakeFirst')
+    return Number(deletionResult?.numDeletedRows || 0)
+  }
+
+  /**
+   * Destroys all records matching the Query,
+   * and returns the number of records that
+   * were destroyed
+   *
+   * ```ts
+   * await User.query().destroyBy({ email: ops.ilike('%burpcollaborator%')} })
+   * // 12
+   * ```
+   * @param whereStatement - The where statement used to refine the Query
+   * @returns The number of records that were removed
+   */
+  public async destroyBy(
+    whereStatement: WhereStatement<
+      DreamInstance['DB'],
+      DreamInstance['dreamconf']['schema'],
+      DreamInstance['table']
+    >
+  ) {
+    const query = this.where(whereStatement)
+
+    if (query.hasSimilarityClauses) {
+      throw new SimilarityOperatorNotSupportedOnDestroyQueries(this.dreamClass, whereStatement)
+    }
+
+    return query.destroy()
+  }
+
+  /**
+   * Updates all records matching the Query
+   *
+   * ```ts
+   * await User.where({ email: ops.ilike('%burpcollaborator%') }).updateAll({ email: null })
+   * // 12
+   * ```
+   * @param attributes - The attributes used to update the records
+   * @returns The number of records that were updated
+   */
+  public async updateAll(attributes: DreamTableSchema<DreamInstance>) {
+    if (this.baseSelectQuery) throw new NoUpdateAllOnAssociationQuery()
+    if (Object.keys(this.joinsStatements).length) throw new NoUpdateAllOnJoins()
+
+    const kyselyQuery = this.buildUpdate(attributes)
+    const res = await executeDatabaseQuery(kyselyQuery, 'execute')
+    const resultData = Array.from(res.entries())?.[0]?.[1]
+
+    return Number(resultData?.numUpdatedRows || 0)
+  }
+
+  /**
+   * @internal
+   *
+   * Applies pluck values to a provided callback function
+   *
+   * @returns An array of pluck values
+   */
+  private pluckValuesToPluckResponse(fields: any[], vals: any[], mapFn: (value: any, index: number) => any) {
+    if (fields.length > 1) {
+      return vals.map(arr => arr.map(mapFn))
+    } else {
+      return vals.flat().map(val => mapFn(val, 0))
+    }
+  }
+
+  /**
+   * @internal
+   *
+   * Used for applying first and last queries
+   *
+   * @returns A dream instance or null
+   */
   private async takeOne() {
     const kyselyQuery = this.buildSelect()
     const results = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirst')
@@ -883,6 +1642,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     } else return null
   }
 
+  /**
+   * @internal
+   *
+   * Used to hydrate dreams with the provided associations
+   */
   private hydrateAssociation(
     dreams: Dream[],
     association:
@@ -929,11 +1693,16 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     }
   }
 
+  /**
+   * @internal
+   *
+   * Used to bridge through associations
+   */
   private followThroughAssociation(
     dreamClass: typeof Dream,
     association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
   ) {
-    const throughAssociation = association.through && dreamClass.getAssociation(association.through)
+    const throughAssociation = association.through && dreamClass.getAssociationMetadata(association.through)
     if (!throughAssociation)
       throw new MissingThroughAssociation({
         dreamClass,
@@ -959,6 +1728,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   // Polymorphic BelongsTo. Preload by loading each target class separately.
+  /**
+   * @internal
+   *
+   * Used to preload polymorphic belongs to associations
+   */
   private async preloadPolymorphicBelongsTo(
     this: Query<DreamInstance>,
     association: BelongsToStatement<any, any, any, string>,
@@ -1023,6 +1797,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return associatedDreams
   }
 
+  /**
+   * @internal
+   *
+   * Applies a preload statement
+   */
   private async applyOnePreload(
     this: Query<DreamInstance>,
     associationName: string,
@@ -1031,10 +1810,10 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   ) {
     if (!Array.isArray(dreams)) dreams = [dreams] as Dream[]
 
-    const dream = dreams.find(dream => dream.getAssociation(associationName))!
+    const dream = dreams.find(dream => dream.getAssociationMetadata(associationName))!
     if (!dream) return
 
-    const association = dream.getAssociation(associationName)
+    const association = dream.getAssociationMetadata(associationName)
     const dreamClass = dream.constructor as typeof Dream
     const dreamClassToHydrate = association.modelCB() as typeof Dream
 
@@ -1073,7 +1852,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     columnsToPluck.push(`${dreamClass.table}.${dreamClass.primaryKey}`)
 
-    const baseClass = dreamClass['stiBaseClassOrOwnClass'].getAssociation(associationName)
+    const baseClass = dreamClass['stiBaseClassOrOwnClass'].getAssociationMetadata(associationName)
       ? dreamClass['stiBaseClassOrOwnClass']
       : dreamClass
 
@@ -1117,10 +1896,20 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return preloadedDreamsAndWhatTheyPointTo.map(obj => obj.dream)
   }
 
+  /**
+   * @internal
+   *
+   * Applies a preload statement
+   */
   private async hydratePreload(this: Query<DreamInstance>, dream: Dream) {
     await this.applyPreload(this.preloadStatements as any, this.preloadWhereStatements as any, dream)
   }
 
+  /**
+   * @internal
+   *
+   * Applies a preload statement
+   */
   private async applyPreload(
     this: Query<DreamInstance>,
     preloadStatement: RelaxedPreloadStatement,
@@ -1145,6 +1934,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     }
   }
 
+  /**
+   * @internal
+   *
+   * retrieves where statements that can be applied
+   */
   private applyableWhereStatements(
     preloadWhereStatements: RelaxedPreloadWhereStatement<any, any> | undefined
   ): RelaxedPreloadWhereStatement<any, any> | undefined {
@@ -1159,40 +1953,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       },
       {} as RelaxedPreloadWhereStatement<any, any>
     )
-  }
-
-  public async last() {
-    const query = this.orderStatements.length
-      ? this.invertOrder()
-      : this.order({ [this.dreamInstance.primaryKey as any]: 'desc' } as any)
-
-    return await query.takeOne()
-  }
-
-  public async destroy(): Promise<number> {
-    const deletionResult = await executeDatabaseQuery(this.buildDelete(), 'executeTakeFirst')
-    return Number(deletionResult?.numDeletedRows || 0)
-  }
-
-  public async destroyBy(attributes: Updateable<DreamInstance['table']>) {
-    const query = this.where(attributes as any)
-
-    if (query.hasSimilarityClauses) {
-      throw new SimilarityOperatorNotSupportedOnDestroyQueries(this.dreamClass, attributes)
-    }
-
-    return query.destroy()
-  }
-
-  public async updateAll(attributes: DreamTableSchema<DreamInstance>) {
-    if (this.baseSelectQuery) throw new NoUpdateAllOnAssociationQuery()
-    if (Object.keys(this.joinsStatements).length) throw new NoUpdateAllOnJoins()
-
-    const kyselyQuery = this.buildUpdate(attributes)
-    const res = await executeDatabaseQuery(kyselyQuery, 'execute')
-    const resultData = Array.from(res.entries())?.[0]?.[1]
-
-    return Number(resultData?.numUpdatedRows || 0)
   }
 
   private conditionallyApplyScopes(): Query<DreamInstance> {
@@ -1325,7 +2085,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     // INNER JOINS comments ON posts.id = comments.post_id
     // and update dreamClass to be
 
-    let association = dreamClass.getAssociation(currentAssociationTableOrAlias)
+    let association = dreamClass.getAssociationMetadata(currentAssociationTableOrAlias)
     if (!association)
       throw new JoinAttemptedOnMissingAssociation({
         dreamClass,
@@ -2254,7 +3014,10 @@ export interface QueryOpts<
 function getSourceAssociation(dream: Dream | typeof Dream | undefined, sourceName: string) {
   if (!dream) return
   if (!sourceName) return
-  return (dream as Dream).getAssociation(sourceName) || (dream as Dream).getAssociation(singular(sourceName))
+  return (
+    (dream as Dream).getAssociationMetadata(sourceName) ||
+    (dream as Dream).getAssociationMetadata(singular(sourceName))
+  )
 }
 
 interface PreloadedDreamsAndWhatTheyPointTo {

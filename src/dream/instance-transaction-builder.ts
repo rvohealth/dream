@@ -1,24 +1,24 @@
+import { AssociationTableNames } from '../db/reflections'
+import { WhereStatement } from '../decorators/associations/shared'
 import Dream from '../dream'
-import DreamTransaction from './transaction'
-import saveDream from './internal/saveDream'
-import destroyDream from './internal/destroyDream'
-import {
-  UpdateableProperties,
-  DreamConstructorType,
-  UpdateableAssociationProperties,
-  VariadicPluckThroughArgs,
-  VariadicPluckEachThroughArgs,
-  VariadicLoadArgs,
-} from './types'
 import associationQuery from './internal/associations/associationQuery'
 import associationUpdateQuery from './internal/associations/associationUpdateQuery'
 import createAssociation from './internal/associations/createAssociation'
-import reload from './internal/reload'
 import destroyAssociation from './internal/associations/destroyAssociation'
-import Query from './query'
+import destroyDream from './internal/destroyDream'
+import reload from './internal/reload'
+import saveDream from './internal/saveDream'
 import LoadBuilder from './load-builder'
-import { AssociationTableNames } from '../db/reflections'
-import { WhereStatement } from '../decorators/associations/shared'
+import Query from './query'
+import DreamTransaction from './transaction'
+import {
+  DreamConstructorType,
+  UpdateableAssociationProperties,
+  UpdateableProperties,
+  VariadicLoadArgs,
+  VariadicPluckEachThroughArgs,
+  VariadicPluckThroughArgs,
+} from './types'
 
 export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream> {
   public dreamInstance: DreamInstance
@@ -68,25 +68,25 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   public async update<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I,
     attributes: UpdateableProperties<DreamInstance>
-  ): Promise<DreamInstance> {
+  ): Promise<void> {
     this.dreamInstance.assignAttributes(attributes)
-    return saveDream(this.dreamInstance, this.dreamTransaction)
+    await saveDream(this.dreamInstance, this.dreamTransaction)
   }
 
   public async updateAttributes<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I,
     attributes: UpdateableProperties<DreamInstance>
-  ): Promise<DreamInstance> {
+  ): Promise<void> {
     this.dreamInstance.setAttributes(attributes)
-    return saveDream(this.dreamInstance, this.dreamTransaction)
+    await saveDream(this.dreamInstance, this.dreamTransaction)
   }
 
-  public async reload<I extends DreamInstanceTransactionBuilder<DreamInstance>>(this: I) {
-    return reload(this.dreamInstance, this.dreamTransaction)
+  public async reload<I extends DreamInstanceTransactionBuilder<DreamInstance>>(this: I): Promise<void> {
+    await reload(this.dreamInstance, this.dreamTransaction)
   }
 
-  public async save<I extends DreamInstanceTransactionBuilder<DreamInstance>>(this: I) {
-    return saveDream(this.dreamInstance, this.dreamTransaction)
+  public async save<I extends DreamInstanceTransactionBuilder<DreamInstance>>(this: I): Promise<void> {
+    await saveDream(this.dreamInstance, this.dreamTransaction)
   }
 
   public associationQuery<

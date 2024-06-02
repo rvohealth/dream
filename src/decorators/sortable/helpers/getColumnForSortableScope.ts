@@ -12,7 +12,7 @@ export default function getColumnForSortableScope(dream: Dream, scope?: string) 
 
   if (dreamClass.columns().has(scope)) return scope
 
-  const associationMetadata = (dream.associationMap() as any)[scope] as
+  const associationMetadata = (dream.associationMetadataMap() as any)[scope] as
     | BelongsToStatement<any, any, any, string>
     | HasManyStatement<any, any, any, string>
     | HasOneStatement<any, any, any, string>
