@@ -1,15 +1,15 @@
 import { describe as context } from '@jest/globals'
-import Edge from '../../../test-app/app/models/Graph/Edge'
-import Node from '../../../test-app/app/models/Graph/Node'
-import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode'
 import { ExpressionBuilder } from 'kysely'
 import NonExistentScopeProvidedToResort from '../../../src/exceptions/non-existent-scope-provided-to-resort'
-import Mylar from '../../../test-app/app/models/Balloon/Mylar'
-import Latex from '../../../test-app/app/models/Balloon/Latex'
-import User from '../../../test-app/app/models/User'
 import Balloon from '../../../test-app/app/models/Balloon'
-import Pet from '../../../test-app/app/models/Pet'
+import Latex from '../../../test-app/app/models/Balloon/Latex'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import Collar from '../../../test-app/app/models/Collar'
+import Edge from '../../../test-app/app/models/Graph/Edge'
+import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode'
+import Node from '../../../test-app/app/models/Graph/Node'
+import Pet from '../../../test-app/app/models/Pet'
+import User from '../../../test-app/app/models/User'
 
 describe('Dream#resort', () => {
   let edge1: Edge
@@ -38,26 +38,40 @@ describe('Dream#resort', () => {
     edge2Node2_1 = await EdgeNode.create({ edge: edge2, node: node2 })
     edge2Node2_2 = await EdgeNode.create({ edge: edge2, node: node2 })
 
-    expect((await edge1Node1_1.reload()).multiScopedPosition).toEqual(1)
-    expect((await edge1Node1_2.reload()).multiScopedPosition).toEqual(2)
-    expect((await edge1Node1_3.reload()).multiScopedPosition).toEqual(3)
-    expect((await edge2Node1_1.reload()).multiScopedPosition).toEqual(1)
-    expect((await edge2Node1_2.reload()).multiScopedPosition).toEqual(2)
-    expect((await edge2Node2_1.reload()).multiScopedPosition).toEqual(1)
-    expect((await edge2Node2_2.reload()).multiScopedPosition).toEqual(2)
+    await edge1Node1_1.reload()
+    expect(edge1Node1_1.multiScopedPosition).toEqual(1)
+    await edge1Node1_2.reload()
+    expect(edge1Node1_2.multiScopedPosition).toEqual(2)
+    await edge1Node1_3.reload()
+    expect(edge1Node1_3.multiScopedPosition).toEqual(3)
+    await edge2Node1_1.reload()
+    expect(edge2Node1_1.multiScopedPosition).toEqual(1)
+    await edge2Node1_2.reload()
+    expect(edge2Node1_2.multiScopedPosition).toEqual(2)
+    await edge2Node2_1.reload()
+    expect(edge2Node2_1.multiScopedPosition).toEqual(1)
+    await edge2Node2_2.reload()
+    expect(edge2Node2_2.multiScopedPosition).toEqual(2)
   })
 
   context('with valid data that is already correctly ordered', () => {
     it('does not tamper with data', async () => {
       await EdgeNode.resort('multiScopedPosition')
 
-      expect((await edge1Node1_1.reload()).multiScopedPosition).toEqual(1)
-      expect((await edge1Node1_2.reload()).multiScopedPosition).toEqual(2)
-      expect((await edge1Node1_3.reload()).multiScopedPosition).toEqual(3)
-      expect((await edge2Node1_1.reload()).multiScopedPosition).toEqual(1)
-      expect((await edge2Node1_2.reload()).multiScopedPosition).toEqual(2)
-      expect((await edge2Node2_1.reload()).multiScopedPosition).toEqual(1)
-      expect((await edge2Node2_2.reload()).multiScopedPosition).toEqual(2)
+      await edge1Node1_1.reload()
+      expect(edge1Node1_1.multiScopedPosition).toEqual(1)
+      await edge1Node1_2.reload()
+      expect(edge1Node1_2.multiScopedPosition).toEqual(2)
+      await edge1Node1_3.reload()
+      expect(edge1Node1_3.multiScopedPosition).toEqual(3)
+      await edge2Node1_1.reload()
+      expect(edge2Node1_1.multiScopedPosition).toEqual(1)
+      await edge2Node1_2.reload()
+      expect(edge2Node1_2.multiScopedPosition).toEqual(2)
+      await edge2Node2_1.reload()
+      expect(edge2Node2_1.multiScopedPosition).toEqual(1)
+      await edge2Node2_2.reload()
+      expect(edge2Node2_2.multiScopedPosition).toEqual(2)
     })
   })
 
@@ -70,25 +84,39 @@ describe('Dream#resort', () => {
         }))
         .execute()
 
-      expect((await edge1Node1_1.reload()).multiScopedPosition).toEqual(101)
-      expect((await edge1Node1_2.reload()).multiScopedPosition).toEqual(102)
-      expect((await edge1Node1_3.reload()).multiScopedPosition).toEqual(103)
-      expect((await edge2Node1_1.reload()).multiScopedPosition).toEqual(101)
-      expect((await edge2Node1_2.reload()).multiScopedPosition).toEqual(102)
-      expect((await edge2Node2_1.reload()).multiScopedPosition).toEqual(101)
-      expect((await edge2Node2_2.reload()).multiScopedPosition).toEqual(102)
+      await edge1Node1_1.reload()
+      expect(edge1Node1_1.multiScopedPosition).toEqual(101)
+      await edge1Node1_2.reload()
+      expect(edge1Node1_2.multiScopedPosition).toEqual(102)
+      await edge1Node1_3.reload()
+      expect(edge1Node1_3.multiScopedPosition).toEqual(103)
+      await edge2Node1_1.reload()
+      expect(edge2Node1_1.multiScopedPosition).toEqual(101)
+      await edge2Node1_2.reload()
+      expect(edge2Node1_2.multiScopedPosition).toEqual(102)
+      await edge2Node2_1.reload()
+      expect(edge2Node2_1.multiScopedPosition).toEqual(101)
+      await edge2Node2_2.reload()
+      expect(edge2Node2_2.multiScopedPosition).toEqual(102)
     })
 
     it('resets their positions to auto-incrementing order', async () => {
       await EdgeNode.resort('multiScopedPosition')
 
-      expect((await edge1Node1_1.reload()).multiScopedPosition).toEqual(1)
-      expect((await edge1Node1_2.reload()).multiScopedPosition).toEqual(2)
-      expect((await edge1Node1_3.reload()).multiScopedPosition).toEqual(3)
-      expect((await edge2Node1_1.reload()).multiScopedPosition).toEqual(1)
-      expect((await edge2Node1_2.reload()).multiScopedPosition).toEqual(2)
-      expect((await edge2Node2_1.reload()).multiScopedPosition).toEqual(1)
-      expect((await edge2Node2_2.reload()).multiScopedPosition).toEqual(2)
+      await edge1Node1_1.reload()
+      expect(edge1Node1_1.multiScopedPosition).toEqual(1)
+      await edge1Node1_2.reload()
+      expect(edge1Node1_2.multiScopedPosition).toEqual(2)
+      await edge1Node1_3.reload()
+      expect(edge1Node1_3.multiScopedPosition).toEqual(3)
+      await edge2Node1_1.reload()
+      expect(edge2Node1_1.multiScopedPosition).toEqual(1)
+      await edge2Node1_2.reload()
+      expect(edge2Node1_2.multiScopedPosition).toEqual(2)
+      await edge2Node2_1.reload()
+      expect(edge2Node2_1.multiScopedPosition).toEqual(1)
+      await edge2Node2_2.reload()
+      expect(edge2Node2_2.multiScopedPosition).toEqual(2)
     })
   })
 
@@ -117,14 +145,20 @@ describe('Dream#resort', () => {
         })
         .execute()
 
-      expect((await balloon1.reload()).positionAlpha).toEqual(7)
+      await balloon1.reload()
+      expect(balloon1.positionAlpha).toEqual(7)
       await Balloon.resort('positionAlpha')
 
-      expect((await balloon2.reload()).positionAlpha).toEqual(1)
-      expect((await balloon3.reload()).positionAlpha).toEqual(2)
-      expect((await balloon4.reload()).positionAlpha).toEqual(3)
-      expect((await balloon1.reload()).positionAlpha).toEqual(4)
-      expect((await unrelatedBalloon.reload()).positionAlpha).toEqual(1)
+      await balloon2.reload()
+      expect(balloon2.positionAlpha).toEqual(1)
+      await balloon3.reload()
+      expect(balloon3.positionAlpha).toEqual(2)
+      await balloon4.reload()
+      expect(balloon4.positionAlpha).toEqual(3)
+      await balloon1.reload()
+      expect(balloon1.positionAlpha).toEqual(4)
+      await unrelatedBalloon.reload()
+      expect(unrelatedBalloon.positionAlpha).toEqual(1)
     })
   })
 

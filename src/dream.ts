@@ -917,9 +917,9 @@ export default class Dream {
    * @returns A newly persisted dream instance
    */
   public static async create<T extends typeof Dream>(this: T, attributes?: UpdateablePropertiesForClass<T>) {
-    const instance = new (this as any)(attributes as any)
-    await instance.save()
-    return instance as InstanceType<T>
+    const dreamModel = new (this as any)(attributes as any)
+    await dreamModel.save()
+    return dreamModel as InstanceType<T>
   }
 
   /**
@@ -946,13 +946,13 @@ export default class Dream {
     attributes: UpdateablePropertiesForClass<T>,
     extraOpts: CreateOrFindByExtraOps<T> = {}
   ): Promise<InstanceType<T> | null> {
-    let record: InstanceType<T>
     try {
-      record = await new (this as any)({
+      const dreamModel = this.new({
         ...attributes,
         ...(extraOpts?.createWith || {}),
-      }).save()
-      return record
+      })
+      await dreamModel.save()
+      return dreamModel
     } catch (err) {
       if (
         err instanceof DatabaseError &&
@@ -1136,10 +1136,14 @@ export default class Dream {
     const existingRecord = await this.findBy(this.extractAttributesFromUpdateableProperties(attributes))
     if (existingRecord) return existingRecord
 
-    return (await new (this as any)({
+    const dreamModel = new (this as any)({
       ...attributes,
       ...(extraOpts?.createWith || {}),
-    }).save()) as InstanceType<T>
+    })
+
+    await dreamModel.save()
+
+    return dreamModel as InstanceType<T>
   }
 
   /**

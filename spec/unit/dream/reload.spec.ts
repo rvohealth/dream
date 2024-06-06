@@ -21,7 +21,8 @@ describe('Dream#reload', () => {
       await ApplicationModel.transaction(async txn => {
         const userInAnotherInstance = await User.txn(txn).find(user.id)
         await userInAnotherInstance!.txn(txn).update({ email: 'a@b.com' })
-        expect((await user.txn(txn).reload()).email).toEqual('a@b.com')
+        await user.txn(txn).reload()
+        expect(user.email).toEqual('a@b.com')
       })
     })
   })
