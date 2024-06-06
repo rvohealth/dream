@@ -21,7 +21,7 @@ export default function associationUpdateQuery<
   associationName: AssociationName,
   associationWhereStatement?: Where
 ): AssociationQuery {
-  const association = dream.associationMetadataMap()[associationName as any] as
+  const association = dream['associationMetadataMap']()[associationName as any] as
     | HasManyStatement<any, any, any, any>
     | HasOneStatement<any, any, any, any>
     | BelongsToStatement<any, any, any, any>

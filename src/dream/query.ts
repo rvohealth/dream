@@ -818,11 +818,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     const associationsToDreamClassesMap: { [key: string]: typeof Dream } = {}
 
     associationNames.reduce((dreamClass: typeof Dream, associationName: string) => {
-      const association = dreamClass.getAssociationMetadata(associationName)
+      const association = dreamClass['getAssociationMetadata'](associationName)
       const through = (association as any).through
 
       if (through) {
-        const throughAssociation = dreamClass.getAssociationMetadata(through)
+        const throughAssociation = dreamClass['getAssociationMetadata'](through)
         const throughAssociationDreamClass = throughAssociation.modelCB() as typeof Dream
         associationsToDreamClassesMap[through] = throughAssociationDreamClass
       }
@@ -1707,7 +1707,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     dreamClass: typeof Dream,
     association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
   ) {
-    const throughAssociation = association.through && dreamClass.getAssociationMetadata(association.through)
+    const throughAssociation =
+      association.through && dreamClass['getAssociationMetadata'](association.through)
     if (!throughAssociation)
       throw new MissingThroughAssociation({
         dreamClass,
@@ -1815,10 +1816,10 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   ) {
     if (!Array.isArray(dreams)) dreams = [dreams] as Dream[]
 
-    const dream = dreams.find(dream => dream.getAssociationMetadata(associationName))!
+    const dream = dreams.find(dream => dream['getAssociationMetadata'](associationName))!
     if (!dream) return
 
-    const association = dream.getAssociationMetadata(associationName)
+    const association = dream['getAssociationMetadata'](associationName)
     const dreamClass = dream.constructor as typeof Dream
     const dreamClassToHydrate = association.modelCB() as typeof Dream
 
@@ -1857,7 +1858,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     columnsToPluck.push(`${dreamClass.table}.${dreamClass.primaryKey}`)
 
-    const baseClass = dreamClass['stiBaseClassOrOwnClass'].getAssociationMetadata(associationName)
+    const baseClass = dreamClass['stiBaseClassOrOwnClass']['getAssociationMetadata'](associationName)
       ? dreamClass['stiBaseClassOrOwnClass']
       : dreamClass
 
@@ -2090,7 +2091,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     // INNER JOINS comments ON posts.id = comments.post_id
     // and update dreamClass to be
 
-    let association = dreamClass.getAssociationMetadata(currentAssociationTableOrAlias)
+    let association = dreamClass['getAssociationMetadata'](currentAssociationTableOrAlias)
     if (!association)
       throw new JoinAttemptedOnMissingAssociation({
         dreamClass,
@@ -3020,8 +3021,8 @@ function getSourceAssociation(dream: Dream | typeof Dream | undefined, sourceNam
   if (!dream) return
   if (!sourceName) return
   return (
-    (dream as Dream).getAssociationMetadata(sourceName) ||
-    (dream as Dream).getAssociationMetadata(singular(sourceName))
+    (dream as Dream)['getAssociationMetadata'](sourceName) ||
+    (dream as Dream)['getAssociationMetadata'](singular(sourceName))
   )
 }
 

@@ -119,7 +119,7 @@ async function loadAssociatedSerializer(serializerPath: string, association: Ass
   }
 
   if (!dreamClass) return null
-  const associationMetadata = dreamClass.associationMetadataMap()[association.field]
+  const associationMetadata = dreamClass['associationMetadataMap']()[association.field]
 
   if (!associationMetadata) return null
 
