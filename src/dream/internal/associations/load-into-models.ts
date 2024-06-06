@@ -45,10 +45,10 @@ export default class LoadIntoModels<
   private async applyOnePreload(currentAssociationTableOrAlias: string, dreams: Dream | Dream[]) {
     if (!Array.isArray(dreams)) dreams = [dreams] as Dream[]
 
-    const dream = dreams.find(dream => dream.associationMetadataMap()[currentAssociationTableOrAlias])!
+    const dream = dreams.find(dream => dream['associationMetadataMap']()[currentAssociationTableOrAlias])!
     if (!dream) return
 
-    let association = dream.associationMetadataMap()[currentAssociationTableOrAlias]
+    let association = dream['associationMetadataMap']()[currentAssociationTableOrAlias]
     let associationQuery: any // typeof Dream | Query<any>
 
     const originalAssociation = association
@@ -217,7 +217,8 @@ ${JSON.stringify(association, null, 2)}
     dreamClass: typeof Dream,
     association: HasOneStatement<any, DB, Schema, any> | HasManyStatement<any, DB, Schema, any>
   ) {
-    const throughAssociation = association.through && dreamClass.associationMetadataMap()[association.through]
+    const throughAssociation =
+      association.through && dreamClass['associationMetadataMap']()[association.through]
     if (!throughAssociation)
       throw new MissingThroughAssociation({
         dreamClass,
@@ -326,7 +327,7 @@ function getSourceAssociation(dream: Dream | typeof Dream | undefined, sourceNam
   if (!dream) return
   if (!sourceName) return
   return (
-    (dream as Dream).associationMetadataMap()[sourceName] ||
-    (dream as Dream).associationMetadataMap()[singular(sourceName)]
+    (dream as Dream)['associationMetadataMap']()[sourceName] ||
+    (dream as Dream)['associationMetadataMap']()[singular(sourceName)]
   )
 }

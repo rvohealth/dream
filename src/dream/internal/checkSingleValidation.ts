@@ -52,7 +52,7 @@ export default function checkSingleValidation(dream: Dream, validation: Validati
       )
 
     case 'requiredBelongsTo':
-      return !!(value || (dream as any)[dream.associationMetadataMap()[validation.column].foreignKey()])
+      return !!(value || (dream as any)[dream['associationMetadataMap']()[validation.column].foreignKey()])
 
     default:
       throw new Error(

@@ -752,7 +752,7 @@ export default class Dream {
    * @param associationName - the name of the association you wish to retrieve metadata for
    * @returns Association metadata for the requested association
    */
-  public static getAssociationMetadata<
+  private static getAssociationMetadata<
     T extends typeof Dream,
     I extends InstanceType<T>,
     Schema extends I['dreamconf']['schema'],
@@ -767,7 +767,7 @@ export default class Dream {
    *
    * @returns An array containing all of the associations for this dream class
    */
-  public static associationMetadataMap<
+  private static associationMetadataMap<
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
@@ -1824,7 +1824,7 @@ export default class Dream {
    * Returns the metadata for the provided association
    *
    * ```ts
-   * new Post().getAssociationMetadata('user')
+   * new Post()['getAssociationMetadata']('user')
    * // {
    * //    modelCB: [Function (anonymous)],
    * //    type: 'BelongsTo',
@@ -1842,7 +1842,7 @@ export default class Dream {
    * @returns Association metadata
    *
    */
-  public getAssociationMetadata<I extends Dream, Schema extends I['dreamconf']['schema']>(
+  private getAssociationMetadata<I extends Dream, Schema extends I['dreamconf']['schema']>(
     this: I,
     associationName: keyof Schema[I['table']]['associations']
   ) {
@@ -1855,7 +1855,7 @@ export default class Dream {
    * Returns all association metadata for the given dream class
    *
    * ```ts
-   * new Post().associationMetadataMap()
+   * new Post()['associationMetadataMap']()
    * // {
    * //     user: {
    * //       modelCB: [Function (anonymous)],
@@ -1894,9 +1894,8 @@ export default class Dream {
    * ```
    *
    * @returns association metadata
-   *
    */
-  public associationMetadataMap<T extends Dream>(this: T) {
+  private associationMetadataMap<T extends Dream>(this: T) {
     return (this.constructor as typeof Dream).associationMetadataMap()
   }
 
@@ -1933,7 +1932,7 @@ export default class Dream {
    * @returns association metadata by type
    *
    */
-  public get associationMetadataByType() {
+  private get associationMetadataByType() {
     return (this.constructor as typeof Dream).associationMetadataByType
   }
 
