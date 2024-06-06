@@ -1353,24 +1353,6 @@ export default class Dream {
   }
 
   /**
-   * Returns a new Kysely SelectQueryBuilder instance to be used
-   * in a sub Query
-   *
-   * ```ts
-   * await User.where({
-   *   id: Post.nestedSelect('userId'),
-   * }).all()
-   * // [User{id: 1}, ...]
-   * ```
-   *
-   * @param selection - the column to use for your nested Query
-   * @returns A Kysely SelectQueryBuilder instance
-   */
-  public static nestedSelect<T extends typeof Dream>(this: T, selection: DreamColumnNames<InstanceType<T>>) {
-    return this.query().nestedSelect(selection as any)
-  }
-
-  /**
    * Returns a new Query instance, attaching the provided
    * order statement
    *
