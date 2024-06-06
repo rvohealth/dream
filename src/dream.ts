@@ -1973,45 +1973,6 @@ export default class Dream {
   }
 
   /**
-   * Returns true if the model has any dirty attributes
-   *
-   * ```ts
-   * const post = await Post.first()
-   * post.hasDirtyAttributes
-   * // false
-   *
-   * post.body = 'howyadoin'
-   * post.hasDirtyAttributes
-   * // true
-   * ```
-   *
-   * @returns association names array
-   */
-  public get hasDirtyAttributes() {
-    return !!Object.keys(this.dirtyAttributes()).length
-  }
-
-  /**
-   * TODO: remove in https://rvohealth.atlassian.net/browse/PDTC-5487
-   * after removing, replace isDirty implementation with hasDirtyAttributes
-   * implementation and remove hasDirtyAttributes
-   *
-   * Returns true if there are any unsaved associations
-   * attached to the dream instance
-   *
-   * ```ts
-   * const post = Post.new({ user: User.new({ email: 'how@yadoin' }) })
-   * post.hasUnsavedAssociations
-   * // true
-   * ```
-   *
-   * @returns A boolean
-   */
-  public get hasUnsavedAssociations() {
-    return !!this.unsavedAssociations.length
-  }
-
-  /**
    * Returns true if any of the attributes on the instance
    * have changed since it was last pulled from the database.
    * It will also return true if the instance is not yet
@@ -2034,7 +1995,7 @@ export default class Dream {
    * @returns A boolean
    */
   public get isDirty() {
-    return this.hasDirtyAttributes || this.hasUnsavedAssociations
+    return !!Object.keys(this.dirtyAttributes()).length
   }
 
   /**
@@ -2288,40 +2249,6 @@ export default class Dream {
    */
   public get serializers(): Record<string, any> {
     throw new MissingSerializer(this.constructor as typeof Dream)
-  }
-
-  /**
-   * @internal
-   *
-   * Returns an array of association metadata
-   * objects representing the currently unsaved associations
-   * on the given dream instance.
-   *
-   * @returns Association metadata array
-   *
-   * TODO: remove this when tackling https://rvohealth.atlassian.net/browse/PDTC-5487
-   */
-  public get unsavedAssociations(): (
-    | BelongsToStatement<any, any, any, any>
-    | HasOneStatement<any, any, any, any>
-    | HasManyStatement<any, any, any, any>
-  )[] {
-    const unsaved: (
-      | BelongsToStatement<any, any, any, any>
-      | HasOneStatement<any, any, any, any>
-      | HasManyStatement<any, any, any, any>
-    )[] = []
-    for (const associationName in this.associationMetadataMap()) {
-      const associationMetadata = this.getAssociationMetadata(associationName)
-      const associationRecord: Dream | null = (this as any).loaded(associationName)
-        ? ((this as any)[associationName] as Dream)
-        : null
-
-      if (associationRecord?.isDreamInstance && associationRecord?.isDirty) {
-        unsaved.push(associationMetadata)
-      }
-    }
-    return unsaved
   }
 
   /**
@@ -3522,13 +3449,7 @@ export default class Dream {
    * @returns void
    */
   public async save<I extends Dream>(this: I): Promise<void> {
-    if (this.hasUnsavedAssociations) {
-      await (this.constructor as typeof Dream).transaction(async txn => {
-        await saveDream(this, txn)
-      })
-    } else {
-      await saveDream(this, null)
-    }
+    await saveDream(this, null)
   }
 
   /**
@@ -3571,9 +3492,6 @@ export default class Dream {
   public async update<I extends Dream>(this: I, attributes: UpdateableProperties<I>): Promise<void> {
     // use #assignAttributes to leverage any custom-defined setters
     this.assignAttributes(attributes)
-
-    // call save rather than _save so that any unsaved associations in the
-    // attributes are saved with this model in a transaction
     await this.save()
   }
 
@@ -3604,11 +3522,6 @@ export default class Dream {
   ): Promise<void> {
     // use #setAttributes to bypass any custom-defined setters
     this.setAttributes(attributes)
-
-    // remove this comment when tackling:
-    // https://rvohealth.atlassian.net/browse/PDTC-5487
-    // call save rather than _save so that any unsaved associations in the
-    // attributes are saved with this model in a transaction
     await this.save()
   }
 
