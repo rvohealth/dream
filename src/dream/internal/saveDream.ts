@@ -1,13 +1,12 @@
 import { DateTime } from 'luxon'
+import _db from '../../db'
 import Dream from '../../dream'
 import ValidationError from '../../exceptions/validation-error'
-import DreamTransaction from '../transaction'
-import runHooksFor from './runHooksFor'
-import saveUnsavedAssociations from './saveUnsavedAssociations'
 import sqlAttributes from '../../helpers/sqlAttributes'
-import safelyRunCommitHooks from './safelyRunCommitHooks'
-import _db from '../../db'
+import DreamTransaction from '../transaction'
 import executeDatabaseQuery from './executeDatabaseQuery'
+import runHooksFor from './runHooksFor'
+import safelyRunCommitHooks from './safelyRunCommitHooks'
 
 export default async function saveDream<DreamInstance extends Dream>(
   dream: DreamInstance,
@@ -27,8 +26,6 @@ export default async function saveDream<DreamInstance extends Dream>(
   // need to check validations after running before hooks, or else
   // model hooks that might make a model valid cannot run
   if (dream.isInvalid) throw new ValidationError(dream.constructor.name, dream.errors)
-
-  await saveUnsavedAssociations(dream, txn)
 
   if (alreadyPersisted && !dream.isDirty) return dream
 

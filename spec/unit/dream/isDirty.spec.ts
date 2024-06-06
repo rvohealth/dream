@@ -1,9 +1,7 @@
 import { DateTime } from 'luxon'
-import Post from '../../../test-app/app/models/Post'
-import Rating from '../../../test-app/app/models/Rating'
-import User from '../../../test-app/app/models/User'
-import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import CalendarDate from '../../../src/helpers/CalendarDate'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar'
+import User from '../../../test-app/app/models/User'
 
 describe('Dream#isDirty', () => {
   it('reflects being dirty when dirty', async () => {
@@ -118,31 +116,6 @@ describe('Dream#isDirty', () => {
         expect(balloon.isDirty).toEqual(false)
         balloon.type = 'Animal'
         expect(balloon.isDirty).toEqual(true)
-      })
-    })
-  })
-
-  context('with unsaved associations', () => {
-    context('with an unsaved association', () => {
-      it('considers a record dirty when an association has unsaved changes', async () => {
-        const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-        const post = await Post.create({ user })
-        expect(post.isDirty).toEqual(false)
-        user.email = 'calvin@coolidge'
-        expect(post.isDirty).toEqual(true)
-      })
-    })
-
-    context('with an unsaved nested association', () => {
-      it('considers a record dirty when a nested association has unsaved changes', async () => {
-        const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-        const post = await Post.create({ user })
-        const rating = await Rating.create({ rateable: post, rating: 10, user })
-        const reloaded = await rating.load('rateable', 'user').execute()
-
-        expect(reloaded.isDirty).toEqual(false)
-        reloaded.rateable.user.email = 'calvin@coolidge'
-        expect(reloaded.isDirty).toEqual(true)
       })
     })
   })

@@ -1,16 +1,15 @@
+import { DateTime } from 'luxon'
+import DreamDbConnection from '../../../src/db/dream-db-connection'
+import ReplicaSafe from '../../../src/decorators/replica-safe'
+import CanOnlyPassBelongsToModelParam from '../../../src/exceptions/associations/can-only-pass-belongs-to-model-param'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Composition from '../../../test-app/app/models/Composition'
+import EdgeCaseAttribute from '../../../test-app/app/models/EdgeCaseAttribute'
+import Pet from '../../../test-app/app/models/Pet'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
 import UserSettings from '../../../test-app/app/models/UserSettings'
-import CanOnlyPassBelongsToModelParam from '../../../src/exceptions/associations/can-only-pass-belongs-to-model-param'
-import Pet from '../../../test-app/app/models/Pet'
-import { DateTime } from 'luxon'
-import PostVisibility from '../../../test-app/app/models/PostVisibility'
-import ReplicaSafe from '../../../src/decorators/replica-safe'
-import DreamDbConnection from '../../../src/db/dream-db-connection'
-import EdgeCaseAttribute from '../../../test-app/app/models/EdgeCaseAttribute'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 
 describe('Dream.create', () => {
   it('creates the underlying model in the db', async () => {
@@ -101,57 +100,6 @@ describe('Dream.create', () => {
         const rating = await Rating.create({ user, rateable: post })
 
         expect(rating.rateable).toEqual(post)
-      })
-
-      context('saving the associated model fails', () => {
-        it('does not persist the original record, nor any other associated models', async () => {
-          // the PostVisibility model is set up to raise an exception whenever
-          // its "notes" field is set to "raise exception if notes set to this"
-          const postVisibility = PostVisibility.new({ notes: 'raise exception if notes set to this' })
-
-          const user = User.new({ email: 'fred@fishman', password: 'howyadoin' })
-          const post = Post.new({ user, postVisibility })
-
-          // TODO: make this work with expect(...).rejects.toThrow
-          // eg:
-          //    await expect(post.save()).rejects.toThrow()
-          let hasError = false
-          try {
-            await post.save()
-          } catch (err) {
-            hasError = true
-          }
-          expect(hasError).toEqual(true)
-
-          expect(await PostVisibility.count()).toEqual(0)
-          expect(await User.count()).toEqual(0)
-          expect(await Post.count()).toEqual(0)
-        })
-      })
-    })
-
-    context('the associated model is unsaved', () => {
-      it('saves the associated record, then captures the primary key and stores it as the foreign key against the saving model', async () => {
-        const user = User.new({ email: 'fred@fred', password: 'howyadoin' })
-        const composition = await Composition.create({ content: 'howyadoin', user })
-
-        expect(typeof composition.userId).toBe('string')
-        expect(composition.user.isPersisted).toBe(true)
-        expect(composition.user).toMatchDreamModel(user)
-      })
-
-      context('the associated model is polymorphic', () => {
-        it('stores the foreign key type as well as the foreign key id', async () => {
-          const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-          const post = Post.new({ userId: user.id })
-          const rating = await Rating.create({ user, rateable: post })
-
-          expect(rating.rateableId).toEqual(post.id)
-          expect(rating.rateableType).toEqual('Post')
-          const reloadedRating = await Rating.find(rating.id)
-          expect(reloadedRating!.rateableId).toEqual(post.id)
-          expect(reloadedRating!.rateableType).toEqual('Post')
-        })
       })
     })
   })

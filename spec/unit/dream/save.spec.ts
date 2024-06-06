@@ -1,9 +1,7 @@
 import { DateTime } from 'luxon'
-import User from '../../../test-app/app/models/User'
-import Post from '../../../test-app/app/models/Post'
-import Rating from '../../../test-app/app/models/Rating'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
+import User from '../../../test-app/app/models/User'
 
 describe('Dream#save', () => {
   context('a new record', () => {
@@ -27,35 +25,6 @@ describe('Dream#save', () => {
 
         const reloadedUser = await User.find(user.id)
         expect(reloadedUser).toMatchDreamModel(user)
-      })
-    })
-
-    context('saving associations', () => {
-      context('with an unsaved association', () => {
-        it('saves the unsaved association', async () => {
-          const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-          const post = await Post.create({ user })
-          user.email = 'calvin@coolidge'
-          await post.save()
-
-          const reloadedUser = await User.find(user.id)
-          expect(reloadedUser!.email).toEqual('calvin@coolidge')
-        })
-      })
-
-      context('with an unsaved nested association', () => {
-        it('saves the unsaved nested association', async () => {
-          const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-          const post = await Post.create({ user })
-          const rating = await Rating.create({ rateable: post, rating: 10, user })
-          const reloaded = await rating.load('rateable', 'user').execute()
-
-          reloaded.rateable.user.email = 'calvin@coolidge'
-          await reloaded.save()
-
-          const reloadedUser = await User.find(user.id)
-          expect(reloadedUser!.email).toEqual('calvin@coolidge')
-        })
       })
     })
 

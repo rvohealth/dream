@@ -1,16 +1,16 @@
+import { DateTime } from 'luxon'
+import { CalendarDate } from '../../../src'
+import CanOnlyPassBelongsToModelParam from '../../../src/exceptions/associations/can-only-pass-belongs-to-model-param'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
+import Animal from '../../../test-app/app/models/Balloon/Latex/Animal'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import Composition from '../../../test-app/app/models/Composition'
+import ModelWithoutUpdatedAt from '../../../test-app/app/models/ModelWithoutUpdatedAt'
+import Pet from '../../../test-app/app/models/Pet'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
 import UserSettings from '../../../test-app/app/models/UserSettings'
-import CanOnlyPassBelongsToModelParam from '../../../src/exceptions/associations/can-only-pass-belongs-to-model-param'
-import { DateTime } from 'luxon'
-import Pet from '../../../test-app/app/models/Pet'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import Mylar from '../../../test-app/app/models/Balloon/Mylar'
-import Animal from '../../../test-app/app/models/Balloon/Latex/Animal'
-import ModelWithoutUpdatedAt from '../../../test-app/app/models/ModelWithoutUpdatedAt'
-import { CalendarDate } from '../../../src'
 
 describe('Dream#update', () => {
   it('updates the underlying model in the db', async () => {
@@ -188,39 +188,6 @@ describe('Dream#update', () => {
         await rating.update({ rateable: composition })
 
         expect(rating.rateable).toEqual(composition)
-      })
-    })
-  })
-
-  context('when passed an unsaved association', () => {
-    it('saves the associated record, then captures the primary key and stores it as the foreign key against the saving model', async () => {
-      const user = User.new({ email: 'fred@fred', password: 'howyadoin' })
-      const user2 = User.new({ email: 'fred2@fred', password: 'howyadoin' })
-      const composition = await Composition.create({ content: 'howyadoin', user })
-
-      await composition.update({ user: user2 })
-      expect(user2.isPersisted).toEqual(true)
-      expect(typeof composition.userId).toEqual('string')
-      expect(composition.userId).toEqual(user2.id)
-
-      const reloadedComposition = await Composition.find(composition.id)
-      expect(reloadedComposition!.userId).toEqual(user2.id)
-    })
-
-    context('the associated model is polymorphic', () => {
-      it('stores the foreign key type as well as the foreign key id', async () => {
-        const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-        const post = Post.new({ userId: user.id })
-        const post2 = Post.new({ userId: user.id })
-        const rating = await Rating.create({ user, rateable: post })
-
-        await rating.update({ rateable: post2 })
-        expect(rating.rateableId).toEqual(post2.id)
-        expect(rating.rateableType).toEqual('Post')
-
-        const reloadedRating = await Rating.find(rating.id)
-        expect(reloadedRating!.rateableId).toEqual(post2.id)
-        expect(reloadedRating!.rateableType).toEqual('Post')
       })
     })
   })
