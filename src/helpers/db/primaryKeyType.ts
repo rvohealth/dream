@@ -1,7 +1,7 @@
 import { primaryKeyTypes } from '../../dream/types'
 import { loadDreamYamlFile } from '../path'
 
-export default async function primaryKeyType() {
+export default async function primaryKeyType(): Promise<DreamPrimaryKeyType> {
   const yamlConf = await loadDreamYamlFile()
 
   switch (yamlConf.primary_key_type) {
@@ -21,3 +21,5 @@ ATTENTION!
       `)
   }
 }
+
+export type DreamPrimaryKeyType = 'bigint' | 'bigserial' | 'uuid' | 'integer'

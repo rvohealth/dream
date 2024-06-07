@@ -12,9 +12,32 @@ describe('Dream#offset', () => {
     const compositionAsset2 = await CompositionAsset.create({ composition })
     const compositionAsset3 = await CompositionAsset.create({ composition })
 
+    // updating compositionAsset2 here causes the default ordering in the db to shift,
+    // enabling us to provde that ordering by id is working
+    await compositionAsset2.update({ primary: true })
+
     const results = await CompositionAsset.limit(2).offset(1).all()
 
     expect(results).toMatchDreamModels([compositionAsset2, compositionAsset3])
+  })
+
+  context('order is applied', () => {
+    it('orders by provided order statement', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+      const composition = await Composition.create({ user })
+
+      await CompositionAsset.create({ composition, name: 'aaa' })
+      const compositionAsset2 = await CompositionAsset.create({ composition, name: 'ccc' })
+      const compositionAsset3 = await CompositionAsset.create({ composition, name: 'bbb' })
+
+      // updating compositionAsset2 here causes the default ordering in the db to shift,
+      // enabling us to provde that ordering by id is working
+      await compositionAsset2.update({ primary: true })
+
+      const results = await CompositionAsset.limit(2).offset(1).order('name').all()
+
+      expect(results).toMatchDreamModels([compositionAsset3, compositionAsset2])
+    })
   })
 
   context('offset is null', () => {

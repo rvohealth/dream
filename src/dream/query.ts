@@ -79,6 +79,7 @@ import orderByDirection from './internal/orderByDirection'
 import CalendarDate from '../helpers/CalendarDate'
 import MissingRequiredAssociationWhereClause from '../exceptions/associations/missing-required-association-where-clause'
 import MissingRequiredPassthroughForAssociationWhereClause from '../exceptions/associations/missing-required-passthrough-for-association-where-clause'
+import defaultColumnForOrdering from '../helpers/defaultColumnForOrdering'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -2881,6 +2882,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     if (this.limitStatement) kyselyQuery = kyselyQuery.limit(this.limitStatement)
     if (this.offsetStatement) kyselyQuery = kyselyQuery.offset(this.offsetStatement)
+    if ((this.limitStatement || this.offsetStatement) && !this.orderStatements.length) {
+      kyselyQuery = kyselyQuery.orderBy(
+        this.namespaceColumn(defaultColumnForOrdering(this.dreamClass)),
+        'asc'
+      )
+    }
 
     if (!bypassSelectAll) {
       kyselyQuery = kyselyQuery.selectAll(this.baseSqlAlias as ExtractTableAlias<DB, DreamInstance['table']>)

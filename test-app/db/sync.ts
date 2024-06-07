@@ -267,11 +267,39 @@ export interface LocalizedTexts {
   updatedAt: Timestamp;
 }
 
+export interface ModelWithNonSequentialPrimaryKeyAndCustomCreatedAts {
+  datetime: Timestamp;
+  id: string;
+  updatedAt: Timestamp;
+}
+
+export interface ModelWithNonSequentialPrimaryKeys {
+  createdAt: Timestamp;
+  id: string;
+  updatedAt: Timestamp;
+}
+
+export interface ModelWithoutCreatedAtButWithFallbacks {
+  datetime: Int8 | null;
+  id: Int8;
+  updatedAt: Timestamp;
+}
+
+export interface ModelWithoutCreatedAts {
+  id: Int8;
+  updatedAt: Timestamp;
+}
+
 export interface ModelWithoutUpdatedAt {
   cantUpdateThis: string | null;
   createdAt: Timestamp;
   id: Generated<Int8>;
   name: string | null;
+}
+
+export interface NonSequentialPrimaryKeys {
+  id: string;
+  updatedAt: Timestamp;
 }
 
 export interface Pets {
@@ -379,7 +407,12 @@ export interface DB {
   graph_nodes: GraphNodes;
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples;
   localized_texts: LocalizedTexts;
+  model_with_non_sequential_primary_key_and_custom_created_ats: ModelWithNonSequentialPrimaryKeyAndCustomCreatedAts;
+  model_with_non_sequential_primary_keys: ModelWithNonSequentialPrimaryKeys;
+  model_without_created_at_but_with_fallbacks: ModelWithoutCreatedAtButWithFallbacks;
+  model_without_created_ats: ModelWithoutCreatedAts;
   model_without_updated_at: ModelWithoutUpdatedAt;
+  non_sequential_primary_keys: NonSequentialPrimaryKeys;
   pet_understudy_join_models: PetUnderstudyJoinModels;
   pets: Pets;
   post_visibilities: PostVisibilities;
@@ -391,7 +424,7 @@ export interface DB {
 }
 
 
-export const AllColumns = ['approval', 'balloonId', 'balloonLines', 'balloonSpotterBalloons', 'balloonSpotterId', 'balloonSpotters', 'beautifulBalloons', 'birthdate', 'body', 'cantUpdateThis', 'collars', 'color', 'compositionAssetAudits', 'compositionAssetId', 'compositionAssets', 'compositionId', 'compositions', 'content', 'createdAt', 'deletedAt', 'edgeCaseAttributes', 'edgeId', 'email', 'extraRateableId', 'extraRateableType', 'extraRatings', 'favoriteDates', 'favoriteDatetimes', 'favoriteDaysOfWeek', 'favoriteNumbers', 'favoriteTreats', 'favoriteWord', 'featuredPostPosition', 'graphEdgeNodes', 'graphEdges', 'graphNodes', 'hidden', 'id', 'incompatibleForeignKeyTypeExamples', 'kPop', 'likesChalupas', 'locale', 'localizableId', 'localizableType', 'localizedTexts', 'lost', 'material', 'metadata', 'metadata2', 'metadata3', 'modelWithoutUpdatedAt', 'multiScopedPosition', 'multicolor', 'name', 'nickname', 'nodeId', 'notes', 'omittedEdgePosition', 'passwordDigest', 'petId', 'petUnderstudyJoinModels', 'pets', 'popK', 'popKPop', 'position', 'positionAlpha', 'positionBeta', 'positionWithinSpecies', 'postVisibilities', 'postVisibilityId', 'posts', 'primary', 'rateableId', 'rateableType', 'rating', 'ratings', 'sandbags', 'score', 'socialSecurityNumber', 'species', 'src', 'tagName', 'targetRating', 'title', 'type', 'understudyId', 'updatedAt', 'userId', 'userSettings', 'userUuid', 'users', 'uuid', 'visibility', 'volume', 'weight', 'weightKgs', 'weightTons'] as const
+export const AllColumns = ['approval', 'balloonId', 'balloonLines', 'balloonSpotterBalloons', 'balloonSpotterId', 'balloonSpotters', 'beautifulBalloons', 'birthdate', 'body', 'cantUpdateThis', 'collars', 'color', 'compositionAssetAudits', 'compositionAssetId', 'compositionAssets', 'compositionId', 'compositions', 'content', 'createdAt', 'datetime', 'deletedAt', 'edgeCaseAttributes', 'edgeId', 'email', 'extraRateableId', 'extraRateableType', 'extraRatings', 'favoriteDates', 'favoriteDatetimes', 'favoriteDaysOfWeek', 'favoriteNumbers', 'favoriteTreats', 'favoriteWord', 'featuredPostPosition', 'graphEdgeNodes', 'graphEdges', 'graphNodes', 'hidden', 'id', 'incompatibleForeignKeyTypeExamples', 'kPop', 'likesChalupas', 'locale', 'localizableId', 'localizableType', 'localizedTexts', 'lost', 'material', 'metadata', 'metadata2', 'metadata3', 'modelWithNonSequentialPrimaryKeyAndCustomCreatedAts', 'modelWithNonSequentialPrimaryKeys', 'modelWithoutCreatedAtButWithFallbacks', 'modelWithoutCreatedAts', 'modelWithoutUpdatedAt', 'multiScopedPosition', 'multicolor', 'name', 'nickname', 'nodeId', 'nonSequentialPrimaryKeys', 'notes', 'omittedEdgePosition', 'passwordDigest', 'petId', 'petUnderstudyJoinModels', 'pets', 'popK', 'popKPop', 'position', 'positionAlpha', 'positionBeta', 'positionWithinSpecies', 'postVisibilities', 'postVisibilityId', 'posts', 'primary', 'rateableId', 'rateableType', 'rating', 'ratings', 'sandbags', 'score', 'socialSecurityNumber', 'species', 'src', 'tagName', 'targetRating', 'title', 'type', 'understudyId', 'updatedAt', 'userId', 'userSettings', 'userUuid', 'users', 'uuid', 'visibility', 'volume', 'weight', 'weightKgs', 'weightTons'] as const
 
 export class DBClass {
   balloon_lines: BalloonLines
@@ -409,7 +442,12 @@ export class DBClass {
   graph_nodes: GraphNodes
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples
   localized_texts: LocalizedTexts
+  model_with_non_sequential_primary_key_and_custom_created_ats: ModelWithNonSequentialPrimaryKeyAndCustomCreatedAts
+  model_with_non_sequential_primary_keys: ModelWithNonSequentialPrimaryKeys
+  model_without_created_at_but_with_fallbacks: ModelWithoutCreatedAtButWithFallbacks
+  model_without_created_ats: ModelWithoutCreatedAts
   model_without_updated_at: ModelWithoutUpdatedAt
+  non_sequential_primary_keys: NonSequentialPrimaryKeys
   pet_understudy_join_models: PetUnderstudyJoinModels
   pets: Pets
   post_visibilities: PostVisibilities

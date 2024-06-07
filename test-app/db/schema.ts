@@ -1340,6 +1340,126 @@ export const schema = {
       },
     },
   },
+  model_with_non_sequential_primary_key_and_custom_created_ats: {
+    columns: {
+      datetime: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+      id: {
+        coercedType: {} as string,
+        enumType: null,
+        enumValues: null,
+        dbType: 'uuid',
+        allowNull: false,
+        isArray: false,
+      },
+      updatedAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+    },
+    virtualColumns: [],
+    associations: {
+      
+    },
+  },
+  model_with_non_sequential_primary_keys: {
+    columns: {
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+      id: {
+        coercedType: {} as string,
+        enumType: null,
+        enumValues: null,
+        dbType: 'uuid',
+        allowNull: false,
+        isArray: false,
+      },
+      updatedAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+    },
+    virtualColumns: [],
+    associations: {
+      
+    },
+  },
+  model_without_created_at_but_with_fallbacks: {
+    columns: {
+      datetime: {
+        coercedType: {} as IdType | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: true,
+        isArray: false,
+      },
+      id: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
+      updatedAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+    },
+    virtualColumns: [],
+    associations: {
+      
+    },
+  },
+  model_without_created_ats: {
+    columns: {
+      id: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
+      updatedAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+    },
+    virtualColumns: [],
+    associations: {
+      
+    },
+  },
   model_without_updated_at: {
     columns: {
       cantUpdateThis: {
@@ -1372,6 +1492,30 @@ export const schema = {
         enumValues: null,
         dbType: 'character varying',
         allowNull: true,
+        isArray: false,
+      },
+    },
+    virtualColumns: [],
+    associations: {
+      
+    },
+  },
+  non_sequential_primary_keys: {
+    columns: {
+      id: {
+        coercedType: {} as string,
+        enumType: null,
+        enumValues: null,
+        dbType: 'uuid',
+        allowNull: false,
+        isArray: false,
+      },
+      updatedAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
         isArray: false,
       },
     },

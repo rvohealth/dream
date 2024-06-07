@@ -132,7 +132,7 @@ export default class Dream {
    *
    * @returns string
    */
-  public get createdAtField() {
+  public get createdAtField(): Readonly<string> {
     return 'createdAt' as const
   }
 
@@ -153,11 +153,11 @@ export default class Dream {
    *
    * @returns string
    */
-  public get updatedAtField() {
+  public get updatedAtField(): Readonly<string> {
     return 'updatedAt' as const
   }
 
-  public get deletedAtField() {
+  public get deletedAtField(): Readonly<string> {
     return 'deletedAt' as const
   }
 
@@ -2162,6 +2162,40 @@ export default class Dream {
    */
   public get primaryKey() {
     return 'id' as const
+  }
+
+  /**
+   * The default field to use for ordering.
+   * For certain sql queries, ordering is required,
+   * such as when using limit or offset.
+   *
+   * By default, Dream will use the following
+   * (in the following order) to determine which column
+   * should be used to apply an order if it is not
+   * otherwise specified in the query:
+   *
+   * 1. `defaultOrderableColumn` is overridden on your model
+   * 2. Your primaryKey, if the primaryKey is a sequential type.
+   *    Sequential primary key types include:
+   *      - `bigint`
+   *      - 'bigserial'
+   *      - 'integer'
+   * 3. The value provided for `createdAtField` (if defined)
+   *    define this on your model like so:
+   *      class MyModel extends ApplicationModel {
+   *        public get createdAtField() {
+   *          return 'myDatetimeField'
+   *        }
+   *      }
+   * 4. The createdAt field on your model
+   *
+   * If none of these can be found, any Query utilizing offset or
+   * limit will fail.
+   *
+   * @returns A column name on the model
+   */
+  public get defaultOrderableColumn(): Readonly<string> | null {
+    return null
   }
 
   /**

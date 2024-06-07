@@ -4,7 +4,7 @@ import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 
 describe('Dream.limit', () => {
-  it('limits the results', async () => {
+  it('limits the results, implicitly ordering by id', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
     const composition = await Composition.create({ user })
 
@@ -12,9 +12,27 @@ describe('Dream.limit', () => {
     const compositionAsset2 = await CompositionAsset.create({ composition })
     await CompositionAsset.create({ composition })
 
-    const results = await CompositionAsset.limit(2).all()
+    // updating compositionAsset2 here causes the default ordering in the db to shift,
+    // enabling us to provde that ordering by id is working
+    await compositionAsset2.update({ primary: true })
 
+    const results = await CompositionAsset.limit(2).all()
     expect(results).toMatchDreamModels([compositionAsset1, compositionAsset2])
+  })
+
+  context('order is applied', () => {
+    it('orders by provided order statement', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+      const composition = await Composition.create({ user })
+
+      const compositionAsset1 = await CompositionAsset.create({ composition, name: 'b' })
+      const compositionAsset2 = await CompositionAsset.create({ composition, name: 'a' })
+      await CompositionAsset.create({ composition })
+
+      const results = await CompositionAsset.order('name').limit(2).all()
+
+      expect(results).toMatchDreamModels([compositionAsset2, compositionAsset1])
+    })
   })
 
   context('when passed null', () => {
