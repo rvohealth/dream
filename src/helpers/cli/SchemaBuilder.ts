@@ -1,15 +1,15 @@
-import { sql } from 'kysely'
-import { schemaPath } from '../path'
-import _db from '../../db'
 import { promises as fs } from 'fs'
-import loadDreamconfFile from '../path/loadDreamconfFile'
+import { sql } from 'kysely'
 import sortBy from 'lodash.sortby'
-import loadModels from '../loadModels'
-import camelize from '../camelize'
-import pascalize from '../pascalize'
+import _db from '../../db'
 import { isPrimitiveDataType } from '../../db/dataTypes'
-import dbSyncPath from '../path/dbSyncPath'
 import { DreamConst } from '../../dream/types'
+import camelize from '../camelize'
+import loadModels from '../loadModels'
+import pascalize from '../pascalize'
+import { schemaPath } from '../path'
+import dbSyncPath from '../path/dbSyncPath'
+import loadDreamconfFile from '../path/loadDreamconfFile'
 
 export default class SchemaBuilder {
   public async build() {
@@ -163,8 +163,7 @@ ${tableName}: {
   private async getVirtualColumns(tableName: string) {
     const models = sortBy(Object.values(await loadModels()), m => m.table)
     const model = models.find(model => model.table === tableName)
-    if (!model) throw new Error(`Failed to find a model matching the table name: ${tableName}`)
-    return model['virtualAttributes']?.map(prop => prop.property) || []
+    return model?.['virtualAttributes']?.map(prop => prop.property) || []
   }
 
   private async getSchemaData() {
