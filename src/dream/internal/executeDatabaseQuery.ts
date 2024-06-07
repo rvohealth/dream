@@ -8,37 +8,19 @@ export default async function executeDatabaseQuery<
         ? any
         : never,
 >(kyselyQuery: any, command: Command): Promise<ReturnType> {
-  const debugging = process.env.DEBUG === '1'
-  const sqlString = debugging ? kyselyQuery.compile().sql : null
-  const paramsString = debugging ? kyselyQuery.compile().parameters.join(', ') : null
-
-  const sqlDebugMessage = debugging
-    ? `
-      ${sqlString}
-      [ ${paramsString} ]
-      NOTE: to turn this message off, remove the DEBUG=1 env variable
-    `
-    : null
-
   try {
-    if (debugging) {
-      console.log(
-        `
-            About to execute the following SQL:
-            ${sqlDebugMessage}
-          `
-      )
-    }
-
     return await kyselyQuery[command]()
   } catch (error) {
-    if (debugging) {
-      console.error(`
-          Error executing the following SQL:
-          ${(error as Error).message}
+    if (process.env.DEBUG === '1') {
+      const sqlString = kyselyQuery.compile().sql
+      const paramsString = kyselyQuery.compile().parameters.join(', ')
 
-          ${sqlDebugMessage}
-        `)
+      console.error(`Error executing the following SQL:
+${(error as Error).message}
+
+${sqlString}
+[ ${paramsString} ]
+NOTE: to turn this message off, remove the DEBUG=1 env variable`)
     }
     // throw the original error to maintain stack trace
     throw error
