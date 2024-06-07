@@ -1,5 +1,27 @@
+import {
+  AliasedExpression,
+  ComparisonOperator,
+  DeleteQueryBuilder,
+  ExpressionBuilder,
+  ExpressionWrapper,
+  ComparisonOperatorExpression as KyselyComparisonOperatorExpression,
+  RawBuilder,
+  SelectQueryBuilder,
+  UpdateQueryBuilder,
+  Updateable,
+  sql,
+} from 'kysely'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
+import isEmpty from 'lodash.isempty'
+import { DateTime } from 'luxon'
+import { singular } from 'pluralize'
+import ConnectedToDB from '../db/ConnectedToDB'
 import { AssociationTableNames } from '../db/reflections'
+import { DbConnectionType } from '../db/types'
+import associationToGetterSetterProp from '../decorators/associations/associationToGetterSetterProp'
+import { BelongsToStatement } from '../decorators/associations/belongs-to'
+import { HasManyStatement } from '../decorators/associations/has-many'
+import { HasOneStatement } from '../decorators/associations/has-one'
 import {
   AssociationStatement,
   LimitStatement,
@@ -9,6 +31,39 @@ import {
   WhereSelfStatement,
   WhereStatement,
 } from '../decorators/associations/shared'
+import Dream from '../dream'
+import CannotAssociateThroughPolymorphic from '../exceptions/associations/cannot-associate-through-polymorphic'
+import CannotJoinPolymorphicBelongsToError from '../exceptions/associations/cannot-join-polymorphic-belongs-to-error'
+import JoinAttemptedOnMissingAssociation from '../exceptions/associations/join-attempted-with-missing-association'
+import MissingRequiredAssociationWhereClause from '../exceptions/associations/missing-required-association-where-clause'
+import MissingRequiredPassthroughForAssociationWhereClause from '../exceptions/associations/missing-required-passthrough-for-association-where-clause'
+import MissingThroughAssociation from '../exceptions/associations/missing-through-association'
+import MissingThroughAssociationSource from '../exceptions/associations/missing-through-association-source'
+import CannotNegateSimilarityClause from '../exceptions/cannot-negate-similarity-clause'
+import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../exceptions/cannot-pass-additional-fields-to-pluck-each-after-callback-function'
+import MissingRequiredCallbackFunctionToPluckEach from '../exceptions/missing-required-callback-function-to-pluck-each'
+import NoUpdateAllOnAssociationQuery from '../exceptions/no-updateall-on-association-query'
+import NoUpdateAllOnJoins from '../exceptions/no-updateall-on-joins'
+import SimilarityOperatorNotSupportedOnDestroyQueries from '../exceptions/similarity-operator-not-supported-on-destroy-queries'
+import CalendarDate from '../helpers/CalendarDate'
+import { allNestedObjectKeys } from '../helpers/allNestedObjectKeys'
+import cloneDeepSafe from '../helpers/cloneDeepSafe'
+import compact from '../helpers/compact'
+import { marshalDBValue } from '../helpers/marshalDBValue'
+import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment'
+import { Range } from '../helpers/range'
+import snakeify from '../helpers/snakeify'
+import { isObject, isString } from '../helpers/typechecks'
+import ops from '../ops'
+import CurriedOpsStatement from '../ops/curried-ops-statement'
+import OpsStatement from '../ops/ops-statement'
+import LoadIntoModels from './internal/associations/load-into-models'
+import executeDatabaseQuery from './internal/executeDatabaseQuery'
+import { extractValueFromJoinsPluckResponse } from './internal/extractValueFromJoinsPluckResponse'
+import orderByDirection from './internal/orderByDirection'
+import SimilarityBuilder from './internal/similarity/SimilarityBuilder'
+import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance'
+import DreamTransaction from './transaction'
 import {
   DreamColumnNames,
   DreamConst,
@@ -25,60 +80,6 @@ import {
   VariadicPluckEachThroughArgs,
   VariadicPluckThroughArgs,
 } from './types'
-import {
-  AliasedExpression,
-  ComparisonOperator,
-  DeleteQueryBuilder,
-  SelectQueryBuilder,
-  UpdateQueryBuilder,
-  Updateable,
-  ComparisonOperatorExpression as KyselyComparisonOperatorExpression,
-  sql,
-  ExpressionBuilder,
-  ExpressionWrapper,
-  RawBuilder,
-} from 'kysely'
-import { marshalDBValue } from '../helpers/marshalDBValue'
-import Dream from '../dream'
-import { HasManyStatement } from '../decorators/associations/has-many'
-import { HasOneStatement } from '../decorators/associations/has-one'
-import { BelongsToStatement } from '../decorators/associations/belongs-to'
-import CannotJoinPolymorphicBelongsToError from '../exceptions/associations/cannot-join-polymorphic-belongs-to-error'
-import OpsStatement from '../ops/ops-statement'
-import { Range } from '../helpers/range'
-import { DateTime } from 'luxon'
-import DreamTransaction from './transaction'
-import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance'
-import CurriedOpsStatement from '../ops/curried-ops-statement'
-import CannotAssociateThroughPolymorphic from '../exceptions/associations/cannot-associate-through-polymorphic'
-import MissingThroughAssociation from '../exceptions/associations/missing-through-association'
-import MissingThroughAssociationSource from '../exceptions/associations/missing-through-association-source'
-import JoinAttemptedOnMissingAssociation from '../exceptions/associations/join-attempted-with-missing-association'
-import { singular } from 'pluralize'
-import isEmpty from 'lodash.isempty'
-import executeDatabaseQuery from './internal/executeDatabaseQuery'
-import { DbConnectionType } from '../db/types'
-import NoUpdateAllOnAssociationQuery from '../exceptions/no-updateall-on-association-query'
-import { isObject, isString } from '../helpers/typechecks'
-import CannotNegateSimilarityClause from '../exceptions/cannot-negate-similarity-clause'
-import SimilarityBuilder from './internal/similarity/SimilarityBuilder'
-import ConnectedToDB from '../db/ConnectedToDB'
-import SimilarityOperatorNotSupportedOnDestroyQueries from '../exceptions/similarity-operator-not-supported-on-destroy-queries'
-import cloneDeepSafe from '../helpers/cloneDeepSafe'
-import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment'
-import associationToGetterSetterProp from '../decorators/associations/associationToGetterSetterProp'
-import compact from '../helpers/compact'
-import snakeify from '../helpers/snakeify'
-import LoadIntoModels from './internal/associations/load-into-models'
-import { allNestedObjectKeys } from '../helpers/allNestedObjectKeys'
-import { extractValueFromJoinsPluckResponse } from './internal/extractValueFromJoinsPluckResponse'
-import MissingRequiredCallbackFunctionToPluckEach from '../exceptions/missing-required-callback-function-to-pluck-each'
-import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../exceptions/cannot-pass-additional-fields-to-pluck-each-after-callback-function'
-import NoUpdateAllOnJoins from '../exceptions/no-updateall-on-joins'
-import orderByDirection from './internal/orderByDirection'
-import CalendarDate from '../helpers/CalendarDate'
-import MissingRequiredAssociationWhereClause from '../exceptions/associations/missing-required-association-where-clause'
-import MissingRequiredPassthroughForAssociationWhereClause from '../exceptions/associations/missing-required-passthrough-for-association-where-clause'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -448,20 +449,24 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @returns void
    */
   public async findEach(
+    this: Query<DreamInstance>,
     cb: (instance: DreamInstance) => void | Promise<void>,
     { batchSize = Query.BATCH_SIZES.FIND_EACH }: { batchSize?: number } = {}
   ): Promise<void> {
-    let offset = 0
     let records: any[]
+    const query = this.order(null).order('id').limit(batchSize)
+    let lastId = null
 
     do {
-      records = await this.offset(offset).limit(batchSize).all()
+      if (lastId)
+        records = await query.where({ [this.dreamInstance.primaryKey]: ops.greaterThan(lastId) } as any).all()
+      else records = await query.all()
 
       for (const record of records) {
         await cb(record)
       }
 
-      offset += batchSize
+      lastId = records[records.length - 1]?.primaryKeyValue
     } while (records.length > 0 && records.length === batchSize)
   }
 
