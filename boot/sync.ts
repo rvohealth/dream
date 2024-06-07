@@ -30,9 +30,7 @@ async function writeSchema() {
   }
 
   await sspawn(
-    `kysely-codegen --url=postgres://${process.env[dbConf.user]}@${process.env[dbConf.host]}:${
-      process.env[dbConf.port]
-    }/${process.env[dbConf.name]} --out-file=${absoluteDbSyncPath}`
+    `kysely-codegen --url=postgres://${process.env[dbConf.user]}:${process.env[dbConf.password]}@${process.env[dbConf.host]}:${process.env[dbConf.port]}/${process.env[dbConf.name]} --out-file=${absoluteDbSyncPath}`
   )
 
   // intentionally bypassing helpers here, since they often end up referencing
