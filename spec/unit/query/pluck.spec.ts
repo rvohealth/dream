@@ -1,6 +1,6 @@
-import User from '../../../test-app/app/models/User'
 import ops from '../../../src/ops'
 import Edge from '../../../test-app/app/models/Graph/Edge'
+import User from '../../../test-app/app/models/User'
 
 describe('Query#pluck', () => {
   let user1: User

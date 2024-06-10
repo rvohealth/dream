@@ -454,7 +454,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     { batchSize = Query.BATCH_SIZES.FIND_EACH }: { batchSize?: number } = {}
   ): Promise<void> {
     let records: any[]
-    const query = this.order(null).order('id').limit(batchSize)
+    const query = this.order(null).order(this.dreamClass.primaryKey).limit(batchSize)
     let lastId = null
 
     do {
@@ -677,7 +677,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       ...pluckStatement
     )
 
-    const associationNamesToDreamClasses = this.pluckThroughStatementsToDreamClassesMap([...args])
+    const associationNamesToDreamClasses = this.pluckThroughArgumentsToDreamClassesMap([...args])
 
     const mapFn = (val: any, index: number) => {
       return extractValueFromJoinsPluckResponse(
@@ -689,7 +689,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       )
     }
 
-    const response = this.pluckValuesToPluckResponse(pluckStatement, vals, mapFn)
+    const response = this.pluckValuesToPluckResponse(pluckStatement, vals, mapFn, {
+      excludeFirstValue: false,
+    })
     return response
   }
 
@@ -751,9 +753,19 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     const pluckStatement = [
       this.fleshOutPluckThroughStatements(joinsStatements, joinsWhereStatements, null, onlyColumns),
-    ].flat() as any[]
+    ].flat() as string[]
 
-    const associationNamesToDreamClasses = this.pluckThroughStatementsToDreamClassesMap(fieldArgs)
+    const associationNamesToDreamClasses = this.pluckThroughArgumentsToDreamClassesMap([...fieldArgs])
+    const finalAssociationName = this.pluckThroughArgumentsToTargetAssociationName([...fieldArgs])
+    const finalDreamClass = associationNamesToDreamClasses[finalAssociationName]
+    const finalPrimaryKey = `${finalAssociationName}.${finalDreamClass.primaryKey}`
+
+    const pluckStatementIncludesPrimaryKey =
+      pluckStatement.includes(finalPrimaryKey) || pluckStatement.includes(finalDreamClass.primaryKey)
+
+    const columnsIncludingPrimaryKey: DreamColumnNames<DreamInstance>[] = pluckStatementIncludesPrimaryKey
+      ? pluckStatement
+      : [finalPrimaryKey, ...pluckStatement]
 
     const baseQuery = this.clone({ joinsStatements, joinsWhereStatements })
     const mapFn = (val: any, index: number) => {
@@ -770,10 +782,14 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     let results: any[]
     do {
       results = await baseQuery
+        .order(null)
+        .order(finalPrimaryKey)
         .offset(offset)
         .limit(batchSize)
-        .pluckWithoutMarshalling(...pluckStatement)
-      const plucked = this.pluckValuesToPluckResponse(pluckStatement, results, mapFn)
+        .pluckWithoutMarshalling(...columnsIncludingPrimaryKey)
+      const plucked = this.pluckValuesToPluckResponse(pluckStatement, results, mapFn, {
+        excludeFirstValue: !pluckStatementIncludesPrimaryKey,
+      })
 
       for (const data of plucked) {
         await providedCb(data)
@@ -786,11 +802,41 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   /**
    * @internal
    *
+   * Returns the last association name in the pluck throguh args
+   */
+  private pluckThroughArgumentsToAssociationNames(associationStatements: any[]): string[] {
+    const joinsStatements = {}
+    this.fleshOutPluckThroughStatements(joinsStatements, {}, null, associationStatements)
+    return allNestedObjectKeys(joinsStatements)
+  }
+
+  /**
+   * @internal
+   *
+   * Returns the last association name in the pluck throguh args
+   */
+  private pluckThroughArgumentsToTargetAssociationName(
+    // associationStatements: (
+    //   | string
+    //   | WhereStatement<DB, SyncedAssociations, any>
+    //   | `${any}.${any}`
+    //   | `${any}.${any}`[]
+    //   | undefined
+    // )[]
+    // Complex type isn't gaining us anything and is making it difficult to use this private method
+    associationStatements: any[]
+  ): string {
+    const associations = this.pluckThroughArgumentsToAssociationNames(associationStatements)
+    return associations[associations.length - 1]
+  }
+  /**
+   * @internal
+   *
    * Builds an association map for use when
    * applying pluckThrough statements
    *
    */
-  private pluckThroughStatementsToDreamClassesMap(
+  private pluckThroughArgumentsToDreamClassesMap(
     // associationStatements: (
     //   | string
     //   | WhereStatement<DB, SyncedAssociations, any>
@@ -801,9 +847,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     // Complex type isn't gaining us anything and is making it difficult to use this private method
     associationStatements: any[]
   ): { [key: string]: typeof Dream } {
-    const joinsStatements = {}
-    this.fleshOutPluckThroughStatements(joinsStatements, {}, null, associationStatements)
-    const associations = allNestedObjectKeys(joinsStatements)
+    const associations = this.pluckThroughArgumentsToAssociationNames(associationStatements)
     return this.associationsToDreamClassesMap(associations)
   }
 
@@ -1381,7 +1425,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     const vals = await this.pluckWithoutMarshalling(...fields)
 
     const mapFn = (val: any, index: number) => marshalDBValue(this.dreamClass, fields[index] as any, val)
-    return this.pluckValuesToPluckResponse(fields, vals, mapFn)
+    return this.pluckValuesToPluckResponse(fields, vals, mapFn, {
+      excludeFirstValue: false,
+    })
   }
 
   /**
@@ -1431,11 +1477,20 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     let offset = 0
     let records: any[]
     do {
-      records = await this.offset(offset)
-        .limit(batchSize)
-        .pluckWithoutMarshalling(...onlyColumns)
+      const onlyIncludesPrimaryKey = onlyColumns.includes(this.dreamClass.primaryKey)
+      const columnsIncludingPrimaryKey: DreamColumnNames<DreamInstance>[] = onlyIncludesPrimaryKey
+        ? onlyColumns
+        : [this.dreamClass.primaryKey, ...onlyColumns]
 
-      const vals = this.pluckValuesToPluckResponse(onlyColumns, records, mapFn)
+      records = await this.offset(offset)
+        .order(null)
+        .order(this.dreamClass.primaryKey)
+        .limit(batchSize)
+        .pluckWithoutMarshalling(...columnsIncludingPrimaryKey)
+
+      const vals = this.pluckValuesToPluckResponse(onlyColumns, records, mapFn, {
+        excludeFirstValue: !onlyIncludesPrimaryKey,
+      })
       for (const val of vals) {
         await providedCb(val)
       }
@@ -1618,7 +1673,14 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns An array of pluck values
    */
-  private pluckValuesToPluckResponse(fields: any[], vals: any[], mapFn: (value: any, index: number) => any) {
+  private pluckValuesToPluckResponse(
+    fields: any[],
+    vals: any[],
+    mapFn: (value: any, index: number) => any,
+    { excludeFirstValue }: { excludeFirstValue: boolean }
+  ) {
+    if (excludeFirstValue) vals = vals.map(valueArr => valueArr.slice(1))
+
     if (fields.length > 1) {
       return vals.map(arr => arr.map(mapFn))
     } else {
