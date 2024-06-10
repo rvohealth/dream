@@ -673,7 +673,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName],
-  >(): Set<keyof Table & string> {
+  >(this: T): Set<keyof Table & string> {
     const columns = this.prototype.dreamconf.schema[this.table]?.columns
     return new Set(columns ? Object.keys(columns) : [])
   }
@@ -692,9 +692,32 @@ export default class Dream {
    *
    * @returns A subset of columns for the given dream class
    */
-  public static paramSafeColumns<T extends typeof Dream, I extends InstanceType<T>>(
+  public static paramSafeColumnsOrFallback<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    ParamSafeColumnsOverride extends InstanceType<T>['paramSafeColumns' & keyof InstanceType<T>] extends never
+      ? undefined
+      : InstanceType<T>['paramSafeColumns' & keyof InstanceType<T>] & string[],
+    ReturnVal extends ParamSafeColumnsOverride extends string[]
+      ? Extract<
+          DreamParamSafeColumnNames<I>,
+          ParamSafeColumnsOverride[number] & DreamParamSafeColumnNames<I>
+        >[]
+      : DreamParamSafeColumnNames<I>[],
+  >(this: T): ReturnVal {
+    const defaultParams = this.defaultParamSafeColumns()
+    const userDefinedParams = (this.prototype as any).paramSafeColumns as ReturnVal
+
+    if (Array.isArray(userDefinedParams)) {
+      return userDefinedParams.filter(param => defaultParams.includes(param)) as ReturnVal
+    }
+
+    return defaultParams as ReturnVal
+  }
+
+  protected static defaultParamSafeColumns<T extends typeof Dream, I extends InstanceType<T>>(
     this: T
-  ): Set<DreamParamSafeColumnNames<I>> {
+  ): DreamParamSafeColumnNames<I>[] {
     const columns: DreamParamSafeColumnNames<I>[] = [...this.columns()].filter(column => {
       if (this.prototype.primaryKey === column) return false
       if (
@@ -711,9 +734,9 @@ export default class Dream {
       return true
     }) as DreamParamSafeColumnNames<I>[]
 
-    return new Set([...columns, ...this.virtualAttributes.map(attr => attr.property)]) as Set<
-      DreamParamSafeColumnNames<I>
-    >
+    return [
+      ...new Set([...columns, ...this.virtualAttributes.map(attr => attr.property)]),
+    ] as DreamParamSafeColumnNames<I>[]
   }
 
   /**
