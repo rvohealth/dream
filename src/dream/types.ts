@@ -1,17 +1,20 @@
-import { ComparisonOperatorExpression as KyselyComparisonOperatorExpression } from 'kysely'
+import {
+  ColumnType,
+  ComparisonOperatorExpression as KyselyComparisonOperatorExpression,
+  Updateable,
+} from 'kysely'
 import { DateTime } from 'luxon'
-import { Updateable, ColumnType } from 'kysely'
 import { AssociationTableNames } from '../db/reflections'
-import Dream from '../dream'
-import { FilterInterface, Inc, ReadonlyTail, RejectInterface } from '../helpers/typeutils'
 import {
   AssociatedModelParam,
   WhereStatement,
   WhereStatementForAssociation,
 } from '../decorators/associations/shared'
+import Dream from '../dream'
+import CalendarDate from '../helpers/CalendarDate'
+import { FilterInterface, Inc, ReadonlyTail, RejectInterface } from '../helpers/typeutils'
 import OpsStatement from '../ops/ops-statement'
 import { FindEachOpts } from './query'
-import CalendarDate from '../helpers/CalendarDate'
 
 export const primaryKeyTypes = ['bigserial', 'bigint', 'uuid', 'integer'] as const
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
