@@ -16,7 +16,7 @@ export default async function reload<DreamInstance extends Dream>(
   query = query.unscoped().where({ [dream.primaryKey as any]: dream.primaryKeyValue } as any)
 
   const newRecord = (await query.first()) as DreamInstance
-  dream.setAttributes(newRecord.attributes() as any)
+  dream.setAttributes(newRecord.getAttributes() as any)
 
   dream['freezeAttributes']()
 
