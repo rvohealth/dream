@@ -10,7 +10,7 @@ describe('Dream initialization', () => {
   it('sets attributes', () => {
     const user = User.new({ email: 'fred' })
     expect(user.email).toEqual('fred')
-    expect(user.attributes().email).toEqual('fred')
+    expect(user.getAttributes().email).toEqual('fred')
   })
 
   context('a dream is passed as an attribute', () => {
@@ -77,7 +77,7 @@ describe('Dream initialization', () => {
       await composition.save()
       expect(composition.metadata).toEqual({ version: 1 })
 
-      expect(composition.attributes().metadata).toEqual(JSON.stringify({ version: 1 }))
+      expect(composition.getAttributes().metadata).toEqual(JSON.stringify({ version: 1 }))
     })
   })
 

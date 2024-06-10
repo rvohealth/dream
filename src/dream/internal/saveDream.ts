@@ -58,7 +58,7 @@ export default async function saveDream<DreamInstance extends Dream>(
   // set frozen attributes to what has already been saved
   dream['freezeAttributes']()
   dream['attributesFromBeforeLastSave'] = dream['originalAttributes']
-  dream['originalAttributes'] = dream.attributes()
+  dream['originalAttributes'] = dream.getAttributes()
 
   await runHooksFor('afterSave', dream, alreadyPersisted, beforeSaveChanges, txn as DreamTransaction<any>)
   if (alreadyPersisted)

@@ -10,7 +10,7 @@ describe('Dream#destroy', () => {
     expect(await User.count()).toEqual(1)
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect((await User.first())!.attributes).toEqual(user2.attributes)
+    expect((await User.first())!.getAttributes()).toEqual(user2.getAttributes())
   })
 
   context('when passed a transaction', () => {

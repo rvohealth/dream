@@ -2583,7 +2583,7 @@ export default class Dream {
    *  // }
    * ```
    */
-  public attributes<I extends Dream, DB extends I['DB']>(this: I): Updateable<DB[I['table']]> {
+  public getAttributes<I extends Dream, DB extends I['DB']>(this: I): Updateable<DB[I['table']]> {
     return { ...this.currentAttributes } as Updateable<DB[I['table']]>
   }
 
@@ -2830,7 +2830,7 @@ export default class Dream {
 
     this.columns().forEach(column => {
       // TODO: clean up types
-      if (this.attributeIsDirty(column as any)) (obj as any)[column] = (this.attributes() as any)[column]
+      if (this.attributeIsDirty(column as any)) (obj as any)[column] = (this.getAttributes() as any)[column]
     })
 
     return obj
@@ -2843,7 +2843,7 @@ export default class Dream {
    */
   private attributeIsDirty<I extends Dream>(this: I, attribute: DreamColumnNames<I>): boolean {
     const frozenValue = (this.frozenAttributes as any)[attribute]
-    const currentValue = (this.attributes() as any)[attribute]
+    const currentValue = (this.getAttributes() as any)[attribute]
 
     if (this.isNewRecord) return true
 
@@ -2911,7 +2911,7 @@ export default class Dream {
    * Used for changes API
    */
   protected freezeAttributes() {
-    this.frozenAttributes = { ...this.attributes() }
+    this.frozenAttributes = { ...this.getAttributes() }
   }
 
   /**

@@ -17,8 +17,8 @@ describe('Dream#clone', () => {
   it('clones the attributes to a new instance', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user2 = user.clone()
-    expect(user.attributes()).toEqual(user2.attributes())
-    expect(user.attributes().createdAt).not.toBe(user2.attributes().createdAt)
+    expect(user.getAttributes()).toEqual(user2.getAttributes())
+    expect(user.getAttributes().createdAt).not.toBe(user2.getAttributes().createdAt)
   })
 
   it('copies by reference the loaded associations to a new instance', async () => {
