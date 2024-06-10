@@ -33,6 +33,23 @@ describe('Query#pluckEachThrough', () => {
     expect(plucked).toEqual([[edge1.id, edge1.name]])
   })
 
+  context('when primary key is not one of the plucked fields', () => {
+    it('uses primary key for ordering, but discards primary key from results', async () => {
+      const node = await Node.create({ name: 'N1' })
+      const edge1 = await Edge.create({ name: 'E1' })
+      const edge2 = await Edge.create({ name: 'E2' })
+      await EdgeNode.create({ node, edge: edge1 })
+      await EdgeNode.create({ node, edge: edge2 })
+
+      const plucked: any[] = []
+      await Node.query().pluckEachThrough('edgeNodes', 'edge', ['edge.name'], arr => {
+        plucked.push(arr)
+      })
+
+      expect(plucked).toEqual([edge1.name, edge2.name])
+    })
+  })
+
   context('with invalid arguments', () => {
     context('when the cb function is not provided', () => {
       it('raises a targeted exception', async () => {

@@ -10,18 +10,33 @@ describe('Query#pluckEach', () => {
   let user3: User
 
   beforeEach(async () => {
-    user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'helloworld' })
-    user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin', name: 'hello world' })
-    user3 = await User.create({ email: 'fred@fishman', password: 'howyadoin', name: 'herzog' })
+    user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'c' })
+    user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin', name: 'a' })
+    user3 = await User.create({ email: 'fred@fishman', password: 'howyadoin', name: 'b' })
   })
 
-  it('plucks the specified attributes and returns them as raw data', async () => {
+  it('plucks the specified attributes (first ordering by primary key) and returns them as raw data', async () => {
     const plucked: any[] = []
-    await User.order('id').pluckEach('id', id => {
+    await User.query().pluckEach('name', id => {
       plucked.push(id)
     })
 
-    expect(plucked).toEqual([user1.id, user2.id, user3.id])
+    expect(plucked).toEqual(['c', 'a', 'b'])
+  })
+
+  context('when the primary key is included as one of the fields', () => {
+    it('does not remove primary key from results', async () => {
+      const plucked: any[] = []
+      await User.query().pluckEach('name', 'id', id => {
+        plucked.push(id)
+      })
+
+      expect(plucked).toEqual([
+        ['c', user1.id],
+        ['a', user2.id],
+        ['b', user3.id],
+      ])
+    })
   })
 
   context('with invalid arguments', () => {
@@ -87,10 +102,15 @@ describe('Query#pluckEach', () => {
   })
 
   context('with a where clause specified', () => {
+    beforeEach(async () => {
+      await user1.update({ name: 'hello world' })
+      await user2.update({ name: 'helloworld' })
+    })
+
     it('respects the where clause', async () => {
       const plucked: any[] = []
       await User.order('id')
-        .where({ name: 'helloworld' })
+        .where({ name: 'hello world' })
         .pluckEach('id', id => {
           plucked.push(id)
         })
@@ -100,7 +120,7 @@ describe('Query#pluckEach', () => {
     context('with a similarity operator', () => {
       it('respects the similarity operator', async () => {
         const plucked: any[] = []
-        await User.where({ name: ops.similarity('hello world') }).pluckEach('id', id => {
+        await User.where({ name: ops.similarity('helloworld') }).pluckEach('id', id => {
           plucked.push(id)
         })
 
