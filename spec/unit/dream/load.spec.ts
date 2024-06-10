@@ -64,7 +64,7 @@ describe('Dream#load', () => {
     context('Has(One/Many) association', () => {
       it('loads the association fresh from the database', async () => {
         const clone = await user.load('pets').execute()
-        await Pet.query().updateAll({ name: 'Snoopy' })
+        await Pet.query().update({ name: 'Snoopy' })
         const clone2 = await clone.load('pets').execute()
         expect(clone2.pets[0].name).toEqual('Snoopy')
       })
@@ -73,7 +73,7 @@ describe('Dream#load', () => {
     context('BelongsTo association', () => {
       it('loads the association fresh from the database', async () => {
         const clone = await pet.load('user').execute()
-        await User.query().updateAll({ email: 'lucy@peanuts.com' })
+        await User.query().update({ email: 'lucy@peanuts.com' })
         const clone2 = await clone.load('user').execute()
         expect(clone2.user!.email).toEqual('lucy@peanuts.com')
       })
@@ -86,7 +86,7 @@ describe('Dream#load', () => {
           name: 'compositionAsset X',
         })
         const clone = await user.load('compositionAssets').execute()
-        await CompositionAsset.query().updateAll({ name: 'hello' })
+        await CompositionAsset.query().update({ name: 'hello' })
         const clone2 = await clone.load('compositionAssets').execute()
         expect(clone2.compositionAssets[0].name).toEqual('hello')
       })

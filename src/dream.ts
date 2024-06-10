@@ -2899,8 +2899,11 @@ export default class Dream {
    *
    * @returns the instance that was destroyed
    */
-  public async destroy<I extends Dream>(this: I): Promise<I> {
-    return destroyDream(this)
+  public async destroy<I extends Dream>(
+    this: I,
+    { skipHooks = false }: { skipHooks?: boolean } = {}
+  ): Promise<I> {
+    return destroyDream(this, null, { skipHooks })
   }
 
   /**
@@ -3104,7 +3107,10 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    whereClause: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+    destroyAssociationOptions: {
+      where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+      skipHooks?: boolean
+    }
   ): Promise<number>
 
   public destroyAssociation<
@@ -3116,7 +3122,10 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    whereClause?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+    destroyAssociationOptions?: {
+      where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+      skipHooks?: boolean
+    }
   ): Promise<number>
 
   /**
@@ -3132,15 +3141,18 @@ export default class Dream {
    * ```
    *
    * @param associationName - The name of the association to destroy
-   * @param whereStatement - Optional where statement to apply to query before destroying
+   * @param opts.whereStatement - Optional where statement to apply to query before destroying
+   * @param opts.skipHooks - Whether or not to skip model hooks when destroying
    * @returns The number of records deleted
    */
   public destroyAssociation<I extends Dream, AssociationName extends keyof I>(
     this: I,
     associationName: AssociationName,
-    whereStatement?: unknown
+    destroyAssociationOptions?: unknown
   ): unknown {
-    return destroyAssociation(this, null, associationName, whereStatement as any)
+    return destroyAssociation(this, null, associationName, (destroyAssociationOptions as any)?.where, {
+      skipHooks: (destroyAssociationOptions as any)?.skipHooks,
+    })
   }
 
   ///////////////////
@@ -3212,6 +3224,7 @@ export default class Dream {
     attributes: Partial<DreamAttributes<DreamAssociationType<I, AssociationName>>>,
     updateAssociationOptions: {
       where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+      skipHooks?: boolean
     }
   ): Promise<number>
 
@@ -3227,6 +3240,7 @@ export default class Dream {
     attributes: Partial<DreamAttributes<DreamAssociationType<I, AssociationName>>>,
     updateAssociationOptions?: {
       where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+      skipHooks?: boolean
     }
   ): Promise<number>
 
@@ -3260,7 +3274,7 @@ export default class Dream {
       null,
       associationName,
       (updateAssociationOptions as any)?.where
-    ).updateAll(attributes)
+    ).update(attributes, { skipHooks: (updateAssociationOptions as any)?.skipHooks })
   }
   ///////////////////
   // end: updateAssociation
@@ -3481,8 +3495,11 @@ export default class Dream {
    *
    * @returns void
    */
-  public async save<I extends Dream>(this: I): Promise<void> {
-    await saveDream(this, null)
+  public async save<I extends Dream>(
+    this: I,
+    { skipHooks = false }: { skipHooks?: boolean } = {}
+  ): Promise<void> {
+    await saveDream(this, null, { skipHooks })
   }
 
   /**
@@ -3522,10 +3539,14 @@ export default class Dream {
    * @param attributes - the attributes to set on the model
    * @returns void
    */
-  public async update<I extends Dream>(this: I, attributes: UpdateableProperties<I>): Promise<void> {
+  public async update<I extends Dream>(
+    this: I,
+    attributes: UpdateableProperties<I>,
+    { skipHooks = false }: { skipHooks?: boolean } = {}
+  ): Promise<void> {
     // use #assignAttributes to leverage any custom-defined setters
     this.assignAttributes(attributes)
-    await this.save()
+    await this.save({ skipHooks })
   }
 
   /**

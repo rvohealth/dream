@@ -44,7 +44,6 @@ import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../exceptions/ca
 import MissingRequiredCallbackFunctionToPluckEach from '../exceptions/missing-required-callback-function-to-pluck-each'
 import NoUpdateAllOnAssociationQuery from '../exceptions/no-updateall-on-association-query'
 import NoUpdateAllOnJoins from '../exceptions/no-updateall-on-joins'
-import SimilarityOperatorNotSupportedOnDestroyQueries from '../exceptions/similarity-operator-not-supported-on-destroy-queries'
 import CalendarDate from '../helpers/CalendarDate'
 import { allNestedObjectKeys } from '../helpers/allNestedObjectKeys'
 import cloneDeepSafe from '../helpers/cloneDeepSafe'
@@ -1611,37 +1610,29 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns The number of records that were removed
    */
-  public async destroy(): Promise<number> {
-    const deletionResult = await executeDatabaseQuery(this.buildDelete(), 'executeTakeFirst')
-    return Number(deletionResult?.numDeletedRows || 0)
-  }
+  public async destroy({ skipHooks = false }: { skipHooks?: boolean } = {}): Promise<number> {
+    if (skipHooks) return await this.destroyWithoutHooks()
 
-  /**
-   * Destroys all records matching the Query,
-   * and returns the number of records that
-   * were destroyed
-   *
-   * ```ts
-   * await User.query().destroyBy({ email: ops.ilike('%burpcollaborator%')} })
-   * // 12
-   * ```
-   * @param whereStatement - The where statement used to refine the Query
-   * @returns The number of records that were removed
-   */
-  public async destroyBy(
-    whereStatement: WhereStatement<
-      DreamInstance['DB'],
-      DreamInstance['dreamconf']['schema'],
-      DreamInstance['table']
-    >
-  ) {
-    const query = this.where(whereStatement)
+    let counter = 0
 
-    if (query.hasSimilarityClauses) {
-      throw new SimilarityOperatorNotSupportedOnDestroyQueries(this.dreamClass, whereStatement)
+    if (this.dreamTransaction) {
+      await this.txn(this.dreamTransaction).findEach(async result => {
+        await result.txn(this.dreamTransaction!).destroy()
+        counter++
+      })
+    } else {
+      await this.findEach(async result => {
+        await result.destroy()
+        counter++
+      })
     }
 
-    return query.destroy()
+    return counter
+  }
+
+  private async destroyWithoutHooks() {
+    const deletionResult = await executeDatabaseQuery(this.buildDelete(), 'executeTakeFirst')
+    return Number(deletionResult?.numDeletedRows || 0)
   }
 
   /**
@@ -1654,10 +1645,33 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @param attributes - The attributes used to update the records
    * @returns The number of records that were updated
    */
-  public async updateAll(attributes: DreamTableSchema<DreamInstance>) {
+  public async update(
+    attributes: DreamTableSchema<DreamInstance>,
+    { skipHooks = false }: { skipHooks?: boolean } = {}
+  ) {
     if (this.baseSelectQuery) throw new NoUpdateAllOnAssociationQuery()
     if (Object.keys(this.joinsStatements).length) throw new NoUpdateAllOnJoins()
 
+    if (skipHooks) return await this.updateWithoutCallingModelHooks(attributes)
+
+    let counter = 0
+
+    if (this.dreamTransaction) {
+      await this.txn(this.dreamTransaction).findEach(async result => {
+        await result.txn(this.dreamTransaction!).update(attributes as any)
+        counter++
+      })
+    } else {
+      await this.findEach(async result => {
+        await result.update(attributes as any)
+        counter++
+      })
+    }
+
+    return counter
+  }
+
+  private async updateWithoutCallingModelHooks(attributes: DreamTableSchema<DreamInstance>) {
     const kyselyQuery = this.buildUpdate(attributes)
     const res = await executeDatabaseQuery(kyselyQuery, 'execute')
     const resultData = Array.from(res.entries())?.[0]?.[1]

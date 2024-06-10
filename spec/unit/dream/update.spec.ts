@@ -32,6 +32,20 @@ describe('Dream#update', () => {
     expect(user2.email).toEqual('fred@fred')
   })
 
+  it('calls model hooks', async () => {
+    const pet = await Pet.create()
+    await pet.update({ name: 'change me' })
+    expect(pet.name).toEqual('changed by update hook')
+  })
+
+  context('skipHooks is passed', () => {
+    it('skips model hooks', async () => {
+      const pet = await Pet.create()
+      await pet.update({ name: 'change me' }, { skipHooks: true })
+      expect(pet.name).toEqual('change me')
+    })
+  })
+
   context('when encased in a transaction', () => {
     it('updates the underlying model in the db', async () => {
       let user: User | null = null
