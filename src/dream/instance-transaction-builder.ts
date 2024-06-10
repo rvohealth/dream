@@ -1,5 +1,5 @@
 import { AssociationTableNames } from '../db/reflections'
-import { WhereStatement } from '../decorators/associations/shared'
+import { WhereStatement, WhereStatementForAssociation } from '../decorators/associations/shared'
 import Dream from '../dream'
 import associationQuery from './internal/associations/associationQuery'
 import associationUpdateQuery from './internal/associations/associationUpdateQuery'
@@ -12,6 +12,9 @@ import LoadBuilder from './load-builder'
 import Query from './query'
 import DreamTransaction from './transaction'
 import {
+  DreamAssociationNamesWithRequiredWhereClauses,
+  DreamAssociationType,
+  DreamAttributes,
   DreamConstructorType,
   UpdateableAssociationProperties,
   UpdateableProperties,
@@ -97,12 +100,33 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     return associationQuery(this.dreamInstance, this.dreamTransaction, associationName)
   }
 
-  public associationUpdateQuery<
+  public async updateAssociation<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    AssociationName extends
-      keyof DreamInstance['dreamconf']['schema'][DreamInstance['table']]['associations'],
-  >(this: I, associationName: AssociationName): any {
-    return associationUpdateQuery(this.dreamInstance, this.dreamTransaction, associationName)
+    DB extends DreamInstance['DB'],
+    TableName extends DreamInstance['table'],
+    Schema extends DreamInstance['dreamconf']['schema'],
+    AssociationName extends keyof DreamInstance,
+    WhereStatement extends
+      AssociationName extends DreamAssociationNamesWithRequiredWhereClauses<DreamInstance>
+        ? WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+        : WhereStatementForAssociation<DB, Schema, TableName, AssociationName> | undefined,
+  >(
+    this: I,
+    associationName: AssociationName,
+
+    attributes: Partial<DreamAttributes<DreamAssociationType<DreamInstance, AssociationName>>>,
+    {
+      where,
+    }: {
+      where: WhereStatement
+    } = { where: undefined as any }
+  ): Promise<number> {
+    return await associationUpdateQuery(
+      this.dreamInstance,
+      this.dreamTransaction,
+      associationName,
+      where as any
+    ).updateAll(attributes)
   }
 
   public async createAssociation<

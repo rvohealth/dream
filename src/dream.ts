@@ -3162,57 +3162,46 @@ export default class Dream {
   // end: associationQuery
   ///////////////////
 
-  ///////////////////
-  // associationUpdateQuery
-  ///////////////////
-  public associationUpdateQuery<
-    I extends Dream,
-    DB extends I['DB'],
-    TableName extends I['table'],
-    Schema extends I['dreamconf']['schema'],
-    AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<I>,
-  >(
-    this: I,
-    associationName: AssociationName,
-    whereStatement: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
-  ): Query<DreamAssociationType<I, AssociationName>>
-
-  public associationUpdateQuery<
-    I extends Dream,
-    DB extends I['DB'],
-    TableName extends I['table'],
-    Schema extends I['dreamconf']['schema'],
-    AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<I>,
-  >(
-    this: I,
-    associationName: AssociationName,
-    whereStatement?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
-  ): Query<DreamAssociationType<I, AssociationName>>
-
   /**
-   * Returns a Query instance for updating an association
+   * Updates all records matching the association with
+   * the provided attributes. If a where statement is passed,
+   * The where statement will be applied to the query
+   * before updating.
    *
    * TODO: change behavior as part of
    * https://rvohealth.atlassian.net/browse/PDTC-5488
    * NOTE: This bypasses update and save model hooks
    *
    * ```ts
-   * await user.associationUpdateQuery('posts', { body: 'hello world' }).update({ body: 'goodbye world' })
-   * // only user posts updated
+   * await user.createAssociation('posts', { body: 'hello world' })
+   * await user.createAssociation('posts', { body: 'howyadoin' })
+   * await user.updateAssociation('posts', { body: 'goodbye world' }, { where: { body: 'hello world' }})
+   * // 1
    * ```
    *
-   * @returns A Query scoped to the specified association on the current instance
+   * @returns The number of updated records
    */
-  public associationUpdateQuery<I extends Dream, AssociationName extends keyof I>(
+  public async updateAssociation<
+    I extends Dream,
+    DB extends I['DB'],
+    TableName extends I['table'],
+    Schema extends I['dreamconf']['schema'],
+    AssociationName extends keyof I,
+    WhereStatement extends AssociationName extends DreamAssociationNamesWithRequiredWhereClauses<I>
+      ? WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+      : WhereStatementForAssociation<DB, Schema, TableName, AssociationName> | undefined,
+  >(
     this: I,
     associationName: AssociationName,
-    whereStatement?: unknown
-  ): unknown {
-    return associationUpdateQuery(this, null, associationName, whereStatement as any)
+    attributes: Partial<DreamAttributes<DreamAssociationType<I, AssociationName>>>,
+    {
+      where,
+    }: {
+      where: WhereStatement
+    } = { where: undefined as any }
+  ): Promise<number> {
+    return await associationUpdateQuery(this, null, associationName, where as any).updateAll(attributes)
   }
-  ///////////////////
-  // end: associationUpdateQuery
-  ///////////////////
 
   /**
    * Sends data through for use as passthrough data
