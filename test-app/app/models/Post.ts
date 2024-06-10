@@ -20,6 +20,7 @@ export default class Post extends ApplicationModel {
   }
 
   public id: DreamColumn<Post, 'id'>
+  public createdAt: DreamColumn<Post, 'createdAt'>
   public deletedAt: DreamColumn<Post, 'deletedAt'>
 
   @Post.Sortable({ scope: 'user' })

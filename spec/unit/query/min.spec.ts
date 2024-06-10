@@ -16,6 +16,29 @@ describe('Query#min', () => {
     expect(min).toEqual(post1.id)
   })
 
+  context('with a field passed which requires marshaling', () => {
+    it('marshals the value to the correct type', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+      const post1 = await Post.create({ user, body: 'universe' })
+      await Post.create({ user, body: 'world' })
+      await Post.create({ user, body: 'world' })
+
+      const min = await Post.min('createdAt')
+      expect(min).toEqual(post1.createdAt)
+    })
+  })
+
+  context('with a field passed in which all records are null', () => {
+    it('returns null', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+      await Post.create({ user, body: null })
+      await Post.create({ user, body: null })
+
+      const min = await Post.min('body')
+      expect(min).toBeNull()
+    })
+  })
+
   context('with a where statement passed', () => {
     context('with a similarity operator passed', () => {
       it('respects the similarity operator', async () => {

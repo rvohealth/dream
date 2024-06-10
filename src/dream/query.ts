@@ -1347,7 +1347,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
 
-    return data.max
+    return marshalDBValue(this.dreamClass, columnName as any, data.max)
   }
 
   /**
@@ -1375,7 +1375,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     kyselyQuery = kyselyQuery.select(min(columnName as any) as any)
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
 
-    return data.min
+    return marshalDBValue(this.dreamClass, columnName as any, data.min)
   }
 
   /**

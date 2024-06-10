@@ -16,6 +16,29 @@ describe('Query#max', () => {
     expect(max).toEqual(post3.id)
   })
 
+  context('with a field passed which requires marshaling', () => {
+    it('marshals the value to the correct type', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+      await Post.create({ user, body: 'universe' })
+      await Post.create({ user, body: 'world' })
+      const post3 = await Post.create({ user, body: 'world' })
+
+      const max = await Post.max('createdAt')
+      expect(max).toEqual(post3.createdAt)
+    })
+  })
+
+  context('with a field passed in which all records are null', () => {
+    it('returns null', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+      await Post.create({ user, body: null })
+      await Post.create({ user, body: null })
+
+      const max = await Post.max('body')
+      expect(max).toBeNull()
+    })
+  })
+
   context('with a where statement passed', () => {
     context('with a similarity operator passed', () => {
       it('respects the similarity operator', async () => {

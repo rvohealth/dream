@@ -878,9 +878,12 @@ export default class Dream {
    */
   public static async max<
     T extends typeof Dream,
-    PluckThroughFieldType,
-    PluckField extends DreamColumnNames<InstanceType<T>> | PluckThroughFieldType,
-  >(this: T, columnName: PluckField) {
+    PluckField extends DreamColumnNames<InstanceType<T>>,
+    PluckThroughFieldType = unknown,
+  >(
+    this: T,
+    columnName: PluckThroughFieldType extends unknown ? PluckField : PluckField | PluckThroughFieldType
+  ) {
     return await this.query().max(columnName)
   }
 
@@ -899,9 +902,12 @@ export default class Dream {
    */
   public static async min<
     T extends typeof Dream,
-    PluckThroughFieldType,
-    PluckField extends DreamColumnNames<InstanceType<T>> | PluckThroughFieldType,
-  >(this: T, columnName: PluckField) {
+    PluckField extends DreamColumnNames<InstanceType<T>>,
+    PluckThroughFieldType = unknown,
+  >(
+    this: T,
+    columnName: PluckThroughFieldType extends unknown ? PluckField : PluckField | PluckThroughFieldType
+  ) {
     return await this.query().min(columnName)
   }
 
