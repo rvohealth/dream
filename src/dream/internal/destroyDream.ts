@@ -6,9 +6,13 @@ import safelyRunCommitHooks from './safelyRunCommitHooks'
 
 export default async function destroyDream<I extends Dream>(
   dream: I,
-  txn: DreamTransaction<I> | null = null
+  txn: DreamTransaction<I> | null = null,
+  { skipHooks = false }: { skipHooks?: boolean } = {}
 ): Promise<I> {
-  await runHooksFor('beforeDestroy', dream, true, null, txn || undefined)
+  if (!skipHooks) {
+    await runHooksFor('beforeDestroy', dream, true, null, txn || undefined)
+  }
+
   if (dream['_preventDeletion']) return dream.unpreventDeletion()
   const db = txn?.kyselyTransaction || _db('primary', dream.dreamconf)
 
@@ -17,9 +21,11 @@ export default async function destroyDream<I extends Dream>(
     .where(dream.primaryKey as any, '=', dream.primaryKeyValue)
     .execute()
 
-  await runHooksFor('afterDestroy', dream, true, null, txn || undefined)
+  if (!skipHooks) {
+    await runHooksFor('afterDestroy', dream, true, null, txn || undefined)
 
-  await safelyRunCommitHooks(dream, 'afterDestroyCommit', true, null, txn)
+    await safelyRunCommitHooks(dream, 'afterDestroyCommit', true, null, txn)
+  }
 
   return dream
 }

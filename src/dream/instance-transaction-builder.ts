@@ -1,5 +1,4 @@
-import { AssociationTableNames } from '../db/reflections'
-import { WhereStatement, WhereStatementForAssociation } from '../decorators/associations/shared'
+import { WhereStatementForAssociation } from '../decorators/associations/shared'
 import Dream from '../dream'
 import associationQuery from './internal/associations/associationQuery'
 import associationUpdateQuery from './internal/associations/associationUpdateQuery'
@@ -117,6 +116,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     attributes: Partial<DreamAttributes<DreamAssociationType<DreamInstance, AssociationName>>>,
     updateAssociationOptions: {
       where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+      skipHooks?: boolean
     }
   ): Promise<number>
 
@@ -133,6 +133,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     attributes: Partial<DreamAttributes<DreamAssociationType<DreamInstance, AssociationName>>>,
     updateAssociationOptions?: {
       where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+      skipHooks?: boolean
     }
   ): Promise<number>
 
@@ -171,7 +172,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
       this.dreamTransaction,
       associationName,
       (updateAssociationOptions as any)?.where
-    ).updateAll(attributes)
+    ).update(attributes, { skipHooks: (updateAssociationOptions as any)?.skipHooks })
   }
 
   public async createAssociation<
@@ -193,27 +194,55 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     return await createAssociation(this.dreamInstance, this.dreamTransaction, associationName, opts)
   }
 
+  ///////////////////
+  // destroyAssociation
+  ///////////////////
+  public destroyAssociation<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    AssociationName extends keyof DreamInstance &
+      DreamAssociationNamesWithRequiredWhereClauses<DreamInstance>,
+    DB extends DreamInstance['DB'],
+    TableName extends DreamInstance['table'],
+    Schema extends DreamInstance['dreamconf']['schema'],
+  >(
+    this: I,
+    associationName: AssociationName,
+    destroyAssociationOptions: {
+      where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+      skipHooks?: boolean
+    }
+  ): Promise<number>
+
+  public destroyAssociation<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    AssociationName extends keyof DreamInstance &
+      DreamAssociationNamesWithoutRequiredWhereClauses<DreamInstance>,
+    DB extends DreamInstance['DB'],
+    TableName extends DreamInstance['table'],
+    Schema extends DreamInstance['dreamconf']['schema'],
+  >(
+    this: I,
+    associationName: AssociationName,
+    destroyAssociationOptions?: {
+      where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+      skipHooks?: boolean
+    }
+  ): Promise<number>
+
   public async destroyAssociation<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     Schema extends DreamInstance['dreamconf']['schema'],
     AssociationName extends keyof Schema[DreamInstance['table']]['associations'],
-    AssociationTableName extends
-      Schema[DreamInstance['table']]['associations'][AssociationName]['tables'] extends (keyof Schema)[]
-        ? Schema[DreamInstance['table']]['associations'][AssociationName]['tables'][0]
-        : never = Schema[DreamInstance['table']]['associations'][AssociationName]['tables'] extends (keyof Schema)[]
-      ? Schema[DreamInstance['table']]['associations'][AssociationName]['tables'][0]
-      : never,
-    RestrictedAssociationTableName extends AssociationTableName &
-      AssociationTableNames<DreamInstance['DB'], Schema> &
-      keyof DreamInstance['DB'] = AssociationTableName &
-      AssociationTableNames<DreamInstance['DB'], Schema> &
-      keyof DreamInstance['DB'],
-  >(
-    this: I,
-    associationName: AssociationName,
-    opts: WhereStatement<DreamInstance['DB'], Schema, RestrictedAssociationTableName> = {}
-  ): Promise<number> {
-    return await destroyAssociation(this.dreamInstance, this.dreamTransaction, associationName, opts)
+  >(this: I, associationName: AssociationName, destroyAssociationOptions?: unknown): Promise<number> {
+    return await destroyAssociation(
+      this.dreamInstance,
+      this.dreamTransaction,
+      associationName,
+      (destroyAssociationOptions as any)?.where,
+      {
+        skipHooks: (destroyAssociationOptions as any)?.skipHooks,
+      }
+    )
   }
 
   private queryInstance<I extends DreamInstanceTransactionBuilder<DreamInstance>>(

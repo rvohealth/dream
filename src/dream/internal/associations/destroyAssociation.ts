@@ -14,8 +14,9 @@ export default async function destroyAssociation<
   dream: DreamInstance,
   txn: DreamTransaction<Dream> | null = null,
   associationName: AssociationName,
-  associationWhereStatement?: Where
+  associationWhereStatement?: Where,
+  { skipHooks = false }: { skipHooks?: boolean } = {}
 ): Promise<number> {
   const query = associationUpdateQuery(dream, txn, associationName, associationWhereStatement)
-  return await query.destroy()
+  return await query.destroy({ skipHooks })
 }

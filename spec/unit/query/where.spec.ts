@@ -123,7 +123,7 @@ describe('Query#where', () => {
         it('does not update records with null values for that field', async () => {
           await User.query()
             .where({ name: ops.in(['fred', null]) })
-            .updateAll({ name: 'chalupatown' })
+            .update({ name: 'chalupatown' })
 
           const records = await User.pluck('name')
           expect(records).toEqual(expect.arrayContaining([null, 'chalupatown', 'chalupatown']))
@@ -135,15 +135,6 @@ describe('Query#where', () => {
           await User.query()
             .where({ name: ops.in(['fred', null]) })
             .destroy()
-
-          const records = await User.pluck('name')
-          expect(records).toEqual(expect.arrayContaining([null]))
-        })
-      })
-
-      context('destroyBy', () => {
-        it('does not destroy records with null values for that field', async () => {
-          await User.query().destroyBy({ name: ops.in(['fred', null]) })
 
           const records = await User.pluck('name')
           expect(records).toEqual(expect.arrayContaining([null]))

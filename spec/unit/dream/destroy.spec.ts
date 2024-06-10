@@ -1,5 +1,7 @@
+import { describe as context } from '@jest/globals'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import User from '../../../test-app/app/models/User'
+import Pet from '../../../test-app/app/models/Pet'
 
 describe('Dream#destroy', () => {
   it('destroys the record in question', async () => {
@@ -9,6 +11,22 @@ describe('Dream#destroy', () => {
     await user.destroy()
     expect(await User.count()).toEqual(1)
     expect((await User.first())!.getAttributes()).toEqual(user2.getAttributes())
+  })
+
+  it('calls model hooks', async () => {
+    const pet = await Pet.create()
+    await pet.destroy()
+    expect(pet.deletedAt).not.toBeNull()
+    expect(await Pet.count()).toEqual(0)
+    expect(await Pet.unscoped().count()).toEqual(1)
+  })
+
+  context('skipHooks is passed', () => {
+    it('skips model hooks', async () => {
+      const pet = await Pet.create()
+      await pet.destroy({ skipHooks: true })
+      expect(await Pet.unscoped().count()).toEqual(0)
+    })
   })
 
   context('when passed a transaction', () => {

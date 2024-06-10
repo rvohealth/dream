@@ -178,10 +178,10 @@ describe('Dream#resort', () => {
     })
 
     it('correctly resorts among multiple scopes', async () => {
-      await Collar.where({ id: collar1.id }).updateAll({ position: 10 })
-      await Collar.where({ id: collar2.id }).updateAll({ position: 20 })
-      await Collar.where({ id: collar3.id }).updateAll({ position: 30 })
-      await Collar.where({ id: collar4.id }).updateAll({ position: 40 })
+      await Collar.where({ id: collar1.id }).update({ position: 10 }, { skipHooks: true })
+      await Collar.where({ id: collar2.id }).update({ position: 20 }, { skipHooks: true })
+      await Collar.where({ id: collar3.id }).update({ position: 30 }, { skipHooks: true })
+      await Collar.where({ id: collar4.id }).update({ position: 40 }, { skipHooks: true })
 
       await collar1.reload()
       await collar2.reload()

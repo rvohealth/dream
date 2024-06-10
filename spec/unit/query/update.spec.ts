@@ -4,13 +4,14 @@ import DreamDbConnection from '../../../src/db/dream-db-connection'
 import NoUpdateAllOnAssociationQuery from '../../../src/exceptions/no-updateall-on-association-query'
 import ops from '../../../src/ops'
 import NoUpdateAllOnJoins from '../../../src/exceptions/no-updateall-on-joins'
+import Pet from '../../../test-app/app/models/Pet'
 
-describe('Query#updateAll', () => {
+describe('Query#update', () => {
   it('takes passed params and sends them through to all models matchin query', async () => {
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
-    const numRecords = await User.query().updateAll({
+    const numRecords = await User.query().update({
       name: 'cool',
     })
     expect(numRecords).toEqual(2)
@@ -22,7 +23,7 @@ describe('Query#updateAll', () => {
     const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
-    const numRecords = await User.query().where({ email: 'how@yadoin' }).updateAll({
+    const numRecords = await User.query().where({ email: 'how@yadoin' }).update({
       name: 'cool',
     })
     expect(numRecords).toEqual(1)
@@ -34,12 +35,28 @@ describe('Query#updateAll', () => {
     expect(user2.name).toEqual('cool')
   })
 
+  it('calls model hooks', async () => {
+    await Pet.create()
+    await Pet.query().update({ name: 'change me' })
+    const pet = await Pet.first()
+    expect(pet!.name).toEqual('changed by update hook')
+  })
+
+  context('skipHooks is passed', () => {
+    it('skips model hooks', async () => {
+      await Pet.create()
+      await Pet.query().update({ name: 'change me' }, { skipHooks: true })
+      const pet = await Pet.first()
+      expect(pet!.name).toEqual('change me')
+    })
+  })
+
   context('within an associationQuery', () => {
     it('raises an exception', async () => {
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
       await user.createAssociation('compositions', { content: 'Opus' })
 
-      await expect(user.associationQuery('compositions').updateAll({ content: 'cool' })).rejects.toThrow(
+      await expect(user.associationQuery('compositions').update({ content: 'cool' })).rejects.toThrow(
         NoUpdateAllOnAssociationQuery
       )
     })
@@ -50,7 +67,7 @@ describe('Query#updateAll', () => {
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
       await user.createAssociation('compositions', { content: 'Opus' })
 
-      await expect(User.joins('compositions').updateAll({ name: 'cool' })).rejects.toThrow(NoUpdateAllOnJoins)
+      await expect(User.joins('compositions').update({ name: 'cool' })).rejects.toThrow(NoUpdateAllOnJoins)
     })
   })
 
@@ -61,7 +78,7 @@ describe('Query#updateAll', () => {
 
       const numRecords = await User.query()
         .where({ name: ops.similarity('fres') })
-        .updateAll({
+        .update({
           name: 'cool',
         })
       expect(numRecords).toEqual(1)
@@ -79,7 +96,7 @@ describe('Query#updateAll', () => {
 
       const numRecords = await User.query()
         .where({ name: ops.similarity('fres'), email: ops.similarity('fred@fred') })
-        .updateAll({
+        .update({
           name: 'cool',
         })
       expect(numRecords).toEqual(1)
@@ -100,7 +117,7 @@ describe('Query#updateAll', () => {
     })
 
     it('uses primary connection', async () => {
-      await User.where({ email: 'fred@fred' }).updateAll({ email: 'how@yadoin' })
+      await User.where({ email: 'fred@fred' }).update({ email: 'how@yadoin' })
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
     })
@@ -110,7 +127,7 @@ describe('Query#updateAll', () => {
       class CustomUser extends User {}
 
       it('uses the primary connection', async () => {
-        await CustomUser.where({ email: 'fred@fred' }).updateAll({ email: 'how@yadoin' })
+        await CustomUser.where({ email: 'fred@fred' }).update({ email: 'how@yadoin' })
 
         // should always call to primary for update, regardless of replica-safe status
         // eslint-disable-next-line @typescript-eslint/unbound-method

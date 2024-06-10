@@ -13,6 +13,7 @@ import Balloon from './Balloon'
 import PetUnderstudyJoinModel from './PetUnderstudyJoinModel'
 import Post from './Post'
 import Rating from './Rating'
+import { BeforeUpdate, DreamTransaction } from '../../../src'
 
 export default class Pet extends ApplicationModel {
   public get table() {
@@ -109,8 +110,16 @@ export default class Pet extends ApplicationModel {
   // end: totally contrived for testing purposes
 
   @BeforeDestroy()
-  public async doSoftDelete() {
-    await (this as Pet).update({ deletedAt: DateTime.now() })
+  public async doSoftDelete(txn?: DreamTransaction<Pet>) {
+    const query = (txn ? this.txn(txn) : this) as Pet
+    await query.update({ deletedAt: DateTime.now() })
     this.preventDeletion()
+  }
+
+  @BeforeUpdate()
+  public markRecordUpdated() {
+    if (this.name === 'change me') {
+      this.name = 'changed by update hook'
+    }
   }
 }

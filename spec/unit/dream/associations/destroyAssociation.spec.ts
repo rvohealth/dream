@@ -1,15 +1,39 @@
 import { DateTime } from 'luxon'
-import User from '../../../../test-app/app/models/User'
-import Post from '../../../../test-app/app/models/Post'
-import Composition from '../../../../test-app/app/models/Composition'
-import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
-import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
-import Pet from '../../../../test-app/app/models/Pet'
-import Collar from '../../../../test-app/app/models/Collar'
 import MissingRequiredAssociationWhereClause from '../../../../src/exceptions/associations/missing-required-association-where-clause'
+import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
+import Collar from '../../../../test-app/app/models/Collar'
+import Composition from '../../../../test-app/app/models/Composition'
+import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import LocalizedText from '../../../../test-app/app/models/LocalizedText'
+import Pet from '../../../../test-app/app/models/Pet'
+import Post from '../../../../test-app/app/models/Post'
+import User from '../../../../test-app/app/models/User'
 
 describe('Dream#destroyAssociation', () => {
+  it('calls model hooks for each associated record', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const composition = await user.createAssociation('compositions')
+    await composition.createAssociation('compositionAssets', { src: 'mark after destroy' })
+
+    await composition.destroyAssociation('compositionAssets')
+
+    await composition.reload()
+    expect(composition.content).toEqual('changed after destroying composition asset')
+  })
+
+  context('when skipHooks is true', () => {
+    it('does not call model hooks', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await user.createAssociation('compositions', { content: 'unchanged' })
+      await composition.createAssociation('compositionAssets', { src: 'mark after destroy' })
+
+      await composition.destroyAssociation('compositionAssets', { skipHooks: true })
+
+      await composition.reload()
+      expect(composition.content).toEqual('unchanged')
+    })
+  })
+
   context('with a HasMany association', () => {
     it('destroys the related association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
@@ -52,7 +76,7 @@ describe('Dream#destroyAssociation', () => {
           composition,
           composition2,
         ])
-        await user.destroyAssociation('compositions', { content: 'chalupas dujour' })
+        await user.destroyAssociation('compositions', { where: { content: 'chalupas dujour' } })
 
         expect(await user.associationQuery('compositions').all()).toMatchDreamModels([composition2])
         expect(await Composition.all()).toMatchDreamModels([composition2])
@@ -80,7 +104,9 @@ describe('Dream#destroyAssociation', () => {
           locale: 'es-ES',
         })
 
-        await composition.destroyAssociation('inlineWhereCurrentLocalizedText', { locale: 'es-ES' })
+        await composition.destroyAssociation('inlineWhereCurrentLocalizedText', {
+          where: { locale: 'es-ES' },
+        })
 
         expect(await LocalizedText.find(localizedTextToKeep.id)).toMatchDreamModel(localizedTextToKeep)
         expect(await LocalizedText.find(localizedTextToDestroy.id)).toBeNull()
@@ -104,7 +130,7 @@ describe('Dream#destroyAssociation', () => {
         compositionAsset1,
         compositionAsset2,
       ])
-      await user.destroyAssociation('compositionAssets', { name: 'chalupas dujour' })
+      await user.destroyAssociation('compositionAssets', { where: { name: 'chalupas dujour' } })
 
       expect(await user.associationQuery('compositionAssets').all()).toMatchDreamModels([compositionAsset2])
       expect(await CompositionAsset.all()).toMatchDreamModels([compositionAsset2])
@@ -210,7 +236,7 @@ describe('Dream#destroyAssociation', () => {
       expect(await user.associationQuery('compositions').all()).toMatchDreamModels([composition])
 
       await ApplicationModel.transaction(async txn => {
-        await user.txn(txn).destroyAssociation('compositions')
+        await user.txn(txn).destroyAssociation('compositions', { skipHooks: false })
       })
 
       expect(await user.associationQuery('compositions').all()).toEqual([])

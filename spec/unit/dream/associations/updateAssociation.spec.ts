@@ -9,6 +9,30 @@ import Pet from '../../../../test-app/app/models/Pet'
 import User from '../../../../test-app/app/models/User'
 
 describe('Dream#updateAssociation', () => {
+  it('calls model hooks for each associated record', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const composition = await user.createAssociation('compositions')
+    const compositionAsset = await composition.createAssociation('compositionAssets', { src: 'howyadoin' })
+
+    await composition.updateAssociation('compositionAssets', { src: null })
+
+    await compositionAsset.reload()
+    expect(compositionAsset.src).toEqual('default src')
+  })
+
+  context('when skipHooks is true', () => {
+    it('does not call model hooks', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await user.createAssociation('compositions')
+      const compositionAsset = await composition.createAssociation('compositionAssets', { src: 'howyadoin' })
+
+      await composition.updateAssociation('compositionAssets', { src: null }, { skipHooks: true })
+
+      await compositionAsset.reload()
+      expect(compositionAsset.src).toBeNull()
+    })
+  })
+
   context('with a HasMany association', () => {
     it('updates the association', async () => {
       const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
@@ -213,7 +237,9 @@ describe('Dream#updateAssociation', () => {
         })
 
         expect(
-          await user.txn(txn).updateAssociation('recentCompositions', { content: 'hello world' })
+          await user
+            .txn(txn)
+            .updateAssociation('recentCompositions', { content: 'hello world' }, { skipHooks: false })
         ).toEqual(1)
 
         await recentComposition.txn(txn).reload()
