@@ -876,13 +876,9 @@ export default class Dream {
    * @param columnName - a column name on the model
    * @returns the max value of the specified column for this model's records
    */
-  public static async max<
-    T extends typeof Dream,
-    PluckField extends DreamColumnNames<InstanceType<T>>,
-    PluckThroughFieldType = unknown,
-  >(
+  public static async max<T extends typeof Dream, ColumnName extends DreamColumnNames<InstanceType<T>>>(
     this: T,
-    columnName: PluckThroughFieldType extends unknown ? PluckField : PluckField | PluckThroughFieldType
+    columnName: ColumnName
   ) {
     return await this.query().max(columnName)
   }
@@ -900,13 +896,9 @@ export default class Dream {
    * @param columnName - a column name on the model
    * @returns the min value of the specified column for this model's records
    */
-  public static async min<
-    T extends typeof Dream,
-    PluckField extends DreamColumnNames<InstanceType<T>>,
-    PluckThroughFieldType = unknown,
-  >(
+  public static async min<T extends typeof Dream, ColumnName extends DreamColumnNames<InstanceType<T>>>(
     this: T,
-    columnName: PluckThroughFieldType extends unknown ? PluckField : PluckField | PluckThroughFieldType
+    columnName: ColumnName
   ) {
     return await this.query().min(columnName)
   }
