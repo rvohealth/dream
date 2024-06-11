@@ -18,10 +18,14 @@ export default function sqlResultToDreamInstance<
     if (!extendingDreamClass)
       throw new STIChildMissing(dreamClass, sqlResult.type, sqlResult[dreamClass.primaryKey])
 
-    return extendingDreamClass.new(sqlResult as Updateable<Table>, { bypassUserDefinedSetters: true })
-  } else {
-    return dreamClass.new(sqlResult as UpdateablePropertiesForClass<Table>, {
+    return new extendingDreamClass(sqlResult as Updateable<Table>, {
       bypassUserDefinedSetters: true,
+      isPersisted: true,
+    })
+  } else {
+    return new dreamClass(sqlResult as UpdateablePropertiesForClass<Table>, {
+      bypassUserDefinedSetters: true,
+      isPersisted: true,
     })
   }
 }
