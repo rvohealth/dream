@@ -2274,6 +2274,10 @@ export default class Dream {
     return this._isPersisted || false
   }
 
+  protected set isPersisted(val: boolean) {
+    this._isPersisted = val
+  }
+
   /**
    * Since typescript prevents constructor functions
    * from absorbing type generics, we provide the `new`
@@ -2318,7 +2322,7 @@ export default class Dream {
     //     keyof InstanceType<DreamModel>['DB']]
     // >
   ) {
-    this._isPersisted = additionalOpts?.isPersisted || false
+    this.isPersisted = additionalOpts?.isPersisted || false
 
     this.defineAttributeAccessors()
 
@@ -3012,10 +3016,30 @@ export default class Dream {
   }
 
   /**
+   * Deep clones the model and its non-association attributes.
+   * Unsets primaryKey, created and updated fields.
+   *
+   * @returns Non-persisted, cloned Dream instance
+   */
+  public dup<I extends Dream>(this: I): I {
+    const clone = this.clone({ includeAssociations: false })
+
+    clone.isPersisted = false
+    ;(clone as any)[clone.primaryKey] = undefined
+    ;(clone as any)[clone.createdAtField] = undefined
+    ;(clone as any)[clone.updatedAtField] = undefined
+
+    return clone
+  }
+
+  /**
    * Deep clones the model and it's attributes, but maintains references to
    * loaded associations
    */
-  public clone<I extends Dream>(this: I): I {
+  private clone<I extends Dream>(
+    this: I,
+    { includeAssociations = true }: { includeAssociations?: boolean } = {}
+  ): I {
     const self: any = this
     const clone: any = new self.constructor()
 
@@ -3027,7 +3051,11 @@ export default class Dream {
       if (!associationDataKeys.includes(property)) clone[property] = cloneDeepSafe(self[property])
     })
 
-    associationDataKeys.forEach(associationDataKey => (clone[associationDataKey] = self[associationDataKey]))
+    if (includeAssociations) {
+      associationDataKeys.forEach(
+        associationDataKey => (clone[associationDataKey] = self[associationDataKey])
+      )
+    }
 
     return clone as I
   }

@@ -10,7 +10,7 @@ export default class LoadBuilder<DreamInstance extends Dream> {
   private query: Query<DreamInstance>
 
   constructor(dream: Dream, txn?: DreamTransaction<any>) {
-    this.dream = dream.clone()
+    this.dream = dream['clone']()
     this.query = new Query<DreamInstance>(this.dream as DreamInstance)
     this.dreamTransaction = txn
   }
