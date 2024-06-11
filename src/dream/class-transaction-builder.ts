@@ -1,20 +1,20 @@
 import { SelectArg, SelectExpression, Updateable } from 'kysely'
+import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
+import { AssociationTableNames } from '../db/reflections'
 import { PassthroughWhere, WhereStatement } from '../decorators/associations/shared'
 import Dream from '../dream'
-import DreamTransaction from './transaction'
+import saveDream from './internal/saveDream'
 import Query, { FindEachOpts } from './query'
-import { AssociationTableNames } from '../db/reflections'
+import DreamTransaction from './transaction'
 import {
+  DreamColumnNames,
   OrderDir,
-  VariadicPluckThroughArgs,
-  VariadicPluckEachThroughArgs,
+  UpdateableProperties,
   VariadicJoinsArgs,
   VariadicLoadArgs,
-  DreamColumnNames,
-  UpdateableProperties,
+  VariadicPluckEachThroughArgs,
+  VariadicPluckThroughArgs,
 } from './types'
-import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
-import saveDream from './internal/saveDream'
 
 export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
   constructor(
@@ -103,11 +103,13 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @param columnName - a column name on the model
    * @returns the max value of the specified column for this model's records
    */
-  public async max<I extends DreamClassTransactionBuilder<DreamInstance>>(
-    this: I,
-    field: DreamColumnNames<DreamInstance>
-  ) {
-    return this.queryInstance().max(field as any)
+
+  public async max<
+    PluckThroughFieldType,
+    I extends DreamClassTransactionBuilder<DreamInstance>,
+    T extends DreamColumnNames<DreamInstance> | PluckThroughFieldType,
+  >(this: I, columnName: T) {
+    return this.queryInstance().max(columnName)
   }
 
   /**
@@ -125,11 +127,12 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @param columnName - a column name on the model
    * @returns the min value of the specified column for this model's records
    */
-  public async min<I extends DreamClassTransactionBuilder<DreamInstance>>(
-    this: I,
-    field: DreamColumnNames<DreamInstance>
-  ) {
-    return this.queryInstance().min(field as any)
+  public async min<
+    PluckThroughFieldType,
+    I extends DreamClassTransactionBuilder<DreamInstance>,
+    T extends DreamColumnNames<DreamInstance> | PluckThroughFieldType,
+  >(this: I, columnName: T) {
+    return this.queryInstance().min(columnName)
   }
 
   /**
