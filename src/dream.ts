@@ -19,8 +19,6 @@ import HasOne, { HasOneOptions, HasOneStatement } from './decorators/association
 import {
   blankAssociationsFactory,
   PassthroughWhere,
-  UpdateAssociationOptionsWithOptionalWhereStatement,
-  UpdateAssociationOptionsWithRequiredWhereStatement,
   WhereStatement,
   WhereStatementForAssociation,
 } from './decorators/associations/shared'
@@ -3177,12 +3175,7 @@ export default class Dream {
     this: I,
     associationName: AssociationName,
     attributes: Partial<DreamAttributes<DreamAssociationType<I, AssociationName>>>,
-    updateAssociationOptions: UpdateAssociationOptionsWithRequiredWhereStatement<
-      DB,
-      Schema,
-      TableName,
-      AssociationName
-    >
+    updateAssociationOptions: { where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName> }
   ): Promise<number>
 
   public async updateAssociation<
@@ -3195,12 +3188,9 @@ export default class Dream {
     this: I,
     associationName: AssociationName,
     attributes: Partial<DreamAttributes<DreamAssociationType<I, AssociationName>>>,
-    updateAssociationOptions?: UpdateAssociationOptionsWithOptionalWhereStatement<
-      DB,
-      Schema,
-      TableName,
-      AssociationName
-    >
+    updateAssociationOptions?: {
+      where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+    }
   ): Promise<number>
 
   /**
