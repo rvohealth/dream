@@ -1,9 +1,8 @@
-import Dream from '../../dream'
-import { singular } from 'pluralize'
 import { SelectQueryBuilder, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
-import { Range } from '../../helpers/range'
+import { singular } from 'pluralize'
 import { AssociationTableNames } from '../../db/reflections'
+import Dream from '../../dream'
 import {
   AssociationTableName,
   DreamBelongsToAssociationMetadata,
@@ -14,17 +13,18 @@ import {
   RequiredWhereClauseKeys,
   TableColumnNames,
 } from '../../dream/types'
+import { checkForeignKey } from '../../exceptions/associations/explicit-foreign-key'
+import NonLoadedAssociation from '../../exceptions/associations/non-loaded-association'
+import CalendarDate from '../../helpers/CalendarDate'
+import camelize from '../../helpers/camelize'
+import { Range } from '../../helpers/range'
+import { MergeUnionOfRecordTypes, UnionToIntersection } from '../../helpers/typeutils'
+import CurriedOpsStatement from '../../ops/curried-ops-statement'
 import OpsStatement from '../../ops/ops-statement'
+import associationToGetterSetterProp from './associationToGetterSetterProp'
 import { BelongsToStatement } from './belongs-to'
 import { HasManyStatement } from './has-many'
 import { HasOneStatement } from './has-one'
-import CurriedOpsStatement from '../../ops/curried-ops-statement'
-import { MergeUnionOfRecordTypes, UnionToIntersection } from '../../helpers/typeutils'
-import { checkForeignKey } from '../../exceptions/associations/explicit-foreign-key'
-import camelize from '../../helpers/camelize'
-import NonLoadedAssociation from '../../exceptions/associations/non-loaded-association'
-import associationToGetterSetterProp from './associationToGetterSetterProp'
-import CalendarDate from '../../helpers/CalendarDate'
 
 type AssociatedModelType<
   I extends Dream,
@@ -85,6 +85,24 @@ type AssociationDreamSelectable<
     | typeof DreamConst.requiredWhereClause
   >
 >
+
+export interface UpdateAssociationOptionsWithRequiredWhereStatement<
+  DB,
+  Schema,
+  TableName extends keyof Schema,
+  AssociationName,
+> {
+  where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+}
+
+export interface UpdateAssociationOptionsWithOptionalWhereStatement<
+  DB,
+  Schema,
+  TableName extends keyof Schema,
+  AssociationName,
+> {
+  where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+}
 
 export type WhereStatementForDreamClass<DreamClass extends typeof Dream> = WhereStatement<
   InstanceType<DreamClass>['DB'],
