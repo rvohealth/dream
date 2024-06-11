@@ -19,6 +19,8 @@ import HasOne, { HasOneOptions, HasOneStatement } from './decorators/association
 import {
   blankAssociationsFactory,
   PassthroughWhere,
+  UpdateAssociationOptionsWithOptionalWhereStatement,
+  UpdateAssociationOptionsWithRequiredWhereStatement,
   WhereStatement,
   WhereStatementForAssociation,
 } from './decorators/associations/shared'
@@ -3162,6 +3164,45 @@ export default class Dream {
   // end: associationQuery
   ///////////////////
 
+  ///////////////////
+  // updateAssociation
+  ///////////////////
+  public async updateAssociation<
+    I extends Dream,
+    DB extends I['DB'],
+    TableName extends I['table'],
+    Schema extends I['dreamconf']['schema'],
+    AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<I>,
+  >(
+    this: I,
+    associationName: AssociationName,
+    attributes: Partial<DreamAttributes<DreamAssociationType<I, AssociationName>>>,
+    updateAssociationOptions: UpdateAssociationOptionsWithRequiredWhereStatement<
+      DB,
+      Schema,
+      TableName,
+      AssociationName
+    >
+  ): Promise<number>
+
+  public async updateAssociation<
+    I extends Dream,
+    DB extends I['DB'],
+    TableName extends I['table'],
+    Schema extends I['dreamconf']['schema'],
+    AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<I>,
+  >(
+    this: I,
+    associationName: AssociationName,
+    attributes: Partial<DreamAttributes<DreamAssociationType<I, AssociationName>>>,
+    updateAssociationOptions?: UpdateAssociationOptionsWithOptionalWhereStatement<
+      DB,
+      Schema,
+      TableName,
+      AssociationName
+    >
+  ): Promise<number>
+
   /**
    * Updates all records matching the association with
    * the provided attributes. If a where statement is passed,
@@ -3181,27 +3222,22 @@ export default class Dream {
    *
    * @returns The number of updated records
    */
-  public async updateAssociation<
-    I extends Dream,
-    DB extends I['DB'],
-    TableName extends I['table'],
-    Schema extends I['dreamconf']['schema'],
-    AssociationName extends keyof I,
-    WhereStatement extends AssociationName extends DreamAssociationNamesWithRequiredWhereClauses<I>
-      ? WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
-      : WhereStatementForAssociation<DB, Schema, TableName, AssociationName> | undefined,
-  >(
+  public async updateAssociation<I extends Dream, AssociationName extends keyof I>(
     this: I,
     associationName: AssociationName,
     attributes: Partial<DreamAttributes<DreamAssociationType<I, AssociationName>>>,
-    {
-      where,
-    }: {
-      where: WhereStatement
-    } = { where: undefined as any }
+    updateAssociationOptions: unknown
   ): Promise<number> {
-    return await associationUpdateQuery(this, null, associationName, where as any).updateAll(attributes)
+    return associationUpdateQuery(
+      this,
+      null,
+      associationName,
+      (updateAssociationOptions as any).where
+    ).updateAll(attributes)
   }
+  ///////////////////
+  // end: updateAssociation
+  ///////////////////
 
   /**
    * Sends data through for use as passthrough data
