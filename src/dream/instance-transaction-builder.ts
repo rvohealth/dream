@@ -13,6 +13,7 @@ import Query from './query'
 import DreamTransaction from './transaction'
 import {
   DreamAssociationNamesWithRequiredWhereClauses,
+  DreamAssociationNamesWithoutRequiredWhereClauses,
   DreamAssociationType,
   DreamAttributes,
   DreamConstructorType,
@@ -100,32 +101,74 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     return associationQuery(this.dreamInstance, this.dreamTransaction, associationName)
   }
 
+  ///////////////////
+  // updateAssociation
+  ///////////////////
   public async updateAssociation<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['dreamconf']['schema'],
-    AssociationName extends keyof DreamInstance,
-    WhereStatement extends
-      AssociationName extends DreamAssociationNamesWithRequiredWhereClauses<DreamInstance>
-        ? WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
-        : WhereStatementForAssociation<DB, Schema, TableName, AssociationName> | undefined,
+    AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<DreamInstance>,
   >(
     this: I,
     associationName: AssociationName,
-
     attributes: Partial<DreamAttributes<DreamAssociationType<DreamInstance, AssociationName>>>,
-    {
-      where,
-    }: {
-      where: WhereStatement
-    } = { where: undefined as any }
+    updateAssociationOptions: {
+      where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+    }
+  ): Promise<number>
+
+  public async updateAssociation<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    DB extends DreamInstance['DB'],
+    TableName extends DreamInstance['table'],
+    Schema extends DreamInstance['dreamconf']['schema'],
+    AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<DreamInstance>,
+  >(
+    this: I,
+    associationName: AssociationName,
+    attributes: Partial<DreamAttributes<DreamAssociationType<DreamInstance, AssociationName>>>,
+    updateAssociationOptions?: {
+      where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+    }
+  ): Promise<number>
+
+  /**
+   * Updates all records matching the association with
+   * the provided attributes. If a where statement is passed,
+   * The where statement will be applied to the query
+   * before updating.
+   *
+   * TODO: change behavior as part of
+   * https://rvohealth.atlassian.net/browse/PDTC-5488
+   * NOTE: This bypasses update and save model hooks
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await user.txn(txn).createAssociation('posts', { body: 'hello world' })
+   *   await user.txn(txn).createAssociation('posts', { body: 'howyadoin' })
+   *   await user.txn(txn).updateAssociation('posts', { body: 'goodbye world' }, { where: { body: 'hello world' }})
+   *   // 1
+   * })
+   * ```
+   *
+   * @returns The number of updated records
+   */
+  public async updateAssociation<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    AssociationName extends keyof DreamInstance,
+  >(
+    this: I,
+    associationName: AssociationName,
+    attributes: Partial<DreamAttributes<DreamAssociationType<DreamInstance, AssociationName>>>,
+    updateAssociationOptions: unknown
   ): Promise<number> {
     return await associationUpdateQuery(
       this.dreamInstance,
       this.dreamTransaction,
       associationName,
-      where as any
+      (updateAssociationOptions as any).where
     ).updateAll(attributes)
   }
 
