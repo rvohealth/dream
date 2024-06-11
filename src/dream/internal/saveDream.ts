@@ -52,7 +52,7 @@ export default async function saveDream<DreamInstance extends Dream>(
   // an invalid update command. The Sortable decorator is an example of this.
   if (!alreadyPersisted || Object.keys(sqlifiedAttributes).length) {
     const data = await executeDatabaseQuery(query.returning([...dream.columns()]), 'executeTakeFirstOrThrow')
-    dream['_isPersisted'] = true
+    dream['isPersisted'] = true
     dream.setAttributes(data)
   }
 
