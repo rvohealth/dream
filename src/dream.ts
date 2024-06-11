@@ -3027,6 +3027,8 @@ export default class Dream {
       if (!associationDataKeys.includes(property)) clone[property] = cloneDeepSafe(self[property])
     })
 
+    clone['_isPersisted'] = false
+
     associationDataKeys.forEach(associationDataKey => (clone[associationDataKey] = self[associationDataKey]))
 
     return clone as I

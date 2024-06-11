@@ -2,10 +2,12 @@ import { DateTime } from 'luxon'
 import User from '../../../test-app/app/models/User'
 
 describe('Dream#clone', () => {
-  it('returns a new copy', async () => {
+  it('returns a new, unpersisted copy', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user2 = user.clone()
     expect(user).not.toBe(user2)
+    expect(user.isPersisted).toEqual(true)
+    expect(user2.isPersisted).toEqual(false)
   })
 
   it('returns a record which is comparibly still the same dream model', async () => {
