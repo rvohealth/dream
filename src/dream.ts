@@ -3175,7 +3175,9 @@ export default class Dream {
     this: I,
     associationName: AssociationName,
     attributes: Partial<DreamAttributes<DreamAssociationType<I, AssociationName>>>,
-    updateAssociationOptions: { where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName> }
+    updateAssociationOptions: {
+      where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+    }
   ): Promise<number>
 
   public async updateAssociation<
