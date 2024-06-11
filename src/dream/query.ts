@@ -65,6 +65,8 @@ import SimilarityBuilder from './internal/similarity/SimilarityBuilder'
 import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance'
 import DreamTransaction from './transaction'
 import {
+  DreamAttributes,
+  DreamColumn,
   DreamColumnNames,
   DreamConst,
   DreamTableSchema,
@@ -1294,7 +1296,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    */
   public async max<PluckThroughFieldType, T extends DreamColumnNames<DreamInstance> | PluckThroughFieldType>(
     columnName: T
-  ): Promise<DreamTableSchema<DreamInstance>[T & keyof DreamTableSchema<DreamInstance>] | null> {
+  ): Promise<DreamColumn<DreamInstance, T & keyof DreamAttributes<DreamInstance>> | null> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { max } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true, bypassOrder: true })
@@ -1321,9 +1323,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   public async min<
     PluckThroughcolumnNameType,
     T extends DreamColumnNames<DreamInstance> | PluckThroughcolumnNameType,
-  >(
-    columnName: T
-  ): Promise<DreamTableSchema<DreamInstance>[T & keyof DreamTableSchema<DreamInstance>] | null> {
+  >(columnName: T): Promise<DreamColumn<DreamInstance, T & keyof DreamAttributes<DreamInstance>> | null> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { min } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true, bypassOrder: true })
