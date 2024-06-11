@@ -86,24 +86,6 @@ type AssociationDreamSelectable<
   >
 >
 
-export interface UpdateAssociationOptionsWithRequiredWhereStatement<
-  DB,
-  Schema,
-  TableName extends keyof Schema,
-  AssociationName,
-> {
-  where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
-}
-
-export interface UpdateAssociationOptionsWithOptionalWhereStatement<
-  DB,
-  Schema,
-  TableName extends keyof Schema,
-  AssociationName,
-> {
-  where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
-}
-
 export type WhereStatementForDreamClass<DreamClass extends typeof Dream> = WhereStatement<
   InstanceType<DreamClass>['DB'],
   InstanceType<DreamClass>['dreamconf']['schema'],
