@@ -105,9 +105,8 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    */
 
   public async max<
-    PluckThroughFieldType,
     I extends DreamClassTransactionBuilder<DreamInstance>,
-    T extends DreamColumnNames<DreamInstance> | PluckThroughFieldType,
+    T extends DreamColumnNames<DreamInstance>,
   >(this: I, columnName: T) {
     return this.queryInstance().max(columnName)
   }
@@ -128,9 +127,8 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @returns the min value of the specified column for this model's records
    */
   public async min<
-    PluckThroughFieldType,
     I extends DreamClassTransactionBuilder<DreamInstance>,
-    T extends DreamColumnNames<DreamInstance> | PluckThroughFieldType,
+    T extends DreamColumnNames<DreamInstance>,
   >(this: I, columnName: T) {
     return this.queryInstance().min(columnName)
   }
