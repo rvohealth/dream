@@ -2013,26 +2013,6 @@ export default class Dream {
   }
 
   /**
-   * Returns true if the model has been persisted
-   * to the database.
-   *
-   * ```ts
-   * const user = User.new({ email: 'howyadoin' })
-   * user.isPersisted
-   * // false
-   *
-   * await user.save()
-   * user.isPersisted
-   * // true
-   * ```
-   *
-   * @returns A boolean
-   */
-  public get isPersisted() {
-    return !!(this as any)[this.primaryKey]
-  }
-
-  /**
    * Returns true if the model has not been persisted
    * to the database.
    *
@@ -2268,6 +2248,33 @@ export default class Dream {
   private attributesFromBeforeLastSave: { [key: string]: any } = {}
 
   /**
+   * @internal
+   *
+   * Stores whether the record has been persisted or not
+   */
+  private _isPersisted: boolean
+
+  /**
+   * Returns true if the model has been persisted
+   * to the database.
+   *
+   * ```ts
+   * const user = User.new({ email: 'howyadoin' })
+   * user.isPersisted
+   * // false
+   *
+   * await user.save()
+   * user.isPersisted
+   * // true
+   * ```
+   *
+   * @returns A boolean
+   */
+  public get isPersisted() {
+    return this._isPersisted || false
+  }
+
+  /**
    * Since typescript prevents constructor functions
    * from absorbing type generics, we provide the `new`
    * method to instantiate with type protection
@@ -2305,12 +2312,14 @@ export default class Dream {
    */
   constructor(
     opts?: any,
-    additionalOpts: { bypassUserDefinedSetters?: boolean } = {}
+    additionalOpts: { bypassUserDefinedSetters?: boolean; isPersisted?: boolean } = {}
     // opts?: Updateable<
     //   InstanceType<DreamModel & typeof Dream>['DB'][InstanceType<DreamModel>['table'] &
     //     keyof InstanceType<DreamModel>['DB']]
     // >
   ) {
+    this._isPersisted = additionalOpts?.isPersisted || false
+
     this.defineAttributeAccessors()
 
     if (opts) {
