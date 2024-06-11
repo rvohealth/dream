@@ -1294,9 +1294,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @returns the max value of the specified column for this Query
    *
    */
-  public async max<PluckThroughFieldType, T extends DreamColumnNames<DreamInstance> | PluckThroughFieldType>(
-    columnName: T
-  ): Promise<DreamColumn<DreamInstance, T & keyof DreamAttributes<DreamInstance>> | null> {
+  public async max<ColumnName extends DreamColumnNames<DreamInstance>>(
+    columnName: ColumnName
+  ): Promise<DreamColumn<DreamInstance, ColumnName & keyof DreamAttributes<DreamInstance>> | null> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { max } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true, bypassOrder: true })
@@ -1320,10 +1320,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @param columnName - a column name on the model
    * @returns the min value of the specified column for this Query
    */
-  public async min<
-    PluckThroughcolumnNameType,
-    T extends DreamColumnNames<DreamInstance> | PluckThroughcolumnNameType,
-  >(columnName: T): Promise<DreamColumn<DreamInstance, T & keyof DreamAttributes<DreamInstance>> | null> {
+  public async min<ColumnName extends DreamColumnNames<DreamInstance>>(
+    columnName: ColumnName
+  ): Promise<DreamColumn<DreamInstance, ColumnName & keyof DreamAttributes<DreamInstance>> | null> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { min } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true, bypassOrder: true })
