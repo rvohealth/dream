@@ -10,10 +10,10 @@ import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import LocalizedText from '../../../../test-app/app/models/LocalizedText'
 import Pet from '../../../../test-app/app/models/Pet'
 import Post from '../../../../test-app/app/models/Post'
-import Rating from '../../../../test-app/app/models/Rating'
 import User from '../../../../test-app/app/models/User'
+import Rating from '../../../../test-app/app/models/Rating'
 
-describe('Dream#destroyAssociation', () => {
+describe('Dream#reallyDestroyAssociation', () => {
   let hooksSpy: jest.SpyInstance
   let commitHooksSpy: jest.SpyInstance
 
@@ -65,6 +65,18 @@ describe('Dream#destroyAssociation', () => {
     )
   }
 
+  it('calls model hooks for each associated record', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const composition = await user.createAssociation('compositions')
+    const compositionAsset = await composition.createAssociation('compositionAssets')
+
+    hooksSpy = jest.spyOn(runHooksForModule, 'default')
+    commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+
+    await composition.reallyDestroyAssociation('compositionAssets')
+    expectDestroyHooksCalled(compositionAsset)
+  })
+
   context('model hooks', () => {
     it('calls model hooks for each associated record', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
@@ -79,7 +91,7 @@ describe('Dream#destroyAssociation', () => {
       expectDestroyHooksCalled(compositionAsset)
     })
 
-    context('skipHooks=true', () => {
+    context('when skipHooks is true', () => {
       it('does not call model hooks for each associated record', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await user.createAssociation('compositions')
@@ -88,24 +100,12 @@ describe('Dream#destroyAssociation', () => {
         hooksSpy = jest.spyOn(runHooksForModule, 'default')
         commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
 
-        await composition.destroyAssociation('compositionAssets', { skipHooks: true })
+        await composition.reallyDestroyAssociation('compositionAssets', { skipHooks: true })
 
         expectNoDestroyHooksCalled(compositionAsset)
       })
 
       context('with SoftDelete decorator', () => {
-        it('sets deletedAt to a datetime, does not delete record', async () => {
-          const user = await User.create({ email: 'fred@frewd', name: 'howyadoin', password: 'hamz' })
-          const post = await Post.create({ user })
-          expect(post.deletedAt).toBeNull()
-
-          await user.destroyAssociation('posts')
-
-          expect(await Post.last()).toBeNull()
-          const reloadedPost = await Post.unscoped().last()
-          expect(reloadedPost!.deletedAt).not.toBeNull()
-        })
-
         it('calls model hooks for each associated record', async () => {
           const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
           const post = await Post.create({ user })
@@ -113,19 +113,35 @@ describe('Dream#destroyAssociation', () => {
           hooksSpy = jest.spyOn(runHooksForModule, 'default')
           commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
 
-          await user.destroyAssociation('posts')
+          await user.reallyDestroyAssociation('posts')
 
           expectDestroyHooksCalled(post)
         })
 
+        it('bypasses SoftDelete for each associated record', async () => {
+          const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+          const post = await Post.create({ user })
+          await Rating.create({ rateable: post, user })
+
+          hooksSpy = jest.spyOn(runHooksForModule, 'default')
+          commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+
+          await user.reallyDestroyAssociation('posts')
+
+          expect(await Post.count()).toEqual(0)
+          expect(await Rating.count()).toEqual(0)
+          expect(await Rating.unscoped().count()).toEqual(0)
+        })
+
         context('skipHooks=true is passed', () => {
           it('does not call model hooks for each associated record', async () => {
-            const pet = await Pet.create()
+            const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+            const pet = await Pet.create({ user })
 
             hooksSpy = jest.spyOn(runHooksForModule, 'default')
             commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
 
-            await pet.destroy({ skipHooks: true })
+            await user.reallyDestroyAssociation('posts', { skipHooks: true })
 
             expectNoDestroyHooksCalled(pet)
           })
@@ -143,39 +159,9 @@ describe('Dream#destroyAssociation', () => {
       hooksSpy = jest.spyOn(runHooksForModule, 'default')
       commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
 
-      await user.destroyAssociation('posts')
+      await user.reallyDestroyAssociation('posts')
 
       expectDestroyHooksCalled(rating)
-    })
-
-    context('with SoftDelete enabled on the parent model', () => {
-      it('cascade deletes all related HasMany associations, including deeply nested associations', async () => {
-        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-        const post = await Post.create({ user })
-        await Rating.create({ rateable: post, user })
-
-        expect(await Rating.count()).toEqual(1)
-
-        await post.destroyAssociation('ratings')
-
-        expect(await Rating.count()).toEqual(0)
-      })
-    })
-
-    context('with SoftDelete enabled on the associated models', () => {
-      it('cascade deletes all related HasMany associations, including deeply nested associations', async () => {
-        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-        const post = await Post.create({ user })
-        await Rating.create({ rateable: post, user })
-
-        expect(await Post.count()).toEqual(1)
-        expect(await Rating.count()).toEqual(1)
-
-        await user.destroyAssociation('posts')
-
-        expect(await Post.count()).toEqual(0)
-        expect(await Rating.count()).toEqual(0)
-      })
     })
   })
 
@@ -188,7 +174,7 @@ describe('Dream#destroyAssociation', () => {
 
       expect(await Composition.all()).toMatchDreamModels([composition, composition2])
       expect(await user.associationQuery('compositions').all()).toMatchDreamModels([composition])
-      await user.destroyAssociation('compositions')
+      await user.reallyDestroyAssociation('compositions')
 
       expect(await user.associationQuery('compositions').all()).toEqual([])
       expect(await Composition.all()).toMatchDreamModels([composition2])
@@ -203,7 +189,7 @@ describe('Dream#destroyAssociation', () => {
 
         expect(await Pet.all()).toMatchDreamModels([pet, pet2])
         expect(await user.associationQuery('petsFromUuid').all()).toMatchDreamModels([pet])
-        await user.destroyAssociation('petsFromUuid')
+        await user.reallyDestroyAssociation('petsFromUuid')
 
         expect(await user.associationQuery('petsFromUuid').all()).toEqual([])
         expect(await Pet.all()).toMatchDreamModels([pet2])
@@ -221,14 +207,14 @@ describe('Dream#destroyAssociation', () => {
           composition,
           composition2,
         ])
-        await user.destroyAssociation('compositions', { where: { content: 'chalupas dujour' } })
+        await user.reallyDestroyAssociation('compositions', { where: { content: 'chalupas dujour' } })
 
         expect(await user.associationQuery('compositions').all()).toMatchDreamModels([composition2])
         expect(await Composition.all()).toMatchDreamModels([composition2])
       })
     })
 
-    context('when a required where clause isn’t passed', () => {
+    context('when a "requiredWhereClause" isn’t passed', () => {
       it('throws MissingRequiredAssociationWhereClause', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })
@@ -239,7 +225,7 @@ describe('Dream#destroyAssociation', () => {
       })
     })
 
-    context('when a required where clause is passed', () => {
+    context('when a "requiredWhereClause" is passed', () => {
       it('destroys the record indicated by the where clause', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })
@@ -249,7 +235,7 @@ describe('Dream#destroyAssociation', () => {
           locale: 'es-ES',
         })
 
-        await composition.destroyAssociation('inlineWhereCurrentLocalizedText', {
+        await composition.reallyDestroyAssociation('inlineWhereCurrentLocalizedText', {
           where: { locale: 'es-ES' },
         })
 
@@ -275,7 +261,7 @@ describe('Dream#destroyAssociation', () => {
         compositionAsset1,
         compositionAsset2,
       ])
-      await user.destroyAssociation('compositionAssets', { where: { name: 'chalupas dujour' } })
+      await user.reallyDestroyAssociation('compositionAssets', { where: { name: 'chalupas dujour' } })
 
       expect(await user.associationQuery('compositionAssets').all()).toMatchDreamModels([compositionAsset2])
       expect(await CompositionAsset.all()).toMatchDreamModels([compositionAsset2])
@@ -292,7 +278,7 @@ describe('Dream#destroyAssociation', () => {
 
         expect(await Collar.all()).toMatchDreamModels([collar, collar2])
         expect(await user.associationQuery('collarsFromUuid').all()).toMatchDreamModels([collar])
-        await user.destroyAssociation('collarsFromUuid')
+        await user.reallyDestroyAssociation('collarsFromUuid')
 
         expect(await user.associationQuery('collarsFromUuid').all()).toEqual([])
         expect(await Collar.all()).toMatchDreamModels([collar2])
@@ -307,7 +293,7 @@ describe('Dream#destroyAssociation', () => {
       const userSettings = await user.createAssociation('userSettings', { createdAt: createdAt })
       expect(await user.associationQuery('userSettings').all()).toMatchDreamModels([userSettings])
 
-      await user.destroyAssociation('userSettings')
+      await user.reallyDestroyAssociation('userSettings')
       expect(await user.associationQuery('userSettings').all()).toEqual([])
     })
 
@@ -320,7 +306,7 @@ describe('Dream#destroyAssociation', () => {
 
         expect(await Pet.all()).toMatchDreamModels([pet, pet2])
         expect(await user.associationQuery('firstPetFromUuid').all()).toMatchDreamModels([pet])
-        await user.destroyAssociation('firstPetFromUuid')
+        await user.reallyDestroyAssociation('firstPetFromUuid')
 
         expect(await user.associationQuery('firstPetFromUuid').all()).toEqual([])
         expect(await Pet.all()).toMatchDreamModels([pet2])
@@ -335,7 +321,7 @@ describe('Dream#destroyAssociation', () => {
 
         expect(await user.associationQuery('firstComposition').first()).toMatchDreamModel(composition1)
 
-        await user.destroyAssociation('firstComposition')
+        await user.reallyDestroyAssociation('firstComposition')
         expect(await Composition.count()).toEqual(1)
 
         expect(await user.associationQuery('firstComposition').first()).toMatchDreamModel(composition2)
@@ -348,7 +334,7 @@ describe('Dream#destroyAssociation', () => {
 
         expect(await user.associationQuery('lastComposition').first()).toMatchDreamModel(composition2)
 
-        await user.destroyAssociation('lastComposition')
+        await user.reallyDestroyAssociation('lastComposition')
         expect(await Composition.count()).toEqual(1)
 
         expect(await user.associationQuery('lastComposition').first()).toMatchDreamModel(composition1)
@@ -364,7 +350,7 @@ describe('Dream#destroyAssociation', () => {
       const postVisibility = await post.createAssociation('postVisibility', { createdAt: createdAt })
       expect(await post.associationQuery('postVisibility').first()).toMatchDreamModel(postVisibility)
 
-      await post.destroyAssociation('postVisibility')
+      await post.reallyDestroyAssociation('postVisibility')
 
       expect(await post.associationQuery('postVisibility').first()).toBeNull()
     })
@@ -381,7 +367,7 @@ describe('Dream#destroyAssociation', () => {
       expect(await user.associationQuery('compositions').all()).toMatchDreamModels([composition])
 
       await ApplicationModel.transaction(async txn => {
-        await user.txn(txn).destroyAssociation('compositions', { skipHooks: false })
+        await user.txn(txn).reallyDestroyAssociation('compositions', { skipHooks: false })
       })
 
       expect(await user.associationQuery('compositions').all()).toEqual([])
@@ -403,7 +389,7 @@ describe('Dream#destroyAssociation', () => {
 
           expect(await Pet.txn(txn).all()).toMatchDreamModels([pet, pet2])
           expect(await user.txn(txn).associationQuery('petsFromUuid').all()).toMatchDreamModels([pet])
-          await user.txn(txn).destroyAssociation('petsFromUuid')
+          await user.txn(txn).reallyDestroyAssociation('petsFromUuid')
         })
 
         expect(await user!.associationQuery('petsFromUuid').all()).toEqual([])

@@ -267,6 +267,19 @@ export interface LocalizedTexts {
   updatedAt: Timestamp;
 }
 
+export interface ModelWithoutCustomDeletedAts {
+  createdAt: Timestamp;
+  deletedAt: Timestamp | null;
+  id: Generated<Int8>;
+  updatedAt: Timestamp;
+}
+
+export interface ModelWithoutDeletedAts {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  updatedAt: Timestamp;
+}
+
 export interface ModelWithoutUpdatedAt {
   cantUpdateThis: string | null;
   createdAt: Timestamp;
@@ -282,7 +295,7 @@ export interface Pets {
   id: Generated<Int8>;
   name: string | null;
   nickname: string | null;
-  positionWithinSpecies: number;
+  positionWithinSpecies: number | null;
   species: Species | null;
   userId: Int8 | null;
   userUuid: string | null;
@@ -296,12 +309,21 @@ export interface PetUnderstudyJoinModels {
   updatedAt: Timestamp;
 }
 
+export interface PostComments {
+  body: string | null;
+  createdAt: Timestamp;
+  deletedAt: Timestamp | null;
+  id: Generated<Int8>;
+  postId: Int8;
+  updatedAt: Timestamp;
+}
+
 export interface Posts {
   body: string | null;
   createdAt: Timestamp;
   deletedAt: Timestamp | null;
   id: Generated<Int8>;
-  position: number;
+  position: number | null;
   postVisibilityId: Int8 | null;
   updatedAt: Timestamp;
   userId: Int8;
@@ -379,9 +401,12 @@ export interface DB {
   graph_nodes: GraphNodes;
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples;
   localized_texts: LocalizedTexts;
+  model_without_custom_deleted_ats: ModelWithoutCustomDeletedAts;
+  model_without_deleted_ats: ModelWithoutDeletedAts;
   model_without_updated_at: ModelWithoutUpdatedAt;
   pet_understudy_join_models: PetUnderstudyJoinModels;
   pets: Pets;
+  post_comments: PostComments;
   post_visibilities: PostVisibilities;
   posts: Posts;
   ratings: Ratings;
@@ -407,9 +432,12 @@ export class DBClass {
   graph_nodes: GraphNodes
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples
   localized_texts: LocalizedTexts
+  model_without_custom_deleted_ats: ModelWithoutCustomDeletedAts
+  model_without_deleted_ats: ModelWithoutDeletedAts
   model_without_updated_at: ModelWithoutUpdatedAt
   pet_understudy_join_models: PetUnderstudyJoinModels
   pets: Pets
+  post_comments: PostComments
   post_visibilities: PostVisibilities
   posts: Posts
   ratings: Ratings

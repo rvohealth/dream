@@ -1,12 +1,10 @@
-import { DateTime } from 'luxon'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
 import HasOne from '../../../src/decorators/associations/has-one'
-import BeforeDestroy from '../../../src/decorators/hooks/before-destroy'
 import Scope from '../../../src/decorators/scope'
+import SoftDelete from '../../../src/decorators/soft-delete'
 import Sortable from '../../../src/decorators/sortable'
 import Validates from '../../../src/decorators/validations/validates'
-import Query from '../../../src/dream/query'
 import { DreamColumn, IdType } from '../../../src/dream/types'
 import { BalloonTypesEnum } from '../../db/sync'
 import ApplicationModel from './ApplicationModel'
@@ -14,6 +12,7 @@ import BalloonLine from './BalloonLine'
 import HeartRating from './ExtraRating/HeartRating'
 import User from './User'
 
+@SoftDelete()
 export default class Balloon extends ApplicationModel {
   public get table() {
     return 'beautiful_balloons' as const
@@ -39,22 +38,6 @@ export default class Balloon extends ApplicationModel {
   @Scope()
   public static red(query: any) {
     return query.where({ color: 'red' })
-  }
-
-  @Scope({ default: true })
-  public static hideDeleted(query: any) {
-    return query.where({ deletedAt: null })
-  }
-
-  @BeforeDestroy()
-  public async softDelete(this: Balloon) {
-    await new Query(this)
-      .toKysely('update')
-      .set({ deletedAt: DateTime.now(), positionAlpha: null, positionBeta: null })
-      .where(this.primaryKey as any, '=', this.primaryKeyValue.toString())
-      .execute()
-
-    this.preventDeletion()
   }
 
   @Validates('numericality', { min: 0, max: 100 })

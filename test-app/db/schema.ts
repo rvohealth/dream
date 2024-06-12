@@ -1,26 +1,26 @@
 import CalendarDate from '../../src/helpers/CalendarDate'
 import { DateTime } from 'luxon'
 import {
-  BalloonColorsEnum,
   BalloonColorsEnumValues,
-  BalloonLineMaterialsEnum,
   BalloonLineMaterialsEnumValues,
-  BalloonTypesEnum,
   BalloonTypesEnumValues,
-  CatTreats,
   CatTreatsValues,
-  ExtraRateableTypesEnum,
   ExtraRateableTypesEnumValues,
-  ExtraRatingTypesEnum,
   ExtraRatingTypesEnumValues,
-  IdType,
+  LocalesEnumValues,
+  LocalizableTypesEnumValues,
+  SpeciesValues,
+  BalloonColorsEnum,
+  BalloonLineMaterialsEnum,
+  BalloonTypesEnum,
+  CatTreats,
+  ExtraRateableTypesEnum,
+  ExtraRatingTypesEnum,
   Json,
   LocalesEnum,
-  LocalesEnumValues,
   LocalizableTypesEnum,
-  LocalizableTypesEnumValues,
   Species,
-  SpeciesValues,
+  IdType,
   Timestamp
 } from './sync'
 
@@ -1347,6 +1347,78 @@ export const schema = {
       },
     },
   },
+  model_without_custom_deleted_ats: {
+    columns: {
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+      deletedAt: {
+        coercedType: {} as DateTime | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: true,
+        isArray: false,
+      },
+      id: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
+      updatedAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+    },
+    virtualColumns: [],
+    associations: {
+      
+    },
+  },
+  model_without_deleted_ats: {
+    columns: {
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+      id: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
+      updatedAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+    },
+    virtualColumns: [],
+    associations: {
+      
+    },
+  },
   model_without_updated_at: {
     columns: {
       cantUpdateThis: {
@@ -1507,11 +1579,11 @@ export const schema = {
         isArray: false,
       },
       positionWithinSpecies: {
-        coercedType: {} as number,
+        coercedType: {} as number | null,
         enumType: null,
         enumValues: null,
         dbType: 'integer',
-        allowNull: false,
+        allowNull: true,
         isArray: false,
       },
       species: {
@@ -1648,6 +1720,68 @@ export const schema = {
       },
     },
   },
+  post_comments: {
+    columns: {
+      body: {
+        coercedType: {} as string | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'text',
+        allowNull: true,
+        isArray: false,
+      },
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+      deletedAt: {
+        coercedType: {} as DateTime | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: true,
+        isArray: false,
+      },
+      id: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
+      postId: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
+      updatedAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+    },
+    virtualColumns: [],
+    associations: {
+      post: {
+        type: 'BelongsTo',
+        foreignKey: 'postId',
+        tables: ['posts'],
+        optional: false,
+        requiredWhereClauses: null,
+      },
+    },
+  },
   post_visibilities: {
     columns: {
       createdAt: {
@@ -1737,11 +1871,11 @@ export const schema = {
         isArray: false,
       },
       position: {
-        coercedType: {} as number,
+        coercedType: {} as number | null,
         enumType: null,
         enumValues: null,
         dbType: 'integer',
-        allowNull: false,
+        allowNull: true,
         isArray: false,
       },
       postVisibilityId: {
@@ -1771,6 +1905,13 @@ export const schema = {
     },
     virtualColumns: [],
     associations: {
+      comments: {
+        type: 'HasMany',
+        foreignKey: 'postId',
+        tables: ['post_comments'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
       heartRatings: {
         type: 'HasMany',
         foreignKey: 'extraRateableId',

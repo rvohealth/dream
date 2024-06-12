@@ -15,7 +15,7 @@ export default class DreamDbConnection {
     const connectionConf = new ConnectionConfRetriever(dreamconf).getConnectionConf(connectionType)
 
     const dbConn = new Kysely<DB>({
-      log: process.env.DEBUG === '1' ? ['query'] : undefined,
+      log: process.env.DEBUG === '1' ? ['query', 'error'] : undefined,
       dialect: new PostgresDialect({
         pool: new Pool({
           user: process.env[connectionConf.user] || '',

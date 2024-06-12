@@ -10,7 +10,7 @@ export async function up(db: Kysely<any>): Promise<void> {
       col.references('post_visibilities.id').onDelete('set null')
     )
     .addColumn('body', 'text')
-    .addColumn('position', 'integer', col => col.notNull())
+    .addColumn('position', 'integer')
     .addColumn('deleted_at', 'timestamp', col => col.defaultTo(null))
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
