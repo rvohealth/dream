@@ -20,7 +20,7 @@ export default class PostVisibility extends ApplicationModel {
   public createdAt: DreamColumn<PostVisibility, 'createdAt'>
   public updatedAt: DreamColumn<PostVisibility, 'updatedAt'>
 
-  @HasOne(() => Post)
+  @HasOne(() => Post, { cascade: 'destroy' })
   public post: Post
 
   @BeforeCreate()

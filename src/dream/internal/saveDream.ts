@@ -18,10 +18,10 @@ export default async function saveDream<DreamInstance extends Dream>(
   const alreadyPersisted = dream.isPersisted
 
   if (!skipHooks) {
-    await runHooksFor('beforeSave', dream, alreadyPersisted, null, txn as DreamTransaction<any>)
     if (alreadyPersisted)
       await runHooksFor('beforeUpdate', dream, alreadyPersisted, null, txn as DreamTransaction<any>)
     else await runHooksFor('beforeCreate', dream, alreadyPersisted, null, txn as DreamTransaction<any>)
+    await runHooksFor('beforeSave', dream, alreadyPersisted, null, txn as DreamTransaction<any>)
   }
 
   const beforeSaveChanges = dream.changes()
@@ -84,8 +84,8 @@ export default async function saveDream<DreamInstance extends Dream>(
       )
 
     const commitHookType = alreadyPersisted ? 'afterUpdateCommit' : 'afterCreateCommit'
-    await safelyRunCommitHooks(dream, 'afterSaveCommit', alreadyPersisted, beforeSaveChanges, txn)
     await safelyRunCommitHooks(dream, commitHookType, alreadyPersisted, beforeSaveChanges, txn)
+    await safelyRunCommitHooks(dream, 'afterSaveCommit', alreadyPersisted, beforeSaveChanges, txn)
   }
 
   return dream

@@ -25,6 +25,8 @@ import associationToGetterSetterProp from './associationToGetterSetterProp'
 import { BelongsToStatement } from './belongs-to'
 import { HasManyStatement } from './has-many'
 import { HasOneStatement } from './has-one'
+import CannotPassCascadeAndPassthrough from '../../exceptions/cannot-pass-cascade-and-passthrough'
+import CannotPassCascadeAndRequiredWhereClause from '../../exceptions/cannot-pass-cascade-and-required-where-clause'
 
 type AssociatedModelType<
   I extends Dream,
@@ -180,6 +182,7 @@ export interface HasStatement<
   selfWhereNot?: WhereSelfStatement<BaseInstance, DB, Schema, ForeignTableName>
   distinct?: TableColumnNames<DB, ForeignTableName>
   order?: OrderStatement<DB, Schema, ForeignTableName>
+  cascade?: CascadeOptions
 }
 
 export interface HasOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream> {
@@ -249,6 +252,7 @@ export interface HasOptions<BaseInstance extends Dream, AssociationDreamClass ex
           >
       >[]
   preloadThroughColumns?: string[] | Record<string, string>
+  cascade?: CascadeOptions
 }
 
 export function blankAssociationsFactory(dreamClass: typeof Dream): {
@@ -262,6 +266,8 @@ export function blankAssociationsFactory(dreamClass: typeof Dream): {
     hasOne: [...(dreamClass['associationMetadataByType']?.hasOne || [])],
   }
 }
+
+type CascadeOptions = 'destroy'
 
 type partialTypeFields =
   | 'modelCB'
@@ -398,6 +404,26 @@ association: ${this.as}
       return (associationInstance as any)[this.primaryKey(associationInstance)]
     },
   }
+}
+
+export function validateHasStatementArgs({
+  dreamClass,
+  where,
+  cascade,
+  methodName,
+}: {
+  dreamClass: typeof Dream
+  where: any
+  methodName: string
+  cascade?: CascadeOptions
+}) {
+  const hasPassthroughWhere = Object.values(where || {}).find(val => val === DreamConst.passthrough)
+  const hasRequiredWhereClause = Object.values(where || {}).find(
+    val => val === DreamConst.requiredWhereClause
+  )
+  if (cascade && hasPassthroughWhere) throw new CannotPassCascadeAndPassthrough(dreamClass, methodName)
+  if (cascade && hasRequiredWhereClause)
+    throw new CannotPassCascadeAndRequiredWhereClause(dreamClass, methodName)
 }
 
 // function hydratedSourceValue(dream: Dream | typeof Dream | undefined, sourceName: string) {

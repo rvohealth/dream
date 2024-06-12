@@ -61,6 +61,16 @@ export async function runHook<T extends Dream>(
   dream: T,
   txn?: DreamTransaction<any>
 ) {
+  if (typeof (dream as any)[statement.method] !== 'function') {
+    throw new Error(
+      `
+Attempting to run ${statement.method} as part of the ${statement.type}
+Dream model hook sequence, but we encountered a method that does not exist.
+
+Please make sure "${statement.method}" is defined on ${dream.constructor.name}
+`
+    )
+  }
   await (dream as any)[statement.method](txn)
 }
 

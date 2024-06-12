@@ -17,6 +17,14 @@ describe('ApplicationModel.transaction', () => {
     expect(user.email).toEqual('fred@fishman')
   })
 
+  it('returns whatever was returned in the underlying callback', async () => {
+    const res = await ApplicationModel.transaction(async txn => {
+      await User.txn(txn).first()
+      return 'howyadoin'
+    })
+    expect(res).toEqual('howyadoin')
+  })
+
   context('a DB action that raises an exception', () => {
     it('earlier DB actions within the transaction are not committed', async () => {
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })

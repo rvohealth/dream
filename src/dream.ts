@@ -1622,22 +1622,26 @@ export default class Dream {
    * @param callback - A callback function to call. The transaction provided to the callback can be passed to subsequent database calls within the transaction callback.
    * @returns void
    */
-  public static async transaction<T extends typeof Dream>(
-    this: T,
-    callback: (txn: DreamTransaction<InstanceType<T>>) => unknown
-  ) {
+  public static async transaction<
+    T extends typeof Dream,
+    CB extends (txn: DreamTransaction<InstanceType<T>>) => unknown,
+    RetType extends ReturnType<CB>,
+  >(this: T, callback: CB): Promise<RetType> {
     const dreamTransaction = new DreamTransaction()
+    let callbackResponse: RetType = undefined as RetType
 
-    const res = await db('primary', this.prototype.dreamconf)
+    await db('primary', this.prototype.dreamconf)
       .transaction()
       .execute(async kyselyTransaction => {
         dreamTransaction.kyselyTransaction = kyselyTransaction
-        await (callback as (txn: DreamTransaction<InstanceType<T>>) => Promise<unknown>)(dreamTransaction)
+        callbackResponse = (await (callback as (txn: DreamTransaction<InstanceType<T>>) => Promise<unknown>)(
+          dreamTransaction
+        )) as RetType
       })
 
     await dreamTransaction.runAfterCommitHooks(dreamTransaction)
 
-    return res
+    return callbackResponse
   }
 
   /**
@@ -1837,6 +1841,28 @@ export default class Dream {
   private static belongsToAssociationNames() {
     const associationMap = this.associationMetadataMap()
     return Object.keys(associationMap).filter(key => associationMap[key].type === 'BelongsTo')
+  }
+
+  /**
+   * @internal
+   *
+   * Returns a list of association names which
+   * have `cascade: destroy` set
+   *
+   * ```ts
+   * Post.cascadeDestroyAssociationNames()
+   * // ['user']
+   * ```
+   *
+   * @returns An array of HasOne/HasMany association names with `cascade: 'destroy'` defined
+   */
+  private static cascadeDestroyAssociationNames() {
+    const associationMap = this.associationMetadataMap()
+    return Object.keys(associationMap).filter(
+      key =>
+        (associationMap[key] as HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>)
+          .cascade === 'destroy'
+    )
   }
 
   /**
