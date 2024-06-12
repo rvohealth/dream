@@ -1,20 +1,19 @@
-import { DateTime } from 'luxon'
+import { BeforeUpdate } from '../../../src'
 import HasMany from '../../../src/decorators/associations/has-many'
 import HasOne from '../../../src/decorators/associations/has-one'
-import Scope from '../../../src/decorators/scope'
+import SoftDelete from '../../../src/decorators/soft-delete'
 import Sortable from '../../../src/decorators/sortable'
-import User from './User'
 import { DreamColumn, IdType } from '../../../src/dream/types'
-import BeforeDestroy from '../../../src/decorators/hooks/before-destroy'
-import Collar from './Collar'
 import PetSerializer, { PetSummarySerializer } from '../serializers/PetSerializer'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
+import Collar from './Collar'
 import PetUnderstudyJoinModel from './PetUnderstudyJoinModel'
 import Post from './Post'
 import Rating from './Rating'
-import { BeforeUpdate, DreamTransaction } from '../../../src'
+import User from './User'
 
+@SoftDelete()
 export default class Pet extends ApplicationModel {
   public get table() {
     return 'pets' as const
@@ -44,11 +43,6 @@ export default class Pet extends ApplicationModel {
 
   @Sortable({ scope: 'species' })
   public positionWithinSpecies: number
-
-  @Scope({ default: true })
-  public static hideDeleted(query: any) {
-    return query.where({ deletedAt: null })
-  }
 
   @Pet.BelongsTo(() => User, {
     optional: true,
@@ -108,13 +102,6 @@ export default class Pet extends ApplicationModel {
   })
   public understudies: Pet[]
   // end: totally contrived for testing purposes
-
-  @BeforeDestroy()
-  public async doSoftDelete(txn?: DreamTransaction<Pet>) {
-    const query = (txn ? this.txn(txn) : this) as Pet
-    await query.update({ deletedAt: DateTime.now() })
-    this.preventDeletion()
-  }
 
   @BeforeUpdate()
   public markRecordUpdated() {

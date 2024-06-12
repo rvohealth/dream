@@ -39,6 +39,7 @@ import MissingRequiredAssociationWhereClause from '../exceptions/associations/mi
 import MissingRequiredPassthroughForAssociationWhereClause from '../exceptions/associations/missing-required-passthrough-for-association-where-clause'
 import MissingThroughAssociation from '../exceptions/associations/missing-through-association'
 import MissingThroughAssociationSource from '../exceptions/associations/missing-through-association-source'
+import CannotCallUndestroyOnANonSoftDeleteModel from '../exceptions/cannot-call-undestroy-on-a-non-soft-delete-model'
 import CannotNegateSimilarityClause from '../exceptions/cannot-negate-similarity-clause'
 import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../exceptions/cannot-pass-additional-fields-to-pluck-each-after-callback-function'
 import MissingRequiredCallbackFunctionToPluckEach from '../exceptions/missing-required-callback-function-to-pluck-each'
@@ -262,6 +263,14 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   /**
    * @internal
    *
+   * Whether or not to bypass SoftDelete and really destroy a record
+   * when calling destroy.
+   */
+  private readonly shouldReallyDestroy: boolean = false
+
+  /**
+   * @internal
+   *
    * The distinct column to apply to the Query
    */
   private readonly distinctColumn: DreamColumnNames<DreamInstance> | null = null
@@ -288,23 +297,24 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     opts: QueryOpts<DreamInstance, DreamColumnNames<DreamInstance>> = {}
   ) {
     super(dreamInstance, opts)
-    this.baseSqlAlias = opts.baseSqlAlias || this.dreamInstance['table']
-    this.baseSelectQuery = opts.baseSelectQuery || null
     this.passthroughWhereStatement = Object.freeze(opts.passthroughWhereStatement || {})
     this.whereStatements = Object.freeze(opts.where || [])
     this.whereNotStatements = Object.freeze(opts.whereNot || [])
-    this.limitStatement = Object.freeze(opts.limit || null)
-    this.offsetStatement = Object.freeze(opts.offset || null)
     this.orStatements = Object.freeze(opts.or || [])
     this.orderStatements = Object.freeze(opts.order || [])
     this.preloadStatements = Object.freeze(opts.preloadStatements || {})
     this.preloadWhereStatements = Object.freeze(opts.preloadWhereStatements || {})
     this.joinsStatements = Object.freeze(opts.joinsStatements || {})
     this.joinsWhereStatements = Object.freeze(opts.joinsWhereStatements || {})
-    this.bypassDefaultScopes = Object.freeze(opts.bypassDefaultScopes || false)
+    this.baseSqlAlias = opts.baseSqlAlias || this.dreamInstance['table']
+    this.baseSelectQuery = opts.baseSelectQuery || null
+    this.limitStatement = opts.limit || null
+    this.offsetStatement = opts.offset || null
+    this.bypassDefaultScopes = opts.bypassDefaultScopes || false
     this.dreamTransaction = opts.transaction || null
     this.distinctColumn = opts.distinctColumn || null
     this.connectionOverride = opts.connection
+    this.shouldReallyDestroy = opts.shouldReallyDestroy || false
   }
 
   /**
@@ -385,6 +395,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         opts.bypassDefaultScopes !== undefined ? opts.bypassDefaultScopes : this.bypassDefaultScopes,
       transaction: opts.transaction || this.dreamTransaction,
       connection: opts.connection,
+      shouldReallyDestroy:
+        opts.shouldReallyDestroy !== undefined ? opts.shouldReallyDestroy : this.shouldReallyDestroy,
     })
   }
 
@@ -1868,12 +1880,20 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     if (this.dreamTransaction) {
       await this.txn(this.dreamTransaction).findEach(async result => {
-        await result.txn(this.dreamTransaction!).destroy({ skipHooks })
+        if (this.shouldReallyDestroy) {
+          await result.txn(this.dreamTransaction!).reallyDestroy({ skipHooks })
+        } else {
+          await result.txn(this.dreamTransaction!).destroy({ skipHooks })
+        }
         counter++
       })
     } else {
       await this.findEach(async result => {
-        await result.destroy({ skipHooks })
+        if (this.shouldReallyDestroy) {
+          await result.reallyDestroy({ skipHooks })
+        } else {
+          await result.destroy({ skipHooks })
+        }
         counter++
       })
     }
@@ -1882,13 +1902,78 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   /**
+   * Destroy, deleting from the database even
+   * models designated SoftDelete.
+   *
+   * Calls model hooks and applies cascade destroy
+   * to associations with `dependent: 'destroy'`,
+   * returning the number of records that
+   * were destroyed.
+   *
+   * If the record being destroyed is using
+   * a @SoftDelete decorator, the soft delete
+   * will be bypassed, causing the record
+   * to be permanently removed from the database.
+   *
+   * To destroy without bypassing the SoftDelete
+   * decorator, use {@link Query.(destroy:instance) | destroy} instead.
+   *
+   * ```ts
+   * await User.where({ email: ops.ilike('%burpcollaborator%')}).reallyDestroy()
+   * // 12
+   * ```
+   *
+   * @returns The number of records that were removed
+   */
+  public async reallyDestroy({ skipHooks = false }: { skipHooks?: boolean } = {}): Promise<number> {
+    return await this.clone({ shouldReallyDestroy: true }).destroy({ skipHooks })
+  }
+
+  /**
+   * Undestroys a SoftDelete model, unsetting
+   * the `deletedAt` field in the database.
+   *
+   * If the model is not a SoftDelete model,
+   * this will raise an exception.
+   *
+   * ```ts
+   * await User.where({ email: ops.ilike('%burpcollaborator%')}).undestroy()
+   * // 12
+   * ```
+   *
+   * @returns The number of records that were removed
+   */
+  public async undestroy({
+    cascade = false,
+    skipHooks = false,
+  }: { cascade?: boolean; skipHooks?: boolean } = {}): Promise<number> {
+    if (!this.dreamClass['softDelete']) throw new CannotCallUndestroyOnANonSoftDeleteModel(this.dreamClass)
+    let counter = 0
+
+    if (this.dreamTransaction) {
+      await this.txn(this.dreamTransaction)
+        .unscoped()
+        .findEach(async result => {
+          await result.txn(this.dreamTransaction!).undestroy({ skipHooks, cascade })
+          counter++
+        })
+    } else {
+      await this.unscoped().findEach(async result => {
+        await result.undestroy({ skipHooks, cascade })
+        counter++
+      })
+    }
+
+    return counter
+  }
+  /**
    * Deletes all records matching query using a single
    * database query, but does not call underlying callbacks.
    * Ignores association dependent destroy declarations,
    * though cascading may still happen at the database level.
    *
    * To apply model hooks and association dependent destroy,
-   * use {@link Query.destroy | destroy} instead.
+   * use {@link Query.(destroy:instance) | destroy} instead.
    *
    * ```ts
    * await User.where({ email: ops.ilike('%burpcollaborator%').delete() })
@@ -3360,6 +3445,7 @@ export interface QueryOpts<
   bypassDefaultScopes?: boolean
   transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType
+  shouldReallyDestroy?: boolean
 }
 
 function getSourceAssociation(dream: Dream | typeof Dream | undefined, sourceName: string) {

@@ -1,15 +1,16 @@
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
-import Query from '../../../src/dream/query'
-import Scope from '../../../src/decorators/scope'
+import SoftDelete from '../../../src/decorators/soft-delete'
 import { DreamColumn } from '../../../src/dream/types'
+import PostSerializer from '../serializers/PostSerializer'
+import ApplicationModel from './ApplicationModel'
+import HeartRating from './ExtraRating/HeartRating'
+import PostComment from './PostComment'
 import PostVisibility from './PostVisibility'
 import Rating from './Rating'
 import User from './User'
-import HeartRating from './ExtraRating/HeartRating'
-import ApplicationModel from './ApplicationModel'
-import PostSerializer from '../serializers/PostSerializer'
 
+@SoftDelete()
 export default class Post extends ApplicationModel {
   public get table() {
     return 'posts' as const
@@ -36,6 +37,11 @@ export default class Post extends ApplicationModel {
   public postVisibility: PostVisibility | null
   public postVisibilityId: DreamColumn<Post, 'postVisibilityId'>
 
+  @HasMany(() => PostComment, {
+    dependent: 'destroy',
+  })
+  public comments: PostComment[]
+
   @HasMany(() => Rating, {
     foreignKey: 'rateableId',
     polymorphic: true,
@@ -49,9 +55,4 @@ export default class Post extends ApplicationModel {
     dependent: 'destroy',
   })
   public heartRatings: HeartRating[]
-
-  @Scope({ default: true })
-  public static hideDeleted(query: Query<Post>) {
-    return query.where({ deletedAt: null })
-  }
 }

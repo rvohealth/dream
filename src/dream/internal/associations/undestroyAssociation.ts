@@ -3,7 +3,7 @@ import Dream from '../../../dream'
 import DreamTransaction from '../../transaction'
 import associationUpdateQuery from './associationUpdateQuery'
 
-export default async function destroyAssociation<
+export default async function undestroyAssociation<
   DreamInstance extends Dream,
   DB extends DreamInstance['dreamconf']['DB'],
   TableName extends DreamInstance['table'],
@@ -15,12 +15,10 @@ export default async function destroyAssociation<
   txn: DreamTransaction<Dream> | null = null,
   associationName: AssociationName,
   associationWhereStatement?: Where,
-  { skipHooks = false, reallyDestroy = false }: { skipHooks?: boolean; reallyDestroy?: boolean } = {}
+  { skipHooks = false, cascade = false }: { skipHooks?: boolean; cascade?: boolean } = {}
 ): Promise<number> {
-  const query = associationUpdateQuery(dream, txn, associationName, associationWhereStatement)
-  if (reallyDestroy) {
-    return await query.unscoped().reallyDestroy({ skipHooks })
-  } else {
-    return await query.unscoped().destroy({ skipHooks })
-  }
+  const query = associationUpdateQuery(dream, txn, associationName, associationWhereStatement, {
+    unscoped: true,
+  })
+  return await query.unscoped().undestroy({ skipHooks, cascade })
 }

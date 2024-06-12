@@ -46,11 +46,13 @@ import associationQuery from './dream/internal/associations/associationQuery'
 import associationUpdateQuery from './dream/internal/associations/associationUpdateQuery'
 import createAssociation from './dream/internal/associations/createAssociation'
 import destroyAssociation from './dream/internal/associations/destroyAssociation'
+import undestroyAssociation from './dream/internal/associations/undestroyAssociation'
 import destroyDream from './dream/internal/destroyDream'
 import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet'
 import reload from './dream/internal/reload'
 import runValidations from './dream/internal/runValidations'
 import saveDream from './dream/internal/saveDream'
+import undestroyDream from './dream/internal/undestroyDream'
 import LoadBuilder from './dream/load-builder'
 import Query, { FindEachOpts } from './dream/query'
 import DreamTransaction from './dream/transaction'
@@ -83,6 +85,7 @@ import {
 import CanOnlyPassBelongsToModelParam from './exceptions/associations/can-only-pass-belongs-to-model-param'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
 import NonLoadedAssociation from './exceptions/associations/non-loaded-association'
+import CannotCallUndestroyOnANonSoftDeleteModel from './exceptions/cannot-call-undestroy-on-a-non-soft-delete-model'
 import CreateOrFindByFailedToCreateAndFind from './exceptions/create-or-find-by-failed-to-create-and-find'
 import MissingSerializer from './exceptions/missing-serializer'
 import MissingTable from './exceptions/missing-table'
@@ -135,7 +138,7 @@ export default class Dream {
    *
    * @returns string
    */
-  public get createdAtField() {
+  public get createdAtField(): Readonly<string> {
     return 'createdAt' as const
   }
 
@@ -156,11 +159,11 @@ export default class Dream {
    *
    * @returns string
    */
-  public get updatedAtField() {
+  public get updatedAtField(): Readonly<string> {
     return 'updatedAt' as const
   }
 
-  public get deletedAtField() {
+  public get deletedAtField(): Readonly<string> {
     return 'deletedAt' as const
   }
 
@@ -279,6 +282,13 @@ export default class Dream {
    * Model storage for replica-safe metadata, set when using the @ReplicaSafe decorator
    */
   protected static replicaSafe = false
+
+  /**
+   * @internal
+   *
+   * Model storage for soft-delete metadata, set when using the @SoftDelete decorator
+   */
+  protected static softDelete = false
 
   /**
    * @internal
@@ -2969,6 +2979,56 @@ export default class Dream {
   }
 
   /**
+   * Deletes the record represented by this instance
+   * from the database, calling any destroy
+   * hooks on this model.
+   *
+   * If the record being destroyed is using
+   * a @SoftDelete decorator, the soft delete
+   * will be bypassed, causing the record
+   * to be permanently removed from the database.
+   *
+   * ```ts
+   * const user = await User.last()
+   * await user.destroy()
+   * ```
+   *
+   * @returns the instance that was destroyed
+   */
+  public async reallyDestroy<I extends Dream>(
+    this: I,
+    { skipHooks = false }: { skipHooks?: boolean } = {}
+  ): Promise<I> {
+    return destroyDream(this, null, { skipHooks, reallyDestroy: true })
+  }
+
+  /**
+   * Undestroys a SoftDelete model, unsetting
+   * the `deletedAt` field in the database.
+   *
+   * If the model is not a SoftDelete model,
+   * this will raise an exception.
+   *
+   * ```ts
+   * const user = await User.unscoped().last()
+   * await user.undestroy()
+   * // 12
+   * ```
+   *
+   * @returns The undestroyed record
+   */
+  public async undestroy<I extends Dream>(
+    this: I,
+    { skipHooks = false, cascade = false }: { skipHooks?: boolean; cascade?: boolean } = {}
+  ): Promise<I> {
+    const dreamClass = this.constructor as typeof Dream
+    if (!dreamClass['softDelete']) throw new CannotCallUndestroyOnANonSoftDeleteModel(dreamClass)
+
+    await undestroyDream(this, null, { skipHooks, cascade })
+    return this
+  }
+
+  /**
    * Returns true if the argument is the same Dream class
    * with the same primary key value.
    *
@@ -3269,10 +3329,6 @@ export default class Dream {
    * Destroys models associated with the current instance,
    * deleting their corresponding records within the database.
    *
-   * TODO: change behavior as part of
-   * https://rvohealth.atlassian.net/browse/PDTC-5488
-   * NOTE: This bypasses destroy model hooks
-   *
    * ```ts
    * await user.destroyAssociation('posts', { body: 'hello world' })
    * ```
@@ -3294,6 +3350,136 @@ export default class Dream {
 
   ///////////////////
   // end: destroyAssociation
+  ///////////////////
+
+  ///////////////////
+  // reallyDestroyAssociation
+  ///////////////////
+  public reallyDestroyAssociation<
+    I extends Dream,
+    DB extends I['dreamconf']['DB'],
+    TableName extends I['table'],
+    Schema extends I['dreamconf']['schema'],
+    AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<I>,
+  >(
+    this: I,
+    associationName: AssociationName,
+    destroyAssociationOptions: {
+      where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+      skipHooks?: boolean
+    }
+  ): Promise<number>
+
+  public reallyDestroyAssociation<
+    I extends Dream,
+    DB extends I['dreamconf']['DB'],
+    TableName extends I['table'],
+    Schema extends I['dreamconf']['schema'],
+    AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<I>,
+  >(
+    this: I,
+    associationName: AssociationName,
+    destroyAssociationOptions?: {
+      where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+      skipHooks?: boolean
+    }
+  ): Promise<number>
+
+  /**
+   * Destroys models associated with the current instance,
+   * deleting their corresponding records within the database.
+   *
+   * If the record, or else any of it's associations
+   * which are marked cascade: "destroy", are using
+   * the SoftDelete decorator, it will be bypassed,
+   * causing those records to be deleted from the database.
+   *
+   * ```ts
+   * await user.reallyDestroyAssociation('posts', { body: 'hello world' })
+   * ```
+   *
+   * @param associationName - The name of the association to destroy
+   * @param opts.whereStatement - Optional where statement to apply to query before destroying
+   * @param opts.skipHooks - Whether or not to skip model hooks when destroying
+   * @returns The number of records deleted
+   */
+  public reallyDestroyAssociation<I extends Dream, AssociationName extends keyof I>(
+    this: I,
+    associationName: AssociationName,
+    destroyAssociationOptions?: unknown
+  ): unknown {
+    return destroyAssociation(this, null, associationName, (destroyAssociationOptions as any)?.where, {
+      skipHooks: (destroyAssociationOptions as any)?.skipHooks,
+      reallyDestroy: true,
+    })
+  }
+  ////////////////////////////////
+  // end: reallyDestroyAssociation
+  ////////////////////////////////
+
+  ///////////////////
+  // undestroyAssociation
+  ///////////////////
+  public undestroyAssociation<
+    I extends Dream,
+    DB extends I['dreamconf']['DB'],
+    TableName extends I['table'],
+    Schema extends I['dreamconf']['schema'],
+    AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<I>,
+  >(
+    this: I,
+    associationName: AssociationName,
+    destroyAssociationOptions: {
+      where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+      skipHooks?: boolean
+      cascade?: boolean
+    }
+  ): Promise<number>
+
+  public undestroyAssociation<
+    I extends Dream,
+    DB extends I['dreamconf']['DB'],
+    TableName extends I['table'],
+    Schema extends I['dreamconf']['schema'],
+    AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<I>,
+  >(
+    this: I,
+    associationName: AssociationName,
+    destroyAssociationOptions?: {
+      where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+      skipHooks?: boolean
+      cascade?: boolean
+    }
+  ): Promise<number>
+
+  /**
+   * Undestroys a SoftDelete association.
+   * If cascade: true is passed, any child
+   * associations that have been soft deleted
+   * will also be undeleted.
+   *
+   * ```ts
+   * await user.undestroyAssociation('posts', { body: 'hello world' })
+   * ```
+   *
+   * @param associationName - The name of the association to destroy
+   * @param opts.whereStatement - Optional where statement to apply to query before undestroying
+   * @param opts.skipHooks - Whether or not to skip model hooks when undestroying
+   * @param opts.cascade - Whether or not to cascade undestroy child associations
+   * @returns The number of records undestroyed
+   */
+  public undestroyAssociation<I extends Dream, AssociationName extends keyof I>(
+    this: I,
+    associationName: AssociationName,
+    destroyAssociationOptions?: unknown
+  ): unknown {
+    return undestroyAssociation(this, null, associationName, (destroyAssociationOptions as any)?.where, {
+      skipHooks: (destroyAssociationOptions as any)?.skipHooks,
+      cascade: (destroyAssociationOptions as any)?.cascade,
+    })
+  }
+  ///////////////////
+  // end: undestroyAssociation
   ///////////////////
 
   ///////////////////
@@ -3386,10 +3572,6 @@ export default class Dream {
    * the provided attributes. If a where statement is passed,
    * The where statement will be applied to the query
    * before updating.
-   *
-   * TODO: change behavior as part of
-   * https://rvohealth.atlassian.net/browse/PDTC-5488
-   * NOTE: This bypasses update and save model hooks
    *
    * ```ts
    * await user.createAssociation('posts', { body: 'hello world' })

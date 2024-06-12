@@ -591,22 +591,29 @@ describe('@Sortable', () => {
 
   context('upon destroying', () => {
     it('adjusts the positions of related records', async () => {
-      const unrelatedPost = await Post.create({ body: 'hello', user: user2 })
-      const post1 = await Post.create({ body: 'hello', user })
-      const post2 = await Post.create({ body: 'hello', user })
-      const post3 = await Post.create({ body: 'hello', user })
-      const post4 = await Post.create({ body: 'hello', user })
+      const unrelatedEdgeNode = await EdgeNode.create({
+        edge: await Edge.create(),
+        node: await Node.create(),
+      })
 
-      await post2.destroy()
-      await post1.reload()
-      await post3.reload()
-      await post4.reload()
-      await unrelatedPost.reload()
+      const edge = await Edge.create()
+      const node = await Node.create()
 
-      expect(post1.position).toEqual(1)
-      expect(post3.position).toEqual(2)
-      expect(post4.position).toEqual(3)
-      expect(unrelatedPost.position).toEqual(1)
+      const edgeNode1 = await EdgeNode.create({ edge, node })
+      const edgeNode2 = await EdgeNode.create({ edge, node })
+      const edgeNode3 = await EdgeNode.create({ edge, node })
+      const edgeNode4 = await EdgeNode.create({ edge, node })
+
+      await edgeNode2.destroy()
+      await edgeNode1.reload()
+      await edgeNode3.reload()
+      await edgeNode4.reload()
+      await unrelatedEdgeNode.reload()
+
+      expect(edgeNode1.position).toEqual(1)
+      expect(edgeNode3.position).toEqual(2)
+      expect(edgeNode4.position).toEqual(3)
+      expect(unrelatedEdgeNode.position).toEqual(1)
     })
 
     context('within a transaction', () => {
@@ -627,6 +634,49 @@ describe('@Sortable', () => {
           expect(post3.position).toEqual(2)
           expect(post4.position).toEqual(3)
           expect(unrelatedPost.position).toEqual(1)
+        })
+      })
+    })
+
+    context('with SoftDelete records', () => {
+      it('adjusts the positions of related records', async () => {
+        const unrelatedPost = await Post.create({ body: 'hello', user: user2 })
+        const post1 = await Post.create({ body: 'hello', user })
+        const post2 = await Post.create({ body: 'hello', user })
+        const post3 = await Post.create({ body: 'hello', user })
+        const post4 = await Post.create({ body: 'hello', user })
+
+        await post2.destroy()
+        await post1.reload()
+        await post3.reload()
+        await post4.reload()
+        await unrelatedPost.reload()
+
+        expect(post1.position).toEqual(1)
+        expect(post3.position).toEqual(2)
+        expect(post4.position).toEqual(3)
+        expect(unrelatedPost.position).toEqual(1)
+      })
+
+      context('within a transaction', () => {
+        it('adjusts the positions of related records', async () => {
+          await ApplicationModel.transaction(async txn => {
+            const unrelatedPost = await Post.txn(txn).create({ body: 'hello', user: user2 })
+            const post1 = await Post.txn(txn).create({ body: 'hello', user })
+            const post2 = await Post.txn(txn).create({ body: 'hello', user })
+            const post3 = await Post.txn(txn).create({ body: 'hello', user })
+            const post4 = await Post.txn(txn).create({ body: 'hello', user })
+
+            await post2.txn(txn).destroy()
+            await post1.txn(txn).reload()
+            await post3.txn(txn).reload()
+            await post4.txn(txn).reload()
+
+            expect(post1.position).toEqual(1)
+            expect(post3.position).toEqual(2)
+            expect(post4.position).toEqual(3)
+            expect(unrelatedPost.position).toEqual(1)
+          })
         })
       })
     })

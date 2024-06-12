@@ -13,6 +13,57 @@ import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
 
 describe('Dream#destroy', () => {
+  let hooksSpy: jest.SpyInstance
+  let commitHooksSpy: jest.SpyInstance
+
+  function expectDestroyHooksCalled(dream: Dream) {
+    expect(hooksSpy).toHaveBeenCalledWith(
+      'beforeDestroy',
+      expect.toMatchDreamModel(dream),
+      true,
+      null,
+      expect.any(DreamTransaction)
+    )
+    expect(hooksSpy).toHaveBeenCalledWith(
+      'afterDestroy',
+      expect.toMatchDreamModel(dream),
+      true,
+      null,
+      expect.any(DreamTransaction)
+    )
+    expect(commitHooksSpy).toHaveBeenCalledWith(
+      expect.toMatchDreamModel(dream),
+      'afterDestroyCommit',
+      true,
+      null,
+      expect.any(DreamTransaction)
+    )
+  }
+
+  function expectNoDestroyHooksCalled(dream: Dream) {
+    expect(hooksSpy).not.toHaveBeenCalledWith(
+      'beforeDestroy',
+      expect.toMatchDreamModel(dream),
+      expect.toBeOneOf([expect.anything(), undefined, null]),
+      expect.toBeOneOf([expect.anything(), undefined, null]),
+      expect.toBeOneOf([expect.anything(), undefined, null])
+    )
+    expect(hooksSpy).not.toHaveBeenCalledWith(
+      'afterDestroy',
+      expect.toMatchDreamModel(dream),
+      expect.toBeOneOf([expect.anything(), undefined, null]),
+      expect.toBeOneOf([expect.anything(), undefined, null]),
+      expect.toBeOneOf([expect.anything(), undefined, null])
+    )
+    expect(commitHooksSpy).not.toHaveBeenCalledWith(
+      expect.toMatchDreamModel(dream),
+      'afterDestroyCommit',
+      expect.toBeOneOf([expect.anything(), undefined, null]),
+      expect.toBeOneOf([expect.anything(), undefined, null]),
+      expect.toBeOneOf([expect.anything(), undefined, null])
+    )
+  }
+
   it('destroys the record in question', async () => {
     const user = await User.create({ email: 'fred@frewd', name: 'howyadoin', password: 'hamz' })
     const user2 = await User.create({ email: 'how@yadoin', name: 'howyadoin', password: 'hamz' })
@@ -22,27 +73,61 @@ describe('Dream#destroy', () => {
     expect(await User.first()).toMatchDreamModel(user2)
   })
 
-  it('calls model hooks', async () => {
-    const pet = await Pet.create()
-    await pet.destroy()
-    expect(pet.deletedAt).not.toBeNull()
-    expect(await Pet.count()).toEqual(0)
-    expect(await Pet.unscoped().count()).toEqual(1)
-  })
-
-  context('skipHooks is passed', () => {
-    it('skips model hooks', async () => {
+  context('model hooks', () => {
+    it('calls model hooks', async () => {
       const pet = await Pet.create()
-      await pet.destroy({ skipHooks: true })
-      expect(await Pet.unscoped().count()).toEqual(0)
+
+      hooksSpy = jest.spyOn(runHooksForModule, 'default')
+      commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+
+      await pet.destroy()
+
+      expectDestroyHooksCalled(pet)
+    })
+
+    context('skipHooks is passed', () => {
+      it('skips model hooks', async () => {
+        const pet = await Pet.create()
+
+        hooksSpy = jest.spyOn(runHooksForModule, 'default')
+        commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+
+        await pet.destroy({ skipHooks: true })
+
+        expectNoDestroyHooksCalled(pet)
+      })
+    })
+
+    context('with SoftDelete decorator', () => {
+      it('calls model hooks', async () => {
+        const pet = await Pet.create()
+
+        hooksSpy = jest.spyOn(runHooksForModule, 'default')
+        commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+
+        await pet.destroy()
+
+        expectDestroyHooksCalled(pet)
+      })
+
+      context('skipHooks is passed', () => {
+        it('skips model hooks', async () => {
+          const pet = await Pet.create()
+
+          hooksSpy = jest.spyOn(runHooksForModule, 'default')
+          commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+
+          await pet.destroy({ skipHooks: true })
+
+          expectNoDestroyHooksCalled(pet)
+        })
+      })
     })
   })
 
   context('with a HasMany association with dependent: "destroy"', () => {
     let user: User
     let post: Post
-    let hooksSpy: jest.SpyInstance
-    let commitHooksSpy: jest.SpyInstance
     let heartRating: HeartRating
     let rating: Rating
 
@@ -59,57 +144,60 @@ describe('Dream#destroy', () => {
       commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
     })
 
-    it('cascade deletes all related HasMany associations', async () => {
-      await post.destroy()
-
-      expect(await Rating.count()).toEqual(0)
-      expect(await HeartRating.count()).toEqual(0)
-    })
-
-    it('cascade deletes all nested dependent-destroy associations on each associated model', async () => {
-      const postVisibility = await PostVisibility.create()
-      await post.createAssociation('postVisibility', postVisibility)
-
-      expect(await PostVisibility.count()).toEqual(1)
+    it('cascade deletes all related HasMany associations, including deeply nested associations', async () => {
+      expect(await User.count()).toEqual(1)
       expect(await Post.count()).toEqual(1)
       expect(await Rating.count()).toEqual(1)
       expect(await HeartRating.count()).toEqual(1)
 
-      await postVisibility.destroy()
+      await user.destroy()
 
-      expect(await PostVisibility.count()).toEqual(0)
+      expect(await User.count()).toEqual(0)
       expect(await Post.count()).toEqual(0)
       expect(await Rating.count()).toEqual(0)
       expect(await HeartRating.count()).toEqual(0)
     })
 
+    context('with a SoftDelete model', () => {
+      it('sets deletedAt to a datetime, does not delete record', async () => {
+        expect(post.deletedAt).toBeNull()
+
+        await post.destroy()
+
+        expect(await Post.last()).toBeNull()
+        const reloadedPost = await Post.unscoped().last()
+        expect(reloadedPost!.deletedAt).not.toBeNull()
+      })
+
+      it('cascade deletes all nested dependent-destroy associations on each associated model', async () => {
+        const postVisibility = await PostVisibility.create()
+        await post.createAssociation('postVisibility', postVisibility)
+
+        expect(await PostVisibility.count()).toEqual(1)
+        expect(await Post.count()).toEqual(1)
+        expect(await Rating.count()).toEqual(1)
+        expect(await HeartRating.count()).toEqual(1)
+
+        await postVisibility.destroy()
+
+        expect(await PostVisibility.count()).toEqual(0)
+        expect(await Post.count()).toEqual(0)
+        expect(await Rating.count()).toEqual(0)
+        expect(await HeartRating.count()).toEqual(0)
+      })
+
+      it('calls callbacks for associations', async () => {
+        const composition = await Composition.create({ user })
+        await user.destroy()
+        expectDestroyHooksCalled(composition)
+      })
+    })
+
     context('when cascade delete is applied at the database level', () => {
       it('calls callbacks for associations', async () => {
         const composition = await Composition.create({ user })
-
         await user.destroy()
-
-        expect(hooksSpy).toHaveBeenCalledWith(
-          'beforeDestroy',
-          expect.toMatchDreamModel(composition),
-          true,
-          null,
-          expect.any(DreamTransaction)
-        )
-        expect(hooksSpy).toHaveBeenCalledWith(
-          'afterDestroy',
-          expect.toMatchDreamModel(composition),
-          true,
-          null,
-          expect.any(DreamTransaction)
-        )
-        expect(commitHooksSpy).toHaveBeenCalledWith(
-          expect.toMatchDreamModel(composition),
-          'afterDestroyCommit',
-          true,
-          null,
-          expect.any(DreamTransaction)
-        )
+        expectDestroyHooksCalled(composition)
       })
     })
 
@@ -161,31 +249,8 @@ describe('Dream#destroy', () => {
 
     it('calls model hooks on each destroyed association', async () => {
       await post.destroy()
-      const dreams = [heartRating, rating] as Dream[]
-
-      dreams.forEach(dream => {
-        expect(hooksSpy).toHaveBeenCalledWith(
-          'beforeDestroy',
-          expect.toMatchDreamModel(dream),
-          true,
-          null,
-          expect.any(DreamTransaction)
-        )
-        expect(hooksSpy).toHaveBeenCalledWith(
-          'afterDestroy',
-          expect.toMatchDreamModel(dream),
-          true,
-          null,
-          expect.any(DreamTransaction)
-        )
-        expect(commitHooksSpy).toHaveBeenCalledWith(
-          expect.toMatchDreamModel(dream),
-          'afterDestroyCommit',
-          true,
-          null,
-          expect.any(DreamTransaction)
-        )
-      })
+      expectDestroyHooksCalled(heartRating)
+      expectDestroyHooksCalled(rating)
     })
 
     context('within a transaction', () => {
@@ -211,27 +276,7 @@ describe('Dream#destroy', () => {
         const dreams = [heartRating, rating] as Dream[]
 
         dreams.forEach(dream => {
-          expect(hooksSpy).not.toHaveBeenCalledWith(
-            'beforeDestroy',
-            expect.toMatchDreamModel(dream),
-            expect.toBeOneOf([expect.anything(), undefined, null]),
-            expect.toBeOneOf([expect.anything(), undefined, null]),
-            expect.toBeOneOf([expect.anything(), undefined, null])
-          )
-          expect(hooksSpy).not.toHaveBeenCalledWith(
-            'afterDestroy',
-            expect.toMatchDreamModel(dream),
-            expect.toBeOneOf([expect.anything(), undefined, null]),
-            expect.toBeOneOf([expect.anything(), undefined, null]),
-            expect.toBeOneOf([expect.anything(), undefined, null])
-          )
-          expect(commitHooksSpy).not.toHaveBeenCalledWith(
-            expect.toMatchDreamModel(dream),
-            'afterDestroyCommit',
-            expect.toBeOneOf([expect.anything(), undefined, null]),
-            expect.toBeOneOf([expect.anything(), undefined, null]),
-            expect.toBeOneOf([expect.anything(), undefined, null])
-          )
+          expectNoDestroyHooksCalled(dream)
         })
       })
     })
@@ -239,8 +284,6 @@ describe('Dream#destroy', () => {
 
   context('with a HasOne association with dependent: "destroy"', () => {
     let composition: Composition
-    let hooksSpy: jest.SpyInstance
-    let commitHooksSpy: jest.SpyInstance
     let deletableLocalizedText: LocalizedText
     let nonDeletableLocalizedText: LocalizedText
 
@@ -264,61 +307,18 @@ describe('Dream#destroy', () => {
 
     it('cascade deletes all related HasOne associations', async () => {
       await composition.destroy()
-
       expect(await LocalizedText.all()).toMatchDreamModels([nonDeletableLocalizedText])
     })
 
     it('calls model hooks on the destroyed association', async () => {
       await composition.destroy()
-
-      expect(hooksSpy).toHaveBeenCalledWith(
-        'beforeDestroy',
-        expect.toMatchDreamModel(deletableLocalizedText),
-        true,
-        null,
-        expect.any(DreamTransaction)
-      )
-      expect(hooksSpy).toHaveBeenCalledWith(
-        'afterDestroy',
-        expect.toMatchDreamModel(deletableLocalizedText),
-        true,
-        null,
-        expect.any(DreamTransaction)
-      )
-      expect(commitHooksSpy).toHaveBeenCalledWith(
-        expect.toMatchDreamModel(deletableLocalizedText),
-        'afterDestroyCommit',
-        true,
-        null,
-        expect.any(DreamTransaction)
-      )
+      expectDestroyHooksCalled(deletableLocalizedText)
     })
 
     context('skipHooks=true', () => {
       it('does not call association model hooks', async () => {
         await composition.destroy({ skipHooks: true })
-
-        expect(hooksSpy).not.toHaveBeenCalledWith(
-          'beforeDestroy',
-          expect.toMatchDreamModel(deletableLocalizedText),
-          expect.toBeOneOf([expect.anything(), undefined, null]),
-          expect.toBeOneOf([expect.anything(), undefined, null]),
-          expect.toBeOneOf([expect.anything(), undefined, null])
-        )
-        expect(hooksSpy).not.toHaveBeenCalledWith(
-          'afterDestroy',
-          expect.toMatchDreamModel(deletableLocalizedText),
-          expect.toBeOneOf([expect.anything(), undefined, null]),
-          expect.toBeOneOf([expect.anything(), undefined, null]),
-          expect.toBeOneOf([expect.anything(), undefined, null])
-        )
-        expect(commitHooksSpy).not.toHaveBeenCalledWith(
-          expect.toMatchDreamModel(deletableLocalizedText),
-          'afterDestroyCommit',
-          expect.toBeOneOf([expect.anything(), undefined, null]),
-          expect.toBeOneOf([expect.anything(), undefined, null]),
-          expect.toBeOneOf([expect.anything(), undefined, null])
-        )
+        expectNoDestroyHooksCalled(deletableLocalizedText)
       })
     })
   })
