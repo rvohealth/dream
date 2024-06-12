@@ -40,9 +40,9 @@ describe('Dream#save', () => {
         const createdAt = DateTime.now().minus({ day: 1 })
         user.createdAt = createdAt
         await user.save()
-        expect(user!.createdAt.toSeconds()).toBeWithin(1, createdAt.toSeconds())
+        expect(user!.createdAt.toSeconds()).toEqual(createdAt.toSeconds())
         const reloadedUser = await User.find(user.id)
-        expect(reloadedUser!.createdAt.toSeconds()).toBeWithin(1, createdAt.toSeconds())
+        expect(reloadedUser!.createdAt.toSeconds()).toEqual(createdAt.toSeconds())
       })
     })
 
@@ -58,9 +58,9 @@ describe('Dream#save', () => {
         const updatedAt = DateTime.now().minus({ day: 1 })
         user.updatedAt = updatedAt
         await user.save()
-        expect(user!.updatedAt.toSeconds()).toBeWithin(1, updatedAt.toSeconds())
+        expect(user!.updatedAt.toSeconds()).toEqual(updatedAt.toSeconds())
         const reloadedUser = await User.find(user.id)
-        expect(reloadedUser!.updatedAt.toSeconds()).toBeWithin(1, updatedAt.toSeconds())
+        expect(reloadedUser!.updatedAt.toSeconds()).toEqual(updatedAt.toSeconds())
       })
     })
   })

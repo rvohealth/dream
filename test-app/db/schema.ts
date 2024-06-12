@@ -697,6 +697,13 @@ export const schema = {
     },
     virtualColumns: [],
     associations: {
+      cascadeDeletableLocalizedText: {
+        type: 'HasOne',
+        foreignKey: 'localizableId',
+        tables: ['localized_texts'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
       compositionAssetAudits: {
         type: 'HasMany',
         foreignKey: null,

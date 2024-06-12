@@ -1,8 +1,8 @@
-import NonLoadedAssociation from '../../../../src/exceptions/associations/non-loaded-association'
-import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
-import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating'
-import Post from '../../../../test-app/app/models/Post'
-import User from '../../../../test-app/app/models/User'
+import NonLoadedAssociation from '../../../../../src/exceptions/associations/non-loaded-association'
+import Mylar from '../../../../../test-app/app/models/Balloon/Mylar'
+import HeartRating from '../../../../../test-app/app/models/ExtraRating/HeartRating'
+import Post from '../../../../../test-app/app/models/Post'
+import User from '../../../../../test-app/app/models/User'
 
 describe('Accessing an association that hasn’t been loaded', () => {
   context('HasOne', () => {

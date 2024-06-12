@@ -1600,8 +1600,15 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
   /**
    * Destroys all records matching the Query,
+   * calling model hooks and cascading destroy
+   * to associations with `cascade: 'destroy'`,
    * and returns the number of records that
-   * were destroyed
+   * were destroyed.
+   *
+   * To delete in a signle database query,
+   * ignoring model hooks and association
+   * cascade declarations, use
+   * {@link Query.delete | delete} instead.
    *
    * ```ts
    * await User.where({ email: ops.ilike('%burpcollaborator%')}).destroy()
@@ -1611,18 +1618,16 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @returns The number of records that were removed
    */
   public async destroy({ skipHooks = false }: { skipHooks?: boolean } = {}): Promise<number> {
-    if (skipHooks) return await this.destroyWithoutHooks()
-
     let counter = 0
 
     if (this.dreamTransaction) {
       await this.txn(this.dreamTransaction).findEach(async result => {
-        await result.txn(this.dreamTransaction!).destroy()
+        await result.txn(this.dreamTransaction!).destroy({ skipHooks })
         counter++
       })
     } else {
       await this.findEach(async result => {
-        await result.destroy()
+        await result.destroy({ skipHooks })
         counter++
       })
     }
@@ -1630,7 +1635,23 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return counter
   }
 
-  private async destroyWithoutHooks() {
+  /**
+   * Deletes all records matching query using a single
+   * database query, but does not call underlying callbacks.
+   * Ignores association cascade declarations, though
+   * cascading may still happen at the database level.
+   *
+   * To apply model hooks and cascading, use
+   * {@link Query.destroy | destroy} instead.
+   *
+   * ```ts
+   * await User.where({ email: ops.ilike('%burpcollaborator%').delete() })
+   * // 12
+   * ```
+   *
+   * @returns The number of records that were updated
+   */
+  public async delete() {
     const deletionResult = await executeDatabaseQuery(this.buildDelete(), 'executeTakeFirst')
     return Number(deletionResult?.numDeletedRows || 0)
   }

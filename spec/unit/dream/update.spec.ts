@@ -89,7 +89,7 @@ describe('Dream#update', () => {
       name: 'Charlie Brown',
       updatedAt: updatedAt,
     })
-    expect(user.updatedAt.toSeconds()).toBeWithin(1, updatedAt.toSeconds())
+    expect(user.updatedAt.toSeconds()).toEqual(updatedAt.toSeconds())
 
     await user.update({ email: 'how@yadoin' })
     expect(user.updatedAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())

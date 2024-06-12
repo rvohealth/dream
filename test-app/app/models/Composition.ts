@@ -118,6 +118,14 @@ export default class Composition extends ApplicationModel {
   })
   public currentLocalizedText: LocalizedText
 
+  @HasOne(() => LocalizedText, {
+    polymorphic: true,
+    foreignKey: 'localizableId',
+    where: { name: 'cascade delete me' },
+    cascade: 'destroy',
+  })
+  public cascadeDeletableLocalizedText: LocalizedText
+
   @HasMany(() => LocalizedText, { polymorphic: true, foreignKey: 'localizableId' })
   public localizedTexts: LocalizedText[]
 }

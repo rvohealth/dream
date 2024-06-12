@@ -1,15 +1,16 @@
+import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../dream'
+import { TableColumnNames } from '../../dream/types'
 import {
+  HasOptions,
   HasStatement,
   applyGetterAndSetter,
+  associationPrimaryKeyAccessors,
   blankAssociationsFactory,
   finalForeignKey,
   foreignKeyTypeField,
-  HasOptions,
-  associationPrimaryKeyAccessors,
+  validateHasStatementArgs,
 } from './shared'
-import { AssociationTableNames } from '../../db/reflections'
-import { TableColumnNames } from '../../dream/types'
 
 export default function HasMany<
   BaseInstance extends Dream = Dream,
@@ -17,6 +18,7 @@ export default function HasMany<
 >(
   modelCB: () => AssociationDreamClass,
   {
+    cascade,
     distinct,
     foreignKey,
     order,
@@ -38,6 +40,13 @@ export default function HasMany<
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'associations'))
       dreamClass['associationMetadataByType'] = blankAssociationsFactory(dreamClass)
 
+    validateHasStatementArgs({
+      dreamClass,
+      methodName: key,
+      where,
+      cascade,
+    })
+
     const partialAssociation = associationPrimaryKeyAccessors(
       {
         modelCB,
@@ -51,6 +60,7 @@ export default function HasMany<
         selfWhere,
         selfWhereNot,
         primaryKeyOverride,
+        cascade,
       } as any,
       dreamClass
     )

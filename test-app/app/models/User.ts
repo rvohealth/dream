@@ -60,7 +60,7 @@ export default class User extends ApplicationModel {
   @HasOne(() => UserSettings)
   public userSettings: UserSettings
 
-  @HasMany(() => Post)
+  @HasMany(() => Post, { cascade: 'destroy' })
   public posts: Post[]
 
   @HasMany(() => Rating)
@@ -82,7 +82,7 @@ export default class User extends ApplicationModel {
   })
   public ratingsThroughPostsThatMatchUserTargetRating: Rating[]
 
-  @HasMany(() => Composition)
+  @HasMany(() => Composition, { cascade: 'destroy' })
   public compositions: Composition[]
 
   @HasOne(() => Composition, {

@@ -63,9 +63,10 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   }
 
   public async destroy<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
-    this: I
+    this: I,
+    { skipHooks = false }: { skipHooks?: boolean } = {}
   ): Promise<DreamInstance> {
-    return destroyDream<DreamInstance>(this.dreamInstance, this.dreamTransaction)
+    return destroyDream<DreamInstance>(this.dreamInstance, this.dreamTransaction, { skipHooks })
   }
 
   public async update<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
