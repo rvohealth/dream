@@ -1847,21 +1847,21 @@ export default class Dream {
    * @internal
    *
    * Returns a list of association names which
-   * have `cascade: destroy` set
+   * have `dependent: destroy` set
    *
    * ```ts
-   * Post.cascadeDestroyAssociationNames()
+   * Post.dependentDestroyAssociationNames()
    * // ['user']
    * ```
    *
-   * @returns An array of HasOne/HasMany association names with `cascade: 'destroy'` defined
+   * @returns An array of HasOne/HasMany association names with `dependent: 'destroy'` defined
    */
-  private static cascadeDestroyAssociationNames() {
+  private static dependentDestroyAssociationNames() {
     const associationMap = this.associationMetadataMap()
     return Object.keys(associationMap).filter(
       key =>
         (associationMap[key] as HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>)
-          .cascade === 'destroy'
+          .dependent === 'destroy'
     )
   }
 

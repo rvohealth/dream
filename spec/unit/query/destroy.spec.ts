@@ -46,7 +46,7 @@ describe('Query#destroy', () => {
     })
   })
 
-  context('with a HasMany association with cascade: "destroy"', () => {
+  context('with a HasMany association with dependent: "destroy"', () => {
     let user: User
     let post: Post
     let hooksSpy: jest.SpyInstance
@@ -67,14 +67,14 @@ describe('Query#destroy', () => {
       commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
     })
 
-    it('cascade deletes all related HasMany associations', async () => {
+    it('dependent deletes all related HasMany associations', async () => {
       await Post.query().destroy()
 
       expect(await Rating.count()).toEqual(0)
       expect(await HeartRating.count()).toEqual(0)
     })
 
-    it('cascade deletes all nested cascade-delete associations on each associated model', async () => {
+    it('dependent deletes all nested dependent-delete associations on each associated model', async () => {
       const postVisibility = await PostVisibility.create()
       await post.createAssociation('postVisibility', postVisibility)
 
@@ -91,7 +91,7 @@ describe('Query#destroy', () => {
       expect(await HeartRating.count()).toEqual(0)
     })
 
-    context('when cascade delete is applied at the database level', () => {
+    context('when dependent delete is applied at the database level', () => {
       it('calls callbacks for associations', async () => {
         const composition = await Composition.create({ user })
 
@@ -229,7 +229,7 @@ describe('Query#destroy', () => {
         })
       })
 
-      context('with cascade defined on one or more of this model’s associations', () => {
+      context('with dependent defined on one or more of this model’s associations', () => {
         it('the associated models are deleted', async () => {
           const postVisibility = await PostVisibility.create()
           await post.createAssociation('postVisibility', postVisibility)
@@ -248,7 +248,7 @@ describe('Query#destroy', () => {
         })
       })
 
-      context('with cascade defined only at the DB level', () => {
+      context('with dependent defined only at the DB level', () => {
         it('the associated models are deleted', async () => {
           const pet = await Pet.create()
           await Collar.create({ pet })
@@ -262,7 +262,7 @@ describe('Query#destroy', () => {
     })
   })
 
-  context('with a HasOne association with cascade: "destroy"', () => {
+  context('with a HasOne association with dependent: "destroy"', () => {
     let composition: Composition
     let hooksSpy: jest.SpyInstance
     let commitHooksSpy: jest.SpyInstance

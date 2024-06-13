@@ -18,7 +18,7 @@ export default function HasMany<
 >(
   modelCB: () => AssociationDreamClass,
   {
-    cascade,
+    dependent,
     distinct,
     foreignKey,
     order,
@@ -44,7 +44,7 @@ export default function HasMany<
       dreamClass,
       methodName: key,
       where,
-      cascade,
+      dependent,
     })
 
     const partialAssociation = associationPrimaryKeyAccessors(
@@ -60,7 +60,7 @@ export default function HasMany<
         selfWhere,
         selfWhereNot,
         primaryKeyOverride,
-        cascade,
+        dependent,
       } as any,
       dreamClass
     )

@@ -17,7 +17,7 @@ export default function HasOne<
 >(
   modelCB: () => AssociationDreamClass,
   {
-    cascade,
+    dependent,
     foreignKey,
     order,
     polymorphic = false,
@@ -42,7 +42,7 @@ export default function HasOne<
       dreamClass,
       methodName: key,
       where,
-      cascade,
+      dependent,
     })
 
     const partialAssociation = associationPrimaryKeyAccessors(
@@ -61,7 +61,7 @@ export default function HasOne<
         distinct: null,
         order,
         primaryKeyOverride,
-        cascade,
+        dependent,
       } as any,
       dreamClass
     )

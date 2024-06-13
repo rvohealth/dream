@@ -39,14 +39,14 @@ export default class Post extends ApplicationModel {
   @HasMany(() => Rating, {
     foreignKey: 'rateableId',
     polymorphic: true,
-    cascade: 'destroy',
+    dependent: 'destroy',
   })
   public ratings: Rating[]
 
   @HasMany(() => HeartRating, {
     foreignKey: 'extraRateableId',
     polymorphic: true,
-    cascade: 'destroy',
+    dependent: 'destroy',
   })
   public heartRatings: HeartRating[]
 

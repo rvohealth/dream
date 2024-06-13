@@ -6,7 +6,7 @@ import safelyRunCommitHooks from './safelyRunCommitHooks'
 /**
  * @internal
  *
- * Destroys the Dream and any `cascade: 'destroy'` associations
+ * Destroys the Dream and any `dependent: 'destroy'` associations
  * within a transaction. If a transaction is passed, it will be used.
  * Otherwise, a new transaction will be created automatically.
  * If any of the nested associations fails to destroy, then this
@@ -76,7 +76,7 @@ async function maybeDestroyDream<I extends Dream>(dream: I, txn: DreamTransactio
  * @internal
  *
  * Destroys all HasOne/HasMany associations on this
- * dream that are marked as `cascade: destroy`
+ * dream that are marked as `dependent: 'destroy'`
  */
 async function destroyAssociatedRecords<I extends Dream>(
   dream: I,
@@ -85,7 +85,7 @@ async function destroyAssociatedRecords<I extends Dream>(
 ) {
   const dreamClass = dream.constructor as typeof Dream
 
-  for (const associationName of dreamClass['cascadeDestroyAssociationNames']()) {
+  for (const associationName of dreamClass['dependentDestroyAssociationNames']()) {
     await dream.txn(txn).destroyAssociation(associationName as any, { skipHooks })
   }
 }
