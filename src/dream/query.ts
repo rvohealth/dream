@@ -1601,13 +1601,13 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   /**
    * Destroys all records matching the Query,
    * calling model hooks and cascading destroy
-   * to associations with `cascade: 'destroy'`,
+   * to associations with `dependent: 'destroy'`,
    * and returns the number of records that
    * were destroyed.
    *
    * To delete in a signle database query,
    * ignoring model hooks and association
-   * cascade declarations, use
+   * dependent-destroy declarations, use
    * {@link Query.delete | delete} instead.
    *
    * ```ts
@@ -1638,11 +1638,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   /**
    * Deletes all records matching query using a single
    * database query, but does not call underlying callbacks.
-   * Ignores association cascade declarations, though
-   * cascading may still happen at the database level.
+   * Ignores association dependent destroy declarations,
+   * though cascading may still happen at the database level.
    *
-   * To apply model hooks and cascading, use
-   * {@link Query.destroy | destroy} instead.
+   * To apply model hooks and association dependent destroy,
+   * use {@link Query.destroy | destroy} instead.
    *
    * ```ts
    * await User.where({ email: ops.ilike('%burpcollaborator%').delete() })

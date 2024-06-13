@@ -122,7 +122,7 @@ export default class Composition extends ApplicationModel {
     polymorphic: true,
     foreignKey: 'localizableId',
     where: { name: 'cascade delete me' },
-    cascade: 'destroy',
+    dependent: 'destroy',
   })
   public cascadeDeletableLocalizedText: LocalizedText
 

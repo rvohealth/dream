@@ -38,7 +38,7 @@ describe('Dream#destroy', () => {
     })
   })
 
-  context('with a HasMany association with cascade: "destroy"', () => {
+  context('with a HasMany association with dependent: "destroy"', () => {
     let user: User
     let post: Post
     let hooksSpy: jest.SpyInstance
@@ -66,7 +66,7 @@ describe('Dream#destroy', () => {
       expect(await HeartRating.count()).toEqual(0)
     })
 
-    it('cascade deletes all nested cascade-delete associations on each associated model', async () => {
+    it('cascade deletes all nested dependent-destroy associations on each associated model', async () => {
       const postVisibility = await PostVisibility.create()
       await post.createAssociation('postVisibility', postVisibility)
 
@@ -237,7 +237,7 @@ describe('Dream#destroy', () => {
     })
   })
 
-  context('with a HasOne association with cascade: "destroy"', () => {
+  context('with a HasOne association with dependent: "destroy"', () => {
     let composition: Composition
     let hooksSpy: jest.SpyInstance
     let commitHooksSpy: jest.SpyInstance
