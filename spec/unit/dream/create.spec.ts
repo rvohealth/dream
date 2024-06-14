@@ -1,6 +1,9 @@
 import { DateTime } from 'luxon'
+import { Dream, DreamTransaction } from '../../../src'
 import DreamDbConnection from '../../../src/db/dream-db-connection'
 import ReplicaSafe from '../../../src/decorators/replica-safe'
+import * as runHooksForModule from '../../../src/dream/internal/runHooksFor'
+import * as safelyRunCommitHooksModule from '../../../src/dream/internal/safelyRunCommitHooks'
 import CanOnlyPassBelongsToModelParam from '../../../src/exceptions/associations/can-only-pass-belongs-to-model-param'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Composition from '../../../test-app/app/models/Composition'
@@ -44,6 +47,102 @@ describe('Dream.create', () => {
 
       const reloadedUser = await User.find(user!.id)
       expect(reloadedUser).toMatchDreamModel(user)
+    })
+
+    context('model hooks', () => {
+      let user: User
+      let hooksSpy: jest.SpyInstance
+      let commitHooksSpy: jest.SpyInstance
+
+      function expectAfterCreateAndSaveHooksCalled(dream: Dream) {
+        expect(hooksSpy).toHaveBeenCalledWith(
+          'afterCreate',
+          expect.toMatchDreamModel(dream),
+          false,
+          expect.anything(),
+          expect.any(DreamTransaction)
+        )
+        expect(hooksSpy).toHaveBeenCalledWith(
+          'afterSave',
+          expect.toMatchDreamModel(dream),
+          false,
+          expect.anything(),
+          expect.any(DreamTransaction)
+        )
+        expect(commitHooksSpy).toHaveBeenCalledWith(
+          expect.toMatchDreamModel(dream),
+          'afterCreateCommit',
+          false,
+          expect.anything(),
+          expect.any(DreamTransaction)
+        )
+        expect(commitHooksSpy).toHaveBeenCalledWith(
+          expect.toMatchDreamModel(dream),
+          'afterSaveCommit',
+          false,
+          expect.anything(),
+          expect.any(DreamTransaction)
+        )
+      }
+
+      function expectAfterCreateAndSaveHooksNotCalled() {
+        expect(hooksSpy).not.toHaveBeenCalledWith(
+          'afterCreate',
+          expect.anything(),
+          false,
+          expect.anything(),
+          expect.any(DreamTransaction)
+        )
+        expect(hooksSpy).not.toHaveBeenCalledWith(
+          'afterSave',
+          expect.anything(),
+          false,
+          expect.anything(),
+          expect.any(DreamTransaction)
+        )
+        expect(commitHooksSpy).not.toHaveBeenCalledWith(
+          expect.anything(),
+          'afterCreateCommit',
+          false,
+          expect.anything(),
+          expect.any(DreamTransaction)
+        )
+        expect(commitHooksSpy).not.toHaveBeenCalledWith(
+          expect.anything(),
+          'afterSaveCommit',
+          false,
+          expect.anything(),
+          expect.any(DreamTransaction)
+        )
+      }
+
+      it('calls model hooks', async () => {
+        await ApplicationModel.transaction(async txn => {
+          hooksSpy = jest.spyOn(runHooksForModule, 'default')
+          commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+          user = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
+        })
+
+        expectAfterCreateAndSaveHooksCalled(user)
+      })
+
+      context('when saving of transaction fails', () => {
+        it('does not call model hooks', async () => {
+          await User.create({ email: 'fred@alreadyexists', password: 'howyadoin' })
+
+          try {
+            await ApplicationModel.transaction(async txn => {
+              hooksSpy = jest.spyOn(runHooksForModule, 'default')
+              commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+              user = await User.txn(txn).create({ email: 'fred@alreadyexists', password: 'howyadoin' })
+            })
+          } catch {
+            // noop
+          }
+
+          expectAfterCreateAndSaveHooksNotCalled()
+        })
+      })
     })
   })
 
