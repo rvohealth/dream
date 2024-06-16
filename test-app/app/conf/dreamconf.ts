@@ -1,6 +1,6 @@
 import Dreamconf from '../../../src/helpers/dreamconf'
+import { passthroughColumns, schema } from '../../db/schema'
 import { DBClass } from '../../db/sync'
-import { schema } from '../../db/schema'
 
 const env = {
   db: {
@@ -61,10 +61,11 @@ const env = {
   },
 }
 
-const dreamconf = new Dreamconf<DBClass, typeof schema>({
+const dreamconf = new Dreamconf<DBClass, typeof schema, typeof passthroughColumns>({
   DB: new DBClass(),
-  schema,
   env,
+  passthroughColumns,
+  schema,
 })
 
 export default dreamconf

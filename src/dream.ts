@@ -1670,7 +1670,7 @@ export default class Dream {
   public static passthrough<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    PassthroughColumns extends I['passthroughColumns'],
+    PassthroughColumns extends I['dreamconf']['passthroughColumns'],
   >(this: T, passthroughWhereStatement: PassthroughWhere<PassthroughColumns>): Query<InstanceType<T>> {
     return this.query().passthrough(passthroughWhereStatement)
   }
@@ -3352,7 +3352,7 @@ export default class Dream {
    * @param passthroughWhereStatement - where statement used for associations that require passthrough data
    * @returns A cloned Query with the passthrough data
    */
-  public passthrough<I extends Dream, PassthroughColumns extends I['passthroughColumns']>(
+  public passthrough<I extends Dream, PassthroughColumns extends I['dreamconf']['passthroughColumns']>(
     this: I,
     passthroughWhereStatement: PassthroughWhere<PassthroughColumns>
   ): LoadBuilder<I> {

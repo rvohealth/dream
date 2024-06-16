@@ -17,7 +17,7 @@ export default class LoadBuilder<DreamInstance extends Dream> {
 
   public passthrough<
     I extends LoadBuilder<DreamInstance>,
-    PassthroughColumns extends DreamInstance['passthroughColumns'],
+    PassthroughColumns extends DreamInstance['dreamconf']['passthroughColumns'],
   >(this: I, passthroughWhereStatement: PassthroughWhere<PassthroughColumns>) {
     this.query = this.query.passthrough(passthroughWhereStatement)
     return this

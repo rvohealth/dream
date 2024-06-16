@@ -1,13 +1,12 @@
 import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import { DbConnectionType } from '../../../src/db/types'
-import { DbConnectionConfig } from '../../../src/helpers/path/types'
 import Dreamconf from '../../../src/helpers/dreamconf'
+import { DbConnectionConfig } from '../../../src/helpers/path/types'
 
 describe('ConnectionConfRetriever', () => {
   const getConfig = () =>
     new Dreamconf({
       DB: {},
-      schema: {},
       env: {
         db: {
           production: {
@@ -24,6 +23,8 @@ describe('ConnectionConfRetriever', () => {
           },
         },
       },
+      passthroughColumns: {},
+      schema: {},
     })
 
   let connection: DbConnectionType

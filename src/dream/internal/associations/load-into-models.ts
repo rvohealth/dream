@@ -16,7 +16,8 @@ export default class LoadIntoModels<
   DreamInstance extends Dream,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
-  PassthroughColumns extends DreamInstance['passthroughColumns'] = DreamInstance['passthroughColumns'],
+  PassthroughColumns extends
+    DreamInstance['dreamconf']['passthroughColumns'] = DreamInstance['dreamconf']['passthroughColumns'],
 > {
   private readonly preloadStatements: RelaxedPreloadStatement
   private readonly passthroughWhereStatement: PassthroughWhere<PassthroughColumns> | null = null

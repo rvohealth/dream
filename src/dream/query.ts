@@ -144,8 +144,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * stores the passthrough where statements applied to the
    * current Query instance
    */
-  private readonly passthroughWhereStatement: PassthroughWhere<DreamInstance['passthroughColumns']> =
-    Object.freeze({})
+  private readonly passthroughWhereStatement: PassthroughWhere<
+    DreamInstance['dreamconf']['passthroughColumns']
+  > = Object.freeze({})
 
   /**
    * @internal
@@ -1002,7 +1003,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @param passthroughWhereStatement - where statement used for associations that require passthrough data
    * @returns A cloned Query with the passthrough data
    */
-  public passthrough(passthroughWhereStatement: PassthroughWhere<DreamInstance['passthroughColumns']>) {
+  public passthrough(
+    passthroughWhereStatement: PassthroughWhere<DreamInstance['dreamconf']['passthroughColumns']>
+  ) {
     return this.clone({ passthroughWhereStatement })
   }
 
@@ -3090,7 +3093,8 @@ export interface QueryOpts<
   ColumnType extends DreamColumnNames<DreamInstance> = DreamColumnNames<DreamInstance>,
   Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
-  PassthroughColumns extends DreamInstance['passthroughColumns'] = DreamInstance['passthroughColumns'],
+  PassthroughColumns extends
+    DreamInstance['dreamconf']['passthroughColumns'] = DreamInstance['dreamconf']['passthroughColumns'],
 > {
   baseSqlAlias?: TableOrAssociationName<Schema>
   baseSelectQuery?: Query<any> | null

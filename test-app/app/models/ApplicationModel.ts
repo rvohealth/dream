@@ -9,11 +9,7 @@ export default class ApplicationModel extends Dream {
     return new DBClass()
   }
 
-  public get passthroughColumns(): typeof passthroughColumns {
-    return passthroughColumns
-  }
-
-  public get dreamconf(): Dreamconf<DBClass, typeof schema> {
+  public get dreamconf(): Dreamconf<DBClass, typeof schema, typeof passthroughColumns> {
     return dreamconf
   }
 }
