@@ -1,13 +1,13 @@
 import { DateTime } from 'luxon'
-import Composition from '../../../../test-app/app/models/Composition'
-import User from '../../../../test-app/app/models/User'
-import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
+import MissingRequiredAssociationWhereClause from '../../../../src/exceptions/associations/missing-required-association-where-clause'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
-import Pet from '../../../../test-app/app/models/Pet'
 import Collar from '../../../../test-app/app/models/Collar'
-import MissingRequiredAssociationWhereClause from '../../../../src/exceptions/associations/missing-required-association-where-clause'
+import Composition from '../../../../test-app/app/models/Composition'
+import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import LocalizedText from '../../../../test-app/app/models/LocalizedText'
+import Pet from '../../../../test-app/app/models/Pet'
+import User from '../../../../test-app/app/models/User'
 
 describe('Dream#associationQuery', () => {
   context('with a HasMany association', () => {
@@ -25,7 +25,7 @@ describe('Dream#associationQuery', () => {
       expect(await user.associationQuery('recentCompositions').all()).toMatchDreamModels([recentComposition])
     })
 
-    context('when a "requiredWhereClause" isn’t passed', () => {
+    context('when a required where clause isn’t passed', () => {
       it('throws MissingRequiredAssociationWhereClause', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })
@@ -36,7 +36,7 @@ describe('Dream#associationQuery', () => {
       })
     })
 
-    context('when a "requiredWhereClause" is passed', () => {
+    context('when a required where clause is passed', () => {
       it('applies the where clause to the association', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })

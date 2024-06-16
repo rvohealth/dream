@@ -24,7 +24,7 @@ export type Timestamp = ColumnType<DateTime | CalendarDate>
 
 type MAX_VARIADIC_DEPTH = 25
 
-class RequiredWhereClause {
+class Required {
   constructor() {}
 }
 
@@ -34,7 +34,7 @@ class Passthrough {
 
 export const DreamConst = {
   passthrough: Passthrough,
-  requiredWhereClause: RequiredWhereClause,
+  required: Required,
 }
 
 export const TRIGRAM_OPERATORS = ['%', '<%', '<<%'] as const

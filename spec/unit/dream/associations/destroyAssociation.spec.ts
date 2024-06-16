@@ -83,7 +83,7 @@ describe('Dream#destroyAssociation', () => {
       })
     })
 
-    context('when a "requiredWhereClause" isn’t passed', () => {
+    context('when a required where clause isn’t passed', () => {
       it('throws MissingRequiredAssociationWhereClause', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })
@@ -94,7 +94,7 @@ describe('Dream#destroyAssociation', () => {
       })
     })
 
-    context('when a "requiredWhereClause" is passed', () => {
+    context('when a required where clause is passed', () => {
       it('destroys the record indicated by the where clause', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })

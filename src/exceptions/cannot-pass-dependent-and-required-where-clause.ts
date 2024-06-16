@@ -10,7 +10,7 @@ export default class CannotPassDependentAndRequiredWhereClause extends Error {
 
   public get message() {
     return `
-Cannot pass both "dependent" and DreamConst.requiredWhereClause to an association.
+Cannot pass both "dependent" and DreamConst.required to an association.
 Error found when trying to parse "${this.associationName}" on the 
 ${this.dreamClass.name} dream class.
     `

@@ -2468,7 +2468,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   ) {
     const whereStatement = association.where!
     const columnsRequiringWhereStatements = Object.keys(whereStatement).reduce((agg, column) => {
-      if (whereStatement[column] === DreamConst.requiredWhereClause) agg.push(column)
+      if (whereStatement[column] === DreamConst.required) agg.push(column)
       return agg
     }, [] as string[])
 
@@ -2542,8 +2542,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     Object.keys(whereStatement)
       .filter(
         key =>
-          (whereStatement as any)[key] !== undefined &&
-          (whereStatement as any)[key] !== DreamConst.requiredWhereClause
+          (whereStatement as any)[key] !== undefined && (whereStatement as any)[key] !== DreamConst.required
       )
       .forEach(attr => {
         const val = (whereStatement as any)[attr]

@@ -1,16 +1,16 @@
-import User from '../../../../test-app/app/models/User'
-import Composition from '../../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
-import Pet from '../../../../test-app/app/models/Pet'
 import { DateTime } from 'luxon'
+import MissingRequiredAssociationWhereClause from '../../../../src/exceptions/associations/missing-required-association-where-clause'
 import range from '../../../../src/helpers/range'
-import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
-import Balloon from '../../../../test-app/app/models/Balloon'
 import ops from '../../../../src/ops'
 import OpsStatement from '../../../../src/ops/ops-statement'
-import LocalizedText from '../../../../test-app/app/models/LocalizedText'
+import Balloon from '../../../../test-app/app/models/Balloon'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import Collar from '../../../../test-app/app/models/Collar'
-import MissingRequiredAssociationWhereClause from '../../../../src/exceptions/associations/missing-required-association-where-clause'
+import Composition from '../../../../test-app/app/models/Composition'
+import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
+import LocalizedText from '../../../../test-app/app/models/LocalizedText'
+import Pet from '../../../../test-app/app/models/Pet'
+import User from '../../../../test-app/app/models/User'
 
 describe('Query#joins with simple associations', () => {
   it('joins a HasOne association', async () => {
@@ -108,8 +108,8 @@ describe('Query#joins with simple associations', () => {
       })
     })
 
-    context('with "requiredWhereClause"', () => {
-      it('replaces requiredWhereClause with the supplied where clause when joining the associations', async () => {
+    context('with required where clause', () => {
+      it('replaces DreamConst.required with the supplied where clause when joining the associations', async () => {
         const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition1 = await Composition.create({ user: user1 })
         await LocalizedText.create({ localizable: composition1, locale: 'en-US' })
@@ -124,7 +124,7 @@ describe('Query#joins with simple associations', () => {
         expect(reloaded).toMatchDreamModels([user2])
       })
 
-      context('when the "requiredWhereClause" isn’t passed', () => {
+      context('when the required where clause isn’t passed', () => {
         it('throws MissingRequiredAssociationWhereClause', async () => {
           await expect(User.joins('compositions', 'inlineWhereCurrentLocalizedText').all()).rejects.toThrow(
             MissingRequiredAssociationWhereClause

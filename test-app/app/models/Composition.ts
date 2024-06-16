@@ -1,6 +1,6 @@
-import HasOne from '../../../src/decorators/associations/has-one'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
+import HasOne from '../../../src/decorators/associations/has-one'
 import AfterCreate from '../../../src/decorators/hooks/after-create'
 import AfterCreateCommit from '../../../src/decorators/hooks/after-create-commit'
 import AfterSave from '../../../src/decorators/hooks/after-save'
@@ -9,13 +9,13 @@ import AfterUpdate from '../../../src/decorators/hooks/after-update'
 import AfterUpdateCommit from '../../../src/decorators/hooks/after-update-commit'
 import BeforeCreate from '../../../src/decorators/hooks/before-create'
 import { DreamColumn, DreamConst } from '../../../src/dream/types'
+import CompositionSerializer from '../serializers/CompositionSerializer'
+import ApplicationModel from './ApplicationModel'
 import CompositionAsset from './CompositionAsset'
 import CompositionAssetAudit from './CompositionAssetAudit'
-import User from './User'
 import HeartRating from './ExtraRating/HeartRating'
-import ApplicationModel from './ApplicationModel'
 import LocalizedText from './LocalizedText'
-import CompositionSerializer from '../serializers/CompositionSerializer'
+import User from './User'
 
 export default class Composition extends ApplicationModel {
   public get table() {
@@ -107,7 +107,7 @@ export default class Composition extends ApplicationModel {
   @HasOne(() => LocalizedText, {
     polymorphic: true,
     foreignKey: 'localizableId',
-    where: { locale: DreamConst.requiredWhereClause },
+    where: { locale: DreamConst.required },
   })
   public inlineWhereCurrentLocalizedText: LocalizedText
 

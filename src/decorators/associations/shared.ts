@@ -86,7 +86,7 @@ type AssociationDreamSelectable<
     keyof DB[TableName],
     | NonKyselySupportedSupplementalWhereClauseValues<DB>
     | typeof DreamConst.passthrough
-    | typeof DreamConst.requiredWhereClause
+    | typeof DreamConst.required
   >
 >
 
@@ -420,11 +420,9 @@ export function validateHasStatementArgs({
   dependent?: DependentOptions
 }) {
   const hasPassthroughWhere = Object.values(where || {}).find(val => val === DreamConst.passthrough)
-  const hasRequiredWhereClause = Object.values(where || {}).find(
-    val => val === DreamConst.requiredWhereClause
-  )
+  const hasRequiredWhere = Object.values(where || {}).find(val => val === DreamConst.required)
   if (dependent && hasPassthroughWhere) throw new CannotPassDependentAndPassthrough(dreamClass, methodName)
-  if (dependent && hasRequiredWhereClause)
+  if (dependent && hasRequiredWhere)
     throw new CannotPassDependentAndRequiredWhereClause(dreamClass, methodName)
 }
 

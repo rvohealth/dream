@@ -21,14 +21,14 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
       })
     })
 
-    context('dependent AND requiredWhereClause both set', () => {
+    context('dependent AND DreamConst.required both set', () => {
       it('throws a targeted exception', () => {
         expect(() => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           class User2 extends User {
             @HasMany(() => Post, {
               dependent: 'destroy',
-              where: { body: DreamConst.requiredWhereClause },
+              where: { body: DreamConst.required },
             })
             public testAssociation: Post
           }
@@ -53,14 +53,14 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
       })
     })
 
-    context('dependent AND requiredWhereClause both set', () => {
+    context('dependent AND DreamConst.required both set', () => {
       it('throws a targeted exception', () => {
         expect(() => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           class User2 extends User {
             @HasOne(() => Post, {
               dependent: 'destroy',
-              where: { body: DreamConst.requiredWhereClause },
+              where: { body: DreamConst.required },
             })
             public testAssociation: Post
           }

@@ -101,7 +101,7 @@ describe('SchemaBuilder', () => {
         })
       })
 
-      it('renders requiredWhereClauses', () => {
+      it('renders required where clauses', () => {
         expect(
           User.prototype.dreamconf.schema.compositions.associations.inlineWhereCurrentLocalizedText
         ).toEqual({

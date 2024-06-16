@@ -82,9 +82,7 @@ ${tableName}: {
           const requiredWhereClauses =
             whereStatement === null
               ? []
-              : Object.keys(whereStatement).filter(
-                  column => whereStatement[column] === DreamConst.requiredWhereClause
-                )
+              : Object.keys(whereStatement).filter(column => whereStatement[column] === DreamConst.required)
           passthroughColumns =
             whereStatement === null
               ? passthroughColumns
@@ -354,7 +352,7 @@ interface AssociationData {
   polymorphic: boolean
   optional: boolean | null
   foreignKey: string | null
-  where: Record<string, string | typeof DreamConst.passthrough | typeof DreamConst.requiredWhereClause> | null
+  where: Record<string, string | typeof DreamConst.passthrough | typeof DreamConst.required> | null
 }
 
 interface ColumnData {
