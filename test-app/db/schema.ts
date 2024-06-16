@@ -1,26 +1,26 @@
-import CalendarDate from '../../src/helpers/CalendarDate'
 import { DateTime } from 'luxon'
+import CalendarDate from '../../src/helpers/CalendarDate'
 import {
-  BalloonColorsEnumValues,
-  BalloonLineMaterialsEnumValues,
-  BalloonTypesEnumValues,
-  CatTreatsValues,
-  ExtraRateableTypesEnumValues,
-  ExtraRatingTypesEnumValues,
-  LocalesEnumValues,
-  LocalizableTypesEnumValues,
-  SpeciesValues,
   BalloonColorsEnum,
+  BalloonColorsEnumValues,
   BalloonLineMaterialsEnum,
+  BalloonLineMaterialsEnumValues,
   BalloonTypesEnum,
+  BalloonTypesEnumValues,
   CatTreats,
+  CatTreatsValues,
   ExtraRateableTypesEnum,
+  ExtraRateableTypesEnumValues,
   ExtraRatingTypesEnum,
+  ExtraRatingTypesEnumValues,
+  IdType,
   Json,
   LocalesEnum,
+  LocalesEnumValues,
   LocalizableTypesEnum,
+  LocalizableTypesEnumValues,
   Species,
-  IdType,
+  SpeciesValues,
   Timestamp
 } from './sync'
 
@@ -2377,3 +2377,5 @@ export const schema = {
     },
   },
 } as const
+
+export const passthroughColumns = ['locale'] as const

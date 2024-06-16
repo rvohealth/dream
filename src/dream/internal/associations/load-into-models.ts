@@ -1,29 +1,29 @@
-import { RelaxedPreloadStatement } from '../../types'
-import Dream from '../../../dream'
-import Query from '../../query'
-import { PassthroughWhere } from '../../../decorators/associations/shared'
+import { singular } from 'pluralize'
+import { BelongsToStatement } from '../../../decorators/associations/belongs-to'
 import { HasManyStatement } from '../../../decorators/associations/has-many'
 import { HasOneStatement } from '../../../decorators/associations/has-one'
-import { BelongsToStatement } from '../../../decorators/associations/belongs-to'
+import { PassthroughWhere } from '../../../decorators/associations/shared'
+import Dream from '../../../dream'
 import CannotAssociateThroughPolymorphic from '../../../exceptions/associations/cannot-associate-through-polymorphic'
 import MissingThroughAssociation from '../../../exceptions/associations/missing-through-association'
 import MissingThroughAssociationSource from '../../../exceptions/associations/missing-through-association-source'
 import compact from '../../../helpers/compact'
 import debug from '../../../helpers/debug'
-import { singular } from 'pluralize'
+import Query from '../../query'
+import { RelaxedPreloadStatement } from '../../types'
 
 export default class LoadIntoModels<
   DreamInstance extends Dream,
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
-  AllColumns extends DreamInstance['allColumns'] = DreamInstance['allColumns'],
+  PassthroughColumns extends DreamInstance['passthroughColumns'] = DreamInstance['passthroughColumns'],
 > {
   private readonly preloadStatements: RelaxedPreloadStatement
-  private readonly passthroughWhereStatement: PassthroughWhere<AllColumns> | null = null
+  private readonly passthroughWhereStatement: PassthroughWhere<PassthroughColumns> | null = null
 
   constructor(
     preloadStatements: RelaxedPreloadStatement,
-    passthroughWhereStatement: PassthroughWhere<AllColumns>
+    passthroughWhereStatement: PassthroughWhere<PassthroughColumns>
   ) {
     this.preloadStatements = preloadStatements
     this.passthroughWhereStatement = passthroughWhereStatement

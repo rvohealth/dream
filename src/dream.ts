@@ -1670,8 +1670,8 @@ export default class Dream {
   public static passthrough<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    AllColumns extends I['allColumns'],
-  >(this: T, passthroughWhereStatement: PassthroughWhere<AllColumns>): Query<InstanceType<T>> {
+    PassthroughColumns extends I['passthroughColumns'],
+  >(this: T, passthroughWhereStatement: PassthroughWhere<PassthroughColumns>): Query<InstanceType<T>> {
     return this.query().passthrough(passthroughWhereStatement)
   }
 
@@ -2167,11 +2167,11 @@ export default class Dream {
    * migrations are run for your Dream application, files are synced
    * to your db folder. This is one of those types.
    *
-   * The allColumns getter provides a few of the types used by
-   * Dream internals related to the passthrough api.
+   * The passthroughColumns getter provides a few of the
+   * types used by Dream internals related to the passthrough api.
    */
-  public get allColumns(): any {
-    throw 'must have get allColumns defined on child'
+  public get passthroughColumns(): any {
+    throw 'must have get passthroughColumns defined on child'
   }
 
   /**
@@ -3352,9 +3352,9 @@ export default class Dream {
    * @param passthroughWhereStatement - where statement used for associations that require passthrough data
    * @returns A cloned Query with the passthrough data
    */
-  public passthrough<I extends Dream, AllColumns extends I['allColumns']>(
+  public passthrough<I extends Dream, PassthroughColumns extends I['passthroughColumns']>(
     this: I,
-    passthroughWhereStatement: PassthroughWhere<AllColumns>
+    passthroughWhereStatement: PassthroughWhere<PassthroughColumns>
   ): LoadBuilder<I> {
     return new LoadBuilder<I>(this).passthrough(passthroughWhereStatement)
   }

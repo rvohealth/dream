@@ -15,6 +15,8 @@ import {
 } from '../../dream/types'
 import { checkForeignKey } from '../../exceptions/associations/explicit-foreign-key'
 import NonLoadedAssociation from '../../exceptions/associations/non-loaded-association'
+import CannotPassDependentAndPassthrough from '../../exceptions/cannot-pass-dependent-and-passthrough'
+import CannotPassDependentAndRequiredWhereClause from '../../exceptions/cannot-pass-dependent-and-required-where-clause'
 import CalendarDate from '../../helpers/CalendarDate'
 import camelize from '../../helpers/camelize'
 import { Range } from '../../helpers/range'
@@ -25,8 +27,6 @@ import associationToGetterSetterProp from './associationToGetterSetterProp'
 import { BelongsToStatement } from './belongs-to'
 import { HasManyStatement } from './has-many'
 import { HasOneStatement } from './has-one'
-import CannotPassDependentAndPassthrough from '../../exceptions/cannot-pass-dependent-and-passthrough'
-import CannotPassDependentAndRequiredWhereClause from '../../exceptions/cannot-pass-dependent-and-required-where-clause'
 
 type AssociatedModelType<
   I extends Dream,
@@ -57,7 +57,9 @@ export type AssociatedModelParam<
         },
 > = Partial<UnionToIntersection<RetObj>>
 
-export type PassthroughWhere<AllColumns extends string[]> = Partial<Record<AllColumns[number], any>>
+export type PassthroughWhere<PassthroughColumns extends string[]> = Partial<
+  Record<PassthroughColumns[number], any>
+>
 
 type DreamSelectable<DB, Schema, TableName extends AssociationTableNames<DB, Schema> & keyof DB> = Partial<
   Record<keyof DB[TableName], NonKyselySupportedSupplementalWhereClauseValues<DB>>

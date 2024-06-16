@@ -1,14 +1,12 @@
-import '../src/helpers/loadEnv'
-import path from 'path'
 import { promises as fs } from 'fs'
-import sspawn from '../src/helpers/sspawn'
+import path from 'path'
 import compact from '../src/helpers/compact'
-import snakeify from '../src/helpers/snakeify'
-import camelize from '../src/helpers/camelize'
-import ConnectionConfRetriever from './cli/connection-conf-retriever-primitive'
+import '../src/helpers/loadEnv'
 import loadDreamYamlFile from '../src/helpers/path/loadDreamYamlFile'
 import shouldOmitDistFolder from '../src/helpers/path/shouldOmitDistFolder'
-import uniq from 'lodash.uniq'
+import snakeify from '../src/helpers/snakeify'
+import sspawn from '../src/helpers/sspawn'
+import ConnectionConfRetriever from './cli/connection-conf-retriever-primitive'
 
 export default async function sync() {
   console.log('writing schema...')
@@ -59,15 +57,11 @@ function enhanceSchema(file: string) {
   file = file.replace(camelDbInterface, dbInterface)
   file = addCustomImports(file)
 
-  const allColumnsString = allColumns(results)
-
   const transformedNames = compact(results.map(result => transformName(result)))
   const fileWithCoercedTypes = exportedTypesToExportedTypeValues(file)
 
   // BEGIN FILE CONTENTS BUILDING
   const newFileContents = `${fileWithCoercedTypes}
-
-${allColumnsString}
 
 export class DBClass {
   ${transformedNames
@@ -121,23 +115,6 @@ function _camelcasify(str: string): string {
   )
 
   return camelString === str ? camelString : _camelcasify(camelString)
-}
-
-function allColumns(tableInterfaces: string[]) {
-  const columns: string[] = uniq(
-    compact(tableInterfaces.flatMap(tableInterface => tableInterfaceToColumns(tableInterface)))
-  ).sort()
-
-  return `export const AllColumns = [${columns.join(', ')}] as const`
-}
-
-function tableInterfaceToColumns(str: string): string[] {
-  return str
-    .split('{')[1]
-    .split('\n')
-    .filter(str => !['', '}'].includes(str.replace(/\s/g, '')))
-    .map(attr => "'" + camelize(attr.split(':')[0].replace(/\s/g, '')) + "'")
-    .sort()
 }
 
 function alphaSortInterfaceProperties(str: string) {

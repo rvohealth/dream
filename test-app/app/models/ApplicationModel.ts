@@ -1,7 +1,7 @@
 import Dream from '../../../src/dream'
-import { schema } from '../../db/schema'
-import { AllColumns, DBClass } from '../../db/sync'
 import Dreamconf from '../../../src/helpers/dreamconf'
+import { passthroughColumns, schema } from '../../db/schema'
+import { DBClass } from '../../db/sync'
 import dreamconf from '../conf/dreamconf'
 
 export default class ApplicationModel extends Dream {
@@ -9,8 +9,8 @@ export default class ApplicationModel extends Dream {
     return new DBClass()
   }
 
-  public get allColumns(): typeof AllColumns {
-    return AllColumns
+  public get passthroughColumns(): typeof passthroughColumns {
+    return passthroughColumns
   }
 
   public get dreamconf(): Dreamconf<DBClass, typeof schema> {

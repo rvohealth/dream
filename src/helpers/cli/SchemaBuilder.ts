@@ -10,10 +10,11 @@ import pascalize from '../pascalize'
 import { schemaPath } from '../path'
 import dbSyncPath from '../path/dbSyncPath'
 import loadDreamconfFile from '../path/loadDreamconfFile'
+import uniq from '../uniq'
 
 export default class SchemaBuilder {
   public async build() {
-    const schemaConstContent = await this.buildSchemaContent()
+    const { schemaConstContent, passthroughColumns } = await this.buildSchemaContent()
     const imports = await this.getSchemaImports(schemaConstContent)
 
     const importStr = imports.length
@@ -34,6 +35,8 @@ import { DateTime } from 'luxon'
 ${importStr}
 
 ${schemaConstContent}
+
+export const passthroughColumns = ${JSON.stringify(uniq(passthroughColumns.sort())).replace(/"/g, "'").replace(/,/g, ', ')} as const
 `
     // const newSchemaFileContents = `\
     // ${schemaConstContent}
@@ -42,10 +45,11 @@ ${schemaConstContent}
   }
 
   private async buildSchemaContent() {
+    let passthroughColumns: string[] = []
     const schemaData = await this.getSchemaData()
     const fileContents = await this.loadDbSyncFile()
 
-    return `\
+    const schemaConstContent = `\
 export const schema = {
   ${Object.keys(schemaData)
     .map(tableName => {
@@ -81,6 +85,15 @@ ${tableName}: {
               : Object.keys(whereStatement).filter(
                   column => whereStatement[column] === DreamConst.requiredWhereClause
                 )
+          passthroughColumns =
+            whereStatement === null
+              ? passthroughColumns
+              : [
+                  ...passthroughColumns,
+                  ...Object.keys(whereStatement).filter(
+                    column => whereStatement[column] === DreamConst.passthrough
+                  ),
+                ]
           return `${associationName}: {
         type: '${associationMetadata.type}',
         foreignKey: ${associationMetadata.foreignKey ? `'${associationMetadata.foreignKey}'` : 'null'},
@@ -96,6 +109,8 @@ ${tableName}: {
     })
     .join('\n  ')}
 } as const`
+
+    return { schemaConstContent, passthroughColumns }
   }
 
   private async getSchemaImports(schemaContent: string) {

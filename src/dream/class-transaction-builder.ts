@@ -590,8 +590,8 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    */
   public passthrough<
     I extends DreamClassTransactionBuilder<DreamInstance>,
-    AllColumns extends DreamInstance['allColumns'],
-  >(this: I, passthroughWhereStatement: PassthroughWhere<AllColumns>): Query<DreamInstance> {
+    PassthroughColumns extends DreamInstance['passthroughColumns'],
+  >(this: I, passthroughWhereStatement: PassthroughWhere<PassthroughColumns>): Query<DreamInstance> {
     return this.queryInstance().passthrough(passthroughWhereStatement as any)
   }
 
