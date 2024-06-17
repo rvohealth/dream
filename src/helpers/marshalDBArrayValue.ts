@@ -37,7 +37,7 @@ function parsePostgresArray(source: string, transform: any, nested = false) {
   let quote = false
   let position = 0
   let dimension = 0
-  const entries = []
+  const entries: Array<any> = []
   let recorded = ''
 
   const newEntry = function (includeEmpty: boolean = false) {
