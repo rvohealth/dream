@@ -1,8 +1,8 @@
-import { sql, ExpressionBuilder } from 'kysely'
+import { ExpressionBuilder, sql } from 'kysely'
+import validateColumn from '../../../db/validators/validateColumn'
+import validateTable from '../../../db/validators/validateTable'
 import Dream from '../../../dream'
 import OpsStatement from '../../../ops/ops-statement'
-import validateTable from '../../../db/validators/validateTable'
-import validateColumn from '../../../db/validators/validateColumn'
 
 export default function similaritySelectSql<DreamInstance extends Dream>({
   eb,
@@ -12,7 +12,10 @@ export default function similaritySelectSql<DreamInstance extends Dream>({
   schema,
   rankSQLAlias,
 }: {
-  eb: ExpressionBuilder<DreamInstance['DB'], string | (any extends keyof DreamInstance['DB'] ? any : never)>
+  eb: ExpressionBuilder<
+    DreamInstance['dreamconf']['DB'],
+    string | (any extends keyof DreamInstance['dreamconf']['DB'] ? any : never)
+  >
   tableName: DreamInstance['table']
   columnName: string
   opsStatement: OpsStatement<any, any>

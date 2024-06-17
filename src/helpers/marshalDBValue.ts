@@ -1,15 +1,15 @@
 import { DateTime } from 'luxon'
-import isDecimalColumn from './db/types/isDecimalColumn'
-import isDatabaseArrayColumn from './db/types/isDatabaseArrayColumn'
-import marshalDBArrayValue from './marshalDBArrayValue'
 import Dream from '../dream'
-import isDateTimeColumn from './db/types/isDateTimeColumn'
-import isDateColumn from './db/types/isDateColumn'
 import CalendarDate from './CalendarDate'
+import isDatabaseArrayColumn from './db/types/isDatabaseArrayColumn'
+import isDateColumn from './db/types/isDateColumn'
+import isDateTimeColumn from './db/types/isDateTimeColumn'
+import isDecimalColumn from './db/types/isDecimalColumn'
+import marshalDBArrayValue from './marshalDBArrayValue'
 
 export function marshalDBValue<
   T extends typeof Dream,
-  DB extends InstanceType<T>['DB'],
+  DB extends InstanceType<T>['dreamconf']['DB'],
   TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
   Table extends DB[keyof DB] = DB[TableName],
 >(dreamClass: T, column: keyof Table, value: any) {

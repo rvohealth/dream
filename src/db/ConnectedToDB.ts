@@ -1,9 +1,9 @@
 import { Kysely, Transaction as KyselyTransaction } from 'kysely'
+import _db from '../db'
+import Dream from '../dream'
 import DreamTransaction from '../dream/transaction'
 import { DreamConstructorType, SqlCommandType } from '../dream/types'
 import { DbConnectionType } from './types'
-import _db from '../db'
-import Dream from '../dream'
 
 export default class ConnectedToDB<DreamInstance extends Dream> {
   public readonly dreamClass: DreamConstructorType<DreamInstance>
@@ -35,7 +35,7 @@ export default class ConnectedToDB<DreamInstance extends Dream> {
   // stop trying to make this async. You never learn...
   public dbFor(
     sqlCommandType: SqlCommandType
-  ): Kysely<DreamInstance['DB']> | KyselyTransaction<DreamInstance['DB']> {
+  ): Kysely<DreamInstance['dreamconf']['DB']> | KyselyTransaction<DreamInstance['dreamconf']['DB']> {
     if (this.dreamTransaction?.kyselyTransaction) return this.dreamTransaction?.kyselyTransaction
     return _db<DreamInstance>(this.dbConnectionType(sqlCommandType), this.dreamClass.prototype.dreamconf)
   }

@@ -1,14 +1,14 @@
-import '../helpers/loadEnv'
 import { Kysely } from 'kysely'
-import Dream from '../dream'
-import { DbConnectionType } from './types'
-import DreamDbConnection from './dream-db-connection'
-import Dreamconf from '../helpers/dreamconf'
 import { Settings } from 'luxon'
+import Dream from '../dream'
+import Dreamconf from '../helpers/dreamconf'
+import '../helpers/loadEnv'
+import DreamDbConnection from './dream-db-connection'
+import { DbConnectionType } from './types'
 
 if (process.env.TZ) Settings.defaultZone = process.env.TZ
 
-export default function db<T extends Dream, DB extends T['DB'] = T['DB']>(
+export default function db<T extends Dream, DB extends T['dreamconf']['DB'] = T['dreamconf']['DB']>(
   connection: DbConnectionType = 'primary',
   dreamconf: Dreamconf
 ): Kysely<DB> {

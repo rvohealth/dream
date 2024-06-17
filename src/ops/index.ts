@@ -1,10 +1,10 @@
 import { sql } from 'kysely'
-import OpsStatement from './ops-statement'
-import CurriedOpsStatement from './curried-ops-statement'
 import Dream from '../dream'
-import isDatabaseArrayColumn from '../helpers/db/types/isDatabaseArrayColumn'
-import AnyRequiresArrayColumn from '../exceptions/ops/any-requires-array-column'
 import { ComparisonOperatorExpression } from '../dream/types'
+import AnyRequiresArrayColumn from '../exceptions/ops/any-requires-array-column'
+import isDatabaseArrayColumn from '../helpers/db/types/isDatabaseArrayColumn'
+import CurriedOpsStatement from './curried-ops-statement'
+import OpsStatement from './ops-statement'
 
 const ops = {
   expression: (operator: ComparisonOperatorExpression, value: any) => new OpsStatement(operator, value),
@@ -12,7 +12,7 @@ const ops = {
   any: (value: any) =>
     new CurriedOpsStatement(function <
       T extends typeof Dream,
-      DB extends InstanceType<T>['DB'],
+      DB extends InstanceType<T>['dreamconf']['DB'],
       FN extends keyof DB[InstanceType<T>['table']] & string,
     >(dreamClass: T, fieldName: FN) {
       const column = fieldName.replace(/^.*\./, '')

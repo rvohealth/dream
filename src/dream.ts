@@ -80,7 +80,6 @@ import CanOnlyPassBelongsToModelParam from './exceptions/associations/can-only-p
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
 import NonLoadedAssociation from './exceptions/associations/non-loaded-association'
 import CreateOrFindByFailedToCreateAndFind from './exceptions/create-or-find-by-failed-to-create-and-find'
-import MissingDB from './exceptions/missing-db'
 import MissingSerializer from './exceptions/missing-serializer'
 import MissingTable from './exceptions/missing-table'
 import NonExistentScopeProvidedToResort from './exceptions/non-existent-scope-provided-to-resort'
@@ -670,7 +669,7 @@ export default class Dream {
   public static columns<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName],
   >(this: T): Set<keyof Table & string> {
@@ -793,7 +792,7 @@ export default class Dream {
   private static associationMetadataMap<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     Schema extends I['dreamconf']['schema'],
   >(this: T) {
     const allAssociations = [
@@ -1002,7 +1001,7 @@ export default class Dream {
   public static distinct<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     TableName extends InstanceType<T>['table'],
   >(this: T, columnName?: TableColumnNames<DB, TableName> | null | boolean) {
     return this.query().distinct(columnName as any)
@@ -1093,7 +1092,7 @@ export default class Dream {
   public static async loadInto<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     TableName extends I['table'],
     Schema extends I['dreamconf']['schema'],
     const Arr extends readonly unknown[],
@@ -1132,7 +1131,7 @@ export default class Dream {
    */
   public static async findBy<T extends typeof Dream, I extends InstanceType<T>>(
     this: T,
-    whereStatement: WhereStatement<I['DB'], I['dreamconf']['schema'], I['table']>
+    whereStatement: WhereStatement<I['dreamconf']['DB'], I['dreamconf']['schema'], I['table']>
   ): Promise<InstanceType<T> | null> {
     return await this.query().findBy(whereStatement)
   }
@@ -1209,7 +1208,7 @@ export default class Dream {
   public static preload<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     TableName extends InstanceType<T>['table'],
     Schema extends I['dreamconf']['schema'],
     const Arr extends readonly unknown[],
@@ -1231,7 +1230,7 @@ export default class Dream {
   public static joins<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     Schema extends I['dreamconf']['schema'],
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
@@ -1267,7 +1266,7 @@ export default class Dream {
   public static async pluckThrough<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     Schema extends I['dreamconf']['schema'],
     TableName extends I['table'],
     const Arr extends readonly unknown[],
@@ -1307,7 +1306,7 @@ export default class Dream {
   public static async pluckEachThrough<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     Schema extends I['dreamconf']['schema'],
     TableName extends I['table'],
     const Arr extends readonly unknown[],
@@ -1561,13 +1560,18 @@ export default class Dream {
     T extends typeof Dream,
     QueryType extends 'select' | 'delete' | 'update' | 'insert',
     ToKyselyReturnType = QueryType extends 'select'
-      ? SelectQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], any>
+      ? SelectQueryBuilder<InstanceType<T>['dreamconf']['DB'], InstanceType<T>['table'], any>
       : QueryType extends 'delete'
-        ? DeleteQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], any>
+        ? DeleteQueryBuilder<InstanceType<T>['dreamconf']['DB'], InstanceType<T>['table'], any>
         : QueryType extends 'update'
-          ? UpdateQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], InstanceType<T>['table'], any>
+          ? UpdateQueryBuilder<
+              InstanceType<T>['dreamconf']['DB'],
+              InstanceType<T>['table'],
+              InstanceType<T>['table'],
+              any
+            >
           : QueryType extends 'insert'
-            ? InsertQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], any>
+            ? InsertQueryBuilder<InstanceType<T>['dreamconf']['DB'], InstanceType<T>['table'], any>
             : never,
   >(this: T, type: QueryType) {
     switch (type) {
@@ -1690,7 +1694,7 @@ export default class Dream {
   public static where<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     Schema extends I['dreamconf']['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
   >(this: T, whereStatement: WhereStatement<DB, Schema, TableName>): Query<InstanceType<T>> {
@@ -1712,7 +1716,7 @@ export default class Dream {
   public static whereAny<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     Schema extends I['dreamconf']['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
   >(this: T, statements: WhereStatement<DB, Schema, TableName>[]): Query<InstanceType<T>> {
@@ -1734,7 +1738,7 @@ export default class Dream {
   public static whereNot<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     Schema extends I['dreamconf']['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
   >(this: T, attributes: WhereStatement<DB, Schema, TableName>): Query<InstanceType<T>> {
@@ -2146,24 +2150,6 @@ export default class Dream {
    * @internal
    *
    * This is meant to be defined by ApplicationModel. Whenever
-   * migrations are run for your dream application, files are synced
-   * to your db folder. This is one of those types.
-   *
-   * The DB type is generated by the `kysely-codegen` tool
-   * provided by Kysely. It is used to provide the underlying
-   * types for the Kysely query building engine used by Dream,
-   * in addition to providing support for many of the custom
-   * types driving the Dream engine.
-   *
-   */
-  public get DB(): any {
-    throw new MissingDB()
-  }
-
-  /**
-   * @internal
-   *
-   * This is meant to be defined by ApplicationModel. Whenever
    * migrations are run for your Dream application, files are synced
    * to your db folder. This is one of those types.
    *
@@ -2367,8 +2353,8 @@ export default class Dream {
     opts?: any,
     additionalOpts: { bypassUserDefinedSetters?: boolean; isPersisted?: boolean } = {}
     // opts?: Updateable<
-    //   InstanceType<DreamModel & typeof Dream>['DB'][InstanceType<DreamModel>['table'] &
-    //     keyof InstanceType<DreamModel>['DB']]
+    //   InstanceType<DreamModel & typeof Dream>['dreamconf']['DB'][InstanceType<DreamModel>['table'] &
+    //     keyof InstanceType<DreamModel>['dreamconf']['DB']]
     // >
   ) {
     this.isPersisted = additionalOpts?.isPersisted || false
@@ -2404,7 +2390,11 @@ export default class Dream {
     attributes: UpdateablePropertiesForClass<T>,
     dreamInstance?: InstanceType<T>,
     { bypassUserDefinedSetters = false }: { bypassUserDefinedSetters?: boolean } = {}
-  ): WhereStatement<InstanceType<T>['DB'], InstanceType<T>['dreamconf']['schema'], InstanceType<T>['table']> {
+  ): WhereStatement<
+    InstanceType<T>['dreamconf']['DB'],
+    InstanceType<T>['dreamconf']['schema'],
+    InstanceType<T>['table']
+  > {
     const marshalledOpts: any = {}
 
     const setAttributeOnDreamInstance = (attr: any, value: any) => {
@@ -2643,7 +2633,9 @@ export default class Dream {
    *  // }
    * ```
    */
-  public getAttributes<I extends Dream, DB extends I['DB']>(this: I): Updateable<DB[I['table']]> {
+  public getAttributes<I extends Dream, DB extends I['dreamconf']['DB']>(
+    this: I
+  ): Updateable<DB[I['table']]> {
     return { ...this.currentAttributes } as Updateable<DB[I['table']]>
   }
 
@@ -2654,7 +2646,7 @@ export default class Dream {
    */
   protected static cachedTypeFor<
     T extends typeof Dream,
-    DB extends InstanceType<T>['DB'],
+    DB extends InstanceType<T>['dreamconf']['DB'],
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName],
   >(this: T, attribute: keyof Table): string {
@@ -2683,7 +2675,7 @@ export default class Dream {
    */
   public changedAttributes<
     I extends Dream,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     Schema extends I['dreamconf']['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['table'] &
       AssociationTableNames<DB, Schema>,
@@ -2745,7 +2737,7 @@ export default class Dream {
    */
   public changes<
     I extends Dream,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     TableName extends I['table'],
     Table extends DB[TableName],
     RetType = Partial<
@@ -2801,7 +2793,7 @@ export default class Dream {
    */
   public previousValueForAttribute<
     I extends Dream,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     TableName extends I['table'],
     Table extends DB[TableName],
     ColumnName extends DreamColumnNames<I>,
@@ -2844,7 +2836,7 @@ export default class Dream {
    */
   public columns<
     I extends Dream,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     TableName extends keyof DB = I['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName],
   >(this: I): Set<keyof Table> {
@@ -2880,7 +2872,7 @@ export default class Dream {
    */
   public dirtyAttributes<
     I extends Dream,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     Schema extends I['dreamconf']['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['table'] &
       AssociationTableNames<DB, Schema>,
@@ -3013,7 +3005,7 @@ export default class Dream {
    */
   public async pluckThrough<
     I extends Dream,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     Schema extends I['dreamconf']['schema'],
     TableName extends I['table'],
     const Arr extends readonly unknown[],
@@ -3056,7 +3048,7 @@ export default class Dream {
    */
   public async pluckEachThrough<
     I extends Dream,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     Schema extends I['dreamconf']['schema'],
     TableName extends I['table'],
     const Arr extends readonly unknown[],
@@ -3149,7 +3141,7 @@ export default class Dream {
   ///////////////////
   public destroyAssociation<
     I extends Dream,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     TableName extends I['table'],
     Schema extends I['dreamconf']['schema'],
     AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<I>,
@@ -3164,7 +3156,7 @@ export default class Dream {
 
   public destroyAssociation<
     I extends Dream,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     TableName extends I['table'],
     Schema extends I['dreamconf']['schema'],
     AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<I>,
@@ -3213,7 +3205,7 @@ export default class Dream {
   ///////////////////
   public associationQuery<
     I extends Dream,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     TableName extends I['table'],
     Schema extends I['dreamconf']['schema'],
     AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<I>,
@@ -3225,7 +3217,7 @@ export default class Dream {
 
   public associationQuery<
     I extends Dream,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     TableName extends I['table'],
     Schema extends I['dreamconf']['schema'],
     AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<I>,
@@ -3263,7 +3255,7 @@ export default class Dream {
   ///////////////////
   public async updateAssociation<
     I extends Dream,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     TableName extends I['table'],
     Schema extends I['dreamconf']['schema'],
     AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<I>,
@@ -3279,7 +3271,7 @@ export default class Dream {
 
   public async updateAssociation<
     I extends Dream,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     TableName extends I['table'],
     Schema extends I['dreamconf']['schema'],
     AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<I>,
@@ -3383,7 +3375,7 @@ export default class Dream {
    */
   public load<
     I extends Dream,
-    DB extends I['DB'],
+    DB extends I['dreamconf']['DB'],
     TableName extends I['table'],
     Schema extends I['dreamconf']['schema'],
     const Arr extends readonly unknown[],
@@ -3683,7 +3675,11 @@ export default class Dream {
 
 export interface CreateOrFindByExtraOps<T extends typeof Dream> {
   createWith?:
-    | WhereStatement<InstanceType<T>['DB'], InstanceType<T>['dreamconf']['schema'], InstanceType<T>['table']>
+    | WhereStatement<
+        InstanceType<T>['dreamconf']['DB'],
+        InstanceType<T>['dreamconf']['schema'],
+        InstanceType<T>['table']
+      >
     | UpdateablePropertiesForClass<T>
 }
 

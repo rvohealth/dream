@@ -8,7 +8,7 @@ export default function sqlResultToDreamInstance<
   DreamClass extends typeof Dream,
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
   Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
-  DB extends DreamInstance['DB'] = DreamInstance['DB'],
+  DB extends DreamInstance['dreamconf']['DB'] = DreamInstance['dreamconf']['DB'],
   TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<DreamClass>['table'],
   Table extends DB[TableName] = DB[TableName],
 >(dreamClass: DreamClass, sqlResult: any): InstanceType<DreamClass> | Dream {

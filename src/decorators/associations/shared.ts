@@ -91,13 +91,13 @@ type AssociationDreamSelectable<
 >
 
 export type WhereStatementForDreamClass<DreamClass extends typeof Dream> = WhereStatement<
-  InstanceType<DreamClass>['DB'],
+  InstanceType<DreamClass>['dreamconf']['DB'],
   InstanceType<DreamClass>['dreamconf']['schema'],
   InstanceType<DreamClass>['table']
 >
 
 export type WhereStatementForDream<DreamInstance extends Dream> = WhereStatement<
-  DreamInstance['DB'],
+  DreamInstance['dreamconf']['DB'],
   DreamInstance['dreamconf']['schema'],
   DreamInstance['table']
 >
@@ -194,62 +194,62 @@ export interface HasOptions<BaseInstance extends Dream, AssociationDreamClass ex
   polymorphic?: boolean
   source?: string
   where?: WhereStatementForAssociationDefinition<
-    InstanceType<AssociationDreamClass>['DB'],
+    InstanceType<AssociationDreamClass>['dreamconf']['DB'],
     InstanceType<AssociationDreamClass>['dreamconf']['schema'],
     InstanceType<AssociationDreamClass>['table'] &
       AssociationTableNames<
-        InstanceType<AssociationDreamClass>['DB'],
+        InstanceType<AssociationDreamClass>['dreamconf']['DB'],
         InstanceType<AssociationDreamClass>['dreamconf']['schema']
       >
   >
   whereNot?: WhereStatement<
-    InstanceType<AssociationDreamClass>['DB'],
+    InstanceType<AssociationDreamClass>['dreamconf']['DB'],
     InstanceType<AssociationDreamClass>['dreamconf']['schema'],
     InstanceType<AssociationDreamClass>['table'] &
       AssociationTableNames<
-        InstanceType<AssociationDreamClass>['DB'],
+        InstanceType<AssociationDreamClass>['dreamconf']['DB'],
         InstanceType<AssociationDreamClass>['dreamconf']['schema']
       >
   >
 
   selfWhere?: WhereSelfStatement<
     BaseInstance,
-    InstanceType<AssociationDreamClass>['DB'],
+    InstanceType<AssociationDreamClass>['dreamconf']['DB'],
     InstanceType<AssociationDreamClass>['dreamconf']['schema'],
     InstanceType<AssociationDreamClass>['table'] &
       AssociationTableNames<
-        InstanceType<AssociationDreamClass>['DB'],
+        InstanceType<AssociationDreamClass>['dreamconf']['DB'],
         InstanceType<AssociationDreamClass>['dreamconf']['schema']
       >
   >
 
   selfWhereNot?: WhereSelfStatement<
     BaseInstance,
-    InstanceType<AssociationDreamClass>['DB'],
+    InstanceType<AssociationDreamClass>['dreamconf']['DB'],
     InstanceType<AssociationDreamClass>['dreamconf']['schema'],
     InstanceType<AssociationDreamClass>['table'] &
       AssociationTableNames<
-        InstanceType<AssociationDreamClass>['DB'],
+        InstanceType<AssociationDreamClass>['dreamconf']['DB'],
         InstanceType<AssociationDreamClass>['dreamconf']['schema']
       >
   >
 
   order?:
     | OrderStatement<
-        InstanceType<AssociationDreamClass>['DB'],
+        InstanceType<AssociationDreamClass>['dreamconf']['DB'],
         InstanceType<AssociationDreamClass>['dreamconf']['schema'],
         InstanceType<AssociationDreamClass>['table'] &
           AssociationTableNames<
-            InstanceType<AssociationDreamClass>['DB'],
+            InstanceType<AssociationDreamClass>['dreamconf']['DB'],
             InstanceType<AssociationDreamClass>['dreamconf']['schema']
           >
       >
     | OrderStatement<
-        InstanceType<AssociationDreamClass>['DB'],
+        InstanceType<AssociationDreamClass>['dreamconf']['DB'],
         InstanceType<AssociationDreamClass>['dreamconf']['schema'],
         InstanceType<AssociationDreamClass>['table'] &
           AssociationTableNames<
-            InstanceType<AssociationDreamClass>['DB'],
+            InstanceType<AssociationDreamClass>['dreamconf']['DB'],
             InstanceType<AssociationDreamClass>['dreamconf']['schema']
           >
       >[]

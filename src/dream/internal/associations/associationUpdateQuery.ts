@@ -1,15 +1,15 @@
-import Dream from '../../../dream'
-import DreamTransaction from '../../transaction'
-import Query from '../../query'
+import { BelongsToStatement } from '../../../decorators/associations/belongs-to'
 import { HasManyStatement } from '../../../decorators/associations/has-many'
 import { HasOneStatement } from '../../../decorators/associations/has-one'
-import { BelongsToStatement } from '../../../decorators/associations/belongs-to'
-import { DreamAssociationType } from '../../types'
 import { WhereStatement } from '../../../decorators/associations/shared'
+import Dream from '../../../dream'
+import Query from '../../query'
+import DreamTransaction from '../../transaction'
+import { DreamAssociationType } from '../../types'
 
 export default function associationUpdateQuery<
   DreamInstance extends Dream,
-  DB extends DreamInstance['DB'],
+  DB extends DreamInstance['dreamconf']['DB'],
   TableName extends DreamInstance['table'],
   Schema extends DreamInstance['dreamconf']['schema'],
   AssociationName extends keyof DreamInstance,

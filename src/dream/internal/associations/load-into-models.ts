@@ -14,7 +14,7 @@ import { RelaxedPreloadStatement } from '../../types'
 
 export default class LoadIntoModels<
   DreamInstance extends Dream,
-  DB extends DreamInstance['DB'] = DreamInstance['DB'],
+  DB extends DreamInstance['dreamconf']['DB'] = DreamInstance['dreamconf']['DB'],
   Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
   PassthroughColumns extends
     DreamInstance['dreamconf']['passthroughColumns'] = DreamInstance['dreamconf']['passthroughColumns'],

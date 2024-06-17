@@ -1,22 +1,22 @@
-import { DbConnectionType } from '../../../db/types'
-import { WhereStatement } from '../../../decorators/associations/shared'
-import Dream from '../../../dream'
-import DreamTransaction from '../../transaction'
-import { RelaxedJoinsWhereStatement, SimilarityStatement, TRIGRAM_OPERATORS } from '../../types'
-import OpsStatement from '../../../ops/ops-statement'
 import { SelectQueryBuilder, UpdateQueryBuilder, sql } from 'kysely'
 import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
-import validateColumn from '../../../db/validators/validateColumn'
-import similarityWhereSql from './similarityWhereSql'
-import similaritySelectSql from './similaritySelectSql'
-import validateTable from '../../../db/validators/validateTable'
 import ConnectedToDB from '../../../db/ConnectedToDB'
+import { DbConnectionType } from '../../../db/types'
+import validateColumn from '../../../db/validators/validateColumn'
+import validateTable from '../../../db/validators/validateTable'
 import validateTableAlias from '../../../db/validators/validateTableAlias'
+import { WhereStatement } from '../../../decorators/associations/shared'
+import Dream from '../../../dream'
 import { isObject } from '../../../helpers/typechecks'
+import OpsStatement from '../../../ops/ops-statement'
+import DreamTransaction from '../../transaction'
+import { RelaxedJoinsWhereStatement, SimilarityStatement, TRIGRAM_OPERATORS } from '../../types'
+import similaritySelectSql from './similaritySelectSql'
+import similarityWhereSql from './similarityWhereSql'
 
 export default class SimilarityBuilder<
   DreamInstance extends Dream,
-  DB extends DreamInstance['DB'] = DreamInstance['DB'],
+  DB extends DreamInstance['dreamconf']['DB'] = DreamInstance['dreamconf']['DB'],
   Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
 > extends ConnectedToDB<DreamInstance> {
   public readonly whereStatement: readonly WhereStatement<DB, Schema, any>[]
@@ -158,14 +158,14 @@ export default class SimilarityBuilder<
   public update<T extends SimilarityBuilder<DreamInstance>>(
     this: T,
     kyselyQuery: UpdateQueryBuilder<
-      DreamInstance['DB'],
-      ExtractTableAlias<DreamInstance['DB'], DreamInstance['table']>,
+      DreamInstance['dreamconf']['DB'],
+      ExtractTableAlias<DreamInstance['dreamconf']['DB'], DreamInstance['table']>,
       ExtractTableAlias<any, any>,
       any
     >
   ): UpdateQueryBuilder<
-    DreamInstance['DB'],
-    ExtractTableAlias<DreamInstance['DB'], DreamInstance['table']>,
+    DreamInstance['dreamconf']['DB'],
+    ExtractTableAlias<DreamInstance['dreamconf']['DB'], DreamInstance['table']>,
     ExtractTableAlias<any, any>,
     any
   > {
@@ -317,8 +317,8 @@ export default class SimilarityBuilder<
       index,
     }: {
       kyselyQuery: UpdateQueryBuilder<
-        DreamInstance['DB'],
-        ExtractTableAlias<DreamInstance['DB'], DreamInstance['table']>,
+        DreamInstance['dreamconf']['DB'],
+        ExtractTableAlias<DreamInstance['dreamconf']['DB'], DreamInstance['table']>,
         ExtractTableAlias<any, any>,
         any
       >
@@ -327,8 +327,8 @@ export default class SimilarityBuilder<
       index: number
     }
   ): UpdateQueryBuilder<
-    DreamInstance['DB'],
-    ExtractTableAlias<DreamInstance['DB'], DreamInstance['table']>,
+    DreamInstance['dreamconf']['DB'],
+    ExtractTableAlias<DreamInstance['dreamconf']['DB'], DreamInstance['table']>,
     ExtractTableAlias<any, any>,
     any
   > {
@@ -445,7 +445,7 @@ export default class SimilarityBuilder<
 
 export interface SimilarityBuilderOpts<
   DreamInstance extends Dream,
-  DB extends DreamInstance['DB'] = DreamInstance['DB'],
+  DB extends DreamInstance['dreamconf']['DB'] = DreamInstance['dreamconf']['DB'],
   Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
 > {
   where?: WhereStatement<DB, Schema, any>[]

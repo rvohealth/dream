@@ -34,7 +34,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
 
   public async pluckThrough<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['DB'],
+    DB extends DreamInstance['dreamconf']['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['dreamconf']['schema'],
     const Arr extends readonly unknown[],
@@ -44,7 +44,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
 
   public async pluckEachThrough<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['DB'],
+    DB extends DreamInstance['dreamconf']['DB'],
     Schema extends DreamInstance['dreamconf']['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
@@ -54,7 +54,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
 
   public load<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['DB'],
+    DB extends DreamInstance['dreamconf']['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['dreamconf']['schema'],
     const Arr extends readonly unknown[],
@@ -106,7 +106,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   ///////////////////
   public async updateAssociation<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['DB'],
+    DB extends DreamInstance['dreamconf']['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['dreamconf']['schema'],
     AssociationName extends keyof DreamInstance &
@@ -123,7 +123,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
 
   public async updateAssociation<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['DB'],
+    DB extends DreamInstance['dreamconf']['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['dreamconf']['schema'],
     AssociationName extends keyof DreamInstance &
@@ -202,7 +202,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends keyof DreamInstance &
       DreamAssociationNamesWithRequiredWhereClauses<DreamInstance>,
-    DB extends DreamInstance['DB'],
+    DB extends DreamInstance['dreamconf']['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['dreamconf']['schema'],
   >(
@@ -218,7 +218,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends keyof DreamInstance &
       DreamAssociationNamesWithoutRequiredWhereClauses<DreamInstance>,
-    DB extends DreamInstance['DB'],
+    DB extends DreamInstance['dreamconf']['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['dreamconf']['schema'],
   >(
