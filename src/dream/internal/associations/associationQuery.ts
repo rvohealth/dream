@@ -1,13 +1,13 @@
-import Dream from '../../../dream'
-import DreamTransaction from '../../transaction'
-import Query from '../../query'
-import { DreamAssociationType, TableOrAssociationName } from '../../types'
 import { HasManyStatement } from '../../../decorators/associations/has-many'
 import { WhereStatement } from '../../../decorators/associations/shared'
+import Dream from '../../../dream'
+import Query from '../../query'
+import DreamTransaction from '../../transaction'
+import { DreamAssociationType, TableOrAssociationName } from '../../types'
 
 export default function associationQuery<
   DreamInstance extends Dream,
-  DB extends DreamInstance['DB'],
+  DB extends DreamInstance['dreamconf']['DB'],
   TableName extends DreamInstance['table'],
   Schema extends DreamInstance['dreamconf']['schema'],
   AssociationName extends keyof DreamInstance,

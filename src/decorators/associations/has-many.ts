@@ -94,10 +94,10 @@ export interface HasManyOptions<BaseInstance extends Dream, AssociationDreamClas
   extends HasOptions<BaseInstance, AssociationDreamClass> {
   distinct?:
     | TableColumnNames<
-        InstanceType<AssociationDreamClass>['DB'],
+        InstanceType<AssociationDreamClass>['dreamconf']['DB'],
         InstanceType<AssociationDreamClass>['table'] &
           AssociationTableNames<
-            InstanceType<AssociationDreamClass>['DB'],
+            InstanceType<AssociationDreamClass>['dreamconf']['DB'],
             InstanceType<AssociationDreamClass>['dreamconf']['schema']
           >
       >

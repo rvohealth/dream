@@ -1,9 +1,9 @@
-import OpsStatement from './ops-statement'
 import Dream from '../dream'
+import OpsStatement from './ops-statement'
 
 export default class CurriedOpsStatement<
   T extends typeof Dream,
-  DB extends InstanceType<T>['DB'],
+  DB extends InstanceType<T>['dreamconf']['DB'],
   FN extends keyof DB[InstanceType<T>['table']] & string,
 > {
   public factoryFn: (dreamClass: T, fieldName: FN) => OpsStatement<any, any>

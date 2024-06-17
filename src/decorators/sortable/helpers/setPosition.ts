@@ -4,10 +4,10 @@ import Dream from '../../../dream'
 import Query from '../../../dream/query'
 import DreamTransaction from '../../../dream/transaction'
 import range from '../../../helpers/range'
-import getColumnForSortableScope from './getColumnForSortableScope'
-import sortableQueryExcludingDream from './sortableQueryExcludingDream'
-import scopeArray from './scopeArray'
 import ops from '../../../ops'
+import getColumnForSortableScope from './getColumnForSortableScope'
+import scopeArray from './scopeArray'
+import sortableQueryExcludingDream from './sortableQueryExcludingDream'
 
 export default async function setPosition({
   position,
@@ -201,7 +201,7 @@ async function updateConflictingRecords({
         : range(newPosition, previousPosition),
     })
     .toKysely('update')
-    .set((eb: ExpressionBuilder<(typeof dream)['DB'], typeof dream.table>) => {
+    .set((eb: ExpressionBuilder<(typeof dream)['dreamconf']['DB'], typeof dream.table>) => {
       return {
         [positionField]: eb(positionField, increasing ? '-' : '+', 1),
       }
@@ -249,7 +249,7 @@ async function updatePreviousScope({
       [positionField]: ops.greaterThan(position),
     })
     .toKysely('update')
-    .set((eb: ExpressionBuilder<(typeof dream)['DB'], typeof dream.table>) => {
+    .set((eb: ExpressionBuilder<(typeof dream)['dreamconf']['DB'], typeof dream.table>) => {
       return {
         [positionField]: eb(positionField, '-', 1),
       }

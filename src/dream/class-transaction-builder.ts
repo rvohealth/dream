@@ -194,10 +194,10 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @param whereStatement - The where statement used to locate the record
    * @returns Either the first model found matching the whereStatement, or else null
    */
-  public async findBy<I extends DreamClassTransactionBuilder<DreamInstance>, DB extends DreamInstance['DB']>(
-    this: I,
-    attributes: Updateable<DB[DreamInstance['table']]>
-  ): Promise<DreamInstance | null> {
+  public async findBy<
+    I extends DreamClassTransactionBuilder<DreamInstance>,
+    DB extends DreamInstance['dreamconf']['DB'],
+  >(this: I, attributes: Updateable<DB[DreamInstance['table']]>): Promise<DreamInstance | null> {
     return await this.queryInstance()
       .where(attributes as any)
       .first()
@@ -297,7 +297,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    */
   public preload<
     I extends DreamClassTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['DB'],
+    DB extends DreamInstance['dreamconf']['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['dreamconf']['schema'],
     const Arr extends readonly unknown[],
@@ -320,7 +320,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    */
   public joins<
     I extends DreamClassTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['DB'],
+    DB extends DreamInstance['dreamconf']['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['dreamconf']['schema'],
     const Arr extends readonly unknown[],
@@ -359,7 +359,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    */
   public async pluckThrough<
     I extends DreamClassTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['DB'],
+    DB extends DreamInstance['dreamconf']['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['dreamconf']['schema'],
     const Arr extends readonly unknown[],
@@ -400,7 +400,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    */
   public async pluckEachThrough<
     I extends DreamClassTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['DB'],
+    DB extends DreamInstance['dreamconf']['DB'],
     Schema extends DreamInstance['dreamconf']['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
@@ -470,7 +470,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    */
   public nestedSelect<
     I extends DreamClassTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['DB'],
+    DB extends DreamInstance['dreamconf']['DB'],
     SE extends SelectExpression<DB, ExtractTableAlias<DB, DreamInstance['table']>>,
   >(this: I, selection: SelectArg<DB, ExtractTableAlias<DB, DreamInstance['table']>, SE>) {
     return this.queryInstance().nestedSelect(selection as any)
@@ -611,7 +611,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    */
   public where<
     I extends DreamClassTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['DB'],
+    DB extends DreamInstance['dreamconf']['DB'],
     Schema extends DreamInstance['dreamconf']['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['dreamInstance']['table'] & keyof DB,
   >(this: I, attributes: WhereStatement<DB, Schema, TableName>): Query<DreamInstance> {
@@ -634,7 +634,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    */
   public whereAny<
     I extends DreamClassTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['DB'],
+    DB extends DreamInstance['dreamconf']['DB'],
     Schema extends DreamInstance['dreamconf']['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['dreamInstance']['table'] & keyof DB,
   >(this: I, attributes: WhereStatement<DB, Schema, TableName>[]): Query<DreamInstance> {
@@ -657,7 +657,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    */
   public whereNot<
     I extends DreamClassTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['DB'],
+    DB extends DreamInstance['dreamconf']['DB'],
     Schema extends DreamInstance['dreamconf']['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['dreamInstance']['table'] & keyof DB,
   >(this: I, attributes: WhereStatement<DB, Schema, TableName>): Query<DreamInstance> {

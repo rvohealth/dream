@@ -25,7 +25,7 @@ export default class LoadBuilder<DreamInstance extends Dream> {
 
   public load<
     I extends LoadBuilder<DreamInstance>,
-    DB extends DreamInstance['DB'],
+    DB extends DreamInstance['dreamconf']['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['dreamconf']['schema'],
     const Arr extends readonly unknown[],

@@ -5,7 +5,7 @@ import associationUpdateQuery from './associationUpdateQuery'
 
 export default async function destroyAssociation<
   DreamInstance extends Dream,
-  DB extends DreamInstance['DB'],
+  DB extends DreamInstance['dreamconf']['DB'],
   TableName extends DreamInstance['table'],
   Schema extends DreamInstance['dreamconf']['schema'],
   AssociationName extends keyof DreamInstance,
