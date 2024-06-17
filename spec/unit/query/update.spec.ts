@@ -127,6 +127,7 @@ describe('Query#update', () => {
       class CustomUser extends User {}
 
       it('uses the primary connection', async () => {
+        await expect(CustomUser.findBy({ email: 'fred@fred' })).resolves.toBeTruthy()
         await CustomUser.where({ email: 'fred@fred' }).update({ email: 'how@yadoin' })
 
         // should always call to primary for update, regardless of replica-safe status

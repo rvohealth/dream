@@ -1,5 +1,4 @@
 import '../helpers/loadEnv'
-
 import ConnectionConfRetriever from '../db/connection-conf-retriever'
 import SchemaBuilder from '../helpers/cli/SchemaBuilder'
 import generateDream from '../helpers/cli/generateDream'
@@ -12,6 +11,7 @@ import runMigration from '../helpers/db/runMigration'
 import sspawn from '../helpers/sspawn'
 import writeSyncFile from './helpers/sync'
 import DreamApplication from '../dream-application'
+import loadPgClient from '../helpers/db/loadPgClient'
 
 export default class DreamBin {
   public static async sync() {
@@ -65,6 +65,7 @@ export default class DreamBin {
 
   public static async dbMigrate() {
     await runMigration({ mode: 'migrate' })
+    await this.duplicateDatabase()
 
     // release the db connection
     // await db('primary', DreamApplication.getOrFail()).destroy()
@@ -76,6 +77,7 @@ export default class DreamBin {
       await runMigration({ mode: 'rollback', step })
       step -= 1
     }
+    await this.duplicateDatabase()
 
     // await db('primary', DreamApplication.getOrFail()).destroy()
   }
@@ -125,5 +127,23 @@ export default class DreamBin {
     DreamApplication.log('generating docs...')
     await sspawn('yarn typedoc src/index.ts --tsconfig ./tsconfig.build.json --out docs')
     DreamApplication.log('done!')
+  }
+
+  private static async duplicateDatabase() {
+    const numberOfDatabases = Number(process.env.PARALLEL_TEST_DATABASES)
+    if (process.env.NODE_ENV !== 'test' || Number.isNaN(numberOfDatabases)) return
+
+    const connectionRetriever = new ConnectionConfRetriever()
+    const dbConf = connectionRetriever.getConnectionConf('primary')
+    const client = await loadPgClient({ useSystemDb: true })
+
+    for (let i = 2; i <= numberOfDatabases; i++) {
+      const workerDatabaseName = `${dbConf.name}_${i}`
+
+      console.log(`creating duplicate test database ${workerDatabaseName} for concurrent tests`)
+      await client.query(`DROP DATABASE IF EXISTS ${workerDatabaseName};`)
+      await client.query(`CREATE DATABASE ${workerDatabaseName} TEMPLATE ${dbConf.name};`)
+    }
+    await client.end()
   }
 }

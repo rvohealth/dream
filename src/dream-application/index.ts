@@ -66,6 +66,7 @@ export default class DreamApplication {
   }
 
   public dbCredentials: DreamDbCredentialOptions
+  public parallelTestsCount: number | undefined
   public primaryKeyType: (typeof primaryKeyTypes)[number] = 'bigserial'
   public projectRoot: string
   public paths: Required<DreamDirectoryPaths>
@@ -81,6 +82,7 @@ export default class DreamApplication {
     if (opts?.projectRoot) this.projectRoot = opts.projectRoot
     if (opts?.inflections) this.inflections = opts.inflections
     if (opts?.serializerCasing) this.serializerCasing = opts.serializerCasing
+    if (opts?.parallelTestsCount) this.parallelTestsCount = opts.parallelTestsCount
 
     this.paths = {
       conf: opts?.paths?.conf || 'src/app/conf',
@@ -136,7 +138,9 @@ export default class DreamApplication {
               ? () => void | Promise<void>
               : ApplyOpt extends 'paths'
                 ? DreamDirectoryPaths
-                : never
+                : ApplyOpt extends 'parallelTestsCount'
+                  ? number
+                  : never
   ) {
     switch (applyOption) {
       case 'db':
@@ -170,6 +174,10 @@ export default class DreamApplication {
         }
         break
 
+      case 'parallelTestsCount':
+        this.parallelTestsCount = options as number
+        break
+
       default:
         throw new Error(`Unhandled applyOption encountered in Dreamconf: ${applyOption}`)
     }
@@ -183,6 +191,7 @@ export interface DreamApplicationOpts {
   inflections?: () => void | Promise<void>
   paths?: DreamDirectoryPaths
   serializerCasing?: DreamSerializerCasing
+  parallelTestsCount: number | undefined
 }
 
 export type DreamApplicationSetOption =
@@ -193,6 +202,7 @@ export type DreamApplicationSetOption =
   | 'primaryKeyType'
   | 'projectRoot'
   | 'serializerCasing'
+  | 'parallelTestsCount'
 
 export interface DreamDirectoryPaths {
   models?: string

@@ -41,6 +41,10 @@ export default async function (dreamApp: DreamApplication) {
     modelSpecs: 'test-app/spec/unit/models',
   })
 
+  const parallelTestsCountVar = Number(process.env.PARALLEL_TEST_DATABASES)
+  const parallelTestsCount = Number.isNaN(parallelTestsCountVar) ? parallelTestsCountVar : 1
+  dreamApp.set('parallelTestsCount', parallelTestsCount)
+
   // provides db credentials and configuration for your app.
   dreamApp.set('db', {
     primary: {

@@ -24,7 +24,7 @@
     "build:global-cli": "npx tsc -p ./tsconfig.global-cli.json",
     "build": "echo \"building dream...\" && rm -rf dist && npx tsc -p ./tsconfig.build.json",
     "build:core": "rm -rf dist && mkdir dist && npx tsc -p ./tsconfig.build.core.json",
-    "spec": "DREAM_CORE_DEVELOPMENT=1 NODE_ENV=test DREAM_CORE_SPEC_RUN=1 jest --runInBand --forceExit",
+    "spec": "DREAM_CORE_DEVELOPMENT=1 NODE_ENV=test DREAM_CORE_SPEC_RUN=1 jest --maxWorkers=${PARALLEL_TEST_DATABASES:=1} --forceExit",
     "console": "DREAM_CORE_DEVELOPMENT=1 npx ts-node --transpile-only --project ./tsconfig.json ./test-app/app/conf/repl.ts",
     "types:trace": "rm -rf dist && npx tsc -p ./tsconfig.build.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
     "types:trace-test-app": "rm -rf dist && npx tsc -p ./tsconfig.trace.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",

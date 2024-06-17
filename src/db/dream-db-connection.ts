@@ -9,8 +9,11 @@ const connections = {} as { [key: string]: Kysely<any> }
 
 export default class DreamDbConnection {
   public static getConnection<DB>(connectionType: DbConnectionType): Kysely<DB> {
-    const connection = connections[connectionType]
-    if (connection) return connection
+    const connectionName = getConnectionTypeName(connectionType)
+    const connection = connections[connectionName]
+    if (connection) {
+      return connection
+    }
 
     const connectionConf = new ConnectionConfRetriever().getConnectionConf(connectionType)
 
@@ -20,7 +23,7 @@ export default class DreamDbConnection {
         pool: new Pool({
           user: connectionConf.user || '',
           password: connectionConf.password || '',
-          database: connectionConf.name,
+          database: getDatabaseName(connectionConf.name),
           host: connectionConf.host || 'localhost',
           port: connectionConf.port || 5432,
           ssl: connectionConf.useSsl ? sslConfig(connectionConf) : false,
@@ -29,10 +32,35 @@ export default class DreamDbConnection {
       plugins: [new CamelCasePlugin({ underscoreBetweenUppercaseLetters: true })],
     })
 
-    connections[connectionType] = dbConn
+    connections[getConnectionTypeName(connectionType)] = dbConn
 
     return dbConn
   }
+
+  public static async dropAllConnections() {
+    for (const key of Object.keys(connections)) {
+      await connections[key].destroy()
+      delete connections[key]
+    }
+  }
+}
+
+function getConnectionTypeName(connectionType: DbConnectionType): string {
+  return parallelDatabasesEnabled() ? `${connectionType}_${process.env.JEST_WORKER_ID}` : connectionType
+}
+
+function getDatabaseName(dbName: string): string {
+  return parallelDatabasesEnabled() ? `${dbName}_${process.env.JEST_WORKER_ID}` : dbName
+}
+
+function parallelDatabasesEnabled(): boolean {
+  return (
+    process.env.NODE_ENV === 'test' &&
+    !Number.isNaN(Number(process.env.PARALLEL_TEST_DATABASES)) &&
+    Number(process.env.PARALLEL_TEST_DATABASES) > 1 &&
+    !Number.isNaN(Number(process.env.JEST_WORKER_ID)) &&
+    Number(process.env.JEST_WORKER_ID) > 1
+  )
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

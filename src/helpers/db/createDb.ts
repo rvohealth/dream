@@ -17,4 +17,5 @@ export default async function createDb(connection: DbConnectionType, dbName?: st
 
   const client = await loadPgClient({ useSystemDb: true })
   await client.query(`CREATE DATABASE ${dbName};`)
+  await client.end()
 }

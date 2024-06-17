@@ -3,6 +3,7 @@ import { FileMigrationProvider, Migrator } from 'kysely'
 import path from 'path'
 import db from '../../db'
 import DreamApplication from '../../dream-application'
+import DreamDbConnection from '../../db/dream-db-connection'
 
 export default async function runMigration({
   mode = 'migrate',
@@ -11,8 +12,10 @@ export default async function runMigration({
   const dreamApp = DreamApplication.getOrFail()
   const migrationFolder = path.join(dreamApp.projectRoot, dreamApp.paths.db, 'migrations')
 
+  const kyselyDb = db('primary')
+
   const migrator = new Migrator({
-    db: db('primary'),
+    db: kyselyDb,
     allowUnorderedMigrations: true,
     provider: new FileMigrationProvider({
       fs,
@@ -46,4 +49,6 @@ export default async function runMigration({
     DreamApplication.logWithLevel('error', error)
     process.exit(1)
   }
+
+  await DreamDbConnection.dropAllConnections()
 }
