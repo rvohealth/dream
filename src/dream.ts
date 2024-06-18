@@ -2987,12 +2987,12 @@ export default class Dream {
   }
 
   /**
-   * Retrieves the min value of the specified column
-   * for a provided association.
+   * Join through associations, with optional where clauses,
+   * and return the minimum value for the specified column
    *
    * ```ts
-   * await user.minThrough('posts', 'posts.id')
-   * // 1
+   * await user.minThrough('posts', { createdAt: range(start)}, 'rating')
+   * // 2.5
    * ```
    *
    * @param args - A chain of association names and where clauses ending with the column to min
@@ -3018,14 +3018,13 @@ export default class Dream {
   }
 
   /**
-   * Retrieves the max value of the specified column
-   * for a provided association.
+   * Join through associations, with optional where clauses,
+   * and return the maximum value for the specified column
    *
    * ```ts
-   * await user.maxThrough('posts', 'posts.id')
-   * // 99
+   * await user.maxThrough('posts', { createdAt: range(start)}, 'rating')
+   * // 4.8
    * ```
-   *
    * @param args - A chain of association names and where clauses ending with the column to max
    * @returns the max value of the specified column for the nested association's records
    */

@@ -1394,12 +1394,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   /**
-   * Retrieves the min value of the specified column
-   * for a provided association.
+   * Join through associations, with optional where clauses,
+   * and return the minimum value for the specified column
    *
    * ```ts
-   * await User.query().minThrough('posts', 'id')
-   * // 1
+   * await User.query().minThrough('posts', { createdAt: range(start)}, 'rating')
+   * // 2.5
    * ```
    *
    * @param args - A chain of association names and where clauses ending with the column to min
@@ -1446,12 +1446,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   /**
-   * Retrieves the max value of the specified column
-   * for a provided association.
+   * Join through associations, with optional where clauses,
+   * and return the maximum value for the specified column
    *
    * ```ts
-   * await User.query().maxThrough('posts', 'id')
-   * // 99
+   * await User.query().maxThrough('posts', { createdAt: range(start)}, 'rating')
+   * // 4.8
    * ```
    *
    * @param args - A chain of association names and where clauses ending with the column to max

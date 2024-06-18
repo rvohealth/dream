@@ -56,13 +56,14 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   }
 
   /**
-   * Retrieves the min value of the specified column
-   * for a provided association.
+   * Join through associations, with optional where clauses,
+   * and return the minimum value for the specified column
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
-   *   const firstPostId = await user.txn(txn).minThrough('posts', 'posts.id')
+   *   const firstPostId = await user.txn(txn).minThrough('posts', { createdAt: range(start)}, 'rating')
    * })
+   * // 2.5
    * ```
    *
    * @param args - A chain of association names and where clauses ending with the column to min
@@ -85,13 +86,14 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   }
 
   /**
-   * Retrieves the max value of the specified column
-   * for a provided association.
+   * Join through associations, with optional where clauses,
+   * and return the maximum value for the specified column
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
-   *   const lastPostId = await user.txn(txn).maxThrough('posts', 'posts.id')
+   *   const firstPostId = await user.txn(txn).maxThrough('posts', { createdAt: range(start)}, 'rating')
    * })
+   * // 4.8
    * ```
    *
    * @param args - A chain of association names and where clauses ending with the column to max
