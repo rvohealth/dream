@@ -69,15 +69,19 @@ import {
   DreamColumnNames,
   DreamConst,
   DreamTableSchema,
+  FinalVariadicTableName,
   OrderDir,
   RelaxedJoinsStatement,
   RelaxedJoinsWhereStatement,
   RelaxedPreloadStatement,
   RelaxedPreloadWhereStatement,
   TableColumnNames,
+  TableColumnType,
   TableOrAssociationName,
+  VariadicCountThroughArgs,
   VariadicJoinsArgs,
   VariadicLoadArgs,
+  VariadicMinMaxThroughArgs,
   VariadicPluckEachThroughArgs,
   VariadicPluckThroughArgs,
 } from './types'
@@ -644,17 +648,23 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *   { createdAt: range(CalendarDate.yesterday()) },
    *   'comments',
    *   'replies',
-   *   ['replies.id', 'replies.body']
+   *   'replies.body'
    * )
-   * // [[1, 'loved it!'], [2, 'hated it :(']]
+   * // ['loved it!', 'hated it :(']
    * ```
    *
    * If more than one column is requested, a multi-dimensional
    * array is returned:
    *
    * ```ts
-   * await User.order('id').pluck('id', 'email')
-   * // [[1, 'a@a.com'], [2, 'b@b.com']]
+   * await User.query().pluckThrough(
+   *   'posts',
+   *   { createdAt: range(CalendarDate.yesterday()) },
+   *   'comments',
+   *   'replies',
+   *   ['replies.body', 'replies.numLikes']
+   * )
+   * // [['loved it!', 1], ['hated it :(', 3]]
    * ```
    *
    * @param args - A chain of association names and where clauses ending with the column or array of columns to pluck
@@ -1388,6 +1398,140 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
 
     return marshalDBValue(this.dreamClass, columnName as any, data.min)
+  }
+
+  /**
+   * Join through associations, with optional where clauses,
+   * and return the minimum value for the specified column
+   *
+   * ```ts
+   * await User.query().minThrough('posts', { createdAt: range(start) }, 'posts.rating')
+   * // 2.5
+   * ```
+   *
+   * @param args - A chain of association names and where clauses ending with the column to min
+   * @returns the min value of the specified column for the nested association's records
+   */
+  public async minThrough<
+    DB extends DreamInstance['dreamconf']['DB'],
+    Schema extends DreamInstance['dreamconf']['schema'],
+    TableName extends DreamInstance['table'],
+    const Arr extends readonly unknown[],
+    FinalColumnWithAlias extends VariadicMinMaxThroughArgs<DB, Schema, TableName, Arr>,
+    FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
+      ? R
+      : never,
+    FinalTableName extends FinalVariadicTableName<DB, Schema, TableName, Arr>,
+    FinalColumnType extends TableColumnType<Schema, FinalTableName, FinalColumn>,
+  >(...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
+    return await this.minMaxThrough('min', args)
+  }
+
+  /**
+   * Join through associations, with optional where clauses,
+   * and return the maximum value for the specified column
+   *
+   * ```ts
+   * await User.query().maxThrough('posts', { createdAt: range(start) }, 'posts.rating')
+   * // 4.8
+   * ```
+   *
+   * @param args - A chain of association names and where clauses ending with the column to max
+   * @returns the max value of the specified column for the nested association's records
+   */
+  public async maxThrough<
+    DB extends DreamInstance['dreamconf']['DB'],
+    Schema extends DreamInstance['dreamconf']['schema'],
+    TableName extends DreamInstance['table'],
+    const Arr extends readonly unknown[],
+    FinalColumnWithAlias extends VariadicMinMaxThroughArgs<DB, Schema, TableName, Arr>,
+    FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
+      ? R
+      : never,
+    FinalTableName extends FinalVariadicTableName<DB, Schema, TableName, Arr>,
+    FinalColumnType extends TableColumnType<Schema, FinalTableName, FinalColumn>,
+  >(...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
+    return await this.minMaxThrough('max', args)
+  }
+
+  public async minMaxThrough<
+    DB extends DreamInstance['dreamconf']['DB'],
+    Schema extends DreamInstance['dreamconf']['schema'],
+  >(minOrMax: 'min' | 'max', args: unknown[]) {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { min, max } = this.dbFor('select').fn
+    const joinsStatements = cloneDeepSafe(this.joinsStatements)
+
+    const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, Schema> = cloneDeepSafe(
+      this.joinsWhereStatements
+    )
+    const pluckStatement = [
+      this.fleshOutPluckThroughStatements(joinsStatements, joinsWhereStatements, null, [...args]),
+    ].flat() as any[]
+    const columnName = pluckStatement[0]
+
+    let kyselyQuery = this.clone({ joinsStatements, joinsWhereStatements }).buildSelect({
+      bypassSelectAll: true,
+      bypassOrder: true,
+    })
+
+    switch (minOrMax) {
+      case 'min':
+        kyselyQuery = kyselyQuery.select(min(columnName) as any)
+        break
+      case 'max':
+        kyselyQuery = kyselyQuery.select(max(columnName) as any)
+        break
+    }
+
+    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
+    return marshalDBValue(this.dreamClass, columnName, data[minOrMax])
+  }
+
+  /**
+   * Retrieves the number of records matching
+   * the given query.
+   *
+   * ```ts
+   * await User.where({ email: null }).countThrough('posts', 'comments', { body: null })
+   * // 42
+   * ```
+   *
+   * @param args - A chain of association names and where clauses
+   * @returns the number of records found matching the given parameters
+   */
+  public async countThrough<
+    DB extends DreamInstance['dreamconf']['DB'],
+    Schema extends DreamInstance['dreamconf']['schema'],
+    TableName extends DreamInstance['table'],
+    const Arr extends readonly unknown[],
+  >(...args: [...Arr, VariadicCountThroughArgs<DB, Schema, TableName, Arr>]): Promise<number> {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { count } = this.dbFor('select').fn
+    const joinsStatements = cloneDeepSafe(this.joinsStatements)
+
+    const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, Schema> = cloneDeepSafe(
+      this.joinsWhereStatements
+    )
+
+    this.fleshOutPluckThroughStatements(joinsStatements, joinsWhereStatements, null, [...args])
+
+    const distinctColumn = this.distinctColumn
+    const query = this.clone({ joinsStatements, joinsWhereStatements, distinctColumn: null })
+    let kyselyQuery = query.buildSelect({
+      bypassSelectAll: true,
+      bypassOrder: true,
+    })
+
+    const countClause = distinctColumn
+      ? count(sql`DISTINCT ${distinctColumn}`)
+      : count(query.namespaceColumn(query.dreamInstance.primaryKey))
+
+    kyselyQuery = kyselyQuery.select(countClause.as('tablecount'))
+
+    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
+
+    return parseInt(data.tablecount.toString())
   }
 
   /**

@@ -12,8 +12,6 @@ import {
   UpdateableProperties,
   VariadicJoinsArgs,
   VariadicLoadArgs,
-  VariadicPluckEachThroughArgs,
-  VariadicPluckThroughArgs,
 } from './types'
 
 export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
@@ -326,86 +324,6 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicJoinsArgs<DB, Schema, TableName, Arr>]) {
     return this.queryInstance().joins(...(args as any))
-  }
-
-  /**
-   * Plucks the specified fields from the join Query
-   *
-   * ```ts
-   * await ApplicationModel.transaction(async txn => {
-   *   await User.txn(txn).pluckThrough(
-   *     'posts',
-   *     { createdAt: range(CalendarDate.yesterday()) },
-   *     'comments',
-   *     'replies',
-   *     ['replies.id', 'replies.body']
-   *   )
-   *   // [[1, 'loved it!'], [2, 'hated it :(']]
-   * })
-   * ```
-   *
-   * If more than one column is requested, a multi-dimensional
-   * array is returned:
-   *
-   * ```ts
-   * await ApplicationModel.transaction(async txn => {
-   *   await User.txn(txn).order('id').pluckThrough('posts', 'comments', ['id', 'body'])
-   *   // [[1, 'comment 1'], [2, 'comment 2']]
-   * })
-   * ```
-   *
-   * @param args - A chain of association names and where clauses ending with the column or array of columns to pluck
-   * @returns An array of pluck results
-   */
-  public async pluckThrough<
-    I extends DreamClassTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['dreamconf']['DB'],
-    TableName extends DreamInstance['table'],
-    Schema extends DreamInstance['dreamconf']['schema'],
-    const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicPluckThroughArgs<DB, Schema, TableName, Arr>]) {
-    return this.queryInstance().pluckThrough(...(args as any))
-  }
-
-  /**
-   * Plucks the specified fields from the join Query in batches,
-   * passing each plucked value/set of plucked values
-   * into the provided callback function. It will continue
-   * doing this until it exhausts all results in the
-   * Query. This is useful when plucking would result in
-   * more results than would be desirable to instantiate
-   * in memory/more results than would be desirable to handle
-   * between awaits.
-   *
-   * ```ts
-   * await ApplicationModel.transaction(async txn => {
-   *   await User.txn(txn).pluckEachThrough(
-   *     'posts',
-   *     { createdAt: range(CalendarDate.yesterday()) },
-   *     'comments',
-   *     'replies',
-   *     ['replies.id', 'replies.body'],
-   *     ([id, body]) => {
-   *       console.log({ id, body })
-   *     }
-   *   )
-   *   // { id: 1, body: 'loved it!' }
-   *   // { id: 2, body: 'hated it :('}
-   * })
-   *
-   * ```
-   *
-   * @param args - A chain of association names and where clauses ending with the column or array of columns to pluck and the callback function
-   * @returns void
-   */
-  public async pluckEachThrough<
-    I extends DreamClassTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['dreamconf']['DB'],
-    Schema extends DreamInstance['dreamconf']['schema'],
-    TableName extends DreamInstance['table'],
-    const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicPluckEachThroughArgs<DB, Schema, TableName, Arr>]): Promise<void> {
-    return this.queryInstance().pluckEachThrough(...(args as any))
   }
 
   /**

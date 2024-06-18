@@ -132,7 +132,7 @@ describe('Query#pluckEachThrough', () => {
       await Pet.create({ user, name: 'Woodstock', deletedAt: DateTime.now() })
 
       const names: any[] = []
-      await User.pluckEachThrough('pets', 'pets.name', data => {
+      await User.query().pluckEachThrough('pets', 'pets.name', data => {
         names.push(data)
       })
       expect(names).toEqual(['Snoopy'])

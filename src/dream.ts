@@ -64,15 +64,19 @@ import {
   DreamColumnNames,
   DreamConstructorType,
   DreamParamSafeColumnNames,
+  FinalVariadicTableName,
   IdType,
   NextPreloadArgumentType,
   OrderDir,
   TableColumnNames,
+  TableColumnType,
   UpdateableAssociationProperties,
   UpdateableProperties,
   UpdateablePropertiesForClass,
+  VariadicCountThroughArgs,
   VariadicJoinsArgs,
   VariadicLoadArgs,
+  VariadicMinMaxThroughArgs,
   VariadicPluckEachThroughArgs,
   VariadicPluckThroughArgs,
 } from './dream/types'
@@ -1109,11 +1113,31 @@ export default class Dream {
    * // [User{id: 1}, User{id: 2}, ...]
    * ```
    *
-   * @returns A new Query instance
+   * @returns A new Query instance scoped to this Dream class
    *
    */
   public static query<T extends typeof Dream, I extends InstanceType<T>>(this: T): Query<I> {
     return new Query(this.prototype as I)
+  }
+
+  /**
+   * @internal
+   *
+   * Returns a new instance of Query scoped to the given
+   * Dream instance
+   *
+   * ```ts
+   * await user = User.first()
+   * await user.query().countThrough('posts')
+   * // 7
+   * ```
+   *
+   * @returns A new Query instance scoped to this Dream instance
+   *
+   */
+  private query<I extends Dream>(this: I): Query<I> {
+    const dreamClass = this.constructor as DreamConstructorType<I>
+    return dreamClass.where({ [this.primaryKey]: this.primaryKeyValue } as any)
   }
 
   /**
@@ -1236,82 +1260,6 @@ export default class Dream {
     const Arr extends readonly unknown[],
   >(this: T, ...args: [...Arr, VariadicJoinsArgs<DB, Schema, TableName, Arr>]) {
     return this.query().joins(...(args as any))
-  }
-
-  /**
-   * Plucks the specified fields from the join Query
-   *
-   * ```ts
-   * await User.pluckThrough(
-   *   'posts',
-   *   { createdAt: range(CalendarDate.yesterday()) },
-   *   'comments',
-   *   'replies',
-   *   ['replies.id', 'replies.body']
-   * )
-   * // [[1, 'loved it!'], [2, 'hated it :(']]
-   * ```
-   *
-   * If more than one column is requested, a multi-dimensional
-   * array is returned:
-   *
-   * ```ts
-   * await User.order('id').pluckThrough('posts', 'comments', ['id', 'body'])
-   * // [[1, 'comment 1'], [2, 'comment 2']]
-   * ```
-   *
-   * @param args - A chain of association names and where clauses ending with the column or array of columns to pluck
-   * @returns An array of pluck results
-   */
-  public static async pluckThrough<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    DB extends I['dreamconf']['DB'],
-    Schema extends I['dreamconf']['schema'],
-    TableName extends I['table'],
-    const Arr extends readonly unknown[],
-  >(this: T, ...args: [...Arr, VariadicPluckThroughArgs<DB, Schema, TableName, Arr>]): Promise<any[]> {
-    return await this.query().pluckThrough(...(args as any))
-  }
-
-  /**
-   * Plucks the specified fields from the join Query in batches,
-   * passing each plucked value/set of plucked values
-   * into the provided callback function. It will continue
-   * doing this until it exhausts all results in the
-   * Query. This is useful when plucking would result in
-   * more results than would be desirable to instantiate
-   * in memory/more results than would be desirable to handle
-   * between awaits.
-   *
-   * ```ts
-   * await User.pluckEachThrough(
-   *   'posts',
-   *   { createdAt: range(CalendarDate.yesterday()) },
-   *   'comments',
-   *   'replies',
-   *   ['replies.id', 'replies.body'],
-   *   ([id, body]) => {
-   *     console.log({ id, body })
-   *   }
-   * )
-   *
-   * // { id: 1, body: 'loved it!' }
-   * // { id: 2, body: 'hated it :('}
-   * ```
-   *
-   * @param args - A chain of association names and where clauses ending with the column or array of columns to pluck and the callback function
-   * @returns void
-   */
-  public static async pluckEachThrough<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    DB extends I['dreamconf']['DB'],
-    Schema extends I['dreamconf']['schema'],
-    TableName extends I['table'],
-    const Arr extends readonly unknown[],
-  >(this: T, ...args: [...Arr, VariadicPluckEachThroughArgs<DB, Schema, TableName, Arr>]): Promise<void> {
-    await this.query().pluckEachThrough(...(args as any))
   }
 
   /**
@@ -3010,10 +2958,7 @@ export default class Dream {
     TableName extends I['table'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicPluckThroughArgs<DB, Schema, TableName, Arr>]): Promise<any[]> {
-    const construct = this.constructor as DreamConstructorType<I>
-    return await construct
-      .where({ [this.primaryKey]: this.primaryKeyValue } as any)
-      .pluckThrough(...(args as any))
+    return await this.query().pluckThrough(...(args as any))
   }
 
   /**
@@ -3053,10 +2998,88 @@ export default class Dream {
     TableName extends I['table'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicPluckEachThroughArgs<DB, Schema, TableName, Arr>]): Promise<void> {
-    const construct = this.constructor as DreamConstructorType<I>
-    await construct
-      .where({ [this.primaryKey]: this.primaryKeyValue } as any)
-      .pluckEachThrough(...(args as any))
+    return await this.query().pluckEachThrough(...(args as any))
+  }
+
+  /**
+   * Join through associations, with optional where clauses,
+   * and return the minimum value for the specified column
+   *
+   * ```ts
+   * await user.minThrough('posts', { createdAt: range(start) }, 'posts.rating')
+   * // 2.5
+   * ```
+   *
+   * @param args - A chain of association names and where clauses ending with the column to min
+   * @returns the min value of the specified column for the nested association's records
+   */
+  public async minThrough<
+    I extends Dream,
+    DB extends I['dreamconf']['DB'],
+    Schema extends I['dreamconf']['schema'],
+    TableName extends I['table'],
+    const Arr extends readonly unknown[],
+    FinalColumnWithAlias extends VariadicMinMaxThroughArgs<DB, Schema, TableName, Arr>,
+    FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
+      ? R
+      : never,
+    FinalTableName extends FinalVariadicTableName<DB, Schema, TableName, Arr>,
+    FinalColumnType extends TableColumnType<Schema, FinalTableName, FinalColumn>,
+  >(this: I, ...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
+    return (await this.query().minThrough(...(args as any))) as FinalColumnType
+  }
+
+  /**
+   * Join through associations, with optional where clauses,
+   * and return the maximum value for the specified column
+   *
+   * ```ts
+   * await user.maxThrough('posts', { createdAt: range(start) }, 'posts.rating')
+   * // 4.8
+   * ```
+   * @param args - A chain of association names and where clauses ending with the column to max
+   * @returns the max value of the specified column for the nested association's records
+   */
+  public async maxThrough<
+    I extends Dream,
+    DB extends I['dreamconf']['DB'],
+    Schema extends I['dreamconf']['schema'],
+    TableName extends I['table'],
+    const Arr extends readonly unknown[],
+    FinalColumnWithAlias extends VariadicMinMaxThroughArgs<DB, Schema, TableName, Arr>,
+    FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
+      ? R
+      : never,
+    FinalTableName extends FinalVariadicTableName<DB, Schema, TableName, Arr>,
+    FinalColumnType extends TableColumnType<Schema, FinalTableName, FinalColumn>,
+  >(this: I, ...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
+    return (await this.query().maxThrough(...(args as any))) as FinalColumnType
+  }
+
+  /**
+   * Retrieves the number of records matching
+   * the default scopes for the final association.
+   * If the Dream class for the final association
+   * does not have any default scopes, this will be
+   * the equivilent of simply requesting a count on
+   * the table.
+   *
+   * ```ts
+   * await user.countThrough('posts', 'comments', { body: null })
+   * // 42
+   * ```
+   *
+   * @param args - A chain of association names and where clauses
+   * @returns the number of records found matching the given parameters
+   */
+  public async countThrough<
+    I extends Dream,
+    DB extends I['dreamconf']['DB'],
+    Schema extends I['dreamconf']['schema'],
+    TableName extends I['table'],
+    const Arr extends readonly unknown[],
+  >(this: I, ...args: [...Arr, VariadicCountThroughArgs<DB, Schema, TableName, Arr>]): Promise<number> {
+    return await this.query().countThrough(...(args as any))
   }
 
   /**
