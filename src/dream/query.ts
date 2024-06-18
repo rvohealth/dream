@@ -1420,13 +1420,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
       ? R
       : never,
-    FinalDreamClass extends FinalVariadicDreamClass<
-      DreamInstance,
-      DB,
-      Schema,
-      TableName,
-      [...Arr, FinalColumnWithAlias]
-    >,
+    FinalDreamClass extends FinalVariadicDreamClass<DreamInstance, DB, Schema, TableName, Arr>,
     FinalColumnType extends FinalDreamClass[FinalColumn & keyof FinalDreamClass],
   >(...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -1472,13 +1466,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
       ? R
       : never,
-    FinalDreamClass extends FinalVariadicDreamClass<
-      DreamInstance,
-      DB,
-      Schema,
-      TableName,
-      [...Arr, FinalColumnWithAlias]
-    >,
+    FinalDreamClass extends FinalVariadicDreamClass<DreamInstance, DB, Schema, TableName, Arr>,
     FinalColumnType extends FinalDreamClass[FinalColumn & keyof FinalDreamClass],
   >(...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
