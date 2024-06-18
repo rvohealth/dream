@@ -35,6 +35,46 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     this.dreamTransaction = txn
   }
 
+  /**
+   * Plucks the specified fields from the join Query,
+   * scoping the query to the model instance's primary
+   * key.
+   *
+   * ```ts
+   *
+   * await ApplicationModel.transaction(async txn => {
+   *   const user = await User.txn(txn).first()
+   *   await user.txn(txn).pluckThrough(
+   *     'posts',
+   *     { createdAt: range(CalendarDate.yesterday()) },
+   *     'comments',
+   *     'replies',
+   *     'replies.body'
+   *   )
+   * })
+   * // ['loved it!', 'hated it :(']
+   * ```
+   *
+   * If more than one column is requested, a multi-dimensional
+   * array is returned:
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   const user = await User.txn(txn).first()
+   *   await user.txn(txn).pluckThrough(
+   *     'posts',
+   *     { createdAt: range(CalendarDate.yesterday()) },
+   *     'comments',
+   *     'replies',
+   *     ['replies.body', 'replies.numLikes']
+   *   )
+   * })
+   * // [['loved it!', 1], ['hated it :(', 3]]
+   * ```
+   *
+   * @param args - A chain of association names and where clauses ending with the column or array of columns to pluck
+   * @returns An array of pluck results
+   */
   public async pluckThrough<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     DB extends DreamInstance['dreamconf']['DB'],
@@ -61,7 +101,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
-   *   const firstPostId = await user.txn(txn).minThrough('posts', { createdAt: range(start)}, 'rating')
+   *   const firstPostId = await user.txn(txn).minThrough('posts', { createdAt: range(start)}, 'posts.rating')
    * })
    * // 2.5
    * ```
@@ -91,7 +131,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
-   *   const firstPostId = await user.txn(txn).maxThrough('posts', { createdAt: range(start)}, 'rating')
+   *   const firstPostId = await user.txn(txn).maxThrough('posts', { createdAt: range(start)}, 'posts.rating')
    * })
    * // 4.8
    * ```

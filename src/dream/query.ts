@@ -647,17 +647,23 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *   { createdAt: range(CalendarDate.yesterday()) },
    *   'comments',
    *   'replies',
-   *   ['replies.id', 'replies.body']
+   *   'replies.body'
    * )
-   * // [[1, 'loved it!'], [2, 'hated it :(']]
+   * // ['loved it!', 'hated it :(']
    * ```
    *
    * If more than one column is requested, a multi-dimensional
    * array is returned:
    *
    * ```ts
-   * await User.order('id').pluck('id', 'email')
-   * // [[1, 'a@a.com'], [2, 'b@b.com']]
+   * await User.query().pluckThrough(
+   *   'posts',
+   *   { createdAt: range(CalendarDate.yesterday()) },
+   *   'comments',
+   *   'replies',
+   *   ['replies.body', 'replies.numLikes']
+   * )
+   * // [['loved it!', 1], ['hated it :(', 3]]
    * ```
    *
    * @param args - A chain of association names and where clauses ending with the column or array of columns to pluck
@@ -1398,7 +1404,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * and return the minimum value for the specified column
    *
    * ```ts
-   * await User.query().minThrough('posts', { createdAt: range(start)}, 'rating')
+   * await User.query().minThrough('posts', { createdAt: range(start)}, 'posts.rating')
    * // 2.5
    * ```
    *
@@ -1450,7 +1456,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * and return the maximum value for the specified column
    *
    * ```ts
-   * await User.query().maxThrough('posts', { createdAt: range(start)}, 'rating')
+   * await User.query().maxThrough('posts', { createdAt: range(start)}, 'posts.rating')
    * // 4.8
    * ```
    *
