@@ -40,6 +40,21 @@ describe('Query#pluckThrough', () => {
     expect(plucked).toEqual([[edge1.id, edge1.name]])
   })
 
+  it('can pluck from any associated namespace provided', async () => {
+    const node = await Node.create({ name: 'N1' })
+    const edge1 = await Edge.create({ name: 'E1' })
+    const edge2 = await Edge.create({ name: 'E2' })
+    await EdgeNode.create({ node, edge: edge1 })
+    await EdgeNode.create({ node, edge: edge2 })
+
+    const plucked = await Node.query().pluckThrough('edgeNodes', 'edge', { name: 'E1' }, [
+      'edge.name',
+      'edgeNodes.position',
+      'graph_nodes.name',
+    ])
+    expect(plucked).toEqual([['E1', 1, 'N1']])
+  })
+
   context('columns that get transformed during marshalling', () => {
     it('are properly marshalled', async () => {
       const node = await Node.create({ name: 'N1' })

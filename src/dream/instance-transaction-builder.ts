@@ -16,9 +16,12 @@ import {
   DreamAssociationType,
   DreamAttributes,
   DreamConstructorType,
+  FinalVariadicDreamClass,
   UpdateableAssociationProperties,
   UpdateableProperties,
   VariadicLoadArgs,
+  VariadicMaxThroughArgs,
+  VariadicMinThroughArgs,
   VariadicPluckEachThroughArgs,
   VariadicPluckThroughArgs,
 } from './types'
@@ -50,6 +53,100 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicPluckEachThroughArgs<DB, Schema, TableName, Arr>]) {
     return this.queryInstance().pluckEachThrough(...(args as any))
+  }
+
+  /**
+   * Retrieves the min value of the specified column
+   * for a provided association.
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   const firstPostId = await user.txn(txn).minThrough('posts', 'posts.id')
+   * })
+   * ```
+   *
+   * @param args - A chain of association names and where clauses ending with the column to min
+   * @returns the min value of the specified column for the nested association's records
+   */
+  public async minThrough<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    DB extends DreamInstance['dreamconf']['DB'],
+    Schema extends DreamInstance['dreamconf']['schema'],
+    TableName extends DreamInstance['table'],
+    const Arr extends readonly unknown[],
+    FinalColumnWithAlias extends VariadicMinThroughArgs<DB, Schema, TableName, Arr>,
+    FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
+      ? R
+      : never,
+    FinalDreamClass extends FinalVariadicDreamClass<
+      DreamInstance,
+      DB,
+      Schema,
+      TableName,
+      [...Arr, FinalColumnWithAlias]
+    >,
+    FinalColumnType extends FinalDreamClass[FinalColumn & keyof FinalDreamClass],
+  >(this: I, ...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
+    return (await this.queryInstance().minThrough(...(args as any))) as FinalColumnType
+  }
+
+  /**
+   * Retrieves the max value of the specified column
+   * for a provided association.
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   const lastPostId = await user.txn(txn).maxThrough('posts', 'posts.id')
+   * })
+   * ```
+   *
+   * @param args - A chain of association names and where clauses ending with the column to max
+   * @returns the max value of the specified column for the nested association's records
+   */
+  public async maxThrough<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    DB extends DreamInstance['dreamconf']['DB'],
+    Schema extends DreamInstance['dreamconf']['schema'],
+    TableName extends DreamInstance['table'],
+    const Arr extends readonly unknown[],
+    FinalColumnWithAlias extends VariadicMaxThroughArgs<DB, Schema, TableName, Arr>,
+    FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
+      ? R
+      : never,
+    FinalDreamClass extends FinalVariadicDreamClass<
+      DreamInstance,
+      DB,
+      Schema,
+      TableName,
+      [...Arr, FinalColumnWithAlias]
+    >,
+    FinalColumnType extends FinalDreamClass[FinalColumn & keyof FinalDreamClass],
+  >(this: I, ...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
+    return (await this.queryInstance().maxThrough(...(args as any))) as FinalColumnType
+  }
+
+  /**
+   * Retrieves the number of records matching
+   * the given query.
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await user.txn(txn).where({ email: null }).countThrough('posts', 'comments', { body: null })
+   *   // 42
+   * })
+   * ```
+   *
+   * @param args - A chain of association names and where clauses
+   * @returns the number of records found matching the given parameters
+   */
+  public async countThrough<
+    DB extends DreamInstance['dreamconf']['DB'],
+    Schema extends DreamInstance['dreamconf']['schema'],
+    TableName extends DreamInstance['table'],
+    const Arr extends readonly unknown[],
+    FinalColumnWithAlias extends VariadicMaxThroughArgs<DB, Schema, TableName, Arr>,
+  >(...args: [...Arr, FinalColumnWithAlias]): Promise<number> {
+    return await this.queryInstance().countThrough(...(args as any))
   }
 
   public load<

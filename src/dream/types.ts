@@ -306,8 +306,8 @@ export type PreloadArgumentTypeAssociatedTableNames<
 export type AssociationNameToDotReference<
   DB,
   Schema,
-  AssociationName,
   TableNames extends keyof Schema,
+  AssociationName,
 > = `${AssociationName & string}.${keyof Updateable<DB[TableNames & keyof DB]> & string}`
 
 // type X = AssociationNameToDotReference<'mylar', 'beautiful_balloons'>
@@ -355,7 +355,14 @@ type INVALID = 'invalid'
 type IS_ASSOCIATION_NAME = 'association_name'
 type IS_NOT_ASSOCIATION_NAME = 'not_association_name'
 
-type RecursionTypes = 'load' | 'joins' | 'pluckThrough' | 'pluckEachThrough'
+type RecursionTypes =
+  | 'load'
+  | 'joins'
+  | 'pluckThrough'
+  | 'pluckEachThrough'
+  | 'minThrough'
+  | 'maxThrough'
+  | 'countThrough'
 
 ///////////////////////////////
 // VARIADIC LOAD
@@ -375,6 +382,7 @@ export type VariadicLoadArgs<
   ConcreteArgs,
   'load',
   ConcreteTableName,
+  never,
   0,
   null,
   never,
@@ -402,6 +410,7 @@ export type VariadicJoinsArgs<
   ConcreteArgs,
   'joins',
   ConcreteTableName,
+  never,
   0,
   null,
   never,
@@ -428,6 +437,7 @@ export type VariadicPluckThroughArgs<
   ConcreteArgs,
   'pluckThrough',
   ConcreteTableName,
+  AssociationNameToDotReference<DB, Schema, ConcreteTableName, ConcreteTableName>,
   0,
   null,
   never,
@@ -454,6 +464,7 @@ export type VariadicPluckEachThroughArgs<
   ConcreteArgs,
   'pluckEachThrough',
   ConcreteTableName,
+  AssociationNameToDotReference<DB, Schema, ConcreteTableName, ConcreteTableName>,
   0,
   null,
   never,
@@ -462,6 +473,211 @@ export type VariadicPluckEachThroughArgs<
 ///////////////////////////////
 // end: VARIADIC PLUCK EACH THROUGH
 ///////////////////////////////
+
+///////////////////////////////
+// VARIADIC MIN THROUGH
+///////////////////////////////
+export type VariadicMinThroughArgs<
+  DB,
+  Schema,
+  ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
+  ConcreteArgs extends readonly unknown[],
+  AllowedNextArgValues = keyof Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]] &
+    string,
+> = VariadicCheckThenRecurse<
+  DB,
+  Schema,
+  ConcreteTableName,
+  ConcreteArgs,
+  'minThrough',
+  ConcreteTableName,
+  never,
+  0,
+  null,
+  never,
+  AllowedNextArgValues
+>
+///////////////////////////////
+// end: VARIADIC MIN THROUGH
+///////////////////////////////
+
+///////////////////////////////
+// VARIADIC MAX THROUGH
+///////////////////////////////
+export type VariadicMaxThroughArgs<
+  DB,
+  Schema,
+  ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
+  ConcreteArgs extends readonly unknown[],
+  AllowedNextArgValues = keyof Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]] &
+    string,
+> = VariadicCheckThenRecurse<
+  DB,
+  Schema,
+  ConcreteTableName,
+  ConcreteArgs,
+  'maxThrough',
+  ConcreteTableName,
+  never,
+  0,
+  null,
+  never,
+  AllowedNextArgValues
+>
+///////////////////////////////
+// end: VARIADIC MAX THROUGH
+///////////////////////////////
+
+///////////////////////////////
+// VARIADIC COUNT THROUGH
+///////////////////////////////
+export type VariadicCountThroughArgs<
+  DB,
+  Schema,
+  ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
+  ConcreteArgs extends readonly unknown[],
+  AllowedNextArgValues = keyof Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]] &
+    string,
+> = VariadicCheckThenRecurse<
+  DB,
+  Schema,
+  ConcreteTableName,
+  ConcreteArgs,
+  'countThrough',
+  ConcreteTableName,
+  never,
+  0,
+  null,
+  never,
+  AllowedNextArgValues
+>
+///////////////////////////////
+// end: VARIADIC COUNT THROUGH
+///////////////////////////////
+
+/**
+ * @internal
+ *
+ * Given a list of arguments provided to
+ * a variadic function (like minThrough,
+ * maxThrough, etc...), find the final
+ * association's dream class and return it
+ */
+export type FinalVariadicDreamClass<
+  I extends Dream,
+  DB,
+  Schema,
+  ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
+  ConcreteArgs extends readonly unknown[],
+> = RecurseFinalVariadicDreamClass<
+  I,
+  DB,
+  Schema,
+  ConcreteTableName,
+  ConcreteArgs,
+  'minThrough',
+  ConcreteTableName,
+  never,
+  0,
+  null,
+  never,
+  []
+>
+
+type RecurseFinalVariadicDreamClass<
+  I extends Dream,
+  DB,
+  Schema,
+  ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
+  ConcreteArgs extends readonly unknown[],
+  RecursionType extends RecursionTypes,
+  UsedNamespaces,
+  NamespacedColumns,
+  Depth extends number,
+  //
+  PreviousConcreteTableName,
+  ConcreteAssociationName,
+  //
+  SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
+  ConcreteNthArg extends (keyof SchemaAssociations & string) | null = ConcreteArgs[0] extends null
+    ? never
+    : ConcreteArgs[0] extends keyof SchemaAssociations & string
+      ? ConcreteArgs[0] & keyof SchemaAssociations & string
+      : null,
+  NextUsedNamespaces = ConcreteArgs[0] extends null
+    ? never
+    : ConcreteArgs[0] extends keyof SchemaAssociations & string
+      ? UsedNamespaces | ConcreteNthArg
+      : UsedNamespaces,
+  //
+  CurrentArgumentType extends IS_ASSOCIATION_NAME | IS_NOT_ASSOCIATION_NAME = ConcreteNthArg extends null
+    ? IS_NOT_ASSOCIATION_NAME
+    : ConcreteNthArg extends keyof SchemaAssociations & string
+      ? IS_ASSOCIATION_NAME
+      : IS_NOT_ASSOCIATION_NAME,
+  //
+  NextPreviousConcreteTableName = CurrentArgumentType extends IS_ASSOCIATION_NAME
+    ? ConcreteTableName
+    : PreviousConcreteTableName,
+  //
+  NextTableName extends keyof Schema &
+    AssociationTableNames<DB, Schema> &
+    keyof DB = CurrentArgumentType extends IS_ASSOCIATION_NAME
+    ? (SchemaAssociations[ConcreteNthArg & keyof SchemaAssociations]['tables' &
+        keyof SchemaAssociations[ConcreteNthArg & keyof SchemaAssociations]] &
+        any[])[0] &
+        AssociationTableNames<DB, Schema> &
+        keyof DB
+    : ConcreteTableName & AssociationTableNames<DB, Schema> & keyof DB,
+  //
+  NextAssociationName = CurrentArgumentType extends IS_ASSOCIATION_NAME
+    ? ConcreteNthArg
+    : ConcreteAssociationName,
+  NextAssociationClassOrClassArray = CurrentArgumentType extends IS_ASSOCIATION_NAME
+    ? I[NextAssociationName & keyof I]
+    : I,
+  NextAssociationClass = NextAssociationClassOrClassArray extends Dream[]
+    ? NextAssociationClassOrClassArray[number]
+    : NextAssociationClassOrClassArray extends Dream
+      ? NextAssociationClassOrClassArray
+      : never,
+  //
+  NextNamespacedColumns = RecursionType extends 'pluckThrough' | 'pluckEachThrough'
+    ? ConcreteArgs[0] extends null
+      ? never
+      : ConcreteArgs[0] extends keyof SchemaAssociations & string
+        ? NamespacedColumns | AssociationNameToDotReference<DB, Schema, NextTableName, NextAssociationName>
+        : NamespacedColumns
+    : never,
+> = Depth extends MAX_VARIADIC_DEPTH
+  ? never
+  : ConcreteArgs['length'] extends 0
+    ? // ? {
+      //     table: NextTableName
+      //     association: NextAssociationName
+      //   }
+      NextAssociationClass extends never
+      ? I
+      : NextAssociationClass extends Dream
+        ? NextAssociationClass
+        : never
+    : RecurseFinalVariadicDreamClass<
+        NextAssociationClass extends never
+          ? I
+          : NextAssociationClass extends Dream
+            ? NextAssociationClass
+            : never,
+        DB,
+        Schema,
+        NextTableName,
+        ReadonlyTail<ConcreteArgs>,
+        RecursionType,
+        NextUsedNamespaces,
+        NextNamespacedColumns,
+        Inc<Depth>,
+        NextPreviousConcreteTableName,
+        NextAssociationName
+      >
 
 export type RequiredWhereClauseKeys<
   Schema,
@@ -489,6 +705,7 @@ type VariadicCheckThenRecurse<
   ConcreteArgs extends readonly unknown[],
   RecursionType extends RecursionTypes,
   UsedNamespaces,
+  NamespacedColumns,
   Depth extends number,
   //
   PreviousConcreteTableName,
@@ -520,18 +737,18 @@ type VariadicCheckThenRecurse<
             : ConcreteArgs[0] extends AssociationNameToDotReference<
                   DB,
                   Schema,
-                  ConcreteAssociationName,
-                  ConcreteTableName
+                  ConcreteTableName,
+                  ConcreteAssociationName
                 >
               ? VALID
               : ConcreteArgs[0] extends readonly AssociationNameToDotReference<
                     DB,
                     Schema,
-                    ConcreteAssociationName,
-                    ConcreteTableName
+                    ConcreteTableName,
+                    ConcreteAssociationName
                   >[]
                 ? VALID
-                : RecursionType extends 'pluckThrough'
+                : RecursionType extends 'pluckThrough' | 'minThrough' | 'maxThrough' | 'countThrough'
                   ? INVALID
                   : ConcreteArgs[0] extends (...args: any[]) => Promise<void> | void
                     ? VALID
@@ -547,6 +764,7 @@ type VariadicCheckThenRecurse<
         ConcreteArgs,
         RecursionType,
         UsedNamespaces,
+        NamespacedColumns,
         Depth,
         PreviousConcreteTableName,
         ConcreteAssociationName,
@@ -560,6 +778,7 @@ type VariadicRecurse<
   ConcreteArgs extends readonly unknown[],
   RecursionType extends RecursionTypes,
   UsedNamespaces,
+  NamespacedColumns,
   Depth extends number,
   //
   PreviousConcreteTableName,
@@ -578,7 +797,6 @@ type VariadicRecurse<
       ? UsedNamespaces | ConcreteNthArg
       : UsedNamespaces,
   //
-
   CurrentArgumentType extends IS_ASSOCIATION_NAME | IS_NOT_ASSOCIATION_NAME = ConcreteNthArg extends null
     ? IS_NOT_ASSOCIATION_NAME
     : ConcreteNthArg extends keyof SchemaAssociations & string
@@ -603,6 +821,14 @@ type VariadicRecurse<
     ? ConcreteNthArg
     : ConcreteAssociationName,
   //
+  NextNamespacedColumns = RecursionType extends 'pluckThrough' | 'pluckEachThrough'
+    ? ConcreteArgs[0] extends null
+      ? never
+      : ConcreteArgs[0] extends keyof SchemaAssociations & string
+        ? NamespacedColumns | AssociationNameToDotReference<DB, Schema, NextTableName, NextAssociationName>
+        : NamespacedColumns
+    : never,
+  //
   RequiredWhereClauses = WhereClauseRequirementsMet extends VALID
     ? null
     : RequiredWhereClauseKeys<Schema, ConcreteTableName, NextAssociationName>,
@@ -610,19 +836,25 @@ type VariadicRecurse<
   AllowedNextArgValues = RequiredWhereClauses extends null
     ? RecursionType extends 'load'
       ? AllowedNextArgValuesForLoad<DB, Schema, NextTableName>
-      : RecursionType extends 'joins'
+      : RecursionType extends 'joins' | 'countThrough'
         ? AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
-        : RecursionType extends 'pluckThrough'
+        : RecursionType extends 'minThrough' | 'maxThrough'
           ?
               | AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
-              | ExtraAllowedNextArgValuesForPluckThrough<DB, Schema, NextTableName, NextAssociationName>
-          : RecursionType extends 'pluckEachThrough'
+              | AssociationNameToDotReference<DB, Schema, NextTableName, NextAssociationName>
+          : RecursionType extends 'pluckThrough'
             ?
                 | AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
-                | ExtraAllowedNextArgValuesForPluckThrough<DB, Schema, NextTableName, NextAssociationName>
-                | ((...args: any[]) => Promise<void> | void)
-                | FindEachOpts
-            : never
+                | NextNamespacedColumns
+                | NextNamespacedColumns[]
+            : RecursionType extends 'pluckEachThrough'
+              ?
+                  | AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
+                  | ((...args: any[]) => Promise<void> | void)
+                  | FindEachOpts
+                  | NextNamespacedColumns
+                  | NextNamespacedColumns[]
+              : never
     : RequiredWhereClauses extends string[]
       ? WhereStatementForAssociation<DB, Schema, ConcreteTableName, NextAssociationName>
       : never,
@@ -635,6 +867,7 @@ type VariadicRecurse<
       ReadonlyTail<ConcreteArgs>,
       RecursionType,
       NextUsedNamespaces,
+      NextNamespacedColumns,
       Inc<Depth>,
       NextPreviousConcreteTableName,
       NextAssociationName,
@@ -649,17 +882,3 @@ type AllowedNextArgValuesForJoins<
 > =
   | Exclude<AssociationNamesForTable<Schema, TableName>, UsedNamespaces>
   | WhereStatement<DB, Schema, TableName>
-
-type ExtraAllowedNextArgValuesForPluckThrough<DB, Schema, TableName extends keyof Schema, AssociationName> =
-  | AssociationNameToDotReference<
-      DB,
-      Schema,
-      AssociationName,
-      TableName & AssociationTableNames<DB, Schema> & keyof Schema & string
-    >
-  | AssociationNameToDotReference<
-      DB,
-      Schema,
-      AssociationName,
-      TableName & AssociationTableNames<DB, Schema> & keyof Schema & string
-    >[]

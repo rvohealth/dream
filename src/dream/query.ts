@@ -69,6 +69,7 @@ import {
   DreamColumnNames,
   DreamConst,
   DreamTableSchema,
+  FinalVariadicDreamClass,
   OrderDir,
   RelaxedJoinsStatement,
   RelaxedJoinsWhereStatement,
@@ -78,6 +79,8 @@ import {
   TableOrAssociationName,
   VariadicJoinsArgs,
   VariadicLoadArgs,
+  VariadicMaxThroughArgs,
+  VariadicMinThroughArgs,
   VariadicPluckEachThroughArgs,
   VariadicPluckThroughArgs,
 } from './types'
@@ -1388,6 +1391,159 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
 
     return marshalDBValue(this.dreamClass, columnName as any, data.min)
+  }
+
+  /**
+   * Retrieves the min value of the specified column
+   * for a provided association.
+   *
+   * ```ts
+   * await User.query().minThrough('posts', 'id')
+   * // 1
+   * ```
+   *
+   * @param args - A chain of association names and where clauses ending with the column to min
+   * @returns the min value of the specified column for the nested association's records
+   */
+  public async minThrough<
+    DB extends DreamInstance['dreamconf']['DB'],
+    Schema extends DreamInstance['dreamconf']['schema'],
+    TableName extends DreamInstance['table'],
+    const Arr extends readonly unknown[],
+    FinalColumnWithAlias extends VariadicMinThroughArgs<DB, Schema, TableName, Arr>,
+    FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
+      ? R
+      : never,
+    FinalDreamClass extends FinalVariadicDreamClass<
+      DreamInstance,
+      DB,
+      Schema,
+      TableName,
+      [...Arr, FinalColumnWithAlias]
+    >,
+    FinalColumnType extends FinalDreamClass[FinalColumn & keyof FinalDreamClass],
+  >(...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { min } = this.dbFor('select').fn
+    const joinsStatements = cloneDeepSafe(this.joinsStatements)
+
+    const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, Schema> = cloneDeepSafe(
+      this.joinsWhereStatements
+    )
+    const pluckStatement = [
+      this.fleshOutPluckThroughStatements(joinsStatements, joinsWhereStatements, null, [...args]),
+    ].flat() as any[]
+    const columnName = pluckStatement[0]
+
+    let kyselyQuery = this.clone({ joinsStatements, joinsWhereStatements }).buildSelect({
+      bypassSelectAll: true,
+      bypassOrder: true,
+    })
+
+    kyselyQuery = kyselyQuery.select(min(columnName as any) as any)
+    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
+    return data.min
+  }
+
+  /**
+   * Retrieves the max value of the specified column
+   * for a provided association.
+   *
+   * ```ts
+   * await User.query().maxThrough('posts', 'id')
+   * // 99
+   * ```
+   *
+   * @param args - A chain of association names and where clauses ending with the column to max
+   * @returns the max value of the specified column for the nested association's records
+   */
+  public async maxThrough<
+    DB extends DreamInstance['dreamconf']['DB'],
+    Schema extends DreamInstance['dreamconf']['schema'],
+    TableName extends DreamInstance['table'],
+    const Arr extends readonly unknown[],
+    FinalColumnWithAlias extends VariadicMaxThroughArgs<DB, Schema, TableName, Arr>,
+    FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
+      ? R
+      : never,
+    FinalDreamClass extends FinalVariadicDreamClass<
+      DreamInstance,
+      DB,
+      Schema,
+      TableName,
+      [...Arr, FinalColumnWithAlias]
+    >,
+    FinalColumnType extends FinalDreamClass[FinalColumn & keyof FinalDreamClass],
+  >(...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { max } = this.dbFor('select').fn
+    const joinsStatements = cloneDeepSafe(this.joinsStatements)
+
+    const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, Schema> = cloneDeepSafe(
+      this.joinsWhereStatements
+    )
+    const pluckStatement = [
+      this.fleshOutPluckThroughStatements(joinsStatements, joinsWhereStatements, null, [...args]),
+    ].flat() as any[]
+    const columnName = pluckStatement[0]
+
+    let kyselyQuery = this.clone({ joinsStatements, joinsWhereStatements }).buildSelect({
+      bypassSelectAll: true,
+      bypassOrder: true,
+    })
+
+    kyselyQuery = kyselyQuery.select(max(columnName as any) as any)
+    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
+    return data.max
+  }
+
+  /**
+   * Retrieves the number of records matching
+   * the given query.
+   *
+   * ```ts
+   * await User.where({ email: null }).countThrough('posts', 'comments', { body: null })
+   * // 42
+   * ```
+   *
+   * @param args - A chain of association names and where clauses
+   * @returns the number of records found matching the given parameters
+   */
+  public async countThrough<
+    DB extends DreamInstance['dreamconf']['DB'],
+    Schema extends DreamInstance['dreamconf']['schema'],
+    TableName extends DreamInstance['table'],
+    const Arr extends readonly unknown[],
+    FinalColumnWithAlias extends VariadicMaxThroughArgs<DB, Schema, TableName, Arr>,
+  >(...args: [...Arr, FinalColumnWithAlias]): Promise<number> {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { count } = this.dbFor('select').fn
+    const joinsStatements = cloneDeepSafe(this.joinsStatements)
+
+    const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, Schema> = cloneDeepSafe(
+      this.joinsWhereStatements
+    )
+    const pluckStatement = [
+      this.fleshOutPluckThroughStatements(joinsStatements, joinsWhereStatements, null, [...args]),
+    ].flat() as any[]
+
+    const distinctColumn = this.distinctColumn
+    const query = this.clone({ joinsStatements, joinsWhereStatements, distinctColumn: null })
+    console.log(query.sql())
+    let kyselyQuery = query.buildSelect({
+      bypassSelectAll: true,
+      bypassOrder: true,
+    })
+
+    const countClause = distinctColumn
+      ? count(sql`DISTINCT ${distinctColumn}`)
+      : count(query.namespaceColumn(query.dreamInstance.primaryKey))
+
+    kyselyQuery = kyselyQuery.select(countClause.as('tablecount'))
+
+    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
+
+    return parseInt(data.tablecount.toString())
   }
 
   /**

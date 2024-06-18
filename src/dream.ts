@@ -64,6 +64,7 @@ import {
   DreamColumnNames,
   DreamConstructorType,
   DreamParamSafeColumnNames,
+  FinalVariadicDreamClass,
   IdType,
   NextPreloadArgumentType,
   OrderDir,
@@ -71,8 +72,11 @@ import {
   UpdateableAssociationProperties,
   UpdateableProperties,
   UpdateablePropertiesForClass,
+  VariadicCountThroughArgs,
   VariadicJoinsArgs,
   VariadicLoadArgs,
+  VariadicMaxThroughArgs,
+  VariadicMinThroughArgs,
   VariadicPluckEachThroughArgs,
   VariadicPluckThroughArgs,
 } from './dream/types'
@@ -3053,10 +3057,102 @@ export default class Dream {
     TableName extends I['table'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicPluckEachThroughArgs<DB, Schema, TableName, Arr>]): Promise<void> {
-    const construct = this.constructor as DreamConstructorType<I>
-    await construct
+    const dreamClass = this.constructor as DreamConstructorType<I>
+    await dreamClass
       .where({ [this.primaryKey]: this.primaryKeyValue } as any)
       .pluckEachThrough(...(args as any))
+  }
+
+  /**
+   * Retrieves the min value of the specified column
+   * for a provided association.
+   *
+   * ```ts
+   * await user.minThrough('posts', 'posts.id')
+   * // 1
+   * ```
+   *
+   * @param args - A chain of association names and where clauses ending with the column to min
+   * @returns the min value of the specified column for the nested association's records
+   */
+  public async minThrough<
+    I extends Dream,
+    DB extends I['dreamconf']['DB'],
+    Schema extends I['dreamconf']['schema'],
+    TableName extends I['table'],
+    const Arr extends readonly unknown[],
+    FinalColumnWithAlias extends VariadicMinThroughArgs<DB, Schema, TableName, Arr>,
+    FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
+      ? R
+      : never,
+    FinalDreamClass extends FinalVariadicDreamClass<I, DB, Schema, TableName, [...Arr, FinalColumnWithAlias]>,
+    FinalColumnType extends FinalDreamClass[FinalColumn & keyof FinalDreamClass],
+  >(this: I, ...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
+    const dreamClass = this.constructor as DreamConstructorType<I>
+    return (await dreamClass
+      .where({ [this.primaryKey]: this.primaryKeyValue } as any)
+      .minThrough(...(args as any))) as FinalColumnType
+  }
+
+  /**
+   * Retrieves the max value of the specified column
+   * for a provided association.
+   *
+   * ```ts
+   * await user.maxThrough('posts', 'posts.id')
+   * // 99
+   * ```
+   *
+   * @param args - A chain of association names and where clauses ending with the column to max
+   * @returns the max value of the specified column for the nested association's records
+   */
+  public async maxThrough<
+    I extends Dream,
+    DB extends I['dreamconf']['DB'],
+    Schema extends I['dreamconf']['schema'],
+    TableName extends I['table'],
+    const Arr extends readonly unknown[],
+    FinalColumnWithAlias extends VariadicMaxThroughArgs<DB, Schema, TableName, Arr>,
+    FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
+      ? R
+      : never,
+    FinalDreamClass extends FinalVariadicDreamClass<I, DB, Schema, TableName, [...Arr, FinalColumnWithAlias]>,
+    FinalColumnType extends FinalDreamClass[FinalColumn & keyof FinalDreamClass],
+  >(this: I, ...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
+    const dreamClass = this.constructor as DreamConstructorType<I>
+    return (await dreamClass
+      .where({ [this.primaryKey]: this.primaryKeyValue } as any)
+      .maxThrough(...(args as any))) as FinalColumnType
+  }
+
+  /**
+   * Retrieves the number of records matching
+   * the default scopes for the final association.
+   * If the Dream class for the final association
+   * does not have any default scopes, this will be
+   * the equivilent of simply requesting a count on
+   * the table.
+   *
+   * ```ts
+   * await user.countThrough('posts', 'comments', { body: null })
+   * // 42
+   * ```
+   *
+   * @param args - A chain of association names and where clauses
+   * @returns the number of records found matching the given parameters
+   */
+  public async countThrough<
+    I extends Dream,
+    DB extends I['dreamconf']['DB'],
+    Schema extends I['dreamconf']['schema'],
+    TableName extends I['table'],
+    const Arr extends readonly unknown[],
+    FinalColumnWithAlias extends VariadicCountThroughArgs<DB, Schema, TableName, Arr>,
+  >(this: I, ...args: [...Arr, FinalColumnWithAlias]): Promise<number> {
+    const dreamClass = this.constructor as DreamConstructorType<I>
+    return await dreamClass
+      .where({ [this.primaryKey]: this.primaryKeyValue } as any)
+      .countThrough(...(args as any))
   }
 
   /**
