@@ -124,7 +124,7 @@ describe('Dream.distinct', () => {
             tagName: 'chalupas jr',
           })
 
-          const ids = await Pet.pluckThrough('uniqueCollars', ['uniqueCollars.id'])
+          const ids = await Pet.query().pluckThrough('uniqueCollars', ['uniqueCollars.id'])
           expect(ids.length).toEqual(1)
           expect([collar1.id, collar2.id].includes(ids[0])).toBe(true)
         })
@@ -143,7 +143,7 @@ describe('Dream.distinct', () => {
             balloon,
           })
 
-          const ids = await Pet.pluckThrough('uniqueBalloons', ['uniqueBalloons.id'])
+          const ids = await Pet.query().pluckThrough('uniqueBalloons', ['uniqueBalloons.id'])
           expect(ids).toEqual([balloon.id])
         })
       })
@@ -159,7 +159,7 @@ describe('Dream.distinct', () => {
             balloon,
           })
 
-          const ids = await Pet.pluckThrough('distinctBalloons', ['distinctBalloons.id'])
+          const ids = await Pet.query().pluckThrough('distinctBalloons', ['distinctBalloons.id'])
           expect(ids).toEqual([balloon.id])
         })
 
@@ -179,7 +179,7 @@ describe('Dream.distinct', () => {
                 understudy,
               })
 
-              const ids = await Pet.pluckThrough('understudies', ['understudies.id'])
+              const ids = await Pet.query().pluckThrough('understudies', ['understudies.id'])
               expect(ids).toEqual([understudy.id])
             })
           }

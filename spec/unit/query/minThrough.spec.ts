@@ -1,7 +1,7 @@
-import User from '../../../test-app/app/models/User'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Composition from '../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
+import User from '../../../test-app/app/models/User'
 
 describe('Dream.minThrough', () => {
   it('returns the min field, first traveling through nested associations', async () => {
@@ -11,7 +11,7 @@ describe('Dream.minThrough', () => {
     await CompositionAsset.create({ composition, score: 7 })
     await CompositionAsset.create({ composition, score: 3 })
 
-    const min = await Composition.query().minThrough('compositionAsset', 'score')
+    const min = await Composition.query().minThrough('compositionAssets', 'compositionAssets.score')
 
     expect(min).toEqual(3)
   })
@@ -24,9 +24,13 @@ describe('Dream.minThrough', () => {
       await CompositionAsset.create({ composition, name: 'howyadoin', score: 7 })
       await CompositionAsset.create({ composition, score: 3 })
 
-      const min = await Composition.query().minThrough('compositionAsset', { name: 'howyadoin' }, 'score')
+      const min = await Composition.query().minThrough(
+        'compositionAssets',
+        { name: 'howyadoin' },
+        'compositionAssets.score'
+      )
 
-      expect(min).toEqual(3)
+      expect(min).toEqual(7)
     })
   })
 
@@ -42,7 +46,7 @@ describe('Dream.minThrough', () => {
       await ApplicationModel.transaction(async txn => {
         await CompositionAsset.txn(txn).create({ composition, score: 3 })
 
-        min = await Composition.query().txn(txn).minThrough('composition', 'score')
+        min = await Composition.query().txn(txn).minThrough('compositionAssets', 'compositionAssets.score')
       })
 
       expect(min).toEqual(3)

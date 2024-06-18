@@ -103,7 +103,7 @@ describe('Query#pluckThrough', () => {
       await Pet.create({ user, name: 'Snoopy' })
       await Pet.create({ user, name: 'Woodstock', deletedAt: DateTime.now() })
 
-      const names = await User.pluckThrough('pets', 'pets.name')
+      const names = await User.query().pluckThrough('pets', 'pets.name')
       expect(names).toEqual(['Snoopy'])
     })
   })

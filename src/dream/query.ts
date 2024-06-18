@@ -1440,7 +1440,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       bypassOrder: true,
     })
 
-    kyselyQuery = kyselyQuery.select(min(columnName as any) as any)
+    kyselyQuery = kyselyQuery.select(min(columnName) as any)
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
     return data.min
   }
@@ -1492,7 +1492,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       bypassOrder: true,
     })
 
-    kyselyQuery = kyselyQuery.select(max(columnName as any) as any)
+    kyselyQuery = kyselyQuery.select(max(columnName) as any)
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
     return data.max
   }
@@ -1523,13 +1523,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, Schema> = cloneDeepSafe(
       this.joinsWhereStatements
     )
-    const pluckStatement = [
-      this.fleshOutPluckThroughStatements(joinsStatements, joinsWhereStatements, null, [...args]),
-    ].flat() as any[]
+
+    this.fleshOutPluckThroughStatements(joinsStatements, joinsWhereStatements, null, [...args])
 
     const distinctColumn = this.distinctColumn
     const query = this.clone({ joinsStatements, joinsWhereStatements, distinctColumn: null })
-    console.log(query.sql())
     let kyselyQuery = query.buildSelect({
       bypassSelectAll: true,
       bypassOrder: true,
