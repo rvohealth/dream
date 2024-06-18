@@ -541,7 +541,7 @@ export type FinalVariadicDreamClass<
   Schema,
   ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
   ConcreteArgs extends readonly unknown[],
-> = VariadicDreamClassRecurse<I, DB, Schema, ConcreteTableName, ConcreteArgs, 0, null, never, []>
+> = VariadicDreamClassRecurse<I, DB, Schema, ConcreteTableName, ConcreteArgs, 0, null, never>
 
 type VariadicDreamClassRecurse<
   I extends Dream,
@@ -593,6 +593,7 @@ type VariadicDreamClassRecurse<
     : NextDreamClassOrClassArray extends Dream
       ? NextDreamClassOrClassArray
       : never,
+  // > = keyof Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]]
 > = ConcreteArgs['length'] extends 0
   ? NextDreamClass
   : Depth extends MAX_VARIADIC_DEPTH
