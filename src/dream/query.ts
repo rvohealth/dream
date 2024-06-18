@@ -69,13 +69,14 @@ import {
   DreamColumnNames,
   DreamConst,
   DreamTableSchema,
-  FinalVariadicDreamClass,
+  FinalVariadicTableName,
   OrderDir,
   RelaxedJoinsStatement,
   RelaxedJoinsWhereStatement,
   RelaxedPreloadStatement,
   RelaxedPreloadWhereStatement,
   TableColumnNames,
+  TableColumnType,
   TableOrAssociationName,
   VariadicCountThroughArgs,
   VariadicJoinsArgs,
@@ -1420,29 +1421,10 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
       ? R
       : never,
-    FinalDreamClass extends FinalVariadicDreamClass<DreamInstance, DB, Schema, TableName, Arr>,
-    FinalColumnType extends FinalDreamClass[FinalColumn & keyof FinalDreamClass],
+    FinalTableName extends FinalVariadicTableName<DB, Schema, TableName, Arr>,
+    FinalColumnType extends TableColumnType<Schema, FinalTableName, FinalColumn>,
   >(...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { min } = this.dbFor('select').fn
-    const joinsStatements = cloneDeepSafe(this.joinsStatements)
-
-    const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, Schema> = cloneDeepSafe(
-      this.joinsWhereStatements
-    )
-    const pluckStatement = [
-      this.fleshOutPluckThroughStatements(joinsStatements, joinsWhereStatements, null, [...args]),
-    ].flat() as any[]
-    const columnName = pluckStatement[0]
-
-    let kyselyQuery = this.clone({ joinsStatements, joinsWhereStatements }).buildSelect({
-      bypassSelectAll: true,
-      bypassOrder: true,
-    })
-
-    kyselyQuery = kyselyQuery.select(min(columnName) as any)
-    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
-    return data.min
+    return await this.minMaxThrough('min', args)
   }
 
   /**
@@ -1466,11 +1448,18 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
       ? R
       : never,
-    FinalDreamClass extends FinalVariadicDreamClass<DreamInstance, DB, Schema, TableName, Arr>,
-    FinalColumnType extends FinalDreamClass[FinalColumn & keyof FinalDreamClass],
+    FinalTableName extends FinalVariadicTableName<DB, Schema, TableName, Arr>,
+    FinalColumnType extends TableColumnType<Schema, FinalTableName, FinalColumn>,
   >(...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
+    return await this.minMaxThrough('max', args)
+  }
+
+  public async minMaxThrough<
+    DB extends DreamInstance['dreamconf']['DB'],
+    Schema extends DreamInstance['dreamconf']['schema'],
+  >(minOrMax: 'min' | 'max', args: unknown[]) {
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { max } = this.dbFor('select').fn
+    const { min, max } = this.dbFor('select').fn
     const joinsStatements = cloneDeepSafe(this.joinsStatements)
 
     const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, Schema> = cloneDeepSafe(
@@ -1486,9 +1475,17 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       bypassOrder: true,
     })
 
-    kyselyQuery = kyselyQuery.select(max(columnName) as any)
+    switch (minOrMax) {
+      case 'min':
+        kyselyQuery = kyselyQuery.select(min(columnName) as any)
+        break
+      case 'max':
+        kyselyQuery = kyselyQuery.select(max(columnName) as any)
+        break
+    }
+
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
-    return data.max
+    return marshalDBValue(this.dreamClass, columnName, data[minOrMax])
   }
 
   /**

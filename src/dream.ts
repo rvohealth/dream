@@ -64,11 +64,12 @@ import {
   DreamColumnNames,
   DreamConstructorType,
   DreamParamSafeColumnNames,
-  FinalVariadicDreamClass,
+  FinalVariadicTableName,
   IdType,
   NextPreloadArgumentType,
   OrderDir,
   TableColumnNames,
+  TableColumnType,
   UpdateableAssociationProperties,
   UpdateableProperties,
   UpdateablePropertiesForClass,
@@ -3008,8 +3009,8 @@ export default class Dream {
     FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
       ? R
       : never,
-    FinalDreamClass extends FinalVariadicDreamClass<I, DB, Schema, TableName, Arr>,
-    FinalColumnType extends FinalDreamClass[FinalColumn & keyof FinalDreamClass],
+    FinalTableName extends FinalVariadicTableName<DB, Schema, TableName, Arr>,
+    FinalColumnType extends TableColumnType<Schema, FinalTableName, FinalColumn>,
   >(this: I, ...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
     const dreamClass = this.constructor as DreamConstructorType<I>
     return (await dreamClass
@@ -3038,8 +3039,8 @@ export default class Dream {
     FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
       ? R
       : never,
-    FinalDreamClass extends FinalVariadicDreamClass<I, DB, Schema, TableName, Arr>,
-    FinalColumnType extends FinalDreamClass[FinalColumn & keyof FinalDreamClass],
+    FinalTableName extends FinalVariadicTableName<DB, Schema, TableName, Arr>,
+    FinalColumnType extends TableColumnType<Schema, FinalTableName, FinalColumn>,
   >(this: I, ...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
     const dreamClass = this.constructor as DreamConstructorType<I>
     return (await dreamClass

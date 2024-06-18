@@ -16,7 +16,8 @@ import {
   DreamAssociationType,
   DreamAttributes,
   DreamConstructorType,
-  FinalVariadicDreamClass,
+  FinalVariadicTableName,
+  TableColumnType,
   UpdateableAssociationProperties,
   UpdateableProperties,
   VariadicCountThroughArgs,
@@ -119,8 +120,8 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
       ? R
       : never,
-    FinalDreamClass extends FinalVariadicDreamClass<DreamInstance, DB, Schema, TableName, Arr>,
-    FinalColumnType extends FinalDreamClass[FinalColumn & keyof FinalDreamClass],
+    FinalTableName extends FinalVariadicTableName<DB, Schema, TableName, Arr>,
+    FinalColumnType extends TableColumnType<Schema, FinalTableName, FinalColumn>,
   >(this: I, ...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
     return (await this.queryInstance().minThrough(...(args as any))) as FinalColumnType
   }
@@ -149,8 +150,8 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
       ? R
       : never,
-    FinalDreamClass extends FinalVariadicDreamClass<DreamInstance, DB, Schema, TableName, Arr>,
-    FinalColumnType extends FinalDreamClass[FinalColumn & keyof FinalDreamClass],
+    FinalTableName extends FinalVariadicTableName<DB, Schema, TableName, Arr>,
+    FinalColumnType extends TableColumnType<Schema, FinalTableName, FinalColumn>,
   >(this: I, ...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
     return (await this.queryInstance().maxThrough(...(args as any))) as FinalColumnType
   }

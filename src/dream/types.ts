@@ -188,6 +188,19 @@ export type DreamTableSchema<DreamInstance extends Dream> = Updateable<
   DreamInstance['dreamconf']['DB'][DreamInstance['table']]
 >
 
+export type TableColumnType<
+  Schema,
+  TableName,
+  Column,
+  TableSchema extends Schema[TableName & keyof Schema] = Schema[TableName & keyof Schema],
+  TableColumns extends TableSchema['columns' & keyof TableSchema] = TableSchema['columns' &
+    keyof TableSchema],
+  TableColumnMetadata extends TableColumns[Column & keyof TableColumns] = TableColumns[Column &
+    keyof TableColumns],
+  ColumnType extends TableColumnMetadata['coercedType' &
+    keyof TableColumnMetadata] = TableColumnMetadata['coercedType' & keyof TableColumnMetadata],
+> = ColumnType
+
 ///////////////////////////
 // Association type helpers
 ///////////////////////////
@@ -304,17 +317,10 @@ export type PreloadArgumentTypeAssociatedTableNames<
 // end:preload
 
 export type AssociationNameToDotReference<
-  DB,
   Schema,
   TableNames extends keyof Schema,
   AssociationName,
-> = `${AssociationName & string}.${keyof Updateable<DB[TableNames & keyof DB]> & string}`
-
-// type X = AssociationNameToDotReference<'mylar', 'beautiful_balloons'>
-// type Y = X extends `${any}.${any}`
-//   ? '`${any}.${any}` does match AssociationNameToDotReference'
-//   : 'it doesn’t match'
-// type Y = NextJoinsWherePluckArgumentType<WhereStatement<any, any, any>, 'mylar', 'beautiful_balloons'>
+> = `${AssociationName & string}.${keyof Schema[TableNames]['columns' & keyof Schema[TableNames]] & string}`
 
 export type RelaxedPreloadStatement<Depth extends number = 0> = RelaxedJoinsStatement<Depth>
 
@@ -436,7 +442,7 @@ export type VariadicPluckThroughArgs<
   ConcreteArgs,
   'pluckThrough',
   ConcreteTableName,
-  AssociationNameToDotReference<DB, Schema, ConcreteTableName, ConcreteTableName>,
+  AssociationNameToDotReference<Schema, ConcreteTableName, ConcreteTableName>,
   0,
   null,
   never,
@@ -463,7 +469,7 @@ export type VariadicPluckEachThroughArgs<
   ConcreteArgs,
   'pluckEachThrough',
   ConcreteTableName,
-  AssociationNameToDotReference<DB, Schema, ConcreteTableName, ConcreteTableName>,
+  AssociationNameToDotReference<Schema, ConcreteTableName, ConcreteTableName>,
   0,
   null,
   never,
@@ -535,16 +541,14 @@ export type VariadicCountThroughArgs<
  * maxThrough, etc...), find the final
  * association's dream class and return it
  */
-export type FinalVariadicDreamClass<
-  I extends Dream,
+export type FinalVariadicTableName<
   DB,
   Schema,
   ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
   ConcreteArgs extends readonly unknown[],
-> = VariadicDreamClassRecurse<I, DB, Schema, ConcreteTableName, ConcreteArgs, 0, null, never>
+> = VariadicDreamClassRecurse<DB, Schema, ConcreteTableName, ConcreteArgs, 0, null, never>
 
 type VariadicDreamClassRecurse<
-  I extends Dream,
   DB,
   Schema,
   ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
@@ -585,20 +589,11 @@ type VariadicDreamClassRecurse<
     ? ConcreteNthArg
     : ConcreteAssociationName,
   //
-  NextDreamClassOrClassArray = CurrentArgumentType extends IS_ASSOCIATION_NAME
-    ? I[NextAssociationName & keyof I]
-    : I,
-  NextDreamClass extends Dream = NextDreamClassOrClassArray extends (infer NextDream extends Dream)[]
-    ? NextDream
-    : NextDreamClassOrClassArray extends Dream
-      ? NextDreamClassOrClassArray
-      : never,
 > = ConcreteArgs['length'] extends 0
-  ? NextDreamClass
+  ? NextTableName
   : Depth extends MAX_VARIADIC_DEPTH
     ? never
     : VariadicDreamClassRecurse<
-        NextDreamClass,
         DB,
         Schema,
         NextTableName,
@@ -664,14 +659,12 @@ type VariadicCheckThenRecurse<
           : RecursionType extends 'load' | 'joins' | 'countThrough'
             ? INVALID
             : ConcreteArgs[0] extends AssociationNameToDotReference<
-                  DB,
                   Schema,
                   ConcreteTableName,
                   ConcreteAssociationName
                 >
               ? VALID
               : ConcreteArgs[0] extends readonly AssociationNameToDotReference<
-                    DB,
                     Schema,
                     ConcreteTableName,
                     ConcreteAssociationName
@@ -754,7 +747,7 @@ type VariadicRecurse<
     ? ConcreteArgs[0] extends null
       ? never
       : ConcreteArgs[0] extends keyof SchemaAssociations & string
-        ? NamespacedColumns | AssociationNameToDotReference<DB, Schema, NextTableName, NextAssociationName>
+        ? NamespacedColumns | AssociationNameToDotReference<Schema, NextTableName, NextAssociationName>
         : NamespacedColumns
     : never,
   //
@@ -770,7 +763,7 @@ type VariadicRecurse<
         : RecursionType extends 'minMaxThrough'
           ?
               | AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
-              | AssociationNameToDotReference<DB, Schema, NextTableName, NextAssociationName>
+              | AssociationNameToDotReference<Schema, NextTableName, NextAssociationName>
           : RecursionType extends 'pluckThrough'
             ?
                 | AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
