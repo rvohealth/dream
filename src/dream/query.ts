@@ -77,10 +77,10 @@ import {
   RelaxedPreloadWhereStatement,
   TableColumnNames,
   TableOrAssociationName,
+  VariadicCountThroughArgs,
   VariadicJoinsArgs,
   VariadicLoadArgs,
-  VariadicMaxThroughArgs,
-  VariadicMinThroughArgs,
+  VariadicMinMaxThroughArgs,
   VariadicPluckEachThroughArgs,
   VariadicPluckThroughArgs,
 } from './types'
@@ -1410,7 +1410,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     Schema extends DreamInstance['dreamconf']['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-    FinalColumnWithAlias extends VariadicMinThroughArgs<DB, Schema, TableName, Arr>,
+    FinalColumnWithAlias extends VariadicMinMaxThroughArgs<DB, Schema, TableName, Arr>,
     FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
       ? R
       : never,
@@ -1462,7 +1462,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     Schema extends DreamInstance['dreamconf']['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-    FinalColumnWithAlias extends VariadicMaxThroughArgs<DB, Schema, TableName, Arr>,
+    FinalColumnWithAlias extends VariadicMinMaxThroughArgs<DB, Schema, TableName, Arr>,
     FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
       ? R
       : never,
@@ -1514,8 +1514,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     Schema extends DreamInstance['dreamconf']['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-    FinalColumnWithAlias extends VariadicMaxThroughArgs<DB, Schema, TableName, Arr>,
-  >(...args: [...Arr, FinalColumnWithAlias]): Promise<number> {
+  >(...args: [...Arr, VariadicCountThroughArgs<DB, Schema, TableName, Arr>]): Promise<number> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { count } = this.dbFor('select').fn
     const joinsStatements = cloneDeepSafe(this.joinsStatements)

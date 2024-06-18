@@ -75,8 +75,7 @@ import {
   VariadicCountThroughArgs,
   VariadicJoinsArgs,
   VariadicLoadArgs,
-  VariadicMaxThroughArgs,
-  VariadicMinThroughArgs,
+  VariadicMinMaxThroughArgs,
   VariadicPluckEachThroughArgs,
   VariadicPluckThroughArgs,
 } from './dream/types'
@@ -3005,7 +3004,7 @@ export default class Dream {
     Schema extends I['dreamconf']['schema'],
     TableName extends I['table'],
     const Arr extends readonly unknown[],
-    FinalColumnWithAlias extends VariadicMinThroughArgs<DB, Schema, TableName, Arr>,
+    FinalColumnWithAlias extends VariadicMinMaxThroughArgs<DB, Schema, TableName, Arr>,
     FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
       ? R
       : never,
@@ -3036,7 +3035,7 @@ export default class Dream {
     Schema extends I['dreamconf']['schema'],
     TableName extends I['table'],
     const Arr extends readonly unknown[],
-    FinalColumnWithAlias extends VariadicMaxThroughArgs<DB, Schema, TableName, Arr>,
+    FinalColumnWithAlias extends VariadicMinMaxThroughArgs<DB, Schema, TableName, Arr>,
     FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
       ? R
       : never,
@@ -3071,8 +3070,7 @@ export default class Dream {
     Schema extends I['dreamconf']['schema'],
     TableName extends I['table'],
     const Arr extends readonly unknown[],
-    FinalColumnWithAlias extends VariadicCountThroughArgs<DB, Schema, TableName, Arr>,
-  >(this: I, ...args: [...Arr, FinalColumnWithAlias]): Promise<number> {
+  >(this: I, ...args: [...Arr, VariadicCountThroughArgs<DB, Schema, TableName, Arr>]): Promise<number> {
     const dreamClass = this.constructor as DreamConstructorType<I>
     return await dreamClass
       .where({ [this.primaryKey]: this.primaryKeyValue } as any)
