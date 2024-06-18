@@ -360,8 +360,7 @@ type RecursionTypes =
   | 'joins'
   | 'pluckThrough'
   | 'pluckEachThrough'
-  | 'minThrough'
-  | 'maxThrough'
+  | 'minMaxThrough'
   | 'countThrough'
 
 ///////////////////////////////
@@ -475,9 +474,9 @@ export type VariadicPluckEachThroughArgs<
 ///////////////////////////////
 
 ///////////////////////////////
-// VARIADIC MIN THROUGH
+// VARIADIC MIN/MAX THROUGH
 ///////////////////////////////
-export type VariadicMinThroughArgs<
+export type VariadicMinMaxThroughArgs<
   DB,
   Schema,
   ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
@@ -489,7 +488,7 @@ export type VariadicMinThroughArgs<
   Schema,
   ConcreteTableName,
   ConcreteArgs,
-  'minThrough',
+  'minMaxThrough',
   ConcreteTableName,
   never,
   0,
@@ -498,34 +497,7 @@ export type VariadicMinThroughArgs<
   AllowedNextArgValues
 >
 ///////////////////////////////
-// end: VARIADIC MIN THROUGH
-///////////////////////////////
-
-///////////////////////////////
-// VARIADIC MAX THROUGH
-///////////////////////////////
-export type VariadicMaxThroughArgs<
-  DB,
-  Schema,
-  ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
-  ConcreteArgs extends readonly unknown[],
-  AllowedNextArgValues = keyof Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]] &
-    string,
-> = VariadicCheckThenRecurse<
-  DB,
-  Schema,
-  ConcreteTableName,
-  ConcreteArgs,
-  'maxThrough',
-  ConcreteTableName,
-  never,
-  0,
-  null,
-  never,
-  AllowedNextArgValues
->
-///////////////////////////////
-// end: VARIADIC MAX THROUGH
+// end: VARIADIC MIN/MAX THROUGH
 ///////////////////////////////
 
 ///////////////////////////////
@@ -705,7 +677,7 @@ type VariadicCheckThenRecurse<
                     ConcreteAssociationName
                   >[]
                 ? VALID
-                : RecursionType extends 'pluckThrough' | 'minThrough' | 'maxThrough' | 'countThrough'
+                : RecursionType extends 'pluckThrough' | 'minMaxThrough' | 'countThrough'
                   ? INVALID
                   : ConcreteArgs[0] extends (...args: any[]) => Promise<void> | void
                     ? VALID
@@ -795,7 +767,7 @@ type VariadicRecurse<
       ? AllowedNextArgValuesForLoad<DB, Schema, NextTableName>
       : RecursionType extends 'joins' | 'countThrough'
         ? AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
-        : RecursionType extends 'minThrough' | 'maxThrough'
+        : RecursionType extends 'minMaxThrough'
           ?
               | AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
               | AssociationNameToDotReference<DB, Schema, NextTableName, NextAssociationName>
