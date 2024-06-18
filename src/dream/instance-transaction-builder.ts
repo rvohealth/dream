@@ -101,7 +101,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
-   *   const firstPostId = await user.txn(txn).minThrough('posts', { createdAt: range(start)}, 'posts.rating')
+   *   const firstPostId = await user.txn(txn).minThrough('posts', { createdAt: range(start) }, 'posts.rating')
    * })
    * // 2.5
    * ```
@@ -131,7 +131,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
-   *   const firstPostId = await user.txn(txn).maxThrough('posts', { createdAt: range(start)}, 'posts.rating')
+   *   const firstPostId = await user.txn(txn).maxThrough('posts', { createdAt: range(start) }, 'posts.rating')
    * })
    * // 4.8
    * ```

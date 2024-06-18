@@ -1404,7 +1404,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * and return the minimum value for the specified column
    *
    * ```ts
-   * await User.query().minThrough('posts', { createdAt: range(start)}, 'posts.rating')
+   * await User.query().minThrough('posts', { createdAt: range(start) }, 'posts.rating')
    * // 2.5
    * ```
    *
@@ -1456,7 +1456,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * and return the maximum value for the specified column
    *
    * ```ts
-   * await User.query().maxThrough('posts', { createdAt: range(start)}, 'posts.rating')
+   * await User.query().maxThrough('posts', { createdAt: range(start) }, 'posts.rating')
    * // 4.8
    * ```
    *

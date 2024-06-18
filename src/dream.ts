@@ -2991,7 +2991,7 @@ export default class Dream {
    * and return the minimum value for the specified column
    *
    * ```ts
-   * await user.minThrough('posts', { createdAt: range(start)}, 'posts.rating')
+   * await user.minThrough('posts', { createdAt: range(start) }, 'posts.rating')
    * // 2.5
    * ```
    *
@@ -3022,7 +3022,7 @@ export default class Dream {
    * and return the maximum value for the specified column
    *
    * ```ts
-   * await user.maxThrough('posts', { createdAt: range(start)}, 'posts.rating')
+   * await user.maxThrough('posts', { createdAt: range(start) }, 'posts.rating')
    * // 4.8
    * ```
    * @param args - A chain of association names and where clauses ending with the column to max
