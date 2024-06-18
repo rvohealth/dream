@@ -1,7 +1,7 @@
-import User from '../../../test-app/app/models/User'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Composition from '../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
+import User from '../../../test-app/app/models/User'
 
 describe('Dream.minThrough', () => {
   beforeEach(async () => {
@@ -24,7 +24,6 @@ describe('Dream.minThrough', () => {
     await CompositionAsset.create({ composition, score: 3 })
 
     const min = await user.minThrough('compositions', 'compositionAssets', 'compositionAssets.score')
-    min
 
     expect(min).toEqual(3)
   })

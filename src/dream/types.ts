@@ -588,12 +588,11 @@ type VariadicDreamClassRecurse<
   NextDreamClassOrClassArray = CurrentArgumentType extends IS_ASSOCIATION_NAME
     ? I[NextAssociationName & keyof I]
     : I,
-  NextDreamClass extends Dream = NextDreamClassOrClassArray extends Dream[]
-    ? NextDreamClassOrClassArray[0]
+  NextDreamClass extends Dream = NextDreamClassOrClassArray extends (infer NextDream extends Dream)[]
+    ? NextDream
     : NextDreamClassOrClassArray extends Dream
       ? NextDreamClassOrClassArray
       : never,
-  // > = keyof Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]]
 > = ConcreteArgs['length'] extends 0
   ? NextDreamClass
   : Depth extends MAX_VARIADIC_DEPTH
