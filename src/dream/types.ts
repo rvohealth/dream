@@ -569,30 +569,14 @@ export type FinalVariadicDreamClass<
   Schema,
   ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
   ConcreteArgs extends readonly unknown[],
-> = RecurseFinalVariadicDreamClass<
-  I,
-  DB,
-  Schema,
-  ConcreteTableName,
-  ConcreteArgs,
-  'minThrough',
-  ConcreteTableName,
-  never,
-  0,
-  null,
-  never,
-  []
->
+> = VariadicDreamClassRecurse<I, DB, Schema, ConcreteTableName, ConcreteArgs, 0, null, never, []>
 
-type RecurseFinalVariadicDreamClass<
+type VariadicDreamClassRecurse<
   I extends Dream,
   DB,
   Schema,
   ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
   ConcreteArgs extends readonly unknown[],
-  RecursionType extends RecursionTypes,
-  UsedNamespaces,
-  NamespacedColumns,
   Depth extends number,
   //
   PreviousConcreteTableName,
@@ -604,11 +588,6 @@ type RecurseFinalVariadicDreamClass<
     : ConcreteArgs[0] extends keyof SchemaAssociations & string
       ? ConcreteArgs[0] & keyof SchemaAssociations & string
       : null,
-  NextUsedNamespaces = ConcreteArgs[0] extends null
-    ? never
-    : ConcreteArgs[0] extends keyof SchemaAssociations & string
-      ? UsedNamespaces | ConcreteNthArg
-      : UsedNamespaces,
   //
   CurrentArgumentType extends IS_ASSOCIATION_NAME | IS_NOT_ASSOCIATION_NAME = ConcreteNthArg extends null
     ? IS_NOT_ASSOCIATION_NAME
@@ -633,47 +612,25 @@ type RecurseFinalVariadicDreamClass<
   NextAssociationName = CurrentArgumentType extends IS_ASSOCIATION_NAME
     ? ConcreteNthArg
     : ConcreteAssociationName,
-  NextAssociationClassOrClassArray = CurrentArgumentType extends IS_ASSOCIATION_NAME
+  //
+  NextDreamClassOrClassArray = CurrentArgumentType extends IS_ASSOCIATION_NAME
     ? I[NextAssociationName & keyof I]
     : I,
-  NextAssociationClass = NextAssociationClassOrClassArray extends Dream[]
-    ? NextAssociationClassOrClassArray[number]
-    : NextAssociationClassOrClassArray extends Dream
-      ? NextAssociationClassOrClassArray
+  NextDreamClass extends Dream = NextDreamClassOrClassArray extends Dream[]
+    ? NextDreamClassOrClassArray[0]
+    : NextDreamClassOrClassArray extends Dream
+      ? NextDreamClassOrClassArray
       : never,
-  //
-  NextNamespacedColumns = RecursionType extends 'pluckThrough' | 'pluckEachThrough'
-    ? ConcreteArgs[0] extends null
-      ? never
-      : ConcreteArgs[0] extends keyof SchemaAssociations & string
-        ? NamespacedColumns | AssociationNameToDotReference<DB, Schema, NextTableName, NextAssociationName>
-        : NamespacedColumns
-    : never,
-> = Depth extends MAX_VARIADIC_DEPTH
-  ? never
-  : ConcreteArgs['length'] extends 0
-    ? // ? {
-      //     table: NextTableName
-      //     association: NextAssociationName
-      //   }
-      NextAssociationClass extends never
-      ? I
-      : NextAssociationClass extends Dream
-        ? NextAssociationClass
-        : never
-    : RecurseFinalVariadicDreamClass<
-        NextAssociationClass extends never
-          ? I
-          : NextAssociationClass extends Dream
-            ? NextAssociationClass
-            : never,
+> = ConcreteArgs['length'] extends 0
+  ? NextDreamClass
+  : Depth extends MAX_VARIADIC_DEPTH
+    ? never
+    : VariadicDreamClassRecurse<
+        NextDreamClass,
         DB,
         Schema,
         NextTableName,
         ReadonlyTail<ConcreteArgs>,
-        RecursionType,
-        NextUsedNamespaces,
-        NextNamespacedColumns,
         Inc<Depth>,
         NextPreviousConcreteTableName,
         NextAssociationName
