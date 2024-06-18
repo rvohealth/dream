@@ -661,7 +661,7 @@ type VariadicCheckThenRecurse<
         ? VALID
         : ConcreteArgs[0] extends WhereStatement<DB, Schema, ConcreteTableName>
           ? VALID
-          : RecursionType extends 'load' | 'joins'
+          : RecursionType extends 'load' | 'joins' | 'countThrough'
             ? INVALID
             : ConcreteArgs[0] extends AssociationNameToDotReference<
                   DB,
@@ -677,7 +677,7 @@ type VariadicCheckThenRecurse<
                     ConcreteAssociationName
                   >[]
                 ? VALID
-                : RecursionType extends 'pluckThrough' | 'minMaxThrough' | 'countThrough'
+                : RecursionType extends 'pluckThrough' | 'minMaxThrough'
                   ? INVALID
                   : ConcreteArgs[0] extends (...args: any[]) => Promise<void> | void
                     ? VALID
