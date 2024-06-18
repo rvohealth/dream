@@ -1113,11 +1113,31 @@ export default class Dream {
    * // [User{id: 1}, User{id: 2}, ...]
    * ```
    *
-   * @returns A new Query instance
+   * @returns A new Query instance scoped to this Dream class
    *
    */
   public static query<T extends typeof Dream, I extends InstanceType<T>>(this: T): Query<I> {
     return new Query(this.prototype as I)
+  }
+
+  /**
+   * @internal
+   *
+   * Returns a new instance of Query scoped to the given
+   * Dream instance
+   *
+   * ```ts
+   * await user = User.first()
+   * await user.query().countThrough('posts')
+   * // 7
+   * ```
+   *
+   * @returns A new Query instance scoped to this Dream instance
+   *
+   */
+  private query<I extends Dream>(this: I): Query<I> {
+    const dreamClass = this.constructor as DreamConstructorType<I>
+    return dreamClass.where({ [this.primaryKey]: this.primaryKeyValue } as any)
   }
 
   /**
@@ -2938,10 +2958,7 @@ export default class Dream {
     TableName extends I['table'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicPluckThroughArgs<DB, Schema, TableName, Arr>]): Promise<any[]> {
-    const construct = this.constructor as DreamConstructorType<I>
-    return await construct
-      .where({ [this.primaryKey]: this.primaryKeyValue } as any)
-      .pluckThrough(...(args as any))
+    return await this.query().pluckThrough(...(args as any))
   }
 
   /**
@@ -2981,10 +2998,7 @@ export default class Dream {
     TableName extends I['table'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicPluckEachThroughArgs<DB, Schema, TableName, Arr>]): Promise<void> {
-    const dreamClass = this.constructor as DreamConstructorType<I>
-    await dreamClass
-      .where({ [this.primaryKey]: this.primaryKeyValue } as any)
-      .pluckEachThrough(...(args as any))
+    return await this.query().pluckEachThrough(...(args as any))
   }
 
   /**
@@ -3012,10 +3026,7 @@ export default class Dream {
     FinalTableName extends FinalVariadicTableName<DB, Schema, TableName, Arr>,
     FinalColumnType extends TableColumnType<Schema, FinalTableName, FinalColumn>,
   >(this: I, ...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
-    const dreamClass = this.constructor as DreamConstructorType<I>
-    return (await dreamClass
-      .where({ [this.primaryKey]: this.primaryKeyValue } as any)
-      .minThrough(...(args as any))) as FinalColumnType
+    return (await this.query().minThrough(...(args as any))) as FinalColumnType
   }
 
   /**
@@ -3042,10 +3053,7 @@ export default class Dream {
     FinalTableName extends FinalVariadicTableName<DB, Schema, TableName, Arr>,
     FinalColumnType extends TableColumnType<Schema, FinalTableName, FinalColumn>,
   >(this: I, ...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
-    const dreamClass = this.constructor as DreamConstructorType<I>
-    return (await dreamClass
-      .where({ [this.primaryKey]: this.primaryKeyValue } as any)
-      .maxThrough(...(args as any))) as FinalColumnType
+    return (await this.query().maxThrough(...(args as any))) as FinalColumnType
   }
 
   /**
@@ -3071,10 +3079,7 @@ export default class Dream {
     TableName extends I['table'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicCountThroughArgs<DB, Schema, TableName, Arr>]): Promise<number> {
-    const dreamClass = this.constructor as DreamConstructorType<I>
-    return await dreamClass
-      .where({ [this.primaryKey]: this.primaryKeyValue } as any)
-      .countThrough(...(args as any))
+    return await this.query().countThrough(...(args as any))
   }
 
   /**
