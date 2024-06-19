@@ -1,6 +1,6 @@
-import User from '../../../test-app/app/models/User'
-import ops from '../../../src/ops'
 import RecordNotFound from '../../../src/exceptions/record-not-found'
+import ops from '../../../src/ops'
+import User from '../../../test-app/app/models/User'
 
 describe('Query#firstOrFail', () => {
   it('returns first record found, ordered by id', async () => {
@@ -14,7 +14,7 @@ describe('Query#firstOrFail', () => {
 
   context('the record is not found', () => {
     it('raises an exception', async () => {
-      await expect(async () => await User.query().firstOrFail()).rejects.toThrow(RecordNotFound)
+      await expect(User.query().firstOrFail()).rejects.toThrow(RecordNotFound)
     })
   })
 
@@ -39,10 +39,9 @@ describe('Query#firstOrFail', () => {
             .firstOrFail()
         ).toMatchDreamModel(user)
         await expect(
-          async () =>
-            await User.query()
-              .where({ name: ops.similarity('nonmatch') })
-              .firstOrFail()
+          User.query()
+            .where({ name: ops.similarity('nonmatch') })
+            .firstOrFail()
         ).rejects.toThrow(RecordNotFound)
       })
     })

@@ -12,7 +12,7 @@ describe('Dream.firstOrFail', () => {
 
   context('the record is not found', () => {
     it('raises an exception', async () => {
-      await expect(async () => await User.firstOrFail()).rejects.toThrow(RecordNotFound)
+      await expect(User.firstOrFail()).rejects.toThrow(RecordNotFound)
     })
   })
 

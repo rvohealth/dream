@@ -1,6 +1,6 @@
-import User from '../../../test-app/app/models/User'
-import ops from '../../../src/ops'
 import RecordNotFound from '../../../src/exceptions/record-not-found'
+import ops from '../../../src/ops'
+import User from '../../../test-app/app/models/User'
 
 describe('Query#findOrFail', () => {
   let user: User
@@ -16,9 +16,7 @@ describe('Query#findOrFail', () => {
 
   context('when passed undefined', () => {
     it('raises an exception', async () => {
-      await expect(async () => await User.query().findOrFail(undefined as any)).rejects.toThrow(
-        RecordNotFound
-      )
+      await expect(User.query().findOrFail(undefined as any)).rejects.toThrow(RecordNotFound)
     })
   })
 
@@ -44,10 +42,9 @@ describe('Query#findOrFail', () => {
           .findOrFail(user.id)
       ).toMatchDreamModel(user)
       await expect(
-        async () =>
-          await User.query()
-            .where({ name: ops.similarity('nonmatch') })
-            .findOrFail(user.id)
+        User.query()
+          .where({ name: ops.similarity('nonmatch') })
+          .findOrFail(user.id)
       ).rejects.toThrow(RecordNotFound)
     })
   })

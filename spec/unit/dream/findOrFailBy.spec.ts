@@ -13,9 +13,7 @@ describe('Dream.findOrFailBy', () => {
 
   context('when no record is found', () => {
     it('raises an exception', async () => {
-      await expect(async () => await User.findOrFailBy({ email: 'chalupasmcgee' })).rejects.toThrow(
-        RecordNotFound
-      )
+      await expect(User.findOrFailBy({ email: 'chalupasmcgee' })).rejects.toThrow(RecordNotFound)
     })
   })
 

@@ -1,17 +1,17 @@
 import { describe as context } from '@jest/globals'
-import User from '../../../../test-app/app/models/User'
-import Post from '../../../../test-app/app/models/Post'
 import Sortable from '../../../../src/decorators/sortable'
 import NonBelongsToAssociationProvidedAsSortableDecoratorScope from '../../../../src/exceptions/non-belongs-to-association-provided-as-sortable-decorator-scope'
-import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
-import Latex from '../../../../test-app/app/models/Balloon/Latex'
-import Edge from '../../../../test-app/app/models/Graph/Edge'
-import Node from '../../../../test-app/app/models/Graph/Node'
-import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
 import SortableDecoratorRequiresColumnOrBelongsToAssociation from '../../../../src/exceptions/sortable-decorator-requires-column-or-belongs-to-association'
-import Pet from '../../../../test-app/app/models/Pet'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
+import Latex from '../../../../test-app/app/models/Balloon/Latex'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import Collar from '../../../../test-app/app/models/Collar'
+import Edge from '../../../../test-app/app/models/Graph/Edge'
+import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
+import Node from '../../../../test-app/app/models/Graph/Node'
+import Pet from '../../../../test-app/app/models/Pet'
+import Post from '../../../../test-app/app/models/Post'
+import User from '../../../../test-app/app/models/User'
 
 describe('@Sortable', () => {
   let user: User
@@ -677,7 +677,7 @@ describe('@Sortable', () => {
       }
 
       it('raises a targeted exception', async () => {
-        await expect(async () => await InvalidPost.create({ body: 'hello', user })).rejects.toThrowError(
+        await expect(InvalidPost.create({ body: 'hello', user })).rejects.toThrowError(
           SortableDecoratorRequiresColumnOrBelongsToAssociation
         )
       })
@@ -690,7 +690,7 @@ describe('@Sortable', () => {
       }
 
       it('raises a targeted exception', async () => {
-        await expect(async () => await InvalidPost.create({ body: 'hello', user })).rejects.toThrowError(
+        await expect(InvalidPost.create({ body: 'hello', user })).rejects.toThrowError(
           NonBelongsToAssociationProvidedAsSortableDecoratorScope
         )
       })
