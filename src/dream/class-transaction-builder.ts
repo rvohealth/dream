@@ -178,6 +178,28 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
   }
 
   /**
+   * Finds a record for the corresponding model with the
+   * specified primary key. If not found, an exception is raised.
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await User.query().txn(txn).findOrFail(123)
+   * })
+   * // User{id: 123}
+   * ```
+   *
+   * @param primaryKey - The primaryKey of the record to look up
+   * @returns The found record
+   */
+  public async findOrFail<
+    I extends DreamClassTransactionBuilder<DreamInstance>,
+    Schema extends DreamInstance['dreamconf']['schema'],
+    SchemaIdType = Schema[DreamInstance['table']]['columns'][DreamInstance['primaryKey']]['coercedType'],
+  >(this: I, primaryKey: SchemaIdType): Promise<DreamInstance> {
+    return await this.queryInstance().findOrFail(primaryKey)
+  }
+
+  /**
    * Finds the first record—ordered by primary key—matching
    * the corresponding model and the specified where statement.
    * If not found, null is returned.
@@ -199,6 +221,32 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
     return await this.queryInstance()
       .where(attributes as any)
       .first()
+  }
+
+  /**
+   * Finds the first record—ordered by primary key—matching
+   * the corresponding model and the specified where statement.
+   * If not found, an exception is raised.
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await User.txn(txn).findOrFailBy({ email: 'how@yadoin' })
+   * })
+   * // User{email: 'how@yadoin'}
+   * ```
+   *
+   * @param whereStatement - The where statement used to locate the record
+   * @returns The first model found matching the whereStatement
+   */
+  public async findOrFailBy<I extends DreamClassTransactionBuilder<DreamInstance>>(
+    this: I,
+    whereStatement: WhereStatement<
+      DreamInstance['dreamconf']['DB'],
+      DreamInstance['dreamconf']['schema'],
+      DreamInstance['table']
+    >
+  ): Promise<DreamInstance> {
+    return await this.queryInstance().findOrFailBy(whereStatement)
   }
 
   /**
@@ -248,6 +296,26 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
     this: I
   ): Promise<DreamInstance | null> {
     return this.queryInstance().first()
+  }
+
+  /**
+   * Returns the first record corresponding to the
+   * model, ordered by primary key. If no record
+   * is found, an exception is raised.
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await User.txn(txn).firstOrFail()
+   *   // User{id: 1}
+   * })
+   * ```
+   *
+   * @returns First record
+   */
+  public async firstOrFail<I extends DreamClassTransactionBuilder<DreamInstance>>(
+    this: I
+  ): Promise<DreamInstance> {
+    return this.queryInstance().firstOrFail()
   }
 
   /**
@@ -368,6 +436,26 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
     this: I
   ): Promise<DreamInstance | null> {
     return this.queryInstance().last()
+  }
+
+  /**
+   * Returns the last record corresponding to the
+   * model, ordered by primary key. If no record
+   * is found, an exception is raised.
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await User.txn(txn).lastOrFail()
+   *   // User{id: 99}
+   * })
+   * ```
+   *
+   * @returns Last record
+   */
+  public async lastOrFail<I extends DreamClassTransactionBuilder<DreamInstance>>(
+    this: I
+  ): Promise<DreamInstance> {
+    return this.queryInstance().lastOrFail()
   }
 
   /**

@@ -1034,6 +1034,27 @@ export default class Dream {
   }
 
   /**
+   * Finds a record for the corresponding model with the
+   * specified primary key. If not found, an exception is raised.
+   *
+   * ```ts
+   * await User.query().findOrFail(123)
+   * // User{id: 123}
+   * ```
+   *
+   * @param primaryKey - The primaryKey of the record to look up
+   * @returns Either the found record, or else null
+   */
+  public static async findOrFail<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    Schema extends I['dreamconf']['schema'],
+    SchemaIdType = Schema[InstanceType<T>['table']]['columns'][I['primaryKey']]['coercedType'],
+  >(this: T, primaryKey: SchemaIdType): Promise<InstanceType<T>> {
+    return await this.query().findOrFail(primaryKey)
+  }
+
+  /**
    * Finds all records for the corresponding model in batches,
    * and then calls the provided callback
    * for each found record. Once all records
@@ -1151,13 +1172,33 @@ export default class Dream {
    * ```
    *
    * @param whereStatement - The where statement used to locate the record
-   * @returns Either the first model found matching the whereStatement, or else null
+   * @returns The first model found matching the whereStatement
    */
   public static async findBy<T extends typeof Dream, I extends InstanceType<T>>(
     this: T,
     whereStatement: WhereStatement<I['dreamconf']['DB'], I['dreamconf']['schema'], I['table']>
   ): Promise<InstanceType<T> | null> {
     return await this.query().findBy(whereStatement)
+  }
+
+  /**
+   * Finds the first record—ordered by primary key—matching
+   * the corresponding model and the specified where statement.
+   * If not found, an exception is raised.
+   *
+   * ```ts
+   * await User.findOrFailBy({ email: 'how@yadoin' })
+   * // User{email: 'how@yadoin'}
+   * ```
+   *
+   * @param whereStatement - The where statement used to locate the record
+   * @returns The first model found matching the whereStatement
+   */
+  public static async findOrFailBy<T extends typeof Dream, I extends InstanceType<T>>(
+    this: T,
+    whereStatement: WhereStatement<I['dreamconf']['DB'], I['dreamconf']['schema'], I['table']>
+  ): Promise<InstanceType<T>> {
+    return await this.query().findOrFailBy(whereStatement)
   }
 
   /**
@@ -1278,6 +1319,22 @@ export default class Dream {
   }
 
   /**
+   * Returns the first record corresponding to the
+   * model, ordered by primary key. If no record is
+   * found, an exception is raised.
+   *
+   * ```ts
+   * await User.firstOrFail()
+   * // User{id: 1}
+   * ```
+   *
+   * @returns First record
+   */
+  public static async firstOrFail<T extends typeof Dream>(this: T): Promise<InstanceType<T>> {
+    return await this.query().firstOrFail()
+  }
+
+  /**
    * Returns the last record corresponding to the
    * model, ordered by primary key.
    *
@@ -1290,6 +1347,22 @@ export default class Dream {
    */
   public static async last<T extends typeof Dream>(this: T): Promise<InstanceType<T> | null> {
     return await this.query().last()
+  }
+
+  /**
+   * Returns the last record corresponding to the
+   * model, ordered by primary key. If no record
+   * is found, an exception is raised.
+   *
+   * ```ts
+   * await User.lastOrFail()
+   * // User{id: 99}
+   * ```
+   *
+   * @returns Last record
+   */
+  public static async lastOrFail<T extends typeof Dream>(this: T): Promise<InstanceType<T>> {
+    return await this.query().lastOrFail()
   }
 
   /**

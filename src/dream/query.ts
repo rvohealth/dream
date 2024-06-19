@@ -85,6 +85,7 @@ import {
   VariadicPluckEachThroughArgs,
   VariadicPluckThroughArgs,
 } from './types'
+import RecordNotFound from '../exceptions/record-not-found'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -415,6 +416,31 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   /**
+   * Finds a record matching the Query with the
+   * specified primary key. If not found, an exception
+   * is raised.
+   *
+   * ```ts
+   * await User.query().findOrFail(123)
+   * // User{id: 123}
+   * ```
+   *
+   * @param primaryKey - The primaryKey of the record to look up
+   * @returns The found record
+   */
+  public async findOrFail<
+    Schema extends DreamInstance['dreamconf']['schema'],
+    TableName extends keyof Schema = DreamInstance['table'] & keyof Schema,
+  >(
+    primaryKey: Schema[TableName]['columns'][DreamInstance['primaryKey'] &
+      keyof Schema[TableName]['columns']]['coercedType']
+  ): Promise<DreamInstance> {
+    const record = await this.find(primaryKey)
+    if (!record) throw new RecordNotFound(this.constructor.name)
+    return record
+  }
+
+  /**
    * Finds a record matching the Query and the
    * specified where statement. If not found, null
    * is returned
@@ -432,6 +458,28 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     Schema extends DreamInstance['dreamconf']['schema'],
   >(whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>): Promise<DreamInstance | null> {
     return await this.where(whereStatement).first()
+  }
+
+  /**
+   * Finds a record matching the Query and the
+   * specified where statement. If not found, null
+   * is returned
+   *
+   * ```ts
+   * await User.query().findOrFailBy({ email: 'how@yadoin' })
+   * // User{email: 'how@yadoin'}
+   * ```
+   *
+   * @param whereStatement - The where statement used to locate the record
+   * @returns Either the the first record found matching the attributes, or else null
+   */
+  public async findOrFailBy<
+    DB extends DreamInstance['dreamconf']['DB'],
+    Schema extends DreamInstance['dreamconf']['schema'],
+  >(whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>): Promise<DreamInstance> {
+    const record = await this.findBy(whereStatement)
+    if (!record) throw new RecordNotFound(this.dreamInstance.constructor.name)
+    return record
   }
 
   /**
@@ -1736,6 +1784,26 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   /**
+   * Returns the first record in the database
+   * matching the Query. If the Query is not
+   * ordered, it will automatically order
+   * by primary key. If no record is found,
+   * an exception is raised.
+   *
+   * ```ts
+   * await User.query().first()
+   * // User{id: 1}
+   * ```
+   *
+   * @returns First record in the database, or null if no record exists
+   */
+  public async firstOrFail() {
+    const record = await this.first()
+    if (!record) throw new RecordNotFound(this.dreamInstance.constructor.name)
+    return record
+  }
+
+  /**
    * Returns the last record in the database
    * matching the Query. If the Query is not
    * ordered, it will automatically order
@@ -1754,6 +1822,26 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       : this.order({ [this.dreamInstance.primaryKey as any]: 'desc' } as any)
 
     return await query.takeOne()
+  }
+
+  /**
+   * Returns the last record in the database
+   * matching the Query. If the Query is not
+   * ordered, it will automatically order
+   * by primary key. If no record is found,
+   * it will raise an exception.
+   *
+   * ```ts
+   * await User.where(...).lastOrFail()
+   * // User{id: 99}
+   * ```
+   *
+   * @returns Last record in the database, or null if no record exists
+   */
+  public async lastOrFail() {
+    const record = await this.last()
+    if (!record) throw new RecordNotFound(this.dreamInstance.constructor.name)
+    return record
   }
 
   /**
