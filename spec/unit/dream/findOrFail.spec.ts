@@ -17,21 +17,19 @@ describe('Dream.findOrFail', () => {
 
   context('when passed undefined', () => {
     it('raises an exception', async () => {
-      await expect(async () => await User.findOrFail(undefined)).rejects.toThrow(RecordNotFound)
+      await expect(User.findOrFail(undefined)).rejects.toThrow(RecordNotFound)
     })
   })
 
   context('when passed null', () => {
     it('raises an exception', async () => {
-      await expect(async () => await User.findOrFail(null)).rejects.toThrow(RecordNotFound)
+      await expect(User.findOrFail(null)).rejects.toThrow(RecordNotFound)
     })
   })
 
   context('when passed the id of a nonextant User', () => {
     it('raises an exception', async () => {
-      await expect(async () => await User.findOrFail(parseInt(user.id as string) + 1)).rejects.toThrow(
-        RecordNotFound
-      )
+      await expect(User.findOrFail(parseInt(user.id as string) + 1)).rejects.toThrow(RecordNotFound)
     })
   })
 

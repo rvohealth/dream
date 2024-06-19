@@ -81,10 +81,9 @@ describe('Dream#updateAssociation', () => {
         const composition = await Composition.create({ user })
 
         await expect(
-          async () =>
-            await (composition.updateAssociation as any)('inlineWhereCurrentLocalizedText', {
-              name: 'Name was updated',
-            })
+          (composition.updateAssociation as any)('inlineWhereCurrentLocalizedText', {
+            name: 'Name was updated',
+          })
         ).rejects.toThrow(MissingRequiredAssociationWhereClause)
       })
     })

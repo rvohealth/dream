@@ -1,8 +1,8 @@
-import User from '../../../test-app/app/models/User'
+import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../../../src/exceptions/cannot-pass-additional-fields-to-pluck-each-after-callback-function'
+import MissingRequiredCallbackFunctionToPluckEach from '../../../src/exceptions/missing-required-callback-function-to-pluck-each'
 import ops from '../../../src/ops'
 import Edge from '../../../test-app/app/models/Graph/Edge'
-import MissingRequiredCallbackFunctionToPluckEach from '../../../src/exceptions/missing-required-callback-function-to-pluck-each'
-import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../../../src/exceptions/cannot-pass-additional-fields-to-pluck-each-after-callback-function'
+import User from '../../../test-app/app/models/User'
 
 describe('Query#pluckEach', () => {
   let user1: User
@@ -42,7 +42,7 @@ describe('Query#pluckEach', () => {
   context('with invalid arguments', () => {
     context('when the cb function is not provided', () => {
       it('raises a targeted exception', async () => {
-        await expect(async () => await User.query().pluckEach('id')).rejects.toThrowError(
+        await expect(User.query().pluckEach('id')).rejects.toThrowError(
           MissingRequiredCallbackFunctionToPluckEach
         )
       })
@@ -50,7 +50,7 @@ describe('Query#pluckEach', () => {
 
     context('when additional pluck arguments are following the call to pluckEachThrough', () => {
       it('raises a targeted exception', async () => {
-        await expect(async () => await User.query().pluckEach('id', () => {}, 'email')).rejects.toThrowError(
+        await expect(User.query().pluckEach('id', () => {}, 'email')).rejects.toThrowError(
           CannotPassAdditionalFieldsToPluckEachAfterCallback
         )
       })
