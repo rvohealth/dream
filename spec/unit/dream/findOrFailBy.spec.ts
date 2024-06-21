@@ -8,7 +8,7 @@ describe('Dream.findOrFailBy', () => {
   it('is able to locate records in the database by the attributes passed', async () => {
     const u = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user = await User.findOrFailBy({ id: u.id, email: 'fred@frewd' })
-    expect(user!.email).toEqual('fred@frewd')
+    expect(user.email).toEqual('fred@frewd')
   })
 
   context('when no record is found', () => {
