@@ -10,6 +10,7 @@ import AnyRequiresArrayColumn from '../../../src/exceptions/ops/any-requires-arr
 import Composition from '../../../test-app/app/models/Composition'
 import ScoreMustBeANormalNumber from '../../../src/exceptions/ops/score-must-be-a-normal-number'
 import { CalendarDate } from '../../../src'
+import Pet from '../../../test-app/app/models/Pet'
 
 describe('Query#where', () => {
   it('supports multiple clauses', async () => {
@@ -58,6 +59,53 @@ describe('Query#where', () => {
 
     const users = await User.where({ email: 'fred@frewd' }).where({ name: 'Hello' }).all()
     expect(users).toMatchDreamModels([user1])
+  })
+
+  context('null is passed', () => {
+    it('unsets previously-applied where clauses', async () => {
+      const user1 = await User.create({
+        name: 'Hello',
+        email: 'fred@frewd',
+        password: 'howyadoin',
+      })
+      const user2 = await User.create({
+        name: 'World',
+        email: 'frez@frewd',
+        password: 'howyadoin',
+      })
+
+      const users = await User.where({ email: 'fred@frewd' }).where(null).all()
+      expect(users).toMatchDreamModels([user1, user2])
+    })
+
+    it('overrides named scopes', async () => {
+      const user1 = await User.create({
+        name: 'Chalupas jr',
+        email: 'fred@frewd',
+        password: 'howyadoin',
+      })
+      const user2 = await User.create({
+        name: 'World',
+        email: 'frez@frewd',
+        password: 'howyadoin',
+      })
+
+      const users = await User.scope('withFunnyName').where(null).all()
+      expect(users).toMatchDreamModels([user1, user2])
+    })
+
+    it('does not override default scopes', async () => {
+      const pet1 = await Pet.create({
+        name: 'Hello',
+      })
+      await Pet.create({
+        name: 'World',
+        deletedAt: DateTime.now(),
+      })
+
+      const users = await Pet.query().where(null).all()
+      expect(users).toMatchDreamModels([pet1])
+    })
   })
 
   context('a generic expression is passed', () => {

@@ -292,6 +292,19 @@ describe('Dream#associationQuery', () => {
     })
   })
 
+  context('when chaining a subsequent where(null) clause', () => {
+    it('does not override where clauses applied directly to the association', async () => {
+      const pet = await Pet.create()
+      const redBalloon = await Latex.create({ color: 'red' })
+      await Collar.create({ pet, balloon: redBalloon })
+
+      const notRedBalloon = await Latex.create({ color: 'blue' })
+      await Collar.create({ pet, balloon: notRedBalloon })
+
+      expect(await pet.associationQuery('redBalloons').where(null).all()).toMatchDreamModels([redBalloon])
+    })
+  })
+
   context('unscoped', () => {
     it('unscopes', async () => {
       const user = await User.create({
