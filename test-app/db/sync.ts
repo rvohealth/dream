@@ -116,7 +116,7 @@ export const SpeciesValues = [
   "frog"
 ] as const
 
-export type IdType = string | number | bigint | undefined
+export type IdType = string | number | bigint
 export type Timestamp = ColumnType<DateTime | CalendarDate>
 
 export interface BalloonLines {

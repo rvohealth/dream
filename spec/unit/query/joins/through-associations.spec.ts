@@ -1,17 +1,17 @@
-import User from '../../../../test-app/app/models/User'
-import Composition from '../../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
-import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
 import { DateTime } from 'luxon'
+import JoinAttemptedOnMissingAssociation from '../../../../src/exceptions/associations/join-attempted-with-missing-association'
+import MissingThroughAssociationSource from '../../../../src/exceptions/associations/missing-through-association-source'
+import ops from '../../../../src/ops'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import BalloonSpotter from '../../../../test-app/app/models/BalloonSpotter'
 import BalloonSpotterBalloon from '../../../../test-app/app/models/BalloonSpotterBalloon'
-import MissingThroughAssociationSource from '../../../../src/exceptions/associations/missing-through-association-source'
-import JoinAttemptedOnMissingAssociation from '../../../../src/exceptions/associations/join-attempted-with-missing-association'
-import ops from '../../../../src/ops'
+import Composition from '../../../../test-app/app/models/Composition'
+import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
+import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
 import Pet from '../../../../test-app/app/models/Pet'
 import Post from '../../../../test-app/app/models/Post'
 import Rating from '../../../../test-app/app/models/Rating'
+import User from '../../../../test-app/app/models/User'
 
 describe('Query#joins through with simple associations', () => {
   context('explicit HasMany through', () => {
@@ -93,7 +93,7 @@ describe('Query#joins through with simple associations', () => {
         expect(reloadedUsers).toMatchDreamModels([user])
 
         const noResults = await User.query()
-          .joins('mainCompositionAsset', { id: parseInt(compositionAsset.id!.toString()) + 1 })
+          .joins('mainCompositionAsset', { id: parseInt(compositionAsset.id.toString()) + 1 })
           .all()
         expect(noResults).toEqual([])
       })
@@ -147,7 +147,7 @@ describe('Query#joins through with simple associations', () => {
           expect(reloadedUsers).toMatchDreamModels([user])
 
           const noResults = await User.query()
-            .joins('compositions', { id: parseInt(composition.id!.toString()) + 1 }, 'compositionAssets')
+            .joins('compositions', { id: parseInt(composition.id.toString()) + 1 }, 'compositionAssets')
             .all()
           expect(noResults).toEqual([])
         })
@@ -168,7 +168,7 @@ describe('Query#joins through with simple associations', () => {
         expect(reloadedCompositionAssets).toMatchDreamModels([compositionAsset])
 
         const noResults = await CompositionAsset.query()
-          .joins('user', { id: parseInt(user.id!.toString()) + 1 })
+          .joins('user', { id: parseInt(user.id.toString()) + 1 })
           .all()
         expect(noResults).toEqual([])
       })
@@ -185,7 +185,7 @@ describe('Query#joins through with simple associations', () => {
         expect(reloadedUsers).toMatchDreamModels([user])
 
         const noResults = await User.query()
-          .joins('compositionAssets', { id: parseInt(compositionAsset.id!.toString()) + 1 })
+          .joins('compositionAssets', { id: parseInt(compositionAsset.id.toString()) + 1 })
           .all()
         expect(noResults).toEqual([])
       })
@@ -207,7 +207,7 @@ describe('Query#joins through with simple associations', () => {
         expect(reloadedUsers).toMatchDreamModels([user])
 
         const noResults = await User.query()
-          .joins('compositionAssetAudits', { id: parseInt(compositionAssetAudit.id!.toString()) + 1 })
+          .joins('compositionAssetAudits', { id: parseInt(compositionAssetAudit.id.toString()) + 1 })
           .all()
         expect(noResults).toEqual([])
       })
