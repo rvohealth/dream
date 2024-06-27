@@ -1082,7 +1082,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   public where<
     DB extends DreamInstance['dreamconf']['DB'],
     Schema extends DreamInstance['dreamconf']['schema'],
-  >(whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>): Query<DreamInstance> {
+  >(whereStatement: WhereStatement<DB, Schema, DreamInstance['table']> | null): Query<DreamInstance> {
     return this._where(whereStatement, 'where')
   }
 
@@ -1134,11 +1134,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     DB extends DreamInstance['dreamconf']['DB'],
     Schema extends DreamInstance['dreamconf']['schema'],
   >(
-    attributes: WhereStatement<DB, Schema, DreamInstance['table']>,
+    whereStatement: WhereStatement<DB, Schema, DreamInstance['table']> | null,
     typeOfWhere: 'where' | 'whereNot'
   ): Query<DreamInstance> {
     return this.clone({
-      [typeOfWhere]: [{ ...attributes }],
+      [typeOfWhere]: whereStatement === null ? null : [{ ...whereStatement }],
     })
   }
 
