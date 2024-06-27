@@ -1,18 +1,18 @@
 import { DateTime } from 'luxon'
-import { DreamColumn, IdType } from '../../../src/dream/types'
-import HasOne from '../../../src/decorators/associations/has-one'
-import Scope from '../../../src/decorators/scope'
-import Validates from '../../../src/decorators/validations/validates'
-import { BalloonTypesEnum } from '../../db/sync'
-import BalloonLine from './BalloonLine'
-import ApplicationModel from './ApplicationModel'
-import Sortable from '../../../src/decorators/sortable'
-import BeforeDestroy from '../../../src/decorators/hooks/before-destroy'
-import Query from '../../../src/dream/query'
-import User from './User'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
+import HasOne from '../../../src/decorators/associations/has-one'
+import BeforeDestroy from '../../../src/decorators/hooks/before-destroy'
+import Scope from '../../../src/decorators/scope'
+import Sortable from '../../../src/decorators/sortable'
+import Validates from '../../../src/decorators/validations/validates'
+import Query from '../../../src/dream/query'
+import { DreamColumn, IdType } from '../../../src/dream/types'
+import { BalloonTypesEnum } from '../../db/sync'
+import ApplicationModel from './ApplicationModel'
+import BalloonLine from './BalloonLine'
 import HeartRating from './ExtraRating/HeartRating'
+import User from './User'
 
 export default class Balloon extends ApplicationModel {
   public get table() {
@@ -51,7 +51,7 @@ export default class Balloon extends ApplicationModel {
     await new Query(this)
       .toKysely('update')
       .set({ deletedAt: DateTime.now(), positionAlpha: null, positionBeta: null })
-      .where(this.primaryKey as any, '=', this.primaryKeyValue!.toString())
+      .where(this.primaryKey as any, '=', this.primaryKeyValue.toString())
       .execute()
 
     this.preventDeletion()

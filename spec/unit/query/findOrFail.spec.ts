@@ -16,13 +16,15 @@ describe('Query#findOrFail', () => {
 
   context('when passed undefined', () => {
     it('raises an exception', async () => {
-      await expect(async () => await User.query().findOrFail(undefined)).rejects.toThrow(RecordNotFound)
+      await expect(async () => await User.query().findOrFail(undefined as any)).rejects.toThrow(
+        RecordNotFound
+      )
     })
   })
 
   context('when passed null', () => {
     it('raises an exception', async () => {
-      await expect(async () => await User.query().findOrFail(undefined)).rejects.toThrow(RecordNotFound)
+      await expect(async () => await User.query().findOrFail(null as any)).rejects.toThrow(RecordNotFound)
     })
   })
 

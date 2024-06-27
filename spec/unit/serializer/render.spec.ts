@@ -1,18 +1,18 @@
 import { DateTime } from 'luxon'
-import DreamSerializer from '../../../src/serializer'
+import { CalendarDate, NonLoadedAssociation } from '../../../src'
 import { DreamConst } from '../../../src/dream/types'
-import Attribute from '../../../src/serializer/decorators/attribute'
+import MissingSerializer from '../../../src/exceptions/missing-serializer'
+import FailedToRenderThroughAssociationForSerializer from '../../../src/exceptions/serializers/failed-to-render-through-association'
+import DreamSerializer from '../../../src/serializer'
 import RendersMany from '../../../src/serializer/decorators/associations/renders-many'
 import RendersOne from '../../../src/serializer/decorators/associations/renders-one'
-import User from '../../../test-app/app/models/User'
-import Pet from '../../../test-app/app/models/Pet'
-import MissingSerializer from '../../../src/exceptions/missing-serializer'
+import Attribute from '../../../src/serializer/decorators/attribute'
 import Balloon from '../../../test-app/app/models/Balloon'
-import { CalendarDate, NonLoadedAssociation } from '../../../src'
 import Collar from '../../../test-app/app/models/Collar'
-import FailedToRenderThroughAssociationForSerializer from '../../../src/exceptions/serializers/failed-to-render-through-association'
+import Pet from '../../../test-app/app/models/Pet'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
+import User from '../../../test-app/app/models/User'
 import PetSerializer from '../../../test-app/app/serializers/PetSerializer'
 
 describe('DreamSerailizer.render', () => {
@@ -1082,7 +1082,7 @@ describe('DreamSerializer#render', () => {
     }
 
     class ChildSerializer<
-      DataType extends any,
+      DataType extends object,
       PassthroughData extends { howyadoin: string },
     > extends DreamSerializer<DataType, PassthroughData> {
       @Attribute()

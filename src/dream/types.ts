@@ -19,7 +19,7 @@ import { FindEachOpts } from './query'
 export const primaryKeyTypes = ['bigserial', 'bigint', 'uuid', 'integer'] as const
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
 
-export type IdType = string | number | bigint | undefined
+export type IdType = string | number | bigint
 export type Timestamp = ColumnType<DateTime | CalendarDate>
 
 type MAX_VARIADIC_DEPTH = 25

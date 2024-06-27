@@ -70,7 +70,7 @@ describe('Query#joins with simple associations', () => {
       expect(reloadedUsers).toMatchDreamModels([user])
 
       const noResults = await User.query()
-        .joins('mainComposition', { id: parseInt(composition.id!.toString()) + 1 })
+        .joins('mainComposition', { id: parseInt(composition.id.toString()) + 1 })
         .all()
       expect(noResults).toEqual([])
     })
@@ -85,7 +85,7 @@ describe('Query#joins with simple associations', () => {
 
       const noResults = await User.query()
         .joins('mainComposition', {
-          id: [parseInt(composition.id!.toString()) + 1, parseInt(composition.id!.toString()) + 2],
+          id: [parseInt(composition.id.toString()) + 1, parseInt(composition.id.toString()) + 2],
         })
         .all()
       expect(noResults).toEqual([])
@@ -171,7 +171,7 @@ describe('Query#joins with simple associations', () => {
       expect(reloadedUsers).toMatchDreamModels([user])
 
       const noResults = await User.query()
-        .joins('compositions', { id: parseInt(composition.id!.toString()) + 1 })
+        .joins('compositions', { id: parseInt(composition.id.toString()) + 1 })
         .all()
       expect(noResults).toEqual([])
     })
@@ -187,7 +187,7 @@ describe('Query#joins with simple associations', () => {
       expect(reloadedComposition).toMatchDreamModels([composition])
 
       const noResults = await Composition.query()
-        .joins('user', { id: parseInt(user.id!.toString()) + 1 })
+        .joins('user', { id: parseInt(user.id.toString()) + 1 })
         .all()
       expect(noResults).toEqual([])
     })
@@ -239,7 +239,7 @@ describe('Query#joins with simple associations', () => {
 
         const noResults = await User.query()
           .joins('mainComposition', 'compositionAssets', {
-            id: parseInt(compositionAsset.id!.toString()) + 1,
+            id: parseInt(compositionAsset.id.toString()) + 1,
           })
           .all()
         expect(noResults).toEqual([])
@@ -260,7 +260,7 @@ describe('Query#joins with simple associations', () => {
         expect(reloadedUsers).toMatchDreamModels([user])
 
         const noResults1 = await User.query()
-          .joins('compositions', { id: parseInt(composition.id!.toString()) + 1 })
+          .joins('compositions', { id: parseInt(composition.id.toString()) + 1 })
           .joins('mainComposition', 'compositionAssets', { id: compositionAsset.id })
           .all()
         expect(noResults1).toEqual([])
@@ -268,7 +268,7 @@ describe('Query#joins with simple associations', () => {
         const noResults2 = await User.query()
           .joins('compositions', { id: composition.id })
           .joins('mainComposition', 'compositionAssets', {
-            id: parseInt(compositionAsset.id!.toString()) + 1,
+            id: parseInt(compositionAsset.id.toString()) + 1,
           })
           .all()
         expect(noResults2).toEqual([])

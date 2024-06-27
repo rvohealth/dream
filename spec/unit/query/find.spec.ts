@@ -15,7 +15,7 @@ describe('Query#find', () => {
 
   context('when passed undefined', () => {
     it('returns null', async () => {
-      expect(await User.query().find(undefined)).toBeNull()
+      expect(await User.query().find(undefined as any)).toBeNull()
     })
   })
 

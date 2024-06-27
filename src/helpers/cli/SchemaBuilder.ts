@@ -20,7 +20,7 @@ export default class SchemaBuilder {
     const importStr = imports.length
       ? `\
 import {
-  ${imports.join(',\n  ')}
+  ${imports.sort().join(',\n  ')}
 } from './sync'`
       : ''
 

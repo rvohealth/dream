@@ -1,17 +1,17 @@
-import User from '../../../../test-app/app/models/User'
-import Composition from '../../../../test-app/app/models/Composition'
-import Rating from '../../../../test-app/app/models/Rating'
-import Post from '../../../../test-app/app/models/Post'
-import CannotJoinPolymorphicBelongsToError from '../../../../src/exceptions/associations/cannot-join-polymorphic-belongs-to-error'
-import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating'
 import { sql } from 'kysely'
 import db from '../../../../src/db'
+import CannotJoinPolymorphicBelongsToError from '../../../../src/exceptions/associations/cannot-join-polymorphic-belongs-to-error'
+import ops from '../../../../src/ops'
 import dreamconf from '../../../../test-app/app/conf/dreamconf'
-import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
+import Balloon from '../../../../test-app/app/models/Balloon'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal'
-import Balloon from '../../../../test-app/app/models/Balloon'
-import ops from '../../../../src/ops'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
+import Composition from '../../../../test-app/app/models/Composition'
+import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating'
+import Post from '../../../../test-app/app/models/Post'
+import Rating from '../../../../test-app/app/models/Rating'
+import User from '../../../../test-app/app/models/User'
 
 describe('Query#joins with polymorphic associations', () => {
   beforeEach(async () => {
@@ -98,7 +98,7 @@ describe('Query#joins with polymorphic associations', () => {
     const post = await Post.create({ user })
     await Rating.create({ user, rateable: post })
 
-    await expect(Rating.limit(2).joins('rateable').first()).rejects.toThrowError(
+    await expect(Rating.limit(2).joins('rateable').first()).rejects.toThrow(
       CannotJoinPolymorphicBelongsToError
     )
   })
@@ -114,7 +114,7 @@ describe('Query#joins with polymorphic associations', () => {
       expect(reloaded).toMatchDreamModel(post)
 
       const noResults = await Post.query()
-        .joins('ratings', { id: parseInt(rating.id!.toString()) + 1 })
+        .joins('ratings', { id: parseInt(rating.id.toString()) + 1 })
         .first()
       expect(noResults).toBeNull()
     })
