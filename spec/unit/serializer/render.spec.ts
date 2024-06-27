@@ -1072,7 +1072,7 @@ describe('DreamSerializer#render', () => {
     }
 
     class IntermediateSerilizer extends DreamSerializer {
-      @RendersOne(() => ChildSerializer)
+      @RendersOne(() => ChildSerializer<any, any>)
       public child: any
 
       @Attribute()
@@ -1081,7 +1081,10 @@ describe('DreamSerializer#render', () => {
       }
     }
 
-    class ChildSerializer extends DreamSerializer {
+    class ChildSerializer<
+      DataType extends any,
+      PassthroughData extends { howyadoin: string },
+    > extends DreamSerializer<DataType, PassthroughData> {
       @Attribute()
       public howyadoin() {
         return this.passthroughData.howyadoin
