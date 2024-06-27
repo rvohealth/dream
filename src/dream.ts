@@ -969,7 +969,7 @@ export default class Dream {
     this: T,
     attributes: UpdateablePropertiesForClass<T>,
     extraOpts: CreateOrFindByExtraOps<T> = {}
-  ): Promise<InstanceType<T> | null> {
+  ): Promise<InstanceType<T>> {
     try {
       const dreamModel = this.new({
         ...attributes,
@@ -1217,7 +1217,7 @@ export default class Dream {
     this: T,
     attributes: UpdateablePropertiesForClass<T>,
     extraOpts: CreateOrFindByExtraOps<T> = {}
-  ) {
+  ): Promise<InstanceType<T>> {
     const existingRecord = await this.findBy(this.extractAttributesFromUpdateableProperties(attributes))
     if (existingRecord) return existingRecord
 

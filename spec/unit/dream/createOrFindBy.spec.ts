@@ -7,7 +7,7 @@ describe('Dream.createOrFindBy', () => {
   context('no underlying conflicts to prevent save', () => {
     it('creates the underlying model in the db', async () => {
       const u = await User.createOrFindBy({ email: 'fred@frewd' }, { createWith: { password: 'howyadoin' } })
-      const user = await User.find(u!.id)
+      const user = await User.find(u.id)
       expect(user!.email).toEqual('fred@frewd')
       expect(await user!.checkPassword('howyadoin')).toEqual(true)
     })
@@ -23,7 +23,7 @@ describe('Dream.createOrFindBy', () => {
         { email: 'fred@fred' },
         { createWith: { password: 'nothowyadoin' } }
       )
-      const user = await User.find(u!.id)
+      const user = await User.find(u.id)
       expect(user!.email).toEqual('fred@fred')
       expect(await user!.checkPassword('howyadoin')).toEqual(true)
     })
@@ -68,12 +68,12 @@ describe('Dream.createOrFindBy', () => {
   it('respects associations in primary opts', async () => {
     const user = await User.create({ email: 'fred@fred.fred', password: 'howyadoin' })
     const composition = await Composition.createOrFindBy({ user }, { createWith: { content: 'howyadoin' } })
-    expect(composition!.userId).toEqual(user.id)
+    expect(composition.userId).toEqual(user.id)
   })
 
   it('respects associations in secondary opts', async () => {
     const user = await User.create({ email: 'fred@fred.fred', password: 'howyadoin' })
     const composition = await Composition.createOrFindBy({ content: 'howyadoin' }, { createWith: { user } })
-    expect(composition!.userId).toEqual(user.id)
+    expect(composition.userId).toEqual(user.id)
   })
 })
