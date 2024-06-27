@@ -74,7 +74,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     return this
   }
 
-  protected passthroughData: Partial<PassthroughDataType> = {}
+  protected passthroughData: PassthroughDataType = {} as any
   public passthrough(obj: PassthroughDataType) {
     this.passthroughData = {
       ...this.passthroughData,
