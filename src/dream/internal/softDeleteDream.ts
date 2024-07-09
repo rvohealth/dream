@@ -26,8 +26,6 @@ export default async function softDeleteDream(dream: Dream, txn: DreamTransactio
           .where(dream.primaryKey, '=', dream.primaryKeyValue)
       )
   await query.execute()
-
-  dream.preventDeletion()
 }
 
 function buildSoftDeleteQuery(dream: Dream, query: UpdateQueryBuilder<any, any, any, any>) {
