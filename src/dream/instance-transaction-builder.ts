@@ -434,6 +434,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * user.type // 'User'
    * ```
    *
+   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns void
    */
   public async save<I extends DreamInstanceTransactionBuilder<DreamInstance>>(this: I): Promise<void> {

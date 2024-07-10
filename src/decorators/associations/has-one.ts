@@ -11,6 +11,39 @@ import {
   validateHasStatementArgs,
 } from './shared'
 
+/**
+ * Establishes a "HasOne" association between the base dream
+ * and the child dream, where the child dream has a foreign key
+ * which points back to the base dream. This relationship should
+ * always have a corresponding `@BelongsTo` association on the
+ * child class.
+ *
+ * ```ts
+ * class User extends ApplicationModel {
+ *   @HasOne(() => UserSettings)
+ *   public userSettings: UserSettings
+ * }
+ *
+ * class UserSettings extends ApplicationModel {
+ *   @BelongsTo(() => User)
+ *   public user: User
+ *   public userId: DreamColumn<UserSettings, 'userId'>
+ * }
+ * ```
+ *
+ * @param opts.dependent - Can be either "destroy" or undefined. If "destroy", this record will be cascade deleted if the base model is destroyed.
+ * @param opts.foreignKey - A custom column name to use for the foreign key.
+ * @param opts.order - A custom order statement to apply to this association.
+ * @param opts.polymorphic - If true, this association will be treated as a polymorphic association.
+ * @param opts.preloadThroughColumns - An array of columns to pluck off the through association attached to this association. Can only be set if `through` is also set.
+ * @param opts.primaryKeyOverride - A custom column name to use for the primary key.
+ * @param opts.selfWhere - Adds a where clause to an association between a column on the associated model and a column on this model.
+ * @param opts.selfWhereNot - Adds a where not clause to an association between a column on the associated model and a column on this model.
+ * @param opts.source - Used in conjunction with 'through' to specify the source association on a child model.
+ * @param opts.through - If passed, this association will travel through another association.
+ * @param opts.where - A where clause to be applied when this association is loaded
+ * @param opts.whereNot - A where not clause to be applied when this association is loaded
+ */
 export default function HasOne<
   BaseInstance extends Dream,
   AssociationDreamClass extends typeof Dream = typeof Dream,

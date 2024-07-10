@@ -3826,6 +3826,7 @@ export default class Dream {
    * user.type // 'User'
    * ```
    *
+   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns void
    */
   public async save<I extends Dream>(this: I, { skipHooks }: { skipHooks?: boolean } = {}): Promise<void> {

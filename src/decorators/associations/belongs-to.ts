@@ -10,6 +10,31 @@ import {
 import Validates from '../validations/validates'
 import { DreamColumnNames } from '../../dream/types'
 
+/**
+ * Establishes a "BelongsTo" association between the base dream
+ * and the child dream, where the base dream has a foreign key
+ * which points back to the child dream. This relationship should
+ * always have a corresponding `@HasOne` or `@HasMany` association
+ * on the child class.
+ *
+ * ```ts
+ * class UserSettings extends ApplicationModel {
+ *   @BelongsTo(() => User)
+ *   public user: User
+ *   public userId: DreamColumn<UserSettings, 'userId'>
+ * }
+ *
+ * class User extends ApplicationModel {
+ *   @HasOne(() => UserSettings)
+ *   public userSettings: UserSettings
+ * }
+ * ```
+ *
+ * @param opts.foreignKey - A custom column name to use for the foreign key.
+ * @param opts.optional - Whether or not this association is optional. Defaults to false.
+ * @param opts.polymorphic - If true, this association will be treated as a polymorphic association.
+ * @param opts.primaryKeyOverride - A custom column name to use for the primary key.
+ */
 export default function BelongsTo<
   BaseInstance extends Dream,
   AssociationDreamClass extends typeof Dream = typeof Dream,
