@@ -16,6 +16,14 @@ export default class ModelWithoutCustomDeletedAt extends ApplicationModel {
     return 'id' as const
   }
 
+  public get createdAtField() {
+    return 'updatedAt' as const
+  }
+
+  public get updatedAtField() {
+    return 'createdAt' as const
+  }
+
   public id: DreamColumn<ModelWithoutCustomDeletedAt, 'id'>
   public deletedAt: DreamColumn<ModelWithoutCustomDeletedAt, 'deletedAt'>
   public createdAt: DreamColumn<ModelWithoutCustomDeletedAt, 'createdAt'>
