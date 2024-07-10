@@ -3868,6 +3868,7 @@ export default class Dream {
    * ```
    *
    * @param attributes - the attributes to set on the model
+   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns void
    */
   public async update<I extends Dream>(
