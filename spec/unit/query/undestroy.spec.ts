@@ -21,25 +21,7 @@ describe('Query#undestroy', () => {
     expect(await Post.all()).toMatchDreamModels([post1, post2, post3])
   })
 
-  context('without cascade: true passed', () => {
-    it('does not undestroy child associations which are marked "dependent: `destroy`"', async () => {
-      const user = await User.create({ email: 'fred@frewd', name: 'howyadoin', password: 'hamz' })
-      const post = await Post.create({ user, body: 'hello world' })
-      await PostComment.create({ post })
-
-      await post.destroy()
-
-      expect(await PostComment.count()).toEqual(0)
-      expect(await PostComment.unscoped().count()).toEqual(1)
-
-      await Post.query().undestroy()
-
-      expect(await PostComment.count()).toEqual(0)
-      expect(await PostComment.unscoped().count()).toEqual(1)
-    })
-  })
-
-  context('with cascade: true passed', () => {
+  context('without cascade passed', () => {
     it('undestroys child associations which are marked "dependent: `destroy`"', async () => {
       const user = await User.create({ email: 'fred@frewd', name: 'howyadoin', password: 'hamz' })
       const post = await Post.create({ user, body: 'hello world' })
@@ -50,9 +32,27 @@ describe('Query#undestroy', () => {
       expect(await PostComment.count()).toEqual(0)
       expect(await PostComment.unscoped().count()).toEqual(1)
 
-      await Post.query().undestroy({ cascade: true })
+      await Post.query().undestroy()
 
       expect(await PostComment.all()).toMatchDreamModels([comment])
+    })
+  })
+
+  context('with cascade=false passed', () => {
+    it('does not undestroy child associations which are marked "dependent: `destroy`"', async () => {
+      const user = await User.create({ email: 'fred@frewd', name: 'howyadoin', password: 'hamz' })
+      const post = await Post.create({ user, body: 'hello world' })
+      await PostComment.create({ post })
+
+      await post.destroy()
+
+      expect(await PostComment.count()).toEqual(0)
+      expect(await PostComment.unscoped().count()).toEqual(1)
+
+      await Post.query().undestroy({ cascade: false })
+
+      expect(await PostComment.count()).toEqual(0)
+      expect(await PostComment.unscoped().count()).toEqual(1)
     })
   })
 

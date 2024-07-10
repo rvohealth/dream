@@ -17,7 +17,7 @@ import safelyRunCommitHooks from './safelyRunCommitHooks'
 export default async function undestroyDream<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I> | null = null,
-  { skipHooks = false, cascade = false }: { skipHooks?: boolean; cascade?: boolean } = {}
+  { skipHooks = false, cascade = true }: { skipHooks?: boolean; cascade?: boolean } = {}
 ): Promise<I> {
   if (txn) {
     return await undestroyDreamWithTransaction(dream, txn, { skipHooks, cascade })
