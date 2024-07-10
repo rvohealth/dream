@@ -1,4 +1,4 @@
-import { ExpressionBuilder, UpdateQueryBuilder } from 'kysely'
+import { ExpressionBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
 import db from '../../../db'
 import Dream from '../../../dream'
 import Query from '../../../dream/query'
@@ -201,13 +201,11 @@ async function updateConflictingRecords({
         : range(newPosition, previousPosition),
     })
     .toKysely('update')
-    .set((eb: ExpressionBuilder<(typeof dream)['dreamconf']['DB'], typeof dream.table>) => {
-      return {
-        [positionField]: eb(positionField, increasing ? '-' : '+', 1),
-      }
-    })
+    .set((eb: ExpressionBuilder<(typeof dream)['dreamconf']['DB'], typeof dream.table>) => ({
+      [positionField]: eb(positionField, increasing ? '-' : '+', 1),
+    }))
 
-  kyselyQuery = applyScopesToQuery(dream, kyselyQuery, column => (dream as any)[column], scope)
+  kyselyQuery = applySortableScopesToQuery(dream, kyselyQuery, column => (dream as any)[column], scope)
 
   await kyselyQuery.execute()
 }
@@ -256,7 +254,7 @@ async function updatePreviousScope({
     })
 
   const changes = dream.changes()
-  kyselyQuery = applyScopesToQuery(
+  kyselyQuery = applySortableScopesToQuery(
     dream,
     kyselyQuery,
     column => changes[column as any]?.was || (dream as any)[column],
@@ -266,16 +264,17 @@ async function updatePreviousScope({
   await kyselyQuery.execute()
 }
 
-function applyScopesToQuery(
-  dream: Dream,
-  kyselyQuery: UpdateQueryBuilder<any, string, string, any>,
-  whereValueCB: (column: string) => any,
-  scope?: string | string[]
-) {
+export function applySortableScopesToQuery<
+  QB extends UpdateQueryBuilder<any, string, string, any> | SelectQueryBuilder<any, any, any>,
+>(dream: Dream, kyselyQuery: QB, whereValueCB: (column: string) => any, scope?: string | string[]): QB {
   for (const singleScope of scopeArray(scope)) {
     const column = getColumnForSortableScope(dream, singleScope)
     if (column) {
-      kyselyQuery = kyselyQuery.where(column, '=', whereValueCB(column))
+      kyselyQuery = (kyselyQuery as UpdateQueryBuilder<any, string, string, any>).where(
+        column,
+        '=',
+        whereValueCB(column)
+      ) as QB
     }
   }
 

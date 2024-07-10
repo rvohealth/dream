@@ -682,6 +682,59 @@ describe('@Sortable', () => {
     })
   })
 
+  context('upon undestroying SoftDelete records', () => {
+    it('sets the position to the next highest value', async () => {
+      const unrelatedPost = await Post.create({ body: 'hello', user: user2 })
+      await Post.create({ body: 'hello', user: user2 })
+      await Post.create({ body: 'hello', user: user2 })
+      await Post.create({ body: 'hello', user: user2 })
+
+      const post1 = await Post.create({ body: 'hello', user })
+      const post2 = await Post.create({ body: 'hello', user })
+      const post3 = await Post.create({ body: 'hello', user })
+      const post4 = await Post.create({ body: 'hello', user })
+
+      await post2.destroy()
+      await post2.undestroy()
+      await post1.reload()
+      await post3.reload()
+      await post4.reload()
+      await post2.reload()
+      await unrelatedPost.reload()
+
+      expect(post1.position).toEqual(1)
+      expect(post3.position).toEqual(2)
+      expect(post4.position).toEqual(3)
+      expect(post2.position).toEqual(4)
+      expect(unrelatedPost.position).toEqual(1)
+    })
+
+    context('within a transaction', () => {
+      it('adjusts the positions of related records', async () => {
+        await ApplicationModel.transaction(async txn => {
+          const unrelatedPost = await Post.txn(txn).create({ body: 'hello', user: user2 })
+          const post1 = await Post.txn(txn).create({ body: 'hello', user })
+          const post2 = await Post.txn(txn).create({ body: 'hello', user })
+          const post3 = await Post.txn(txn).create({ body: 'hello', user })
+          const post4 = await Post.txn(txn).create({ body: 'hello', user })
+
+          await post2.txn(txn).destroy()
+          await post2.txn(txn).undestroy()
+          await post1.txn(txn).reload()
+          await post3.txn(txn).reload()
+          await post4.txn(txn).reload()
+          await post2.txn(txn).reload()
+
+          expect(post1.position).toEqual(1)
+          expect(post3.position).toEqual(2)
+          expect(post4.position).toEqual(3)
+          expect(post2.position).toEqual(4)
+          expect(unrelatedPost.position).toEqual(1)
+        })
+      })
+    })
+  })
+
   context('with another column as the scope', () => {
     it('sets the position independently for models with different values of the scoping column', async () => {
       const dog1 = await Pet.create({ species: 'dog' })

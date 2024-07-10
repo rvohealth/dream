@@ -1,3 +1,4 @@
+import { applySortableScopesToQuery } from '../../decorators/sortable/helpers/setPosition'
 import Dream from '../../dream'
 import DreamTransaction from '../transaction'
 import runHooksFor from './runHooksFor'
@@ -66,10 +67,32 @@ async function undestroyDreamWithTransaction<I extends Dream>(
  * deleting by one of the beforeDestroy model hooks
  */
 async function doUndestroyDream<I extends Dream>(dream: I, txn: DreamTransaction<I>) {
-  const query = txn.kyselyTransaction
+  let query = txn.kyselyTransaction
     .updateTable(dream.table as any)
     .where(dream.primaryKey as any, '=', dream.primaryKeyValue)
     .set({ [dream.deletedAtField]: null } as any)
+
+  const dreamClass = dream.constructor as typeof Dream
+
+  dreamClass['sortableFields']?.forEach(sortableFieldMetadata => {
+    const positionColumn = sortableFieldMetadata.positionField
+    query = query.set(
+      eb =>
+        ({
+          [positionColumn]: eb(
+            applySortableScopesToQuery(
+              dream,
+              txn.kyselyTransaction.selectFrom(dream.table),
+              column => (dream as any)[column],
+              sortableFieldMetadata.scope
+            ).select(eb => eb.fn.max(positionColumn).as(positionColumn + '_max')) as any,
+            '+',
+            1
+          ),
+        }) as any
+    )
+  })
+
   return await query.execute()
 }
 
