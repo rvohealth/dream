@@ -1,8 +1,69 @@
 import User from '../../../test-app/app/models/User'
 import Animal from '../../../test-app/app/models/Balloon/Latex/Animal'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
+import Pet from '../../../test-app/app/models/Pet'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 
 describe('Dream#updateAttributes', () => {
+  it('updates the attributes for a dream', async () => {
+    const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+    await user.updateAttributes({ email: 'chalupas@dujour' })
+    expect(user.email).toEqual('chalupas@dujour')
+
+    await user.reload()
+    expect(user.email).toEqual('chalupas@dujour')
+  })
+
+  it('calls model hooks', async () => {
+    const pet = await Pet.create({ name: 'howyadoin' })
+    await pet.updateAttributes({ name: 'change me' })
+    expect(pet.name).toEqual('changed by update hook')
+
+    await pet.reload()
+    expect(pet.name).toEqual('changed by update hook')
+  })
+
+  context('skipHooks=false', () => {
+    it('skips model hooks', async () => {
+      const pet = await Pet.create({ name: 'howyadoin' })
+      await pet.updateAttributes({ name: 'change me' }, { skipHooks: true })
+      expect(pet.name).toEqual('change me')
+
+      await pet.reload()
+      expect(pet.name).toEqual('change me')
+    })
+  })
+
+  context('when in a transaction', () => {
+    it('calls model hooks', async () => {
+      const pet = await Pet.create({ name: 'howyadoin' })
+
+      await ApplicationModel.transaction(async txn => {
+        await pet.txn(txn).updateAttributes({ name: 'change me' })
+      })
+
+      expect(pet.name).toEqual('changed by update hook')
+
+      await pet.reload()
+      expect(pet.name).toEqual('changed by update hook')
+    })
+
+    context('skipHooks=false', () => {
+      it('skips model hooks', async () => {
+        const pet = await Pet.create({ name: 'howyadoin' })
+
+        await ApplicationModel.transaction(async txn => {
+          await pet.txn(txn).updateAttributes({ name: 'change me' }, { skipHooks: true })
+        })
+
+        expect(pet.name).toEqual('change me')
+
+        await pet.reload()
+        expect(pet.name).toEqual('change me')
+      })
+    })
+  })
+
   context('STI', () => {
     context('when updating the type field on an STI record', () => {
       it('bypasses user-defined setters, ensuring that the update happens', async () => {
