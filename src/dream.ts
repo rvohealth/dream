@@ -2973,9 +2973,9 @@ export default class Dream {
    */
   public async destroy<I extends Dream>(
     this: I,
-    { skipHooks = false }: { skipHooks?: boolean } = {}
+    { skipHooks, cascade }: { skipHooks?: boolean; cascade?: boolean } = {}
   ): Promise<I> {
-    return destroyDream(this, null, { skipHooks })
+    return destroyDream(this, null, { skipHooks, cascade })
   }
 
   /**
@@ -2997,9 +2997,9 @@ export default class Dream {
    */
   public async reallyDestroy<I extends Dream>(
     this: I,
-    { skipHooks = false }: { skipHooks?: boolean } = {}
+    { skipHooks, cascade }: { skipHooks?: boolean; cascade?: boolean } = {}
   ): Promise<I> {
-    return destroyDream(this, null, { skipHooks, reallyDestroy: true })
+    return destroyDream(this, null, { skipHooks, cascade, reallyDestroy: true })
   }
 
   /**
@@ -3019,7 +3019,7 @@ export default class Dream {
    */
   public async undestroy<I extends Dream>(
     this: I,
-    { skipHooks = false, cascade = false }: { skipHooks?: boolean; cascade?: boolean } = {}
+    { skipHooks, cascade }: { skipHooks?: boolean; cascade?: boolean } = {}
   ): Promise<I> {
     const dreamClass = this.constructor as typeof Dream
     if (!dreamClass['softDelete']) throw new CannotCallUndestroyOnANonSoftDeleteModel(dreamClass)
@@ -3814,10 +3814,7 @@ export default class Dream {
    *
    * @returns void
    */
-  public async save<I extends Dream>(
-    this: I,
-    { skipHooks = false }: { skipHooks?: boolean } = {}
-  ): Promise<void> {
+  public async save<I extends Dream>(this: I, { skipHooks }: { skipHooks?: boolean } = {}): Promise<void> {
     await saveDream(this, null, { skipHooks })
   }
 
@@ -3861,7 +3858,7 @@ export default class Dream {
   public async update<I extends Dream>(
     this: I,
     attributes: UpdateableProperties<I>,
-    { skipHooks = false }: { skipHooks?: boolean } = {}
+    { skipHooks }: { skipHooks?: boolean } = {}
   ): Promise<void> {
     // use #assignAttributes to leverage any custom-defined setters
     this.assignAttributes(attributes)

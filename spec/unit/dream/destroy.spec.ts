@@ -2,6 +2,7 @@ import { describe as context } from '@jest/globals'
 import { Dream, DreamTransaction } from '../../../src'
 import * as runHooksForModule from '../../../src/dream/internal/runHooksFor'
 import * as safelyRunCommitHooksModule from '../../../src/dream/internal/safelyRunCommitHooks'
+import * as destroyAssociatedRecordsModule from '../../../src/dream/internal/destroyAssociatedRecords'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Composition from '../../../test-app/app/models/Composition'
 import HeartRating from '../../../test-app/app/models/ExtraRating/HeartRating'
@@ -15,6 +16,7 @@ import User from '../../../test-app/app/models/User'
 describe('Dream#destroy', () => {
   let hooksSpy: jest.SpyInstance
   let commitHooksSpy: jest.SpyInstance
+  let cascadeSpy: jest.SpyInstance
 
   function expectDestroyHooksCalled(dream: Dream) {
     expect(hooksSpy).toHaveBeenCalledWith(
@@ -61,6 +63,14 @@ describe('Dream#destroy', () => {
       expect.toBeOneOf([expect.anything(), undefined, null]),
       expect.toBeOneOf([expect.anything(), undefined, null]),
       expect.toBeOneOf([expect.anything(), undefined, null])
+    )
+  }
+
+  function expectNoCascadeDestroying(dream: Dream) {
+    expect(cascadeSpy).not.toHaveBeenCalledWith(
+      expect.toMatchDreamModel(dream),
+      expect.anything(),
+      expect.anything()
     )
   }
 
@@ -320,6 +330,18 @@ describe('Dream#destroy', () => {
         await composition.destroy({ skipHooks: true })
         expectNoDestroyHooksCalled(deletableLocalizedText)
       })
+    })
+  })
+
+  context('cascade is false (it is true by default)', () => {
+    it('skips cascade-destroying associations', async () => {
+      const pet = await Pet.create()
+
+      cascadeSpy = jest.spyOn(destroyAssociatedRecordsModule, 'default')
+
+      await pet.destroy({ cascade: false })
+
+      expectNoCascadeDestroying(pet)
     })
   })
 

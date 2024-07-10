@@ -1875,24 +1875,27 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns The number of records that were removed
    */
-  public async destroy({ skipHooks = false }: { skipHooks?: boolean } = {}): Promise<number> {
+  public async destroy({
+    skipHooks,
+    cascade,
+  }: { skipHooks?: boolean; cascade?: boolean } = {}): Promise<number> {
     let counter = 0
 
     if (this.dreamTransaction) {
       await this.txn(this.dreamTransaction).findEach(async result => {
         if (this.shouldReallyDestroy) {
-          await result.txn(this.dreamTransaction!).reallyDestroy({ skipHooks })
+          await result.txn(this.dreamTransaction!).reallyDestroy({ skipHooks, cascade })
         } else {
-          await result.txn(this.dreamTransaction!).destroy({ skipHooks })
+          await result.txn(this.dreamTransaction!).destroy({ skipHooks, cascade })
         }
         counter++
       })
     } else {
       await this.findEach(async result => {
         if (this.shouldReallyDestroy) {
-          await result.reallyDestroy({ skipHooks })
+          await result.reallyDestroy({ skipHooks, cascade })
         } else {
-          await result.destroy({ skipHooks })
+          await result.destroy({ skipHooks, cascade })
         }
         counter++
       })
@@ -1925,8 +1928,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns The number of records that were removed
    */
-  public async reallyDestroy({ skipHooks = false }: { skipHooks?: boolean } = {}): Promise<number> {
-    return await this.clone({ shouldReallyDestroy: true }).destroy({ skipHooks })
+  public async reallyDestroy({
+    skipHooks,
+    cascade,
+  }: { skipHooks?: boolean; cascade?: boolean } = {}): Promise<number> {
+    return await this.clone({ shouldReallyDestroy: true }).destroy({ skipHooks, cascade })
   }
 
   /**
@@ -1944,8 +1950,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @returns The number of records that were removed
    */
   public async undestroy({
-    cascade = false,
-    skipHooks = false,
+    cascade,
+    skipHooks,
   }: { cascade?: boolean; skipHooks?: boolean } = {}): Promise<number> {
     if (!this.dreamClass['softDelete']) throw new CannotCallUndestroyOnANonSoftDeleteModel(this.dreamClass)
     let counter = 0
@@ -1999,7 +2005,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    */
   public async update(
     attributes: DreamTableSchema<DreamInstance>,
-    { skipHooks = false }: { skipHooks?: boolean } = {}
+    { skipHooks }: { skipHooks?: boolean } = {}
   ) {
     if (this.baseSelectQuery) throw new NoUpdateAllOnAssociationQuery()
     if (Object.keys(this.joinsStatements).length) throw new NoUpdateAllOnJoins()
