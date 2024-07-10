@@ -1873,6 +1873,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * // 12
    * ```
    *
+   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
+   * @param opts.cascade - if false, will skip applying cascade deletes on "dependent: 'destroy'" associations. Defaults to true
    * @returns The number of records that were removed
    */
   public async destroy({
@@ -1926,6 +1928,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * // 12
    * ```
    *
+   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
+   * @param opts.cascade - if false, will skip applying cascade deletes on "dependent: 'destroy'" associations. Defaults to true
    * @returns The number of records that were removed
    */
   public async reallyDestroy({
@@ -1947,6 +1951,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * // 12
    * ```
    *
+   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
+   * @param opts.cascade - if false, will skip applying cascade undeletes on "dependent: 'destroy'" associations. Defaults to true
    * @returns The number of records that were removed
    */
   public async undestroy({
@@ -2001,6 +2007,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * // 12
    * ```
    * @param attributes - The attributes used to update the records
+   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns The number of records that were updated
    */
   public async update(

@@ -88,6 +88,39 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     return this.queryInstance().pluckThrough(...(args as any))
   }
 
+  /**
+   * Plucks the specified fields from the join Query in batches,
+   * passing each plucked value/set of plucked values
+   * into the provided callback function. It will continue
+   * doing this until it exhausts all results in the
+   * Query. This is useful when plucking would result in
+   * more results than would be desirable to instantiate
+   * in memory/more results than would be desirable to handle
+   * between awaits.
+   *
+   * ```ts
+   * const user = await User.first()
+   *
+   * await ApplicationModel.transaction(async txn => {
+   *   await user.txn(txn).pluckEachThrough(
+   *     'posts',
+   *     { createdAt: range(CalendarDate.yesterday()) },
+   *     'comments',
+   *     'replies',
+   *     ['replies.body', 'replies.numLikes'],
+   *     ([body, numLikes]) => {
+   *       console.log({ body, numLikes })
+   *     }
+   *   )
+   *
+   *   // { body: 'loved it!', numLikes: 2 }
+   *   // { body: 'hated it :(', numLikes: 0 }
+   *   })
+   * ```
+   *
+   * @param args - A chain of association names and where clauses ending with the column or array of columns to pluck and the callback function
+   * @returns void
+   */
   public async pluckEachThrough<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     DB extends DreamInstance['dreamconf']['DB'],
@@ -181,6 +214,31 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     return await this.queryInstance().countThrough(...(args as any))
   }
 
+  /**
+   * Loads the requested associations upon execution
+   *
+   * NOTE: Preload is often a preferrable way of achieving the
+   * same goal.
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await user
+   *    .txn(txn)
+   *    .load('posts', { body: ops.ilike('%hello world%') }, 'comments', 'replies')
+   *    .load('images')
+   *    .execute()
+   *
+   *   user.posts[0].comments[0].replies[0]
+   *   // Reply{}
+   *
+   *   user.images[0]
+   *   // Image{}
+   * })
+   * ```
+   *
+   * @param args - A list of associations (and optional where clauses) to load
+   * @returns A chainable LoadBuilder instance
+   */
   public load<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     DB extends DreamInstance['dreamconf']['DB'],
@@ -191,6 +249,22 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     return new LoadBuilder<DreamInstance>(this.dreamInstance, this.dreamTransaction).load(...(args as any))
   }
 
+  /**
+   * Deletes the record represented by this instance
+   * from the database, calling any destroy
+   * hooks on this model.
+   *
+   * ```ts
+   * const user = await User.last()
+   * await ApplicationModel.transaction(async txn => {
+   *   await user.txn(txn).destroy()
+   * })
+   * ```
+   *
+   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
+   * @param opts.cascade - if false, will skip applying cascade deletes on "dependent: 'destroy'" associations. Defaults to true
+   * @returns the instance that was destroyed
+   */
   public async destroy<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I,
     { skipHooks, cascade }: { skipHooks?: boolean; cascade?: boolean } = {}
@@ -198,6 +272,22 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     return destroyDream<DreamInstance>(this.dreamInstance, this.dreamTransaction, { skipHooks, cascade })
   }
 
+  /**
+   * Deletes the record represented by this instance
+   * from the database, calling any destroy
+   * hooks on this model.
+   *
+   * ```ts
+   * const user = await User.last()
+   * await ApplicationModel.transaction(async txn => {
+   *   await user.txn(txn).reallyDestroy()
+   * })
+   * ```
+   *
+   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
+   * @param opts.cascade - if false, will skip applying cascade deletes on "dependent: 'destroy'" associations. Defaults to true
+   * @returns the instance that was destroyed
+   */
   public async reallyDestroy<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I,
     { skipHooks, cascade }: { skipHooks?: boolean; cascade?: boolean } = {}
@@ -233,6 +323,28 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     return this
   }
 
+  /**
+   * Applies all attribute changes passed to the Dream
+   * instance, leveraging any custom-defined setters,
+   * and then saves the Dream instance. Can be called
+   * on an unpersisted Dream instance.
+   *
+   * See {@link Dream.save | save} for details on
+   * the side effects of saving.
+   *
+   * NOTE:
+   * To bypass custom-defined setters, use {@link Dream.updateAttributes | updateAttributes} instead.
+   *
+   * ```ts
+   *  const user = await User.create({ email: 'saly@gmail.com' })
+   *  await ApplicationModel.transaction(async txn => {
+   *    await user.txn(txn).update({ email: 'sally@gmail.com' })
+   *  })
+   * ```
+   *
+   * @param attributes - the attributes to set on the model
+   * @returns void
+   */
   public async update<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I,
     attributes: UpdateableProperties<DreamInstance>
@@ -241,6 +353,29 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     await saveDream(this.dreamInstance, this.dreamTransaction)
   }
 
+  /**
+   * Applies all attribute changes passed to the dream,
+   * bypassing any custom-defined setters,
+   * and then saves the dream instance. Does not bypass
+   * model hooks.
+   *
+   * See {@link Dream.save | save} for details on
+   * the side effects of saving.
+   *
+   * NOTE:
+   * To update the values without bypassing any custom-defined
+   * setters, use {@link Dream.update | update} instead.
+   *
+   * ```ts
+   * const user = await User.create({ email: 'saly@gmail.com' })
+   *  await ApplicationModel.transaction(async txn => {
+   *    await user.txn(txn).updateAttributes({ email: 'sally@gmail.com' })
+   *  })
+   * ```
+   *
+   * @param attributes - The attributes to update on this instance
+   * @returns - void
+   */
   public async updateAttributes<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I,
     attributes: UpdateableProperties<DreamInstance>
@@ -249,14 +384,75 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     await saveDream(this.dreamInstance, this.dreamTransaction)
   }
 
+  /**
+   * Reloads an instance, refreshing all it's attribute values
+   * to those in the database.
+   *
+   * NOTE: this does not refresh associations
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await user.txn(txn).reload()
+   * })
+   * ```
+   *
+   * @returns void
+   */
   public async reload<I extends DreamInstanceTransactionBuilder<DreamInstance>>(this: I): Promise<void> {
     await reload(this.dreamInstance, this.dreamTransaction)
   }
 
+  /**
+   * Saves the state of the current instance to the
+   * database. For new instances (that have not been
+   * persisted), `save` and `create` model hooks will be called.
+   * For instances that have already been persisted,
+   * the `save` and `update` model hooks will be called.
+   *
+   * Upon saving a new instance, the primary key, timestamp
+   * fields (if defined), and `type` (if STI) will be set on
+   * the model.
+   *
+   * Upon updating an instance, the update timestamp (if defined)
+   * will be updated on the model.
+   *
+   * ```ts
+   * const user = User.new({ email: 'how@yadoin' })
+   *
+   * await ApplicationModel.transaction(async txn => {
+   *   user.name = 'fred'
+   *   await user.txn(txn).save()
+   * })
+   *
+   * user.email // 'how@yadoin'
+   * user.name // 'fred'
+   * user.id // 1
+   * user.createdAt // A DateTime object
+   * user.updatedAt // A DateTime object
+   *
+   * // If User were STI:
+   * user.type // 'User'
+   * ```
+   *
+   * @returns void
+   */
   public async save<I extends DreamInstanceTransactionBuilder<DreamInstance>>(this: I): Promise<void> {
     await saveDream(this.dreamInstance, this.dreamTransaction)
   }
 
+  /**
+   * Returns a Query instance for the specified
+   * association on the current instance.
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await user.txn(txn).associationQuery('posts').all()
+   *   // only user posts returned
+   * })
+   * ```
+   *
+   * @returns A Query scoped to the specified association on the current instance
+   */
   public associationQuery<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends
@@ -336,6 +532,21 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     ).update(attributes, { skipHooks: (updateAssociationOptions as any)?.skipHooks })
   }
 
+  /**
+   * Creates an association for an instance. Automatically
+   * handles setting foreign key and, in the case of polymorphism,
+   * foreign key type.
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await user.txn(txn).createAssociation('posts', { body: 'hello world' })
+   * })
+   * ```
+   *
+   * @param associationName - the name of the association to create
+   * @param attributes - the attributes with which to create the associated model
+   * @returns The created association
+   */
   public async createAssociation<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends
@@ -392,6 +603,22 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     }
   ): Promise<number>
 
+  /**
+   * Destroys models associated with the current instance,
+   * deleting their corresponding records within the database.
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await user.txn(txn).destroyAssociation('posts', { body: 'hello world' })
+   * })
+   * ```
+   *
+   * @param associationName - The name of the association to destroy
+   * @param opts.whereStatement - Optional where statement to apply to query before destroying
+   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
+   * @param opts.cascade - if false, will skip applying cascade undeletes on "dependent: 'destroy'" associations. Defaults to true
+   * @returns The number of records deleted
+   */
   public async destroyAssociation<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     Schema extends DreamInstance['dreamconf']['schema'],
@@ -449,6 +676,27 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     }
   ): Promise<number>
 
+  /**
+   * Destroys models associated with the current instance,
+   * deleting their corresponding records within the database.
+   *
+   * If the record, or else any of it's associations
+   * which are marked cascade: "destroy", are using
+   * the SoftDelete decorator, it will be bypassed,
+   * causing those records to be deleted from the database.
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await user.txn(txn).reallyDestroyAssociation('posts', { body: 'hello world' })
+   * })
+   * ```
+   *
+   * @param associationName - The name of the association to destroy
+   * @param opts.whereStatement - Optional where statement to apply to query before destroying
+   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
+   * @param opts.cascade - if false, will skip applying cascade undeletes on "dependent: 'destroy'" associations. Defaults to true
+   * @returns The number of records deleted
+   */
   public async reallyDestroyAssociation<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     Schema extends DreamInstance['dreamconf']['schema'],
@@ -517,8 +765,8 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    *
    * @param associationName - The name of the association to destroy
    * @param opts.whereStatement - Optional where statement to apply to query before undestroying
-   * @param opts.skipHooks - Whether or not to skip model hooks when undestroying
-   * @param opts.cascade - Whether or not to cascade undestroy child associations
+   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
+   * @param opts.cascade - if false, will skip applying cascade undeletes on "dependent: 'destroy'" associations. Defaults to true
    * @returns The number of records undestroyed
    */
   public undestroyAssociation<
@@ -540,6 +788,13 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   // end: undestroyAssociation
   ///////////////////
 
+  /**
+   * @internal
+   *
+   * returns a query instance, scoped to the current
+   * dream instance with primary key where statement
+   * automatically applied.
+   */
   private queryInstance<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I
   ): Query<DreamInstance> {
