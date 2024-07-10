@@ -79,11 +79,19 @@ describe('Query#reallyDestroy', () => {
     })
   })
 
-  context('skipHooks=true', () => {
+  context('skipHooks is passed', () => {
     it('passes along skipHooks to underlying destroy call', async () => {
       const spy = jest.spyOn(Query.prototype, 'destroy')
       await User.query().reallyDestroy({ skipHooks: true })
       expect(spy).toHaveBeenCalledWith({ skipHooks: true })
+    })
+  })
+
+  context('cascade is passed', () => {
+    it('passes along cascade to underlying destroy call', async () => {
+      const spy = jest.spyOn(Query.prototype, 'destroy')
+      await User.query().reallyDestroy({ cascade: false })
+      expect(spy).toHaveBeenCalledWith({ cascade: false })
     })
   })
 })

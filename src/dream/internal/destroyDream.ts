@@ -1,5 +1,6 @@
 import Dream from '../../dream'
 import DreamTransaction from '../transaction'
+import destroyAssociatedRecords from './destroyAssociatedRecords'
 import runHooksFor from './runHooksFor'
 import safelyRunCommitHooks from './safelyRunCommitHooks'
 import softDeleteDream from './softDeleteDream'
@@ -17,14 +18,18 @@ import softDeleteDream from './softDeleteDream'
 export default async function destroyDream<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I> | null = null,
-  { skipHooks = false, reallyDestroy = false }: { skipHooks?: boolean; reallyDestroy?: boolean } = {}
+  {
+    skipHooks,
+    reallyDestroy,
+    cascade,
+  }: { skipHooks?: boolean; reallyDestroy?: boolean; cascade?: boolean } = {}
 ): Promise<I> {
   if (txn) {
-    return await destroyDreamWithTransaction(dream, txn, { skipHooks, reallyDestroy })
+    return await destroyDreamWithTransaction(dream, txn, { skipHooks, reallyDestroy, cascade })
   } else {
     const dreamClass = dream.constructor as typeof Dream
     return await dreamClass.transaction(
-      async txn => await destroyDreamWithTransaction<I>(dream, txn, { skipHooks, reallyDestroy })
+      async txn => await destroyDreamWithTransaction<I>(dream, txn, { skipHooks, reallyDestroy, cascade })
     )
   }
 }
@@ -39,9 +44,15 @@ export default async function destroyDream<I extends Dream>(
 async function destroyDreamWithTransaction<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I>,
-  { skipHooks, reallyDestroy }: { skipHooks: boolean; reallyDestroy: boolean }
+  {
+    skipHooks = false,
+    reallyDestroy = false,
+    cascade = true,
+  }: { skipHooks?: boolean; reallyDestroy?: boolean; cascade?: boolean }
 ): Promise<I> {
-  await destroyAssociatedRecords(dream, txn, { skipHooks, reallyDestroy })
+  if (cascade) {
+    await destroyAssociatedRecords(dream, txn, { skipHooks, reallyDestroy })
+  }
 
   if (!skipHooks) {
     await runHooksFor('beforeDestroy', dream, true, null, txn)
@@ -80,27 +91,5 @@ async function maybeDestroyDream<I extends Dream>(
       .deleteFrom(dream.table as any)
       .where(dream.primaryKey as any, '=', dream.primaryKeyValue)
       .execute()
-  }
-}
-
-/**
- * @internal
- *
- * Destroys all HasOne/HasMany associations on this
- * dream that are marked as `dependent: 'destroy'`
- */
-async function destroyAssociatedRecords<I extends Dream>(
-  dream: I,
-  txn: DreamTransaction<I>,
-  { skipHooks, reallyDestroy }: { skipHooks: boolean; reallyDestroy: boolean }
-) {
-  const dreamClass = dream.constructor as typeof Dream
-
-  for (const associationName of dreamClass['dependentDestroyAssociationNames']()) {
-    if (reallyDestroy) {
-      await dream.txn(txn).reallyDestroyAssociation(associationName as any, { skipHooks })
-    } else {
-      await dream.txn(txn).destroyAssociation(associationName as any, { skipHooks })
-    }
   }
 }

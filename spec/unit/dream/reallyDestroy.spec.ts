@@ -3,28 +3,31 @@ import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
+import * as destroyDreamModule from '../../../src/dream/internal/destroyDream'
 
 describe('Dream#reallyDestroy', () => {
   it('destroys the record', async () => {
-    await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+    const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
     expect(await User.count()).toEqual(1)
 
-    await User.query().reallyDestroy()
-    expect(await User.count()).toEqual(0)
+    await user.reallyDestroy()
   })
 
-  it('calls Query#destroy', async () => {
-    const spy = jest.spyOn(Query.prototype, 'reallyDestroy')
-    await User.query().reallyDestroy()
-    expect(spy).toHaveBeenCalled()
-  })
-
-  context('skipHooks=true', () => {
-    it('passes along skipHooks to underlying destroy call', async () => {
+  context('skipHooks passed', () => {
+    it('passes along skipHooks to underlying destroyDream call', async () => {
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-      const spy = jest.spyOn(Query.prototype, 'reallyDestroy')
+      const spy = jest.spyOn(destroyDreamModule, 'default')
       await user.reallyDestroy({ skipHooks: true })
-      expect(spy).toHaveBeenCalledWith({ skipHooks: true })
+      expect(spy).toHaveBeenCalledWith(user, null, expect.objectContaining({ skipHooks: true }))
+    })
+  })
+
+  context('cascade passed', () => {
+    it('passes along cascade to underlying destroyDream call', async () => {
+      const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      const spy = jest.spyOn(destroyDreamModule, 'default')
+      await user.reallyDestroy({ cascade: false })
+      expect(spy).toHaveBeenCalledWith(user, null, expect.objectContaining({ cascade: false }))
     })
   })
 

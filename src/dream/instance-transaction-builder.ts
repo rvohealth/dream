@@ -193,17 +193,18 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
 
   public async destroy<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I,
-    { skipHooks = false }: { skipHooks?: boolean } = {}
+    { skipHooks, cascade }: { skipHooks?: boolean; cascade?: boolean } = {}
   ): Promise<DreamInstance> {
-    return destroyDream<DreamInstance>(this.dreamInstance, this.dreamTransaction, { skipHooks })
+    return destroyDream<DreamInstance>(this.dreamInstance, this.dreamTransaction, { skipHooks, cascade })
   }
 
   public async reallyDestroy<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I,
-    { skipHooks = false }: { skipHooks?: boolean } = {}
+    { skipHooks, cascade }: { skipHooks?: boolean; cascade?: boolean } = {}
   ): Promise<DreamInstance> {
     return destroyDream<DreamInstance>(this.dreamInstance, this.dreamTransaction, {
       skipHooks,
+      cascade,
       reallyDestroy: true,
     })
   }
@@ -225,7 +226,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    */
   public async undestroy<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I,
-    { skipHooks = false, cascade = false }: { skipHooks?: boolean; cascade?: boolean } = {}
+    { skipHooks, cascade }: { skipHooks?: boolean; cascade?: boolean } = {}
   ): Promise<I> {
     await undestroyDream(this.dreamInstance, this.dreamTransaction, { skipHooks, cascade })
     await this.reload()
