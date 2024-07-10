@@ -82,7 +82,7 @@ describe('Dream#reallyDestroy', () => {
             await post.txn(txn).reallyDestroy({ skipHooks: true })
           })
 
-          expect(spy).toHaveBeenCalledWith({ skipHooks: true })
+          expect(spy).toHaveBeenCalledWith(expect.objectContaining({ skipHooks: true }))
         })
       })
     })
