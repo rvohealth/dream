@@ -439,8 +439,11 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns void
    */
-  public async save<I extends DreamInstanceTransactionBuilder<DreamInstance>>(this: I): Promise<void> {
-    await saveDream(this.dreamInstance, this.dreamTransaction)
+  public async save<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
+    this: I,
+    { skipHooks }: { skipHooks?: boolean } = {}
+  ): Promise<void> {
+    await saveDream(this.dreamInstance, this.dreamTransaction, { skipHooks })
   }
 
   /**
