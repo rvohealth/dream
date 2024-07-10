@@ -26,6 +26,10 @@ import {
 
 export const schema = {
   balloon_lines: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       balloonId: {
         coercedType: {} as IdType,
@@ -80,6 +84,10 @@ export const schema = {
     },
   },
   balloon_spotter_balloons: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       balloonId: {
         coercedType: {} as IdType,
@@ -156,6 +164,10 @@ export const schema = {
     },
   },
   balloon_spotters: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -216,6 +228,10 @@ export const schema = {
     },
   },
   beautiful_balloons: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       color: {
         coercedType: {} as BalloonColorsEnum | null,
@@ -339,6 +355,10 @@ export const schema = {
     },
   },
   collars: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       balloonId: {
         coercedType: {} as IdType | null,
@@ -432,6 +452,10 @@ export const schema = {
     },
   },
   composition_asset_audits: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       approval: {
         coercedType: {} as boolean | null,
@@ -508,6 +532,10 @@ export const schema = {
     },
   },
   composition_assets: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       compositionId: {
         coercedType: {} as IdType,
@@ -621,6 +649,10 @@ export const schema = {
     },
   },
   compositions: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       content: {
         coercedType: {} as string | null,
@@ -770,6 +802,10 @@ export const schema = {
     },
   },
   edge_case_attributes: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -826,6 +862,10 @@ export const schema = {
     },
   },
   extra_ratings: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       body: {
         coercedType: {} as string | null,
@@ -919,6 +959,10 @@ export const schema = {
     },
   },
   graph_edge_nodes: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1045,6 +1089,10 @@ export const schema = {
     },
   },
   graph_edges: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1106,6 +1154,10 @@ export const schema = {
     },
   },
   graph_nodes: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1216,6 +1268,10 @@ export const schema = {
     },
   },
   incompatible_foreign_key_type_examples: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1262,6 +1318,10 @@ export const schema = {
     },
   },
   localized_texts: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       body: {
         coercedType: {} as string | null,
@@ -1348,6 +1408,10 @@ export const schema = {
     },
   },
   model_without_custom_deleted_ats: {
+    primaryKey: 'id',
+    createdAtField: 'updatedAt',
+    updatedAtField: 'createdAt',
+    deletedAtField: 'id',
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1388,6 +1452,10 @@ export const schema = {
     },
   },
   model_without_deleted_ats: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1420,6 +1488,10 @@ export const schema = {
     },
   },
   model_without_updated_at: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       cantUpdateThis: {
         coercedType: {} as string | null,
@@ -1460,6 +1532,10 @@ export const schema = {
     },
   },
   pet_understudy_join_models: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1521,6 +1597,10 @@ export const schema = {
     },
   },
   pets: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1721,6 +1801,10 @@ export const schema = {
     },
   },
   post_comments: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       body: {
         coercedType: {} as string | null,
@@ -1783,6 +1867,10 @@ export const schema = {
     },
   },
   post_visibilities: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1837,6 +1925,10 @@ export const schema = {
     },
   },
   posts: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       body: {
         coercedType: {} as string | null,
@@ -1943,6 +2035,10 @@ export const schema = {
     },
   },
   ratings: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       body: {
         coercedType: {} as string | null,
@@ -2028,6 +2124,10 @@ export const schema = {
     },
   },
   sandbags: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       balloonId: {
         coercedType: {} as IdType,
@@ -2098,6 +2198,10 @@ export const schema = {
     },
   },
   user_settings: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -2152,6 +2256,10 @@ export const schema = {
     },
   },
   users: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
     columns: {
       birthdate: {
         coercedType: {} as CalendarDate | null,

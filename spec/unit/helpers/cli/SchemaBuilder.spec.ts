@@ -90,6 +90,40 @@ describe('SchemaBuilder', () => {
       })
     })
 
+    context('primaryKey', () => {
+      it('sets the primaryKey', () => {
+        expect(User.prototype.dreamconf.schema.users.primaryKey).toEqual('id')
+      })
+    })
+
+    context('createdAtField', () => {
+      it('sets the createdAtField', () => {
+        expect(User.prototype.dreamconf.schema.users.createdAtField).toEqual('createdAt')
+        // createdAt intentionally points to updatedAt on this model
+        expect(User.prototype.dreamconf.schema.model_without_custom_deleted_ats.createdAtField).toEqual(
+          'updatedAt'
+        )
+      })
+    })
+
+    context('updatedAtField', () => {
+      it('sets the updatedAtField', () => {
+        expect(User.prototype.dreamconf.schema.users.updatedAtField).toEqual('updatedAt')
+        // updatedAt intentionally points to createdAt on this model
+        expect(User.prototype.dreamconf.schema.model_without_custom_deleted_ats.updatedAtField).toEqual(
+          'createdAt'
+        )
+      })
+    })
+
+    context('deletedAtField', () => {
+      it('sets the deletedAtField', () => {
+        expect(User.prototype.dreamconf.schema.users.deletedAtField).toEqual('deletedAt')
+        // deleteAt intentionally points to id on this model
+        expect(User.prototype.dreamconf.schema.model_without_custom_deleted_ats.deletedAtField).toEqual('id')
+      })
+    })
+
     context('associations', () => {
       it('renders correct association data', () => {
         expect(User.prototype.dreamconf.schema.collars.associations.pet).toEqual({

@@ -59,14 +59,16 @@ export type DreamColumnNames<
 export type DreamParamSafeColumnNames<
   DreamInstance extends Dream,
   BelongsToForeignKeys = DreamBelongsToForeignKeys<DreamInstance>,
+  Schema = DreamInstance['dreamconf']['schema'],
+  TableSchema = Schema[DreamInstance['table'] & keyof Schema],
 > = Exclude<
   DreamColumnNames<DreamInstance>,
   | BelongsToForeignKeys
   | DreamVirtualColumns<DreamInstance>
-  | DreamInstance['primaryKey']
-  | DreamInstance['createdAtField']
-  | DreamInstance['updatedAtField']
-  | DreamInstance['deletedAtField']
+  | TableSchema['primaryKey' & keyof TableSchema]
+  | TableSchema['createdAtField' & keyof TableSchema]
+  | TableSchema['updatedAtField' & keyof TableSchema]
+  | TableSchema['deletedAtField' & keyof TableSchema]
 >
 
 export type DreamBelongsToForeignKeys<

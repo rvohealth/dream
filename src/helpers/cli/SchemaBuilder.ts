@@ -57,6 +57,10 @@ export const schema = {
 
       return `\
 ${tableName}: {
+    primaryKey: '${tableData.primaryKey}',
+    createdAtField: '${tableData.createdAtField}',
+    updatedAtField: '${tableData.updatedAtField}',
+    deletedAtField: '${tableData.deletedAtField}',
     columns: {
       ${Object.keys(schemaData[tableName as keyof typeof schemaData].columns)
         .map(columnName => {
@@ -124,8 +128,15 @@ ${tableName}: {
   }
 
   private async tableData(tableName: string) {
+    const models = Object.values(await loadModels())
+    const model = models.find(model => model.table === tableName)
+
     const associationData = await this.getAssociationData(tableName)
     return {
+      primaryKey: model!.prototype.primaryKey,
+      createdAtField: model!.prototype.createdAtField,
+      updatedAtField: model!.prototype.updatedAtField,
+      deletedAtField: model!.prototype.deletedAtField,
       columns: await this.getColumnData(tableName, associationData),
       virtualColumns: await this.getVirtualColumns(tableName),
       associations: associationData,
@@ -341,6 +352,10 @@ interface SchemaData {
 }
 
 interface TableData {
+  primaryKey: string
+  createdAtField: string
+  updatedAtField: string
+  deletedAtField: string
   columns: { [key: string]: ColumnData }
   virtualColumns: string[]
   associations: { [key: string]: AssociationData }
