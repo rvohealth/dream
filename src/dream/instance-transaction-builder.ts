@@ -371,6 +371,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     destroyAssociationOptions: {
       where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
       skipHooks?: boolean
+      cascade?: boolean
     }
   ): Promise<number>
 
@@ -387,6 +388,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     destroyAssociationOptions?: {
       where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
       skipHooks?: boolean
+      cascade?: boolean
     }
   ): Promise<number>
 
@@ -402,6 +404,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
       (destroyAssociationOptions as any)?.where,
       {
         skipHooks: (destroyAssociationOptions as any)?.skipHooks,
+        cascade: (destroyAssociationOptions as any)?.cascade,
       }
     )
   }
@@ -425,6 +428,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     destroyAssociationOptions: {
       where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
       skipHooks?: boolean
+      cascade?: boolean
     }
   ): Promise<number>
 
@@ -441,6 +445,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     destroyAssociationOptions?: {
       where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
       skipHooks?: boolean
+      cascade?: boolean
     }
   ): Promise<number>
 
@@ -456,6 +461,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
       (destroyAssociationOptions as any)?.where,
       {
         skipHooks: (destroyAssociationOptions as any)?.skipHooks,
+        cascade: (destroyAssociationOptions as any)?.cascade,
         reallyDestroy: true,
       }
     )
