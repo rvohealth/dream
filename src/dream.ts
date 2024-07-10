@@ -3900,15 +3900,17 @@ export default class Dream {
    * ```
    *
    * @param attributes - The attributes to update on this instance
+   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns - void
    */
   public async updateAttributes<I extends Dream>(
     this: I,
-    attributes: UpdateableProperties<I>
+    attributes: UpdateableProperties<I>,
+    { skipHooks }: { skipHooks?: boolean } = {}
   ): Promise<void> {
     // use #setAttributes to bypass any custom-defined setters
     this.setAttributes(attributes)
-    await this.save()
+    await this.save({ skipHooks })
   }
 
   /**
