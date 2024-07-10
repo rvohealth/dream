@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
-import { Dream, DreamTransaction } from '../../../../src'
+import { Dream, DreamTransaction, Query } from '../../../../src'
+import * as destroyAssociationModule from '../../../../src/dream/internal/associations/destroyAssociation'
 import * as runHooksForModule from '../../../../src/dream/internal/runHooksFor'
 import * as safelyRunCommitHooksModule from '../../../../src/dream/internal/safelyRunCommitHooks'
 import MissingRequiredAssociationWhereClause from '../../../../src/exceptions/associations/missing-required-association-where-clause'
@@ -10,8 +11,8 @@ import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import LocalizedText from '../../../../test-app/app/models/LocalizedText'
 import Pet from '../../../../test-app/app/models/Pet'
 import Post from '../../../../test-app/app/models/Post'
-import User from '../../../../test-app/app/models/User'
 import Rating from '../../../../test-app/app/models/Rating'
+import User from '../../../../test-app/app/models/User'
 
 describe('Dream#reallyDestroyAssociation', () => {
   let hooksSpy: jest.SpyInstance
@@ -77,6 +78,20 @@ describe('Dream#reallyDestroyAssociation', () => {
     expectDestroyHooksCalled(compositionAsset)
   })
 
+  context('cascade is false (it is true by default)', () => {
+    it('skips cascade-destroying associations', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await user.createAssociation('compositions')
+      await composition.createAssociation('compositionAssets')
+
+      const reallyDestroySpy = jest.spyOn(Query.prototype, 'reallyDestroy')
+
+      await composition.reallyDestroyAssociation('compositionAssets', { cascade: false })
+
+      expect(reallyDestroySpy).toHaveBeenCalledWith(expect.objectContaining({ cascade: false }))
+    })
+  })
+
   context('model hooks', () => {
     it('calls model hooks for each associated record', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
@@ -86,7 +101,7 @@ describe('Dream#reallyDestroyAssociation', () => {
       hooksSpy = jest.spyOn(runHooksForModule, 'default')
       commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
 
-      await composition.destroyAssociation('compositionAssets')
+      await composition.reallyDestroyAssociation('compositionAssets')
 
       expectDestroyHooksCalled(compositionAsset)
     })
@@ -367,11 +382,36 @@ describe('Dream#reallyDestroyAssociation', () => {
       expect(await user.associationQuery('compositions').all()).toMatchDreamModels([composition])
 
       await ApplicationModel.transaction(async txn => {
-        await user.txn(txn).reallyDestroyAssociation('compositions', { skipHooks: false })
+        await user.txn(txn).reallyDestroyAssociation('compositions')
       })
 
       expect(await user.associationQuery('compositions').all()).toEqual([])
       expect(await Composition.all()).toMatchDreamModels([composition2])
+    })
+
+    context('with additional args', () => {
+      it('passes those args along', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        await user.createAssociation('compositions')
+
+        const destroyAssociationSpy = jest.spyOn(destroyAssociationModule, 'default')
+
+        await ApplicationModel.transaction(async txn => {
+          await user.txn(txn).reallyDestroyAssociation('compositions', { skipHooks: false, cascade: false })
+        })
+
+        expect(destroyAssociationSpy).toHaveBeenCalledWith(
+          expect.toMatchDreamModel(user),
+          expect.anything(),
+          'compositions',
+          undefined,
+          {
+            skipHooks: false,
+            cascade: false,
+            reallyDestroy: true,
+          }
+        )
+      })
     })
 
     context('with a primary key override', () => {
