@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
 import User from '../../../test-app/app/models/User'
+import Pet from '../../../test-app/app/models/Pet'
 
 describe('Dream#save', () => {
   context('a new record', () => {
@@ -17,6 +18,14 @@ describe('Dream#save', () => {
       expect(reloadedUser).toMatchDreamModel(user)
     })
 
+    context('skipHooks is passed', () => {
+      it('skips model hooks', async () => {
+        const pet = Pet.new({ name: 'change me' })
+        await pet.save({ skipHooks: true })
+        expect(pet.name).toEqual('change me')
+      })
+    })
+
     context('when encased in a transaction', () => {
       it('updates the underlying model in the db', async () => {
         await ApplicationModel.transaction(async txn => {
@@ -25,6 +34,16 @@ describe('Dream#save', () => {
 
         const reloadedUser = await User.find(user.id)
         expect(reloadedUser).toMatchDreamModel(user)
+      })
+
+      context('skipHooks is passed', () => {
+        it('skips model hooks', async () => {
+          await ApplicationModel.transaction(async txn => {
+            const pet = Pet.new({ name: 'change me' })
+            await pet.txn(txn).save({ skipHooks: true })
+            expect(pet.name).toEqual('change me')
+          })
+        })
       })
     })
 

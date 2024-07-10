@@ -65,6 +65,16 @@ describe('Dream#update', () => {
       expect(reloadedUser!.name).toEqual('Snoopy')
     })
 
+    context('skipHooks is passed', () => {
+      it('skips model hooks', async () => {
+        await ApplicationModel.transaction(async txn => {
+          const pet = await Pet.txn(txn).create()
+          await pet.txn(txn).update({ name: 'change me' }, { skipHooks: true })
+          expect(pet.name).toEqual('change me')
+        })
+      })
+    })
+
     context('with a model containing setter overrides', () => {
       it('applies setter overrides', async () => {
         let pet: Pet | null = null
