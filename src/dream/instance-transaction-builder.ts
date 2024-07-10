@@ -343,14 +343,16 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * ```
    *
    * @param attributes - the attributes to set on the model
+   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns void
    */
   public async update<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I,
-    attributes: UpdateableProperties<DreamInstance>
+    attributes: UpdateableProperties<DreamInstance>,
+    { skipHooks }: { skipHooks?: boolean } = {}
   ): Promise<void> {
     this.dreamInstance.assignAttributes(attributes)
-    await saveDream(this.dreamInstance, this.dreamTransaction)
+    await saveDream(this.dreamInstance, this.dreamTransaction, { skipHooks })
   }
 
   /**
