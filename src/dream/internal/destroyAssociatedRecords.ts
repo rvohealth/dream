@@ -16,9 +16,9 @@ export default async function destroyAssociatedRecords<I extends Dream>(
 
   for (const associationName of dreamClass['dependentDestroyAssociationNames']()) {
     if (reallyDestroy) {
-      await dream.txn(txn).reallyDestroyAssociation(associationName as any, { skipHooks })
+      await dream.txn(txn).reallyDestroyAssociation(associationName as any, { skipHooks, cascade: true })
     } else {
-      await dream.txn(txn).destroyAssociation(associationName as any, { skipHooks })
+      await dream.txn(txn).destroyAssociation(associationName as any, { skipHooks, cascade: true })
     }
   }
 }

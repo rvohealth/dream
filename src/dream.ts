@@ -2969,6 +2969,8 @@ export default class Dream {
    * await user.destroy()
    * ```
    *
+   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
+   * @param opts.cascade - if false, will skip applying cascade deletes on "dependent: 'destroy'" associations. Defaults to true
    * @returns the instance that was destroyed
    */
   public async destroy<I extends Dream>(
@@ -2993,6 +2995,8 @@ export default class Dream {
    * await user.destroy()
    * ```
    *
+   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
+   * @param opts.cascade - if false, will skip applying cascade deletes on "dependent: 'destroy'" associations. Defaults to true
    * @returns the instance that was destroyed
    */
   public async reallyDestroy<I extends Dream>(
@@ -3015,6 +3019,8 @@ export default class Dream {
    * // 12
    * ```
    *
+   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
+   * @param opts.cascade - if false, will skip applying cascade undeletes on "dependent: 'destroy'" associations. Defaults to true
    * @returns The undestroyed record
    */
   public async undestroy<I extends Dream>(
@@ -3337,7 +3343,8 @@ export default class Dream {
    *
    * @param associationName - The name of the association to destroy
    * @param opts.whereStatement - Optional where statement to apply to query before destroying
-   * @param opts.skipHooks - Whether or not to skip model hooks when destroying
+   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
+   * @param opts.cascade - if false, will skip applying cascade undeletes on "dependent: 'destroy'" associations. Defaults to true
    * @returns The number of records deleted
    */
   public destroyAssociation<I extends Dream, AssociationName extends keyof I>(
@@ -3405,7 +3412,8 @@ export default class Dream {
    *
    * @param associationName - The name of the association to destroy
    * @param opts.whereStatement - Optional where statement to apply to query before destroying
-   * @param opts.skipHooks - Whether or not to skip model hooks when destroying
+   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
+   * @param opts.cascade - if false, will skip applying cascade undeletes on "dependent: 'destroy'" associations. Defaults to true
    * @returns The number of records deleted
    */
   public reallyDestroyAssociation<I extends Dream, AssociationName extends keyof I>(

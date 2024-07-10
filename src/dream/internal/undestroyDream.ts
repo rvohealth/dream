@@ -48,7 +48,7 @@ async function undestroyDreamWithTransaction<I extends Dream>(
   await doUndestroyDream(dream, txn)
 
   if (cascade) {
-    await undestroyAssociatedRecords(dream, txn, { skipHooks, cascade })
+    await undestroyAssociatedRecords(dream, txn, { skipHooks })
   }
 
   if (!skipHooks) {
@@ -105,7 +105,7 @@ async function doUndestroyDream<I extends Dream>(dream: I, txn: DreamTransaction
 async function undestroyAssociatedRecords<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I>,
-  { skipHooks, cascade }: { skipHooks: boolean; cascade: boolean }
+  { skipHooks }: { skipHooks: boolean }
 ) {
   const dreamClass = dream.constructor as typeof Dream
 
@@ -113,10 +113,11 @@ async function undestroyAssociatedRecords<I extends Dream>(
     const associationMetadata = dreamClass['associationMetadataMap']()[associationName]
     const associatedClass = associationMetadata?.modelCB?.()
     if (Array.isArray(associatedClass)) {
+      // TODO: decide how to handle polymorphic associations with dependent: destroy
       // raise?
     } else {
       if (associatedClass?.['softDelete']) {
-        await dream.txn(txn).undestroyAssociation(associationName as any, { skipHooks, cascade })
+        await dream.txn(txn).undestroyAssociation(associationName as any, { skipHooks, cascade: true })
       }
     }
   }
