@@ -465,7 +465,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends
       keyof DreamInstance['dreamconf']['schema'][DreamInstance['table']]['associations'],
-  >(this: I, associationName: AssociationName): any {
+  >(this: I, associationName: AssociationName): Query<DreamAssociationType<DreamInstance, AssociationName>> {
     return associationQuery(this.dreamInstance, this.dreamTransaction, associationName)
   }
 
