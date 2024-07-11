@@ -84,9 +84,7 @@ async function maybeDestroyDream<I extends Dream>(
   const shouldSoftDelete = dreamClass['softDelete'] && !reallyDestroy
   if (shouldSoftDelete) {
     await softDeleteDream(dream, txn)
-  }
-
-  if (!shouldSoftDelete && !dream['_preventDeletion']) {
+  } else if (!dream['_preventDeletion']) {
     await txn.kyselyTransaction
       .deleteFrom(dream.table as any)
       .where(dream.primaryKey as any, '=', dream.primaryKeyValue)
