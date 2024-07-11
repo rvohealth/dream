@@ -65,7 +65,16 @@ async function destroyDreamWithTransaction<I extends Dream>(
     await safelyRunCommitHooks(dream, 'afterDestroyCommit', true, null, txn)
   }
 
+  if (shouldSoftDelete(dream, reallyDestroy)) {
+    await dream.txn(txn).reload()
+  }
+
   return dream
+}
+
+function shouldSoftDelete(dream: Dream, reallyDestroy: boolean) {
+  const dreamClass = dream.constructor as typeof Dream
+  return dreamClass['softDelete'] && !reallyDestroy
 }
 
 /**
@@ -79,10 +88,7 @@ async function maybeDestroyDream<I extends Dream>(
   txn: DreamTransaction<I>,
   reallyDestroy: boolean
 ) {
-  const dreamClass = dream.constructor as typeof Dream
-
-  const shouldSoftDelete = dreamClass['softDelete'] && !reallyDestroy
-  if (shouldSoftDelete) {
+  if (shouldSoftDelete(dream, reallyDestroy)) {
     await softDeleteDream(dream, txn)
   } else if (!dream['_preventDeletion']) {
     await txn.kyselyTransaction
