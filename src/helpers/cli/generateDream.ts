@@ -13,6 +13,7 @@ import serializersPath from '../path/serializersPath'
 import path from 'path'
 import primaryKeyType from '../db/primaryKeyType'
 import generateFactory from './generateFactory'
+import pascalizePath from '../pascalizePath'
 
 export default async function generateDream(dreamName: string, attributes: string[]) {
   const ymlConfig = await loadDreamYamlFile()
@@ -67,7 +68,7 @@ export default async function generateDream(dreamName: string, attributes: strin
   )
 
   const finalContent = generateMigrationContent({
-    table: snakeify(pluralize(dreamName)),
+    table: snakeify(pluralize(pascalizePath(dreamName))),
     attributes,
     primaryKeyType: await primaryKeyType(),
   })

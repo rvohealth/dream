@@ -1,7 +1,7 @@
 import generateDreamContent from '../../../src/helpers/cli/generateDreamContent'
 
 describe('dream generate:model <name> [...attributes]', () => {
-  context('when provided with a pascalized table name', () => {
+  context('when provided with a pascalized model name', () => {
     it('generates a dream model with multiple string fields', async () => {
       const res = await generateDreamContent('MealType', [])
       expect(res).toEqual(
@@ -191,7 +191,7 @@ export default class Composition extends ApplicationModel {
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import CatToySerializer, { CatToySummarySerializer } from '../../../test-app/app/serializers/CatToySerializer'
-import Cat from './Pet/Domestic/Cat'
+import PetDomesticCat from './Pet/Domestic/Cat'
 
 export default class CatToy extends ApplicationModel {
   public get table() {
@@ -212,8 +212,8 @@ export default class CatToy extends ApplicationModel {
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
-  @BelongsTo(() => Cat)
-  public cat: Cat
+  @BelongsTo(() => PetDomesticCat)
+  public cat: PetDomesticCat
   public catId: DreamColumn<CatToy, 'catId'>
 }\
 `
@@ -227,7 +227,7 @@ export default class CatToy extends ApplicationModel {
 import { DreamColumn, HasMany } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import CatToySerializer, { CatToySummarySerializer } from '../../../test-app/app/serializers/CatToySerializer'
-import Cat from './Pet/Domestic/Cat'
+import PetDomesticCat from './Pet/Domestic/Cat'
 
 export default class CatToy extends ApplicationModel {
   public get table() {
@@ -248,8 +248,8 @@ export default class CatToy extends ApplicationModel {
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
-  @HasMany(() => Cat)
-  public cats: Cat[]
+  @HasMany(() => PetDomesticCat)
+  public cats: PetDomesticCat[]
 }\
 `
             )
@@ -262,7 +262,7 @@ export default class CatToy extends ApplicationModel {
 import { DreamColumn, HasOne } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import CatToySerializer, { CatToySummarySerializer } from '../../../test-app/app/serializers/CatToySerializer'
-import Cat from './Pet/Domestic/Cat'
+import PetDomesticCat from './Pet/Domestic/Cat'
 
 export default class CatToy extends ApplicationModel {
   public get table() {
@@ -283,8 +283,8 @@ export default class CatToy extends ApplicationModel {
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
-  @HasOne(() => Cat)
-  public cat: Cat
+  @HasOne(() => PetDomesticCat)
+  public cat: PetDomesticCat
 }\
 `
             )
@@ -299,7 +299,7 @@ import ApplicationModel from '../../ApplicationModel'
 import PetDomesticCatSerializer, { PetDomesticCatSummarySerializer } from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
 import GraphNode from '../../GraphNode'
 
-export default class Cat extends ApplicationModel {
+export default class PetDomesticCat extends ApplicationModel {
   public get table() {
     return 'pet_domestic_cats' as const
   }
@@ -314,13 +314,13 @@ export default class Cat extends ApplicationModel {
     } as const
   }
 
-  public id: DreamColumn<Cat, 'id'>
-  public createdAt: DreamColumn<Cat, 'createdAt'>
-  public updatedAt: DreamColumn<Cat, 'updatedAt'>
+  public id: DreamColumn<PetDomesticCat, 'id'>
+  public createdAt: DreamColumn<PetDomesticCat, 'createdAt'>
+  public updatedAt: DreamColumn<PetDomesticCat, 'updatedAt'>
 
   @BelongsTo(() => GraphNode)
   public graphNode: GraphNode
-  public graphNodeId: DreamColumn<Cat, 'graphNodeId'>
+  public graphNodeId: DreamColumn<PetDomesticCat, 'graphNodeId'>
 }\
 `
             )
@@ -333,9 +333,9 @@ export default class Cat extends ApplicationModel {
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
 import PetDomesticCatSerializer, { PetDomesticCatSummarySerializer } from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
-import Dog from '../../Pet/Domestic/Dog'
+import PetDomesticDog from '../../Pet/Domestic/Dog'
 
-export default class Cat extends ApplicationModel {
+export default class PetDomesticCat extends ApplicationModel {
   public get table() {
     return 'pet_domestic_cats' as const
   }
@@ -350,13 +350,13 @@ export default class Cat extends ApplicationModel {
     } as const
   }
 
-  public id: DreamColumn<Cat, 'id'>
-  public createdAt: DreamColumn<Cat, 'createdAt'>
-  public updatedAt: DreamColumn<Cat, 'updatedAt'>
+  public id: DreamColumn<PetDomesticCat, 'id'>
+  public createdAt: DreamColumn<PetDomesticCat, 'createdAt'>
+  public updatedAt: DreamColumn<PetDomesticCat, 'updatedAt'>
 
-  @BelongsTo(() => Dog)
-  public dog: Dog
-  public dogId: DreamColumn<Cat, 'dogId'>
+  @BelongsTo(() => PetDomesticDog)
+  public dog: PetDomesticDog
+  public dogId: DreamColumn<PetDomesticCat, 'dogId'>
 }\
 `
             )
@@ -369,9 +369,9 @@ export default class Cat extends ApplicationModel {
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
 import PetWildCatSerializer, { PetWildCatSummarySerializer } from '../../../../../test-app/app/serializers/Pet/Wild/CatSerializer'
-import Dog from '../../Pet/Domestic/Dog'
+import PetDomesticDog from '../../Pet/Domestic/Dog'
 
-export default class Cat extends ApplicationModel {
+export default class PetWildCat extends ApplicationModel {
   public get table() {
     return 'pet_wild_cats' as const
   }
@@ -386,13 +386,13 @@ export default class Cat extends ApplicationModel {
     } as const
   }
 
-  public id: DreamColumn<Cat, 'id'>
-  public createdAt: DreamColumn<Cat, 'createdAt'>
-  public updatedAt: DreamColumn<Cat, 'updatedAt'>
+  public id: DreamColumn<PetWildCat, 'id'>
+  public createdAt: DreamColumn<PetWildCat, 'createdAt'>
+  public updatedAt: DreamColumn<PetWildCat, 'updatedAt'>
 
-  @BelongsTo(() => Dog)
-  public dog: Dog
-  public dogId: DreamColumn<Cat, 'dogId'>
+  @BelongsTo(() => PetDomesticDog)
+  public dog: PetDomesticDog
+  public dogId: DreamColumn<PetWildCat, 'dogId'>
 }\
 `
             )

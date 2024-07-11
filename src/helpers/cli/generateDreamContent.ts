@@ -6,10 +6,11 @@ import snakeify from '../snakeify'
 import uniq from '../uniq'
 import { loadDreamYamlFile } from '../path'
 import initializeDream from '../initializeDream'
+import pascalizePath from '../pascalizePath'
 
 export default async function generateDreamContent(modelName: string, attributes: string[]) {
   await initializeDream()
-  const modelClassName = pascalize(modelName.split('/').pop()!)
+  const modelClassName = pascalizePath(modelName)
 
   const dreamImports: string[] = ['DreamColumn']
 
@@ -39,8 +40,8 @@ export default async function generateDreamContent(modelName: string, attributes
         dreamImports.push('BelongsTo')
         additionalImports.push(associationImportStatement)
         return `
-@BelongsTo(() => ${dreamClassNameFromAttributeName(attributeName)})
-public ${camelize(associationName)}: ${dreamClassNameFromAttributeName(attributeName)}
+@BelongsTo(() => ${pascalizePath(attributeName)})
+public ${camelize(associationName)}: ${pascalizePath(attributeName)}
 public ${camelize(associationName)}Id: DreamColumn<${modelClassName}, '${camelize(associationName)}Id'>
 `
 
@@ -48,16 +49,16 @@ public ${camelize(associationName)}Id: DreamColumn<${modelClassName}, '${cameliz
         dreamImports.push('HasOne')
         additionalImports.push(associationImportStatement)
         return `
-@HasOne(() => ${dreamClassNameFromAttributeName(attributeName)})
-public ${camelize(associationName)}: ${dreamClassNameFromAttributeName(attributeName)}
+@HasOne(() => ${pascalizePath(attributeName)})
+public ${camelize(associationName)}: ${pascalizePath(attributeName)}
 `
 
       case 'has_many':
         dreamImports.push('HasMany')
         additionalImports.push(associationImportStatement)
         return `
-@HasMany(() => ${dreamClassNameFromAttributeName(attributeName)})
-public ${pluralize(camelize(associationName))}: ${dreamClassNameFromAttributeName(attributeName)}[]
+@HasMany(() => ${pascalizePath(attributeName)})
+public ${pluralize(camelize(associationName))}: ${pascalizePath(attributeName)}[]
 `
 
       default:
@@ -121,7 +122,7 @@ function buildImportStatement(modelName: string, attribute: string) {
   const relativePath = relativePathToModelRoot(modelName)
 
   const [attributeName] = attribute.split(':')
-  const rootAssociationImport = attributeName.split('/').pop()!
+  const rootAssociationImport = pascalizePath(attributeName)
   const associationImportStatement = `import ${pascalize(
     rootAssociationImport
   )} from '${relativePath}${attributeName
@@ -191,8 +192,4 @@ async function relativePathToSrcRoot(modelName: string) {
 
 function getAttributeType(attribute: string, modelClassName: string) {
   return `DreamColumn<${modelClassName}, '${camelize(attribute.split(':')[0])}'>`
-}
-
-function dreamClassNameFromAttributeName(attributeName: string) {
-  return pascalize(attributeName.split('/').pop()!)
 }

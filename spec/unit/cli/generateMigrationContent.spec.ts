@@ -2,6 +2,33 @@ import InvalidDecimalFieldPassedToGenerator from '../../../src/exceptions/invali
 import generateMigrationContent from '../../../src/helpers/cli/generateMigrationContent'
 
 describe('dream generate:model <name> [...attributes]', () => {
+  context('with no attributes', () => {
+    it('generates a migration with no columns', () => {
+      const res = generateMigrationContent({
+        table: 'users',
+        attributes: [],
+        primaryKeyType: 'bigserial',
+      })
+      expect(res).toEqual(`\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createTable('users')
+    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropTable('users').execute()
+}`)
+    })
+  })
+
   context('when provided attributes', () => {
     context('string attributes', () => {
       it('generates a kysely migration with multiple text fields', () => {
