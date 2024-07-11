@@ -1,4 +1,5 @@
 import { Kysely, sql } from 'kysely'
+import dropConstraint from './dropConstraint'
 
 export default async function addDeferrableUniqueConstraint(
   constraintName: string,
@@ -6,8 +7,8 @@ export default async function addDeferrableUniqueConstraint(
   columns: string[],
   db: Kysely<any>
 ) {
+  await dropConstraint(constraintName, tableName, db)
   await sql`
-    ALTER TABLE ${sql.table(tableName)} DROP CONSTRAINT IF EXISTS ${sql.table(constraintName)};
     ALTER TABLE ${sql.table(tableName)}
     ADD CONSTRAINT ${sql.table(constraintName)}
       UNIQUE (${sql.raw(columns.join(', '))})
