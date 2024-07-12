@@ -58,6 +58,7 @@ import Query, { FindEachOpts } from './dream/query'
 import DreamTransaction from './dream/transaction'
 import {
   AttributeKeys,
+  DefaultOrNamedScopeName,
   DefaultScopeName,
   DreamAssociationNamesWithoutRequiredWhereClauses,
   DreamAssociationNamesWithRequiredWhereClauses,
@@ -1549,7 +1550,7 @@ export default class Dream {
    * @param scopeName - The name of the scope
    * @returns a Query scoped to this model with the specified scope applied
    */
-  public static scope<T extends typeof Dream>(this: T, scopeName: string) {
+  public static scope<T extends typeof Dream>(this: T, scopeName: DefaultOrNamedScopeName<InstanceType<T>>) {
     return (this as any)[scopeName](this.query()) as Query<InstanceType<T>>
   }
 

@@ -365,6 +365,19 @@ export type DefaultScopeName<
     string[],
 > = SchemaDefaultScopes[number]
 
+export type NamedScopeName<
+  DreamInstance extends Dream,
+  Schema = DreamInstance['dreamconf']['schema'],
+  SchemaTable = Schema[DreamInstance['table'] & keyof Schema],
+  SchemaNamedScopes extends string[] = SchemaTable['scopes' & keyof SchemaTable]['named' &
+    keyof SchemaTable['scopes' & keyof SchemaTable]] &
+    string[],
+> = SchemaNamedScopes[number]
+
+export type DefaultOrNamedScopeName<DreamInstance extends Dream> =
+  | DefaultScopeName<DreamInstance>
+  | NamedScopeName<DreamInstance>
+
 type NA = 'na'
 type VALID = 'valid'
 type INVALID = 'invalid'
