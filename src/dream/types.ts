@@ -356,6 +356,8 @@ export interface SimilarityStatement {
   opsStatement: OpsStatement<any, any>
 }
 
+export type DefaultScopeName = 'dream:SoftDelete' | `${string}`
+
 type NA = 'na'
 type VALID = 'valid'
 type INVALID = 'invalid'

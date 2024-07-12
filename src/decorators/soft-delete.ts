@@ -42,10 +42,13 @@ export default function SoftDelete(): ClassDecorator {
     const t = target as typeof Dream
     t['softDelete'] = true
 
-    target['applySoftDeleteScope'] = function (query: Query<any>) {
+    target[softDeleteScopeName] = function (query: Query<any>) {
       return query.where({ [t.prototype.deletedAtField]: null } as any)
     }
 
-    Scope({ default: true })(target, 'applySoftDeleteScope')
+    Scope({ default: true })(target, softDeleteScopeName)
   }
 }
+
+export const softDeleteScopeName = '__dreamInternal__applySoftDeleteScope'
+export const softDeleteScopeAlias = 'dream:SoftDelete'
