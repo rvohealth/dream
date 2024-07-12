@@ -155,7 +155,17 @@ function generateColumnStr(attributeName: string, attributeType: string, descrip
 
 function attributeTypeString(attributeType: string) {
   const attributeTypesRequiringSql = ['citext']
-  return attributeTypesRequiringSql.includes(attributeType) ? `sql\`${attributeType}\`` : `'${attributeType}'`
+  if (attributeTypesRequiringSql.includes(attributeType)) return `sql\`${attributeType}\``
+
+  switch (attributeType) {
+    case 'varbit':
+    case 'bitvarying':
+      return "'bit varying'"
+    case 'txid_snapshot':
+      return "'txid_snapshot'"
+    default:
+      return `'${attributeType.replace(/_/g, ' ')}'`
+  }
 }
 
 function generateBelongsToStr(attributeName: string, { primaryKeyType }: { primaryKeyType: PrimaryKeyType }) {
