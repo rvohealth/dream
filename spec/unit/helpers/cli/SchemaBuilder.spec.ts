@@ -106,6 +106,16 @@ describe('SchemaBuilder', () => {
       })
     })
 
+    context('scopes', () => {
+      it('sets the default and non-default scopes', () => {
+        expect(User.prototype.dreamconf.schema.model_without_deleted_ats.scopes.default).toEqual([
+          'howyadoin',
+          'dream:SoftDelete',
+        ])
+        expect(User.prototype.dreamconf.schema.users.scopes.named).toEqual(['withFunnyName'])
+      })
+    })
+
     context('updatedAtField', () => {
       it('sets the updatedAtField', () => {
         expect(User.prototype.dreamconf.schema.users.updatedAtField).toEqual('updatedAt')

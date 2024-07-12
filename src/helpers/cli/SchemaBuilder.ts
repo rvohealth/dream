@@ -11,6 +11,7 @@ import { schemaPath } from '../path'
 import dbSyncPath from '../path/dbSyncPath'
 import loadDreamconfFile from '../path/loadDreamconfFile'
 import uniq from '../uniq'
+import { softDeleteScopeAlias, softDeleteScopeName } from '../../decorators/soft-delete'
 
 export default class SchemaBuilder {
   public async build() {
@@ -61,6 +62,10 @@ ${tableName}: {
     createdAtField: '${tableData.createdAtField}',
     updatedAtField: '${tableData.updatedAtField}',
     deletedAtField: '${tableData.deletedAtField}',
+    scopes: {
+      default: [${tableData.scopes.default.map(val => `'${val}'`)}],
+      named: [${tableData.scopes.named.map(val => `'${val}'`)}],
+    },
     columns: {
       ${Object.keys(schemaData[tableName as keyof typeof schemaData].columns)
         .map(columnName => {
@@ -131,15 +136,36 @@ ${tableName}: {
     const models = Object.values(await loadModels())
     const model = models.find(model => model.table === tableName)
 
+    if (model!.name === 'ModelWithoutDeletedAt') {
+      console.log(model!['scopes'])
+    }
+
     const associationData = await this.getAssociationData(tableName)
     return {
       primaryKey: model!.prototype.primaryKey,
       createdAtField: model!.prototype.createdAtField,
       updatedAtField: model!.prototype.updatedAtField,
       deletedAtField: model!.prototype.deletedAtField,
+      scopes: {
+        default: model!['scopes'].default.map(scopeStatement =>
+          this.interpretedScopeMethod(scopeStatement.method)
+        ),
+        named: model!['scopes'].named.map(scopeStatement =>
+          this.interpretedScopeMethod(scopeStatement.method)
+        ),
+      },
       columns: await this.getColumnData(tableName, associationData),
       virtualColumns: await this.getVirtualColumns(tableName),
       associations: associationData,
+    }
+  }
+
+  private interpretedScopeMethod(scopeMethodName: string) {
+    switch (scopeMethodName) {
+      case softDeleteScopeName:
+        return softDeleteScopeAlias
+      default:
+        return scopeMethodName
     }
   }
 
@@ -356,6 +382,10 @@ interface TableData {
   createdAtField: string
   updatedAtField: string
   deletedAtField: string
+  scopes: {
+    default: string[]
+    named: string[]
+  }
   columns: { [key: string]: ColumnData }
   virtualColumns: string[]
   associations: { [key: string]: AssociationData }
