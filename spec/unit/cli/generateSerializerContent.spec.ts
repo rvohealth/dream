@@ -94,25 +94,25 @@ export default class UserAdminSerializer<
     context('when passed type-decorated attributes', () => {
       context('one of those attributes is a string', () => {
         it('adds a string type to the field', async () => {
-          expectAttributeType('string', 'string')
+          await expectAttributeType('string', 'string')
         })
       })
 
       context('one of those attributes is json', () => {
         it('adds a number type to the field', async () => {
-          expectAttributeType('json', 'json')
+          await expectAttributeType('json', 'json')
         })
       })
 
       context('one of those attributes is jsonb', () => {
         it('adds a number type to the field', async () => {
-          expectAttributeType('jsonb', 'json')
+          await expectAttributeType('jsonb', 'json')
         })
       })
 
       context('one of those attributes is a number', () => {
         it('adds a number type to the field', async () => {
-          expectAttributeType('number', 'number')
+          await expectAttributeType('number', 'number')
         })
       })
 
@@ -147,49 +147,49 @@ export default class UserSerializer<
 
       context('one of those attributes is an integer', () => {
         it('adds a number attribute', async () => {
-          expectAttributeType('integer', 'number')
+          await expectAttributeType('integer', 'number')
         })
       })
 
       context('one of those attributes is a bigint', () => {
         it('adds a string attribute', async () => {
-          expectAttributeType('bigint', 'string')
+          await expectAttributeType('bigint', 'string')
         })
       })
 
       context('one of those attributes is a uuid', () => {
         it('adds a string attribute', async () => {
-          expectAttributeType('uuid', 'string')
+          await expectAttributeType('uuid', 'string')
         })
       })
 
       context('one of those attributes is "varchar"', () => {
         it('adds a string attribute', async () => {
-          expectAttributeType('varchar', 'string')
+          await expectAttributeType('varchar', 'string')
         })
       })
 
       context('one of those attributes is "char"', () => {
         it('adds a string attribute', async () => {
-          expectAttributeType('char', 'string')
+          await expectAttributeType('char', 'string')
         })
       })
 
       context('one of those attributes is a datetime', () => {
         it('adds a datetime attribute', async () => {
-          expectAttributeType('datetime', 'datetime')
+          await expectAttributeType('datetime', 'datetime')
         })
       })
 
       context('one of those attributes is a date', () => {
         it('adds a date attribute', async () => {
-          expectAttributeType('date', 'date')
+          await expectAttributeType('date', 'date')
         })
       })
 
       context('one of those attributes is type "text"', () => {
         it('adds a string attribute', async () => {
-          expectAttributeType('text', 'string')
+          await expectAttributeType('text', 'string')
         })
       })
 

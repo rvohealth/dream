@@ -1,9 +1,7 @@
-import path from 'path'
 import pluralize from 'pluralize'
 import camelize from '../camelize'
-import pascalize from '../pascalize'
 import initializeDream from '../initializeDream'
-import { loadDreamYamlFile } from '../path'
+import pascalize from '../pascalize'
 import uniq from '../uniq'
 
 export default async function generateSerializerContent(
@@ -11,7 +9,6 @@ export default async function generateSerializerContent(
   fullyQualifiedModelName?: string,
   attributes: string[] = []
 ) {
-  const yamlConf = await loadDreamYamlFile()
   await initializeDream()
 
   const serializerClass = fullyQualifiedClassNameFromRawStr(fullyQualifiedSerializerName)
@@ -136,7 +133,6 @@ function attributeSpecifier(type: string, originalAttribute: string) {
     case 'character':
     case 'varchar':
     case 'character_varying':
-    case 'char':
     case 'cidr':
     case 'circle':
     case 'citext':
@@ -245,25 +241,4 @@ function importStatementForModel(fullyQualifiedSerializerName: string, fullyQual
     fullyQualifiedSerializerName,
     fullyQualifiedModelName
   )}'`
-}
-
-function relativePathToModelRoot(modelName: string) {
-  const numNestedDirsForModel = modelName.split('/').length - 1
-  let updirs = ''
-  for (let i = 0; i < numNestedDirsForModel; i++) {
-    updirs += '../'
-  }
-  return numNestedDirsForModel > 0 ? updirs : './'
-}
-
-async function relativePathToSrcRoot(modelName: string) {
-  const yamlConf = await loadDreamYamlFile()
-  const rootPath = relativePathToModelRoot(modelName)
-  const numUpdirsInRootPath = yamlConf.models_path.split('/').length
-  let updirs = ''
-  for (let i = 0; i < numUpdirsInRootPath; i++) {
-    updirs += '../'
-  }
-
-  return rootPath === './' ? updirs : path.join(rootPath, updirs)
 }

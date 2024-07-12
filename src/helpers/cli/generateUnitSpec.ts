@@ -1,7 +1,8 @@
 import fs from 'fs/promises'
+import path from 'path'
 import { loadDreamYamlFile } from '../path'
 import unitSpecsPath from '../path/unitSpecsPath'
-import path from 'path'
+import generateUnitSpecContent from './generateUnitSpecContent'
 
 export default async function generateUnitSpec(dreamName: string, specSubpath: 'models' | 'controllers') {
   const ymlConfig = await loadDreamYamlFile()
@@ -17,7 +18,7 @@ export default async function generateUnitSpec(dreamName: string, specSubpath: '
   try {
     console.log(`generating spec: ${relativeSpecPath}`)
     await thisfs.mkdir(specDirPath, { recursive: true })
-    await thisfs.writeFile(specPath, generateBlankSpecContent(dreamName))
+    await thisfs.writeFile(specPath, generateUnitSpecContent(dreamName))
   } catch (error) {
     const err = `
       Something happened while trying to create the spec file:
@@ -28,12 +29,4 @@ export default async function generateUnitSpec(dreamName: string, specSubpath: '
     `
     throw err
   }
-}
-
-export function generateBlankSpecContent(dreamName: string) {
-  return `\
-describe('${dreamName}', () => {
-  it.todo('add a test here to get started building ${dreamName}')
-})
-`
 }
