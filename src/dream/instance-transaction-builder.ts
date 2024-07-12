@@ -307,7 +307,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * this will raise an exception.
    *
    * ```ts
-   * const user = await User.unscoped().last()
+   * const user = await User.removeAllDefaultScopes().last()
    * await user.undestroy()
    * // 12
    * ```

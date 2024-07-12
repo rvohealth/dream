@@ -175,7 +175,7 @@ describe('Dream#destroy', () => {
         await post.destroy()
 
         expect(await Post.last()).toBeNull()
-        const reloadedPost = await Post.unscoped().last()
+        const reloadedPost = await Post.removeAllDefaultScopes().last()
         expect(reloadedPost!.deletedAt).not.toBeNull()
       })
 

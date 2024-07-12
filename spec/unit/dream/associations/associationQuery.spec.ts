@@ -305,8 +305,8 @@ describe('Dream#associationQuery', () => {
     })
   })
 
-  context('unscoped', () => {
-    it('unscopes', async () => {
+  context('removeAllDefaultScopes', () => {
+    it('removes all default scopes', async () => {
       const user = await User.create({
         email: 'fred@frewd',
         password: 'howyadoin',
@@ -319,7 +319,7 @@ describe('Dream#associationQuery', () => {
       const balloons = await query.all()
       expect(balloons).toEqual([])
 
-      const unscopedBalloons = await query.unscoped().all()
+      const unscopedBalloons = await query.removeAllDefaultScopes().all()
       expect(unscopedBalloons).toMatchDreamModels([balloon])
     })
   })

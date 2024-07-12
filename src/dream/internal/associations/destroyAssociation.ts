@@ -23,8 +23,8 @@ export default async function destroyAssociation<
 ): Promise<number> {
   const query = associationUpdateQuery(dream, txn, associationName, associationWhereStatement)
   if (reallyDestroy) {
-    return await query.unscoped().reallyDestroy({ skipHooks, cascade })
+    return await query.removeAllDefaultScopes().reallyDestroy({ skipHooks, cascade })
   } else {
-    return await query.unscoped().destroy({ skipHooks, cascade })
+    return await query.removeAllDefaultScopes().destroy({ skipHooks, cascade })
   }
 }

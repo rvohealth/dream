@@ -852,8 +852,8 @@ export default class Dream {
    *
    * @returns A query for this model which disregards default scopes
    */
-  public static unscoped<T extends typeof Dream>(this: T): Query<InstanceType<T>> {
-    return this.query().unscoped()
+  public static removeAllDefaultScopes<T extends typeof Dream>(this: T): Query<InstanceType<T>> {
+    return this.query().removeAllDefaultScopes()
   }
 
   /**
@@ -3014,7 +3014,7 @@ export default class Dream {
    * this will raise an exception.
    *
    * ```ts
-   * const user = await User.unscoped().last()
+   * const user = await User.removeAllDefaultScopes().last()
    * await user.undestroy()
    * // 12
    * ```

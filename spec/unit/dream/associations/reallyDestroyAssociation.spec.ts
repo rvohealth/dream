@@ -145,7 +145,7 @@ describe('Dream#reallyDestroyAssociation', () => {
 
           expect(await Post.count()).toEqual(0)
           expect(await Rating.count()).toEqual(0)
-          expect(await Rating.unscoped().count()).toEqual(0)
+          expect(await Rating.removeAllDefaultScopes().count()).toEqual(0)
         })
 
         context('skipHooks=true is passed', () => {

@@ -2,7 +2,7 @@ import User from '../../../test-app/app/models/User'
 import Pet from '../../../test-app/app/models/Pet'
 import { IdType } from '../../../src/dream/types'
 
-describe('Dream#unscoped', () => {
+describe('Dream#removeAllDefaultScopes', () => {
   let user: User
   let pet: Pet
   let petId: IdType
@@ -12,9 +12,9 @@ describe('Dream#unscoped', () => {
     petId = pet.id
   })
 
-  it('returns an unscoped query', async () => {
+  it('returns an query with no default scopes applied', async () => {
     await pet.destroy()
-    const reloadedPet = await Pet.unscoped().find(petId)
+    const reloadedPet = await Pet.removeAllDefaultScopes().find(petId)
     expect(reloadedPet!.deletedAt).not.toBeNull()
     expect(reloadedPet).toMatchDreamModel(pet)
   })

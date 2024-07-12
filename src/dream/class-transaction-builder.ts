@@ -415,8 +415,10 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    *
    * @returns A query for this model which disregards default scopes
    */
-  public unscoped<I extends DreamClassTransactionBuilder<DreamInstance>>(this: I): Query<DreamInstance> {
-    return this.queryInstance().unscoped()
+  public removeAllDefaultScopes<I extends DreamClassTransactionBuilder<DreamInstance>>(
+    this: I
+  ): Query<DreamInstance> {
+    return this.queryInstance().removeAllDefaultScopes()
   }
 
   /**

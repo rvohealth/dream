@@ -122,7 +122,7 @@ describe('Query#preload with polymorphic associations', () => {
       expect(reloaded!.rateable).toMatchDreamModel(post)
     })
 
-    context('unscoped', () => {
+    context('removeAllDefaultScopes', () => {
       it('cascades through associations', async () => {
         const user = await User.create({
           email: 'fred@frewd',
@@ -136,7 +136,9 @@ describe('Query#preload with polymorphic associations', () => {
         const reloaded = await Rating.preload('rateable', 'user').find(rating.id)
         expect(reloaded!.rateable).toBeNull()
 
-        const unscopedReloaded = await Rating.unscoped().preload('rateable', 'user').find(rating.id)
+        const unscopedReloaded = await Rating.removeAllDefaultScopes()
+          .preload('rateable', 'user')
+          .find(rating.id)
         expect(unscopedReloaded!.rateable.user).toMatchDreamModel(user)
       })
     })

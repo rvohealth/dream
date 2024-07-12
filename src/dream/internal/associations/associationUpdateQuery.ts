@@ -20,7 +20,7 @@ export default function associationUpdateQuery<
   txn: DreamTransaction<Dream> | null = null,
   associationName: AssociationName,
   associationWhereStatement?: Where,
-  { unscoped = false }: { unscoped?: boolean } = {}
+  { removeAllDefaultScopes = false }: { removeAllDefaultScopes?: boolean } = {}
 ): AssociationQuery {
   const association = dream['associationMetadataMap']()[associationName as any] as
     | HasManyStatement<any, any, any, any>
@@ -35,7 +35,7 @@ export default function associationUpdateQuery<
   const dreamClass = dream.constructor as typeof Dream
 
   let nestedScope: Query<Dream> = txn ? (dreamClass.txn(txn) as unknown as Query<Dream>) : dreamClass.query()
-  if (unscoped) nestedScope = nestedScope.unscoped()
+  if (removeAllDefaultScopes) nestedScope = nestedScope.removeAllDefaultScopes()
 
   if (associationWhereStatement) nestedScope = nestedScope.joins(association.as, associationWhereStatement)
   else nestedScope = nestedScope.joins(association.as)

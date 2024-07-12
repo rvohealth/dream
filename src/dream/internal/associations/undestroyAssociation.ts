@@ -18,7 +18,7 @@ export default async function undestroyAssociation<
   { skipHooks = false, cascade = false }: { skipHooks?: boolean; cascade?: boolean } = {}
 ): Promise<number> {
   const query = associationUpdateQuery(dream, txn, associationName, associationWhereStatement, {
-    unscoped: true,
+    removeAllDefaultScopes: true,
   })
-  return await query.unscoped().undestroy({ skipHooks, cascade })
+  return await query.removeAllDefaultScopes().undestroy({ skipHooks, cascade })
 }

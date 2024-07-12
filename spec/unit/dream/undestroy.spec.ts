@@ -11,7 +11,7 @@ describe('Dream#undestroy', () => {
     await post.destroy()
 
     expect(await Post.count()).toEqual(0)
-    expect(await Post.unscoped().count()).toEqual(1)
+    expect(await Post.removeAllDefaultScopes().count()).toEqual(1)
 
     const res = await post.undestroy()
     expect(res).toMatchDreamModel(post)
@@ -29,7 +29,7 @@ describe('Dream#undestroy', () => {
       await post.destroy()
 
       expect(await PostComment.count()).toEqual(0)
-      expect(await PostComment.unscoped().count()).toEqual(1)
+      expect(await PostComment.removeAllDefaultScopes().count()).toEqual(1)
 
       await post.undestroy()
 
@@ -46,12 +46,12 @@ describe('Dream#undestroy', () => {
       await post.destroy()
 
       expect(await PostComment.count()).toEqual(0)
-      expect(await PostComment.unscoped().count()).toEqual(1)
+      expect(await PostComment.removeAllDefaultScopes().count()).toEqual(1)
 
       await post.undestroy({ cascade: false })
 
       expect(await PostComment.count()).toEqual(0)
-      expect(await PostComment.unscoped().count()).toEqual(1)
+      expect(await PostComment.removeAllDefaultScopes().count()).toEqual(1)
     })
   })
 

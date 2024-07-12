@@ -287,7 +287,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @internal
    *
    * Used for unscoping Query instances. In most cases, this will be null,
-   * but when calling `unscoped`, an unscoped Query is stored as
+   * but when calling `removeAllDefaultScopes`, a removeAllDefaultScopes Query is stored as
    * baseSelectQuery.
    */
   private baseSelectQuery: Query<any> | null
@@ -338,7 +338,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     this: Query<DreamInstance>,
     dreamClass: T
   ): Query<InstanceType<T>> {
-    const baseScope = this.bypassDefaultScopes ? dreamClass.unscoped() : dreamClass.query()
+    const baseScope = this.bypassDefaultScopes ? dreamClass.removeAllDefaultScopes() : dreamClass.query()
 
     const associationQuery: Query<InstanceType<T>> = baseScope.clone({
       passthroughWhereStatement: this.passthroughWhereStatement,
@@ -1047,8 +1047,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns A new Query which will prevent default scopes from applying
    */
-  public unscoped(): Query<DreamInstance> {
-    return this.clone({ bypassDefaultScopes: true, baseSelectQuery: this.baseSelectQuery?.unscoped() })
+  public removeAllDefaultScopes(): Query<DreamInstance> {
+    return this.clone({
+      bypassDefaultScopes: true,
+      baseSelectQuery: this.baseSelectQuery?.removeAllDefaultScopes(),
+    })
   }
 
   /**
@@ -1964,13 +1967,13 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     if (this.dreamTransaction) {
       await this.txn(this.dreamTransaction)
-        .unscoped()
+        .removeAllDefaultScopes()
         .findEach(async result => {
           await result.txn(this.dreamTransaction!).undestroy({ skipHooks, cascade })
           counter++
         })
     } else {
-      await this.unscoped().findEach(async result => {
+      await this.removeAllDefaultScopes().findEach(async result => {
         await result.undestroy({ skipHooks, cascade })
         counter++
       })

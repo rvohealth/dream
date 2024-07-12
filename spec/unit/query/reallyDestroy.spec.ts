@@ -32,7 +32,7 @@ describe('Query#reallyDestroy', () => {
       await Post.query().reallyDestroy()
 
       expect(await Post.count()).toEqual(0)
-      expect(await Post.unscoped().count()).toEqual(0)
+      expect(await Post.removeAllDefaultScopes().count()).toEqual(0)
     })
 
     context('within a transaction', () => {
@@ -53,14 +53,14 @@ describe('Query#reallyDestroy', () => {
         }
 
         expect(await Rating.count()).toEqual(1)
-        expect(await Rating.unscoped().count()).toEqual(1)
+        expect(await Rating.removeAllDefaultScopes().count()).toEqual(1)
 
         await ApplicationModel.transaction(async txn => {
           await Post.query().txn(txn).reallyDestroy()
         })
 
         expect(await Rating.count()).toEqual(0)
-        expect(await Rating.unscoped().count()).toEqual(0)
+        expect(await Rating.removeAllDefaultScopes().count()).toEqual(0)
       })
     })
 
@@ -74,7 +74,7 @@ describe('Query#reallyDestroy', () => {
         await Post.query().reallyDestroy()
 
         expect(await Rating.count()).toEqual(0)
-        expect(await Rating.unscoped().count()).toEqual(0)
+        expect(await Rating.removeAllDefaultScopes().count()).toEqual(0)
       })
     })
   })

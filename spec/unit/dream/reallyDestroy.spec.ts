@@ -40,7 +40,7 @@ describe('Dream#reallyDestroy', () => {
       await post.reallyDestroy()
 
       expect(await Post.count()).toEqual(0)
-      expect(await Post.unscoped().count()).toEqual(0)
+      expect(await Post.removeAllDefaultScopes().count()).toEqual(0)
     })
 
     context('within a transaction', () => {
@@ -61,14 +61,14 @@ describe('Dream#reallyDestroy', () => {
         }
 
         expect(await Rating.count()).toEqual(1)
-        expect(await Rating.unscoped().count()).toEqual(1)
+        expect(await Rating.removeAllDefaultScopes().count()).toEqual(1)
 
         await ApplicationModel.transaction(async txn => {
           await post.txn(txn).reallyDestroy()
         })
 
         expect(await Rating.count()).toEqual(0)
-        expect(await Rating.unscoped().count()).toEqual(0)
+        expect(await Rating.removeAllDefaultScopes().count()).toEqual(0)
       })
 
       context('skipHooks=true', () => {

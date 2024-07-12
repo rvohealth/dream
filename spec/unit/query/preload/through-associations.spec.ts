@@ -640,7 +640,7 @@ describe('Query#preload through', () => {
     })
   })
 
-  context('unscoped', () => {
+  context('removeAllDefaultScopes', () => {
     it('cascades through associations', async () => {
       const user = await User.create({
         email: 'fred@frewd',
@@ -651,7 +651,7 @@ describe('Query#preload through', () => {
       const balloon = await Latex.create({ color: 'red', deletedAt: DateTime.now() })
       await Collar.create({ pet, balloon })
 
-      const unscopedReloadedUser = await User.unscoped().preload('pets', 'redBalloons').first()
+      const unscopedReloadedUser = await User.removeAllDefaultScopes().preload('pets', 'redBalloons').first()
       expect(unscopedReloadedUser).toMatchDreamModel(user)
       expect(unscopedReloadedUser!.pets).toMatchDreamModels([pet])
       expect(unscopedReloadedUser!.pets[0].redBalloons).toMatchDreamModels([balloon])

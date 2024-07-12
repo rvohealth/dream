@@ -17,7 +17,7 @@ describe('@Sortable', () => {
   let user: User
   let user2: User
 
-  class UnscopedPost extends Post {
+  class PostWithoutDefautScopes extends Post {
     @Sortable()
     public position: number
   }
@@ -32,15 +32,15 @@ describe('@Sortable', () => {
       context('when position is not set on the record', () => {
         context('when no other records exist', () => {
           it('sets the position to 1', async () => {
-            const post = await UnscopedPost.create({ body: 'hello', user })
+            const post = await PostWithoutDefautScopes.create({ body: 'hello', user })
             expect(post.position).toEqual(1)
           })
         })
 
         context('when other records exist', () => {
           it('sets the position to be the highest existing position + 1', async () => {
-            await UnscopedPost.create({ body: 'hello', user: user2 })
-            const post = await UnscopedPost.create({ body: 'hello', user })
+            await PostWithoutDefautScopes.create({ body: 'hello', user: user2 })
+            const post = await PostWithoutDefautScopes.create({ body: 'hello', user })
             expect(post.position).toEqual(2)
           })
         })
@@ -49,8 +49,8 @@ describe('@Sortable', () => {
       context('when position is set on the record', () => {
         context('the position is set to a value that is equal to the highest existing position + 1', () => {
           it('leaves the position as-is for all records', async () => {
-            await UnscopedPost.create({ body: 'hello', user: user2 })
-            const post = await UnscopedPost.create({ body: 'hello', user, position: 2 })
+            await PostWithoutDefautScopes.create({ body: 'hello', user: user2 })
+            const post = await PostWithoutDefautScopes.create({ body: 'hello', user, position: 2 })
             expect(post.position).toEqual(2)
           })
         })
@@ -59,8 +59,8 @@ describe('@Sortable', () => {
           'the position is set to a value that is greater than the highest existing position + 1',
           () => {
             it('sets the position of the new record to be the highest existing position + 1', async () => {
-              await UnscopedPost.create({ body: 'hello', user: user2 })
-              const post = await UnscopedPost.create({ body: 'hello', user, position: 3 })
+              await PostWithoutDefautScopes.create({ body: 'hello', user: user2 })
+              const post = await PostWithoutDefautScopes.create({ body: 'hello', user, position: 3 })
               expect(post.position).toEqual(2)
             })
           }
@@ -68,10 +68,10 @@ describe('@Sortable', () => {
 
         context('the position is set to a value that is lower than the highest existing position + 1', () => {
           it('leaves the position as-is for the new record, but offsets all records with a position >= the position of this new record', async () => {
-            const post1 = await UnscopedPost.create({ body: 'post 1', user })
-            const post2 = await UnscopedPost.create({ body: 'post 2', user: user2 })
-            const post3 = await UnscopedPost.create({ body: 'hello', user: user2 })
-            const newPost = await UnscopedPost.create({ body: 'new post', user, position: 2 })
+            const post1 = await PostWithoutDefautScopes.create({ body: 'post 1', user })
+            const post2 = await PostWithoutDefautScopes.create({ body: 'post 2', user: user2 })
+            const post3 = await PostWithoutDefautScopes.create({ body: 'hello', user: user2 })
+            const newPost = await PostWithoutDefautScopes.create({ body: 'new post', user, position: 2 })
 
             expect(newPost.position).toEqual(2)
             await post1.reload()
@@ -157,10 +157,10 @@ describe('@Sortable', () => {
     context('without a scope present', () => {
       context('when increasing the position', () => {
         it('reshuffles existing positions based on new position value', async () => {
-          const post1 = await UnscopedPost.create({ body: 'post1', user })
-          const post2 = await UnscopedPost.create({ body: 'post2', user: user2 })
-          const post3 = await UnscopedPost.create({ body: 'post3', user: user2 })
-          const post4 = await UnscopedPost.create({ body: 'post4', user })
+          const post1 = await PostWithoutDefautScopes.create({ body: 'post1', user })
+          const post2 = await PostWithoutDefautScopes.create({ body: 'post2', user: user2 })
+          const post3 = await PostWithoutDefautScopes.create({ body: 'post3', user: user2 })
+          const post4 = await PostWithoutDefautScopes.create({ body: 'post4', user })
 
           await post2.update({ position: 3 })
           await post1.reload()
@@ -177,10 +177,10 @@ describe('@Sortable', () => {
 
       context('when decreasing the position', () => {
         it('reshuffles existing positions based on new position value', async () => {
-          const post1 = await UnscopedPost.create({ body: 'hello', user })
-          const post2 = await UnscopedPost.create({ body: 'hello', user: user2 })
-          const post3 = await UnscopedPost.create({ body: 'hello', user: user2 })
-          const post4 = await UnscopedPost.create({ body: 'hello', user })
+          const post1 = await PostWithoutDefautScopes.create({ body: 'hello', user })
+          const post2 = await PostWithoutDefautScopes.create({ body: 'hello', user: user2 })
+          const post3 = await PostWithoutDefautScopes.create({ body: 'hello', user: user2 })
+          const post4 = await PostWithoutDefautScopes.create({ body: 'hello', user })
 
           expect(post4.position).toEqual(4)
           await post1.reload()
@@ -207,10 +207,10 @@ describe('@Sortable', () => {
 
       context('when attempting to set position to zero', () => {
         it('does not change the position', async () => {
-          const post1 = await UnscopedPost.create({ body: 'post1', user })
-          const post2 = await UnscopedPost.create({ body: 'post2', user: user2 })
-          const post3 = await UnscopedPost.create({ body: 'post3', user: user2 })
-          const post4 = await UnscopedPost.create({ body: 'post4', user })
+          const post1 = await PostWithoutDefautScopes.create({ body: 'post1', user })
+          const post2 = await PostWithoutDefautScopes.create({ body: 'post2', user: user2 })
+          const post3 = await PostWithoutDefautScopes.create({ body: 'post3', user: user2 })
+          const post4 = await PostWithoutDefautScopes.create({ body: 'post4', user })
 
           await post2.update({ position: 0 })
           await post1.reload()
@@ -227,10 +227,10 @@ describe('@Sortable', () => {
 
       context('when attempting to set position to a negative number', () => {
         it('does not change the position', async () => {
-          const post1 = await UnscopedPost.create({ body: 'post1', user })
-          const post2 = await UnscopedPost.create({ body: 'post2', user: user2 })
-          const post3 = await UnscopedPost.create({ body: 'post3', user: user2 })
-          const post4 = await UnscopedPost.create({ body: 'post4', user })
+          const post1 = await PostWithoutDefautScopes.create({ body: 'post1', user })
+          const post2 = await PostWithoutDefautScopes.create({ body: 'post2', user: user2 })
+          const post3 = await PostWithoutDefautScopes.create({ body: 'post3', user: user2 })
+          const post4 = await PostWithoutDefautScopes.create({ body: 'post4', user })
 
           await post2.update({ position: -1 })
           await post1.reload()
@@ -247,10 +247,10 @@ describe('@Sortable', () => {
 
       context('when attempting to set position to more than the number of items', () => {
         it('does not change the position', async () => {
-          const post1 = await UnscopedPost.create({ body: 'post1', user })
-          const post2 = await UnscopedPost.create({ body: 'post2', user: user2 })
-          const post3 = await UnscopedPost.create({ body: 'post3', user: user2 })
-          const post4 = await UnscopedPost.create({ body: 'post4', user })
+          const post1 = await PostWithoutDefautScopes.create({ body: 'post1', user })
+          const post2 = await PostWithoutDefautScopes.create({ body: 'post2', user: user2 })
+          const post3 = await PostWithoutDefautScopes.create({ body: 'post3', user: user2 })
+          const post4 = await PostWithoutDefautScopes.create({ body: 'post4', user })
 
           await post2.update({ position: 5 })
           await post1.reload()
@@ -267,10 +267,10 @@ describe('@Sortable', () => {
 
       context('when attempting to set position to undefined', () => {
         it('does not change the position', async () => {
-          const post1 = await UnscopedPost.create({ body: 'post1', user })
-          const post2 = await UnscopedPost.create({ body: 'post2', user: user2 })
-          const post3 = await UnscopedPost.create({ body: 'post3', user: user2 })
-          const post4 = await UnscopedPost.create({ body: 'post4', user })
+          const post1 = await PostWithoutDefautScopes.create({ body: 'post1', user })
+          const post2 = await PostWithoutDefautScopes.create({ body: 'post2', user: user2 })
+          const post3 = await PostWithoutDefautScopes.create({ body: 'post3', user: user2 })
+          const post4 = await PostWithoutDefautScopes.create({ body: 'post4', user })
 
           await post2.update({ position: undefined })
           await post1.reload()
@@ -287,10 +287,10 @@ describe('@Sortable', () => {
 
       context('when attempting to set position to null', () => {
         it('does not change the position', async () => {
-          const post1 = await UnscopedPost.create({ body: 'post1', user })
-          const post2 = await UnscopedPost.create({ body: 'post2', user: user2 })
-          const post3 = await UnscopedPost.create({ body: 'post3', user: user2 })
-          const post4 = await UnscopedPost.create({ body: 'post4', user })
+          const post1 = await PostWithoutDefautScopes.create({ body: 'post1', user })
+          const post2 = await PostWithoutDefautScopes.create({ body: 'post2', user: user2 })
+          const post3 = await PostWithoutDefautScopes.create({ body: 'post3', user: user2 })
+          const post4 = await PostWithoutDefautScopes.create({ body: 'post4', user })
 
           await post2.update({ position: null } as any)
           await post1.reload()

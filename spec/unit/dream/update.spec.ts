@@ -252,7 +252,7 @@ describe('Dream#update', () => {
     it('updates to the date', async () => {
       const newTime = DateTime.now().minus({ days: 7 })
       await user.update({ deletedAt: newTime })
-      const reloaded = await User.unscoped().find(user.id)
+      const reloaded = await User.removeAllDefaultScopes().find(user.id)
       expect(reloaded!.deletedAt).toEqualDateTime(newTime)
     })
 
@@ -260,7 +260,7 @@ describe('Dream#update', () => {
       it('updates to the datetime', async () => {
         const newTime = DateTime.now().minus({ days: 7 })
         await user.update({ deletedAt: newTime.toISO() as any })
-        const reloaded = await User.unscoped().find(user.id)
+        const reloaded = await User.removeAllDefaultScopes().find(user.id)
         expect(reloaded!.deletedAt).toEqualDateTime(newTime)
       })
     })
@@ -269,7 +269,7 @@ describe('Dream#update', () => {
       it('updates to the date', async () => {
         const newTime = CalendarDate.today().minus({ days: 7 })
         await user.update({ deletedAt: newTime })
-        const reloaded = await User.unscoped().find(user.id)
+        const reloaded = await User.removeAllDefaultScopes().find(user.id)
         expect(reloaded!.deletedAt?.toISODate()).toEqual(newTime.toISODate())
       })
     })
@@ -289,14 +289,14 @@ describe('Dream#update', () => {
     it('updates to the date', async () => {
       const newDate = CalendarDate.fromISO(dateString)
       await user.update({ birthdate: newDate })
-      const reloaded = await User.unscoped().find(user.id)
+      const reloaded = await User.removeAllDefaultScopes().find(user.id)
       expect(reloaded!.birthdate!.toISODate()).toEqual(dateString)
     })
 
     context('with a string representation of a date', () => {
       it('updates to the date', async () => {
         await user.update({ birthdate: dateString as any })
-        const reloaded = await User.unscoped().find(user.id)
+        const reloaded = await User.removeAllDefaultScopes().find(user.id)
         expect(reloaded!.birthdate!.toISODate()).toEqual(dateString)
       })
     })
@@ -305,7 +305,7 @@ describe('Dream#update', () => {
       it('updates to the date', async () => {
         const newDate = DateTime.fromISO(dateString)
         await user.update({ birthdate: newDate })
-        const reloaded = await User.unscoped().find(user.id)
+        const reloaded = await User.removeAllDefaultScopes().find(user.id)
         expect(reloaded!.birthdate!.toISO()).toEqual(dateString)
       })
     })
