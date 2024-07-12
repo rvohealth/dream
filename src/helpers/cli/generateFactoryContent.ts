@@ -73,7 +73,7 @@ async function buildImportStatement(attribute: string) {
 async function relativePathToModelRoot() {
   const yamlConf = await loadDreamYamlFile()
   const pathToFactories = await factoriesRelativePath()
-  const updirsArr = [...pathToFactories.split('/').map(() => '../'), '../']
+  const updirsArr = [...pathToFactories.split('/').map(() => '../')]
 
   return updirsArr.join('') + yamlConf.models_path.replace(/\/$/, '') + '/'
 }
