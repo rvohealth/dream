@@ -12,6 +12,7 @@ import dbSyncPath from '../path/dbSyncPath'
 import loadDreamconfFile from '../path/loadDreamconfFile'
 import uniq from '../uniq'
 import { softDeleteScopeAlias, softDeleteScopeName } from '../../decorators/soft-delete'
+import { stiScopeAlias, stiScopeName } from '../../decorators/STI'
 
 export default class SchemaBuilder {
   public async build() {
@@ -160,6 +161,8 @@ ${tableName}: {
     switch (scopeMethodName) {
       case softDeleteScopeName:
         return softDeleteScopeAlias
+      case stiScopeName:
+        return stiScopeAlias
       default:
         return scopeMethodName
     }

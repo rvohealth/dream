@@ -245,7 +245,7 @@ export const schema = {
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
     scopes: {
-      default: ['dream:SoftDelete', 'applySTIScope'],
+      default: ['dream:SoftDelete', 'dream:STI'],
       named: ['red'],
     },
     columns: {

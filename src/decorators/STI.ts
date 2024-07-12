@@ -15,10 +15,13 @@ export default function STI(dreamClass: typeof Dream, { value }: { value?: strin
       baseClass,
       value: value || stiChildClass.name,
     }
-    ;(stiChildClass as any)['applySTIScope'] = function (query: any) {
+    ;(stiChildClass as any)[stiScopeName] = function (query: any) {
       return query.where({ type: stiChildClass['sti'].value })
     }
 
-    Scope({ default: true })(stiChildClass, 'applySTIScope')
+    Scope({ default: true })(stiChildClass, stiScopeName)
   }
 }
+
+export const stiScopeName = '__dreamInternal__applySTIScope'
+export const stiScopeAlias = 'dream:STI'

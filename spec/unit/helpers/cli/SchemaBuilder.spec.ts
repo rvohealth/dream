@@ -112,6 +112,10 @@ describe('SchemaBuilder', () => {
           'howyadoin',
           'dream:SoftDelete',
         ])
+        expect(User.prototype.dreamconf.schema.beautiful_balloons.scopes.default).toEqual([
+          'dream:SoftDelete',
+          'dream:STI',
+        ])
         expect(User.prototype.dreamconf.schema.users.scopes.named).toEqual(['withFunnyName'])
       })
     })
