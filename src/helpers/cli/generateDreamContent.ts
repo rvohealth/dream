@@ -17,23 +17,17 @@ export default async function generateDreamContent(modelName: string, attributes
   const idTypescriptType = `DreamColumn<${modelClassName}, 'id'>`
 
   const additionalImports: string[] = []
-  const enumImports: string[] = []
 
   const serializerImport = await buildSerializerImportStatement(modelName)
   additionalImports.push(serializerImport)
 
   const attributeStatements = attributes.map(attribute => {
-    const [attributeName, attributeType, ...descriptors] = attribute.split(':')
+    const [attributeName, attributeType] = attribute.split(':')
     const associationImportStatement = buildImportStatement(modelName, attribute)
     const attributeNameParts = attributeName.split('/')
     const associationName = attributeNameParts[attributeNameParts.length - 1]
 
     if (!attributeType) throw `must pass a column type for ${attributeName} (i.e. ${attributeName}:string)`
-
-    if (attributeType === 'enum') {
-      const enumName = descriptors[0] + '_enum'
-      enumImports.push(pascalize(enumName))
-    }
 
     switch (attributeType) {
       case 'belongs_to':
@@ -67,14 +61,6 @@ public ${camelize(attributeName)}: ${getAttributeType(attribute, modelClassName)
 `
     }
   })
-
-  const yamlConf = await loadDreamYamlFile()
-  if (enumImports.length) {
-    const schemaPath = path.join(yamlConf.db_path, 'sync.ts')
-    const relativePath = path.join(await relativePathToSrcRoot(modelName), schemaPath.replace(/\.ts$/, ''))
-    const enumImport = `import { ${enumImports.join(', ')} } from '${relativePath}'`
-    additionalImports.push(enumImport)
-  }
 
   const timestamps = `
   public createdAt: DreamColumn<${modelClassName}, 'createdAt'>

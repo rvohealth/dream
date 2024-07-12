@@ -16,7 +16,6 @@ export default async function generateSerializerContent(
 
   const serializerClass = fullyQualifiedClassNameFromRawStr(fullyQualifiedSerializerName)
   const serializerSummaryClass = fullyQualifiedSummaryClassNameFromRawStr(fullyQualifiedSerializerName)
-  const enumImports: string[] = []
   const additionalImports: string[] = []
   let relatedModelImport = ''
   let modelClass = ''
@@ -48,26 +47,11 @@ export default async function generateSerializerContent(
 
   const additionalModelImports: string[] = []
   attributes.forEach(attr => {
-    const [name, type, ...descriptors] = attr.split(':')
+    const [name, type] = attr.split(':')
     if (['belongs_to', 'has_one', 'has_many'].includes(type)) {
       additionalModelImports.push(importStatementForModel(fullyQualifiedSerializerName, name))
     }
-
-    if (type === 'enum') {
-      const enumName = descriptors[0] + '_enum'
-      enumImports.push(pascalize(enumName))
-    }
   })
-
-  if (enumImports.length) {
-    const schemaPath = path.join(yamlConf.db_path, 'sync.ts')
-    const relativePath = path.join(
-      await relativePathToSrcRoot(fullyQualifiedSerializerName),
-      schemaPath.replace(/\.ts$/, '')
-    )
-    const enumImport = `import { ${enumImports.join(', ')} } from '${relativePath}'`
-    additionalImports.push(enumImport)
-  }
 
   const additionalImportsStr = additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
 
