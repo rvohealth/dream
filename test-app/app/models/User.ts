@@ -186,6 +186,12 @@ export default class User extends ApplicationModel {
   @HasMany(() => Pet)
   public pets: Pet[]
 
+  // allows us to find hidden pets
+  @HasMany(() => Pet, {
+    withoutDefaultScopes: ['dream:SoftDelete'],
+  })
+  public allPets: Pet[]
+
   @User.HasMany(() => Pet, { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
   public petsFromUuid: Pet[]
 

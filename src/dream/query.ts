@@ -66,6 +66,7 @@ import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance'
 import DreamTransaction from './transaction'
 import {
   DefaultScopeName,
+  DreamAssociationMetadata,
   DreamAttributes,
   DreamColumn,
   DreamColumnNames,
@@ -89,6 +90,7 @@ import {
 } from './types'
 import RecordNotFound from '../exceptions/record-not-found'
 import { softDeleteScopeAlias, softDeleteScopeName } from '../decorators/soft-delete'
+import shouldBypassDefaultScope from './internal/shouldBypassDefaultScope'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -348,7 +350,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     this: Query<DreamInstance>,
     dreamClass: T
   ): Query<InstanceType<T>> {
-    const baseScope = this.bypassAllDefaultScopes ? dreamClass.removeAllDefaultScopes() : dreamClass.query()
+    const baseScope = dreamClass.query().conditionallyApplyScopes()
 
     const associationQuery: Query<InstanceType<T>> = baseScope.clone({
       passthroughWhereStatement: this.passthroughWhereStatement,
@@ -2446,10 +2448,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   private shouldBypassDefaultScope(scopeName: string) {
-    if (this.bypassSpecificDefaultScopes.includes(scopeName)) return true
-    if (scopeName === softDeleteScopeName && this.bypassSpecificDefaultScopes.includes(softDeleteScopeAlias))
-      return true
-    return false
+    if (this.bypassAllDefaultScopes) return true
+    return shouldBypassDefaultScope(scopeName, this.bypassSpecificDefaultScopes)
   }
 
   // Through associations don't get written into the SQL; they
@@ -2767,6 +2767,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           }) as any
         )
       }
+      //
+      // if (association.withoutDefaultScopes?.length) {
+      //   association.withoutDefaultScopes.forEach(scopeName => {
+      //     query = query.removeDefaultScope(scopeName as any)
+      //   })
+      // }
     }
 
     if (!this.bypassAllDefaultScopes) {
@@ -2775,8 +2781,10 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       const associationScopes = associationClass.scopes.default
 
       for (const scope of associationScopes) {
-        const tempQuery = associationClass[scope.method](scopesQuery)
-        if (tempQuery && tempQuery.constructor === this.constructor) scopesQuery = tempQuery
+        if (!this.shouldBypassDefaultScope(scope.method)) {
+          const tempQuery = associationClass[scope.method](scopesQuery)
+          if (tempQuery && tempQuery.constructor === this.constructor) scopesQuery = tempQuery
+        }
       }
 
       query = this.applyWhereStatements(

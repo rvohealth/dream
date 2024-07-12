@@ -5,6 +5,7 @@ import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../dream'
 import {
   AssociationTableName,
+  DefaultScopeName,
   DreamBelongsToAssociationMetadata,
   DreamColumnNames,
   DreamConst,
@@ -185,6 +186,7 @@ export interface HasStatement<
   distinct?: TableColumnNames<DB, ForeignTableName>
   order?: OrderStatement<DB, Schema, ForeignTableName>
   dependent?: DependentOptions
+  withoutDefaultScopes?: DefaultScopeName<BaseInstance>
 }
 
 export interface HasOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream> {
@@ -255,6 +257,7 @@ export interface HasOptions<BaseInstance extends Dream, AssociationDreamClass ex
       >[]
   preloadThroughColumns?: string[] | Record<string, string>
   dependent?: DependentOptions
+  withoutDefaultScopes?: DefaultScopeName<InstanceType<AssociationDreamClass>>[]
 }
 
 export function blankAssociationsFactory(dreamClass: typeof Dream): {

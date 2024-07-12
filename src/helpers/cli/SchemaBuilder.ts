@@ -136,10 +136,6 @@ ${tableName}: {
     const models = Object.values(await loadModels())
     const model = models.find(model => model.table === tableName)
 
-    if (model!.name === 'ModelWithoutDeletedAt') {
-      console.log(model!['scopes'])
-    }
-
     const associationData = await this.getAssociationData(tableName)
     return {
       primaryKey: model!.prototype.primaryKey,

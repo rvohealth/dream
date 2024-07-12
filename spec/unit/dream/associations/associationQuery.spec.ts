@@ -61,6 +61,19 @@ describe('Dream#associationQuery', () => {
       })
     })
 
+    context('withoutDefaultScopes is passed', () => {
+      it('removes default scopes when querying association', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const pet1 = await Pet.create({ user })
+        const pet2 = await Pet.create({ user })
+
+        await pet1.destroy()
+
+        expect(await user.associationQuery('pets').all()).toMatchDreamModels([pet2])
+        expect(await user.associationQuery('allPets').all()).toMatchDreamModels([pet1, pet2])
+      })
+    })
+
     context('with a primary key override', () => {
       it('utilizies primary key override', async () => {
         const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
@@ -320,6 +333,24 @@ describe('Dream#associationQuery', () => {
       expect(balloons).toEqual([])
 
       const unscopedBalloons = await query.removeAllDefaultScopes().all()
+      expect(unscopedBalloons).toMatchDreamModels([balloon])
+    })
+  })
+
+  context('removeDefaultScope', () => {
+    it('removes selected default scope', async () => {
+      const user = await User.create({
+        email: 'fred@frewd',
+        password: 'howyadoin',
+      })
+      const balloon = await Latex.create({ user, color: 'red', deletedAt: DateTime.now() })
+
+      const query = user.associationQuery('balloons')
+
+      const balloons = await query.all()
+      expect(balloons).toEqual([])
+
+      const unscopedBalloons = await query.removeDefaultScope('dream:SoftDelete').all()
       expect(unscopedBalloons).toMatchDreamModels([balloon])
     })
   })

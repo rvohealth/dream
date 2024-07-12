@@ -2500,6 +2500,13 @@ export const schema = {
     },
     virtualColumns: ['password'],
     associations: {
+      allPets: {
+        type: 'HasMany',
+        foreignKey: 'userId',
+        tables: ['pets'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
       balloonLines: {
         type: 'HasMany',
         foreignKey: null,

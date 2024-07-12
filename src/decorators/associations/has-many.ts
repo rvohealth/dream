@@ -45,6 +45,7 @@ import {
  * @param opts.through - If passed, this association will travel through another association.
  * @param opts.where - A where clause to be applied when this association is loaded
  * @param opts.whereNot - A where not clause to be applied when this association is loaded
+ * @param opts.withoutDefaultScopes - A list of default scopes to bypass when loading this association
  */
 export default function HasMany<
   BaseInstance extends Dream = Dream,
@@ -65,6 +66,7 @@ export default function HasMany<
     through,
     where,
     whereNot,
+    withoutDefaultScopes,
   }: HasManyOptions<BaseInstance, AssociationDreamClass> = {}
 ): any {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -95,6 +97,7 @@ export default function HasMany<
         selfWhereNot,
         primaryKeyOverride,
         dependent,
+        withoutDefaultScopes,
       } as any,
       dreamClass
     )
