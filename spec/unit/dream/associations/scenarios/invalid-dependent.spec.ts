@@ -1,6 +1,6 @@
 import { DreamConst, HasMany, HasOne } from '../../../../../src'
-import CannotPassDependentAndPassthrough from '../../../../../src/exceptions/cannot-pass-dependent-and-passthrough'
-import CannotPassDependentAndRequiredWhereClause from '../../../../../src/exceptions/cannot-pass-dependent-and-required-where-clause'
+import CannotDefineAssociationWithBothDependentAndPassthrough from '../../../../../src/exceptions/cannot-define-association-with-both-dependent-and-passthrough'
+import CannotDefineAssociationWithBothDependentAndRequiredWhereClause from '../../../../../src/exceptions/cannot-define-association-with-both-dependent-and-required-where-clause'
 import Post from '../../../../../test-app/app/models/Post'
 import User from '../../../../../test-app/app/models/User'
 
@@ -17,7 +17,7 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
             })
             public testAssociation: Post
           }
-        }).toThrow(CannotPassDependentAndPassthrough)
+        }).toThrow(CannotDefineAssociationWithBothDependentAndPassthrough)
       })
     })
 
@@ -32,7 +32,7 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
             })
             public testAssociation: Post
           }
-        }).toThrow(CannotPassDependentAndRequiredWhereClause)
+        }).toThrow(CannotDefineAssociationWithBothDependentAndRequiredWhereClause)
       })
     })
   })
@@ -49,7 +49,7 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
             })
             public testAssociation: Post
           }
-        }).toThrow(CannotPassDependentAndPassthrough)
+        }).toThrow(CannotDefineAssociationWithBothDependentAndPassthrough)
       })
     })
 
@@ -64,7 +64,7 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
             })
             public testAssociation: Post
           }
-        }).toThrow(CannotPassDependentAndRequiredWhereClause)
+        }).toThrow(CannotDefineAssociationWithBothDependentAndRequiredWhereClause)
       })
     })
   })

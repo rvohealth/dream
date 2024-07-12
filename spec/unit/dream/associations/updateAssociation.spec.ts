@@ -212,7 +212,7 @@ describe('Dream#updateAssociation', () => {
         await user.updateAssociation('firstPet', { name: 'coolidge' })
 
         await pet1.reload()
-        const reloadedPet2 = await Pet.unscoped().find(pet2.id)
+        const reloadedPet2 = await Pet.removeAllDefaultScopes().find(pet2.id)
 
         expect(pet1.name).toEqual('coolidge')
         expect(reloadedPet2!.name).toEqual('peta')

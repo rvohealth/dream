@@ -18,7 +18,7 @@ export default function Scope(
         named: [...(t['scopes']?.named || [])] as ScopeStatement[],
       }
 
-    const alreadyApplied = t['scopes'][branch].find(scope => scope.method === key)
+    const alreadyApplied = !!t['scopes'][branch].find(scope => scope.method === key)
 
     if (!alreadyApplied) {
       t['scopes'][branch].push({

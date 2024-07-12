@@ -13,7 +13,7 @@ export default async function reload<DreamInstance extends Dream>(
 
   if (txn) query = query.txn(txn)
 
-  query = query.unscoped().where({ [dream.primaryKey as any]: dream.primaryKeyValue } as any)
+  query = query.removeAllDefaultScopes().where({ [dream.primaryKey as any]: dream.primaryKeyValue } as any)
 
   const reloadedRecord = (await query.first()) as DreamInstance
   dream.setAttributes(reloadedRecord.getAttributes() as any)

@@ -1,11 +1,10 @@
 import 'jest-extended'
-import truncate from '../../spec-helpers/truncate'
-import '../../spec-helpers/jestMatchers'
+import { toBeOneOf } from 'jest-extended'
 import 'luxon-jest-matchers'
-import * as matchers from 'jest-extended'
+import '../../spec-helpers/jestMatchers'
+import truncate from '../../spec-helpers/truncate'
 
-// add all jest-extended matchers
-expect.extend(matchers as any)
+expect.extend({ toBeOneOf } as any)
 
 beforeEach(async () => {
   await truncate()

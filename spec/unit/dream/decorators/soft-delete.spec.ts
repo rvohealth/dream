@@ -25,7 +25,7 @@ describe('@SoftDelete', () => {
     await post.destroy()
 
     expect(await Post.last()).toBeNull()
-    const reloadedPost = await Post.unscoped().last()
+    const reloadedPost = await Post.removeAllDefaultScopes().last()
     expect(reloadedPost!.deletedAt).not.toBeNull()
   })
 
@@ -33,7 +33,7 @@ describe('@SoftDelete', () => {
     it('sets all sortable fields to null', async () => {
       const post = await Post.create({ body: 'hello', user })
       await post.destroy()
-      const reloadedPost = await Post.unscoped().last()
+      const reloadedPost = await Post.removeAllDefaultScopes().last()
       expect(reloadedPost!.position).toBeNull()
     })
   })
@@ -73,7 +73,7 @@ describe('@SoftDelete', () => {
     const post = await Post.create({ body: 'hello', user })
     await post.destroy()
     expect(await Post.last()).toBeNull()
-    expect(await Post.unscoped().last()).toMatchDreamModel(post)
+    expect(await Post.removeAllDefaultScopes().last()).toMatchDreamModel(post)
   })
 
   context('within a transaction', () => {

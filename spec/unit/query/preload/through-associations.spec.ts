@@ -1,23 +1,23 @@
-import User from '../../../../test-app/app/models/User'
+import { DateTime } from 'luxon'
+import JoinAttemptedOnMissingAssociation from '../../../../src/exceptions/associations/join-attempted-with-missing-association'
+import MissingThroughAssociationSource from '../../../../src/exceptions/associations/missing-through-association-source'
+import Latex from '../../../../test-app/app/models/Balloon/Latex'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
+import BalloonSpotter from '../../../../test-app/app/models/BalloonSpotter'
+import BalloonSpotterBalloon from '../../../../test-app/app/models/BalloonSpotterBalloon'
+import Collar from '../../../../test-app/app/models/Collar'
 import Composition from '../../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
-import { DateTime } from 'luxon'
-import MissingThroughAssociationSource from '../../../../src/exceptions/associations/missing-through-association-source'
-import BalloonSpotter from '../../../../test-app/app/models/BalloonSpotter'
-import BalloonSpotterBalloon from '../../../../test-app/app/models/BalloonSpotterBalloon'
-import Latex from '../../../../test-app/app/models/Balloon/Latex'
-import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
-import Sandbag from '../../../../test-app/app/models/Sandbag'
 import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating'
-import Pet from '../../../../test-app/app/models/Pet'
-import JoinAttemptedOnMissingAssociation from '../../../../src/exceptions/associations/join-attempted-with-missing-association'
-import Collar from '../../../../test-app/app/models/Collar'
-import Post from '../../../../test-app/app/models/Post'
-import Rating from '../../../../test-app/app/models/Rating'
-import Node from '../../../../test-app/app/models/Graph/Node'
 import Edge from '../../../../test-app/app/models/Graph/Edge'
 import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
+import Node from '../../../../test-app/app/models/Graph/Node'
+import Pet from '../../../../test-app/app/models/Pet'
+import Post from '../../../../test-app/app/models/Post'
+import Rating from '../../../../test-app/app/models/Rating'
+import Sandbag from '../../../../test-app/app/models/Sandbag'
+import User from '../../../../test-app/app/models/User'
 
 describe('Query#preload through', () => {
   context('explicit HasMany through a BelongsTo', () => {
@@ -640,7 +640,7 @@ describe('Query#preload through', () => {
     })
   })
 
-  context('unscoped', () => {
+  context('removeAllDefaultScopes', () => {
     it('cascades through associations', async () => {
       const user = await User.create({
         email: 'fred@frewd',
@@ -651,7 +651,7 @@ describe('Query#preload through', () => {
       const balloon = await Latex.create({ color: 'red', deletedAt: DateTime.now() })
       await Collar.create({ pet, balloon })
 
-      const unscopedReloadedUser = await User.unscoped().preload('pets', 'redBalloons').first()
+      const unscopedReloadedUser = await User.removeAllDefaultScopes().preload('pets', 'redBalloons').first()
       expect(unscopedReloadedUser).toMatchDreamModel(user)
       expect(unscopedReloadedUser!.pets).toMatchDreamModels([pet])
       expect(unscopedReloadedUser!.pets[0].redBalloons).toMatchDreamModels([balloon])

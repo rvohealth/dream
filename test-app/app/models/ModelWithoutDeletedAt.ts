@@ -1,4 +1,4 @@
-import { DreamColumn } from '../../../src'
+import { DreamColumn, Scope } from '../../../src'
 import SoftDelete from '../../../src/decorators/soft-delete'
 import ApplicationModel from './ApplicationModel'
 
@@ -14,4 +14,8 @@ export default class ModelWithoutDeletedAt extends ApplicationModel {
   public id: DreamColumn<ModelWithoutDeletedAt, 'id'>
   public createdAt: DreamColumn<ModelWithoutDeletedAt, 'createdAt'>
   public updatedAt: DreamColumn<ModelWithoutDeletedAt, 'updatedAt'>
+
+  // Used for testing the rendering of default scopes within SchemaBuilder.spec
+  @Scope({ default: true })
+  public static howyadoin() {}
 }

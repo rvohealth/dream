@@ -10,14 +10,15 @@ import MissingThroughAssociationSource from '../../../exceptions/associations/mi
 import compact from '../../../helpers/compact'
 import debug from '../../../helpers/debug'
 import Query from '../../query'
-import { RelaxedPreloadStatement } from '../../types'
+import { PassthroughColumnNames, RelaxedPreloadStatement } from '../../types'
 
 export default class LoadIntoModels<
   DreamInstance extends Dream,
   DB extends DreamInstance['dreamconf']['DB'] = DreamInstance['dreamconf']['DB'],
   Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
-  PassthroughColumns extends
-    DreamInstance['dreamconf']['passthroughColumns'] = DreamInstance['dreamconf']['passthroughColumns'],
+  PassthroughColumns extends PassthroughColumnNames<DreamInstance['dreamconf']> = PassthroughColumnNames<
+    DreamInstance['dreamconf']
+  >,
 > {
   private readonly preloadStatements: RelaxedPreloadStatement
   private readonly passthroughWhereStatement: PassthroughWhere<PassthroughColumns> | null = null

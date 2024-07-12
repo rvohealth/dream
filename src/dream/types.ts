@@ -10,6 +10,7 @@ import {
   WhereStatement,
   WhereStatementForAssociation,
 } from '../decorators/associations/shared'
+import { STI_SCOPE_NAME } from '../decorators/STI'
 import Dream from '../dream'
 import CalendarDate from '../helpers/CalendarDate'
 import { FilterInterface, Inc, ReadonlyTail, RejectInterface } from '../helpers/typeutils'
@@ -355,6 +356,46 @@ export interface SimilarityStatement {
   columnName: string
   opsStatement: OpsStatement<any, any>
 }
+
+export type PassthroughColumnNames<
+  DreamConf,
+  GlobalSchema = DreamConf['globalSchema' & keyof DreamConf],
+  PassthroughColumns = GlobalSchema['passthroughColumns' & keyof GlobalSchema],
+> = PassthroughColumns[number & keyof PassthroughColumns]
+
+// it is not valid to remove the STI scope
+
+export type DefaultScopeName<
+  DreamInstance extends Dream,
+  Schema = DreamInstance['dreamconf']['schema'],
+  SchemaTable = Schema[DreamInstance['table'] & keyof Schema],
+  SchemaDefaultScopes extends string[] = SchemaTable['scopes' & keyof SchemaTable]['default' &
+    keyof SchemaTable['scopes' & keyof SchemaTable]] &
+    string[],
+> =
+  // it is not valid to remove the STI scope
+  Exclude<SchemaDefaultScopes[number], typeof STI_SCOPE_NAME>
+
+export type AllDefaultScopeNames<
+  DreamConf,
+  GlobalSchema = DreamConf['globalSchema' & keyof DreamConf],
+  AllNames = GlobalSchema['allDefaultScopeNames' & keyof GlobalSchema],
+> =
+  // it is not valid to remove the STI scope
+  Exclude<AllNames[number & keyof AllNames], typeof STI_SCOPE_NAME>
+
+export type NamedScopeName<
+  DreamInstance extends Dream,
+  Schema = DreamInstance['dreamconf']['schema'],
+  SchemaTable = Schema[DreamInstance['table'] & keyof Schema],
+  SchemaNamedScopes extends string[] = SchemaTable['scopes' & keyof SchemaTable]['named' &
+    keyof SchemaTable['scopes' & keyof SchemaTable]] &
+    string[],
+> = SchemaNamedScopes[number]
+
+export type DefaultOrNamedScopeName<DreamInstance extends Dream> =
+  | DefaultScopeName<DreamInstance>
+  | NamedScopeName<DreamInstance>
 
 type NA = 'na'
 type VALID = 'valid'

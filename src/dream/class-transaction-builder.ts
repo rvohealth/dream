@@ -7,8 +7,10 @@ import saveDream from './internal/saveDream'
 import Query, { FindEachOpts } from './query'
 import DreamTransaction from './transaction'
 import {
+  DefaultScopeName,
   DreamColumnNames,
   OrderDir,
+  PassthroughColumnNames,
   UpdateableProperties,
   VariadicJoinsArgs,
   VariadicLoadArgs,
@@ -415,8 +417,23 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    *
    * @returns A query for this model which disregards default scopes
    */
-  public unscoped<I extends DreamClassTransactionBuilder<DreamInstance>>(this: I): Query<DreamInstance> {
-    return this.queryInstance().unscoped()
+  public removeAllDefaultScopes<I extends DreamClassTransactionBuilder<DreamInstance>>(
+    this: I
+  ): Query<DreamInstance> {
+    return this.queryInstance().removeAllDefaultScopes()
+  }
+
+  /**
+   * Prevents a specific default scope from applying when
+   * the Query is executed
+   *
+   * @returns A new Query which will prevent a specific default scope from applying
+   */
+  public removeDefaultScope<I extends DreamClassTransactionBuilder<DreamInstance>>(
+    this: I,
+    scopeName: DefaultScopeName<DreamInstance>
+  ): Query<DreamInstance> {
+    return this.queryInstance().removeDefaultScope(scopeName)
   }
 
   /**
@@ -596,7 +613,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    */
   public passthrough<
     I extends DreamClassTransactionBuilder<DreamInstance>,
-    PassthroughColumns extends DreamInstance['dreamconf']['passthroughColumns'],
+    PassthroughColumns extends PassthroughColumnNames<DreamInstance['dreamconf']>,
   >(this: I, passthroughWhereStatement: PassthroughWhere<PassthroughColumns>): Query<DreamInstance> {
     return this.queryInstance().passthrough(passthroughWhereStatement as any)
   }

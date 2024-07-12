@@ -1,13 +1,15 @@
 import { DateTime } from 'luxon'
-import Node from '../../../test-app/app/models/Graph/Node'
-import Edge from '../../../test-app/app/models/Graph/Edge'
-import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode'
 import ops from '../../../src/ops'
-import User from '../../../test-app/app/models/User'
 import Composition from '../../../test-app/app/models/Composition'
-import Pet from '../../../test-app/app/models/Pet'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit'
+import Edge from '../../../test-app/app/models/Graph/Edge'
+import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode'
+import Node from '../../../test-app/app/models/Graph/Node'
+import Pet from '../../../test-app/app/models/Pet'
+import Post from '../../../test-app/app/models/Post'
+import PostComment from '../../../test-app/app/models/PostComment'
+import User from '../../../test-app/app/models/User'
 
 describe('Query#pluckThrough', () => {
   it('can pluck from the associated namespace', async () => {
@@ -106,6 +108,17 @@ describe('Query#pluckThrough', () => {
       const names = await User.query().pluckThrough('pets', 'pets.name')
       expect(names).toEqual(['Snoopy'])
     })
+
+    it('does not apply a default scope to the (already loaded) model we are starting from', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const post = await Post.create({ user })
+      const postComment = await PostComment.create({ post, body: 'hello world' })
+
+      await post.destroy()
+      await postComment.undestroy()
+
+      expect(await post.pluckThrough('comments', 'comments.body')).toEqual(['hello world'])
+    })
   })
 
   context('nested through associations', () => {
@@ -120,6 +133,72 @@ describe('Query#pluckThrough', () => {
 
       const plucked = await CompositionAssetAudit.query().pluckThrough('user', 'user.email')
       expect(plucked).toEqual(['fred@frewd'])
+    })
+  })
+
+  context('implicit HasMany through', () => {
+    let user: User
+    let post: Post
+
+    beforeEach(async () => {
+      user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      post = await Post.create({ user })
+      await PostComment.create({ post, body: 'hello world', deletedAt: DateTime.now() })
+    })
+
+    it('applies default scopes to the join model', async () => {
+      expect(
+        await User.where({ id: user.id }).pluckThrough('postComments', 'postComments.body')
+      ).toHaveLength(0)
+    })
+
+    it('respects removal of all default scopes', async () => {
+      expect(
+        await User.removeAllDefaultScopes()
+          .where({ id: user.id })
+          .pluckThrough('postComments', 'postComments.body')
+      ).toEqual(['hello world'])
+    })
+
+    it('respects removal of named default scopes', async () => {
+      expect(
+        await User.removeDefaultScope('dream:SoftDelete')
+          .where({ id: user.id })
+          .pluckThrough('postComments', 'postComments.body')
+      ).toEqual(['hello world'])
+    })
+  })
+
+  context('explicit HasMany through', () => {
+    let user: User
+    let post: Post
+
+    beforeEach(async () => {
+      user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      post = await Post.create({ user })
+      await PostComment.create({ post, body: 'hello world', deletedAt: DateTime.now() })
+    })
+
+    it('applies default scopes to the join model', async () => {
+      expect(
+        await User.where({ id: user.id }).pluckThrough('posts', 'comments', 'comments.body')
+      ).toHaveLength(0)
+    })
+
+    it('respects removal of all default scopes', async () => {
+      expect(
+        await User.removeAllDefaultScopes()
+          .where({ id: user.id })
+          .pluckThrough('posts', 'comments', 'comments.body')
+      ).toEqual(['hello world'])
+    })
+
+    it('respects removal of named default scopes', async () => {
+      expect(
+        await User.removeDefaultScope('dream:SoftDelete')
+          .where({ id: user.id })
+          .pluckThrough('posts', 'comments', 'comments.body')
+      ).toEqual(['hello world'])
     })
   })
 })

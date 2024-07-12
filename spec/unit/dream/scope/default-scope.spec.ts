@@ -24,7 +24,7 @@ describe('Dream Scope (default variant)', () => {
       const mylar2 = await Mylar.create({ user, color: 'blue', volume: 1 })
       await mylar2.destroy()
       expect(await Mylar.all()).toMatchDreamModels([mylar])
-      expect(await Mylar.unscoped().all()).toMatchDreamModels([mylar, mylar2])
+      expect(await Mylar.removeAllDefaultScopes().all()).toMatchDreamModels([mylar, mylar2])
     })
   })
 })

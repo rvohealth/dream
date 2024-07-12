@@ -11,7 +11,7 @@ describe('Dream#preventDeletion', () => {
 
   it('cancels the deleting of a record, allowing hooks to carefully implement a paranoid pattern', async () => {
     await pet.destroy()
-    const reloadedPet = await Pet.unscoped().find(pet.id)
+    const reloadedPet = await Pet.removeAllDefaultScopes().find(pet.id)
     expect(reloadedPet!.deletedAt).not.toBeNull()
     expect(reloadedPet).toMatchDreamModel(pet)
   })

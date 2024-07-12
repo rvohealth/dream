@@ -1,9 +1,10 @@
 import { Query } from '../../../src'
+import * as destroyDreamModule from '../../../src/dream/internal/destroyDream'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Post from '../../../test-app/app/models/Post'
+import PostComment from '../../../test-app/app/models/PostComment'
 import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
-import * as destroyDreamModule from '../../../src/dream/internal/destroyDream'
 
 describe('Dream#reallyDestroy', () => {
   it('destroys the record', async () => {
@@ -40,7 +41,21 @@ describe('Dream#reallyDestroy', () => {
       await post.reallyDestroy()
 
       expect(await Post.count()).toEqual(0)
-      expect(await Post.unscoped().count()).toEqual(0)
+      expect(await Post.removeAllDefaultScopes().count()).toEqual(0)
+    })
+
+    context('already soft-deleted asociations', () => {
+      it('are really destroyed', async () => {
+        const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+        const post = await Post.create({ user })
+        const postComment = await PostComment.create({ post })
+
+        await postComment.destroy()
+
+        expect(await PostComment.removeAllDefaultScopes().count()).toEqual(1)
+        await post.reallyDestroy()
+        expect(await PostComment.removeAllDefaultScopes().count()).toEqual(0)
+      })
     })
 
     context('within a transaction', () => {
@@ -61,14 +76,14 @@ describe('Dream#reallyDestroy', () => {
         }
 
         expect(await Rating.count()).toEqual(1)
-        expect(await Rating.unscoped().count()).toEqual(1)
+        expect(await Rating.removeAllDefaultScopes().count()).toEqual(1)
 
         await ApplicationModel.transaction(async txn => {
           await post.txn(txn).reallyDestroy()
         })
 
         expect(await Rating.count()).toEqual(0)
-        expect(await Rating.unscoped().count()).toEqual(0)
+        expect(await Rating.removeAllDefaultScopes().count()).toEqual(0)
       })
 
       context('skipHooks=true', () => {

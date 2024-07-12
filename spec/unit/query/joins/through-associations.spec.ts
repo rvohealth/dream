@@ -10,6 +10,7 @@ import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
 import Pet from '../../../../test-app/app/models/Pet'
 import Post from '../../../../test-app/app/models/Post'
+import PostComment from '../../../../test-app/app/models/PostComment'
 import Rating from '../../../../test-app/app/models/Rating'
 import User from '../../../../test-app/app/models/User'
 
@@ -35,6 +36,44 @@ describe('Query#joins through with simple associations', () => {
 
       const reloaded = await BalloonSpotter.query().joins('balloons').all()
       expect(reloaded).toMatchDreamModels([balloonSpotter])
+    })
+
+    context('default scopes', () => {
+      let user: User
+      let post: Post
+      let postComment: PostComment
+
+      beforeEach(async () => {
+        user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        post = await Post.create({ user })
+        postComment = await PostComment.create({ post, body: 'hello world', deletedAt: DateTime.now() })
+      })
+
+      it('applies default scopes to the join model', async () => {
+        expect(await User.joins('postComments').first()).toBeNull()
+      })
+
+      it('respects removal of all default scopes', async () => {
+        expect(await User.removeAllDefaultScopes().joins('postComments').first()).toMatchDreamModel(user)
+      })
+
+      it('respects removal of named default scopes', async () => {
+        expect(
+          await User.removeDefaultScope('dream:SoftDelete').joins('postComments').first()
+        ).toMatchDreamModel(user)
+      })
+
+      context('when the join model is excluded by a default scope', () => {
+        it('excludes models joined through that join model', async () => {
+          await post.destroy()
+          await postComment.undestroy()
+
+          expect(await Post.first()).toBeNull()
+          expect(await PostComment.first()).toMatchDreamModel(postComment)
+          expect(await Post.joins('comments').first()).toBeNull()
+          expect(await User.joins('postComments').first()).toBeNull()
+        })
+      })
     })
   })
 

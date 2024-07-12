@@ -145,7 +145,7 @@ describe('Dream#reallyDestroyAssociation', () => {
 
           expect(await Post.count()).toEqual(0)
           expect(await Rating.count()).toEqual(0)
-          expect(await Rating.unscoped().count()).toEqual(0)
+          expect(await Rating.removeAllDefaultScopes().count()).toEqual(0)
         })
 
         context('skipHooks=true is passed', () => {
@@ -397,18 +397,25 @@ describe('Dream#reallyDestroyAssociation', () => {
         const destroyAssociationSpy = jest.spyOn(destroyAssociationModule, 'default')
 
         await ApplicationModel.transaction(async txn => {
-          await user.txn(txn).reallyDestroyAssociation('compositions', { skipHooks: false, cascade: false })
+          await user.txn(txn).reallyDestroyAssociation('compositions', {
+            bypassAllDefaultScopes: true,
+            defaultScopesToBypass: ['hideDeleted'],
+            cascade: false,
+            skipHooks: false,
+          })
         })
 
         expect(destroyAssociationSpy).toHaveBeenCalledWith(
           expect.toMatchDreamModel(user),
           expect.anything(),
           'compositions',
-          undefined,
           {
-            skipHooks: false,
+            associationWhereStatement: undefined,
+            bypassAllDefaultScopes: true,
+            defaultScopesToBypass: ['hideDeleted'],
             cascade: false,
             reallyDestroy: true,
+            skipHooks: false,
           }
         )
       })

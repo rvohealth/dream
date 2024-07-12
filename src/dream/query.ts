@@ -31,6 +31,7 @@ import {
   WhereSelfStatement,
   WhereStatement,
 } from '../decorators/associations/shared'
+import { SOFT_DELETE_SCOPE_NAME } from '../decorators/soft-delete'
 import Dream from '../dream'
 import CannotAssociateThroughPolymorphic from '../exceptions/associations/cannot-associate-through-polymorphic'
 import CannotJoinPolymorphicBelongsToError from '../exceptions/associations/cannot-join-polymorphic-belongs-to-error'
@@ -45,6 +46,7 @@ import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../exceptions/ca
 import MissingRequiredCallbackFunctionToPluckEach from '../exceptions/missing-required-callback-function-to-pluck-each'
 import NoUpdateAllOnAssociationQuery from '../exceptions/no-updateall-on-association-query'
 import NoUpdateAllOnJoins from '../exceptions/no-updateall-on-joins'
+import RecordNotFound from '../exceptions/record-not-found'
 import CalendarDate from '../helpers/CalendarDate'
 import { allNestedObjectKeys } from '../helpers/allNestedObjectKeys'
 import cloneDeepSafe from '../helpers/cloneDeepSafe'
@@ -61,10 +63,13 @@ import LoadIntoModels from './internal/associations/load-into-models'
 import executeDatabaseQuery from './internal/executeDatabaseQuery'
 import { extractValueFromJoinsPluckResponse } from './internal/extractValueFromJoinsPluckResponse'
 import orderByDirection from './internal/orderByDirection'
+import shouldBypassDefaultScope from './internal/shouldBypassDefaultScope'
 import SimilarityBuilder from './internal/similarity/SimilarityBuilder'
 import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance'
 import DreamTransaction from './transaction'
 import {
+  AllDefaultScopeNames,
+  DefaultScopeName,
   DreamAttributes,
   DreamColumn,
   DreamColumnNames,
@@ -72,6 +77,7 @@ import {
   DreamTableSchema,
   FinalVariadicTableName,
   OrderDir,
+  PassthroughColumnNames,
   RelaxedJoinsStatement,
   RelaxedJoinsWhereStatement,
   RelaxedPreloadStatement,
@@ -86,7 +92,6 @@ import {
   VariadicPluckEachThroughArgs,
   VariadicPluckThroughArgs,
 } from './types'
-import RecordNotFound from '../exceptions/record-not-found'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -151,7 +156,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * current Query instance
    */
   private readonly passthroughWhereStatement: PassthroughWhere<
-    DreamInstance['dreamconf']['passthroughColumns']
+    PassthroughColumnNames<DreamInstance['dreamconf']>
   > = Object.freeze({})
 
   /**
@@ -256,9 +261,30 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   /**
    * @internal
    *
-   * Whether or not to bypass default scopes for this Query
+   * Whether or not to bypass all default scopes for this Query
    */
-  private readonly bypassDefaultScopes: boolean = false
+  private readonly bypassAllDefaultScopes: boolean = false
+
+  /**
+   * @internal
+   *
+   * Whether or not to bypass all default scopes for this Query, but not associations
+   */
+  private readonly bypassAllDefaultScopesExceptOnAssociations: boolean = false
+
+  /**
+   * @internal
+   *
+   * Specific default scopes to bypass
+   */
+  private readonly defaultScopesToBypass: AllDefaultScopeNames<DreamInstance['dreamconf']>[] = []
+
+  /**
+   * @internal
+   *
+   * Specific default scopes to bypass, but not associations
+   */
+  private readonly defaultScopesToBypassExceptOnAssociations: DefaultScopeName<DreamInstance>[] = []
 
   /**
    * @internal
@@ -287,7 +313,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @internal
    *
    * Used for unscoping Query instances. In most cases, this will be null,
-   * but when calling `unscoped`, an unscoped Query is stored as
+   * but when calling `removeAllDefaultScopes`, a removeAllDefaultScopes Query is stored as
    * baseSelectQuery.
    */
   private baseSelectQuery: Query<any> | null
@@ -310,7 +336,10 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     this.baseSelectQuery = opts.baseSelectQuery || null
     this.limitStatement = opts.limit || null
     this.offsetStatement = opts.offset || null
-    this.bypassDefaultScopes = opts.bypassDefaultScopes || false
+    this.bypassAllDefaultScopes = opts.bypassAllDefaultScopes || false
+    this.bypassAllDefaultScopesExceptOnAssociations = opts.bypassAllDefaultScopesExceptOnAssociations || false
+    this.defaultScopesToBypass = opts.defaultScopesToBypass || []
+    this.defaultScopesToBypassExceptOnAssociations = opts.defaultScopesToBypassExceptOnAssociations || []
     this.dreamTransaction = opts.transaction || null
     this.distinctColumn = opts.distinctColumn || null
     this.connectionOverride = opts.connection
@@ -334,14 +363,23 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns An associated Query
    */
-  private symmetricalQueryForDreamClass<T extends typeof Dream>(
+  private dreamClassQueryWithScopeBypasses<T extends typeof Dream>(
     this: Query<DreamInstance>,
-    dreamClass: T
+    dreamClass: T,
+    {
+      bypassAllDefaultScopesExceptOnAssociations = false,
+      defaultScopesToBypassExceptOnAssociations = [],
+    }: {
+      bypassAllDefaultScopesExceptOnAssociations?: boolean
+      defaultScopesToBypassExceptOnAssociations?: AllDefaultScopeNames<DreamInstance['dreamconf']>[]
+    } = {}
   ): Query<InstanceType<T>> {
-    const baseScope = this.bypassDefaultScopes ? dreamClass.unscoped() : dreamClass.query()
-
-    const associationQuery: Query<InstanceType<T>> = baseScope.clone({
+    const associationQuery = dreamClass.query().clone({
       passthroughWhereStatement: this.passthroughWhereStatement,
+      bypassAllDefaultScopes: this.bypassAllDefaultScopes,
+      bypassAllDefaultScopesExceptOnAssociations,
+      defaultScopesToBypass: this.defaultScopesToBypass,
+      defaultScopesToBypassExceptOnAssociations,
     })
 
     return this.dreamTransaction ? associationQuery.txn(this.dreamTransaction) : associationQuery
@@ -391,8 +429,20 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       joinsWhereStatements: opts.joinsWhereStatements || this.joinsWhereStatements,
       // end:when passed, preloadStatements, preloadWhereStatements, joinsStatements, and joinsWhereStatements are already...
 
-      bypassDefaultScopes:
-        opts.bypassDefaultScopes !== undefined ? opts.bypassDefaultScopes : this.bypassDefaultScopes,
+      bypassAllDefaultScopes:
+        opts.bypassAllDefaultScopes !== undefined ? opts.bypassAllDefaultScopes : this.bypassAllDefaultScopes,
+      bypassAllDefaultScopesExceptOnAssociations:
+        opts.bypassAllDefaultScopesExceptOnAssociations !== undefined
+          ? opts.bypassAllDefaultScopesExceptOnAssociations
+          : this.bypassAllDefaultScopesExceptOnAssociations,
+      defaultScopesToBypass:
+        opts.defaultScopesToBypass !== undefined ? opts.defaultScopesToBypass : this.defaultScopesToBypass,
+
+      defaultScopesToBypassExceptOnAssociations:
+        opts.defaultScopesToBypassExceptOnAssociations !== undefined
+          ? opts.defaultScopesToBypassExceptOnAssociations
+          : this.defaultScopesToBypassExceptOnAssociations,
+
       transaction: opts.transaction || this.dreamTransaction,
       connection: opts.connection,
       shouldReallyDestroy:
@@ -1034,11 +1084,29 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   /**
    * @internal
    *
-   * Changes the base select Query
+   * Association queries start from the table corresponding to an instance
+   * of a Dream and join the association. However, the Dream may have
+   * default scopes that would preclude finding that instance, so the
+   * Query that forms the base of an association query must be unscoped,
+   * but that unscoping should not carry through to other associations
+   * (thus the use of `removeAllDefaultScopesExceptOnAssociations` instead of
+   * `removeAllDefaultScopes`).
+   *
+   * The association that this query is loading leverages `joins`, and the
+   * joining code explicitly handles applying / omitting default scopes.
+   * We set `bypassAllDefaultScopesExceptOnAssociations: true` on this Query
+   * to let that code do its work. This keeps the implementation DRY and simpler
+   * (without `bypassAllDefaultScopesExceptOnAssociations`, the default scopes would
+   * be applied twice, and when the association attempts to remove a default
+   * association would be foiled because it would be applied outside of the context
+   * where the association is modifying the query).
    *
    */
-  private setBaseSelectQuery(baseSelectQuery: Query<any> | null) {
-    return this.clone({ baseSelectQuery })
+  private setAssociationQueryBase(baseSelectQuery: Query<any>) {
+    return this.clone({
+      baseSelectQuery: baseSelectQuery.removeAllDefaultScopesExceptOnAssociations(),
+      bypassAllDefaultScopesExceptOnAssociations: true,
+    })
   }
 
   /**
@@ -1047,8 +1115,57 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns A new Query which will prevent default scopes from applying
    */
-  public unscoped(): Query<DreamInstance> {
-    return this.clone({ bypassDefaultScopes: true, baseSelectQuery: this.baseSelectQuery?.unscoped() })
+  public removeAllDefaultScopes(): Query<DreamInstance> {
+    return this.clone({
+      bypassAllDefaultScopes: true,
+      baseSelectQuery: this.baseSelectQuery?.removeAllDefaultScopes(),
+    })
+  }
+
+  /**
+   * Prevents default scopes from applying when
+   * the Query is executed, but not when applying to associations
+   *
+   * @returns A new Query which will prevent default scopes from applying, but not when applying to asociations
+   */
+  protected removeAllDefaultScopesExceptOnAssociations(): Query<DreamInstance> {
+    return this.clone({
+      bypassAllDefaultScopesExceptOnAssociations: true,
+      baseSelectQuery: this.baseSelectQuery?.removeAllDefaultScopesExceptOnAssociations(),
+    })
+  }
+
+  /**
+   * Prevents a specific default scope from applying when
+   * the Query is executed
+   *
+   * @returns A new Query which will prevent a specific default scope from applying
+   */
+  public removeDefaultScope(
+    scopeName: AllDefaultScopeNames<DreamInstance['dreamconf']>
+  ): Query<DreamInstance> {
+    return this.clone({
+      defaultScopesToBypass: [...this.defaultScopesToBypass, scopeName],
+      baseSelectQuery: this.baseSelectQuery?.removeDefaultScope(scopeName),
+    })
+  }
+
+  /**
+   * Prevents a specific default scope from applying when
+   * the Query is executed, but not when applying to asociations
+   *
+   * @returns A new Query which will prevent a specific default scope from applying, but not when applying to asociations
+   */
+  protected removeDefaultScopeExceptOnAssociations(
+    scopeName: DefaultScopeName<DreamInstance>
+  ): Query<DreamInstance> {
+    return this.clone({
+      defaultScopesToBypassExceptOnAssociations: [
+        ...this.defaultScopesToBypassExceptOnAssociations,
+        scopeName,
+      ],
+      baseSelectQuery: this.baseSelectQuery?.removeDefaultScopeExceptOnAssociations(scopeName),
+    })
   }
 
   /**
@@ -1075,7 +1192,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @returns A cloned Query with the passthrough data
    */
   public passthrough(
-    passthroughWhereStatement: PassthroughWhere<DreamInstance['dreamconf']['passthroughColumns']>
+    passthroughWhereStatement: PassthroughWhere<PassthroughColumnNames<DreamInstance['dreamconf']>>
   ) {
     return this.clone({ passthroughWhereStatement })
   }
@@ -1602,7 +1719,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @returns An array of plucked values
    */
   private async pluckWithoutMarshalling(...fields: DreamColumnNames<DreamInstance>[]): Promise<any[]> {
-    let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
+    let kyselyQuery = this.removeAllDefaultScopesExceptOnAssociations().buildSelect({ bypassSelectAll: true })
     const aliases: string[] = []
 
     fields.forEach((field: string, index: number) => {
@@ -1883,25 +2000,25 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }: { skipHooks?: boolean; cascade?: boolean } = {}): Promise<number> {
     let counter = 0
 
-    if (this.dreamTransaction) {
-      await this.txn(this.dreamTransaction).findEach(async result => {
-        if (this.shouldReallyDestroy) {
-          await result.txn(this.dreamTransaction!).reallyDestroy({ skipHooks, cascade })
-        } else {
-          await result.txn(this.dreamTransaction!).destroy({ skipHooks, cascade })
-        }
-        counter++
-      })
-    } else {
-      await this.findEach(async result => {
-        if (this.shouldReallyDestroy) {
-          await result.reallyDestroy({ skipHooks, cascade })
-        } else {
-          await result.destroy({ skipHooks, cascade })
-        }
-        counter++
-      })
+    const options = {
+      bypassAllDefaultScopes: this.bypassAllDefaultScopes,
+      defaultScopesToBypass: this.defaultScopesToBypass,
+      skipHooks,
+      cascade,
     }
+
+    await this.findEach(async result => {
+      const subquery = this.dreamTransaction
+        ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
+        : result
+
+      if (this.shouldReallyDestroy) {
+        await subquery.reallyDestroy(options)
+      } else {
+        await subquery.destroy(options)
+      }
+      counter++
+    })
 
     return counter
   }
@@ -1958,23 +2075,28 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   public async undestroy({
     cascade,
     skipHooks,
-  }: { cascade?: boolean; skipHooks?: boolean } = {}): Promise<number> {
+  }: {
+    cascade?: boolean
+    skipHooks?: boolean
+  } = {}): Promise<number> {
     if (!this.dreamClass['softDelete']) throw new CannotCallUndestroyOnANonSoftDeleteModel(this.dreamClass)
     let counter = 0
 
-    if (this.dreamTransaction) {
-      await this.txn(this.dreamTransaction)
-        .unscoped()
-        .findEach(async result => {
-          await result.txn(this.dreamTransaction!).undestroy({ skipHooks, cascade })
-          counter++
-        })
-    } else {
-      await this.unscoped().findEach(async result => {
-        await result.undestroy({ skipHooks, cascade })
-        counter++
+    await this.removeDefaultScope(
+      SOFT_DELETE_SCOPE_NAME as AllDefaultScopeNames<DreamInstance['dreamconf']>
+    ).findEach(async result => {
+      const subquery = this.dreamTransaction
+        ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
+        : result
+
+      await subquery.undestroy({
+        bypassAllDefaultScopes: this.bypassAllDefaultScopes,
+        defaultScopesToBypass: this.defaultScopesToBypass,
+        cascade,
+        skipHooks,
       })
-    }
+      counter++
+    })
 
     return counter
   }
@@ -2021,17 +2143,14 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     let counter = 0
 
-    if (this.dreamTransaction) {
-      await this.txn(this.dreamTransaction).findEach(async result => {
-        await result.txn(this.dreamTransaction!).update(attributes as any)
-        counter++
-      })
-    } else {
-      await this.findEach(async result => {
-        await result.update(attributes as any)
-        counter++
-      })
-    }
+    await this.findEach(async result => {
+      const subquery = this.dreamTransaction
+        ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
+        : result
+
+      await subquery.update(attributes as any)
+      counter++
+    })
 
     return counter
   }
@@ -2173,9 +2292,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return { throughAssociation, throughClass, newAssociation }
   }
 
-  // Polymorphic BelongsTo. Preload by loading each target class separately.
   /**
    * @internal
+   *
+   * Polymorphic BelongsTo. Since polymorphic associations may point to multiple tables,
+   * preload by loading each target class separately.
    *
    * Used to preload polymorphic belongs to associations
    */
@@ -2193,54 +2314,64 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         `Polymorphic association ${association.as} points to an array of models but is ${association.type as string}. Only BelongsTo associations may point to an array of models.`
       )
 
-    let associatedDreams: Dream[] = []
+    const associatedDreams: Dream[] = []
 
     for (const associatedModel of association.modelCB() as (typeof Dream)[]) {
-      const relevantAssociatedModels = dreams.filter((dream: any) => {
-        return dream[association.foreignKeyTypeField()] === associatedModel['stiBaseClassOrOwnClass'].name
-      })
-
-      if (relevantAssociatedModels.length) {
-        dreams.forEach((dream: any) => {
-          dream[associationToGetterSetterProp(association)] = null
-        })
-
-        const loadedAssociations = await this.symmetricalQueryForDreamClass(associatedModel)
-          .where({
-            [associatedModel.primaryKey]: relevantAssociatedModels.map(
-              (dream: any) => dream[association.foreignKey()]
-            ),
-          })
-          .all()
-
-        associatedDreams = [...associatedDreams, ...loadedAssociations]
-
-        // dreams is a Rating
-        // Rating belongs to: rateables (Posts / Compositions)
-        // loadedAssociations is an array of Posts and Compositions
-        // if rating.rateable_id === loadedAssociation.primaryKeyvalue
-        //  rating.rateable = loadedAssociation
-        for (const loadedAssociation of loadedAssociations) {
-          dreams
-            .filter((dream: any) => {
-              if (association.polymorphic) {
-                return (
-                  dream[association.foreignKeyTypeField()] ===
-                    loadedAssociation['stiBaseClassOrOwnClass'].name &&
-                  dream[association.foreignKey()] === association.primaryKeyValue(loadedAssociation)
-                )
-              } else {
-                return dream[association.foreignKey()] === association.primaryKeyValue(loadedAssociation)
-              }
-            })
-            .forEach((dream: any) => {
-              dream[association.as] = loadedAssociation
-            })
-        }
-      }
+      await this.preloadPolymorphicAssociationModel(dreams, association, associatedModel, associatedDreams)
     }
 
     return associatedDreams
+  }
+
+  private async preloadPolymorphicAssociationModel(
+    dreams: Dream[],
+    association: BelongsToStatement<any, any, any, string>,
+    associatedDreamClass: typeof Dream,
+    associatedDreams: Dream[]
+  ) {
+    const relevantAssociatedModels = dreams.filter((dream: any) => {
+      return dream[association.foreignKeyTypeField()] === associatedDreamClass['stiBaseClassOrOwnClass'].name
+    })
+
+    if (relevantAssociatedModels.length) {
+      dreams.forEach((dream: any) => {
+        dream[associationToGetterSetterProp(association)] = null
+      })
+
+      // Load all models of type associated that are associated with any of the already loaded Dream models
+      const loadedAssociations = await this.dreamClassQueryWithScopeBypasses(associatedDreamClass, {
+        // The association may remove specific default scopes that would otherwise preclude
+        // certain instances of the associated class from being found.
+        defaultScopesToBypassExceptOnAssociations: association.withoutDefaultScopes,
+      })
+        .where({
+          [associatedDreamClass.primaryKey]: relevantAssociatedModels.map(
+            (dream: any) => dream[association.foreignKey()]
+          ),
+        })
+        .all()
+
+      loadedAssociations.forEach(loadedAssociation => associatedDreams.push(loadedAssociation))
+
+      //////////////////////////////////////////////////////////////////////////////////////////////
+      // Associate each loaded association with each dream based on primary key and foreign key type
+      //////////////////////////////////////////////////////////////////////////////////////////////
+      for (const loadedAssociation of loadedAssociations) {
+        dreams
+          .filter((dream: any) => {
+            return (
+              dream[association.foreignKeyTypeField()] === loadedAssociation['stiBaseClassOrOwnClass'].name &&
+              dream[association.foreignKey()] === association.primaryKeyValue(loadedAssociation)
+            )
+          })
+          .forEach((dream: any) => {
+            dream[association.as] = loadedAssociation
+          })
+      }
+      ///////////////////////////////////////////////////////////////////////////////////////////////////
+      // end: Associate each loaded association with each dream based on primary key and foreign key type
+      ///////////////////////////////////////////////////////////////////////////////////////////////////
+    }
   }
 
   /**
@@ -2302,17 +2433,25 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       ? dreamClass['stiBaseClassOrOwnClass']
       : dreamClass
 
-    const scope = this.symmetricalQueryForDreamClass(baseClass).where({
+    const associationDataScope = this.dreamClassQueryWithScopeBypasses(baseClass, {
+      // In order to stay DRY, preloading leverages the association logic built into
+      // `joins` (by using `pluck`, which calls `joins`). However, baseClass may have
+      // default scopes that would preclude finding that instance. We remove all
+      // default scopes on baseClass, but not subsequent associations, so that the
+      // single query will be able to find each row corresponding to a Dream in `dreams`,
+      // regardless of default scopes on that Dream's class.
+      bypassAllDefaultScopesExceptOnAssociations: true,
+    }).where({
       [dreamClass.primaryKey]: dreams.map(obj => obj.primaryKeyValue),
     })
 
     const hydrationData: any[][] = whereStatement
-      ? await scope.pluckThrough(
+      ? await associationDataScope.pluckThrough(
           associationName,
           whereStatement as WhereStatement<any, any, any>,
           columnsToPluck
         )
-      : await scope.pluckThrough(associationName, columnsToPluck)
+      : await associationDataScope.pluckThrough(associationName, columnsToPluck)
 
     const preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[] = hydrationData.map(
       pluckedData => {
@@ -2370,6 +2509,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         dream,
         this.applyableWhereStatements(preloadWhereStatements[key] as RelaxedPreloadWhereStatement<any, any>)
       )
+
       if (nestedDreams) {
         await this.applyPreload(
           (preloadStatement as any)[key],
@@ -2401,13 +2541,22 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     )
   }
 
-  private conditionallyApplyScopes(): Query<DreamInstance> {
-    if (this.bypassDefaultScopes) return this
+  private conditionallyApplyDefaultScopes(): Query<DreamInstance> {
+    if (this.bypassAllDefaultScopes || this.bypassAllDefaultScopesExceptOnAssociations) return this
 
     const thisScopes = this.dreamClass['scopes'].default
     let query: Query<DreamInstance> = this
     for (const scope of thisScopes) {
-      query = (this.dreamClass as any)[scope.method](query)
+      if (
+        !shouldBypassDefaultScope(scope.method, {
+          defaultScopesToBypass: [
+            ...this.defaultScopesToBypass,
+            ...this.defaultScopesToBypassExceptOnAssociations,
+          ],
+        })
+      ) {
+        query = (this.dreamClass as any)[scope.method](query)
+      }
     }
 
     return query
@@ -2517,23 +2666,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
     currentAssociationTableOrAlias: TableOrAssociationName<Schema>
   } {
-    // Given:
-    // dreamClass: Post
-    // previousAssociationTableOrAlias: posts
-    // currentAssociationTableOrAlias: commenters
-    // Post has many Commenters through Comments
-    // whereJoinsStatement: { commenters: { id: <some commenter id> } }
-    // association = Post.associationMap[commenters]
-    // which gives association = {
-    //   through: 'comments',
-    //   as: 'commenters',
-    //   modelCB: () => Commenter,
-    // }
-    //
-    // We want joinsBridgeThroughAssociations to add to the query:
-    // INNER JOINS comments ON posts.id = comments.post_id
-    // and update dreamClass to be
-
     let association = dreamClass['getAssociationMetadata'](currentAssociationTableOrAlias)
     if (!association)
       throw new JoinAttemptedOnMissingAssociation({
@@ -2555,6 +2687,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     const throughClass = results.throughClass
 
     if (originalAssociation?.through) {
+      ///////////////////////////////////////////////////////////////////////////////////////
+      // when an association is through another association, `joinsBridgeThroughAssociations`
+      // is called, which eventually calls back to this method, passing in the original
+      // through association as `originalAssociation`
+      ///////////////////////////////////////////////////////////////////////////////////////
+
       if (originalAssociation.distinct) {
         query = query.distinctOn(
           this.distinctColumnNameForAssociation({
@@ -2730,21 +2868,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       }
     }
 
-    if (!this.bypassDefaultScopes) {
-      let scopesQuery = new Query<DreamInstance>(this.dreamInstance)
-      const associationClass = association.modelCB() as any
-      const associationScopes = associationClass.scopes.default
-
-      for (const scope of associationScopes) {
-        const tempQuery = associationClass[scope.method](scopesQuery)
-        if (tempQuery && tempQuery.constructor === this.constructor) scopesQuery = tempQuery
-      }
-
-      query = this.applyWhereStatements(
-        query,
-        this.aliasWhereStatements(scopesQuery.whereStatements, currentAssociationTableOrAlias)
-      )
-    }
+    query = this.conditionallyApplyDefaultScopesDependentOnAssociation({
+      query,
+      tableNameOrAlias: currentAssociationTableOrAlias,
+      association,
+    })
 
     return {
       query,
@@ -2752,6 +2880,48 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       previousAssociationTableOrAlias,
       currentAssociationTableOrAlias,
     }
+  }
+
+  private conditionallyApplyDefaultScopesDependentOnAssociation<DB extends DreamInstance['dreamconf']['DB']>({
+    query,
+    tableNameOrAlias,
+    association,
+  }: {
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>
+    tableNameOrAlias: string
+    association:
+      | HasOneStatement<any, any, any, any>
+      | HasManyStatement<any, any, any, any>
+      | BelongsToStatement<any, any, any, any>
+  }) {
+    let scopesQuery = new Query<DreamInstance>(this.dreamInstance)
+    const associationClass = association.modelCB() as typeof Dream
+    const associationScopes = associationClass['scopes'].default
+
+    for (const scope of associationScopes) {
+      if (
+        !shouldBypassDefaultScope(scope.method, {
+          bypassAllDefaultScopes: this.bypassAllDefaultScopes,
+          defaultScopesToBypass: [...this.defaultScopesToBypass, ...(association.withoutDefaultScopes || [])],
+        })
+      ) {
+        const tempQuery = (associationClass as any)[scope.method](scopesQuery)
+        // The scope method on a Dream model should return a clone of the Query it receives
+        // (e.g. by returning `scope.where(...)`), but in case the function doesn't return,
+        // or returns the wrong thing, we check before overriding `scopesQuery` with what the
+        // method returned.
+        if (tempQuery && tempQuery.constructor === scopesQuery.constructor) scopesQuery = tempQuery
+      }
+    }
+
+    if (scopesQuery.whereStatements.length) {
+      query = this.applyWhereStatements(
+        query,
+        this.aliasWhereStatements(scopesQuery.whereStatements, tableNameOrAlias)
+      )
+    }
+
+    return query
   }
 
   private distinctColumnNameForAssociation({
@@ -3185,7 +3355,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   private buildCommon(this: Query<DreamInstance>, kyselyQuery: any) {
     this.checkForQueryViolations()
 
-    const query = this.conditionallyApplyScopes()
+    const query = this.conditionallyApplyDefaultScopes()
 
     if (!isEmpty(query.joinsStatements)) {
       kyselyQuery = query.recursivelyJoin({
@@ -3438,8 +3608,9 @@ export interface QueryOpts<
   ColumnType extends DreamColumnNames<DreamInstance> = DreamColumnNames<DreamInstance>,
   Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
   DB extends DreamInstance['dreamconf']['DB'] = DreamInstance['dreamconf']['DB'],
-  PassthroughColumns extends
-    DreamInstance['dreamconf']['passthroughColumns'] = DreamInstance['dreamconf']['passthroughColumns'],
+  PassthroughColumns extends PassthroughColumnNames<DreamInstance['dreamconf']> = PassthroughColumnNames<
+    DreamInstance['dreamconf']
+  >,
 > {
   baseSqlAlias?: TableOrAssociationName<Schema>
   baseSelectQuery?: Query<any> | null
@@ -3455,7 +3626,10 @@ export interface QueryOpts<
   distinctColumn?: ColumnType | null
   joinsStatements?: RelaxedJoinsStatement
   joinsWhereStatements?: RelaxedJoinsWhereStatement<DB, Schema>
-  bypassDefaultScopes?: boolean
+  bypassAllDefaultScopes?: boolean
+  bypassAllDefaultScopesExceptOnAssociations?: boolean
+  defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance['dreamconf']>[]
+  defaultScopesToBypassExceptOnAssociations?: DefaultScopeName<DreamInstance>[]
   transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType
   shouldReallyDestroy?: boolean
