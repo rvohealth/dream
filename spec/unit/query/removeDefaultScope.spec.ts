@@ -1,9 +1,8 @@
-import User from '../../../test-app/app/models/User'
-import Pet from '../../../test-app/app/models/Pet'
 import { Query, Scope } from '../../../src'
-import Balloon from '../../../test-app/app/models/Balloon'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar'
+import Pet from '../../../test-app/app/models/Pet'
+import User from '../../../test-app/app/models/User'
 
 describe('Dream#removeDefaultScope', () => {
   let user: User
@@ -49,7 +48,7 @@ describe('Dream#removeDefaultScope', () => {
     })
 
     context('dream:STI', () => {
-      it.only('circumvents the SoftDelete scope, allowing all other default scopes to apply', async () => {
+      it('circumvents the SoftDelete scope, allowing all other default scopes to apply', async () => {
         const latex = await Latex.create({ user, color: 'red' })
         const mylar = await Mylar.create({ user, color: 'red' })
 

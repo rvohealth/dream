@@ -1994,13 +1994,13 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     if (this.dreamTransaction) {
       await this.txn(this.dreamTransaction)
-        .removeAllDefaultScopes()
+        .removeDefaultScope('dream:SoftDelete')
         .findEach(async result => {
           await result.txn(this.dreamTransaction!).undestroy({ skipHooks, cascade })
           counter++
         })
     } else {
-      await this.removeAllDefaultScopes().findEach(async result => {
+      await this.removeDefaultScope('dream:SoftDelete').findEach(async result => {
         await result.undestroy({ skipHooks, cascade })
         counter++
       })

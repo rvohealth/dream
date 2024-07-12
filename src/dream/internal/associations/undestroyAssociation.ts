@@ -20,5 +20,5 @@ export default async function undestroyAssociation<
   const query = associationUpdateQuery(dream, txn, associationName, associationWhereStatement, {
     removeAllDefaultScopes: true,
   })
-  return await query.removeAllDefaultScopes().undestroy({ skipHooks, cascade })
+  return await query.removeDefaultScope('dream:SoftDelete').undestroy({ skipHooks, cascade })
 }
