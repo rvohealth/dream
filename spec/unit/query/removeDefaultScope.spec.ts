@@ -21,7 +21,14 @@ describe('Dream#removeDefaultScope', () => {
     const pet2 = await PetNamedAster.create({ user, name: 'not aster' })
 
     expect(await PetNamedAster.query().all()).toMatchDreamModels([pet1])
-    expect(await PetNamedAster.query().removeDefaultScope('onlyAster').all()).toMatchDreamModels([pet1, pet2])
+    expect(
+      await PetNamedAster.query()
+        // need to cast as any, since PetNamedAster is not
+        // synced to our types file, since it is not in the
+        // test-app/src/models dir
+        .removeDefaultScope('onlyAster' as any)
+        .all()
+    ).toMatchDreamModels([pet1, pet2])
   })
 
   context('with a dream-provided default scope', () => {

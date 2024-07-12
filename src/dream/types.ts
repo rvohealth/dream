@@ -356,7 +356,14 @@ export interface SimilarityStatement {
   opsStatement: OpsStatement<any, any>
 }
 
-export type DefaultScopeName = 'dream:SoftDelete' | `${string}`
+export type DefaultScopeName<
+  DreamInstance extends Dream,
+  Schema = DreamInstance['dreamconf']['schema'],
+  SchemaTable = Schema[DreamInstance['table'] & keyof Schema],
+  SchemaDefaultScopes extends string[] = SchemaTable['scopes' & keyof SchemaTable]['default' &
+    keyof SchemaTable['scopes' & keyof SchemaTable]] &
+    string[],
+> = SchemaDefaultScopes[number]
 
 type NA = 'na'
 type VALID = 'valid'

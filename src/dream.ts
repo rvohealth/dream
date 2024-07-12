@@ -58,6 +58,7 @@ import Query, { FindEachOpts } from './dream/query'
 import DreamTransaction from './dream/transaction'
 import {
   AttributeKeys,
+  DefaultScopeName,
   DreamAssociationNamesWithoutRequiredWhereClauses,
   DreamAssociationNamesWithRequiredWhereClauses,
   DreamAssociationType,
@@ -854,6 +855,19 @@ export default class Dream {
    */
   public static removeAllDefaultScopes<T extends typeof Dream>(this: T): Query<InstanceType<T>> {
     return this.query().removeAllDefaultScopes()
+  }
+
+  /**
+   * Prevents a specific default scope from applying when
+   * the Query is executed
+   *
+   * @returns A new Query which will prevent a specific default scope from applying
+   */
+  public static removeDefaultScope<T extends typeof Dream>(
+    this: T,
+    scopeName: DefaultScopeName<InstanceType<T>>
+  ): Query<InstanceType<T>> {
+    return this.query().removeDefaultScope(scopeName)
   }
 
   /**

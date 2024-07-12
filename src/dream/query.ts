@@ -1074,7 +1074,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns A new Query which will prevent a specific default scope from applying
    */
-  public removeDefaultScope(scopeName: DefaultScopeName): Query<DreamInstance> {
+  public removeDefaultScope(scopeName: DefaultScopeName<DreamInstance>): Query<DreamInstance> {
     return this.clone({
       bypassSpecificDefaultScopes: [...this.bypassSpecificDefaultScopes, scopeName],
       baseSelectQuery: this.baseSelectQuery?.removeDefaultScope(scopeName),
