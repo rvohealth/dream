@@ -1,4 +1,7 @@
 import CannotCallUndestroyOnANonSoftDeleteModel from '../../../src/exceptions/cannot-call-undestroy-on-a-non-soft-delete-model'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
+import Collar from '../../../test-app/app/models/Collar'
+import Pet from '../../../test-app/app/models/Pet'
 import Post from '../../../test-app/app/models/Post'
 import PostComment from '../../../test-app/app/models/PostComment'
 import User from '../../../test-app/app/models/User'
@@ -11,7 +14,7 @@ describe('Dream#undestroy', () => {
     await post.destroy()
 
     expect(await Post.count()).toEqual(0)
-    expect(await Post.unscoped().count()).toEqual(1)
+    expect(await Post.removeAllDefaultScopes().count()).toEqual(1)
 
     const res = await post.undestroy()
     expect(res).toMatchDreamModel(post)
@@ -28,12 +31,84 @@ describe('Dream#undestroy', () => {
 
       await post.destroy()
 
-      expect(await PostComment.count()).toEqual(0)
-      expect(await PostComment.unscoped().count()).toEqual(1)
+      expect(await PostComment.all()).toHaveLength(0)
+      expect(await PostComment.removeAllDefaultScopes().count()).toEqual(1)
 
       await post.undestroy()
 
       expect(await PostComment.all()).toMatchDreamModels([comment])
+    })
+
+    context('with a non-SoftDelete default scope on an associated model', () => {
+      let pet: Pet
+      let collar: Collar
+
+      beforeEach(async () => {
+        pet = await Pet.create({ name: 'Aster' })
+        collar = await Collar.create({ pet, hidden: true })
+      })
+
+      it('applies default scopes to dependent: destroy associations', async () => {
+        await pet.destroy({ bypassAllDefaultScopes: true })
+        await pet.undestroy()
+        expect(await Collar.removeDefaultScope('hideHiddenCollars').all()).toHaveLength(0)
+      })
+
+      context('bypassAllDefaultScopes', () => {
+        it('overrides all default scopes when querying dependent associations', async () => {
+          await pet.destroy({ bypassAllDefaultScopes: true })
+          await pet.undestroy({ bypassAllDefaultScopes: true })
+          expect(await Collar.removeDefaultScope('hideHiddenCollars').all()).toMatchDreamModels([collar])
+        })
+      })
+
+      context('defaultScopesToBypass', () => {
+        it('overrides specified default scopes when querying dependent associations', async () => {
+          await pet.destroy({ bypassAllDefaultScopes: true })
+          await pet.undestroy({ defaultScopesToBypass: ['hideHiddenCollars'] })
+          expect(await Collar.removeDefaultScope('hideHiddenCollars').all()).toMatchDreamModels([collar])
+        })
+      })
+    })
+
+    context('within a transaction', () => {
+      context('with a non-SoftDelete default scope on an associated model', () => {
+        let pet: Pet
+        let collar: Collar
+
+        beforeEach(async () => {
+          pet = await Pet.create({ name: 'Aster' })
+          collar = await Collar.create({ pet, hidden: true })
+        })
+
+        it('applies default scopes to dependent: destroy associations', async () => {
+          await pet.destroy({ bypassAllDefaultScopes: true })
+          await ApplicationModel.transaction(async txn => {
+            await pet.txn(txn).undestroy()
+          })
+          expect(await Collar.removeDefaultScope('hideHiddenCollars').all()).toHaveLength(0)
+        })
+
+        context('bypassAllDefaultScopes', () => {
+          it('overrides all default scopes when querying dependent associations', async () => {
+            await pet.destroy({ bypassAllDefaultScopes: true })
+            await ApplicationModel.transaction(async txn => {
+              await pet.txn(txn).undestroy({ bypassAllDefaultScopes: true })
+            })
+            expect(await Collar.removeDefaultScope('hideHiddenCollars').all()).toMatchDreamModels([collar])
+          })
+        })
+
+        context('defaultScopesToBypass', () => {
+          it('overrides specified default scopes when querying dependent associations', async () => {
+            await pet.destroy({ bypassAllDefaultScopes: true })
+            await ApplicationModel.transaction(async txn => {
+              await pet.txn(txn).undestroy({ defaultScopesToBypass: ['hideHiddenCollars'] })
+            })
+            expect(await Collar.removeDefaultScope('hideHiddenCollars').all()).toMatchDreamModels([collar])
+          })
+        })
+      })
     })
   })
 
@@ -46,12 +121,12 @@ describe('Dream#undestroy', () => {
       await post.destroy()
 
       expect(await PostComment.count()).toEqual(0)
-      expect(await PostComment.unscoped().count()).toEqual(1)
+      expect(await PostComment.removeAllDefaultScopes().count()).toEqual(1)
 
       await post.undestroy({ cascade: false })
 
       expect(await PostComment.count()).toEqual(0)
-      expect(await PostComment.unscoped().count()).toEqual(1)
+      expect(await PostComment.removeAllDefaultScopes().count()).toEqual(1)
     })
   })
 

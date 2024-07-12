@@ -23,8 +23,8 @@ describe('ConnectionConfRetriever', () => {
           },
         },
       },
-      passthroughColumns: {},
       schema: {},
+      globalSchema: {},
     })
 
   let connection: DbConnectionType

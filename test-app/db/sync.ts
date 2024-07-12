@@ -160,11 +160,12 @@ export interface BeautifulBalloons {
 export interface Collars {
   balloonId: Int8 | null;
   createdAt: Timestamp;
+  deletedAt: Timestamp | null;
   hidden: Generated<boolean | null>;
   id: Generated<Int8>;
   lost: boolean | null;
-  petId: Int8;
-  position: number;
+  petId: Int8 | null;
+  position: number | null;
   tagName: string | null;
   updatedAt: Timestamp;
 }

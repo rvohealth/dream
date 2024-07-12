@@ -1,4 +1,6 @@
-import { DreamColumn, BelongsTo, SoftDelete } from '../../../src'
+import BelongsTo from '../../../src/decorators/associations/belongs-to'
+import SoftDelete from '../../../src/decorators/soft-delete'
+import { DreamColumn } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Post from './Post'
 
@@ -17,4 +19,7 @@ export default class PostComment extends ApplicationModel {
   @BelongsTo(() => Post)
   public post: Post
   public postId: DreamColumn<PostComment, 'postId'>
+
+  @BelongsTo(() => Post, { foreignKey: 'postId', withoutDefaultScopes: ['dream:SoftDelete'] })
+  public postEvenIfDeleted: Post
 }

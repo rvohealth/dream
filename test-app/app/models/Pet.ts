@@ -67,7 +67,7 @@ export default class Pet extends ApplicationModel {
   @Pet.HasMany(() => Rating, { through: 'user' })
   public featuredRatings: Rating[]
 
-  @HasMany(() => Collar)
+  @HasMany(() => Collar, { dependent: 'destroy' })
   public collars: Collar
 
   @HasOne(() => Collar, { where: { lost: false } })

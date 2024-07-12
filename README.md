@@ -174,13 +174,13 @@ export default class CompositionAsset extends Dream {
 ```ts
 class User {
   @Scope()
-  public static withFunnyName(query: any) {
+  public static withFunnyName(query: Query<User>) {
     return query.where({ name: 'Chalupas jr' })
   }
 
   // this will always fire whenever queries are run against the model
   @Scope({ default: true })
-  public static hideDeleted(query: any) {
+  public static hideDeleted(query: Query<User>) {
     return query.where({ deleted_at: null })
   }
 }

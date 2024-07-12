@@ -30,6 +30,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: [],
+      named: [],
+    },
     columns: {
       balloonId: {
         coercedType: {} as IdType,
@@ -88,6 +92,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: [],
+      named: [],
+    },
     columns: {
       balloonId: {
         coercedType: {} as IdType,
@@ -168,6 +176,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: [],
+      named: [],
+    },
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -232,6 +244,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: ['dream:STI', 'dream:SoftDelete'],
+      named: ['red'],
+    },
     columns: {
       color: {
         coercedType: {} as BalloonColorsEnum | null,
@@ -359,6 +375,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: ['dream:SoftDelete', 'hideHiddenCollars'],
+      named: [],
+    },
     columns: {
       balloonId: {
         coercedType: {} as IdType | null,
@@ -374,6 +394,14 @@ export const schema = {
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
+        isArray: false,
+      },
+      deletedAt: {
+        coercedType: {} as DateTime | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: true,
         isArray: false,
       },
       hidden: {
@@ -401,19 +429,19 @@ export const schema = {
         isArray: false,
       },
       petId: {
-        coercedType: {} as IdType,
+        coercedType: {} as IdType | null,
         enumType: null,
         enumValues: null,
         dbType: 'bigint',
-        allowNull: false,
+        allowNull: true,
         isArray: false,
       },
       position: {
-        coercedType: {} as number,
+        coercedType: {} as number | null,
         enumType: null,
         enumValues: null,
         dbType: 'integer',
-        allowNull: false,
+        allowNull: true,
         isArray: false,
       },
       tagName: {
@@ -456,6 +484,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: [],
+      named: [],
+    },
     columns: {
       approval: {
         coercedType: {} as boolean | null,
@@ -536,6 +568,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: [],
+      named: [],
+    },
     columns: {
       compositionId: {
         coercedType: {} as IdType,
@@ -653,6 +689,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: [],
+      named: [],
+    },
     columns: {
       content: {
         coercedType: {} as string | null,
@@ -806,6 +846,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: [],
+      named: [],
+    },
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -866,6 +910,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: [],
+      named: [],
+    },
     columns: {
       body: {
         coercedType: {} as string | null,
@@ -945,7 +993,7 @@ export const schema = {
       extraRateable: {
         type: 'BelongsTo',
         foreignKey: 'extraRateableId',
-        tables: ['compositions', 'posts', 'beautiful_balloons'],
+        tables: ['beautiful_balloons', 'compositions', 'posts'],
         optional: false,
         requiredWhereClauses: null,
       },
@@ -963,6 +1011,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: [],
+      named: [],
+    },
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1093,6 +1145,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: [],
+      named: [],
+    },
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1158,6 +1214,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: [],
+      named: [],
+    },
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1272,6 +1332,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: [],
+      named: [],
+    },
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1322,6 +1386,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: [],
+      named: [],
+    },
     columns: {
       body: {
         coercedType: {} as string | null,
@@ -1401,7 +1469,7 @@ export const schema = {
       localizable: {
         type: 'BelongsTo',
         foreignKey: 'localizableId',
-        tables: ['compositions', 'composition_assets'],
+        tables: ['composition_assets', 'compositions'],
         optional: false,
         requiredWhereClauses: null,
       },
@@ -1412,6 +1480,10 @@ export const schema = {
     createdAtField: 'updatedAt',
     updatedAtField: 'createdAt',
     deletedAtField: 'id',
+    scopes: {
+      default: ['dream:SoftDelete'],
+      named: [],
+    },
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1456,6 +1528,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: ['dream:SoftDelete', 'howyadoin'],
+      named: [],
+    },
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1492,6 +1568,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: [],
+      named: [],
+    },
     columns: {
       cantUpdateThis: {
         coercedType: {} as string | null,
@@ -1536,6 +1616,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: [],
+      named: [],
+    },
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1601,6 +1685,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: ['dream:SoftDelete'],
+      named: [],
+    },
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1805,6 +1893,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: ['dream:SoftDelete'],
+      named: [],
+    },
     columns: {
       body: {
         coercedType: {} as string | null,
@@ -1864,6 +1956,13 @@ export const schema = {
         optional: false,
         requiredWhereClauses: null,
       },
+      postEvenIfDeleted: {
+        type: 'BelongsTo',
+        foreignKey: 'postId',
+        tables: ['posts'],
+        optional: false,
+        requiredWhereClauses: null,
+      },
     },
   },
   post_visibilities: {
@@ -1871,6 +1970,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: [],
+      named: [],
+    },
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1929,6 +2032,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: ['dream:SoftDelete'],
+      named: [],
+    },
     columns: {
       body: {
         coercedType: {} as string | null,
@@ -1997,6 +2104,13 @@ export const schema = {
     },
     virtualColumns: [],
     associations: {
+      allComments: {
+        type: 'HasMany',
+        foreignKey: 'postId',
+        tables: ['post_comments'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
       comments: {
         type: 'HasMany',
         foreignKey: 'postId',
@@ -2008,6 +2122,13 @@ export const schema = {
         type: 'HasMany',
         foreignKey: 'extraRateableId',
         tables: ['extra_ratings'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
+      overriddenNonNullRatings: {
+        type: 'HasMany',
+        foreignKey: 'rateableId',
+        tables: ['ratings'],
         optional: null,
         requiredWhereClauses: null,
       },
@@ -2039,6 +2160,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: ['nonNullBodies'],
+      named: [],
+    },
     columns: {
       body: {
         coercedType: {} as string | null,
@@ -2114,6 +2239,13 @@ export const schema = {
         optional: false,
         requiredWhereClauses: null,
       },
+      rateableEvenIfDeleted: {
+        type: 'BelongsTo',
+        foreignKey: 'rateableId',
+        tables: ['compositions', 'posts'],
+        optional: false,
+        requiredWhereClauses: null,
+      },
       user: {
         type: 'BelongsTo',
         foreignKey: 'userId',
@@ -2128,6 +2260,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: [],
+      named: [],
+    },
     columns: {
       balloonId: {
         coercedType: {} as IdType,
@@ -2202,6 +2338,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: [],
+      named: [],
+    },
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -2260,6 +2400,10 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    scopes: {
+      default: ['hideDeleted'],
+      named: ['withFunnyName'],
+    },
     columns: {
       birthdate: {
         coercedType: {} as CalendarDate | null,
@@ -2392,6 +2536,27 @@ export const schema = {
     },
     virtualColumns: ['password'],
     associations: {
+      allPets: {
+        type: 'HasMany',
+        foreignKey: 'userId',
+        tables: ['pets'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
+      allPostComments: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['post_comments'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
+      allPosts: {
+        type: 'HasMany',
+        foreignKey: 'userId',
+        tables: ['posts'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
       balloonLines: {
         type: 'HasMany',
         foreignKey: null,
@@ -2553,6 +2718,13 @@ export const schema = {
         optional: null,
         requiredWhereClauses: null,
       },
+      postComments: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['post_comments'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
       postRatings: {
         type: 'HasMany',
         foreignKey: 'userId',
@@ -2627,4 +2799,7 @@ export const schema = {
   },
 } as const
 
-export const passthroughColumns = ['locale'] as const
+export const globalSchema = {
+  passthroughColumns: ['locale'],
+  allDefaultScopeNames: ['dream:STI', 'dream:SoftDelete', 'hideDeleted', 'hideHiddenCollars', 'howyadoin', 'nonNullBodies'],
+} as const

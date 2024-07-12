@@ -159,7 +159,7 @@ describe('Dream.create', () => {
         deletedAt: aTime,
       })
 
-      const reloaded = await User.unscoped().find(user.id)
+      const reloaded = await User.removeAllDefaultScopes().find(user.id)
       expect(reloaded!.deletedAt).toEqualDateTime(aTime)
     })
 
@@ -173,7 +173,7 @@ describe('Dream.create', () => {
           deletedAt: aTime.toISO() as any,
         })
 
-        const reloaded = await User.unscoped().find(user.id)
+        const reloaded = await User.removeAllDefaultScopes().find(user.id)
         expect(reloaded!.deletedAt).toEqualDateTime(aTime)
       })
     })
@@ -191,7 +191,7 @@ describe('Dream.create', () => {
         birthdate: aDate,
       })
 
-      const reloaded = await User.unscoped().find(user.id)
+      const reloaded = await User.removeAllDefaultScopes().find(user.id)
       expect(reloaded!.birthdate!.toISODate()).toEqual(dateString)
     })
 
@@ -203,7 +203,7 @@ describe('Dream.create', () => {
           birthdate: dateString as any,
         })
 
-        const reloaded = await User.unscoped().find(user.id)
+        const reloaded = await User.removeAllDefaultScopes().find(user.id)
         expect(reloaded!.birthdate!.toISODate()).toEqual(dateString)
       })
     })

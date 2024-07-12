@@ -1,5 +1,6 @@
 import Dream from '../../dream'
 import DreamTransaction from '../transaction'
+import { ReallyDestroyOptions } from './destroyDream'
 
 /**
  * @internal
@@ -10,15 +11,17 @@ import DreamTransaction from '../transaction'
 export default async function destroyAssociatedRecords<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I>,
-  { skipHooks, reallyDestroy }: { skipHooks: boolean; reallyDestroy: boolean }
+  options: ReallyDestroyOptions<I>
 ) {
   const dreamClass = dream.constructor as typeof Dream
 
+  const { reallyDestroy } = options
+
   for (const associationName of dreamClass['dependentDestroyAssociationNames']()) {
     if (reallyDestroy) {
-      await dream.txn(txn).reallyDestroyAssociation(associationName as any, { skipHooks, cascade: true })
+      await dream.txn(txn).reallyDestroyAssociation(associationName as any, options)
     } else {
-      await dream.txn(txn).destroyAssociation(associationName as any, { skipHooks, cascade: true })
+      await dream.txn(txn).destroyAssociation(associationName as any, options)
     }
   }
 }

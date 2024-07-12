@@ -30,7 +30,7 @@ describe('Query#undestroy', () => {
       await post.destroy()
 
       expect(await PostComment.count()).toEqual(0)
-      expect(await PostComment.unscoped().count()).toEqual(1)
+      expect(await PostComment.removeAllDefaultScopes().count()).toEqual(1)
 
       await Post.query().undestroy()
 
@@ -47,12 +47,12 @@ describe('Query#undestroy', () => {
       await post.destroy()
 
       expect(await PostComment.count()).toEqual(0)
-      expect(await PostComment.unscoped().count()).toEqual(1)
+      expect(await PostComment.removeAllDefaultScopes().count()).toEqual(1)
 
       await Post.query().undestroy({ cascade: false })
 
       expect(await PostComment.count()).toEqual(0)
-      expect(await PostComment.unscoped().count()).toEqual(1)
+      expect(await PostComment.removeAllDefaultScopes().count()).toEqual(1)
     })
   })
 

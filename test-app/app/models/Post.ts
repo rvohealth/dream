@@ -5,6 +5,7 @@ import { DreamColumn } from '../../../src/dream/types'
 import PostSerializer from '../serializers/PostSerializer'
 import ApplicationModel from './ApplicationModel'
 import HeartRating from './ExtraRating/HeartRating'
+import NonNullRating from './NonNullRating'
 import PostComment from './PostComment'
 import PostVisibility from './PostVisibility'
 import Rating from './Rating'
@@ -37,10 +38,11 @@ export default class Post extends ApplicationModel {
   public postVisibility: PostVisibility | null
   public postVisibilityId: DreamColumn<Post, 'postVisibilityId'>
 
-  @HasMany(() => PostComment, {
-    dependent: 'destroy',
-  })
+  @HasMany(() => PostComment, { dependent: 'destroy' })
   public comments: PostComment[]
+
+  @HasMany(() => PostComment, { withoutDefaultScopes: ['dream:SoftDelete'] })
+  public allComments: PostComment[]
 
   @HasMany(() => Rating, {
     foreignKey: 'rateableId',
@@ -48,6 +50,20 @@ export default class Post extends ApplicationModel {
     dependent: 'destroy',
   })
   public ratings: Rating[]
+
+  // Traveling through NonNullRating, a model
+  // which uses a default scope to automatically
+  // exclude any Rating with a null body.
+  // by passing withoutDefaultScopes, we
+  // override the default scope, allowing us
+  // to see null bodies
+  @HasMany(() => NonNullRating, {
+    foreignKey: 'rateableId',
+    polymorphic: true,
+    dependent: 'destroy',
+    withoutDefaultScopes: ['nonNullBodies'],
+  })
+  public overriddenNonNullRatings: NonNullRating[]
 
   @HasMany(() => HeartRating, {
     foreignKey: 'extraRateableId',

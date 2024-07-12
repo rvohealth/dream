@@ -117,7 +117,7 @@ describe('Dream#destroyAssociation', () => {
           await user.destroyAssociation('posts')
 
           expect(await Post.last()).toBeNull()
-          const reloadedPost = await Post.unscoped().last()
+          const reloadedPost = await Post.removeAllDefaultScopes().last()
           expect(reloadedPost!.deletedAt).not.toBeNull()
         })
 
@@ -411,17 +411,25 @@ describe('Dream#destroyAssociation', () => {
         const destroyAssociationSpy = jest.spyOn(destroyAssociationModule, 'default')
 
         await ApplicationModel.transaction(async txn => {
-          await user.txn(txn).destroyAssociation('compositions', { skipHooks: false, cascade: false })
+          await user.txn(txn).destroyAssociation('compositions', {
+            bypassAllDefaultScopes: true,
+            defaultScopesToBypass: ['hideDeleted'],
+            cascade: false,
+            skipHooks: false,
+          })
         })
 
         expect(destroyAssociationSpy).toHaveBeenCalledWith(
           expect.toMatchDreamModel(user),
           expect.anything(),
           'compositions',
-          undefined,
           {
-            skipHooks: false,
+            associationWhereStatement: undefined,
+            bypassAllDefaultScopes: true,
+            defaultScopesToBypass: ['hideDeleted'],
             cascade: false,
+            reallyDestroy: false,
+            skipHooks: false,
           }
         )
       })

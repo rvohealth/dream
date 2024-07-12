@@ -14,7 +14,7 @@ import uniq from '../uniq'
 
 export default class SchemaBuilder {
   public async build() {
-    const { schemaConstContent, passthroughColumns } = await this.buildSchemaContent()
+    const { schemaConstContent, passthroughColumns, allDefaultScopeNames } = await this.buildSchemaContent()
     const imports = await this.getSchemaImports(schemaConstContent)
 
     const importStr = imports.length
@@ -36,7 +36,10 @@ ${importStr}
 
 ${schemaConstContent}
 
-export const passthroughColumns = ${JSON.stringify(uniq(passthroughColumns.sort())).replace(/"/g, "'").replace(/,/g, ', ')} as const
+export const globalSchema = {
+  passthroughColumns: ${stringifyArray(uniq(passthroughColumns.sort()))},
+  allDefaultScopeNames: ${stringifyArray(uniq(allDefaultScopeNames.sort()))},
+} as const
 `
     // const newSchemaFileContents = `\
     // ${schemaConstContent}
@@ -46,6 +49,8 @@ export const passthroughColumns = ${JSON.stringify(uniq(passthroughColumns.sort(
 
   private async buildSchemaContent() {
     let passthroughColumns: string[] = []
+    let allDefaultScopeNames: string[] = []
+
     const schemaData = await this.getSchemaData()
     const fileContents = await this.loadDbSyncFile()
 
@@ -54,6 +59,9 @@ export const schema = {
   ${Object.keys(schemaData)
     .map(tableName => {
       const tableData = schemaData[tableName as keyof typeof schemaData]
+      const defaultScopeNames = tableData.scopes.default
+      const namedScopeNames = tableData.scopes.named
+      allDefaultScopeNames = [...allDefaultScopeNames, ...defaultScopeNames]
 
       return `\
 ${tableName}: {
@@ -61,8 +69,13 @@ ${tableName}: {
     createdAtField: '${tableData.createdAtField}',
     updatedAtField: '${tableData.updatedAtField}',
     deletedAtField: '${tableData.deletedAtField}',
+    scopes: {
+      default: ${stringifyArray(defaultScopeNames)},
+      named: ${stringifyArray(namedScopeNames)},
+    },
     columns: {
       ${Object.keys(schemaData[tableName as keyof typeof schemaData].columns)
+        .sort()
         .map(columnName => {
           const columnData = tableData.columns[columnName as keyof typeof tableData.columns]
           const kyselyType = this.kyselyType(tableName, columnName, fileContents)
@@ -77,9 +90,10 @@ ${tableName}: {
         })
         .join('\n      ')}
     },
-    virtualColumns: [${schemaData[tableName as keyof typeof schemaData].virtualColumns?.map((attr: string) => `'${attr}'`)?.join(', ') || ''}],
+    virtualColumns: ${stringifyArray(schemaData[tableName as keyof typeof schemaData].virtualColumns)},
     associations: {
       ${Object.keys(schemaData[tableName as keyof typeof schemaData].associations)
+        .sort()
         .map(associationName => {
           const associationMetadata = tableData.associations[associationName as keyof typeof tableData]
           const whereStatement = associationMetadata.where
@@ -99,9 +113,9 @@ ${tableName}: {
           return `${associationName}: {
         type: '${associationMetadata.type}',
         foreignKey: ${associationMetadata.foreignKey ? `'${associationMetadata.foreignKey}'` : 'null'},
-        tables: [${associationMetadata.tables.map((table: string) => `'${table}'`).join(', ')}],
+        tables: ${stringifyArray(associationMetadata.tables)},
         optional: ${associationMetadata.optional},
-        requiredWhereClauses: ${requiredWhereClauses.length === 0 ? 'null' : `['${requiredWhereClauses.join("', '")}']`},
+        requiredWhereClauses: ${requiredWhereClauses.length === 0 ? 'null' : stringifyArray(requiredWhereClauses)},
       },`
         })
         .join('\n      ')}
@@ -112,7 +126,7 @@ ${tableName}: {
     .join('\n  ')}
 } as const`
 
-    return { schemaConstContent, passthroughColumns }
+    return { schemaConstContent, passthroughColumns, allDefaultScopeNames }
   }
 
   private async getSchemaImports(schemaContent: string) {
@@ -137,6 +151,10 @@ ${tableName}: {
       createdAtField: model!.prototype.createdAtField,
       updatedAtField: model!.prototype.updatedAtField,
       deletedAtField: model!.prototype.deletedAtField,
+      scopes: {
+        default: model!['scopes'].default.map(scopeStatement => scopeStatement.method),
+        named: model!['scopes'].named.map(scopeStatement => scopeStatement.method),
+      },
       columns: await this.getColumnData(tableName, associationData),
       virtualColumns: await this.getVirtualColumns(tableName),
       associations: associationData,
@@ -347,6 +365,13 @@ ${tableName}: {
   }
 }
 
+function stringifyArray(arr: string[] = []): string {
+  return `[${arr
+    .sort()
+    .map(val => `'${val}'`)
+    .join(', ')}]`
+}
+
 interface SchemaData {
   [key: string]: TableData
 }
@@ -356,6 +381,10 @@ interface TableData {
   createdAtField: string
   updatedAtField: string
   deletedAtField: string
+  scopes: {
+    default: string[]
+    named: string[]
+  }
   columns: { [key: string]: ColumnData }
   virtualColumns: string[]
   associations: { [key: string]: AssociationData }

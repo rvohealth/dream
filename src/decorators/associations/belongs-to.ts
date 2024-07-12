@@ -1,14 +1,14 @@
-import Dream from '../../dream'
 import { AssociationTableNames } from '../../db/reflections'
+import Dream from '../../dream'
+import { DefaultScopeName, DreamColumnNames } from '../../dream/types'
+import Validates from '../validations/validates'
 import {
   applyGetterAndSetter,
+  associationPrimaryKeyAccessors,
   blankAssociationsFactory,
   finalForeignKey,
   foreignKeyTypeField,
-  associationPrimaryKeyAccessors,
 } from './shared'
-import Validates from '../validations/validates'
-import { DreamColumnNames } from '../../dream/types'
 
 /**
  * Establishes a "BelongsTo" association between the base dream
@@ -34,6 +34,7 @@ import { DreamColumnNames } from '../../dream/types'
  * @param opts.optional - Whether or not this association is optional. Defaults to false.
  * @param opts.polymorphic - If true, this association will be treated as a polymorphic association.
  * @param opts.primaryKeyOverride - A custom column name to use for the primary key.
+ * @param opts.withoutDefaultScopes - A list of default scopes to bypass when loading this association
  */
 export default function BelongsTo<
   BaseInstance extends Dream,
@@ -45,6 +46,7 @@ export default function BelongsTo<
     optional = false,
     polymorphic = false,
     primaryKeyOverride = null,
+    withoutDefaultScopes,
   }: BelongsToOptions<BaseInstance> = {}
 ): any {
   return function (
@@ -66,6 +68,7 @@ export default function BelongsTo<
         optional,
         polymorphic,
         primaryKeyOverride,
+        withoutDefaultScopes,
       } as any,
       dreamClass
     )
@@ -103,6 +106,7 @@ export interface BelongsToStatement<
   optional: boolean
   distinct: null
   polymorphic: boolean
+  withoutDefaultScopes?: DefaultScopeName<BaseInstance>[]
 }
 
 export interface BelongsToOptions<
@@ -113,4 +117,5 @@ export interface BelongsToOptions<
   primaryKeyOverride?: DreamColumnNames<InstanceType<AssociationDreamClass>> | null
   optional?: boolean
   polymorphic?: boolean
+  withoutDefaultScopes?: DefaultScopeName<InstanceType<AssociationDreamClass>>[]
 }

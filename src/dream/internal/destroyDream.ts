@@ -1,9 +1,15 @@
 import Dream from '../../dream'
 import DreamTransaction from '../transaction'
 import destroyAssociatedRecords from './destroyAssociatedRecords'
+import { DestroyOptions as OptionalDestroyOptions } from './destroyOptions'
 import runHooksFor from './runHooksFor'
 import safelyRunCommitHooks from './safelyRunCommitHooks'
 import softDeleteDream from './softDeleteDream'
+
+type DestroyOptions<DreamInstance extends Dream> = Required<OptionalDestroyOptions<DreamInstance>>
+export interface ReallyDestroyOptions<DreamInstance extends Dream> extends DestroyOptions<DreamInstance> {
+  reallyDestroy: boolean
+}
 
 /**
  * @internal
@@ -18,18 +24,14 @@ import softDeleteDream from './softDeleteDream'
 export default async function destroyDream<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I> | null = null,
-  {
-    skipHooks,
-    reallyDestroy,
-    cascade,
-  }: { skipHooks?: boolean; reallyDestroy?: boolean; cascade?: boolean } = {}
+  options: ReallyDestroyOptions<I>
 ): Promise<I> {
   if (txn) {
-    return await destroyDreamWithTransaction(dream, txn, { skipHooks, reallyDestroy, cascade })
+    return await destroyDreamWithTransaction(dream, txn, options)
   } else {
     const dreamClass = dream.constructor as typeof Dream
     return await dreamClass.transaction(
-      async txn => await destroyDreamWithTransaction<I>(dream, txn, { skipHooks, reallyDestroy, cascade })
+      async txn => await destroyDreamWithTransaction<I>(dream, txn, options)
     )
   }
 }
@@ -44,14 +46,12 @@ export default async function destroyDream<I extends Dream>(
 async function destroyDreamWithTransaction<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I>,
-  {
-    skipHooks = false,
-    reallyDestroy = false,
-    cascade = true,
-  }: { skipHooks?: boolean; reallyDestroy?: boolean; cascade?: boolean }
+  options: ReallyDestroyOptions<I>
 ): Promise<I> {
+  const { cascade, reallyDestroy, skipHooks } = options
+
   if (cascade) {
-    await destroyAssociatedRecords(dream, txn, { skipHooks, reallyDestroy })
+    await destroyAssociatedRecords(dream, txn, options)
   }
 
   if (!skipHooks) {

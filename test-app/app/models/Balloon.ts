@@ -1,3 +1,4 @@
+import { Query } from '../../../src'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
 import HasOne from '../../../src/decorators/associations/has-one'
@@ -36,7 +37,7 @@ export default class Balloon extends ApplicationModel {
   public positionAlpha: DreamColumn<Balloon, 'positionAlpha'>
 
   @Scope()
-  public static red(query: any) {
+  public static red(query: Query<Balloon>) {
     return query.where({ color: 'red' })
   }
 

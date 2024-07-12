@@ -1,5 +1,7 @@
-import Scope from './scope'
 import Dream from '../dream'
+import Scope from './scope'
+
+export const STI_SCOPE_NAME = 'dream:STI'
 
 export default function STI(dreamClass: typeof Dream, { value }: { value?: string } = {}): ClassDecorator {
   return function (target: any) {
@@ -15,10 +17,10 @@ export default function STI(dreamClass: typeof Dream, { value }: { value?: strin
       baseClass,
       value: value || stiChildClass.name,
     }
-    ;(stiChildClass as any)['applySTIScope'] = function (query: any) {
+    ;(stiChildClass as any)[STI_SCOPE_NAME] = function (query: any) {
       return query.where({ type: stiChildClass['sti'].value })
     }
 
-    Scope({ default: true })(stiChildClass, 'applySTIScope')
+    Scope({ default: true })(stiChildClass, STI_SCOPE_NAME)
   }
 }

@@ -43,6 +43,7 @@ import {
  * @param opts.through - If passed, this association will travel through another association.
  * @param opts.where - A where clause to be applied when this association is loaded
  * @param opts.whereNot - A where not clause to be applied when this association is loaded
+ * @param opts.withoutDefaultScopes - A list of default scopes to bypass when loading this association
  */
 export default function HasOne<
   BaseInstance extends Dream,
@@ -62,6 +63,7 @@ export default function HasOne<
     through,
     where,
     whereNot,
+    withoutDefaultScopes,
   }: HasOneOptions<BaseInstance, AssociationDreamClass> = {}
 ): any {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -73,9 +75,11 @@ export default function HasOne<
 
     validateHasStatementArgs({
       dreamClass,
+      dependent: dependent ?? null,
       methodName: key,
-      where,
-      dependent,
+      through: through ?? null,
+      where: where ?? null,
+      withoutDefaultScopes: withoutDefaultScopes ?? null,
     })
 
     const partialAssociation = associationPrimaryKeyAccessors(
@@ -95,6 +99,7 @@ export default function HasOne<
         order,
         primaryKeyOverride,
         dependent,
+        withoutDefaultScopes,
       } as any,
       dreamClass
     )

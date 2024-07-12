@@ -1,8 +1,11 @@
 import { applySortableScopesToQuery } from '../../decorators/sortable/helpers/setPosition'
 import Dream from '../../dream'
 import DreamTransaction from '../transaction'
+import { DestroyOptions as OptionalDestroyOptions } from './destroyOptions'
 import runHooksFor from './runHooksFor'
 import safelyRunCommitHooks from './safelyRunCommitHooks'
+
+type UndestroyOptions<DreamInstance extends Dream> = Required<OptionalDestroyOptions<DreamInstance>>
 
 /**
  * @internal
@@ -17,14 +20,14 @@ import safelyRunCommitHooks from './safelyRunCommitHooks'
 export default async function undestroyDream<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I> | null = null,
-  { skipHooks = false, cascade = true }: { skipHooks?: boolean; cascade?: boolean } = {}
+  options: UndestroyOptions<I>
 ): Promise<I> {
   if (txn) {
-    return await undestroyDreamWithTransaction(dream, txn, { skipHooks, cascade })
+    return await undestroyDreamWithTransaction(dream, txn, options)
   } else {
     const dreamClass = dream.constructor as typeof Dream
     return await dreamClass.transaction(
-      async txn => await undestroyDreamWithTransaction<I>(dream, txn, { skipHooks, cascade })
+      async txn => await undestroyDreamWithTransaction<I>(dream, txn, options)
     )
   }
 }
@@ -39,8 +42,10 @@ export default async function undestroyDream<I extends Dream>(
 async function undestroyDreamWithTransaction<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I>,
-  { skipHooks, cascade }: { skipHooks: boolean; cascade?: boolean }
+  options: UndestroyOptions<I>
 ): Promise<I> {
+  const { cascade, skipHooks } = options
+
   if (!skipHooks) {
     await runHooksFor('beforeUpdate', dream, true, null, txn)
   }
@@ -48,7 +53,7 @@ async function undestroyDreamWithTransaction<I extends Dream>(
   await doUndestroyDream(dream, txn)
 
   if (cascade) {
-    await undestroyAssociatedRecords(dream, txn, { skipHooks })
+    await undestroyAssociatedRecords(dream, txn, options)
   }
 
   if (!skipHooks) {
@@ -105,7 +110,7 @@ async function doUndestroyDream<I extends Dream>(dream: I, txn: DreamTransaction
 async function undestroyAssociatedRecords<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I>,
-  { skipHooks }: { skipHooks: boolean }
+  options: UndestroyOptions<I>
 ) {
   const dreamClass = dream.constructor as typeof Dream
 
@@ -117,7 +122,7 @@ async function undestroyAssociatedRecords<I extends Dream>(
       // raise?
     } else {
       if (associatedClass?.['softDelete']) {
-        await dream.txn(txn).undestroyAssociation(associationName as any, { skipHooks, cascade: true })
+        await dream.txn(txn).undestroyAssociation(associationName as any, options)
       }
     }
   }

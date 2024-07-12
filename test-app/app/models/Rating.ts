@@ -30,4 +30,11 @@ export default class Rating extends ApplicationModel {
   public rateable: Composition | Post
   public rateableId: DreamColumn<Rating, 'rateableId'>
   public rateableType: DreamColumn<Rating, 'rateableType'>
+
+  @BelongsTo(() => [Composition, Post], {
+    foreignKey: 'rateableId',
+    polymorphic: true,
+    withoutDefaultScopes: ['dream:SoftDelete'],
+  })
+  public rateableEvenIfDeleted: Composition | Post
 }
