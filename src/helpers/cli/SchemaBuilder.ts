@@ -63,8 +63,8 @@ ${tableName}: {
     updatedAtField: '${tableData.updatedAtField}',
     deletedAtField: '${tableData.deletedAtField}',
     scopes: {
-      default: [${tableData.scopes.default.map(val => `'${val}'`)}],
-      named: [${tableData.scopes.named.map(val => `'${val}'`)}],
+      default: [${tableData.scopes.default.map(val => `'${val}'`).join(', ')}],
+      named: [${tableData.scopes.named.map(val => `'${val}'`).join(', ')}],
     },
     columns: {
       ${Object.keys(schemaData[tableName as keyof typeof schemaData].columns)
