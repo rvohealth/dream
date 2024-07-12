@@ -101,6 +101,13 @@ function attributeSpecifier(type: string, originalAttribute: string) {
   switch (type) {
     case 'date':
       return "'date'"
+    case 'datetime':
+    case 'time':
+    case 'time_with_time_zone':
+    case 'timestamp':
+    case 'timestamp_with_time_zone':
+    case 'timestamp_without_time_zone':
+      return "'datetime'"
     case 'decimal':
       return "'decimal'"
     case 'jsonb':
@@ -108,11 +115,45 @@ function attributeSpecifier(type: string, originalAttribute: string) {
       return "'json'"
     case 'enum':
       return `'enum:${pascalize(originalAttribute.split(':')[2])}Enum'`
-    case 'bigint':
-    case 'uuid':
-      return "'string'"
     case 'integer':
+    case 'double':
+    case 'numeric':
+    case 'real':
+    case 'smallint':
+    case 'smallserial':
+    case 'serial':
       return "'number'"
+    case 'bigint':
+    case 'bigserial':
+    case 'uuid':
+    case 'text':
+    case 'box':
+    case 'bit':
+    case 'bitvarying':
+    case 'varbit':
+    case 'bytea':
+    case 'char':
+    case 'character':
+    case 'varchar':
+    case 'character_varying':
+    case 'char':
+    case 'cidr':
+    case 'circle':
+    case 'citext':
+    case 'inet':
+    case 'interval':
+    case 'line':
+    case 'lseg':
+    case 'macaddr':
+    case 'money':
+    case 'path':
+    case 'point':
+    case 'polygon':
+    case 'tsquery':
+    case 'tsvector':
+    case 'txid_snapshot':
+    case 'xml':
+      return "'string'"
     default:
       return type ? `'${type}'` : ''
   }

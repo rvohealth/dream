@@ -94,117 +94,25 @@ export default class UserAdminSerializer<
     context('when passed type-decorated attributes', () => {
       context('one of those attributes is a string', () => {
         it('adds a string type to the field', async () => {
-          const res = await generateSerializerContent('UserSerializer', 'User', ['howyadoin:string'])
-
-          expect(res).toEqual(
-            `\
-import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
-import User from '../models/User'
-
-export class UserSummarySerializer<
-  DataType extends User,
-  Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
-  @Attribute('string')
-  public id: DreamColumn<User, 'id'>
-}
-
-export default class UserSerializer<
-  DataType extends User,
-  Passthrough extends object
-> extends UserSummarySerializer<DataType, Passthrough> {
-  @Attribute('string')
-  public howyadoin: DreamColumn<User, 'howyadoin'>
-}\
-`
-          )
-        })
-      })
-
-      context('one of those attributes is a number', () => {
-        it('adds a number type to the field', async () => {
-          const res = await generateSerializerContent('UserSerializer', 'User', ['howyadoin:number'])
-
-          expect(res).toEqual(
-            `\
-import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
-import User from '../models/User'
-
-export class UserSummarySerializer<
-  DataType extends User,
-  Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
-  @Attribute('string')
-  public id: DreamColumn<User, 'id'>
-}
-
-export default class UserSerializer<
-  DataType extends User,
-  Passthrough extends object
-> extends UserSummarySerializer<DataType, Passthrough> {
-  @Attribute('number')
-  public howyadoin: DreamColumn<User, 'howyadoin'>
-}\
-`
-          )
+          expectAttributeType('string', 'string')
         })
       })
 
       context('one of those attributes is json', () => {
         it('adds a number type to the field', async () => {
-          const res = await generateSerializerContent('UserSerializer', 'User', ['howyadoin:json'])
-
-          expect(res).toEqual(
-            `\
-import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
-import User from '../models/User'
-
-export class UserSummarySerializer<
-  DataType extends User,
-  Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
-  @Attribute('string')
-  public id: DreamColumn<User, 'id'>
-}
-
-export default class UserSerializer<
-  DataType extends User,
-  Passthrough extends object
-> extends UserSummarySerializer<DataType, Passthrough> {
-  @Attribute('json')
-  public howyadoin: DreamColumn<User, 'howyadoin'>
-}\
-`
-          )
+          expectAttributeType('json', 'json')
         })
       })
 
       context('one of those attributes is jsonb', () => {
         it('adds a number type to the field', async () => {
-          const res = await generateSerializerContent('UserSerializer', 'User', ['howyadoin:jsonb'])
+          expectAttributeType('jsonb', 'json')
+        })
+      })
 
-          expect(res).toEqual(
-            `\
-import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
-import User from '../models/User'
-
-export class UserSummarySerializer<
-  DataType extends User,
-  Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
-  @Attribute('string')
-  public id: DreamColumn<User, 'id'>
-}
-
-export default class UserSerializer<
-  DataType extends User,
-  Passthrough extends object
-> extends UserSummarySerializer<DataType, Passthrough> {
-  @Attribute('json')
-  public howyadoin: DreamColumn<User, 'howyadoin'>
-}\
-`
-          )
+      context('one of those attributes is a number', () => {
+        it('adds a number type to the field', async () => {
+          expectAttributeType('number', 'number')
         })
       })
 
@@ -238,147 +146,50 @@ export default class UserSerializer<
       })
 
       context('one of those attributes is an integer', () => {
-        it('adds a number attribute, rounded to the precision of the decimal', async () => {
-          const res = await generateSerializerContent('UserSerializer', 'User', ['howyadoin:integer'])
-
-          expect(res).toEqual(
-            `\
-import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
-import User from '../models/User'
-
-export class UserSummarySerializer<
-  DataType extends User,
-  Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
-  @Attribute('string')
-  public id: DreamColumn<User, 'id'>
-}
-
-export default class UserSerializer<
-  DataType extends User,
-  Passthrough extends object
-> extends UserSummarySerializer<DataType, Passthrough> {
-  @Attribute('number')
-  public howyadoin: DreamColumn<User, 'howyadoin'>
-}\
-`
-          )
+        it('adds a number attribute', async () => {
+          expectAttributeType('integer', 'number')
         })
       })
 
       context('one of those attributes is a bigint', () => {
-        it('adds a number attribute, rounded to the precision of the decimal', async () => {
-          const res = await generateSerializerContent('UserSerializer', 'User', ['howyadoin:bigint'])
-
-          expect(res).toEqual(
-            `\
-import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
-import User from '../models/User'
-
-export class UserSummarySerializer<
-  DataType extends User,
-  Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
-  @Attribute('string')
-  public id: DreamColumn<User, 'id'>
-}
-
-export default class UserSerializer<
-  DataType extends User,
-  Passthrough extends object
-> extends UserSummarySerializer<DataType, Passthrough> {
-  @Attribute('string')
-  public howyadoin: DreamColumn<User, 'howyadoin'>
-}\
-`
-          )
+        it('adds a string attribute', async () => {
+          expectAttributeType('bigint', 'string')
         })
       })
 
       context('one of those attributes is a uuid', () => {
-        it('adds a number attribute, rounded to the precision of the decimal', async () => {
-          const res = await generateSerializerContent('UserSerializer', 'User', ['howyadoin:uuid'])
+        it('adds a string attribute', async () => {
+          expectAttributeType('uuid', 'string')
+        })
+      })
 
-          expect(res).toEqual(
-            `\
-import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
-import User from '../models/User'
+      context('one of those attributes is "varchar"', () => {
+        it('adds a string attribute', async () => {
+          expectAttributeType('varchar', 'string')
+        })
+      })
 
-export class UserSummarySerializer<
-  DataType extends User,
-  Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
-  @Attribute('string')
-  public id: DreamColumn<User, 'id'>
-}
-
-export default class UserSerializer<
-  DataType extends User,
-  Passthrough extends object
-> extends UserSummarySerializer<DataType, Passthrough> {
-  @Attribute('string')
-  public howyadoin: DreamColumn<User, 'howyadoin'>
-}\
-`
-          )
+      context('one of those attributes is "char"', () => {
+        it('adds a string attribute', async () => {
+          expectAttributeType('char', 'string')
         })
       })
 
       context('one of those attributes is a datetime', () => {
-        it('adds a DateTime type to the field', async () => {
-          const res = await generateSerializerContent('UserSerializer', 'User', ['logged_in_at:datetime'])
-
-          expect(res).toEqual(
-            `\
-import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
-import User from '../models/User'
-
-export class UserSummarySerializer<
-  DataType extends User,
-  Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
-  @Attribute('string')
-  public id: DreamColumn<User, 'id'>
-}
-
-export default class UserSerializer<
-  DataType extends User,
-  Passthrough extends object
-> extends UserSummarySerializer<DataType, Passthrough> {
-  @Attribute('datetime')
-  public loggedInAt: DreamColumn<User, 'loggedInAt'>
-}\
-`
-          )
+        it('adds a datetime attribute', async () => {
+          expectAttributeType('datetime', 'datetime')
         })
       })
 
       context('one of those attributes is a date', () => {
-        it('adds a DateTime type to the field, and a date specifier to the Attribute statement', async () => {
-          const res = await generateSerializerContent('UserSerializer', 'User', ['logged_in_on:date'])
+        it('adds a date attribute', async () => {
+          expectAttributeType('date', 'date')
+        })
+      })
 
-          expect(res).toEqual(
-            `\
-import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
-import User from '../models/User'
-
-export class UserSummarySerializer<
-  DataType extends User,
-  Passthrough extends object
-> extends DreamSerializer<DataType, Passthrough> {
-  @Attribute('string')
-  public id: DreamColumn<User, 'id'>
-}
-
-export default class UserSerializer<
-  DataType extends User,
-  Passthrough extends object
-> extends UserSummarySerializer<DataType, Passthrough> {
-  @Attribute('date')
-  public loggedInOn: DreamColumn<User, 'loggedInOn'>
-}\
-`
-          )
+      context('one of those attributes is type "text"', () => {
+        it('adds a string attribute', async () => {
+          expectAttributeType('text', 'string')
         })
       })
 
@@ -564,3 +375,31 @@ export default class UserAdminSerializer<
     })
   })
 })
+
+async function expectAttributeType(startingAttributeType: string, generatedAttributeType: string) {
+  const res = await generateSerializerContent('UserSerializer', 'User', [
+    `howyadoin:${startingAttributeType}`,
+  ])
+  expect(res).toEqual(
+    `\
+import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
+import User from '../models/User'
+
+export class UserSummarySerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends DreamSerializer<DataType, Passthrough> {
+  @Attribute('string')
+  public id: DreamColumn<User, 'id'>
+}
+
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object
+> extends UserSummarySerializer<DataType, Passthrough> {
+  @Attribute('${generatedAttributeType}')
+  public howyadoin: DreamColumn<User, 'howyadoin'>
+}\
+`
+  )
+}

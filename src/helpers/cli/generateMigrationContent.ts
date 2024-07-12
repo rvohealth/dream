@@ -139,10 +139,7 @@ function generateDecimalStr(attribute: string) {
 }
 
 function generateColumnStr(attributeName: string, attributeType: string, descriptors: string[]) {
-  const attributeStatement = ['citext'].includes(attributeType)
-    ? `sql\`${attributeType}\``
-    : `'${attributeType}'`
-  let returnStr = `.addColumn('${attributeName}', ${attributeStatement}`
+  let returnStr = `.addColumn('${attributeName}', ${attributeTypeString(attributeType)}`
 
   const providedDefaultArg = descriptors.find(d => /^default\(/.test(d))
   const providedDefault = providedDefaultArg?.replace(/^default\(/, '')?.replace(/\)$/, '')
@@ -154,6 +151,11 @@ function generateColumnStr(attributeName: string, attributeType: string, descrip
   // TODO: handle index
 
   return `${returnStr}${hasExtraValues ? '))' : ')'}`
+}
+
+function attributeTypeString(attributeType: string) {
+  const attributeTypesRequiringSql = ['citext']
+  return attributeTypesRequiringSql.includes(attributeType) ? `sql\`${attributeType}\`` : `'${attributeType}'`
 }
 
 function generateBelongsToStr(attributeName: string, { primaryKeyType }: { primaryKeyType: PrimaryKeyType }) {
