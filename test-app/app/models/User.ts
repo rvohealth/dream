@@ -73,7 +73,6 @@ export default class User extends ApplicationModel {
   @HasMany(() => PostComment, {
     through: 'allPosts',
     source: 'allComments',
-    withoutDefaultScopes: ['dream:SoftDelete'],
   })
   public allPostComments: PostComment[]
 
