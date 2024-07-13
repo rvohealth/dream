@@ -423,17 +423,6 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
   }
 
   /**
-   * Returns a query for this model which disregards default scopes, but not when applying to associations
-   *
-   * @returns A query for this model which disregards default scopes, but not when applying to associations
-   */
-  public removeAllDefaultScopesExceptOnAssociations<I extends DreamClassTransactionBuilder<DreamInstance>>(
-    this: I
-  ): Query<DreamInstance> {
-    return this.queryInstance().removeAllDefaultScopesExceptOnAssociations()
-  }
-
-  /**
    * Prevents a specific default scope from applying when
    * the Query is executed
    *
@@ -444,19 +433,6 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
     scopeName: DefaultScopeName<DreamInstance>
   ): Query<DreamInstance> {
     return this.queryInstance().removeDefaultScope(scopeName)
-  }
-
-  /**
-   * Prevents a specific default scope from applying when
-   * the Query is executed, but not when applying to asociations
-   *
-   * @returns A new Query which will prevent a specific default scope from applying, but not when applying to asociations
-   */
-  public removeDefaultScopeExceptOnAssociations<I extends DreamClassTransactionBuilder<DreamInstance>>(
-    this: I,
-    scopeName: DefaultScopeName<DreamInstance>
-  ): Query<DreamInstance> {
-    return this.queryInstance().removeDefaultScopeExceptOnAssociations(scopeName)
   }
 
   /**

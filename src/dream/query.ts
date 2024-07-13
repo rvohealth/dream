@@ -272,14 +272,14 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   /**
    * @internal
    *
-   * Whether or not to bypass all default scopes for this Query
+   * Specific default scopes to bypass
    */
   private readonly bypassSpecificDefaultScopes: string[] = []
 
   /**
    * @internal
    *
-   * Whether or not to bypass all default scopes for this Query, but not associations
+   * Specific default scopes to bypass, but not associations
    */
   private readonly bypassSpecificDefaultScopesExceptOnAssociations: string[] = []
 
@@ -1113,7 +1113,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns A new Query which will prevent default scopes from applying, but not when applying to asociations
    */
-  public removeAllDefaultScopesExceptOnAssociations(): Query<DreamInstance> {
+  protected removeAllDefaultScopesExceptOnAssociations(): Query<DreamInstance> {
     return this.clone({
       bypassAllDefaultScopesExceptOnAssociations: true,
       baseSelectQuery: this.baseSelectQuery?.removeAllDefaultScopesExceptOnAssociations(),
@@ -1139,7 +1139,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns A new Query which will prevent a specific default scope from applying, but not when applying to asociations
    */
-  public removeDefaultScopeExceptOnAssociations(
+  protected removeDefaultScopeExceptOnAssociations(
     scopeName: DefaultScopeName<DreamInstance>
   ): Query<DreamInstance> {
     return this.clone({

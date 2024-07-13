@@ -859,17 +859,6 @@ export default class Dream {
   }
 
   /**
-   * Returns a query for this model which disregards default scopes, but not when applying to associations
-   *
-   * @returns A query for this model which disregards default scopes, but not when applying to associations
-   */
-  public static removeAllDefaultScopesExceptOnAssociations<T extends typeof Dream>(
-    this: T
-  ): Query<InstanceType<T>> {
-    return this.query().removeAllDefaultScopesExceptOnAssociations()
-  }
-
-  /**
    * Prevents a specific default scope from applying when
    * the Query is executed
    *
@@ -880,19 +869,6 @@ export default class Dream {
     scopeName: DefaultScopeName<InstanceType<T>>
   ): Query<InstanceType<T>> {
     return this.query().removeDefaultScope(scopeName)
-  }
-
-  /**
-   * Prevents a specific default scope from applying when
-   * the Query is executed, but not when applying to asociations
-   *
-   * @returns A new Query which will prevent a specific default scope from applying, but not when applying to asociations
-   */
-  public static removeDefaultScopeExceptOnAssociations<T extends typeof Dream>(
-    this: T,
-    scopeName: DefaultScopeName<InstanceType<T>>
-  ): Query<InstanceType<T>> {
-    return this.query().removeDefaultScopeExceptOnAssociations(scopeName)
   }
 
   /**
