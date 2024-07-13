@@ -11,9 +11,9 @@ export default class LoadBuilder<DreamInstance extends Dream> {
 
   constructor(dream: Dream, txn?: DreamTransaction<any>) {
     this.dream = dream['clone']()
-    this.query = new Query<DreamInstance>(
-      this.dream as DreamInstance
-    ).removeAllDefaultScopesExceptOnAssociations()
+    this.query = new Query<DreamInstance>(this.dream as DreamInstance)[
+      'removeAllDefaultScopesExceptOnAssociations'
+    ]()
     this.dreamTransaction = txn
   }
 
