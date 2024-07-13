@@ -2492,7 +2492,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     )
   }
 
-  private conditionallyApplyScopes(): Query<DreamInstance> {
+  private conditionallyApplyDefaultScopes(): Query<DreamInstance> {
     if (this.bypassAllDefaultScopes || this.bypassAllDefaultScopesExceptOnAssociations) return this
 
     const thisScopes = this.dreamClass['scopes'].default
@@ -3296,7 +3296,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   private buildCommon(this: Query<DreamInstance>, kyselyQuery: any) {
     this.checkForQueryViolations()
 
-    const query = this.conditionallyApplyScopes()
+    const query = this.conditionallyApplyDefaultScopes()
 
     if (!isEmpty(query.joinsStatements)) {
       kyselyQuery = query.recursivelyJoin({
