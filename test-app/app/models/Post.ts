@@ -63,7 +63,7 @@ export default class Post extends ApplicationModel {
     dependent: 'destroy',
     withoutDefaultScopes: ['nonNullBodies'],
   })
-  public overriddenNonNullRatings: Rating[]
+  public overriddenNonNullRatings: NonNullRating[]
 
   @HasMany(() => HeartRating, {
     foreignKey: 'extraRateableId',
