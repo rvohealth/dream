@@ -1,5 +1,5 @@
-import CalendarDate from '../../src/helpers/CalendarDate'
 import { DateTime } from 'luxon'
+import CalendarDate from '../../src/helpers/CalendarDate'
 import {
   BalloonColorsEnum,
   BalloonColorsEnumValues,
@@ -2224,7 +2224,7 @@ export const schema = {
     },
     virtualColumns: [],
     associations: {
-      hiddenRateable: {
+      rateableEvenIfDeleted: {
         type: 'BelongsTo',
         foreignKey: 'rateableId',
         tables: ['compositions', 'posts'],

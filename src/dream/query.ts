@@ -267,7 +267,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * Whether or not to bypass all default scopes for this Query, but not associations
    */
-  private readonly bypassAllDefaultScopesOnce: boolean = false
+  private readonly bypassAllDefaultScopesExceptOnAssociations: boolean = false
 
   /**
    * @internal
@@ -275,6 +275,13 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * Whether or not to bypass all default scopes for this Query
    */
   private readonly bypassSpecificDefaultScopes: string[] = []
+
+  /**
+   * @internal
+   *
+   * Whether or not to bypass all default scopes for this Query, but not associations
+   */
+  private readonly bypassSpecificDefaultScopesExceptOnAssociations: string[] = []
 
   /**
    * @internal
@@ -327,8 +334,10 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     this.limitStatement = opts.limit || null
     this.offsetStatement = opts.offset || null
     this.bypassAllDefaultScopes = opts.bypassAllDefaultScopes || false
-    this.bypassAllDefaultScopesOnce = opts.bypassAllDefaultScopesOnce || false
+    this.bypassAllDefaultScopesExceptOnAssociations = opts.bypassAllDefaultScopesExceptOnAssociations || false
     this.bypassSpecificDefaultScopes = opts.bypassSpecificDefaultScopes || []
+    this.bypassSpecificDefaultScopesExceptOnAssociations =
+      opts.bypassSpecificDefaultScopesExceptOnAssociations || []
     this.dreamTransaction = opts.transaction || null
     this.distinctColumn = opts.distinctColumn || null
     this.connectionOverride = opts.connection
@@ -354,18 +363,21 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    */
   private symmetricalQueryForDreamClass<T extends typeof Dream>(
     this: Query<DreamInstance>,
-    dreamClass: T
+    dreamClass: T,
+    {
+      bypassAllDefaultScopesExceptOnAssociations = this.bypassAllDefaultScopesExceptOnAssociations,
+      bypassSpecificDefaultScopesExceptOnAssociations = this.bypassSpecificDefaultScopesExceptOnAssociations,
+    }: {
+      bypassAllDefaultScopesExceptOnAssociations?: boolean
+      bypassSpecificDefaultScopesExceptOnAssociations?: string[]
+    } = {}
   ): Query<InstanceType<T>> {
-    const baseScope = dreamClass
-      .query()
-      .conditionallyApplyScopes(
-        this.bypassAllDefaultScopes,
-        this.bypassAllDefaultScopesOnce,
-        this.bypassSpecificDefaultScopes
-      )
-
-    const associationQuery: Query<InstanceType<T>> = baseScope.clone({
+    const associationQuery = dreamClass.query().clone({
       passthroughWhereStatement: this.passthroughWhereStatement,
+      bypassAllDefaultScopes: this.bypassAllDefaultScopes,
+      bypassAllDefaultScopesExceptOnAssociations,
+      bypassSpecificDefaultScopes: this.bypassSpecificDefaultScopes,
+      bypassSpecificDefaultScopesExceptOnAssociations,
     })
 
     return this.dreamTransaction ? associationQuery.txn(this.dreamTransaction) : associationQuery
@@ -417,14 +429,20 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
       bypassAllDefaultScopes:
         opts.bypassAllDefaultScopes !== undefined ? opts.bypassAllDefaultScopes : this.bypassAllDefaultScopes,
-      bypassAllDefaultScopesOnce:
-        opts.bypassAllDefaultScopesOnce !== undefined
-          ? opts.bypassAllDefaultScopesOnce
-          : this.bypassAllDefaultScopesOnce,
+      bypassAllDefaultScopesExceptOnAssociations:
+        opts.bypassAllDefaultScopesExceptOnAssociations !== undefined
+          ? opts.bypassAllDefaultScopesExceptOnAssociations
+          : this.bypassAllDefaultScopesExceptOnAssociations,
       bypassSpecificDefaultScopes:
         opts.bypassSpecificDefaultScopes !== undefined
           ? opts.bypassSpecificDefaultScopes
           : this.bypassSpecificDefaultScopes,
+
+      bypassSpecificDefaultScopesExceptOnAssociations:
+        opts.bypassSpecificDefaultScopesExceptOnAssociations !== undefined
+          ? opts.bypassSpecificDefaultScopesExceptOnAssociations
+          : this.bypassSpecificDefaultScopesExceptOnAssociations,
+
       transaction: opts.transaction || this.dreamTransaction,
       connection: opts.connection,
       shouldReallyDestroy:
@@ -1071,8 +1089,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    */
   private setBaseSelectQuery(baseSelectQuery: Query<any>) {
     return this.clone({
-      baseSelectQuery: baseSelectQuery.removeAllDefaultScopesOnce(),
-      bypassAllDefaultScopesOnce: true,
+      baseSelectQuery: baseSelectQuery.removeAllDefaultScopesExceptOnAssociations(),
+      bypassAllDefaultScopesExceptOnAssociations: true,
     })
   }
 
@@ -1095,10 +1113,10 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns A new Query which will prevent default scopes from applying, but not when applying to asociations
    */
-  public removeAllDefaultScopesOnce(): Query<DreamInstance> {
+  public removeAllDefaultScopesExceptOnAssociations(): Query<DreamInstance> {
     return this.clone({
-      bypassAllDefaultScopesOnce: true,
-      baseSelectQuery: this.baseSelectQuery?.removeAllDefaultScopesOnce(),
+      bypassAllDefaultScopesExceptOnAssociations: true,
+      baseSelectQuery: this.baseSelectQuery?.removeAllDefaultScopesExceptOnAssociations(),
     })
   }
 
@@ -1110,7 +1128,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    */
   public removeDefaultScope(scopeName: DefaultScopeName<DreamInstance>): Query<DreamInstance> {
     return this.clone({
-      bypassSpecificDefaultScopes: [...this.bypassSpecificDefaultScopes, scopeName],
+      bypassSpecificDefaultScopes: [
+        ...this.bypassSpecificDefaultScopes,
+        ...this.bypassSpecificDefaultScopesExceptOnAssociations,
+        scopeName,
+      ],
       baseSelectQuery: this.baseSelectQuery?.removeDefaultScope(scopeName),
     })
   }
@@ -2269,7 +2291,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           dream[associationToGetterSetterProp(association)] = null
         })
 
-        const loadedAssociations = await this.symmetricalQueryForDreamClass(associatedModel)
+        const loadedAssociations = await this.symmetricalQueryForDreamClass(associatedModel, {
+          bypassSpecificDefaultScopesExceptOnAssociations: association.withoutDefaultScopes,
+        })
           .where({
             [associatedModel.primaryKey]: relevantAssociatedModels.map(
               (dream: any) => dream[association.foreignKey()]
@@ -2366,7 +2390,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       ? dreamClass['stiBaseClassOrOwnClass']
       : dreamClass
 
-    const scope = this.symmetricalQueryForDreamClass(baseClass).where({
+    const scope = this.symmetricalQueryForDreamClass(baseClass, {
+      bypassAllDefaultScopesExceptOnAssociations: true,
+    }).where({
       [dreamClass.primaryKey]: dreams.map(obj => obj.primaryKeyValue),
     })
 
@@ -2434,6 +2460,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         dream,
         this.applyableWhereStatements(preloadWhereStatements[key] as RelaxedPreloadWhereStatement<any, any>)
       )
+
       if (nestedDreams) {
         await this.applyPreload(
           (preloadStatement as any)[key],
@@ -2465,18 +2492,18 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     )
   }
 
-  private conditionallyApplyScopes(
-    bypassAllDefaultScopes: boolean,
-    bypassAllDefaultScopesOnce: boolean,
-    bypassSpecificDefaultScopes: DefaultScopeName<DreamInstance>[]
-  ): Query<DreamInstance> {
-    if (bypassAllDefaultScopes) return this.removeAllDefaultScopes()
-    if (bypassAllDefaultScopesOnce) return this.removeAllDefaultScopesOnce()
+  private conditionallyApplyScopes(): Query<DreamInstance> {
+    if (this.bypassAllDefaultScopes || this.bypassAllDefaultScopesExceptOnAssociations) return this
 
     const thisScopes = this.dreamClass['scopes'].default
     let query: Query<DreamInstance> = this
     for (const scope of thisScopes) {
-      if (!shouldBypassDefaultScope(scope.method, bypassAllDefaultScopes, bypassSpecificDefaultScopes)) {
+      if (
+        !shouldBypassDefaultScope(scope.method, false, [
+          ...this.bypassSpecificDefaultScopes,
+          ...this.bypassSpecificDefaultScopesExceptOnAssociations,
+        ])
+      ) {
         query = (this.dreamClass as any)[scope.method](query)
       }
     }
@@ -3269,11 +3296,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   private buildCommon(this: Query<DreamInstance>, kyselyQuery: any) {
     this.checkForQueryViolations()
 
-    const query = this.conditionallyApplyScopes(
-      this.bypassAllDefaultScopes,
-      this.bypassAllDefaultScopesOnce,
-      this.bypassSpecificDefaultScopes
-    )
+    const query = this.conditionallyApplyScopes()
 
     if (!isEmpty(query.joinsStatements)) {
       kyselyQuery = query.recursivelyJoin({
@@ -3544,8 +3567,9 @@ export interface QueryOpts<
   joinsStatements?: RelaxedJoinsStatement
   joinsWhereStatements?: RelaxedJoinsWhereStatement<DB, Schema>
   bypassAllDefaultScopes?: boolean
-  bypassAllDefaultScopesOnce?: boolean
+  bypassAllDefaultScopesExceptOnAssociations?: boolean
   bypassSpecificDefaultScopes?: string[]
+  bypassSpecificDefaultScopesExceptOnAssociations?: string[]
   transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType
   shouldReallyDestroy?: boolean

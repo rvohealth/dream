@@ -114,11 +114,10 @@ describe('Query#preload with polymorphic associations', () => {
     })
 
     context('withoutDefaultScopes', () => {
-      it.only('applies the default scope exclusions to the underlying query', async () => {
+      it('applies the default scope exclusions to the underlying query', async () => {
         const user = await User.create({
           email: 'fred@frewd',
           password: 'howyadoin',
-          deletedAt: DateTime.now(),
         })
         await Composition.create({ user })
         const post = await Post.create({ user })
@@ -172,7 +171,6 @@ describe('Query#preload with polymorphic associations', () => {
         const user = await User.create({
           email: 'fred@frewd',
           password: 'howyadoin',
-          deletedAt: DateTime.now(),
         })
         await Composition.create({ user })
         const post = await Post.create({ user, deletedAt: DateTime.now() })
@@ -181,8 +179,8 @@ describe('Query#preload with polymorphic associations', () => {
         const reloaded = await Rating.preload('rateable', 'user').findOrFail(rating.id)
         expect(reloaded.rateable).toBeNull()
 
-        const unscopedReloaded = await Rating.preload('hiddenRateable', 'user').findOrFail(rating.id)
-        expect(unscopedReloaded.hiddenRateable.user).toMatchDreamModel(user)
+        const unscopedReloaded = await Rating.preload('rateableEvenIfDeleted', 'user').findOrFail(rating.id)
+        expect(unscopedReloaded.rateableEvenIfDeleted.user).toMatchDreamModel(user)
       })
     })
   })

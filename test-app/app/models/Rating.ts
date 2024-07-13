@@ -1,4 +1,3 @@
-import { Query, Scope } from '../../../src'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import { DreamColumn } from '../../../src/dream/types'
 import RatingSerializer from '../serializers/RatingSerializer'
@@ -20,11 +19,6 @@ export default class Rating extends ApplicationModel {
   public body: DreamColumn<Rating, 'body'>
   public rating: DreamColumn<Rating, 'rating'>
 
-  @Scope({ default: true })
-  public static nonNullBodies(query: Query<Rating>) {
-    return query.where({ body: null })
-  }
-
   @BelongsTo(() => User)
   public user: User
   public userId: DreamColumn<Rating, 'userId'>
@@ -42,5 +36,5 @@ export default class Rating extends ApplicationModel {
     polymorphic: true,
     withoutDefaultScopes: ['dream:SoftDelete'],
   })
-  public hiddenRateable: Composition | Post
+  public rateableEvenIfDeleted: Composition | Post
 }
