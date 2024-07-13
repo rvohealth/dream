@@ -186,7 +186,7 @@ export interface HasStatement<
   distinct?: TableColumnNames<DB, ForeignTableName>
   order?: OrderStatement<DB, Schema, ForeignTableName>
   dependent?: DependentOptions
-  withoutDefaultScopes?: DefaultScopeName<BaseInstance>
+  withoutDefaultScopes?: DefaultScopeName<BaseInstance>[]
 }
 
 export interface HasOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream> {
