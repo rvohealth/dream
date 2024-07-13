@@ -1,0 +1,9 @@
+import { Query, Scope } from '../../../src'
+import Rating from './Rating'
+
+export default class NonNullRating extends Rating {
+  @Scope({ default: true })
+  public static nonNullBodies(query: Query<Rating>) {
+    return query.whereNot({ body: null })
+  }
+}

@@ -2117,6 +2117,13 @@ export const schema = {
         optional: null,
         requiredWhereClauses: null,
       },
+      overriddenNonNullRatings: {
+        type: 'HasMany',
+        foreignKey: 'rateableId',
+        tables: ['ratings'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
       postVisibility: {
         type: 'BelongsTo',
         foreignKey: 'postVisibilityId',
@@ -2146,7 +2153,7 @@ export const schema = {
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
     scopes: {
-      default: [],
+      default: ['nonNullBodies'],
       named: [],
     },
     columns: {
@@ -2217,6 +2224,13 @@ export const schema = {
     },
     virtualColumns: [],
     associations: {
+      hiddenRateable: {
+        type: 'BelongsTo',
+        foreignKey: 'rateableId',
+        tables: ['compositions', 'posts'],
+        optional: false,
+        requiredWhereClauses: null,
+      },
       rateable: {
         type: 'BelongsTo',
         foreignKey: 'rateableId',
