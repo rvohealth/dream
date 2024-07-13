@@ -1,7 +1,7 @@
-import User from '../../../test-app/app/models/User'
 import Pet from '../../../test-app/app/models/Pet'
+import User from '../../../test-app/app/models/User'
 
-describe('Dream#removeAllDefaultScopes', () => {
+describe('Query#removeAllDefaultScopes', () => {
   let user: User
   let pet: Pet
   beforeEach(async () => {

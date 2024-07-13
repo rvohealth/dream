@@ -1,9 +1,9 @@
 import { Query } from '../../../src'
+import * as destroyDreamModule from '../../../src/dream/internal/destroyDream'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
-import * as destroyDreamModule from '../../../src/dream/internal/destroyDream'
 
 describe('Dream#reallyDestroy', () => {
   it('destroys the record', async () => {
@@ -41,6 +41,19 @@ describe('Dream#reallyDestroy', () => {
 
       expect(await Post.count()).toEqual(0)
       expect(await Post.removeAllDefaultScopes().count()).toEqual(0)
+    })
+
+    context('already soft-deleted asociations', () => {
+      it('are really destroyed', async () => {
+        const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+        const post = await Post.create({ user })
+
+        await post.destroy()
+
+        expect(await Post.removeAllDefaultScopes().count()).toEqual(1)
+        await user.reallyDestroy()
+        expect(await Post.removeAllDefaultScopes().count()).toEqual(0)
+      })
     })
 
     context('within a transaction', () => {

@@ -7,6 +7,8 @@ import Composition from '../../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import LocalizedText from '../../../../test-app/app/models/LocalizedText'
 import Pet from '../../../../test-app/app/models/Pet'
+import Post from '../../../../test-app/app/models/Post'
+import PostComment from '../../../../test-app/app/models/PostComment'
 import User from '../../../../test-app/app/models/User'
 
 describe('Dream#associationQuery', () => {
@@ -31,7 +33,7 @@ describe('Dream#associationQuery', () => {
         const composition = await Composition.create({ user })
 
         await expect(
-          (composition.associationQuery as any)('inlineWhereCurrentLocalizedText').all()
+          async () => await (composition.associationQuery as any)('inlineWhereCurrentLocalizedText').all()
         ).rejects.toThrow(MissingRequiredAssociationWhereClause)
       })
     })
@@ -61,17 +63,47 @@ describe('Dream#associationQuery', () => {
       })
     })
 
-    context('withoutDefaultScopes is passed', () => {
-      it('removes default scopes when querying association', async () => {
-        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-        const pet1 = await Pet.create({ user })
-        const pet2 = await Pet.create({ user })
+    context('withoutDefaultScopes defined on the association', () => {
+      let user: User
+      let post: Post
+      let postComment: PostComment
 
-        await pet1.destroy()
+      beforeEach(async () => {
+        user = await User.create({ email: 'fred@frewd', password: 'password' })
+        post = await Post.create({ user })
+        postComment = await PostComment.create({ post })
 
-        expect(await user.associationQuery('pets').all()).toMatchDreamModels([pet2])
-        expect(await user.associationQuery('allPets').all()).toMatchDreamModels([pet1, pet2])
+        await post.destroy()
       })
+
+      it('removes the default scopes defined on the association', async () => {
+        expect(await user.associationQuery('posts').first()).toBeNull()
+        expect(await user.associationQuery('allPosts').first()).toMatchDreamModel(post)
+      })
+
+      context('when preloading from the associationQuery an association with withoutDefaultScopes', () => {
+        it('removes the default scopes defined on the preloaded association', async () => {
+          const postWithNoComments = await user.associationQuery('allPosts').preload('comments').firstOrFail()
+          expect(postWithNoComments.comments).toHaveLength(0)
+          const postWithComments = await user
+            .associationQuery('allPosts')
+            .preload('allComments')
+            .firstOrFail()
+          expect(postWithComments.allComments).toMatchDreamModels([postComment])
+        })
+      })
+
+      context(
+        'when the association is through another association that also defines withoutDefaultScopes',
+        () => {
+          it('removes the default scopes from the assocation and the association it passes through', async () => {
+            const noPostComments = await user.associationQuery('postComments').all()
+            expect(noPostComments).toHaveLength(0)
+            const allPostComments = await user.associationQuery('allPostComments').all()
+            expect(allPostComments).toMatchDreamModels([postComment])
+          })
+        }
+      )
     })
 
     context('with a primary key override', () => {
@@ -301,6 +333,21 @@ describe('Dream#associationQuery', () => {
 
         const firstResults = await user.associationQuery('firstComposition2').first()
         expect(firstResults).toMatchDreamModel(composition2)
+      })
+    })
+  })
+
+  context('BelongsTo', () => {
+    context('withoutDefaultScopes defined on the association', () => {
+      it('removes the default scope', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'password' })
+        const post = await Post.create({ user })
+        const postComment = await PostComment.create({ post })
+
+        await post.destroy()
+
+        expect(await postComment.associationQuery('post').first()).toBeNull()
+        expect(await postComment.associationQuery('postEvenIfDeleted').first()).toMatchDreamModel(post)
       })
     })
   })

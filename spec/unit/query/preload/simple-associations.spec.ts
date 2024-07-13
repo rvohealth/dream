@@ -1,17 +1,18 @@
-import User from '../../../../test-app/app/models/User'
-import Composition from '../../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import { DateTime } from 'luxon'
-import Pet from '../../../../test-app/app/models/Pet'
+import Balloon from '../../../../test-app/app/models/Balloon'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import BalloonLine from '../../../../test-app/app/models/BalloonLine'
-import Balloon from '../../../../test-app/app/models/Balloon'
-import Post from '../../../../test-app/app/models/Post'
-import LocalizedText from '../../../../test-app/app/models/LocalizedText'
-import Node from '../../../../test-app/app/models/Graph/Node'
+import Collar from '../../../../test-app/app/models/Collar'
+import Composition from '../../../../test-app/app/models/Composition'
+import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import Edge from '../../../../test-app/app/models/Graph/Edge'
 import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
-import Collar from '../../../../test-app/app/models/Collar'
+import Node from '../../../../test-app/app/models/Graph/Node'
+import LocalizedText from '../../../../test-app/app/models/LocalizedText'
+import Pet from '../../../../test-app/app/models/Pet'
+import Post from '../../../../test-app/app/models/Post'
+import PostComment from '../../../../test-app/app/models/PostComment'
+import User from '../../../../test-app/app/models/User'
 
 describe('Query#preload with simple associations', () => {
   context('HasOne', () => {
@@ -117,6 +118,21 @@ describe('Query#preload with simple associations', () => {
 
         const reloaded = await BalloonLine.query().preload('balloon').first()
         expect(reloaded!.balloon).toMatchDreamModel(balloon)
+      })
+    })
+
+    context('withoutDefaultScopes', () => {
+      it('removes the default scope when applying the association', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'password' })
+        const post = await Post.create({ user })
+        const postComment = await PostComment.create({ post })
+
+        await post.destroy()
+
+        const reloadedPostComment = await postComment.load('post').execute()
+        expect(reloadedPostComment.post).toBeNull()
+        const reloadedPostComment2 = await postComment.load('postEvenIfDeleted').execute()
+        expect(reloadedPostComment2.postEvenIfDeleted).toMatchDreamModel(post)
       })
     })
   })

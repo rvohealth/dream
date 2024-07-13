@@ -7,6 +7,7 @@ import saveDream from './internal/saveDream'
 import Query, { FindEachOpts } from './query'
 import DreamTransaction from './transaction'
 import {
+  DefaultScopeName,
   DreamColumnNames,
   OrderDir,
   UpdateableProperties,
@@ -419,6 +420,19 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
     this: I
   ): Query<DreamInstance> {
     return this.queryInstance().removeAllDefaultScopes()
+  }
+
+  /**
+   * Prevents a specific default scope from applying when
+   * the Query is executed
+   *
+   * @returns A new Query which will prevent a specific default scope from applying
+   */
+  public removeDefaultScope<I extends DreamClassTransactionBuilder<DreamInstance>>(
+    this: I,
+    scopeName: DefaultScopeName<DreamInstance>
+  ): Query<DreamInstance> {
+    return this.queryInstance().removeDefaultScope(scopeName)
   }
 
   /**
