@@ -1087,7 +1087,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * Association queries start from the table corresponding to an instance
    * of a Dream and join the association. However, the Dream may have
    * default scopes that would preclude finding that instance, so the
-   * Query that forms the base of an association query must be unscope,
+   * Query that forms the base of an association query must be unscoped,
    * but that unscoping should not carry through to other associations
    * (thus the use of `removeAllDefaultScopesExceptOnAssociations` instead of
    * `removeAllDefaultScopes`).
