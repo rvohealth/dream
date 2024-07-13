@@ -4,7 +4,7 @@ import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Pet from '../../../test-app/app/models/Pet'
 import User from '../../../test-app/app/models/User'
 
-describe('Dream#removeAllDefaultScopes', () => {
+describe('Dream#removeAllDefaultScopesExceptOnAssociations', () => {
   let user: User
   let pet: Pet
   let petId: IdType
@@ -15,18 +15,18 @@ describe('Dream#removeAllDefaultScopes', () => {
     petId = pet.id
   })
 
-  it('calls Query#removeAllDefaultScopes', async () => {
-    const spy = jest.spyOn(Query.prototype, 'removeAllDefaultScopes')
-    await Pet.removeAllDefaultScopes().find(petId)
+  it('calls Query#removeAllDefaultScopesExceptOnAssociations', async () => {
+    const spy = jest.spyOn(Query.prototype, 'removeAllDefaultScopesExceptOnAssociations')
+    await Pet.removeAllDefaultScopesExceptOnAssociations().find(petId)
     expect(spy).toHaveBeenCalled()
   })
 
   context('within a transaction', () => {
-    it('calls Query#removeAllDefaultScopes', async () => {
-      const spy = jest.spyOn(Query.prototype, 'removeAllDefaultScopes')
+    it('calls Query#removeAllDefaultScopesExceptOnAssociations', async () => {
+      const spy = jest.spyOn(Query.prototype, 'removeAllDefaultScopesExceptOnAssociations')
 
       await ApplicationModel.transaction(async txn => {
-        await Pet.txn(txn).removeAllDefaultScopes().find(petId)
+        await Pet.txn(txn).removeAllDefaultScopesExceptOnAssociations().find(petId)
       })
 
       expect(spy).toHaveBeenCalled()

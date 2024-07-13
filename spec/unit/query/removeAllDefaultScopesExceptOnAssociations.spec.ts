@@ -4,7 +4,7 @@ import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import Pet from '../../../test-app/app/models/Pet'
 import User from '../../../test-app/app/models/User'
 
-describe('Query#removeDefaultScope', () => {
+describe('Query#removeAllDefaultScopesExceptOnAssociations', () => {
   let user: User
 
   class PetNamedAster extends Pet {

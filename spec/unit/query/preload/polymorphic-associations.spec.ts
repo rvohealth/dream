@@ -123,9 +123,7 @@ describe('Query#preload with polymorphic associations', () => {
         const post = await Post.create({ user })
         const rating = await NonNullRating.create({ user, rateable: post })
 
-        console.log('START')
         const reloaded = await Post.preload('overriddenNonNullRatings', 'user').findOrFail(post.id)
-        console.log('END')
 
         expect(await NonNullRating.count()).toEqual(0)
         expect(reloaded.overriddenNonNullRatings[0]).toMatchDreamModel(rating)

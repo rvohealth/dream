@@ -361,12 +361,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns An associated Query
    */
-  private symmetricalQueryForDreamClass<T extends typeof Dream>(
+  private queryForDreamClassWithScopeBypasses<T extends typeof Dream>(
     this: Query<DreamInstance>,
     dreamClass: T,
     {
-      bypassAllDefaultScopesExceptOnAssociations = this.bypassAllDefaultScopesExceptOnAssociations,
-      bypassSpecificDefaultScopesExceptOnAssociations = this.bypassSpecificDefaultScopesExceptOnAssociations,
+      bypassAllDefaultScopesExceptOnAssociations = false,
+      bypassSpecificDefaultScopesExceptOnAssociations = [],
     }: {
       bypassAllDefaultScopesExceptOnAssociations?: boolean
       bypassSpecificDefaultScopesExceptOnAssociations?: string[]
@@ -1128,11 +1128,22 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    */
   public removeDefaultScope(scopeName: DefaultScopeName<DreamInstance>): Query<DreamInstance> {
     return this.clone({
-      bypassSpecificDefaultScopes: [
-        ...this.bypassSpecificDefaultScopes,
-        ...this.bypassSpecificDefaultScopesExceptOnAssociations,
-        scopeName,
-      ],
+      bypassSpecificDefaultScopes: [...this.bypassSpecificDefaultScopes, scopeName],
+      baseSelectQuery: this.baseSelectQuery?.removeDefaultScope(scopeName),
+    })
+  }
+
+  /**
+   * Prevents a specific default scope from applying when
+   * the Query is executed, but not when applying to asociations
+   *
+   * @returns A new Query which will prevent a specific default scope from applying, but not when applying to asociations
+   */
+  public removeDefaultScopeExceptOnAssociations(
+    scopeName: DefaultScopeName<DreamInstance>
+  ): Query<DreamInstance> {
+    return this.clone({
+      bypassSpecificDefaultScopes: [...this.bypassSpecificDefaultScopesExceptOnAssociations, scopeName],
       baseSelectQuery: this.baseSelectQuery?.removeDefaultScope(scopeName),
     })
   }
@@ -2291,7 +2302,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           dream[associationToGetterSetterProp(association)] = null
         })
 
-        const loadedAssociations = await this.symmetricalQueryForDreamClass(associatedModel, {
+        const loadedAssociations = await this.queryForDreamClassWithScopeBypasses(associatedModel, {
           bypassSpecificDefaultScopesExceptOnAssociations: association.withoutDefaultScopes,
         })
           .where({
@@ -2390,7 +2401,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       ? dreamClass['stiBaseClassOrOwnClass']
       : dreamClass
 
-    const scope = this.symmetricalQueryForDreamClass(baseClass, {
+    const scope = this.queryForDreamClassWithScopeBypasses(baseClass, {
       bypassAllDefaultScopesExceptOnAssociations: true,
     }).where({
       [dreamClass.primaryKey]: dreams.map(obj => obj.primaryKeyValue),
