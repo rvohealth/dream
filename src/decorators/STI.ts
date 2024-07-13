@@ -10,6 +10,8 @@ export default function STI(dreamClass: typeof Dream, { value }: { value?: strin
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'extendedBy')) dreamClass['extendedBy'] = []
     dreamClass['extendedBy']!.push(stiChildClass)
 
+    const stiScopeName = 'dream:STI'
+
     stiChildClass['sti'] = {
       active: true,
       baseClass,
@@ -22,6 +24,3 @@ export default function STI(dreamClass: typeof Dream, { value }: { value?: strin
     Scope({ default: true })(stiChildClass, stiScopeName)
   }
 }
-
-export const stiScopeName = '__dreamInternal__applySTIScope'
-export const stiScopeAlias = 'dream:STI'

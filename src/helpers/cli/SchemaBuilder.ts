@@ -11,8 +11,6 @@ import { schemaPath } from '../path'
 import dbSyncPath from '../path/dbSyncPath'
 import loadDreamconfFile from '../path/loadDreamconfFile'
 import uniq from '../uniq'
-import { softDeleteScopeAlias, softDeleteScopeName } from '../../decorators/soft-delete'
-import { stiScopeAlias, stiScopeName } from '../../decorators/STI'
 
 export default class SchemaBuilder {
   public async build() {
@@ -144,27 +142,12 @@ ${tableName}: {
       updatedAtField: model!.prototype.updatedAtField,
       deletedAtField: model!.prototype.deletedAtField,
       scopes: {
-        default: model!['scopes'].default.map(scopeStatement =>
-          this.interpretedScopeMethod(scopeStatement.method)
-        ),
-        named: model!['scopes'].named.map(scopeStatement =>
-          this.interpretedScopeMethod(scopeStatement.method)
-        ),
+        default: model!['scopes'].default.map(scopeStatement => scopeStatement.method),
+        named: model!['scopes'].named.map(scopeStatement => scopeStatement.method),
       },
       columns: await this.getColumnData(tableName, associationData),
       virtualColumns: await this.getVirtualColumns(tableName),
       associations: associationData,
-    }
-  }
-
-  private interpretedScopeMethod(scopeMethodName: string) {
-    switch (scopeMethodName) {
-      case softDeleteScopeName:
-        return softDeleteScopeAlias
-      case stiScopeName:
-        return stiScopeAlias
-      default:
-        return scopeMethodName
     }
   }
 
