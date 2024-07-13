@@ -1,27 +1,28 @@
 import bcrypt from 'bcrypt'
+import { DateTime } from 'luxon'
 import HasMany from '../../../src/decorators/associations/has-many'
 import HasOne from '../../../src/decorators/associations/has-one'
+import BeforeSave from '../../../src/decorators/hooks/before-save'
 import Scope from '../../../src/decorators/scope'
+import Validates from '../../../src/decorators/validations/validates'
+import Virtual from '../../../src/decorators/virtual'
+import Query from '../../../src/dream/query'
+import { DreamColumn } from '../../../src/dream/types'
+import range from '../../../src/helpers/range'
+import UserSerializer, { UserSummarySerializer } from '../serializers/UserSerializer'
+import ApplicationModel from './ApplicationModel'
+import Balloon from './Balloon'
+import BalloonLine from './BalloonLine'
+import Collar from './Collar'
 import Composition from './Composition'
 import CompositionAsset from './CompositionAsset'
 import CompositionAssetAudit from './CompositionAssetAudit'
-import Validates from '../../../src/decorators/validations/validates'
-import UserSettings from './UserSettings'
-import { DreamColumn } from '../../../src/dream/types'
-import { DateTime } from 'luxon'
-import Balloon from './Balloon'
 import IncompatibleForeignKeyTypeExample from './IncompatibleForeignKeyTypeExample'
-import range from '../../../src/helpers/range'
-import BeforeSave from '../../../src/decorators/hooks/before-save'
-import Virtual from '../../../src/decorators/virtual'
 import Pet from './Pet'
-import Query from '../../../src/dream/query'
-import ApplicationModel from './ApplicationModel'
-import BalloonLine from './BalloonLine'
 import Post from './Post'
+import PostComment from './PostComment'
 import Rating from './Rating'
-import Collar from './Collar'
-import UserSerializer, { UserSummarySerializer } from '../serializers/UserSerializer'
+import UserSettings from './UserSettings'
 
 export default class User extends ApplicationModel {
   public get table() {
@@ -62,6 +63,9 @@ export default class User extends ApplicationModel {
 
   @HasMany(() => Post, { dependent: 'destroy' })
   public posts: Post[]
+
+  @HasMany(() => PostComment, { through: 'posts', source: 'comments' })
+  public postComments: PostComment[]
 
   @HasMany(() => Rating)
   public ratings: Rating[]

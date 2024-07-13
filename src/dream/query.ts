@@ -2765,12 +2765,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           }) as any
         )
       }
-      //
-      // if (association.withoutDefaultScopes?.length) {
-      //   association.withoutDefaultScopes.forEach(scopeName => {
-      //     query = query.removeDefaultScope(scopeName as any)
-      //   })
-      // }
     }
 
     if (!this.bypassAllDefaultScopes) {

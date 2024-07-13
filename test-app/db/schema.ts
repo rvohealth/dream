@@ -2668,6 +2668,13 @@ export const schema = {
         optional: null,
         requiredWhereClauses: null,
       },
+      postComments: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['post_comments'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
       postRatings: {
         type: 'HasMany',
         foreignKey: 'userId',
