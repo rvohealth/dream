@@ -1084,10 +1084,25 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   /**
    * @internal
    *
-   * Changes the base select Query
+   * Association queries start from the table corresponding to an instance
+   * of a Dream and join the association. However, the Dream may have
+   * default scopes that would preclude finding that instance, so the
+   * Query that forms the base of an association query must be unscope,
+   * but that unscoping should not carry through to other associations
+   * (thus the use of `removeAllDefaultScopesExceptOnAssociations` instead of
+   * `removeAllDefaultScopes`).
+   *
+   * The association that this query is loading leverages `joins`, and the
+   * joining code explicitly handles applying / omitting default scopes.
+   * We set `bypassAllDefaultScopesExceptOnAssociations: true` on this Query
+   * to let that code do its work. This keeps the implementation DRY and simpler
+   * (without `bypassAllDefaultScopesExceptOnAssociations`, the default scopes would
+   * be applied twice, and when the association attempts to remove a default
+   * association would be foiled because it would be applied outside of the context
+   * where the association is modifying the query).
    *
    */
-  private setBaseSelectQuery(baseSelectQuery: Query<any>) {
+  private setAssociationQueryBase(baseSelectQuery: Query<any>) {
     return this.clone({
       baseSelectQuery: baseSelectQuery.removeAllDefaultScopesExceptOnAssociations(),
       bypassAllDefaultScopesExceptOnAssociations: true,
