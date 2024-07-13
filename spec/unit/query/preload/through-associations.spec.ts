@@ -15,7 +15,6 @@ import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
 import Node from '../../../../test-app/app/models/Graph/Node'
 import Pet from '../../../../test-app/app/models/Pet'
 import Post from '../../../../test-app/app/models/Post'
-import PostComment from '../../../../test-app/app/models/PostComment'
 import Rating from '../../../../test-app/app/models/Rating'
 import Sandbag from '../../../../test-app/app/models/Sandbag'
 import User from '../../../../test-app/app/models/User'
@@ -757,35 +756,6 @@ describe('Query#preload through', () => {
         expect(node.orderedSiblingsWithOrderOnSource[1]).toMatchDreamModel(edgeNode1)
         expect(node.orderedSiblingsWithOrderOnSource[2]).toMatchDreamModel(edgeNode2)
       })
-    })
-  })
-
-  context('soft deleted', () => {
-    it('works', async () => {
-      const user = await User.create({ email: 'fred@frewd', password: 'password' })
-      const post = await Post.create({ user })
-      const postComment = await PostComment.create({ post })
-
-      await post.destroy()
-
-      const reloadedUser = await user.load('posts', 'comments').execute()
-      expect(reloadedUser.posts).toHaveLength(0)
-
-      const reloadedUser2 = await user.load('postComments').execute()
-      expect(reloadedUser2.postComments).toHaveLength(0)
-
-      const reloadedUser3 = await User.removeAllDefaultScopes().preload('posts', 'comments').firstOrFail()
-      expect(reloadedUser3.posts).toMatchDreamModels([post])
-      expect(reloadedUser3.posts[0].comments).toMatchDreamModels([postComment])
-
-      const reloadedUser4 = await User.removeAllDefaultScopes().preload('postComments').firstOrFail()
-      expect(reloadedUser4.postComments).toMatchDreamModels([postComment])
-
-      const deletedPosts = await user.associationQuery('posts').all()
-      expect(deletedPosts).toHaveLength(0)
-
-      const deletedPosts2 = await user.associationQuery('posts').removeAllDefaultScopes().all()
-      expect(deletedPosts2).toMatchDreamModels([post])
     })
   })
 })

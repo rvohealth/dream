@@ -358,7 +358,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   ): Query<InstanceType<T>> {
     const baseScope = dreamClass
       .query()
-      .conditionallyApplyScopes(this.bypassAllDefaultScopes, this.bypassSpecificDefaultScopes)
+      .conditionallyApplyScopes(
+        this.bypassAllDefaultScopes,
+        this.bypassAllDefaultScopesOnce,
+        this.bypassSpecificDefaultScopes
+      )
 
     const associationQuery: Query<InstanceType<T>> = baseScope.clone({
       passthroughWhereStatement: this.passthroughWhereStatement,
@@ -1065,8 +1069,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * Changes the base select Query
    *
    */
-  private setBaseSelectQuery(baseSelectQuery: Query<any> | null) {
-    return this.clone({ baseSelectQuery, bypassAllDefaultScopesOnce: true })
+  private setBaseSelectQuery(baseSelectQuery: Query<any>) {
+    return this.clone({
+      baseSelectQuery: baseSelectQuery.removeAllDefaultScopesOnce(),
+      bypassAllDefaultScopesOnce: true,
+    })
   }
 
   /**
@@ -1079,6 +1086,19 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return this.clone({
       bypassAllDefaultScopes: true,
       baseSelectQuery: this.baseSelectQuery?.removeAllDefaultScopes(),
+    })
+  }
+
+  /**
+   * Prevents default scopes from applying when
+   * the Query is executed, but not when applying to associations
+   *
+   * @returns A new Query which will prevent default scopes from applying, but not when applying to asociations
+   */
+  public removeAllDefaultScopesOnce(): Query<DreamInstance> {
+    return this.clone({
+      bypassAllDefaultScopesOnce: true,
+      baseSelectQuery: this.baseSelectQuery?.removeAllDefaultScopesOnce(),
     })
   }
 
@@ -2447,9 +2467,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
   private conditionallyApplyScopes(
     bypassAllDefaultScopes: boolean,
+    bypassAllDefaultScopesOnce: boolean,
     bypassSpecificDefaultScopes: DefaultScopeName<DreamInstance>[]
   ): Query<DreamInstance> {
     if (bypassAllDefaultScopes) return this.removeAllDefaultScopes()
+    if (bypassAllDefaultScopesOnce) return this.removeAllDefaultScopesOnce()
 
     const thisScopes = this.dreamClass['scopes'].default
     let query: Query<DreamInstance> = this
@@ -3248,7 +3270,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     this.checkForQueryViolations()
 
     const query = this.conditionallyApplyScopes(
-      this.bypassAllDefaultScopes || this.bypassAllDefaultScopesOnce,
+      this.bypassAllDefaultScopes,
+      this.bypassAllDefaultScopesOnce,
       this.bypassSpecificDefaultScopes
     )
 

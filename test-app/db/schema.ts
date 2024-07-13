@@ -1948,6 +1948,13 @@ export const schema = {
         optional: false,
         requiredWhereClauses: null,
       },
+      postEvenIfDeleted: {
+        type: 'BelongsTo',
+        foreignKey: 'postId',
+        tables: ['posts'],
+        optional: false,
+        requiredWhereClauses: null,
+      },
     },
   },
   post_visibilities: {
@@ -2089,6 +2096,13 @@ export const schema = {
     },
     virtualColumns: [],
     associations: {
+      allComments: {
+        type: 'HasMany',
+        foreignKey: 'postId',
+        tables: ['post_comments'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
       comments: {
         type: 'HasMany',
         foreignKey: 'postId',
@@ -2504,6 +2518,20 @@ export const schema = {
         type: 'HasMany',
         foreignKey: 'userId',
         tables: ['pets'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
+      allPostComments: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['post_comments'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
+      allPosts: {
+        type: 'HasMany',
+        foreignKey: 'userId',
+        tables: ['posts'],
         optional: null,
         requiredWhereClauses: null,
       },

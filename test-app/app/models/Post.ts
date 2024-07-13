@@ -37,10 +37,11 @@ export default class Post extends ApplicationModel {
   public postVisibility: PostVisibility | null
   public postVisibilityId: DreamColumn<Post, 'postVisibilityId'>
 
-  @HasMany(() => PostComment, {
-    dependent: 'destroy',
-  })
+  @HasMany(() => PostComment, { dependent: 'destroy' })
   public comments: PostComment[]
+
+  @HasMany(() => PostComment, { withoutDefaultScopes: ['dream:SoftDelete'] })
+  public allComments: PostComment[]
 
   @HasMany(() => Rating, {
     foreignKey: 'rateableId',
