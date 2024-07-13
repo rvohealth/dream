@@ -123,7 +123,7 @@ describe('Query#preload with polymorphic associations', () => {
     })
 
     context('removeAllDefaultScopes', () => {
-      it.only('cascades through associations', async () => {
+      it('cascades through associations', async () => {
         const user = await User.create({
           email: 'fred@frewd',
           password: 'howyadoin',

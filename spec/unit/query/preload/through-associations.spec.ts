@@ -761,7 +761,7 @@ describe('Query#preload through', () => {
   })
 
   context('soft deleted', () => {
-    it.only('works', async () => {
+    it('works', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'password' })
       const post = await Post.create({ user })
       const postComment = await PostComment.create({ post })

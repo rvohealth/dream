@@ -265,6 +265,13 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   /**
    * @internal
    *
+   * Whether or not to bypass all default scopes for this Query, but not associations
+   */
+  private readonly bypassAllDefaultScopesOnce: boolean = false
+
+  /**
+   * @internal
+   *
    * Whether or not to bypass all default scopes for this Query
    */
   private readonly bypassSpecificDefaultScopes: string[] = []
@@ -320,6 +327,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     this.limitStatement = opts.limit || null
     this.offsetStatement = opts.offset || null
     this.bypassAllDefaultScopes = opts.bypassAllDefaultScopes || false
+    this.bypassAllDefaultScopesOnce = opts.bypassAllDefaultScopesOnce || false
     this.bypassSpecificDefaultScopes = opts.bypassSpecificDefaultScopes || []
     this.dreamTransaction = opts.transaction || null
     this.distinctColumn = opts.distinctColumn || null
@@ -348,7 +356,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     this: Query<DreamInstance>,
     dreamClass: T
   ): Query<InstanceType<T>> {
-    const baseScope = dreamClass.query().conditionallyApplyScopes()
+    const baseScope = dreamClass
+      .query()
+      .conditionallyApplyScopes(this.bypassAllDefaultScopes, this.bypassSpecificDefaultScopes)
 
     const associationQuery: Query<InstanceType<T>> = baseScope.clone({
       passthroughWhereStatement: this.passthroughWhereStatement,
@@ -403,6 +413,10 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
       bypassAllDefaultScopes:
         opts.bypassAllDefaultScopes !== undefined ? opts.bypassAllDefaultScopes : this.bypassAllDefaultScopes,
+      bypassAllDefaultScopesOnce:
+        opts.bypassAllDefaultScopesOnce !== undefined
+          ? opts.bypassAllDefaultScopesOnce
+          : this.bypassAllDefaultScopesOnce,
       bypassSpecificDefaultScopes:
         opts.bypassSpecificDefaultScopes !== undefined
           ? opts.bypassSpecificDefaultScopes
@@ -1052,7 +1066,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    */
   private setBaseSelectQuery(baseSelectQuery: Query<any> | null) {
-    return this.clone({ baseSelectQuery })
+    return this.clone({ baseSelectQuery, bypassAllDefaultScopesOnce: true })
   }
 
   /**
@@ -2431,23 +2445,21 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     )
   }
 
-  private conditionallyApplyScopes(): Query<DreamInstance> {
-    if (this.bypassAllDefaultScopes) return this
+  private conditionallyApplyScopes(
+    bypassAllDefaultScopes: boolean,
+    bypassSpecificDefaultScopes: DefaultScopeName<DreamInstance>[]
+  ): Query<DreamInstance> {
+    if (bypassAllDefaultScopes) return this.removeAllDefaultScopes()
 
     const thisScopes = this.dreamClass['scopes'].default
     let query: Query<DreamInstance> = this
     for (const scope of thisScopes) {
-      if (!this.shouldBypassDefaultScope(scope.method)) {
+      if (!shouldBypassDefaultScope(scope.method, bypassAllDefaultScopes, bypassSpecificDefaultScopes)) {
         query = (this.dreamClass as any)[scope.method](query)
       }
     }
 
     return query
-  }
-
-  private shouldBypassDefaultScope(scopeName: string) {
-    if (this.bypassAllDefaultScopes) return true
-    return shouldBypassDefaultScope(scopeName, this.bypassSpecificDefaultScopes)
   }
 
   // Through associations don't get written into the SQL; they
@@ -2767,23 +2779,34 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       }
     }
 
-    if (!this.bypassAllDefaultScopes) {
-      let scopesQuery = new Query<DreamInstance>(this.dreamInstance)
-      const associationClass = association.modelCB() as any
-      const associationScopes = associationClass.scopes.default
+    ///////////////////////
+    // apply default scopes
+    ///////////////////////
+    let scopesQuery = new Query<DreamInstance>(this.dreamInstance)
+    const associationClass = association.modelCB() as any
+    const associationScopes = associationClass.scopes.default
 
-      for (const scope of associationScopes) {
-        if (!this.shouldBypassDefaultScope(scope.method)) {
-          const tempQuery = associationClass[scope.method](scopesQuery)
-          if (tempQuery && tempQuery.constructor === this.constructor) scopesQuery = tempQuery
-        }
+    for (const scope of associationScopes) {
+      if (
+        !shouldBypassDefaultScope(scope.method, this.bypassAllDefaultScopes, [
+          ...this.bypassSpecificDefaultScopes,
+          ...(association.withoutDefaultScopes || []),
+        ])
+      ) {
+        const tempQuery = associationClass[scope.method](scopesQuery)
+        if (tempQuery && tempQuery.constructor === this.constructor) scopesQuery = tempQuery
       }
+    }
 
+    if (scopesQuery.whereStatements.length) {
       query = this.applyWhereStatements(
         query,
         this.aliasWhereStatements(scopesQuery.whereStatements, currentAssociationTableOrAlias)
       )
     }
+    ///////////////////////
+    // end: apply default scopes
+    ///////////////////////
 
     return {
       query,
@@ -3224,7 +3247,10 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   private buildCommon(this: Query<DreamInstance>, kyselyQuery: any) {
     this.checkForQueryViolations()
 
-    const query = this.conditionallyApplyScopes()
+    const query = this.conditionallyApplyScopes(
+      this.bypassAllDefaultScopes || this.bypassAllDefaultScopesOnce,
+      this.bypassSpecificDefaultScopes
+    )
 
     if (!isEmpty(query.joinsStatements)) {
       kyselyQuery = query.recursivelyJoin({
@@ -3495,6 +3521,7 @@ export interface QueryOpts<
   joinsStatements?: RelaxedJoinsStatement
   joinsWhereStatements?: RelaxedJoinsWhereStatement<DB, Schema>
   bypassAllDefaultScopes?: boolean
+  bypassAllDefaultScopesOnce?: boolean
   bypassSpecificDefaultScopes?: string[]
   transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType
