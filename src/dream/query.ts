@@ -2499,10 +2499,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     let query: Query<DreamInstance> = this
     for (const scope of thisScopes) {
       if (
-        !shouldBypassDefaultScope(scope.method, false, [
-          ...this.bypassSpecificDefaultScopes,
-          ...this.bypassSpecificDefaultScopesExceptOnAssociations,
-        ])
+        !shouldBypassDefaultScope(scope.method, {
+          defaultScopesToBypass: [
+            ...this.bypassSpecificDefaultScopes,
+            ...this.bypassSpecificDefaultScopesExceptOnAssociations,
+          ],
+        })
       ) {
         query = (this.dreamClass as any)[scope.method](query)
       }
@@ -2837,10 +2839,13 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     for (const scope of associationScopes) {
       if (
-        !shouldBypassDefaultScope(scope.method, this.bypassAllDefaultScopes, [
-          ...this.bypassSpecificDefaultScopes,
-          ...(association.withoutDefaultScopes || []),
-        ])
+        !shouldBypassDefaultScope(scope.method, {
+          bypassAllDefaultScopes: this.bypassAllDefaultScopes,
+          defaultScopesToBypass: [
+            ...this.bypassSpecificDefaultScopes,
+            ...(association.withoutDefaultScopes || []),
+          ],
+        })
       ) {
         const tempQuery = associationClass[scope.method](scopesQuery)
         if (tempQuery && tempQuery.constructor === this.constructor) scopesQuery = tempQuery
