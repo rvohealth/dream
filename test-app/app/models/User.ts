@@ -61,10 +61,10 @@ export default class User extends ApplicationModel {
   @HasOne(() => UserSettings)
   public userSettings: UserSettings
 
-  @HasMany(() => Post)
+  @HasMany(() => Post, { dependent: 'destroy' })
   public posts: Post[]
 
-  @HasMany(() => Post, { dependent: 'destroy', withoutDefaultScopes: ['dream:SoftDelete'] })
+  @HasMany(() => Post, { withoutDefaultScopes: ['dream:SoftDelete'] })
   public allPosts: Post[]
 
   @HasMany(() => PostComment, { through: 'posts', source: 'comments' })
