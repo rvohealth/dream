@@ -24,21 +24,18 @@ export default async function destroyAssociatedRecords<I extends Dream>(
 ) {
   const dreamClass = dream.constructor as typeof Dream
 
+  const options = {
+    bypassAllDefaultScopes,
+    defaultScopesToBypass,
+    cascade: true,
+    skipHooks,
+  }
+
   for (const associationName of dreamClass['dependentDestroyAssociationNames']()) {
     if (reallyDestroy) {
-      await dream.txn(txn).reallyDestroyAssociation(associationName as any, {
-        bypassAllDefaultScopes,
-        defaultScopesToBypass,
-        cascade: true,
-        skipHooks,
-      })
+      await dream.txn(txn).reallyDestroyAssociation(associationName as any, options)
     } else {
-      await dream.txn(txn).destroyAssociation(associationName as any, {
-        bypassAllDefaultScopes,
-        defaultScopesToBypass,
-        cascade: true,
-        skipHooks,
-      })
+      await dream.txn(txn).destroyAssociation(associationName as any, options)
     }
   }
 }
