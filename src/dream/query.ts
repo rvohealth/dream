@@ -362,7 +362,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns An associated Query
    */
-  private queryForDreamClassWithScopeBypasses<T extends typeof Dream>(
+  private dreamClassQueryWithScopeBypasses<T extends typeof Dream>(
     this: Query<DreamInstance>,
     dreamClass: T,
     {
@@ -2284,9 +2284,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return { throughAssociation, throughClass, newAssociation }
   }
 
-  // Polymorphic BelongsTo. Preload by loading each target class separately.
   /**
    * @internal
+   *
+   * Polymorphic BelongsTo. Since polymorphic associations may point to multiple tables,
+   * preload by loading each target class separately.
    *
    * Used to preload polymorphic belongs to associations
    */
@@ -2304,56 +2306,64 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         `Polymorphic association ${association.as} points to an array of models but is ${association.type as string}. Only BelongsTo associations may point to an array of models.`
       )
 
-    let associatedDreams: Dream[] = []
+    const associatedDreams: Dream[] = []
 
     for (const associatedModel of association.modelCB() as (typeof Dream)[]) {
-      const relevantAssociatedModels = dreams.filter((dream: any) => {
-        return dream[association.foreignKeyTypeField()] === associatedModel['stiBaseClassOrOwnClass'].name
-      })
-
-      if (relevantAssociatedModels.length) {
-        dreams.forEach((dream: any) => {
-          dream[associationToGetterSetterProp(association)] = null
-        })
-
-        const loadedAssociations = await this.queryForDreamClassWithScopeBypasses(associatedModel, {
-          defaultScopesToBypassExceptOnAssociations: association.withoutDefaultScopes,
-        })
-          .where({
-            [associatedModel.primaryKey]: relevantAssociatedModels.map(
-              (dream: any) => dream[association.foreignKey()]
-            ),
-          })
-          .all()
-
-        associatedDreams = [...associatedDreams, ...loadedAssociations]
-
-        // dreams is a Rating
-        // Rating belongs to: rateables (Posts / Compositions)
-        // loadedAssociations is an array of Posts and Compositions
-        // if rating.rateable_id === loadedAssociation.primaryKeyvalue
-        //  rating.rateable = loadedAssociation
-        for (const loadedAssociation of loadedAssociations) {
-          dreams
-            .filter((dream: any) => {
-              if (association.polymorphic) {
-                return (
-                  dream[association.foreignKeyTypeField()] ===
-                    loadedAssociation['stiBaseClassOrOwnClass'].name &&
-                  dream[association.foreignKey()] === association.primaryKeyValue(loadedAssociation)
-                )
-              } else {
-                return dream[association.foreignKey()] === association.primaryKeyValue(loadedAssociation)
-              }
-            })
-            .forEach((dream: any) => {
-              dream[association.as] = loadedAssociation
-            })
-        }
-      }
+      await this.preloadPolymorphicAssociationModel(dreams, association, associatedModel, associatedDreams)
     }
 
     return associatedDreams
+  }
+
+  private async preloadPolymorphicAssociationModel(
+    dreams: Dream[],
+    association: BelongsToStatement<any, any, any, string>,
+    associatedDreamClass: typeof Dream,
+    associatedDreams: Dream[]
+  ) {
+    const relevantAssociatedModels = dreams.filter((dream: any) => {
+      return dream[association.foreignKeyTypeField()] === associatedDreamClass['stiBaseClassOrOwnClass'].name
+    })
+
+    if (relevantAssociatedModels.length) {
+      dreams.forEach((dream: any) => {
+        dream[associationToGetterSetterProp(association)] = null
+      })
+
+      // Load all models of type associated that are associated with any of the already loaded Dream models
+      const loadedAssociations = await this.dreamClassQueryWithScopeBypasses(associatedDreamClass, {
+        // The association may remove specific default scopes that would otherwise preclude
+        // certain instances of the associated class from being found.
+        defaultScopesToBypassExceptOnAssociations: association.withoutDefaultScopes,
+      })
+        .where({
+          [associatedDreamClass.primaryKey]: relevantAssociatedModels.map(
+            (dream: any) => dream[association.foreignKey()]
+          ),
+        })
+        .all()
+
+      loadedAssociations.forEach(loadedAssociation => associatedDreams.push(loadedAssociation))
+
+      //////////////////////////////////////////////////////////////////////////////////////////////
+      // Associate each loaded association with each dream based on primary key and foreign key type
+      //////////////////////////////////////////////////////////////////////////////////////////////
+      for (const loadedAssociation of loadedAssociations) {
+        dreams
+          .filter((dream: any) => {
+            return (
+              dream[association.foreignKeyTypeField()] === loadedAssociation['stiBaseClassOrOwnClass'].name &&
+              dream[association.foreignKey()] === association.primaryKeyValue(loadedAssociation)
+            )
+          })
+          .forEach((dream: any) => {
+            dream[association.as] = loadedAssociation
+          })
+      }
+      ///////////////////////////////////////////////////////////////////////////////////////////////////
+      // end: Associate each loaded association with each dream based on primary key and foreign key type
+      ///////////////////////////////////////////////////////////////////////////////////////////////////
+    }
   }
 
   /**
@@ -2415,19 +2425,25 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       ? dreamClass['stiBaseClassOrOwnClass']
       : dreamClass
 
-    const scope = this.queryForDreamClassWithScopeBypasses(baseClass, {
+    const associationDataScope = this.dreamClassQueryWithScopeBypasses(baseClass, {
+      // In order to stay DRY, preloading leverages the association logic built into
+      // `joins` (by using `pluck`, which calls `joins`). However, baseClass may have
+      // default scopes that would preclude finding that instance. We remove all
+      // default scopes on baseClass, but not subsequent associations, so that the
+      // single query will be able to find each row corresponding to a Dream in `dreams`,
+      // regardless of default scopes on that Dream's class.
       bypassAllDefaultScopesExceptOnAssociations: true,
     }).where({
       [dreamClass.primaryKey]: dreams.map(obj => obj.primaryKeyValue),
     })
 
     const hydrationData: any[][] = whereStatement
-      ? await scope.pluckThrough(
+      ? await associationDataScope.pluckThrough(
           associationName,
           whereStatement as WhereStatement<any, any, any>,
           columnsToPluck
         )
-      : await scope.pluckThrough(associationName, columnsToPluck)
+      : await associationDataScope.pluckThrough(associationName, columnsToPluck)
 
     const preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[] = hydrationData.map(
       pluckedData => {
