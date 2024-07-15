@@ -23,7 +23,8 @@ describe('ConnectionConfRetriever', () => {
           },
         },
       },
-      passthroughColumns: {},
+      allDefaultScopeNames: [],
+      passthroughColumns: [],
       schema: {},
     })
 
