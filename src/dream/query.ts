@@ -76,6 +76,7 @@ import {
   DreamTableSchema,
   FinalVariadicTableName,
   OrderDir,
+  PassthroughColumnNames,
   RelaxedJoinsStatement,
   RelaxedJoinsWhereStatement,
   RelaxedPreloadStatement,
@@ -154,7 +155,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * current Query instance
    */
   private readonly passthroughWhereStatement: PassthroughWhere<
-    DreamInstance['dreamconf']['passthroughColumns']
+    PassthroughColumnNames<DreamInstance['dreamconf']>
   > = Object.freeze({})
 
   /**
@@ -1185,7 +1186,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @returns A cloned Query with the passthrough data
    */
   public passthrough(
-    passthroughWhereStatement: PassthroughWhere<DreamInstance['dreamconf']['passthroughColumns']>
+    passthroughWhereStatement: PassthroughWhere<PassthroughColumnNames<DreamInstance['dreamconf']>>
   ) {
     return this.clone({ passthroughWhereStatement })
   }
@@ -3575,8 +3576,9 @@ export interface QueryOpts<
   ColumnType extends DreamColumnNames<DreamInstance> = DreamColumnNames<DreamInstance>,
   Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
   DB extends DreamInstance['dreamconf']['DB'] = DreamInstance['dreamconf']['DB'],
-  PassthroughColumns extends
-    DreamInstance['dreamconf']['passthroughColumns'] = DreamInstance['dreamconf']['passthroughColumns'],
+  PassthroughColumns extends PassthroughColumnNames<DreamInstance['dreamconf']> = PassthroughColumnNames<
+    DreamInstance['dreamconf']
+  >,
 > {
   baseSqlAlias?: TableOrAssociationName<Schema>
   baseSelectQuery?: Query<any> | null

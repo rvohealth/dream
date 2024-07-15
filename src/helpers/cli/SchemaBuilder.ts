@@ -36,8 +36,10 @@ ${importStr}
 
 ${schemaConstContent}
 
-export const passthroughColumns = ${stringifyArray(uniq(passthroughColumns.sort()))} as const
-export const allDefaultScopeNames = ${stringifyArray(uniq(allDefaultScopeNames.sort()))} as const
+export const globalSchema = {
+  passthroughColumns: ${stringifyArray(uniq(passthroughColumns.sort()))},
+  allDefaultScopeNames: ${stringifyArray(uniq(allDefaultScopeNames.sort()))},
+} as const
 `
     // const newSchemaFileContents = `\
     // ${schemaConstContent}

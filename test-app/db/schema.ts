@@ -2791,5 +2791,7 @@ export const schema = {
   },
 } as const
 
-export const passthroughColumns = ['locale'] as const
-export const allDefaultScopeNames = ['dream:STI', 'dream:SoftDelete', 'hideDeleted', 'hideHiddenCollars', 'howyadoin', 'nonNullBodies'] as const
+export const globalSchema = {
+  passthroughColumns: ['locale'],
+  allDefaultScopeNames: ['dream:STI', 'dream:SoftDelete', 'hideDeleted', 'hideHiddenCollars', 'howyadoin', 'nonNullBodies'],
+} as const

@@ -1,27 +1,24 @@
 import { DbConfig } from './path/types'
 
-export default class Dreamconf<DB = any, Schema = any, AllDefaultScopeNames = any, PassthroughColumns = any> {
+export default class Dreamconf<DB = any, Schema = any, GlobalSchema = any> {
   public DB: DB
   public env: EnvOpts
-  public allDefaultScopeNames: AllDefaultScopeNames
-  public passthroughColumns: PassthroughColumns
   public schema: Schema
+  public globalSchema: GlobalSchema
 
-  constructor({ DB, env, allDefaultScopeNames, passthroughColumns, schema }: DreamconfOpts) {
+  constructor({ DB, env, schema, globalSchema }: DreamconfOpts) {
     this.DB = DB
-    this.allDefaultScopeNames = allDefaultScopeNames
-    this.passthroughColumns = passthroughColumns
     this.env = env
     this.schema = schema
+    this.globalSchema = globalSchema
   }
 }
 
 export interface DreamconfOpts {
   DB: any
   env: EnvOpts
-  allDefaultScopeNames: any
-  passthroughColumns: any
   schema: any
+  globalSchema: any
 }
 
 export interface EnvOpts {

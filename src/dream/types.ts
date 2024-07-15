@@ -356,6 +356,12 @@ export interface SimilarityStatement {
   opsStatement: OpsStatement<any, any>
 }
 
+export type PassthroughColumnNames<
+  DreamConf,
+  GlobalSchema = DreamConf['globalSchema' & keyof DreamConf],
+  PassthroughColumns = GlobalSchema['passthroughColumns' & keyof GlobalSchema],
+> = PassthroughColumns[number & keyof PassthroughColumns]
+
 export type DefaultScopeName<
   DreamInstance extends Dream,
   Schema = DreamInstance['dreamconf']['schema'],
@@ -367,7 +373,8 @@ export type DefaultScopeName<
 
 export type AllDefaultScopeNames<
   DreamConf,
-  AllNames = DreamConf['allDefaultScopeNames' & keyof DreamConf],
+  GlobalSchema = DreamConf['globalSchema' & keyof DreamConf],
+  AllNames = GlobalSchema['allDefaultScopeNames' & keyof GlobalSchema],
 > = AllNames[number & keyof AllNames]
 
 export type NamedScopeName<
