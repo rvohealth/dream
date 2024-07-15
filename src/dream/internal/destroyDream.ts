@@ -32,25 +32,20 @@ export default async function destroyDream<I extends Dream>(
     skipHooks: boolean
   }
 ): Promise<I> {
+  const options = {
+    bypassAllDefaultScopes,
+    defaultScopesToBypass,
+    cascade,
+    reallyDestroy,
+    skipHooks,
+  }
+
   if (txn) {
-    return await destroyDreamWithTransaction(dream, txn, {
-      bypassAllDefaultScopes,
-      defaultScopesToBypass,
-      cascade,
-      reallyDestroy,
-      skipHooks,
-    })
+    return await destroyDreamWithTransaction(dream, txn, options)
   } else {
     const dreamClass = dream.constructor as typeof Dream
     return await dreamClass.transaction(
-      async txn =>
-        await destroyDreamWithTransaction<I>(dream, txn, {
-          bypassAllDefaultScopes,
-          defaultScopesToBypass,
-          cascade,
-          reallyDestroy,
-          skipHooks,
-        })
+      async txn => await destroyDreamWithTransaction<I>(dream, txn, options)
     )
   }
 }
