@@ -2,7 +2,7 @@ import { PassthroughWhere } from '../decorators/associations/shared'
 import Dream from '../dream'
 import Query from './query'
 import DreamTransaction from './transaction'
-import { VariadicLoadArgs } from './types'
+import { PassthroughColumnNames, VariadicLoadArgs } from './types'
 
 export default class LoadBuilder<DreamInstance extends Dream> {
   private dream: Dream
@@ -26,7 +26,7 @@ export default class LoadBuilder<DreamInstance extends Dream> {
 
   public passthrough<
     I extends LoadBuilder<DreamInstance>,
-    PassthroughColumns extends DreamInstance['dreamconf']['passthroughColumns'],
+    PassthroughColumns extends PassthroughColumnNames<DreamInstance['dreamconf']>,
   >(this: I, passthroughWhereStatement: PassthroughWhere<PassthroughColumns>) {
     this.query = this.query.passthrough(passthroughWhereStatement)
     return this

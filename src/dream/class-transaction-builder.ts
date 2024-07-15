@@ -10,6 +10,7 @@ import {
   DefaultScopeName,
   DreamColumnNames,
   OrderDir,
+  PassthroughColumnNames,
   UpdateableProperties,
   VariadicJoinsArgs,
   VariadicLoadArgs,
@@ -612,7 +613,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    */
   public passthrough<
     I extends DreamClassTransactionBuilder<DreamInstance>,
-    PassthroughColumns extends DreamInstance['dreamconf']['passthroughColumns'],
+    PassthroughColumns extends PassthroughColumnNames<DreamInstance['dreamconf']>,
   >(this: I, passthroughWhereStatement: PassthroughWhere<PassthroughColumns>): Query<DreamInstance> {
     return this.queryInstance().passthrough(passthroughWhereStatement as any)
   }

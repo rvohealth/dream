@@ -80,6 +80,7 @@ import {
   IdType,
   NextPreloadArgumentType,
   OrderDir,
+  PassthroughColumnNames,
   TableColumnNames,
   TableColumnType,
   UpdateableAssociationProperties,
@@ -1728,7 +1729,7 @@ export default class Dream {
   public static passthrough<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    PassthroughColumns extends I['dreamconf']['passthroughColumns'],
+    PassthroughColumns extends PassthroughColumnNames<I['dreamconf']>,
   >(this: T, passthroughWhereStatement: PassthroughWhere<PassthroughColumns>): Query<InstanceType<T>> {
     return this.query().passthrough(passthroughWhereStatement)
   }
@@ -3744,7 +3745,7 @@ export default class Dream {
    * @param passthroughWhereStatement - where statement used for associations that require passthrough data
    * @returns A cloned Query with the passthrough data
    */
-  public passthrough<I extends Dream, PassthroughColumns extends I['dreamconf']['passthroughColumns']>(
+  public passthrough<I extends Dream, PassthroughColumns extends PassthroughColumnNames<I['dreamconf']>>(
     this: I,
     passthroughWhereStatement: PassthroughWhere<PassthroughColumns>
   ): LoadBuilder<I> {
