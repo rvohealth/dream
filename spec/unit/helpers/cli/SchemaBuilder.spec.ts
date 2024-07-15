@@ -109,12 +109,12 @@ describe('SchemaBuilder', () => {
     context('scopes', () => {
       it('sets the default and non-default scopes', () => {
         expect(User.prototype.dreamconf.schema.model_without_deleted_ats.scopes.default).toEqual([
-          'howyadoin',
           'dream:SoftDelete',
+          'howyadoin',
         ])
         expect(User.prototype.dreamconf.schema.beautiful_balloons.scopes.default).toEqual([
-          'dream:SoftDelete',
           'dream:STI',
+          'dream:SoftDelete',
         ])
         expect(User.prototype.dreamconf.schema.users.scopes.named).toEqual(['withFunnyName'])
       })

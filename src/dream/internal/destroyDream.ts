@@ -19,17 +19,33 @@ export default async function destroyDream<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I> | null = null,
   {
-    skipHooks,
-    reallyDestroy,
+    bypassAllDefaultScopes,
+    defaultScopesToBypass,
     cascade,
-  }: { skipHooks?: boolean; reallyDestroy?: boolean; cascade?: boolean } = {}
+    reallyDestroy,
+    skipHooks,
+  }: {
+    bypassAllDefaultScopes: boolean
+    defaultScopesToBypass: string[]
+    cascade: boolean
+    reallyDestroy: boolean
+    skipHooks: boolean
+  }
 ): Promise<I> {
+  const options = {
+    bypassAllDefaultScopes,
+    defaultScopesToBypass,
+    cascade,
+    reallyDestroy,
+    skipHooks,
+  }
+
   if (txn) {
-    return await destroyDreamWithTransaction(dream, txn, { skipHooks, reallyDestroy, cascade })
+    return await destroyDreamWithTransaction(dream, txn, options)
   } else {
     const dreamClass = dream.constructor as typeof Dream
     return await dreamClass.transaction(
-      async txn => await destroyDreamWithTransaction<I>(dream, txn, { skipHooks, reallyDestroy, cascade })
+      async txn => await destroyDreamWithTransaction<I>(dream, txn, options)
     )
   }
 }
@@ -45,13 +61,26 @@ async function destroyDreamWithTransaction<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I>,
   {
-    skipHooks = false,
-    reallyDestroy = false,
-    cascade = true,
-  }: { skipHooks?: boolean; reallyDestroy?: boolean; cascade?: boolean }
+    bypassAllDefaultScopes,
+    defaultScopesToBypass,
+    cascade,
+    reallyDestroy,
+    skipHooks,
+  }: {
+    bypassAllDefaultScopes: boolean
+    defaultScopesToBypass: string[]
+    cascade: boolean
+    reallyDestroy: boolean
+    skipHooks: boolean
+  }
 ): Promise<I> {
   if (cascade) {
-    await destroyAssociatedRecords(dream, txn, { skipHooks, reallyDestroy })
+    await destroyAssociatedRecords(dream, txn, {
+      bypassAllDefaultScopes,
+      defaultScopesToBypass,
+      reallyDestroy,
+      skipHooks,
+    })
   }
 
   if (!skipHooks) {

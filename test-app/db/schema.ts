@@ -1,5 +1,5 @@
-import { DateTime } from 'luxon'
 import CalendarDate from '../../src/helpers/CalendarDate'
+import { DateTime } from 'luxon'
 import {
   BalloonColorsEnum,
   BalloonColorsEnumValues,
@@ -245,7 +245,7 @@ export const schema = {
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
     scopes: {
-      default: ['dream:SoftDelete', 'dream:STI'],
+      default: ['dream:STI', 'dream:SoftDelete'],
       named: ['red'],
     },
     columns: {
@@ -985,7 +985,7 @@ export const schema = {
       extraRateable: {
         type: 'BelongsTo',
         foreignKey: 'extraRateableId',
-        tables: ['compositions', 'posts', 'beautiful_balloons'],
+        tables: ['beautiful_balloons', 'compositions', 'posts'],
         optional: false,
         requiredWhereClauses: null,
       },
@@ -1461,7 +1461,7 @@ export const schema = {
       localizable: {
         type: 'BelongsTo',
         foreignKey: 'localizableId',
-        tables: ['compositions', 'composition_assets'],
+        tables: ['composition_assets', 'compositions'],
         optional: false,
         requiredWhereClauses: null,
       },
@@ -1521,7 +1521,7 @@ export const schema = {
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
     scopes: {
-      default: ['howyadoin', 'dream:SoftDelete'],
+      default: ['dream:SoftDelete', 'howyadoin'],
       named: [],
     },
     columns: {
@@ -2224,14 +2224,14 @@ export const schema = {
     },
     virtualColumns: [],
     associations: {
-      rateableEvenIfDeleted: {
+      rateable: {
         type: 'BelongsTo',
         foreignKey: 'rateableId',
         tables: ['compositions', 'posts'],
         optional: false,
         requiredWhereClauses: null,
       },
-      rateable: {
+      rateableEvenIfDeleted: {
         type: 'BelongsTo',
         foreignKey: 'rateableId',
         tables: ['compositions', 'posts'],
@@ -2792,3 +2792,4 @@ export const schema = {
 } as const
 
 export const passthroughColumns = ['locale'] as const
+export const allDefaultScopeNames = ['dream:STI', 'dream:SoftDelete', 'hideDeleted', 'hideHiddenCollars', 'howyadoin', 'nonNullBodies'] as const

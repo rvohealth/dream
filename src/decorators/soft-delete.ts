@@ -2,6 +2,8 @@ import Dream from '../dream'
 import Query from '../dream/query'
 import Scope from './scope'
 
+export const SOFT_DELETE_SCOPE_NAME = 'dream:SoftDelete'
+
 /**
  * Instructs the model to set a timestamp when deleting,
  * rather than actually removing the record from the
@@ -42,12 +44,10 @@ export default function SoftDelete(): ClassDecorator {
     const t = target as typeof Dream
     t['softDelete'] = true
 
-    const softDeleteScopeName = 'dream:SoftDelete'
-
-    target[softDeleteScopeName] = function (query: Query<any>) {
+    target[SOFT_DELETE_SCOPE_NAME] = function (query: Query<any>) {
       return query.where({ [t.prototype.deletedAtField]: null } as any)
     }
 
-    Scope({ default: true })(target, softDeleteScopeName)
+    Scope({ default: true })(target, SOFT_DELETE_SCOPE_NAME)
   }
 }

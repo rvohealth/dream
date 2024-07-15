@@ -31,6 +31,7 @@ import {
   WhereSelfStatement,
   WhereStatement,
 } from '../decorators/associations/shared'
+import { SOFT_DELETE_SCOPE_NAME } from '../decorators/soft-delete'
 import Dream from '../dream'
 import CannotAssociateThroughPolymorphic from '../exceptions/associations/cannot-associate-through-polymorphic'
 import CannotJoinPolymorphicBelongsToError from '../exceptions/associations/cannot-join-polymorphic-belongs-to-error'
@@ -274,14 +275,14 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * Specific default scopes to bypass
    */
-  private readonly bypassSpecificDefaultScopes: string[] = []
+  private readonly defaultScopesToBypass: string[] = []
 
   /**
    * @internal
    *
    * Specific default scopes to bypass, but not associations
    */
-  private readonly bypassSpecificDefaultScopesExceptOnAssociations: string[] = []
+  private readonly defaultScopesToBypassExceptOnAssociations: string[] = []
 
   /**
    * @internal
@@ -335,9 +336,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     this.offsetStatement = opts.offset || null
     this.bypassAllDefaultScopes = opts.bypassAllDefaultScopes || false
     this.bypassAllDefaultScopesExceptOnAssociations = opts.bypassAllDefaultScopesExceptOnAssociations || false
-    this.bypassSpecificDefaultScopes = opts.bypassSpecificDefaultScopes || []
-    this.bypassSpecificDefaultScopesExceptOnAssociations =
-      opts.bypassSpecificDefaultScopesExceptOnAssociations || []
+    this.defaultScopesToBypass = opts.defaultScopesToBypass || []
+    this.defaultScopesToBypassExceptOnAssociations = opts.defaultScopesToBypassExceptOnAssociations || []
     this.dreamTransaction = opts.transaction || null
     this.distinctColumn = opts.distinctColumn || null
     this.connectionOverride = opts.connection
@@ -366,18 +366,18 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     dreamClass: T,
     {
       bypassAllDefaultScopesExceptOnAssociations = false,
-      bypassSpecificDefaultScopesExceptOnAssociations = [],
+      defaultScopesToBypassExceptOnAssociations = [],
     }: {
       bypassAllDefaultScopesExceptOnAssociations?: boolean
-      bypassSpecificDefaultScopesExceptOnAssociations?: string[]
+      defaultScopesToBypassExceptOnAssociations?: string[]
     } = {}
   ): Query<InstanceType<T>> {
     const associationQuery = dreamClass.query().clone({
       passthroughWhereStatement: this.passthroughWhereStatement,
       bypassAllDefaultScopes: this.bypassAllDefaultScopes,
       bypassAllDefaultScopesExceptOnAssociations,
-      bypassSpecificDefaultScopes: this.bypassSpecificDefaultScopes,
-      bypassSpecificDefaultScopesExceptOnAssociations,
+      defaultScopesToBypass: this.defaultScopesToBypass,
+      defaultScopesToBypassExceptOnAssociations,
     })
 
     return this.dreamTransaction ? associationQuery.txn(this.dreamTransaction) : associationQuery
@@ -433,15 +433,13 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         opts.bypassAllDefaultScopesExceptOnAssociations !== undefined
           ? opts.bypassAllDefaultScopesExceptOnAssociations
           : this.bypassAllDefaultScopesExceptOnAssociations,
-      bypassSpecificDefaultScopes:
-        opts.bypassSpecificDefaultScopes !== undefined
-          ? opts.bypassSpecificDefaultScopes
-          : this.bypassSpecificDefaultScopes,
+      defaultScopesToBypass:
+        opts.defaultScopesToBypass !== undefined ? opts.defaultScopesToBypass : this.defaultScopesToBypass,
 
-      bypassSpecificDefaultScopesExceptOnAssociations:
-        opts.bypassSpecificDefaultScopesExceptOnAssociations !== undefined
-          ? opts.bypassSpecificDefaultScopesExceptOnAssociations
-          : this.bypassSpecificDefaultScopesExceptOnAssociations,
+      defaultScopesToBypassExceptOnAssociations:
+        opts.defaultScopesToBypassExceptOnAssociations !== undefined
+          ? opts.defaultScopesToBypassExceptOnAssociations
+          : this.defaultScopesToBypassExceptOnAssociations,
 
       transaction: opts.transaction || this.dreamTransaction,
       connection: opts.connection,
@@ -1143,7 +1141,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    */
   public removeDefaultScope(scopeName: DefaultScopeName<DreamInstance>): Query<DreamInstance> {
     return this.clone({
-      bypassSpecificDefaultScopes: [...this.bypassSpecificDefaultScopes, scopeName],
+      defaultScopesToBypass: [...this.defaultScopesToBypass, scopeName],
       baseSelectQuery: this.baseSelectQuery?.removeDefaultScope(scopeName),
     })
   }
@@ -1158,7 +1156,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     scopeName: DefaultScopeName<DreamInstance>
   ): Query<DreamInstance> {
     return this.clone({
-      bypassSpecificDefaultScopes: [...this.bypassSpecificDefaultScopesExceptOnAssociations, scopeName],
+      defaultScopesToBypass: [...this.defaultScopesToBypassExceptOnAssociations, scopeName],
       baseSelectQuery: this.baseSelectQuery?.removeDefaultScope(scopeName),
     })
   }
@@ -1995,25 +1993,25 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }: { skipHooks?: boolean; cascade?: boolean } = {}): Promise<number> {
     let counter = 0
 
-    if (this.dreamTransaction) {
-      await this.txn(this.dreamTransaction).findEach(async result => {
-        if (this.shouldReallyDestroy) {
-          await result.txn(this.dreamTransaction!).reallyDestroy({ skipHooks, cascade })
-        } else {
-          await result.txn(this.dreamTransaction!).destroy({ skipHooks, cascade })
-        }
-        counter++
-      })
-    } else {
-      await this.findEach(async result => {
-        if (this.shouldReallyDestroy) {
-          await result.reallyDestroy({ skipHooks, cascade })
-        } else {
-          await result.destroy({ skipHooks, cascade })
-        }
-        counter++
-      })
+    const options = {
+      bypassAllDefaultScopes: this.bypassAllDefaultScopes,
+      defaultScopesToBypass: this.defaultScopesToBypass,
+      skipHooks,
+      cascade,
     }
+
+    await this.findEach(async result => {
+      const subquery = this.dreamTransaction
+        ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
+        : result
+
+      if (this.shouldReallyDestroy) {
+        await subquery.reallyDestroy(options)
+      } else {
+        await subquery.destroy(options)
+      }
+      counter++
+    })
 
     return counter
   }
@@ -2070,23 +2068,26 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   public async undestroy({
     cascade,
     skipHooks,
-  }: { cascade?: boolean; skipHooks?: boolean } = {}): Promise<number> {
+  }: {
+    cascade?: boolean
+    skipHooks?: boolean
+  } = {}): Promise<number> {
     if (!this.dreamClass['softDelete']) throw new CannotCallUndestroyOnANonSoftDeleteModel(this.dreamClass)
     let counter = 0
 
-    if (this.dreamTransaction) {
-      await this.txn(this.dreamTransaction)
-        .removeDefaultScope('dream:SoftDelete')
-        .findEach(async result => {
-          await result.txn(this.dreamTransaction!).undestroy({ skipHooks, cascade })
-          counter++
-        })
-    } else {
-      await this.removeDefaultScope('dream:SoftDelete').findEach(async result => {
-        await result.undestroy({ skipHooks, cascade })
-        counter++
+    await this.removeDefaultScope(SOFT_DELETE_SCOPE_NAME).findEach(async result => {
+      const subquery = this.dreamTransaction
+        ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
+        : result
+
+      await subquery.undestroy({
+        bypassAllDefaultScopes: this.bypassAllDefaultScopes,
+        defaultScopesToBypass: this.defaultScopesToBypass,
+        cascade,
+        skipHooks,
       })
-    }
+      counter++
+    })
 
     return counter
   }
@@ -2133,17 +2134,14 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     let counter = 0
 
-    if (this.dreamTransaction) {
-      await this.txn(this.dreamTransaction).findEach(async result => {
-        await result.txn(this.dreamTransaction!).update(attributes as any)
-        counter++
-      })
-    } else {
-      await this.findEach(async result => {
-        await result.update(attributes as any)
-        counter++
-      })
-    }
+    await this.findEach(async result => {
+      const subquery = this.dreamTransaction
+        ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
+        : result
+
+      await subquery.update(attributes as any)
+      counter++
+    })
 
     return counter
   }
@@ -2318,7 +2316,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         })
 
         const loadedAssociations = await this.queryForDreamClassWithScopeBypasses(associatedModel, {
-          bypassSpecificDefaultScopesExceptOnAssociations: association.withoutDefaultScopes,
+          defaultScopesToBypassExceptOnAssociations: association.withoutDefaultScopes,
         })
           .where({
             [associatedModel.primaryKey]: relevantAssociatedModels.map(
@@ -2527,8 +2525,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       if (
         !shouldBypassDefaultScope(scope.method, {
           defaultScopesToBypass: [
-            ...this.bypassSpecificDefaultScopes,
-            ...this.bypassSpecificDefaultScopesExceptOnAssociations,
+            ...this.defaultScopesToBypass,
+            ...this.defaultScopesToBypassExceptOnAssociations,
           ],
         })
       ) {
@@ -2860,20 +2858,17 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     // apply default scopes
     ///////////////////////
     let scopesQuery = new Query<DreamInstance>(this.dreamInstance)
-    const associationClass = association.modelCB() as any
-    const associationScopes = associationClass.scopes.default
+    const associationClass = association.modelCB() as typeof Dream
+    const associationScopes = associationClass['scopes'].default
 
     for (const scope of associationScopes) {
       if (
         !shouldBypassDefaultScope(scope.method, {
           bypassAllDefaultScopes: this.bypassAllDefaultScopes,
-          defaultScopesToBypass: [
-            ...this.bypassSpecificDefaultScopes,
-            ...(association.withoutDefaultScopes || []),
-          ],
+          defaultScopesToBypass: [...this.defaultScopesToBypass, ...(association.withoutDefaultScopes || [])],
         })
       ) {
-        const tempQuery = associationClass[scope.method](scopesQuery)
+        const tempQuery = (associationClass as any)[scope.method](scopesQuery)
         if (tempQuery && tempQuery.constructor === this.constructor) scopesQuery = tempQuery
       }
     }
@@ -3599,8 +3594,8 @@ export interface QueryOpts<
   joinsWhereStatements?: RelaxedJoinsWhereStatement<DB, Schema>
   bypassAllDefaultScopes?: boolean
   bypassAllDefaultScopesExceptOnAssociations?: boolean
-  bypassSpecificDefaultScopes?: string[]
-  bypassSpecificDefaultScopesExceptOnAssociations?: string[]
+  defaultScopesToBypass?: string[]
+  defaultScopesToBypassExceptOnAssociations?: string[]
   transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType
   shouldReallyDestroy?: boolean
