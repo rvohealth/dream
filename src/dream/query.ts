@@ -2870,7 +2870,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         })
       ) {
         const tempQuery = (associationClass as any)[scope.method](scopesQuery)
-        if (tempQuery && tempQuery.constructor === this.constructor) scopesQuery = tempQuery
+        // The scope method on a Dream model should return a clone of the Query it receives
+        // (e.g. by returning `scope.where(...)`), but in case the function doesn't return,
+        // or returns the wrong thing, we check before overriding `scopesQuery` with what the
+        // method returned.
+        if (tempQuery && tempQuery.constructor === scopesQuery.constructor) scopesQuery = tempQuery
       }
     }
 
