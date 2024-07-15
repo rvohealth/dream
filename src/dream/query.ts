@@ -1993,25 +1993,22 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }: { skipHooks?: boolean; cascade?: boolean } = {}): Promise<number> {
     let counter = 0
 
+    const options = {
+      bypassAllDefaultScopes: this.bypassAllDefaultScopes,
+      defaultScopesToBypass: this.defaultScopesToBypass,
+      skipHooks,
+      cascade,
+    }
+
     await this.findEach(async result => {
       const subquery = this.dreamTransaction
         ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
         : result
 
       if (this.shouldReallyDestroy) {
-        await subquery.reallyDestroy({
-          bypassAllDefaultScopes: this.bypassAllDefaultScopes,
-          defaultScopesToBypass: this.defaultScopesToBypass,
-          skipHooks,
-          cascade,
-        })
+        await subquery.reallyDestroy(options)
       } else {
-        await subquery.destroy({
-          bypassAllDefaultScopes: this.bypassAllDefaultScopes,
-          defaultScopesToBypass: this.defaultScopesToBypass,
-          skipHooks,
-          cascade,
-        })
+        await subquery.destroy(options)
       }
       counter++
     })
