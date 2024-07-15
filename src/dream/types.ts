@@ -365,6 +365,11 @@ export type DefaultScopeName<
     string[],
 > = SchemaDefaultScopes[number]
 
+export type AllDefaultScopeNames<
+  DreamConf,
+  AllNames = DreamConf['allDefaultScopeNames' & keyof DreamConf],
+> = AllNames[number & keyof AllNames]
+
 export type NamedScopeName<
   DreamInstance extends Dream,
   Schema = DreamInstance['dreamconf']['schema'],

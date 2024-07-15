@@ -10,15 +10,35 @@ import DreamTransaction from '../transaction'
 export default async function destroyAssociatedRecords<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I>,
-  { skipHooks, reallyDestroy }: { skipHooks: boolean; reallyDestroy: boolean }
+  {
+    bypassAllDefaultScopes,
+    defaultScopesToBypass,
+    reallyDestroy,
+    skipHooks,
+  }: {
+    bypassAllDefaultScopes: boolean
+    defaultScopesToBypass: string[]
+    reallyDestroy: boolean
+    skipHooks: boolean
+  }
 ) {
   const dreamClass = dream.constructor as typeof Dream
 
   for (const associationName of dreamClass['dependentDestroyAssociationNames']()) {
     if (reallyDestroy) {
-      await dream.txn(txn).reallyDestroyAssociation(associationName as any, { skipHooks, cascade: true })
+      await dream.txn(txn).reallyDestroyAssociation(associationName as any, {
+        bypassAllDefaultScopes,
+        defaultScopesToBypass,
+        cascade: true,
+        skipHooks,
+      })
     } else {
-      await dream.txn(txn).destroyAssociation(associationName as any, { skipHooks, cascade: true })
+      await dream.txn(txn).destroyAssociation(associationName as any, {
+        bypassAllDefaultScopes,
+        defaultScopesToBypass,
+        cascade: true,
+        skipHooks,
+      })
     }
   }
 }

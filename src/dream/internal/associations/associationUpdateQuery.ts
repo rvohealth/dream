@@ -6,6 +6,7 @@ import Dream from '../../../dream'
 import Query from '../../query'
 import DreamTransaction from '../../transaction'
 import { DreamAssociationType } from '../../types'
+import applyScopeBypassingSettingsToQuery from '../applyScopeBypassingSettingsToQuery'
 
 export default function associationUpdateQuery<
   DreamInstance extends Dream,
@@ -19,8 +20,15 @@ export default function associationUpdateQuery<
   dream: DreamInstance,
   txn: DreamTransaction<Dream> | null = null,
   associationName: AssociationName,
-  associationWhereStatement?: Where,
-  { removeAllDefaultScopes = false }: { removeAllDefaultScopes?: boolean } = {}
+  {
+    associationWhereStatement,
+    bypassAllDefaultScopes,
+    defaultScopesToBypass,
+  }: {
+    associationWhereStatement?: Where
+    bypassAllDefaultScopes: boolean
+    defaultScopesToBypass: string[]
+  }
 ): AssociationQuery {
   const association = dream['associationMetadataMap']()[associationName as any] as
     | HasManyStatement<any, any, any, any>
@@ -35,7 +43,11 @@ export default function associationUpdateQuery<
   const dreamClass = dream.constructor as typeof Dream
 
   let nestedScope: Query<Dream> = txn ? (dreamClass.txn(txn) as unknown as Query<Dream>) : dreamClass.query()
-  if (removeAllDefaultScopes) nestedScope = nestedScope.removeAllDefaultScopes()
+
+  nestedScope = applyScopeBypassingSettingsToQuery(nestedScope, {
+    bypassAllDefaultScopes,
+    defaultScopesToBypass,
+  })
 
   if (associationWhereStatement) nestedScope = nestedScope.joins(association.as, associationWhereStatement)
   else nestedScope = nestedScope.joins(association.as)
@@ -48,6 +60,12 @@ export default function associationUpdateQuery<
     [associationClass.primaryKey]: nestedSelect,
   }
 
-  const query = txn ? associationClass.txn(txn).where(whereClause) : associationClass.where(whereClause)
+  let query = txn ? associationClass.txn(txn).where(whereClause) : associationClass.where(whereClause)
+
+  query = applyScopeBypassingSettingsToQuery(query, {
+    bypassAllDefaultScopes,
+    defaultScopesToBypass,
+  })
+
   return query as AssociationQuery
 }

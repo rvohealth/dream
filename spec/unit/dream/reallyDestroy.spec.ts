@@ -2,6 +2,7 @@ import { Query } from '../../../src'
 import * as destroyDreamModule from '../../../src/dream/internal/destroyDream'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Post from '../../../test-app/app/models/Post'
+import PostComment from '../../../test-app/app/models/PostComment'
 import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
 
@@ -47,12 +48,13 @@ describe('Dream#reallyDestroy', () => {
       it('are really destroyed', async () => {
         const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
         const post = await Post.create({ user })
+        const postComment = await PostComment.create({ post })
 
-        await post.destroy()
+        await postComment.destroy()
 
-        expect(await Post.removeAllDefaultScopes().count()).toEqual(1)
-        await user.reallyDestroy()
-        expect(await Post.removeAllDefaultScopes().count()).toEqual(0)
+        expect(await PostComment.removeAllDefaultScopes().count()).toEqual(1)
+        await post.reallyDestroy()
+        expect(await PostComment.removeAllDefaultScopes().count()).toEqual(0)
       })
     })
 

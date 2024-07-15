@@ -14,17 +14,30 @@ export default async function destroyAssociation<
   dream: DreamInstance,
   txn: DreamTransaction<Dream> | null = null,
   associationName: AssociationName,
-  associationWhereStatement?: Where,
   {
-    skipHooks = false,
-    cascade = true,
-    reallyDestroy = false,
-  }: { skipHooks?: boolean; cascade?: boolean; reallyDestroy?: boolean } = {}
+    associationWhereStatement,
+    bypassAllDefaultScopes,
+    defaultScopesToBypass,
+    cascade,
+    reallyDestroy,
+    skipHooks,
+  }: {
+    associationWhereStatement?: Where
+    bypassAllDefaultScopes: boolean
+    defaultScopesToBypass: string[]
+    cascade: boolean
+    reallyDestroy: boolean
+    skipHooks: boolean
+  }
 ): Promise<number> {
-  const query = associationUpdateQuery(dream, txn, associationName, associationWhereStatement)
+  const query = associationUpdateQuery(dream, txn, associationName, {
+    associationWhereStatement,
+    bypassAllDefaultScopes,
+    defaultScopesToBypass,
+  })
   if (reallyDestroy) {
-    return await query.removeAllDefaultScopes().reallyDestroy({ skipHooks, cascade })
+    return await query.reallyDestroy({ skipHooks, cascade })
   } else {
-    return await query.removeAllDefaultScopes().destroy({ skipHooks, cascade })
+    return await query.destroy({ skipHooks, cascade })
   }
 }

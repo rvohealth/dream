@@ -14,11 +14,24 @@ export default async function undestroyAssociation<
   dream: DreamInstance,
   txn: DreamTransaction<Dream> | null = null,
   associationName: AssociationName,
-  associationWhereStatement?: Where,
-  { skipHooks = false, cascade = false }: { skipHooks?: boolean; cascade?: boolean } = {}
+  {
+    associationWhereStatement,
+    bypassAllDefaultScopes,
+    defaultScopesToBypass,
+    cascade,
+    skipHooks,
+  }: {
+    associationWhereStatement?: Where
+    bypassAllDefaultScopes: boolean
+    defaultScopesToBypass: string[]
+    cascade: boolean
+    skipHooks: boolean
+  }
 ): Promise<number> {
-  const query = associationUpdateQuery(dream, txn, associationName, associationWhereStatement, {
-    removeAllDefaultScopes: true,
+  const query = associationUpdateQuery(dream, txn, associationName, {
+    associationWhereStatement,
+    bypassAllDefaultScopes,
+    defaultScopesToBypass,
   })
-  return await query.removeDefaultScope('dream:SoftDelete').undestroy({ skipHooks, cascade })
+  return await query.undestroy({ skipHooks, cascade })
 }
