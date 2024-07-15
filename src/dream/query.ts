@@ -31,6 +31,7 @@ import {
   WhereSelfStatement,
   WhereStatement,
 } from '../decorators/associations/shared'
+import { SOFT_DELETE_SCOPE_NAME } from '../decorators/soft-delete'
 import Dream from '../dream'
 import CannotAssociateThroughPolymorphic from '../exceptions/associations/cannot-associate-through-polymorphic'
 import CannotJoinPolymorphicBelongsToError from '../exceptions/associations/cannot-join-polymorphic-belongs-to-error'
@@ -1992,25 +1993,28 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }: { skipHooks?: boolean; cascade?: boolean } = {}): Promise<number> {
     let counter = 0
 
-    if (this.dreamTransaction) {
-      await this.txn(this.dreamTransaction).findEach(async result => {
-        if (this.shouldReallyDestroy) {
-          await result.txn(this.dreamTransaction!).reallyDestroy({ skipHooks, cascade })
-        } else {
-          await result.txn(this.dreamTransaction!).destroy({ skipHooks, cascade })
-        }
-        counter++
-      })
-    } else {
-      await this.findEach(async result => {
-        if (this.shouldReallyDestroy) {
-          await result.reallyDestroy({ skipHooks, cascade })
-        } else {
-          await result.destroy({ skipHooks, cascade })
-        }
-        counter++
-      })
-    }
+    await this.findEach(async result => {
+      const subquery = this.dreamTransaction
+        ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
+        : result
+
+      if (this.shouldReallyDestroy) {
+        await subquery.reallyDestroy({
+          bypassAllDefaultScopes: this.bypassAllDefaultScopes,
+          defaultScopesToBypass: this.defaultScopesToBypass,
+          skipHooks,
+          cascade,
+        })
+      } else {
+        await subquery.destroy({
+          bypassAllDefaultScopes: this.bypassAllDefaultScopes,
+          defaultScopesToBypass: this.defaultScopesToBypass,
+          skipHooks,
+          cascade,
+        })
+      }
+      counter++
+    })
 
     return counter
   }
@@ -2067,23 +2071,26 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   public async undestroy({
     cascade,
     skipHooks,
-  }: { cascade?: boolean; skipHooks?: boolean } = {}): Promise<number> {
+  }: {
+    cascade?: boolean
+    skipHooks?: boolean
+  } = {}): Promise<number> {
     if (!this.dreamClass['softDelete']) throw new CannotCallUndestroyOnANonSoftDeleteModel(this.dreamClass)
     let counter = 0
 
-    if (this.dreamTransaction) {
-      await this.txn(this.dreamTransaction)
-        .removeDefaultScope('dream:SoftDelete')
-        .findEach(async result => {
-          await result.txn(this.dreamTransaction!).undestroy({ skipHooks, cascade })
-          counter++
-        })
-    } else {
-      await this.removeDefaultScope('dream:SoftDelete').findEach(async result => {
-        await result.undestroy({ skipHooks, cascade })
-        counter++
+    await this.removeDefaultScope(SOFT_DELETE_SCOPE_NAME).findEach(async result => {
+      const subquery = this.dreamTransaction
+        ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
+        : result
+
+      await subquery.undestroy({
+        bypassAllDefaultScopes: this.bypassAllDefaultScopes,
+        defaultScopesToBypass: this.defaultScopesToBypass,
+        cascade,
+        skipHooks,
       })
-    }
+      counter++
+    })
 
     return counter
   }
@@ -2130,17 +2137,14 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     let counter = 0
 
-    if (this.dreamTransaction) {
-      await this.txn(this.dreamTransaction).findEach(async result => {
-        await result.txn(this.dreamTransaction!).update(attributes as any)
-        counter++
-      })
-    } else {
-      await this.findEach(async result => {
-        await result.update(attributes as any)
-        counter++
-      })
-    }
+    await this.findEach(async result => {
+      const subquery = this.dreamTransaction
+        ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
+        : result
+
+      await subquery.update(attributes as any)
+      counter++
+    })
 
     return counter
   }
