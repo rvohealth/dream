@@ -2,30 +2,29 @@ import Post from '../../../test-app/app/models/Post'
 import PostComment from '../../../test-app/app/models/PostComment'
 import User from '../../../test-app/app/models/User'
 
-describe('Query#removeAllDefaultScopes', () => {
+describe('Query#removeAllDefaultScopesExceptOnAssociations', () => {
   let user: User
   let post: Post
-  let postComment: PostComment
 
   beforeEach(async () => {
     user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     post = await Post.create({ user })
-    postComment = await PostComment.create({ post, body: 'hello world' })
+    await PostComment.create({ post, body: 'hello world' })
   })
 
-  it('circumvents default scopes to provide otherwise-hidden records, including on associations', async () => {
+  it('removes default scopes from the base model, but not when joining', async () => {
     await post.destroy()
 
     const reloadedPost = await Post.query()
-      .removeAllDefaultScopes()
+      ['removeAllDefaultScopesExceptOnAssociations']()
       .preload('comments')
       .findOrFailBy({ id: post.id })
     expect(reloadedPost).toMatchDreamModel(post)
-    expect(reloadedPost.comments).toMatchDreamModels([postComment])
+    expect(reloadedPost.comments).toHaveLength(0)
 
     const pluckedThrough = await Post.query()
-      .removeAllDefaultScopes()
+      ['removeAllDefaultScopesExceptOnAssociations']()
       .pluckThrough('comments', 'comments.body')
-    expect(pluckedThrough).toEqual(['hello world'])
+    expect(pluckedThrough).toHaveLength(0)
   })
 })

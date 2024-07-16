@@ -328,7 +328,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   ): Promise<DreamInstance> {
     return await destroyDream<DreamInstance>(this.dreamInstance, this.dreamTransaction, {
       bypassAllDefaultScopes: bypassAllDefaultScopes ?? DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
-      defaultScopesToBypass: addSoftDeleteScopeToUserScopes(defaultScopesToBypass),
+      defaultScopesToBypass: addSoftDeleteScopeToUserScopes<DreamInstance>(defaultScopesToBypass),
       cascade: cascade ?? DEFAULT_CASCADE,
       reallyDestroy: true,
       skipHooks: skipHooks ?? DEFAULT_SKIP_HOOKS,
@@ -366,7 +366,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   ): Promise<I> {
     await undestroyDream(this.dreamInstance, this.dreamTransaction, {
       bypassAllDefaultScopes: bypassAllDefaultScopes ?? DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
-      defaultScopesToBypass: addSoftDeleteScopeToUserScopes(defaultScopesToBypass),
+      defaultScopesToBypass: addSoftDeleteScopeToUserScopes<DreamInstance>(defaultScopesToBypass),
       cascade: cascade ?? DEFAULT_CASCADE,
       skipHooks: skipHooks ?? DEFAULT_SKIP_HOOKS,
     })

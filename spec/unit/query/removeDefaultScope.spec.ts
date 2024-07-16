@@ -1,6 +1,4 @@
 import { Query, Scope } from '../../../src'
-import Latex from '../../../test-app/app/models/Balloon/Latex'
-import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import Pet from '../../../test-app/app/models/Pet'
 import User from '../../../test-app/app/models/User'
 
@@ -44,16 +42,6 @@ describe('Query#removeDefaultScope', () => {
 
         const reloadedPets = await PetNamedAster.query().removeDefaultScope('dream:SoftDelete').all()
         expect(reloadedPets).toMatchDreamModels([pet1])
-      })
-    })
-
-    context('dream:STI', () => {
-      it('circumvents the SoftDelete scope, allowing all other default scopes to apply', async () => {
-        const latex = await Latex.create({ user, color: 'red' })
-        const mylar = await Mylar.create({ user, color: 'red' })
-
-        expect(await Mylar.all()).toMatchDreamModels([mylar])
-        expect(await Mylar.removeDefaultScope('dream:STI').all()).toMatchDreamModels([latex, mylar])
       })
     })
   })

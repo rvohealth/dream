@@ -67,7 +67,6 @@ import {
   AllDefaultScopeNames,
   AttributeKeys,
   DefaultOrNamedScopeName,
-  DefaultScopeName,
   DreamAssociationNamesWithoutRequiredWhereClauses,
   DreamAssociationNamesWithRequiredWhereClauses,
   DreamAssociationType,
@@ -875,7 +874,7 @@ export default class Dream {
    */
   public static removeDefaultScope<T extends typeof Dream>(
     this: T,
-    scopeName: DefaultScopeName<InstanceType<T>>
+    scopeName: AllDefaultScopeNames<InstanceType<T>['dreamconf']>
   ): Query<InstanceType<T>> {
     return this.query().removeDefaultScope(scopeName)
   }
@@ -3055,7 +3054,7 @@ export default class Dream {
   ): Promise<I> {
     return await destroyDream(this, null, {
       bypassAllDefaultScopes: bypassAllDefaultScopes ?? DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
-      defaultScopesToBypass: addSoftDeleteScopeToUserScopes(defaultScopesToBypass),
+      defaultScopesToBypass: addSoftDeleteScopeToUserScopes<I>(defaultScopesToBypass),
       cascade: cascade ?? DEFAULT_CASCADE,
       reallyDestroy: true,
       skipHooks: skipHooks ?? DEFAULT_SKIP_HOOKS,
@@ -3098,7 +3097,7 @@ export default class Dream {
 
     await undestroyDream(this, null, {
       bypassAllDefaultScopes: bypassAllDefaultScopes ?? DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
-      defaultScopesToBypass: addSoftDeleteScopeToUserScopes(defaultScopesToBypass),
+      defaultScopesToBypass: addSoftDeleteScopeToUserScopes<I>(defaultScopesToBypass),
       cascade: cascade ?? DEFAULT_CASCADE,
       skipHooks: skipHooks ?? DEFAULT_SKIP_HOOKS,
     })

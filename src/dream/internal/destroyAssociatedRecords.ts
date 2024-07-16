@@ -1,5 +1,6 @@
 import Dream from '../../dream'
 import DreamTransaction from '../transaction'
+import { AllDefaultScopeNames } from '../types'
 
 /**
  * @internal
@@ -17,7 +18,7 @@ export default async function destroyAssociatedRecords<I extends Dream>(
     skipHooks,
   }: {
     bypassAllDefaultScopes: boolean
-    defaultScopesToBypass: string[]
+    defaultScopesToBypass: AllDefaultScopeNames<I['dreamconf']>[]
     reallyDestroy: boolean
     skipHooks: boolean
   }

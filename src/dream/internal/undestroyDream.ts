@@ -25,7 +25,7 @@ export default async function undestroyDream<I extends Dream>(
     skipHooks,
   }: {
     bypassAllDefaultScopes: boolean
-    defaultScopesToBypass: string[]
+    defaultScopesToBypass: AllDefaultScopeNames<I['dreamconf']>[]
     cascade: boolean
     skipHooks: boolean
   }
@@ -143,7 +143,7 @@ async function undestroyAssociatedRecords<I extends Dream>(
     skipHooks = false,
   }: {
     bypassAllDefaultScopes?: boolean
-    defaultScopesToBypass?: string[]
+    defaultScopesToBypass?: AllDefaultScopeNames<I['dreamconf']>[]
     skipHooks?: boolean
   } = {}
 ) {

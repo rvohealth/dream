@@ -1,5 +1,6 @@
 import Dream from '../../dream'
 import DreamTransaction from '../transaction'
+import { AllDefaultScopeNames } from '../types'
 import destroyAssociatedRecords from './destroyAssociatedRecords'
 import runHooksFor from './runHooksFor'
 import safelyRunCommitHooks from './safelyRunCommitHooks'
@@ -26,7 +27,7 @@ export default async function destroyDream<I extends Dream>(
     skipHooks,
   }: {
     bypassAllDefaultScopes: boolean
-    defaultScopesToBypass: string[]
+    defaultScopesToBypass: AllDefaultScopeNames<I['dreamconf']>[]
     cascade: boolean
     reallyDestroy: boolean
     skipHooks: boolean
@@ -68,7 +69,7 @@ async function destroyDreamWithTransaction<I extends Dream>(
     skipHooks,
   }: {
     bypassAllDefaultScopes: boolean
-    defaultScopesToBypass: string[]
+    defaultScopesToBypass: AllDefaultScopeNames<I['dreamconf']>[]
     cascade: boolean
     reallyDestroy: boolean
     skipHooks: boolean

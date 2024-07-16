@@ -1,5 +1,6 @@
 import Dream from '../../dream'
 import Query from '../query'
+import { AllDefaultScopeNames } from '../types'
 
 export default function applyScopeBypassingSettingsToQuery<DreamInstance extends Dream>(
   query: Query<DreamInstance>,
@@ -8,7 +9,7 @@ export default function applyScopeBypassingSettingsToQuery<DreamInstance extends
     defaultScopesToBypass,
   }: {
     bypassAllDefaultScopes: boolean
-    defaultScopesToBypass: string[]
+    defaultScopesToBypass: AllDefaultScopeNames<DreamInstance['dreamconf']>[]
   }
 ) {
   if (bypassAllDefaultScopes) query = query.removeAllDefaultScopes()

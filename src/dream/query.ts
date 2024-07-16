@@ -68,6 +68,7 @@ import SimilarityBuilder from './internal/similarity/SimilarityBuilder'
 import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance'
 import DreamTransaction from './transaction'
 import {
+  AllDefaultScopeNames,
   DefaultScopeName,
   DreamAttributes,
   DreamColumn,
@@ -276,14 +277,16 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * Specific default scopes to bypass
    */
-  private readonly defaultScopesToBypass: string[] = []
+  private readonly defaultScopesToBypass: AllDefaultScopeNames<DreamInstance['dreamconf']>[] = []
 
   /**
    * @internal
    *
    * Specific default scopes to bypass, but not associations
    */
-  private readonly defaultScopesToBypassExceptOnAssociations: string[] = []
+  private readonly defaultScopesToBypassExceptOnAssociations: AllDefaultScopeNames<
+    DreamInstance['dreamconf']
+  >[] = []
 
   /**
    * @internal
@@ -370,7 +373,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       defaultScopesToBypassExceptOnAssociations = [],
     }: {
       bypassAllDefaultScopesExceptOnAssociations?: boolean
-      defaultScopesToBypassExceptOnAssociations?: string[]
+      defaultScopesToBypassExceptOnAssociations?: AllDefaultScopeNames<DreamInstance['dreamconf']>[]
     } = {}
   ): Query<InstanceType<T>> {
     const associationQuery = dreamClass.query().clone({
@@ -1140,7 +1143,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns A new Query which will prevent a specific default scope from applying
    */
-  public removeDefaultScope(scopeName: DefaultScopeName<DreamInstance>): Query<DreamInstance> {
+  public removeDefaultScope(
+    scopeName: AllDefaultScopeNames<DreamInstance['dreamconf']>
+  ): Query<DreamInstance> {
     return this.clone({
       defaultScopesToBypass: [...this.defaultScopesToBypass, scopeName],
       baseSelectQuery: this.baseSelectQuery?.removeDefaultScope(scopeName),
@@ -1157,8 +1162,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     scopeName: DefaultScopeName<DreamInstance>
   ): Query<DreamInstance> {
     return this.clone({
-      defaultScopesToBypass: [...this.defaultScopesToBypassExceptOnAssociations, scopeName],
-      baseSelectQuery: this.baseSelectQuery?.removeDefaultScope(scopeName),
+      defaultScopesToBypassExceptOnAssociations: [
+        ...this.defaultScopesToBypassExceptOnAssociations,
+        scopeName,
+      ],
+      baseSelectQuery: this.baseSelectQuery?.removeDefaultScopeExceptOnAssociations(scopeName),
     })
   }
 
@@ -2076,7 +2084,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     if (!this.dreamClass['softDelete']) throw new CannotCallUndestroyOnANonSoftDeleteModel(this.dreamClass)
     let counter = 0
 
-    await this.removeDefaultScope(SOFT_DELETE_SCOPE_NAME).findEach(async result => {
+    await this.removeDefaultScope(
+      SOFT_DELETE_SCOPE_NAME as AllDefaultScopeNames<DreamInstance['dreamconf']>
+    ).findEach(async result => {
       const subquery = this.dreamTransaction
         ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
         : result
@@ -2753,6 +2763,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           association: originalAssociation,
         })
       }
+
+      query = this.conditionallyApplyDefaultScopesDependentOnAssociation({
+        query,
+        tableNameOrAlias: originalAssociation.as,
+        association: originalAssociation,
+      })
     }
 
     if (association.type === 'BelongsTo') {
@@ -2871,9 +2887,32 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       }
     }
 
-    ///////////////////////
-    // apply default scopes
-    ///////////////////////
+    query = this.conditionallyApplyDefaultScopesDependentOnAssociation({
+      query,
+      tableNameOrAlias: currentAssociationTableOrAlias,
+      association,
+    })
+
+    return {
+      query,
+      association,
+      previousAssociationTableOrAlias,
+      currentAssociationTableOrAlias,
+    }
+  }
+
+  private conditionallyApplyDefaultScopesDependentOnAssociation<DB extends DreamInstance['dreamconf']['DB']>({
+    query,
+    tableNameOrAlias,
+    association,
+  }: {
+    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>
+    tableNameOrAlias: string
+    association:
+      | HasOneStatement<any, any, any, any>
+      | HasManyStatement<any, any, any, any>
+      | BelongsToStatement<any, any, any, any>
+  }) {
     let scopesQuery = new Query<DreamInstance>(this.dreamInstance)
     const associationClass = association.modelCB() as typeof Dream
     const associationScopes = associationClass['scopes'].default
@@ -2897,19 +2936,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     if (scopesQuery.whereStatements.length) {
       query = this.applyWhereStatements(
         query,
-        this.aliasWhereStatements(scopesQuery.whereStatements, currentAssociationTableOrAlias)
+        this.aliasWhereStatements(scopesQuery.whereStatements, tableNameOrAlias)
       )
     }
-    ///////////////////////
-    // end: apply default scopes
-    ///////////////////////
 
-    return {
-      query,
-      association,
-      previousAssociationTableOrAlias,
-      currentAssociationTableOrAlias,
-    }
+    return query
   }
 
   private distinctColumnNameForAssociation({
@@ -3616,8 +3647,8 @@ export interface QueryOpts<
   joinsWhereStatements?: RelaxedJoinsWhereStatement<DB, Schema>
   bypassAllDefaultScopes?: boolean
   bypassAllDefaultScopesExceptOnAssociations?: boolean
-  defaultScopesToBypass?: string[]
-  defaultScopesToBypassExceptOnAssociations?: string[]
+  defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance['dreamconf']>[]
+  defaultScopesToBypassExceptOnAssociations?: AllDefaultScopeNames<DreamInstance['dreamconf']>[]
   transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType
   shouldReallyDestroy?: boolean
