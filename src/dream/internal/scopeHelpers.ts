@@ -10,6 +10,6 @@ export const DEFAULT_SKIP_HOOKS = false
 
 export function addSoftDeleteScopeToUserScopes<DreamInstance extends Dream>(
   userScopes: AllDefaultScopeNames<DreamInstance['dreamconf']>[] = []
-): AllDefaultScopeNames<DreamInstance['dreamconf']> {
-  return uniq([...userScopes, SOFT_DELETE_SCOPE_NAME]) as AllDefaultScopeNames<DreamInstance['dreamconf']>
+): AllDefaultScopeNames<DreamInstance['dreamconf']>[] {
+  return uniq([...userScopes, SOFT_DELETE_SCOPE_NAME] as AllDefaultScopeNames<DreamInstance['dreamconf']>)
 }
