@@ -284,9 +284,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * Specific default scopes to bypass, but not associations
    */
-  private readonly defaultScopesToBypassExceptOnAssociations: AllDefaultScopeNames<
-    DreamInstance['dreamconf']
-  >[] = []
+  private readonly defaultScopesToBypassExceptOnAssociations: DefaultScopeName<DreamInstance>[] = []
 
   /**
    * @internal
@@ -3625,7 +3623,7 @@ export interface QueryOpts<
   bypassAllDefaultScopes?: boolean
   bypassAllDefaultScopesExceptOnAssociations?: boolean
   defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance['dreamconf']>[]
-  defaultScopesToBypassExceptOnAssociations?: AllDefaultScopeNames<DreamInstance['dreamconf']>[]
+  defaultScopesToBypassExceptOnAssociations?: DefaultScopeName<DreamInstance>[]
   transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType
   shouldReallyDestroy?: boolean

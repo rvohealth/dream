@@ -10,6 +10,7 @@ import {
   WhereStatement,
   WhereStatementForAssociation,
 } from '../decorators/associations/shared'
+import { STI_SCOPE_NAME } from '../decorators/STI'
 import Dream from '../dream'
 import CalendarDate from '../helpers/CalendarDate'
 import { FilterInterface, Inc, ReadonlyTail, RejectInterface } from '../helpers/typeutils'
@@ -363,7 +364,6 @@ export type PassthroughColumnNames<
 > = PassthroughColumns[number & keyof PassthroughColumns]
 
 // it is not valid to remove the STI scope
-type STIScopeName = 'dream:STI'
 
 export type DefaultScopeName<
   DreamInstance extends Dream,
@@ -372,13 +372,17 @@ export type DefaultScopeName<
   SchemaDefaultScopes extends string[] = SchemaTable['scopes' & keyof SchemaTable]['default' &
     keyof SchemaTable['scopes' & keyof SchemaTable]] &
     string[],
-> = Exclude<SchemaDefaultScopes[number], STIScopeName>
+> =
+  // it is not valid to remove the STI scope
+  Exclude<SchemaDefaultScopes[number], typeof STI_SCOPE_NAME>
 
 export type AllDefaultScopeNames<
   DreamConf,
   GlobalSchema = DreamConf['globalSchema' & keyof DreamConf],
   AllNames = GlobalSchema['allDefaultScopeNames' & keyof GlobalSchema],
-> = Exclude<AllNames[number & keyof AllNames], STIScopeName>
+> =
+  // it is not valid to remove the STI scope
+  Exclude<AllNames[number & keyof AllNames], typeof STI_SCOPE_NAME>
 
 export type NamedScopeName<
   DreamInstance extends Dream,
