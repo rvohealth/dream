@@ -2001,7 +2001,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       cascade,
     }
 
-    await this.findEach(async result => {
+    const query = this.dreamTransaction ? this.txn(this.dreamTransaction) : this
+
+    await query.findEach(async result => {
       const subquery = this.dreamTransaction
         ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
         : result
@@ -2076,7 +2078,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     if (!this.dreamClass['softDelete']) throw new CannotCallUndestroyOnANonSoftDeleteModel(this.dreamClass)
     let counter = 0
 
-    await this.removeDefaultScope(SOFT_DELETE_SCOPE_NAME).findEach(async result => {
+    const query = this.dreamTransaction ? this.txn(this.dreamTransaction) : this
+
+    await query.removeDefaultScope(SOFT_DELETE_SCOPE_NAME).findEach(async result => {
       const subquery = this.dreamTransaction
         ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
         : result
