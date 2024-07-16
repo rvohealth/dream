@@ -2687,6 +2687,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     const throughClass = results.throughClass
 
     if (originalAssociation?.through) {
+      ///////////////////////////////////////////////////////////////////////////////////////
+      // when an association is through another association, `joinsBridgeThroughAssociations`
+      // is called, which eventually calls back to this method, passing in the original
+      // through association as `originalAssociation`
+      ///////////////////////////////////////////////////////////////////////////////////////
+
       if (originalAssociation.distinct) {
         query = query.distinctOn(
           this.distinctColumnNameForAssociation({
