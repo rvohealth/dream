@@ -58,16 +58,16 @@ async function undestroyDreamWithTransaction<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I>,
   {
-    bypassAllDefaultScopes = false,
-    defaultScopesToBypass = [],
-    cascade = true,
-    skipHooks = false,
+    bypassAllDefaultScopes,
+    defaultScopesToBypass,
+    cascade,
+    skipHooks,
   }: {
-    bypassAllDefaultScopes?: boolean
-    defaultScopesToBypass?: AllDefaultScopeNames<I['dreamconf']>[]
-    cascade?: boolean
-    skipHooks?: boolean
-  } = {}
+    bypassAllDefaultScopes: boolean
+    defaultScopesToBypass: AllDefaultScopeNames<I['dreamconf']>[]
+    cascade: boolean
+    skipHooks: boolean
+  }
 ): Promise<I> {
   if (!skipHooks) {
     await runHooksFor('beforeUpdate', dream, true, null, txn)
@@ -138,14 +138,14 @@ async function undestroyAssociatedRecords<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I>,
   {
-    bypassAllDefaultScopes = false,
-    defaultScopesToBypass = [],
-    skipHooks = false,
+    bypassAllDefaultScopes,
+    defaultScopesToBypass,
+    skipHooks,
   }: {
-    bypassAllDefaultScopes?: boolean
-    defaultScopesToBypass?: AllDefaultScopeNames<I['dreamconf']>[]
-    skipHooks?: boolean
-  } = {}
+    bypassAllDefaultScopes: boolean
+    defaultScopesToBypass: AllDefaultScopeNames<I['dreamconf']>[]
+    skipHooks: boolean
+  }
 ) {
   const dreamClass = dream.constructor as typeof Dream
 
