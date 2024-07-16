@@ -64,7 +64,7 @@ describe('Query#joins through with simple associations', () => {
       })
 
       context('when the join model is excluded by a default scope', () => {
-        it('applies default scopes to the join model', async () => {
+        it('excludes models joined through that join model', async () => {
           await post.destroy()
           await postComment.undestroy()
 
