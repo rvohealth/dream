@@ -75,9 +75,11 @@ export default function HasOne<
 
     validateHasStatementArgs({
       dreamClass,
+      dependent: dependent ?? null,
       methodName: key,
-      where,
-      dependent,
+      through: through ?? null,
+      where: where ?? null,
+      withoutDefaultScopes: withoutDefaultScopes ?? null,
     })
 
     const partialAssociation = associationPrimaryKeyAccessors(

@@ -41,11 +41,12 @@ describe('Query#joins through with simple associations', () => {
     context('default scopes', () => {
       let user: User
       let post: Post
+      let postComment: PostComment
 
       beforeEach(async () => {
         user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         post = await Post.create({ user })
-        await PostComment.create({ post, body: 'hello world', deletedAt: DateTime.now() })
+        postComment = await PostComment.create({ post, body: 'hello world', deletedAt: DateTime.now() })
       })
 
       it('applies default scopes to the join model', async () => {
@@ -60,6 +61,18 @@ describe('Query#joins through with simple associations', () => {
         expect(
           await User.removeDefaultScope('dream:SoftDelete').joins('postComments').first()
         ).toMatchDreamModel(user)
+      })
+
+      context('when the join model is excluded by a default scope', () => {
+        it('applies default scopes to the join model', async () => {
+          await post.destroy()
+          await postComment.undestroy()
+
+          expect(await Post.first()).toBeNull()
+          expect(await PostComment.first()).toMatchDreamModel(postComment)
+          expect(await Post.joins('comments').first()).toBeNull()
+          expect(await User.joins('postComments').first()).toBeNull()
+        })
       })
     })
   })

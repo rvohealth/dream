@@ -1721,7 +1721,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @returns An array of plucked values
    */
   private async pluckWithoutMarshalling(...fields: DreamColumnNames<DreamInstance>[]): Promise<any[]> {
-    let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
+    let kyselyQuery = this.removeAllDefaultScopesExceptOnAssociations().buildSelect({ bypassSelectAll: true })
     const aliases: string[] = []
 
     fields.forEach((field: string, index: number) => {
@@ -2668,23 +2668,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
     currentAssociationTableOrAlias: TableOrAssociationName<Schema>
   } {
-    // Given:
-    // dreamClass: Post
-    // previousAssociationTableOrAlias: posts
-    // currentAssociationTableOrAlias: commenters
-    // Post has many Commenters through Comments
-    // whereJoinsStatement: { commenters: { id: <some commenter id> } }
-    // association = Post.associationMap[commenters]
-    // which gives association = {
-    //   through: 'comments',
-    //   as: 'commenters',
-    //   modelCB: () => Commenter,
-    // }
-    //
-    // We want joinsBridgeThroughAssociations to add to the query:
-    // INNER JOINS comments ON posts.id = comments.post_id
-    // and update dreamClass to be
-
     let association = dreamClass['getAssociationMetadata'](currentAssociationTableOrAlias)
     if (!association)
       throw new JoinAttemptedOnMissingAssociation({
@@ -2763,12 +2746,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           association: originalAssociation,
         })
       }
-
-      query = this.conditionallyApplyDefaultScopesDependentOnAssociation({
-        query,
-        tableNameOrAlias: originalAssociation.as,
-        association: originalAssociation,
-      })
     }
 
     if (association.type === 'BelongsTo') {

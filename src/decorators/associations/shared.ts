@@ -16,8 +16,9 @@ import {
 } from '../../dream/types'
 import { checkForeignKey } from '../../exceptions/associations/explicit-foreign-key'
 import NonLoadedAssociation from '../../exceptions/associations/non-loaded-association'
-import CannotPassDependentAndPassthrough from '../../exceptions/cannot-pass-dependent-and-passthrough'
-import CannotPassDependentAndRequiredWhereClause from '../../exceptions/cannot-pass-dependent-and-required-where-clause'
+import CannotDefineAssociationWithBothDependentAndPassthrough from '../../exceptions/cannot-define-association-with-both-dependent-and-passthrough'
+import CannotDefineAssociationWithBothDependentAndRequiredWhereClause from '../../exceptions/cannot-define-association-with-both-dependent-and-required-where-clause'
+import CannotDefineAssociationWithBothThroughAndWithoutDefaultScopes from '../../exceptions/cannot-define-association-with-both-through-and-without-default-scopes'
 import CalendarDate from '../../helpers/CalendarDate'
 import camelize from '../../helpers/camelize'
 import { Range } from '../../helpers/range'
@@ -192,7 +193,7 @@ export interface HasStatement<
 export interface HasOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream> {
   foreignKey?: DreamColumnNames<InstanceType<AssociationDreamClass>>
   primaryKeyOverride?: DreamColumnNames<BaseInstance> | null
-  through?: keyof BaseInstance['dreamconf']['schema'][BaseInstance['table']]['associations']
+  through?: BaseInstance['dreamconf']['schema'][BaseInstance['table']]['associations'][number]
   polymorphic?: boolean
   source?: string
   where?: WhereStatementForAssociationDefinition<
@@ -413,20 +414,27 @@ association: ${this.as}
 
 export function validateHasStatementArgs({
   dreamClass,
-  where,
   dependent,
   methodName,
+  through,
+  where,
+  withoutDefaultScopes,
 }: {
   dreamClass: typeof Dream
-  where: any
+  dependent: DependentOptions | null
   methodName: string
-  dependent?: DependentOptions
+  through: string | null
+  where: object | null
+  withoutDefaultScopes: string[] | null
 }) {
   const hasPassthroughWhere = Object.values(where || {}).find(val => val === DreamConst.passthrough)
   const hasRequiredWhere = Object.values(where || {}).find(val => val === DreamConst.required)
-  if (dependent && hasPassthroughWhere) throw new CannotPassDependentAndPassthrough(dreamClass, methodName)
+  if (dependent && hasPassthroughWhere)
+    throw new CannotDefineAssociationWithBothDependentAndPassthrough(dreamClass, methodName)
+  if (through && withoutDefaultScopes)
+    throw new CannotDefineAssociationWithBothThroughAndWithoutDefaultScopes(dreamClass, methodName)
   if (dependent && hasRequiredWhere)
-    throw new CannotPassDependentAndRequiredWhereClause(dreamClass, methodName)
+    throw new CannotDefineAssociationWithBothDependentAndRequiredWhereClause(dreamClass, methodName)
 }
 
 // function hydratedSourceValue(dream: Dream | typeof Dream | undefined, sourceName: string) {

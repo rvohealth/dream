@@ -108,6 +108,17 @@ describe('Query#pluckThrough', () => {
       const names = await User.query().pluckThrough('pets', 'pets.name')
       expect(names).toEqual(['Snoopy'])
     })
+
+    it('does not apply a default scope to the (already loaded) model we are starting from', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const post = await Post.create({ user })
+      const postComment = await PostComment.create({ post, body: 'hello world' })
+
+      await post.destroy()
+      await postComment.undestroy()
+
+      expect(await post.pluckThrough('comments', 'comments.body')).toEqual(['hello world'])
+    })
   })
 
   context('nested through associations', () => {
