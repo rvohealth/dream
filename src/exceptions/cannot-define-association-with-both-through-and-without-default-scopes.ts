@@ -22,7 +22,7 @@ For example, given a User with many Posts (soft-deletable) and PostComments
 instead of removing the soft delete scope from the "allPostComments" association,
 we would have the "allPostComments" association go through an "allComments"
 association (with "withoutDefaultScopes" defined) and set the source of
-"allPostComments" be an "allComments" association on Post that also defined
+"allPostComments" to be an "allComments" association on Post that also defined
 "withoutDefaultScopes":
 
 
