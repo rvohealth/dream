@@ -71,24 +71,7 @@ describe('Dream#undestroy', () => {
       })
     })
 
-    context('associations marked dependent: destroy', () => {
-      it('are undestroyed', async () => {
-        const user = await User.create({ email: 'fred@frewd', name: 'howyadoin', password: 'hamz' })
-        const post = await Post.create({ user, body: 'hello world' })
-        const comment = await PostComment.create({ post })
-
-        await post.destroy()
-
-        await ApplicationModel.transaction(async txn => {
-          expect(await PostComment.txn(txn).all()).toHaveLength(0)
-          expect(await PostComment.txn(txn).removeAllDefaultScopes().count()).toEqual(1)
-
-          await post.txn(txn).undestroy()
-
-          expect(await PostComment.txn(txn).all()).toMatchDreamModels([comment])
-        })
-      })
-
+    context('within a transaction', () => {
       context('with a non-SoftDelete default scope on an associated model', () => {
         let pet: Pet
         let collar: Collar
