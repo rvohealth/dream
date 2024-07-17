@@ -1,9 +1,11 @@
 import { applySortableScopesToQuery } from '../../decorators/sortable/helpers/setPosition'
 import Dream from '../../dream'
 import DreamTransaction from '../transaction'
-import { AllDefaultScopeNames } from '../types'
+import { DestroyOptions as OptionalDestroyOptions } from './destroyOptions'
 import runHooksFor from './runHooksFor'
 import safelyRunCommitHooks from './safelyRunCommitHooks'
+
+type UndestroyOptions<DreamInstance extends Dream> = Required<OptionalDestroyOptions<DreamInstance>>
 
 /**
  * @internal
@@ -18,25 +20,8 @@ import safelyRunCommitHooks from './safelyRunCommitHooks'
 export default async function undestroyDream<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I> | null = null,
-  {
-    bypassAllDefaultScopes,
-    defaultScopesToBypass,
-    cascade,
-    skipHooks,
-  }: {
-    bypassAllDefaultScopes: boolean
-    defaultScopesToBypass: AllDefaultScopeNames<I['dreamconf']>[]
-    cascade: boolean
-    skipHooks: boolean
-  }
+  options: UndestroyOptions<I>
 ): Promise<I> {
-  const options = {
-    bypassAllDefaultScopes,
-    defaultScopesToBypass,
-    cascade,
-    skipHooks,
-  }
-
   if (txn) {
     return await undestroyDreamWithTransaction(dream, txn, options)
   } else {
@@ -57,18 +42,10 @@ export default async function undestroyDream<I extends Dream>(
 async function undestroyDreamWithTransaction<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I>,
-  {
-    bypassAllDefaultScopes,
-    defaultScopesToBypass,
-    cascade,
-    skipHooks,
-  }: {
-    bypassAllDefaultScopes: boolean
-    defaultScopesToBypass: AllDefaultScopeNames<I['dreamconf']>[]
-    cascade: boolean
-    skipHooks: boolean
-  }
+  options: UndestroyOptions<I>
 ): Promise<I> {
+  const { cascade, skipHooks } = options
+
   if (!skipHooks) {
     await runHooksFor('beforeUpdate', dream, true, null, txn)
   }
@@ -76,11 +53,7 @@ async function undestroyDreamWithTransaction<I extends Dream>(
   await doUndestroyDream(dream, txn)
 
   if (cascade) {
-    await undestroyAssociatedRecords(dream, txn, {
-      bypassAllDefaultScopes,
-      defaultScopesToBypass,
-      skipHooks,
-    })
+    await undestroyAssociatedRecords(dream, txn, options)
   }
 
   if (!skipHooks) {
@@ -137,15 +110,7 @@ async function doUndestroyDream<I extends Dream>(dream: I, txn: DreamTransaction
 async function undestroyAssociatedRecords<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I>,
-  {
-    bypassAllDefaultScopes,
-    defaultScopesToBypass,
-    skipHooks,
-  }: {
-    bypassAllDefaultScopes: boolean
-    defaultScopesToBypass: AllDefaultScopeNames<I['dreamconf']>[]
-    skipHooks: boolean
-  }
+  options: UndestroyOptions<I>
 ) {
   const dreamClass = dream.constructor as typeof Dream
 
@@ -157,12 +122,7 @@ async function undestroyAssociatedRecords<I extends Dream>(
       // raise?
     } else {
       if (associatedClass?.['softDelete']) {
-        await dream.txn(txn).undestroyAssociation(associationName as any, {
-          bypassAllDefaultScopes,
-          defaultScopesToBypass,
-          skipHooks,
-          cascade: true,
-        })
+        await dream.txn(txn).undestroyAssociation(associationName as any, options)
       }
     }
   }

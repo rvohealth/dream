@@ -376,7 +376,7 @@ export const schema = {
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
     scopes: {
-      default: ['hideHiddenCollars'],
+      default: ['dream:SoftDelete', 'hideHiddenCollars'],
       named: [],
     },
     columns: {
@@ -394,6 +394,14 @@ export const schema = {
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
+        isArray: false,
+      },
+      deletedAt: {
+        coercedType: {} as DateTime | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: true,
         isArray: false,
       },
       hidden: {
@@ -421,19 +429,19 @@ export const schema = {
         isArray: false,
       },
       petId: {
-        coercedType: {} as IdType,
+        coercedType: {} as IdType | null,
         enumType: null,
         enumValues: null,
         dbType: 'bigint',
-        allowNull: false,
+        allowNull: true,
         isArray: false,
       },
       position: {
-        coercedType: {} as number,
+        coercedType: {} as number | null,
         enumType: null,
         enumValues: null,
         dbType: 'integer',
-        allowNull: false,
+        allowNull: true,
         isArray: false,
       },
       tagName: {

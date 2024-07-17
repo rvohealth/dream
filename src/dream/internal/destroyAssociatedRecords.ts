@@ -1,6 +1,6 @@
 import Dream from '../../dream'
 import DreamTransaction from '../transaction'
-import { AllDefaultScopeNames } from '../types'
+import { ReallyDestroyOptions } from './destroyDream'
 
 /**
  * @internal
@@ -11,26 +11,11 @@ import { AllDefaultScopeNames } from '../types'
 export default async function destroyAssociatedRecords<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I>,
-  {
-    bypassAllDefaultScopes,
-    defaultScopesToBypass,
-    reallyDestroy,
-    skipHooks,
-  }: {
-    bypassAllDefaultScopes: boolean
-    defaultScopesToBypass: AllDefaultScopeNames<I['dreamconf']>[]
-    reallyDestroy: boolean
-    skipHooks: boolean
-  }
+  options: ReallyDestroyOptions<I>
 ) {
   const dreamClass = dream.constructor as typeof Dream
 
-  const options = {
-    bypassAllDefaultScopes,
-    defaultScopesToBypass,
-    cascade: true,
-    skipHooks,
-  }
+  const { reallyDestroy } = options
 
   for (const associationName of dreamClass['dependentDestroyAssociationNames']()) {
     if (reallyDestroy) {

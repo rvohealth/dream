@@ -1,12 +1,14 @@
+import { SoftDelete } from '../../../src'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
-import { DreamColumn } from '../../../src/dream/types'
-import CollarSerializer from '../../../test-app/app/serializers/CollarSerializer'
-import Pet from './Pet'
-import ApplicationModel from './ApplicationModel'
-import Balloon from './Balloon'
 import Scope from '../../../src/decorators/scope'
 import Query from '../../../src/dream/query'
+import { DreamColumn } from '../../../src/dream/types'
+import CollarSerializer from '../../../test-app/app/serializers/CollarSerializer'
+import ApplicationModel from './ApplicationModel'
+import Balloon from './Balloon'
+import Pet from './Pet'
 
+@SoftDelete()
 export default class Collar extends ApplicationModel {
   public get table() {
     return 'collars' as const

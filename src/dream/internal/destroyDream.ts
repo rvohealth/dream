@@ -1,10 +1,15 @@
 import Dream from '../../dream'
 import DreamTransaction from '../transaction'
-import { AllDefaultScopeNames } from '../types'
 import destroyAssociatedRecords from './destroyAssociatedRecords'
+import { DestroyOptions as OptionalDestroyOptions } from './destroyOptions'
 import runHooksFor from './runHooksFor'
 import safelyRunCommitHooks from './safelyRunCommitHooks'
 import softDeleteDream from './softDeleteDream'
+
+type DestroyOptions<DreamInstance extends Dream> = Required<OptionalDestroyOptions<DreamInstance>>
+export interface ReallyDestroyOptions<DreamInstance extends Dream> extends DestroyOptions<DreamInstance> {
+  reallyDestroy: boolean
+}
 
 /**
  * @internal
@@ -19,28 +24,8 @@ import softDeleteDream from './softDeleteDream'
 export default async function destroyDream<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I> | null = null,
-  {
-    bypassAllDefaultScopes,
-    defaultScopesToBypass,
-    cascade,
-    reallyDestroy,
-    skipHooks,
-  }: {
-    bypassAllDefaultScopes: boolean
-    defaultScopesToBypass: AllDefaultScopeNames<I['dreamconf']>[]
-    cascade: boolean
-    reallyDestroy: boolean
-    skipHooks: boolean
-  }
+  options: ReallyDestroyOptions<I>
 ): Promise<I> {
-  const options = {
-    bypassAllDefaultScopes,
-    defaultScopesToBypass,
-    cascade,
-    reallyDestroy,
-    skipHooks,
-  }
-
   if (txn) {
     return await destroyDreamWithTransaction(dream, txn, options)
   } else {
@@ -61,27 +46,12 @@ export default async function destroyDream<I extends Dream>(
 async function destroyDreamWithTransaction<I extends Dream>(
   dream: I,
   txn: DreamTransaction<I>,
-  {
-    bypassAllDefaultScopes,
-    defaultScopesToBypass,
-    cascade,
-    reallyDestroy,
-    skipHooks,
-  }: {
-    bypassAllDefaultScopes: boolean
-    defaultScopesToBypass: AllDefaultScopeNames<I['dreamconf']>[]
-    cascade: boolean
-    reallyDestroy: boolean
-    skipHooks: boolean
-  }
+  options: ReallyDestroyOptions<I>
 ): Promise<I> {
+  const { cascade, reallyDestroy, skipHooks } = options
+
   if (cascade) {
-    await destroyAssociatedRecords(dream, txn, {
-      bypassAllDefaultScopes,
-      defaultScopesToBypass,
-      reallyDestroy,
-      skipHooks,
-    })
+    await destroyAssociatedRecords(dream, txn, options)
   }
 
   if (!skipHooks) {
