@@ -20,7 +20,7 @@ export function destroyOptions<DreamInstance extends Dream>({
   defaultScopesToBypass,
   cascade,
   skipHooks,
-}: DestroyOptions<DreamInstance>) {
+}: DestroyOptions<DreamInstance> = {}) {
   return {
     bypassAllDefaultScopes: bypassAllDefaultScopes ?? DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
     defaultScopesToBypass: defaultScopesToBypass ?? DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
