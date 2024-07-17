@@ -33,7 +33,7 @@ export function destroyOptions<DreamInstance extends Dream>({
 export function undestroyOptions<DreamInstance extends Dream>(options: DestroyOptions<DreamInstance>) {
   return {
     ...destroyOptions<DreamInstance>(options),
-    defaultScopesToBypass: addSoftDeleteScopeToUserScopes<DreamInstance>(options.defaultScopesToBypass),
+    defaultScopesToBypass: addSoftDeleteScopeToUserScopes<DreamInstance>(options?.defaultScopesToBypass),
   }
 }
 

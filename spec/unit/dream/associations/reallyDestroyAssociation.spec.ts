@@ -412,7 +412,7 @@ describe('Dream#reallyDestroyAssociation', () => {
           {
             associationWhereStatement: undefined,
             bypassAllDefaultScopes: true,
-            defaultScopesToBypass: ['hideDeleted'],
+            defaultScopesToBypass: ['hideDeleted', 'dream:SoftDelete'],
             cascade: false,
             reallyDestroy: true,
             skipHooks: false,
