@@ -15,7 +15,7 @@ export interface DestroyOptions<DreamInstance extends Dream> {
   skipHooks?: boolean
 }
 
-export function destroyOptions<DreamInstance extends Dream>({
+function baseDestroyOptions<DreamInstance extends Dream>({
   bypassAllDefaultScopes,
   defaultScopesToBypass,
   cascade,
@@ -25,14 +25,20 @@ export function destroyOptions<DreamInstance extends Dream>({
     bypassAllDefaultScopes: bypassAllDefaultScopes ?? DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
     defaultScopesToBypass: defaultScopesToBypass ?? DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
     cascade: cascade ?? DEFAULT_CASCADE,
-    reallyDestroy: false,
     skipHooks: skipHooks ?? DEFAULT_SKIP_HOOKS,
+  }
+}
+
+export function destroyOptions<DreamInstance extends Dream>(options: DestroyOptions<DreamInstance>) {
+  return {
+    ...baseDestroyOptions<DreamInstance>(options),
+    reallyDestroy: false,
   }
 }
 
 export function undestroyOptions<DreamInstance extends Dream>(options: DestroyOptions<DreamInstance>) {
   return {
-    ...destroyOptions<DreamInstance>(options),
+    ...baseDestroyOptions<DreamInstance>(options),
     defaultScopesToBypass: addSoftDeleteScopeToUserScopes<DreamInstance>(options?.defaultScopesToBypass),
   }
 }
