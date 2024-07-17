@@ -14,8 +14,16 @@ import { AssociationTableNames } from './db/reflections'
 import { DbConnectionType } from './db/types'
 import associationToGetterSetterProp from './decorators/associations/associationToGetterSetterProp'
 import BelongsTo, { BelongsToOptions, BelongsToStatement } from './decorators/associations/belongs-to'
-import HasMany, { HasManyOptions, HasManyStatement } from './decorators/associations/has-many'
-import HasOne, { HasOneOptions, HasOneStatement } from './decorators/associations/has-one'
+import HasMany, {
+  HasManyOptions,
+  HasManyStatement,
+  HasManyThroughOptions,
+} from './decorators/associations/has-many'
+import HasOne, {
+  HasOneOptions,
+  HasOneStatement,
+  HasOneThroughOptions,
+} from './decorators/associations/has-one'
 import {
   blankAssociationsFactory,
   PassthroughWhere,
@@ -390,6 +398,21 @@ export default class Dream {
     return BelongsTo<InstanceType<T>, AssociationDreamClass>(modelCB, options)
   }
 
+  ///////////
+  // HasMany
+  ///////////
+  public static HasMany<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
+    this: T,
+    modelCB: () => AssociationDreamClass,
+    options?: HasManyOptions<InstanceType<T>, AssociationDreamClass>
+  ): any
+
+  public static HasMany<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
+    this: T,
+    modelCB: () => AssociationDreamClass,
+    options?: HasManyThroughOptions<InstanceType<T>, AssociationDreamClass>
+  ): any
+
   /**
    * Shortcut to the @HasMany decorator, which also provides extra type protection which cannot be provided
    * with the @HasMany decorator.
@@ -401,10 +424,28 @@ export default class Dream {
   public static HasMany<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
     this: T,
     modelCB: () => AssociationDreamClass,
-    options: HasManyOptions<InstanceType<T>, AssociationDreamClass> = {}
-  ) {
-    return HasMany<InstanceType<T>, AssociationDreamClass>(modelCB, options)
+    options: unknown = {}
+  ): any {
+    return HasMany<InstanceType<T>, AssociationDreamClass>(modelCB, options as any)
   }
+  ///////////////
+  // end: HasMany
+  //////////////
+
+  ///////////
+  // HasOne
+  ///////////
+  public static HasOne<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
+    this: T,
+    modelCB: () => AssociationDreamClass,
+    options?: HasOneOptions<InstanceType<T>, AssociationDreamClass>
+  ): any
+
+  public static HasOne<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
+    this: T,
+    modelCB: () => AssociationDreamClass,
+    options?: HasOneThroughOptions<InstanceType<T>, AssociationDreamClass>
+  ): any
 
   /**
    * Shortcut to the @HasOne decorator, which also provides extra type protection which cannot be provided
@@ -417,10 +458,13 @@ export default class Dream {
   public static HasOne<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
     this: T,
     modelCB: () => AssociationDreamClass,
-    options: HasOneOptions<InstanceType<T>, AssociationDreamClass> = {}
-  ) {
-    return HasOne<InstanceType<T>, AssociationDreamClass>(modelCB, options)
+    options: unknown = {}
+  ): any {
+    return HasOne<InstanceType<T>, AssociationDreamClass>(modelCB, options as any)
   }
+  //////////////
+  // end: HasOne
+  //////////////
 
   /**
    * Shortcut to the @Sortable decorator, which also provides extra type protection which cannot be provided

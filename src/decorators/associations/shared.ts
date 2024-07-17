@@ -18,7 +18,6 @@ import { checkForeignKey } from '../../exceptions/associations/explicit-foreign-
 import NonLoadedAssociation from '../../exceptions/associations/non-loaded-association'
 import CannotDefineAssociationWithBothDependentAndPassthrough from '../../exceptions/cannot-define-association-with-both-dependent-and-passthrough'
 import CannotDefineAssociationWithBothDependentAndRequiredWhereClause from '../../exceptions/cannot-define-association-with-both-dependent-and-required-where-clause'
-import CannotDefineAssociationWithBothThroughAndWithoutDefaultScopes from '../../exceptions/cannot-define-association-with-both-through-and-without-default-scopes'
 import CalendarDate from '../../helpers/CalendarDate'
 import camelize from '../../helpers/camelize'
 import { Range } from '../../helpers/range'
@@ -190,7 +189,7 @@ export interface HasStatement<
   withoutDefaultScopes?: DefaultScopeName<BaseInstance>[]
 }
 
-export interface HasOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream> {
+interface HasOptionsBase<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream> {
   foreignKey?: DreamColumnNames<InstanceType<AssociationDreamClass>>
   primaryKeyOverride?: DreamColumnNames<BaseInstance> | null
   through?: BaseInstance['dreamconf']['schema'][BaseInstance['table']]['associations'][number]
@@ -256,10 +255,42 @@ export interface HasOptions<BaseInstance extends Dream, AssociationDreamClass ex
             InstanceType<AssociationDreamClass>['dreamconf']['schema']
           >
       >[]
+
+  distinct?:
+    | TableColumnNames<
+        InstanceType<AssociationDreamClass>['dreamconf']['DB'],
+        InstanceType<AssociationDreamClass>['table'] &
+          AssociationTableNames<
+            InstanceType<AssociationDreamClass>['dreamconf']['DB'],
+            InstanceType<AssociationDreamClass>['dreamconf']['schema']
+          >
+      >
+    | boolean
+
   preloadThroughColumns?: string[] | Record<string, string>
   dependent?: DependentOptions
   withoutDefaultScopes?: DefaultScopeName<InstanceType<AssociationDreamClass>>[]
 }
+
+type ThroughIncompatibleOptions =
+  | 'dependent'
+  | 'foreignKey'
+  | 'polymorphic'
+  | 'primaryKeyOverride'
+  | 'withoutDefaultScopes'
+
+type ThroughOnlyOptions = 'through' | 'source' | 'preloadThroughColumns'
+export type HasManyOnlyOptions = 'distinct'
+
+export type HasOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream> = Omit<
+  HasOptionsBase<BaseInstance, AssociationDreamClass>,
+  ThroughOnlyOptions
+>
+
+export type HasThroughOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream> = Omit<
+  HasOptionsBase<BaseInstance, AssociationDreamClass>,
+  ThroughIncompatibleOptions
+>
 
 export function blankAssociationsFactory(dreamClass: typeof Dream): {
   belongsTo: BelongsToStatement<any, any, any, any>[]
@@ -416,23 +447,17 @@ export function validateHasStatementArgs({
   dreamClass,
   dependent,
   methodName,
-  through,
   where,
-  withoutDefaultScopes,
 }: {
   dreamClass: typeof Dream
   dependent: DependentOptions | null
   methodName: string
-  through: string | null
   where: object | null
-  withoutDefaultScopes: string[] | null
 }) {
   const hasPassthroughWhere = Object.values(where || {}).find(val => val === DreamConst.passthrough)
   const hasRequiredWhere = Object.values(where || {}).find(val => val === DreamConst.required)
   if (dependent && hasPassthroughWhere)
     throw new CannotDefineAssociationWithBothDependentAndPassthrough(dreamClass, methodName)
-  if (through && withoutDefaultScopes)
-    throw new CannotDefineAssociationWithBothThroughAndWithoutDefaultScopes(dreamClass, methodName)
   if (dependent && hasRequiredWhere)
     throw new CannotDefineAssociationWithBothDependentAndRequiredWhereClause(dreamClass, methodName)
 }

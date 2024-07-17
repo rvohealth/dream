@@ -1,9 +1,9 @@
 import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../dream'
-import { TableColumnNames } from '../../dream/types'
 import {
   HasOptions,
   HasStatement,
+  HasThroughOptions,
   applyGetterAndSetter,
   associationPrimaryKeyAccessors,
   blankAssociationsFactory,
@@ -11,6 +11,19 @@ import {
   foreignKeyTypeField,
   validateHasStatementArgs,
 } from './shared'
+
+export default function HasMany<
+  BaseInstance extends Dream = Dream,
+  AssociationDreamClass extends typeof Dream = typeof Dream,
+>(modelCB: () => AssociationDreamClass, opts?: HasManyOptions<BaseInstance, AssociationDreamClass>): any
+
+export default function HasMany<
+  BaseInstance extends Dream = Dream,
+  AssociationDreamClass extends typeof Dream = typeof Dream,
+>(
+  modelCB: () => AssociationDreamClass,
+  opts?: HasManyThroughOptions<BaseInstance, AssociationDreamClass>
+): any
 
 /**
  * Establishes a "HasMany" association between the base dream
@@ -50,9 +63,8 @@ import {
 export default function HasMany<
   BaseInstance extends Dream = Dream,
   AssociationDreamClass extends typeof Dream = typeof Dream,
->(
-  modelCB: () => AssociationDreamClass,
-  {
+>(modelCB: () => AssociationDreamClass, opts: unknown = {}): any {
+  const {
     dependent,
     distinct,
     foreignKey,
@@ -67,8 +79,7 @@ export default function HasMany<
     where,
     whereNot,
     withoutDefaultScopes,
-  }: HasManyOptions<BaseInstance, AssociationDreamClass> = {}
-): any {
+  } = opts as any
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return function (target: BaseInstance, key: string, _: any) {
     const dreamClass: typeof Dream = (target as any).constructor
@@ -80,9 +91,7 @@ export default function HasMany<
       dreamClass,
       dependent: dependent ?? null,
       methodName: key,
-      through: through ?? null,
       where: where ?? null,
-      withoutDefaultScopes: withoutDefaultScopes ?? null,
     })
 
     const partialAssociation = associationPrimaryKeyAccessors(
@@ -130,15 +139,7 @@ export interface HasManyStatement<
 > extends HasStatement<BaseInstance, DB, Schema, ForeignTableName, 'HasMany'> {}
 
 export interface HasManyOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream>
-  extends HasOptions<BaseInstance, AssociationDreamClass> {
-  distinct?:
-    | TableColumnNames<
-        InstanceType<AssociationDreamClass>['dreamconf']['DB'],
-        InstanceType<AssociationDreamClass>['table'] &
-          AssociationTableNames<
-            InstanceType<AssociationDreamClass>['dreamconf']['DB'],
-            InstanceType<AssociationDreamClass>['dreamconf']['schema']
-          >
-      >
-    | boolean
-}
+  extends HasOptions<BaseInstance, AssociationDreamClass> {}
+
+export interface HasManyThroughOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream>
+  extends HasThroughOptions<BaseInstance, AssociationDreamClass> {}
