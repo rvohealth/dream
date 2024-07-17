@@ -16,7 +16,6 @@ import reload from './internal/reload'
 import saveDream from './internal/saveDream'
 import {
   DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
-  DEFAULT_CASCADE,
   DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
   DEFAULT_SKIP_HOOKS,
 } from './internal/scopeHelpers'
@@ -614,11 +613,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    destroyAssociationOptions: {
-      bypassAllDefaultScopes?: boolean
-      defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance['dreamconf']>[]
-      cascade?: boolean
-      skipHooks?: boolean
+    options: DestroyOptions<DreamInstance> & {
       where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
     }
   ): Promise<number>
@@ -633,11 +628,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    destroyAssociationOptions?: {
-      bypassAllDefaultScopes?: boolean
-      defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance['dreamconf']>[]
-      cascade?: boolean
-      skipHooks?: boolean
+    options?: DestroyOptions<DreamInstance> & {
       where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
     }
   ): Promise<number>
@@ -662,16 +653,10 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     Schema extends DreamInstance['dreamconf']['schema'],
     AssociationName extends keyof Schema[DreamInstance['table']]['associations'],
-  >(this: I, associationName: AssociationName, destroyAssociationOptions?: unknown): Promise<number> {
+  >(this: I, associationName: AssociationName, options?: unknown): Promise<number> {
     return await destroyAssociation(this.dreamInstance, this.dreamTransaction, associationName, {
-      associationWhereStatement: (destroyAssociationOptions as any)?.where,
-      bypassAllDefaultScopes:
-        (destroyAssociationOptions as any)?.bypassAllDefaultScopes ?? DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
-      defaultScopesToBypass:
-        (destroyAssociationOptions as any)?.defaultScopesToBypass ?? DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
-      cascade: (destroyAssociationOptions as any)?.cascade ?? DEFAULT_CASCADE,
-      reallyDestroy: false,
-      skipHooks: (destroyAssociationOptions as any)?.skipHooks ?? DEFAULT_SKIP_HOOKS,
+      ...destroyOptions<DreamInstance>(options as any),
+      associationWhereStatement: (options as any)?.where,
     })
   }
   //////////////////////////
@@ -691,11 +676,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    destroyAssociationOptions: {
-      bypassAllDefaultScopes?: boolean
-      defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance['dreamconf']>[]
-      cascade?: boolean
-      skipHooks?: boolean
+    options: DestroyOptions<DreamInstance> & {
       where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
     }
   ): Promise<number>
@@ -710,11 +691,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    destroyAssociationOptions?: {
-      bypassAllDefaultScopes?: boolean
-      defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance['dreamconf']>[]
-      cascade?: boolean
-      skipHooks?: boolean
+    options?: DestroyOptions<DreamInstance> & {
       where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
     }
   ): Promise<number>
@@ -744,16 +721,10 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     Schema extends DreamInstance['dreamconf']['schema'],
     AssociationName extends keyof Schema[DreamInstance['table']]['associations'],
-  >(this: I, associationName: AssociationName, destroyAssociationOptions?: unknown): Promise<number> {
+  >(this: I, associationName: AssociationName, options?: unknown): Promise<number> {
     return await destroyAssociation(this.dreamInstance, this.dreamTransaction, associationName, {
-      associationWhereStatement: (destroyAssociationOptions as any)?.where,
-      bypassAllDefaultScopes:
-        (destroyAssociationOptions as any)?.bypassAllDefaultScopes ?? DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
-      defaultScopesToBypass:
-        (destroyAssociationOptions as any)?.defaultScopesToBypass ?? DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
-      cascade: (destroyAssociationOptions as any)?.cascade ?? DEFAULT_CASCADE,
-      reallyDestroy: true,
-      skipHooks: (destroyAssociationOptions as any)?.skipHooks ?? DEFAULT_SKIP_HOOKS,
+      ...reallyDestroyOptions<DreamInstance>(options as any),
+      associationWhereStatement: (options as any)?.where,
     })
   }
   ////////////////////////////////
@@ -772,11 +743,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    destroyAssociationOptions: {
-      bypassAllDefaultScopes?: boolean
-      defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance['dreamconf']>[]
-      cascade?: boolean
-      skipHooks?: boolean
+    options: DestroyOptions<DreamInstance> & {
       where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
     }
   ): Promise<number>
@@ -790,11 +757,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    destroyAssociationOptions?: {
-      bypassAllDefaultScopes?: boolean
-      defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance['dreamconf']>[]
-      cascade?: boolean
-      skipHooks?: boolean
+    options?: DestroyOptions<DreamInstance> & {
       where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
     }
   ): Promise<number>
@@ -818,15 +781,10 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   public async undestroyAssociation<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends keyof DreamInstance,
-  >(this: I, associationName: AssociationName, destroyAssociationOptions?: unknown): Promise<number> {
+  >(this: I, associationName: AssociationName, options?: unknown): Promise<number> {
     return await undestroyAssociation(this.dreamInstance, this.dreamTransaction, associationName, {
-      associationWhereStatement: (destroyAssociationOptions as any)?.where,
-      bypassAllDefaultScopes:
-        (destroyAssociationOptions as any)?.bypassAllDefaultScopes ?? DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
-      defaultScopesToBypass:
-        (destroyAssociationOptions as any)?.defaultScopesToBypass ?? DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
-      cascade: (destroyAssociationOptions as any)?.cascade ?? DEFAULT_CASCADE,
-      skipHooks: (destroyAssociationOptions as any)?.skipHooks ?? DEFAULT_SKIP_HOOKS,
+      ...undestroyOptions<DreamInstance>(options as any),
+      associationWhereStatement: (options as any)?.where,
     })
   }
   ///////////////////
