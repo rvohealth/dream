@@ -1,8 +1,10 @@
 import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../dream'
 import {
+  HasManyOnlyOptions,
   HasOptions,
   HasStatement,
+  HasThroughOptions,
   applyGetterAndSetter,
   associationPrimaryKeyAccessors,
   blankAssociationsFactory,
@@ -10,6 +12,16 @@ import {
   foreignKeyTypeField,
   validateHasStatementArgs,
 } from './shared'
+
+export default function HasOne<
+  BaseInstance extends Dream,
+  AssociationDreamClass extends typeof Dream = typeof Dream,
+>(modelCB: () => AssociationDreamClass, opts?: HasOneOptions<BaseInstance, AssociationDreamClass>): any
+
+export default function HasOne<
+  BaseInstance extends Dream,
+  AssociationDreamClass extends typeof Dream = typeof Dream,
+>(modelCB: () => AssociationDreamClass, opts?: HasOneThroughOptions<BaseInstance, AssociationDreamClass>): any
 
 /**
  * Establishes a "HasOne" association between the base dream
@@ -48,9 +60,8 @@ import {
 export default function HasOne<
   BaseInstance extends Dream,
   AssociationDreamClass extends typeof Dream = typeof Dream,
->(
-  modelCB: () => AssociationDreamClass,
-  {
+>(modelCB: () => AssociationDreamClass, opts: unknown = {}): any {
+  const {
     dependent,
     foreignKey,
     order,
@@ -64,8 +75,8 @@ export default function HasOne<
     where,
     whereNot,
     withoutDefaultScopes,
-  }: HasOneOptions<BaseInstance, AssociationDreamClass> = {}
-): any {
+  } = opts as any
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return function (target: BaseInstance, key: string, _: any) {
     const dreamClass: typeof Dream = (target as any).constructor
@@ -77,9 +88,7 @@ export default function HasOne<
       dreamClass,
       dependent: dependent ?? null,
       methodName: key,
-      through: through ?? null,
       where: where ?? null,
-      withoutDefaultScopes: withoutDefaultScopes ?? null,
     })
 
     const partialAssociation = associationPrimaryKeyAccessors(
@@ -127,4 +136,7 @@ export interface HasOneStatement<
 > extends HasStatement<BaseInstance, DB, Schema, ForeignTableName, 'HasOne'> {}
 
 export interface HasOneOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream>
-  extends HasOptions<BaseInstance, AssociationDreamClass> {}
+  extends Omit<HasOptions<BaseInstance, AssociationDreamClass>, HasManyOnlyOptions> {}
+
+export interface HasOneThroughOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream>
+  extends Omit<HasThroughOptions<BaseInstance, AssociationDreamClass>, HasManyOnlyOptions> {}
