@@ -165,6 +165,7 @@ program
   .description('db:migrate runs any outstanding database migrations')
   .option('--core', 'sets core to true')
   .option('--tsnode', 'runs the command using ts-node instead of node')
+  .option('--skip-sync', 'skips syncing local schema after running migrations')
   .option(
     '--bypass-config-cache',
     'bypasses running type cache build (this is typically used internally only)'
@@ -172,7 +173,7 @@ program
   .action(async () => {
     await sspawn(nodeOrTsnodeCmd('src/bin/db-migrate.ts', cmdargs(), { tsnodeFlags: ['--transpile-only'] }))
 
-    if (developmentOrTestEnv()) {
+    if (developmentOrTestEnv() && !cmdargs().includes('--skip-sync')) {
       await sspawn(dreamjsOrDreamtsCmd('sync', cmdargs()))
     }
   })
