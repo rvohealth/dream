@@ -6,10 +6,15 @@ import createAssociation from './internal/associations/createAssociation'
 import destroyAssociation from './internal/associations/destroyAssociation'
 import undestroyAssociation from './internal/associations/undestroyAssociation'
 import destroyDream from './internal/destroyDream'
+import {
+  destroyOptions,
+  DestroyOptions,
+  reallyDestroyOptions,
+  undestroyOptions,
+} from './internal/destroyOptions'
 import reload from './internal/reload'
 import saveDream from './internal/saveDream'
 import {
-  addSoftDeleteScopeToUserScopes,
   DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
   DEFAULT_CASCADE,
   DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
@@ -275,25 +280,13 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    */
   public async destroy<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I,
-    {
-      bypassAllDefaultScopes,
-      defaultScopesToBypass,
-      cascade,
-      skipHooks,
-    }: {
-      bypassAllDefaultScopes?: boolean
-      defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance['dreamconf']>[]
-      cascade?: boolean
-      skipHooks?: boolean
-    } = {}
+    options: DestroyOptions<DreamInstance> = {}
   ): Promise<DreamInstance> {
-    return await destroyDream<DreamInstance>(this.dreamInstance, this.dreamTransaction, {
-      bypassAllDefaultScopes: bypassAllDefaultScopes ?? DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
-      defaultScopesToBypass: defaultScopesToBypass ?? DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
-      cascade: cascade ?? DEFAULT_CASCADE,
-      reallyDestroy: false,
-      skipHooks: skipHooks ?? DEFAULT_SKIP_HOOKS,
-    })
+    return await destroyDream<DreamInstance>(
+      this.dreamInstance,
+      this.dreamTransaction,
+      destroyOptions<DreamInstance>(options)
+    )
   }
 
   /**
@@ -314,25 +307,13 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    */
   public async reallyDestroy<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I,
-    {
-      bypassAllDefaultScopes,
-      defaultScopesToBypass,
-      cascade,
-      skipHooks,
-    }: {
-      bypassAllDefaultScopes?: boolean
-      defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance['dreamconf']>[]
-      cascade?: boolean
-      skipHooks?: boolean
-    } = {}
+    options: DestroyOptions<DreamInstance> = {}
   ): Promise<DreamInstance> {
-    return await destroyDream<DreamInstance>(this.dreamInstance, this.dreamTransaction, {
-      bypassAllDefaultScopes: bypassAllDefaultScopes ?? DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
-      defaultScopesToBypass: addSoftDeleteScopeToUserScopes<DreamInstance>(defaultScopesToBypass),
-      cascade: cascade ?? DEFAULT_CASCADE,
-      reallyDestroy: true,
-      skipHooks: skipHooks ?? DEFAULT_SKIP_HOOKS,
-    })
+    return await destroyDream<DreamInstance>(
+      this.dreamInstance,
+      this.dreamTransaction,
+      reallyDestroyOptions<DreamInstance>(options)
+    )
   }
 
   /**
@@ -352,24 +333,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    */
   public async undestroy<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I,
-    {
-      bypassAllDefaultScopes,
-      defaultScopesToBypass,
-      cascade,
-      skipHooks,
-    }: {
-      bypassAllDefaultScopes?: boolean
-      defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance['dreamconf']>[]
-      cascade?: boolean
-      skipHooks?: boolean
-    } = {}
+    options: DestroyOptions<DreamInstance> = {}
   ): Promise<I> {
-    await undestroyDream(this.dreamInstance, this.dreamTransaction, {
-      bypassAllDefaultScopes: bypassAllDefaultScopes ?? DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
-      defaultScopesToBypass: addSoftDeleteScopeToUserScopes<DreamInstance>(defaultScopesToBypass),
-      cascade: cascade ?? DEFAULT_CASCADE,
-      skipHooks: skipHooks ?? DEFAULT_SKIP_HOOKS,
-    })
+    await undestroyDream(this.dreamInstance, this.dreamTransaction, undestroyOptions<DreamInstance>(options))
     await this.reload()
     return this
   }

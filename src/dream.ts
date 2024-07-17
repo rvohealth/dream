@@ -56,12 +56,17 @@ import createAssociation from './dream/internal/associations/createAssociation'
 import destroyAssociation from './dream/internal/associations/destroyAssociation'
 import undestroyAssociation from './dream/internal/associations/undestroyAssociation'
 import destroyDream from './dream/internal/destroyDream'
+import {
+  DestroyOptions,
+  destroyOptions,
+  reallyDestroyOptions,
+  undestroyOptions,
+} from './dream/internal/destroyOptions'
 import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet'
 import reload from './dream/internal/reload'
 import runValidations from './dream/internal/runValidations'
 import saveDream from './dream/internal/saveDream'
 import {
-  addSoftDeleteScopeToUserScopes,
   DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
   DEFAULT_CASCADE,
   DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
@@ -3040,27 +3045,8 @@ export default class Dream {
    * @param opts.cascade - if false, will skip applying cascade deletes on "dependent: 'destroy'" associations. Defaults to true
    * @returns the instance that was destroyed
    */
-  public async destroy<I extends Dream>(
-    this: I,
-    {
-      bypassAllDefaultScopes,
-      defaultScopesToBypass,
-      cascade,
-      skipHooks,
-    }: {
-      bypassAllDefaultScopes?: boolean
-      defaultScopesToBypass?: AllDefaultScopeNames<I['dreamconf']>[]
-      cascade?: boolean
-      skipHooks?: boolean
-    } = {}
-  ): Promise<I> {
-    return await destroyDream(this, null, {
-      bypassAllDefaultScopes: bypassAllDefaultScopes ?? DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
-      defaultScopesToBypass: defaultScopesToBypass ?? DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
-      cascade: cascade ?? DEFAULT_CASCADE,
-      reallyDestroy: false,
-      skipHooks: skipHooks ?? DEFAULT_SKIP_HOOKS,
-    })
+  public async destroy<I extends Dream>(this: I, options: DestroyOptions<I> = {}): Promise<I> {
+    return await destroyDream(this, null, destroyOptions<I>(options))
   }
 
   /**
@@ -3082,27 +3068,8 @@ export default class Dream {
    * @param opts.cascade - if false, will skip applying cascade deletes on "dependent: 'destroy'" associations. Defaults to true
    * @returns the instance that was destroyed
    */
-  public async reallyDestroy<I extends Dream>(
-    this: I,
-    {
-      bypassAllDefaultScopes,
-      defaultScopesToBypass,
-      cascade,
-      skipHooks,
-    }: {
-      bypassAllDefaultScopes?: boolean
-      defaultScopesToBypass?: AllDefaultScopeNames<I['dreamconf']>[]
-      cascade?: boolean
-      skipHooks?: boolean
-    } = {}
-  ): Promise<I> {
-    return await destroyDream(this, null, {
-      bypassAllDefaultScopes: bypassAllDefaultScopes ?? DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
-      defaultScopesToBypass: addSoftDeleteScopeToUserScopes<I>(defaultScopesToBypass),
-      cascade: cascade ?? DEFAULT_CASCADE,
-      reallyDestroy: true,
-      skipHooks: skipHooks ?? DEFAULT_SKIP_HOOKS,
-    })
+  public async reallyDestroy<I extends Dream>(this: I, options: DestroyOptions<I> = {}): Promise<I> {
+    return await destroyDream(this, null, reallyDestroyOptions<I>(options))
   }
 
   /**
@@ -3122,29 +3089,11 @@ export default class Dream {
    * @param opts.cascade - if false, will skip applying cascade undeletes on "dependent: 'destroy'" associations. Defaults to true
    * @returns The undestroyed record
    */
-  public async undestroy<I extends Dream>(
-    this: I,
-    {
-      bypassAllDefaultScopes,
-      defaultScopesToBypass,
-      cascade,
-      skipHooks,
-    }: {
-      bypassAllDefaultScopes?: boolean
-      defaultScopesToBypass?: AllDefaultScopeNames<I['dreamconf']>[]
-      cascade?: boolean
-      skipHooks?: boolean
-    } = {}
-  ): Promise<I> {
+  public async undestroy<I extends Dream>(this: I, options: DestroyOptions<I> = {}): Promise<I> {
     const dreamClass = this.constructor as typeof Dream
     if (!dreamClass['softDelete']) throw new CannotCallUndestroyOnANonSoftDeleteModel(dreamClass)
 
-    await undestroyDream(this, null, {
-      bypassAllDefaultScopes: bypassAllDefaultScopes ?? DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
-      defaultScopesToBypass: addSoftDeleteScopeToUserScopes<I>(defaultScopesToBypass),
-      cascade: cascade ?? DEFAULT_CASCADE,
-      skipHooks: skipHooks ?? DEFAULT_SKIP_HOOKS,
-    })
+    await undestroyDream(this, null, undestroyOptions<I>(options))
 
     return this
   }
