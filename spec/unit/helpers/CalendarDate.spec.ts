@@ -538,12 +538,67 @@ describe('CalendarDate', () => {
       const calendarDate = CalendarDate.fromISO('2024-07-18')
       expect(calendarDate.startOf('month')).toEqualCalendarDate(CalendarDate.fromISO('2024-07-01'))
     })
+
+    context('on an invalid CalendarDate', () => {
+      it('returns an invalid CalendarDate', () => {
+        const calendarDate = CalendarDate.fromISO('2023-02-29')
+        expect(calendarDate.startOf('month').isValid).toBe(false)
+      })
+    })
   })
 
   describe('#endOf', () => {
     it('returns a CalendarDate at the beginning of the specified time period', () => {
       const calendarDate = CalendarDate.fromISO('2024-07-18')
       expect(calendarDate.endOf('month')).toEqualCalendarDate(CalendarDate.fromISO('2024-07-31'))
+    })
+
+    context('on an invalid CalendarDate', () => {
+      it('returns an invalid CalendarDate', () => {
+        const calendarDate = CalendarDate.fromISO('2023-02-29')
+        expect(calendarDate.endOf('month').isValid).toBe(false)
+      })
+    })
+  })
+
+  describe('#hasSame', () => {
+    context(
+      'when this CalendarDate and the passed CalendarDate share the same specified period (which ' +
+        'implies that they share all less granular periods as well, e.g. hasSame "day" implies same month and year)',
+      () => {
+        it('is true', () => {
+          const calendarDate = CalendarDate.fromISO('2024-07-18')
+          const otherCalendarDate = CalendarDate.fromISO('2024-07-07')
+          expect(calendarDate.hasSame(otherCalendarDate, 'month')).toBe(true)
+        })
+      }
+    )
+
+    context(
+      'when this CalendarDate and the passed CalendarDate DO NOT share the same specified period',
+      () => {
+        it('is false', () => {
+          const calendarDate = CalendarDate.fromISO('2024-07-18')
+          const otherCalendarDate = CalendarDate.fromISO('2024-03-07')
+          expect(calendarDate.hasSame(otherCalendarDate, 'month')).toBe(false)
+        })
+      }
+    )
+
+    context('on an invalid CalendarDate', () => {
+      it('is false', () => {
+        const calendarDate = CalendarDate.newInvalidDate()
+        const otherCalendarDate = CalendarDate.fromISO('2024-02-27')
+        expect(calendarDate.hasSame(otherCalendarDate, 'day')).toBe(false)
+      })
+    })
+
+    context('with an invalid CalendarDate', () => {
+      it('is false', () => {
+        const calendarDate = CalendarDate.fromISO('2024-03-02')
+        const otherCalendarDate = CalendarDate.newInvalidDate()
+        expect(calendarDate.hasSame(otherCalendarDate, 'day')).toBe(false)
+      })
     })
   })
 })

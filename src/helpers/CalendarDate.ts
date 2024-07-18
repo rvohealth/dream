@@ -161,6 +161,13 @@ export default class CalendarDate {
     return new CalendarDate(DateTime.min(dateTime, otherDateTime))
   }
 
+  public hasSame(otherCalendarDate: CalendarDate, period: CalendarDateUnit): boolean {
+    if (this.luxonDateTime === null) return false
+    const otherDateTime = otherCalendarDate.toDateTime()
+    if (otherDateTime === null) return false
+    return this.luxonDateTime.hasSame(otherDateTime, period)
+  }
+
   public diff(otherCalendarDate: CalendarDate, duration: CalendarDateDurationUnit): number | null {
     if (this.luxonDateTime === null) return null
     const otherDateTime = otherCalendarDate.toDateTime()
