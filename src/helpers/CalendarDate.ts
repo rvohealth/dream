@@ -3,6 +3,7 @@ import {
   DateTime,
   DateTimeFormatOptions,
   DateTimeJSOptions,
+  DateTimeUnit,
   DurationLikeObject,
   DurationObjectUnits,
   LocaleOptions,
@@ -18,6 +19,8 @@ type CalendarDateDurationUnit = keyof Pick<
   DurationObjectUnits,
   'years' | 'quarters' | 'months' | 'weeks' | 'days'
 >
+
+type CalendarDateUnit = Extract<DateTimeUnit, 'year' | 'quarter' | 'month' | 'week' | 'day'>
 
 export default class CalendarDate {
   private luxonDateTime: DateTime | null
@@ -120,6 +123,16 @@ export default class CalendarDate {
   public get day(): number | null {
     if (this.luxonDateTime === null) return null
     return this.luxonDateTime.day
+  }
+
+  public startOf(period: CalendarDateUnit): CalendarDate {
+    if (this.luxonDateTime === null) return CalendarDate.newInvalidDate()
+    return new CalendarDate(this.luxonDateTime.startOf(period))
+  }
+
+  public endOf(period: CalendarDateUnit): CalendarDate {
+    if (this.luxonDateTime === null) return CalendarDate.newInvalidDate()
+    return new CalendarDate(this.luxonDateTime.endOf(period))
   }
 
   public plus(duration: CalendarDateDurationLike): CalendarDate {

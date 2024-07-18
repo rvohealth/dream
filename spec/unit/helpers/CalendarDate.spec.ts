@@ -532,4 +532,18 @@ describe('CalendarDate', () => {
       })
     })
   })
+
+  describe('#startOf', () => {
+    it('returns a CalendarDate at the beginning of the specified time period', () => {
+      const calendarDate = CalendarDate.fromISO('2024-07-18')
+      expect(calendarDate.startOf('month')).toEqualCalendarDate(CalendarDate.fromISO('2024-07-01'))
+    })
+  })
+
+  describe('#endOf', () => {
+    it('returns a CalendarDate at the beginning of the specified time period', () => {
+      const calendarDate = CalendarDate.fromISO('2024-07-18')
+      expect(calendarDate.endOf('month')).toEqualCalendarDate(CalendarDate.fromISO('2024-07-31'))
+    })
+  })
 })
