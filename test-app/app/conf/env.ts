@@ -1,8 +1,6 @@
-import Dreamconf from '../../../src/helpers/dreamconf'
-import { globalSchema, schema } from '../../db/schema'
-import { DBClass } from '../../db/sync'
+import { DbConfig } from '../../../src/helpers/path/types'
 
-const env = {
+const envConf = {
   db: {
     development: {
       primary: {
@@ -59,13 +57,10 @@ const env = {
       },
     },
   },
+} as const
+
+export default envConf
+
+export interface EnvOpts {
+  db: DbConfig
 }
-
-const dreamconf = new Dreamconf<DBClass, typeof schema, typeof globalSchema>({
-  DB: new DBClass(),
-  env,
-  schema,
-  globalSchema,
-})
-
-export default dreamconf

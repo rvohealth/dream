@@ -1,11 +1,11 @@
 import Dream from '../../../src/dream'
-import Dreamconf from '../../../src/helpers/dreamconf'
 import { globalSchema, schema } from '../../db/schema'
 import { DBClass } from '../../db/sync'
-import dreamconf from '../conf/dreamconf'
+import envConf from '../conf/env'
 
 export default class ApplicationModel extends Dream {
-  public get dreamconf(): Dreamconf<DBClass, typeof schema, typeof globalSchema> {
-    return dreamconf
-  }
+  public DB: DBClass
+  public env: typeof envConf
+  public schema: typeof schema
+  public globalSchema: typeof globalSchema
 }
