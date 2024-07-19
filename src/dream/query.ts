@@ -498,7 +498,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       keyof Schema[TableName]['columns']]['coercedType']
   ): Promise<DreamInstance> {
     const record = await this.find(primaryKey)
-    if (!record) throw new RecordNotFound(this.constructor.name)
+    if (!record) throw new RecordNotFound(this.dreamInstance.constructor.name)
     return record
   }
 
