@@ -1,14 +1,13 @@
-import '../helpers/loadEnv'
-import createDb from '../helpers/db/createDb'
 import ConnectionConfRetriever from '../db/connection-conf-retriever'
-import loadDreamconfFile from '../helpers/path/loadDreamconfFile'
+import createDb from '../helpers/db/createDb'
 import initializeDream from '../helpers/initializeDream'
+import '../helpers/loadEnv'
+import loadEnvConf from '../helpers/path/loadEnvConf'
 
 async function dbCreate() {
   await initializeDream()
 
-  const dreamconf = await loadDreamconfFile()
-  const connectionRetriever = new ConnectionConfRetriever(dreamconf)
+  const connectionRetriever = new ConnectionConfRetriever(await loadEnvConf())
   const primaryDbConf = connectionRetriever.getConnectionConf('primary')
 
   console.log(`creating ${process.env[primaryDbConf.name]}`)

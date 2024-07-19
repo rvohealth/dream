@@ -1,5 +1,3 @@
-import { DbConfig } from '../../../src/helpers/path/types'
-
 const envConf = {
   db: {
     development: {
@@ -60,7 +58,3 @@ const envConf = {
 } as const
 
 export default envConf
-
-export interface EnvOpts {
-  db: DbConfig
-}

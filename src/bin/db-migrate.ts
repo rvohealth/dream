@@ -1,16 +1,15 @@
-import '../helpers/loadEnv'
 import db from '../db'
 import runMigration from '../helpers/db/runMigration'
-import loadDreamconfFile from '../helpers/path/loadDreamconfFile'
 import initializeDream from '../helpers/initializeDream'
+import '../helpers/loadEnv'
+import loadEnvConf from '../helpers/path/loadEnvConf'
 
 async function migrateToLatest() {
   await initializeDream()
 
   await runMigration({ mode: 'migrate' })
 
-  const dreamconf = await loadDreamconfFile()
-  await db('primary', dreamconf).destroy()
+  await db('primary', await loadEnvConf()).destroy()
   process.exit()
 }
 

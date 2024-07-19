@@ -10,137 +10,129 @@ describe('SchemaBuilder', () => {
     context('columns', () => {
       context('bigint', () => {
         it('renders "bigint" for dbType', () => {
-          expect(User.prototype.dreamconf.schema.collars.columns.balloonId.dbType).toEqual('bigint')
+          expect(User.prototype.schema.collars.columns.balloonId.dbType).toEqual('bigint')
         })
       })
 
       context('boolean', () => {
         it('renders "boolean" for dbType', () => {
-          expect(User.prototype.dreamconf.schema.collars.columns.lost.dbType).toEqual('boolean')
+          expect(User.prototype.schema.collars.columns.lost.dbType).toEqual('boolean')
         })
       })
 
       context('varchar', () => {
         it('renders "character varying" for dbType', () => {
-          expect(User.prototype.dreamconf.schema.collars.columns.tagName.dbType).toEqual('character varying')
+          expect(User.prototype.schema.collars.columns.tagName.dbType).toEqual('character varying')
         })
       })
 
       context('integer', () => {
         it('renders "integer" for dbType', () => {
-          expect(User.prototype.dreamconf.schema.collars.columns.position.dbType).toEqual('integer')
+          expect(User.prototype.schema.collars.columns.position.dbType).toEqual('integer')
         })
       })
 
       context('citext', () => {
         it('renders "citext" for dbType', () => {
-          expect(User.prototype.dreamconf.schema.users.columns.favoriteWord.dbType).toEqual('citext')
+          expect(User.prototype.schema.users.columns.favoriteWord.dbType).toEqual('citext')
         })
       })
 
       context('primitive (in this case, integer) array type', () => {
         it('renders "integer[]" for integer[] dbType', () => {
-          expect(User.prototype.dreamconf.schema.users.columns.favoriteNumbers.dbType).toEqual('integer[]')
-          expect(User.prototype.dreamconf.schema.users.columns.favoriteNumbers.enumValues).toBeNull()
+          expect(User.prototype.schema.users.columns.favoriteNumbers.dbType).toEqual('integer[]')
+          expect(User.prototype.schema.users.columns.favoriteNumbers.enumValues).toBeNull()
         })
 
         it('renders "timestamp[]" for timestamp[] dbType', () => {
-          expect(User.prototype.dreamconf.schema.users.columns.favoriteDatetimes.dbType).toEqual(
+          expect(User.prototype.schema.users.columns.favoriteDatetimes.dbType).toEqual(
             'timestamp without time zone[]'
           )
-          expect(User.prototype.dreamconf.schema.users.columns.favoriteDatetimes.enumValues).toBeNull()
+          expect(User.prototype.schema.users.columns.favoriteDatetimes.enumValues).toBeNull()
         })
       })
 
       context('enum', () => {
         it('renders the enum name for dbType', () => {
-          expect(User.prototype.dreamconf.schema.beautiful_balloons.columns.color.dbType).toEqual(
-            'balloon_colors_enum'
-          )
+          expect(User.prototype.schema.beautiful_balloons.columns.color.dbType).toEqual('balloon_colors_enum')
         })
 
         it('sets enum-specific fields', () => {
-          expect(User.prototype.dreamconf.schema.beautiful_balloons.columns.color.enumValues).toEqual(
+          expect(User.prototype.schema.beautiful_balloons.columns.color.enumValues).toEqual(
             BalloonColorsEnumValues
           )
         })
 
         context('enum array', () => {
           it('renders the enum name[] for dbType', () => {
-            expect(User.prototype.dreamconf.schema.beautiful_balloons.columns.multicolor.dbType).toEqual(
+            expect(User.prototype.schema.beautiful_balloons.columns.multicolor.dbType).toEqual(
               'balloon_colors_enum[]'
             )
           })
 
           it('sets enum-specific fields', () => {
-            expect(User.prototype.dreamconf.schema.beautiful_balloons.columns.multicolor.enumValues).toEqual(
+            expect(User.prototype.schema.beautiful_balloons.columns.multicolor.enumValues).toEqual(
               BalloonColorsEnumValues
             )
-            expect(User.prototype.dreamconf.schema.beautiful_balloons.columns.multicolor.isArray).toEqual(
-              true
-            )
+            expect(User.prototype.schema.beautiful_balloons.columns.multicolor.isArray).toEqual(true)
           })
         })
       })
 
       context('for a column that allows null', () => {
         it('sets allowNull to true', () => {
-          expect(User.prototype.dreamconf.schema.collars.columns.balloonId.allowNull).toEqual(true)
+          expect(User.prototype.schema.collars.columns.balloonId.allowNull).toEqual(true)
         })
       })
     })
 
     context('primaryKey', () => {
       it('sets the primaryKey', () => {
-        expect(User.prototype.dreamconf.schema.users.primaryKey).toEqual('id')
+        expect(User.prototype.schema.users.primaryKey).toEqual('id')
       })
     })
 
     context('createdAtField', () => {
       it('sets the createdAtField', () => {
-        expect(User.prototype.dreamconf.schema.users.createdAtField).toEqual('createdAt')
+        expect(User.prototype.schema.users.createdAtField).toEqual('createdAt')
         // createdAt intentionally points to updatedAt on this model
-        expect(User.prototype.dreamconf.schema.model_without_custom_deleted_ats.createdAtField).toEqual(
-          'updatedAt'
-        )
+        expect(User.prototype.schema.model_without_custom_deleted_ats.createdAtField).toEqual('updatedAt')
       })
     })
 
     context('scopes', () => {
       it('sets the default and non-default scopes', () => {
-        expect(User.prototype.dreamconf.schema.model_without_deleted_ats.scopes.default).toEqual([
+        expect(User.prototype.schema.model_without_deleted_ats.scopes.default).toEqual([
           'dream:SoftDelete',
           'howyadoin',
         ])
-        expect(User.prototype.dreamconf.schema.beautiful_balloons.scopes.default).toEqual([
+        expect(User.prototype.schema.beautiful_balloons.scopes.default).toEqual([
           'dream:STI',
           'dream:SoftDelete',
         ])
-        expect(User.prototype.dreamconf.schema.users.scopes.named).toEqual(['withFunnyName'])
+        expect(User.prototype.schema.users.scopes.named).toEqual(['withFunnyName'])
       })
     })
 
     context('updatedAtField', () => {
       it('sets the updatedAtField', () => {
-        expect(User.prototype.dreamconf.schema.users.updatedAtField).toEqual('updatedAt')
+        expect(User.prototype.schema.users.updatedAtField).toEqual('updatedAt')
         // updatedAt intentionally points to createdAt on this model
-        expect(User.prototype.dreamconf.schema.model_without_custom_deleted_ats.updatedAtField).toEqual(
-          'createdAt'
-        )
+        expect(User.prototype.schema.model_without_custom_deleted_ats.updatedAtField).toEqual('createdAt')
       })
     })
 
     context('deletedAtField', () => {
       it('sets the deletedAtField', () => {
-        expect(User.prototype.dreamconf.schema.users.deletedAtField).toEqual('deletedAt')
+        expect(User.prototype.schema.users.deletedAtField).toEqual('deletedAt')
         // deleteAt intentionally points to id on this model
-        expect(User.prototype.dreamconf.schema.model_without_custom_deleted_ats.deletedAtField).toEqual('id')
+        expect(User.prototype.schema.model_without_custom_deleted_ats.deletedAtField).toEqual('id')
       })
     })
 
     context('associations', () => {
       it('renders correct association data', () => {
-        expect(User.prototype.dreamconf.schema.collars.associations.pet).toEqual({
+        expect(User.prototype.schema.collars.associations.pet).toEqual({
           type: 'BelongsTo',
           tables: ['pets'],
           optional: false,
@@ -150,9 +142,7 @@ describe('SchemaBuilder', () => {
       })
 
       it('renders required where clauses', () => {
-        expect(
-          User.prototype.dreamconf.schema.compositions.associations.inlineWhereCurrentLocalizedText
-        ).toEqual({
+        expect(User.prototype.schema.compositions.associations.inlineWhereCurrentLocalizedText).toEqual({
           type: 'HasOne',
           foreignKey: 'localizableId',
           tables: ['localized_texts'],

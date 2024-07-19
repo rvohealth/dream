@@ -1,31 +1,24 @@
 import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import { DbConnectionType } from '../../../src/db/types'
-import Dreamconf from '../../../src/helpers/dreamconf'
 import { DbConnectionConfig } from '../../../src/helpers/path/types'
 
 describe('ConnectionConfRetriever', () => {
-  const getConfig = () =>
-    new Dreamconf({
-      DB: {},
-      env: {
-        db: {
-          production: {
-            primary: prodPrimaryConfig,
-            replica: prodReplicaConfig,
-          },
-          development: {
-            primary: devPrimaryConfig,
-            replica: devReplicaConfig,
-          },
-          test: {
-            primary: testPrimaryConfig,
-            replica: testReplicaConfig,
-          },
-        },
+  const getConfig = () => ({
+    db: {
+      production: {
+        primary: prodPrimaryConfig,
+        replica: prodReplicaConfig,
       },
-      schema: {},
-      globalSchema: {},
-    })
+      development: {
+        primary: devPrimaryConfig,
+        replica: devReplicaConfig,
+      },
+      test: {
+        primary: testPrimaryConfig,
+        replica: testReplicaConfig,
+      },
+    },
+  })
 
   let connection: DbConnectionType
   let prodPrimaryConfig: DbConnectionConfig

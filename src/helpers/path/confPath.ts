@@ -9,4 +9,4 @@ export default async function confPath(file?: ConfFile) {
   })
 }
 
-export type ConfFile = 'inflections'
+export type ConfFile = 'inflections' | 'env'

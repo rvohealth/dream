@@ -115,14 +115,28 @@ import CalendarDate from './helpers/CalendarDate'
 import cloneDeepSafe from './helpers/cloneDeepSafe'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
-import Dreamconf from './helpers/dreamconf'
 import getModelKey from './helpers/getModelKey'
 import { marshalDBValue } from './helpers/marshalDBValue'
 import pascalize from './helpers/pascalize'
 import instanceSerializerForKey from './helpers/serializerForKey'
 import { isString } from './helpers/typechecks'
+import { EnvOpts } from './helpers/path/types'
 
 export default class Dream {
+  public DB: any
+
+  public get env(): EnvOpts {
+    throw new Error('Must define env getter in ApplicationModel')
+  }
+
+  public get schema(): any {
+    throw new Error('Must define schema getter in ApplicationModel')
+  }
+
+  public get globalSchema(): any {
+    throw new Error('Must define schema getter in ApplicationModel')
+  }
+
   /**
    * Shadows #primaryKey, a getter which can be overwritten to customize the id field
    * for a given model.
@@ -740,11 +754,11 @@ export default class Dream {
   public static columns<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['dreamconf']['DB'],
+    DB extends I['DB'],
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName],
   >(this: T): Set<keyof Table & string> {
-    const columns = this.prototype.dreamconf.schema[this.table]?.columns
+    const columns = this.prototype.schema[this.table]?.columns
     return new Set(columns ? Object.keys(columns) : [])
   }
 
@@ -848,7 +862,7 @@ export default class Dream {
   private static getAssociationMetadata<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    Schema extends I['dreamconf']['schema'],
+    Schema extends I['schema'],
   >(this: T, associationName: Schema[I['table']]['associations'][number]) {
     return this.associationMetadataMap()[associationName]
   }
@@ -863,8 +877,8 @@ export default class Dream {
   private static associationMetadataMap<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['dreamconf']['DB'],
-    Schema extends I['dreamconf']['schema'],
+    DB extends I['DB'],
+    Schema extends I['schema'],
   >(this: T) {
     const allAssociations = [
       ...this.associationMetadataByType.belongsTo,
@@ -921,7 +935,7 @@ export default class Dream {
    */
   public static removeDefaultScope<T extends typeof Dream>(
     this: T,
-    scopeName: AllDefaultScopeNames<InstanceType<T>['dreamconf']>
+    scopeName: AllDefaultScopeNames<InstanceType<T>>
   ): Query<InstanceType<T>> {
     return this.query().removeDefaultScope(scopeName)
   }
@@ -1085,7 +1099,7 @@ export default class Dream {
   public static distinct<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['dreamconf']['DB'],
+    DB extends I['DB'],
     TableName extends InstanceType<T>['table'],
   >(this: T, columnName?: TableColumnNames<DB, TableName> | null | boolean) {
     return this.query().distinct(columnName as any)
@@ -1107,7 +1121,7 @@ export default class Dream {
   public static async find<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    Schema extends I['dreamconf']['schema'],
+    Schema extends I['schema'],
     SchemaIdType = Schema[InstanceType<T>['table']]['columns'][I['primaryKey']]['coercedType'],
   >(this: T, primaryKey: SchemaIdType): Promise<InstanceType<T> | null> {
     return await this.query().find(primaryKey)
@@ -1128,7 +1142,7 @@ export default class Dream {
   public static async findOrFail<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    Schema extends I['dreamconf']['schema'],
+    Schema extends I['schema'],
     SchemaIdType = Schema[InstanceType<T>['table']]['columns'][I['primaryKey']]['coercedType'],
   >(this: T, primaryKey: SchemaIdType): Promise<InstanceType<T>> {
     return await this.query().findOrFail(primaryKey)
@@ -1197,9 +1211,9 @@ export default class Dream {
   public static async loadInto<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['dreamconf']['DB'],
+    DB extends I['DB'],
     TableName extends I['table'],
-    Schema extends I['dreamconf']['schema'],
+    Schema extends I['schema'],
     const Arr extends readonly unknown[],
   >(this: T, dreams: Dream[], ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
     await this.query().loadInto(dreams, ...(args as any))
@@ -1256,7 +1270,7 @@ export default class Dream {
    */
   public static async findBy<T extends typeof Dream, I extends InstanceType<T>>(
     this: T,
-    whereStatement: WhereStatement<I['dreamconf']['DB'], I['dreamconf']['schema'], I['table']>
+    whereStatement: WhereStatement<I['DB'], I['schema'], I['table']>
   ): Promise<InstanceType<T> | null> {
     return await this.query().findBy(whereStatement)
   }
@@ -1276,7 +1290,7 @@ export default class Dream {
    */
   public static async findOrFailBy<T extends typeof Dream, I extends InstanceType<T>>(
     this: T,
-    whereStatement: WhereStatement<I['dreamconf']['DB'], I['dreamconf']['schema'], I['table']>
+    whereStatement: WhereStatement<I['DB'], I['schema'], I['table']>
   ): Promise<InstanceType<T>> {
     return await this.query().findOrFailBy(whereStatement)
   }
@@ -1353,9 +1367,9 @@ export default class Dream {
   public static preload<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['dreamconf']['DB'],
+    DB extends I['DB'],
     TableName extends InstanceType<T>['table'],
-    Schema extends I['dreamconf']['schema'],
+    Schema extends I['schema'],
     const Arr extends readonly unknown[],
   >(this: T, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
     return this.query().preload(...(args as any))
@@ -1375,8 +1389,8 @@ export default class Dream {
   public static joins<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['dreamconf']['DB'],
-    Schema extends I['dreamconf']['schema'],
+    DB extends I['DB'],
+    Schema extends I['schema'],
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
   >(this: T, ...args: [...Arr, VariadicJoinsArgs<DB, Schema, TableName, Arr>]) {
@@ -1661,18 +1675,13 @@ export default class Dream {
     T extends typeof Dream,
     QueryType extends 'select' | 'delete' | 'update' | 'insert',
     ToKyselyReturnType = QueryType extends 'select'
-      ? SelectQueryBuilder<InstanceType<T>['dreamconf']['DB'], InstanceType<T>['table'], any>
+      ? SelectQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], any>
       : QueryType extends 'delete'
-        ? DeleteQueryBuilder<InstanceType<T>['dreamconf']['DB'], InstanceType<T>['table'], any>
+        ? DeleteQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], any>
         : QueryType extends 'update'
-          ? UpdateQueryBuilder<
-              InstanceType<T>['dreamconf']['DB'],
-              InstanceType<T>['table'],
-              InstanceType<T>['table'],
-              any
-            >
+          ? UpdateQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], InstanceType<T>['table'], any>
           : QueryType extends 'insert'
-            ? InsertQueryBuilder<InstanceType<T>['dreamconf']['DB'], InstanceType<T>['table'], any>
+            ? InsertQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], any>
             : never,
   >(this: T, type: QueryType) {
     switch (type) {
@@ -1735,7 +1744,7 @@ export default class Dream {
     const dreamTransaction = new DreamTransaction()
     let callbackResponse: RetType = undefined as RetType
 
-    await db('primary', this.prototype.dreamconf)
+    await db('primary', this.prototype.env)
       .transaction()
       .execute(async kyselyTransaction => {
         dreamTransaction.kyselyTransaction = kyselyTransaction
@@ -1775,7 +1784,7 @@ export default class Dream {
   public static passthrough<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    PassthroughColumns extends PassthroughColumnNames<I['dreamconf']>,
+    PassthroughColumns extends PassthroughColumnNames<I>,
   >(this: T, passthroughWhereStatement: PassthroughWhere<PassthroughColumns>): Query<InstanceType<T>> {
     return this.query().passthrough(passthroughWhereStatement)
   }
@@ -1795,8 +1804,8 @@ export default class Dream {
   public static where<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['dreamconf']['DB'],
-    Schema extends I['dreamconf']['schema'],
+    DB extends I['DB'],
+    Schema extends I['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
   >(this: T, whereStatement: WhereStatement<DB, Schema, TableName>): Query<InstanceType<T>> {
     return this.query().where(whereStatement)
@@ -1817,8 +1826,8 @@ export default class Dream {
   public static whereAny<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['dreamconf']['DB'],
-    Schema extends I['dreamconf']['schema'],
+    DB extends I['DB'],
+    Schema extends I['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
   >(this: T, statements: WhereStatement<DB, Schema, TableName>[]): Query<InstanceType<T>> {
     return this.query().whereAny(statements)
@@ -1839,8 +1848,8 @@ export default class Dream {
   public static whereNot<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    DB extends I['dreamconf']['DB'],
-    Schema extends I['dreamconf']['schema'],
+    DB extends I['DB'],
+    Schema extends I['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
   >(this: T, attributes: WhereStatement<DB, Schema, TableName>): Query<InstanceType<T>> {
     return this.query().whereNot(attributes)
@@ -1994,7 +2003,7 @@ export default class Dream {
    * @returns Association metadata
    *
    */
-  private getAssociationMetadata<I extends Dream, Schema extends I['dreamconf']['schema']>(
+  private getAssociationMetadata<I extends Dream, Schema extends I['schema']>(
     this: I,
     associationName: keyof Schema[I['table']]['associations']
   ) {
@@ -2262,22 +2271,6 @@ export default class Dream {
   }
 
   /**
-   * @internal
-   *
-   * This is meant to be defined by ApplicationModel. Whenever
-   * migrations are run for your Dream application, files are synced
-   * to your db folder. This is one of those types.
-   *
-   * The dreamconf getter provides the custom type layer
-   * used by Dream to feed types for all of the methods
-   * and helpers provided by Dream.
-   *
-   */
-  public get dreamconf(): Dreamconf {
-    throw 'must have get dreamconf defined on child'
-  }
-
-  /**
    * This must be defined on every model, and it must point
    * to a table in your database. In addition, you must
    * return the value using the `as const` suffix, like so:
@@ -2454,8 +2447,8 @@ export default class Dream {
     opts?: any,
     additionalOpts: { bypassUserDefinedSetters?: boolean; isPersisted?: boolean } = {}
     // opts?: Updateable<
-    //   InstanceType<DreamModel & typeof Dream>['dreamconf']['DB'][InstanceType<DreamModel>['table'] &
-    //     keyof InstanceType<DreamModel>['dreamconf']['DB']]
+    //   InstanceType<DreamModel & typeof Dream>['DB'][InstanceType<DreamModel>['table'] &
+    //     keyof InstanceType<DreamModel>['DB']]
     // >
   ) {
     this.isPersisted = additionalOpts?.isPersisted || false
@@ -2491,11 +2484,7 @@ export default class Dream {
     attributes: UpdateablePropertiesForClass<T>,
     dreamInstance?: InstanceType<T>,
     { bypassUserDefinedSetters = false }: { bypassUserDefinedSetters?: boolean } = {}
-  ): WhereStatement<
-    InstanceType<T>['dreamconf']['DB'],
-    InstanceType<T>['dreamconf']['schema'],
-    InstanceType<T>['table']
-  > {
+  ): WhereStatement<InstanceType<T>['DB'], InstanceType<T>['schema'], InstanceType<T>['table']> {
     const marshalledOpts: any = {}
 
     const setAttributeOnDreamInstance = (attr: any, value: any) => {
@@ -2734,9 +2723,7 @@ export default class Dream {
    *  // }
    * ```
    */
-  public getAttributes<I extends Dream, DB extends I['dreamconf']['DB']>(
-    this: I
-  ): Updateable<DB[I['table']]> {
+  public getAttributes<I extends Dream, DB extends I['DB']>(this: I): Updateable<DB[I['table']]> {
     return { ...this.currentAttributes } as Updateable<DB[I['table']]>
   }
 
@@ -2747,7 +2734,7 @@ export default class Dream {
    */
   protected static cachedTypeFor<
     T extends typeof Dream,
-    DB extends InstanceType<T>['dreamconf']['DB'],
+    DB extends InstanceType<T>['DB'],
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName],
   >(this: T, attribute: keyof Table): string {
@@ -2776,8 +2763,8 @@ export default class Dream {
    */
   public changedAttributes<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
-    Schema extends I['dreamconf']['schema'],
+    DB extends I['DB'],
+    Schema extends I['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['table'] &
       AssociationTableNames<DB, Schema>,
     Table extends DB[keyof DB] = DB[TableName],
@@ -2838,7 +2825,7 @@ export default class Dream {
    */
   public changes<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
+    DB extends I['DB'],
     TableName extends I['table'],
     Table extends DB[TableName],
     RetType = Partial<
@@ -2894,7 +2881,7 @@ export default class Dream {
    */
   public previousValueForAttribute<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
+    DB extends I['DB'],
     TableName extends I['table'],
     Table extends DB[TableName],
     ColumnName extends DreamColumnNames<I>,
@@ -2937,7 +2924,7 @@ export default class Dream {
    */
   public columns<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
+    DB extends I['DB'],
     TableName extends keyof DB = I['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName],
   >(this: I): Set<keyof Table> {
@@ -2973,8 +2960,8 @@ export default class Dream {
    */
   public dirtyAttributes<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
-    Schema extends I['dreamconf']['schema'],
+    DB extends I['DB'],
+    Schema extends I['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['table'] &
       AssociationTableNames<DB, Schema>,
     Table extends DB[keyof DB] = DB[TableName],
@@ -3154,8 +3141,8 @@ export default class Dream {
    */
   public async pluckThrough<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
-    Schema extends I['dreamconf']['schema'],
+    DB extends I['DB'],
+    Schema extends I['schema'],
     TableName extends I['table'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicPluckThroughArgs<DB, Schema, TableName, Arr>]): Promise<any[]> {
@@ -3194,8 +3181,8 @@ export default class Dream {
    */
   public async pluckEachThrough<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
-    Schema extends I['dreamconf']['schema'],
+    DB extends I['DB'],
+    Schema extends I['schema'],
     TableName extends I['table'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicPluckEachThroughArgs<DB, Schema, TableName, Arr>]): Promise<void> {
@@ -3216,8 +3203,8 @@ export default class Dream {
    */
   public async minThrough<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
-    Schema extends I['dreamconf']['schema'],
+    DB extends I['DB'],
+    Schema extends I['schema'],
     TableName extends I['table'],
     const Arr extends readonly unknown[],
     FinalColumnWithAlias extends VariadicMinMaxThroughArgs<DB, Schema, TableName, Arr>,
@@ -3243,8 +3230,8 @@ export default class Dream {
    */
   public async maxThrough<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
-    Schema extends I['dreamconf']['schema'],
+    DB extends I['DB'],
+    Schema extends I['schema'],
     TableName extends I['table'],
     const Arr extends readonly unknown[],
     FinalColumnWithAlias extends VariadicMinMaxThroughArgs<DB, Schema, TableName, Arr>,
@@ -3275,8 +3262,8 @@ export default class Dream {
    */
   public async countThrough<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
-    Schema extends I['dreamconf']['schema'],
+    DB extends I['DB'],
+    Schema extends I['schema'],
     TableName extends I['table'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicCountThroughArgs<DB, Schema, TableName, Arr>]): Promise<number> {
@@ -3343,7 +3330,7 @@ export default class Dream {
    */
   public async createAssociation<
     I extends Dream,
-    Schema extends I['dreamconf']['schema'],
+    Schema extends I['schema'],
     AssociationName extends keyof Schema[I['table']]['associations'],
     PossibleArrayAssociationType = I[AssociationName & keyof I],
     AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
@@ -3365,9 +3352,9 @@ export default class Dream {
   ///////////////////
   public async destroyAssociation<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
+    DB extends I['DB'],
     TableName extends I['table'],
-    Schema extends I['dreamconf']['schema'],
+    Schema extends I['schema'],
     AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<I>,
   >(
     this: I,
@@ -3379,9 +3366,9 @@ export default class Dream {
 
   public async destroyAssociation<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
+    DB extends I['DB'],
     TableName extends I['table'],
-    Schema extends I['dreamconf']['schema'],
+    Schema extends I['schema'],
     AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<I>,
   >(
     this: I,
@@ -3425,9 +3412,9 @@ export default class Dream {
   ///////////////////
   public async reallyDestroyAssociation<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
+    DB extends I['DB'],
     TableName extends I['table'],
-    Schema extends I['dreamconf']['schema'],
+    Schema extends I['schema'],
     AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<I>,
   >(
     this: I,
@@ -3439,9 +3426,9 @@ export default class Dream {
 
   public async reallyDestroyAssociation<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
+    DB extends I['DB'],
     TableName extends I['table'],
-    Schema extends I['dreamconf']['schema'],
+    Schema extends I['schema'],
     AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<I>,
   >(
     this: I,
@@ -3489,9 +3476,9 @@ export default class Dream {
   ///////////////////
   public async undestroyAssociation<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
+    DB extends I['DB'],
     TableName extends I['table'],
-    Schema extends I['dreamconf']['schema'],
+    Schema extends I['schema'],
     AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<I>,
   >(
     this: I,
@@ -3503,9 +3490,9 @@ export default class Dream {
 
   public async undestroyAssociation<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
+    DB extends I['DB'],
     TableName extends I['table'],
-    Schema extends I['dreamconf']['schema'],
+    Schema extends I['schema'],
     AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<I>,
   >(
     this: I,
@@ -3550,9 +3537,9 @@ export default class Dream {
   ///////////////////
   public associationQuery<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
+    DB extends I['DB'],
     TableName extends I['table'],
-    Schema extends I['dreamconf']['schema'],
+    Schema extends I['schema'],
     AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<I>,
   >(
     this: I,
@@ -3562,9 +3549,9 @@ export default class Dream {
 
   public associationQuery<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
+    DB extends I['DB'],
     TableName extends I['table'],
-    Schema extends I['dreamconf']['schema'],
+    Schema extends I['schema'],
     AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<I>,
   >(
     this: I,
@@ -3604,9 +3591,9 @@ export default class Dream {
   ///////////////////
   public async updateAssociation<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
+    DB extends I['DB'],
     TableName extends I['table'],
-    Schema extends I['dreamconf']['schema'],
+    Schema extends I['schema'],
     AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<I>,
   >(
     this: I,
@@ -3614,7 +3601,7 @@ export default class Dream {
     attributes: Partial<DreamAttributes<DreamAssociationType<I, AssociationName>>>,
     updateAssociationOptions: {
       bypassAllDefaultScopes?: boolean
-      defaultScopesToBypass?: AllDefaultScopeNames<I['dreamconf']>[]
+      defaultScopesToBypass?: AllDefaultScopeNames<I>[]
       skipHooks?: boolean
       where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
     }
@@ -3622,9 +3609,9 @@ export default class Dream {
 
   public async updateAssociation<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
+    DB extends I['DB'],
     TableName extends I['table'],
-    Schema extends I['dreamconf']['schema'],
+    Schema extends I['schema'],
     AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<I>,
   >(
     this: I,
@@ -3632,7 +3619,7 @@ export default class Dream {
     attributes: Partial<DreamAttributes<DreamAssociationType<I, AssociationName>>>,
     updateAssociationOptions?: {
       bypassAllDefaultScopes?: boolean
-      defaultScopesToBypass?: AllDefaultScopeNames<I['dreamconf']>[]
+      defaultScopesToBypass?: AllDefaultScopeNames<I>[]
       skipHooks?: boolean
       where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
     }
@@ -3694,7 +3681,7 @@ export default class Dream {
    * @param passthroughWhereStatement - where statement used for associations that require passthrough data
    * @returns A cloned Query with the passthrough data
    */
-  public passthrough<I extends Dream, PassthroughColumns extends PassthroughColumnNames<I['dreamconf']>>(
+  public passthrough<I extends Dream, PassthroughColumns extends PassthroughColumnNames<I>>(
     this: I,
     passthroughWhereStatement: PassthroughWhere<PassthroughColumns>
   ): LoadBuilder<I> {
@@ -3725,9 +3712,9 @@ export default class Dream {
    */
   public load<
     I extends Dream,
-    DB extends I['dreamconf']['DB'],
+    DB extends I['DB'],
     TableName extends I['table'],
-    Schema extends I['dreamconf']['schema'],
+    Schema extends I['schema'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]): LoadBuilder<I> {
     return new LoadBuilder<I>(this).load(...(args as any))
@@ -3757,7 +3744,7 @@ export default class Dream {
   public loaded<
     I extends Dream,
     TableName extends I['table'],
-    Schema extends I['dreamconf']['schema'],
+    Schema extends I['schema'],
     //
     AssociationName extends NextPreloadArgumentType<Schema, TableName>,
   >(this: I, associationName: AssociationName) {
@@ -4026,11 +4013,7 @@ export default class Dream {
 
 export interface CreateOrFindByExtraOps<T extends typeof Dream> {
   createWith?:
-    | WhereStatement<
-        InstanceType<T>['dreamconf']['DB'],
-        InstanceType<T>['dreamconf']['schema'],
-        InstanceType<T>['table']
-      >
+    | WhereStatement<InstanceType<T>['DB'], InstanceType<T>['schema'], InstanceType<T>['table']>
     | UpdateablePropertiesForClass<T>
 }
 

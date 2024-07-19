@@ -30,6 +30,10 @@ export interface DbConfig {
   }
 }
 
+export interface EnvOpts {
+  db: DbConfig
+}
+
 export interface DbConnectionConfig {
   user: string
   password: string

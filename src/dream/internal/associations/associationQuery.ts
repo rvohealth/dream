@@ -8,9 +8,9 @@ import applyScopeBypassingSettingsToQuery from '../applyScopeBypassingSettingsTo
 
 export default function associationQuery<
   DreamInstance extends Dream,
-  DB extends DreamInstance['dreamconf']['DB'],
+  DB extends DreamInstance['DB'],
   TableName extends DreamInstance['table'],
-  Schema extends DreamInstance['dreamconf']['schema'],
+  Schema extends DreamInstance['schema'],
   AssociationName extends keyof DreamInstance,
   Where extends WhereStatementForAssociation<DB, Schema, TableName, AssociationName>,
   AssociationQuery = Query<DreamAssociationType<DreamInstance, AssociationName>>,
@@ -52,7 +52,7 @@ export default function associationQuery<
     defaultScopesToBypass,
   })
 
-  return query['setBaseSQLAlias'](
-    association.as as TableOrAssociationName<DreamInstance['dreamconf']['schema']>
-  )['setAssociationQueryBase'](baseSelectQuery as Query<any>) as AssociationQuery
+  return query['setBaseSQLAlias'](association.as as TableOrAssociationName<DreamInstance['schema']>)[
+    'setAssociationQueryBase'
+  ](baseSelectQuery as Query<any>) as AssociationQuery
 }

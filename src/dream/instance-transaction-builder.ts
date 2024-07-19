@@ -92,9 +92,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    */
   public async pluckThrough<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['dreamconf']['DB'],
+    DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
-    Schema extends DreamInstance['dreamconf']['schema'],
+    Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicPluckThroughArgs<DB, Schema, TableName, Arr>]): Promise<any[]> {
     return this.queryInstance().pluckThrough(...(args as any))
@@ -135,8 +135,8 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    */
   public async pluckEachThrough<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['dreamconf']['DB'],
-    Schema extends DreamInstance['dreamconf']['schema'],
+    DB extends DreamInstance['DB'],
+    Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicPluckEachThroughArgs<DB, Schema, TableName, Arr>]) {
@@ -159,8 +159,8 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    */
   public async minThrough<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['dreamconf']['DB'],
-    Schema extends DreamInstance['dreamconf']['schema'],
+    DB extends DreamInstance['DB'],
+    Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
     FinalColumnWithAlias extends VariadicMinMaxThroughArgs<DB, Schema, TableName, Arr>,
@@ -189,8 +189,8 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    */
   public async maxThrough<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['dreamconf']['DB'],
-    Schema extends DreamInstance['dreamconf']['schema'],
+    DB extends DreamInstance['DB'],
+    Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
     FinalColumnWithAlias extends VariadicMinMaxThroughArgs<DB, Schema, TableName, Arr>,
@@ -218,8 +218,8 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * @returns the number of records found matching the given parameters
    */
   public async countThrough<
-    DB extends DreamInstance['dreamconf']['DB'],
-    Schema extends DreamInstance['dreamconf']['schema'],
+    DB extends DreamInstance['DB'],
+    Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
   >(...args: [...Arr, VariadicCountThroughArgs<DB, Schema, TableName, Arr>]): Promise<number> {
@@ -253,9 +253,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    */
   public load<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['dreamconf']['DB'],
+    DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
-    Schema extends DreamInstance['dreamconf']['schema'],
+    Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]): LoadBuilder<DreamInstance> {
     return new LoadBuilder<DreamInstance>(this.dreamInstance, this.dreamTransaction).load(...(args as any))
@@ -479,8 +479,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    */
   public associationQuery<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    AssociationName extends
-      keyof DreamInstance['dreamconf']['schema'][DreamInstance['table']]['associations'],
+    AssociationName extends keyof DreamInstance['schema'][DreamInstance['table']]['associations'],
   >(this: I, associationName: AssociationName): Query<DreamAssociationType<DreamInstance, AssociationName>> {
     return associationQuery(this.dreamInstance, this.dreamTransaction, associationName, {
       bypassAllDefaultScopes: DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
@@ -493,9 +492,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   ///////////////////
   public async updateAssociation<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['dreamconf']['DB'],
+    DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
-    Schema extends DreamInstance['dreamconf']['schema'],
+    Schema extends DreamInstance['schema'],
     AssociationName extends keyof DreamInstance &
       DreamAssociationNamesWithRequiredWhereClauses<DreamInstance>,
   >(
@@ -504,7 +503,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     attributes: Partial<DreamAttributes<DreamAssociationType<DreamInstance, AssociationName>>>,
     updateAssociationOptions: {
       bypassAllDefaultScopes?: boolean
-      defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance['dreamconf']>[]
+      defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance>[]
       cascade?: boolean
       skipHooks?: boolean
       where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
@@ -513,9 +512,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
 
   public async updateAssociation<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['dreamconf']['DB'],
+    DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
-    Schema extends DreamInstance['dreamconf']['schema'],
+    Schema extends DreamInstance['schema'],
     AssociationName extends keyof DreamInstance &
       DreamAssociationNamesWithoutRequiredWhereClauses<DreamInstance>,
   >(
@@ -524,7 +523,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     attributes: Partial<DreamAttributes<DreamAssociationType<DreamInstance, AssociationName>>>,
     updateAssociationOptions?: {
       bypassAllDefaultScopes?: boolean
-      defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance['dreamconf']>[]
+      defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance>[]
       cascade?: boolean
       skipHooks?: boolean
       where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
@@ -583,8 +582,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    */
   public async createAssociation<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    AssociationName extends
-      keyof DreamInstance['dreamconf']['schema'][DreamInstance['table']]['associations'],
+    AssociationName extends keyof DreamInstance['schema'][DreamInstance['table']]['associations'],
     PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
     AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
       ? ElementType
@@ -607,9 +605,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends keyof DreamInstance &
       DreamAssociationNamesWithRequiredWhereClauses<DreamInstance>,
-    DB extends DreamInstance['dreamconf']['DB'],
+    DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
-    Schema extends DreamInstance['dreamconf']['schema'],
+    Schema extends DreamInstance['schema'],
   >(
     this: I,
     associationName: AssociationName,
@@ -622,9 +620,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends keyof DreamInstance &
       DreamAssociationNamesWithoutRequiredWhereClauses<DreamInstance>,
-    DB extends DreamInstance['dreamconf']['DB'],
+    DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
-    Schema extends DreamInstance['dreamconf']['schema'],
+    Schema extends DreamInstance['schema'],
   >(
     this: I,
     associationName: AssociationName,
@@ -651,7 +649,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    */
   public async destroyAssociation<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    Schema extends DreamInstance['dreamconf']['schema'],
+    Schema extends DreamInstance['schema'],
     AssociationName extends keyof Schema[DreamInstance['table']]['associations'],
   >(this: I, associationName: AssociationName, options?: unknown): Promise<number> {
     return await destroyAssociation(this.dreamInstance, this.dreamTransaction, associationName, {
@@ -670,9 +668,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends keyof DreamInstance &
       DreamAssociationNamesWithRequiredWhereClauses<DreamInstance>,
-    DB extends DreamInstance['dreamconf']['DB'],
+    DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
-    Schema extends DreamInstance['dreamconf']['schema'],
+    Schema extends DreamInstance['schema'],
   >(
     this: I,
     associationName: AssociationName,
@@ -685,9 +683,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends keyof DreamInstance &
       DreamAssociationNamesWithoutRequiredWhereClauses<DreamInstance>,
-    DB extends DreamInstance['dreamconf']['DB'],
+    DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
-    Schema extends DreamInstance['dreamconf']['schema'],
+    Schema extends DreamInstance['schema'],
   >(
     this: I,
     associationName: AssociationName,
@@ -719,7 +717,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    */
   public async reallyDestroyAssociation<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    Schema extends DreamInstance['dreamconf']['schema'],
+    Schema extends DreamInstance['schema'],
     AssociationName extends keyof Schema[DreamInstance['table']]['associations'],
   >(this: I, associationName: AssociationName, options?: unknown): Promise<number> {
     return await destroyAssociation(this.dreamInstance, this.dreamTransaction, associationName, {
@@ -736,9 +734,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   ///////////////////
   public async undestroyAssociation<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['dreamconf']['DB'],
+    DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
-    Schema extends DreamInstance['dreamconf']['schema'],
+    Schema extends DreamInstance['schema'],
     AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<DreamInstance>,
   >(
     this: I,
@@ -750,9 +748,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
 
   public async undestroyAssociation<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['dreamconf']['DB'],
+    DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
-    Schema extends DreamInstance['dreamconf']['schema'],
+    Schema extends DreamInstance['schema'],
     AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<DreamInstance>,
   >(
     this: I,

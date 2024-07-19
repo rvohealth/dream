@@ -35,9 +35,9 @@ export default class ConnectedToDB<DreamInstance extends Dream> {
   // stop trying to make this async. You never learn...
   public dbFor(
     sqlCommandType: SqlCommandType
-  ): Kysely<DreamInstance['dreamconf']['DB']> | KyselyTransaction<DreamInstance['dreamconf']['DB']> {
+  ): Kysely<DreamInstance['DB']> | KyselyTransaction<DreamInstance['DB']> {
     if (this.dreamTransaction?.kyselyTransaction) return this.dreamTransaction?.kyselyTransaction
-    return _db<DreamInstance>(this.dbConnectionType(sqlCommandType), this.dreamClass.prototype.dreamconf)
+    return _db<DreamInstance>(this.dbConnectionType(sqlCommandType), this.dreamClass.prototype.env)
   }
 }
 

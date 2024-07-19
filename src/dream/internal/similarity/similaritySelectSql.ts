@@ -12,10 +12,7 @@ export default function similaritySelectSql<DreamInstance extends Dream>({
   schema,
   rankSQLAlias,
 }: {
-  eb: ExpressionBuilder<
-    DreamInstance['dreamconf']['DB'],
-    string | (any extends keyof DreamInstance['dreamconf']['DB'] ? any : never)
-  >
+  eb: ExpressionBuilder<DreamInstance['DB'], string | (any extends keyof DreamInstance['DB'] ? any : never)>
   tableName: DreamInstance['table']
   columnName: string
   opsStatement: OpsStatement<any, any>

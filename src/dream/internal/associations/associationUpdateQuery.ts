@@ -10,9 +10,9 @@ import applyScopeBypassingSettingsToQuery from '../applyScopeBypassingSettingsTo
 
 export default function associationUpdateQuery<
   DreamInstance extends Dream,
-  DB extends DreamInstance['dreamconf']['DB'],
+  DB extends DreamInstance['DB'],
   TableName extends DreamInstance['table'],
-  Schema extends DreamInstance['dreamconf']['schema'],
+  Schema extends DreamInstance['schema'],
   AssociationName extends keyof DreamInstance,
   Where extends WhereStatement<DB, Schema, TableName>,
   AssociationQuery = Query<DreamAssociationType<DreamInstance, AssociationName>>,

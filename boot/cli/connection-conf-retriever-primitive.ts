@@ -1,12 +1,12 @@
-import loadDreamconfFile from '../../src/helpers/path/loadDreamconfFile'
+import loadEnvConf from '../../src/helpers/path/loadEnvConf'
 import { DbConnectionConfig } from '../../src/helpers/path/types'
 
 export type DbConnectionType = 'primary' | 'replica'
 
 export default class ConnectionConfRetriever {
   public async getConnectionConf(connection: DbConnectionType): Promise<DbConnectionConfig> {
-    const dreamconf = await loadDreamconfFile()
-    const dbConfig = dreamconf.env.db
+    const envConf = await loadEnvConf()
+    const dbConfig = envConf.db
 
     const nodeEnv = process.env.NODE_ENV! as 'production' | 'development' | 'test'
     const conf = dbConfig[nodeEnv]?.[connection] || dbConfig[nodeEnv]?.primary

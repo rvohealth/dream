@@ -9,7 +9,7 @@ import loadModels from '../loadModels'
 import pascalize from '../pascalize'
 import { schemaPath } from '../path'
 import dbSyncPath from '../path/dbSyncPath'
-import loadDreamconfFile from '../path/loadDreamconfFile'
+import loadEnvConf from '../path/loadEnvConf'
 import uniq from '../uniq'
 
 export default class SchemaBuilder {
@@ -162,8 +162,8 @@ ${tableName}: {
   }
 
   private async getColumnData(tableName: string, associationData: { [key: string]: AssociationData }) {
-    const dreamconf = await loadDreamconfFile()
-    const db = _db('primary', dreamconf)
+    const envConf = await loadEnvConf()
+    const db = _db('primary', envConf)
     const sqlQuery = sql`SELECT column_name, udt_name::regtype, is_nullable, data_type FROM information_schema.columns WHERE table_name = ${tableName}`
     const columnToDBTypeMap = await sqlQuery.execute(db)
     const rows = columnToDBTypeMap.rows as InformationSchemaRow[]

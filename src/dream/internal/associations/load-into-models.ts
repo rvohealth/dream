@@ -14,11 +14,9 @@ import { PassthroughColumnNames, RelaxedPreloadStatement } from '../../types'
 
 export default class LoadIntoModels<
   DreamInstance extends Dream,
-  DB extends DreamInstance['dreamconf']['DB'] = DreamInstance['dreamconf']['DB'],
-  Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
-  PassthroughColumns extends PassthroughColumnNames<DreamInstance['dreamconf']> = PassthroughColumnNames<
-    DreamInstance['dreamconf']
-  >,
+  DB extends DreamInstance['DB'] = DreamInstance['DB'],
+  Schema extends DreamInstance['schema'] = DreamInstance['schema'],
+  PassthroughColumns extends PassthroughColumnNames<DreamInstance> = PassthroughColumnNames<DreamInstance>,
 > {
   private readonly preloadStatements: RelaxedPreloadStatement
   private readonly passthroughWhereStatement: PassthroughWhere<PassthroughColumns> | null = null

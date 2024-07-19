@@ -1,11 +1,10 @@
-import { DbConfig, DbConnectionConfig } from '../helpers/path/types'
+import { DbConfig, DbConnectionConfig, EnvOpts } from '../helpers/path/types'
 import { DbConnectionType } from './types'
-import Dreamconf from '../helpers/dreamconf'
 
 export default class ConnectionConfRetriever {
   public dbConfig: DbConfig
-  constructor(dreamconf: Dreamconf) {
-    this.dbConfig = dreamconf.env.db
+  constructor(env: EnvOpts) {
+    this.dbConfig = env.db
   }
 
   public getConnectionConf(connection: DbConnectionType): DbConnectionConfig {

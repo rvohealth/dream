@@ -1,8 +1,8 @@
-import '../helpers/loadEnv'
 import db from '../db'
 import runMigration from '../helpers/db/runMigration'
-import loadDreamconfFile from '../helpers/path/loadDreamconfFile'
 import initializeDream from '../helpers/initializeDream'
+import '../helpers/loadEnv'
+import loadEnvConf from '../helpers/path/loadEnvConf'
 
 async function dbRollback() {
   await initializeDream()
@@ -13,8 +13,7 @@ async function dbRollback() {
     step -= 1
   }
 
-  const dreamconf = await loadDreamconfFile()
-  await db('primary', dreamconf).destroy()
+  await db('primary', await loadEnvConf()).destroy()
   process.exit()
 }
 

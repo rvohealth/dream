@@ -5,7 +5,15 @@ import envConf from '../conf/env'
 
 export default class ApplicationModel extends Dream {
   public DB: DBClass
-  public env: typeof envConf
-  public schema: typeof schema
-  public globalSchema: typeof globalSchema
+  public get env() {
+    return envConf
+  }
+
+  public get schema() {
+    return schema
+  }
+
+  public get globalSchema() {
+    return globalSchema
+  }
 }

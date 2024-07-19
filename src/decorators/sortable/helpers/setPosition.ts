@@ -156,7 +156,7 @@ async function setNewPosition({
 }) {
   const newPosition = (await sortableQueryExcludingDream(dream, query, scope).max(positionField)) + 1
 
-  const dbOrTxn = txn ? txn.kyselyTransaction : db('primary', dream.dreamconf)
+  const dbOrTxn = txn ? txn.kyselyTransaction : db('primary', dream.env)
   await dbOrTxn
     .updateTable(dream.table as any)
     .where(dream.primaryKey as any, '=', dream.primaryKeyValue)
@@ -201,7 +201,7 @@ async function updateConflictingRecords({
         : range(newPosition, previousPosition),
     })
     .toKysely('update')
-    .set((eb: ExpressionBuilder<(typeof dream)['dreamconf']['DB'], typeof dream.table>) => ({
+    .set((eb: ExpressionBuilder<(typeof dream)['DB'], typeof dream.table>) => ({
       [positionField]: eb(positionField, increasing ? '-' : '+', 1),
     }))
 
@@ -247,7 +247,7 @@ async function updatePreviousScope({
       [positionField]: ops.greaterThan(position),
     })
     .toKysely('update')
-    .set((eb: ExpressionBuilder<(typeof dream)['dreamconf']['DB'], typeof dream.table>) => {
+    .set((eb: ExpressionBuilder<(typeof dream)['DB'], typeof dream.table>) => {
       return {
         [positionField]: eb(positionField, '-', 1),
       }

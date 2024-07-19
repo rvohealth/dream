@@ -26,7 +26,7 @@ export default class LoadBuilder<DreamInstance extends Dream> {
 
   public passthrough<
     I extends LoadBuilder<DreamInstance>,
-    PassthroughColumns extends PassthroughColumnNames<DreamInstance['dreamconf']>,
+    PassthroughColumns extends PassthroughColumnNames<DreamInstance>,
   >(this: I, passthroughWhereStatement: PassthroughWhere<PassthroughColumns>) {
     this.query = this.query.passthrough(passthroughWhereStatement)
     return this
@@ -34,9 +34,9 @@ export default class LoadBuilder<DreamInstance extends Dream> {
 
   public load<
     I extends LoadBuilder<DreamInstance>,
-    DB extends DreamInstance['dreamconf']['DB'],
+    DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
-    Schema extends DreamInstance['dreamconf']['schema'],
+    Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
     this.query = this.query.preload(...(args as any))

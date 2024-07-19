@@ -10,7 +10,7 @@ import {
 
 export interface DestroyOptions<DreamInstance extends Dream> {
   bypassAllDefaultScopes?: boolean
-  defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance['dreamconf']>[]
+  defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance>[]
   cascade?: boolean
   skipHooks?: boolean
 }

@@ -12,7 +12,7 @@ const ops = {
   any: (value: any) =>
     new CurriedOpsStatement(function <
       T extends typeof Dream,
-      DB extends InstanceType<T>['dreamconf']['DB'],
+      DB extends InstanceType<T>['DB'],
       FN extends keyof DB[InstanceType<T>['table']] & string,
     >(dreamClass: T, fieldName: FN) {
       const column = fieldName.replace(/^.*\./, '')

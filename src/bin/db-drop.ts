@@ -1,14 +1,13 @@
-import '../helpers/loadEnv'
-import _dropDb from '../helpers/db/dropDb'
 import ConnectionConfRetriever from '../db/connection-conf-retriever'
-import loadDreamconfFile from '../helpers/path/loadDreamconfFile'
+import _dropDb from '../helpers/db/dropDb'
 import initializeDream from '../helpers/initializeDream'
+import '../helpers/loadEnv'
+import loadEnvConf from '../helpers/path/loadEnvConf'
 
 async function dbDrop() {
   await initializeDream()
 
-  const dreamconf = await loadDreamconfFile()
-  const connectionRetriever = new ConnectionConfRetriever(dreamconf)
+  const connectionRetriever = new ConnectionConfRetriever(await loadEnvConf())
   const primaryDbConf = connectionRetriever.getConnectionConf('primary')
 
   console.log(`dropping ${process.env[primaryDbConf.name]}`)

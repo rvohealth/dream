@@ -25,7 +25,7 @@ export default async function decrementPositionForScopedRecordsGreaterThanPositi
       [positionField]: ops.greaterThanOrEqualTo(position),
     })
     .toKysely('update')
-    .set((eb: ExpressionBuilder<(typeof dream)['dreamconf']['DB'], typeof dream.table>) => {
+    .set((eb: ExpressionBuilder<(typeof dream)['DB'], typeof dream.table>) => {
       return {
         [positionField]: eb(positionField, '-', 1),
       }

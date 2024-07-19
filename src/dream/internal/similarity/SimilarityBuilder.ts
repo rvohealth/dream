@@ -16,8 +16,8 @@ import similarityWhereSql from './similarityWhereSql'
 
 export default class SimilarityBuilder<
   DreamInstance extends Dream,
-  DB extends DreamInstance['dreamconf']['DB'] = DreamInstance['dreamconf']['DB'],
-  Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
+  DB extends DreamInstance['DB'] = DreamInstance['DB'],
+  Schema extends DreamInstance['schema'] = DreamInstance['schema'],
 > extends ConnectedToDB<DreamInstance> {
   public readonly whereStatement: readonly WhereStatement<DB, Schema, any>[]
   public readonly whereNotStatement: readonly WhereStatement<DB, Schema, any>[]
@@ -158,14 +158,14 @@ export default class SimilarityBuilder<
   public update<T extends SimilarityBuilder<DreamInstance>>(
     this: T,
     kyselyQuery: UpdateQueryBuilder<
-      DreamInstance['dreamconf']['DB'],
-      ExtractTableAlias<DreamInstance['dreamconf']['DB'], DreamInstance['table']>,
+      DreamInstance['DB'],
+      ExtractTableAlias<DreamInstance['DB'], DreamInstance['table']>,
       ExtractTableAlias<any, any>,
       any
     >
   ): UpdateQueryBuilder<
-    DreamInstance['dreamconf']['DB'],
-    ExtractTableAlias<DreamInstance['dreamconf']['DB'], DreamInstance['table']>,
+    DreamInstance['DB'],
+    ExtractTableAlias<DreamInstance['DB'], DreamInstance['table']>,
     ExtractTableAlias<any, any>,
     any
   > {
@@ -274,7 +274,7 @@ export default class SimilarityBuilder<
       bypassOrder: boolean
     }
   ) {
-    const schema = this.dreamClass.prototype.dreamconf.schema
+    const schema = this.dreamClass.prototype.schema
     const primaryKeyName = this.dreamClass.primaryKey
     const { tableName, tableAlias, columnName } = similarityStatement
 
@@ -317,8 +317,8 @@ export default class SimilarityBuilder<
       index,
     }: {
       kyselyQuery: UpdateQueryBuilder<
-        DreamInstance['dreamconf']['DB'],
-        ExtractTableAlias<DreamInstance['dreamconf']['DB'], DreamInstance['table']>,
+        DreamInstance['DB'],
+        ExtractTableAlias<DreamInstance['DB'], DreamInstance['table']>,
         ExtractTableAlias<any, any>,
         any
       >
@@ -327,13 +327,13 @@ export default class SimilarityBuilder<
       index: number
     }
   ): UpdateQueryBuilder<
-    DreamInstance['dreamconf']['DB'],
-    ExtractTableAlias<DreamInstance['dreamconf']['DB'], DreamInstance['table']>,
+    DreamInstance['DB'],
+    ExtractTableAlias<DreamInstance['DB'], DreamInstance['table']>,
     ExtractTableAlias<any, any>,
     any
   > {
     const { tableName, tableAlias, columnName } = similarityStatement
-    const schema = this.dreamClass.prototype.dreamconf.schema
+    const schema = this.dreamClass.prototype.schema
     const primaryKeyName = this.dreamClass.primaryKey
 
     const validatedTableAlias = validateTableAlias(tableAlias)
@@ -373,7 +373,7 @@ export default class SimilarityBuilder<
     statementIndex: number
     similarityStatement: SimilarityStatement
   }) {
-    const schema = this.dreamClass.prototype.dreamconf.schema
+    const schema = this.dreamClass.prototype.schema
     const { columnName, opsStatement, tableName } = similarityStatement
     const validatedTable = validateTable(schema, tableName)
     const validatedPrimaryKey = validateColumn(schema, tableName, primaryKeyName)
@@ -445,8 +445,8 @@ export default class SimilarityBuilder<
 
 export interface SimilarityBuilderOpts<
   DreamInstance extends Dream,
-  DB extends DreamInstance['dreamconf']['DB'] = DreamInstance['dreamconf']['DB'],
-  Schema extends DreamInstance['dreamconf']['schema'] = DreamInstance['dreamconf']['schema'],
+  DB extends DreamInstance['DB'] = DreamInstance['DB'],
+  Schema extends DreamInstance['schema'] = DreamInstance['schema'],
 > {
   where?: WhereStatement<DB, Schema, any>[]
   whereNot?: WhereStatement<DB, Schema, any>[]
