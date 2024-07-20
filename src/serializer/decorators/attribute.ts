@@ -35,7 +35,7 @@ export interface SerializableObject {
   [key: string]: SerializablePrimitiveTypes | SerializableObject
 }
 
-type AttributeRenderOptions = { precision?: RoundingPrecision; delegate?: string }
+type AttributeRenderOptions = { precision?: RoundingPrecision; delegate?: string; allowNull?: boolean }
 
 export interface AttributeStatement {
   field: string
