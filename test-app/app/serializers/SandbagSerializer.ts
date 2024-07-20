@@ -8,4 +8,13 @@ export default class SandbagSerializer extends DreamSerializer {
 
   @Attribute('datetime')
   public updatedAt: DateTime
+
+  @Attribute({
+    label: 'string',
+    value: {
+      unit: 'enum:UnitEnum',
+      value: 'number',
+    },
+  })
+  public answer() {}
 }

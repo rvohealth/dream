@@ -1,17 +1,17 @@
+import isArray from 'lodash.isarray'
+import { DateTime } from 'luxon'
 import Dream from '../dream'
 import { DreamConst } from '../dream/types'
-import camelize from '../helpers/camelize'
-import snakeify from '../helpers/snakeify'
-import { DateTime } from 'luxon'
-import { AttributeStatement, SerializablePrimitiveTypes, SerializableTypes } from './decorators/attribute'
-import { AssociationStatement } from './decorators/associations/shared'
-import MissingSerializer from '../exceptions/missing-serializer'
-import round from '../helpers/round'
 import NonLoadedAssociation from '../exceptions/associations/non-loaded-association'
-import isArray from 'lodash.isarray'
+import MissingSerializer from '../exceptions/missing-serializer'
 import FailedToRenderThroughAssociationForSerializer from '../exceptions/serializers/failed-to-render-through-association'
 import CalendarDate from '../helpers/CalendarDate'
+import camelize from '../helpers/camelize'
+import round from '../helpers/round'
 import instanceSerializerForKey from '../helpers/serializerForKey'
+import snakeify from '../helpers/snakeify'
+import { AssociationStatement } from './decorators/associations/shared'
+import { AttributeStatement, SerializableTypes } from './decorators/attribute'
 
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
   public static attributeStatements: AttributeStatement[] = []
@@ -91,19 +91,24 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     return this.renderOne()
   }
 
-  public attributeTypeReflection<I extends DreamSerializer>(this: I, field: SerializerPublicFields<I>) {
-    const constructor = this.constructor as typeof DreamSerializer
-    const value = constructor['attributeStatements'].find(statement => statement.field === field)?.renderAs
+  public static attributeTypeReflection<I extends typeof DreamSerializer>(
+    this: I,
+    field: SerializerPublicFields<InstanceType<I>>,
+    { startSpaces = 0 }: { startSpaces?: number } = {}
+  ) {
+    const value = this['attributeStatements'].find(statement => statement.field === field)?.renderAs
 
-    return this.recursiveAttributeTypeReflection(field, value)
+    return this.recursiveAttributeTypeReflection(field, value, 0, startSpaces)
   }
 
-  public recursiveAttributeTypeReflection<I extends DreamSerializer>(
+  private static recursiveAttributeTypeReflection<I extends typeof DreamSerializer>(
     this: I,
-    field: SerializerPublicFields<I>,
+    field: SerializerPublicFields<InstanceType<I>>,
     data: SerializableTypes | undefined,
-    depth: number = 0
+    depth: number = 0,
+    startSpaces: number = 0
   ) {
+    const trueSpaces = startSpaces ? depth + parseInt(`${startSpaces / 2}`) : depth
     if (data === undefined) {
       return 'any'
     }
@@ -118,17 +123,17 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
       Object.keys(data).forEach((key, index) => {
         const value = data[key]
         if (typeof value === 'object') {
-          str += `${this.spaces(depth)}${key}: {
-${this.recursiveAttributeTypeReflection(field, value, depth + 1)}
-${this.spaces(depth)}}`
+          str += `${this.spaces(trueSpaces)}${key}: {
+${this.recursiveAttributeTypeReflection(field, value, depth + 1, startSpaces)}
+${this.spaces(trueSpaces)}}`
         } else {
-          str += `${this.spaces(depth)}${key}: ${this.parsePrimitiveType(data[key] as string)}${Object.keys(data).length === index + 1 ? '' : '\n'}`
+          str += `${this.spaces(trueSpaces)}${key}: ${this.parsePrimitiveType(data[key] as string)}${Object.keys(data).length === index + 1 ? '' : '\n'}`
         }
       })
 
       if (depth === 0) {
         str += `
-}`
+${this.spaces(trueSpaces - 1)}}`
       }
 
       return str
@@ -154,11 +159,22 @@ ${this.spaces(depth)}}`
     // }
   }
 
-  private parsePrimitiveType(type: string) {
-    return type.replace(/^enum:/, '').replace(/^type:/, '')
+  private static parsePrimitiveType(type: string) {
+    switch (type) {
+      case 'json':
+      case 'jsonb':
+        return 'any'
+      case 'decimal':
+        return 'number'
+      case 'date':
+      case 'datetime':
+        return 'string'
+      default:
+        return type.replace(/^enum:/, '').replace(/^type:/, '')
+    }
   }
 
-  private spaces(depth: number) {
+  private static spaces(depth: number) {
     let spaces = ''
     for (let i = 0; i <= depth; i++) {
       spaces += '  '

@@ -1,12 +1,11 @@
-import serializersPath from '../path/serializersPath'
-import getFiles from '../getFiles'
-import DreamSerializer from '../../serializer'
-import { SerializableTypes } from '../../serializer/decorators/attribute'
-import { modelsPath } from '../path'
-import { AssociationStatement } from '../../serializer/decorators/associations/shared'
-import Dream from '../../dream'
 import path from 'node:path'
+import Dream from '../../dream'
+import DreamSerializer, { SerializerPublicFields } from '../../serializer'
+import { AssociationStatement } from '../../serializer/decorators/associations/shared'
+import getFiles from '../getFiles'
+import { modelsPath } from '../path'
 import dbSyncPath from '../path/dbSyncPath'
+import serializersPath from '../path/serializersPath'
 import { classSerializerForKey } from '../serializerForKey'
 
 export default async function generateApiSchemaContent() {
@@ -25,7 +24,7 @@ export default async function generateApiSchemaContent() {
 
       for (const attr of attributes) {
         finalAttributesHash[attr.field] =
-          `\n  ${attr.field}: ${renderAsToType(attr.renderAs as any) || 'any'}`
+          `\n  ${attr.field}: ${serializer.attributeTypeReflection(attr.field as SerializerPublicFields<InstanceType<typeof serializer>>, { startSpaces: 2 })}`
       }
       const finalAttributes: string[] = Object.values(finalAttributesHash)
 
@@ -68,27 +67,6 @@ export const ${key} = [
 `
       )
     }, '')
-}
-
-function renderAsToType(renderAs: SerializableTypes) {
-  if (/^enum:/.test(renderAs)) {
-    const renderAsType = renderAs.replace(/^enum:/, '')
-    return renderAsType
-  }
-
-  if (/^type:/.test(renderAs)) {
-    const renderAsType = renderAs.replace(/^type:/, '')
-    return renderAsType
-  }
-
-  const typeCoersions = {
-    date: 'string',
-    datetime: 'string',
-    decimal: 'number',
-    json: 'any',
-  } as any
-
-  return typeCoersions[renderAs] || renderAs
 }
 
 async function loadAssociatedSerializer(serializerPath: string, association: AssociationStatement) {

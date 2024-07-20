@@ -66,6 +66,22 @@ export interface GraphEdge {
       expect(file).toContain('type: BalloonTypesEnum')
     })
 
+    it('handles nested objects', async () => {
+      const file = await generateApiSchemaContent()
+      expect(file).toContain(`
+export interface Sandbag {
+  weight: any
+  updatedAt: string
+  answer: {
+    label: string
+    value: {
+      unit: UnitEnum
+      value: number
+    }
+  }
+}`)
+    })
+
     it('generates any for unspecified types', async () => {
       const file = await generateApiSchemaContent()
       expect(file).toContain(`\

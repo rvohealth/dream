@@ -1,3 +1,5 @@
+import { DateTime } from 'luxon'
+import { CalendarDate } from '../../../src'
 import DreamSerializer from '../../../src/serializer'
 import Attribute from '../../../src/serializer/decorators/attribute'
 
@@ -8,19 +10,49 @@ describe('DreamSerializer#attributeTypeReflection', () => {
         @Attribute()
         public email: string
       }
-      const serializer = new MySerializer({})
-      expect(serializer.attributeTypeReflection('email')).toEqual('any')
+      expect(MySerializer.attributeTypeReflection('email')).toEqual('any')
     })
   })
 
   context('with a primitive type arg', () => {
-    it('returns the primitive type', () => {
+    it('parses string[]', () => {
       class MySerializer extends DreamSerializer {
         @Attribute('string[]')
-        public email: string
+        public stuff: string[]
       }
-      const serializer = new MySerializer({})
-      expect(serializer.attributeTypeReflection('email')).toEqual('string[]')
+      expect(MySerializer.attributeTypeReflection('stuff')).toEqual('string[]')
+    })
+
+    it('parses date as string', () => {
+      class MySerializer extends DreamSerializer {
+        @Attribute('date')
+        public stuff: CalendarDate
+      }
+      expect(MySerializer.attributeTypeReflection('stuff')).toEqual('string')
+    })
+
+    it('parses datetime as string', () => {
+      class MySerializer extends DreamSerializer {
+        @Attribute('datetime')
+        public stuff: DateTime
+      }
+      expect(MySerializer.attributeTypeReflection('stuff')).toEqual('string')
+    })
+
+    it('parses decimal as number', () => {
+      class MySerializer extends DreamSerializer {
+        @Attribute('decimal')
+        public stuff: number
+      }
+      expect(MySerializer.attributeTypeReflection('stuff')).toEqual('number')
+    })
+
+    it('parses json as any', () => {
+      class MySerializer extends DreamSerializer {
+        @Attribute('json')
+        public stuff: string
+      }
+      expect(MySerializer.attributeTypeReflection('stuff')).toEqual('any')
     })
   })
 
@@ -31,8 +63,7 @@ describe('DreamSerializer#attributeTypeReflection', () => {
           @Attribute('enum:HowYaDoinEnum')
           public stuff: string
         }
-        const serializer = new MySerializer({})
-        expect(serializer.attributeTypeReflection('stuff')).toEqual('HowYaDoinEnum')
+        expect(MySerializer.attributeTypeReflection('stuff')).toEqual('HowYaDoinEnum')
       })
     })
 
@@ -42,8 +73,7 @@ describe('DreamSerializer#attributeTypeReflection', () => {
           @Attribute('type:HowYaDoinEnum')
           public stuff: string
         }
-        const serializer = new MySerializer({})
-        expect(serializer.attributeTypeReflection('stuff')).toEqual('HowYaDoinEnum')
+        expect(MySerializer.attributeTypeReflection('stuff')).toEqual('HowYaDoinEnum')
       })
     })
   })
@@ -62,8 +92,7 @@ describe('DreamSerializer#attributeTypeReflection', () => {
         })
         public mydata: any
       }
-      const serializer = new MySerializer({})
-      expect(serializer.attributeTypeReflection('mydata')).toEqual(`\
+      expect(MySerializer.attributeTypeReflection('mydata')).toEqual(`\
 {
   answer: {
     label: string
@@ -73,6 +102,32 @@ describe('DreamSerializer#attributeTypeReflection', () => {
     }
   }
 }`)
+    })
+
+    context('with startSpaces passed', () => {
+      it('indents everything by the startSpaces value but the first line', () => {
+        class MySerializer extends DreamSerializer {
+          @Attribute({
+            answer: {
+              label: 'string',
+              value: {
+                value: 'number',
+                unit: 'string',
+              },
+            },
+          })
+          public mydata: any
+        }
+        expect(MySerializer.attributeTypeReflection('mydata', { startSpaces: 2 })).toEqual(`{
+    answer: {
+      label: string
+      value: {
+        value: number
+        unit: string
+      }
+    }
+  }`)
+      })
     })
 
     context('with an enum type', () => {
@@ -89,8 +144,7 @@ describe('DreamSerializer#attributeTypeReflection', () => {
           })
           public mydata: any
         }
-        const serializer = new MySerializer({})
-        expect(serializer.attributeTypeReflection('mydata')).toEqual(`\
+        expect(MySerializer.attributeTypeReflection('mydata')).toEqual(`\
 {
   answer: {
     label: string
