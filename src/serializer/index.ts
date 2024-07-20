@@ -3,7 +3,7 @@ import { DreamConst } from '../dream/types'
 import camelize from '../helpers/camelize'
 import snakeify from '../helpers/snakeify'
 import { DateTime } from 'luxon'
-import { AttributeStatement } from './decorators/attribute'
+import { AttributeStatement, SerializablePrimitiveTypes, SerializableTypes } from './decorators/attribute'
 import { AssociationStatement } from './decorators/associations/shared'
 import MissingSerializer from '../exceptions/missing-serializer'
 import round from '../helpers/round'
@@ -89,6 +89,81 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     }
 
     return this.renderOne()
+  }
+
+  public attributeTypeReflection<I extends DreamSerializer>(this: I, field: SerializerPublicFields<I>) {
+    const constructor = this.constructor as typeof DreamSerializer
+    const value = constructor['attributeStatements'].find(statement => statement.field === field)?.renderAs
+
+    return this.recursiveAttributeTypeReflection(field, value)
+  }
+
+  public recursiveAttributeTypeReflection<I extends DreamSerializer>(
+    this: I,
+    field: SerializerPublicFields<I>,
+    data: SerializableTypes | undefined,
+    depth: number = 0
+  ) {
+    if (data === undefined) {
+      return 'any'
+    }
+
+    if (typeof data === 'object') {
+      let str = ''
+      if (depth === 0) {
+        str += `{
+`
+      }
+
+      Object.keys(data).forEach((key, index) => {
+        const value = data[key]
+        if (typeof value === 'object') {
+          str += `${this.spaces(depth)}${key}: {
+${this.recursiveAttributeTypeReflection(field, value, depth + 1)}
+${this.spaces(depth)}}`
+        } else {
+          str += `${this.spaces(depth)}${key}: ${this.parsePrimitiveType(data[key] as string)}${Object.keys(data).length === index + 1 ? '' : '\n'}`
+        }
+      })
+
+      if (depth === 0) {
+        str += `
+}`
+      }
+
+      return str
+    }
+
+    return this.parsePrimitiveType(data)
+    //
+    // switch (data) {
+    //   case 'string':
+    //   case 'number':
+    //   case 'date':
+    //   case 'json':
+    //   case 'boolean':
+    //   case 'decimal':
+    //   case 'datetime':
+    //   case 'date[]':
+    //   case 'string[]':
+    //   case 'number[]':
+    //   case 'boolean[]':
+    //   case 'decimal[]':
+    //   case 'datetime[]':
+    //     return data
+    // }
+  }
+
+  private parsePrimitiveType(type: string) {
+    return type.replace(/^enum:/, '').replace(/^type:/, '')
+  }
+
+  private spaces(depth: number) {
+    let spaces = ''
+    for (let i = 0; i <= depth; i++) {
+      spaces += '  '
+    }
+    return spaces
   }
 
   public renderOne() {
@@ -233,3 +308,16 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
 export interface DreamSerializerStaticRenderOpts {
   passthrough?: any
 }
+
+export type SerializerPublicFields<I extends DreamSerializer> = keyof Omit<
+  I,
+  | 'render'
+  | 'passthrough'
+  | 'renderOne'
+  | 'casing'
+  | 'attributes'
+  | 'data'
+  | 'attributeTypeReflection'
+  | 'isDreamSerializerInstance'
+> &
+  string

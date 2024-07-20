@@ -21,15 +21,19 @@ export default function Attribute(renderAs?: SerializableTypes, options?: Attrib
   }
 }
 
-export type SerializableTypes =
+export type SerializablePrimitiveTypes =
   | SerializableBaseTypes
   | SerializableBaseArrayTypes
   | SerializableNonArrayTypes
   | `enum:${string}`
   | `type:${string}`
+export type SerializableTypes = SerializablePrimitiveTypes | SerializableObject
 export type SerializableBaseArrayTypes = `${SerializableBaseTypes}[]`
 export type SerializableBaseTypes = 'date' | 'decimal' | 'string' | 'number' | 'boolean' | 'datetime'
 export type SerializableNonArrayTypes = 'json'
+export interface SerializableObject {
+  [key: string]: SerializablePrimitiveTypes | SerializableObject
+}
 
 type AttributeRenderOptions = { precision?: RoundingPrecision; delegate?: string }
 
