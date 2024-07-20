@@ -48,6 +48,7 @@ export const openapiShorthandPrimitiveTypes = [
   'number[]',
   'date[]',
   'date-time[]',
+  'decimal[]',
   'json',
 ] as const
 export type OpenapiPrimitiveTypes = (typeof openapiPrimitiveTypes)[number]
