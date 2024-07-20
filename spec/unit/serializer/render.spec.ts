@@ -362,6 +362,25 @@ describe('DreamSerializer#render', () => {
         })
       })
 
+      // whenever an array is passed, we will always infer the
+      // serializer at runtime using the data, since we can't
+      // know which one to use in which context.
+      context('an array of dreams is passed', () => {
+        class NewUserSerializer extends DreamSerializer {
+          @RendersMany(() => [Pet, User], { serializer: 'summary' })
+          public pets: Pet[]
+        }
+
+        it('correctly serializes', async () => {
+          let user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+          const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+          user = await user.load('pets').execute()
+
+          const serializer = new NewUserSerializer(user)
+          expect(serializer.render()).toEqual({ pets: [{ id: pet.id, favoriteTreats: null }] })
+        })
+      })
+
       context('when the source option is passed', () => {
         class UserSerializerWithSource extends DreamSerializer {
           @RendersMany(() => PetSerializer, { source: 'pets' })

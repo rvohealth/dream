@@ -151,6 +151,11 @@ export interface GraphNode {
 export interface LocalizedTextBase {
 }
 
+export interface PetSummary {
+  id: string
+  favoriteTreats: string
+}
+
 export interface Pet {
   id: string
   name: string
@@ -179,5 +184,24 @@ export interface Rating {
 export interface Sandbag {
   weight: any
   updatedAt: string
+  answer: {
+    label: string
+    value: {
+      unit: UnitEnum
+      value: number
+    }
+  }
+}
+
+export interface UserSummary {
+  id: string
+  favoriteWord: string
+}
+
+export interface User {
+  id: string
+  name: string
+  birthdate: string
+  userSettings: any
 }
 

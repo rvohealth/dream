@@ -1,21 +1,28 @@
-import Dream from '../dream'
-import { DreamConst } from '../dream/types'
-import camelize from '../helpers/camelize'
-import snakeify from '../helpers/snakeify'
-import { DateTime } from 'luxon'
-import { AttributeStatement } from './decorators/attribute'
-import { AssociationStatement } from './decorators/associations/shared'
-import MissingSerializer from '../exceptions/missing-serializer'
-import round from '../helpers/round'
-import NonLoadedAssociation from '../exceptions/associations/non-loaded-association'
 import isArray from 'lodash.isarray'
+import { DateTime } from 'luxon'
+import Dream from '../dream'
+import {
+  DreamClassOrViewModelClass,
+  DreamClassOrViewModelClassOrSerializerClass,
+  DreamConst,
+  DreamOrViewModel,
+} from '../dream/types'
+import NonLoadedAssociation from '../exceptions/associations/non-loaded-association'
+import MissingSerializer from '../exceptions/missing-serializer'
 import FailedToRenderThroughAssociationForSerializer from '../exceptions/serializers/failed-to-render-through-association'
 import CalendarDate from '../helpers/CalendarDate'
-import instanceSerializerForKey from '../helpers/serializerForKey'
+import camelize from '../helpers/camelize'
+import round from '../helpers/round'
+import inferSerializerFromDreamOrViewModel, {
+  inferSerializerFromDreamClassOrViewModelClass,
+} from '../helpers/inferSerializerFromDreamOrViewModel'
+import snakeify from '../helpers/snakeify'
+import { DreamSerializerAssociationStatement } from './decorators/associations/shared'
+import { AttributeStatement } from './decorators/attribute'
 
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
   public static attributeStatements: AttributeStatement[] = []
-  public static associationStatements: AssociationStatement[] = []
+  public static associationStatements: DreamSerializerAssociationStatement[] = []
   public static readonly isDreamSerializer = true
 
   public static render(data: any, opts: DreamSerializerStaticRenderOpts = {}) {
@@ -24,6 +31,47 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
 
   public static renderArray(dataArr: any[], opts: DreamSerializerStaticRenderOpts = {}) {
     return dataArr.map(data => this.render(data, opts))
+  }
+
+  public static getAssociatedSerializersForOpenapi(
+    associationStatement: DreamSerializerAssociationStatement
+  ): (typeof DreamSerializer<any, any>)[] | null {
+    const serializer = this.associationDeclaredSerializer(associationStatement)
+    if (serializer) return [serializer]
+
+    let classOrClasses =
+      associationStatement.dreamOrSerializerClassCB?.() as DreamClassOrViewModelClassOrSerializerClass[]
+    if (!classOrClasses) return null
+
+    if (!Array.isArray(classOrClasses)) {
+      classOrClasses = [classOrClasses]
+    }
+
+    return classOrClasses.map(klass =>
+      inferSerializerFromDreamClassOrViewModelClass(
+        klass as DreamClassOrViewModelClass,
+        associationStatement.serializerKey
+      )
+    )
+  }
+
+  private static getAssociatedSerializerDuringRender(
+    associatedData: DreamOrViewModel,
+    associationStatement: DreamSerializerAssociationStatement
+  ): typeof DreamSerializer<any, any> | null {
+    const dreamSerializerOrNull = this.associationDeclaredSerializer(associationStatement)
+
+    if (dreamSerializerOrNull) return dreamSerializerOrNull
+    return inferSerializerFromDreamOrViewModel(associatedData, associationStatement.serializerKey)
+  }
+
+  private static associationDeclaredSerializer(
+    associationStatement: DreamSerializerAssociationStatement
+  ): typeof DreamSerializer<any, any> | null {
+    if ((associationStatement.dreamOrSerializerClassCB?.() as typeof DreamSerializer)?.isDreamSerializer) {
+      return associationStatement.dreamOrSerializerClassCB?.() as typeof DreamSerializer
+    }
+    return null
   }
 
   private _data: DataType
@@ -141,7 +189,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     return returnObj
   }
 
-  private applyAssociation(associationStatement: AssociationStatement) {
+  private applyAssociation(associationStatement: DreamSerializerAssociationStatement) {
     // let associatedData: ReturnType<DreamSerializer.prototype.associatedData>
     let associatedData: any
 
@@ -159,16 +207,20 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     return associationStatement.type === 'RendersMany' ? [] : null
   }
 
-  private renderAssociation(associatedData: any, associationStatement: AssociationStatement) {
-    const serializerClass = associationStatement.serializerClassCB
-      ? associationStatement.serializerClassCB()
-      : instanceSerializerForKey(associatedData, associationStatement.serializerKey)
+  private renderAssociation(
+    associatedData: DreamOrViewModel,
+    associationStatement: DreamSerializerAssociationStatement
+  ) {
+    const SerializerClass = DreamSerializer.getAssociatedSerializerDuringRender(
+      associatedData,
+      associationStatement
+    )
+    if (!SerializerClass) throw new MissingSerializer(associatedData.constructor as typeof Dream)
 
-    if (!serializerClass) throw new MissingSerializer(associatedData.constructor as typeof Dream)
-    return new serializerClass(associatedData).passthrough(this.passthroughData).render()
+    return new SerializerClass(associatedData).passthrough(this.passthroughData).render()
   }
 
-  private associatedData(associationStatement: AssociationStatement) {
+  private associatedData(associationStatement: DreamSerializerAssociationStatement) {
     const delegateToPassthroughData = associationStatement.source === DreamConst.passthrough
     let self = (delegateToPassthroughData ? this.passthroughData : this.data) as any
 
@@ -233,3 +285,16 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
 export interface DreamSerializerStaticRenderOpts {
   passthrough?: any
 }
+
+export type SerializerPublicFields<I extends DreamSerializer> = keyof Omit<
+  I,
+  | 'render'
+  | 'passthrough'
+  | 'renderOne'
+  | 'casing'
+  | 'attributes'
+  | 'data'
+  | 'attributeTypeReflection'
+  | 'isDreamSerializerInstance'
+> &
+  string

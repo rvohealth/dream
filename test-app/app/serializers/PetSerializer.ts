@@ -1,9 +1,10 @@
 import { IdType } from '../../../src/dream/types'
 import DreamSerializer from '../../../src/serializer'
-import Attribute from '../../../src/serializer/decorators/attribute'
 import RendersMany from '../../../src/serializer/decorators/associations/renders-many'
-import Rating from '../models/Rating'
+import Attribute from '../../../src/serializer/decorators/attribute'
+import { SpeciesValues } from '../../db/sync'
 import Pet from '../models/Pet'
+import Rating from '../models/Rating'
 
 export default class PetSerializer<DataType extends Pet, Passthrough extends object> extends DreamSerializer<
   DataType,
@@ -18,7 +19,10 @@ export default class PetSerializer<DataType extends Pet, Passthrough extends obj
   @Attribute('number[]')
   public favoriteDaysOfWeek: number[]
 
-  @Attribute('enum:Species')
+  @Attribute({
+    type: 'string',
+    enum: SpeciesValues,
+  })
   public species: string
 
   @RendersMany()

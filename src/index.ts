@@ -8,6 +8,7 @@ export { default as createExtension } from './db/migration-helpers/createExtensi
 export { default as createGinIndex } from './db/migration-helpers/createGinIndex'
 export { default as validateColumn } from './db/validators/validateColumn'
 export { default as validateTable } from './db/validators/validateTable'
+export { default as STI } from './decorators/STI'
 export { default as BelongsTo } from './decorators/associations/belongs-to'
 export { default as HasMany } from './decorators/associations/has-many'
 export { default as HasOne } from './decorators/associations/has-one'
@@ -28,7 +29,6 @@ export { default as ReplicaSafe } from './decorators/replica-safe'
 export { default as Scope } from './decorators/scope'
 export { default as SoftDelete } from './decorators/soft-delete'
 export { default as Sortable } from './decorators/sortable'
-export { default as STI } from './decorators/STI'
 export { default as Validate } from './decorators/validations/validate'
 export { default as Validates } from './decorators/validations/validates'
 export { default as Virtual } from './decorators/virtual'
@@ -39,24 +39,29 @@ export {
   DreamAssociationMetadata,
   DreamAttributes,
   DreamClassColumn,
+  DreamClassOrViewModelClass,
+  DreamClassOrViewModelClassOrSerializerClass,
   DreamColumn,
   DreamColumnNames,
   DreamConst,
+  DreamOrViewModel,
   DreamParamSafeAttributes,
   DreamParamSafeColumnNames,
   DreamTableSchema,
   DreamVirtualColumns,
   IdType,
   PrimaryKeyType,
+  TRIGRAM_OPERATORS,
   Timestamp,
   UpdateableAssociationProperties,
   UpdateableProperties,
+  primaryKeyTypes,
 } from './dream/types'
 export { default as NonLoadedAssociation } from './exceptions/associations/non-loaded-association'
 export { default as CreateOrFindByFailedToCreateAndFind } from './exceptions/create-or-find-by-failed-to-create-and-find'
 export { default as ValidationError } from './exceptions/validation-error'
-export { default as Benchmark } from './helpers/benchmark'
 export { default as CalendarDate } from './helpers/CalendarDate'
+export { default as Benchmark } from './helpers/benchmark'
 export { default as camelize } from './helpers/camelize'
 export { default as capitalize } from './helpers/capitalize'
 export { default as compact } from './helpers/compact'
@@ -73,8 +78,53 @@ export { Camelized, Hyphenized, Pascalized, Snakeified } from './helpers/stringC
 export { default as testEnv } from './helpers/testEnv'
 export { default as uncapitalize } from './helpers/uncapitalize'
 export { default as uniq } from './helpers/uniq'
+export {
+  CommonOpenapiSchemaObjectFields,
+  OpenapiAllTypes,
+  OpenapiFormats,
+  OpenapiNumberFormats,
+  OpenapiPrimitiveTypes,
+  OpenapiSchemaArray,
+  OpenapiSchemaArrayShorthand,
+  OpenapiSchemaBase,
+  OpenapiSchemaBody,
+  OpenapiSchemaBodyShorthand,
+  OpenapiSchemaCommonFields,
+  OpenapiSchemaExpressionAllOf,
+  OpenapiSchemaExpressionAnyOf,
+  OpenapiSchemaExpressionOneOf,
+  OpenapiSchemaExpressionRef,
+  OpenapiSchemaExpressionRefSchemaShorthand,
+  OpenapiSchemaInteger,
+  OpenapiSchemaNumber,
+  OpenapiSchemaObject,
+  OpenapiSchemaObjectAllOf,
+  OpenapiSchemaObjectAllOfShorthand,
+  OpenapiSchemaObjectAnyOf,
+  OpenapiSchemaObjectAnyOfShorthand,
+  OpenapiSchemaObjectBase,
+  OpenapiSchemaObjectBaseShorthand,
+  OpenapiSchemaObjectOneOf,
+  OpenapiSchemaObjectOneOfShorthand,
+  OpenapiSchemaObjectShorthand,
+  OpenapiSchemaPrimitiveGeneric,
+  OpenapiSchemaProperties,
+  OpenapiSchemaPropertiesShorthand,
+  OpenapiSchemaShorthandExpressionAllOf,
+  OpenapiSchemaShorthandExpressionAnyOf,
+  OpenapiSchemaShorthandExpressionOneOf,
+  OpenapiSchemaShorthandPrimitiveGeneric,
+  OpenapiSchemaString,
+  OpenapiShorthandAllTypes,
+  OpenapiShorthandPrimitiveTypes,
+  OpenapiTypeField,
+  OpenapiTypeFieldObject,
+  openapiPrimitiveTypes,
+  openapiShorthandPrimitiveTypes,
+} from './openapi/types'
 export { default as ops } from './ops'
 export { default as DreamSerializer } from './serializer'
 export { default as RendersMany } from './serializer/decorators/associations/renders-many'
 export { default as RendersOne } from './serializer/decorators/associations/renders-one'
-export { default as Attribute } from './serializer/decorators/attribute'
+export { DreamSerializerAssociationStatement } from './serializer/decorators/associations/shared'
+export { default as Attribute, SerializableTypes } from './serializer/decorators/attribute'

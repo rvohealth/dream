@@ -103,22 +103,6 @@ program
   })
 
 program
-  .command('sync:client:schema')
-  .alias('generate:api')
-  .alias('g:api')
-  .description('generate:api generates a new type file to be imported by the client')
-  .option('--core', 'sets core to true')
-  .option('--tsnode', 'runs the command using ts-node instead of node')
-  .action(async () => {
-    await sspawn(
-      nodeOrTsnodeCmd('src/bin/generate-api.ts', cmdargs(), {
-        fileArgs: [],
-        tsnodeFlags: ['--transpile-only'],
-      })
-    )
-  })
-
-program
   .command('sync')
   .alias('sync:schema')
   .alias('sync:all')

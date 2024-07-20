@@ -6,6 +6,56 @@ export default class SandbagSerializer extends DreamSerializer {
   @Attribute()
   public weight: number
 
-  @Attribute('datetime')
+  @Attribute('date-time')
   public updatedAt: DateTime
+
+  @Attribute({
+    type: 'object',
+    properties: {
+      label: {
+        type: 'string',
+      },
+      value: {
+        type: 'object',
+        properties: {
+          unit: 'string',
+          value: 'number',
+        },
+      },
+    },
+  })
+  public answer() {}
+
+  @Attribute({
+    anyOf: [
+      {
+        type: 'date-time',
+        nullable: true,
+      },
+      {
+        type: 'date',
+        nullable: false,
+      },
+    ],
+  })
+  public dateOrDatetime() {}
+
+  @Attribute({
+    anyOf: [
+      {
+        type: 'date',
+        nullable: false,
+      },
+      {
+        $ref: 'components/schemas/Howyadoin',
+      },
+    ],
+  })
+  public refTest() {}
+
+  @Attribute({
+    type: 'string',
+    enum: ['hello', 'world'],
+  })
+  public enumTest() {}
 }

@@ -9,7 +9,7 @@ import sspawn from '../src/helpers/sspawn'
 import ConnectionConfRetriever from './cli/connection-conf-retriever-primitive'
 
 export default async function sync() {
-  console.log('writing schema...')
+  console.log('writing dream sync file...')
   await writeSchema()
 }
 void sync()
@@ -38,7 +38,7 @@ async function writeSchema() {
 
   await fs.writeFile(absoluteDbSyncWritePath, enhancedSchema)
 
-  console.log('done enhancing schema!')
+  console.log('done writing dream sync file!')
   process.exit()
 }
 
