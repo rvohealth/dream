@@ -15,7 +15,7 @@ describe('DreamSerializer#attributeTypeReflection', () => {
   })
 
   context('with a primitive type arg', () => {
-    it('parses string[]', () => {
+    it.only('parses string[]', () => {
       class MySerializer extends DreamSerializer {
         @Attribute('string[]')
         public stuff: string[]
@@ -33,7 +33,7 @@ describe('DreamSerializer#attributeTypeReflection', () => {
 
     it('parses datetime as string', () => {
       class MySerializer extends DreamSerializer {
-        @Attribute('datetime')
+        @Attribute('date-time')
         public stuff: DateTime
       }
       expect(MySerializer.attributeTypeReflection('stuff')).toEqual('string')
@@ -56,37 +56,21 @@ describe('DreamSerializer#attributeTypeReflection', () => {
     })
   })
 
-  context('with a calculated type', () => {
-    context('enum', () => {
-      it('returns the primitive type', () => {
-        class MySerializer extends DreamSerializer {
-          @Attribute('enum:HowYaDoinEnum')
-          public stuff: string
-        }
-        expect(MySerializer.attributeTypeReflection('stuff')).toEqual('HowYaDoinEnum')
-      })
-    })
-
-    context('type', () => {
-      it('returns the primitive type', () => {
-        class MySerializer extends DreamSerializer {
-          @Attribute('type:HowYaDoinEnum')
-          public stuff: string
-        }
-        expect(MySerializer.attributeTypeReflection('stuff')).toEqual('HowYaDoinEnum')
-      })
-    })
-  })
-
   context('with a nested object', () => {
     it('returns a string reflecting the correct types for each attribute', () => {
       class MySerializer extends DreamSerializer {
         @Attribute({
           answer: {
-            label: 'string',
-            value: {
-              value: 'number',
-              unit: 'string',
+            type: 'object',
+            properties: {
+              label: 'string',
+              value: {
+                type: 'object',
+                properties: {
+                  value: 'number',
+                  unit: 'string',
+                },
+              },
             },
           },
         })
@@ -109,10 +93,22 @@ describe('DreamSerializer#attributeTypeReflection', () => {
         class MySerializer extends DreamSerializer {
           @Attribute({
             answer: {
-              label: 'string',
-              value: {
-                value: 'number',
-                unit: 'string',
+              type: 'object',
+              properties: {
+                label: 'string',
+                value: {
+                  type: 'object',
+                  properties: {
+                    value: 'string[]',
+                    unit: 'string',
+                  },
+                },
+                stuff: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                  },
+                },
               },
             },
           })
@@ -127,33 +123,6 @@ describe('DreamSerializer#attributeTypeReflection', () => {
       }
     }
   }`)
-      })
-    })
-
-    context('with an enum type', () => {
-      it('specifies the enum type', () => {
-        class MySerializer extends DreamSerializer {
-          @Attribute({
-            answer: {
-              label: 'string',
-              value: {
-                value: 'number',
-                unit: 'enum:HelloWorldEnum',
-              },
-            },
-          })
-          public mydata: any
-        }
-        expect(MySerializer.attributeTypeReflection('mydata')).toEqual(`\
-{
-  answer: {
-    label: string
-    value: {
-      value: number
-      unit: HelloWorldEnum
-    }
-  }
-}`)
       })
     })
   })

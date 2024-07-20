@@ -113,50 +113,33 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
       return 'any'
     }
 
-    if (typeof data === 'object') {
-      let str = ''
-      if (depth === 0) {
-        str += `{
-`
-      }
-
-      Object.keys(data).forEach((key, index) => {
-        const value = data[key]
-        if (typeof value === 'object') {
-          str += `${this.spaces(trueSpaces)}${key}: {
-${this.recursiveAttributeTypeReflection(field, value, depth + 1, startSpaces)}
-${this.spaces(trueSpaces)}}`
-        } else {
-          str += `${this.spaces(trueSpaces)}${key}: ${this.parsePrimitiveType(data[key] as string)}${Object.keys(data).length === index + 1 ? '' : '\n'}`
-        }
-      })
-
-      if (depth === 0) {
-        str += `
-${this.spaces(trueSpaces - 1)}}`
-      }
-
-      return str
-    }
-
-    return this.parsePrimitiveType(data)
+    //     if (typeof data === 'object') {
+    //       let str = ''
+    //       if (depth === 0) {
+    //         str += `{
+    // `
+    //       }
     //
-    // switch (data) {
-    //   case 'string':
-    //   case 'number':
-    //   case 'date':
-    //   case 'json':
-    //   case 'boolean':
-    //   case 'decimal':
-    //   case 'datetime':
-    //   case 'date[]':
-    //   case 'string[]':
-    //   case 'number[]':
-    //   case 'boolean[]':
-    //   case 'decimal[]':
-    //   case 'datetime[]':
-    //     return data
-    // }
+    //       Object.keys(data).forEach((key, index) => {
+    //         const value = data[key]
+    //         if (typeof value === 'object') {
+    //           str += `${this.spaces(trueSpaces)}${key}: {
+    // ${this.recursiveAttributeTypeReflection(field, value, depth + 1, startSpaces)}
+    // ${this.spaces(trueSpaces)}}`
+    //         } else {
+    //           str += `${this.spaces(trueSpaces)}${key}: ${this.parsePrimitiveType(data[key] as string)}${Object.keys(data).length === index + 1 ? '' : '\n'}`
+    //         }
+    //       })
+    //
+    //       if (depth === 0) {
+    //         str += `
+    // ${this.spaces(trueSpaces - 1)}}`
+    //       }
+    //
+    //       return str
+    //     }
+
+    // return this.parsePrimitiveType(data)
   }
 
   private static parsePrimitiveType(type: string) {

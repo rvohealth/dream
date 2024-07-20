@@ -1,5 +1,6 @@
 import DreamSerializer from '..'
 import { RoundingPrecision } from '../../helpers/round'
+import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../openapi/types'
 
 export default function Attribute(renderAs?: SerializableTypes, options?: AttributeRenderOptions): any {
   return function (target: any, key: string, def: any) {
@@ -27,12 +28,12 @@ export type SerializablePrimitiveTypes =
   | SerializableNonArrayTypes
   | `enum:${string}`
   | `type:${string}`
-export type SerializableTypes = SerializablePrimitiveTypes | SerializableObject
+export type SerializableTypes = OpenapiShorthandPrimitiveTypes | SerializableObject
 export type SerializableBaseArrayTypes = `${SerializableBaseTypes}[]`
 export type SerializableBaseTypes = 'date' | 'decimal' | 'string' | 'number' | 'boolean' | 'datetime'
 export type SerializableNonArrayTypes = 'json'
 export interface SerializableObject {
-  [key: string]: SerializablePrimitiveTypes | SerializableObject
+  [key: string]: OpenapiSchemaBodyShorthand
 }
 
 type AttributeRenderOptions = { precision?: RoundingPrecision; delegate?: string; allowNull?: boolean }

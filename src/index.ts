@@ -73,6 +73,18 @@ export { Camelized, Hyphenized, Pascalized, Snakeified } from './helpers/stringC
 export { default as testEnv } from './helpers/testEnv'
 export { default as uncapitalize } from './helpers/uncapitalize'
 export { default as uniq } from './helpers/uniq'
+export {
+  OpenapiAllTypes,
+  OpenapiFormats,
+  OpenapiPrimitiveTypes,
+  OpenapiSchemaBody,
+  OpenapiSchemaBodyShorthand,
+  OpenapiSchemaProperties,
+  OpenapiSchemaPropertiesShorthand,
+  OpenapiTypeField,
+  OpenapiTypeFieldObject,
+  openapiPrimitiveTypes,
+} from './openapi/types'
 export { default as ops } from './ops'
 export { default as DreamSerializer } from './serializer'
 export { default as RendersMany } from './serializer/decorators/associations/renders-many'
