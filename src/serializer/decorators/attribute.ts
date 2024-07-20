@@ -28,13 +28,10 @@ export type SerializablePrimitiveTypes =
   | SerializableNonArrayTypes
   | `enum:${string}`
   | `type:${string}`
-export type SerializableTypes = OpenapiShorthandPrimitiveTypes | SerializableObject
+export type SerializableTypes = OpenapiShorthandPrimitiveTypes | OpenapiSchemaBodyShorthand
 export type SerializableBaseArrayTypes = `${SerializableBaseTypes}[]`
 export type SerializableBaseTypes = 'date' | 'decimal' | 'string' | 'number' | 'boolean' | 'datetime'
 export type SerializableNonArrayTypes = 'json'
-export interface SerializableObject {
-  [key: string]: OpenapiSchemaBodyShorthand
-}
 
 type AttributeRenderOptions = { precision?: RoundingPrecision; delegate?: string; allowNull?: boolean }
 
