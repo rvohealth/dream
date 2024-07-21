@@ -1,40 +1,45 @@
-export type OpenapiSchemaBody =
-  | {
-      type: 'object'
-      required?: string[]
-      properties?: OpenapiSchemaProperties
-      nullable?: boolean
-    }
-  | {
-      type: 'array'
-      items: OpenapiSchemaBody
-      nullable?: boolean
-    }
-  | {
-      type: OpenapiPrimitiveTypes
-      nullable?: boolean
-    }
+export type OpenapiSchemaBase =
+  | OpenapiSchemaObject
+  | OpenapiSchemaArray
+  | OpenapiSchemaExpressionAnyOf
+  | OpenapiSchemaExpressionOneOf
+export type OpenapiSchemaBody = OpenapiSchemaBase | OpenapiSchemaPrimitiveGeneric
+export type OpenapiSchemaBodyShorthand = OpenapiSchemaBase | OpenapiSchemaShorthandPrimitiveGeneric
+
+export type OpenapiSchemaExpressionAnyOf = {
+  anyOf: OpenapiSchemaBodyShorthand[]
+}
+
+export type OpenapiSchemaExpressionOneOf = {
+  oneOf: OpenapiSchemaBodyShorthand[]
+}
+
+export interface OpenapiSchemaObject {
+  type: 'object'
+  required?: string[]
+  properties?: OpenapiSchemaPropertiesShorthand
+  nullable?: boolean
+}
 
 export interface OpenapiSchemaProperties {
   [key: string]: OpenapiSchemaBody
 }
 
-export type OpenapiSchemaBodyShorthand =
-  | {
-      type: 'object'
-      required?: string[]
-      properties?: OpenapiSchemaPropertiesShorthand
-      nullable?: boolean
-    }
-  | {
-      type: 'array'
-      items: OpenapiSchemaBodyShorthand
-      nullable?: boolean
-    }
-  | {
-      type: OpenapiShorthandPrimitiveTypes
-      nullable?: boolean
-    }
+export interface OpenapiSchemaArray {
+  type: 'array'
+  items: OpenapiSchemaBodyShorthand
+  nullable?: boolean
+}
+
+export interface OpenapiSchemaPrimitiveGeneric {
+  type: OpenapiPrimitiveTypes
+  nullable?: boolean
+}
+
+export interface OpenapiSchemaShorthandPrimitiveGeneric {
+  type: OpenapiShorthandPrimitiveTypes
+  nullable?: boolean
+}
 
 export interface OpenapiSchemaPropertiesShorthand {
   [key: string]: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes

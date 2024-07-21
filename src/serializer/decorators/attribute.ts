@@ -22,18 +22,7 @@ export default function Attribute(renderAs?: SerializableTypes, options?: Attrib
   }
 }
 
-export type SerializablePrimitiveTypes =
-  | SerializableBaseTypes
-  | SerializableBaseArrayTypes
-  | SerializableNonArrayTypes
-  | `enum:${string}`
-  | `type:${string}`
 export type SerializableTypes = OpenapiShorthandPrimitiveTypes | OpenapiSchemaBodyShorthand
-export type SerializableBaseArrayTypes = `${SerializableBaseTypes}[]`
-export type SerializableBaseTypes = 'date' | 'decimal' | 'string' | 'number' | 'boolean' | 'datetime'
-export type SerializableNonArrayTypes = 'json'
-
-type AttributeRenderOptions = { precision?: RoundingPrecision; delegate?: string; allowNull?: boolean }
 
 export interface AttributeStatement {
   field: string
@@ -41,3 +30,5 @@ export interface AttributeStatement {
   renderAs?: SerializableTypes
   options?: AttributeRenderOptions
 }
+
+type AttributeRenderOptions = { precision?: RoundingPrecision; delegate?: string; allowNull?: boolean }

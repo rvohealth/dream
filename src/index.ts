@@ -79,11 +79,14 @@ export {
   OpenapiPrimitiveTypes,
   OpenapiSchemaBody,
   OpenapiSchemaBodyShorthand,
+  OpenapiSchemaExpressionAnyOf,
+  OpenapiSchemaExpressionOneOf,
   OpenapiSchemaProperties,
   OpenapiSchemaPropertiesShorthand,
   OpenapiTypeField,
   OpenapiTypeFieldObject,
   openapiPrimitiveTypes,
+  openapiShorthandPrimitiveTypes,
 } from './openapi/types'
 export { default as ops } from './ops'
 export { default as DreamSerializer } from './serializer'

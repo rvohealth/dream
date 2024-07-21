@@ -23,4 +23,18 @@ export default class SandbagSerializer extends DreamSerializer {
     },
   })
   public answer() {}
+
+  @Attribute({
+    anyOf: [
+      {
+        type: 'date-time',
+        nullable: true,
+      },
+      {
+        type: 'date',
+        nullable: false,
+      },
+    ],
+  })
+  public dateOrDatetime() {}
 }
