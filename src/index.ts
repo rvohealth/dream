@@ -85,6 +85,7 @@ export {
   OpenapiSchemaExpressionAnyOf,
   OpenapiSchemaExpressionOneOf,
   OpenapiSchemaExpressionRef,
+  OpenapiSchemaExpressionRefSchemaShorthand,
   OpenapiSchemaObject,
   OpenapiSchemaObjectShorthand,
   OpenapiSchemaPrimitiveGeneric,
