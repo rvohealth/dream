@@ -82,6 +82,7 @@ export const openapiShorthandPrimitiveTypes = [
 export type OpenapiPrimitiveTypes = (typeof openapiPrimitiveTypes)[number]
 export type OpenapiShorthandPrimitiveTypes = (typeof openapiShorthandPrimitiveTypes)[number]
 export type OpenapiAllTypes = OpenapiPrimitiveTypes | 'object' | 'array'
+export type OpenapiShorthandAllTypes = OpenapiShorthandPrimitiveTypes | 'object' | 'array'
 
 export type OpenapiTypeField = OpenapiPrimitiveTypes | OpenapiTypeFieldObject
 
