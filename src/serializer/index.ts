@@ -29,19 +29,33 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   public static getAssociatedSerializer(
     associatedData: any,
     associationStatement: AssociationStatement
-  ): typeof DreamSerializer<any, any> {
-    const serializerClass = associationStatement.serializerClassCB
-      ? associationStatement.serializerClassCB()
+  ): typeof DreamSerializer<any, any> | null {
+    const serializerOrDreamClassOrClasses = associationStatement.dreamOrSerializerClassCB
+      ? associationStatement.dreamOrSerializerClassCB()
       : instanceSerializerForKey(associatedData, associationStatement.serializerKey)
-    return serializerClass as typeof DreamSerializer<any, any>
+
+    if (!serializerOrDreamClassOrClasses) return null
+
+    const serializerOrDreamClass: typeof Dream | typeof DreamSerializer = serializerOrDreamClassOrClasses
+    if (Array.isArray(serializerOrDreamClass)) {
+      return instanceSerializerForKey(associatedData, associationStatement.serializerKey)
+    }
+
+    if ((serializerOrDreamClass as typeof DreamSerializer)?.isDreamSerializer) {
+      return serializerOrDreamClass as typeof DreamSerializer
+    }
+
+    const dreamClass = serializerOrDreamClass as typeof Dream
+    const serializerClass = dreamClass.prototype.serializers[associationStatement.serializerKey || 'default']
+    return serializerClass as typeof DreamSerializer
   }
 
   public static getAssociatedSerializerForDreamClass(
     dreamClass: typeof Dream,
     associationStatement: AssociationStatement
   ): typeof DreamSerializer<any, any> {
-    const serializerClass = associationStatement.serializerClassCB
-      ? associationStatement.serializerClassCB()
+    const serializerClass = associationStatement.dreamOrSerializerClassCB
+      ? associationStatement.dreamOrSerializerClassCB()
       : instanceSerializerForKey(dreamClass.prototype, associationStatement.serializerKey)
     return serializerClass as typeof DreamSerializer<any, any>
   }

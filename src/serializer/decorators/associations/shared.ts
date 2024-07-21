@@ -1,15 +1,20 @@
 import DreamSerializer from '../..'
+import Dream from '../../../dream'
 import { DreamConst } from '../../../dream/types'
 
 export type SerializableTypes = 'date'
-export type DreamSerializerClassCB = () => typeof DreamSerializer
+export type DreamSerializerClassCB = () =>
+  | typeof DreamSerializer
+  | (typeof DreamSerializer<any, any>)[]
+  | typeof Dream
+  | (typeof Dream)[]
 export type SerializableAssociationType = 'RendersOne' | 'RendersMany'
 
 export interface AssociationStatement {
   field: string
   flatten: boolean
   optional: boolean
-  serializerClassCB: DreamSerializerClassCB | null
+  dreamOrSerializerClassCB: DreamSerializerClassCB | null
   source: string | typeof DreamConst.passthrough
   through: string | null
   type: SerializableAssociationType

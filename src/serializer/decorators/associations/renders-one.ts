@@ -40,15 +40,15 @@ import { AssociationStatement, DreamSerializerClassCB, RendersOneOrManyOpts } fr
  * ```
  */
 export default function RendersOne(
-  serializerClassCB: DreamSerializerClassCB | RendersOneOpts | null = null,
+  dreamOrSerializerClassCB: DreamSerializerClassCB | RendersOneOpts | null = null,
   opts?: RendersOneOpts
 ): any {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return function (target: any, key: string, def: any) {
     const serializerClass: typeof DreamSerializer = target.constructor
-    opts ||= (serializerClassCB || {}) as RendersOneOpts
-    if (typeof serializerClassCB !== 'function') {
-      serializerClassCB = null
+    opts ||= (dreamOrSerializerClassCB || {}) as RendersOneOpts
+    if (typeof dreamOrSerializerClassCB !== 'function') {
+      dreamOrSerializerClassCB = null
     }
 
     if (!Object.getOwnPropertyDescriptor(serializerClass, 'associationStatements'))
@@ -63,7 +63,7 @@ export default function RendersOne(
         field: key,
         flatten: opts.flatten || false,
         optional: opts.optional || false,
-        serializerClassCB,
+        dreamOrSerializerClassCB,
         serializerKey: opts.serializer,
         source: opts.source || key,
         through: opts.through || null,

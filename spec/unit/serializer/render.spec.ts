@@ -13,7 +13,7 @@ import Pet from '../../../test-app/app/models/Pet'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
-import PetSerializer from '../../../test-app/app/serializers/PetSerializer'
+import PetSerializer, { PetSummarySerializer } from '../../../test-app/app/serializers/PetSerializer'
 
 describe('DreamSerailizer.render', () => {
   it('renders a dream instance', () => {
@@ -359,6 +359,41 @@ describe('DreamSerializer#render', () => {
         expect(serializer.render()).toMatchObject({
           pets: [{ name: 'aster', species: 'cat' }],
           balloons: [{ color: 'red' }],
+        })
+      })
+
+      // whenever an array is passed, we will always infer the
+      // serializer at runtime using the data, since we can't
+      // know which one to use in which context.
+      context('an array of dreams is passed', () => {
+        class NewUserSerializer extends DreamSerializer {
+          @RendersMany(() => [Pet, User], { serializer: 'summary' })
+          public pets: Pet[]
+        }
+
+        it('correctly serializes', async () => {
+          let user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+          const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+          user = await user.load('pets').execute()
+
+          const serializer = new NewUserSerializer(user)
+          expect(serializer.render()).toEqual({ pets: [{ id: pet.id, favoriteTreats: null }] })
+        })
+      })
+
+      context('an array of serializers is passed', () => {
+        class NewUserSerializer extends DreamSerializer {
+          @RendersMany(() => [PetSummarySerializer, UserSerializer], { serializer: 'summary' })
+          public pets: Pet[]
+        }
+
+        it('correctly serializes', async () => {
+          let user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+          const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+          user = await user.load('pets').execute()
+
+          const serializer = new NewUserSerializer(user)
+          expect(serializer.render()).toEqual({ pets: [{ id: pet.id, favoriteTreats: null }] })
         })
       })
 
