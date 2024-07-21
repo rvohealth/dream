@@ -12,7 +12,7 @@ export type OpenapiSchemaBodyShorthand =
   | OpenapiSchemaShorthandExpressionOneOf
   | OpenapiSchemaObjectShorthand
 
-export type OpenapiSchemaBase = OpenapiSchemaArray | OpenapiSchemaExpressionRef
+export type OpenapiSchemaBase = OpenapiSchemaString | OpenapiSchemaArray | OpenapiSchemaExpressionRef
 
 export type OpenapiSchemaShorthandExpressionAnyOf = {
   anyOf: OpenapiSchemaBodyShorthand[]
@@ -32,6 +32,12 @@ export type OpenapiSchemaExpressionAnyOf = {
 
 export type OpenapiSchemaExpressionOneOf = {
   oneOf: OpenapiSchemaBody[]
+}
+
+export interface OpenapiSchemaString {
+  type: 'string'
+  nullable?: boolean
+  enum?: string[]
 }
 
 export interface OpenapiSchemaObject {

@@ -12,7 +12,9 @@ export default class SandbagSerializer extends DreamSerializer {
   @Attribute({
     type: 'object',
     properties: {
-      label: 'string',
+      label: {
+        type: 'string',
+      },
       value: {
         type: 'object',
         properties: {
@@ -50,4 +52,10 @@ export default class SandbagSerializer extends DreamSerializer {
     ],
   })
   public refTest() {}
+
+  @Attribute({
+    type: 'string',
+    enum: ['hello', 'world'],
+  })
+  public enumTest() {}
 }

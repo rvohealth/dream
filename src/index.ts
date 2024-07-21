@@ -92,6 +92,7 @@ export {
   OpenapiSchemaShorthandExpressionAnyOf,
   OpenapiSchemaShorthandExpressionOneOf,
   OpenapiSchemaShorthandPrimitiveGeneric,
+  OpenapiSchemaString,
   OpenapiShorthandAllTypes,
   OpenapiShorthandPrimitiveTypes,
   OpenapiTypeField,
