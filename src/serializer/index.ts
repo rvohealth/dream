@@ -11,7 +11,7 @@ import round from '../helpers/round'
 import instanceSerializerForKey from '../helpers/serializerForKey'
 import snakeify from '../helpers/snakeify'
 import { AssociationStatement } from './decorators/associations/shared'
-import { AttributeStatement, SerializableTypes } from './decorators/attribute'
+import { AttributeStatement } from './decorators/attribute'
 
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
   public static attributeStatements: AttributeStatement[] = []
@@ -89,80 +89,6 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     }
 
     return this.renderOne()
-  }
-
-  public static attributeTypeReflection<I extends typeof DreamSerializer>(
-    this: I,
-    field: SerializerPublicFields<InstanceType<I>>,
-    { startSpaces = 0 }: { startSpaces?: number } = {}
-  ) {
-    const value = this['attributeStatements'].find(statement => statement.field === field)?.renderAs
-
-    return this.recursiveAttributeTypeReflection(field, value, 0, startSpaces)
-  }
-
-  private static recursiveAttributeTypeReflection<I extends typeof DreamSerializer>(
-    this: I,
-    field: SerializerPublicFields<InstanceType<I>>,
-    data: SerializableTypes | undefined,
-    depth: number = 0,
-    startSpaces: number = 0
-  ) {
-    const trueSpaces = startSpaces ? depth + parseInt(`${startSpaces / 2}`) : depth
-    if (data === undefined) {
-      return 'any'
-    }
-
-    //     if (typeof data === 'object') {
-    //       let str = ''
-    //       if (depth === 0) {
-    //         str += `{
-    // `
-    //       }
-    //
-    //       Object.keys(data).forEach((key, index) => {
-    //         const value = data[key]
-    //         if (typeof value === 'object') {
-    //           str += `${this.spaces(trueSpaces)}${key}: {
-    // ${this.recursiveAttributeTypeReflection(field, value, depth + 1, startSpaces)}
-    // ${this.spaces(trueSpaces)}}`
-    //         } else {
-    //           str += `${this.spaces(trueSpaces)}${key}: ${this.parsePrimitiveType(data[key] as string)}${Object.keys(data).length === index + 1 ? '' : '\n'}`
-    //         }
-    //       })
-    //
-    //       if (depth === 0) {
-    //         str += `
-    // ${this.spaces(trueSpaces - 1)}}`
-    //       }
-    //
-    //       return str
-    //     }
-
-    // return this.parsePrimitiveType(data)
-  }
-
-  private static parsePrimitiveType(type: string) {
-    switch (type) {
-      case 'json':
-      case 'jsonb':
-        return 'any'
-      case 'decimal':
-        return 'number'
-      case 'date':
-      case 'datetime':
-        return 'string'
-      default:
-        return type.replace(/^enum:/, '').replace(/^type:/, '')
-    }
-  }
-
-  private static spaces(depth: number) {
-    let spaces = ''
-    for (let i = 0; i <= depth; i++) {
-      spaces += '  '
-    }
-    return spaces
   }
 
   public renderOne() {

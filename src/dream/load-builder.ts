@@ -9,6 +9,16 @@ export default class LoadBuilder<DreamInstance extends Dream> {
   private dreamTransaction: DreamTransaction<any> | undefined
   private query: Query<DreamInstance>
 
+  /**
+   * An intermediate class on the way to executing a load
+   * query. this can be accessed on an instance of a dream
+   * model by using the `#load` method:
+   *
+   * ```ts
+   * const user = await User.firstOrFail()
+   * await user.load('settings').execute()
+   * ```
+   */
   constructor(dream: Dream, txn?: DreamTransaction<any>) {
     this.dream = dream['clone']()
 
@@ -32,6 +42,17 @@ export default class LoadBuilder<DreamInstance extends Dream> {
     return this
   }
 
+  /**
+   * Attaches a load statement to the load builder
+   *
+   * ```ts
+   * const user = await User.firstOrFail()
+   * await user
+   *   .load('settings')
+   *   .load('posts', 'comments', 'replies', ['image', 'localizedText'])
+   *   .execute()
+   * ```
+   */
   public load<
     I extends LoadBuilder<DreamInstance>,
     DB extends DreamInstance['DB'],
@@ -43,6 +64,19 @@ export default class LoadBuilder<DreamInstance extends Dream> {
     return this
   }
 
+  /**
+   * executes a load builder query, binding
+   * all associations to their respective model
+   * instances.
+   *
+   * ```ts
+   * const user = await User.firstOrFail()
+   * await user
+   *   .load('settings')
+   *   .load('posts', 'comments', 'replies', ['image', 'localizedText'])
+   *   .execute()
+   * ```
+   */
   public async execute(): Promise<DreamInstance> {
     if (this.dreamTransaction) {
       this.query = this.query.txn(this.dreamTransaction)
