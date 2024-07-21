@@ -1,20 +1,43 @@
-export type OpenapiSchemaBase =
-  | OpenapiSchemaObject
-  | OpenapiSchemaArray
+export type OpenapiSchemaBody =
+  | OpenapiSchemaBase
+  | OpenapiSchemaPrimitiveGeneric
   | OpenapiSchemaExpressionAnyOf
   | OpenapiSchemaExpressionOneOf
-export type OpenapiSchemaBody = OpenapiSchemaBase | OpenapiSchemaPrimitiveGeneric
-export type OpenapiSchemaBodyShorthand = OpenapiSchemaBase | OpenapiSchemaShorthandPrimitiveGeneric
+  | OpenapiSchemaObject
 
-export type OpenapiSchemaExpressionAnyOf = {
+export type OpenapiSchemaBodyShorthand =
+  | OpenapiSchemaBase
+  | OpenapiSchemaShorthandPrimitiveGeneric
+  | OpenapiSchemaShorthandExpressionAnyOf
+  | OpenapiSchemaShorthandExpressionOneOf
+  | OpenapiSchemaObjectShorthand
+
+export type OpenapiSchemaBase = OpenapiSchemaArray
+
+export type OpenapiSchemaShorthandExpressionAnyOf = {
   anyOf: OpenapiSchemaBodyShorthand[]
 }
 
-export type OpenapiSchemaExpressionOneOf = {
+export type OpenapiSchemaShorthandExpressionOneOf = {
   oneOf: OpenapiSchemaBodyShorthand[]
 }
 
+export type OpenapiSchemaExpressionAnyOf = {
+  anyOf: OpenapiSchemaBody[]
+}
+
+export type OpenapiSchemaExpressionOneOf = {
+  oneOf: OpenapiSchemaBody[]
+}
+
 export interface OpenapiSchemaObject {
+  type: 'object'
+  required?: string[]
+  properties?: OpenapiSchemaProperties
+  nullable?: boolean
+}
+
+export interface OpenapiSchemaObjectShorthand {
   type: 'object'
   required?: string[]
   properties?: OpenapiSchemaPropertiesShorthand
