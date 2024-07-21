@@ -141,6 +141,16 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     return returnObj
   }
 
+  public getAssociatedSerializer(
+    associatedData: any,
+    associationStatement: AssociationStatement
+  ): typeof DreamSerializer<any, any> {
+    const serializerClass = associationStatement.serializerClassCB
+      ? associationStatement.serializerClassCB()
+      : instanceSerializerForKey(associatedData, associationStatement.serializerKey)
+    return serializerClass as typeof DreamSerializer<any, any>
+  }
+
   private applyAssociation(associationStatement: AssociationStatement) {
     // let associatedData: ReturnType<DreamSerializer.prototype.associatedData>
     let associatedData: any
@@ -160,12 +170,10 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   }
 
   private renderAssociation(associatedData: any, associationStatement: AssociationStatement) {
-    const serializerClass = associationStatement.serializerClassCB
-      ? associationStatement.serializerClassCB()
-      : instanceSerializerForKey(associatedData, associationStatement.serializerKey)
+    const SerializerClass = this.getAssociatedSerializer(associatedData, associationStatement)
+    if (!SerializerClass) throw new MissingSerializer(associatedData.constructor as typeof Dream)
 
-    if (!serializerClass) throw new MissingSerializer(associatedData.constructor as typeof Dream)
-    return new serializerClass(associatedData).passthrough(this.passthroughData).render()
+    return new SerializerClass(associatedData).passthrough(this.passthroughData).render()
   }
 
   private associatedData(associationStatement: AssociationStatement) {
