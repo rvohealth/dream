@@ -12,7 +12,7 @@ export type OpenapiSchemaBodyShorthand =
   | OpenapiSchemaShorthandExpressionOneOf
   | OpenapiSchemaObjectShorthand
 
-export type OpenapiSchemaBase = OpenapiSchemaArray
+export type OpenapiSchemaBase = OpenapiSchemaArray | OpenapiSchemaExpressionRef
 
 export type OpenapiSchemaShorthandExpressionAnyOf = {
   anyOf: OpenapiSchemaBodyShorthand[]
@@ -20,6 +20,10 @@ export type OpenapiSchemaShorthandExpressionAnyOf = {
 
 export type OpenapiSchemaShorthandExpressionOneOf = {
   oneOf: OpenapiSchemaBodyShorthand[]
+}
+
+export type OpenapiSchemaExpressionRef = {
+  $ref: string
 }
 
 export type OpenapiSchemaExpressionAnyOf = {

@@ -37,4 +37,17 @@ export default class SandbagSerializer extends DreamSerializer {
     ],
   })
   public dateOrDatetime() {}
+
+  @Attribute({
+    anyOf: [
+      {
+        type: 'date',
+        nullable: false,
+      },
+      {
+        $ref: 'components/schemas/Howyadoin',
+      },
+    ],
+  })
+  public refTest() {}
 }
