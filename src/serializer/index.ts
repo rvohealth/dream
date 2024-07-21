@@ -26,7 +26,33 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     return dataArr.map(data => this.render(data, opts))
   }
 
-  public static getAssociatedSerializer(
+  public static getAssociatedSerializersForOpenapi(
+    associationStatement: AssociationStatement
+  ): (typeof DreamSerializer<any, any>)[] | null {
+    const serializerOrDreamClassOrClasses = associationStatement.dreamOrSerializerClassCB
+      ? associationStatement.dreamOrSerializerClassCB()
+      : null
+    if (!serializerOrDreamClassOrClasses) return null
+
+    let serializerOrDreamClasses: (typeof Dream)[] | (typeof DreamSerializer<any, any>)[] =
+      serializerOrDreamClassOrClasses as any
+    if (!Array.isArray(serializerOrDreamClasses)) {
+      serializerOrDreamClasses = [serializerOrDreamClasses]
+    }
+
+    return serializerOrDreamClasses.map(serializerOrDreamClass => {
+      if ((serializerOrDreamClass as typeof DreamSerializer)?.isDreamSerializer) {
+        return serializerOrDreamClass as typeof DreamSerializer
+      }
+
+      const dreamClass = serializerOrDreamClass as typeof Dream
+      const serializerClass =
+        dreamClass.prototype.serializers[associationStatement.serializerKey || 'default']
+      return serializerClass as typeof DreamSerializer
+    })
+  }
+
+  public static getAssociatedSerializerDuringRender(
     associatedData: any,
     associationStatement: AssociationStatement
   ): typeof DreamSerializer<any, any> | null {
@@ -194,7 +220,10 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   }
 
   private renderAssociation(associatedData: any, associationStatement: AssociationStatement) {
-    const SerializerClass = DreamSerializer.getAssociatedSerializer(associatedData, associationStatement)
+    const SerializerClass = DreamSerializer.getAssociatedSerializerDuringRender(
+      associatedData,
+      associationStatement
+    )
     if (!SerializerClass) throw new MissingSerializer(associatedData.constructor as typeof Dream)
 
     return new SerializerClass(associatedData).passthrough(this.passthroughData).render()
