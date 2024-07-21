@@ -151,6 +151,16 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     return serializerClass as typeof DreamSerializer<any, any>
   }
 
+  public getAssociatedSerializerForDreamClass(
+    dreamClass: typeof Dream,
+    associationStatement: AssociationStatement
+  ): typeof DreamSerializer<any, any> {
+    const serializerClass = associationStatement.serializerClassCB
+      ? associationStatement.serializerClassCB()
+      : instanceSerializerForKey(dreamClass.prototype, associationStatement.serializerKey)
+    return serializerClass as typeof DreamSerializer<any, any>
+  }
+
   private applyAssociation(associationStatement: AssociationStatement) {
     // let associatedData: ReturnType<DreamSerializer.prototype.associatedData>
     let associatedData: any
