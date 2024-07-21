@@ -47,7 +47,7 @@ export type OpenapiSchemaCommonFields = {
 
 export type OpenapiSchemaString = {
   type: 'string'
-  enum?: string[]
+  enum?: string[] | Readonly<string[]>
 } & OpenapiSchemaCommonFields
 
 export type OpenapiSchemaObject = {
