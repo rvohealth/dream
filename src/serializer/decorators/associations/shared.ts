@@ -10,7 +10,7 @@ export type DreamSerializerClassCB = () =>
   | (typeof Dream)[]
 export type SerializableAssociationType = 'RendersOne' | 'RendersMany'
 
-export interface AssociationStatement {
+export interface DreamSerializerAssociationStatement {
   field: string
   flatten: boolean
   optional: boolean

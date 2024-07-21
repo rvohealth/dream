@@ -10,12 +10,12 @@ import camelize from '../helpers/camelize'
 import round from '../helpers/round'
 import instanceSerializerForKey from '../helpers/serializerForKey'
 import snakeify from '../helpers/snakeify'
-import { AssociationStatement } from './decorators/associations/shared'
+import { DreamSerializerAssociationStatement } from './decorators/associations/shared'
 import { AttributeStatement } from './decorators/attribute'
 
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
   public static attributeStatements: AttributeStatement[] = []
-  public static associationStatements: AssociationStatement[] = []
+  public static associationStatements: DreamSerializerAssociationStatement[] = []
   public static readonly isDreamSerializer = true
 
   public static render(data: any, opts: DreamSerializerStaticRenderOpts = {}) {
@@ -27,7 +27,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   }
 
   public static getAssociatedSerializersForOpenapi(
-    associationStatement: AssociationStatement
+    associationStatement: DreamSerializerAssociationStatement
   ): (typeof DreamSerializer<any, any>)[] | null {
     const serializerOrDreamClassOrClasses = associationStatement.dreamOrSerializerClassCB
       ? associationStatement.dreamOrSerializerClassCB()
@@ -54,7 +54,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
 
   public static getAssociatedSerializerDuringRender(
     associatedData: any,
-    associationStatement: AssociationStatement
+    associationStatement: DreamSerializerAssociationStatement
   ): typeof DreamSerializer<any, any> | null {
     const serializerOrDreamClassOrClasses = associationStatement.dreamOrSerializerClassCB
       ? associationStatement.dreamOrSerializerClassCB()
@@ -78,7 +78,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
 
   public static getAssociatedSerializerForDreamClass(
     dreamClass: typeof Dream,
-    associationStatement: AssociationStatement
+    associationStatement: DreamSerializerAssociationStatement
   ): typeof DreamSerializer<any, any> {
     const serializerClass = associationStatement.dreamOrSerializerClassCB
       ? associationStatement.dreamOrSerializerClassCB()
@@ -201,7 +201,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     return returnObj
   }
 
-  private applyAssociation(associationStatement: AssociationStatement) {
+  private applyAssociation(associationStatement: DreamSerializerAssociationStatement) {
     // let associatedData: ReturnType<DreamSerializer.prototype.associatedData>
     let associatedData: any
 
@@ -219,7 +219,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     return associationStatement.type === 'RendersMany' ? [] : null
   }
 
-  private renderAssociation(associatedData: any, associationStatement: AssociationStatement) {
+  private renderAssociation(associatedData: any, associationStatement: DreamSerializerAssociationStatement) {
     const SerializerClass = DreamSerializer.getAssociatedSerializerDuringRender(
       associatedData,
       associationStatement
@@ -229,7 +229,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     return new SerializerClass(associatedData).passthrough(this.passthroughData).render()
   }
 
-  private associatedData(associationStatement: AssociationStatement) {
+  private associatedData(associationStatement: DreamSerializerAssociationStatement) {
     const delegateToPassthroughData = associationStatement.source === DreamConst.passthrough
     let self = (delegateToPassthroughData ? this.passthroughData : this.data) as any
 

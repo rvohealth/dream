@@ -1,5 +1,5 @@
 import DreamSerializer from '../..'
-import { AssociationStatement, DreamSerializerClassCB, RendersOneOrManyOpts } from './shared'
+import { DreamSerializerAssociationStatement, DreamSerializerClassCB, RendersOneOrManyOpts } from './shared'
 
 /**
  * Establishes a One to One relationship between
@@ -54,7 +54,7 @@ export default function RendersOne(
     if (!Object.getOwnPropertyDescriptor(serializerClass, 'associationStatements'))
       serializerClass.associationStatements = [
         ...(serializerClass.associationStatements || []),
-      ] as AssociationStatement[]
+      ] as DreamSerializerAssociationStatement[]
 
     serializerClass.associationStatements = [
       ...serializerClass.associationStatements,
@@ -69,7 +69,7 @@ export default function RendersOne(
         through: opts.through || null,
         path: opts.path || null,
         exportedAs: opts.exportedAs || null,
-      } as AssociationStatement,
+      } as DreamSerializerAssociationStatement,
     ]
   }
 }
