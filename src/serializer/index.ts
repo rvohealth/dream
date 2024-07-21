@@ -26,6 +26,26 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     return dataArr.map(data => this.render(data, opts))
   }
 
+  public static getAssociatedSerializer(
+    associatedData: any,
+    associationStatement: AssociationStatement
+  ): typeof DreamSerializer<any, any> {
+    const serializerClass = associationStatement.serializerClassCB
+      ? associationStatement.serializerClassCB()
+      : instanceSerializerForKey(associatedData, associationStatement.serializerKey)
+    return serializerClass as typeof DreamSerializer<any, any>
+  }
+
+  public static getAssociatedSerializerForDreamClass(
+    dreamClass: typeof Dream,
+    associationStatement: AssociationStatement
+  ): typeof DreamSerializer<any, any> {
+    const serializerClass = associationStatement.serializerClassCB
+      ? associationStatement.serializerClassCB()
+      : instanceSerializerForKey(dreamClass.prototype, associationStatement.serializerKey)
+    return serializerClass as typeof DreamSerializer<any, any>
+  }
+
   private _data: DataType
   private _casing: 'snake' | 'camel' | null = null
   public readonly isDreamSerializerInstance = true
@@ -141,26 +161,6 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     return returnObj
   }
 
-  public getAssociatedSerializer(
-    associatedData: any,
-    associationStatement: AssociationStatement
-  ): typeof DreamSerializer<any, any> {
-    const serializerClass = associationStatement.serializerClassCB
-      ? associationStatement.serializerClassCB()
-      : instanceSerializerForKey(associatedData, associationStatement.serializerKey)
-    return serializerClass as typeof DreamSerializer<any, any>
-  }
-
-  public getAssociatedSerializerForDreamClass(
-    dreamClass: typeof Dream,
-    associationStatement: AssociationStatement
-  ): typeof DreamSerializer<any, any> {
-    const serializerClass = associationStatement.serializerClassCB
-      ? associationStatement.serializerClassCB()
-      : instanceSerializerForKey(dreamClass.prototype, associationStatement.serializerKey)
-    return serializerClass as typeof DreamSerializer<any, any>
-  }
-
   private applyAssociation(associationStatement: AssociationStatement) {
     // let associatedData: ReturnType<DreamSerializer.prototype.associatedData>
     let associatedData: any
@@ -180,7 +180,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   }
 
   private renderAssociation(associatedData: any, associationStatement: AssociationStatement) {
-    const SerializerClass = this.getAssociatedSerializer(associatedData, associationStatement)
+    const SerializerClass = DreamSerializer.getAssociatedSerializer(associatedData, associationStatement)
     if (!SerializerClass) throw new MissingSerializer(associatedData.constructor as typeof Dream)
 
     return new SerializerClass(associatedData).passthrough(this.passthroughData).render()
