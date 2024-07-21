@@ -81,6 +81,7 @@ export {
   OpenapiSchemaBase,
   OpenapiSchemaBody,
   OpenapiSchemaBodyShorthand,
+  OpenapiSchemaCommonFields,
   OpenapiSchemaExpressionAnyOf,
   OpenapiSchemaExpressionOneOf,
   OpenapiSchemaExpressionRef,

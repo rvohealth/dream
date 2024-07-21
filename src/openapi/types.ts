@@ -34,45 +34,45 @@ export type OpenapiSchemaExpressionOneOf = {
   oneOf: OpenapiSchemaBody[]
 }
 
-export interface OpenapiSchemaString {
-  type: 'string'
+export type OpenapiSchemaCommonFields = {
   nullable?: boolean
-  enum?: string[]
+  description?: string
+  summary?: string
 }
 
-export interface OpenapiSchemaObject {
+export type OpenapiSchemaString = {
+  type: 'string'
+  enum?: string[]
+} & OpenapiSchemaCommonFields
+
+export type OpenapiSchemaObject = {
   type: 'object'
   required?: string[]
   properties?: OpenapiSchemaProperties
-  nullable?: boolean
-}
+} & OpenapiSchemaCommonFields
 
-export interface OpenapiSchemaObjectShorthand {
+export type OpenapiSchemaObjectShorthand = {
   type: 'object'
   required?: string[]
   properties?: OpenapiSchemaPropertiesShorthand
-  nullable?: boolean
-}
+} & OpenapiSchemaCommonFields
 
 export interface OpenapiSchemaProperties {
   [key: string]: OpenapiSchemaBody
 }
 
-export interface OpenapiSchemaArray {
+export type OpenapiSchemaArray = {
   type: 'array'
   items: OpenapiSchemaBodyShorthand
-  nullable?: boolean
-}
+} & OpenapiSchemaCommonFields
 
-export interface OpenapiSchemaPrimitiveGeneric {
+export type OpenapiSchemaPrimitiveGeneric = {
   type: OpenapiPrimitiveTypes
-  nullable?: boolean
-}
+} & OpenapiSchemaCommonFields
 
-export interface OpenapiSchemaShorthandPrimitiveGeneric {
+export type OpenapiSchemaShorthandPrimitiveGeneric = {
   type: OpenapiShorthandPrimitiveTypes
-  nullable?: boolean
-}
+} & OpenapiSchemaCommonFields
 
 export interface OpenapiSchemaPropertiesShorthand {
   [key: string]: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
