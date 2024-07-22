@@ -66,15 +66,24 @@ export type OpenapiSchemaObject = {
   properties?: OpenapiSchemaProperties
 } & OpenapiSchemaCommonFields
 
-export type OpenapiSchemaArray = {
-  type: 'array'
-  items: OpenapiSchemaBodyShorthand
-} & OpenapiSchemaCommonFields
-
 export type OpenapiSchemaObjectShorthand = {
   type: 'object'
   required?: string[]
   properties?: OpenapiSchemaPropertiesShorthand
+} & OpenapiSchemaCommonFields
+
+export type OpenapiSchemaArray = {
+  type: 'array'
+  items:
+    | OpenapiSchemaBody
+    | OpenapiSchemaExpressionAllOf
+    | OpenapiSchemaExpressionAnyOf
+    | OpenapiSchemaExpressionOneOf
+} & OpenapiSchemaCommonFields
+
+export type OpenapiSchemaArrayShorthand = {
+  type: 'array'
+  items: OpenapiSchemaBodyShorthand | OpenapiSchemaShorthandExpressionAllOf
 } & OpenapiSchemaCommonFields
 
 export interface OpenapiSchemaProperties {
