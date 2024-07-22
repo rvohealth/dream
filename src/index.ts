@@ -99,6 +99,8 @@ export {
   OpenapiShorthandPrimitiveTypes,
   OpenapiTypeField,
   OpenapiTypeFieldObject,
+  OpenapiSchemaExpressionAllOf,
+  OpenapiSchemaShorthandExpressionAllOf,
   openapiPrimitiveTypes,
   openapiShorthandPrimitiveTypes,
 } from './openapi/types'

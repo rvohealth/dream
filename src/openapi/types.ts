@@ -3,6 +3,7 @@ export type OpenapiSchemaBody =
   | OpenapiSchemaPrimitiveGeneric
   | OpenapiSchemaExpressionAnyOf
   | OpenapiSchemaExpressionOneOf
+  | OpenapiSchemaExpressionAllOf
   | OpenapiSchemaObject
 
 export type OpenapiSchemaBodyShorthand =
@@ -10,6 +11,7 @@ export type OpenapiSchemaBodyShorthand =
   | OpenapiSchemaShorthandPrimitiveGeneric
   | OpenapiSchemaShorthandExpressionAnyOf
   | OpenapiSchemaShorthandExpressionOneOf
+  | OpenapiSchemaShorthandExpressionAllOf
   | OpenapiSchemaObjectShorthand
   | OpenapiSchemaExpressionRefSchemaShorthand
 
@@ -23,12 +25,20 @@ export type OpenapiSchemaShorthandExpressionOneOf = {
   oneOf: OpenapiSchemaBodyShorthand[]
 }
 
+export type OpenapiSchemaShorthandExpressionAllOf = {
+  allOf: OpenapiSchemaBodyShorthand[]
+}
+
 export type OpenapiSchemaExpressionRef = {
   $ref: string
 }
 
 export type OpenapiSchemaExpressionRefSchemaShorthand = {
   $schema: string
+}
+
+export type OpenapiSchemaExpressionAllOf = {
+  allOf: OpenapiSchemaBody[]
 }
 
 export type OpenapiSchemaExpressionAnyOf = {
@@ -56,6 +66,11 @@ export type OpenapiSchemaObject = {
   properties?: OpenapiSchemaProperties
 } & OpenapiSchemaCommonFields
 
+export type OpenapiSchemaArray = {
+  type: 'array'
+  items: OpenapiSchemaBodyShorthand
+} & OpenapiSchemaCommonFields
+
 export type OpenapiSchemaObjectShorthand = {
   type: 'object'
   required?: string[]
@@ -65,11 +80,6 @@ export type OpenapiSchemaObjectShorthand = {
 export interface OpenapiSchemaProperties {
   [key: string]: OpenapiSchemaBody
 }
-
-export type OpenapiSchemaArray = {
-  type: 'array'
-  items: OpenapiSchemaBodyShorthand
-} & OpenapiSchemaCommonFields
 
 export type OpenapiSchemaPrimitiveGeneric = {
   type: OpenapiPrimitiveTypes
