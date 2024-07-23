@@ -5,6 +5,7 @@ export type OpenapiSchemaBody =
   | OpenapiSchemaExpressionOneOf
   | OpenapiSchemaExpressionAllOf
   | OpenapiSchemaObject
+  | OpenapiSchemaArray
 
 export type OpenapiSchemaBodyShorthand =
   | OpenapiSchemaBase
@@ -13,9 +14,10 @@ export type OpenapiSchemaBodyShorthand =
   | OpenapiSchemaShorthandExpressionOneOf
   | OpenapiSchemaShorthandExpressionAllOf
   | OpenapiSchemaObjectShorthand
+  | OpenapiSchemaArrayShorthand
   | OpenapiSchemaExpressionRefSchemaShorthand
 
-export type OpenapiSchemaBase = OpenapiSchemaString | OpenapiSchemaArray | OpenapiSchemaExpressionRef
+export type OpenapiSchemaBase = OpenapiSchemaString | OpenapiSchemaInteger | OpenapiSchemaExpressionRef
 
 export type OpenapiSchemaShorthandExpressionAnyOf = {
   anyOf: OpenapiSchemaBodyShorthand[]
@@ -49,60 +51,138 @@ export type OpenapiSchemaExpressionOneOf = {
   oneOf: OpenapiSchemaBody[]
 }
 
-export type OpenapiSchemaCommonFields = {
+export type OpenapiSchemaCommonFields<T> = T & {
   nullable?: boolean
   description?: string
   summary?: string
 }
 
-export type OpenapiSchemaString = {
+export type OpenapiSchemaString = OpenapiSchemaCommonFields<{
   type: 'string'
   enum?: string[] | Readonly<string[]>
-} & OpenapiSchemaCommonFields
+  format?: string
+}>
 
-export type OpenapiSchemaObject = {
-  type: 'object'
-  required?: string[]
-  properties?: OpenapiSchemaProperties
-} & OpenapiSchemaCommonFields
+export type OpenapiSchemaInteger = OpenapiSchemaCommonFields<{
+  type: 'integer'
+  minimum?: number
+  maximum?: number
+}>
 
-export type OpenapiSchemaObjectShorthand = {
-  type: 'object'
-  required?: string[]
-  properties?: OpenapiSchemaPropertiesShorthand
-} & OpenapiSchemaCommonFields
+export type OpenapiSchemaObject =
+  | OpenapiSchemaObjectBase
+  | OpenapiSchemaObjectOneOf
+  | OpenapiSchemaObjectAnyOf
+  | OpenapiSchemaObjectAllOf
 
-export type OpenapiSchemaArray = {
+export type OpenapiSchemaObjectBase = CommonOpenapiSchemaObjectFields<{
+  maxProperties?: number
+  properties?:
+    | OpenapiSchemaProperties
+    | OpenapiSchemaExpressionOneOf
+    | OpenapiSchemaExpressionAnyOf
+    | OpenapiSchemaExpressionAllOf
+  additionalProperties?:
+    | OpenapiSchemaProperties
+    | OpenapiSchemaExpressionOneOf
+    | OpenapiSchemaExpressionAnyOf
+    | OpenapiSchemaExpressionAllOf
+}>
+
+export type OpenapiSchemaObjectOneOf = CommonOpenapiSchemaObjectFields<{
+  oneOf?: OpenapiSchemaBody[]
+}>
+
+export type OpenapiSchemaObjectAnyOf = CommonOpenapiSchemaObjectFields<{
+  anyOf?: OpenapiSchemaBody[]
+}>
+
+export type OpenapiSchemaObjectAllOf = CommonOpenapiSchemaObjectFields<{
+  allOf?: OpenapiSchemaBody[]
+}>
+
+export type OpenapiSchemaObjectShorthand =
+  | OpenapiSchemaObjectBaseShorthand
+  | OpenapiSchemaObjectOneOfShorthand
+  | OpenapiSchemaObjectAnyOfShorthand
+  | OpenapiSchemaObjectAllOfShorthand
+
+export type OpenapiSchemaObjectBaseShorthand = CommonOpenapiSchemaObjectFields<{
+  maxProperties?: number
+  properties?:
+    | OpenapiSchemaPropertiesShorthand
+    | OpenapiSchemaShorthandExpressionOneOf
+    | OpenapiSchemaShorthandExpressionAnyOf
+    | OpenapiSchemaShorthandExpressionAllOf
+  additionalProperties?:
+    | OpenapiSchemaPropertiesShorthand
+    | OpenapiSchemaShorthandExpressionOneOf
+    | OpenapiSchemaShorthandExpressionAnyOf
+    | OpenapiSchemaShorthandExpressionAllOf
+}>
+
+export type OpenapiSchemaObjectOneOfShorthand = CommonOpenapiSchemaObjectFields<{
+  oneOf?: OpenapiSchemaBodyShorthand[]
+}>
+
+export type OpenapiSchemaObjectAnyOfShorthand = CommonOpenapiSchemaObjectFields<{
+  anyOf?: OpenapiSchemaBodyShorthand[]
+}>
+
+export type OpenapiSchemaObjectAllOfShorthand = CommonOpenapiSchemaObjectFields<{
+  allOf?: OpenapiSchemaBodyShorthand[]
+}>
+
+export type CommonOpenapiSchemaObjectFields<T> = OpenapiSchemaCommonFields<
+  T & {
+    type: 'object'
+    required?: string[]
+  }
+>
+
+export type OpenapiSchemaArray = OpenapiSchemaCommonFields<{
   type: 'array'
   items:
     | OpenapiSchemaBody
     | OpenapiSchemaExpressionAllOf
     | OpenapiSchemaExpressionAnyOf
     | OpenapiSchemaExpressionOneOf
-} & OpenapiSchemaCommonFields
+}>
 
-export type OpenapiSchemaArrayShorthand = {
+export type OpenapiSchemaArrayShorthand = OpenapiSchemaCommonFields<{
   type: 'array'
-  items: OpenapiSchemaBodyShorthand | OpenapiSchemaShorthandExpressionAllOf
-} & OpenapiSchemaCommonFields
+  items:
+    | OpenapiSchemaBodyShorthand
+    | OpenapiSchemaShorthandExpressionAllOf
+    | OpenapiSchemaShorthandExpressionAnyOf
+    | OpenapiSchemaShorthandExpressionOneOf
+}>
 
 export interface OpenapiSchemaProperties {
   [key: string]: OpenapiSchemaBody
 }
 
-export type OpenapiSchemaPrimitiveGeneric = {
+export type OpenapiSchemaPrimitiveGeneric = OpenapiSchemaCommonFields<{
   type: OpenapiPrimitiveTypes
-} & OpenapiSchemaCommonFields
+}>
 
-export type OpenapiSchemaShorthandPrimitiveGeneric = {
+export type OpenapiSchemaShorthandPrimitiveGeneric = OpenapiSchemaCommonFields<{
   type: OpenapiShorthandPrimitiveTypes
-} & OpenapiSchemaCommonFields
+}>
 
 export interface OpenapiSchemaPropertiesShorthand {
   [key: string]: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
 }
 
-export const openapiPrimitiveTypes = ['string', 'boolean', 'number', 'date', 'date-time', 'decimal'] as const
+export const openapiPrimitiveTypes = [
+  'string',
+  'boolean',
+  'number',
+  'date',
+  'date-time',
+  'decimal',
+  'integer',
+] as const
 export const openapiShorthandPrimitiveTypes = [
   ...openapiPrimitiveTypes,
   'string[]',
@@ -111,6 +191,7 @@ export const openapiShorthandPrimitiveTypes = [
   'date[]',
   'date-time[]',
   'decimal[]',
+  'integer[]',
   'json',
 ] as const
 export type OpenapiPrimitiveTypes = (typeof openapiPrimitiveTypes)[number]
