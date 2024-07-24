@@ -7,7 +7,6 @@ export interface DreamYamlFile {
   conf_path: string
   db_path: string
   unit_spec_path: string
-  primary_key_type: PrimaryKeyType
   factory_path?: string
 }
 

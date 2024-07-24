@@ -7,7 +7,7 @@ import { cacheDreamconf } from '../../../src/dreamconf/cache'
 describe('ConnectionConfRetriever', () => {
   const getConfig = () => {
     const dreamconf = new Dreamconf()
-    dreamconf.apply('dbCredentials', {
+    dreamconf.set('dbCredentials', {
       primary: primaryConfig,
       replica: replicaConfig,
     })

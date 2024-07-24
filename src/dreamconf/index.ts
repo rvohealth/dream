@@ -1,3 +1,4 @@
+import { primaryKeyTypes } from '../dream/types'
 import loadDreamconfCb from '../helpers/path/loadDreamconfCb'
 import { cacheDreamconf } from './cache'
 
@@ -14,14 +15,23 @@ export default class Dreamconf {
   }
 
   public dbCredentials: DreamDbCredentialOptions
+  public primaryKeyType: (typeof primaryKeyTypes)[number] = 'bigserial'
 
-  public apply<ApplyOpt extends ApplyOption>(
+  public set<ApplyOpt extends ApplyOption>(
     applyOption: ApplyOpt,
-    options: ApplyOpt extends 'dbCredentials' ? DreamDbCredentialOptions : never
+    options: ApplyOpt extends 'dbCredentials'
+      ? DreamDbCredentialOptions
+      : ApplyOpt extends 'primaryKeyType'
+        ? (typeof primaryKeyTypes)[number]
+        : never
   ) {
     switch (applyOption) {
       case 'dbCredentials':
-        this.dbCredentials = options
+        this.dbCredentials = options as DreamDbCredentialOptions
+        break
+
+      case 'primaryKeyType':
+        this.primaryKeyType = options as (typeof primaryKeyTypes)[number]
         break
 
       default:
@@ -30,7 +40,7 @@ export default class Dreamconf {
   }
 }
 
-export type ApplyOption = 'dbCredentials'
+export type ApplyOption = 'dbCredentials' | 'primaryKeyType'
 
 export interface DreamDbCredentialOptions {
   primary: SingleDbCredential

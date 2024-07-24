@@ -1,7 +1,9 @@
 import { Dreamconf } from '../../../src'
 
 export default async function configureDream(dreamconf: Dreamconf) {
-  dreamconf.apply('dbCredentials', {
+  dreamconf.set('primaryKeyType', 'bigserial')
+
+  dreamconf.set('dbCredentials', {
     primary: {
       user: process.env.DB_USER!,
       password: process.env.DB_PASSWORD!,
