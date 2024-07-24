@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs'
 import path from 'path'
+import { Dreamconf } from '../src'
 import compact from '../src/helpers/compact'
 import '../src/helpers/loadEnv'
 import loadDreamYamlFile from '../src/helpers/path/loadDreamYamlFile'
@@ -15,6 +16,8 @@ export default async function sync() {
 void sync()
 
 async function writeSchema() {
+  await Dreamconf.loadAndApplyConfig()
+
   const yamlConf = await loadDreamYamlFile()
   const dbConf = await new ConnectionConfRetriever().getConnectionConf('primary')
 
@@ -28,7 +31,7 @@ async function writeSchema() {
   }
 
   await sspawn(
-    `kysely-codegen --url=postgres://${process.env[dbConf.user]}:${process.env[dbConf.password]}@${process.env[dbConf.host]}:${process.env[dbConf.port]}/${process.env[dbConf.name]} --out-file=${absoluteDbSyncPath}`
+    `kysely-codegen --url=postgres://${dbConf.user}:${dbConf.password}@${dbConf.host}:${dbConf.port}/${dbConf.name} --out-file=${absoluteDbSyncPath}`
   )
 
   // intentionally bypassing helpers here, since they often end up referencing

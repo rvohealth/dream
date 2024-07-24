@@ -103,6 +103,7 @@ import {
   VariadicPluckEachThroughArgs,
   VariadicPluckThroughArgs,
 } from './dream/types'
+import { getCachedDreamconfOrFail } from './dreamconf/cache'
 import CanOnlyPassBelongsToModelParam from './exceptions/associations/can-only-pass-belongs-to-model-param'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
 import NonLoadedAssociation from './exceptions/associations/non-loaded-association'
@@ -118,9 +119,9 @@ import isJsonColumn from './helpers/db/types/isJsonColumn'
 import getModelKey from './helpers/getModelKey'
 import { marshalDBValue } from './helpers/marshalDBValue'
 import pascalize from './helpers/pascalize'
+import { EnvOpts } from './helpers/path/types'
 import instanceSerializerForKey from './helpers/serializerForKey'
 import { isString } from './helpers/typechecks'
-import { EnvOpts } from './helpers/path/types'
 
 export default class Dream {
   public DB: any
@@ -1744,7 +1745,7 @@ export default class Dream {
     const dreamTransaction = new DreamTransaction()
     let callbackResponse: RetType = undefined as RetType
 
-    await db('primary', this.prototype.env)
+    await db('primary', getCachedDreamconfOrFail())
       .transaction()
       .execute(async kyselyTransaction => {
         dreamTransaction.kyselyTransaction = kyselyTransaction

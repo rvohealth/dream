@@ -1,14 +1,16 @@
 import { Client } from 'pg'
-import loadDBConfig from '../loadDBConfig'
+import { getCachedDreamconfOrFail } from '../../dreamconf/cache'
 
 export default async function loadPgClient({ useSystemDb }: { useSystemDb?: boolean } = {}) {
-  const data = await loadDBConfig()
+  const dreamconf = getCachedDreamconfOrFail()
+  const creds = dreamconf.dbCredentials.primary
+
   const client = new Client({
-    host: data.host || 'localhost',
-    port: data.port,
-    database: useSystemDb ? 'postgres' : data.name,
-    user: data.user,
-    password: data.password,
+    host: creds.host || 'localhost',
+    port: creds.port,
+    database: useSystemDb ? 'postgres' : creds.name,
+    user: creds.user,
+    password: creds.password,
   })
   await client.connect()
   return client

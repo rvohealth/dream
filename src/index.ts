@@ -33,6 +33,7 @@ export { default as Validate } from './decorators/validations/validate'
 export { default as Validates } from './decorators/validations/validates'
 export { default as Virtual } from './decorators/virtual'
 export { default as Dream } from './dream'
+export { default as Dreamconf } from './dreamconf'
 export { default as Query } from './dream/query'
 export { default as DreamTransaction } from './dream/transaction'
 export {
