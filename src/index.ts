@@ -57,6 +57,7 @@ export {
   UpdateableProperties,
   primaryKeyTypes,
 } from './dream/types'
+export { default as Dreamconf } from './dreamconf'
 export { default as NonLoadedAssociation } from './exceptions/associations/non-loaded-association'
 export { default as CreateOrFindByFailedToCreateAndFind } from './exceptions/create-or-find-by-failed-to-create-and-find'
 export { default as ValidationError } from './exceptions/validation-error'

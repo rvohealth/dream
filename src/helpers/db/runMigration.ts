@@ -1,9 +1,9 @@
-import { FileMigrationProvider, Migrator } from 'kysely'
-import { migrationsPath } from '../path'
 import { promises as fs } from 'fs'
+import { FileMigrationProvider, Migrator } from 'kysely'
 import path from 'path'
 import db from '../../db'
-import loadEnvConf from '../path/loadEnvConf'
+import { getCachedDreamconfOrFail } from '../../dreamconf/cache'
+import { migrationsPath } from '../path'
 
 export default async function runMigration({
   mode = 'migrate',
@@ -11,9 +11,8 @@ export default async function runMigration({
 }: { mode?: 'migrate' | 'rollback'; step?: number } = {}) {
   const migrationFolder = await migrationsPath()
 
-  const envConf = await loadEnvConf()
   const migrator = new Migrator({
-    db: db('primary', envConf),
+    db: db('primary', getCachedDreamconfOrFail()),
     allowUnorderedMigrations: true,
     provider: new FileMigrationProvider({
       fs,

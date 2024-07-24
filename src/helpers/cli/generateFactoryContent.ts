@@ -1,9 +1,8 @@
 import pascalize from '../../../src/helpers/pascalize'
 import camelize from '../camelize'
-import uniq from '../uniq'
-import { loadDreamYamlFile } from '../path'
 import initializeDream from '../initializeDream'
-import factoriesRelativePath from '../path/factoriesRelativePath'
+import relativeDreamPath from '../path/relativeDreamPath'
+import uniq from '../uniq'
 
 export default async function generateFactoryContent(
   modelName: string,
@@ -71,11 +70,10 @@ async function buildImportStatement(attribute: string) {
 }
 
 async function relativePathToModelRoot() {
-  const yamlConf = await loadDreamYamlFile()
-  const pathToFactories = await factoriesRelativePath()
+  const pathToFactories = await relativeDreamPath('factories')
   const updirsArr = [...pathToFactories.split('/').map(() => '../')]
 
-  return updirsArr.join('') + yamlConf.models_path.replace(/\/$/, '') + '/'
+  return updirsArr.join('') + (await relativeDreamPath('models')).replace(/\/$/, '') + '/'
 }
 
 function dreamClassNameFromAttributeName(attributeName: string) {

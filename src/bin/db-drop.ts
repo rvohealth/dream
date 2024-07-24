@@ -1,16 +1,18 @@
 import ConnectionConfRetriever from '../db/connection-conf-retriever'
+import Dreamconf from '../dreamconf'
+import { getCachedDreamconfOrFail } from '../dreamconf/cache'
 import _dropDb from '../helpers/db/dropDb'
 import initializeDream from '../helpers/initializeDream'
 import '../helpers/loadEnv'
-import loadEnvConf from '../helpers/path/loadEnvConf'
 
 async function dbDrop() {
+  await Dreamconf.configure()
   await initializeDream()
 
-  const connectionRetriever = new ConnectionConfRetriever(await loadEnvConf())
+  const connectionRetriever = new ConnectionConfRetriever(getCachedDreamconfOrFail())
   const primaryDbConf = connectionRetriever.getConnectionConf('primary')
 
-  console.log(`dropping ${process.env[primaryDbConf.name]}`)
+  console.log(`dropping ${primaryDbConf.name}`)
   await _dropDb('primary')
 
   // TODO: add support for dropping replicas. Began doing it below, but it is very tricky,

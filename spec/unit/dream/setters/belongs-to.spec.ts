@@ -1,10 +1,10 @@
 import { sql } from 'kysely'
+import db from '../../../../src/db'
 import Composition from '../../../../test-app/app/models/Composition'
 import Post from '../../../../test-app/app/models/Post'
 import Rating from '../../../../test-app/app/models/Rating'
 import User from '../../../../test-app/app/models/User'
-import db from '../../../../src/db'
-import loadEnvConf from '../../../../src/helpers/path/loadEnvConf'
+import { getCachedDreamconfOrFail } from '../../../../src/dreamconf/cache'
 
 describe('BelongsTo setters', () => {
   it('the getter is updated to the new model', async () => {
@@ -47,8 +47,10 @@ describe('BelongsTo setters', () => {
     })
 
     it('the original foreign key and type are stored in the changedAttributes foreign key and type', async () => {
-      await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(db('primary', await loadEnvConf()))
-      await sql`ALTER SEQUENCE posts_id_seq RESTART 100;`.execute(db('primary', await loadEnvConf()))
+      await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(
+        db('primary', getCachedDreamconfOrFail())
+      )
+      await sql`ALTER SEQUENCE posts_id_seq RESTART 100;`.execute(db('primary', getCachedDreamconfOrFail()))
 
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       const composition = await Composition.create({ user })

@@ -4,12 +4,12 @@ import sortBy from 'lodash.sortby'
 import _db from '../../db'
 import { isPrimitiveDataType } from '../../db/dataTypes'
 import { DreamConst } from '../../dream/types'
+import { getCachedDreamconfOrFail } from '../../dreamconf/cache'
 import camelize from '../camelize'
 import loadModels from '../loadModels'
 import pascalize from '../pascalize'
 import { schemaPath } from '../path'
 import dbSyncPath from '../path/dbSyncPath'
-import loadEnvConf from '../path/loadEnvConf'
 import uniq from '../uniq'
 
 export default class SchemaBuilder {
@@ -162,8 +162,8 @@ ${tableName}: {
   }
 
   private async getColumnData(tableName: string, associationData: { [key: string]: AssociationData }) {
-    const envConf = await loadEnvConf()
-    const db = _db('primary', envConf)
+    const dreamconf = getCachedDreamconfOrFail()
+    const db = _db('primary', dreamconf)
     const sqlQuery = sql`SELECT column_name, udt_name::regtype, is_nullable, data_type FROM information_schema.columns WHERE table_name = ${tableName}`
     const columnToDBTypeMap = await sqlQuery.execute(db)
     const rows = columnToDBTypeMap.rows as InformationSchemaRow[]

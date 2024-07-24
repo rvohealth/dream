@@ -1,16 +1,18 @@
 import ConnectionConfRetriever from '../db/connection-conf-retriever'
+import Dreamconf from '../dreamconf'
+import { getCachedDreamconfOrFail } from '../dreamconf/cache'
 import createDb from '../helpers/db/createDb'
 import initializeDream from '../helpers/initializeDream'
 import '../helpers/loadEnv'
-import loadEnvConf from '../helpers/path/loadEnvConf'
 
 async function dbCreate() {
+  await Dreamconf.configure()
   await initializeDream()
 
-  const connectionRetriever = new ConnectionConfRetriever(await loadEnvConf())
+  const connectionRetriever = new ConnectionConfRetriever(getCachedDreamconfOrFail())
   const primaryDbConf = connectionRetriever.getConnectionConf('primary')
 
-  console.log(`creating ${process.env[primaryDbConf.name]}`)
+  console.log(`creating ${primaryDbConf.name}`)
   await createDb('primary')
 
   // TODO: add support for creating replicas. Began doing it below, but it is very tricky,

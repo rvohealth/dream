@@ -1,8 +1,10 @@
+import Dreamconf from '../dreamconf'
 import initializeDream from '../helpers/initializeDream'
 import '../helpers/loadEnv'
 import { dbSeedPath } from '../helpers/path'
 
 async function dbSeed() {
+  await Dreamconf.configure()
   await initializeDream()
 
   console.log('seeding db...')

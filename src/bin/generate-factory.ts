@@ -1,7 +1,9 @@
-import initializeDream from '../helpers/initializeDream'
+import Dreamconf from '../dreamconf'
 import generateFactory from '../helpers/cli/generateFactory'
+import initializeDream from '../helpers/initializeDream'
 
 async function _generateDream() {
+  await Dreamconf.configure()
   await initializeDream()
 
   const argv = process.argv.filter(arg => !/^--/.test(arg))
