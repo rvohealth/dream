@@ -4,7 +4,7 @@ import initializeDream from '../helpers/initializeDream'
 import '../helpers/loadEnv'
 
 export default async function buildAssociations() {
-  await Dreamconf.loadAndApplyConfig()
+  await Dreamconf.configure()
   await initializeDream()
 
   console.log('writing dream schema...')

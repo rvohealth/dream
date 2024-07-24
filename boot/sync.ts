@@ -16,7 +16,7 @@ export default async function sync() {
 void sync()
 
 async function writeSchema() {
-  await Dreamconf.loadAndApplyConfig()
+  await Dreamconf.configure()
 
   const yamlConf = await loadDreamYamlFile()
   const dbConf = await new ConnectionConfRetriever().getConnectionConf('primary')

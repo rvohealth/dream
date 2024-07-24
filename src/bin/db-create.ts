@@ -6,7 +6,7 @@ import initializeDream from '../helpers/initializeDream'
 import '../helpers/loadEnv'
 
 async function dbCreate() {
-  await Dreamconf.loadAndApplyConfig()
+  await Dreamconf.configure()
   await initializeDream()
 
   const connectionRetriever = new ConnectionConfRetriever(getCachedDreamconfOrFail())

@@ -3,7 +3,7 @@ import generateMigration from '../helpers/cli/generateMigration'
 import initializeDream from '../helpers/initializeDream'
 
 async function _generateMigration() {
-  await Dreamconf.loadAndApplyConfig()
+  await Dreamconf.configure()
   await initializeDream()
 
   const argv = process.argv.filter(arg => !/^--/.test(arg))

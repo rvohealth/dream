@@ -2,11 +2,11 @@ import loadDreamconfCb from '../helpers/path/loadDreamconfCb'
 import { cacheDreamconf } from './cache'
 
 export default class Dreamconf {
-  public static async loadAndApplyConfig() {
-    await this.applyConfig(await loadDreamconfCb())
+  public static async configure() {
+    await this.applyAndCacheConfig(await loadDreamconfCb())
   }
 
-  public static async applyConfig(cb: (dreamconf: Dreamconf) => Promise<void> | void) {
+  private static async applyAndCacheConfig(cb: (dreamconf: Dreamconf) => Promise<void> | void) {
     const dreamconf = new Dreamconf()
     await cb(dreamconf)
     cacheDreamconf(dreamconf)
