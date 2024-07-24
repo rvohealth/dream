@@ -1,21 +1,21 @@
 import { primaryKeyTypes } from '../../dream/types'
-import { loadDreamYamlFile } from '../path'
+import { getCachedDreamconfOrFail } from '../../dreamconf/cache'
 
-export default async function primaryKeyType() {
-  const yamlConf = await loadDreamYamlFile()
+export default function primaryKeyType() {
+  const dreamconf = getCachedDreamconfOrFail()
 
-  switch (yamlConf.primary_key_type) {
+  switch (dreamconf.primaryKeyType) {
     case 'bigint':
     case 'bigserial':
     case 'uuid':
     case 'integer':
-      return yamlConf.primary_key_type
+      return dreamconf.primaryKeyType
 
     default:
       throw new Error(`
 ATTENTION!
 
-  unrecognized primary key type "${yamlConf.primary_key_type as string}" found in .dream.yml.
+  unrecognized primary key type "${dreamconf.primaryKeyType as string}" found in .dream.yml.
   please use one of the allowed primary key types:
     ${primaryKeyTypes.join(', ')}
       `)

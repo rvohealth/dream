@@ -1,12 +1,13 @@
 import path from 'path'
 import distOrProjectRootPath from './distOrProjectRootPath'
-import loadDreamYamlFile from './loadDreamYamlFile'
+import relativeDreamPath from './relativeDreamPath'
 
 export default async function confPath(file?: ConfFile) {
-  const yamlConfig = await loadDreamYamlFile()
+  const relativeConfPath = await relativeDreamPath('conf')
+
   return distOrProjectRootPath({
-    filepath: file ? path.join(yamlConfig.conf_path, file) : yamlConfig.conf_path,
+    filepath: file ? path.join(relativeConfPath, file) : relativeConfPath,
   })
 }
 
-export type ConfFile = 'inflections' | 'env'
+export type ConfFile = 'inflections' | 'env' | 'dream'

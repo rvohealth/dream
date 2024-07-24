@@ -1,6 +1,7 @@
 import { sql } from 'kysely'
 import { DateTime } from 'luxon'
 import db from '../../../../src/db'
+import { getCachedDreamconfOrFail } from '../../../../src/dreamconf/cache'
 import Balloon from '../../../../test-app/app/models/Balloon'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal'
@@ -11,12 +12,13 @@ import NonNullRating from '../../../../test-app/app/models/NonNullRating'
 import Post from '../../../../test-app/app/models/Post'
 import Rating from '../../../../test-app/app/models/Rating'
 import User from '../../../../test-app/app/models/User'
-import loadEnvConf from '../../../../src/helpers/path/loadEnvConf'
 
 describe('Query#preload with polymorphic associations', () => {
   beforeEach(async () => {
-    await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(db('primary', await loadEnvConf()))
-    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(db('primary', await loadEnvConf()))
+    await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(
+      db('primary', getCachedDreamconfOrFail())
+    )
+    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(db('primary', getCachedDreamconfOrFail()))
   })
 
   context('HasMany', () => {

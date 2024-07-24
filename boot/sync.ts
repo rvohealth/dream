@@ -1,8 +1,9 @@
 import { promises as fs } from 'fs'
 import path from 'path'
+import { Dreamconf } from '../src'
 import compact from '../src/helpers/compact'
 import '../src/helpers/loadEnv'
-import loadDreamYamlFile from '../src/helpers/path/loadDreamYamlFile'
+import relativeDreamPath from '../src/helpers/path/relativeDreamPath'
 import shouldOmitDistFolder from '../src/helpers/path/shouldOmitDistFolder'
 import snakeify from '../src/helpers/snakeify'
 import sspawn from '../src/helpers/sspawn'
@@ -15,11 +16,12 @@ export default async function sync() {
 void sync()
 
 async function writeSchema() {
-  const yamlConf = await loadDreamYamlFile()
-  const dbConf = await new ConnectionConfRetriever().getConnectionConf('primary')
+  await Dreamconf.configure()
+
+  const dbConf = new ConnectionConfRetriever().getConnectionConf('primary')
 
   const updirsToDreamRoot = shouldOmitDistFolder() ? ['..'] : ['..', '..']
-  const dbSyncFilePath = path.join(yamlConf.db_path, 'sync.ts')
+  const dbSyncFilePath = path.join(await relativeDreamPath('db'), 'sync.ts')
   let absoluteDbSyncPath = path.join(__dirname, ...updirsToDreamRoot, dbSyncFilePath)
   let absoluteDbSyncWritePath = path.join(__dirname, ...updirsToDreamRoot, '..', '..', '..', dbSyncFilePath)
   if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
@@ -28,7 +30,7 @@ async function writeSchema() {
   }
 
   await sspawn(
-    `kysely-codegen --url=postgres://${process.env[dbConf.user]}:${process.env[dbConf.password]}@${process.env[dbConf.host]}:${process.env[dbConf.port]}/${process.env[dbConf.name]} --out-file=${absoluteDbSyncPath}`
+    `kysely-codegen --url=postgres://${dbConf.user}:${dbConf.password}@${dbConf.host}:${dbConf.port}/${dbConf.name} --out-file=${absoluteDbSyncPath}`
   )
 
   // intentionally bypassing helpers here, since they often end up referencing

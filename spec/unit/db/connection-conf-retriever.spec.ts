@@ -1,82 +1,41 @@
+import { Dreamconf } from '../../../src'
 import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import { DbConnectionType } from '../../../src/db/types'
-import { DbConnectionConfig } from '../../../src/helpers/path/types'
+import { SingleDbCredential } from '../../../src/dreamconf'
+import { cacheDreamconf } from '../../../src/dreamconf/cache'
 
 describe('ConnectionConfRetriever', () => {
-  const getConfig = () => ({
-    db: {
-      production: {
-        primary: prodPrimaryConfig,
-        replica: prodReplicaConfig,
-      },
-      development: {
-        primary: devPrimaryConfig,
-        replica: devReplicaConfig,
-      },
-      test: {
-        primary: testPrimaryConfig,
-        replica: testReplicaConfig,
-      },
-    },
-  })
+  const getConfig = () => {
+    const dreamconf = new Dreamconf()
+    dreamconf.set('dbCredentials', {
+      primary: primaryConfig,
+      replica: replicaConfig,
+    })
+    cacheDreamconf(dreamconf)
+    return dreamconf
+  }
 
   let connection: DbConnectionType
-  let prodPrimaryConfig: DbConnectionConfig
-  let prodReplicaConfig: DbConnectionConfig | undefined
-  let devPrimaryConfig: DbConnectionConfig
-  let devReplicaConfig: DbConnectionConfig | undefined
-  let testPrimaryConfig: DbConnectionConfig
-  let testReplicaConfig: DbConnectionConfig | undefined
+  let primaryConfig: SingleDbCredential
+  let replicaConfig: SingleDbCredential | undefined
 
   beforeEach(() => {
     connection = 'primary'
-    prodPrimaryConfig = {
-      name: 'PRODUCTION_NAME',
-      host: 'PRODUCTION_HOST',
-      port: 'PRODUCTION_PORT',
-      password: 'PRODUCTION_PASSWORD',
-      user: 'PRODUCTION_USER',
-      use_ssl: 'PRODUCTION_USE_SSL',
+    primaryConfig = {
+      name: 'DB_NAME',
+      host: 'DB_HOST',
+      port: 3333,
+      password: 'DB_PASSWORD',
+      user: 'DB_USER',
+      useSsl: false,
     }
-    prodReplicaConfig = {
-      name: 'PRODUCTION_REPLICA_NAME',
-      host: 'PRODUCTION_REPLICA_HOST',
-      port: 'PRODUCTION_REPLICA_PORT',
-      password: 'PRODUCTION_REPLICA_PASSWORD',
-      user: 'PRODUCTION_REPLICA_USER',
-      use_ssl: 'PRODUCTION_REPLICA_USE_SSL',
-    }
-    devPrimaryConfig = {
-      name: 'DEVELOPMENT_NAME',
-      host: 'DEVELOPMENT_HOST',
-      port: 'DEVELOPMENT_PORT',
-      password: 'DEVELOPMENT_PASSWORD',
-      user: 'DEVELOPMENT_USER',
-      use_ssl: 'DEVELOPMENT_USE_SSL',
-    }
-    devReplicaConfig = {
-      name: 'DEVELOPMENT_REPLICA_NAME',
-      host: 'DEVELOPMENT_REPLICA_HOST',
-      port: 'DEVELOPMENT_REPLICA_PORT',
-      password: 'DEVELOPMENT_REPLICA_PASSWORD',
-      user: 'DEVELOPMENT_REPLICA_USER',
-      use_ssl: 'DEVELOPMENT_REPLICA_USE_SSL',
-    }
-    testPrimaryConfig = {
-      name: 'TEST_NAME',
-      host: 'TEST_HOST',
-      port: 'TEST_PORT',
-      password: 'TEST_PASSWORD',
-      user: 'TEST_USER',
-      use_ssl: 'TEST_USE_SSL',
-    }
-    testReplicaConfig = {
-      name: 'TEST_REPLICA_NAME',
-      host: 'TEST_REPLICA_HOST',
-      port: 'TEST_REPLICA_PORT',
-      password: 'TEST_REPLICA_PASSWORD',
-      user: 'TEST_REPLICA_USER',
-      use_ssl: 'TEST_REPLICA_USE_SSL',
+    replicaConfig = {
+      name: 'DB_REPLICA_NAME',
+      host: 'DB_REPLICA_HOST',
+      port: 4444,
+      password: 'DB_REPLICA_PASSWORD',
+      user: 'DB_REPLICA_USER',
+      useSsl: true,
     }
   })
 
@@ -89,12 +48,12 @@ describe('ConnectionConfRetriever', () => {
     context('with no connection passed', () => {
       it('returns config for primary connection', () => {
         expect(subject()).toEqual({
-          name: 'TEST_NAME',
-          host: 'TEST_HOST',
-          port: 'TEST_PORT',
-          password: 'TEST_PASSWORD',
-          user: 'TEST_USER',
-          use_ssl: 'TEST_USE_SSL',
+          name: 'DB_NAME',
+          host: 'DB_HOST',
+          port: 3333,
+          password: 'DB_PASSWORD',
+          user: 'DB_USER',
+          useSsl: false,
         })
       })
     })
@@ -106,12 +65,12 @@ describe('ConnectionConfRetriever', () => {
 
       it('returns config for primary connection', () => {
         expect(subject()).toEqual({
-          name: 'TEST_NAME',
-          host: 'TEST_HOST',
-          port: 'TEST_PORT',
-          password: 'TEST_PASSWORD',
-          user: 'TEST_USER',
-          use_ssl: 'TEST_USE_SSL',
+          name: 'DB_NAME',
+          host: 'DB_HOST',
+          port: 3333,
+          password: 'DB_PASSWORD',
+          user: 'DB_USER',
+          useSsl: false,
         })
       })
     })
@@ -123,50 +82,29 @@ describe('ConnectionConfRetriever', () => {
 
       it('returns config for replica connection', () => {
         expect(subject()).toEqual({
-          name: 'TEST_REPLICA_NAME',
-          host: 'TEST_REPLICA_HOST',
-          port: 'TEST_REPLICA_PORT',
-          password: 'TEST_REPLICA_PASSWORD',
-          user: 'TEST_REPLICA_USER',
-          use_ssl: 'TEST_REPLICA_USE_SSL',
+          name: 'DB_REPLICA_NAME',
+          host: 'DB_REPLICA_HOST',
+          port: 4444,
+          password: 'DB_REPLICA_PASSWORD',
+          user: 'DB_REPLICA_USER',
+          useSsl: true,
         })
       })
 
       context('with no replica config set', () => {
         beforeEach(() => {
-          testReplicaConfig = undefined
+          replicaConfig = undefined
         })
 
         it('returns primary replica', () => {
           expect(subject()).toEqual({
-            name: 'TEST_NAME',
-            host: 'TEST_HOST',
-            port: 'TEST_PORT',
-            password: 'TEST_PASSWORD',
-            user: 'TEST_USER',
-            use_ssl: 'TEST_USE_SSL',
+            name: 'DB_NAME',
+            host: 'DB_HOST',
+            port: 3333,
+            password: 'DB_PASSWORD',
+            user: 'DB_USER',
+            useSsl: false,
           })
-        })
-      })
-    })
-
-    context('with a different node env set', () => {
-      beforeEach(() => {
-        process.env.NODE_ENV = 'production'
-      })
-
-      afterEach(() => {
-        process.env.NODE_ENV = 'test'
-      })
-
-      it('returns config for the specified node env', () => {
-        expect(subject()).toEqual({
-          name: 'PRODUCTION_NAME',
-          host: 'PRODUCTION_HOST',
-          port: 'PRODUCTION_PORT',
-          password: 'PRODUCTION_PASSWORD',
-          user: 'PRODUCTION_USER',
-          use_ssl: 'PRODUCTION_USE_SSL',
         })
       })
     })
@@ -186,7 +124,7 @@ describe('ConnectionConfRetriever', () => {
 
     context('when replica config is not present', () => {
       beforeEach(() => {
-        testReplicaConfig = undefined
+        replicaConfig = undefined
       })
 
       it('returns false', () => {

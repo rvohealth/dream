@@ -1,24 +1,23 @@
 import path from 'path'
 import Dream from '../dream'
-import { loadDreamYamlFile, modelsPath } from './path'
-import pascalize from './pascalize'
 import getFiles from './getFiles'
 import importFileWithDefault from './importFileWithDefault'
+import pascalize from './pascalize'
+import { modelsPath } from './path'
+import relativeDreamPath from './path/relativeDreamPath'
 
 let models: { [key: string]: typeof Dream } | null = null
 export default async function loadModels() {
   if (models) return models
 
   const pathToModels = await modelsPath()
-  const yamlConf = await loadDreamYamlFile()
   const modelPaths = (await getFiles(pathToModels)).filter(path =>
     process.env.DREAM_CORE_SPEC_RUN === '1' || process.env.TS_SAFE === '1'
       ? /\.ts$/.test(path) && !/index\.ts$/.test(path)
       : /\.js$/.test(path) && !/index\.js$/.test(path)
   )
-  const relativeModelPaths = modelPaths.map(path =>
-    path.replace(new RegExp(`^.*${yamlConf.models_path}/`), '')
-  )
+  const relativeModelsPath = await relativeDreamPath('models')
+  const relativeModelPaths = modelPaths.map(path => path.replace(new RegExp(`^.*${relativeModelsPath}/`), ''))
   models = {}
 
   const modelsObj: { [key: string]: typeof Dream | { [key: string]: typeof Dream } } = {}

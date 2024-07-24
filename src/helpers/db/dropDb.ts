@@ -1,6 +1,6 @@
 import ConnectionConfRetriever from '../../db/connection-conf-retriever'
 import { DbConnectionType } from '../../db/types'
-import loadEnvConf from '../path/loadEnvConf'
+import { getCachedDreamconfOrFail } from '../../dreamconf/cache'
 import loadPgClient from './loadPgClient'
 
 export default async function dropDb(connection: DbConnectionType, dbName?: string | null) {
@@ -8,10 +8,10 @@ export default async function dropDb(connection: DbConnectionType, dbName?: stri
   // so there is no way to drop in production
   if (process.env.NODE_ENV === 'production') return false
 
-  const connectionRetriever = new ConnectionConfRetriever(await loadEnvConf())
+  const connectionRetriever = new ConnectionConfRetriever(getCachedDreamconfOrFail())
   const dbConf = connectionRetriever.getConnectionConf(connection)
 
-  dbName ||= process.env[dbConf.name] || null
+  dbName ||= dbConf.name || null
   if (!dbName)
     throw `Must either pass a dbName to the drop function, or else ensure that DB_NAME is set in the env`
 

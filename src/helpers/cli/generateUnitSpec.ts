@@ -1,18 +1,15 @@
 import fs from 'fs/promises'
 import path from 'path'
-import { loadDreamYamlFile } from '../path'
+import relativeDreamPath from '../path/relativeDreamPath'
 import unitSpecsPath from '../path/unitSpecsPath'
 import generateUnitSpecContent from './generateUnitSpecContent'
 
 export default async function generateUnitSpec(dreamName: string, specSubpath: 'models' | 'controllers') {
-  const ymlConfig = await loadDreamYamlFile()
   const specBasePath = await unitSpecsPath()
   const specPath = path.join(specBasePath, specSubpath, `${dreamName}.spec.ts`)
   const specDirPath = specPath.split('/').slice(0, -1).join('/')
-  const relativeSpecPath = specPath.replace(
-    new RegExp(`^.*${ymlConfig.unit_spec_path}`),
-    ymlConfig.unit_spec_path
-  )
+  const relativeUspecPath = await relativeDreamPath('uspec')
+  const relativeSpecPath = specPath.replace(new RegExp(`^.*${relativeUspecPath}`), relativeUspecPath)
   const thisfs = fs ? fs : await import('fs/promises')
 
   try {

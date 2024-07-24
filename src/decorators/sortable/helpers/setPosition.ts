@@ -8,6 +8,7 @@ import ops from '../../../ops'
 import getColumnForSortableScope from './getColumnForSortableScope'
 import scopeArray from './scopeArray'
 import sortableQueryExcludingDream from './sortableQueryExcludingDream'
+import { getCachedDreamconfOrFail } from '../../../dreamconf/cache'
 
 export default async function setPosition({
   position,
@@ -156,7 +157,7 @@ async function setNewPosition({
 }) {
   const newPosition = (await sortableQueryExcludingDream(dream, query, scope).max(positionField)) + 1
 
-  const dbOrTxn = txn ? txn.kyselyTransaction : db('primary', dream.env)
+  const dbOrTxn = txn ? txn.kyselyTransaction : db('primary', getCachedDreamconfOrFail())
   await dbOrTxn
     .updateTable(dream.table as any)
     .where(dream.primaryKey as any, '=', dream.primaryKeyValue)

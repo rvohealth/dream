@@ -1,15 +1,14 @@
-import path from 'path'
 import fs from 'fs/promises'
-import migrationVersion from '../migrationVersion'
-import hyphenize from '../hyphenize'
-import generateMigrationContent from '../cli/generateMigrationContent'
+import path from 'path'
 import absoluteFilePath from '../absoluteFilePath'
-import { loadDreamYamlFile } from '../path'
+import generateMigrationContent from '../cli/generateMigrationContent'
 import primaryKeyType from '../db/primaryKeyType'
+import hyphenize from '../hyphenize'
+import migrationVersion from '../migrationVersion'
+import relativeDreamPath from '../path/relativeDreamPath'
 
 export default async function generateMigration(migrationName: string) {
-  const yamlConf = await loadDreamYamlFile()
-  const migrationBasePath = absoluteFilePath(path.join(yamlConf.db_path, 'migrations'))
+  const migrationBasePath = absoluteFilePath(path.join(await relativeDreamPath('db'), 'migrations'))
   const version = migrationVersion()
   const migrationFilename = `${hyphenize(migrationName)}`
   const versionedMigrationFilename = `${version}-${migrationFilename}`
@@ -18,10 +17,7 @@ export default async function generateMigration(migrationName: string) {
 
   try {
     console.log(`generating migration: ${migrationPath}`)
-    await thisfs.writeFile(
-      migrationPath,
-      generateMigrationContent({ primaryKeyType: await primaryKeyType() })
-    )
+    await thisfs.writeFile(migrationPath, generateMigrationContent({ primaryKeyType: primaryKeyType() }))
   } catch (error) {
     const err = `
       Something happened while trying to create the migration file:

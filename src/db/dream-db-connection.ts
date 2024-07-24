@@ -1,32 +1,28 @@
 import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely'
 import { Pool } from 'pg'
-import { DbConnectionConfig, EnvOpts } from '../helpers/path/types'
+import Dreamconf, { SingleDbCredential } from '../dreamconf'
 import ConnectionConfRetriever from './connection-conf-retriever'
 import { DbConnectionType } from './types'
 
 const connections = {} as { [key: string]: Kysely<any> }
 
 export default class DreamDbConnection {
-  public static getConnection<DB>(connectionType: DbConnectionType, env: EnvOpts): Kysely<DB> {
+  public static getConnection<DB>(connectionType: DbConnectionType, dreamconf: Dreamconf): Kysely<DB> {
     const connection = connections[connectionType]
     if (connection) return connection
 
-    const connectionConf = new ConnectionConfRetriever(env).getConnectionConf(connectionType)
+    const connectionConf = new ConnectionConfRetriever(dreamconf).getConnectionConf(connectionType)
 
     const dbConn = new Kysely<DB>({
       log: process.env.DEBUG === '1' ? ['query', 'error'] : undefined,
       dialect: new PostgresDialect({
         pool: new Pool({
-          user: process.env[connectionConf.user] || '',
-          password: process.env[connectionConf.password] || '',
-          database: process.env[connectionConf.name],
-          host: process.env[connectionConf.host] || 'localhost',
-          port: process.env[connectionConf.port] ? parseInt(process.env[connectionConf.port]!) : 5432,
-          ssl: connectionConf.use_ssl
-            ? process.env[connectionConf.use_ssl] === '1'
-              ? sslConfig(connectionConf)
-              : false
-            : false,
+          user: connectionConf.user || '',
+          password: connectionConf.password || '',
+          database: connectionConf.name,
+          host: connectionConf.host || 'localhost',
+          port: connectionConf.port || 5432,
+          ssl: connectionConf.useSsl ? sslConfig(connectionConf) : false,
         }),
       }),
       plugins: [new CamelCasePlugin({ underscoreBetweenUppercaseLetters: true })],
@@ -39,7 +35,7 @@ export default class DreamDbConnection {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function sslConfig(connectionConf: DbConnectionConfig) {
+function sslConfig(connectionConf: SingleDbCredential) {
   // TODO: properly configure (https://rvohealth.atlassian.net/browse/PDTC-2914)
   return {
     rejectUnauthorized: false,

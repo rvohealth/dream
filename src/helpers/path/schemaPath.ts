@@ -1,8 +1,7 @@
 import path from 'path'
-import loadDreamYamlFile from './loadDreamYamlFile'
 import projectRootPath from './projectRootPath'
+import relativeDreamPath from './relativeDreamPath'
 
 export default async function schemaPath({ omitDirname }: { omitDirname?: boolean } = {}) {
-  const yamlConfig = await loadDreamYamlFile()
-  return projectRootPath({ filepath: path.join(yamlConfig.db_path, 'schema.ts'), omitDirname })
+  return projectRootPath({ filepath: path.join(await relativeDreamPath('db'), 'schema.ts'), omitDirname })
 }
