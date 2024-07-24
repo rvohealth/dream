@@ -1,27 +1,25 @@
-import { DbConfig, DbConnectionConfig, EnvOpts } from '../helpers/path/types'
+import Dreamconf, { SingleDbCredential } from '../dreamconf'
 import { DbConnectionType } from './types'
 
 export default class ConnectionConfRetriever {
-  public dbConfig: DbConfig
-  constructor(env: EnvOpts) {
-    this.dbConfig = env.db
+  public dreamconf: Dreamconf
+  constructor(dreamconf: Dreamconf) {
+    this.dreamconf = dreamconf
   }
 
-  public getConnectionConf(connection: DbConnectionType): DbConnectionConfig {
-    const nodeEnv = process.env.NODE_ENV! as 'production' | 'development' | 'test'
-    const conf = this.dbConfig[nodeEnv]?.[connection] || this.dbConfig[nodeEnv]?.primary
+  public getConnectionConf(connection: DbConnectionType): SingleDbCredential {
+    const conf = this.dreamconf.dbCredentials?.[connection] || this.dreamconf.dbCredentials?.primary
+
     if (!conf)
-      throw `
+      throw new Error(`
       Cannot find a connection config given the following connection and node environment:
         connection: ${connection}
-        NODE_ENV: ${nodeEnv}
-    `
+    `)
 
     return conf
   }
 
   public hasReplicaConfig() {
-    const nodeEnv = process.env.NODE_ENV! as 'production' | 'development' | 'test'
-    return !!this.dbConfig[nodeEnv]?.replica
+    return !!this.dreamconf.dbCredentials.replica
   }
 }

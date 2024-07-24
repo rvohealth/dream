@@ -1,8 +1,6 @@
-import path from 'path'
-import loadDreamYamlFile from './loadDreamYamlFile'
+import confPath from './confPath'
 import projectRootPath from './projectRootPath'
 
-export default async function dreamconfPath({ omitDirname }: { omitDirname?: boolean } = {}) {
-  const yamlConfig = await loadDreamYamlFile()
-  return projectRootPath({ filepath: path.join(yamlConfig.conf_path, 'dreamconf.ts'), omitDirname })
+export default async function dreamconfPath() {
+  return projectRootPath({ filepath: await confPath('dream') })
 }

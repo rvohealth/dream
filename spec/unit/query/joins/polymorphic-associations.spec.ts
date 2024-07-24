@@ -1,5 +1,6 @@
 import { sql } from 'kysely'
 import db from '../../../../src/db'
+import { getCachedDreamconfOrFail } from '../../../../src/dreamconf/cache'
 import CannotJoinPolymorphicBelongsToError from '../../../../src/exceptions/associations/cannot-join-polymorphic-belongs-to-error'
 import ops from '../../../../src/ops'
 import Balloon from '../../../../test-app/app/models/Balloon'
@@ -11,12 +12,13 @@ import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating
 import Post from '../../../../test-app/app/models/Post'
 import Rating from '../../../../test-app/app/models/Rating'
 import User from '../../../../test-app/app/models/User'
-import loadEnvConf from '../../../../src/helpers/path/loadEnvConf'
 
 describe('Query#joins with polymorphic associations', () => {
   beforeEach(async () => {
-    await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(db('primary', await loadEnvConf()))
-    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(db('primary', await loadEnvConf()))
+    await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(
+      db('primary', getCachedDreamconfOrFail())
+    )
+    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(db('primary', getCachedDreamconfOrFail()))
   })
 
   it('joins a HasMany association', async () => {
