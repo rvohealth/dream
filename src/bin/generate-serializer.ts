@@ -3,7 +3,7 @@ import generateSerializer from '../helpers/cli/generateSerializer'
 import initializeDream from '../helpers/initializeDream'
 
 async function _generateSerializer() {
-  await Dreamconf.loadAndApplyConfig()
+  await Dreamconf.configure()
   await initializeDream()
 
   const argv = process.argv.filter(arg => !/^--/.test(arg))

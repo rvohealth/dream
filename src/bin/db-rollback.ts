@@ -6,7 +6,7 @@ import initializeDream from '../helpers/initializeDream'
 import '../helpers/loadEnv'
 
 async function dbRollback() {
-  await Dreamconf.loadAndApplyConfig()
+  await Dreamconf.configure()
   await initializeDream()
 
   let step = process.argv[2] ? parseInt(process.argv[2]) : 1

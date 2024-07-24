@@ -6,7 +6,7 @@ import initializeDream from '../helpers/initializeDream'
 import '../helpers/loadEnv'
 
 async function migrateToLatest() {
-  await Dreamconf.loadAndApplyConfig()
+  await Dreamconf.configure()
   await initializeDream()
 
   await runMigration({ mode: 'migrate' })

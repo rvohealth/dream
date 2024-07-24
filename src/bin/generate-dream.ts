@@ -3,7 +3,7 @@ import generateDream from '../helpers/cli/generateDream'
 import initializeDream from '../helpers/initializeDream'
 
 async function _generateDream() {
-  await Dreamconf.loadAndApplyConfig()
+  await Dreamconf.configure()
   await initializeDream()
 
   const argv = process.argv.filter(arg => !/^--/.test(arg))

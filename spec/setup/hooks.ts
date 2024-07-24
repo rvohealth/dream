@@ -8,6 +8,6 @@ import { Dreamconf } from '../../src'
 expect.extend({ toBeOneOf } as any)
 
 beforeEach(async () => {
-  await Dreamconf.loadAndApplyConfig()
+  await Dreamconf.configure()
   await truncate()
 }, 15000)
