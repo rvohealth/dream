@@ -96,10 +96,13 @@ export default async function generateDream(dreamName: string, attributes: strin
       .map(pathName => pascalize(pathName))
       .join('/') + 'Serializer'
   const serializerPath = path.join(serializerBasePath, `${fullyQualifiedSerializerName}.ts`)
+
+  const relativeSerializerBasePath = await relativeDreamPath('serializers')
   const relativeSerializerPath = serializerPath.replace(
-    new RegExp(`^.*${ymlConfig.serializers_path}`),
-    ymlConfig.serializers_path || 'app/serializers'
+    new RegExp(`^.*${relativeSerializerBasePath}`),
+    relativeSerializerBasePath
   )
+
   const serializerPathParts = fullyQualifiedSerializerName.split('/')
 
   if (serializerPathParts.length) {
