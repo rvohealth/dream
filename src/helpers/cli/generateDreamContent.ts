@@ -7,6 +7,7 @@ import uniq from '../uniq'
 import { loadDreamYamlFile } from '../path'
 import initializeDream from '../initializeDream'
 import pascalizePath from '../pascalizePath'
+import relativeDreamPath from '../path/relativeDreamPath'
 
 export default async function generateDreamContent(modelName: string, attributes: string[]) {
   await initializeDream()
@@ -124,7 +125,7 @@ async function buildSerializerImportStatement(modelName: string) {
 
   const serializerPath = path.join(
     relativePath,
-    yamlConf.serializers_path,
+    await relativeDreamPath('serializers'),
     relativeSerializerPathFromModelName(modelName)
   )
   const serializerClassName = serializerNameFromModelName(modelName)
@@ -167,7 +168,7 @@ function relativePathToModelRoot(modelName: string) {
 async function relativePathToSrcRoot(modelName: string) {
   const yamlConf = await loadDreamYamlFile()
   const rootPath = relativePathToModelRoot(modelName)
-  const numUpdirsInRootPath = yamlConf.models_path.split('/').length
+  const numUpdirsInRootPath = (await relativeDreamPath('models')).split('/').length
   let updirs = ''
   for (let i = 0; i < numUpdirsInRootPath; i++) {
     updirs += '../'
