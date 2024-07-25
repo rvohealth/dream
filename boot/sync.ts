@@ -3,7 +3,7 @@ import path from 'path'
 import { Dreamconf } from '../src'
 import compact from '../src/helpers/compact'
 import '../src/helpers/loadEnv'
-import loadDreamYamlFile from '../src/helpers/path/loadDreamYamlFile'
+import relativeDreamPath from '../src/helpers/path/relativeDreamPath'
 import shouldOmitDistFolder from '../src/helpers/path/shouldOmitDistFolder'
 import snakeify from '../src/helpers/snakeify'
 import sspawn from '../src/helpers/sspawn'
@@ -18,11 +18,10 @@ void sync()
 async function writeSchema() {
   await Dreamconf.configure()
 
-  const yamlConf = await loadDreamYamlFile()
   const dbConf = await new ConnectionConfRetriever().getConnectionConf('primary')
 
   const updirsToDreamRoot = shouldOmitDistFolder() ? ['..'] : ['..', '..']
-  const dbSyncFilePath = path.join(yamlConf.db_path, 'sync.ts')
+  const dbSyncFilePath = path.join(await relativeDreamPath('db'), 'sync.ts')
   let absoluteDbSyncPath = path.join(__dirname, ...updirsToDreamRoot, dbSyncFilePath)
   let absoluteDbSyncWritePath = path.join(__dirname, ...updirsToDreamRoot, '..', '..', '..', dbSyncFilePath)
   if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
