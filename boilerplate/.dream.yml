@@ -1,0 +1,6 @@
+models_path: 'src/app/models'
+serializers_path: 'src/app/serializers'
+conf_path: 'src/conf'
+db_path: 'src/db'
+unit_spec_path: 'spec/unit'
+primary_key_type: '<PRIMARY_KEY_TYPE>'
