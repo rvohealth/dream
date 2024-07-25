@@ -13,7 +13,9 @@ export default async function relativeDreamPath(dreamPathType: DreamPaths) {
       return yamlConfig.conf_path || 'app/conf'
     case 'uspec':
       return yamlConfig.unit_spec_path || 'spec/unit'
+    case 'factories':
+      return yamlConfig.factory_path || 'spec/factories'
   }
 }
 
-export type DreamPaths = 'models' | 'serializers' | 'db' | 'conf' | 'uspec'
+export type DreamPaths = 'models' | 'serializers' | 'db' | 'conf' | 'uspec' | 'factories'

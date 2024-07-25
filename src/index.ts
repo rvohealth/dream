@@ -33,7 +33,6 @@ export { default as Validate } from './decorators/validations/validate'
 export { default as Validates } from './decorators/validations/validates'
 export { default as Virtual } from './decorators/virtual'
 export { default as Dream } from './dream'
-export { default as Dreamconf } from './dreamconf'
 export { default as Query } from './dream/query'
 export { default as DreamTransaction } from './dream/transaction'
 export {
@@ -53,6 +52,7 @@ export {
   UpdateableAssociationProperties,
   UpdateableProperties,
 } from './dream/types'
+export { default as Dreamconf } from './dreamconf'
 export { default as NonLoadedAssociation } from './exceptions/associations/non-loaded-association'
 export { default as CreateOrFindByFailedToCreateAndFind } from './exceptions/create-or-find-by-failed-to-create-and-find'
 export { default as ValidationError } from './exceptions/validation-error'
