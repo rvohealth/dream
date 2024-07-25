@@ -14,6 +14,7 @@ import path from 'path'
 import primaryKeyType from '../db/primaryKeyType'
 import generateFactory from './generateFactory'
 import pascalizePath from '../pascalizePath'
+import relativeDreamPath from '../path/relativeDreamPath'
 
 export default async function generateDream(dreamName: string, attributes: string[]) {
   const ymlConfig = await loadDreamYamlFile()
@@ -25,7 +26,7 @@ export default async function generateDream(dreamName: string, attributes: strin
     .map(pathName => pascalize(pathName))
     .join('/')
   const dreamPath = path.join(dreamBasePath, `${formattedDreamName}.ts`)
-  const relativeDreamPath = dreamPath.replace(dreamBasePath, ymlConfig.models_path)
+  const relativeModelsPath = dreamPath.replace(dreamBasePath, ymlConfig.models_path || 'app/models')
   const dreamPathParts = formattedDreamName.split('/')
   const thisfs = fs ? fs : await import('fs/promises')
 
@@ -39,7 +40,7 @@ export default async function generateDream(dreamName: string, attributes: strin
   const content = await generateDreamContent(dreamName, attributes)
 
   try {
-    console.log(`generating dream: ${relativeDreamPath}`)
+    console.log(`generating dream: ${relativeModelsPath}`)
     await thisfs.writeFile(dreamPath, content)
   } catch (error) {
     const err = `
@@ -61,7 +62,7 @@ export default async function generateDream(dreamName: string, attributes: strin
   const migrationBasePath = await migrationsPath()
   const version = migrationVersion()
   const migrationPath = `${migrationBasePath}/${version}-create-${pluralize(hyphenize(dreamName)).replace(/\//g, '-')}.ts`
-  const migrationsRelativeBasePath = path.join(ymlConfig.db_path, 'migrations')
+  const migrationsRelativeBasePath = path.join(await relativeDreamPath('db'), 'migrations')
   const relativeMigrationPath = migrationPath.replace(
     new RegExp(`^.*${migrationsRelativeBasePath}`),
     migrationsRelativeBasePath
@@ -97,7 +98,7 @@ export default async function generateDream(dreamName: string, attributes: strin
   const serializerPath = path.join(serializerBasePath, `${fullyQualifiedSerializerName}.ts`)
   const relativeSerializerPath = serializerPath.replace(
     new RegExp(`^.*${ymlConfig.serializers_path}`),
-    ymlConfig.serializers_path
+    ymlConfig.serializers_path || 'app/serializers'
   )
   const serializerPathParts = fullyQualifiedSerializerName.split('/')
 
