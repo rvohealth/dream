@@ -17,7 +17,11 @@ export type OpenapiSchemaBodyShorthand =
   | OpenapiSchemaArrayShorthand
   | OpenapiSchemaExpressionRefSchemaShorthand
 
-export type OpenapiSchemaBase = OpenapiSchemaString | OpenapiSchemaInteger | OpenapiSchemaExpressionRef
+export type OpenapiSchemaBase =
+  | OpenapiSchemaString
+  | OpenapiSchemaInteger
+  | OpenapiSchemaDecimal
+  | OpenapiSchemaExpressionRef
 
 export type OpenapiSchemaShorthandExpressionAnyOf = {
   anyOf: OpenapiSchemaBodyShorthand[]
@@ -65,6 +69,13 @@ export type OpenapiSchemaString = OpenapiSchemaCommonFields<{
 
 export type OpenapiSchemaInteger = OpenapiSchemaCommonFields<{
   type: 'integer'
+  minimum?: number
+  maximum?: number
+}>
+
+export type OpenapiSchemaDecimal = OpenapiSchemaCommonFields<{
+  type: 'number'
+  format: 'decimal'
   minimum?: number
   maximum?: number
 }>

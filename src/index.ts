@@ -84,6 +84,7 @@ export {
   OpenapiSchemaBody,
   OpenapiSchemaBodyShorthand,
   OpenapiSchemaCommonFields,
+  OpenapiSchemaDecimal,
   OpenapiSchemaExpressionAllOf,
   OpenapiSchemaExpressionAnyOf,
   OpenapiSchemaExpressionOneOf,
