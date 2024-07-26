@@ -80,7 +80,7 @@ export type OpenapiSchemaNumber = OpenapiSchemaCommonFields<{
   maximum?: number
 }>
 
-export type OpenapiNumberFormats = 'decimal' | 'float' | 'double' | 'int32' | 'int64'
+export type OpenapiNumberFormats = 'decimal' | 'double'
 
 export type OpenapiSchemaObject =
   | OpenapiSchemaObjectBase
@@ -194,6 +194,7 @@ export const openapiPrimitiveTypes = [
   'date',
   'date-time',
   'decimal',
+  'double',
   'integer',
 ] as const
 export const openapiShorthandPrimitiveTypes = [
@@ -204,6 +205,7 @@ export const openapiShorthandPrimitiveTypes = [
   'date[]',
   'date-time[]',
   'decimal[]',
+  'double[]',
   'integer[]',
   'json',
 ] as const
