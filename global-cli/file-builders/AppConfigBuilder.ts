@@ -11,7 +11,7 @@ export default class AppConfigBuilder {
     return contents
       .replace(
         '<BACKGROUND_CONNECT>',
-        opts.userOptions.redis ? 'await background.connect()' : '// await background.connect()',
+        opts.userOptions.redis ? 'await background.connect()' : '// await background.connect()'
       )
       .replace('<APP_NAME>', opts.appName)
       .replace('<API_ONLY>', opts.userOptions.apiOnly.toString())

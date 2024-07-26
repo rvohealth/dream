@@ -16,7 +16,6 @@ export default async function loadRepl(context: Record<string, unknown>) {
   const dreamPaths = (await getFiles('./src/app/models')).filter(file => /\.ts$/.test(file))
   for (const dreamPath of dreamPaths) {
     const importablePath = dreamPath.replace(/.*\/src/, '../../../../../src')
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const dreamClass = (await import(importablePath)).default as typeof Dream
     if (dreamClass.isDream) {
       const globalName: string | undefined = await dreamClass.globalName()
@@ -28,7 +27,6 @@ export default async function loadRepl(context: Record<string, unknown>) {
     const servicePaths = (await getFiles('./src/app/services')).filter(file => /\.ts$/.test(file))
     for (const servicePath of servicePaths) {
       const importablePath = servicePath.replace(/.*\/src/, '../../../../../src')
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       const serviceExport = (await import(importablePath)).default as typeof Dream
       if (serviceExport) context[serviceExport.name] = serviceExport
     }
