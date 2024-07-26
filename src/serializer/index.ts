@@ -48,7 +48,10 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     }
 
     return classOrClasses.map(klass =>
-      inferSerializerFromDreamClassOrViewModelClass(klass as DreamClassOrViewModelClass)
+      inferSerializerFromDreamClassOrViewModelClass(
+        klass as DreamClassOrViewModelClass,
+        associationStatement.serializerKey
+      )
     )
   }
 
