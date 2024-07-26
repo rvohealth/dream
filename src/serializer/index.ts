@@ -36,18 +36,20 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   public static getAssociatedSerializersForOpenapi(
     associationStatement: DreamSerializerAssociationStatement
   ): (typeof DreamSerializer<any, any>)[] | null {
-    if (!associationStatement.dreamOrSerializerClassCB) return null
+    const serializer = this.associationDeclaredSerializer(associationStatement)
+    if (serializer) return [serializer]
 
     let classOrClasses =
-      associationStatement.dreamOrSerializerClassCB() as DreamClassOrViewModelClassOrSerializerClass[]
+      associationStatement.dreamOrSerializerClassCB?.() as DreamClassOrViewModelClassOrSerializerClass[]
+    if (!classOrClasses) return null
+
     if (!Array.isArray(classOrClasses)) {
       classOrClasses = [classOrClasses]
     }
 
-    return classOrClasses.map(klass => {
-      if ((klass as typeof DreamSerializer)?.isDreamSerializer) return klass as typeof DreamSerializer
-      return inferSerializerFromDreamClassOrViewModelClass(klass as DreamClassOrViewModelClass)
-    })
+    return classOrClasses.map(klass =>
+      inferSerializerFromDreamClassOrViewModelClass(klass as DreamClassOrViewModelClass)
+    )
   }
 
   public static getAssociatedSerializerDuringRender(
@@ -62,7 +64,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
 
   private static associationDeclaredSerializer(
     associationStatement: DreamSerializerAssociationStatement
-  ): typeof DreamSerializer | null {
+  ): typeof DreamSerializer<any, any> | null {
     if ((associationStatement.dreamOrSerializerClassCB?.() as typeof DreamSerializer)?.isDreamSerializer) {
       return associationStatement.dreamOrSerializerClassCB?.() as typeof DreamSerializer
     }
