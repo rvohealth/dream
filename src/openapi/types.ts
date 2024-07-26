@@ -78,7 +78,7 @@ export type OpenapiSchemaInteger = OpenapiSchemaCommonFields<{
 
 export type OpenapiSchemaNumber = OpenapiSchemaCommonFields<{
   type: 'number'
-  format: OpenapiNumberFormats
+  format?: OpenapiNumberFormats
   multipleOf?: number
   minimum?: number
   maximum?: number
