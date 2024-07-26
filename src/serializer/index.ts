@@ -36,11 +36,9 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   public static getAssociatedSerializersForOpenapi(
     associationStatement: DreamSerializerAssociationStatement
   ): (typeof DreamSerializer<any, any>)[] | null {
-    const serializerOrDreamClassOrClasses = associationStatement.dreamOrSerializerClassCB
-      ? associationStatement.dreamOrSerializerClassCB()
-      : null
-    if (!serializerOrDreamClassOrClasses) return null
+    if (!associationStatement.dreamOrSerializerClassCB) return null
 
+    const serializerOrDreamClassOrClasses = associationStatement.dreamOrSerializerClassCB()
     let classOrClasses = serializerOrDreamClassOrClasses as DreamClassOrViewModelClassOrSerializerClass[]
     if (!Array.isArray(classOrClasses)) {
       classOrClasses = [classOrClasses]
