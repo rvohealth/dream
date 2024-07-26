@@ -20,7 +20,7 @@ export type OpenapiSchemaBodyShorthand =
 export type OpenapiSchemaBase =
   | OpenapiSchemaString
   | OpenapiSchemaInteger
-  | OpenapiSchemaDecimal
+  | OpenapiSchemaNumber
   | OpenapiSchemaExpressionRef
 
 export type OpenapiSchemaShorthandExpressionAnyOf = {
@@ -73,12 +73,14 @@ export type OpenapiSchemaInteger = OpenapiSchemaCommonFields<{
   maximum?: number
 }>
 
-export type OpenapiSchemaDecimal = OpenapiSchemaCommonFields<{
+export type OpenapiSchemaNumber = OpenapiSchemaCommonFields<{
   type: 'number'
-  format: 'decimal'
+  format: OpenapiNumberFormats
   minimum?: number
   maximum?: number
 }>
+
+export type OpenapiNumberFormats = 'decimal' | 'float' | 'double' | 'int32' | 'int64'
 
 export type OpenapiSchemaObject =
   | OpenapiSchemaObjectBase
