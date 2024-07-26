@@ -65,6 +65,8 @@ export type OpenapiSchemaString = OpenapiSchemaCommonFields<{
   type: 'string'
   enum?: string[] | Readonly<string[]>
   format?: string
+  minLength?: number
+  maxLength?: number
 }>
 
 export type OpenapiSchemaInteger = OpenapiSchemaCommonFields<{
@@ -76,6 +78,7 @@ export type OpenapiSchemaInteger = OpenapiSchemaCommonFields<{
 export type OpenapiSchemaNumber = OpenapiSchemaCommonFields<{
   type: 'number'
   format: OpenapiNumberFormats
+  multipleOf?: number
   minimum?: number
   maximum?: number
 }>
