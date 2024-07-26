@@ -65,6 +65,7 @@ export type OpenapiSchemaString = OpenapiSchemaCommonFields<{
   type: 'string'
   enum?: string[] | Readonly<string[]>
   format?: string
+  pattern?: string
   minLength?: number
   maxLength?: number
 }>
