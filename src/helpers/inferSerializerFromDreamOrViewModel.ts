@@ -4,12 +4,7 @@ export default function inferSerializerFromDreamOrViewModel(
   obj: DreamOrViewModel,
   serializerKey: string | undefined = undefined
 ) {
-  if (!obj) return null
-  const serializerClassMap = obj.serializers
-
-  if (serializerClassMap) return (serializerClassMap as any)[serializerKey || 'default']
-
-  return null
+  return obj?.serializers?.[serializerKey || 'default'] || null
 }
 
 export function inferSerializerFromDreamClassOrViewModelClass(
