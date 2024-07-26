@@ -2,12 +2,11 @@ import path from 'path'
 import pluralize from 'pluralize'
 import pascalize from '../../../src/helpers/pascalize'
 import camelize from '../camelize'
-import snakeify from '../snakeify'
-import uniq from '../uniq'
-import { loadDreamYamlFile } from '../path'
 import initializeDream from '../initializeDream'
 import pascalizePath from '../pascalizePath'
 import relativeDreamPath from '../path/relativeDreamPath'
+import snakeify from '../snakeify'
+import uniq from '../uniq'
 
 export default async function generateDreamContent(modelName: string, attributes: string[]) {
   await initializeDream()
@@ -120,7 +119,6 @@ function buildImportStatement(modelName: string, attribute: string) {
 }
 
 async function buildSerializerImportStatement(modelName: string) {
-  const yamlConf = await loadDreamYamlFile()
   const relativePath = await relativePathToSrcRoot(modelName)
 
   const serializerPath = path.join(
@@ -166,7 +164,6 @@ function relativePathToModelRoot(modelName: string) {
 }
 
 async function relativePathToSrcRoot(modelName: string) {
-  const yamlConf = await loadDreamYamlFile()
   const rootPath = relativePathToModelRoot(modelName)
   const numUpdirsInRootPath = (await relativeDreamPath('models')).split('/').length
   let updirs = ''

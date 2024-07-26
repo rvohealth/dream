@@ -18,7 +18,7 @@ void sync()
 async function writeSchema() {
   await Dreamconf.configure()
 
-  const dbConf = await new ConnectionConfRetriever().getConnectionConf('primary')
+  const dbConf = new ConnectionConfRetriever().getConnectionConf('primary')
 
   const updirsToDreamRoot = shouldOmitDistFolder() ? ['..'] : ['..', '..']
   const dbSyncFilePath = path.join(await relativeDreamPath('db'), 'sync.ts')

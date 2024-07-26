@@ -17,10 +17,7 @@ export default async function generateMigration(migrationName: string) {
 
   try {
     console.log(`generating migration: ${migrationPath}`)
-    await thisfs.writeFile(
-      migrationPath,
-      generateMigrationContent({ primaryKeyType: await primaryKeyType() })
-    )
+    await thisfs.writeFile(migrationPath, generateMigrationContent({ primaryKeyType: primaryKeyType() }))
   } catch (error) {
     const err = `
       Something happened while trying to create the migration file:

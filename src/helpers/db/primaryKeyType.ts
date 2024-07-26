@@ -1,7 +1,7 @@
 import { primaryKeyTypes } from '../../dream/types'
 import { getCachedDreamconfOrFail } from '../../dreamconf/cache'
 
-export default async function primaryKeyType() {
+export default function primaryKeyType() {
   const dreamconf = getCachedDreamconfOrFail()
 
   switch (dreamconf.primaryKeyType) {
