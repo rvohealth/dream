@@ -93,6 +93,7 @@ export type OpenapiSchemaObject =
   | OpenapiSchemaObjectAllOf
 
 export type OpenapiSchemaObjectBase = CommonOpenapiSchemaObjectFields<{
+  minProperties?: number
   maxProperties?: number
   properties?:
     | OpenapiSchemaProperties
@@ -125,6 +126,7 @@ export type OpenapiSchemaObjectShorthand =
   | OpenapiSchemaObjectAllOfShorthand
 
 export type OpenapiSchemaObjectBaseShorthand = CommonOpenapiSchemaObjectFields<{
+  minProperties?: number
   maxProperties?: number
   properties?:
     | OpenapiSchemaPropertiesShorthand
