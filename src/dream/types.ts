@@ -5,16 +5,17 @@ import {
 } from 'kysely'
 import { DateTime } from 'luxon'
 import { AssociationTableNames } from '../db/reflections'
+import { STI_SCOPE_NAME } from '../decorators/STI'
 import {
   AssociatedModelParam,
   WhereStatement,
   WhereStatementForAssociation,
 } from '../decorators/associations/shared'
-import { STI_SCOPE_NAME } from '../decorators/STI'
 import Dream from '../dream'
 import CalendarDate from '../helpers/CalendarDate'
 import { FilterInterface, Inc, ReadonlyTail, RejectInterface } from '../helpers/typeutils'
 import OpsStatement from '../ops/ops-statement'
+import DreamSerializer from '../serializer'
 import { FindEachOpts } from './query'
 
 export const primaryKeyTypes = ['bigserial', 'bigint', 'uuid', 'integer'] as const
@@ -288,6 +289,15 @@ export type UpdateableProperties<
 >
 
 export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) => T) & typeof Dream
+
+export type DreamsOrSerializersOrViewModels = DreamOrSerializerOrViewModel | DreamOrSerializerOrViewModel[]
+
+export type DreamOrSerializerOrViewModel =
+  | typeof Dream
+  | (typeof Dream)[]
+  | typeof DreamSerializer
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  | (abstract new (...args: any) => { serializers: Record<string, typeof DreamSerializer> })
 
 // preload
 export type NextPreloadArgumentType<

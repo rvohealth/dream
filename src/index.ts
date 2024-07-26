@@ -51,6 +51,10 @@ export {
   Timestamp,
   UpdateableAssociationProperties,
   UpdateableProperties,
+  primaryKeyTypes,
+  TRIGRAM_OPERATORS,
+  DreamOrSerializerOrViewModel,
+  DreamsOrSerializersOrViewModels,
 } from './dream/types'
 export { default as NonLoadedAssociation } from './exceptions/associations/non-loaded-association'
 export { default as CreateOrFindByFailedToCreateAndFind } from './exceptions/create-or-find-by-failed-to-create-and-find'
