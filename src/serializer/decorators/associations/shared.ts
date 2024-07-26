@@ -1,5 +1,4 @@
 import DreamSerializer from '../..'
-import Dream from '../../../dream'
 import { DreamClassOrViewModelClass, DreamConst } from '../../../dream/types'
 
 export type SerializableTypes = 'date'

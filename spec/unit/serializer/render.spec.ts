@@ -13,7 +13,7 @@ import Pet from '../../../test-app/app/models/Pet'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
-import PetSerializer, { PetSummarySerializer } from '../../../test-app/app/serializers/PetSerializer'
+import PetSerializer from '../../../test-app/app/serializers/PetSerializer'
 
 describe('DreamSerailizer.render', () => {
   it('renders a dream instance', () => {
