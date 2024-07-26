@@ -2,7 +2,7 @@ import { SingleDbCredential } from '../../src/dreamconf'
 import { getCachedDreamconfOrFail } from '../../src/dreamconf/cache'
 
 export default class ConnectionConfRetriever {
-  public async getConnectionConf(connection: DbConnectionType): Promise<SingleDbCredential> {
+  public getConnectionConf(connection: DbConnectionType): SingleDbCredential {
     const dreamconf = getCachedDreamconfOrFail()
     const dbConfig = dreamconf.dbCredentials
 

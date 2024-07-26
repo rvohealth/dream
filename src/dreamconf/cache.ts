@@ -8,5 +8,5 @@ export function cacheDreamconf(dreamconf: Dreamconf) {
 
 export function getCachedDreamconfOrFail() {
   if (!_dreamconf) throw new Error('must call `cacheDreamconf` before loading cached dreamconf')
-  return _dreamconf!
+  return _dreamconf
 }

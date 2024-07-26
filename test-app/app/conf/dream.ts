@@ -1,6 +1,6 @@
 import { Dreamconf } from '../../../src'
 
-export default async function configureDream(dreamconf: Dreamconf) {
+export default function configureDream(dreamconf: Dreamconf) {
   dreamconf.set('primaryKeyType', 'bigserial')
 
   dreamconf.set('dbCredentials', {

@@ -71,7 +71,7 @@ export default async function generateDream(dreamName: string, attributes: strin
   const finalContent = generateMigrationContent({
     table: snakeify(pluralize(pascalizePath(dreamName))),
     attributes,
-    primaryKeyType: await primaryKeyType(),
+    primaryKeyType: primaryKeyType(),
   })
   try {
     console.log(`generating migration: ${relativeMigrationPath}`)
