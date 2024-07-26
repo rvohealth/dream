@@ -52,7 +52,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     )
   }
 
-  public static getAssociatedSerializerDuringRender(
+  private static getAssociatedSerializerDuringRender(
     associatedData: DreamOrViewModel,
     associationStatement: DreamSerializerAssociationStatement
   ): typeof DreamSerializer<any, any> | null {
