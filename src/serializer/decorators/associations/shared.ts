@@ -1,13 +1,13 @@
 import DreamSerializer from '../..'
 import Dream from '../../../dream'
-import { DreamConst } from '../../../dream/types'
+import { DreamClassOrViewModelClass, DreamConst } from '../../../dream/types'
 
 export type SerializableTypes = 'date'
 export type DreamSerializerClassCB = () =>
   | typeof DreamSerializer
-  | (typeof DreamSerializer<any, any>)[]
-  | typeof Dream
-  | (typeof Dream)[]
+  | DreamClassOrViewModelClass
+  | DreamClassOrViewModelClass[]
+
 export type SerializableAssociationType = 'RendersOne' | 'RendersMany'
 
 export interface DreamSerializerAssociationStatement {

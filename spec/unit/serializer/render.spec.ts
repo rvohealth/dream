@@ -381,22 +381,6 @@ describe('DreamSerializer#render', () => {
         })
       })
 
-      context('an array of serializers is passed', () => {
-        class NewUserSerializer extends DreamSerializer {
-          @RendersMany(() => [PetSummarySerializer, UserSerializer], { serializer: 'summary' })
-          public pets: Pet[]
-        }
-
-        it('correctly serializes', async () => {
-          let user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-          const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
-          user = await user.load('pets').execute()
-
-          const serializer = new NewUserSerializer(user)
-          expect(serializer.render()).toEqual({ pets: [{ id: pet.id, favoriteTreats: null }] })
-        })
-      })
-
       context('when the source option is passed', () => {
         class UserSerializerWithSource extends DreamSerializer {
           @RendersMany(() => PetSerializer, { source: 'pets' })

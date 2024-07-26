@@ -71,16 +71,6 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     return null
   }
 
-  public static getAssociatedSerializerForDreamClass(
-    dreamClass: typeof Dream,
-    associationStatement: DreamSerializerAssociationStatement
-  ): typeof DreamSerializer<any, any> {
-    const serializerClass = associationStatement.dreamOrSerializerClassCB
-      ? associationStatement.dreamOrSerializerClassCB()
-      : inferSerializerFromDreamOrViewModel(dreamClass.prototype, associationStatement.serializerKey)
-    return serializerClass as typeof DreamSerializer<any, any>
-  }
-
   private _data: DataType
   private _casing: 'snake' | 'camel' | null = null
   public readonly isDreamSerializerInstance = true
