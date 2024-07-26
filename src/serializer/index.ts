@@ -38,8 +38,8 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   ): (typeof DreamSerializer<any, any>)[] | null {
     if (!associationStatement.dreamOrSerializerClassCB) return null
 
-    const serializerOrDreamClassOrClasses = associationStatement.dreamOrSerializerClassCB()
-    let classOrClasses = serializerOrDreamClassOrClasses as DreamClassOrViewModelClassOrSerializerClass[]
+    let classOrClasses =
+      associationStatement.dreamOrSerializerClassCB() as DreamClassOrViewModelClassOrSerializerClass[]
     if (!Array.isArray(classOrClasses)) {
       classOrClasses = [classOrClasses]
     }
