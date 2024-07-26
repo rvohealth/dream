@@ -6,29 +6,18 @@
 // https://github.com/tj/commander.js#quick-start
 
 import { Command } from 'commander'
-import newPsychicApp from './newDreamApp'
+import newPsychicApp from './new'
+import initPsychicApp from './init'
 
 const program = new Command()
 
 program
   .command('new')
-  .description('create a new psychic app')
+  .description('creates a new dream app using the name provided')
   .argument('<name>', 'name of the app you want to create')
-  .option(
-    '--redis',
-    "allow redis (i.e. --redis, or --redis false). If you don't set this, you will be prompted on whether or not to enable this."
-  )
-  .option(
-    '--ws',
-    "allow websockets (i.e. --ws, or --ws false) If you don't set this, you will be prompted on whether or not to enable this. Only enable this if redis is also enabled"
-  )
   .option(
     '--primaryKey',
     "the type of primary key to use. valid options are: 'bigserial', 'bigint', 'integer', 'uuid' (i.e. --primaryKey uuid)"
-  )
-  .option(
-    '--client',
-    "the type of client to use. valid options are: 'react', 'vue', 'nuxt', 'none' (i.e. --client none)"
   )
   .option(
     '--tsnode',
@@ -39,6 +28,23 @@ program
     const indexOfTsNode = program.args.findIndex(str => str === '--tsnode')
     const args = indexOfTsNode > -1 ? program.args.slice(2, indexOfTsNode) : program.args.slice(2)
     await newPsychicApp(name, args)
+  })
+
+program
+  .command('init')
+  .description('initialize a new dream app into your existing application')
+  .option(
+    '--primaryKey',
+    "the type of primary key to use. valid options are: 'bigserial', 'bigint', 'integer', 'uuid' (i.e. --primaryKey uuid)"
+  )
+  .option(
+    '--tsnode',
+    'runs the command using ts-node instead of node (this should not be passed, is here to support legacy building processes)'
+  )
+  .action(async () => {
+    const indexOfTsNode = program.args.findIndex(str => str === '--tsnode')
+    const args = indexOfTsNode > -1 ? program.args.slice(2, indexOfTsNode) : program.args.slice(2)
+    await initPsychicApp(args)
   })
 
 program.parse()

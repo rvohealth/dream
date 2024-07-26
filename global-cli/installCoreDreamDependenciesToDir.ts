@@ -7,7 +7,6 @@ import PackagejsonBuilder from './file-builders/PackagejsonBuilder'
 import copyRecursive from './helpers/copyRecursive'
 import gatherUserInput from './helpers/gatherUserInput'
 import log from './helpers/log'
-import logo from './helpers/logo'
 import sleep from './helpers/sleep'
 import sspawn from './helpers/sspawn'
 import welcomeMessage from './helpers/welcomeMessage'
@@ -16,18 +15,13 @@ function testEnv() {
   return process.env.NODE_ENV === 'test'
 }
 
-export default async function newDreamApp(appName: string, args: string[]) {
+export default async function installCoreDreamDependenciesToDir(
+  appName: string,
+  projectPath: string,
+  args: string[]
+) {
   const userOptions = await gatherUserInput(args)
 
-  if (!testEnv()) {
-    log.clear()
-    log.write(logo() + '\n\n', { cache: true })
-    log.write(c.green(`Installing psychic framework to ./${appName}`), { cache: true })
-    log.write(c.green(`Step 1. writing boilerplate to ${appName}...`))
-  }
-
-  let projectPath = `./${appName}`
-  fs.mkdirSync(projectPath)
   copyRecursive(__dirname + '/../boilerplate', `${projectPath}/src`)
 
   if (!testEnv()) {
@@ -38,7 +32,7 @@ export default async function newDreamApp(appName: string, args: string[]) {
 
   fs.writeFileSync(`${projectPath}/.env`, EnvBuilder.build({ appName, env: 'development' }))
   fs.writeFileSync(`${projectPath}/.env.test`, EnvBuilder.build({ appName, env: 'test' }))
-  fs.writeFileSync(projectPath + '/package.json', await PackagejsonBuilder.buildAPI(userOptions))
+  fs.writeFileSync(projectPath + '/package.json', await PackagejsonBuilder.buildAPI())
   fs.writeFileSync(projectPath + '/.dream.yml', await DreamYamlBuilder.build(userOptions))
 
   if (!testEnv()) {
