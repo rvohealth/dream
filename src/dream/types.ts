@@ -290,14 +290,13 @@ export type UpdateableProperties<
 
 export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) => T) & typeof Dream
 
-export type DreamsOrSerializersOrViewModels = DreamOrSerializerOrViewModel | DreamOrSerializerOrViewModel[]
+export type DreamOrViewModel = Dream | { serializers: Record<string, typeof DreamSerializer> }
 
-export type DreamOrSerializerOrViewModel =
+export type DreamClassOrViewModelClass =
   | typeof Dream
-  | (typeof Dream)[]
-  | typeof DreamSerializer
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   | (abstract new (...args: any) => { serializers: Record<string, typeof DreamSerializer> })
+
+export type DreamClassOrViewModelClassOrSerializerClass = DreamClassOrViewModelClass | typeof DreamSerializer
 
 // preload
 export type NextPreloadArgumentType<

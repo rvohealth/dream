@@ -116,11 +116,11 @@ import cloneDeepSafe from './helpers/cloneDeepSafe'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
 import getModelKey from './helpers/getModelKey'
+import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel'
 import { marshalDBValue } from './helpers/marshalDBValue'
 import pascalize from './helpers/pascalize'
-import instanceSerializerForKey from './helpers/serializerForKey'
-import { isString } from './helpers/typechecks'
 import { EnvOpts } from './helpers/path/types'
+import { isString } from './helpers/typechecks'
 
 export default class Dream {
   public DB: any
@@ -3790,7 +3790,7 @@ export default class Dream {
    * @returns A serialized representation of the model
    */
   public serialize<I extends Dream>(this: I, { casing = null, serializerKey }: RenderOptions<I> = {}) {
-    const serializerClass = instanceSerializerForKey(this, serializerKey)
+    const serializerClass = inferSerializerFromDreamOrViewModel(this, serializerKey)
     const serializer = new serializerClass(this)
     if (casing) serializer.casing(casing)
     return serializer.render()

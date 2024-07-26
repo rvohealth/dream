@@ -1,14 +1,21 @@
 import isArray from 'lodash.isarray'
 import { DateTime } from 'luxon'
 import Dream from '../dream'
-import { DreamConst } from '../dream/types'
+import {
+  DreamClassOrViewModelClass,
+  DreamClassOrViewModelClassOrSerializerClass,
+  DreamConst,
+  DreamOrViewModel,
+} from '../dream/types'
 import NonLoadedAssociation from '../exceptions/associations/non-loaded-association'
 import MissingSerializer from '../exceptions/missing-serializer'
 import FailedToRenderThroughAssociationForSerializer from '../exceptions/serializers/failed-to-render-through-association'
 import CalendarDate from '../helpers/CalendarDate'
 import camelize from '../helpers/camelize'
 import round from '../helpers/round'
-import instanceSerializerForKey from '../helpers/serializerForKey'
+import inferSerializerFromDreamOrViewModel, {
+  inferSerializerFromDreamClassOrViewModelClass,
+} from '../helpers/inferSerializerFromDreamOrViewModel'
 import snakeify from '../helpers/snakeify'
 import { DreamSerializerAssociationStatement } from './decorators/associations/shared'
 import { AttributeStatement } from './decorators/attribute'
@@ -34,46 +41,34 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
       : null
     if (!serializerOrDreamClassOrClasses) return null
 
-    let serializerOrDreamClasses: (typeof Dream)[] | (typeof DreamSerializer<any, any>)[] =
-      serializerOrDreamClassOrClasses as any
-    if (!Array.isArray(serializerOrDreamClasses)) {
-      serializerOrDreamClasses = [serializerOrDreamClasses]
+    let classOrClasses = serializerOrDreamClassOrClasses as DreamClassOrViewModelClassOrSerializerClass[]
+    if (!Array.isArray(classOrClasses)) {
+      classOrClasses = [classOrClasses]
     }
 
-    return serializerOrDreamClasses.map(serializerOrDreamClass => {
-      if ((serializerOrDreamClass as typeof DreamSerializer)?.isDreamSerializer) {
-        return serializerOrDreamClass as typeof DreamSerializer
-      }
-
-      const dreamClass = serializerOrDreamClass as typeof Dream
-      const serializerClass =
-        dreamClass.prototype.serializers[associationStatement.serializerKey || 'default']
-      return serializerClass as typeof DreamSerializer
+    return classOrClasses.map(klass => {
+      if ((klass as typeof DreamSerializer)?.isDreamSerializer) return klass as typeof DreamSerializer
+      return inferSerializerFromDreamClassOrViewModelClass(klass as DreamClassOrViewModelClass)
     })
   }
 
   public static getAssociatedSerializerDuringRender(
-    associatedData: any,
+    associatedData: DreamOrViewModel,
     associationStatement: DreamSerializerAssociationStatement
   ): typeof DreamSerializer<any, any> | null {
-    const serializerOrDreamClassOrClasses = associationStatement.dreamOrSerializerClassCB
-      ? associationStatement.dreamOrSerializerClassCB()
-      : instanceSerializerForKey(associatedData, associationStatement.serializerKey)
+    const dreamSerializerOrNull = this.associationDeclaredSerializer(associationStatement)
 
-    if (!serializerOrDreamClassOrClasses) return null
+    if (dreamSerializerOrNull) return dreamSerializerOrNull
+    return inferSerializerFromDreamOrViewModel(associatedData, associationStatement.serializerKey)
+  }
 
-    const serializerOrDreamClass: typeof Dream | typeof DreamSerializer = serializerOrDreamClassOrClasses
-    if (Array.isArray(serializerOrDreamClass)) {
-      return instanceSerializerForKey(associatedData, associationStatement.serializerKey)
+  private static associationDeclaredSerializer(
+    associationStatement: DreamSerializerAssociationStatement
+  ): typeof DreamSerializer | null {
+    if ((associationStatement.dreamOrSerializerClassCB?.() as typeof DreamSerializer)?.isDreamSerializer) {
+      return associationStatement.dreamOrSerializerClassCB?.() as typeof DreamSerializer
     }
-
-    if ((serializerOrDreamClass as typeof DreamSerializer)?.isDreamSerializer) {
-      return serializerOrDreamClass as typeof DreamSerializer
-    }
-
-    const dreamClass = serializerOrDreamClass as typeof Dream
-    const serializerClass = dreamClass.prototype.serializers[associationStatement.serializerKey || 'default']
-    return serializerClass as typeof DreamSerializer
+    return null
   }
 
   public static getAssociatedSerializerForDreamClass(
@@ -82,7 +77,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   ): typeof DreamSerializer<any, any> {
     const serializerClass = associationStatement.dreamOrSerializerClassCB
       ? associationStatement.dreamOrSerializerClassCB()
-      : instanceSerializerForKey(dreamClass.prototype, associationStatement.serializerKey)
+      : inferSerializerFromDreamOrViewModel(dreamClass.prototype, associationStatement.serializerKey)
     return serializerClass as typeof DreamSerializer<any, any>
   }
 
@@ -219,7 +214,10 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     return associationStatement.type === 'RendersMany' ? [] : null
   }
 
-  private renderAssociation(associatedData: any, associationStatement: DreamSerializerAssociationStatement) {
+  private renderAssociation(
+    associatedData: DreamOrViewModel,
+    associationStatement: DreamSerializerAssociationStatement
+  ) {
     const SerializerClass = DreamSerializer.getAssociatedSerializerDuringRender(
       associatedData,
       associationStatement
