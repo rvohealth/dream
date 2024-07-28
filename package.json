@@ -18,9 +18,11 @@
   ],
   "scripts": {
     "dream": "yarn dreamts",
-    "dreamcore": "APP_ROOT_PATH=$(pwd)/test-app DREAM_CORE_DEVELOPMENT=1 yarn dreamts",
     "dreamjs": "node  --experimental-modules dist/boot/cli.js",
     "dreamts": "DREAM_OMIT_DIST_FOLDER=1 TS_SAFE=1 npx ts-node -r ./src/helpers/loadEnv.ts boot/cli.ts",
+    "dreamcore": "APP_ROOT_PATH=$(pwd)/test-app DREAM_CORE_DEVELOPMENT=1 yarn dreamts",
+    "gdreamcore": "npx ts-node --transpile-only ./global-cli/main.ts",
+    "build:global-cli": "npx tsc -p ./tsconfig.global-cli.json",
     "build:package-json": "DREAM_OMIT_DIST_FOLDER=1 TS_SAFE=1 npx ts-node -r ./src/helpers/loadEnv.ts boot/adapt-package-json.ts",
     "build:boot": "rm -rf dist && npx tsc -p ./tsconfig.boot.json",
     "build": "echo \"building dream boot...\" && yarn build:boot && echo \"building dream...\" && npx tsc -p ./tsconfig.build.json && yarn build:package-json",
