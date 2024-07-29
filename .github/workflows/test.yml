@@ -29,6 +29,8 @@ jobs:
       DB_USER: dream
       PRIMARY_DB_NAME: dream_core_test
       PRIMARY_DB_HOST: localhost
+      REPLICA_DB_NAME: dream_core_test
+      REPLICA_DB_HOST: localhost
       DB_PASSWORD: postgres
       DB_PORT: 5432
       TZ: UTC
