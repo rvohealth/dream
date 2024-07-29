@@ -19,6 +19,7 @@ export interface DreamSerializerAssociationStatement {
   type: SerializableAssociationType
   path: string | null
   exportedAs: string | null
+  nullable: boolean
   serializerKey?: string
 }
 

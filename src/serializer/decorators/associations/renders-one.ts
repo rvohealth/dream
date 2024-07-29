@@ -38,6 +38,9 @@ import { DreamSerializerAssociationStatement, DreamSerializerClassCB, RendersOne
  *   public settings: Settings
  * }
  * ```
+ *
+ * @param opts.flatten - whether or not to flatten the association's attributes into this serializer when rendering. Defaults to false.
+ * @param opts.nullable - whether or not this association is nullable. Defaults to false
  */
 export default function RendersOne(
   dreamOrSerializerClassCB: DreamSerializerClassCB | RendersOneOpts | null = null,
@@ -69,6 +72,7 @@ export default function RendersOne(
         through: opts.through || null,
         path: opts.path || null,
         exportedAs: opts.exportedAs || null,
+        nullable: opts.nullable || false,
       } as DreamSerializerAssociationStatement,
     ]
   }
@@ -76,4 +80,5 @@ export default function RendersOne(
 
 export interface RendersOneOpts extends RendersOneOrManyOpts {
   flatten?: boolean
+  nullable?: boolean
 }
