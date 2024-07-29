@@ -1,5 +1,4 @@
 name: Test
-
 on:
   - pull_request
 
@@ -7,7 +6,6 @@ jobs:
   test:
     name: All
     runs-on: ubuntu-latest
-
     services:
       postgres:
         image: postgres:13
@@ -39,7 +37,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'
       - run: yarn install --frozen-lockfile
       - run: APP_ROOT_PATH=$(pwd) yarn dreamcore db:migrate
       - run: yarn lint
