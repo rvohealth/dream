@@ -10,7 +10,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres-13
+        image: postgres:13
         env:
           POSTGRES_USER: dream
           POSTGRES_DB: dream_core_test
