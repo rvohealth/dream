@@ -1,0 +1,78 @@
+name: Test
+
+on:
+  - pull_request
+
+jobs:
+  test:
+    name: All
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres-13
+        env:
+          POSTGRES_USER: dream
+          POSTGRES_DB: dream_core_test
+          POSTGRES_PASSWORD: ''
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    env:
+      NODE_ENV: test
+      PORT: 7778
+      DB_USER: dream
+      PRIMARY_DB_NAME: dream_core_test
+      PRIMARY_DB_HOST: localhost
+      DB_PORT: 5432
+      TZ: UTC
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: yarn install --frozen-lockfile
+      - run: APP_ROOT_PATH=$(pwd) yarn dreamcore db:migrate
+      - run: yarn lint
+      - run: yarn spec
+
+    # steps:
+    #   - name: Checkout
+    #     uses: actions/checkout@v3
+    #     with:
+    #       fetch-depth: 2
+    #
+    #   - name: Setup Node.js Environment
+    #     uses: actions/setup-node@v3
+    #     with:
+    #       node-version-file: .node-version
+    #       # registry-url: https://npm.pkg.github.com/
+    #
+    #   # - run: echo "@rvohealth:registry=https://npm.pkg.github.com" > ./.npmrc
+    #   # - run: echo -e "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ./.npmrc
+    #
+    #   # Yarn isnt preinstalled on this image for some reason
+    #   - name: Install Yarn
+    #     run: npm install -g yarn
+    #
+    #   # - name: Install node-gyp
+    #   #   run: yarn global add node-gyp
+    #
+    #   - name: Cache node_modules
+    #     uses: actions/cache@v4
+    #     with:
+    #       path: node_modules
+    #       key: ${{ runner.os }}-cache-node-modules-${{ hashFiles('**/yarn.lock') }}
+    #
+    #   - name: Install dependencies
+    #     if: ${{ steps.cache-node_modules.outputs.cache-hit != 'true' }}
+    #     run: yarn install --frozen-lockfile
+    #
+    #   - name: Lint ES-Lint and Prettier
+    #     run: GITHUB_OAUTH_TOKEN=${{ secrets.GITHUB_TOKEN }} yarn run lint
