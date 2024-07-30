@@ -6,8 +6,6 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    # env:
-    #   YARN_CACHE_FOLDER: ~/.yarn-cache
     services:
       postgres:
         image: postgres:13-alpine
@@ -34,6 +32,7 @@ jobs:
       DB_PASSWORD: postgres
       DB_PORT: 5432
       TZ: UTC
+      YARN_CACHE_FOLDER: ~/.yarn-cache
 
     steps:
       - uses: actions/checkout@v4
@@ -41,17 +40,17 @@ jobs:
         with:
           node-version: '18'
 
-      # - name: Cache node_modules
-      #   id: cache-node-modules
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: ~/.yarn-cache
-      #     key: ${{ runner.os }}-cache-node-modules-${{ hashFiles('**/yarn.lock') }}
-      #
-      # - if: ${{ steps.cache-node-modules.outputs.cache-hit != 'true' }}
-      #   name: List the state of node modules
-      #   continue-on-error: true
-      #   run: yarn list
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.yarn-cache
+          key: ${{ runner.os }}-cache-node-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - if: ${{ steps.cache-node-modules.outputs.cache-hit != 'true' }}
+        name: List the state of node modules
+        continue-on-error: true
+        run: yarn list
 
       - run: yarn install --frozen-lockfile
       - run: APP_ROOT_PATH=$(pwd) yarn dreamcore db:migrate
