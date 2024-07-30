@@ -10,7 +10,7 @@ jobs:
       YARN_CACHE_FOLDER: ~/.yarn-cache
     services:
       postgres:
-        image: postgres:13
+        image: postgres:13-alpine
         env:
           POSTGRES_USER: dream
           POSTGRES_DB: dream_core_test
