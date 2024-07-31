@@ -27,15 +27,19 @@ export type OpenapiSchemaBase =
   | OpenapiSchemaExpressionRef
 
 export type OpenapiSchemaShorthandExpressionAnyOf = {
-  anyOf: OpenapiSchemaBodyShorthand[]
+  anyOf: (OpenapiSchemaBodyShorthand | OpenapiSchemaPartialSegment)[]
 }
 
 export type OpenapiSchemaShorthandExpressionOneOf = {
-  oneOf: OpenapiSchemaBodyShorthand[]
+  oneOf: (OpenapiSchemaBodyShorthand | OpenapiSchemaPartialSegment)[]
 }
 
 export type OpenapiSchemaShorthandExpressionAllOf = {
-  allOf: OpenapiSchemaBodyShorthand[]
+  allOf: (OpenapiSchemaBodyShorthand | OpenapiSchemaPartialSegment)[]
+}
+
+export type OpenapiSchemaPartialSegment = {
+  nullable?: boolean
 }
 
 export type OpenapiSchemaShorthandExpressionSerializerRef = {
@@ -53,15 +57,15 @@ export type OpenapiSchemaExpressionRefSchemaShorthand = {
 }
 
 export type OpenapiSchemaExpressionAllOf = {
-  allOf: OpenapiSchemaBody[]
+  allOf: (OpenapiSchemaBody | OpenapiSchemaPartialSegment)[]
 }
 
 export type OpenapiSchemaExpressionAnyOf = {
-  anyOf: OpenapiSchemaBody[]
+  anyOf: (OpenapiSchemaBody | OpenapiSchemaPartialSegment)[]
 }
 
 export type OpenapiSchemaExpressionOneOf = {
-  oneOf: OpenapiSchemaBody[]
+  oneOf: (OpenapiSchemaBody | OpenapiSchemaPartialSegment)[]
 }
 
 export type OpenapiSchemaCommonFields<T> = T & {
