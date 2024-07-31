@@ -125,6 +125,7 @@ export {
   OpenapiShorthandPrimitiveTypes,
   OpenapiTypeField,
   OpenapiTypeFieldObject,
+  OpenapiSchemaPartialSegment,
   openapiPrimitiveTypes,
   openapiShorthandPrimitiveTypes,
 } from './openapi/types'
