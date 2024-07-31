@@ -118,6 +118,7 @@ export {
   OpenapiSchemaShorthandExpressionAllOf,
   OpenapiSchemaShorthandExpressionAnyOf,
   OpenapiSchemaShorthandExpressionOneOf,
+  OpenapiSchemaShorthandExpressionSerializerRef,
   OpenapiSchemaShorthandPrimitiveGeneric,
   OpenapiSchemaString,
   OpenapiShorthandAllTypes,
