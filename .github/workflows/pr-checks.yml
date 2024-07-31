@@ -1,0 +1,111 @@
+name: PR Checks
+on:
+  - pull_request
+
+jobs:
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13-alpine
+        env:
+          POSTGRES_USER: dream
+          POSTGRES_DB: dream_core_test
+          POSTGRES_PASSWORD: 'postgres'
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    env:
+      NODE_ENV: test
+      PORT: 7778
+      DB_USER: dream
+      PRIMARY_DB_NAME: dream_core_test
+      PRIMARY_DB_HOST: localhost
+      REPLICA_DB_NAME: dream_core_test
+      REPLICA_DB_HOST: localhost
+      DB_PASSWORD: postgres
+      DB_PORT: 5432
+      TZ: UTC
+      YARN_CACHE_FOLDER: ~/.yarn-cache
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.yarn-cache
+          key: ${{ runner.os }}-cache-node-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - if: ${{ steps.cache-node-modules.outputs.cache-hit != 'true' }}
+        name: List the state of node modules
+        continue-on-error: true
+        run: yarn list
+
+      - run: yarn install --frozen-lockfile
+      - run: APP_ROOT_PATH=$(pwd) yarn dreamcore db:migrate
+      - run: yarn spec
+
+  linting:
+    name: Linting
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
+      YARN_CACHE_FOLDER: ~/.yarn-cache
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.yarn-cache
+          key: ${{ runner.os }}-cache-node-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - if: ${{ steps.cache-node-modules.outputs.cache-hit != 'true' }}
+        name: List the state of node modules
+        continue-on-error: true
+        run: yarn list
+
+      - run: yarn install --frozen-lockfile
+      - run: yarn lint
+
+  check-build:
+    name: Check build
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: production
+      YARN_CACHE_FOLDER: ~/.yarn-cache
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.yarn-cache
+          key: ${{ runner.os }}-cache-node-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - if: ${{ steps.cache-node-modules.outputs.cache-hit != 'true' }}
+        name: List the state of node modules
+        continue-on-error: true
+        run: yarn list
+
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
