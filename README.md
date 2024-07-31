@@ -1,4 +1,5 @@
 # dream ORM
+just a test
 
 The dream ORM is an ORM inspired heavily by the [Ruby on Rails Active Record](https://guides.rubyonrails.org/active_record_querying.html) pattern, and was designed predominantly as a tool to help migrate PlateJoy's app ecosystem from ruby to node. In the search for a comprehensive ORM in node that maintains the depth and necessary features provided by rails, we have decided to write our own, written on a [very powerful, safely type-guarded query builder called kysely](https://github.com/kysely-org/kysely).
 
