@@ -146,11 +146,13 @@ export type OpenapiSchemaObjectBaseShorthand = CommonOpenapiSchemaObjectFields<{
     | OpenapiSchemaShorthandExpressionOneOf
     | OpenapiSchemaShorthandExpressionAnyOf
     | OpenapiSchemaShorthandExpressionAllOf
+    | OpenapiSchemaShorthandExpressionSerializerRef
   additionalProperties?:
     | OpenapiSchemaPropertiesShorthand
     | OpenapiSchemaShorthandExpressionOneOf
     | OpenapiSchemaShorthandExpressionAnyOf
     | OpenapiSchemaShorthandExpressionAllOf
+    | OpenapiSchemaShorthandExpressionSerializerRef
 }>
 
 export type OpenapiSchemaObjectOneOfShorthand = CommonOpenapiSchemaObjectFields<{
