@@ -1,3 +1,5 @@
+import DreamSerializer from '../serializer'
+
 export type OpenapiSchemaBody =
   | OpenapiSchemaBase
   | OpenapiSchemaPrimitiveGeneric
@@ -16,6 +18,7 @@ export type OpenapiSchemaBodyShorthand =
   | OpenapiSchemaObjectShorthand
   | OpenapiSchemaArrayShorthand
   | OpenapiSchemaExpressionRefSchemaShorthand
+  | OpenapiSchemaShorthandExpressionSerializerRef
 
 export type OpenapiSchemaBase =
   | OpenapiSchemaString
@@ -33,6 +36,12 @@ export type OpenapiSchemaShorthandExpressionOneOf = {
 
 export type OpenapiSchemaShorthandExpressionAllOf = {
   allOf: OpenapiSchemaBodyShorthand[]
+}
+
+export type OpenapiSchemaShorthandExpressionSerializerRef = {
+  $serializer: typeof DreamSerializer
+  many?: boolean
+  nullable?: boolean
 }
 
 export type OpenapiSchemaExpressionRef = {
@@ -175,6 +184,7 @@ export type OpenapiSchemaArrayShorthand = OpenapiSchemaCommonFields<{
     | OpenapiSchemaShorthandExpressionAllOf
     | OpenapiSchemaShorthandExpressionAnyOf
     | OpenapiSchemaShorthandExpressionOneOf
+    | OpenapiSchemaShorthandExpressionSerializerRef
 }>
 
 export interface OpenapiSchemaProperties {
