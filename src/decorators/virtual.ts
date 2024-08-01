@@ -1,6 +1,7 @@
 import Dream from '../dream'
+import { SerializableTypes } from '../serializer/decorators/attribute'
 
-export default function Virtual(): any {
+export default function Virtual(type?: SerializableTypes): any {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return function (target: any, key: string, _: any) {
     const t: typeof Dream = target.constructor
@@ -10,10 +11,12 @@ export default function Virtual(): any {
 
     t['virtualAttributes'].push({
       property: key,
+      type,
     } as VirtualAttributeStatement)
   }
 }
 
 export interface VirtualAttributeStatement {
   property: string
+  type?: SerializableTypes
 }
