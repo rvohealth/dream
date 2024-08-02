@@ -367,7 +367,7 @@ describe('DreamSerializer#render', () => {
       // know which one to use in which context.
       context('an array of dreams is passed', () => {
         class NewUserSerializer extends DreamSerializer {
-          @RendersMany(() => [Pet, User], { serializer: 'summary' })
+          @RendersMany(() => [Pet, User], { serializerKey: 'summary' })
           public pets: Pet[]
         }
 
@@ -649,7 +649,7 @@ describe('DreamSerializer#render', () => {
 
       context('when a named serializer is specified', () => {
         class UserSerializer extends DreamSerializer {
-          @RendersMany({ serializer: 'summary' })
+          @RendersMany({ serializerKey: 'summary' })
           public pets: Pet[]
         }
 
@@ -897,7 +897,7 @@ describe('DreamSerializer#render', () => {
 
       context('when a named serializer is specified', () => {
         class PetSerializer extends DreamSerializer {
-          @RendersOne({ serializer: 'summary' })
+          @RendersOne({ serializerKey: 'summary' })
           public user: User
         }
 

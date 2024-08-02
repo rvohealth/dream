@@ -2319,7 +2319,7 @@ export default class Dream {
    * class PostsController extends AuthedController {
    *   public index() {
    *     const posts = await this.currentUser.associationQuery('posts').all()
-   *     this.ok(posts, { serializer: 'summary' })
+   *     this.ok(posts, { serializerKey: 'summary' })
    *   }
    * }
    * ```
