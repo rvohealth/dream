@@ -29,5 +29,5 @@ export interface RendersOneOrManyOpts {
   through?: string
   path?: string
   exportedAs?: string
-  serializer?: string
+  serializerKey?: string
 }

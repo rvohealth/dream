@@ -63,7 +63,7 @@ export default function RendersMany(
         field: key,
         optional: opts.optional || false,
         dreamOrSerializerClassCB,
-        serializerKey: opts.serializer,
+        serializerKey: opts.serializerKey,
         source: opts.source || key,
         through: opts.through || null,
         path: opts.path || null,
