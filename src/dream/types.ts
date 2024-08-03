@@ -365,9 +365,7 @@ export type PassthroughColumnNames<
   DreamConf,
   GlobalSchema = DreamConf['globalSchema' & keyof DreamConf],
   PassthroughColumns = GlobalSchema['passthroughColumns' & keyof GlobalSchema],
-> = PassthroughColumns[number & keyof PassthroughColumns]
-
-// it is not valid to remove the STI scope
+> = PassthroughColumns
 
 export type DefaultScopeName<
   DreamInstance extends Dream,
