@@ -2,7 +2,7 @@ import STI from '../../../../../src/decorators/STI'
 import { BalloonTypesEnum } from '../../../../db/sync'
 import Latex from '../Latex'
 
-@STI(Latex)
+@STI(() => Latex)
 export default class Animal extends Latex {
   public get type() {
     return (this as Animal).getAttribute('type')

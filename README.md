@@ -409,7 +409,7 @@ psy db:migrate --core
 NODE_ENV=test psy db:migrate --core
 ```
 
-#### Generating type docs:
+#### Generating type docs
 
 ```bash
 # first, you will need to update package.json version, in order to keep
@@ -422,13 +422,13 @@ yarn build:docs
 - STI descendants of the same root model that define the same association must define that association identically if they are used in joins, preload, or load. For example, the following will not work properly:
 
 ```ts
-@STI(A)
+@STI(() => A)
 class B extends A {
   @HasMany(() => X)
   public xx: X[]
 }
 
-@STI(A)
+@STI(() => A)
 class C extends A {
   @HasMany(() => X, { where: { something: true } })
   public xx: X[]

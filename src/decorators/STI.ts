@@ -3,9 +3,13 @@ import Scope from './scope'
 
 export const STI_SCOPE_NAME = 'dream:STI'
 
-export default function STI(dreamClass: typeof Dream, { value }: { value?: string } = {}): ClassDecorator {
+export default function STI(
+  dreamClassCb: () => typeof Dream,
+  { value }: { value?: string } = {}
+): ClassDecorator {
   return function (target: any) {
     const stiChildClass = target as typeof Dream
+    const dreamClass = dreamClassCb()
     const baseClass = dreamClass['sti'].baseClass || dreamClass
 
     if (!Object.getOwnPropertyDescriptor(stiChildClass, 'extendedBy')) stiChildClass['extendedBy'] = []

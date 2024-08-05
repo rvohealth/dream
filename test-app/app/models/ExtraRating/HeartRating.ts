@@ -7,7 +7,7 @@ import Post from '../Post'
 import User from '../User'
 import Balloon from '../Balloon'
 
-@STI(BaseExtraRating)
+@STI(() => BaseExtraRating)
 export default class HeartRating extends BaseExtraRating {
   @BelongsTo(() => User)
   public user: User

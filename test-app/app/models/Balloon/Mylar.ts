@@ -7,7 +7,7 @@ import User from '../User'
 import Sandbag from '../Sandbag'
 import { DreamColumn } from '../../../../src'
 
-@STI(Balloon)
+@STI(() => Balloon)
 export default class Mylar extends Balloon {
   @BelongsTo(() => User)
   public user: User
