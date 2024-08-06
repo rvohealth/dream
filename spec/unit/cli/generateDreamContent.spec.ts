@@ -15,21 +15,18 @@ export default class MealType extends ApplicationModel {
     return 'meal_types' as const
   }
 
-  public get serializers() {
-    return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: MealTypeSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: MealTypeSummarySerializer<any, any>,
-    } as const
-  }
-
   public id: DreamColumn<MealType, 'id'>
   public createdAt: DreamColumn<MealType, 'createdAt'>
   public updatedAt: DreamColumn<MealType, 'updatedAt'>
-}\
-`
+}
+
+MealType.register('serializers', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default: MealTypeSerializer<any, any>,
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  summary: MealTypeSummarySerializer<any, any>,
+})`
       )
     })
   })
@@ -49,23 +46,20 @@ export default class User extends ApplicationModel {
     return 'users' as const
   }
 
-  public get serializers() {
-    return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: UserSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: UserSummarySerializer<any, any>,
-    } as const
-  }
-
   public id: DreamColumn<User, 'id'>
   public email: DreamColumn<User, 'email'>
   public passwordDigest: DreamColumn<User, 'passwordDigest'>
   public createdAt: DreamColumn<User, 'createdAt'>
   public updatedAt: DreamColumn<User, 'updatedAt'>
-}\
-`
+}
+
+User.register('serializers', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default: UserSerializer<any, any>,
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  summary: UserSummarySerializer<any, any>,
+})`
         )
       })
     })
@@ -88,24 +82,21 @@ export default class Chalupa extends ApplicationModel {
     return 'chalupas' as const
   }
 
-  public get serializers() {
-    return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: ChalupaSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: ChalupaSummarySerializer<any, any>,
-    } as const
-  }
-
   public id: DreamColumn<Chalupa, 'id'>
   public topping: DreamColumn<Chalupa, 'topping'>
   public protein: DreamColumn<Chalupa, 'protein'>
   public existingEnum: DreamColumn<Chalupa, 'existingEnum'>
   public createdAt: DreamColumn<Chalupa, 'createdAt'>
   public updatedAt: DreamColumn<Chalupa, 'updatedAt'>
-}\
-`
+}
+
+Chalupa.register('serializers', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default: ChalupaSerializer<any, any>,
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  summary: ChalupaSummarySerializer<any, any>,
+})`
         )
       })
     })
@@ -124,22 +115,19 @@ export default class Paper extends ApplicationModel {
     return 'paper' as const
   }
 
-  public get serializers() {
-    return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: PaperSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: PaperSummarySerializer<any, any>,
-    } as const
-  }
-
   public id: DreamColumn<Paper, 'id'>
   public name: DreamColumn<Paper, 'name'>
   public createdAt: DreamColumn<Paper, 'createdAt'>
   public updatedAt: DreamColumn<Paper, 'updatedAt'>
-}\
-`
+}
+
+Paper.register('serializers', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default: PaperSerializer<any, any>,
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  summary: PaperSummarySerializer<any, any>,
+})`
         )
       })
     })
@@ -160,16 +148,6 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializers() {
-    return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: CompositionSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: CompositionSummarySerializer<any, any>,
-    } as const
-  }
-
   public id: DreamColumn<Composition, 'id'>
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
@@ -177,8 +155,15 @@ export default class Composition extends ApplicationModel {
   @BelongsTo(() => GraphNode)
   public graphNode: GraphNode
   public graphNodeId: DreamColumn<Composition, 'graphNodeId'>
-}\
-`
+}
+
+Composition.register('serializers', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default: CompositionSerializer<any, any>,
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  summary: CompositionSummarySerializer<any, any>,
+})`
           )
         })
 
@@ -197,16 +182,6 @@ export default class CatToy extends ApplicationModel {
     return 'cat_toys' as const
   }
 
-  public get serializers() {
-    return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: CatToySerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: CatToySummarySerializer<any, any>,
-    } as const
-  }
-
   public id: DreamColumn<CatToy, 'id'>
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
@@ -214,8 +189,15 @@ export default class CatToy extends ApplicationModel {
   @BelongsTo(() => PetDomesticCat)
   public cat: PetDomesticCat
   public catId: DreamColumn<CatToy, 'catId'>
-}\
-`
+}
+
+CatToy.register('serializers', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default: CatToySerializer<any, any>,
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  summary: CatToySummarySerializer<any, any>,
+})`
             )
           })
 
@@ -233,24 +215,21 @@ export default class CatToy extends ApplicationModel {
     return 'cat_toys' as const
   }
 
-  public get serializers() {
-    return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: CatToySerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: CatToySummarySerializer<any, any>,
-    } as const
-  }
-
   public id: DreamColumn<CatToy, 'id'>
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
   @HasMany(() => PetDomesticCat)
   public cats: PetDomesticCat[]
-}\
-`
+}
+
+CatToy.register('serializers', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default: CatToySerializer<any, any>,
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  summary: CatToySummarySerializer<any, any>,
+})`
             )
           })
 
@@ -268,24 +247,21 @@ export default class CatToy extends ApplicationModel {
     return 'cat_toys' as const
   }
 
-  public get serializers() {
-    return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: CatToySerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: CatToySummarySerializer<any, any>,
-    } as const
-  }
-
   public id: DreamColumn<CatToy, 'id'>
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
   @HasOne(() => PetDomesticCat)
   public cat: PetDomesticCat
-}\
-`
+}
+
+CatToy.register('serializers', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default: CatToySerializer<any, any>,
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  summary: CatToySummarySerializer<any, any>,
+})`
             )
           })
 
@@ -303,16 +279,6 @@ export default class PetDomesticCat extends ApplicationModel {
     return 'pet_domestic_cats' as const
   }
 
-  public get serializers() {
-    return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: PetDomesticCatSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: PetDomesticCatSummarySerializer<any, any>,
-    } as const
-  }
-
   public id: DreamColumn<PetDomesticCat, 'id'>
   public createdAt: DreamColumn<PetDomesticCat, 'createdAt'>
   public updatedAt: DreamColumn<PetDomesticCat, 'updatedAt'>
@@ -320,8 +286,15 @@ export default class PetDomesticCat extends ApplicationModel {
   @BelongsTo(() => GraphNode)
   public graphNode: GraphNode
   public graphNodeId: DreamColumn<PetDomesticCat, 'graphNodeId'>
-}\
-`
+}
+
+PetDomesticCat.register('serializers', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default: PetDomesticCatSerializer<any, any>,
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  summary: PetDomesticCatSummarySerializer<any, any>,
+})`
             )
           })
 
@@ -339,16 +312,6 @@ export default class PetDomesticCat extends ApplicationModel {
     return 'pet_domestic_cats' as const
   }
 
-  public get serializers() {
-    return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: PetDomesticCatSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: PetDomesticCatSummarySerializer<any, any>,
-    } as const
-  }
-
   public id: DreamColumn<PetDomesticCat, 'id'>
   public createdAt: DreamColumn<PetDomesticCat, 'createdAt'>
   public updatedAt: DreamColumn<PetDomesticCat, 'updatedAt'>
@@ -356,8 +319,15 @@ export default class PetDomesticCat extends ApplicationModel {
   @BelongsTo(() => PetDomesticDog)
   public dog: PetDomesticDog
   public dogId: DreamColumn<PetDomesticCat, 'dogId'>
-}\
-`
+}
+
+PetDomesticCat.register('serializers', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default: PetDomesticCatSerializer<any, any>,
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  summary: PetDomesticCatSummarySerializer<any, any>,
+})`
             )
           })
 
@@ -375,16 +345,6 @@ export default class PetWildCat extends ApplicationModel {
     return 'pet_wild_cats' as const
   }
 
-  public get serializers() {
-    return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: PetWildCatSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: PetWildCatSummarySerializer<any, any>,
-    } as const
-  }
-
   public id: DreamColumn<PetWildCat, 'id'>
   public createdAt: DreamColumn<PetWildCat, 'createdAt'>
   public updatedAt: DreamColumn<PetWildCat, 'updatedAt'>
@@ -392,8 +352,15 @@ export default class PetWildCat extends ApplicationModel {
   @BelongsTo(() => PetDomesticDog)
   public dog: PetDomesticDog
   public dogId: DreamColumn<PetWildCat, 'dogId'>
-}\
-`
+}
+
+PetWildCat.register('serializers', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default: PetWildCatSerializer<any, any>,
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  summary: PetWildCatSummarySerializer<any, any>,
+})`
             )
           })
         })
@@ -413,16 +380,6 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializers() {
-    return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: CompositionSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: CompositionSummarySerializer<any, any>,
-    } as const
-  }
-
   public id: DreamColumn<Composition, 'id'>
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
@@ -434,8 +391,15 @@ export default class Composition extends ApplicationModel {
   @BelongsTo(() => Chalupa)
   public chalupa: Chalupa
   public chalupaId: DreamColumn<Composition, 'chalupaId'>
-}\
-`
+}
+
+Composition.register('serializers', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default: CompositionSerializer<any, any>,
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  summary: CompositionSummarySerializer<any, any>,
+})`
           )
         })
       })
@@ -455,24 +419,21 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializers() {
-    return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: CompositionSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: CompositionSummarySerializer<any, any>,
-    } as const
-  }
-
   public id: DreamColumn<Composition, 'id'>
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
   @HasOne(() => User)
   public user: User
-}\
-`
+}
+
+Composition.register('serializers', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default: CompositionSerializer<any, any>,
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  summary: CompositionSummarySerializer<any, any>,
+})`
           )
         })
       })
@@ -492,24 +453,21 @@ export default class User extends ApplicationModel {
     return 'users' as const
   }
 
-  public get serializers() {
-    return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: UserSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: UserSummarySerializer<any, any>,
-    } as const
-  }
-
   public id: DreamColumn<User, 'id'>
   public createdAt: DreamColumn<User, 'createdAt'>
   public updatedAt: DreamColumn<User, 'updatedAt'>
 
   @HasMany(() => Composition)
   public compositions: Composition[]
-}\
-`
+}
+
+User.register('serializers', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default: UserSerializer<any, any>,
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  summary: UserSummarySerializer<any, any>,
+})`
           )
         })
       })
@@ -529,16 +487,6 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializers() {
-    return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: CompositionSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: CompositionSummarySerializer<any, any>,
-    } as const
-  }
-
   public id: DreamColumn<Composition, 'id'>
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
@@ -546,8 +494,15 @@ export default class Composition extends ApplicationModel {
   @BelongsTo(() => User)
   public user: User
   public userId: DreamColumn<Composition, 'userId'>
-}\
-`
+}
+
+Composition.register('serializers', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default: CompositionSerializer<any, any>,
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  summary: CompositionSummarySerializer<any, any>,
+})`
           )
         })
       })

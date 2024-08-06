@@ -11,10 +11,6 @@ export default class Rating extends ApplicationModel {
     return 'ratings' as const
   }
 
-  public get serializers() {
-    return { default: RatingSerializer } as const
-  }
-
   public id: DreamColumn<Rating, 'id'>
   public body: DreamColumn<Rating, 'body'>
   public rating: DreamColumn<Rating, 'rating'>
@@ -38,3 +34,5 @@ export default class Rating extends ApplicationModel {
   })
   public rateableEvenIfDeleted: Composition | Post
 }
+
+Rating.register('serializers', { default: RatingSerializer })

@@ -10,10 +10,6 @@ export default class Node extends ApplicationModel {
     return 'graph_nodes' as const
   }
 
-  public get serializers() {
-    return { default: GraphNodeSerializer } as const
-  }
-
   public id: DreamColumn<Node, 'id'>
   public name: DreamColumn<Node, 'name'>
   public omittedEdgePosition: DreamColumn<Node, 'omittedEdgePosition'>
@@ -55,3 +51,5 @@ export default class Node extends ApplicationModel {
   })
   public nonNodeNameEdgesOnThroughAssociation: GraphEdge[]
 }
+
+Node.register('serializers', { default: GraphNodeSerializer })

@@ -11,10 +11,6 @@ export default class BalloonSpotter extends ApplicationModel {
     return 'balloon_spotters' as const
   }
 
-  public get serializers() {
-    return { default: BalloonSpotterSerializer } as const
-  }
-
   public id: DreamColumn<BalloonSpotter, 'id'>
   public name: DreamColumn<BalloonSpotter, 'name'>
   public createdAt: DreamColumn<BalloonSpotter, 'createdAt'>
@@ -29,3 +25,5 @@ export default class BalloonSpotter extends ApplicationModel {
   @HasMany(() => User, { through: 'balloonSpotterBalloons', source: 'user' })
   public users: User[]
 }
+
+BalloonSpotter.register('serializers', { default: BalloonSpotterSerializer })

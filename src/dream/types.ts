@@ -51,6 +51,8 @@ export type OrderDir = 'asc' | 'desc'
 //   columnValue: any
 // }
 
+export type DreamRegisterable = 'serializers'
+
 export type DreamColumnNames<
   DreamInstance extends Dream,
   DB = DreamInstance['DB'],
@@ -353,6 +355,37 @@ type FakeWhereClauseValue = string | string[] | number | number[] | null
 export type TableOrAssociationName<Schema> = (keyof Schema & string) | (keyof Schema[keyof Schema] & string)
 
 export type SqlCommandType = 'select' | 'update' | 'delete' | 'insert'
+
+export type DreamSerializeOptions<T> = {
+  serializerKey?: DreamSerializerKey<T>
+  casing?: 'camel' | 'snake' | null
+}
+
+export type DreamOrViewModelSerializerKey<T> = T extends Dream
+  ? DreamSerializerKey<T>
+  : ViewModelSerializerKey<T>
+
+export type DreamSerializerKey<
+  T,
+  U = T extends (infer R)[] ? R : T,
+  Table = U['table' & keyof U] extends string ? U['table' & keyof U] : never,
+  Schema = U['schema' & keyof U] extends object ? U['schema' & keyof U] : never,
+  TableSchema = Table extends never ? never : Schema extends never ? never : Schema[Table & keyof Schema],
+  SerializerKeys = TableSchema extends never
+    ? never
+    : TableSchema['serializerKeys' & keyof TableSchema] & (string[] | Readonly<string[]>),
+  SerializerKey = SerializerKeys extends string[] | Readonly<string[]> ? SerializerKeys[number] : never,
+> = SerializerKey
+
+export type ViewModelSerializerKey<
+  T,
+  U = T extends (infer R)[] ? R : T,
+  SerializerType = U extends null
+    ? never
+    : U['serializers' & keyof U] extends object
+      ? keyof U['serializers' & keyof U]
+      : never,
+> = SerializerType
 
 export interface SimilarityStatement {
   tableName: string

@@ -69,6 +69,7 @@ ${tableName}: {
     createdAtField: '${tableData.createdAtField}',
     updatedAtField: '${tableData.updatedAtField}',
     deletedAtField: '${tableData.deletedAtField}',
+    serializerKeys: ${stringifyArray(tableData.serializerKeys)},
     scopes: {
       default: ${stringifyArray(defaultScopeNames)},
       named: ${stringifyArray(namedScopeNames)},
@@ -158,6 +159,7 @@ ${tableName}: {
       columns: await this.getColumnData(tableName, associationData),
       virtualColumns: await this.getVirtualColumns(tableName),
       associations: associationData,
+      serializerKeys: Object.keys(model?.['serializers'] || {}),
     }
   }
 
@@ -381,6 +383,7 @@ interface TableData {
   createdAtField: string
   updatedAtField: string
   deletedAtField: string
+  serializerKeys: string[]
   scopes: {
     default: string[]
     named: string[]

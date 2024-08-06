@@ -14,10 +14,6 @@ export default class Collar extends ApplicationModel {
     return 'collars' as const
   }
 
-  public get serializers() {
-    return { default: CollarSerializer } as const
-  }
-
   public id: DreamColumn<Collar, 'id'>
   public lost: DreamColumn<Collar, 'lost'>
   public tagName: DreamColumn<Collar, 'tagName'>
@@ -40,3 +36,5 @@ export default class Collar extends ApplicationModel {
     return query.where({ hidden: false })
   }
 }
+
+Collar.register('serializers', { default: CollarSerializer })

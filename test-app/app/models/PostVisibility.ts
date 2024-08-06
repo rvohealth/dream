@@ -10,10 +10,6 @@ export default class PostVisibility extends ApplicationModel {
     return 'post_visibilities' as const
   }
 
-  public get serializers() {
-    return { default: PostVisibilitySerializer<any> } as const
-  }
-
   public id: DreamColumn<PostVisibility, 'id'>
   public visibility: DreamColumn<PostVisibility, 'visibility'>
   public notes: DreamColumn<PostVisibility, 'notes'>
@@ -29,3 +25,5 @@ export default class PostVisibility extends ApplicationModel {
       throw `intentionally raising exception because PostVisibility#notes is set to '${this.notes}'`
   }
 }
+
+PostVisibility.register('serializers', { default: PostVisibilitySerializer<any> })

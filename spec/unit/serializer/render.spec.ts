@@ -13,7 +13,6 @@ import Pet from '../../../test-app/app/models/Pet'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
-import PetSerializer from '../../../test-app/app/serializers/PetSerializer'
 
 describe('DreamSerailizer.render', () => {
   it('renders a dream instance', () => {
@@ -588,11 +587,19 @@ describe('DreamSerializer#render', () => {
         })
 
         context('when a serializer is not present on the model', () => {
+          let originalSerializers: any
+          beforeEach(() => {
+            originalSerializers = { ...Pet['serializers'] }
+            Pet['serializers'] = undefined as any
+          })
+
+          afterEach(() => {
+            Pet['serializers'] = originalSerializers
+          })
+
           it('raises an exception on render', async () => {
             const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
             const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
-
-            jest.spyOn(Pet.prototype, 'serializers', 'get').mockReturnValue(undefined as any)
 
             const serializer = new UserSerializer({ pets: [pet] })
             expect(() => serializer.render()).toThrowError(MissingSerializer)
@@ -970,50 +977,22 @@ describe('DreamSerializer#render', () => {
       })
 
       context('when a serializer is not present on the model', () => {
+        let originalSerializers: any
+        beforeEach(() => {
+          originalSerializers = { ...Pet['serializers'] }
+          Pet['serializers'] = undefined as any
+        })
+
+        afterEach(() => {
+          Pet['serializers'] = originalSerializers
+        })
+
         it('raises an exception on render', async () => {
           const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
           const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
 
-          jest.spyOn(Pet.prototype, 'serializers', 'get').mockReturnValue(undefined as any)
-
           const serializer = new UserSerializer({ pet })
           expect(() => serializer.render()).toThrowError(MissingSerializer)
-        })
-      })
-
-      context('when the serializer class is determined dynamically', () => {
-        class UserSerializer extends DreamSerializer {
-          @RendersMany()
-          public pets: Pet[]
-        }
-
-        class CatSerializer extends DreamSerializer {
-          @Attribute()
-          public sound() {
-            return 'meow'
-          }
-        }
-        class DogSerializer extends DreamSerializer {
-          @Attribute()
-          public sound() {
-            return 'woof'
-          }
-        }
-
-        class PetWithConditionalSerializer extends Pet {
-          public get serializers(): any {
-            if (this.species === 'cat') return { default: CatSerializer } as const
-            else if (this.species === 'dog') return { default: DogSerializer } as const
-            else return { default: PetSerializer<any, any> } as const
-          }
-        }
-
-        it('changes the serializer based on model attributes', () => {
-          const cat = PetWithConditionalSerializer.new({ name: 'aster', species: 'cat' })
-          const dog = PetWithConditionalSerializer.new({ name: 'violet', species: 'dog' })
-
-          const serializer = new UserSerializer({ pets: [cat, dog] })
-          expect(serializer.render()).toEqual({ pets: [{ sound: 'meow' }, { sound: 'woof' }] })
         })
       })
     })
