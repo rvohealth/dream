@@ -10,10 +10,6 @@ export default class Sandbag extends ApplicationModel {
     return 'sandbags' as const
   }
 
-  public get serializers() {
-    return { default: SandbagSerializer } as const
-  }
-
   public id: DreamColumn<Sandbag, 'id'>
   public weight: DreamColumn<Sandbag, 'weight'>
   public weightKgs: DreamColumn<Sandbag, 'weightKgs'>
@@ -63,3 +59,5 @@ export default class Sandbag extends ApplicationModel {
   @Sandbag.AfterUpdateCommit({ ifChanged: ['weightTons'] })
   public conditionalAfterUpdateCommitHook() {}
 }
+
+Sandbag.register('serializers', { default: SandbagSerializer })

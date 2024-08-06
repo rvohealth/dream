@@ -11,10 +11,6 @@ export default class BalloonSpotterBalloon extends ApplicationModel {
     return 'balloon_spotter_balloons' as const
   }
 
-  public get serializers() {
-    return { default: BalloonSpotterBalloonSerializer } as const
-  }
-
   public id: DreamColumn<BalloonSpotterBalloon, 'id'>
   public createdAt: DreamColumn<BalloonSpotterBalloon, 'createdAt'>
   public updatedAt: DreamColumn<BalloonSpotterBalloon, 'updatedAt'>
@@ -31,3 +27,5 @@ export default class BalloonSpotterBalloon extends ApplicationModel {
   public balloon: Balloon
   public balloonId: DreamColumn<BalloonSpotterBalloon, 'balloonId'>
 }
+
+BalloonSpotterBalloon.register('serializers', { default: BalloonSpotterBalloonSerializer })

@@ -62,10 +62,21 @@ public ${camelize(attributeName)}: ${getAttributeType(attribute, modelClassName)
     }
   })
 
-  const timestamps = `
+  const formattedFields = attributeStatements
+    .filter(attr => !/^\n@/.test(attr))
+    .map(s => s.split('\n').join('\n  '))
+    .join('')
+  const formattedDecorators = attributeStatements
+    .filter(attr => /^\n@/.test(attr))
+    .map(s => s.split('\n').join('\n  '))
+    .join('\n  ')
+    .replace(/\n {2}$/, '')
+
+  let timestamps = `
   public createdAt: DreamColumn<${modelClassName}, 'createdAt'>
   public updatedAt: DreamColumn<${modelClassName}, 'updatedAt'>
 `
+  if (!formattedDecorators.length) timestamps = timestamps.replace(/\n$/, '')
 
   const tableName = snakeify(pluralize(modelName.replace(/\//g, '_')))
 
@@ -82,26 +93,16 @@ export default class ${modelClassName} extends ApplicationModel {
     return '${tableName}' as const
   }
 
-  public get serializers() {
-    return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: ${serializerNameFromModelName(modelName)}<any, any>,
+  public id: ${idTypescriptType}${formattedFields}${timestamps}${formattedDecorators}
+}
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: ${serializerSummaryNameFromModelName(modelName)}<any, any>,
-    } as const
-  }
+${modelClassName}.register('serializers', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default: ${serializerNameFromModelName(modelName)}<any, any>,
 
-  public id: ${idTypescriptType}${attributeStatements
-    .filter(attr => !/^\n@/.test(attr))
-    .map(s => s.split('\n').join('\n  '))
-    .join('')}${timestamps}${attributeStatements
-    .filter(attr => /^\n@/.test(attr))
-    .map(s => s.split('\n').join('\n  '))
-    .join('\n  ')}\
-}`
-    .replace(/^\s*$/gm, '')
-    .replace(/ {2}}$/, '}')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  summary: ${serializerSummaryNameFromModelName(modelName)}<any, any>,
+})`.replace(/^\s*$/gm, '')
 }
 
 function buildImportStatement(modelName: string, attribute: string) {

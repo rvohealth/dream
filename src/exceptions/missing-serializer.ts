@@ -17,10 +17,11 @@ Try something like this in your ${this.dreamClass.name}'s serializer getter:
 
 class ${this.dreamClass.name} {
   ...
-  public get serializers() {
-    return { default: ${this.dreamClass.name}Serializer }
-  }
 }
+
+${this.dreamClass.name}.register('serializers', {
+  default: ${this.dreamClass.name}Serializer<any, any>
+})
     `
   }
 }

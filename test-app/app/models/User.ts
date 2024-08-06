@@ -29,13 +29,6 @@ export default class User extends ApplicationModel {
     return 'users' as const
   }
 
-  public get serializers() {
-    return {
-      default: UserSerializer<any, any>,
-      summary: UserSummarySerializer<any, any>,
-    } as const
-  }
-
   public id: DreamColumn<User, 'id'>
   public uuid: DreamColumn<User, 'uuid'>
   public name: DreamColumn<User, 'name'>
@@ -242,5 +235,7 @@ export default class User extends ApplicationModel {
   }
 }
 
-// const u = new User()
-// u.updatenew({ email: 'how!' })
+User.register('serializers', {
+  default: UserSerializer<any, any>,
+  summary: UserSummarySerializer<any, any>,
+})

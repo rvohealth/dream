@@ -86,6 +86,8 @@ import {
   DreamColumnNames,
   DreamConstructorType,
   DreamParamSafeColumnNames,
+  DreamRegisterable,
+  DreamSerializeOptions,
   FinalVariadicTableName,
   IdType,
   NextPreloadArgumentType,
@@ -122,6 +124,7 @@ import { marshalDBValue } from './helpers/marshalDBValue'
 import pascalize from './helpers/pascalize'
 import { EnvOpts } from './helpers/path/types'
 import { isString } from './helpers/typechecks'
+import DreamSerializer from './serializer'
 
 export default class Dream {
   public DB: any
@@ -157,6 +160,41 @@ export default class Dream {
   public static get table() {
     return this.prototype.table
   }
+
+  /**
+   * Registers core options within dream.
+   *
+   * if 'serializers' is passed as the type,
+   * then the object provided will become
+   * the new list of allowed serializers for this
+   * model.
+   *
+   * Once implemented, you will need to make sure
+   * to sync up your types, since Dream introspects
+   * the keys provided in the serializers object
+   * and stores them within the `db/schema.ts` file,
+   * enabling us to provide autocomplete for serializer
+   * keys. this can be done by running the following
+   * in the cli:
+   *
+   * ```bash
+   * NODE_ENV=test yarn psy sync
+   * ```
+   */
+  public static register<T extends DreamRegisterable>(
+    type: T,
+    opts: T extends 'serializers' ? Record<string, typeof DreamSerializer> : never
+  ) {
+    switch (type) {
+      case 'serializers':
+        this.serializers = opts
+        break
+
+      default:
+        throw new Error(`unexpected type passed to ${this.name}.register: "${type}"`)
+    }
+  }
+  private static serializers: Record<string, typeof DreamSerializer> = {}
 
   /**
    * A getter which can be overwritten to customize the automatic createdAt timestamp field
@@ -2291,56 +2329,6 @@ export default class Dream {
   }
 
   /**
-   * This can be left off your model definition if your
-   * application will not be rendering this instance
-   * to any front end clients.
-   *
-   * Return an object containing your serializer definitions,
-   * like so:
-   *
-   * ```ts
-   * class Post extends ApplicationModel {
-   *   public get serializers() {
-   *     return {
-   *       default: PostSerializer,
-   *       summary: PostSummarySerializer,
-   *     }
-   *   }
-   * }
-   * ```
-   *
-   * These serializer definitions will be used by Psychic
-   * to automatically render your models when you attempt
-   * to render them using Psychic's provided methods.
-   *
-   * Here is an example of this being used from your controller:
-   *
-   * ```ts
-   * class PostsController extends AuthedController {
-   *   public index() {
-   *     const posts = await this.currentUser.associationQuery('posts').all()
-   *     this.ok(posts, { serializerKey: 'summary' })
-   *   }
-   * }
-   * ```
-   *
-   * If the serializer option is not passed, Psychic will
-   * automatically use the `default` serializer, like so:
-   *
-   * ```ts
-   * class PostsController extends AuthedController {
-   *   public show() {
-   *     const post = await this.currentUser.associationQuery('posts').find(this.castParam('id', 'bigint'))
-   *     this.ok(post)
-   *   }
-   * }
-   * ```
-   */
-  public get serializers(): Record<string, any> {
-    throw new MissingSerializer(this.constructor as typeof Dream)
-  }
-
-  /**
    * @internal
    *
    * _errors is used to inform validation errors,
@@ -3790,8 +3778,13 @@ export default class Dream {
    * @params args.serializerKey - The key to use when referencing the object returned by the `serializers` getter on the given model instance (defaults to "default")
    * @returns A serialized representation of the model
    */
-  public serialize<I extends Dream>(this: I, { casing = null, serializerKey }: RenderOptions<I> = {}) {
-    const serializerClass = inferSerializerFromDreamOrViewModel(this, serializerKey)
+  public serialize<I extends Dream>(
+    this: I,
+    { casing = null, serializerKey }: DreamSerializeOptions<I> = {}
+  ) {
+    const serializerClass = inferSerializerFromDreamOrViewModel(this, serializerKey?.toString())
+    if (!serializerClass) throw new MissingSerializer(this.constructor as typeof Dream)
+
     const serializer = new serializerClass(this)
     if (casing) serializer.casing(casing)
     return serializer.render()
@@ -4017,13 +4010,3 @@ export interface CreateOrFindByExtraOps<T extends typeof Dream> {
     | WhereStatement<InstanceType<T>['DB'], InstanceType<T>['schema'], InstanceType<T>['table']>
     | UpdateablePropertiesForClass<T>
 }
-
-export type RenderOptions<
-  T,
-  U = T extends (infer R)[] ? R : T,
-  SerializerType = U extends null
-    ? never
-    : U['serializers' & keyof U] extends object
-      ? keyof U['serializers' & keyof U]
-      : never,
-> = { serializerKey?: SerializerType; casing?: 'camel' | 'snake' | null }

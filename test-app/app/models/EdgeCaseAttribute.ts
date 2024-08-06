@@ -7,10 +7,6 @@ export default class EdgeCaseAttribute extends ApplicationModel {
     return 'edge_case_attributes' as const
   }
 
-  public get serializers() {
-    return { default: EdgeCaseAttributeSerializer<any> } as const
-  }
-
   public id: DreamColumn<EdgeCaseAttribute, 'id'>
   public kPop: DreamColumn<EdgeCaseAttribute, 'kPop'>
   public popK: DreamColumn<EdgeCaseAttribute, 'popK'>
@@ -18,3 +14,5 @@ export default class EdgeCaseAttribute extends ApplicationModel {
   public createdAt: DreamColumn<EdgeCaseAttribute, 'createdAt'>
   public updatedAt: DreamColumn<EdgeCaseAttribute, 'updatedAt'>
 }
+
+EdgeCaseAttribute.register('serializers', { default: EdgeCaseAttributeSerializer<any> })

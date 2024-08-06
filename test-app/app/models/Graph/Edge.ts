@@ -10,10 +10,6 @@ export default class Edge extends ApplicationModel {
     return 'graph_edges' as const
   }
 
-  public get serializers() {
-    return { default: GraphEdgeSerializer } as const
-  }
-
   public id: DreamColumn<Edge, 'id'>
   public name: DreamColumn<Edge, 'name'>
   public weight: DreamColumn<Edge, 'weight'>
@@ -32,3 +28,5 @@ export default class Edge extends ApplicationModel {
   @HasMany(() => GraphNode, { through: 'edgeNodes' })
   public nodes: GraphNode[]
 }
+
+Edge.register('serializers', { default: GraphEdgeSerializer })

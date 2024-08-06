@@ -114,6 +114,12 @@ describe('SchemaBuilder', () => {
       })
     })
 
+    context('serializerKeys', () => {
+      it('sets the serializerKeys', () => {
+        expect(User.prototype.schema.users.serializerKeys).toEqual(['default', 'summary'])
+      })
+    })
+
     context('updatedAtField', () => {
       it('sets the updatedAtField', () => {
         expect(User.prototype.schema.users.updatedAtField).toEqual('updatedAt')

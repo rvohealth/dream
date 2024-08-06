@@ -19,13 +19,6 @@ export default class Pet extends ApplicationModel {
     return 'pets' as const
   }
 
-  public get serializers() {
-    return {
-      default: PetSerializer<any, any>,
-      summary: PetSummarySerializer<any, any>,
-    } as const
-  }
-
   public id: DreamColumn<Pet, 'id'>
   public species: DreamColumn<Pet, 'species'>
   public name: DreamColumn<Pet, 'name'>
@@ -110,3 +103,8 @@ export default class Pet extends ApplicationModel {
     }
   }
 }
+
+Pet.register('serializers', {
+  default: PetSerializer<any, any>,
+  summary: PetSummarySerializer<any, any>,
+})

@@ -8,13 +8,6 @@ export default class UserSettings extends ApplicationModel {
     return 'user_settings' as const
   }
 
-  public get serializers(): any {
-    throw new Error(`
-This is an intentional error meant to test generateApiSchemaContent
-In wellos-central, a model exists that raises an exception if you
-intentionally try to call .serializers on it.`)
-  }
-
   public id: DreamColumn<UserSettings, 'id'>
   public likesChalupas: DreamColumn<UserSettings, 'likesChalupas'>
   public createdAt: DreamColumn<UserSettings, 'createdAt'>
@@ -24,3 +17,5 @@ intentionally try to call .serializers on it.`)
   public user: User
   public userId: DreamColumn<UserSettings, 'userId'>
 }
+
+// intentionally left without serializers

@@ -14,10 +14,6 @@ export default class EdgeNode extends ApplicationModel {
     return 'graph_edge_nodes' as const
   }
 
-  public get serializers() {
-    return { default: GraphEdgeNodeSerializer } as const
-  }
-
   public id: DreamColumn<EdgeNode, 'id'>
   public createdAt: DreamColumn<EdgeNode, 'createdAt'>
   public updatedAt: DreamColumn<EdgeNode, 'updatedAt'>
@@ -83,3 +79,5 @@ export default class EdgeNode extends ApplicationModel {
   })
   public tailSiblings: EdgeNode[]
 }
+
+EdgeNode.register('serializers', { default: GraphEdgeNodeSerializer })

@@ -9,10 +9,6 @@ export default class BalloonLine extends ApplicationModel {
     return 'balloon_lines' as const
   }
 
-  public get serializers() {
-    return { default: BalloonLineSerializer } as const
-  }
-
   public id: DreamColumn<BalloonLine, 'id'>
   public material: DreamColumn<BalloonLine, 'material'>
   public createdAt: DreamColumn<BalloonLine, 'createdAt'>
@@ -22,3 +18,5 @@ export default class BalloonLine extends ApplicationModel {
   public balloon: Balloon
   public balloonId: DreamColumn<BalloonLine, 'balloonId'>
 }
+
+BalloonLine.register('serializers', { default: BalloonLineSerializer })

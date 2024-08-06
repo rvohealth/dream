@@ -9,10 +9,6 @@ export default class PetUnderstudyJoinModel extends ApplicationModel {
     return 'pet_understudy_join_models' as const
   }
 
-  public get serializers() {
-    return { default: PetUnderstudyJoinModelSerializer<any> } as const
-  }
-
   public id: DreamColumn<PetUnderstudyJoinModel, 'id'>
   public createdAt: DreamColumn<PetUnderstudyJoinModel, 'createdAt'>
   public updatedAt: DreamColumn<PetUnderstudyJoinModel, 'updatedAt'>
@@ -25,3 +21,5 @@ export default class PetUnderstudyJoinModel extends ApplicationModel {
   public understudy: Pet
   public understudyId: DreamColumn<PetUnderstudyJoinModel, 'understudyId'>
 }
+
+PetUnderstudyJoinModel.register('serializers', { default: PetUnderstudyJoinModelSerializer<any> })

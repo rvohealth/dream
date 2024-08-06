@@ -17,10 +17,6 @@ export default class Post extends ApplicationModel {
     return 'posts' as const
   }
 
-  public get serializers() {
-    return { default: PostSerializer<any> } as const
-  }
-
   public id: DreamColumn<Post, 'id'>
   public createdAt: DreamColumn<Post, 'createdAt'>
   public deletedAt: DreamColumn<Post, 'deletedAt'>
@@ -72,3 +68,5 @@ export default class Post extends ApplicationModel {
   })
   public heartRatings: HeartRating[]
 }
+
+Post.register('serializers', { default: PostSerializer<any> })

@@ -22,10 +22,6 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializers() {
-    return { default: CompositionSerializer } as const
-  }
-
   public id: DreamColumn<Composition, 'id'>
   public content: DreamColumn<Composition, 'content'>
   public metadata: DreamColumn<Composition, 'metadata'>
@@ -129,6 +125,8 @@ export default class Composition extends ApplicationModel {
   @HasMany(() => LocalizedText, { polymorphic: true, foreignKey: 'localizableId' })
   public localizedTexts: LocalizedText[]
 }
+
+Composition.register('serializers', { default: CompositionSerializer })
 
 export interface CompositionMetadata {
   version?: number

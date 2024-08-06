@@ -46,8 +46,10 @@ export {
   DreamColumnNames,
   DreamConst,
   DreamOrViewModel,
+  DreamOrViewModelSerializerKey,
   DreamParamSafeAttributes,
   DreamParamSafeColumnNames,
+  DreamSerializerKey,
   DreamTableSchema,
   DreamVirtualColumns,
   IdType,
@@ -56,6 +58,7 @@ export {
   Timestamp,
   UpdateableAssociationProperties,
   UpdateableProperties,
+  ViewModelSerializerKey,
   primaryKeyTypes,
 } from './dream/types'
 export { default as Dreamconf } from './dreamconf'
@@ -71,6 +74,10 @@ export { default as compact } from './helpers/compact'
 export { default as debug } from './helpers/debug'
 export { default as developmentOrTestEnv } from './helpers/developmentOrTestEnv'
 export { default as hyphenize } from './helpers/hyphenize'
+export {
+  inferSerializerFromDreamClassOrViewModelClass,
+  default as inferSerializerFromDreamOrViewModel,
+} from './helpers/inferSerializerFromDreamOrViewModel'
 export { default as initializeDream } from './helpers/initializeDream'
 export { default as loadModels } from './helpers/loadModels'
 export { default as loadRepl } from './helpers/loadRepl'
@@ -112,6 +119,7 @@ export {
   OpenapiSchemaObjectOneOf,
   OpenapiSchemaObjectOneOfShorthand,
   OpenapiSchemaObjectShorthand,
+  OpenapiSchemaPartialSegment,
   OpenapiSchemaPrimitiveGeneric,
   OpenapiSchemaProperties,
   OpenapiSchemaPropertiesShorthand,
@@ -125,7 +133,6 @@ export {
   OpenapiShorthandPrimitiveTypes,
   OpenapiTypeField,
   OpenapiTypeFieldObject,
-  OpenapiSchemaPartialSegment,
   openapiPrimitiveTypes,
   openapiShorthandPrimitiveTypes,
 } from './openapi/types'

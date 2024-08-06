@@ -30,6 +30,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: ['default'],
     scopes: {
       default: [],
       named: [],
@@ -92,6 +93,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: ['default'],
     scopes: {
       default: [],
       named: [],
@@ -176,6 +178,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: ['default'],
     scopes: {
       default: [],
       named: [],
@@ -244,6 +247,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: [],
     scopes: {
       default: ['dream:STI', 'dream:SoftDelete'],
       named: ['red'],
@@ -375,6 +379,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: ['default'],
     scopes: {
       default: ['dream:SoftDelete', 'hideHiddenCollars'],
       named: [],
@@ -484,6 +489,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: [],
     scopes: {
       default: [],
       named: [],
@@ -568,6 +574,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: [],
     scopes: {
       default: [],
       named: [],
@@ -689,6 +696,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: ['default'],
     scopes: {
       default: [],
       named: [],
@@ -846,6 +854,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: ['default'],
     scopes: {
       default: [],
       named: [],
@@ -910,6 +919,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: [],
     scopes: {
       default: [],
       named: [],
@@ -1011,6 +1021,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: ['default'],
     scopes: {
       default: [],
       named: [],
@@ -1145,6 +1156,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: ['default'],
     scopes: {
       default: [],
       named: [],
@@ -1214,6 +1226,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: ['default'],
     scopes: {
       default: [],
       named: [],
@@ -1332,6 +1345,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: [],
     scopes: {
       default: [],
       named: [],
@@ -1386,6 +1400,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: ['default'],
     scopes: {
       default: [],
       named: [],
@@ -1480,6 +1495,7 @@ export const schema = {
     createdAtField: 'updatedAt',
     updatedAtField: 'createdAt',
     deletedAtField: 'id',
+    serializerKeys: [],
     scopes: {
       default: ['dream:SoftDelete'],
       named: [],
@@ -1528,6 +1544,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: [],
     scopes: {
       default: ['dream:SoftDelete', 'howyadoin'],
       named: [],
@@ -1568,6 +1585,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: [],
     scopes: {
       default: [],
       named: [],
@@ -1616,6 +1634,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: ['default'],
     scopes: {
       default: [],
       named: [],
@@ -1685,6 +1704,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: ['default', 'summary'],
     scopes: {
       default: ['dream:SoftDelete'],
       named: [],
@@ -1893,6 +1913,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: [],
     scopes: {
       default: ['dream:SoftDelete'],
       named: [],
@@ -1970,6 +1991,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: ['default'],
     scopes: {
       default: [],
       named: [],
@@ -2032,6 +2054,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: ['default'],
     scopes: {
       default: ['dream:SoftDelete'],
       named: [],
@@ -2160,6 +2183,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: ['default'],
     scopes: {
       default: ['nonNullBodies'],
       named: [],
@@ -2260,6 +2284,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: ['default'],
     scopes: {
       default: [],
       named: [],
@@ -2338,6 +2363,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: [],
     scopes: {
       default: [],
       named: [],
@@ -2400,6 +2426,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
+    serializerKeys: ['default', 'summary'],
     scopes: {
       default: ['hideDeleted'],
       named: ['withFunnyName'],

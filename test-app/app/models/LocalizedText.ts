@@ -10,10 +10,6 @@ export default class LocalizedText extends ApplicationModel {
     return 'localized_texts' as const
   }
 
-  public get serializers() {
-    return { default: LocalizedTextBaseSerializer<any> } as const
-  }
-
   public id: DreamColumn<LocalizedText, 'id'>
   public locale: DreamColumn<LocalizedText, 'locale'>
   public localizableType: DreamColumn<LocalizedText, 'localizableType'>
@@ -30,3 +26,5 @@ export default class LocalizedText extends ApplicationModel {
   })
   public localizable: Composition | CompositionAsset
 }
+
+LocalizedText.register('serializers', { default: LocalizedTextBaseSerializer<any> })
