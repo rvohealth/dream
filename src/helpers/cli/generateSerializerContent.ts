@@ -50,7 +50,16 @@ export default async function generateSerializerContent(
     }
   })
 
+  const enumImports: string[] = []
+  attributes.forEach(attr => {
+    const [name, type] = attr.split(':')
+    if (type === 'enum') enumImports.push(name)
+  })
+
   const additionalImportsStr = additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
+  const enumImportsStr = enumImports.length
+    ? enumValueImportStatements(fullyQualifiedSerializerName, uniq(enumImports))
+    : ''
 
   let summarySerializer = ''
   if (modelClass) {
@@ -65,7 +74,7 @@ export class ${extendedClass}${dataTypeCapture} extends DreamSerializer${dreamSe
   return `\
 ${luxonImport}import { ${dreamImports.join(
     ', '
-  )} } from '@rvohealth/dream'${additionalImportsStr}${relatedModelImport}${additionalModelImports.join('')}${summarySerializer}
+  )} } from '@rvohealth/dream'${additionalImportsStr}${enumImportsStr}${relatedModelImport}${additionalModelImports.join('')}${summarySerializer}
 
 export default class ${serializerClass}${dataTypeCapture} extends ${extendedClass}${dreamSerializerTypeArgs} {
   ${attributes
@@ -85,7 +94,7 @@ export default class ${serializerClass}${dataTypeCapture} extends ${extendedClas
   public ${pluralize(camelize(className))}: ${className}[]`
 
         default:
-          return `@Attribute(${attributeSpecifier(type, attr)}${attributeOptionsSpecifier(type, attr)})
+          return `@Attribute(${attributeSpecifier(type)}${attributeOptionsSpecifier(type, attr)})
   public ${propertyName}: ${jsType(type, attr, propertyName, modelClass)}`
       }
     })
@@ -94,10 +103,11 @@ export default class ${serializerClass}${dataTypeCapture} extends ${extendedClas
 `
 }
 
-function attributeSpecifier(type: string, originalAttribute: string) {
+function attributeSpecifier(type: string) {
   switch (type) {
     case 'date':
       return "'date'"
+
     case 'datetime':
     case 'time':
     case 'time_with_time_zone':
@@ -105,13 +115,17 @@ function attributeSpecifier(type: string, originalAttribute: string) {
     case 'timestamp_with_time_zone':
     case 'timestamp_without_time_zone':
       return "'datetime'"
+
     case 'decimal':
       return "'decimal'"
+
     case 'jsonb':
     case 'json':
       return "'json'"
+
     case 'enum':
-      return `'enum:${pascalize(originalAttribute.split(':')[2])}Enum'`
+      return ''
+
     case 'integer':
     case 'double':
     case 'numeric':
@@ -120,6 +134,7 @@ function attributeSpecifier(type: string, originalAttribute: string) {
     case 'smallserial':
     case 'serial':
       return "'number'"
+
     case 'bigint':
     case 'bigserial':
     case 'uuid':
@@ -150,6 +165,7 @@ function attributeSpecifier(type: string, originalAttribute: string) {
     case 'txid_snapshot':
     case 'xml':
       return "'string'"
+
     default:
       return type ? `'${type}'` : ''
   }
@@ -159,6 +175,10 @@ function attributeOptionsSpecifier(type: string, attr: string) {
   switch (type) {
     case 'decimal':
       return `, { precision: ${attr.split(',').pop()} }`
+
+    case 'enum':
+      return `{ type: 'string', enum: ${originalAttributeToEnumValuesName(attr)} }`
+
     default:
       return ''
   }
@@ -215,6 +235,14 @@ function fullyQualifiedSummaryClassNameFromRawStr(className: string) {
   return fullyQualifiedClassNameFromRawStr(className).replace(/Serializer$/, 'SummarySerializer')
 }
 
+function originalAttributeToEnumValuesName(originalAttribute: string) {
+  return attributeNameToEnumValuesName(originalAttribute.split(':')[2])
+}
+
+function attributeNameToEnumValuesName(name: string) {
+  return `${pascalize(name)}EnumValues`
+}
+
 function hasJsType(attributes: string[], expectedType: 'DateTime' | 'CalendarDate') {
   return !!attributes
     .map(attr => {
@@ -226,19 +254,37 @@ function hasJsType(attributes: string[], expectedType: 'DateTime' | 'CalendarDat
 
 function pathToModelFromSerializer(fullyQualifiedSerializerName: string, fullyQualifiedModelName: string) {
   const numAdditionalUpdirs = fullyQualifiedSerializerName.split('/').length - 1
-  let modelPath = `models/${fullyQualifiedModelName
+
+  let modelPath = `../models/${fullyQualifiedModelName
     .split('/')
     .map(str => pascalize(str))
     .join('/')}`
-  for (let i = 0; i <= numAdditionalUpdirs; i++) {
+
+  for (let i = 0; i < numAdditionalUpdirs; i++) {
     modelPath = `../${modelPath}`
   }
   return modelPath
+}
+
+function pathToDbSyncFromSerializer(fullyQualifiedSerializerName: string) {
+  const numAdditionalUpdirs = fullyQualifiedSerializerName.split('/').length - 1
+  let additionalUpdirs = ''
+
+  for (let i = 0; i < numAdditionalUpdirs; i++) {
+    additionalUpdirs = `../${additionalUpdirs}`
+  }
+  return `${additionalUpdirs}../../db/sync`
 }
 
 function importStatementForModel(fullyQualifiedSerializerName: string, fullyQualifiedModelName: string) {
   return `\nimport ${classNameFromRawStr(fullyQualifiedModelName)} from '${pathToModelFromSerializer(
     fullyQualifiedSerializerName,
     fullyQualifiedModelName
+  )}'`
+}
+
+function enumValueImportStatements(fullyQualifiedSerializerName: string, enumNames: string[]) {
+  return `\nimport { ${enumNames.map(enumName => attributeNameToEnumValuesName(enumName)).join(', ')} } from '${pathToDbSyncFromSerializer(
+    fullyQualifiedSerializerName
   )}'`
 }

@@ -202,6 +202,7 @@ export default class UserSerializer<
           expect(res).toEqual(
             `\
 import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
+import { ToppingEnumValues } from '../../db/sync'
 import User from '../models/User'
 
 export class UserSummarySerializer<
@@ -216,7 +217,7 @@ export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
 > extends UserSummarySerializer<DataType, Passthrough> {
-  @Attribute('enum:ToppingEnum')
+  @Attribute({ type: 'string', enum: ToppingEnumValues })
   public topping: DreamColumn<User, 'topping'>
 }\
 `
