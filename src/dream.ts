@@ -194,7 +194,7 @@ export default class Dream {
         throw new Error(`unexpected type passed to ${this.name}.register: "${type}"`)
     }
   }
-  private static serializers: Record<string, typeof DreamSerializer> = {}
+  public static serializers: Record<string, typeof DreamSerializer> = {}
 
   /**
    * A getter which can be overwritten to customize the automatic createdAt timestamp field
