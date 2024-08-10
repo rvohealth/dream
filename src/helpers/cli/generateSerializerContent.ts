@@ -86,11 +86,11 @@ export default class ${serializerClass}${dataTypeCapture} extends ${extendedClas
       switch (type) {
         case 'belongs_to':
         case 'has_one':
-          return `@RendersOne()
+          return `@RendersOne(() => ${className})
   public ${camelize(className)}: ${className}`
 
         case 'has_many':
-          return `@RendersMany()
+          return `@RendersMany(() => ${className})
   public ${pluralize(camelize(className))}: ${className}[]`
 
         default:
