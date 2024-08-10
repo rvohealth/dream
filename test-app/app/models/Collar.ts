@@ -1,6 +1,7 @@
 import { SoftDelete } from '../../../src'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import Scope from '../../../src/decorators/scope'
+import DreamSerializerConf from '../../../src/dream-serializer-conf'
 import Query from '../../../src/dream/query'
 import { DreamColumn } from '../../../src/dream/types'
 import CollarSerializer from '../../../test-app/app/serializers/CollarSerializer'
@@ -37,4 +38,4 @@ export default class Collar extends ApplicationModel {
   }
 }
 
-Collar.register('serializers', { default: CollarSerializer })
+DreamSerializerConf.add(Collar, { default: CollarSerializer })

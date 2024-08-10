@@ -1,9 +1,11 @@
+import DreamSerializerConf from '../dream-serializer-conf'
 import { primaryKeyTypes } from '../dream/types'
 import loadDreamconfCb from '../helpers/path/loadDreamconfCb'
 import { cacheDreamconf } from './cache'
 
 export default class Dreamconf {
   public static async configure() {
+    DreamSerializerConf.applySerializers()
     await this.applyAndCacheConfig(await loadDreamconfCb())
   }
 

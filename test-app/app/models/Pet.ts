@@ -3,6 +3,7 @@ import HasMany from '../../../src/decorators/associations/has-many'
 import HasOne from '../../../src/decorators/associations/has-one'
 import SoftDelete from '../../../src/decorators/soft-delete'
 import Sortable from '../../../src/decorators/sortable'
+import DreamSerializerConf from '../../../src/dream-serializer-conf'
 import { DreamColumn, IdType } from '../../../src/dream/types'
 import PetSerializer, { PetSummarySerializer } from '../serializers/PetSerializer'
 import ApplicationModel from './ApplicationModel'
@@ -104,7 +105,7 @@ export default class Pet extends ApplicationModel {
   }
 }
 
-Pet.register('serializers', {
+DreamSerializerConf.add(Pet, {
   default: PetSerializer<any, any>,
   summary: PetSummarySerializer<any, any>,
 })

@@ -1,9 +1,10 @@
-import ApplicationModel from './ApplicationModel'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
+import DreamSerializerConf from '../../../src/dream-serializer-conf'
 import { DreamColumn } from '../../../src/dream/types'
+import { LocalizedTextBaseSerializer } from '../serializers/LocalizedText/BaseSerializer'
+import ApplicationModel from './ApplicationModel'
 import Composition from './Composition'
 import CompositionAsset from './CompositionAsset'
-import { LocalizedTextBaseSerializer } from '../serializers/LocalizedText/BaseSerializer'
 
 export default class LocalizedText extends ApplicationModel {
   public get table() {
@@ -27,4 +28,4 @@ export default class LocalizedText extends ApplicationModel {
   public localizable: Composition | CompositionAsset
 }
 
-LocalizedText.register('serializers', { default: LocalizedTextBaseSerializer<any> })
+DreamSerializerConf.add(LocalizedText, { default: LocalizedTextBaseSerializer<any> })

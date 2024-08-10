@@ -86,7 +86,6 @@ import {
   DreamColumnNames,
   DreamConstructorType,
   DreamParamSafeColumnNames,
-  DreamRegisterable,
   DreamSerializeOptions,
   FinalVariadicTableName,
   IdType,
@@ -161,39 +160,6 @@ export default class Dream {
     return this.prototype.table
   }
 
-  /**
-   * Registers core options within dream.
-   *
-   * if 'serializers' is passed as the type,
-   * then the object provided will become
-   * the new list of allowed serializers for this
-   * model.
-   *
-   * Once implemented, you will need to make sure
-   * to sync up your types, since Dream introspects
-   * the keys provided in the serializers object
-   * and stores them within the `db/schema.ts` file,
-   * enabling us to provide autocomplete for serializer
-   * keys. this can be done by running the following
-   * in the cli:
-   *
-   * ```bash
-   * NODE_ENV=test yarn psy sync
-   * ```
-   */
-  public static register<T extends DreamRegisterable>(
-    type: T,
-    opts: T extends 'serializers' ? Record<string, typeof DreamSerializer> : never
-  ) {
-    switch (type) {
-      case 'serializers':
-        this.serializers = opts
-        break
-
-      default:
-        throw new Error(`unexpected type passed to ${this.name}.register: "${type}"`)
-    }
-  }
   public static serializers: Record<string, typeof DreamSerializer> = {}
 
   /**

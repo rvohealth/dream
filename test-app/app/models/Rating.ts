@@ -1,4 +1,5 @@
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
+import DreamSerializerConf from '../../../src/dream-serializer-conf'
 import { DreamColumn } from '../../../src/dream/types'
 import RatingSerializer from '../serializers/RatingSerializer'
 import ApplicationModel from './ApplicationModel'
@@ -35,4 +36,4 @@ export default class Rating extends ApplicationModel {
   public rateableEvenIfDeleted: Composition | Post
 }
 
-Rating.register('serializers', { default: RatingSerializer })
+DreamSerializerConf.add(Rating, { default: RatingSerializer })

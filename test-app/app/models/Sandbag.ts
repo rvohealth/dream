@@ -1,9 +1,10 @@
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
+import Validate from '../../../src/decorators/validations/validate'
+import DreamSerializerConf from '../../../src/dream-serializer-conf'
 import { DreamColumn } from '../../../src/dream/types'
 import SandbagSerializer from '../../../test-app/app/serializers/SandbagSerializer'
-import Mylar from './Balloon/Mylar'
 import ApplicationModel from './ApplicationModel'
-import Validate from '../../../src/decorators/validations/validate'
+import Mylar from './Balloon/Mylar'
 
 export default class Sandbag extends ApplicationModel {
   public get table() {
@@ -60,4 +61,4 @@ export default class Sandbag extends ApplicationModel {
   public conditionalAfterUpdateCommitHook() {}
 }
 
-Sandbag.register('serializers', { default: SandbagSerializer })
+DreamSerializerConf.add(Sandbag, { default: SandbagSerializer })

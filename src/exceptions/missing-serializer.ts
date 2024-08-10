@@ -19,7 +19,7 @@ class ${this.dreamClass.name} {
   ...
 }
 
-${this.dreamClass.name}.register('serializers', {
+DreamSerializerConf.add(${this.dreamClass.name}, {
   default: ${this.dreamClass.name}Serializer<any, any>
 })
     `

@@ -1,3 +1,4 @@
+import DreamSerializerConf from '../../../src/dream-serializer-conf'
 import { DreamColumn } from '../../../src/dream/types'
 import EdgeCaseAttributeSerializer from '../../../test-app/app/serializers/EdgeCaseAttributeSerializer'
 import ApplicationModel from './ApplicationModel'
@@ -15,4 +16,4 @@ export default class EdgeCaseAttribute extends ApplicationModel {
   public updatedAt: DreamColumn<EdgeCaseAttribute, 'updatedAt'>
 }
 
-EdgeCaseAttribute.register('serializers', { default: EdgeCaseAttributeSerializer<any> })
+DreamSerializerConf.add(EdgeCaseAttribute, { default: EdgeCaseAttributeSerializer<any> })

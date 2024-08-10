@@ -12,7 +12,7 @@ export default async function generateDreamContent(modelName: string, attributes
   await initializeDream()
   const modelClassName = pascalizePath(modelName)
 
-  const dreamImports: string[] = ['DreamColumn']
+  const dreamImports: string[] = ['DreamColumn', 'DreamSerializerConf']
 
   const idTypescriptType = `DreamColumn<${modelClassName}, 'id'>`
 
@@ -96,7 +96,7 @@ export default class ${modelClassName} extends ApplicationModel {
   public id: ${idTypescriptType}${formattedFields}${timestamps}${formattedDecorators}
 }
 
-${modelClassName}.register('serializers', {
+DreamSerializerConf.add(${modelClassName}, {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: ${serializerNameFromModelName(modelName)}<any, any>,
 

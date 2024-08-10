@@ -8,6 +8,7 @@ import AfterSaveCommit from '../../../src/decorators/hooks/after-save-commit'
 import AfterUpdate from '../../../src/decorators/hooks/after-update'
 import AfterUpdateCommit from '../../../src/decorators/hooks/after-update-commit'
 import BeforeCreate from '../../../src/decorators/hooks/before-create'
+import DreamSerializerConf from '../../../src/dream-serializer-conf'
 import { DreamColumn, DreamConst } from '../../../src/dream/types'
 import CompositionSerializer from '../serializers/CompositionSerializer'
 import ApplicationModel from './ApplicationModel'
@@ -126,7 +127,7 @@ export default class Composition extends ApplicationModel {
   public localizedTexts: LocalizedText[]
 }
 
-Composition.register('serializers', { default: CompositionSerializer })
+DreamSerializerConf.add(Composition, { default: CompositionSerializer })
 
 export interface CompositionMetadata {
   version?: number

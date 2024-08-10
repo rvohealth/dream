@@ -36,6 +36,12 @@ export const CatTreatsValues = [
 ] as const
 
 
+export type CircularFooTypesEnum = "CircularFooBar";
+export const CircularFooTypesEnumValues = [
+  "CircularFooBar"
+] as const
+
+
 export type ExtraRateableTypesEnum = "Balloon" | "Composition" | "Post";
 export const ExtraRateableTypesEnumValues = [
   "Balloon",
@@ -155,6 +161,27 @@ export interface BeautifulBalloons {
   updatedAt: Timestamp;
   userId: Int8 | null;
   volume: Numeric | null;
+}
+
+export interface CircularBazs {
+  createdAt: Timestamp;
+  fooId: Int8;
+  id: Generated<Int8>;
+  updatedAt: Timestamp;
+}
+
+export interface CircularFooBases {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  type: CircularFooTypesEnum | null;
+  updatedAt: Timestamp;
+}
+
+export interface CircularQuxes {
+  bazId: Int8;
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  updatedAt: Timestamp;
 }
 
 export interface Collars {
@@ -391,6 +418,9 @@ export interface DB {
   balloon_spotter_balloons: BalloonSpotterBalloons;
   balloon_spotters: BalloonSpotters;
   beautiful_balloons: BeautifulBalloons;
+  circular_bazs: CircularBazs;
+  circular_foo_bases: CircularFooBases;
+  circular_quxes: CircularQuxes;
   collars: Collars;
   composition_asset_audits: CompositionAssetAudits;
   composition_assets: CompositionAssets;
@@ -422,6 +452,9 @@ export class DBClass {
   balloon_spotter_balloons: BalloonSpotterBalloons
   balloon_spotters: BalloonSpotters
   beautiful_balloons: BeautifulBalloons
+  circular_bazs: CircularBazs
+  circular_foo_bases: CircularFooBases
+  circular_quxes: CircularQuxes
   collars: Collars
   composition_asset_audits: CompositionAssetAudits
   composition_assets: CompositionAssets

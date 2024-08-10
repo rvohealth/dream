@@ -1,8 +1,9 @@
-import { DreamColumn } from '../../../src/dream/types'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
+import DreamSerializerConf from '../../../src/dream-serializer-conf'
+import { DreamColumn } from '../../../src/dream/types'
 import PetUnderstudyJoinModelSerializer from '../../../test-app/app/serializers/PetUnderstudyJoinModelSerializer'
-import Pet from './Pet'
 import ApplicationModel from './ApplicationModel'
+import Pet from './Pet'
 
 export default class PetUnderstudyJoinModel extends ApplicationModel {
   public get table() {
@@ -22,4 +23,4 @@ export default class PetUnderstudyJoinModel extends ApplicationModel {
   public understudyId: DreamColumn<PetUnderstudyJoinModel, 'understudyId'>
 }
 
-PetUnderstudyJoinModel.register('serializers', { default: PetUnderstudyJoinModelSerializer<any> })
+DreamSerializerConf.add(PetUnderstudyJoinModel, { default: PetUnderstudyJoinModelSerializer<any> })

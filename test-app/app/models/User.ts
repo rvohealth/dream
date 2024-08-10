@@ -6,6 +6,7 @@ import BeforeSave from '../../../src/decorators/hooks/before-save'
 import Scope from '../../../src/decorators/scope'
 import Validates from '../../../src/decorators/validations/validates'
 import Virtual from '../../../src/decorators/virtual'
+import DreamSerializerConf from '../../../src/dream-serializer-conf'
 import Query from '../../../src/dream/query'
 import { DreamColumn } from '../../../src/dream/types'
 import range from '../../../src/helpers/range'
@@ -235,7 +236,7 @@ export default class User extends ApplicationModel {
   }
 }
 
-User.register('serializers', {
+DreamSerializerConf.add(User, {
   default: UserSerializer<any, any>,
   summary: UserSummarySerializer<any, any>,
 })

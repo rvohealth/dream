@@ -6,7 +6,7 @@ describe('dream generate:model <name> [...attributes]', () => {
       const res = await generateDreamContent('MealType', [])
       expect(res).toEqual(
         `\
-import { DreamColumn } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializerConf } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import MealTypeSerializer, { MealTypeSummarySerializer } from '../../../test-app/app/serializers/MealTypeSerializer'
 
@@ -20,7 +20,7 @@ export default class MealType extends ApplicationModel {
   public updatedAt: DreamColumn<MealType, 'updatedAt'>
 }
 
-MealType.register('serializers', {
+DreamSerializerConf.add(MealType, {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: MealTypeSerializer<any, any>,
 
@@ -37,7 +37,7 @@ MealType.register('serializers', {
         const res = await generateDreamContent('user', ['email:string', 'password_digest:string'])
         expect(res).toEqual(
           `\
-import { DreamColumn } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializerConf } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import UserSerializer, { UserSummarySerializer } from '../../../test-app/app/serializers/UserSerializer'
 
@@ -53,7 +53,7 @@ export default class User extends ApplicationModel {
   public updatedAt: DreamColumn<User, 'updatedAt'>
 }
 
-User.register('serializers', {
+DreamSerializerConf.add(User, {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: UserSerializer<any, any>,
 
@@ -73,7 +73,7 @@ User.register('serializers', {
         ])
         expect(res).toEqual(
           `\
-import { DreamColumn } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializerConf } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import ChalupaSerializer, { ChalupaSummarySerializer } from '../../../test-app/app/serializers/ChalupaSerializer'
 
@@ -90,7 +90,7 @@ export default class Chalupa extends ApplicationModel {
   public updatedAt: DreamColumn<Chalupa, 'updatedAt'>
 }
 
-Chalupa.register('serializers', {
+DreamSerializerConf.add(Chalupa, {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: ChalupaSerializer<any, any>,
 
@@ -106,7 +106,7 @@ Chalupa.register('serializers', {
         const res = await generateDreamContent('paper', ['name:string'])
         expect(res).toEqual(
           `\
-import { DreamColumn } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializerConf } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import PaperSerializer, { PaperSummarySerializer } from '../../../test-app/app/serializers/PaperSerializer'
 
@@ -121,7 +121,7 @@ export default class Paper extends ApplicationModel {
   public updatedAt: DreamColumn<Paper, 'updatedAt'>
 }
 
-Paper.register('serializers', {
+DreamSerializerConf.add(Paper, {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: PaperSerializer<any, any>,
 
@@ -138,7 +138,7 @@ Paper.register('serializers', {
           const res = await generateDreamContent('composition', ['graph_node:belongs_to'])
           expect(res).toEqual(
             `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializerConf, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import CompositionSerializer, { CompositionSummarySerializer } from '../../../test-app/app/serializers/CompositionSerializer'
 import GraphNode from './GraphNode'
@@ -157,7 +157,7 @@ export default class Composition extends ApplicationModel {
   public graphNodeId: DreamColumn<Composition, 'graphNodeId'>
 }
 
-Composition.register('serializers', {
+DreamSerializerConf.add(Composition, {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: CompositionSerializer<any, any>,
 
@@ -172,7 +172,7 @@ Composition.register('serializers', {
             const res = await generateDreamContent('cat_toy', ['pet/domestic/cat:belongs_to'])
             expect(res).toEqual(
               `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializerConf, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import CatToySerializer, { CatToySummarySerializer } from '../../../test-app/app/serializers/CatToySerializer'
 import PetDomesticCat from './Pet/Domestic/Cat'
@@ -191,7 +191,7 @@ export default class CatToy extends ApplicationModel {
   public catId: DreamColumn<CatToy, 'catId'>
 }
 
-CatToy.register('serializers', {
+DreamSerializerConf.add(CatToy, {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: CatToySerializer<any, any>,
 
@@ -205,7 +205,7 @@ CatToy.register('serializers', {
             const res = await generateDreamContent('cat_toy', ['pet/domestic/cat:has_many'])
             expect(res).toEqual(
               `\
-import { DreamColumn, HasMany } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializerConf, HasMany } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import CatToySerializer, { CatToySummarySerializer } from '../../../test-app/app/serializers/CatToySerializer'
 import PetDomesticCat from './Pet/Domestic/Cat'
@@ -223,7 +223,7 @@ export default class CatToy extends ApplicationModel {
   public cats: PetDomesticCat[]
 }
 
-CatToy.register('serializers', {
+DreamSerializerConf.add(CatToy, {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: CatToySerializer<any, any>,
 
@@ -237,7 +237,7 @@ CatToy.register('serializers', {
             const res = await generateDreamContent('cat_toy', ['pet/domestic/cat:has_one'])
             expect(res).toEqual(
               `\
-import { DreamColumn, HasOne } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializerConf, HasOne } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import CatToySerializer, { CatToySummarySerializer } from '../../../test-app/app/serializers/CatToySerializer'
 import PetDomesticCat from './Pet/Domestic/Cat'
@@ -255,7 +255,7 @@ export default class CatToy extends ApplicationModel {
   public cat: PetDomesticCat
 }
 
-CatToy.register('serializers', {
+DreamSerializerConf.add(CatToy, {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: CatToySerializer<any, any>,
 
@@ -269,7 +269,7 @@ CatToy.register('serializers', {
             const res = await generateDreamContent('pet/domestic/cat', ['graph_node:belongs_to'])
             expect(res).toEqual(
               `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializerConf, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
 import PetDomesticCatSerializer, { PetDomesticCatSummarySerializer } from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
 import GraphNode from '../../GraphNode'
@@ -288,7 +288,7 @@ export default class PetDomesticCat extends ApplicationModel {
   public graphNodeId: DreamColumn<PetDomesticCat, 'graphNodeId'>
 }
 
-PetDomesticCat.register('serializers', {
+DreamSerializerConf.add(PetDomesticCat, {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: PetDomesticCatSerializer<any, any>,
 
@@ -302,7 +302,7 @@ PetDomesticCat.register('serializers', {
             const res = await generateDreamContent('pet/domestic/cat', ['pet/domestic/dog:belongs_to'])
             expect(res).toEqual(
               `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializerConf, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
 import PetDomesticCatSerializer, { PetDomesticCatSummarySerializer } from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
 import PetDomesticDog from '../../Pet/Domestic/Dog'
@@ -321,7 +321,7 @@ export default class PetDomesticCat extends ApplicationModel {
   public dogId: DreamColumn<PetDomesticCat, 'dogId'>
 }
 
-PetDomesticCat.register('serializers', {
+DreamSerializerConf.add(PetDomesticCat, {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: PetDomesticCatSerializer<any, any>,
 
@@ -335,7 +335,7 @@ PetDomesticCat.register('serializers', {
             const res = await generateDreamContent('pet/wild/cat', ['pet/domestic/dog:belongs_to'])
             expect(res).toEqual(
               `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializerConf, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
 import PetWildCatSerializer, { PetWildCatSummarySerializer } from '../../../../../test-app/app/serializers/Pet/Wild/CatSerializer'
 import PetDomesticDog from '../../Pet/Domestic/Dog'
@@ -354,7 +354,7 @@ export default class PetWildCat extends ApplicationModel {
   public dogId: DreamColumn<PetWildCat, 'dogId'>
 }
 
-PetWildCat.register('serializers', {
+DreamSerializerConf.add(PetWildCat, {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: PetWildCatSerializer<any, any>,
 
@@ -369,7 +369,7 @@ PetWildCat.register('serializers', {
           const res = await generateDreamContent('composition', ['user:belongs_to', 'chalupa:belongs_to'])
           expect(res).toEqual(
             `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializerConf, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import CompositionSerializer, { CompositionSummarySerializer } from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
@@ -393,7 +393,7 @@ export default class Composition extends ApplicationModel {
   public chalupaId: DreamColumn<Composition, 'chalupaId'>
 }
 
-Composition.register('serializers', {
+DreamSerializerConf.add(Composition, {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: CompositionSerializer<any, any>,
 
@@ -409,7 +409,7 @@ Composition.register('serializers', {
           const res = await generateDreamContent('composition', ['user:has_one'])
           expect(res).toEqual(
             `\
-import { DreamColumn, HasOne } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializerConf, HasOne } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import CompositionSerializer, { CompositionSummarySerializer } from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
@@ -427,7 +427,7 @@ export default class Composition extends ApplicationModel {
   public user: User
 }
 
-Composition.register('serializers', {
+DreamSerializerConf.add(Composition, {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: CompositionSerializer<any, any>,
 
@@ -443,7 +443,7 @@ Composition.register('serializers', {
           const res = await generateDreamContent('user', ['composition:has_many'])
           expect(res).toEqual(
             `\
-import { DreamColumn, HasMany } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializerConf, HasMany } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import UserSerializer, { UserSummarySerializer } from '../../../test-app/app/serializers/UserSerializer'
 import Composition from './Composition'
@@ -461,7 +461,7 @@ export default class User extends ApplicationModel {
   public compositions: Composition[]
 }
 
-User.register('serializers', {
+DreamSerializerConf.add(User, {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: UserSerializer<any, any>,
 
@@ -477,7 +477,7 @@ User.register('serializers', {
           const res = await generateDreamContent('composition', ['user:belongs_to'])
           expect(res).toEqual(
             `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializerConf, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import CompositionSerializer, { CompositionSummarySerializer } from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
@@ -496,7 +496,7 @@ export default class Composition extends ApplicationModel {
   public userId: DreamColumn<Composition, 'userId'>
 }
 
-Composition.register('serializers', {
+DreamSerializerConf.add(Composition, {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: CompositionSerializer<any, any>,
 

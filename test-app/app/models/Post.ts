@@ -1,6 +1,7 @@
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
 import SoftDelete from '../../../src/decorators/soft-delete'
+import DreamSerializerConf from '../../../src/dream-serializer-conf'
 import { DreamColumn } from '../../../src/dream/types'
 import PostSerializer from '../serializers/PostSerializer'
 import ApplicationModel from './ApplicationModel'
@@ -69,4 +70,4 @@ export default class Post extends ApplicationModel {
   public heartRatings: HeartRating[]
 }
 
-Post.register('serializers', { default: PostSerializer<any> })
+DreamSerializerConf.add(Post, { default: PostSerializer<any> })
