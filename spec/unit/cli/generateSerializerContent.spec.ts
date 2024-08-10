@@ -248,7 +248,7 @@ export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
 > extends UserSummarySerializer<DataType, Passthrough> {
-  @RendersOne()
+  @RendersOne(() => Organization)
   public organization: Organization
 }`
             )
@@ -277,7 +277,7 @@ export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
 > extends UserSummarySerializer<DataType, Passthrough> {
-  @RendersOne()
+  @RendersOne(() => Organization)
   public organization: Organization
 }`
             )
@@ -306,7 +306,7 @@ export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
 > extends UserSummarySerializer<DataType, Passthrough> {
-  @RendersMany()
+  @RendersMany(() => Organization)
   public organizations: Organization[]
 }`
             )
@@ -334,7 +334,7 @@ export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
 > extends UserSummarySerializer<DataType, Passthrough> {
-  @RendersMany()
+  @RendersMany(() => Paper)
   public paper: Paper[]
 }`
               )
@@ -366,7 +366,7 @@ export default class UserAdminSerializer<
   DataType extends Admin,
   Passthrough extends object
 > extends UserAdminSummarySerializer<DataType, Passthrough> {
-  @RendersOne()
+  @RendersOne(() => MyModel)
   public myModel: MyModel
 }`
             )
