@@ -97,8 +97,7 @@ export default class ${modelClassName} extends ApplicationModel {
 }
 
 void new Promise<void>(accept => accept())
-  .then(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  .then(() =>
     ${modelClassName}.register('serializers', {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       default: ${serializerNameFromModelName(modelName)}<any, any>,
@@ -106,7 +105,7 @@ void new Promise<void>(accept => accept())
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       summary: ${serializerSummaryNameFromModelName(modelName)}<any, any>,
     })
-  })
+  )
   .catch()`.replace(/^\s*$/gm, '')
 }
 
