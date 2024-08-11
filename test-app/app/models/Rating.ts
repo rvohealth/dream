@@ -35,4 +35,6 @@ export default class Rating extends ApplicationModel {
   public rateableEvenIfDeleted: Composition | Post
 }
 
-Rating.register('serializers', { default: RatingSerializer })
+void new Promise<void>(accept => accept())
+  .then(() => Rating.register('serializers', { default: RatingSerializer }))
+  .catch()

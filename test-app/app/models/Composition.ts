@@ -126,7 +126,9 @@ export default class Composition extends ApplicationModel {
   public localizedTexts: LocalizedText[]
 }
 
-Composition.register('serializers', { default: CompositionSerializer })
+void new Promise<void>(accept => accept())
+  .then(() => Composition.register('serializers', { default: CompositionSerializer }))
+  .catch()
 
 export interface CompositionMetadata {
   version?: number

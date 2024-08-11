@@ -104,7 +104,11 @@ export default class Pet extends ApplicationModel {
   }
 }
 
-Pet.register('serializers', {
-  default: PetSerializer<any, any>,
-  summary: PetSummarySerializer<any, any>,
-})
+void new Promise<void>(accept => accept())
+  .then(() =>
+    Pet.register('serializers', {
+      default: PetSerializer<any, any>,
+      summary: PetSummarySerializer<any, any>,
+    })
+  )
+  .catch()

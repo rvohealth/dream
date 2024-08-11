@@ -1,9 +1,9 @@
-import { DreamColumn } from '../../../../src/dream/types'
 import HasMany from '../../../../src/decorators/associations/has-many'
+import { DreamColumn } from '../../../../src/dream/types'
 import GraphEdgeSerializer from '../../../../test-app/app/serializers/Graph/EdgeSerializer'
+import ApplicationModel from '../ApplicationModel'
 import EdgeNode from './EdgeNode'
 import GraphNode from './Node'
-import ApplicationModel from '../ApplicationModel'
 
 export default class Edge extends ApplicationModel {
   public get table() {
@@ -29,4 +29,6 @@ export default class Edge extends ApplicationModel {
   public nodes: GraphNode[]
 }
 
-Edge.register('serializers', { default: GraphEdgeSerializer })
+void new Promise<void>(accept => accept())
+  .then(() => Edge.register('serializers', { default: GraphEdgeSerializer }))
+  .catch()

@@ -1,8 +1,8 @@
-import { DreamColumn } from '../../../src/dream/types'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
+import { DreamColumn } from '../../../src/dream/types'
 import BalloonLineSerializer from '../../../test-app/app/serializers/BalloonLineSerializer'
-import Balloon from './Balloon'
 import ApplicationModel from './ApplicationModel'
+import Balloon from './Balloon'
 
 export default class BalloonLine extends ApplicationModel {
   public get table() {
@@ -19,4 +19,6 @@ export default class BalloonLine extends ApplicationModel {
   public balloonId: DreamColumn<BalloonLine, 'balloonId'>
 }
 
-BalloonLine.register('serializers', { default: BalloonLineSerializer })
+void new Promise<void>(accept => accept())
+  .then(() => BalloonLine.register('serializers', { default: BalloonLineSerializer }))
+  .catch()

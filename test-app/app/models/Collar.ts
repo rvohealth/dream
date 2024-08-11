@@ -37,4 +37,6 @@ export default class Collar extends ApplicationModel {
   }
 }
 
-Collar.register('serializers', { default: CollarSerializer })
+void new Promise<void>(accept => accept())
+  .then(() => Collar.register('serializers', { default: CollarSerializer }))
+  .catch()

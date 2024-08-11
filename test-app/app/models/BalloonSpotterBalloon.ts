@@ -1,9 +1,9 @@
-import { DreamColumn } from '../../../src/dream/types'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
+import { DreamColumn } from '../../../src/dream/types'
 import BalloonSpotterBalloonSerializer from '../../../test-app/app/serializers/BalloonSpotterBalloonSerializer'
-import BalloonSpotter from './BalloonSpotter'
-import Balloon from './Balloon'
 import ApplicationModel from './ApplicationModel'
+import Balloon from './Balloon'
+import BalloonSpotter from './BalloonSpotter'
 import User from './User'
 
 export default class BalloonSpotterBalloon extends ApplicationModel {
@@ -28,4 +28,6 @@ export default class BalloonSpotterBalloon extends ApplicationModel {
   public balloonId: DreamColumn<BalloonSpotterBalloon, 'balloonId'>
 }
 
-BalloonSpotterBalloon.register('serializers', { default: BalloonSpotterBalloonSerializer })
+void new Promise<void>(accept => accept())
+  .then(() => BalloonSpotterBalloon.register('serializers', { default: BalloonSpotterBalloonSerializer }))
+  .catch()

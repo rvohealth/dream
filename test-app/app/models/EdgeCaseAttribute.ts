@@ -15,4 +15,6 @@ export default class EdgeCaseAttribute extends ApplicationModel {
   public updatedAt: DreamColumn<EdgeCaseAttribute, 'updatedAt'>
 }
 
-EdgeCaseAttribute.register('serializers', { default: EdgeCaseAttributeSerializer<any> })
+void new Promise<void>(accept => accept())
+  .then(() => EdgeCaseAttribute.register('serializers', { default: EdgeCaseAttributeSerializer<any> }))
+  .catch()

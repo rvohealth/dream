@@ -1,9 +1,9 @@
-import BeforeCreate from '../../../src/decorators/hooks/before-create'
 import HasOne from '../../../src/decorators/associations/has-one'
+import BeforeCreate from '../../../src/decorators/hooks/before-create'
 import { DreamColumn } from '../../../src/dream/types'
-import Post from './Post'
-import ApplicationModel from './ApplicationModel'
 import { PostVisibilitySerializer } from '../serializers/PostVisibilitySerializer'
+import ApplicationModel from './ApplicationModel'
+import Post from './Post'
 
 export default class PostVisibility extends ApplicationModel {
   public get table() {
@@ -26,4 +26,6 @@ export default class PostVisibility extends ApplicationModel {
   }
 }
 
-PostVisibility.register('serializers', { default: PostVisibilitySerializer<any> })
+void new Promise<void>(accept => accept())
+  .then(() => PostVisibility.register('serializers', { default: PostVisibilitySerializer<any> }))
+  .catch()

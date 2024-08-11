@@ -69,4 +69,6 @@ export default class Post extends ApplicationModel {
   public heartRatings: HeartRating[]
 }
 
-Post.register('serializers', { default: PostSerializer<any> })
+void new Promise<void>(accept => accept())
+  .then(() => Post.register('serializers', { default: PostSerializer<any> }))
+  .catch()

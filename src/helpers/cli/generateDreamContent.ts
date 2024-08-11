@@ -96,13 +96,17 @@ export default class ${modelClassName} extends ApplicationModel {
   public id: ${idTypescriptType}${formattedFields}${timestamps}${formattedDecorators}
 }
 
-${modelClassName}.register('serializers', {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: ${serializerNameFromModelName(modelName)}<any, any>,
+void new Promise<void>(accept => accept())
+  .then(() =>
+    ${modelClassName}.register('serializers', {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      default: ${serializerNameFromModelName(modelName)}<any, any>,
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  summary: ${serializerSummaryNameFromModelName(modelName)}<any, any>,
-})`.replace(/^\s*$/gm, '')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      summary: ${serializerSummaryNameFromModelName(modelName)}<any, any>,
+    })
+  )
+  .catch()`.replace(/^\s*$/gm, '')
 }
 
 function buildImportStatement(modelName: string, attribute: string) {

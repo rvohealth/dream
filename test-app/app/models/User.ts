@@ -235,7 +235,11 @@ export default class User extends ApplicationModel {
   }
 }
 
-User.register('serializers', {
-  default: UserSerializer<any, any>,
-  summary: UserSummarySerializer<any, any>,
-})
+void new Promise<void>(accept => accept())
+  .then(() =>
+    User.register('serializers', {
+      default: UserSerializer<any, any>,
+      summary: UserSummarySerializer<any, any>,
+    })
+  )
+  .catch()
