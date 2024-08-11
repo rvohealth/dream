@@ -296,7 +296,7 @@ export type DreamOrViewModel = Dream | { serializers: Record<string, typeof Drea
 
 export type DreamClassOrViewModelClass =
   | typeof Dream
-  | (abstract new (...args: any) => { serializers: Record<string, typeof DreamSerializer> })
+  | { serializers: Record<string, typeof DreamSerializer> }
 
 export type DreamClassOrViewModelClassOrSerializerClass = DreamClassOrViewModelClass | typeof DreamSerializer
 
