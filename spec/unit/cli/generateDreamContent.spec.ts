@@ -21,7 +21,8 @@ export default class MealType extends ApplicationModel {
 }
 
 void new Promise<void>(accept => accept())
-  .then(() =>
+  .then(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     MealType.register('serializers', {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       default: MealTypeSerializer<any, any>,
@@ -29,7 +30,7 @@ void new Promise<void>(accept => accept())
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       summary: MealTypeSummarySerializer<any, any>,
     })
-  )
+  })
   .catch()`
       )
     })
@@ -58,7 +59,8 @@ export default class User extends ApplicationModel {
 }
 
 void new Promise<void>(accept => accept())
-  .then(() =>
+  .then(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     User.register('serializers', {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       default: UserSerializer<any, any>,
@@ -66,7 +68,7 @@ void new Promise<void>(accept => accept())
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       summary: UserSummarySerializer<any, any>,
     })
-  )
+  })
   .catch()`
         )
       })
@@ -99,7 +101,8 @@ export default class Chalupa extends ApplicationModel {
 }
 
 void new Promise<void>(accept => accept())
-  .then(() =>
+  .then(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     Chalupa.register('serializers', {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       default: ChalupaSerializer<any, any>,
@@ -107,7 +110,7 @@ void new Promise<void>(accept => accept())
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       summary: ChalupaSummarySerializer<any, any>,
     })
-  )
+  })
   .catch()`
         )
       })
@@ -134,7 +137,8 @@ export default class Paper extends ApplicationModel {
 }
 
 void new Promise<void>(accept => accept())
-  .then(() =>
+  .then(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     Paper.register('serializers', {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       default: PaperSerializer<any, any>,
@@ -142,7 +146,7 @@ void new Promise<void>(accept => accept())
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       summary: PaperSummarySerializer<any, any>,
     })
-  )
+  })
   .catch()`
         )
       })
@@ -174,7 +178,8 @@ export default class Composition extends ApplicationModel {
 }
 
 void new Promise<void>(accept => accept())
-  .then(() =>
+  .then(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     Composition.register('serializers', {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       default: CompositionSerializer<any, any>,
@@ -182,7 +187,7 @@ void new Promise<void>(accept => accept())
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       summary: CompositionSummarySerializer<any, any>,
     })
-  )
+  })
   .catch()`
           )
         })
@@ -212,7 +217,8 @@ export default class CatToy extends ApplicationModel {
 }
 
 void new Promise<void>(accept => accept())
-  .then(() =>
+  .then(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     CatToy.register('serializers', {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       default: CatToySerializer<any, any>,
@@ -220,7 +226,7 @@ void new Promise<void>(accept => accept())
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       summary: CatToySummarySerializer<any, any>,
     })
-  )
+  })
   .catch()`
             )
           })
@@ -248,7 +254,8 @@ export default class CatToy extends ApplicationModel {
 }
 
 void new Promise<void>(accept => accept())
-  .then(() =>
+  .then(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     CatToy.register('serializers', {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       default: CatToySerializer<any, any>,
@@ -256,7 +263,7 @@ void new Promise<void>(accept => accept())
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       summary: CatToySummarySerializer<any, any>,
     })
-  )
+  })
   .catch()`
             )
           })
@@ -284,7 +291,8 @@ export default class CatToy extends ApplicationModel {
 }
 
 void new Promise<void>(accept => accept())
-  .then(() =>
+  .then(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     CatToy.register('serializers', {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       default: CatToySerializer<any, any>,
@@ -292,7 +300,7 @@ void new Promise<void>(accept => accept())
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       summary: CatToySummarySerializer<any, any>,
     })
-  )
+  })
   .catch()`
             )
           })
@@ -321,7 +329,8 @@ export default class PetDomesticCat extends ApplicationModel {
 }
 
 void new Promise<void>(accept => accept())
-  .then(() =>
+  .then(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     PetDomesticCat.register('serializers', {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       default: PetDomesticCatSerializer<any, any>,
@@ -329,7 +338,7 @@ void new Promise<void>(accept => accept())
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       summary: PetDomesticCatSummarySerializer<any, any>,
     })
-  )
+  })
   .catch()`
             )
           })
@@ -358,7 +367,8 @@ export default class PetDomesticCat extends ApplicationModel {
 }
 
 void new Promise<void>(accept => accept())
-  .then(() =>
+  .then(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     PetDomesticCat.register('serializers', {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       default: PetDomesticCatSerializer<any, any>,
@@ -366,7 +376,7 @@ void new Promise<void>(accept => accept())
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       summary: PetDomesticCatSummarySerializer<any, any>,
     })
-  )
+  })
   .catch()`
             )
           })
@@ -395,7 +405,8 @@ export default class PetWildCat extends ApplicationModel {
 }
 
 void new Promise<void>(accept => accept())
-  .then(() =>
+  .then(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     PetWildCat.register('serializers', {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       default: PetWildCatSerializer<any, any>,
@@ -403,7 +414,7 @@ void new Promise<void>(accept => accept())
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       summary: PetWildCatSummarySerializer<any, any>,
     })
-  )
+  })
   .catch()`
             )
           })
@@ -438,7 +449,8 @@ export default class Composition extends ApplicationModel {
 }
 
 void new Promise<void>(accept => accept())
-  .then(() =>
+  .then(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     Composition.register('serializers', {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       default: CompositionSerializer<any, any>,
@@ -446,7 +458,7 @@ void new Promise<void>(accept => accept())
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       summary: CompositionSummarySerializer<any, any>,
     })
-  )
+  })
   .catch()`
           )
         })
@@ -476,7 +488,8 @@ export default class Composition extends ApplicationModel {
 }
 
 void new Promise<void>(accept => accept())
-  .then(() =>
+  .then(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     Composition.register('serializers', {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       default: CompositionSerializer<any, any>,
@@ -484,7 +497,7 @@ void new Promise<void>(accept => accept())
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       summary: CompositionSummarySerializer<any, any>,
     })
-  )
+  })
   .catch()`
           )
         })
@@ -514,7 +527,8 @@ export default class User extends ApplicationModel {
 }
 
 void new Promise<void>(accept => accept())
-  .then(() =>
+  .then(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     User.register('serializers', {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       default: UserSerializer<any, any>,
@@ -522,7 +536,7 @@ void new Promise<void>(accept => accept())
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       summary: UserSummarySerializer<any, any>,
     })
-  )
+  })
   .catch()`
           )
         })
@@ -553,7 +567,8 @@ export default class Composition extends ApplicationModel {
 }
 
 void new Promise<void>(accept => accept())
-  .then(() =>
+  .then(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     Composition.register('serializers', {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       default: CompositionSerializer<any, any>,
@@ -561,7 +576,7 @@ void new Promise<void>(accept => accept())
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       summary: CompositionSummarySerializer<any, any>,
     })
-  )
+  })
   .catch()`
           )
         })

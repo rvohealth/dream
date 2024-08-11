@@ -1,6 +1,6 @@
-import './loadEnv'
 import * as repl from 'node:repl'
-import { loadRepl } from '@rvohealth/dream'
+import { loadRepl } from '../../../src'
+import './loadEnv'
 
 const replServer = repl.start('> ')
 export default (async function () {
