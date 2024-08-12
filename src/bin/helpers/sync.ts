@@ -13,7 +13,7 @@ export default async function writeSyncFile() {
   const dbConf = new ConnectionConfRetriever().getConnectionConf('primary')
 
   const updirsToDreamRoot = shouldOmitDistFolder() ? ['..'] : ['..', '..']
-  const dbSyncFilePath = path.join(await relativeDreamPath('db'), 'sync.ts')
+  const dbSyncFilePath = path.join(relativeDreamPath('db'), 'sync.ts')
   let absoluteDbSyncPath = path.join(__dirname, ...updirsToDreamRoot, dbSyncFilePath)
   let absoluteDbSyncWritePath = path.join(__dirname, ...updirsToDreamRoot, '..', '..', '..', dbSyncFilePath)
   if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
@@ -33,7 +33,6 @@ export default async function writeSyncFile() {
   await fs.writeFile(absoluteDbSyncWritePath, enhancedSchema)
 
   console.log('done writing dream sync file!')
-  process.exit()
 }
 
 // begin: schema helpers

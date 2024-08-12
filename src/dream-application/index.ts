@@ -74,6 +74,10 @@ export default class DreamApplication {
       conf: opts.paths?.conf || 'app/conf',
       services: opts.paths?.services || 'app/services',
     }
+    this.models = opts.models
+    this.serializers = opts.serializers
+    this.viewModels = opts.viewModels
+    this.services = opts.services
   }
 }
 

@@ -2829,4 +2829,9 @@ export const schema = {
 export const globalSchema = {
   passthroughColumns: ['locale'],
   allDefaultScopeNames: ['dream:STI', 'dream:SoftDelete', 'hideDeleted', 'hideHiddenCollars', 'howyadoin', 'nonNullBodies'],
+  globalNames: {
+    dreams: ['Animal', 'Balloon', 'BalloonLine', 'BalloonSpotter', 'BalloonSpotterBalloon', 'BaseExtraRating', 'Collar', 'Composition', 'CompositionAsset', 'CompositionAssetAudit', 'Edge', 'EdgeCaseAttribute', 'EdgeNode', 'HeartRating', 'IncompatibleForeignKeyTypeExample', 'Latex', 'LocalizedText', 'ModelWithoutCustomDeletedAt', 'ModelWithoutDeletedAt', 'ModelWithoutUpdatedAt', 'Mylar', 'Node', 'NonNullRating', 'Pet', 'PetUnderstudyJoinModel', 'Post', 'PostComment', 'PostVisibility', 'Rating', 'Sandbag', 'StarRating', 'User', 'UserSettings'],
+    viewModels: ['HelloWorldViewModel'],
+    serializers: ['BalloonLineSerializer', 'BalloonSpotterBalloonSerializer', 'BalloonSpotterSerializer', 'BalloonSummarySerializer', 'CollarSerializer', 'CompositionAlternateSerializer', 'CompositionSerializer', 'EdgeCaseAttributeSerializer', 'GraphEdgeNodeSerializer', 'GraphEdgeSerializer', 'GraphNodeSerializer', 'LocalizedTextBaseSerializer', 'PetSerializer', 'PetSummarySerializer', 'PetUnderstudyJoinModelSerializer', 'PostSerializer', 'PostVisibilitySerializer', 'RatingSerializer', 'SandbagSerializer', 'UserSerializer', 'UserSummarySerializer'],
+  },
 } as const

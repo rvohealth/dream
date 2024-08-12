@@ -7,6 +7,26 @@ import { BalloonColorsEnumValues } from '../../../../test-app/db/sync'
 
 describe('SchemaBuilder', () => {
   describe('#build', () => {
+    context('global schema', () => {
+      context('globalNames', () => {
+        it('renders dreams array', () => {
+          expect(User.prototype.globalSchema.globalNames.dreams).toEqual(expect.arrayContaining(['User']))
+        })
+
+        it('renders viewModels array', () => {
+          expect(User.prototype.globalSchema.globalNames.viewModels).toEqual(
+            expect.arrayContaining(['HelloWorldViewModel'])
+          )
+        })
+
+        it('renders serializers array', () => {
+          expect(User.prototype.globalSchema.globalNames.serializers).toEqual(
+            expect.arrayContaining(['UserSerializer'])
+          )
+        })
+      })
+    })
+
     context('columns', () => {
       context('bigint', () => {
         it('renders "bigint" for dbType', () => {

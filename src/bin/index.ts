@@ -1,6 +1,5 @@
 import '../helpers/loadEnv'
 
-import db from '../db'
 import ConnectionConfRetriever from '../db/connection-conf-retriever'
 import { getCachedDreamApplicationOrFail } from '../dream-application/cache'
 import SchemaBuilder from '../helpers/cli/SchemaBuilder'
@@ -68,7 +67,7 @@ export default class DreamBin {
     await runMigration({ mode: 'migrate' })
 
     // release the db connection
-    await db('primary', getCachedDreamApplicationOrFail()).destroy()
+    // await db('primary', getCachedDreamApplicationOrFail()).destroy()
   }
 
   public static async dbRollback() {
@@ -78,7 +77,7 @@ export default class DreamBin {
       step -= 1
     }
 
-    await db('primary', getCachedDreamApplicationOrFail()).destroy()
+    // await db('primary', getCachedDreamApplicationOrFail()).destroy()
   }
 
   public static async dbSeed() {

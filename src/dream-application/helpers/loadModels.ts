@@ -33,7 +33,17 @@ export default class ${model.name} extends ApplicationModel {
         )
       }
 
-      _models[model.globalName] = potentialModel
+      let hasTable = false
+      try {
+        hasTable = !!model.table
+      } catch {
+        // ApplicationModel will automatically raise an exception here,
+        // since it does not have a table.
+      }
+
+      if (hasTable && model.globalName) {
+        _models[model.globalName] = potentialModel
+      }
     }
   }
 

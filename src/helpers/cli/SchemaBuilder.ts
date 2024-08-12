@@ -28,6 +28,8 @@ import {
         ? "import CalendarDate from '../../src/helpers/CalendarDate'"
         : "import { CalendarDate } from '@rvohealth/dream'"
 
+    const dreamApp = getCachedDreamApplicationOrFail()
+
     const newSchemaFileContents = `\
 ${calendarDateImportStatement}
 import { DateTime } from 'luxon'
@@ -38,6 +40,11 @@ ${schemaConstContent}
 export const globalSchema = {
   passthroughColumns: ${stringifyArray(uniq(passthroughColumns.sort()))},
   allDefaultScopeNames: ${stringifyArray(uniq(allDefaultScopeNames.sort()))},
+  globalNames: {
+    dreams: ${stringifyArray(Object.keys(dreamApp.models).sort())},
+    viewModels: ${stringifyArray(Object.keys(dreamApp.viewModels).sort())},
+    serializers: ${stringifyArray(Object.keys(dreamApp.serializers).sort())},
+  },
 } as const
 `
     // const newSchemaFileContents = `\
