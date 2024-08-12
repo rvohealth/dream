@@ -202,6 +202,7 @@ export default class UserSerializer<
           expect(res).toEqual(
             `\
 import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
+import { ToppingEnumValues } from '../../db/sync'
 import User from '../models/User'
 
 export class UserSummarySerializer<
@@ -216,7 +217,7 @@ export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
 > extends UserSummarySerializer<DataType, Passthrough> {
-  @Attribute('enum:ToppingEnum')
+  @Attribute({ type: 'string', enum: ToppingEnumValues })
   public topping: DreamColumn<User, 'topping'>
 }\
 `
@@ -247,7 +248,7 @@ export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
 > extends UserSummarySerializer<DataType, Passthrough> {
-  @RendersOne()
+  @RendersOne(() => Organization)
   public organization: Organization
 }`
             )
@@ -276,7 +277,7 @@ export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
 > extends UserSummarySerializer<DataType, Passthrough> {
-  @RendersOne()
+  @RendersOne(() => Organization)
   public organization: Organization
 }`
             )
@@ -305,7 +306,7 @@ export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
 > extends UserSummarySerializer<DataType, Passthrough> {
-  @RendersMany()
+  @RendersMany(() => Organization)
   public organizations: Organization[]
 }`
             )
@@ -333,7 +334,7 @@ export default class UserSerializer<
   DataType extends User,
   Passthrough extends object
 > extends UserSummarySerializer<DataType, Passthrough> {
-  @RendersMany()
+  @RendersMany(() => Paper)
   public paper: Paper[]
 }`
               )
@@ -365,7 +366,7 @@ export default class UserAdminSerializer<
   DataType extends Admin,
   Passthrough extends object
 > extends UserAdminSummarySerializer<DataType, Passthrough> {
-  @RendersOne()
+  @RendersOne(() => MyModel)
   public myModel: MyModel
 }`
             )
