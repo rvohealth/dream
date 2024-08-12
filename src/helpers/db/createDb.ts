@@ -1,6 +1,6 @@
 import ConnectionConfRetriever from '../../db/connection-conf-retriever'
 import { DbConnectionType } from '../../db/types'
-import { getCachedDreamconfOrFail } from '../../dreamconf/cache'
+import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
 import loadPgClient from './loadPgClient'
 
 export default async function createDb(connection: DbConnectionType, dbName?: string | null) {
@@ -8,7 +8,7 @@ export default async function createDb(connection: DbConnectionType, dbName?: st
   // so there is no way to drop in production
   if (process.env.NODE_ENV === 'production') return false
 
-  const connectionRetriever = new ConnectionConfRetriever(getCachedDreamconfOrFail())
+  const connectionRetriever = new ConnectionConfRetriever(getCachedDreamApplicationOrFail())
   const dbConf = connectionRetriever.getConnectionConf(connection)
 
   dbName ||= dbConf.name || null

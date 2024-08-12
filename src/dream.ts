@@ -105,7 +105,7 @@ import {
   VariadicPluckEachThroughArgs,
   VariadicPluckThroughArgs,
 } from './dream/types'
-import { getCachedDreamconfOrFail } from './dreamconf/cache'
+import { getCachedDreamApplicationOrFail } from './dream-application/cache'
 import CanOnlyPassBelongsToModelParam from './exceptions/associations/can-only-pass-belongs-to-model-param'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
 import NonLoadedAssociation from './exceptions/associations/non-loaded-association'
@@ -1783,7 +1783,7 @@ export default class Dream {
     const dreamTransaction = new DreamTransaction()
     let callbackResponse: RetType = undefined as RetType
 
-    await db('primary', getCachedDreamconfOrFail())
+    await db('primary', getCachedDreamApplicationOrFail())
       .transaction()
       .execute(async kyselyTransaction => {
         dreamTransaction.kyselyTransaction = kyselyTransaction

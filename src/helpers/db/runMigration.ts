@@ -2,7 +2,7 @@ import { promises as fs } from 'fs'
 import { FileMigrationProvider, Migrator } from 'kysely'
 import path from 'path'
 import db from '../../db'
-import { getCachedDreamconfOrFail } from '../../dreamconf/cache'
+import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
 import { migrationsPath } from '../path'
 
 export default async function runMigration({
@@ -12,7 +12,7 @@ export default async function runMigration({
   const migrationFolder = await migrationsPath()
 
   const migrator = new Migrator({
-    db: db('primary', getCachedDreamconfOrFail()),
+    db: db('primary', getCachedDreamApplicationOrFail()),
     allowUnorderedMigrations: true,
     provider: new FileMigrationProvider({
       fs,

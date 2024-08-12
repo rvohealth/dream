@@ -4,7 +4,7 @@ import sortBy from 'lodash.sortby'
 import _db from '../../db'
 import { isPrimitiveDataType } from '../../db/dataTypes'
 import { DreamConst } from '../../dream/types'
-import { getCachedDreamconfOrFail } from '../../dreamconf/cache'
+import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
 import camelize from '../camelize'
 import loadModels from '../loadModels'
 import pascalize from '../pascalize'
@@ -164,7 +164,7 @@ ${tableName}: {
   }
 
   private async getColumnData(tableName: string, associationData: { [key: string]: AssociationData }) {
-    const dreamconf = getCachedDreamconfOrFail()
+    const dreamconf = getCachedDreamApplicationOrFail()
     const db = _db('primary', dreamconf)
     const sqlQuery = sql`SELECT column_name, udt_name::regtype, is_nullable, data_type FROM information_schema.columns WHERE table_name = ${tableName}`
     const columnToDBTypeMap = await sqlQuery.execute(db)

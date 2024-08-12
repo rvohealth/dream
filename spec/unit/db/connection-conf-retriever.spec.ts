@@ -1,8 +1,8 @@
 import { Dreamconf } from '../../../src'
 import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
 import { DbConnectionType } from '../../../src/db/types'
-import { SingleDbCredential } from '../../../src/dreamconf'
-import { cacheDreamconf } from '../../../src/dreamconf/cache'
+import { SingleDbCredential } from '../../../src/dream-application'
+import { cacheDreamApplication } from '../../../src/dream-application/cache'
 
 describe('ConnectionConfRetriever', () => {
   const getConfig = () => {
@@ -11,7 +11,7 @@ describe('ConnectionConfRetriever', () => {
       primary: primaryConfig,
       replica: replicaConfig,
     })
-    cacheDreamconf(dreamconf)
+    cacheDreamApplication(dreamconf)
     return dreamconf
   }
 

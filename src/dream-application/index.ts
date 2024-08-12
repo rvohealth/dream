@@ -1,16 +1,16 @@
 import { primaryKeyTypes } from '../dream/types'
 import loadDreamconfCb from '../helpers/path/loadDreamconfCb'
-import { cacheDreamconf } from './cache'
+import { cacheDreamApplication } from './cache'
 
-export default class Dreamconf {
+export default class DreamApplication {
   public static async configure() {
     await this.applyAndCacheConfig(await loadDreamconfCb())
   }
 
-  private static async applyAndCacheConfig(cb: (dreamconf: Dreamconf) => Promise<void> | void) {
-    const dreamconf = new Dreamconf()
+  private static async applyAndCacheConfig(cb: (dreamconf: DreamApplication) => Promise<void> | void) {
+    const dreamconf = new DreamApplication()
     await cb(dreamconf)
-    cacheDreamconf(dreamconf)
+    cacheDreamApplication(dreamconf)
     return dreamconf
   }
 

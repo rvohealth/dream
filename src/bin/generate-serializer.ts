@@ -1,9 +1,9 @@
-import Dreamconf from '../dreamconf'
+import DreamApplication from '../dream-application'
 import generateSerializer from '../helpers/cli/generateSerializer'
 import initializeDream from '../helpers/initializeDream'
 
 async function _generateSerializer() {
-  await Dreamconf.configure()
+  await DreamApplication.configure()
   await initializeDream()
 
   const argv = process.argv.filter(arg => !/^--/.test(arg))
