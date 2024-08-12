@@ -1,13 +1,12 @@
-import db from '../db'
-import DreamApplication from '../dream-application'
-import { getCachedDreamApplicationOrFail } from '../dream-application/cache'
-import runMigration from '../helpers/db/runMigration'
-import initializeDream from '../helpers/initializeDream'
 import '../helpers/loadEnv'
 
+import { initializeDreamApplication } from '../app/conf/dream'
+import db from '../db'
+import { getCachedDreamApplicationOrFail } from '../dream-application/cache'
+import runMigration from '../helpers/db/runMigration'
+
 async function dbRollback() {
-  await DreamApplication.configure()
-  await initializeDream()
+  await initializeDreamApplication()
 
   let step = process.argv[2] ? parseInt(process.argv[2]) : 1
   while (step > 0) {

@@ -1,23 +1,15 @@
+import '../../helpers/loadEnv'
+
 import { promises as fs } from 'fs'
 import path from 'path'
-import { Dreamconf } from '../src'
-import compact from '../src/helpers/compact'
-import '../src/helpers/loadEnv'
-import relativeDreamPath from '../src/helpers/path/relativeDreamPath'
-import shouldOmitDistFolder from '../src/helpers/path/shouldOmitDistFolder'
-import snakeify from '../src/helpers/snakeify'
-import sspawn from '../src/helpers/sspawn'
-import ConnectionConfRetriever from './cli/connection-conf-retriever-primitive'
+import ConnectionConfRetriever from '../../../boot/cli/connection-conf-retriever-primitive'
+import compact from '../../helpers/compact'
+import relativeDreamPath from '../../helpers/path/relativeDreamPath'
+import shouldOmitDistFolder from '../../helpers/path/shouldOmitDistFolder'
+import snakeify from '../../helpers/snakeify'
+import sspawn from '../../helpers/sspawn'
 
-export default async function sync() {
-  console.log('writing dream sync file...')
-  await writeSchema()
-}
-void sync()
-
-async function writeSchema() {
-  await Dreamconf.configure()
-
+export default async function writeSyncFile() {
   const dbConf = new ConnectionConfRetriever().getConnectionConf('primary')
 
   const updirsToDreamRoot = shouldOmitDistFolder() ? ['..'] : ['..', '..']

@@ -1,13 +1,11 @@
+import { initializeDreamApplication } from '../app/conf/dream'
 import ConnectionConfRetriever from '../db/connection-conf-retriever'
-import DreamApplication from '../dream-application'
 import { getCachedDreamApplicationOrFail } from '../dream-application/cache'
 import createDb from '../helpers/db/createDb'
-import initializeDream from '../helpers/initializeDream'
 import '../helpers/loadEnv'
 
 async function dbCreate() {
-  await DreamApplication.configure()
-  await initializeDream()
+  await initializeDreamApplication()
 
   const connectionRetriever = new ConnectionConfRetriever(getCachedDreamApplicationOrFail())
   const primaryDbConf = connectionRetriever.getConnectionConf('primary')

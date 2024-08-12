@@ -292,11 +292,13 @@ export type UpdateableProperties<
 
 export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) => T) & typeof Dream
 
-export type DreamOrViewModel = Dream | { serializers: Record<string, typeof DreamSerializer> }
+export type DreamOrViewModel = Dream | ViewModel
+export type ViewModel = { serializers: Record<string, typeof DreamSerializer> }
+export type ViewModelClass = abstract new (...args: any) => {
+  serializers: Record<string, typeof DreamSerializer>
+}
 
-export type DreamClassOrViewModelClass =
-  | typeof Dream
-  | (abstract new (...args: any) => { serializers: Record<string, typeof DreamSerializer> })
+export type DreamClassOrViewModelClass = typeof Dream | ViewModelClass
 
 export type DreamClassOrViewModelClassOrSerializerClass = DreamClassOrViewModelClass | typeof DreamSerializer
 

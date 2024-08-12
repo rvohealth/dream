@@ -1,20 +1,21 @@
-import loadDreamYamlFile from './loadDreamYamlFile'
+import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
 
-export default async function relativeDreamPath(dreamPathType: DreamPaths) {
-  const yamlConfig = await loadDreamYamlFile()
+export default function relativeDreamPath(dreamPathType: DreamPaths) {
+  const dreamApp = getCachedDreamApplicationOrFail()
+
   switch (dreamPathType) {
     case 'models':
-      return yamlConfig.models_path || 'app/models'
+      return dreamApp.paths.models
     case 'serializers':
-      return yamlConfig.serializers_path || 'app/serializers'
+      return dreamApp.paths.serializers
     case 'db':
-      return yamlConfig.db_path || 'db'
+      return dreamApp.paths.db
     case 'conf':
-      return yamlConfig.conf_path || 'app/conf'
+      return dreamApp.paths.conf
     case 'uspec':
-      return yamlConfig.unit_spec_path || 'spec/unit'
+      return dreamApp.paths.uspecs
     case 'factories':
-      return yamlConfig.factory_path || 'spec/factories'
+      return dreamApp.paths.factories
   }
 }
 

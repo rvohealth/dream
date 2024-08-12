@@ -1,10 +1,8 @@
-import DreamApplication from '../dream-application'
+import { initializeDreamApplication } from '../app/conf/dream'
 import generateMigration from '../helpers/cli/generateMigration'
-import initializeDream from '../helpers/initializeDream'
 
 async function _generateMigration() {
-  await DreamApplication.configure()
-  await initializeDream()
+  await initializeDreamApplication()
 
   const argv = process.argv.filter(arg => !/^--/.test(arg))
   const name = argv[2]

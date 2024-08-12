@@ -1,3 +1,4 @@
+export { default as DreamBin } from './bin'
 export { default as db } from './db'
 export { closeAllDbConnections, dreamDbConnections } from './db/dream-db-connection'
 export {
@@ -34,6 +35,8 @@ export { default as Validate } from './decorators/validations/validate'
 export { default as Validates } from './decorators/validations/validates'
 export { default as Virtual } from './decorators/virtual'
 export { default as Dream } from './dream'
+export { default as DreamApplication, DreamApplicationOpts } from './dream-application'
+export { getCachedDreamApplicationOrFail as getCachedDreamconfOrFail } from './dream-application/cache'
 export { default as Query } from './dream/query'
 export { default as DreamTransaction } from './dream/transaction'
 export {
@@ -61,8 +64,6 @@ export {
   ViewModelSerializerKey,
   primaryKeyTypes,
 } from './dream/types'
-export { default as Dreamconf } from './dream-application'
-export { getCachedDreamApplicationOrFail as getCachedDreamconfOrFail } from './dream-application/cache'
 export { default as NonLoadedAssociation } from './exceptions/associations/non-loaded-association'
 export { default as CreateOrFindByFailedToCreateAndFind } from './exceptions/create-or-find-by-failed-to-create-and-find'
 export { default as ValidationError } from './exceptions/validation-error'
@@ -79,7 +80,6 @@ export {
   default as inferSerializerFromDreamOrViewModel,
 } from './helpers/inferSerializerFromDreamOrViewModel'
 export { default as initializeDream } from './helpers/initializeDream'
-export { default as loadModels } from './helpers/loadModels'
 export { default as loadRepl } from './helpers/loadRepl'
 export { default as pascalize } from './helpers/pascalize'
 export { projectRootPath } from './helpers/path'

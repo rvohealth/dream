@@ -48,6 +48,7 @@ import Sortable, { SortableFieldConfig } from './decorators/sortable'
 import resortAllRecords from './decorators/sortable/helpers/resortAllRecords'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
 import { VirtualAttributeStatement } from './decorators/virtual'
+import { getCachedDreamApplicationOrFail } from './dream-application/cache'
 import DreamClassTransactionBuilder from './dream/class-transaction-builder'
 import DreamInstanceTransactionBuilder from './dream/instance-transaction-builder'
 import associationQuery from './dream/internal/associations/associationQuery'
@@ -105,7 +106,6 @@ import {
   VariadicPluckEachThroughArgs,
   VariadicPluckThroughArgs,
 } from './dream/types'
-import { getCachedDreamApplicationOrFail } from './dream-application/cache'
 import CanOnlyPassBelongsToModelParam from './exceptions/associations/can-only-pass-belongs-to-model-param'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
 import NonLoadedAssociation from './exceptions/associations/non-loaded-association'
@@ -118,10 +118,8 @@ import CalendarDate from './helpers/CalendarDate'
 import cloneDeepSafe from './helpers/cloneDeepSafe'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
-import getModelKey from './helpers/getModelKey'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel'
 import { marshalDBValue } from './helpers/marshalDBValue'
-import pascalize from './helpers/pascalize'
 import { EnvOpts } from './helpers/path/types'
 import { isString } from './helpers/typechecks'
 import DreamSerializer from './serializer'
@@ -770,19 +768,36 @@ export default class Dream {
    * Returns a unique global name for the given model.
    * Since in javascript/typescript, it is possible to give
    * two Dream classes the same name, globalName
-   * provides a model name which is unique to your class,
-   * since it considers the file path to the dream as part
-   * of the name.
+   * provides a way for us to have a global identifier
+   * for each model which is unique.
    *
-   * This is used in the console so that all models can be
-   * imported to the global namespace without overriding
-   * each other.
+   * If you have two models with the same class name in your application,
+   * overwriting the "globalName" on your model will help you to differentiate
+   * between them
    *
-   * @returns A string representing a unique key for this model based on its filename and path
+   * i.e.
+   *
+   * ```ts
+   * // models/Nutrition/LogEntry.ts
+   *
+   * export default class LogEntry extends ApplicationModel {
+   *   public get globalName() {
+   *     return 'NutritionLogEntry'
+   *   }
+   * }
+   *
+   * // models/Weight/LogEntry.ts
+   * export default class LogEntry extends ApplicationModel {
+   *   public get globalName() {
+   *     return 'WeightLogEntry'
+   *   }
+   * }
+   * ````
+   *
+   * @returns A string representing a unique key for this model
    */
-  public static async globalName<T extends typeof Dream>(this: T): Promise<string | undefined> {
-    const modelKey = await getModelKey(this)
-    return pascalize(modelKey)?.replace(/\//g, '')
+  public static get globalName(): string {
+    return this.name
   }
 
   /**

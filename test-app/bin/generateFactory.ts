@@ -1,10 +1,8 @@
-import DreamApplication from '../dream-application'
+import { initializeDreamApplication } from '../app/conf/dream'
 import generateFactory from '../helpers/cli/generateFactory'
-import initializeDream from '../helpers/initializeDream'
 
 async function _generateDream() {
-  await DreamApplication.configure()
-  await initializeDream()
+  await initializeDreamApplication()
 
   const argv = process.argv.filter(arg => !/^--/.test(arg))
   const name = argv[2]

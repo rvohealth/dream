@@ -1,13 +1,12 @@
-import ConnectionConfRetriever from '../db/connection-conf-retriever'
-import DreamApplication from '../dream-application'
-import { getCachedDreamApplicationOrFail } from '../dream-application/cache'
-import _dropDb from '../helpers/db/dropDb'
-import initializeDream from '../helpers/initializeDream'
 import '../helpers/loadEnv'
 
+import { initializeDreamApplication } from '../app/conf/dream'
+import ConnectionConfRetriever from '../db/connection-conf-retriever'
+import { getCachedDreamApplicationOrFail } from '../dream-application/cache'
+import _dropDb from '../helpers/db/dropDb'
+
 async function dbDrop() {
-  await DreamApplication.configure()
-  await initializeDream()
+  await initializeDreamApplication()
 
   const connectionRetriever = new ConnectionConfRetriever(getCachedDreamApplicationOrFail())
   const primaryDbConf = connectionRetriever.getConnectionConf('primary')

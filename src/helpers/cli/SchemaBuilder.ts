@@ -3,10 +3,9 @@ import { sql } from 'kysely'
 import sortBy from 'lodash.sortby'
 import _db from '../../db'
 import { isPrimitiveDataType } from '../../db/dataTypes'
-import { DreamConst } from '../../dream/types'
 import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
+import { DreamConst } from '../../dream/types'
 import camelize from '../camelize'
-import loadModels from '../loadModels'
 import pascalize from '../pascalize'
 import { schemaPath } from '../path'
 import dbSyncPath from '../path/dbSyncPath'
@@ -143,10 +142,11 @@ ${tableName}: {
   }
 
   private async tableData(tableName: string) {
-    const models = Object.values(await loadModels())
+    const dreamApp = getCachedDreamApplicationOrFail()
+    const models = Object.values(dreamApp.models)
     const model = models.find(model => model.table === tableName)
 
-    const associationData = await this.getAssociationData(tableName)
+    const associationData = this.getAssociationData(tableName)
     return {
       primaryKey: model!.prototype.primaryKey,
       createdAtField: model!.prototype.createdAtField,
@@ -157,7 +157,7 @@ ${tableName}: {
         named: model!['scopes'].named.map(scopeStatement => scopeStatement.method),
       },
       columns: await this.getColumnData(tableName, associationData),
-      virtualColumns: await this.getVirtualColumns(tableName),
+      virtualColumns: this.getVirtualColumns(tableName),
       associations: associationData,
       serializerKeys: Object.keys(model?.['serializers'] || {}),
     }
@@ -204,8 +204,9 @@ ${tableName}: {
     return enumName
   }
 
-  private async getVirtualColumns(tableName: string) {
-    const models = sortBy(Object.values(await loadModels()), m => m.table)
+  private getVirtualColumns(tableName: string) {
+    const dreamApp = getCachedDreamApplicationOrFail()
+    const models = sortBy(Object.values(dreamApp.models), m => m.table)
     const model = models.find(model => model.table === tableName)
     return model?.['virtualAttributes']?.map(prop => prop.property) || []
   }
@@ -221,8 +222,9 @@ ${tableName}: {
     return schemaData
   }
 
-  private async getAssociationData(tableName: string, targetAssociationType?: string) {
-    const models = sortBy(Object.values(await loadModels()), m => m.table)
+  private getAssociationData(tableName: string, targetAssociationType?: string) {
+    const dreamApp = getCachedDreamApplicationOrFail()
+    const models = sortBy(Object.values(dreamApp.models), m => m.table)
     const tableAssociationData: { [key: string]: AssociationData } = {}
 
     for (const model of models.filter(model => model.table === tableName)) {

@@ -25,6 +25,10 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   public static associationStatements: DreamSerializerAssociationStatement[] = []
   public static readonly isDreamSerializer = true
 
+  public static get globalName(): string {
+    return this.name
+  }
+
   public static render(data: any, opts: DreamSerializerStaticRenderOpts = {}) {
     return new this(data).passthrough(opts.passthrough).render()
   }

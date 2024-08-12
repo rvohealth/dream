@@ -1,11 +1,10 @@
-import DreamApplication from '../dream-application'
-import initializeDream from '../helpers/initializeDream'
 import '../helpers/loadEnv'
+
+import { initializeDreamApplication } from '../app/conf/dream'
 import { dbSeedPath } from '../helpers/path'
 
 async function dbSeed() {
-  await DreamApplication.configure()
-  await initializeDream()
+  await initializeDreamApplication()
 
   console.log('seeding db...')
   const seed = await import(await dbSeedPath())
