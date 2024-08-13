@@ -1,7 +1,7 @@
 import path from 'path'
+import dreamPath from './dreamPath'
 import projectRootPath from './projectRootPath'
-import relativeDreamPath from './relativeDreamPath'
 
 export default async function schemaPath({ omitDirname }: { omitDirname?: boolean } = {}) {
-  return projectRootPath({ filepath: path.join(await relativeDreamPath('db'), 'schema.ts'), omitDirname })
+  return projectRootPath({ filepath: path.join(await dreamPath('db'), 'schema.ts'), omitDirname })
 }

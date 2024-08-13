@@ -4,7 +4,7 @@ import pascalize from '../../../src/helpers/pascalize'
 import camelize from '../camelize'
 import initializeDream from '../initializeDream'
 import pascalizePath from '../pascalizePath'
-import relativeDreamPath from '../path/relativeDreamPath'
+import dreamPath from '../path/dreamPath'
 import snakeify from '../snakeify'
 import uniq from '../uniq'
 
@@ -123,7 +123,7 @@ async function buildSerializerImportStatement(modelName: string) {
 
   const serializerPath = path.join(
     relativePath,
-    await relativeDreamPath('serializers'),
+    await dreamPath('serializers'),
     relativeSerializerPathFromModelName(modelName)
   )
   const serializerClassName = serializerNameFromModelName(modelName)
@@ -165,7 +165,7 @@ function relativePathToModelRoot(modelName: string) {
 
 async function relativePathToSrcRoot(modelName: string) {
   const rootPath = relativePathToModelRoot(modelName)
-  const numUpdirsInRootPath = (await relativeDreamPath('models')).split('/').length
+  const numUpdirsInRootPath = (await dreamPath('models')).split('/').length
   let updirs = ''
   for (let i = 0; i < numUpdirsInRootPath; i++) {
     updirs += '../'

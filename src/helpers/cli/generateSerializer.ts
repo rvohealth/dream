@@ -1,7 +1,7 @@
 import path from 'path'
 import absoluteFilePath from '../absoluteFilePath'
 import fileWriter from '../fileWriter'
-import relativeDreamPath from '../path/relativeDreamPath'
+import dreamPath from '../path/dreamPath'
 import generateSerializerString from './generateSerializerContent'
 
 export default async function generateSerializer(
@@ -18,7 +18,7 @@ export default async function generateSerializer(
     filePostfix: 'Serializer',
     fileExtension: '.ts',
     pluralizeBeforePostfix: false,
-    rootPath: path.join(rootPath, await relativeDreamPath('serializers')),
+    rootPath: path.join(rootPath, await dreamPath('serializers')),
     contentFunction: generateSerializerString,
     contentFunctionAttrs: [fullyQualifiedModelName, attributes],
   })

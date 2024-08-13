@@ -1,20 +1,19 @@
-import pluralize from 'pluralize'
 import fs from 'fs/promises'
+import path from 'path'
+import pluralize from 'pluralize'
+import primaryKeyType from '../db/primaryKeyType'
+import hyphenize from '../hyphenize'
+import migrationVersion from '../migrationVersion'
+import pascalize from '../pascalize'
+import pascalizePath from '../pascalizePath'
+import { loadDreamYamlFile, migrationsPath, modelsPath } from '../path'
+import serializersPath from '../path/serializersPath'
+import snakeify from '../snakeify'
 import generateDreamContent from './generateDreamContent'
+import generateFactory from './generateFactory'
 import generateMigrationContent from './generateMigrationContent'
 import generateSerializerContent from './generateSerializerContent'
-import migrationVersion from '../migrationVersion'
-import { loadDreamYamlFile, migrationsPath, modelsPath } from '../path'
-import hyphenize from '../hyphenize'
-import snakeify from '../snakeify'
-import pascalize from '../pascalize'
 import generateUnitSpec from './generateUnitSpec'
-import serializersPath from '../path/serializersPath'
-import path from 'path'
-import primaryKeyType from '../db/primaryKeyType'
-import generateFactory from './generateFactory'
-import pascalizePath from '../pascalizePath'
-import relativeDreamPath from '../path/relativeDreamPath'
 
 export default async function generateDream(dreamName: string, attributes: string[]) {
   const ymlConfig = await loadDreamYamlFile()
@@ -62,7 +61,7 @@ export default async function generateDream(dreamName: string, attributes: strin
   const migrationBasePath = await migrationsPath()
   const version = migrationVersion()
   const migrationPath = `${migrationBasePath}/${version}-create-${pluralize(hyphenize(dreamName)).replace(/\//g, '-')}.ts`
-  const migrationsRelativeBasePath = path.join(await relativeDreamPath('db'), 'migrations')
+  const migrationsRelativeBasePath = path.join(await dreamPath('db'), 'migrations')
   const relativeMigrationPath = migrationPath.replace(
     new RegExp(`^.*${migrationsRelativeBasePath}`),
     migrationsRelativeBasePath
@@ -97,7 +96,7 @@ export default async function generateDream(dreamName: string, attributes: strin
       .join('/') + 'Serializer'
   const serializerPath = path.join(serializerBasePath, `${fullyQualifiedSerializerName}.ts`)
 
-  const relativeSerializerBasePath = await relativeDreamPath('serializers')
+  const relativeSerializerBasePath = await dreamPath('serializers')
   const relativeSerializerPath = serializerPath.replace(
     new RegExp(`^.*${relativeSerializerBasePath}`),
     relativeSerializerBasePath

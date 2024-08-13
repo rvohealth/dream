@@ -1,3 +1,4 @@
+import path from 'path'
 import pascalize from '../../../src/helpers/pascalize'
 import camelize from '../camelize'
 import initializeDream from '../initializeDream'
@@ -5,7 +6,7 @@ import relativeDreamPath from '../path/relativeDreamPath'
 import uniq from '../uniq'
 
 export default async function generateFactoryContent(
-  modelName: string,
+  fullyQualifiedModelName: string,
   attributes: string[]
 ): Promise<string> {
   await initializeDream()
@@ -17,9 +18,11 @@ export default async function generateFactoryContent(
   const belongsToTypedNames: string[] = []
 
   for (const attribute of attributes) {
-    const [attributeName, attributeType] = attribute.split(':')
-    const associationImportStatement = buildImportStatement(attribute)
-    const attributeNameParts = attributeName.split('/')
+    const [nonStandardAttributeName, attributeType] = attribute.split(':')
+    const attributeName = pascalize(nonStandardAttributeName)
+    const rootAssociationImport = attributeName.split(path.sep).pop()!
+    const associationImportStatement = `import ${rootAssociationImport} from '${await relativeDreamPath('factories', 'models', attributeName)}'`
+    const attributeNameParts = attributeName.split(path.sep)
     const associationName = attributeNameParts[attributeNameParts.length - 1]
     const camelizedName = camelize(associationName)
 
@@ -29,7 +32,7 @@ export default async function generateFactoryContent(
       case 'belongs_to':
         belongsToNames.push(camelizedName)
         belongsToTypedNames.push(`${camelizedName}: ${dreamClassNameFromAttributeName(attributeName)}`)
-        additionalImports.push(await associationImportStatement)
+        additionalImports.push(associationImportStatement)
         break
 
       default:
@@ -37,14 +40,14 @@ export default async function generateFactoryContent(
     }
   }
 
-  const relativePath = await relativePathToModelRoot()
-  const modelClassName = pascalize(modelName.split('/').pop()!)
+  const relativePath = await relativeDreamPath('factories', 'models', fullyQualifiedModelName)
+  const modelClassName = fullyQualifiedModelName.split(path.sep).pop()!
 
   const args = [...belongsToTypedNames, `overrides: UpdateableProperties<${modelClassName}> = {}`]
 
   return `\
 import { ${uniq(dreamImports).join(', ')} } from '@rvohealth/dream'
-import ${pascalize(modelName.split('/').pop()!)} from '${relativePath}${modelName.replace(/^\//, '')}'${
+import ${pascalize(fullyQualifiedModelName.split(path.sep).pop()!)} from '${relativePath}'${
     additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
   }
 
@@ -55,27 +58,6 @@ export default async function create${modelClassName}(${args.join(', ')}) {
 }`
 }
 
-async function buildImportStatement(attribute: string) {
-  const relativePath = await relativePathToModelRoot()
-
-  const [attributeName] = attribute.split(':')
-  const rootAssociationImport = attributeName.split('/').pop()!
-  const associationImportStatement = `import ${pascalize(
-    rootAssociationImport
-  )} from '${relativePath}${attributeName
-    .split('/')
-    .map(name => pascalize(name))
-    .join('/')}'`
-  return associationImportStatement
-}
-
-async function relativePathToModelRoot() {
-  const pathToFactories = await relativeDreamPath('factories')
-  const updirsArr = [...pathToFactories.split('/').map(() => '../')]
-
-  return updirsArr.join('') + (await relativeDreamPath('models')).replace(/\/$/, '') + '/'
-}
-
 function dreamClassNameFromAttributeName(attributeName: string) {
-  return pascalize(attributeName.split('/').pop()!)
+  return pascalize(attributeName.split(path.sep).pop()!)
 }

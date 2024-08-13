@@ -1,6 +1,6 @@
 import fs from 'fs/promises'
 import path from 'path'
-import relativeDreamPath from '../path/relativeDreamPath'
+import dreamPath from '../path/dreamPath'
 import unitSpecsPath from '../path/unitSpecsPath'
 import generateUnitSpecContent from './generateUnitSpecContent'
 
@@ -8,7 +8,7 @@ export default async function generateUnitSpec(dreamName: string, specSubpath: '
   const specBasePath = await unitSpecsPath()
   const specPath = path.join(specBasePath, specSubpath, `${dreamName}.spec.ts`)
   const specDirPath = specPath.split('/').slice(0, -1).join('/')
-  const relativeUspecPath = await relativeDreamPath('uspec')
+  const relativeUspecPath = await dreamPath('uspec')
   const relativeSpecPath = specPath.replace(new RegExp(`^.*${relativeUspecPath}`), relativeUspecPath)
   const thisfs = fs ? fs : await import('fs/promises')
 

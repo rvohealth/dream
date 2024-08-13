@@ -1,6 +1,6 @@
 import distOrProjectRootPath from './distOrProjectRootPath'
-import relativeDreamPath from './relativeDreamPath'
+import dreamPath from './dreamPath'
 
 export default async function serializersPath({ omitDirname }: { omitDirname?: boolean } = {}) {
-  return distOrProjectRootPath({ filepath: await relativeDreamPath('serializers'), omitDirname })
+  return distOrProjectRootPath({ filepath: await dreamPath('serializers'), omitDirname })
 }

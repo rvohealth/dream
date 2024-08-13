@@ -4,7 +4,7 @@ import getFiles from './getFiles'
 import importFileWithDefault from './importFileWithDefault'
 import pascalize from './pascalize'
 import { modelsPath } from './path'
-import relativeDreamPath from './path/relativeDreamPath'
+import dreamPath from './path/dreamPath'
 
 let models: { [key: string]: typeof Dream } | null = null
 export default async function loadModels() {
@@ -16,7 +16,7 @@ export default async function loadModels() {
       ? /\.ts$/.test(path) && !/index\.ts$/.test(path)
       : /\.js$/.test(path) && !/index\.js$/.test(path)
   )
-  const relativeModelsPath = await relativeDreamPath('models')
+  const relativeModelsPath = await dreamPath('models')
   const relativeModelPaths = modelPaths.map(path => path.replace(new RegExp(`^.*${relativeModelsPath}/`), ''))
   models = {}
 

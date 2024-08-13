@@ -1,6 +1,6 @@
 import distOrProjectRootPath from './distOrProjectRootPath'
-import relativeDreamPath from './relativeDreamPath'
+import dreamPath from './dreamPath'
 
 export default async function factoriesPath({ omitDirname }: { omitDirname?: boolean } = {}) {
-  return distOrProjectRootPath({ filepath: await relativeDreamPath('factories'), omitDirname })
+  return distOrProjectRootPath({ filepath: await dreamPath('factories'), omitDirname })
 }
