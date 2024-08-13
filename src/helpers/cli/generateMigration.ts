@@ -1,6 +1,6 @@
 import fs from 'fs/promises'
 import path from 'path'
-import absoluteFilePath from '../absoluteFilePath'
+import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
 import generateMigrationContent from '../cli/generateMigrationContent'
 import primaryKeyType from '../db/primaryKeyType'
 import hyphenize from '../hyphenize'
@@ -8,7 +8,9 @@ import migrationVersion from '../migrationVersion'
 import relativeDreamPath from '../path/relativeDreamPath'
 
 export default async function generateMigration(migrationName: string) {
-  const migrationBasePath = absoluteFilePath(path.join(await relativeDreamPath('db'), 'migrations'))
+  const dreamApp = getCachedDreamApplicationOrFail()
+
+  const migrationBasePath = path.join(dreamApp.appRoot, relativeDreamPath('db'), 'migrations')
   const version = migrationVersion()
   const migrationFilename = `${hyphenize(migrationName)}`
   const versionedMigrationFilename = `${version}-${migrationFilename}`
