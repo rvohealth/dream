@@ -1,4 +1,5 @@
 import { ViewModelClass } from '../../dream/types'
+import ViewModelGlobalNameConflict from '../../exceptions/dream-application/view-model-global-name-conflict'
 import getFiles from '../../helpers/getFiles'
 import globalNameIsAvailable from './globalNameIsAvailable'
 
@@ -17,13 +18,8 @@ export default async function loadViewModels(
 
     const viewModelClass = potentialViewModel as ViewModelClass
 
-    if (!globalNameIsAvailable(viewModelClass.name)) {
-      throw new Error(
-        `
-Attempted to register ${viewModelClass.name}, but something else was detected with the same
-name. To fix this, make sure the class name you use for this view model is unique to your system.`
-      )
-    }
+    if (!globalNameIsAvailable(viewModelClass.name))
+      throw new ViewModelGlobalNameConflict(viewModelClass.name)
 
     _viewModels[viewModelClass.name] = potentialViewModel
   }

@@ -1,3 +1,4 @@
+import SerializerGlobalNameConflict from '../../exceptions/dream-application/serializer-global-name-conflict'
 import getFiles from '../../helpers/getFiles'
 import DreamSerializer from '../../serializer'
 import globalNameIsAvailable from './globalNameIsAvailable'
@@ -20,21 +21,8 @@ export default async function loadSerializers(
 
       if ((potentialSerializer as typeof DreamSerializer)?.isDreamSerializer) {
         const serializer = potentialSerializer as typeof DreamSerializer
-        if (!globalNameIsAvailable(serializer.globalName)) {
-          throw new Error(
-            `
-Attempted to register ${serializer.name}, but another serializer was detected with the same
-name. To fix this, use the "globalName" getter to distinguish one of these serializers
-from the other:
-
-export default class ${serializer.name} extends DreamSerializer {
-  public static get globalName() {
-    return 'MyCustomGlobalName'
-  }
-}
-`
-          )
-        }
+        if (!globalNameIsAvailable(serializer.globalName))
+          throw new SerializerGlobalNameConflict(serializer.globalName)
 
         _serializers[serializer.globalName] = potentialSerializer
       }
