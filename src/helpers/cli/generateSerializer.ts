@@ -1,7 +1,7 @@
 import path from 'path'
 import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
 import fileWriter from '../fileWriter'
-import relativeDreamPath from '../path/relativeDreamPath'
+import relativeDreamPath from '../path/dreamPath'
 import generateSerializerString from './generateSerializerContent'
 
 export default async function generateSerializer(

@@ -1,6 +1,6 @@
 import pascalize from '../../../src/helpers/pascalize'
 import camelize from '../camelize'
-import relativeDreamPath from '../path/relativeDreamPath'
+import relativeDreamPath from '../path/dreamPath'
 import uniq from '../uniq'
 
 export default function generateFactoryContent(modelName: string, attributes: string[]): string {

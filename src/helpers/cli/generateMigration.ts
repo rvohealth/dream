@@ -5,7 +5,7 @@ import generateMigrationContent from '../cli/generateMigrationContent'
 import primaryKeyType from '../db/primaryKeyType'
 import hyphenize from '../hyphenize'
 import migrationVersion from '../migrationVersion'
-import relativeDreamPath from '../path/relativeDreamPath'
+import relativeDreamPath from '../path/dreamPath'
 
 export default async function generateMigration(migrationName: string) {
   const dreamApp = getCachedDreamApplicationOrFail()
