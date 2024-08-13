@@ -1,6 +1,6 @@
 import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
 
-export default function relativeDreamPath(dreamPathType: DreamPaths) {
+export default function (dreamPathType: DreamPaths) {
   const dreamApp = getCachedDreamApplicationOrFail()
 
   switch (dreamPathType) {
