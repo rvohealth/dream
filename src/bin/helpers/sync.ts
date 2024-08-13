@@ -3,23 +3,18 @@ import '../../helpers/loadEnv'
 import { promises as fs } from 'fs'
 import path from 'path'
 import ConnectionConfRetriever from '../../../boot/cli/connection-conf-retriever-primitive'
+import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
 import compact from '../../helpers/compact'
 import relativeDreamPath from '../../helpers/path/relativeDreamPath'
-import shouldOmitDistFolder from '../../helpers/path/shouldOmitDistFolder'
 import snakeify from '../../helpers/snakeify'
 import sspawn from '../../helpers/sspawn'
 
 export default async function writeSyncFile() {
   const dbConf = new ConnectionConfRetriever().getConnectionConf('primary')
+  const dreamApp = getCachedDreamApplicationOrFail()
 
-  const updirsToDreamRoot = shouldOmitDistFolder() ? ['..'] : ['..', '..']
   const dbSyncFilePath = path.join(relativeDreamPath('db'), 'sync.ts')
-  let absoluteDbSyncPath = path.join(__dirname, ...updirsToDreamRoot, dbSyncFilePath)
-  let absoluteDbSyncWritePath = path.join(__dirname, ...updirsToDreamRoot, '..', '..', '..', dbSyncFilePath)
-  if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
-    absoluteDbSyncWritePath = path.join(__dirname, '..', dbSyncFilePath)
-    absoluteDbSyncPath = path.join(__dirname, '..', dbSyncFilePath)
-  }
+  const absoluteDbSyncPath = path.join(dreamApp.appRoot, dbSyncFilePath)
 
   await sspawn(
     `kysely-codegen --url=postgres://${dbConf.user}:${dbConf.password}@${dbConf.host}:${dbConf.port}/${dbConf.name} --out-file=${absoluteDbSyncPath}`
@@ -30,7 +25,7 @@ export default async function writeSyncFile() {
   const file = (await fs.readFile(absoluteDbSyncPath)).toString()
   const enhancedSchema = enhanceSchema(file)
 
-  await fs.writeFile(absoluteDbSyncWritePath, enhancedSchema)
+  await fs.writeFile(absoluteDbSyncPath, enhancedSchema)
 
   console.log('done writing dream sync file!')
 }

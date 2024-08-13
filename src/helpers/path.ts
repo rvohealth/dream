@@ -1,5 +1,0 @@
-export { default as projectRootPath } from './path/projectRootPath'
-export { default as schemaPath } from './path/schemaPath'
-export { default as modelsPath } from './path/modelsPath'
-export { default as migrationsPath } from './path/migrationsPath'
-export { default as dbSeedPath } from './path/dbSeedPath'

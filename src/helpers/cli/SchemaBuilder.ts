@@ -7,9 +7,8 @@ import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
 import { DreamConst } from '../../dream/types'
 import camelize from '../camelize'
 import pascalize from '../pascalize'
-import { schemaPath } from '../path'
-import dbSyncPath from '../path/dbSyncPath'
 import uniq from '../uniq'
+import path from 'path'
 
 export default class SchemaBuilder {
   public async build() {
@@ -50,7 +49,8 @@ export const globalSchema = {
     // const newSchemaFileContents = `\
     // ${schemaConstContent}
     // `
-    await fs.writeFile(await schemaPath(), newSchemaFileContents)
+    const schemaPath = path.join(dreamApp.appRoot, dreamApp.paths.db, 'schema.ts')
+    await fs.writeFile(schemaPath, newSchemaFileContents)
   }
 
   private async buildSchemaContent() {
@@ -375,11 +375,9 @@ ${tableName}: {
   }
 
   private async loadDbSyncFile() {
-    return (await fs.readFile(await dbSyncPath())).toString()
-  }
-
-  private async loadSchemaFile() {
-    return (await fs.readFile(await schemaPath())).toString()
+    const dreamApp = getCachedDreamApplicationOrFail()
+    const dbSyncPath = path.join(dreamApp.appRoot, dreamApp.paths.db, 'sync.ts')
+    return (await fs.readFile(dbSyncPath)).toString()
   }
 }
 

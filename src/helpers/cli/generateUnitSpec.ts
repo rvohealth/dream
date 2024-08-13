@@ -1,11 +1,12 @@
 import fs from 'fs/promises'
 import path from 'path'
+import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
 import relativeDreamPath from '../path/relativeDreamPath'
-import unitSpecsPath from '../path/unitSpecsPath'
 import generateUnitSpecContent from './generateUnitSpecContent'
 
 export default async function generateUnitSpec(dreamName: string, specSubpath: 'models' | 'controllers') {
-  const specBasePath = await unitSpecsPath()
+  const dreamApp = getCachedDreamApplicationOrFail()
+  const specBasePath = path.join(dreamApp.appRoot, dreamApp.paths.uspecs)
   const specPath = path.join(specBasePath, specSubpath, `${dreamName}.spec.ts`)
   const specDirPath = specPath.split('/').slice(0, -1).join('/')
   const relativeUspecPath = relativeDreamPath('uspec')

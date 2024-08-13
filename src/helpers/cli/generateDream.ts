@@ -7,9 +7,7 @@ import hyphenize from '../hyphenize'
 import migrationVersion from '../migrationVersion'
 import pascalize from '../pascalize'
 import pascalizePath from '../pascalizePath'
-import { migrationsPath, modelsPath } from '../path'
 import relativeDreamPath from '../path/relativeDreamPath'
-import serializersPath from '../path/serializersPath'
 import snakeify from '../snakeify'
 import generateDreamContent from './generateDreamContent'
 import generateFactory from './generateFactory'
@@ -20,7 +18,7 @@ import generateUnitSpec from './generateUnitSpec'
 export default async function generateDream(dreamName: string, attributes: string[]) {
   const dreamApp = getCachedDreamApplicationOrFail()
 
-  const dreamBasePath = await modelsPath()
+  const dreamBasePath = path.join(dreamApp.appRoot, dreamApp.paths.models)
   const formattedDreamName = pluralize
     .singular(dreamName)
     .split('/')
@@ -59,7 +57,7 @@ export default async function generateDream(dreamName: string, attributes: strin
   await generateUnitSpec(dreamName, 'models')
   await generateFactory(dreamName, attributes)
 
-  const migrationBasePath = await migrationsPath()
+  const migrationBasePath = path.join(dreamApp.appRoot, dreamApp.paths.db, 'migrations')
   const version = migrationVersion()
   const migrationPath = `${migrationBasePath}/${version}-create-${pluralize(hyphenize(dreamName)).replace(/\//g, '-')}.ts`
   const migrationsRelativeBasePath = path.join(relativeDreamPath('db'), 'migrations')
@@ -88,7 +86,7 @@ export default async function generateDream(dreamName: string, attributes: strin
     throw err
   }
 
-  const serializerBasePath = await serializersPath()
+  const serializerBasePath = path.join(dreamApp.appRoot, dreamApp.paths.serializers)
   const fullyQualifiedSerializerName =
     pluralize
       .singular(dreamName)

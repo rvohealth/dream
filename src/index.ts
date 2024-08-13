@@ -82,7 +82,6 @@ export {
 } from './helpers/inferSerializerFromDreamOrViewModel'
 export { default as loadRepl } from './helpers/loadRepl'
 export { default as pascalize } from './helpers/pascalize'
-export { projectRootPath } from './helpers/path'
 export { Range, default as range } from './helpers/range'
 export { RoundingPrecision, default as round } from './helpers/round'
 export { default as snakeify } from './helpers/snakeify'

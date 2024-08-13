@@ -30,10 +30,7 @@ export default async function dreamApplicationOpts(dreamApp: DreamApplication) {
   // provides a list of path overrides for your app. This is optional, and will default
   // to the paths expected for a typical psychic application.
   dreamApp.set('paths', {
-    models: 'test-app/app/models',
-    serializers: 'test-app/app/serializers',
     conf: 'test-app/app/conf',
-    db: 'test-app/db',
     uspecs: 'test-app/spec/unit',
   })
 

@@ -3,16 +3,16 @@ import { FileMigrationProvider, Migrator } from 'kysely'
 import path from 'path'
 import db from '../../db'
 import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
-import { migrationsPath } from '../path'
 
 export default async function runMigration({
   mode = 'migrate',
   // step = 1,
 }: { mode?: 'migrate' | 'rollback'; step?: number } = {}) {
-  const migrationFolder = await migrationsPath()
+  const dreamApp = getCachedDreamApplicationOrFail()
+  const migrationFolder = path.join(dreamApp.appRoot, dreamApp.paths.db, 'migrations')
 
   const migrator = new Migrator({
-    db: db('primary', getCachedDreamApplicationOrFail()),
+    db: db('primary', dreamApp),
     allowUnorderedMigrations: true,
     provider: new FileMigrationProvider({
       fs,

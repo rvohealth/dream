@@ -1,10 +1,12 @@
 import fs from 'fs/promises'
 import path from 'path'
-import factoriesPath from '../path/factoriesPath'
+import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
 import generateFactoryContent from './generateFactoryContent'
 
 export default async function generateFactory(dreamName: string, attributes: string[]) {
-  const factoriesBasePath = await factoriesPath()
+  const dreamApp = getCachedDreamApplicationOrFail()
+
+  const factoriesBasePath = path.join(dreamApp.appRoot, dreamApp.paths.factories)
   const factoryPath = path.join(factoriesBasePath, `${dreamName}Factory.ts`)
 
   const factoryDirPath = factoryPath.split('/').slice(0, -1).join('/')
