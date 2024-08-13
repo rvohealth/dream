@@ -1,12 +1,14 @@
-import pascalize from '../../../src/helpers/pascalize'
 import camelize from '../camelize'
 import relativeDreamPath from '../path/relativeDreamPath'
+import shortNameFromFullyQualifiedModelName from '../shortNameFromFullyQualifiedModelName'
+import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
 import uniq from '../uniq'
 
 export default function generateFactoryContent(
   fullyQualifiedModelName: string,
   attributes: string[]
 ): string {
+  fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
   const dreamImports: string[] = ['UpdateableProperties']
   const additionalImports: string[] = []
 
@@ -14,20 +16,19 @@ export default function generateFactoryContent(
   const belongsToTypedNames: string[] = []
 
   for (const attribute of attributes) {
-    const [nonStandardAttributeName, attributeType] = attribute.split(':')
-    const attributeName = pascalize(nonStandardAttributeName)
-    const rootAssociationImport = attributeName.split('/').pop()!
-    const associationImportStatement = `import ${rootAssociationImport} from '${relativeDreamPath('factories', 'models', attributeName)}'`
-    const attributeNameParts = attributeName.split('/')
-    const associationName = attributeNameParts[attributeNameParts.length - 1]
-    const camelizedName = camelize(associationName)
+    const [attributeName, attributeType] = attribute.split(':')
+    const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(attributeName)
+    const associationModelName = shortNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
+    const associationImportStatement = `import ${associationModelName} from '${relativeDreamPath('factories', 'models', fullyQualifiedAssociatedModelName)}'`
+    const associationName = camelize(associationModelName)
 
-    if (!attributeType) throw `must pass a column type for ${attributeName} (i.e. ${attributeName}:string)`
+    if (!attributeType)
+      throw `must pass a column type for ${fullyQualifiedAssociatedModelName} (i.e. ${fullyQualifiedAssociatedModelName}:string)`
 
     switch (attributeType) {
       case 'belongs_to':
-        belongsToNames.push(camelizedName)
-        belongsToTypedNames.push(`${camelizedName}: ${dreamClassNameFromAttributeName(attributeName)}`)
+        belongsToNames.push(associationName)
+        belongsToTypedNames.push(`${associationName}: ${associationModelName}`)
         additionalImports.push(associationImportStatement)
         break
 
@@ -37,13 +38,13 @@ export default function generateFactoryContent(
   }
 
   const relativePath = relativeDreamPath('factories', 'models', fullyQualifiedModelName)
-  const modelClassName = fullyQualifiedModelName.split('/').pop()!
+  const modelClassName = shortNameFromFullyQualifiedModelName(fullyQualifiedModelName)
 
   const args = [...belongsToTypedNames, `overrides: UpdateableProperties<${modelClassName}> = {}`]
 
   return `\
 import { ${uniq(dreamImports).join(', ')} } from '@rvohealth/dream'
-import ${pascalize(fullyQualifiedModelName.split('/').pop()!)} from '${relativePath}'${
+import ${modelClassName} from '${relativePath}'${
     additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
   }
 
@@ -52,8 +53,4 @@ export default async function create${modelClassName}(${args.join(', ')}) {
     ${belongsToNames.join(',\n    ')}${belongsToNames.length ? ',\n    ' : ''}...overrides,
   })
 }`
-}
-
-function dreamClassNameFromAttributeName(attributeName: string) {
-  return pascalize(attributeName.split('/').pop()!)
 }

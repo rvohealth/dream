@@ -2,16 +2,18 @@ import pluralize from 'pluralize'
 import camelize from '../camelize'
 import pascalize from '../pascalize'
 import relativeDreamPath from '../path/relativeDreamPath'
+import serializerNameFromFullyQualifiedModelName from '../serializerNameFromFullyQualifiedModelName'
+import shortNameFromFullyQualifiedModelName from '../shortNameFromFullyQualifiedModelName'
+import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
 import uniq from '../uniq'
 
 export default function generateSerializerContent(
-  nonStandardFullyQualifiedModelName?: string,
+  fullyQualifiedModelName: string,
   attributes: string[] = []
 ) {
-  const fullyQualifiedModelName: string = pascalize(nonStandardFullyQualifiedModelName)!
-
+  fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
   const serializerClass = serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName)
-  const serializerSummaryClass = summarySerializerNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+  const serializerSummaryClass = serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')
   const additionalImports: string[] = []
   let relatedModelImport = ''
   let modelClass = ''
@@ -22,7 +24,7 @@ export default function generateSerializerContent(
 
   if (fullyQualifiedModelName) {
     relatedModelImport = importStatementForModel(fullyQualifiedModelName)
-    modelClass = modelNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+    modelClass = shortNameFromFullyQualifiedModelName(fullyQualifiedModelName)
     dataTypeCapture = `<
   DataType extends ${modelClass},
   Passthrough extends object
@@ -45,9 +47,9 @@ export default function generateSerializerContent(
   attributes.forEach(attr => {
     const [name, type] = attr.split(':')
     if (['belongs_to', 'has_one', 'has_many'].includes(type)) {
-      const fullyQualifiedAssociatedModelName = pascalize(name)
+      const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(name)
       additionalModelImports.push(
-        `\nimport ${modelNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)} from '${relativeDreamPath('serializers', 'models', fullyQualifiedModelName, fullyQualifiedAssociatedModelName)}'`
+        importStatementForModel(fullyQualifiedModelName, fullyQualifiedAssociatedModelName)
       )
     }
   })
@@ -82,18 +84,19 @@ export default class ${serializerClass}${dataTypeCapture} extends ${extendedClas
   ${attributes
     .map(attr => {
       const [name, type] = attr.split(':')
-      const propertyName = camelize(name)
-      const className = modelNameFromFullyQualifiedModelName(pascalize(name))
+      const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(name)
+      const associatedModelName = shortNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
+      const propertyName = camelize(associatedModelName)
 
       switch (type) {
         case 'belongs_to':
         case 'has_one':
-          return `@RendersOne(() => ${className})
-  public ${camelize(className)}: ${className}`
+          return `@RendersOne(() => ${associatedModelName})
+  public ${propertyName}: ${associatedModelName}`
 
         case 'has_many':
-          return `@RendersMany(() => ${className})
-  public ${pluralize(camelize(className))}: ${className}[]`
+          return `@RendersMany(() => ${associatedModelName})
+  public ${pluralize(propertyName)}: ${associatedModelName}[]`
 
         default:
           return `@Attribute(${attributeSpecifier(type)}${attributeOptionsSpecifier(type, attr)})
@@ -220,22 +223,6 @@ function jsType(
   }
 }
 
-// Deprecate classNameFromRawStr once dream models have been rebuilt to use fully-qualified class names.
-function modelNameFromFullyQualifiedModelName(fullyQualifiedModelName: string) {
-  return fullyQualifiedModelName.split('/').pop()!
-}
-
-function serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName: string) {
-  return `${fullyQualifiedModelName}Serializer`.replace(/\//g, '')
-}
-
-function summarySerializerNameFromFullyQualifiedModelName(fullyQualifiedModelName: string) {
-  return serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName).replace(
-    /Serializer$/,
-    'SummarySerializer'
-  )
-}
-
 function originalAttributeToEnumValuesName(originalAttribute: string) {
   return attributeNameToEnumValuesName(originalAttribute.split(':')[2])
 }
@@ -254,17 +241,11 @@ function hasJsType(attributes: string[], expectedType: 'DateTime' | 'CalendarDat
 }
 
 function pathToDbSyncFromSerializer(fullyQualifiedModelName: string) {
-  const numAdditionalUpdirs = fullyQualifiedModelName.split('/').length - 1
-  let additionalUpdirs = ''
-
-  for (let i = 0; i < numAdditionalUpdirs; i++) {
-    additionalUpdirs = `../${additionalUpdirs}`
-  }
-  return `${additionalUpdirs}../../db/sync`
+  return `${relativeDreamPath('serializers', 'db', fullyQualifiedModelName)}sync`
 }
 
-function importStatementForModel(fullyQualifiedModelName: string) {
-  return `\nimport ${modelNameFromFullyQualifiedModelName(fullyQualifiedModelName)} from '${relativeDreamPath('serializers', 'models', fullyQualifiedModelName)}'`
+function importStatementForModel(originModelName: string, destinationModelName: string = originModelName) {
+  return `\nimport ${shortNameFromFullyQualifiedModelName(destinationModelName)} from '${relativeDreamPath('serializers', 'models', originModelName, destinationModelName)}'`
 }
 
 function enumValueImportStatements(fullyQualifiedModelName: string, enumNames: string[]) {
