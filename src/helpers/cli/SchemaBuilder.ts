@@ -37,12 +37,12 @@ ${importStr}
 ${schemaConstContent}
 
 export const globalSchema = {
-  passthroughColumns: ${stringifyArray(uniq(passthroughColumns.sort()))},
-  allDefaultScopeNames: ${stringifyArray(uniq(allDefaultScopeNames.sort()))},
+  passthroughColumns: ${stringifyArray(uniq(passthroughColumns.sort()), { indent: 4 })},
+  allDefaultScopeNames: ${stringifyArray(uniq(allDefaultScopeNames.sort()), { indent: 4 })},
   globalNames: {
-    dreams: ${stringifyArray(Object.keys(dreamApp.models).sort())},
-    viewModels: ${stringifyArray(Object.keys(dreamApp.viewModels).sort())},
-    serializers: ${stringifyArray(Object.keys(dreamApp.serializers).sort())},
+    dreams: ${stringifyArray(Object.keys(dreamApp.models).sort(), { indent: 6 })},
+    viewModels: ${stringifyArray(Object.keys(dreamApp.viewModels).sort(), { indent: 6 })},
+    serializers: ${stringifyArray(Object.keys(dreamApp.serializers).sort(), { indent: 6 })},
   },
 } as const
 `
@@ -381,11 +381,25 @@ ${tableName}: {
   }
 }
 
-function stringifyArray(arr: string[] = []): string {
-  return `[${arr
-    .sort()
-    .map(val => `'${val}'`)
-    .join(', ')}]`
+function stringifyArray(arr: string[] = [], { indent }: { indent?: number } = {}): string {
+  if (indent && arr.length > 3) {
+    let spaces = ''
+    for (let i = 0; i < indent; i++) {
+      spaces = `${spaces} `
+    }
+
+    return `[
+${spaces}${arr
+      .sort()
+      .map(val => `'${val}'`)
+      .join(`,\n${spaces}`)}
+${spaces.replace(/\s{2}$/, '')}]`
+  } else {
+    return `[${arr
+      .sort()
+      .map(val => `'${val}'`)
+      .join(', ')}]`
+  }
 }
 
 interface SchemaData {
