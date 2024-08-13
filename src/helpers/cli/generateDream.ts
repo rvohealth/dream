@@ -1,20 +1,20 @@
-import pluralize from 'pluralize'
 import fs from 'fs/promises'
+import path from 'path'
+import pluralize from 'pluralize'
+import primaryKeyType from '../db/primaryKeyType'
+import hyphenize from '../hyphenize'
+import migrationVersion from '../migrationVersion'
+import pascalize from '../pascalize'
+import pascalizePath from '../pascalizePath'
+import { loadDreamYamlFile, migrationsPath, modelsPath } from '../path'
+import relativeDreamPath from '../path/relativeDreamPath'
+import serializersPath from '../path/serializersPath'
+import snakeify from '../snakeify'
 import generateDreamContent from './generateDreamContent'
+import generateFactory from './generateFactory'
 import generateMigrationContent from './generateMigrationContent'
 import generateSerializerContent from './generateSerializerContent'
-import migrationVersion from '../migrationVersion'
-import { loadDreamYamlFile, migrationsPath, modelsPath } from '../path'
-import hyphenize from '../hyphenize'
-import snakeify from '../snakeify'
-import pascalize from '../pascalize'
 import generateUnitSpec from './generateUnitSpec'
-import serializersPath from '../path/serializersPath'
-import path from 'path'
-import primaryKeyType from '../db/primaryKeyType'
-import generateFactory from './generateFactory'
-import pascalizePath from '../pascalizePath'
-import relativeDreamPath from '../path/relativeDreamPath'
 
 export default async function generateDream(dreamName: string, attributes: string[]) {
   const ymlConfig = await loadDreamYamlFile()
@@ -28,20 +28,19 @@ export default async function generateDream(dreamName: string, attributes: strin
   const dreamPath = path.join(dreamBasePath, `${formattedDreamName}.ts`)
   const relativeModelsPath = dreamPath.replace(dreamBasePath, ymlConfig.models_path || 'app/models')
   const dreamPathParts = formattedDreamName.split('/')
-  const thisfs = fs ? fs : await import('fs/promises')
 
   // if they are generating a nested model path,
   // we need to make sure the nested directories exist
   if (dreamPathParts.length) {
     const fullPath = [...dreamBasePath.split('/'), ...dreamPathParts].slice(0, -1).join('/')
-    await thisfs.mkdir(fullPath, { recursive: true })
+    await fs.mkdir(fullPath, { recursive: true })
   }
 
   const content = generateDreamContent(dreamName, attributes)
 
   try {
     console.log(`generating dream: ${relativeModelsPath}`)
-    await thisfs.writeFile(dreamPath, content)
+    await fs.writeFile(dreamPath, content)
   } catch (error) {
     const err = `
       Something happened while trying to create the dream file:
@@ -62,7 +61,7 @@ export default async function generateDream(dreamName: string, attributes: strin
   const migrationBasePath = await migrationsPath()
   const version = migrationVersion()
   const migrationPath = `${migrationBasePath}/${version}-create-${pluralize(hyphenize(dreamName)).replace(/\//g, '-')}.ts`
-  const migrationsRelativeBasePath = path.join(await relativeDreamPath('db'), 'migrations')
+  const migrationsRelativeBasePath = path.join(relativeDreamPath('db'), 'migrations')
   const relativeMigrationPath = migrationPath.replace(
     new RegExp(`^.*${migrationsRelativeBasePath}`),
     migrationsRelativeBasePath
@@ -75,7 +74,7 @@ export default async function generateDream(dreamName: string, attributes: strin
   })
   try {
     console.log(`generating migration: ${relativeMigrationPath}`)
-    await thisfs.writeFile(migrationPath, finalContent)
+    await fs.writeFile(migrationPath, finalContent)
   } catch (error) {
     const err = `
       Something happened while trying to create the migration file:
@@ -97,7 +96,7 @@ export default async function generateDream(dreamName: string, attributes: strin
       .join('/') + 'Serializer'
   const serializerPath = path.join(serializerBasePath, `${fullyQualifiedSerializerName}.ts`)
 
-  const relativeSerializerBasePath = await relativeDreamPath('serializers')
+  const relativeSerializerBasePath = relativeDreamPath('serializers')
   const relativeSerializerPath = serializerPath.replace(
     new RegExp(`^.*${relativeSerializerBasePath}`),
     relativeSerializerBasePath
@@ -109,14 +108,14 @@ export default async function generateDream(dreamName: string, attributes: strin
     const fullSerializerPath = [...serializerBasePath.split('/'), ...serializerPathParts.slice(0, -1)].join(
       '/'
     )
-    await thisfs.mkdir(fullSerializerPath, { recursive: true })
+    await fs.mkdir(fullSerializerPath, { recursive: true })
   }
 
   try {
     console.log(`generating serializer: ${relativeSerializerPath}`)
-    await thisfs.writeFile(
+    await fs.writeFile(
       serializerPath,
-      await generateSerializerContent(fullyQualifiedSerializerName, dreamName, attributes)
+      generateSerializerContent(fullyQualifiedSerializerName, dreamName, attributes)
     )
   } catch (error) {
     const err = `

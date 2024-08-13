@@ -1,5 +1,4 @@
 import getFiles from '../../helpers/getFiles'
-import importFile from '../../helpers/path/importFile'
 import DreamSerializer from '../../serializer'
 import globalNameIsAvailable from './globalNameIsAvailable'
 
@@ -14,7 +13,7 @@ export default async function loadSerializers(
   const serializerPaths = (await getFiles(serializersPath)).filter(path => /\.[jt]s$/.test(path))
 
   for (const serializerPath of serializerPaths) {
-    const allSerializers = await importFile(serializerPath)
+    const allSerializers = await import(serializerPath)
 
     Object.keys(allSerializers).forEach(key => {
       const potentialSerializer = allSerializers[key]

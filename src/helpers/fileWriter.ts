@@ -19,7 +19,6 @@ export default async function fileWriter({
   rootPath: string
   contentFunctionAttrs?: any[]
 }) {
-  const thisfs = fs ? fs : await import('fs/promises')
   const fullyQualifiedNewfileClassName = pluralizeBeforePostfix
     ? `${pluralize(filePath)}${filePostfix}`
     : `${filePath}${filePostfix}`
@@ -36,11 +35,11 @@ export default async function fileWriter({
   // we need to make sure the nested directories exist
   if (dirPartsRelativeToTypeRoot.length) {
     const fullDirectoryPath = [...rootPath.split('/'), ...dirPartsRelativeToTypeRoot].join('/')
-    await thisfs.mkdir(fullDirectoryPath, { recursive: true })
+    await fs.mkdir(fullDirectoryPath, { recursive: true })
   }
 
   const fullNewfilePath = `${rootPath}/${filepathRelativeToTypeRoot}${fileExtension}`
   const rootRelativeNewfilePath = fullNewfilePath.replace(new RegExp(`^.*${rootPath}`), rootPath)
   console.log(`generating ${filePostfix.toLowerCase()}: ${rootRelativeNewfilePath}`)
-  await thisfs.writeFile(fullNewfilePath, newfileFileContents)
+  await fs.writeFile(fullNewfilePath, newfileFileContents)
 }

@@ -1,7 +1,7 @@
 import fs from 'fs/promises'
 import path from 'path'
-import generateFactoryContent from './generateFactoryContent'
 import factoriesPath from '../path/factoriesPath'
+import generateFactoryContent from './generateFactoryContent'
 
 export default async function generateFactory(dreamName: string, attributes: string[]) {
   const factoriesBasePath = await factoriesPath()
@@ -11,12 +11,11 @@ export default async function generateFactory(dreamName: string, attributes: str
 
   const relativeSpecDirPath = factoriesBasePath.split('/').slice(0, -1).join('/')
   const relativeSpecPath = factoryPath.replace(new RegExp(`^.*${relativeSpecDirPath}`), relativeSpecDirPath)
-  const thisfs = fs ? fs : await import('fs/promises')
 
   try {
     console.log(`generating factory: ${relativeSpecPath}`)
-    await thisfs.mkdir(factoryDirPath, { recursive: true })
-    await thisfs.writeFile(factoryPath, await generateFactoryContent(dreamName, attributes))
+    await fs.mkdir(factoryDirPath, { recursive: true })
+    await fs.writeFile(factoryPath, generateFactoryContent(dreamName, attributes))
   } catch (error) {
     const err = `
       Something happened while trying to create the spec file:

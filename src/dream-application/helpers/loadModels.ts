@@ -1,6 +1,5 @@
 import Dream from '../../dream'
 import getFiles from '../../helpers/getFiles'
-import importFile from '../../helpers/path/importFile'
 import globalNameIsAvailable from './globalNameIsAvailable'
 
 let _models: Record<string, typeof Dream>
@@ -12,7 +11,7 @@ export default async function loadModels(modelsPath: string): Promise<Record<str
   const modelPaths = (await getFiles(modelsPath)).filter(path => /\.[jt]s$/.test(path))
 
   for (const modelPath of modelPaths) {
-    const potentialModel = (await importFile(modelPath)).default
+    const potentialModel = (await import(modelPath)).default
 
     if ((potentialModel as typeof Dream)?.isDream) {
       const model = potentialModel as typeof Dream

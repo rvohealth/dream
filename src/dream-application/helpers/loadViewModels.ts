@@ -1,6 +1,5 @@
 import { ViewModelClass } from '../../dream/types'
 import getFiles from '../../helpers/getFiles'
-import importFile from '../../helpers/path/importFile'
 import globalNameIsAvailable from './globalNameIsAvailable'
 
 let _viewModels: Record<string, ViewModelClass>
@@ -14,7 +13,7 @@ export default async function loadViewModels(
   const viewModelPaths = (await getFiles(viewModelsPath)).filter(path => /\.[jt]s$/.test(path))
 
   for (const viewModelPath of viewModelPaths) {
-    const potentialViewModel = (await importFile(viewModelPath)).default
+    const potentialViewModel = (await import(viewModelPath)).default
 
     const viewModelClass = potentialViewModel as ViewModelClass
 

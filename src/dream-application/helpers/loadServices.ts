@@ -1,5 +1,4 @@
 import getFiles from '../../helpers/getFiles'
-import importFile from '../../helpers/path/importFile'
 
 let _services: Record<string, any>
 
@@ -10,7 +9,7 @@ export default async function loadServices(servicesPath: string): Promise<Record
   const servicePaths = (await getFiles(servicesPath)).filter(path => /\.[jt]s$/.test(path))
 
   for (const servicePath of servicePaths) {
-    const service = (await importFile(servicePath)).default
+    const service = (await import(servicePath)).default
     if (service.name) {
       _services[service.name] = service
     }
