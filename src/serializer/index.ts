@@ -29,6 +29,10 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     return this.name
   }
 
+  public static get openapiName(): string {
+    return this.name.replace(/Serializer$/, '')
+  }
+
   public static render(data: any, opts: DreamSerializerStaticRenderOpts = {}) {
     return new this(data).passthrough(opts.passthrough).render()
   }
