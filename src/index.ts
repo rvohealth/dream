@@ -53,6 +53,7 @@ export {
   DreamParamSafeAttributes,
   DreamParamSafeColumnNames,
   DreamSerializerKey,
+  DreamSerializers,
   DreamTableSchema,
   DreamVirtualColumns,
   IdType,
