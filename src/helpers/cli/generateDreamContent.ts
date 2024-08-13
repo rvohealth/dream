@@ -3,7 +3,7 @@ import pluralize from 'pluralize'
 import pascalize from '../../../src/helpers/pascalize'
 import camelize from '../camelize'
 import pascalizePath from '../pascalizePath'
-import relativeDreamPath from '../path/relativeDreamPath'
+import relativeDreamPath from '../path/dreamPath'
 import snakeify from '../snakeify'
 import uniq from '../uniq'
 

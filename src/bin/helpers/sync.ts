@@ -5,7 +5,7 @@ import path from 'path'
 import ConnectionConfRetriever from '../../../boot/cli/connection-conf-retriever-primitive'
 import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
 import compact from '../../helpers/compact'
-import relativeDreamPath from '../../helpers/path/relativeDreamPath'
+import relativeDreamPath from '../../helpers/path/dreamPath'
 import snakeify from '../../helpers/snakeify'
 import sspawn from '../../helpers/sspawn'
 

@@ -1,7 +1,7 @@
 import fs from 'fs/promises'
 import path from 'path'
 import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
-import relativeDreamPath from '../path/relativeDreamPath'
+import relativeDreamPath from '../path/dreamPath'
 import generateUnitSpecContent from './generateUnitSpecContent'
 
 export default async function generateUnitSpec(dreamName: string, specSubpath: 'models' | 'controllers') {
