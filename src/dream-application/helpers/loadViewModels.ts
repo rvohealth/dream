@@ -2,6 +2,7 @@ import { ViewModelClass } from '../../dream/types'
 import ViewModelGlobalNameConflict from '../../exceptions/dream-application/view-model-global-name-conflict'
 import getFiles from '../../helpers/getFiles'
 import globalNameIsAvailable from './globalNameIsAvailable'
+import pathToGlobalKey from './pathToGlobalKey'
 
 let _viewModels: Record<string, ViewModelClass>
 
@@ -16,12 +17,13 @@ export default async function loadViewModels(
   for (const viewModelPath of viewModelPaths) {
     const potentialViewModel = (await import(viewModelPath)).default
 
-    const viewModelClass = potentialViewModel as ViewModelClass
+    const viewModelKey = pathToGlobalKey(viewModelPath, /^.*app\/view-models\//)
 
-    if (!globalNameIsAvailable(viewModelClass.name))
-      throw new ViewModelGlobalNameConflict(viewModelClass.name)
+    if (!globalNameIsAvailable(viewModelKey)) throw new ViewModelGlobalNameConflict(viewModelKey)
 
-    _viewModels[viewModelClass.name] = potentialViewModel
+    potentialViewModel.globalName = viewModelKey
+
+    _viewModels[viewModelKey] = potentialViewModel
   }
 
   return _viewModels

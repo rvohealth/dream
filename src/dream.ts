@@ -121,6 +121,7 @@ import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDr
 import { marshalDBValue } from './helpers/marshalDBValue'
 import { EnvOpts } from './helpers/path/types'
 import { isString } from './helpers/typechecks'
+import lookupGlobalNameByClass from './dream-application/helpers/lookupGlobalNameByClass'
 
 export default class Dream {
   public DB: any
@@ -811,8 +812,23 @@ export default class Dream {
    * @returns A string representing a unique key for this model
    */
   public static get globalName(): string {
-    return this.name
+    if (this._globalName) return this._globalName
+
+    const globalName = lookupGlobalNameByClass(this)
+    if (!globalName)
+      throw new Error(
+        `
+Unable to find globalName for dream serializer: ${this.name}`
+      )
+
+    this._globalName = globalName
+    return globalName
   }
+
+  public static setGlobalName(globalName: string) {
+    this._globalName = globalName
+  }
+  private static _globalName: string | undefined
 
   /**
    * Returns the column names for the given model

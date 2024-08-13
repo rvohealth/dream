@@ -21,11 +21,7 @@ export default class DreamApplication {
   }
 
   public static async loadSerializers(serializersPath: string) {
-    try {
-      return await loadSerializers(serializersPath)
-    } catch {
-      return {}
-    }
+    return await loadSerializers(serializersPath)
   }
 
   public static async loadViewModels(viewModelsPath: string) {

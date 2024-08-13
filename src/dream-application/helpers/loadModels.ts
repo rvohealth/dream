@@ -2,6 +2,7 @@ import Dream from '../../dream'
 import DreamGlobalNameConflict from '../../exceptions/dream-application/dream-global-name-conflict'
 import getFiles from '../../helpers/getFiles'
 import globalNameIsAvailable from './globalNameIsAvailable'
+import pathToGlobalKey from './pathToGlobalKey'
 
 let _models: Record<string, typeof Dream>
 
@@ -16,8 +17,9 @@ export default async function loadModels(modelsPath: string): Promise<Record<str
 
     if ((potentialModel as typeof Dream)?.isDream) {
       const model = potentialModel as typeof Dream
+      const modelKey = pathToGlobalKey(modelPath, /^.*app\/models\//)
 
-      if (!globalNameIsAvailable(model.globalName)) throw new DreamGlobalNameConflict(model.globalName)
+      if (!globalNameIsAvailable(modelKey)) throw new DreamGlobalNameConflict(modelKey)
 
       let hasTable = false
       try {
@@ -27,8 +29,10 @@ export default async function loadModels(modelsPath: string): Promise<Record<str
         // since it does not have a table.
       }
 
-      if (hasTable && model.globalName) {
-        _models[model.globalName] = potentialModel
+      model.setGlobalName(modelKey)
+
+      if (hasTable && modelKey) {
+        _models[modelKey] = model
       }
     }
   }
