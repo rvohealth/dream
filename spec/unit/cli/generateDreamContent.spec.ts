@@ -8,7 +8,6 @@ describe('dream generate:model <name> [...attributes]', () => {
         `\
 import { DreamColumn } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import MealTypeSerializer, { MealTypeSummarySerializer } from '../../../test-app/app/serializers/MealTypeSerializer'
 
 export default class MealType extends ApplicationModel {
   public get table() {
@@ -21,11 +20,8 @@ export default class MealType extends ApplicationModel {
 }
 
 MealType.register('serializers', {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: MealTypeSerializer<any, any>,
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  summary: MealTypeSummarySerializer<any, any>,
+  default: 'MealTypeSerializer',
+  summary: 'MealTypeSummarySerializer',
 })`
       )
     })
@@ -39,7 +35,6 @@ MealType.register('serializers', {
           `\
 import { DreamColumn } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import UserSerializer, { UserSummarySerializer } from '../../../test-app/app/serializers/UserSerializer'
 
 export default class User extends ApplicationModel {
   public get table() {
@@ -54,11 +49,8 @@ export default class User extends ApplicationModel {
 }
 
 User.register('serializers', {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: UserSerializer<any, any>,
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  summary: UserSummarySerializer<any, any>,
+  default: 'UserSerializer',
+  summary: 'UserSummarySerializer',
 })`
         )
       })
@@ -75,7 +67,6 @@ User.register('serializers', {
           `\
 import { DreamColumn } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import ChalupaSerializer, { ChalupaSummarySerializer } from '../../../test-app/app/serializers/ChalupaSerializer'
 
 export default class Chalupa extends ApplicationModel {
   public get table() {
@@ -91,11 +82,8 @@ export default class Chalupa extends ApplicationModel {
 }
 
 Chalupa.register('serializers', {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: ChalupaSerializer<any, any>,
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  summary: ChalupaSummarySerializer<any, any>,
+  default: 'ChalupaSerializer',
+  summary: 'ChalupaSummarySerializer',
 })`
         )
       })
@@ -108,7 +96,6 @@ Chalupa.register('serializers', {
           `\
 import { DreamColumn } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import PaperSerializer, { PaperSummarySerializer } from '../../../test-app/app/serializers/PaperSerializer'
 
 export default class Paper extends ApplicationModel {
   public get table() {
@@ -122,11 +109,8 @@ export default class Paper extends ApplicationModel {
 }
 
 Paper.register('serializers', {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: PaperSerializer<any, any>,
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  summary: PaperSummarySerializer<any, any>,
+  default: 'PaperSerializer',
+  summary: 'PaperSummarySerializer',
 })`
         )
       })
@@ -140,7 +124,6 @@ Paper.register('serializers', {
             `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CompositionSerializer, { CompositionSummarySerializer } from '../../../test-app/app/serializers/CompositionSerializer'
 import GraphNode from './GraphNode'
 
 export default class Composition extends ApplicationModel {
@@ -158,11 +141,8 @@ export default class Composition extends ApplicationModel {
 }
 
 Composition.register('serializers', {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: CompositionSerializer<any, any>,
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  summary: CompositionSummarySerializer<any, any>,
+  default: 'CompositionSerializer',
+  summary: 'CompositionSummarySerializer',
 })`
           )
         })
@@ -174,8 +154,7 @@ Composition.register('serializers', {
               `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CatToySerializer, { CatToySummarySerializer } from '../../../test-app/app/serializers/CatToySerializer'
-import PetDomesticCat from './Pet/Domestic/Cat'
+import Cat from './Pet/Domestic/Cat'
 
 export default class CatToy extends ApplicationModel {
   public get table() {
@@ -186,17 +165,14 @@ export default class CatToy extends ApplicationModel {
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
-  @BelongsTo(() => PetDomesticCat)
-  public cat: PetDomesticCat
+  @BelongsTo(() => Cat)
+  public cat: Cat
   public catId: DreamColumn<CatToy, 'catId'>
 }
 
 CatToy.register('serializers', {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: CatToySerializer<any, any>,
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  summary: CatToySummarySerializer<any, any>,
+  default: 'CatToySerializer',
+  summary: 'CatToySummarySerializer',
 })`
             )
           })
@@ -207,8 +183,7 @@ CatToy.register('serializers', {
               `\
 import { DreamColumn, HasMany } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CatToySerializer, { CatToySummarySerializer } from '../../../test-app/app/serializers/CatToySerializer'
-import PetDomesticCat from './Pet/Domestic/Cat'
+import Cat from './Pet/Domestic/Cat'
 
 export default class CatToy extends ApplicationModel {
   public get table() {
@@ -219,16 +194,13 @@ export default class CatToy extends ApplicationModel {
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
-  @HasMany(() => PetDomesticCat)
-  public cats: PetDomesticCat[]
+  @HasMany(() => Cat)
+  public cats: Cat[]
 }
 
 CatToy.register('serializers', {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: CatToySerializer<any, any>,
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  summary: CatToySummarySerializer<any, any>,
+  default: 'CatToySerializer',
+  summary: 'CatToySummarySerializer',
 })`
             )
           })
@@ -239,8 +211,7 @@ CatToy.register('serializers', {
               `\
 import { DreamColumn, HasOne } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CatToySerializer, { CatToySummarySerializer } from '../../../test-app/app/serializers/CatToySerializer'
-import PetDomesticCat from './Pet/Domestic/Cat'
+import Cat from './Pet/Domestic/Cat'
 
 export default class CatToy extends ApplicationModel {
   public get table() {
@@ -251,16 +222,13 @@ export default class CatToy extends ApplicationModel {
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
-  @HasOne(() => PetDomesticCat)
-  public cat: PetDomesticCat
+  @HasOne(() => Cat)
+  public cat: Cat
 }
 
 CatToy.register('serializers', {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: CatToySerializer<any, any>,
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  summary: CatToySummarySerializer<any, any>,
+  default: 'CatToySerializer',
+  summary: 'CatToySummarySerializer',
 })`
             )
           })
@@ -271,29 +239,25 @@ CatToy.register('serializers', {
               `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
-import PetDomesticCatSerializer, { PetDomesticCatSummarySerializer } from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
 import GraphNode from '../../GraphNode'
 
-export default class PetDomesticCat extends ApplicationModel {
+export default class Cat extends ApplicationModel {
   public get table() {
     return 'pet_domestic_cats' as const
   }
 
-  public id: DreamColumn<PetDomesticCat, 'id'>
-  public createdAt: DreamColumn<PetDomesticCat, 'createdAt'>
-  public updatedAt: DreamColumn<PetDomesticCat, 'updatedAt'>
+  public id: DreamColumn<Cat, 'id'>
+  public createdAt: DreamColumn<Cat, 'createdAt'>
+  public updatedAt: DreamColumn<Cat, 'updatedAt'>
 
   @BelongsTo(() => GraphNode)
   public graphNode: GraphNode
-  public graphNodeId: DreamColumn<PetDomesticCat, 'graphNodeId'>
+  public graphNodeId: DreamColumn<Cat, 'graphNodeId'>
 }
 
-PetDomesticCat.register('serializers', {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: PetDomesticCatSerializer<any, any>,
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  summary: PetDomesticCatSummarySerializer<any, any>,
+Cat.register('serializers', {
+  default: 'PetDomesticCatSerializer',
+  summary: 'PetDomesticCatSummarySerializer',
 })`
             )
           })
@@ -304,29 +268,25 @@ PetDomesticCat.register('serializers', {
               `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
-import PetDomesticCatSerializer, { PetDomesticCatSummarySerializer } from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
-import PetDomesticDog from '../../Pet/Domestic/Dog'
+import Dog from '../../Pet/Domestic/Dog'
 
-export default class PetDomesticCat extends ApplicationModel {
+export default class Cat extends ApplicationModel {
   public get table() {
     return 'pet_domestic_cats' as const
   }
 
-  public id: DreamColumn<PetDomesticCat, 'id'>
-  public createdAt: DreamColumn<PetDomesticCat, 'createdAt'>
-  public updatedAt: DreamColumn<PetDomesticCat, 'updatedAt'>
+  public id: DreamColumn<Cat, 'id'>
+  public createdAt: DreamColumn<Cat, 'createdAt'>
+  public updatedAt: DreamColumn<Cat, 'updatedAt'>
 
-  @BelongsTo(() => PetDomesticDog)
-  public dog: PetDomesticDog
-  public dogId: DreamColumn<PetDomesticCat, 'dogId'>
+  @BelongsTo(() => Dog)
+  public dog: Dog
+  public dogId: DreamColumn<Cat, 'dogId'>
 }
 
-PetDomesticCat.register('serializers', {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: PetDomesticCatSerializer<any, any>,
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  summary: PetDomesticCatSummarySerializer<any, any>,
+Cat.register('serializers', {
+  default: 'PetDomesticCatSerializer',
+  summary: 'PetDomesticCatSummarySerializer',
 })`
             )
           })
@@ -337,29 +297,25 @@ PetDomesticCat.register('serializers', {
               `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
-import PetWildCatSerializer, { PetWildCatSummarySerializer } from '../../../../../test-app/app/serializers/Pet/Wild/CatSerializer'
-import PetDomesticDog from '../../Pet/Domestic/Dog'
+import Dog from '../../Pet/Domestic/Dog'
 
-export default class PetWildCat extends ApplicationModel {
+export default class Cat extends ApplicationModel {
   public get table() {
     return 'pet_wild_cats' as const
   }
 
-  public id: DreamColumn<PetWildCat, 'id'>
-  public createdAt: DreamColumn<PetWildCat, 'createdAt'>
-  public updatedAt: DreamColumn<PetWildCat, 'updatedAt'>
+  public id: DreamColumn<Cat, 'id'>
+  public createdAt: DreamColumn<Cat, 'createdAt'>
+  public updatedAt: DreamColumn<Cat, 'updatedAt'>
 
-  @BelongsTo(() => PetDomesticDog)
-  public dog: PetDomesticDog
-  public dogId: DreamColumn<PetWildCat, 'dogId'>
+  @BelongsTo(() => Dog)
+  public dog: Dog
+  public dogId: DreamColumn<Cat, 'dogId'>
 }
 
-PetWildCat.register('serializers', {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: PetWildCatSerializer<any, any>,
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  summary: PetWildCatSummarySerializer<any, any>,
+Cat.register('serializers', {
+  default: 'PetWildCatSerializer',
+  summary: 'PetWildCatSummarySerializer',
 })`
             )
           })
@@ -371,7 +327,6 @@ PetWildCat.register('serializers', {
             `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CompositionSerializer, { CompositionSummarySerializer } from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
 import Chalupa from './Chalupa'
 
@@ -394,11 +349,8 @@ export default class Composition extends ApplicationModel {
 }
 
 Composition.register('serializers', {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: CompositionSerializer<any, any>,
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  summary: CompositionSummarySerializer<any, any>,
+  default: 'CompositionSerializer',
+  summary: 'CompositionSummarySerializer',
 })`
           )
         })
@@ -411,7 +363,6 @@ Composition.register('serializers', {
             `\
 import { DreamColumn, HasOne } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CompositionSerializer, { CompositionSummarySerializer } from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
 
 export default class Composition extends ApplicationModel {
@@ -428,11 +379,8 @@ export default class Composition extends ApplicationModel {
 }
 
 Composition.register('serializers', {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: CompositionSerializer<any, any>,
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  summary: CompositionSummarySerializer<any, any>,
+  default: 'CompositionSerializer',
+  summary: 'CompositionSummarySerializer',
 })`
           )
         })
@@ -445,7 +393,6 @@ Composition.register('serializers', {
             `\
 import { DreamColumn, HasMany } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import UserSerializer, { UserSummarySerializer } from '../../../test-app/app/serializers/UserSerializer'
 import Composition from './Composition'
 
 export default class User extends ApplicationModel {
@@ -462,11 +409,8 @@ export default class User extends ApplicationModel {
 }
 
 User.register('serializers', {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: UserSerializer<any, any>,
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  summary: UserSummarySerializer<any, any>,
+  default: 'UserSerializer',
+  summary: 'UserSummarySerializer',
 })`
           )
         })
@@ -479,7 +423,6 @@ User.register('serializers', {
             `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CompositionSerializer, { CompositionSummarySerializer } from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
 
 export default class Composition extends ApplicationModel {
@@ -497,11 +440,8 @@ export default class Composition extends ApplicationModel {
 }
 
 Composition.register('serializers', {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: CompositionSerializer<any, any>,
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  summary: CompositionSummarySerializer<any, any>,
+  default: 'CompositionSerializer',
+  summary: 'CompositionSummarySerializer',
 })`
           )
         })

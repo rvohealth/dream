@@ -1,10 +1,7 @@
 import pascalize from '../pascalize'
+import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
 import dreamPath, { DreamPaths } from './dreamPath'
 import sharedPrefix from './sharedPathPrefix'
-
-export function pathDelimitedFullyQualifiedModelName(fullyQualifiedModelName: string) {
-  return fullyQualifiedModelName.replace(/\//g, '/')
-}
 
 export default function (
   originDreamPathType: DreamPaths,
@@ -12,7 +9,7 @@ export default function (
   fullyQualifiedOriginModelName: string,
   fullyQualifiedDestinationModelName: string = fullyQualifiedOriginModelName
 ) {
-  fullyQualifiedOriginModelName = pascalize(fullyQualifiedOriginModelName)
+  fullyQualifiedOriginModelName = standardizeFullyQualifiedModelName(fullyQualifiedOriginModelName)
   fullyQualifiedDestinationModelName = pascalize(fullyQualifiedDestinationModelName)
 
   const numAdditionalUpdirs = fullyQualifiedOriginModelName.split('/').length - 1
@@ -23,21 +20,22 @@ export default function (
   }
 
   const baseRelativePath = dreamPathTypeRelativePath(originDreamPathType, destinationDreamPathType)
-  let destinationPath =
-    additionalUpdirs +
-    (baseRelativePath.length ? baseRelativePath + '/' : '') +
-    pathDelimitedFullyQualifiedModelName(fullyQualifiedDestinationModelName)
+  let destinationPath = additionalUpdirs + (baseRelativePath.length ? baseRelativePath + '/' : '')
+
   if (destinationPath[0] !== '.') destinationPath = `./${destinationPath}`
 
   switch (destinationDreamPathType) {
+    case 'db':
+      return destinationPath
+
     case 'factories':
-      return `${destinationPath}Factory`
+      return `${destinationPath}${fullyQualifiedDestinationModelName}Factory`
 
     case 'serializers':
-      return `${destinationPath}Serializer`
+      return `${destinationPath}${fullyQualifiedDestinationModelName}Serializer`
 
     default:
-      return destinationPath
+      return `${destinationPath}${fullyQualifiedDestinationModelName}`
   }
 }
 

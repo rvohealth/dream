@@ -91,6 +91,20 @@ describe('relativeDreamPath', () => {
     })
   })
 
+  context('to db', () => {
+    context('from models with a model name', () => {
+      it('returns ../serializers/<ModelName>Serializer', () => {
+        expect(relativeDreamPath('models', 'db', 'User')).toEqual('../../db/')
+      })
+    })
+
+    context('from models with a nested model name', () => {
+      it('returns ../serializers/<NestedName>/<ModelName>Serializer', () => {
+        expect(relativeDreamPath('models', 'db', 'Graph/Edge')).toEqual('../../../db/')
+      })
+    })
+  })
+
   context('to factories', () => {
     context('from models with a model name', () => {
       it('returns ../../spec/factories/<ModelName>Factory', () => {
