@@ -1,9 +1,7 @@
-import UserSerializer from '../serializers/UserSerializer'
-
 export default class HelloWorldViewModel {
   public get serializers() {
     return {
-      default: UserSerializer,
+      default: 'UserSerializer',
     } as const
   }
 }
