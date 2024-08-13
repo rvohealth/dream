@@ -6,12 +6,7 @@ import { getCachedDreamApplicationOrFail } from '../dream-application/cache'
 export default async function loadRepl(context: Record<string, unknown>) {
   const dreamApp = getCachedDreamApplicationOrFail()
 
-  const inflectionsPath = './src/conf/inflections'
-  try {
-    await import(inflectionsPath)
-  } catch (_) {
-    // don't fret about if no inflections file found, it's ok.
-  }
+  await dreamApp.inflections?.()
 
   context.DateTime = DateTime
   for (const globalName of Object.keys(dreamApp.models)) {

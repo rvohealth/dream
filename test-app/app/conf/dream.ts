@@ -1,5 +1,6 @@
 import path from 'path'
 import { DreamApplication, DreamApplicationOpts } from '../../../src'
+import inflections from './inflections'
 
 export async function dreamApplicationOpts(): Promise<DreamApplicationOpts> {
   return {
@@ -8,6 +9,7 @@ export async function dreamApplicationOpts(): Promise<DreamApplicationOpts> {
     viewModels: await DreamApplication.loadViewModels(path.join(__dirname, '..', 'view-models')),
     serializers: await DreamApplication.loadSerializers(path.join(__dirname, '..', 'serializers')),
     services: await DreamApplication.loadServices(path.join(__dirname, '..', 'services')),
+    inflections,
     paths: {
       db: 'test-app/db',
     },
@@ -34,5 +36,5 @@ export async function dreamApplicationOpts(): Promise<DreamApplicationOpts> {
 }
 
 export async function initializeDreamApplication() {
-  return DreamApplication.init(await dreamApplicationOpts())
+  return await DreamApplication.init(await dreamApplicationOpts())
 }

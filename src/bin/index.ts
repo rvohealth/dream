@@ -10,7 +10,6 @@ import generateSerializer from '../helpers/cli/generateSerializer'
 import createDb from '../helpers/db/createDb'
 import _dropDb from '../helpers/db/dropDb'
 import runMigration from '../helpers/db/runMigration'
-import { dbSeedPath } from '../helpers/path'
 import writeSyncFile from './helpers/sync'
 
 export default class DreamBin {
@@ -78,17 +77,6 @@ export default class DreamBin {
     }
 
     // await db('primary', getCachedDreamApplicationOrFail()).destroy()
-  }
-
-  public static async dbSeed() {
-    console.log('seeding db...')
-    const seed = await import(await dbSeedPath())
-
-    if (!seed.default) throw 'db/seed.ts file must have an async function as the default export'
-
-    await seed.default()
-
-    console.log('done seeding db!')
   }
 
   public static async generateDream() {

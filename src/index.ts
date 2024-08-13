@@ -79,7 +79,6 @@ export {
   inferSerializerFromDreamClassOrViewModelClass,
   default as inferSerializerFromDreamOrViewModel,
 } from './helpers/inferSerializerFromDreamOrViewModel'
-export { default as initializeDream } from './helpers/initializeDream'
 export { default as loadRepl } from './helpers/loadRepl'
 export { default as pascalize } from './helpers/pascalize'
 export { projectRootPath } from './helpers/path'

@@ -1,8 +1,7 @@
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../src/decorators/associations/has-many'
 import SoftDelete from '../../../src/decorators/soft-delete'
-import { DreamColumn } from '../../../src/dream/types'
-import PostSerializer from '../serializers/PostSerializer'
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import HeartRating from './ExtraRating/HeartRating'
 import NonNullRating from './NonNullRating'
@@ -15,6 +14,10 @@ import User from './User'
 export default class Post extends ApplicationModel {
   public get table() {
     return 'posts' as const
+  }
+
+  public get serializers(): DreamSerializers<Post> {
+    return { default: 'PostSerializer' }
   }
 
   public id: DreamColumn<Post, 'id'>
@@ -68,5 +71,3 @@ export default class Post extends ApplicationModel {
   })
   public heartRatings: HeartRating[]
 }
-
-Post.register('serializers', { default: PostSerializer<any> })

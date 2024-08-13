@@ -1,17 +1,20 @@
-import { DreamColumn } from '../../../../src/dream/types'
 import BelongsTo from '../../../../src/decorators/associations/belongs-to'
 import HasMany from '../../../../src/decorators/associations/has-many'
 import HasOne from '../../../../src/decorators/associations/has-one'
+import { DreamColumn, DreamSerializers } from '../../../../src/dream/types'
 
-import GraphEdgeNodeSerializer from '../../../../test-app/app/serializers/Graph/EdgeNodeSerializer'
+import Sortable from '../../../../src/decorators/sortable'
+import ApplicationModel from '../ApplicationModel'
 import GraphEdge from './Edge'
 import GraphNode from './Node'
-import ApplicationModel from '../ApplicationModel'
-import Sortable from '../../../../src/decorators/sortable'
 
 export default class EdgeNode extends ApplicationModel {
   public get table() {
     return 'graph_edge_nodes' as const
+  }
+
+  public get serializers(): DreamSerializers<EdgeNode> {
+    return { default: 'GraphEdgeNodeSerializer' }
   }
 
   public id: DreamColumn<EdgeNode, 'id'>
@@ -79,5 +82,3 @@ export default class EdgeNode extends ApplicationModel {
   })
   public tailSiblings: EdgeNode[]
 }
-
-EdgeNode.register('serializers', { default: GraphEdgeNodeSerializer })

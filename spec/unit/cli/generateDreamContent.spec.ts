@@ -2,8 +2,8 @@ import generateDreamContent from '../../../src/helpers/cli/generateDreamContent'
 
 describe('dream generate:model <name> [...attributes]', () => {
   context('when provided with a pascalized model name', () => {
-    it('generates a dream model with multiple string fields', async () => {
-      const res = await generateDreamContent('MealType', [])
+    it('generates a dream model with multiple string fields', () => {
+      const res = generateDreamContent('MealType', [])
       expect(res).toEqual(
         `\
 import { DreamColumn } from '@rvohealth/dream'
@@ -33,8 +33,8 @@ MealType.register('serializers', {
 
   context('when provided attributes', () => {
     context('with a string attribute', () => {
-      it('generates a dream model with multiple string fields', async () => {
-        const res = await generateDreamContent('user', ['email:string', 'password_digest:string'])
+      it('generates a dream model with multiple string fields', () => {
+        const res = generateDreamContent('user', ['email:string', 'password_digest:string'])
         expect(res).toEqual(
           `\
 import { DreamColumn } from '@rvohealth/dream'
@@ -65,8 +65,8 @@ User.register('serializers', {
     })
 
     context('with enum attributes', () => {
-      it('generates a dream model with multiple enum fields', async () => {
-        const res = await generateDreamContent('chalupa', [
+      it('generates a dream model with multiple enum fields', () => {
+        const res = generateDreamContent('chalupa', [
           'topping:enum:topping:cheese,baja_sauce',
           'protein:enum:protein:beef,non_beef',
           'existing_enum:enum:my_existing_enum',
@@ -102,8 +102,8 @@ Chalupa.register('serializers', {
     })
 
     context('when name has an uncountable rule applied in inflections conf', () => {
-      it('respects inflections conf while generating model name', async () => {
-        const res = await generateDreamContent('paper', ['name:string'])
+      it('respects inflections conf while generating model name', () => {
+        const res = generateDreamContent('paper', ['name:string'])
         expect(res).toEqual(
           `\
 import { DreamColumn } from '@rvohealth/dream'
@@ -134,8 +134,8 @@ Paper.register('serializers', {
 
     context('relationships', () => {
       context('when provided with a belongsTo relationship', () => {
-        it('generates a BelongsTo relationship in model', async () => {
-          const res = await generateDreamContent('composition', ['graph_node:belongs_to'])
+        it('generates a BelongsTo relationship in model', () => {
+          const res = generateDreamContent('composition', ['graph_node:belongs_to'])
           expect(res).toEqual(
             `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
@@ -168,8 +168,8 @@ Composition.register('serializers', {
         })
 
         context('namespaced relationships', () => {
-          it('can handle belongs to associations with nested paths', async () => {
-            const res = await generateDreamContent('cat_toy', ['pet/domestic/cat:belongs_to'])
+          it('can handle belongs to associations with nested paths', () => {
+            const res = generateDreamContent('cat_toy', ['pet/domestic/cat:belongs_to'])
             expect(res).toEqual(
               `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
@@ -201,8 +201,8 @@ CatToy.register('serializers', {
             )
           })
 
-          it('can handle has many associations with nested paths', async () => {
-            const res = await generateDreamContent('cat_toy', ['pet/domestic/cat:has_many'])
+          it('can handle has many associations with nested paths', () => {
+            const res = generateDreamContent('cat_toy', ['pet/domestic/cat:has_many'])
             expect(res).toEqual(
               `\
 import { DreamColumn, HasMany } from '@rvohealth/dream'
@@ -233,8 +233,8 @@ CatToy.register('serializers', {
             )
           })
 
-          it('can handle has one associations with nested paths', async () => {
-            const res = await generateDreamContent('cat_toy', ['pet/domestic/cat:has_one'])
+          it('can handle has one associations with nested paths', () => {
+            const res = generateDreamContent('cat_toy', ['pet/domestic/cat:has_one'])
             expect(res).toEqual(
               `\
 import { DreamColumn, HasOne } from '@rvohealth/dream'
@@ -265,8 +265,8 @@ CatToy.register('serializers', {
             )
           })
 
-          it('produces valid association paths when the model being generated is namespaced', async () => {
-            const res = await generateDreamContent('pet/domestic/cat', ['graph_node:belongs_to'])
+          it('produces valid association paths when the model being generated is namespaced', () => {
+            const res = generateDreamContent('pet/domestic/cat', ['graph_node:belongs_to'])
             expect(res).toEqual(
               `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
@@ -298,8 +298,8 @@ PetDomesticCat.register('serializers', {
             )
           })
 
-          it('produces valid association paths when both the model being generated and the associated model are namespaced', async () => {
-            const res = await generateDreamContent('pet/domestic/cat', ['pet/domestic/dog:belongs_to'])
+          it('produces valid association paths when both the model being generated and the associated model are namespaced', () => {
+            const res = generateDreamContent('pet/domestic/cat', ['pet/domestic/dog:belongs_to'])
             expect(res).toEqual(
               `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
@@ -331,8 +331,8 @@ PetDomesticCat.register('serializers', {
             )
           })
 
-          it('produces valid association paths when both the model being generated and the associated model are namespaced', async () => {
-            const res = await generateDreamContent('pet/wild/cat', ['pet/domestic/dog:belongs_to'])
+          it('produces valid association paths when both the model being generated and the associated model are namespaced', () => {
+            const res = generateDreamContent('pet/wild/cat', ['pet/domestic/dog:belongs_to'])
             expect(res).toEqual(
               `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
@@ -365,8 +365,8 @@ PetWildCat.register('serializers', {
           })
         })
 
-        it('can handle multiple associations without duplicate imports', async () => {
-          const res = await generateDreamContent('composition', ['user:belongs_to', 'chalupa:belongs_to'])
+        it('can handle multiple associations without duplicate imports', () => {
+          const res = generateDreamContent('composition', ['user:belongs_to', 'chalupa:belongs_to'])
           expect(res).toEqual(
             `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
@@ -405,8 +405,8 @@ Composition.register('serializers', {
       })
 
       context('when provided with a hasOne relationship', () => {
-        it('generates a HasOne relationship in model', async () => {
-          const res = await generateDreamContent('composition', ['user:has_one'])
+        it('generates a HasOne relationship in model', () => {
+          const res = generateDreamContent('composition', ['user:has_one'])
           expect(res).toEqual(
             `\
 import { DreamColumn, HasOne } from '@rvohealth/dream'
@@ -439,8 +439,8 @@ Composition.register('serializers', {
       })
 
       context('when provided with a hasMany relationship', () => {
-        it('generates a HasMany relationship in model', async () => {
-          const res = await generateDreamContent('user', ['composition:has_many'])
+        it('generates a HasMany relationship in model', () => {
+          const res = generateDreamContent('user', ['composition:has_many'])
           expect(res).toEqual(
             `\
 import { DreamColumn, HasMany } from '@rvohealth/dream'
@@ -473,8 +473,8 @@ User.register('serializers', {
       })
 
       context('when provided with a relationship and using uuids', () => {
-        it('generates a uuid id field for relations relationship in model', async () => {
-          const res = await generateDreamContent('composition', ['user:belongs_to'])
+        it('generates a uuid id field for relations relationship in model', () => {
+          const res = generateDreamContent('composition', ['user:belongs_to'])
           expect(res).toEqual(
             `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'

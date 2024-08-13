@@ -3,8 +3,7 @@ import HasMany from '../../../src/decorators/associations/has-many'
 import HasOne from '../../../src/decorators/associations/has-one'
 import SoftDelete from '../../../src/decorators/soft-delete'
 import Sortable from '../../../src/decorators/sortable'
-import { DreamColumn, IdType } from '../../../src/dream/types'
-import PetSerializer, { PetSummarySerializer } from '../serializers/PetSerializer'
+import { DreamColumn, DreamSerializers, IdType } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
 import Collar from './Collar'
@@ -17,6 +16,13 @@ import User from './User'
 export default class Pet extends ApplicationModel {
   public get table() {
     return 'pets' as const
+  }
+
+  public get serializers(): DreamSerializers<Pet> {
+    return {
+      default: 'PetSerializer',
+      summary: 'PetSummarySerializer',
+    }
   }
 
   public id: DreamColumn<Pet, 'id'>
@@ -103,8 +109,3 @@ export default class Pet extends ApplicationModel {
     }
   }
 }
-
-Pet.register('serializers', {
-  default: PetSerializer<any, any>,
-  summary: PetSummarySerializer<any, any>,
-})

@@ -8,29 +8,12 @@ import loadServices from './helpers/loadServices'
 import loadViewModels from './helpers/loadViewModels'
 
 export default class DreamApplication {
-  public static init(opts: DreamApplicationOpts) {
+  public static async init(opts: DreamApplicationOpts) {
     const dreamApp = new DreamApplication(opts)
+    await dreamApp.inflections?.()
     cacheDreamApplication(dreamApp)
     return dreamApp
   }
-
-  public dbCredentials: DreamDbCredentialOptions
-  public primaryKeyType: (typeof primaryKeyTypes)[number] = 'bigserial'
-  public appRoot: string
-  public paths: {
-    models: string
-    viewModels: string
-    services: string
-    serializers: string
-    conf: string
-    db: string
-    uspecs: string
-    factories: string
-  }
-  public serializers: Record<string, typeof DreamSerializer>
-  public models: Record<string, typeof Dream>
-  public viewModels: Record<string, ViewModel>
-  public services: Record<string, any>
 
   public static async loadModels(modelsPath: string) {
     return await loadModels(modelsPath)
@@ -60,6 +43,25 @@ export default class DreamApplication {
     }
   }
 
+  public dbCredentials: DreamDbCredentialOptions
+  public primaryKeyType: (typeof primaryKeyTypes)[number] = 'bigserial'
+  public appRoot: string
+  public paths: {
+    models: string
+    viewModels: string
+    services: string
+    serializers: string
+    conf: string
+    db: string
+    uspecs: string
+    factories: string
+  }
+  public serializers: Record<string, typeof DreamSerializer>
+  public models: Record<string, typeof Dream>
+  public viewModels: Record<string, ViewModel>
+  public services: Record<string, any>
+  public inflections?: () => void | Promise<void>
+
   constructor(opts: DreamApplicationOpts) {
     this.dbCredentials = opts.db
     this.primaryKeyType = opts.primaryKeyType
@@ -78,6 +80,7 @@ export default class DreamApplication {
     this.serializers = opts.serializers
     this.viewModels = opts.viewModels
     this.services = opts.services
+    this.inflections = opts.inflections
   }
 }
 
@@ -89,6 +92,7 @@ export interface DreamApplicationOpts {
   models: Record<string, typeof Dream>
   viewModels: Record<string, ViewModel>
   services: Record<string, any>
+  inflections?: () => void | Promise<void>
   paths?: {
     models?: string
     serializers?: string

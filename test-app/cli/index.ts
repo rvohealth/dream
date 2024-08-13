@@ -10,6 +10,7 @@ import '../app/conf/loadEnv'
 import { Command } from 'commander'
 import { DreamBin, developmentOrTestEnv } from '../../src'
 import { initializeDreamApplication } from '../app/conf/dream'
+import seedDb from '../db/seed'
 
 const program = new Command()
 
@@ -160,7 +161,7 @@ program
     await DreamBin.dbCreate()
     await DreamBin.dbMigrate()
     await DreamBin.sync()
-    await DreamBin.dbSeed()
+    await seedDb()
     process.exit()
   })
 
@@ -180,7 +181,7 @@ program
     }
 
     await initializeDreamApplication()
-    await DreamBin.dbSeed()
+    await seedDb()
     process.exit()
   })
 

@@ -1,16 +1,13 @@
 import pluralize from 'pluralize'
 import camelize from '../camelize'
-import initializeDream from '../initializeDream'
 import pascalize from '../pascalize'
 import uniq from '../uniq'
 
-export default async function generateSerializerContent(
+export default function generateSerializerContent(
   fullyQualifiedSerializerName: string,
   fullyQualifiedModelName?: string,
   attributes: string[] = []
 ) {
-  await initializeDream()
-
   const serializerClass = fullyQualifiedClassNameFromRawStr(fullyQualifiedSerializerName)
   const serializerSummaryClass = fullyQualifiedSummaryClassNameFromRawStr(fullyQualifiedSerializerName)
   const additionalImports: string[] = []

@@ -2,8 +2,8 @@ import generateFactoryContent from '../../../src/helpers/cli/generateFactoryCont
 
 describe('dream generate:model <name> [...attributes] (factory context)', () => {
   context('when provided with a pascalized table name', () => {
-    it('generates a factory with the given name', async () => {
-      const res = await generateFactoryContent('User', [])
+    it('generates a factory with the given name', () => {
+      const res = generateFactoryContent('User', [])
       expect(res).toEqual(
         `\
 import { UpdateableProperties } from '@rvohealth/dream'
@@ -19,8 +19,8 @@ export default async function createUser(overrides: UpdateableProperties<User> =
   })
 
   context('with a nested name', () => {
-    it('applies nesting to name and directory structure', async () => {
-      const res = await generateFactoryContent('My/Nested/User', [])
+    it('applies nesting to name and directory structure', () => {
+      const res = generateFactoryContent('My/Nested/User', [])
       expect(res).toEqual(
         `\
 import { UpdateableProperties } from '@rvohealth/dream'
@@ -36,8 +36,8 @@ export default async function createUser(overrides: UpdateableProperties<User> =
   })
 
   context('with belongs_to attributes', () => {
-    it('includes belongs to attributes as preliminary arguments before overrides', async () => {
-      const res = await generateFactoryContent('My/Nested/User', [
+    it('includes belongs to attributes as preliminary arguments before overrides', () => {
+      const res = generateFactoryContent('My/Nested/User', [
         'name:string',
         'My/Nested/Organization:belongs_to',
       ])

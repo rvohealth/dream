@@ -87,7 +87,6 @@ import {
   DreamColumnNames,
   DreamConstructorType,
   DreamParamSafeColumnNames,
-  DreamRegisterable,
   DreamSerializeOptions,
   FinalVariadicTableName,
   IdType,
@@ -111,7 +110,7 @@ import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associati
 import NonLoadedAssociation from './exceptions/associations/non-loaded-association'
 import CannotCallUndestroyOnANonSoftDeleteModel from './exceptions/cannot-call-undestroy-on-a-non-soft-delete-model'
 import CreateOrFindByFailedToCreateAndFind from './exceptions/create-or-find-by-failed-to-create-and-find'
-import MissingSerializer from './exceptions/missing-serializer'
+import MissingSerializer from './exceptions/missing-serializers-definition'
 import MissingTable from './exceptions/missing-table'
 import NonExistentScopeProvidedToResort from './exceptions/non-existent-scope-provided-to-resort'
 import CalendarDate from './helpers/CalendarDate'
@@ -122,7 +121,6 @@ import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDr
 import { marshalDBValue } from './helpers/marshalDBValue'
 import { EnvOpts } from './helpers/path/types'
 import { isString } from './helpers/typechecks'
-import DreamSerializer from './serializer'
 
 export default class Dream {
   public DB: any
@@ -160,39 +158,55 @@ export default class Dream {
   }
 
   /**
-   * Registers core options within dream.
+   * This can be left off your model definition if your
+   * application will not be rendering this instance
+   * to any front end clients.
    *
-   * if 'serializers' is passed as the type,
-   * then the object provided will become
-   * the new list of allowed serializers for this
-   * model.
+   * Return an object containing your serializer definitions,
+   * like so:
    *
-   * Once implemented, you will need to make sure
-   * to sync up your types, since Dream introspects
-   * the keys provided in the serializers object
-   * and stores them within the `db/schema.ts` file,
-   * enabling us to provide autocomplete for serializer
-   * keys. this can be done by running the following
-   * in the cli:
+   * ```ts
+   * class Post extends ApplicationModel {
+   *   public get serializers() {
+   *     return {
+   *       default: PostSerializer,
+   *       summary: PostSummarySerializer,
+   *     }
+   *   }
+   * }
+   * ```
    *
-   * ```bash
-   * NODE_ENV=test yarn psy sync
+   * These serializer definitions will be used by Psychic
+   * to automatically render your models when you attempt
+   * to render them using Psychic's provided methods.
+   *
+   * Here is an example of this being used from your controller:
+   *
+   * ```ts
+   * class PostsController extends AuthedController {
+   *   public index() {
+   *     const posts = await this.currentUser.associationQuery('posts').all()
+   *     this.ok(posts, { serializerKey: 'summary' })
+   *   }
+   * }
+   * ```
+   *
+   * If the serializer option is not passed, Psychic will
+   * automatically use the `default` serializer, like so:
+   *
+   * ```ts
+   * class PostsController extends AuthedController {
+   *   public show() {
+   *     const post = await this.currentUser.associationQuery('posts').find(this.castParam('id', 'bigint'))
+   *     this.ok(post)
+   *   }
+   * }
    * ```
    */
-  public static register<T extends DreamRegisterable>(
-    type: T,
-    opts: T extends 'serializers' ? Record<string, typeof DreamSerializer> : never
-  ) {
-    switch (type) {
-      case 'serializers':
-        this.serializers = opts
-        break
-
-      default:
-        throw new Error(`unexpected type passed to ${this.name}.register: "${type}"`)
-    }
+  public get serializers(): Record<string, any> {
+    // public serializers<I extends Dream>(this: I): GlobalSerializerName<I> {
+    throw new MissingSerializer(this.constructor as typeof Dream)
   }
-  private static serializers: Record<string, typeof DreamSerializer> = {}
 
   /**
    * A getter which can be overwritten to customize the automatic createdAt timestamp field

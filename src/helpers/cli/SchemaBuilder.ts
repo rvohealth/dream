@@ -154,6 +154,13 @@ ${tableName}: {
     const model = models.find(model => model.table === tableName)
 
     const associationData = this.getAssociationData(tableName)
+    let serializers: any
+    try {
+      serializers = model?.prototype?.['serializers'] || {}
+    } catch {
+      serializers = {}
+    }
+
     return {
       primaryKey: model!.prototype.primaryKey,
       createdAtField: model!.prototype.createdAtField,
@@ -166,7 +173,7 @@ ${tableName}: {
       columns: await this.getColumnData(tableName, associationData),
       virtualColumns: this.getVirtualColumns(tableName),
       associations: associationData,
-      serializerKeys: Object.keys(model?.['serializers'] || {}),
+      serializerKeys: Object.keys(serializers),
     }
   }
 

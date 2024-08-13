@@ -2,14 +2,12 @@ import path from 'path'
 import pluralize from 'pluralize'
 import pascalize from '../../../src/helpers/pascalize'
 import camelize from '../camelize'
-import initializeDream from '../initializeDream'
 import pascalizePath from '../pascalizePath'
 import relativeDreamPath from '../path/relativeDreamPath'
 import snakeify from '../snakeify'
 import uniq from '../uniq'
 
-export default async function generateDreamContent(modelName: string, attributes: string[]) {
-  await initializeDream()
+export default function generateDreamContent(modelName: string, attributes: string[]) {
   const modelClassName = pascalizePath(modelName)
 
   const dreamImports: string[] = ['DreamColumn']
@@ -18,7 +16,7 @@ export default async function generateDreamContent(modelName: string, attributes
 
   const additionalImports: string[] = []
 
-  const serializerImport = await buildSerializerImportStatement(modelName)
+  const serializerImport = buildSerializerImportStatement(modelName)
   additionalImports.push(serializerImport)
 
   const attributeStatements = attributes.map(attribute => {
@@ -119,12 +117,12 @@ function buildImportStatement(modelName: string, attribute: string) {
   return associationImportStatement
 }
 
-async function buildSerializerImportStatement(modelName: string) {
-  const relativePath = await relativePathToSrcRoot(modelName)
+function buildSerializerImportStatement(modelName: string) {
+  const relativePath = relativePathToSrcRoot(modelName)
 
   const serializerPath = path.join(
     relativePath,
-    await relativeDreamPath('serializers'),
+    relativeDreamPath('serializers'),
     relativeSerializerPathFromModelName(modelName)
   )
   const serializerClassName = serializerNameFromModelName(modelName)
@@ -164,9 +162,9 @@ function relativePathToModelRoot(modelName: string) {
   return numNestedDirsForModel > 0 ? updirs : './'
 }
 
-async function relativePathToSrcRoot(modelName: string) {
+function relativePathToSrcRoot(modelName: string) {
   const rootPath = relativePathToModelRoot(modelName)
-  const numUpdirsInRootPath = (await relativeDreamPath('models')).split('/').length
+  const numUpdirsInRootPath = relativeDreamPath('models').split('/').length
   let updirs = ''
   for (let i = 0; i < numUpdirsInRootPath; i++) {
     updirs += '../'

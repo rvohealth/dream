@@ -1,13 +1,16 @@
-import { DreamColumn } from '../../../../src/dream/types'
 import HasMany from '../../../../src/decorators/associations/has-many'
-import GraphNodeSerializer from '../../../../test-app/app/serializers/Graph/NodeSerializer'
-import EdgeNode from './EdgeNode'
-import GraphEdge from './Edge'
+import { DreamColumn, DreamSerializers } from '../../../../src/dream/types'
 import ApplicationModel from '../ApplicationModel'
+import GraphEdge from './Edge'
+import EdgeNode from './EdgeNode'
 
 export default class Node extends ApplicationModel {
   public get table() {
     return 'graph_nodes' as const
+  }
+
+  public get serializers(): DreamSerializers<Node> {
+    return { default: 'GraphNodeSerializer' }
   }
 
   public id: DreamColumn<Node, 'id'>
@@ -51,5 +54,3 @@ export default class Node extends ApplicationModel {
   })
   public nonNodeNameEdgesOnThroughAssociation: GraphEdge[]
 }
-
-Node.register('serializers', { default: GraphNodeSerializer })

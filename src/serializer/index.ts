@@ -8,7 +8,7 @@ import {
   DreamOrViewModel,
 } from '../dream/types'
 import NonLoadedAssociation from '../exceptions/associations/non-loaded-association'
-import MissingSerializer from '../exceptions/missing-serializer'
+import MissingSerializer from '../exceptions/missing-serializers-definition'
 import FailedToRenderThroughAssociationForSerializer from '../exceptions/serializers/failed-to-render-through-association'
 import CalendarDate from '../helpers/CalendarDate'
 import camelize from '../helpers/camelize'

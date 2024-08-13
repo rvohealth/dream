@@ -1,6 +1,6 @@
 import Dream from '../dream'
 
-export default class MissingSerializer extends Error {
+export default class MissingSerializersDefinition extends Error {
   public dreamClass: typeof Dream
 
   constructor(dreamClass: typeof Dream) {

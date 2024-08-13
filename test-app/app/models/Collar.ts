@@ -2,8 +2,7 @@ import { SoftDelete } from '../../../src'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import Scope from '../../../src/decorators/scope'
 import Query from '../../../src/dream/query'
-import { DreamColumn } from '../../../src/dream/types'
-import CollarSerializer from '../../../test-app/app/serializers/CollarSerializer'
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
 import Pet from './Pet'
@@ -12,6 +11,10 @@ import Pet from './Pet'
 export default class Collar extends ApplicationModel {
   public get table() {
     return 'collars' as const
+  }
+
+  public get serializers(): DreamSerializers<Collar> {
+    return { default: 'CollarSerializer' }
   }
 
   public id: DreamColumn<Collar, 'id'>
@@ -36,5 +39,3 @@ export default class Collar extends ApplicationModel {
     return query.where({ hidden: false })
   }
 }
-
-Collar.register('serializers', { default: CollarSerializer })

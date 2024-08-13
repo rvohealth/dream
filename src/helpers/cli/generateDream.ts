@@ -37,7 +37,7 @@ export default async function generateDream(dreamName: string, attributes: strin
     await thisfs.mkdir(fullPath, { recursive: true })
   }
 
-  const content = await generateDreamContent(dreamName, attributes)
+  const content = generateDreamContent(dreamName, attributes)
 
   try {
     console.log(`generating dream: ${relativeModelsPath}`)

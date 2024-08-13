@@ -1,4 +1,4 @@
-import MissingSerializer from '../../../src/exceptions/missing-serializer'
+import MissingSerializersDefinition from '../../../src/exceptions/missing-serializers-definition'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import User from '../../../test-app/app/models/User'
 
@@ -11,7 +11,7 @@ describe('Dream#serialize', () => {
   context('a serializer is not defined on the model', () => {
     it('raises a targeted exception', () => {
       const record = CompositionAsset.new({ name: 'howyadoin' })
-      expect(() => record.serialize()).toThrowError(MissingSerializer)
+      expect(() => record.serialize()).toThrowError(MissingSerializersDefinition)
     })
   })
 })

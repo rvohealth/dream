@@ -1,4 +1,5 @@
 import Dream from '../dream'
+import { getCachedDreamApplicationOrFail } from '../dream-application/cache'
 import { DreamClassOrViewModelClass, DreamOrViewModel } from '../dream/types'
 import DreamSerializer from '../serializer'
 
@@ -6,13 +7,13 @@ export default function inferSerializerFromDreamOrViewModel(
   obj: DreamOrViewModel,
   serializerKey: string | undefined = undefined
 ) {
-  return (
-    (obj?.constructor as typeof Dream)?.['serializers']?.[serializerKey || 'default'] ||
-    (obj as { serializers: Record<string, typeof DreamSerializer> })?.['serializers']?.[
+  const globalName =
+    (obj as Dream | { serializers: Record<string, typeof DreamSerializer> })?.['serializers']?.[
       serializerKey || 'default'
-    ] ||
-    null
-  )
+    ] || null
+
+  const dreamApp = getCachedDreamApplicationOrFail()
+  return dreamApp.serializers[globalName] || null
 }
 
 export function inferSerializerFromDreamClassOrViewModelClass(

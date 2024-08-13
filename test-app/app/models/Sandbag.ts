@@ -1,13 +1,16 @@
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
-import { DreamColumn } from '../../../src/dream/types'
-import SandbagSerializer from '../../../test-app/app/serializers/SandbagSerializer'
-import Mylar from './Balloon/Mylar'
-import ApplicationModel from './ApplicationModel'
 import Validate from '../../../src/decorators/validations/validate'
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
+import ApplicationModel from './ApplicationModel'
+import Mylar from './Balloon/Mylar'
 
 export default class Sandbag extends ApplicationModel {
   public get table() {
     return 'sandbags' as const
+  }
+
+  public get serializers(): DreamSerializers<Sandbag> {
+    return { default: 'SandbagSerializer' } as const
   }
 
   public id: DreamColumn<Sandbag, 'id'>
@@ -59,5 +62,3 @@ export default class Sandbag extends ApplicationModel {
   @Sandbag.AfterUpdateCommit({ ifChanged: ['weightTons'] })
   public conditionalAfterUpdateCommitHook() {}
 }
-
-Sandbag.register('serializers', { default: SandbagSerializer })

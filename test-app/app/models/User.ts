@@ -7,9 +7,8 @@ import Scope from '../../../src/decorators/scope'
 import Validates from '../../../src/decorators/validations/validates'
 import Virtual from '../../../src/decorators/virtual'
 import Query from '../../../src/dream/query'
-import { DreamColumn } from '../../../src/dream/types'
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import range from '../../../src/helpers/range'
-import UserSerializer, { UserSummarySerializer } from '../serializers/UserSerializer'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
 import BalloonLine from './BalloonLine'
@@ -27,6 +26,13 @@ import UserSettings from './UserSettings'
 export default class User extends ApplicationModel {
   public get table() {
     return 'users' as const
+  }
+
+  public get serializers(): DreamSerializers<User> {
+    return {
+      default: 'UserSerializer',
+      summary: 'UserSummarySerializer',
+    } as const
   }
 
   public id: DreamColumn<User, 'id'>
@@ -234,8 +240,3 @@ export default class User extends ApplicationModel {
     return await bcrypt.compare(password, this.passwordDigest)
   }
 }
-
-User.register('serializers', {
-  default: UserSerializer<any, any>,
-  summary: UserSummarySerializer<any, any>,
-})
