@@ -10,8 +10,9 @@ export default async function loadServices(servicesPath: string): Promise<Record
 
   for (const servicePath of servicePaths) {
     const service = (await import(servicePath)).default
-    if (service.name) {
-      _services[service.name] = service
+    const serviceName = service.globalName || service.name
+    if (serviceName) {
+      _services[serviceName] = service
     }
   }
 
