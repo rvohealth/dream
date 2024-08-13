@@ -1,4 +1,3 @@
-export { default as loadDreamYamlFile } from './path/loadDreamYamlFile'
 export { default as projectRootPath } from './path/projectRootPath'
 export { default as schemaPath } from './path/schemaPath'
 export { default as modelsPath } from './path/modelsPath'

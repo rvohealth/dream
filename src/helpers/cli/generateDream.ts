@@ -1,12 +1,13 @@
 import fs from 'fs/promises'
 import path from 'path'
 import pluralize from 'pluralize'
+import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
 import primaryKeyType from '../db/primaryKeyType'
 import hyphenize from '../hyphenize'
 import migrationVersion from '../migrationVersion'
 import pascalize from '../pascalize'
 import pascalizePath from '../pascalizePath'
-import { loadDreamYamlFile, migrationsPath, modelsPath } from '../path'
+import { migrationsPath, modelsPath } from '../path'
 import relativeDreamPath from '../path/relativeDreamPath'
 import serializersPath from '../path/serializersPath'
 import snakeify from '../snakeify'
@@ -17,7 +18,7 @@ import generateSerializerContent from './generateSerializerContent'
 import generateUnitSpec from './generateUnitSpec'
 
 export default async function generateDream(dreamName: string, attributes: string[]) {
-  const ymlConfig = await loadDreamYamlFile()
+  const dreamApp = getCachedDreamApplicationOrFail()
 
   const dreamBasePath = await modelsPath()
   const formattedDreamName = pluralize
@@ -26,7 +27,7 @@ export default async function generateDream(dreamName: string, attributes: strin
     .map(pathName => pascalize(pathName))
     .join('/')
   const dreamPath = path.join(dreamBasePath, `${formattedDreamName}.ts`)
-  const relativeModelsPath = dreamPath.replace(dreamBasePath, ymlConfig.models_path || 'app/models')
+  const relativeModelsPath = dreamPath.replace(dreamBasePath, dreamApp.paths.models)
   const dreamPathParts = formattedDreamName.split('/')
 
   // if they are generating a nested model path,
