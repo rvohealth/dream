@@ -112,10 +112,7 @@ export default async function generateDream(dreamName: string, attributes: strin
 
   try {
     console.log(`generating serializer: ${relativeSerializerPath}`)
-    await fs.writeFile(
-      serializerPath,
-      generateSerializerContent(fullyQualifiedSerializerName, dreamName, attributes)
-    )
+    await fs.writeFile(serializerPath, generateSerializerContent(dreamName, attributes))
   } catch (error) {
     const err = `
       Something happened while trying to create the serializer file:

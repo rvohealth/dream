@@ -1,9 +1,12 @@
 import pascalize from '../../../src/helpers/pascalize'
 import camelize from '../camelize'
-import relativeDreamPath from '../path/dreamPath'
+import relativeDreamPath from '../path/relativeDreamPath'
 import uniq from '../uniq'
 
-export default function generateFactoryContent(modelName: string, attributes: string[]): string {
+export default function generateFactoryContent(
+  fullyQualifiedModelName: string,
+  attributes: string[]
+): string {
   const dreamImports: string[] = ['UpdateableProperties']
   const additionalImports: string[] = []
 
@@ -11,8 +14,10 @@ export default function generateFactoryContent(modelName: string, attributes: st
   const belongsToTypedNames: string[] = []
 
   for (const attribute of attributes) {
-    const [attributeName, attributeType] = attribute.split(':')
-    const associationImportStatement = buildImportStatement(attribute)
+    const [nonStandardAttributeName, attributeType] = attribute.split(':')
+    const attributeName = pascalize(nonStandardAttributeName)
+    const rootAssociationImport = attributeName.split('/').pop()!
+    const associationImportStatement = `import ${rootAssociationImport} from '${relativeDreamPath('factories', 'models', attributeName)}'`
     const attributeNameParts = attributeName.split('/')
     const associationName = attributeNameParts[attributeNameParts.length - 1]
     const camelizedName = camelize(associationName)
@@ -31,14 +36,14 @@ export default function generateFactoryContent(modelName: string, attributes: st
     }
   }
 
-  const relativePath = relativePathToModelRoot()
-  const modelClassName = pascalize(modelName.split('/').pop()!)
+  const relativePath = relativeDreamPath('factories', 'models', fullyQualifiedModelName)
+  const modelClassName = fullyQualifiedModelName.split('/').pop()!
 
   const args = [...belongsToTypedNames, `overrides: UpdateableProperties<${modelClassName}> = {}`]
 
   return `\
 import { ${uniq(dreamImports).join(', ')} } from '@rvohealth/dream'
-import ${pascalize(modelName.split('/').pop()!)} from '${relativePath}${modelName.replace(/^\//, '')}'${
+import ${pascalize(fullyQualifiedModelName.split('/').pop()!)} from '${relativePath}'${
     additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
   }
 
@@ -47,27 +52,6 @@ export default async function create${modelClassName}(${args.join(', ')}) {
     ${belongsToNames.join(',\n    ')}${belongsToNames.length ? ',\n    ' : ''}...overrides,
   })
 }`
-}
-
-function buildImportStatement(attribute: string) {
-  const relativePath = relativePathToModelRoot()
-
-  const [attributeName] = attribute.split(':')
-  const rootAssociationImport = attributeName.split('/').pop()!
-  const associationImportStatement = `import ${pascalize(
-    rootAssociationImport
-  )} from '${relativePath}${attributeName
-    .split('/')
-    .map(name => pascalize(name))
-    .join('/')}'`
-  return associationImportStatement
-}
-
-function relativePathToModelRoot() {
-  const pathToFactories = relativeDreamPath('factories')
-  const updirsArr = [...pathToFactories.split('/').map(() => '../')]
-
-  return updirsArr.join('') + relativeDreamPath('models').replace(/\/$/, '') + '/'
 }
 
 function dreamClassNameFromAttributeName(attributeName: string) {

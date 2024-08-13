@@ -7,7 +7,7 @@ describe('dream generate:model <name> [...attributes] (factory context)', () => 
       expect(res).toEqual(
         `\
 import { UpdateableProperties } from '@rvohealth/dream'
-import User from '../../test-app/app/models/User'
+import User from '../../app/models/User'
 
 export default async function createUser(overrides: UpdateableProperties<User> = {}) {
   return await User.create({
@@ -24,7 +24,7 @@ export default async function createUser(overrides: UpdateableProperties<User> =
       expect(res).toEqual(
         `\
 import { UpdateableProperties } from '@rvohealth/dream'
-import User from '../../test-app/app/models/My/Nested/User'
+import User from '../../../../app/models/My/Nested/User'
 
 export default async function createUser(overrides: UpdateableProperties<User> = {}) {
   return await User.create({
@@ -39,13 +39,13 @@ export default async function createUser(overrides: UpdateableProperties<User> =
     it('includes belongs to attributes as preliminary arguments before overrides', () => {
       const res = generateFactoryContent('My/Nested/User', [
         'name:string',
-        'My/Nested/Organization:belongs_to',
+        'My/Nested/DoubleNested/Organization:belongs_to',
       ])
       expect(res).toEqual(
         `\
 import { UpdateableProperties } from '@rvohealth/dream'
-import User from '../../test-app/app/models/My/Nested/User'
-import Organization from '../../test-app/app/models/My/Nested/Organization'
+import User from '../../../../app/models/My/Nested/User'
+import Organization from '../../../../../app/models/My/Nested/DoubleNested/Organization'
 
 export default async function createUser(organization: Organization, overrides: UpdateableProperties<User> = {}) {
   return await User.create({
