@@ -1,7 +1,0 @@
-conf_path: 'src/conf'
-db_path: 'src/db'
-factory_path: 'spec/factories'
-models_path: 'src/app/models'
-primary_key_type: '<PRIMARY_KEY_TYPE>'
-serializers_path: 'src/app/serializers'
-unit_spec_path: 'spec/unit'

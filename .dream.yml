@@ -1,6 +1,0 @@
-conf_path: 'test-app/app/conf'
-db_path: 'test-app/db'
-factory_path: 'test-app/spec/factories'
-models_path: 'test-app/app/models'
-serializers_path: 'test-app/app/serializers'
-unit_spec_path: 'test-app/spec/unit'

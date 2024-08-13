@@ -1,7 +1,6 @@
 import * as c from 'colorette'
 import * as fs from 'fs'
 
-import DreamYamlBuilder from './file-builders/DreamYamlBuilder'
 import EnvBuilder from './file-builders/EnvBuilder'
 import PackagejsonBuilder from './file-builders/PackagejsonBuilder'
 import copyRecursive from './helpers/copyRecursive'
@@ -33,7 +32,6 @@ export default async function installCoreDreamDependenciesToDir(
   fs.writeFileSync(`${projectPath}/.env`, EnvBuilder.build({ appName, env: 'development' }))
   fs.writeFileSync(`${projectPath}/.env.test`, EnvBuilder.build({ appName, env: 'test' }))
   fs.writeFileSync(projectPath + '/package.json', await PackagejsonBuilder.buildAPI())
-  fs.writeFileSync(projectPath + '/.dream.yml', await DreamYamlBuilder.build(userOptions))
 
   if (!testEnv()) {
     log.restoreCache()
