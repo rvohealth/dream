@@ -2,7 +2,7 @@ import './cli/helpers/loadAppEnvFromBoot'
 
 import pack from '../package.json'
 import sspawn from '../src/helpers/sspawn'
-import { initializeDreamApplication } from '../test-app/app/conf/dream'
+import initializeDreamApplication from '../test-app/cli/helpers/initializeDreamApplication'
 
 export default async function buildDocs() {
   await initializeDreamApplication()

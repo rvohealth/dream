@@ -9,8 +9,8 @@ import '../app/conf/loadEnv'
 
 import { Command } from 'commander'
 import { DreamBin, developmentOrTestEnv } from '../../src'
-import { initializeDreamApplication } from '../app/conf/dream'
 import seedDb from '../db/seed'
+import initializeDreamApplication from './helpers/initializeDreamApplication'
 
 const program = new Command()
 

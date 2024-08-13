@@ -1,11 +1,13 @@
-import { ViewModel, ViewModelClass } from '../../dream/types'
+import { ViewModelClass } from '../../dream/types'
 import getFiles from '../../helpers/getFiles'
 import importFile from '../../helpers/path/importFile'
 import globalNameIsAvailable from './globalNameIsAvailable'
 
-let _viewModels: Record<string, ViewModel>
+let _viewModels: Record<string, ViewModelClass>
 
-export default async function loadViewModels(viewModelsPath: string): Promise<Record<string, ViewModel>> {
+export default async function loadViewModels(
+  viewModelsPath: string
+): Promise<Record<string, ViewModelClass>> {
   if (_viewModels) return _viewModels
 
   _viewModels = {}
