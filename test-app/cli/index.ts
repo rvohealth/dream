@@ -57,18 +57,6 @@ program
   })
 
 program
-  .command('generate:serializer')
-  .alias('g:serializer')
-  .description('generate:serializer <name> [...attributes] create a new serializer')
-  .argument('<name>', 'name of the serializer')
-  .option('--tsnode', 'runs the command using ts-node instead of node')
-  .action(async () => {
-    await initializeDreamApplication()
-    await DreamBin.generateSerializer()
-    process.exit()
-  })
-
-program
   .command('sync')
   .description(
     'sync introspects your database, updating your schema to reflect, and then syncs the new schema with the installed dream node module, allowing it provide your schema to the underlying kysely integration'
