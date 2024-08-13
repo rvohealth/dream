@@ -37,6 +37,7 @@ export { default as Virtual } from './decorators/virtual'
 export { default as Dream } from './dream'
 export { default as DreamApplication, DreamApplicationOpts } from './dream-application'
 export { getCachedDreamApplicationOrFail } from './dream-application/cache'
+export { default as lookupGlobalName } from './dream-application/helpers/lookupGlobalName'
 export { default as Query } from './dream/query'
 export { default as DreamTransaction } from './dream/transaction'
 export {
