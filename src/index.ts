@@ -36,7 +36,7 @@ export { default as Validates } from './decorators/validations/validates'
 export { default as Virtual } from './decorators/virtual'
 export { default as Dream } from './dream'
 export { default as DreamApplication, DreamApplicationOpts } from './dream-application'
-export { getCachedDreamApplicationOrFail as getCachedDreamconfOrFail } from './dream-application/cache'
+export { getCachedDreamApplicationOrFail } from './dream-application/cache'
 export { default as Query } from './dream/query'
 export { default as DreamTransaction } from './dream/transaction'
 export {
