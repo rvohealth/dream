@@ -1,15 +1,15 @@
 import pluralize from 'pluralize'
 import camelize from '../camelize'
+import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName'
 import relativeDreamPath from '../path/relativeDreamPath'
 import serializerNameFromFullyQualifiedModelName from '../serializerNameFromFullyQualifiedModelName'
-import shortNameFromFullyQualifiedModelName from '../shortNameFromFullyQualifiedModelName'
 import snakeify from '../snakeify'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
 import uniq from '../uniq'
 
 export default function generateDreamContent(fullyQualifiedModelName: string, attributes: string[]) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
-  const modelClassName = shortNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+  const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
   const dreamImports: string[] = ['DreamColumn']
   const idTypescriptType = `DreamColumn<${modelClassName}, 'id'>`
   const additionalImports: string[] = []
@@ -17,7 +17,7 @@ export default function generateDreamContent(fullyQualifiedModelName: string, at
   const attributeStatements = attributes.map(attribute => {
     const [attributeName, attributeType] = attribute.split(':')
     const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(attributeName)
-    const associationModelName = shortNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
+    const associationModelName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
     const associationImportStatement = `import ${associationModelName} from '${relativeDreamPath('models', 'models', fullyQualifiedModelName, fullyQualifiedAssociatedModelName)}'`
     const associationName = camelize(associationModelName)
 
@@ -86,13 +86,15 @@ export default class ${modelClassName} extends ApplicationModel {
     return '${tableName}' as const
   }
 
-  public id: ${idTypescriptType}${formattedFields}${timestamps}${formattedDecorators}
-}
+  public get serializers() {
+    return {
+      default: '${serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName)}',
+      summary: '${serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')}',
+    } as const
+  }
 
-${modelClassName}.register('serializers', {
-  default: '${serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName)}',
-  summary: '${serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')}',
-})`.replace(/^\s*$/gm, '')
+  public id: ${idTypescriptType}${formattedFields}${timestamps}${formattedDecorators}
+}`.replace(/^\s*$/gm, '')
 }
 
 function getAttributeType(attribute: string, modelClassName: string) {

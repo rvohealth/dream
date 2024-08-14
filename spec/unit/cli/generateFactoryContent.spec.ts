@@ -24,10 +24,10 @@ export default async function createUser(overrides: UpdateableProperties<User> =
       expect(res).toEqual(
         `\
 import { UpdateableProperties } from '@rvohealth/dream'
-import User from '../../../../app/models/My/Nested/User'
+import MyNestedUser from '../../../../app/models/My/Nested/User'
 
-export default async function createUser(overrides: UpdateableProperties<User> = {}) {
-  return await User.create({
+export default async function createMyNestedUser(overrides: UpdateableProperties<MyNestedUser> = {}) {
+  return await MyNestedUser.create({
     ...overrides,
   })
 }`
@@ -44,12 +44,12 @@ export default async function createUser(overrides: UpdateableProperties<User> =
       expect(res).toEqual(
         `\
 import { UpdateableProperties } from '@rvohealth/dream'
-import User from '../../../../app/models/My/Nested/User'
-import Organization from '../../../../../app/models/My/Nested/DoubleNested/Organization'
+import MyNestedUser from '../../../../app/models/My/Nested/User'
+import MyNestedDoubleNestedOrganization from '../../../../../app/models/My/Nested/DoubleNested/Organization'
 
-export default async function createUser(organization: Organization, overrides: UpdateableProperties<User> = {}) {
-  return await User.create({
-    organization,
+export default async function createMyNestedUser(myNestedDoubleNestedOrganization: MyNestedDoubleNestedOrganization, overrides: UpdateableProperties<MyNestedUser> = {}) {
+  return await MyNestedUser.create({
+    myNestedDoubleNestedOrganization,
     ...overrides,
   })
 }`

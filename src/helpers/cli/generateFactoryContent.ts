@@ -1,6 +1,6 @@
 import camelize from '../camelize'
+import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName'
 import relativeDreamPath from '../path/relativeDreamPath'
-import shortNameFromFullyQualifiedModelName from '../shortNameFromFullyQualifiedModelName'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
 import uniq from '../uniq'
 
@@ -18,7 +18,7 @@ export default function generateFactoryContent(
   for (const attribute of attributes) {
     const [attributeName, attributeType] = attribute.split(':')
     const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(attributeName)
-    const associationModelName = shortNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
+    const associationModelName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
     const associationImportStatement = `import ${associationModelName} from '${relativeDreamPath('factories', 'models', fullyQualifiedAssociatedModelName)}'`
     const associationName = camelize(associationModelName)
 
@@ -38,7 +38,7 @@ export default function generateFactoryContent(
   }
 
   const relativePath = relativeDreamPath('factories', 'models', fullyQualifiedModelName)
-  const modelClassName = shortNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+  const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
 
   const args = [...belongsToTypedNames, `overrides: UpdateableProperties<${modelClassName}> = {}`]
 

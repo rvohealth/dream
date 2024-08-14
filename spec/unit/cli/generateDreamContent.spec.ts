@@ -14,15 +14,18 @@ export default class MealType extends ApplicationModel {
     return 'meal_types' as const
   }
 
+  public get serializers() {
+    return {
+      default: 'MealTypeSerializer',
+      summary: 'MealTypeSummarySerializer',
+    } as const
+  }
+
   public id: DreamColumn<MealType, 'id'>
   public createdAt: DreamColumn<MealType, 'createdAt'>
   public updatedAt: DreamColumn<MealType, 'updatedAt'>
-}
-
-MealType.register('serializers', {
-  default: 'MealTypeSerializer',
-  summary: 'MealTypeSummarySerializer',
-})`
+}\
+`
       )
     })
   })
@@ -41,17 +44,20 @@ export default class User extends ApplicationModel {
     return 'users' as const
   }
 
+  public get serializers() {
+    return {
+      default: 'UserSerializer',
+      summary: 'UserSummarySerializer',
+    } as const
+  }
+
   public id: DreamColumn<User, 'id'>
   public email: DreamColumn<User, 'email'>
   public passwordDigest: DreamColumn<User, 'passwordDigest'>
   public createdAt: DreamColumn<User, 'createdAt'>
   public updatedAt: DreamColumn<User, 'updatedAt'>
-}
-
-User.register('serializers', {
-  default: 'UserSerializer',
-  summary: 'UserSummarySerializer',
-})`
+}\
+`
         )
       })
     })
@@ -73,18 +79,21 @@ export default class Chalupa extends ApplicationModel {
     return 'chalupas' as const
   }
 
+  public get serializers() {
+    return {
+      default: 'ChalupaSerializer',
+      summary: 'ChalupaSummarySerializer',
+    } as const
+  }
+
   public id: DreamColumn<Chalupa, 'id'>
   public topping: DreamColumn<Chalupa, 'topping'>
   public protein: DreamColumn<Chalupa, 'protein'>
   public existingEnum: DreamColumn<Chalupa, 'existingEnum'>
   public createdAt: DreamColumn<Chalupa, 'createdAt'>
   public updatedAt: DreamColumn<Chalupa, 'updatedAt'>
-}
-
-Chalupa.register('serializers', {
-  default: 'ChalupaSerializer',
-  summary: 'ChalupaSummarySerializer',
-})`
+}\
+`
         )
       })
     })
@@ -102,16 +111,19 @@ export default class Paper extends ApplicationModel {
     return 'paper' as const
   }
 
+  public get serializers() {
+    return {
+      default: 'PaperSerializer',
+      summary: 'PaperSummarySerializer',
+    } as const
+  }
+
   public id: DreamColumn<Paper, 'id'>
   public name: DreamColumn<Paper, 'name'>
   public createdAt: DreamColumn<Paper, 'createdAt'>
   public updatedAt: DreamColumn<Paper, 'updatedAt'>
-}
-
-Paper.register('serializers', {
-  default: 'PaperSerializer',
-  summary: 'PaperSummarySerializer',
-})`
+}\
+`
         )
       })
     })
@@ -131,6 +143,13 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
+  public get serializers() {
+    return {
+      default: 'CompositionSerializer',
+      summary: 'CompositionSummarySerializer',
+    } as const
+  }
+
   public id: DreamColumn<Composition, 'id'>
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
@@ -138,12 +157,8 @@ export default class Composition extends ApplicationModel {
   @BelongsTo(() => GraphNode)
   public graphNode: GraphNode
   public graphNodeId: DreamColumn<Composition, 'graphNodeId'>
-}
-
-Composition.register('serializers', {
-  default: 'CompositionSerializer',
-  summary: 'CompositionSummarySerializer',
-})`
+}\
+`
           )
         })
 
@@ -154,26 +169,29 @@ Composition.register('serializers', {
               `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import Cat from './Pet/Domestic/Cat'
+import PetDomesticCat from './Pet/Domestic/Cat'
 
 export default class CatToy extends ApplicationModel {
   public get table() {
     return 'cat_toys' as const
   }
 
+  public get serializers() {
+    return {
+      default: 'CatToySerializer',
+      summary: 'CatToySummarySerializer',
+    } as const
+  }
+
   public id: DreamColumn<CatToy, 'id'>
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
-  @BelongsTo(() => Cat)
-  public cat: Cat
-  public catId: DreamColumn<CatToy, 'catId'>
-}
-
-CatToy.register('serializers', {
-  default: 'CatToySerializer',
-  summary: 'CatToySummarySerializer',
-})`
+  @BelongsTo(() => PetDomesticCat)
+  public petDomesticCat: PetDomesticCat
+  public petDomesticCatId: DreamColumn<CatToy, 'petDomesticCatId'>
+}\
+`
             )
           })
 
@@ -183,25 +201,28 @@ CatToy.register('serializers', {
               `\
 import { DreamColumn, HasMany } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import Cat from './Pet/Domestic/Cat'
+import PetDomesticCat from './Pet/Domestic/Cat'
 
 export default class CatToy extends ApplicationModel {
   public get table() {
     return 'cat_toys' as const
   }
 
+  public get serializers() {
+    return {
+      default: 'CatToySerializer',
+      summary: 'CatToySummarySerializer',
+    } as const
+  }
+
   public id: DreamColumn<CatToy, 'id'>
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
-  @HasMany(() => Cat)
-  public cats: Cat[]
-}
-
-CatToy.register('serializers', {
-  default: 'CatToySerializer',
-  summary: 'CatToySummarySerializer',
-})`
+  @HasMany(() => PetDomesticCat)
+  public petDomesticCats: PetDomesticCat[]
+}\
+`
             )
           })
 
@@ -211,25 +232,28 @@ CatToy.register('serializers', {
               `\
 import { DreamColumn, HasOne } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import Cat from './Pet/Domestic/Cat'
+import PetDomesticCat from './Pet/Domestic/Cat'
 
 export default class CatToy extends ApplicationModel {
   public get table() {
     return 'cat_toys' as const
   }
 
+  public get serializers() {
+    return {
+      default: 'CatToySerializer',
+      summary: 'CatToySummarySerializer',
+    } as const
+  }
+
   public id: DreamColumn<CatToy, 'id'>
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
-  @HasOne(() => Cat)
-  public cat: Cat
-}
-
-CatToy.register('serializers', {
-  default: 'CatToySerializer',
-  summary: 'CatToySummarySerializer',
-})`
+  @HasOne(() => PetDomesticCat)
+  public petDomesticCat: PetDomesticCat
+}\
+`
             )
           })
 
@@ -241,24 +265,27 @@ import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
 import GraphNode from '../../GraphNode'
 
-export default class Cat extends ApplicationModel {
+export default class PetDomesticCat extends ApplicationModel {
   public get table() {
     return 'pet_domestic_cats' as const
   }
 
-  public id: DreamColumn<Cat, 'id'>
-  public createdAt: DreamColumn<Cat, 'createdAt'>
-  public updatedAt: DreamColumn<Cat, 'updatedAt'>
+  public get serializers() {
+    return {
+      default: 'PetDomesticCatSerializer',
+      summary: 'PetDomesticCatSummarySerializer',
+    } as const
+  }
+
+  public id: DreamColumn<PetDomesticCat, 'id'>
+  public createdAt: DreamColumn<PetDomesticCat, 'createdAt'>
+  public updatedAt: DreamColumn<PetDomesticCat, 'updatedAt'>
 
   @BelongsTo(() => GraphNode)
   public graphNode: GraphNode
-  public graphNodeId: DreamColumn<Cat, 'graphNodeId'>
-}
-
-Cat.register('serializers', {
-  default: 'PetDomesticCatSerializer',
-  summary: 'PetDomesticCatSummarySerializer',
-})`
+  public graphNodeId: DreamColumn<PetDomesticCat, 'graphNodeId'>
+}\
+`
             )
           })
 
@@ -268,26 +295,29 @@ Cat.register('serializers', {
               `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
-import Dog from '../../Pet/Domestic/Dog'
+import PetDomesticDog from '../../Pet/Domestic/Dog'
 
-export default class Cat extends ApplicationModel {
+export default class PetDomesticCat extends ApplicationModel {
   public get table() {
     return 'pet_domestic_cats' as const
   }
 
-  public id: DreamColumn<Cat, 'id'>
-  public createdAt: DreamColumn<Cat, 'createdAt'>
-  public updatedAt: DreamColumn<Cat, 'updatedAt'>
+  public get serializers() {
+    return {
+      default: 'PetDomesticCatSerializer',
+      summary: 'PetDomesticCatSummarySerializer',
+    } as const
+  }
 
-  @BelongsTo(() => Dog)
-  public dog: Dog
-  public dogId: DreamColumn<Cat, 'dogId'>
-}
+  public id: DreamColumn<PetDomesticCat, 'id'>
+  public createdAt: DreamColumn<PetDomesticCat, 'createdAt'>
+  public updatedAt: DreamColumn<PetDomesticCat, 'updatedAt'>
 
-Cat.register('serializers', {
-  default: 'PetDomesticCatSerializer',
-  summary: 'PetDomesticCatSummarySerializer',
-})`
+  @BelongsTo(() => PetDomesticDog)
+  public petDomesticDog: PetDomesticDog
+  public petDomesticDogId: DreamColumn<PetDomesticCat, 'petDomesticDogId'>
+}\
+`
             )
           })
 
@@ -297,26 +327,29 @@ Cat.register('serializers', {
               `\
 import { DreamColumn, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
-import Dog from '../../Pet/Domestic/Dog'
+import PetDomesticDog from '../../Pet/Domestic/Dog'
 
-export default class Cat extends ApplicationModel {
+export default class PetWildCat extends ApplicationModel {
   public get table() {
     return 'pet_wild_cats' as const
   }
 
-  public id: DreamColumn<Cat, 'id'>
-  public createdAt: DreamColumn<Cat, 'createdAt'>
-  public updatedAt: DreamColumn<Cat, 'updatedAt'>
+  public get serializers() {
+    return {
+      default: 'PetWildCatSerializer',
+      summary: 'PetWildCatSummarySerializer',
+    } as const
+  }
 
-  @BelongsTo(() => Dog)
-  public dog: Dog
-  public dogId: DreamColumn<Cat, 'dogId'>
-}
+  public id: DreamColumn<PetWildCat, 'id'>
+  public createdAt: DreamColumn<PetWildCat, 'createdAt'>
+  public updatedAt: DreamColumn<PetWildCat, 'updatedAt'>
 
-Cat.register('serializers', {
-  default: 'PetWildCatSerializer',
-  summary: 'PetWildCatSummarySerializer',
-})`
+  @BelongsTo(() => PetDomesticDog)
+  public petDomesticDog: PetDomesticDog
+  public petDomesticDogId: DreamColumn<PetWildCat, 'petDomesticDogId'>
+}\
+`
             )
           })
         })
@@ -335,6 +368,13 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
+  public get serializers() {
+    return {
+      default: 'CompositionSerializer',
+      summary: 'CompositionSummarySerializer',
+    } as const
+  }
+
   public id: DreamColumn<Composition, 'id'>
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
@@ -346,12 +386,8 @@ export default class Composition extends ApplicationModel {
   @BelongsTo(() => Chalupa)
   public chalupa: Chalupa
   public chalupaId: DreamColumn<Composition, 'chalupaId'>
-}
-
-Composition.register('serializers', {
-  default: 'CompositionSerializer',
-  summary: 'CompositionSummarySerializer',
-})`
+}\
+`
           )
         })
       })
@@ -370,18 +406,21 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
+  public get serializers() {
+    return {
+      default: 'CompositionSerializer',
+      summary: 'CompositionSummarySerializer',
+    } as const
+  }
+
   public id: DreamColumn<Composition, 'id'>
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
   @HasOne(() => User)
   public user: User
-}
-
-Composition.register('serializers', {
-  default: 'CompositionSerializer',
-  summary: 'CompositionSummarySerializer',
-})`
+}\
+`
           )
         })
       })
@@ -400,18 +439,21 @@ export default class User extends ApplicationModel {
     return 'users' as const
   }
 
+  public get serializers() {
+    return {
+      default: 'UserSerializer',
+      summary: 'UserSummarySerializer',
+    } as const
+  }
+
   public id: DreamColumn<User, 'id'>
   public createdAt: DreamColumn<User, 'createdAt'>
   public updatedAt: DreamColumn<User, 'updatedAt'>
 
   @HasMany(() => Composition)
   public compositions: Composition[]
-}
-
-User.register('serializers', {
-  default: 'UserSerializer',
-  summary: 'UserSummarySerializer',
-})`
+}\
+`
           )
         })
       })
@@ -430,6 +472,13 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
+  public get serializers() {
+    return {
+      default: 'CompositionSerializer',
+      summary: 'CompositionSummarySerializer',
+    } as const
+  }
+
   public id: DreamColumn<Composition, 'id'>
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
@@ -437,12 +486,8 @@ export default class Composition extends ApplicationModel {
   @BelongsTo(() => User)
   public user: User
   public userId: DreamColumn<Composition, 'userId'>
-}
-
-Composition.register('serializers', {
-  default: 'CompositionSerializer',
-  summary: 'CompositionSummarySerializer',
-})`
+}\
+`
           )
         })
       })
