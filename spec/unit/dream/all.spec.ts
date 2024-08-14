@@ -1,10 +1,10 @@
-import User from '../../../test-app/app/models/User'
-import Animal from '../../../test-app/app/models/Balloon/Latex/Animal'
+import DreamDbConnection from '../../../src/db/dream-db-connection'
+import ReplicaSafe from '../../../src/decorators/replica-safe'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Balloon from '../../../test-app/app/models/Balloon'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
-import ReplicaSafe from '../../../src/decorators/replica-safe'
-import DreamDbConnection from '../../../src/db/dream-db-connection'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
+import Animal from '../../../test-app/app/models/Balloon/Latex/Animal'
+import User from '../../../test-app/app/models/User'
 
 describe('Dream.all', () => {
   it('finds all records for a given model', async () => {

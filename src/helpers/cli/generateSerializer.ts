@@ -1,7 +1,7 @@
 import path from 'path'
 import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
 import fileWriter from '../fileWriter'
-import relativeDreamPath from '../path/dreamPath'
+import dreamPath from '../path/dreamPath'
 import generateSerializerString from './generateSerializerContent'
 
 export default async function generateSerializer(
@@ -20,7 +20,7 @@ export default async function generateSerializer(
     filePostfix: 'Serializer',
     fileExtension: '.ts',
     pluralizeBeforePostfix: false,
-    rootPath: path.join(rootPath || dreamApp.appRoot, relativeDreamPath('serializers')),
+    rootPath: path.join(rootPath || dreamApp.appRoot, dreamPath('serializers')),
     contentFunction: generateSerializerString,
     contentFunctionAttrs: [fullyQualifiedModelName, attributes],
   })

@@ -10,7 +10,7 @@ export default class Node extends ApplicationModel {
   }
 
   public get serializers(): DreamSerializers<Node> {
-    return { default: 'GraphNodeSerializer' }
+    return { default: 'Graph/NodeSerializer' }
   }
 
   public id: DreamColumn<Node, 'id'>

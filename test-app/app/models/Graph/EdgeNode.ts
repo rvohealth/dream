@@ -14,7 +14,7 @@ export default class EdgeNode extends ApplicationModel {
   }
 
   public get serializers(): DreamSerializers<EdgeNode> {
-    return { default: 'GraphEdgeNodeSerializer' }
+    return { default: 'Graph/EdgeNodeSerializer' }
   }
 
   public id: DreamColumn<EdgeNode, 'id'>

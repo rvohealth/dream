@@ -10,7 +10,7 @@ export default class LocalizedText extends ApplicationModel {
   }
 
   public get serializers(): DreamSerializers<LocalizedText> {
-    return { default: 'LocalizedText/LocalizedTextBaseSerializer' }
+    return { default: 'LocalizedText/BaseSerializer' }
   }
 
   public id: DreamColumn<LocalizedText, 'id'>
