@@ -1,4 +1,4 @@
-import SerializerGlobalNameConflict from '../../exceptions/dream-application/serializer-global-name-conflict'
+import DreamGlobalNameConflict from '../../exceptions/dream-application/dream-global-name-conflict'
 import getFiles from '../../helpers/getFiles'
 import DreamSerializer from '../../serializer'
 import globalNameIsAvailable from './globalNameIsAvailable'
@@ -23,7 +23,7 @@ export default async function loadSerializers(
       if ((potentialSerializer as typeof DreamSerializer)?.isDreamSerializer) {
         const serializerKey = pathToGlobalKey(serializerPath, /^.*app\/serializers\//, key)
 
-        if (!globalNameIsAvailable(serializerKey)) throw new SerializerGlobalNameConflict(serializerKey)
+        if (!globalNameIsAvailable(serializerKey)) throw new DreamGlobalNameConflict(serializerKey)
 
         const serializer = potentialSerializer as typeof DreamSerializer
         serializer.setGlobalName(serializerKey)
