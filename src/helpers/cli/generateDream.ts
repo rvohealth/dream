@@ -7,7 +7,7 @@ import hyphenize from '../hyphenize'
 import migrationVersion from '../migrationVersion'
 import pascalize from '../pascalize'
 import pascalizePath from '../pascalizePath'
-import relativeDreamPath from '../path/dreamPath'
+import dreamPath from '../path/dreamPath'
 import snakeify from '../snakeify'
 import generateDreamContent from './generateDreamContent'
 import generateFactory from './generateFactory'
@@ -24,8 +24,8 @@ export default async function generateDream(dreamName: string, attributes: strin
     .split('/')
     .map(pathName => pascalize(pathName))
     .join('/')
-  const dreamPath = path.join(dreamBasePath, `${formattedDreamName}.ts`)
-  const relativeModelsPath = dreamPath.replace(dreamBasePath, dreamApp.paths.models)
+  const dreamPathString = path.join(dreamBasePath, `${formattedDreamName}.ts`)
+  const relativeModelsPath = dreamPathString.replace(dreamBasePath, dreamApp.paths.models)
   const dreamPathParts = formattedDreamName.split('/')
 
   // if they are generating a nested model path,
@@ -39,11 +39,11 @@ export default async function generateDream(dreamName: string, attributes: strin
 
   try {
     console.log(`generating dream: ${relativeModelsPath}`)
-    await fs.writeFile(dreamPath, content)
+    await fs.writeFile(dreamPathString, content)
   } catch (error) {
     const err = `
       Something happened while trying to create the dream file:
-        ${dreamPath}
+        ${dreamPathString}
 
       Does this file already exist? Here is the error that was raised:
         ${(error as Error).message}
@@ -60,7 +60,7 @@ export default async function generateDream(dreamName: string, attributes: strin
   const migrationBasePath = path.join(dreamApp.appRoot, dreamApp.paths.db, 'migrations')
   const version = migrationVersion()
   const migrationPath = `${migrationBasePath}/${version}-create-${pluralize(hyphenize(dreamName)).replace(/\//g, '-')}.ts`
-  const migrationsRelativeBasePath = path.join(relativeDreamPath('db'), 'migrations')
+  const migrationsRelativeBasePath = path.join(dreamPath('db'), 'migrations')
   const relativeMigrationPath = migrationPath.replace(
     new RegExp(`^.*${migrationsRelativeBasePath}`),
     migrationsRelativeBasePath
@@ -95,7 +95,7 @@ export default async function generateDream(dreamName: string, attributes: strin
       .join('/') + 'Serializer'
   const serializerPath = path.join(serializerBasePath, `${fullyQualifiedSerializerName}.ts`)
 
-  const relativeSerializerBasePath = relativeDreamPath('serializers')
+  const relativeSerializerBasePath = dreamPath('serializers')
   const relativeSerializerPath = serializerPath.replace(
     new RegExp(`^.*${relativeSerializerBasePath}`),
     relativeSerializerBasePath
@@ -116,7 +116,7 @@ export default async function generateDream(dreamName: string, attributes: strin
   } catch (error) {
     const err = `
       Something happened while trying to create the serializer file:
-        ${dreamPath}
+        ${dreamPathString}
 
       Does this file already exist? Here is the error that was raised:
         ${(error as Error).message}

@@ -51,8 +51,6 @@ export type OrderDir = 'asc' | 'desc'
 //   columnValue: any
 // }
 
-export type DreamRegisterable = 'serializers'
-
 export type DreamColumnNames<
   DreamInstance extends Dream,
   DB = DreamInstance['DB'],
