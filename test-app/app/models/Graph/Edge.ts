@@ -10,7 +10,7 @@ export default class Edge extends ApplicationModel {
   }
 
   public get serializers(): DreamSerializers<Edge> {
-    return { default: 'GraphEdgeSerializer' }
+    return { default: 'Graph/EdgeSerializer' }
   }
 
   public id: DreamColumn<Edge, 'id'>

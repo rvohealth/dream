@@ -9,6 +9,11 @@ import initializeDreamApplication from '../../test-app/cli/helpers/initializeDre
 expect.extend({ toBeOneOf } as any)
 
 beforeEach(async () => {
-  await initializeDreamApplication()
+  try {
+    await initializeDreamApplication()
+  } catch (err) {
+    console.error(err)
+    throw err
+  }
   await truncate()
 }, 15000)

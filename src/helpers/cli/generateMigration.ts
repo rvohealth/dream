@@ -5,12 +5,12 @@ import generateMigrationContent from '../cli/generateMigrationContent'
 import primaryKeyType from '../db/primaryKeyType'
 import hyphenize from '../hyphenize'
 import migrationVersion from '../migrationVersion'
-import relativeDreamPath from '../path/dreamPath'
+import dreamPath from '../path/dreamPath'
 
 export default async function generateMigration(migrationName: string) {
   const dreamApp = getCachedDreamApplicationOrFail()
 
-  const migrationBasePath = path.join(dreamApp.appRoot, relativeDreamPath('db'), 'migrations')
+  const migrationBasePath = path.join(dreamApp.appRoot, dreamPath('db'), 'migrations')
   const version = migrationVersion()
   const migrationFilename = `${hyphenize(migrationName)}`
   const versionedMigrationFilename = `${version}-${migrationFilename}`
