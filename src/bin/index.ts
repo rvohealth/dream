@@ -70,7 +70,7 @@ export default class DreamBin {
   }
 
   public static async dbRollback() {
-    let step = process.argv[2] ? parseInt(process.argv[2]) : 1
+    let step = process.argv[3] ? parseInt(process.argv[3]) : 1
     while (step > 0) {
       await runMigration({ mode: 'rollback', step })
       step -= 1
@@ -81,28 +81,28 @@ export default class DreamBin {
 
   public static async generateDream() {
     const argv = process.argv.filter(arg => !/^--/.test(arg))
-    const name = argv[2]
-    const args = argv.slice(3, argv.length)
+    const name = argv[3]
+    const args = argv.slice(4, argv.length)
     await generateDream(name, args)
   }
 
   public static async generateFactory() {
     const argv = process.argv.filter(arg => !/^--/.test(arg))
-    const name = argv[2]
-    const args = argv.slice(3, argv.length)
+    const name = argv[3]
+    const args = argv.slice(4, argv.length)
     await generateFactory(name, args)
   }
 
   public static async generateMigration() {
     const argv = process.argv.filter(arg => !/^--/.test(arg))
-    const name = argv[2]
+    const name = argv[3]
     await generateMigration(name)
   }
 
   public static async generateSerializer() {
     const argv = process.argv.filter(arg => !/^--/.test(arg))
-    const name = argv[2]
-    const args = argv.slice(3, argv.length)
+    const name = argv[3]
+    const args = argv.slice(4, argv.length)
     await generateSerializer(name, args)
   }
 }
