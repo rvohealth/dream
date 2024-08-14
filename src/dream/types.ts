@@ -290,13 +290,6 @@ export type UpdateableProperties<
     (AssociatedModelParam<I> extends never ? object : AssociatedModelParam<I>)
 >
 
-export type GlobalDreamName<
-  I extends Dream,
-  GlobalSchema = I['globalSchema'],
-  GlobalNames = GlobalSchema['globalNames' & keyof GlobalSchema],
-  DreamGlobalNames = GlobalNames['dreams' & keyof GlobalNames] & string[],
-> = (DreamGlobalNames & string[])[number]
-
 export type GlobalSerializerName<
   I extends Dream,
   GlobalSchema = I['globalSchema'],

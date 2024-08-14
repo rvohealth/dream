@@ -205,7 +205,6 @@ export default class Dream {
    * ```
    */
   public get serializers(): Record<string, any> {
-    // public serializers<I extends Dream>(this: I): GlobalSerializerName<I> {
     throw new MissingSerializer(this.constructor as typeof Dream)
   }
 
