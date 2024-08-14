@@ -90,7 +90,7 @@ export default class ${modelClassName} extends ApplicationModel {
     return {
       default: '${serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName)}',
       summary: '${serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')}',
-    } as const
+    }
   }
 
   public id: ${idTypescriptType}${formattedFields}${timestamps}${formattedDecorators}

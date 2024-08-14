@@ -18,7 +18,7 @@ export default class MealType extends ApplicationModel {
     return {
       default: 'MealTypeSerializer',
       summary: 'MealTypeSummarySerializer',
-    } as const
+    }
   }
 
   public id: DreamColumn<MealType, 'id'>
@@ -48,7 +48,7 @@ export default class User extends ApplicationModel {
     return {
       default: 'UserSerializer',
       summary: 'UserSummarySerializer',
-    } as const
+    }
   }
 
   public id: DreamColumn<User, 'id'>
@@ -83,7 +83,7 @@ export default class Chalupa extends ApplicationModel {
     return {
       default: 'ChalupaSerializer',
       summary: 'ChalupaSummarySerializer',
-    } as const
+    }
   }
 
   public id: DreamColumn<Chalupa, 'id'>
@@ -115,7 +115,7 @@ export default class Paper extends ApplicationModel {
     return {
       default: 'PaperSerializer',
       summary: 'PaperSummarySerializer',
-    } as const
+    }
   }
 
   public id: DreamColumn<Paper, 'id'>
@@ -147,7 +147,7 @@ export default class Composition extends ApplicationModel {
     return {
       default: 'CompositionSerializer',
       summary: 'CompositionSummarySerializer',
-    } as const
+    }
   }
 
   public id: DreamColumn<Composition, 'id'>
@@ -180,7 +180,7 @@ export default class CatToy extends ApplicationModel {
     return {
       default: 'CatToySerializer',
       summary: 'CatToySummarySerializer',
-    } as const
+    }
   }
 
   public id: DreamColumn<CatToy, 'id'>
@@ -212,7 +212,7 @@ export default class CatToy extends ApplicationModel {
     return {
       default: 'CatToySerializer',
       summary: 'CatToySummarySerializer',
-    } as const
+    }
   }
 
   public id: DreamColumn<CatToy, 'id'>
@@ -243,7 +243,7 @@ export default class CatToy extends ApplicationModel {
     return {
       default: 'CatToySerializer',
       summary: 'CatToySummarySerializer',
-    } as const
+    }
   }
 
   public id: DreamColumn<CatToy, 'id'>
@@ -274,7 +274,7 @@ export default class PetDomesticCat extends ApplicationModel {
     return {
       default: 'PetDomesticCatSerializer',
       summary: 'PetDomesticCatSummarySerializer',
-    } as const
+    }
   }
 
   public id: DreamColumn<PetDomesticCat, 'id'>
@@ -306,7 +306,7 @@ export default class PetDomesticCat extends ApplicationModel {
     return {
       default: 'PetDomesticCatSerializer',
       summary: 'PetDomesticCatSummarySerializer',
-    } as const
+    }
   }
 
   public id: DreamColumn<PetDomesticCat, 'id'>
@@ -338,7 +338,7 @@ export default class PetWildCat extends ApplicationModel {
     return {
       default: 'PetWildCatSerializer',
       summary: 'PetWildCatSummarySerializer',
-    } as const
+    }
   }
 
   public id: DreamColumn<PetWildCat, 'id'>
@@ -372,7 +372,7 @@ export default class Composition extends ApplicationModel {
     return {
       default: 'CompositionSerializer',
       summary: 'CompositionSummarySerializer',
-    } as const
+    }
   }
 
   public id: DreamColumn<Composition, 'id'>
@@ -410,7 +410,7 @@ export default class Composition extends ApplicationModel {
     return {
       default: 'CompositionSerializer',
       summary: 'CompositionSummarySerializer',
-    } as const
+    }
   }
 
   public id: DreamColumn<Composition, 'id'>
@@ -443,7 +443,7 @@ export default class User extends ApplicationModel {
     return {
       default: 'UserSerializer',
       summary: 'UserSummarySerializer',
-    } as const
+    }
   }
 
   public id: DreamColumn<User, 'id'>
@@ -476,7 +476,7 @@ export default class Composition extends ApplicationModel {
     return {
       default: 'CompositionSerializer',
       summary: 'CompositionSummarySerializer',
-    } as const
+    }
   }
 
   public id: DreamColumn<Composition, 'id'>

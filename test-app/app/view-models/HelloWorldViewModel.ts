@@ -1,7 +1,10 @@
+import { DreamSerializers } from '../../../src'
+import ApplicationModel from '../models/ApplicationModel'
+
 export default class HelloWorldViewModel {
-  public get serializers() {
+  public get serializers(): DreamSerializers<ApplicationModel> {
     return {
       default: 'UserSerializer',
-    } as const
+    }
   }
 }

@@ -32,7 +32,7 @@ export default class User extends ApplicationModel {
     return {
       default: 'UserSerializer',
       summary: 'UserSummarySerializer',
-    } as const
+    }
   }
 
   public id: DreamColumn<User, 'id'>

@@ -10,7 +10,7 @@ export default class Sandbag extends ApplicationModel {
   }
 
   public get serializers(): DreamSerializers<Sandbag> {
-    return { default: 'SandbagSerializer' } as const
+    return { default: 'SandbagSerializer' }
   }
 
   public id: DreamColumn<Sandbag, 'id'>
