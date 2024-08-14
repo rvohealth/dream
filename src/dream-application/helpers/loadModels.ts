@@ -1,6 +1,6 @@
 import Dream from '../../dream'
 import getFiles from '../../helpers/getFiles'
-import pathToGlobalKey from './pathToGlobalKey'
+import globalModelKeyFromPath from './globalModelKeyFromPath'
 
 let _models: Record<string, typeof Dream>
 
@@ -18,7 +18,7 @@ export default async function loadModels(modelsPath: string): Promise<Record<str
         // Don't create a global lookup for ApplicationModel
         // ApplicationModel does not have a table
         if (modelClass.table) {
-          const modelKey = pathToGlobalKey(modelPath, modelsPath)
+          const modelKey = globalModelKeyFromPath(modelPath, modelsPath)
           modelClass.setGlobalName(modelKey)
           _models[modelKey] = modelClass
         }

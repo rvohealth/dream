@@ -1,9 +1,15 @@
-import pathToGlobalSerializerKey from '../../../../src/dream-application/helpers/pathToGlobalSerializerKey'
+import globalSerializerKeyFromPath from '../../../../src/dream-application/helpers/globalSerializerKeyFromPath'
 
-describe('pathToGlobalSerializerKey', () => {
+describe('globalSerializerKeyFromPath', () => {
   it('converts test-app/app/serializers/Graph/EdgeSerializer.ts to GraphEdgeSerializer', () => {
+    console.debug(
+      globalSerializerKeyFromPath(
+        'test-app/app/serializers/Graph/EdgeSerializer.ts',
+        'test-app/app/serializers/'
+      )
+    )
     expect(
-      pathToGlobalSerializerKey(
+      globalSerializerKeyFromPath(
         'test-app/app/serializers/Graph/EdgeSerializer.ts',
         'test-app/app/serializers/'
       )
@@ -13,7 +19,7 @@ describe('pathToGlobalSerializerKey', () => {
   context('with a named export', () => {
     it('replaces the final path part with the named export', () => {
       expect(
-        pathToGlobalSerializerKey(
+        globalSerializerKeyFromPath(
           'test-app/app/serializers/Graph/EdgeSerializer.ts',
           'test-app/app/serializers/',
           'SummaryEdgeSerializer'
@@ -25,12 +31,12 @@ describe('pathToGlobalSerializerKey', () => {
   context('when the named export starts with the nested path', () => {
     it('does not duplicate the nested path', () => {
       expect(
-        pathToGlobalSerializerKey(
-          'test-app/app/serializers/Graph/EdgeSerializer.ts',
+        globalSerializerKeyFromPath(
+          'test-app/app/serializers/LocalizedText/BaseSerializer.ts',
           'test-app/app/serializers/',
-          'Graph/EdgeSummarySerializer'
+          'LocalizedTextBaseSerializer'
         )
-      ).toEqual('Graph/EdgeSummarySerializer')
+      ).toEqual('LocalizedText/BaseSerializer')
     })
   })
 })

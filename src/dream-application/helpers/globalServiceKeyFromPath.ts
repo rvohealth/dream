@@ -1,6 +1,6 @@
 const SAFE_PATH_LIMIT = 50000
 
-export default function pathToGlobalKey(filepath: string, dirPath: string) {
+export default function (filepath: string, dirPath: string) {
   // Github security raises an exception here,
   // since the regex being used is apparantly
   // at risk of causing a DoS attack with long strings
