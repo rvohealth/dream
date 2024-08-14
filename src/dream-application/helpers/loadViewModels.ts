@@ -29,6 +29,10 @@ export default async function loadViewModels(
   return _viewModels
 }
 
+export function setCachedViewModels(viewModels: Record<string, ViewModelClass>) {
+  _viewModels = viewModels
+}
+
 export function getViewModelsOrFail() {
   if (!_viewModels) throw new Error('Must call loadViewModels before calling getViewModelsOrFail')
   return _viewModels

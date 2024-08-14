@@ -36,6 +36,10 @@ export default async function loadServices(servicesPath: string): Promise<Record
   return _services
 }
 
+export function setCachedServices(services: Record<string, any>) {
+  _services = services
+}
+
 export function getServicesOrFail() {
   if (!_services) throw new Error('Must call loadServices before calling getServicesOrFail')
   return _services

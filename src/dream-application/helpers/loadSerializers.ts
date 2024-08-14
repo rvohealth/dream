@@ -36,6 +36,10 @@ export default async function loadSerializers(
   return _serializers
 }
 
+export function setCachedSerializers(serializers: Record<string, typeof DreamSerializer>) {
+  _serializers = serializers
+}
+
 export function getSerializersOrFail() {
   if (!_serializers) throw new Error('Must call loadSerializers before calling getSerializersOrFail')
   return _serializers

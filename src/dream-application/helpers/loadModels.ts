@@ -40,6 +40,10 @@ export default async function loadModels(modelsPath: string): Promise<Record<str
   return _models
 }
 
+export function setCachedModels(models: Record<string, typeof Dream>) {
+  _models = models
+}
+
 export function getModelsOrFail() {
   if (!_models) throw new Error('Must call loadModels before calling getModelsOrFail')
   return _models

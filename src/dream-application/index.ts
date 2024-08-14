@@ -3,9 +3,9 @@ import { ViewModelClass, primaryKeyTypes } from '../dream/types'
 import DreamSerializer from '../serializer'
 import { cacheDreamApplication } from './cache'
 import loadModels from './helpers/loadModels'
-import loadSerializers from './helpers/loadSerializers'
-import loadServices from './helpers/loadServices'
-import loadViewModels from './helpers/loadViewModels'
+import loadSerializers, { setCachedSerializers } from './helpers/loadSerializers'
+import loadServices, { setCachedServices } from './helpers/loadServices'
+import loadViewModels, { setCachedViewModels } from './helpers/loadViewModels'
 
 export default class DreamApplication {
   public static async init(cb: (dreamApp: DreamApplication) => void | Promise<void>) {
@@ -14,9 +14,9 @@ export default class DreamApplication {
 
     await dreamApp.inflections?.()
 
-    dreamApp.viewModels ||= {}
-    dreamApp.serializers ||= {}
-    dreamApp.services ||= {}
+    if (!dreamApp.viewModels) setCachedViewModels({})
+    if (!dreamApp.serializers) setCachedSerializers({})
+    if (!dreamApp.services) setCachedServices({})
 
     cacheDreamApplication(dreamApp)
 
