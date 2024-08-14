@@ -1,9 +1,9 @@
 import pluralize from 'pluralize'
 import camelize from '../camelize'
+import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName'
 import pascalize from '../pascalize'
 import relativeDreamPath from '../path/relativeDreamPath'
 import serializerNameFromFullyQualifiedModelName from '../serializerNameFromFullyQualifiedModelName'
-import shortNameFromFullyQualifiedModelName from '../shortNameFromFullyQualifiedModelName'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
 import uniq from '../uniq'
 
@@ -24,7 +24,7 @@ export default function generateSerializerContent(
 
   if (fullyQualifiedModelName) {
     relatedModelImport = importStatementForModel(fullyQualifiedModelName)
-    modelClass = shortNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+    modelClass = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
     dataTypeCapture = `<
   DataType extends ${modelClass},
   Passthrough extends object
@@ -85,7 +85,9 @@ export default class ${serializerClass}${dataTypeCapture} extends ${extendedClas
     .map(attr => {
       const [name, type] = attr.split(':')
       const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(name)
-      const associatedModelName = shortNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
+      const associatedModelName = globalClassNameFromFullyQualifiedModelName(
+        fullyQualifiedAssociatedModelName
+      )
       const propertyName = camelize(associatedModelName)
 
       switch (type) {
@@ -245,7 +247,7 @@ function pathToDbSyncFromSerializer(fullyQualifiedModelName: string) {
 }
 
 function importStatementForModel(originModelName: string, destinationModelName: string = originModelName) {
-  return `\nimport ${shortNameFromFullyQualifiedModelName(destinationModelName)} from '${relativeDreamPath('serializers', 'models', originModelName, destinationModelName)}'`
+  return `\nimport ${globalClassNameFromFullyQualifiedModelName(destinationModelName)} from '${relativeDreamPath('serializers', 'models', originModelName, destinationModelName)}'`
 }
 
 function enumValueImportStatements(fullyQualifiedModelName: string, enumNames: string[]) {

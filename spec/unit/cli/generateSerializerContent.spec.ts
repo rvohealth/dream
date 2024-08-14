@@ -38,18 +38,18 @@ export default class UserSerializer<
           expect(res).toEqual(
             `\
 import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
-import Admin from '../../models/User/Admin'
+import UserAdmin from '../../models/User/Admin'
 
 export class UserAdminSummarySerializer<
-  DataType extends Admin,
+  DataType extends UserAdmin,
   Passthrough extends object
 > extends DreamSerializer<DataType, Passthrough> {
   @Attribute('string')
-  public id: DreamColumn<Admin, 'id'>
+  public id: DreamColumn<UserAdmin, 'id'>
 }
 
 export default class UserAdminSerializer<
-  DataType extends Admin,
+  DataType extends UserAdmin,
   Passthrough extends object
 > extends UserAdminSummarySerializer<DataType, Passthrough> {
   
@@ -315,23 +315,23 @@ export default class UserSerializer<
             expect(res).toEqual(
               `\
 import { DreamSerializer, Attribute, DreamColumn, RendersOne } from '@rvohealth/dream'
-import Admin from '../../models/User/Admin'
-import MyModel from '../../models/Double/Nested/MyModel'
+import UserAdmin from '../../models/User/Admin'
+import DoubleNestedMyModel from '../../models/Double/Nested/MyModel'
 
 export class UserAdminSummarySerializer<
-  DataType extends Admin,
+  DataType extends UserAdmin,
   Passthrough extends object
 > extends DreamSerializer<DataType, Passthrough> {
   @Attribute('string')
-  public id: DreamColumn<Admin, 'id'>
+  public id: DreamColumn<UserAdmin, 'id'>
 }
 
 export default class UserAdminSerializer<
-  DataType extends Admin,
+  DataType extends UserAdmin,
   Passthrough extends object
 > extends UserAdminSummarySerializer<DataType, Passthrough> {
-  @RendersOne(() => MyModel)
-  public myModel: MyModel
+  @RendersOne(() => DoubleNestedMyModel)
+  public doubleNestedMyModel: DoubleNestedMyModel
 }`
             )
           })
