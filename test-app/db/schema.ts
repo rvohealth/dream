@@ -2849,7 +2849,7 @@ export const globalSchema = {
       'GraphEdgeNodeSerializer',
       'GraphEdgeSerializer',
       'GraphNodeSerializer',
-      'LocalizedTextLocalizedTextBaseSerializer',
+      'LocalizedTextBaseSerializer',
       'PetSerializer',
       'PetSummarySerializer',
       'PetUnderstudyJoinModelSerializer',
