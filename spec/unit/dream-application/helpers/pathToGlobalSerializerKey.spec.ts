@@ -21,4 +21,16 @@ describe('pathToGlobalSerializerKey', () => {
       ).toEqual('GraphSummaryEdgeSerializer')
     })
   })
+
+  context('when the named export starts with the nested path', () => {
+    it('does not duplicate the nested path', () => {
+      expect(
+        pathToGlobalSerializerKey(
+          'test-app/app/serializers/Graph/EdgeSerializer.ts',
+          'test-app/app/serializers/',
+          'GraphEdgeSummarySerializer'
+        )
+      ).toEqual('GraphEdgeSummarySerializer')
+    })
+  })
 })
