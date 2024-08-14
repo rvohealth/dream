@@ -297,7 +297,8 @@ export type GlobalSerializerName<
   SerializerGlobalNames = GlobalNames['serializers' & keyof GlobalNames],
 > = (SerializerGlobalNames & (string[] | Readonly<string[]>))[number]
 
-export type DreamSerializers<I extends Dream> = Record<string, GlobalSerializerName<I>>
+export type DreamSerializers<I extends Dream> = Record<'default', GlobalSerializerName<I>> &
+  Record<string, GlobalSerializerName<I>>
 
 export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) => T) & typeof Dream
 
