@@ -18,15 +18,15 @@ export default class BalloonSpotterBalloon extends ApplicationModel {
   public createdAt: DreamColumn<BalloonSpotterBalloon, 'createdAt'>
   public updatedAt: DreamColumn<BalloonSpotterBalloon, 'updatedAt'>
 
-  @BelongsTo(() => User, { optional: true })
+  @BelongsTo('User', { optional: true })
   public user: User
   public userId: DreamColumn<BalloonSpotterBalloon, 'userId'>
 
-  @BelongsTo(() => BalloonSpotter)
+  @BelongsTo('BalloonSpotter')
   public balloonSpotter: BalloonSpotter
   public balloonSpotterId: DreamColumn<BalloonSpotterBalloon, 'balloonSpotterId'>
 
-  @BelongsTo(() => Balloon, { foreignKey: 'balloonId' })
+  @BelongsTo('Balloon', { foreignKey: 'balloonId' })
   public balloon: Balloon
   public balloonId: DreamColumn<BalloonSpotterBalloon, 'balloonId'>
 }

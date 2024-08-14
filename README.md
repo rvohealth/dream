@@ -424,21 +424,21 @@ yarn build:docs
 ```ts
 @STI(A)
 class B extends A {
-  @HasMany(() => X)
+  @HasMany('X')
   public xx: X[]
 }
 
 @STI(A)
 class C extends A {
-  @HasMany(() => X, { where: { something: true } })
+  @HasMany('X', { where: { something: true } })
   public xx: X[]
 }
 
 class Z extends Dream {
-  @HasMany(() => A)
+  @HasMany('A')
   public aa: A[]
 }
 
-// this will not work as expected because the HasMany(() => X) are defined differently
+// this will not work as expected because the HasMany('X') are defined differently
 await z.load({ aa: 'xx' }).execute()
 ```

@@ -44,13 +44,13 @@ export default class Balloon extends ApplicationModel {
   @Validates('numericality', { min: 0, max: 100 })
   public volume: number
 
-  @BelongsTo(() => User, { optional: true })
+  @BelongsTo('User', { optional: true })
   public user: User
   public userId: IdType
 
-  @HasOne(() => BalloonLine, { foreignKey: 'balloonId' })
+  @HasOne('BalloonLine', { foreignKey: 'balloonId' })
   public balloonLine: BalloonLine
 
-  @HasMany(() => HeartRating, { polymorphic: true, foreignKey: 'extraRateableId' })
+  @HasMany('HeartRating', { polymorphic: true, foreignKey: 'extraRateableId' })
   public heartRatings: HeartRating[]
 }

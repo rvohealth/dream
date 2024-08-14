@@ -27,55 +27,55 @@ export default class EdgeNode extends ApplicationModel {
   @Sortable({ scope: ['edge', 'node'] })
   public multiScopedPosition: DreamColumn<EdgeNode, 'multiScopedPosition'>
 
-  @BelongsTo(() => GraphEdge, { foreignKey: 'edgeId' })
+  @BelongsTo('GraphEdge', { foreignKey: 'edgeId' })
   public edge: GraphEdge
   public edgeId: DreamColumn<EdgeNode, 'edgeId'>
 
-  @BelongsTo(() => GraphNode, { foreignKey: 'nodeId' })
+  @BelongsTo('GraphNode', { foreignKey: 'nodeId' })
   public node: GraphNode
   public nodeId: DreamColumn<EdgeNode, 'nodeId'>
 
-  @HasMany(() => EdgeNode, {
+  @HasMany('EdgeNode', {
     through: 'node',
     source: 'edgeNodes',
   })
   public siblingsIncludingMe: EdgeNode[]
 
-  @HasMany(() => EdgeNode, {
+  @HasMany('EdgeNode', {
     through: 'node',
     source: 'edgeNodes',
     selfWhereNot: { id: 'id' },
   })
   public siblings: EdgeNode[]
 
-  @HasMany(() => EdgeNode, {
+  @HasMany('EdgeNode', {
     through: 'node',
     source: 'edgeNodes',
     order: 'position',
   })
   public orderedSiblings: EdgeNode[]
 
-  @HasMany(() => EdgeNode, {
+  @HasMany('EdgeNode', {
     through: 'node',
     source: 'orderedEdgeNodes',
   })
   public orderedSiblingsWithOrderOnSource: EdgeNode[]
 
-  @HasOne(() => EdgeNode, {
+  @HasOne('EdgeNode', {
     through: 'node',
     source: 'edgeNodes',
     selfWhere: { id: 'id' },
   })
   public justThisSibling: EdgeNode
 
-  @HasOne(() => EdgeNode, {
+  @HasOne('EdgeNode', {
     through: 'node',
     source: 'edgeNodes',
     where: { position: 1 },
   })
   public headSibling: EdgeNode
 
-  @HasMany(() => EdgeNode, {
+  @HasMany('EdgeNode', {
     through: 'node',
     source: 'edgeNodes',
     whereNot: { position: 1 },

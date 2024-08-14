@@ -16,11 +16,11 @@ export default class PetUnderstudyJoinModel extends ApplicationModel {
   public createdAt: DreamColumn<PetUnderstudyJoinModel, 'createdAt'>
   public updatedAt: DreamColumn<PetUnderstudyJoinModel, 'updatedAt'>
 
-  @BelongsTo(() => Pet)
+  @BelongsTo('Pet')
   public pet: Pet
   public petId: DreamColumn<PetUnderstudyJoinModel, 'petId'>
 
-  @BelongsTo(() => Pet, { foreignKey: 'understudyId' })
+  @BelongsTo('Pet', { foreignKey: 'understudyId' })
   public understudy: Pet
   public understudyId: DreamColumn<PetUnderstudyJoinModel, 'understudyId'>
 }

@@ -23,16 +23,16 @@ export default class CompositionAsset extends ApplicationModel {
   public primary: DreamColumn<CompositionAsset, 'primary'>
   public score: DreamColumn<CompositionAsset, 'score'>
 
-  @BelongsTo(() => Composition)
+  @BelongsTo('Composition')
   public composition: Composition
   public compositionId: DreamColumn<CompositionAsset, 'compositionId'>
 
-  @HasOne(() => User, {
+  @HasOne('User', {
     through: 'composition',
   })
   public user: User
 
-  @HasMany(() => CompositionAssetAudit)
+  @HasMany('CompositionAssetAudit')
   public compositionAssetAudits: CompositionAssetAudit[]
 
   @BeforeSave()
@@ -66,20 +66,20 @@ export default class CompositionAsset extends ApplicationModel {
       })
   }
 
-  @HasOne(() => LocalizedText, {
+  @HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
     where: { locale: DreamConst.required },
   })
   public inlineWhereCurrentLocalizedText: LocalizedText
 
-  @HasOne(() => LocalizedText, {
+  @HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
     where: { locale: DreamConst.passthrough },
   })
   public currentLocalizedText: LocalizedText
 
-  @HasMany(() => LocalizedText, { polymorphic: true, foreignKey: 'localizableId' })
+  @HasMany('LocalizedText', { polymorphic: true, foreignKey: 'localizableId' })
   public localizedTexts: LocalizedText[]
 }

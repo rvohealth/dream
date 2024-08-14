@@ -18,7 +18,7 @@ export default class Rating extends ApplicationModel {
   public body: DreamColumn<Rating, 'body'>
   public rating: DreamColumn<Rating, 'rating'>
 
-  @BelongsTo(() => User)
+  @BelongsTo('User')
   public user: User
   public userId: DreamColumn<Rating, 'userId'>
 

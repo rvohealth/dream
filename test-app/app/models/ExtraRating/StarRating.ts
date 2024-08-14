@@ -1,14 +1,14 @@
 import STI from '../../../../src/decorators/STI'
 import BelongsTo from '../../../../src/decorators/associations/belongs-to'
 import { DreamColumn } from '../../../../src/dream/types'
-import BaseExtraRating from './Base'
 import Composition from '../Composition'
 import Post from '../Post'
 import User from '../User'
+import BaseExtraRating from './Base'
 
 @STI(BaseExtraRating)
 export default class StarRating extends BaseExtraRating {
-  @BelongsTo(() => User)
+  @BelongsTo('User')
   public user: User
   public userId: DreamColumn<StarRating, 'userId'>
 

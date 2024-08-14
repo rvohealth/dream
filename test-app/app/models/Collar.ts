@@ -26,11 +26,11 @@ export default class Collar extends ApplicationModel {
   @Collar.Sortable({ scope: ['pet', 'tagName'] })
   public position: DreamColumn<Collar, 'position'>
 
-  @BelongsTo(() => Pet)
+  @BelongsTo('Pet')
   public pet: Pet
   public petId: DreamColumn<Collar, 'petId'>
 
-  @BelongsTo(() => Balloon, { foreignKey: 'balloonId', optional: true })
+  @BelongsTo('Balloon', { foreignKey: 'balloonId', optional: true })
   public balloon: Balloon
   public balloonId: DreamColumn<Collar, 'balloonId'>
 
