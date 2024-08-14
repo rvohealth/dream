@@ -3,9 +3,9 @@ import { DreamApplication } from '../../../src'
 import inflections from './inflections'
 
 export default async function dreamApplicationOpts(dreamApp: DreamApplication) {
-  await dreamApp.loadModels(path.join(__dirname, '..', 'models'))
-  await dreamApp.loadSerializers(path.join(__dirname, '..', 'serializers'))
-  await dreamApp.loadServices(path.join(__dirname, '..', 'services'))
+  await dreamApp.load('models', path.join(__dirname, '..', 'models'))
+  await dreamApp.load('serializers', path.join(__dirname, '..', 'serializers'))
+  await dreamApp.load('services', path.join(__dirname, '..', 'services'))
 
   // sets the root directory for the dream application
   dreamApp.set('appRoot', path.join(__dirname, '..', '..'))

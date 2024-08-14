@@ -21,18 +21,6 @@ export default class DreamApplication {
     return dreamApp
   }
 
-  public async loadModels(modelsPath: string) {
-    return await loadModels(modelsPath)
-  }
-
-  public async loadSerializers(serializersPath: string) {
-    return await loadSerializers(serializersPath)
-  }
-
-  public async loadServices(servicesPath: string) {
-    return await loadServices(servicesPath)
-  }
-
   public dbCredentials: DreamDbCredentialOptions
   public primaryKeyType: (typeof primaryKeyTypes)[number] = 'bigserial'
   public appRoot: string
@@ -74,6 +62,17 @@ export default class DreamApplication {
 
   public get services(): Record<string, any> {
     return getServicesOrFail()
+  }
+
+  public async load(resourceType: 'models' | 'serializers' | 'services', resourcePath: string) {
+    switch (resourceType) {
+      case 'models':
+        return await loadModels(resourcePath)
+      case 'serializers':
+        return await loadSerializers(resourcePath)
+      case 'services':
+        return await loadServices(resourcePath)
+    }
   }
 
   public set<ApplyOpt extends ApplyOption>(
