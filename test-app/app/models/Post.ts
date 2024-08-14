@@ -29,21 +29,21 @@ export default class Post extends ApplicationModel {
 
   public body: DreamColumn<Post, 'body'>
 
-  @BelongsTo(() => User)
+  @BelongsTo('User')
   public user: User
   public userId: DreamColumn<Post, 'userId'>
 
-  @BelongsTo(() => PostVisibility, { optional: true })
+  @BelongsTo('PostVisibility', { optional: true })
   public postVisibility: PostVisibility | null
   public postVisibilityId: DreamColumn<Post, 'postVisibilityId'>
 
-  @HasMany(() => PostComment, { dependent: 'destroy' })
+  @HasMany('PostComment', { dependent: 'destroy' })
   public comments: PostComment[]
 
-  @HasMany(() => PostComment, { withoutDefaultScopes: ['dream:SoftDelete'] })
+  @HasMany('PostComment', { withoutDefaultScopes: ['dream:SoftDelete'] })
   public allComments: PostComment[]
 
-  @HasMany(() => Rating, {
+  @HasMany('Rating', {
     foreignKey: 'rateableId',
     polymorphic: true,
     dependent: 'destroy',
@@ -56,7 +56,7 @@ export default class Post extends ApplicationModel {
   // by passing withoutDefaultScopes, we
   // override the default scope, allowing us
   // to see null bodies
-  @HasMany(() => NonNullRating, {
+  @HasMany('NonNullRating', {
     foreignKey: 'rateableId',
     polymorphic: true,
     dependent: 'destroy',
@@ -64,7 +64,7 @@ export default class Post extends ApplicationModel {
   })
   public overriddenNonNullRatings: NonNullRating[]
 
-  @HasMany(() => HeartRating, {
+  @HasMany('HeartRating', {
     foreignKey: 'extraRateableId',
     polymorphic: true,
     dependent: 'destroy',

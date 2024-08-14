@@ -1,11 +1,11 @@
-import HasOne from '../../../src/decorators/associations/has-one'
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
+import HasOne from '../../../src/decorators/associations/has-one'
 import BeforeUpdate from '../../../src/decorators/hooks/before-update'
 import { DreamColumn } from '../../../src/dream/types'
+import ApplicationModel from './ApplicationModel'
 import Composition from './Composition'
 import CompositionAsset from './CompositionAsset'
 import User from './User'
-import ApplicationModel from './ApplicationModel'
 
 export default class CompositionAssetAudit extends ApplicationModel {
   public get table() {
@@ -16,16 +16,16 @@ export default class CompositionAssetAudit extends ApplicationModel {
   public approval: DreamColumn<CompositionAssetAudit, 'approval'>
   public notes: DreamColumn<CompositionAssetAudit, 'notes'>
 
-  @BelongsTo(() => CompositionAsset)
+  @BelongsTo('CompositionAsset')
   public compositionAsset: CompositionAsset
   public compositionAssetId: DreamColumn<CompositionAssetAudit, 'compositionAssetId'>
 
-  @HasOne(() => Composition, {
+  @HasOne('Composition', {
     through: 'compositionAsset',
   })
   public composition: Composition
 
-  @HasOne(() => User, {
+  @HasOne('User', {
     through: 'compositionAsset',
   })
   public user: User

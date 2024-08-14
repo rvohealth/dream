@@ -32,12 +32,12 @@ export default function HasOne<
  *
  * ```ts
  * class User extends ApplicationModel {
- *   @HasOne(() => UserSettings)
+ *   @HasOne('UserSettings')
  *   public userSettings: UserSettings
  * }
  *
  * class UserSettings extends ApplicationModel {
- *   @BelongsTo(() => User)
+ *   @BelongsTo('User')
  *   public user: User
  *   public userId: DreamColumn<UserSettings, 'userId'>
  * }

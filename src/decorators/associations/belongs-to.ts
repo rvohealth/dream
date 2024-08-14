@@ -19,13 +19,13 @@ import {
  *
  * ```ts
  * class UserSettings extends ApplicationModel {
- *   @BelongsTo(() => User)
+ *   @BelongsTo('User')
  *   public user: User
  *   public userId: DreamColumn<UserSettings, 'userId'>
  * }
  *
  * class User extends ApplicationModel {
- *   @HasOne(() => UserSettings)
+ *   @HasOne('UserSettings')
  *   public userSettings: UserSettings
  * }
  * ```

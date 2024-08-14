@@ -31,30 +31,30 @@ export default class Composition extends ApplicationModel {
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @BelongsTo(() => User)
+  @BelongsTo('User')
   public user: User
   public userId: DreamColumn<Composition, 'userId'>
 
-  @HasMany(() => CompositionAsset)
+  @HasMany('CompositionAsset')
   public compositionAssets: CompositionAsset[]
 
-  @HasOne(() => CompositionAsset, {
+  @HasOne('CompositionAsset', {
     where: { primary: true },
   })
   public mainCompositionAsset: CompositionAsset
 
-  @HasMany(() => CompositionAssetAudit, {
+  @HasMany('CompositionAssetAudit', {
     through: 'compositionAssets',
   })
   public compositionAssetAudits: CompositionAssetAudit[]
 
-  @HasMany(() => CompositionAssetAudit, {
+  @HasMany('CompositionAssetAudit', {
     through: 'mainCompositionAsset',
     source: 'compositionAssetAudits',
   })
   public mainCompositionAssetAudits: CompositionAssetAudit[]
 
-  @HasMany(() => HeartRating, {
+  @HasMany('HeartRating', {
     foreignKey: 'extraRateableId',
     polymorphic: true,
   })
@@ -103,21 +103,21 @@ export default class Composition extends ApplicationModel {
       this.content = 'changed after save commit'
   }
 
-  @HasOne(() => LocalizedText, {
+  @HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
     where: { locale: DreamConst.required },
   })
   public inlineWhereCurrentLocalizedText: LocalizedText
 
-  @HasOne(() => LocalizedText, {
+  @HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
     where: { locale: DreamConst.passthrough },
   })
   public currentLocalizedText: LocalizedText
 
-  @HasOne(() => LocalizedText, {
+  @HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
     where: { name: 'cascade delete me' },
@@ -125,7 +125,7 @@ export default class Composition extends ApplicationModel {
   })
   public cascadeDeletableLocalizedText: LocalizedText
 
-  @HasMany(() => LocalizedText, { polymorphic: true, foreignKey: 'localizableId' })
+  @HasMany('LocalizedText', { polymorphic: true, foreignKey: 'localizableId' })
   public localizedTexts: LocalizedText[]
 }
 

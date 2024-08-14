@@ -25,9 +25,9 @@ export default class Edge extends ApplicationModel {
     aliasedCreatedAt?: DreamColumn<EdgeNode, 'createdAt'>
   } = {}
 
-  @HasMany(() => EdgeNode, { foreignKey: 'edgeId' })
+  @HasMany('EdgeNode', { foreignKey: 'edgeId' })
   public edgeNodes: EdgeNode[]
 
-  @HasMany(() => GraphNode, { through: 'edgeNodes' })
+  @HasMany('GraphNode', { through: 'edgeNodes' })
   public nodes: GraphNode[]
 }

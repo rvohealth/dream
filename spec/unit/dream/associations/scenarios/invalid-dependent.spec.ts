@@ -11,7 +11,7 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
         expect(() => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           class User2 extends User {
-            @HasMany(() => Post, {
+            @HasMany('Post', {
               dependent: 'destroy',
               where: { body: DreamConst.passthrough },
             })
@@ -26,7 +26,7 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
         expect(() => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           class User2 extends User {
-            @HasMany(() => Post, {
+            @HasMany('Post', {
               dependent: 'destroy',
               where: { body: DreamConst.required },
             })
@@ -43,7 +43,7 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
         expect(() => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           class User2 extends User {
-            @HasOne(() => Post, {
+            @HasOne('Post', {
               dependent: 'destroy',
               where: { body: DreamConst.passthrough },
             })
@@ -58,7 +58,7 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
         expect(() => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           class User2 extends User {
-            @HasOne(() => Post, {
+            @HasOne('Post', {
               dependent: 'destroy',
               where: { body: DreamConst.required },
             })

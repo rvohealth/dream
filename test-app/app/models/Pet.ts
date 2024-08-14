@@ -43,7 +43,7 @@ export default class Pet extends ApplicationModel {
   @Sortable({ scope: 'species' })
   public positionWithinSpecies: number
 
-  @Pet.BelongsTo(() => User, {
+  @Pet.BelongsTo('User', {
     optional: true,
     primaryKeyOverride: 'uuid',
     foreignKey: 'userUuid',
@@ -51,50 +51,50 @@ export default class Pet extends ApplicationModel {
   public userThroughUuid: User | null
   public userUuid: string
 
-  @Pet.BelongsTo(() => User, {
+  @Pet.BelongsTo('User', {
     optional: true,
   })
   public user: User | null
   public userId: IdType
 
-  @Pet.HasOne(() => Post, { through: 'user' })
+  @Pet.HasOne('Post', { through: 'user' })
   public featuredPost: Post
 
-  @HasMany(() => Rating, { through: 'user' })
+  @HasMany('Rating', { through: 'user' })
   public ratings: Rating[]
 
-  @Pet.HasMany(() => Rating, { through: 'user' })
+  @Pet.HasMany('Rating', { through: 'user' })
   public featuredRatings: Rating[]
 
-  @HasMany(() => Collar, { dependent: 'destroy' })
+  @HasMany('Collar', { dependent: 'destroy' })
   public collars: Collar
 
-  @HasOne(() => Collar, { where: { lost: false } })
+  @HasOne('Collar', { where: { lost: false } })
   public currentCollar: Collar
 
   // begin: totally contrived for testing purposes
-  @HasOne(() => Collar, { whereNot: { lost: true } })
+  @HasOne('Collar', { whereNot: { lost: true } })
   public notLostCollar: Collar
 
-  @HasMany(() => Collar, { distinct: 'tagName' })
+  @HasMany('Collar', { distinct: 'tagName' })
   public uniqueCollars: Collar
 
-  @Pet.HasMany(() => Balloon, { through: 'uniqueCollars', source: 'balloon' })
+  @Pet.HasMany('Balloon', { through: 'uniqueCollars', source: 'balloon' })
   public uniqueBalloons: Balloon
 
-  @HasMany(() => Balloon, { through: 'collars', source: 'balloon', distinct: true })
+  @HasMany('Balloon', { through: 'collars', source: 'balloon', distinct: true })
   public distinctBalloons: Balloon
 
-  @HasMany(() => Balloon, { through: 'collars', source: 'balloon', where: { color: 'red' } })
+  @HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: 'red' } })
   public redBalloons: Balloon
 
-  @HasMany(() => Balloon, { through: 'collars', source: 'balloon', whereNot: { color: 'red' } })
+  @HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: 'red' } })
   public notRedBalloons: Balloon
 
-  @HasMany(() => PetUnderstudyJoinModel, { foreignKey: 'petId' })
+  @HasMany('PetUnderstudyJoinModel', { foreignKey: 'petId' })
   public petUnderstudies: PetUnderstudyJoinModel[]
 
-  @Pet.HasMany(() => Pet, {
+  @Pet.HasMany('Pet', {
     through: 'petUnderstudies',
     source: 'understudy',
     distinct: true,

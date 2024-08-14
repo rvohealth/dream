@@ -17,7 +17,7 @@ export default class BalloonLine extends ApplicationModel {
   public createdAt: DreamColumn<BalloonLine, 'createdAt'>
   public updatedAt: DreamColumn<BalloonLine, 'updatedAt'>
 
-  @BelongsTo(() => Balloon, { foreignKey: 'balloonId' })
+  @BelongsTo('Balloon', { foreignKey: 'balloonId' })
   public balloon: Balloon
   public balloonId: DreamColumn<BalloonLine, 'balloonId'>
 }

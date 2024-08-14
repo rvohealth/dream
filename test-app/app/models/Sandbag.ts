@@ -31,7 +31,7 @@ export default class Sandbag extends ApplicationModel {
       this.addError('weight', 'cannot include weightTons AND weight')
   }
 
-  @BelongsTo(() => Mylar, { foreignKey: 'balloonId' })
+  @BelongsTo('Mylar', { foreignKey: 'balloonId' })
   public mylar: Mylar
   public balloonId: DreamColumn<Sandbag, 'balloonId'>
 

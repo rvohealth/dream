@@ -1,7 +1,7 @@
 import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
-import User from './User'
 import ApplicationModel from './ApplicationModel'
+import User from './User'
 
 export default class UserSettings extends ApplicationModel {
   public get table() {
@@ -20,7 +20,7 @@ intentionally try to call .serializers on it.`)
   public createdAt: DreamColumn<UserSettings, 'createdAt'>
   public updatedAt: DreamColumn<UserSettings, 'updatedAt'>
 
-  @BelongsTo(() => User)
+  @BelongsTo('User')
   public user: User
   public userId: DreamColumn<UserSettings, 'userId'>
 }

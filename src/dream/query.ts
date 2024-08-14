@@ -595,12 +595,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * ```ts
    * class Image extends ApplicationModel {
-   *   @HasMany(() => LocalizedText)
+   *   @HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    * }
    *
    * class Post extends ApplicationModel {
-   *   @HasMany(() => LocalizedText)
+   *   @HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    * }
    *
@@ -1166,10 +1166,10 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * ```ts
    * class Post {
-   *   @HasMany(() => LocalizedText)
+   *   @HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    *
-   *   @HasOne(() => LocalizedText, {
+   *   @HasOne('LocalizedText', {
    *     where: { locale: DreamConst.passthrough },
    *   })
    *   public currentLocalizedText: LocalizedText

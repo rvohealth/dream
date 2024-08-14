@@ -19,12 +19,12 @@ export default class BalloonSpotter extends ApplicationModel {
   public createdAt: DreamColumn<BalloonSpotter, 'createdAt'>
   public updatedAt: DreamColumn<BalloonSpotter, 'updatedAt'>
 
-  @HasMany(() => BalloonSpotterBalloon)
+  @HasMany('BalloonSpotterBalloon')
   public balloonSpotterBalloons: BalloonSpotterBalloon[]
 
-  @HasMany(() => Balloon, { through: 'balloonSpotterBalloons', source: 'balloon' })
+  @HasMany('Balloon', { through: 'balloonSpotterBalloons', source: 'balloon' })
   public balloons: Balloon[]
 
-  @HasMany(() => User, { through: 'balloonSpotterBalloons', source: 'user' })
+  @HasMany('User', { through: 'balloonSpotterBalloons', source: 'user' })
   public users: User[]
 }

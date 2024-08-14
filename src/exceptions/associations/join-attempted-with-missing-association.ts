@@ -20,7 +20,7 @@ Either \`${this.associationName}\` is a typo in the joins statement, or associat
 
 class ${this.dreamClass.name} {
   ...
-  @HasMany(() => SomeModelClass)
+  @HasMany('SomeModelClass')
   public ${this.associationName}: SomeModelClass[]
 }
     `

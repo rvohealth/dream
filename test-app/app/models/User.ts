@@ -57,90 +57,90 @@ export default class User extends ApplicationModel {
   @Validates('length', { min: 4, max: 18 })
   public email: DreamColumn<User, 'email'>
 
-  @HasOne(() => UserSettings)
+  @HasOne('UserSettings')
   public userSettings: UserSettings
 
-  @HasMany(() => Post, { dependent: 'destroy' })
+  @HasMany('Post', { dependent: 'destroy' })
   public posts: Post[]
 
-  @HasMany(() => Post, { withoutDefaultScopes: ['dream:SoftDelete'] })
+  @HasMany('Post', { withoutDefaultScopes: ['dream:SoftDelete'] })
   public allPosts: Post[]
 
-  @HasMany(() => PostComment, { through: 'posts', source: 'comments' })
+  @HasMany('PostComment', { through: 'posts', source: 'comments' })
   public postComments: PostComment[]
 
-  @HasMany(() => PostComment, {
+  @HasMany('PostComment', {
     through: 'allPosts',
     source: 'allComments',
   })
   public allPostComments: PostComment[]
 
-  @HasMany(() => Rating)
+  @HasMany('Rating')
   public ratings: Rating[]
 
-  @HasMany(() => Rating, { through: 'posts', source: 'ratings' })
+  @HasMany('Rating', { through: 'posts', source: 'ratings' })
   public postRatings: Rating[]
 
-  @HasOne(() => Post, { selfWhere: { position: 'featuredPostPosition' } })
+  @HasOne('Post', { selfWhere: { position: 'featuredPostPosition' } })
   public featuredPost: Post
 
-  @HasMany(() => Rating, { through: 'featuredPost', source: 'ratings' })
+  @HasMany('Rating', { through: 'featuredPost', source: 'ratings' })
   public featuredRatings: Rating[]
 
-  @HasMany(() => Rating, {
+  @HasMany('Rating', {
     through: 'posts',
     source: 'ratings',
     selfWhere: { rating: 'targetRating' },
   })
   public ratingsThroughPostsThatMatchUserTargetRating: Rating[]
 
-  @HasMany(() => Composition, { dependent: 'destroy' })
+  @HasMany('Composition', { dependent: 'destroy' })
   public compositions: Composition[]
 
-  @HasOne(() => Composition, {
+  @HasOne('Composition', {
     where: { primary: true },
   })
   public mainComposition: Composition
 
-  @HasMany(() => IncompatibleForeignKeyTypeExample)
+  @HasMany('IncompatibleForeignKeyTypeExample')
   public incompatibleForeignKeyTypeExamples: IncompatibleForeignKeyTypeExample[]
 
-  @HasMany(() => CompositionAsset, {
+  @HasMany('CompositionAsset', {
     through: 'compositions',
   })
   public compositionAssets: CompositionAsset[]
 
-  @HasOne(() => CompositionAsset, {
+  @HasOne('CompositionAsset', {
     through: 'mainComposition',
   })
   public mainCompositionAsset: CompositionAsset
 
-  @HasOne(() => Composition, {
+  @HasOne('Composition', {
     order: 'id',
   })
   public firstComposition: Composition
 
-  @HasOne(() => Composition, {
+  @HasOne('Composition', {
     order: { content: 'desc', id: 'asc' },
   })
   public firstComposition2: Composition
 
-  @HasOne(() => Composition, {
+  @HasOne('Composition', {
     order: { id: 'desc' },
   })
   public lastComposition: Composition
 
-  @HasOne(() => Pet, {
+  @HasOne('Pet', {
     order: 'name',
   })
   public firstPet: Pet
 
-  @HasMany(() => Composition, {
+  @HasMany('Composition', {
     order: { content: 'asc', id: 'desc' },
   })
   public sortedCompositions: Composition[]
 
-  @HasMany(() => Composition, {
+  @HasMany('Composition', {
     order: {
       content: 'asc',
       id: 'desc',
@@ -148,30 +148,30 @@ export default class User extends ApplicationModel {
   })
   public sortedCompositions2: Composition[]
 
-  @HasMany(() => CompositionAssetAudit, {
+  @HasMany('CompositionAssetAudit', {
     through: 'compositionAssets',
   })
   public compositionAssetAudits: CompositionAssetAudit[]
 
   // recent associations
-  @HasMany(() => Composition, {
+  @HasMany('Composition', {
     where: { createdAt: () => range(DateTime.now().minus({ week: 1 })) },
   })
   public recentCompositions: Composition[]
 
   // not recent associations (contrived so that we can test whereNot)
-  @HasMany(() => Composition, {
+  @HasMany('Composition', {
     whereNot: { createdAt: () => range(DateTime.now().minus({ week: 1 })) },
   })
   public notRecentCompositions: Composition[]
 
-  @HasMany(() => CompositionAsset, {
+  @HasMany('CompositionAsset', {
     through: 'recentCompositions',
     source: 'compositionAssets',
   })
   public recentCompositionAssets: CompositionAsset[]
 
-  @HasMany(() => CompositionAsset, {
+  @HasMany('CompositionAsset', {
     through: 'recentCompositions',
     source: 'mainCompositionAsset',
   })
@@ -180,43 +180,43 @@ export default class User extends ApplicationModel {
   // end:recent associations
 
   // missing through association
-  @HasMany(() => CompositionAsset, { through: 'nonExtantCompositions' })
+  @HasMany('CompositionAsset', { through: 'nonExtantCompositions' })
   public nonExtantCompositionAssets1: CompositionAsset[]
   // end: missing through association
 
   // missing through association source
-  @HasMany(() => CompositionAsset, { through: 'compositions' })
+  @HasMany('CompositionAsset', { through: 'compositions' })
   public nonExtantCompositionAssets2: CompositionAsset[]
   // end: missing through association source
 
-  @HasMany(() => Balloon)
+  @HasMany('Balloon')
   public balloons: Balloon[]
 
-  @HasMany(() => BalloonLine, { through: 'balloons', source: 'balloonLine' })
+  @HasMany('BalloonLine', { through: 'balloons', source: 'balloonLine' })
   public balloonLines: BalloonLine[]
 
-  @HasMany(() => Pet)
+  @HasMany('Pet')
   public pets: Pet[]
 
   // allows us to find hidden pets
-  @HasMany(() => Pet, {
+  @HasMany('Pet', {
     withoutDefaultScopes: ['dream:SoftDelete'],
   })
   public allPets: Pet[]
 
-  @User.HasMany(() => Pet, { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
+  @User.HasMany('Pet', { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
   public petsFromUuid: Pet[]
 
-  @User.HasOne(() => Pet, { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
+  @User.HasOne('Pet', { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
   public firstPetFromUuid: Pet
 
-  @User.HasMany(() => Collar, { through: 'petsFromUuid', source: 'collars' })
+  @User.HasMany('Collar', { through: 'petsFromUuid', source: 'collars' })
   public collarsFromUuid: Collar[]
 
-  @User.HasOne(() => Collar, { through: 'firstPetFromUuid', source: 'collars' })
+  @User.HasOne('Collar', { through: 'firstPetFromUuid', source: 'collars' })
   public firstCollarFromUuid: Collar[]
 
-  @User.HasMany(() => Balloon, { through: 'collarsFromUuid', source: 'balloon' })
+  @User.HasMany('Balloon', { through: 'collarsFromUuid', source: 'balloon' })
   public balloonsFromUuid: Collar[]
 
   @Scope()
