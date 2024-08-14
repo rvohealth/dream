@@ -1,5 +1,5 @@
 import getFiles from '../../helpers/getFiles'
-import pathToGlobalKey from './pathToGlobalKey'
+import globalServiceKeyFromPath from './globalServiceKeyFromPath'
 
 let _services: Record<string, any>
 
@@ -17,7 +17,7 @@ export default async function loadServices(servicesPath: string): Promise<Record
     // for keeping these indices is to be able to summon
     // a service for backgrounding.
     if (typeof serviceClass.background === 'function' || typeof serviceClass.schedule === 'function') {
-      const serviceKey = pathToGlobalKey(servicePath, servicesPath)
+      const serviceKey = globalServiceKeyFromPath(servicePath, servicesPath)
 
       if (typeof serviceClass.setGlobalName === 'function') {
         serviceClass.setGlobalName(serviceKey)

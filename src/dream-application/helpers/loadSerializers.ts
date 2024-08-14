@@ -1,7 +1,7 @@
 import SerializerNameConflict from '../../exceptions/dream-application/serializer-name-conflict'
 import getFiles from '../../helpers/getFiles'
 import DreamSerializer from '../../serializer'
-import pathToGlobalSerializerKey from './pathToGlobalSerializerKey'
+import globalSerializerKeyFromPath from './globalSerializerKeyFromPath'
 
 let _serializers: Record<string, typeof DreamSerializer>
 
@@ -20,7 +20,7 @@ export default async function loadSerializers(
       const potentialSerializer = allSerializers[key]
 
       if ((potentialSerializer as typeof DreamSerializer)?.isDreamSerializer) {
-        const serializerKey = pathToGlobalSerializerKey(serializerPath, serializersPath, key)
+        const serializerKey = globalSerializerKeyFromPath(serializerPath, serializersPath, key)
 
         if (_serializers[serializerKey]) throw new SerializerNameConflict(serializerKey)
 

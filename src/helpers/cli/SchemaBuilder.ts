@@ -40,6 +40,7 @@ export const globalSchema = {
   passthroughColumns: ${stringifyArray(uniq(passthroughColumns.sort()), { indent: 4 })},
   allDefaultScopeNames: ${stringifyArray(uniq(allDefaultScopeNames.sort()), { indent: 4 })},
   globalNames: {
+    models: ${stringifyArray(Object.keys(dreamApp.models || {}).sort(), { indent: 6 })},
     serializers: ${stringifyArray(Object.keys(dreamApp.serializers || {}).sort(), { indent: 6 })},
   },
 } as const
