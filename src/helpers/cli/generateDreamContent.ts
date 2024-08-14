@@ -29,7 +29,7 @@ export default function generateDreamContent(fullyQualifiedModelName: string, at
         dreamImports.push('BelongsTo')
         additionalImports.push(associationImportStatement)
         return `
-@BelongsTo(() => ${associationModelName})
+@BelongsTo('${fullyQualifiedAssociatedModelName}')
 public ${associationName}: ${associationModelName}
 public ${associationName}Id: DreamColumn<${modelClassName}, '${associationName}Id'>
 `
@@ -38,7 +38,7 @@ public ${associationName}Id: DreamColumn<${modelClassName}, '${associationName}I
         dreamImports.push('HasOne')
         additionalImports.push(associationImportStatement)
         return `
-@HasOne(() => ${associationModelName})
+@HasOne('${fullyQualifiedAssociatedModelName}')
 public ${associationName}: ${associationModelName}
 `
 
@@ -46,7 +46,7 @@ public ${associationName}: ${associationModelName}
         dreamImports.push('HasMany')
         additionalImports.push(associationImportStatement)
         return `
-@HasMany(() => ${associationModelName})
+@HasMany('${fullyQualifiedAssociatedModelName}')
 public ${pluralize(associationName)}: ${associationModelName}[]
 `
 

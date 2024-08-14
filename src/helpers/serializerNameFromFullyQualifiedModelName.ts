@@ -1,13 +1,13 @@
-import globalClassNameFromFullyQualifiedModelName from './globalClassNameFromFullyQualifiedModelName'
+import standardizeFullyQualifiedModelName from './standardizeFullyQualifiedModelName'
 
 export default function (fullyQualifiedModelName: string, serializerType: 'default' | 'summary' = 'default') {
-  const globalModelName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+  fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
 
   switch (serializerType) {
     case 'default':
-      return `${globalModelName}Serializer`
+      return `${fullyQualifiedModelName}Serializer`
 
     case 'summary':
-      return `${globalModelName}SummarySerializer`
+      return `${fullyQualifiedModelName}SummarySerializer`
   }
 }

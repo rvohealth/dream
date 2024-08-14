@@ -154,7 +154,7 @@ export default class Composition extends ApplicationModel {
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @BelongsTo(() => GraphNode)
+  @BelongsTo('GraphNode')
   public graphNode: GraphNode
   public graphNodeId: DreamColumn<Composition, 'graphNodeId'>
 }\
@@ -187,7 +187,7 @@ export default class CatToy extends ApplicationModel {
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
-  @BelongsTo(() => PetDomesticCat)
+  @BelongsTo('Pet/Domestic/Cat')
   public petDomesticCat: PetDomesticCat
   public petDomesticCatId: DreamColumn<CatToy, 'petDomesticCatId'>
 }\
@@ -219,7 +219,7 @@ export default class CatToy extends ApplicationModel {
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
-  @HasMany(() => PetDomesticCat)
+  @HasMany('Pet/Domestic/Cat')
   public petDomesticCats: PetDomesticCat[]
 }\
 `
@@ -250,7 +250,7 @@ export default class CatToy extends ApplicationModel {
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
-  @HasOne(() => PetDomesticCat)
+  @HasOne('Pet/Domestic/Cat')
   public petDomesticCat: PetDomesticCat
 }\
 `
@@ -272,8 +272,8 @@ export default class PetDomesticCat extends ApplicationModel {
 
   public get serializers(): DreamSerializers<PetDomesticCat> {
     return {
-      default: 'PetDomesticCatSerializer',
-      summary: 'PetDomesticCatSummarySerializer',
+      default: 'Pet/Domestic/CatSerializer',
+      summary: 'Pet/Domestic/CatSummarySerializer',
     }
   }
 
@@ -281,7 +281,7 @@ export default class PetDomesticCat extends ApplicationModel {
   public createdAt: DreamColumn<PetDomesticCat, 'createdAt'>
   public updatedAt: DreamColumn<PetDomesticCat, 'updatedAt'>
 
-  @BelongsTo(() => GraphNode)
+  @BelongsTo('GraphNode')
   public graphNode: GraphNode
   public graphNodeId: DreamColumn<PetDomesticCat, 'graphNodeId'>
 }\
@@ -304,8 +304,8 @@ export default class PetDomesticCat extends ApplicationModel {
 
   public get serializers(): DreamSerializers<PetDomesticCat> {
     return {
-      default: 'PetDomesticCatSerializer',
-      summary: 'PetDomesticCatSummarySerializer',
+      default: 'Pet/Domestic/CatSerializer',
+      summary: 'Pet/Domestic/CatSummarySerializer',
     }
   }
 
@@ -313,7 +313,7 @@ export default class PetDomesticCat extends ApplicationModel {
   public createdAt: DreamColumn<PetDomesticCat, 'createdAt'>
   public updatedAt: DreamColumn<PetDomesticCat, 'updatedAt'>
 
-  @BelongsTo(() => PetDomesticDog)
+  @BelongsTo('Pet/Domestic/Dog')
   public petDomesticDog: PetDomesticDog
   public petDomesticDogId: DreamColumn<PetDomesticCat, 'petDomesticDogId'>
 }\
@@ -336,8 +336,8 @@ export default class PetWildCat extends ApplicationModel {
 
   public get serializers(): DreamSerializers<PetWildCat> {
     return {
-      default: 'PetWildCatSerializer',
-      summary: 'PetWildCatSummarySerializer',
+      default: 'Pet/Wild/CatSerializer',
+      summary: 'Pet/Wild/CatSummarySerializer',
     }
   }
 
@@ -345,7 +345,7 @@ export default class PetWildCat extends ApplicationModel {
   public createdAt: DreamColumn<PetWildCat, 'createdAt'>
   public updatedAt: DreamColumn<PetWildCat, 'updatedAt'>
 
-  @BelongsTo(() => PetDomesticDog)
+  @BelongsTo('Pet/Domestic/Dog')
   public petDomesticDog: PetDomesticDog
   public petDomesticDogId: DreamColumn<PetWildCat, 'petDomesticDogId'>
 }\
@@ -379,11 +379,11 @@ export default class Composition extends ApplicationModel {
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @BelongsTo(() => User)
+  @BelongsTo('User')
   public user: User
   public userId: DreamColumn<Composition, 'userId'>
 
-  @BelongsTo(() => Chalupa)
+  @BelongsTo('Chalupa')
   public chalupa: Chalupa
   public chalupaId: DreamColumn<Composition, 'chalupaId'>
 }\
@@ -417,7 +417,7 @@ export default class Composition extends ApplicationModel {
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @HasOne(() => User)
+  @HasOne('User')
   public user: User
 }\
 `
@@ -450,7 +450,7 @@ export default class User extends ApplicationModel {
   public createdAt: DreamColumn<User, 'createdAt'>
   public updatedAt: DreamColumn<User, 'updatedAt'>
 
-  @HasMany(() => Composition)
+  @HasMany('Composition')
   public compositions: Composition[]
 }\
 `
@@ -483,7 +483,7 @@ export default class Composition extends ApplicationModel {
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @BelongsTo(() => User)
+  @BelongsTo('User')
   public user: User
   public userId: DreamColumn<Composition, 'userId'>
 }\
