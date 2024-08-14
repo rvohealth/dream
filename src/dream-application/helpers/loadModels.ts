@@ -13,10 +13,19 @@ export default async function loadModels(modelsPath: string): Promise<Record<str
   for (const modelPath of modelPaths) {
     const modelClass = (await import(modelPath)).default as typeof Dream
 
-    if (modelClass.isDream && modelClass.name !== 'ApplicationModel') {
-      const modelKey = pathToGlobalKey(modelPath, modelsPath)
-      modelClass.setGlobalName(modelKey)
-      _models[modelKey] = modelClass
+    if (modelClass.isDream) {
+      try {
+        // Don't create a global lookup for ApplicationModel
+        // ApplicationModel does not have a table
+        if (modelClass.table) {
+          const modelKey = pathToGlobalKey(modelPath, modelsPath)
+          modelClass.setGlobalName(modelKey)
+          _models[modelKey] = modelClass
+        }
+      } catch {
+        // ApplicationModel will automatically raise an exception here,
+        // since it does not have a table.
+      }
     }
   }
 
