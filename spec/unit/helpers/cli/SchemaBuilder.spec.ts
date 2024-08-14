@@ -9,9 +9,15 @@ describe('SchemaBuilder', () => {
   describe('#build', () => {
     context('global schema', () => {
       context('globalNames', () => {
+        it('renders models array', () => {
+          expect(User.prototype.globalSchema.globalNames.models).toEqual(
+            expect.arrayContaining(['Graph/Edge'])
+          )
+        })
+
         it('renders serializers array', () => {
           expect(User.prototype.globalSchema.globalNames.serializers).toEqual(
-            expect.arrayContaining(['UserSerializer'])
+            expect.arrayContaining(['UserSerializer', 'LocalizedText/BaseSerializer'])
           )
         })
       })

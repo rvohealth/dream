@@ -12,8 +12,12 @@ export default function generateSerializerContent(
   attributes: string[] = []
 ) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
-  const serializerClass = serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName)
-  const serializerSummaryClass = serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')
+  const serializerClass = globalClassNameFromFullyQualifiedModelName(
+    serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+  )
+  const serializerSummaryClass = globalClassNameFromFullyQualifiedModelName(
+    serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')
+  )
   const additionalImports: string[] = []
   let relatedModelImport = ''
   let modelClass = ''

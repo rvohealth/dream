@@ -7,7 +7,7 @@ describe('pathToGlobalSerializerKey', () => {
         'test-app/app/serializers/Graph/EdgeSerializer.ts',
         'test-app/app/serializers/'
       )
-    ).toEqual('GraphEdgeSerializer')
+    ).toEqual('Graph/EdgeSerializer')
   })
 
   context('with a named export', () => {
@@ -18,7 +18,7 @@ describe('pathToGlobalSerializerKey', () => {
           'test-app/app/serializers/',
           'SummaryEdgeSerializer'
         )
-      ).toEqual('GraphSummaryEdgeSerializer')
+      ).toEqual('Graph/SummaryEdgeSerializer')
     })
   })
 
@@ -28,9 +28,9 @@ describe('pathToGlobalSerializerKey', () => {
         pathToGlobalSerializerKey(
           'test-app/app/serializers/Graph/EdgeSerializer.ts',
           'test-app/app/serializers/',
-          'GraphEdgeSummarySerializer'
+          'Graph/EdgeSummarySerializer'
         )
-      ).toEqual('GraphEdgeSummarySerializer')
+      ).toEqual('Graph/EdgeSummarySerializer')
     })
   })
 })
