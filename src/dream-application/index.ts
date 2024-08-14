@@ -2,9 +2,9 @@ import Dream from '../dream'
 import { ViewModelClass, primaryKeyTypes } from '../dream/types'
 import DreamSerializer from '../serializer'
 import { cacheDreamApplication } from './cache'
-import loadModels from './helpers/loadModels'
-import loadSerializers, { setCachedSerializers } from './helpers/loadSerializers'
-import loadServices, { setCachedServices } from './helpers/loadServices'
+import loadModels, { getModelsOrFail } from './helpers/loadModels'
+import loadSerializers, { getSerializersOrFail, setCachedSerializers } from './helpers/loadSerializers'
+import loadServices, { getServicesOrFail, setCachedServices } from './helpers/loadServices'
 
 export default class DreamApplication {
   public static async init(cb: (dreamApp: DreamApplication) => void | Promise<void>) {
@@ -21,15 +21,15 @@ export default class DreamApplication {
     return dreamApp
   }
 
-  public static async loadModels(modelsPath: string) {
+  public async loadModels(modelsPath: string) {
     return await loadModels(modelsPath)
   }
 
-  public static async loadSerializers(serializersPath: string) {
+  public async loadSerializers(serializersPath: string) {
     return await loadSerializers(serializersPath)
   }
 
-  public static async loadServices(servicesPath: string) {
+  public async loadServices(servicesPath: string) {
     return await loadServices(servicesPath)
   }
 
@@ -37,41 +37,43 @@ export default class DreamApplication {
   public primaryKeyType: (typeof primaryKeyTypes)[number] = 'bigserial'
   public appRoot: string
   public paths: {
-    models: string
-    viewModels: string
-    services: string
-    serializers: string
     conf: string
     db: string
-    uspecs: string
     factories: string
+    models: string
+    serializers: string
+    services: string
+    uspecs: string
   }
-  public serializers: Record<string, typeof DreamSerializer>
-  public models: Record<string, typeof Dream>
-  public viewModels: Record<string, ViewModelClass>
-  public services: Record<string, any>
   public inflections?: () => void | Promise<void>
 
   constructor(opts?: DreamApplicationOpts) {
     if (opts?.db) this.dbCredentials = opts.db
     if (opts?.primaryKeyType) this.primaryKeyType = opts.primaryKeyType
     if (opts?.appRoot) this.appRoot = opts.appRoot
-    if (opts?.models) this.models = opts.models
-    if (opts?.serializers) this.serializers = opts.serializers
-    if (opts?.viewModels) this.viewModels = opts.viewModels
-    if (opts?.services) this.services = opts.services
     if (opts?.inflections) this.inflections = opts.inflections
 
     this.paths = {
-      db: opts?.paths?.db || 'db',
-      models: opts?.paths?.models || 'app/models',
-      viewModels: opts?.paths?.viewModels || 'app/view-models',
-      serializers: opts?.paths?.serializers || 'app/serializers',
-      factories: opts?.paths?.factories || 'spec/factories',
-      uspecs: opts?.paths?.uspecs || 'spec/unit',
       conf: opts?.paths?.conf || 'app/conf',
+      db: opts?.paths?.db || 'db',
+      factories: opts?.paths?.factories || 'spec/factories',
+      models: opts?.paths?.models || 'app/models',
+      serializers: opts?.paths?.serializers || 'app/serializers',
       services: opts?.paths?.services || 'app/services',
+      uspecs: opts?.paths?.uspecs || 'spec/unit',
     }
+  }
+
+  public get models(): Record<string, typeof Dream> {
+    return getModelsOrFail()
+  }
+
+  public get serializers(): Record<string, typeof DreamSerializer> {
+    return getSerializersOrFail()
+  }
+
+  public get services(): Record<string, any> {
+    return getServicesOrFail()
   }
 
   public set<ApplyOpt extends ApplyOption>(
@@ -82,19 +84,11 @@ export default class DreamApplication {
         ? (typeof primaryKeyTypes)[number]
         : ApplyOpt extends 'appRoot'
           ? string
-          : ApplyOpt extends 'serializers'
-            ? Record<string, typeof DreamSerializer>
-            : ApplyOpt extends 'models'
-              ? Record<string, typeof Dream>
-              : ApplyOpt extends 'viewModels'
-                ? Record<string, ViewModelClass>
-                : ApplyOpt extends 'services'
-                  ? Record<string, any>
-                  : ApplyOpt extends 'inflections'
-                    ? () => void | Promise<void>
-                    : ApplyOpt extends 'paths'
-                      ? DreamDirectoryPaths
-                      : never
+          : ApplyOpt extends 'inflections'
+            ? () => void | Promise<void>
+            : ApplyOpt extends 'paths'
+              ? DreamDirectoryPaths
+              : never
   ) {
     switch (applyOption) {
       case 'db':
@@ -107,22 +101,6 @@ export default class DreamApplication {
 
       case 'appRoot':
         this.appRoot = options as string
-        break
-
-      case 'serializers':
-        this.serializers = options as Record<string, typeof DreamSerializer>
-        break
-
-      case 'models':
-        this.models = options as Record<string, typeof Dream>
-        break
-
-      case 'viewModels':
-        this.viewModels = options as Record<string, ViewModelClass>
-        break
-
-      case 'services':
-        this.services = options as Record<string, any>
         break
 
       case 'inflections':
@@ -154,16 +132,7 @@ export interface DreamApplicationOpts {
   paths?: DreamDirectoryPaths
 }
 
-export type ApplyOption =
-  | 'db'
-  | 'primaryKeyType'
-  | 'appRoot'
-  | 'serializers'
-  | 'models'
-  | 'viewModels'
-  | 'services'
-  | 'inflections'
-  | 'paths'
+export type ApplyOption = 'db' | 'primaryKeyType' | 'appRoot' | 'inflections' | 'paths'
 
 export interface DreamDirectoryPaths {
   models?: string

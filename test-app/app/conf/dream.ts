@@ -3,23 +3,15 @@ import { DreamApplication } from '../../../src'
 import inflections from './inflections'
 
 export default async function dreamApplicationOpts(dreamApp: DreamApplication) {
+  await dreamApp.loadModels(path.join(__dirname, '..', 'models'))
+  await dreamApp.loadSerializers(path.join(__dirname, '..', 'serializers'))
+  await dreamApp.loadServices(path.join(__dirname, '..', 'services'))
+
   // sets the root directory for the dream application
   dreamApp.set('appRoot', path.join(__dirname, '..', '..'))
 
   // sets the primary key type to use when generating new models for your app
   dreamApp.set('primaryKeyType', 'bigserial')
-
-  // sends all the models in your app into the DreamApplication instance
-  dreamApp.set('models', await DreamApplication.loadModels(path.join(__dirname, '..', 'models')))
-
-  // sends all the serializers in your app into the DreamApplication instance
-  dreamApp.set(
-    'serializers',
-    await DreamApplication.loadSerializers(path.join(__dirname, '..', 'serializers'))
-  )
-
-  // sends all the services in your app into the DreamApplication instance
-  dreamApp.set('services', await DreamApplication.loadServices(path.join(__dirname, '..', 'services')))
 
   // provides a callback function which configures inflections for your application
   dreamApp.set('inflections', inflections)
