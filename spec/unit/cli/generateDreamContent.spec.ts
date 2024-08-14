@@ -6,7 +6,7 @@ describe('dream generate:model <name> [...attributes]', () => {
       const res = generateDreamContent('MealType', [])
       expect(res).toEqual(
         `\
-import { DreamColumn } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 
 export default class MealType extends ApplicationModel {
@@ -14,7 +14,7 @@ export default class MealType extends ApplicationModel {
     return 'meal_types' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<MealType> {
     return {
       default: 'MealTypeSerializer',
       summary: 'MealTypeSummarySerializer',
@@ -36,7 +36,7 @@ export default class MealType extends ApplicationModel {
         const res = generateDreamContent('user', ['email:string', 'password_digest:string'])
         expect(res).toEqual(
           `\
-import { DreamColumn } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 
 export default class User extends ApplicationModel {
@@ -44,7 +44,7 @@ export default class User extends ApplicationModel {
     return 'users' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<User> {
     return {
       default: 'UserSerializer',
       summary: 'UserSummarySerializer',
@@ -71,7 +71,7 @@ export default class User extends ApplicationModel {
         ])
         expect(res).toEqual(
           `\
-import { DreamColumn } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 
 export default class Chalupa extends ApplicationModel {
@@ -79,7 +79,7 @@ export default class Chalupa extends ApplicationModel {
     return 'chalupas' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<Chalupa> {
     return {
       default: 'ChalupaSerializer',
       summary: 'ChalupaSummarySerializer',
@@ -103,7 +103,7 @@ export default class Chalupa extends ApplicationModel {
         const res = generateDreamContent('paper', ['name:string'])
         expect(res).toEqual(
           `\
-import { DreamColumn } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 
 export default class Paper extends ApplicationModel {
@@ -111,7 +111,7 @@ export default class Paper extends ApplicationModel {
     return 'paper' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<Paper> {
     return {
       default: 'PaperSerializer',
       summary: 'PaperSummarySerializer',
@@ -134,7 +134,7 @@ export default class Paper extends ApplicationModel {
           const res = generateDreamContent('composition', ['graph_node:belongs_to'])
           expect(res).toEqual(
             `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import GraphNode from './GraphNode'
 
@@ -143,7 +143,7 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<Composition> {
     return {
       default: 'CompositionSerializer',
       summary: 'CompositionSummarySerializer',
@@ -167,7 +167,7 @@ export default class Composition extends ApplicationModel {
             const res = generateDreamContent('cat_toy', ['pet/domestic/cat:belongs_to'])
             expect(res).toEqual(
               `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import PetDomesticCat from './Pet/Domestic/Cat'
 
@@ -176,7 +176,7 @@ export default class CatToy extends ApplicationModel {
     return 'cat_toys' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<CatToy> {
     return {
       default: 'CatToySerializer',
       summary: 'CatToySummarySerializer',
@@ -199,7 +199,7 @@ export default class CatToy extends ApplicationModel {
             const res = generateDreamContent('cat_toy', ['pet/domestic/cat:has_many'])
             expect(res).toEqual(
               `\
-import { DreamColumn, HasMany } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers, HasMany } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import PetDomesticCat from './Pet/Domestic/Cat'
 
@@ -208,7 +208,7 @@ export default class CatToy extends ApplicationModel {
     return 'cat_toys' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<CatToy> {
     return {
       default: 'CatToySerializer',
       summary: 'CatToySummarySerializer',
@@ -230,7 +230,7 @@ export default class CatToy extends ApplicationModel {
             const res = generateDreamContent('cat_toy', ['pet/domestic/cat:has_one'])
             expect(res).toEqual(
               `\
-import { DreamColumn, HasOne } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers, HasOne } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import PetDomesticCat from './Pet/Domestic/Cat'
 
@@ -239,7 +239,7 @@ export default class CatToy extends ApplicationModel {
     return 'cat_toys' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<CatToy> {
     return {
       default: 'CatToySerializer',
       summary: 'CatToySummarySerializer',
@@ -261,7 +261,7 @@ export default class CatToy extends ApplicationModel {
             const res = generateDreamContent('pet/domestic/cat', ['graph_node:belongs_to'])
             expect(res).toEqual(
               `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
 import GraphNode from '../../GraphNode'
 
@@ -270,7 +270,7 @@ export default class PetDomesticCat extends ApplicationModel {
     return 'pet_domestic_cats' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<PetDomesticCat> {
     return {
       default: 'PetDomesticCatSerializer',
       summary: 'PetDomesticCatSummarySerializer',
@@ -293,7 +293,7 @@ export default class PetDomesticCat extends ApplicationModel {
             const res = generateDreamContent('pet/domestic/cat', ['pet/domestic/dog:belongs_to'])
             expect(res).toEqual(
               `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
 import PetDomesticDog from '../../Pet/Domestic/Dog'
 
@@ -302,7 +302,7 @@ export default class PetDomesticCat extends ApplicationModel {
     return 'pet_domestic_cats' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<PetDomesticCat> {
     return {
       default: 'PetDomesticCatSerializer',
       summary: 'PetDomesticCatSummarySerializer',
@@ -325,7 +325,7 @@ export default class PetDomesticCat extends ApplicationModel {
             const res = generateDreamContent('pet/wild/cat', ['pet/domestic/dog:belongs_to'])
             expect(res).toEqual(
               `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
 import PetDomesticDog from '../../Pet/Domestic/Dog'
 
@@ -334,7 +334,7 @@ export default class PetWildCat extends ApplicationModel {
     return 'pet_wild_cats' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<PetWildCat> {
     return {
       default: 'PetWildCatSerializer',
       summary: 'PetWildCatSummarySerializer',
@@ -358,7 +358,7 @@ export default class PetWildCat extends ApplicationModel {
           const res = generateDreamContent('composition', ['user:belongs_to', 'chalupa:belongs_to'])
           expect(res).toEqual(
             `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import User from './User'
 import Chalupa from './Chalupa'
@@ -368,7 +368,7 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<Composition> {
     return {
       default: 'CompositionSerializer',
       summary: 'CompositionSummarySerializer',
@@ -397,7 +397,7 @@ export default class Composition extends ApplicationModel {
           const res = generateDreamContent('composition', ['user:has_one'])
           expect(res).toEqual(
             `\
-import { DreamColumn, HasOne } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers, HasOne } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import User from './User'
 
@@ -406,7 +406,7 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<Composition> {
     return {
       default: 'CompositionSerializer',
       summary: 'CompositionSummarySerializer',
@@ -430,7 +430,7 @@ export default class Composition extends ApplicationModel {
           const res = generateDreamContent('user', ['composition:has_many'])
           expect(res).toEqual(
             `\
-import { DreamColumn, HasMany } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers, HasMany } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import Composition from './Composition'
 
@@ -439,7 +439,7 @@ export default class User extends ApplicationModel {
     return 'users' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<User> {
     return {
       default: 'UserSerializer',
       summary: 'UserSummarySerializer',
@@ -463,7 +463,7 @@ export default class User extends ApplicationModel {
           const res = generateDreamContent('composition', ['user:belongs_to'])
           expect(res).toEqual(
             `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers, BelongsTo } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import User from './User'
 
@@ -472,7 +472,7 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<Composition> {
     return {
       default: 'CompositionSerializer',
       summary: 'CompositionSummarySerializer',
