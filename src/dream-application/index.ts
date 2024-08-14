@@ -5,7 +5,6 @@ import { cacheDreamApplication } from './cache'
 import loadModels from './helpers/loadModels'
 import loadSerializers, { setCachedSerializers } from './helpers/loadSerializers'
 import loadServices, { setCachedServices } from './helpers/loadServices'
-import loadViewModels, { setCachedViewModels } from './helpers/loadViewModels'
 
 export default class DreamApplication {
   public static async init(cb: (dreamApp: DreamApplication) => void | Promise<void>) {
@@ -14,7 +13,6 @@ export default class DreamApplication {
 
     await dreamApp.inflections?.()
 
-    if (!dreamApp.viewModels) setCachedViewModels({})
     if (!dreamApp.serializers) setCachedSerializers({})
     if (!dreamApp.services) setCachedServices({})
 
@@ -29,10 +27,6 @@ export default class DreamApplication {
 
   public static async loadSerializers(serializersPath: string) {
     return await loadSerializers(serializersPath)
-  }
-
-  public static async loadViewModels(viewModelsPath: string) {
-    return await loadViewModels(viewModelsPath)
   }
 
   public static async loadServices(servicesPath: string) {

@@ -1,15 +1,17 @@
 import { getModelsOrFail } from './loadModels'
 import { getSerializersOrFail } from './loadSerializers'
 import { getServicesOrFail } from './loadServices'
-import { getViewModelsOrFail } from './loadViewModels'
 
-export default function lookupGlobalName(globalName: string) {
-  const combinedObj = {
-    ...getViewModelsOrFail(),
+let _globalNameMap: any
+
+export default function lookupClassByGlobalName(globalName: string) {
+  if (_globalNameMap) return _globalNameMap[globalName] || null
+
+  _globalNameMap = {
     ...getServicesOrFail(),
     ...getSerializersOrFail(),
     ...getModelsOrFail(),
   }
 
-  return combinedObj[globalName] || null
+  return lookupClassByGlobalName(globalName)
 }

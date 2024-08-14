@@ -110,6 +110,7 @@ import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associati
 import NonLoadedAssociation from './exceptions/associations/non-loaded-association'
 import CannotCallUndestroyOnANonSoftDeleteModel from './exceptions/cannot-call-undestroy-on-a-non-soft-delete-model'
 import CreateOrFindByFailedToCreateAndFind from './exceptions/create-or-find-by-failed-to-create-and-find'
+import GlobalNameNotSet from './exceptions/dream-application/global-name-not-set'
 import MissingSerializer from './exceptions/missing-serializers-definition'
 import MissingTable from './exceptions/missing-table'
 import NonExistentScopeProvidedToResort from './exceptions/non-existent-scope-provided-to-resort'
@@ -121,7 +122,6 @@ import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDr
 import { marshalDBValue } from './helpers/marshalDBValue'
 import { EnvOpts } from './helpers/path/types'
 import { isString } from './helpers/typechecks'
-import lookupGlobalNameByClass from './dream-application/helpers/lookupGlobalNameByClass'
 
 export default class Dream {
   public DB: any
@@ -779,6 +779,7 @@ export default class Dream {
     return AfterDestroyCommit()
   }
 
+  private static _globalName: string
   /**
    * Returns a unique global name for the given model.
    * Since in javascript/typescript, it is possible to give
@@ -812,23 +813,13 @@ export default class Dream {
    * @returns A string representing a unique key for this model
    */
   public static get globalName(): string {
-    if (this._globalName) return this._globalName
-
-    const globalName = lookupGlobalNameByClass(this)
-    if (!globalName)
-      throw new Error(
-        `
-Unable to find globalName for dream serializer: ${this.name}`
-      )
-
-    this._globalName = globalName
-    return globalName
+    if (!this._globalName) throw new GlobalNameNotSet(this)
+    return this._globalName
   }
 
   public static setGlobalName(globalName: string) {
     this._globalName = globalName
   }
-  private static _globalName: string | undefined
 
   /**
    * Returns the column names for the given model

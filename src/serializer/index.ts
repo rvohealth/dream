@@ -1,7 +1,6 @@
 import isArray from 'lodash.isarray'
 import { DateTime } from 'luxon'
 import Dream from '../dream'
-import lookupGlobalNameByClass from '../dream-application/helpers/lookupGlobalNameByClass'
 import {
   DreamClassOrViewModelClass,
   DreamClassOrViewModelClassOrSerializerClass,
@@ -9,6 +8,7 @@ import {
   DreamOrViewModel,
 } from '../dream/types'
 import NonLoadedAssociation from '../exceptions/associations/non-loaded-association'
+import GlobalNameNotSet from '../exceptions/dream-application/global-name-not-set'
 import MissingSerializer from '../exceptions/missing-serializers-definition'
 import FailedToRenderThroughAssociationForSerializer from '../exceptions/serializers/failed-to-render-through-association'
 import CalendarDate from '../helpers/CalendarDate'
@@ -26,25 +26,16 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   public static associationStatements: DreamSerializerAssociationStatement[] = []
   public static readonly isDreamSerializer = true
 
+  private static _globalName: string
+
   public static get globalName(): string {
-    if (this._globalName) return this._globalName
-
-    const globalName = lookupGlobalNameByClass(this)
-    if (!globalName)
-      throw new Error(
-        `
-Unable to find globalName for dream serializer: ${this.name}`
-      )
-
-    this._globalName = globalName
-    return globalName
+    if (!this._globalName) throw new GlobalNameNotSet(this)
+    return this._globalName
   }
 
   public static setGlobalName(globalName: string) {
-    // if (!Object.getOwnPropertyDescriptor(this, '_globalName')) this['_globalName'] = globalName
     this._globalName = globalName
   }
-  private static _globalName: string | undefined
 
   public static get openapiName(): string {
     return this.name.replace(/Serializer$/, '')
