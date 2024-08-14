@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs'
 import { sql } from 'kysely'
 import sortBy from 'lodash.sortby'
+import path from 'path'
 import _db from '../../db'
 import { isPrimitiveDataType } from '../../db/dataTypes'
 import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
@@ -8,7 +9,6 @@ import { DreamConst } from '../../dream/types'
 import camelize from '../camelize'
 import pascalize from '../pascalize'
 import uniq from '../uniq'
-import path from 'path'
 
 export default class SchemaBuilder {
   public async build() {
@@ -40,9 +40,7 @@ export const globalSchema = {
   passthroughColumns: ${stringifyArray(uniq(passthroughColumns.sort()), { indent: 4 })},
   allDefaultScopeNames: ${stringifyArray(uniq(allDefaultScopeNames.sort()), { indent: 4 })},
   globalNames: {
-    dreams: ${stringifyArray(Object.keys(dreamApp.models).sort(), { indent: 6 })},
-    viewModels: ${stringifyArray(Object.keys(dreamApp.viewModels).sort(), { indent: 6 })},
-    serializers: ${stringifyArray(Object.keys(dreamApp.serializers).sort(), { indent: 6 })},
+    serializers: ${stringifyArray(Object.keys(dreamApp.serializers || {}).sort(), { indent: 6 })},
   },
 } as const
 `
