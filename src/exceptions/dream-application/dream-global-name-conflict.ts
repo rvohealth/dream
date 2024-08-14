@@ -5,15 +5,8 @@ export default class DreamGlobalNameConflict extends Error {
 
   public get message() {
     return `
-Attempted to register ${this.dreamClassGlobalName}, but another model was detected with the same
-name. To fix this, use the "globalName" getter to distinguish one of these models
-from the other, i.e.:
-
-export default class ${this.dreamClassGlobalName} extends ApplicationModel {
-  public static get globalName() {
-    return 'MyCustomGlobalName'
-  }
-}
-`
+Attempted to register ${this.dreamClassGlobalName}, but another model, serializer, service, or view model
+was detected with the same name. This should never happen, since global names are computed based on file path,
+but it has, causing the initialization process to halt.`
   }
 }

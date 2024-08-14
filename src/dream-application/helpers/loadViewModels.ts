@@ -1,5 +1,5 @@
 import { ViewModelClass } from '../../dream/types'
-import ViewModelGlobalNameConflict from '../../exceptions/dream-application/view-model-global-name-conflict'
+import DreamGlobalNameConflict from '../../exceptions/dream-application/dream-global-name-conflict'
 import getFiles from '../../helpers/getFiles'
 import globalNameIsAvailable from './globalNameIsAvailable'
 import pathToGlobalKey from './pathToGlobalKey'
@@ -19,7 +19,7 @@ export default async function loadViewModels(
 
     const viewModelKey = pathToGlobalKey(viewModelPath, /^.*app\/view-models\//)
 
-    if (!globalNameIsAvailable(viewModelKey)) throw new ViewModelGlobalNameConflict(viewModelKey)
+    if (!globalNameIsAvailable(viewModelKey)) throw new DreamGlobalNameConflict(viewModelKey)
 
     potentialViewModel.globalName = viewModelKey
 

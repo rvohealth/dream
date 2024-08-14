@@ -1,4 +1,4 @@
-import ServiceGlobalNameConflict from '../../exceptions/dream-application/service-global-name-conflict'
+import DreamGlobalNameConflict from '../../exceptions/dream-application/dream-global-name-conflict'
 import getFiles from '../../helpers/getFiles'
 import globalNameIsAvailable from './globalNameIsAvailable'
 import pathToGlobalKey from './pathToGlobalKey'
@@ -21,7 +21,7 @@ export default async function loadServices(servicesPath: string): Promise<Record
     if (typeof serviceClass.background === 'function') {
       const serviceKey = pathToGlobalKey(servicePath, /^.*app\/services\//)
 
-      if (!globalNameIsAvailable(serviceKey)) throw new ServiceGlobalNameConflict(serviceKey)
+      if (!globalNameIsAvailable(serviceKey)) throw new DreamGlobalNameConflict(serviceKey)
 
       if (typeof serviceClass.setGlobalName === 'function') {
         serviceClass.setGlobalName(serviceKey)
