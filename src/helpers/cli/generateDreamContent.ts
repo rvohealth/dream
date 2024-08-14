@@ -10,7 +10,7 @@ import uniq from '../uniq'
 export default function generateDreamContent(fullyQualifiedModelName: string, attributes: string[]) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
   const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
-  const dreamImports: string[] = ['DreamColumn']
+  const dreamImports: string[] = ['DreamColumn', 'DreamSerializers']
   const idTypescriptType = `DreamColumn<${modelClassName}, 'id'>`
   const additionalImports: string[] = []
 
@@ -86,7 +86,7 @@ export default class ${modelClassName} extends ApplicationModel {
     return '${tableName}' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<${modelClassName}> {
     return {
       default: '${serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName)}',
       summary: '${serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')}',
