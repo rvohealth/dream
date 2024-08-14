@@ -1,18 +1,20 @@
 {
-  "name": "psychic",
-  "version": "0.2.0",
+  "name": "tbd",
+  "version": "0.0.0",
   "main": "src/index.ts",
-  "license": "Apache 2.09",
+  "author": "tbd",
   "private": true,
   "scripts": {
-    "build": "APP_NAME=$npm_package_name APP_VERSION=$npm_package_version yarn --cwd=node_modules/@rvohealth/psychic build && echo \"building your app...\" && rm -rf dist && yarn --cwd=node_modules/@rvohealth/dream dream",
-    "dreamjs": "APP_NAME=$npm_package_name APP_VERSION=$npm_package_version yarn --cwd=node_modules/@rvohealth/dream dreamjs",
-    "sync": "APP_NAME=$npm_package_name APP_VERSION=$npm_package_version yarn dream sync",
-    "uspec": "APP_NAME=$npm_package_name APP_VERSION=$npm_package_version TS_SAFE=1 jest -w 1 --config=./spec/unit/jest.config.js --forceExit --verbose --logHeapUsage",
-    "fspec": "APP_NAME=$npm_package_name APP_VERSION=$npm_package_version TS_SAFE=1 jest --clearCache && jest --config=./spec/features/jest.config.js --runInBand --forceExit --verbose --logHeapUsage",
-    "console": "APP_NAME=$npm_package_name APP_VERSION=$npm_package_version TS_SAFE=1 npx ts-node --transpile-only --project ./tsconfig.json ./src/conf/repl.ts",
+    "dream": "yarn dreamts",
+    "dreamjs": "node  --experimental-modules dist/boot/cli.js",
+    "dreamts": "DREAM_OMIT_DIST_FOLDER=1 TS_SAFE=1 npx ts-node --transpile-only -r ./src/helpers/loadEnv.ts test-app/cli/index.ts",
+    "build": "APP_NAME=$npm_package_name APP_VERSION=$npm_package_version yarn --cwd=node_modules/@rvohealth/dream build && echo \"building your app...\" && rm -rf dist && echo \"node --version\" && node --version && echo \"npx tsc --version\" && npx tsc --version && npx tsc -p ./tsconfig.build.json",
+    "spec": "NODE_ENV=test jest --runInBand --forceExit",
+    "console": "TS_SAFE=1 npx ts-node --transpile-only --project ./tsconfig.json ./test-app/app/conf/repl.ts",
+    "types:trace": "rm -rf dist && npx tsc -p ./tsconfig.build.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
+    "types:trace-test-app": "rm -rf dist && npx tsc -p ./tsconfig.trace.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
     "format": "yarn run prettier . --write",
-    "lint": "yarn run eslint --no-warn-ignored \"src/**/*.ts\" \"spec/**/*.ts\" && yarn run prettier . --check"
+    "lint": "yarn run eslint --no-warn-ignored \"src/**/*.ts\" \"spec/**/*.ts\" \"spec-helpers/**/*.ts\" \"test-app/**/*.ts\" \"boot/**/*.ts\" && yarn run prettier . --check"
   },
   "dependencies": {
     "@rvohealth/dream": "^0.5.16",
