@@ -11,8 +11,15 @@ export default class DreamApplication {
   public static async init(cb: (dreamApp: DreamApplication) => void | Promise<void>) {
     const dreamApp = new DreamApplication()
     await cb(dreamApp)
+
     await dreamApp.inflections?.()
+
+    dreamApp.viewModels ||= {}
+    dreamApp.serializers ||= {}
+    dreamApp.services ||= {}
+
     cacheDreamApplication(dreamApp)
+
     return dreamApp
   }
 
