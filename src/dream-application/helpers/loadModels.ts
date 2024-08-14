@@ -1,7 +1,5 @@
 import Dream from '../../dream'
-import DreamGlobalNameConflict from '../../exceptions/dream-application/dream-global-name-conflict'
 import getFiles from '../../helpers/getFiles'
-import globalNameIsAvailable from './globalNameIsAvailable'
 import pathToGlobalKey from './pathToGlobalKey'
 
 let _models: Record<string, typeof Dream>
@@ -13,27 +11,16 @@ export default async function loadModels(modelsPath: string): Promise<Record<str
   const modelPaths = (await getFiles(modelsPath)).filter(path => /\.[jt]s$/.test(path))
 
   for (const modelPath of modelPaths) {
-    const potentialModel = (await import(modelPath)).default
+    const modelClass = (await import(modelPath)).default as typeof Dream
 
-    if ((potentialModel as typeof Dream)?.isDream) {
-      const model = potentialModel as typeof Dream
-      const modelKey = pathToGlobalKey(modelPath, /^.*app\/models\//)
-
-      if (!globalNameIsAvailable(modelKey)) throw new DreamGlobalNameConflict(modelKey)
-
-      let hasTable = false
-      try {
-        hasTable = !!model.table
-      } catch {
-        // ApplicationModel will automatically raise an exception here,
-        // since it does not have a table.
-      }
-
-      model.setGlobalName(modelKey)
-
-      if (hasTable && modelKey) {
-        _models[modelKey] = model
-      }
+    // we only want to register models within our app
+    // that are backgroundable, since the only purpose
+    // for keeping these indices is to be able to summon
+    // a service for backgrounding.
+    if (modelClass.isDream && typeof (modelClass as any).background === 'function') {
+      const modelKey = pathToGlobalKey(modelPath, modelsPath)
+      modelClass.setGlobalName(modelKey)
+      _models[modelKey] = modelClass
     }
   }
 

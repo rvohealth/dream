@@ -12,9 +12,6 @@ export default async function dreamApplicationOpts(dreamApp: DreamApplication) {
   // sends all the models in your app into the DreamApplication instance
   dreamApp.set('models', await DreamApplication.loadModels(path.join(__dirname, '..', 'models')))
 
-  // sends all the view models in your app into the DreamApplication instance
-  dreamApp.set('viewModels', await DreamApplication.loadViewModels(path.join(__dirname, '..', 'view-models')))
-
   // sends all the serializers in your app into the DreamApplication instance
   dreamApp.set(
     'serializers',
