@@ -1,4 +1,4 @@
-import { promises as fs } from 'fs'
+import fs from 'fs/promises'
 import { FileMigrationProvider, Migrator } from 'kysely'
 import path from 'path'
 import db from '../../db'

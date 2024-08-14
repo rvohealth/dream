@@ -1,6 +1,6 @@
 import '../../helpers/loadEnv'
 
-import { promises as fs } from 'fs'
+import fs from 'fs/promises'
 import path from 'path'
 import ConnectionConfRetriever from '../../../boot/cli/connection-conf-retriever-primitive'
 import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'

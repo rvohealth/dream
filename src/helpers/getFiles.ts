@@ -1,4 +1,4 @@
-import { promises as fs } from 'fs'
+import fs from 'fs/promises'
 import path from 'path'
 
 export default async function getFiles(dir: string): Promise<string[]> {
