@@ -5,7 +5,7 @@ import { getSerializersOrFail } from './loadSerializers'
 import { getServicesOrFail } from './loadServices'
 import { getViewModelsOrFail } from './loadViewModels'
 
-export default function lookupGlobalNameByClass(classDef: any) {
+export default function lookupGlobalNameByClass(classDef: any): string | null {
   if ((classDef as typeof Dream).isDream) {
     const models = getModelsOrFail()
     return Object.keys(models).find(key => models[key] === classDef) || null

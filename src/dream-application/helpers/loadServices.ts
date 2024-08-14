@@ -23,7 +23,11 @@ export default async function loadServices(servicesPath: string): Promise<Record
 
       if (!globalNameIsAvailable(serviceKey)) throw new ServiceGlobalNameConflict(serviceKey)
 
-      serviceClass.globalName = serviceKey
+      if (typeof serviceClass.setGlobalName === 'function') {
+        serviceClass.setGlobalName(serviceKey)
+      } else {
+        serviceClass.globalName = serviceKey
+      }
 
       _services[serviceKey] = serviceClass
     }

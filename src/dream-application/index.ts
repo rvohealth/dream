@@ -25,19 +25,11 @@ export default class DreamApplication {
   }
 
   public static async loadViewModels(viewModelsPath: string) {
-    try {
-      return await loadViewModels(viewModelsPath)
-    } catch {
-      return {}
-    }
+    return await loadViewModels(viewModelsPath)
   }
 
   public static async loadServices(servicesPath: string) {
-    try {
-      return await loadServices(servicesPath)
-    } catch {
-      return {}
-    }
+    return await loadServices(servicesPath)
   }
 
   public dbCredentials: DreamDbCredentialOptions
