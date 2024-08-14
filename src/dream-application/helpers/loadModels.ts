@@ -13,11 +13,7 @@ export default async function loadModels(modelsPath: string): Promise<Record<str
   for (const modelPath of modelPaths) {
     const modelClass = (await import(modelPath)).default as typeof Dream
 
-    // we only want to register models within our app
-    // that are backgroundable, since the only purpose
-    // for keeping these indices is to be able to summon
-    // a service for backgrounding.
-    if (modelClass.isDream && typeof (modelClass as any).background === 'function') {
+    if (modelClass.isDream && modelClass.name !== 'ApplicationModel') {
       const modelKey = pathToGlobalKey(modelPath, modelsPath)
       modelClass.setGlobalName(modelKey)
       _models[modelKey] = modelClass
