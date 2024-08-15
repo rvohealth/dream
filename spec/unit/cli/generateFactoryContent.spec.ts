@@ -13,7 +13,8 @@ export default async function createUser(overrides: UpdateableProperties<User> =
   return await User.create({
     ...overrides,
   })
-}`
+}
+`
       )
     })
   })
@@ -30,7 +31,8 @@ export default async function createMyNestedUser(overrides: UpdateableProperties
   return await MyNestedUser.create({
     ...overrides,
   })
-}`
+}
+`
       )
     })
   })
@@ -52,7 +54,8 @@ export default async function createMyNestedUser(myNestedDoubleNestedOrganizatio
     myNestedDoubleNestedOrganization,
     ...overrides,
   })
-}`
+}
+`
       )
     })
   })
