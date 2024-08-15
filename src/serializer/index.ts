@@ -184,7 +184,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
         const fieldWithCasing = this.applyCasingToField(field)
 
         let dateValue: CalendarDate | DateTime | null | undefined
-        let roundValue: number | null | undefined
+        let decimalValue: number | null | undefined
 
         switch (this.computedRenderAs(renderAs)) {
           case 'date':
@@ -200,10 +200,19 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
             break
 
           case 'decimal':
-            roundValue = this.getAttributeValue(attributeStatement)
+            decimalValue = this.numberOrStringToNumber(this.getAttributeValue(attributeStatement))
 
             returnObj[fieldWithCasing] =
-              typeof roundValue === 'number' ? round(roundValue, options?.precision) : null
+              decimalValue === null
+                ? null
+                : options?.precision === undefined
+                  ? decimalValue
+                  : round(decimalValue, options?.precision)
+            break
+
+          case 'integer':
+            decimalValue = this.numberOrStringToNumber(this.getAttributeValue(attributeStatement))
+            returnObj[fieldWithCasing] = decimalValue === null ? null : round(decimalValue)
             break
 
           default:
@@ -215,14 +224,23 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     return returnObj
   }
 
+  private numberOrStringToNumber(num: string | number | undefined | null) {
+    if (num === undefined) return null
+    if (num === null) return null
+    if (typeof num === 'number') return num
+    return Number(num)
+  }
+
   private computedRenderAs(renderAs: SerializableTypes | undefined) {
     if (typeof renderAs === 'object') {
       const safeRenderAs = renderAs as any
 
-      if (safeRenderAs.type === 'string') {
+      if (safeRenderAs.type === 'string' || safeRenderAs.type === 'number') {
         if (safeRenderAs.format) return safeRenderAs.format
-        return 'string'
+        return safeRenderAs.type
       }
+
+      if (safeRenderAs.type) return safeRenderAs.type
     }
 
     return renderAs
