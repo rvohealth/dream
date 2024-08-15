@@ -12,7 +12,8 @@ export default class FailedToIdentifyAssociation extends Error {
   }
 
   public get message() {
-    const possibleMatches = Object.keys(getCachedDreamApplicationOrFail().models).filter(globalName =>
+    const dreamApp = getCachedDreamApplicationOrFail()
+    const possibleMatches = Object.keys(dreamApp.models).filter(globalName =>
       new RegExp(this.associationName.slice(0, 3)).test(globalName)
     )
 
@@ -42,6 +43,9 @@ Details:
     dream: ${this.modelClass.name}
     association type: ${this.associationType}
     association name: ${this.associationName}
+
+Here is a complete list of possible associations:
+    ${Object.keys(dreamApp.models).join(',\n    ')}
 `
   }
 }
