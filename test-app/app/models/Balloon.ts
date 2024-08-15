@@ -1,7 +1,4 @@
 import { Query } from '../../../src'
-import BelongsTo from '../../../src/decorators/associations/belongs-to'
-import HasMany from '../../../src/decorators/associations/has-many'
-import HasOne from '../../../src/decorators/associations/has-one'
 import Scope from '../../../src/decorators/scope'
 import SoftDelete from '../../../src/decorators/soft-delete'
 import Sortable from '../../../src/decorators/sortable'
