@@ -275,6 +275,70 @@ describe('DreamSerializer#render', () => {
       })
     })
 
+    context('integer', () => {
+      let kilos: number | null | undefined
+
+      beforeEach(() => {
+        kilos = null
+      })
+
+      const subject = () => new MySerializer({ kilos }).render()
+
+      class MySerializer extends DreamSerializer {
+        @Attribute('integer')
+        public kilos: number
+      }
+
+      context('the number field is an integer', () => {
+        beforeEach(() => {
+          kilos = 7
+        })
+
+        it('returns the number as-is', () => {
+          expect(subject()).toEqual({ kilos: 7 })
+        })
+      })
+
+      context('the number field is a decimal', () => {
+        beforeEach(() => {
+          kilos = 7.6
+        })
+
+        it('rounds the decimal to the nearest integer', () => {
+          expect(subject()).toEqual({ kilos: 8 })
+        })
+      })
+
+      context('the integer field is null', () => {
+        it('sets the field to null on the serializer', () => {
+          expect(subject()).toEqual({ kilos: null })
+        })
+      })
+
+      context('the integer field is undefined', () => {
+        it('sets the field to null on the serializer', () => {
+          const serializer = new MySerializer({
+            kilos: undefined,
+          })
+          expect(serializer.render()).toEqual({ kilos: null })
+        })
+      })
+
+      context('the field is specified using openapi syntax', () => {
+        class MySerializer extends DreamSerializer {
+          @Attribute({ type: 'integer' })
+          public kilos: number
+        }
+
+        it('renders as integer', () => {
+          const serializer = new MySerializer({
+            kilos: '123.456',
+          })
+          expect(serializer.render()).toEqual({ kilos: 123 })
+        })
+      })
+    })
+
     context('decimal', () => {
       let kilos: number | null | undefined
 
@@ -290,23 +354,23 @@ describe('DreamSerializer#render', () => {
           public kilos: number
         }
 
-        context('the number field is a number', () => {
+        context('the number field is a decimal', () => {
           beforeEach(() => {
             kilos = 7.9351
           })
 
-          it('rounds the number to an integer', () => {
-            expect(subject()).toEqual({ kilos: 8 })
+          it('returns the decimal with full precision', () => {
+            expect(subject()).toEqual({ kilos: 7.9351 })
           })
         })
 
-        context('the number field is null', () => {
+        context('the decimal field is null', () => {
           it('sets the field to null on the serializer', () => {
             expect(subject()).toEqual({ kilos: null })
           })
         })
 
-        context('the number field is undefined', () => {
+        context('the decimal field is undefined', () => {
           beforeEach(() => {
             kilos = undefined
           })
@@ -328,23 +392,28 @@ describe('DreamSerializer#render', () => {
           public kilos: number
         }
 
-        context('the number field is a number', () => {
+        context('the decimal field is a number', () => {
           beforeEach(() => {
             kilos = 7.9351
           })
 
-          it('rounds the number to the specified precision', () => {
+          it('rounds the decimal to the specified precision', () => {
             expect(subject()).toEqual({ kilos: 7.94 })
           })
         })
 
-        context('the number field is null', () => {
+        context('the decimal field is null', () => {
           it('sets the field to null on the serializer', () => {
             expect(subject()).toEqual({ kilos: null })
           })
         })
 
-        context('the number field is undefined', () => {
+        context('the decimal field is undefined', () => {
+          class MySerializer extends DreamSerializer {
+            @Attribute('decimal', { precision: 2 })
+            public kilos: number
+          }
+
           beforeEach(() => {
             kilos = undefined
           })
@@ -355,6 +424,56 @@ describe('DreamSerializer#render', () => {
             })
             expect(serializer.render()).toEqual({ kilos: null })
           })
+        })
+      })
+
+      context('the field is specified using openapi syntax', () => {
+        class MySerializer extends DreamSerializer {
+          @Attribute({ type: 'number', format: 'decimal' })
+          public kilos: number
+        }
+
+        beforeEach(() => {
+          kilos = undefined
+        })
+
+        it('renders as decimal', () => {
+          const serializer = new MySerializer({
+            kilos: '123.456',
+          })
+          expect(serializer.render()).toEqual({ kilos: 123.456 })
+        })
+
+        context('with precision', () => {
+          class MySerializer extends DreamSerializer {
+            @Attribute({ type: 'number', format: 'decimal' }, { precision: 2 })
+            public kilos: number
+          }
+
+          it('rounds to precision', () => {
+            const serializer = new MySerializer({
+              kilos: '123.456789',
+            })
+            expect(serializer.render()).toEqual({ kilos: 123.46 })
+          })
+        })
+      })
+
+      context('the field is specified using object with type syntax', () => {
+        class MySerializer extends DreamSerializer {
+          @Attribute({ type: 'decimal' })
+          public kilos: number
+        }
+
+        beforeEach(() => {
+          kilos = undefined
+        })
+
+        it('renders as decimal', () => {
+          const serializer = new MySerializer({
+            kilos: '123.456',
+          })
+          expect(serializer.render()).toEqual({ kilos: 123.456 })
         })
       })
     })
