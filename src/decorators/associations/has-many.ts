@@ -33,7 +33,6 @@ export default function HasMany<
     | readonly GlobalModelName<BaseInstance>[] =
     | GlobalModelName<BaseInstance>
     | readonly GlobalModelName<BaseInstance>[],
-  // AssociationDreamClass extends typeof Dream = typeof Dream,
 >(
   globalAssociationNameOrNames: AssociationGlobalNameOrNames,
   opts?: HasManyThroughOptions<BaseInstance, AssociationGlobalNameOrNames>
@@ -77,7 +76,6 @@ export default function HasMany<
 export default function HasMany<
   BaseInstance extends Dream = Dream,
   AssociationGlobalNameOrNames = GlobalModelName<BaseInstance> | GlobalModelName<BaseInstance>[],
-  // AssociationDreamClass extends typeof Dream = typeof Dream,
 >(globalAssociationNameOrNames: AssociationGlobalNameOrNames, opts: unknown = {}): any {
   const {
     dependent,
