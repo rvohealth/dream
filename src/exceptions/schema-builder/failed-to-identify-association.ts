@@ -17,6 +17,21 @@ export default class FailedToIdentifyAssociation extends Error {
       ? this.globalAssociationNameOrNames[0]
       : this.globalAssociationNameOrNames
 
+    if (typeof attemptedName !== 'string') {
+      return `
+An unexpected error occurred while looking up an association that you have defined.
+
+While building the schema for your app, we failed to find a match for
+the ${this.associationType} association "${this.associationName}"
+on ${this.modelClass.name},
+
+however, we did not get back a string, which is what we expect to receive
+as the first argument to the ${this.associationType} decorator. In order
+the type we received for a global model name is "${typeof attemptedName}".
+".
+`
+    }
+
     const possibleMatches = Object.keys(dreamApp.models).filter(globalName =>
       new RegExp(attemptedName.slice(0, 3), 'i').test(globalName)
     )
