@@ -44,7 +44,7 @@ first argument to an association, since it can help to catch these
 familiar gotchas.
 
 Details:
-    dream: ${this.modelClass.name}
+    dream: ${this.modelClass.name} (${this.modelClass.globalName})
     association type: ${this.associationType}
     association name: ${this.associationName}
     attempted model name: ${attemptedName}
