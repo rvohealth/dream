@@ -179,6 +179,100 @@ describe('DreamSerializer#render', () => {
           expect(serializer.render()).toEqual({ createdAt: null })
         })
       })
+
+      context('the date field is specified using openapi syntax', () => {
+        class MySerializer extends DreamSerializer {
+          @Attribute({ type: 'string', format: 'date', nullable: true })
+          public createdAt: string
+        }
+
+        it('correctly serializes the date field', () => {
+          const serializer = new MySerializer({
+            createdAt: CalendarDate.fromISO('2024-02-02'),
+          })
+          expect(serializer.render()).toEqual({ createdAt: '2024-02-02' })
+        })
+
+        it('correctly serializes the date field', () => {
+          const serializer = new MySerializer({
+            createdAt: DateTime.fromISO('2023-10-18T13:15:16'),
+          })
+          expect(serializer.render()).toEqual({ createdAt: '2023-10-18' })
+        })
+      })
+    })
+
+    context('one of the fields is a date-time', () => {
+      const subject = () => new MySerializer({ createdAt }).render()
+      let createdAt: CalendarDate | DateTime | null | undefined
+
+      beforeEach(() => {
+        createdAt = null
+      })
+      class MySerializer extends DreamSerializer {
+        @Attribute('date-time')
+        public createdAt: string
+      }
+
+      context('the date-time field is a valid luxon DateTime', () => {
+        beforeEach(() => {
+          createdAt = DateTime.fromISO('2002-10-02')
+        })
+
+        it('renders unique format for date-times', () => {
+          expect(subject()).toEqual({ createdAt: '2002-10-02T00:00:00.000Z' })
+        })
+      })
+
+      context('the date field is a valid CalendarDate', () => {
+        beforeEach(() => {
+          createdAt = CalendarDate.fromISO('2002-10-02')
+        })
+
+        it('renders unique format for date-times', () => {
+          expect(subject()).toEqual({ createdAt: '2002-10-02T00:00:00.000Z' })
+        })
+      })
+
+      context('the date-time field is null', () => {
+        it('sets the field to null on the serializer', () => {
+          expect(subject()).toEqual({ createdAt: null })
+        })
+      })
+
+      context('the date-time field is undefined', () => {
+        beforeEach(() => {
+          createdAt = undefined
+        })
+
+        it('sets the field to null on the serializer', () => {
+          const serializer = new MySerializer({
+            createdAt: undefined,
+          })
+          expect(serializer.render()).toEqual({ createdAt: null })
+        })
+      })
+
+      context('the date-time field is specified using openapi syntax', () => {
+        class MySerializer extends DreamSerializer {
+          @Attribute({ type: 'string', format: 'date-time', nullable: true })
+          public createdAt: string
+        }
+
+        it('correctly serializes the date field', () => {
+          const serializer = new MySerializer({
+            createdAt: CalendarDate.fromISO('2024-02-02'),
+          })
+          expect(serializer.render()).toEqual({ createdAt: '2024-02-02T00:00:00.000Z' })
+        })
+
+        it('correctly serializes the date field', () => {
+          const serializer = new MySerializer({
+            createdAt: DateTime.fromISO('2023-10-18T13:15:16'),
+          })
+          expect(serializer.render()).toEqual({ createdAt: '2023-10-18T13:15:16.000Z' })
+        })
+      })
     })
 
     context('decimal', () => {
