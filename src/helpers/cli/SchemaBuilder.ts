@@ -257,7 +257,12 @@ ${tableName}: {
 
         const dreamClassOrClasses = associationMetaData.modelCB()
         if (!dreamClassOrClasses)
-          throw new FailedToIdentifyAssociation(model, associationMetaData.type, associationName)
+          throw new FailedToIdentifyAssociation(
+            model,
+            associationMetaData.type,
+            associationName,
+            associationMetaData.globalAssociationNameOrNames
+          )
 
         const optional =
           associationMetaData.type === 'BelongsTo' ? associationMetaData.optional === true : null
