@@ -44,13 +44,6 @@ export type TrigramOperator = (typeof TRIGRAM_OPERATORS)[number]
 export type ComparisonOperatorExpression = KyselyComparisonOperatorExpression | TrigramOperator
 export type OrderDir = 'asc' | 'desc'
 
-// export interface AliasCondition<DB extends any, PreviousTableNames extends AssociationTableNames<DB>> {
-//   conditionToExecute: boolean
-//   alias: keyof SyncedAssociations[PreviousTableNames]
-//   column: keyof Updateable<DB[PreviousTableNames]>
-//   columnValue: any
-// }
-
 export type DreamColumnNames<
   DreamInstance extends Dream,
   DB = DreamInstance['DB'],
@@ -309,11 +302,6 @@ export type GlobalModelName<
   GlobalNames = GlobalSchema['globalNames' & keyof GlobalSchema],
   ModelGlobalNames = GlobalNames['models' & keyof GlobalNames],
 > = (ModelGlobalNames & (string[] | Readonly<string[]>))[number] & string
-
-// export type GlobalModelTableLookup<
-//   I extends Dream,
-//   GlobalName extends GlobalModelName<I>,
-// >
 
 export type DreamSerializers<I extends Dream> = Record<'default', GlobalSerializerName<I>> &
   Record<string, GlobalSerializerName<I>>
