@@ -43,7 +43,9 @@ Details:
     }
 
     const possibleMatches = Object.keys(dreamApp.models).filter(globalName =>
-      new RegExp(attemptedName.slice(0, Math.min(attemptedName.length, 8)), 'i').test(globalName)
+      new RegExp(attemptedName.slice(0, Math.min(attemptedName.length, 8)), 'i').test(
+        globalName.replace(/\//g, '')
+      )
     )
 
     const possibleMatchesMessage = possibleMatches.length
