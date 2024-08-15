@@ -134,7 +134,7 @@ export default class Paper extends ApplicationModel {
           const res = generateDreamContent('composition', ['graph_node:belongs_to'])
           expect(res).toEqual(
             `\
-import { DreamColumn, DreamSerializers, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import GraphNode from './GraphNode'
 
@@ -154,7 +154,7 @@ export default class Composition extends ApplicationModel {
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @BelongsTo('GraphNode')
+  @Composition.BelongsTo('GraphNode')
   public graphNode: GraphNode
   public graphNodeId: DreamColumn<Composition, 'graphNodeId'>
 }
@@ -167,7 +167,7 @@ export default class Composition extends ApplicationModel {
             const res = generateDreamContent('cat_toy', ['pet/domestic/cat:belongs_to'])
             expect(res).toEqual(
               `\
-import { DreamColumn, DreamSerializers, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import PetDomesticCat from './Pet/Domestic/Cat'
 
@@ -187,7 +187,7 @@ export default class CatToy extends ApplicationModel {
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
-  @BelongsTo('Pet/Domestic/Cat')
+  @CatToy.BelongsTo('Pet/Domestic/Cat')
   public petDomesticCat: PetDomesticCat
   public petDomesticCatId: DreamColumn<CatToy, 'petDomesticCatId'>
 }
@@ -199,7 +199,7 @@ export default class CatToy extends ApplicationModel {
             const res = generateDreamContent('cat_toy', ['pet/domestic/cat:has_many'])
             expect(res).toEqual(
               `\
-import { DreamColumn, DreamSerializers, HasMany } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import PetDomesticCat from './Pet/Domestic/Cat'
 
@@ -219,7 +219,7 @@ export default class CatToy extends ApplicationModel {
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
-  @HasMany('Pet/Domestic/Cat')
+  @CatToy.HasMany('Pet/Domestic/Cat')
   public petDomesticCats: PetDomesticCat[]
 }
 `
@@ -230,7 +230,7 @@ export default class CatToy extends ApplicationModel {
             const res = generateDreamContent('cat_toy', ['pet/domestic/cat:has_one'])
             expect(res).toEqual(
               `\
-import { DreamColumn, DreamSerializers, HasOne } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import PetDomesticCat from './Pet/Domestic/Cat'
 
@@ -250,7 +250,7 @@ export default class CatToy extends ApplicationModel {
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
-  @HasOne('Pet/Domestic/Cat')
+  @CatToy.HasOne('Pet/Domestic/Cat')
   public petDomesticCat: PetDomesticCat
 }
 `
@@ -261,7 +261,7 @@ export default class CatToy extends ApplicationModel {
             const res = generateDreamContent('pet/domestic/cat', ['graph_node:belongs_to'])
             expect(res).toEqual(
               `\
-import { DreamColumn, DreamSerializers, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
 import GraphNode from '../../GraphNode'
 
@@ -281,7 +281,7 @@ export default class PetDomesticCat extends ApplicationModel {
   public createdAt: DreamColumn<PetDomesticCat, 'createdAt'>
   public updatedAt: DreamColumn<PetDomesticCat, 'updatedAt'>
 
-  @BelongsTo('GraphNode')
+  @PetDomesticCat.BelongsTo('GraphNode')
   public graphNode: GraphNode
   public graphNodeId: DreamColumn<PetDomesticCat, 'graphNodeId'>
 }
@@ -293,7 +293,7 @@ export default class PetDomesticCat extends ApplicationModel {
             const res = generateDreamContent('pet/domestic/cat', ['pet/domestic/dog:belongs_to'])
             expect(res).toEqual(
               `\
-import { DreamColumn, DreamSerializers, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
 import PetDomesticDog from '../../Pet/Domestic/Dog'
 
@@ -313,7 +313,7 @@ export default class PetDomesticCat extends ApplicationModel {
   public createdAt: DreamColumn<PetDomesticCat, 'createdAt'>
   public updatedAt: DreamColumn<PetDomesticCat, 'updatedAt'>
 
-  @BelongsTo('Pet/Domestic/Dog')
+  @PetDomesticCat.BelongsTo('Pet/Domestic/Dog')
   public petDomesticDog: PetDomesticDog
   public petDomesticDogId: DreamColumn<PetDomesticCat, 'petDomesticDogId'>
 }
@@ -325,7 +325,7 @@ export default class PetDomesticCat extends ApplicationModel {
             const res = generateDreamContent('pet/wild/cat', ['pet/domestic/dog:belongs_to'])
             expect(res).toEqual(
               `\
-import { DreamColumn, DreamSerializers, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
 import PetDomesticDog from '../../Pet/Domestic/Dog'
 
@@ -345,7 +345,7 @@ export default class PetWildCat extends ApplicationModel {
   public createdAt: DreamColumn<PetWildCat, 'createdAt'>
   public updatedAt: DreamColumn<PetWildCat, 'updatedAt'>
 
-  @BelongsTo('Pet/Domestic/Dog')
+  @PetWildCat.BelongsTo('Pet/Domestic/Dog')
   public petDomesticDog: PetDomesticDog
   public petDomesticDogId: DreamColumn<PetWildCat, 'petDomesticDogId'>
 }
@@ -358,7 +358,7 @@ export default class PetWildCat extends ApplicationModel {
           const res = generateDreamContent('composition', ['user:belongs_to', 'chalupa:belongs_to'])
           expect(res).toEqual(
             `\
-import { DreamColumn, DreamSerializers, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import User from './User'
 import Chalupa from './Chalupa'
@@ -379,11 +379,11 @@ export default class Composition extends ApplicationModel {
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @BelongsTo('User')
+  @Composition.BelongsTo('User')
   public user: User
   public userId: DreamColumn<Composition, 'userId'>
 
-  @BelongsTo('Chalupa')
+  @Composition.BelongsTo('Chalupa')
   public chalupa: Chalupa
   public chalupaId: DreamColumn<Composition, 'chalupaId'>
 }
@@ -397,7 +397,7 @@ export default class Composition extends ApplicationModel {
           const res = generateDreamContent('composition', ['user:has_one'])
           expect(res).toEqual(
             `\
-import { DreamColumn, DreamSerializers, HasOne } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import User from './User'
 
@@ -417,7 +417,7 @@ export default class Composition extends ApplicationModel {
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @HasOne('User')
+  @Composition.HasOne('User')
   public user: User
 }
 `
@@ -430,7 +430,7 @@ export default class Composition extends ApplicationModel {
           const res = generateDreamContent('user', ['composition:has_many'])
           expect(res).toEqual(
             `\
-import { DreamColumn, DreamSerializers, HasMany } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import Composition from './Composition'
 
@@ -450,7 +450,7 @@ export default class User extends ApplicationModel {
   public createdAt: DreamColumn<User, 'createdAt'>
   public updatedAt: DreamColumn<User, 'updatedAt'>
 
-  @HasMany('Composition')
+  @User.HasMany('Composition')
   public compositions: Composition[]
 }
 `
@@ -463,7 +463,7 @@ export default class User extends ApplicationModel {
           const res = generateDreamContent('composition', ['user:belongs_to'])
           expect(res).toEqual(
             `\
-import { DreamColumn, DreamSerializers, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
 import User from './User'
 
@@ -483,7 +483,7 @@ export default class Composition extends ApplicationModel {
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @BelongsTo('User')
+  @Composition.BelongsTo('User')
   public user: User
   public userId: DreamColumn<Composition, 'userId'>
 }
