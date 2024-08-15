@@ -1,0 +1,36 @@
+import { AssociationStatement } from '../../decorators/associations/shared'
+import Dream from '../../dream'
+import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
+
+export default class FailedToIdentifyAssociation extends Error {
+  constructor(
+    private modelClass: typeof Dream,
+    private associationMetaData: AssociationStatement,
+    private associationName: string
+  ) {
+    super()
+  }
+
+  public get message() {
+    return `
+An unexpected error occurred while looking up an association that you have defined.
+
+While building the schema for your app, we attempted to follow the ${this.associationMetaData.type} association
+on ${this.modelClass.name}. Usually, this is because the global name for the model is not what you anticipated,
+which often happens when you are using models that are in nested directories, since their names can be counter-intuitive.
+
+We recommend that you lean into the autocomplete when providing the first argument to an association, since
+it can help to catch these familiar gotchas.
+
+Did you by chance mean one of these associations?:
+    ${Object.keys(getCachedDreamApplicationOrFail().models)
+      .filter(globalName => new RegExp(`^${this.associationName.slice(0, 5)}`).test(globalName))
+      .join(',\n    ')}
+
+Details:
+    dream: ${this.modelClass.name}
+    association type: ${this.associationMetaData.type}
+    association name: ${this.associationName}
+`
+  }
+}

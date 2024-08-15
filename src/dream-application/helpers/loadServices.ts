@@ -16,7 +16,7 @@ export default async function loadServices(servicesPath: string): Promise<Record
     // that are backgroundable, since the only purpose
     // for keeping these indices is to be able to summon
     // a service for backgrounding.
-    if (typeof serviceClass.background === 'function' || typeof serviceClass.schedule === 'function') {
+    if (typeof serviceClass?.background === 'function' || typeof serviceClass?.schedule === 'function') {
       const serviceKey = globalServiceKeyFromPath(servicePath, servicesPath)
 
       if (typeof serviceClass.setGlobalName === 'function') {
