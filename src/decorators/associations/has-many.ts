@@ -1,7 +1,7 @@
 import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../dream'
 import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames'
-import { GlobalModelName } from '../../dream/types'
+import { GlobalModelNames } from '../../dream/types'
 import {
   HasOptions,
   HasStatement,
@@ -17,10 +17,10 @@ import {
 export default function HasMany<
   BaseInstance extends Dream = Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelName<BaseInstance>
-    | readonly GlobalModelName<BaseInstance>[] =
-    | GlobalModelName<BaseInstance>
-    | readonly GlobalModelName<BaseInstance>[],
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[] =
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
 >(
   globalAssociationNameOrNames: AssociationGlobalNameOrNames,
   opts?: HasManyOptions<BaseInstance, AssociationGlobalNameOrNames>
@@ -29,10 +29,10 @@ export default function HasMany<
 export default function HasMany<
   BaseInstance extends Dream = Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelName<BaseInstance>
-    | readonly GlobalModelName<BaseInstance>[] =
-    | GlobalModelName<BaseInstance>
-    | readonly GlobalModelName<BaseInstance>[],
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[] =
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
 >(
   globalAssociationNameOrNames: AssociationGlobalNameOrNames,
   opts?: HasManyThroughOptions<BaseInstance, AssociationGlobalNameOrNames>
@@ -73,7 +73,7 @@ export default function HasMany<
  */
 export default function HasMany<
   BaseInstance extends Dream = Dream,
-  AssociationGlobalNameOrNames = GlobalModelName<BaseInstance> | GlobalModelName<BaseInstance>[],
+  AssociationGlobalNameOrNames = GlobalModelNames<BaseInstance> | GlobalModelNames<BaseInstance>[],
 >(globalAssociationNameOrNames: AssociationGlobalNameOrNames, opts: unknown = {}): any {
   const {
     dependent,
@@ -153,13 +153,13 @@ export interface HasManyStatement<
 export interface HasManyOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelName<BaseInstance>
-    | readonly GlobalModelName<BaseInstance>[],
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
 > extends HasOptions<BaseInstance, AssociationGlobalNameOrNames> {}
 
 export interface HasManyThroughOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelName<BaseInstance>
-    | readonly GlobalModelName<BaseInstance>[],
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
 > extends HasThroughOptions<BaseInstance, AssociationGlobalNameOrNames> {}

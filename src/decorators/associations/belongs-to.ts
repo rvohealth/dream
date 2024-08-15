@@ -5,7 +5,7 @@ import {
   DefaultScopeName,
   DefaultScopeNameForTable,
   DreamColumnNames,
-  GlobalModelName,
+  GlobalModelNames,
   TableColumnNames,
   TableNameForGlobalModelName,
 } from '../../dream/types'
@@ -45,8 +45,8 @@ import {
 export default function BelongsTo<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelName<BaseInstance>
-    | readonly GlobalModelName<BaseInstance>[],
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
 >(
   globalAssociationNameOrNames: AssociationGlobalNameOrNames,
   {
@@ -122,15 +122,15 @@ export interface BelongsToStatement<
 export interface BelongsToOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelName<BaseInstance>
-    | readonly GlobalModelName<BaseInstance>[],
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
   AssociationGlobalName = AssociationGlobalNameOrNames extends Readonly<any[]>
     ? AssociationGlobalNameOrNames[0] & string
     : AssociationGlobalNameOrNames & string,
   AssociationTableName extends AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
     keyof BaseInstance['DB'] = TableNameForGlobalModelName<
     BaseInstance,
-    AssociationGlobalName & GlobalModelName<BaseInstance>
+    AssociationGlobalName & GlobalModelNames<BaseInstance>
   > &
     AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
     keyof BaseInstance['DB'],

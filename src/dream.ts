@@ -89,7 +89,7 @@ import {
   DreamParamSafeColumnNames,
   DreamSerializeOptions,
   FinalVariadicTableName,
-  GlobalModelName,
+  GlobalModelNames,
   IdType,
   NextPreloadArgumentType,
   OrderDir,
@@ -425,8 +425,8 @@ export default class Dream {
   public static BelongsTo<
     T extends typeof Dream,
     const AssociationGlobalNameOrNames extends
-      | GlobalModelName<InstanceType<T>>
-      | readonly GlobalModelName<InstanceType<T>>[],
+      | GlobalModelNames<InstanceType<T>>
+      | readonly GlobalModelNames<InstanceType<T>>[],
   >(
     this: T,
     globalAssociationNameOrNames: AssociationGlobalNameOrNames,
@@ -441,8 +441,8 @@ export default class Dream {
   public static HasMany<
     T extends typeof Dream,
     const AssociationGlobalNameOrNames extends
-      | GlobalModelName<InstanceType<T>>
-      | readonly GlobalModelName<InstanceType<T>>[],
+      | GlobalModelNames<InstanceType<T>>
+      | readonly GlobalModelNames<InstanceType<T>>[],
   >(
     this: T,
     globalAssociationNameOrNames: AssociationGlobalNameOrNames,
@@ -452,8 +452,8 @@ export default class Dream {
   public static HasMany<
     T extends typeof Dream,
     const AssociationGlobalNameOrNames extends
-      | GlobalModelName<InstanceType<T>>
-      | readonly GlobalModelName<InstanceType<T>>[],
+      | GlobalModelNames<InstanceType<T>>
+      | readonly GlobalModelNames<InstanceType<T>>[],
   >(
     this: T,
     globalAssociationNameOrNames: AssociationGlobalNameOrNames,
@@ -486,8 +486,8 @@ export default class Dream {
   public static HasMany<
     T extends typeof Dream,
     const AssociationGlobalNameOrNames extends
-      | GlobalModelName<InstanceType<T>>
-      | readonly GlobalModelName<InstanceType<T>>[],
+      | GlobalModelNames<InstanceType<T>>
+      | readonly GlobalModelNames<InstanceType<T>>[],
   >(this: T, globalAssociationNameOrNames: AssociationGlobalNameOrNames, options: unknown = {}) {
     return HasMany<InstanceType<T>, AssociationGlobalNameOrNames>(
       globalAssociationNameOrNames,
@@ -504,8 +504,8 @@ export default class Dream {
   public static HasOne<
     T extends typeof Dream,
     const AssociationGlobalNameOrNames extends
-      | GlobalModelName<InstanceType<T>>
-      | readonly GlobalModelName<InstanceType<T>>[],
+      | GlobalModelNames<InstanceType<T>>
+      | readonly GlobalModelNames<InstanceType<T>>[],
   >(
     this: T,
     globalAssociationNameOrNames: AssociationGlobalNameOrNames,
@@ -515,8 +515,8 @@ export default class Dream {
   public static HasOne<
     T extends typeof Dream,
     const AssociationGlobalNameOrNames extends
-      | GlobalModelName<InstanceType<T>>
-      | readonly GlobalModelName<InstanceType<T>>[],
+      | GlobalModelNames<InstanceType<T>>
+      | readonly GlobalModelNames<InstanceType<T>>[],
   >(
     this: T,
     globalAssociationNameOrNames: AssociationGlobalNameOrNames,
@@ -548,8 +548,8 @@ export default class Dream {
   public static HasOne<
     T extends typeof Dream,
     const AssociationGlobalNameOrNames extends
-      | GlobalModelName<InstanceType<T>>
-      | readonly GlobalModelName<InstanceType<T>>[],
+      | GlobalModelNames<InstanceType<T>>
+      | readonly GlobalModelNames<InstanceType<T>>[],
   >(this: T, globalAssociationNameOrNames: AssociationGlobalNameOrNames, options: unknown = {}): any {
     return HasOne<InstanceType<T>, AssociationGlobalNameOrNames>(globalAssociationNameOrNames, options as any)
   }

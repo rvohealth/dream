@@ -281,27 +281,30 @@ export type UpdateableProperties<
     (AssociatedModelParam<I> extends never ? object : AssociatedModelParam<I>)
 >
 
+// Model global names and tables
 export type TableNameForGlobalModelName<
   I extends Dream,
-  GMN extends GlobalModelName<I>,
-  GlobalSchema = I['globalSchema' & keyof I],
-  GlobalNames = GlobalSchema['globalNames' & keyof GlobalSchema],
-  GlobalModelsObj = GlobalNames['models' & keyof GlobalNames],
-> = GlobalModelsObj[GMN]
+  GMN extends GlobalModelNames<I>,
+> = GlobalModelNameTableMap<I>[GMN]
 
-export type GlobalSerializerName<
+type GlobalModelNameTableMap<
   I extends Dream,
   GlobalSchema = I['globalSchema'],
   GlobalNames = GlobalSchema['globalNames' & keyof GlobalSchema],
-  SerializerGlobalNames = GlobalNames['serializers' & keyof GlobalNames],
-> = (SerializerGlobalNames & (string[] | Readonly<string[]>))[number] & string
+> = GlobalNames['models' & keyof GlobalNames]
 
-export type GlobalModelName<
+export type GlobalModelNames<I extends Dream> = keyof GlobalModelNameTableMap<I>
+// end:Model global names and tables
+
+// Serializer global names
+export type GlobalSerializerName<I extends Dream> = GlobalSerializerNames<I>[number]
+
+type GlobalSerializerNames<
   I extends Dream,
   GlobalSchema = I['globalSchema'],
   GlobalNames = GlobalSchema['globalNames' & keyof GlobalSchema],
-  ModelGlobalNames = GlobalNames['models' & keyof GlobalNames],
-> = (ModelGlobalNames & (string[] | Readonly<string[]>))[number] & string
+> = GlobalNames['serializers' & keyof GlobalNames]
+// end:Serializer global names
 
 export type DreamSerializers<I extends Dream> = Record<'default', GlobalSerializerName<I>> &
   Record<string, GlobalSerializerName<I>>

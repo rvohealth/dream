@@ -1,7 +1,7 @@
 import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../dream'
 import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames'
-import { GlobalModelName } from '../../dream/types'
+import { GlobalModelNames } from '../../dream/types'
 import {
   HasManyOnlyOptions,
   HasOptions,
@@ -18,8 +18,8 @@ import {
 export default function HasOne<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelName<BaseInstance>
-    | readonly GlobalModelName<BaseInstance>[],
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
 >(
   globalAssociationNameOrNames: AssociationGlobalNameOrNames,
   opts?: HasOneOptions<BaseInstance, AssociationGlobalNameOrNames>
@@ -28,8 +28,8 @@ export default function HasOne<
 export default function HasOne<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelName<BaseInstance>
-    | readonly GlobalModelName<BaseInstance>[],
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
 >(
   globalAssociationNameOrNames: AssociationGlobalNameOrNames,
   opts?: HasOneThroughOptions<BaseInstance, AssociationGlobalNameOrNames>
@@ -70,8 +70,8 @@ export default function HasOne<
 export default function HasOne<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelName<BaseInstance>
-    | readonly GlobalModelName<BaseInstance>[],
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
 >(globalAssociationNameOrNames: AssociationGlobalNameOrNames, opts: unknown = {}): any {
   const {
     dependent,
@@ -151,13 +151,13 @@ export interface HasOneStatement<
 export interface HasOneOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelName<BaseInstance>
-    | readonly GlobalModelName<BaseInstance>[],
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
 > extends Omit<HasOptions<BaseInstance, AssociationGlobalNameOrNames>, HasManyOnlyOptions> {}
 
 export interface HasOneThroughOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelName<BaseInstance>
-    | readonly GlobalModelName<BaseInstance>[],
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
 > extends Omit<HasThroughOptions<BaseInstance, AssociationGlobalNameOrNames>, HasManyOnlyOptions> {}
