@@ -19,7 +19,7 @@ import inferSerializerFromDreamOrViewModel, {
 import round from '../helpers/round'
 import snakeify from '../helpers/snakeify'
 import { DreamSerializerAssociationStatement } from './decorators/associations/shared'
-import { AttributeStatement } from './decorators/attribute'
+import { AttributeStatement, SerializableTypes } from './decorators/attribute'
 
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
   public static attributeStatements: AttributeStatement[] = []
@@ -186,10 +186,17 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
         let dateValue: CalendarDate | DateTime | null | undefined
         let roundValue: number | null | undefined
 
-        switch (renderAs) {
+        switch (this.computedRenderAs(renderAs)) {
           case 'date':
             dateValue = this.getAttributeValue(attributeStatement)
             returnObj[fieldWithCasing] = dateValue?.toISODate() || null
+            break
+
+          case 'date-time':
+            dateValue = this.getAttributeValue(attributeStatement)
+            returnObj[fieldWithCasing] = dateValue?.toISO()
+              ? DateTime.fromISO(dateValue.toISO()!).toISO()
+              : null
             break
 
           case 'decimal':
@@ -206,6 +213,19 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     })
 
     return returnObj
+  }
+
+  private computedRenderAs(renderAs: SerializableTypes | undefined) {
+    if (typeof renderAs === 'object') {
+      const safeRenderAs = renderAs as any
+
+      if (safeRenderAs.type === 'string') {
+        if (safeRenderAs.format) return safeRenderAs.format
+        return 'string'
+      }
+    }
+
+    return renderAs
   }
 
   private applyAssociation(associationStatement: DreamSerializerAssociationStatement) {
