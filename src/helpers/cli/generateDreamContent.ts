@@ -26,27 +26,24 @@ export default function generateDreamContent(fullyQualifiedModelName: string, at
 
     switch (attributeType) {
       case 'belongs_to':
-        dreamImports.push('BelongsTo')
         additionalImports.push(associationImportStatement)
         return `
-@BelongsTo('${fullyQualifiedAssociatedModelName}')
+@${modelClassName}.BelongsTo('${fullyQualifiedAssociatedModelName}')
 public ${associationName}: ${associationModelName}
 public ${associationName}Id: DreamColumn<${modelClassName}, '${associationName}Id'>
 `
 
       case 'has_one':
-        dreamImports.push('HasOne')
         additionalImports.push(associationImportStatement)
         return `
-@HasOne('${fullyQualifiedAssociatedModelName}')
+@${modelClassName}.HasOne('${fullyQualifiedAssociatedModelName}')
 public ${associationName}: ${associationModelName}
 `
 
       case 'has_many':
-        dreamImports.push('HasMany')
         additionalImports.push(associationImportStatement)
         return `
-@HasMany('${fullyQualifiedAssociatedModelName}')
+@${modelClassName}.HasMany('${fullyQualifiedAssociatedModelName}')
 public ${pluralize(associationName)}: ${associationModelName}[]
 `
 
