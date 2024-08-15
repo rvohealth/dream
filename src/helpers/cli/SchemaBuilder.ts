@@ -9,6 +9,7 @@ import { DreamConst } from '../../dream/types'
 import camelize from '../camelize'
 import pascalize from '../pascalize'
 import uniq from '../uniq'
+import FailedToIdentifyAssociation from '../../exceptions/schema-builder/failed-to-identify-association'
 
 export default class SchemaBuilder {
   public async build() {
@@ -256,13 +257,8 @@ ${tableName}: {
 
         const dreamClassOrClasses = associationMetaData.modelCB()
         if (!dreamClassOrClasses)
-          throw new Error(
-            `
-An unexpected error occurred while looking up the association for the following:
-    dream: ${model.name}
-    association name: ${associationName}
-`
-          )
+          throw new FailedToIdentifyAssociation(model, associationMetaData, associationName)
+
         const optional =
           associationMetaData.type === 'BelongsTo' ? associationMetaData.optional === true : null
 
