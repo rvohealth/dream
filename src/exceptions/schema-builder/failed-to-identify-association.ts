@@ -43,13 +43,13 @@ We recommend that you lean into the autocomplete when providing the
 first argument to an association, since it can help to catch these
 familiar gotchas.
 
-${possibleMatchesMessage}
-
 Details:
     dream: ${this.modelClass.name}
     association type: ${this.associationType}
     association name: ${this.associationName}
     attempted model name: ${attemptedName}
+
+${possibleMatchesMessage}
 
 Here is a complete list of possible associations:
     ${Object.keys(dreamApp.models).join(',\n    ')}
