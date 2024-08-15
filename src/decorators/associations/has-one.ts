@@ -152,7 +152,6 @@ export interface HasOneStatement<
 
 export interface HasOneOptions<
   BaseInstance extends Dream,
-  // AssociationDreamClass extends typeof Dream,
   AssociationGlobalNameOrNames extends
     | GlobalModelName<BaseInstance>
     | readonly GlobalModelName<BaseInstance>[],
@@ -160,7 +159,6 @@ export interface HasOneOptions<
 
 export interface HasOneThroughOptions<
   BaseInstance extends Dream,
-  // AssociationDreamClass extends typeof Dream,
   AssociationGlobalNameOrNames extends
     | GlobalModelName<BaseInstance>
     | readonly GlobalModelName<BaseInstance>[],

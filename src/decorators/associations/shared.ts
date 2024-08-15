@@ -291,7 +291,6 @@ export type HasManyOnlyOptions = 'distinct'
 
 export type HasOptions<
   BaseInstance extends Dream,
-  // AssociationDreamClass extends typeof Dream,
   AssociationGlobalNameOrNames extends
     | GlobalModelName<BaseInstance>
     | readonly GlobalModelName<BaseInstance>[],
@@ -299,7 +298,6 @@ export type HasOptions<
 
 export type HasThroughOptions<
   BaseInstance extends Dream,
-  // AssociationDreamClass extends typeof Dream,
   AssociationGlobalNameOrNames extends
     | GlobalModelName<BaseInstance>
     | readonly GlobalModelName<BaseInstance>[] =
