@@ -1,4 +1,3 @@
-import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import { DreamColumn } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import User from './User'
@@ -12,7 +11,7 @@ export default class IncompatibleForeignKeyTypeExample extends ApplicationModel 
   public createdAt: DreamColumn<IncompatibleForeignKeyTypeExample, 'createdAt'>
   public updatedAt: DreamColumn<IncompatibleForeignKeyTypeExample, 'updatedAt'>
 
-  @BelongsTo('User')
+  @IncompatibleForeignKeyTypeExample.BelongsTo('User')
   public user: User
   public userId: DreamColumn<IncompatibleForeignKeyTypeExample, 'userId'>
 }
