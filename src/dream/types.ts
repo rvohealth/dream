@@ -287,13 +287,13 @@ export type TableNameForGlobalModelName<
   GMN extends GlobalModelNames<I>,
 > = GlobalModelNameTableMap<I>[GMN]
 
+export type GlobalModelNames<I extends Dream> = keyof GlobalModelNameTableMap<I>
+
 type GlobalModelNameTableMap<
   I extends Dream,
   GlobalSchema = I['globalSchema'],
   GlobalNames = GlobalSchema['globalNames' & keyof GlobalSchema],
 > = GlobalNames['models' & keyof GlobalNames]
-
-export type GlobalModelNames<I extends Dream> = keyof GlobalModelNameTableMap<I>
 // end:Model global names and tables
 
 // Serializer global names
