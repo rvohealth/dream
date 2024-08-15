@@ -1,30 +1,17 @@
-import DreamSerializer from '../../../src/serializer'
-import Attribute from '../../../src/serializer/decorators/attribute'
-import User from '../../../test-app/app/models/User'
-import MissingSerializer from '../../../src/exceptions/missing-serializer'
+import MissingSerializersDefinition from '../../../src/exceptions/missing-serializers-definition'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
+import User from '../../../test-app/app/models/User'
 
 describe('Dream#serialize', () => {
   it('serializes a model using the coupled serializer', () => {
-    class MySerializer extends DreamSerializer {
-      @Attribute()
-      public email: string
-    }
-
-    class MyDream extends User {
-      public get serializers(): any {
-        return { default: MySerializer }
-      }
-    }
-
-    const user = MyDream.new({ email: 'how@yadoin', password: 'howyadoin' })
-    expect(user.serialize()).toEqual({ email: 'how@yadoin' })
+    const user = User.new({ email: 'how@yadoin', password: 'howyadoin', favoriteWord: 'chalupas' })
+    expect(user.serialize({ serializerKey: 'summary' })).toEqual({ id: user.id, favoriteWord: 'chalupas' })
   })
 
   context('a serializer is not defined on the model', () => {
     it('raises a targeted exception', () => {
       const record = CompositionAsset.new({ name: 'howyadoin' })
-      expect(() => record.serialize()).toThrowError(MissingSerializer)
+      expect(() => record.serialize()).toThrowError(MissingSerializersDefinition)
     })
   })
 })

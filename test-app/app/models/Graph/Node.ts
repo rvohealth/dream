@@ -1,17 +1,15 @@
-import { DreamColumn } from '../../../../src/dream/types'
-import HasMany from '../../../../src/decorators/associations/has-many'
-import GraphNodeSerializer from '../../../../test-app/app/serializers/Graph/NodeSerializer'
-import EdgeNode from './EdgeNode'
-import GraphEdge from './Edge'
+import { DreamColumn, DreamSerializers } from '../../../../src/dream/types'
 import ApplicationModel from '../ApplicationModel'
+import GraphEdge from './Edge'
+import EdgeNode from './EdgeNode'
 
 export default class Node extends ApplicationModel {
   public get table() {
     return 'graph_nodes' as const
   }
 
-  public get serializers() {
-    return { default: GraphNodeSerializer } as const
+  public get serializers(): DreamSerializers<Node> {
+    return { default: 'Graph/NodeSerializer' }
   }
 
   public id: DreamColumn<Node, 'id'>
@@ -20,35 +18,35 @@ export default class Node extends ApplicationModel {
   public createdAt: DreamColumn<Node, 'createdAt'>
   public updatedAt: DreamColumn<Node, 'updatedAt'>
 
-  @HasMany(() => EdgeNode, { foreignKey: 'nodeId' })
+  @Node.HasMany('Graph/EdgeNode', { foreignKey: 'nodeId' })
   public edgeNodes: EdgeNode[]
 
-  @HasMany(() => EdgeNode, { foreignKey: 'nodeId', order: 'position' })
+  @Node.HasMany('Graph/EdgeNode', { foreignKey: 'nodeId', order: 'position' })
   public orderedEdgeNodes: EdgeNode[]
 
-  @HasMany(() => GraphEdge, { through: 'edgeNodes', preloadThroughColumns: ['position', 'createdAt'] })
+  @Node.HasMany('Graph/Edge', { through: 'edgeNodes', preloadThroughColumns: ['position', 'createdAt'] })
   public edges: GraphEdge[]
 
-  @HasMany(() => GraphEdge, {
+  @Node.HasMany('Graph/Edge', {
     through: 'edgeNodes',
     preloadThroughColumns: { position: 'aliasedPosition', createdAt: 'aliasedCreatedAt' },
     source: 'edge',
   })
   public edgesWithAliasedPreloads: GraphEdge[]
 
-  @HasMany(() => GraphEdge, { through: 'edgeNodes', order: 'name', source: 'edge' })
+  @Node.HasMany('Graph/Edge', { through: 'edgeNodes', order: 'name', source: 'edge' })
   public edgesOrderedByName: GraphEdge[]
 
-  @HasMany(() => GraphEdge, { through: 'orderedEdgeNodes', source: 'edge' })
+  @Node.HasMany('Graph/Edge', { through: 'orderedEdgeNodes', source: 'edge' })
   public edgesOrderedByPosition: GraphEdge[]
 
-  @HasMany(() => EdgeNode, { foreignKey: 'nodeId', selfWhereNot: { position: 'omittedEdgePosition' } })
+  @Node.HasMany('Graph/EdgeNode', { foreignKey: 'nodeId', selfWhereNot: { position: 'omittedEdgePosition' } })
   public nonOmittedPositionEdgeNodes: EdgeNode[]
 
-  @HasMany(() => GraphEdge, { through: 'nonOmittedPositionEdgeNodes', source: 'edge' })
+  @Node.HasMany('Graph/Edge', { through: 'nonOmittedPositionEdgeNodes', source: 'edge' })
   public nonOmittedPositionEdges: GraphEdge[]
 
-  @HasMany(() => GraphEdge, {
+  @Node.HasMany('Graph/Edge', {
     through: 'edgeNodes',
     source: 'edge',
     selfWhereNot: { name: 'name' },

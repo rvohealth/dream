@@ -1,16 +1,15 @@
-import { promises as fs } from 'fs'
+import fs from 'fs/promises'
 import { sql } from 'kysely'
 import sortBy from 'lodash.sortby'
+import path from 'path'
 import _db from '../../db'
 import { isPrimitiveDataType } from '../../db/dataTypes'
+import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
 import { DreamConst } from '../../dream/types'
-import { getCachedDreamconfOrFail } from '../../dreamconf/cache'
 import camelize from '../camelize'
-import loadModels from '../loadModels'
 import pascalize from '../pascalize'
-import { schemaPath } from '../path'
-import dbSyncPath from '../path/dbSyncPath'
 import uniq from '../uniq'
+import FailedToIdentifyAssociation from '../../exceptions/schema-builder/failed-to-identify-association'
 
 export default class SchemaBuilder {
   public async build() {
@@ -29,6 +28,8 @@ import {
         ? "import CalendarDate from '../../src/helpers/CalendarDate'"
         : "import { CalendarDate } from '@rvohealth/dream'"
 
+    const dreamApp = getCachedDreamApplicationOrFail()
+
     const newSchemaFileContents = `\
 ${calendarDateImportStatement}
 import { DateTime } from 'luxon'
@@ -37,14 +38,28 @@ ${importStr}
 ${schemaConstContent}
 
 export const globalSchema = {
-  passthroughColumns: ${stringifyArray(uniq(passthroughColumns.sort()))},
-  allDefaultScopeNames: ${stringifyArray(uniq(allDefaultScopeNames.sort()))},
+  passthroughColumns: ${stringifyArray(uniq(passthroughColumns.sort()), { indent: 4 })},
+  allDefaultScopeNames: ${stringifyArray(uniq(allDefaultScopeNames.sort()), { indent: 4 })},
+  globalNames: {
+    models: ${this.globalModelNames()},
+    serializers: ${stringifyArray(Object.keys(dreamApp.serializers || {}).sort(), { indent: 6 })},
+  },
 } as const
 `
     // const newSchemaFileContents = `\
     // ${schemaConstContent}
     // `
-    await fs.writeFile(await schemaPath(), newSchemaFileContents)
+    const schemaPath = path.join(dreamApp.appRoot, dreamApp.paths.db, 'schema.ts')
+    await fs.writeFile(schemaPath, newSchemaFileContents)
+  }
+
+  private globalModelNames() {
+    const dreamApp = getCachedDreamApplicationOrFail()
+    return `{
+      ${Object.keys(dreamApp.models)
+        .map(key => `'${key}': '${dreamApp.models[key].prototype.table}'`)
+        .join(',\n      ')}
+    }`
   }
 
   private async buildSchemaContent() {
@@ -69,6 +84,7 @@ ${tableName}: {
     createdAtField: '${tableData.createdAtField}',
     updatedAtField: '${tableData.updatedAtField}',
     deletedAtField: '${tableData.deletedAtField}',
+    serializerKeys: ${stringifyArray(tableData.serializerKeys)},
     scopes: {
       default: ${stringifyArray(defaultScopeNames)},
       named: ${stringifyArray(namedScopeNames)},
@@ -142,10 +158,18 @@ ${tableName}: {
   }
 
   private async tableData(tableName: string) {
-    const models = Object.values(await loadModels())
+    const dreamApp = getCachedDreamApplicationOrFail()
+    const models = Object.values(dreamApp.models)
     const model = models.find(model => model.table === tableName)
 
-    const associationData = await this.getAssociationData(tableName)
+    const associationData = this.getAssociationData(tableName)
+    let serializers: any
+    try {
+      serializers = model?.prototype?.['serializers'] || {}
+    } catch {
+      serializers = {}
+    }
+
     return {
       primaryKey: model!.prototype.primaryKey,
       createdAtField: model!.prototype.createdAtField,
@@ -156,13 +180,14 @@ ${tableName}: {
         named: model!['scopes'].named.map(scopeStatement => scopeStatement.method),
       },
       columns: await this.getColumnData(tableName, associationData),
-      virtualColumns: await this.getVirtualColumns(tableName),
+      virtualColumns: this.getVirtualColumns(tableName),
       associations: associationData,
+      serializerKeys: Object.keys(serializers),
     }
   }
 
   private async getColumnData(tableName: string, associationData: { [key: string]: AssociationData }) {
-    const dreamconf = getCachedDreamconfOrFail()
+    const dreamconf = getCachedDreamApplicationOrFail()
     const db = _db('primary', dreamconf)
     const sqlQuery = sql`SELECT column_name, udt_name::regtype, is_nullable, data_type FROM information_schema.columns WHERE table_name = ${tableName}`
     const columnToDBTypeMap = await sqlQuery.execute(db)
@@ -202,8 +227,9 @@ ${tableName}: {
     return enumName
   }
 
-  private async getVirtualColumns(tableName: string) {
-    const models = sortBy(Object.values(await loadModels()), m => m.table)
+  private getVirtualColumns(tableName: string) {
+    const dreamApp = getCachedDreamApplicationOrFail()
+    const models = sortBy(Object.values(dreamApp.models), m => m.table)
     const model = models.find(model => model.table === tableName)
     return model?.['virtualAttributes']?.map(prop => prop.property) || []
   }
@@ -219,8 +245,9 @@ ${tableName}: {
     return schemaData
   }
 
-  private async getAssociationData(tableName: string, targetAssociationType?: string) {
-    const models = sortBy(Object.values(await loadModels()), m => m.table)
+  private getAssociationData(tableName: string, targetAssociationType?: string) {
+    const dreamApp = getCachedDreamApplicationOrFail()
+    const models = sortBy(Object.values(dreamApp.models), m => m.table)
     const tableAssociationData: { [key: string]: AssociationData } = {}
 
     for (const model of models.filter(model => model.table === tableName)) {
@@ -229,6 +256,14 @@ ${tableName}: {
         if (targetAssociationType && associationMetaData.type !== targetAssociationType) continue
 
         const dreamClassOrClasses = associationMetaData.modelCB()
+        if (!dreamClassOrClasses)
+          throw new FailedToIdentifyAssociation(
+            model,
+            associationMetaData.type,
+            associationName,
+            associationMetaData.globalAssociationNameOrNames
+          )
+
         const optional =
           associationMetaData.type === 'BelongsTo' ? associationMetaData.optional === true : null
 
@@ -357,19 +392,31 @@ ${tableName}: {
   }
 
   private async loadDbSyncFile() {
-    return (await fs.readFile(await dbSyncPath())).toString()
-  }
-
-  private async loadSchemaFile() {
-    return (await fs.readFile(await schemaPath())).toString()
+    const dreamApp = getCachedDreamApplicationOrFail()
+    const dbSyncPath = path.join(dreamApp.appRoot, dreamApp.paths.db, 'sync.ts')
+    return (await fs.readFile(dbSyncPath)).toString()
   }
 }
 
-function stringifyArray(arr: string[] = []): string {
-  return `[${arr
-    .sort()
-    .map(val => `'${val}'`)
-    .join(', ')}]`
+function stringifyArray(arr: string[] = [], { indent }: { indent?: number } = {}): string {
+  if (indent && arr.length > 3) {
+    let spaces = ''
+    for (let i = 0; i < indent; i++) {
+      spaces = `${spaces} `
+    }
+
+    return `[
+${spaces}${arr
+      .sort()
+      .map(val => `'${val}'`)
+      .join(`,\n${spaces}`)}
+${spaces.replace(/\s{2}$/, '')}]`
+  } else {
+    return `[${arr
+      .sort()
+      .map(val => `'${val}'`)
+      .join(', ')}]`
+  }
 }
 
 interface SchemaData {
@@ -381,6 +428,7 @@ interface TableData {
   createdAtField: string
   updatedAtField: string
   deletedAtField: string
+  serializerKeys: string[]
   scopes: {
     default: string[]
     named: string[]

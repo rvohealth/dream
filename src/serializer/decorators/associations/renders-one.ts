@@ -15,12 +15,12 @@ import { DreamSerializerAssociationStatement, DreamSerializerClassCB, RendersOne
  *
  * ```ts
  * class User extends ApplicationModel {
- *   @HasOne(() => Settings)
+ *   @User.HasOne('Settings')
  *   public settings: Settings
  * }
  *
  * class Settings extends ApplicationModel {
- *   @BelongsTo(() => User)
+ *   @Settings.BelongsTo('User')
  *   public user: User
  * }
  *

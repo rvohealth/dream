@@ -1,5 +1,4 @@
-import { DreamColumn } from '../../../src/dream/types'
-import EdgeCaseAttributeSerializer from '../../../test-app/app/serializers/EdgeCaseAttributeSerializer'
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 
 export default class EdgeCaseAttribute extends ApplicationModel {
@@ -7,8 +6,8 @@ export default class EdgeCaseAttribute extends ApplicationModel {
     return 'edge_case_attributes' as const
   }
 
-  public get serializers() {
-    return { default: EdgeCaseAttributeSerializer<any> } as const
+  public get serializers(): DreamSerializers<EdgeCaseAttribute> {
+    return { default: 'EdgeCaseAttributeSerializer' }
   }
 
   public id: DreamColumn<EdgeCaseAttribute, 'id'>

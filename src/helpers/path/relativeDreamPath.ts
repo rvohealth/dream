@@ -1,21 +1,60 @@
-import loadDreamYamlFile from './loadDreamYamlFile'
+import pascalize from '../pascalize'
+import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
+import dreamPath, { DreamPaths } from './dreamPath'
+import sharedPrefix from './sharedPathPrefix'
 
-export default async function relativeDreamPath(dreamPathType: DreamPaths) {
-  const yamlConfig = await loadDreamYamlFile()
-  switch (dreamPathType) {
-    case 'models':
-      return yamlConfig.models_path || 'app/models'
-    case 'serializers':
-      return yamlConfig.serializers_path || 'app/serializers'
+export default function (
+  originDreamPathType: DreamPaths,
+  destinationDreamPathType: DreamPaths,
+  fullyQualifiedOriginModelName: string,
+  fullyQualifiedDestinationModelName: string = fullyQualifiedOriginModelName
+) {
+  fullyQualifiedOriginModelName = standardizeFullyQualifiedModelName(fullyQualifiedOriginModelName)
+  fullyQualifiedDestinationModelName = pascalize(fullyQualifiedDestinationModelName)
+
+  const numAdditionalUpdirs = fullyQualifiedOriginModelName.split('/').length - 1
+  let additionalUpdirs = ''
+
+  for (let i = 0; i < numAdditionalUpdirs; i++) {
+    additionalUpdirs = `../${additionalUpdirs}`
+  }
+
+  const baseRelativePath = dreamPathTypeRelativePath(originDreamPathType, destinationDreamPathType)
+  let destinationPath = additionalUpdirs + (baseRelativePath.length ? baseRelativePath + '/' : '')
+
+  if (destinationPath[0] !== '.') destinationPath = `./${destinationPath}`
+
+  switch (destinationDreamPathType) {
     case 'db':
-      return yamlConfig.db_path || 'db'
-    case 'conf':
-      return yamlConfig.conf_path || 'app/conf'
-    case 'uspec':
-      return yamlConfig.unit_spec_path || 'spec/unit'
+      return destinationPath
+
     case 'factories':
-      return yamlConfig.factory_path || 'spec/factories'
+      return `${destinationPath}${fullyQualifiedDestinationModelName}Factory`
+
+    case 'serializers':
+      return `${destinationPath}${fullyQualifiedDestinationModelName}Serializer`
+
+    default:
+      return `${destinationPath}${fullyQualifiedDestinationModelName}`
   }
 }
 
-export type DreamPaths = 'models' | 'serializers' | 'db' | 'conf' | 'uspec' | 'factories'
+export function dreamPathTypeRelativePath(
+  originDreamPathType: DreamPaths,
+  destinationDreamPathType: DreamPaths
+) {
+  const originPath = dreamPath(originDreamPathType)
+  const destinationPath = dreamPath(destinationDreamPathType)
+  const sharedPrefixLength = sharedPrefix(originPath, destinationPath).length
+  const originPathToRemove = originPath.slice(sharedPrefixLength)
+
+  const updirs =
+    originPathToRemove.length === 0
+      ? ''
+      : originPathToRemove
+          .split('/')
+          .map(() => '../')
+          .join('')
+
+  return updirs + destinationPath.slice(sharedPrefixLength)
+}

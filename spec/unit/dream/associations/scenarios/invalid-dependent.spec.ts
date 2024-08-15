@@ -1,4 +1,4 @@
-import { DreamConst, HasMany, HasOne } from '../../../../../src'
+import { DreamConst } from '../../../../../src'
 import CannotDefineAssociationWithBothDependentAndPassthrough from '../../../../../src/exceptions/cannot-define-association-with-both-dependent-and-passthrough'
 import CannotDefineAssociationWithBothDependentAndRequiredWhereClause from '../../../../../src/exceptions/cannot-define-association-with-both-dependent-and-required-where-clause'
 import Post from '../../../../../test-app/app/models/Post'
@@ -11,7 +11,7 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
         expect(() => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           class User2 extends User {
-            @HasMany(() => Post, {
+            @User2.HasMany('Post', {
               dependent: 'destroy',
               where: { body: DreamConst.passthrough },
             })
@@ -26,7 +26,7 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
         expect(() => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           class User2 extends User {
-            @HasMany(() => Post, {
+            @User2.HasMany('Post', {
               dependent: 'destroy',
               where: { body: DreamConst.required },
             })
@@ -43,7 +43,7 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
         expect(() => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           class User2 extends User {
-            @HasOne(() => Post, {
+            @User2.HasOne('Post', {
               dependent: 'destroy',
               where: { body: DreamConst.passthrough },
             })
@@ -58,7 +58,7 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
         expect(() => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           class User2 extends User {
-            @HasOne(() => Post, {
+            @User2.HasOne('Post', {
               dependent: 'destroy',
               where: { body: DreamConst.required },
             })

@@ -1,47 +1,21 @@
-import * as fs from 'fs/promises'
-import { DateTime } from 'luxon'
-import * as path from 'path'
-import Dream from '../dream'
 import './loadEnv'
 
+import { DateTime } from 'luxon'
+import { getCachedDreamApplicationOrFail } from '../dream-application/cache'
+
 export default async function loadRepl(context: Record<string, unknown>) {
-  const inflectionsPath = './src/conf/inflections'
-  try {
-    await import(inflectionsPath)
-  } catch (_) {
-    // don't fret about if no inflections file found, it's ok.
-  }
+  const dreamApp = getCachedDreamApplicationOrFail()
+
+  await dreamApp.inflections?.()
 
   context.DateTime = DateTime
-  const dreamPaths = (await getFiles('./src/app/models')).filter(file => /\.ts$/.test(file))
-  for (const dreamPath of dreamPaths) {
-    const importablePath = dreamPath.replace(/.*\/src/, '../../../../../src')
-    const dreamClass = (await import(importablePath)).default as typeof Dream
-    if (dreamClass.isDream) {
-      const globalName: string | undefined = await dreamClass.globalName()
-      if (globalName) context[globalName] = dreamClass
-    }
+  for (const globalName of Object.keys(dreamApp.models)) {
+    context[globalName] = dreamApp.models[globalName]
   }
 
-  try {
-    const servicePaths = (await getFiles('./src/app/services')).filter(file => /\.ts$/.test(file))
-    for (const servicePath of servicePaths) {
-      const importablePath = servicePath.replace(/.*\/src/, '../../../../../src')
-      const serviceExport = (await import(importablePath)).default as typeof Dream
-      if (serviceExport) context[serviceExport.name] = serviceExport
+  for (const globalName of Object.keys(dreamApp.services)) {
+    if (!context[globalName]) {
+      context[globalName] = dreamApp.services[globalName]
     }
-  } catch (_) {
-    // don't fret about if services aren't present
   }
-}
-
-async function getFiles(dir: string): Promise<string[]> {
-  const dirents = await fs.readdir(dir, { withFileTypes: true })
-  const files = await Promise.all(
-    dirents.map(dirent => {
-      const res = path.resolve(dir, dirent.name)
-      return dirent.isDirectory() ? getFiles(res) : res
-    })
-  )
-  return Array.prototype.concat(...files) as string[]
 }

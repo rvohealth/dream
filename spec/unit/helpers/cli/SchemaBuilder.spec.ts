@@ -7,6 +7,22 @@ import { BalloonColorsEnumValues } from '../../../../test-app/db/sync'
 
 describe('SchemaBuilder', () => {
   describe('#build', () => {
+    context('global schema', () => {
+      context('globalNames', () => {
+        it('renders models key value pairs', () => {
+          expect(User.prototype.globalSchema.globalNames.models).toEqual(
+            expect.objectContaining({ 'Graph/Edge': 'graph_edges', User: 'users' })
+          )
+        })
+
+        it('renders serializers array', () => {
+          expect(User.prototype.globalSchema.globalNames.serializers).toEqual(
+            expect.arrayContaining(['UserSerializer', 'LocalizedText/BaseSerializer'])
+          )
+        })
+      })
+    })
+
     context('columns', () => {
       context('bigint', () => {
         it('renders "bigint" for dbType', () => {
@@ -111,6 +127,12 @@ describe('SchemaBuilder', () => {
           'dream:SoftDelete',
         ])
         expect(User.prototype.schema.users.scopes.named).toEqual(['withFunnyName'])
+      })
+    })
+
+    context('serializerKeys', () => {
+      it('sets the serializerKeys', () => {
+        expect(User.prototype.schema.users.serializerKeys).toEqual(['default', 'summary'])
       })
     })
 

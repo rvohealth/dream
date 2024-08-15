@@ -1,12 +1,3 @@
-export interface DreamYamlFile {
-  models_path?: string
-  serializers_path?: string
-  conf_path?: string
-  db_path?: string
-  unit_spec_path?: string
-  factory_path?: string
-}
-
 export interface DreamConfig {
   db: DbConfig
 }

@@ -1,17 +1,15 @@
-import { DreamColumn } from '../../../../src/dream/types'
-import HasMany from '../../../../src/decorators/associations/has-many'
-import GraphEdgeSerializer from '../../../../test-app/app/serializers/Graph/EdgeSerializer'
+import { DreamColumn, DreamSerializers } from '../../../../src/dream/types'
+import ApplicationModel from '../ApplicationModel'
 import EdgeNode from './EdgeNode'
 import GraphNode from './Node'
-import ApplicationModel from '../ApplicationModel'
 
 export default class Edge extends ApplicationModel {
   public get table() {
     return 'graph_edges' as const
   }
 
-  public get serializers() {
-    return { default: GraphEdgeSerializer } as const
+  public get serializers(): DreamSerializers<Edge> {
+    return { default: 'Graph/EdgeSerializer' }
   }
 
   public id: DreamColumn<Edge, 'id'>
@@ -26,9 +24,9 @@ export default class Edge extends ApplicationModel {
     aliasedCreatedAt?: DreamColumn<EdgeNode, 'createdAt'>
   } = {}
 
-  @HasMany(() => EdgeNode, { foreignKey: 'edgeId' })
+  @Edge.HasMany('Graph/EdgeNode', { foreignKey: 'edgeId' })
   public edgeNodes: EdgeNode[]
 
-  @HasMany(() => GraphNode, { through: 'edgeNodes' })
+  @Edge.HasMany('Graph/Node', { through: 'edgeNodes' })
   public nodes: GraphNode[]
 }

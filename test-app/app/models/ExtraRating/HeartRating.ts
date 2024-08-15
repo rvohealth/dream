@@ -1,19 +1,18 @@
 import STI from '../../../../src/decorators/STI'
-import BelongsTo from '../../../../src/decorators/associations/belongs-to'
 import { DreamColumn } from '../../../../src/dream/types'
-import BaseExtraRating from './Base'
+import Balloon from '../Balloon'
 import Composition from '../Composition'
 import Post from '../Post'
 import User from '../User'
-import Balloon from '../Balloon'
+import BaseExtraRating from './Base'
 
 @STI(BaseExtraRating)
 export default class HeartRating extends BaseExtraRating {
-  @BelongsTo(() => User)
+  @HeartRating.BelongsTo('User')
   public user: User
   public userId: DreamColumn<HeartRating, 'userId'>
 
-  @BelongsTo(() => [Composition, Post, Balloon], {
+  @HeartRating.BelongsTo(['Composition', 'Post', 'Balloon'], {
     foreignKey: 'extraRateableId',
     polymorphic: true,
   })

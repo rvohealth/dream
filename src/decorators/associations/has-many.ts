@@ -1,5 +1,7 @@
 import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../dream'
+import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames'
+import { GlobalModelNames } from '../../dream/types'
 import {
   HasOptions,
   HasStatement,
@@ -14,32 +16,41 @@ import {
 
 export default function HasMany<
   BaseInstance extends Dream = Dream,
-  AssociationDreamClass extends typeof Dream = typeof Dream,
->(modelCB: () => AssociationDreamClass, opts?: HasManyOptions<BaseInstance, AssociationDreamClass>): any
+  AssociationGlobalNameOrNames extends
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[] =
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
+>(
+  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+  opts?: HasManyOptions<BaseInstance, AssociationGlobalNameOrNames>
+): any
 
 export default function HasMany<
   BaseInstance extends Dream = Dream,
-  AssociationDreamClass extends typeof Dream = typeof Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[] =
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
 >(
-  modelCB: () => AssociationDreamClass,
-  opts?: HasManyThroughOptions<BaseInstance, AssociationDreamClass>
+  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+  opts?: HasManyThroughOptions<BaseInstance, AssociationGlobalNameOrNames>
 ): any
 
 /**
  * Establishes a "HasMany" association between the base dream
  * and the child dream, where the child dream has a foreign key
- * which points back to the base dream. This relationship should
- * always have a corresponding `@BelongsTo` association on the
- * child class.
+ * which points back to the base dream.
  *
  * ```ts
  * class User extends ApplicationModel {
- *   @HasMany(() => Post)
+ *   @User.HasMany('Post')
  *   public posts: Post[]
  * }
  *
  * class Post extends ApplicationModel {
- *   @BelongsTo(() => User)
+ *   @Post.BelongsTo('User')
  *   public user: User
  *   public userId: DreamColumn<Post, 'userId'>
  * }
@@ -62,8 +73,8 @@ export default function HasMany<
  */
 export default function HasMany<
   BaseInstance extends Dream = Dream,
-  AssociationDreamClass extends typeof Dream = typeof Dream,
->(modelCB: () => AssociationDreamClass, opts: unknown = {}): any {
+  AssociationGlobalNameOrNames = GlobalModelNames<BaseInstance> | GlobalModelNames<BaseInstance>[],
+>(globalAssociationNameOrNames: AssociationGlobalNameOrNames, opts: unknown = {}): any {
   const {
     dependent,
     distinct,
@@ -96,7 +107,8 @@ export default function HasMany<
 
     const partialAssociation = associationPrimaryKeyAccessors(
       {
-        modelCB,
+        modelCB: () => lookupModelByGlobalNameOrNames(globalAssociationNameOrNames as string | string[]),
+        globalAssociationNameOrNames,
         type: 'HasMany',
         as: key,
         polymorphic,
@@ -138,8 +150,16 @@ export interface HasManyStatement<
   ForeignTableName extends AssociationTableNames<DB, Schema> & keyof DB,
 > extends HasStatement<BaseInstance, DB, Schema, ForeignTableName, 'HasMany'> {}
 
-export interface HasManyOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream>
-  extends HasOptions<BaseInstance, AssociationDreamClass> {}
+export interface HasManyOptions<
+  BaseInstance extends Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
+> extends HasOptions<BaseInstance, AssociationGlobalNameOrNames> {}
 
-export interface HasManyThroughOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream>
-  extends HasThroughOptions<BaseInstance, AssociationDreamClass> {}
+export interface HasManyThroughOptions<
+  BaseInstance extends Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
+> extends HasThroughOptions<BaseInstance, AssociationGlobalNameOrNames> {}

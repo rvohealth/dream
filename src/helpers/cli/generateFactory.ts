@@ -1,22 +1,23 @@
 import fs from 'fs/promises'
 import path from 'path'
+import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
 import generateFactoryContent from './generateFactoryContent'
-import factoriesPath from '../path/factoriesPath'
 
 export default async function generateFactory(dreamName: string, attributes: string[]) {
-  const factoriesBasePath = await factoriesPath()
+  const dreamApp = getCachedDreamApplicationOrFail()
+
+  const factoriesBasePath = path.join(dreamApp.appRoot, dreamApp.paths.factories)
   const factoryPath = path.join(factoriesBasePath, `${dreamName}Factory.ts`)
 
   const factoryDirPath = factoryPath.split('/').slice(0, -1).join('/')
 
   const relativeSpecDirPath = factoriesBasePath.split('/').slice(0, -1).join('/')
   const relativeSpecPath = factoryPath.replace(new RegExp(`^.*${relativeSpecDirPath}`), relativeSpecDirPath)
-  const thisfs = fs ? fs : await import('fs/promises')
 
   try {
     console.log(`generating factory: ${relativeSpecPath}`)
-    await thisfs.mkdir(factoryDirPath, { recursive: true })
-    await thisfs.writeFile(factoryPath, await generateFactoryContent(dreamName, attributes))
+    await fs.mkdir(factoryDirPath, { recursive: true })
+    await fs.writeFile(factoryPath, generateFactoryContent(dreamName, attributes))
   } catch (error) {
     const err = `
       Something happened while trying to create the spec file:

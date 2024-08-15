@@ -2,33 +2,29 @@ import generateDreamContent from '../../../src/helpers/cli/generateDreamContent'
 
 describe('dream generate:model <name> [...attributes]', () => {
   context('when provided with a pascalized model name', () => {
-    it('generates a dream model with multiple string fields', async () => {
-      const res = await generateDreamContent('MealType', [])
+    it('generates a dream model with multiple string fields', () => {
+      const res = generateDreamContent('MealType', [])
       expect(res).toEqual(
         `\
-import { DreamColumn } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import MealTypeSerializer, { MealTypeSummarySerializer } from '../../../test-app/app/serializers/MealTypeSerializer'
 
 export default class MealType extends ApplicationModel {
   public get table() {
     return 'meal_types' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<MealType> {
     return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: MealTypeSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: MealTypeSummarySerializer<any, any>,
-    } as const
+      default: 'MealTypeSerializer',
+      summary: 'MealTypeSummarySerializer',
+    }
   }
 
   public id: DreamColumn<MealType, 'id'>
   public createdAt: DreamColumn<MealType, 'createdAt'>
   public updatedAt: DreamColumn<MealType, 'updatedAt'>
-}\
+}
 `
       )
     })
@@ -36,27 +32,23 @@ export default class MealType extends ApplicationModel {
 
   context('when provided attributes', () => {
     context('with a string attribute', () => {
-      it('generates a dream model with multiple string fields', async () => {
-        const res = await generateDreamContent('user', ['email:string', 'password_digest:string'])
+      it('generates a dream model with multiple string fields', () => {
+        const res = generateDreamContent('user', ['email:string', 'password_digest:string'])
         expect(res).toEqual(
           `\
-import { DreamColumn } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import UserSerializer, { UserSummarySerializer } from '../../../test-app/app/serializers/UserSerializer'
 
 export default class User extends ApplicationModel {
   public get table() {
     return 'users' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<User> {
     return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: UserSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: UserSummarySerializer<any, any>,
-    } as const
+      default: 'UserSerializer',
+      summary: 'UserSummarySerializer',
+    }
   }
 
   public id: DreamColumn<User, 'id'>
@@ -64,38 +56,34 @@ export default class User extends ApplicationModel {
   public passwordDigest: DreamColumn<User, 'passwordDigest'>
   public createdAt: DreamColumn<User, 'createdAt'>
   public updatedAt: DreamColumn<User, 'updatedAt'>
-}\
+}
 `
         )
       })
     })
 
     context('with enum attributes', () => {
-      it('generates a dream model with multiple enum fields', async () => {
-        const res = await generateDreamContent('chalupa', [
+      it('generates a dream model with multiple enum fields', () => {
+        const res = generateDreamContent('chalupa', [
           'topping:enum:topping:cheese,baja_sauce',
           'protein:enum:protein:beef,non_beef',
           'existing_enum:enum:my_existing_enum',
         ])
         expect(res).toEqual(
           `\
-import { DreamColumn } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import ChalupaSerializer, { ChalupaSummarySerializer } from '../../../test-app/app/serializers/ChalupaSerializer'
 
 export default class Chalupa extends ApplicationModel {
   public get table() {
     return 'chalupas' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<Chalupa> {
     return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: ChalupaSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: ChalupaSummarySerializer<any, any>,
-    } as const
+      default: 'ChalupaSerializer',
+      summary: 'ChalupaSummarySerializer',
+    }
   }
 
   public id: DreamColumn<Chalupa, 'id'>
@@ -104,41 +92,37 @@ export default class Chalupa extends ApplicationModel {
   public existingEnum: DreamColumn<Chalupa, 'existingEnum'>
   public createdAt: DreamColumn<Chalupa, 'createdAt'>
   public updatedAt: DreamColumn<Chalupa, 'updatedAt'>
-}\
+}
 `
         )
       })
     })
 
     context('when name has an uncountable rule applied in inflections conf', () => {
-      it('respects inflections conf while generating model name', async () => {
-        const res = await generateDreamContent('paper', ['name:string'])
+      it('respects inflections conf while generating model name', () => {
+        const res = generateDreamContent('paper', ['name:string'])
         expect(res).toEqual(
           `\
-import { DreamColumn } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import PaperSerializer, { PaperSummarySerializer } from '../../../test-app/app/serializers/PaperSerializer'
 
 export default class Paper extends ApplicationModel {
   public get table() {
     return 'paper' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<Paper> {
     return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: PaperSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: PaperSummarySerializer<any, any>,
-    } as const
+      default: 'PaperSerializer',
+      summary: 'PaperSummarySerializer',
+    }
   }
 
   public id: DreamColumn<Paper, 'id'>
   public name: DreamColumn<Paper, 'name'>
   public createdAt: DreamColumn<Paper, 'createdAt'>
   public updatedAt: DreamColumn<Paper, 'updatedAt'>
-}\
+}
 `
         )
       })
@@ -146,13 +130,12 @@ export default class Paper extends ApplicationModel {
 
     context('relationships', () => {
       context('when provided with a belongsTo relationship', () => {
-        it('generates a BelongsTo relationship in model', async () => {
-          const res = await generateDreamContent('composition', ['graph_node:belongs_to'])
+        it('generates a BelongsTo relationship in model', () => {
+          const res = generateDreamContent('composition', ['graph_node:belongs_to'])
           expect(res).toEqual(
             `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CompositionSerializer, { CompositionSummarySerializer } from '../../../test-app/app/serializers/CompositionSerializer'
 import GraphNode from './GraphNode'
 
 export default class Composition extends ApplicationModel {
@@ -160,36 +143,32 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<Composition> {
     return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: CompositionSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: CompositionSummarySerializer<any, any>,
-    } as const
+      default: 'CompositionSerializer',
+      summary: 'CompositionSummarySerializer',
+    }
   }
 
   public id: DreamColumn<Composition, 'id'>
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @BelongsTo(() => GraphNode)
+  @Composition.BelongsTo('GraphNode')
   public graphNode: GraphNode
   public graphNodeId: DreamColumn<Composition, 'graphNodeId'>
-}\
+}
 `
           )
         })
 
         context('namespaced relationships', () => {
-          it('can handle belongs to associations with nested paths', async () => {
-            const res = await generateDreamContent('cat_toy', ['pet/domestic/cat:belongs_to'])
+          it('can handle belongs to associations with nested paths', () => {
+            const res = generateDreamContent('cat_toy', ['pet/domestic/cat:belongs_to'])
             expect(res).toEqual(
               `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CatToySerializer, { CatToySummarySerializer } from '../../../test-app/app/serializers/CatToySerializer'
 import PetDomesticCat from './Pet/Domestic/Cat'
 
 export default class CatToy extends ApplicationModel {
@@ -197,35 +176,31 @@ export default class CatToy extends ApplicationModel {
     return 'cat_toys' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<CatToy> {
     return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: CatToySerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: CatToySummarySerializer<any, any>,
-    } as const
+      default: 'CatToySerializer',
+      summary: 'CatToySummarySerializer',
+    }
   }
 
   public id: DreamColumn<CatToy, 'id'>
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
-  @BelongsTo(() => PetDomesticCat)
-  public cat: PetDomesticCat
-  public catId: DreamColumn<CatToy, 'catId'>
-}\
+  @CatToy.BelongsTo('Pet/Domestic/Cat')
+  public petDomesticCat: PetDomesticCat
+  public petDomesticCatId: DreamColumn<CatToy, 'petDomesticCatId'>
+}
 `
             )
           })
 
-          it('can handle has many associations with nested paths', async () => {
-            const res = await generateDreamContent('cat_toy', ['pet/domestic/cat:has_many'])
+          it('can handle has many associations with nested paths', () => {
+            const res = generateDreamContent('cat_toy', ['pet/domestic/cat:has_many'])
             expect(res).toEqual(
               `\
-import { DreamColumn, HasMany } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CatToySerializer, { CatToySummarySerializer } from '../../../test-app/app/serializers/CatToySerializer'
 import PetDomesticCat from './Pet/Domestic/Cat'
 
 export default class CatToy extends ApplicationModel {
@@ -233,34 +208,30 @@ export default class CatToy extends ApplicationModel {
     return 'cat_toys' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<CatToy> {
     return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: CatToySerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: CatToySummarySerializer<any, any>,
-    } as const
+      default: 'CatToySerializer',
+      summary: 'CatToySummarySerializer',
+    }
   }
 
   public id: DreamColumn<CatToy, 'id'>
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
-  @HasMany(() => PetDomesticCat)
-  public cats: PetDomesticCat[]
-}\
+  @CatToy.HasMany('Pet/Domestic/Cat')
+  public petDomesticCats: PetDomesticCat[]
+}
 `
             )
           })
 
-          it('can handle has one associations with nested paths', async () => {
-            const res = await generateDreamContent('cat_toy', ['pet/domestic/cat:has_one'])
+          it('can handle has one associations with nested paths', () => {
+            const res = generateDreamContent('cat_toy', ['pet/domestic/cat:has_one'])
             expect(res).toEqual(
               `\
-import { DreamColumn, HasOne } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CatToySerializer, { CatToySummarySerializer } from '../../../test-app/app/serializers/CatToySerializer'
 import PetDomesticCat from './Pet/Domestic/Cat'
 
 export default class CatToy extends ApplicationModel {
@@ -268,34 +239,30 @@ export default class CatToy extends ApplicationModel {
     return 'cat_toys' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<CatToy> {
     return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: CatToySerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: CatToySummarySerializer<any, any>,
-    } as const
+      default: 'CatToySerializer',
+      summary: 'CatToySummarySerializer',
+    }
   }
 
   public id: DreamColumn<CatToy, 'id'>
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
-  @HasOne(() => PetDomesticCat)
-  public cat: PetDomesticCat
-}\
+  @CatToy.HasOne('Pet/Domestic/Cat')
+  public petDomesticCat: PetDomesticCat
+}
 `
             )
           })
 
-          it('produces valid association paths when the model being generated is namespaced', async () => {
-            const res = await generateDreamContent('pet/domestic/cat', ['graph_node:belongs_to'])
+          it('produces valid association paths when the model being generated is namespaced', () => {
+            const res = generateDreamContent('pet/domestic/cat', ['graph_node:belongs_to'])
             expect(res).toEqual(
               `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
-import PetDomesticCatSerializer, { PetDomesticCatSummarySerializer } from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
 import GraphNode from '../../GraphNode'
 
 export default class PetDomesticCat extends ApplicationModel {
@@ -303,35 +270,31 @@ export default class PetDomesticCat extends ApplicationModel {
     return 'pet_domestic_cats' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<PetDomesticCat> {
     return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: PetDomesticCatSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: PetDomesticCatSummarySerializer<any, any>,
-    } as const
+      default: 'Pet/Domestic/CatSerializer',
+      summary: 'Pet/Domestic/CatSummarySerializer',
+    }
   }
 
   public id: DreamColumn<PetDomesticCat, 'id'>
   public createdAt: DreamColumn<PetDomesticCat, 'createdAt'>
   public updatedAt: DreamColumn<PetDomesticCat, 'updatedAt'>
 
-  @BelongsTo(() => GraphNode)
+  @PetDomesticCat.BelongsTo('GraphNode')
   public graphNode: GraphNode
   public graphNodeId: DreamColumn<PetDomesticCat, 'graphNodeId'>
-}\
+}
 `
             )
           })
 
-          it('produces valid association paths when both the model being generated and the associated model are namespaced', async () => {
-            const res = await generateDreamContent('pet/domestic/cat', ['pet/domestic/dog:belongs_to'])
+          it('produces valid association paths when both the model being generated and the associated model are namespaced', () => {
+            const res = generateDreamContent('pet/domestic/cat', ['pet/domestic/dog:belongs_to'])
             expect(res).toEqual(
               `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
-import PetDomesticCatSerializer, { PetDomesticCatSummarySerializer } from '../../../../../test-app/app/serializers/Pet/Domestic/CatSerializer'
 import PetDomesticDog from '../../Pet/Domestic/Dog'
 
 export default class PetDomesticCat extends ApplicationModel {
@@ -339,35 +302,31 @@ export default class PetDomesticCat extends ApplicationModel {
     return 'pet_domestic_cats' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<PetDomesticCat> {
     return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: PetDomesticCatSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: PetDomesticCatSummarySerializer<any, any>,
-    } as const
+      default: 'Pet/Domestic/CatSerializer',
+      summary: 'Pet/Domestic/CatSummarySerializer',
+    }
   }
 
   public id: DreamColumn<PetDomesticCat, 'id'>
   public createdAt: DreamColumn<PetDomesticCat, 'createdAt'>
   public updatedAt: DreamColumn<PetDomesticCat, 'updatedAt'>
 
-  @BelongsTo(() => PetDomesticDog)
-  public dog: PetDomesticDog
-  public dogId: DreamColumn<PetDomesticCat, 'dogId'>
-}\
+  @PetDomesticCat.BelongsTo('Pet/Domestic/Dog')
+  public petDomesticDog: PetDomesticDog
+  public petDomesticDogId: DreamColumn<PetDomesticCat, 'petDomesticDogId'>
+}
 `
             )
           })
 
-          it('produces valid association paths when both the model being generated and the associated model are namespaced', async () => {
-            const res = await generateDreamContent('pet/wild/cat', ['pet/domestic/dog:belongs_to'])
+          it('produces valid association paths when both the model being generated and the associated model are namespaced', () => {
+            const res = generateDreamContent('pet/wild/cat', ['pet/domestic/dog:belongs_to'])
             expect(res).toEqual(
               `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
-import PetWildCatSerializer, { PetWildCatSummarySerializer } from '../../../../../test-app/app/serializers/Pet/Wild/CatSerializer'
 import PetDomesticDog from '../../Pet/Domestic/Dog'
 
 export default class PetWildCat extends ApplicationModel {
@@ -375,36 +334,32 @@ export default class PetWildCat extends ApplicationModel {
     return 'pet_wild_cats' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<PetWildCat> {
     return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: PetWildCatSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: PetWildCatSummarySerializer<any, any>,
-    } as const
+      default: 'Pet/Wild/CatSerializer',
+      summary: 'Pet/Wild/CatSummarySerializer',
+    }
   }
 
   public id: DreamColumn<PetWildCat, 'id'>
   public createdAt: DreamColumn<PetWildCat, 'createdAt'>
   public updatedAt: DreamColumn<PetWildCat, 'updatedAt'>
 
-  @BelongsTo(() => PetDomesticDog)
-  public dog: PetDomesticDog
-  public dogId: DreamColumn<PetWildCat, 'dogId'>
-}\
+  @PetWildCat.BelongsTo('Pet/Domestic/Dog')
+  public petDomesticDog: PetDomesticDog
+  public petDomesticDogId: DreamColumn<PetWildCat, 'petDomesticDogId'>
+}
 `
             )
           })
         })
 
-        it('can handle multiple associations without duplicate imports', async () => {
-          const res = await generateDreamContent('composition', ['user:belongs_to', 'chalupa:belongs_to'])
+        it('can handle multiple associations without duplicate imports', () => {
+          const res = generateDreamContent('composition', ['user:belongs_to', 'chalupa:belongs_to'])
           expect(res).toEqual(
             `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CompositionSerializer, { CompositionSummarySerializer } from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
 import Chalupa from './Chalupa'
 
@@ -413,41 +368,37 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<Composition> {
     return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: CompositionSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: CompositionSummarySerializer<any, any>,
-    } as const
+      default: 'CompositionSerializer',
+      summary: 'CompositionSummarySerializer',
+    }
   }
 
   public id: DreamColumn<Composition, 'id'>
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @BelongsTo(() => User)
+  @Composition.BelongsTo('User')
   public user: User
   public userId: DreamColumn<Composition, 'userId'>
 
-  @BelongsTo(() => Chalupa)
+  @Composition.BelongsTo('Chalupa')
   public chalupa: Chalupa
   public chalupaId: DreamColumn<Composition, 'chalupaId'>
-}\
+}
 `
           )
         })
       })
 
       context('when provided with a hasOne relationship', () => {
-        it('generates a HasOne relationship in model', async () => {
-          const res = await generateDreamContent('composition', ['user:has_one'])
+        it('generates a HasOne relationship in model', () => {
+          const res = generateDreamContent('composition', ['user:has_one'])
           expect(res).toEqual(
             `\
-import { DreamColumn, HasOne } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CompositionSerializer, { CompositionSummarySerializer } from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
 
 export default class Composition extends ApplicationModel {
@@ -455,36 +406,32 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<Composition> {
     return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: CompositionSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: CompositionSummarySerializer<any, any>,
-    } as const
+      default: 'CompositionSerializer',
+      summary: 'CompositionSummarySerializer',
+    }
   }
 
   public id: DreamColumn<Composition, 'id'>
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @HasOne(() => User)
+  @Composition.HasOne('User')
   public user: User
-}\
+}
 `
           )
         })
       })
 
       context('when provided with a hasMany relationship', () => {
-        it('generates a HasMany relationship in model', async () => {
-          const res = await generateDreamContent('user', ['composition:has_many'])
+        it('generates a HasMany relationship in model', () => {
+          const res = generateDreamContent('user', ['composition:has_many'])
           expect(res).toEqual(
             `\
-import { DreamColumn, HasMany } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import UserSerializer, { UserSummarySerializer } from '../../../test-app/app/serializers/UserSerializer'
 import Composition from './Composition'
 
 export default class User extends ApplicationModel {
@@ -492,36 +439,32 @@ export default class User extends ApplicationModel {
     return 'users' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<User> {
     return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: UserSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: UserSummarySerializer<any, any>,
-    } as const
+      default: 'UserSerializer',
+      summary: 'UserSummarySerializer',
+    }
   }
 
   public id: DreamColumn<User, 'id'>
   public createdAt: DreamColumn<User, 'createdAt'>
   public updatedAt: DreamColumn<User, 'updatedAt'>
 
-  @HasMany(() => Composition)
+  @User.HasMany('Composition')
   public compositions: Composition[]
-}\
+}
 `
           )
         })
       })
 
       context('when provided with a relationship and using uuids', () => {
-        it('generates a uuid id field for relations relationship in model', async () => {
-          const res = await generateDreamContent('composition', ['user:belongs_to'])
+        it('generates a uuid id field for relations relationship in model', () => {
+          const res = generateDreamContent('composition', ['user:belongs_to'])
           expect(res).toEqual(
             `\
-import { DreamColumn, BelongsTo } from '@rvohealth/dream'
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import CompositionSerializer, { CompositionSummarySerializer } from '../../../test-app/app/serializers/CompositionSerializer'
 import User from './User'
 
 export default class Composition extends ApplicationModel {
@@ -529,24 +472,21 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<Composition> {
     return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: CompositionSerializer<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: CompositionSummarySerializer<any, any>,
-    } as const
+      default: 'CompositionSerializer',
+      summary: 'CompositionSummarySerializer',
+    }
   }
 
   public id: DreamColumn<Composition, 'id'>
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @BelongsTo(() => User)
+  @Composition.BelongsTo('User')
   public user: User
   public userId: DreamColumn<Composition, 'userId'>
-}\
+}
 `
           )
         })

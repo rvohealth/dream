@@ -1,6 +1,14 @@
 import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../dream'
-import { DefaultScopeName, DreamColumnNames } from '../../dream/types'
+import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames'
+import {
+  DefaultScopeName,
+  DefaultScopeNameForTable,
+  DreamColumnNames,
+  GlobalModelNames,
+  TableColumnNames,
+  TableNameForGlobalModelName,
+} from '../../dream/types'
 import Validates from '../validations/validates'
 import {
   applyGetterAndSetter,
@@ -13,19 +21,17 @@ import {
 /**
  * Establishes a "BelongsTo" association between the base dream
  * and the child dream, where the base dream has a foreign key
- * which points back to the child dream. This relationship should
- * always have a corresponding `@HasOne` or `@HasMany` association
- * on the child class.
+ * which points back to the child dream.
  *
  * ```ts
  * class UserSettings extends ApplicationModel {
- *   @BelongsTo(() => User)
+ *   @UserSettings.BelongsTo('User')
  *   public user: User
  *   public userId: DreamColumn<UserSettings, 'userId'>
  * }
  *
  * class User extends ApplicationModel {
- *   @HasOne(() => UserSettings)
+ *   @User.HasOne('UserSettings')
  *   public userSettings: UserSettings
  * }
  * ```
@@ -38,16 +44,18 @@ import {
  */
 export default function BelongsTo<
   BaseInstance extends Dream,
-  AssociationDreamClass extends typeof Dream = typeof Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
 >(
-  modelCB: () => AssociationDreamClass | AssociationDreamClass[],
+  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
   {
     foreignKey,
     optional = false,
     polymorphic = false,
     primaryKeyOverride = null,
     withoutDefaultScopes,
-  }: BelongsToOptions<BaseInstance> = {}
+  }: BelongsToOptions<BaseInstance, AssociationGlobalNameOrNames> = {}
 ): any {
   return function (
     target: BaseInstance,
@@ -62,7 +70,8 @@ export default function BelongsTo<
 
     const partialAssociation = associationPrimaryKeyAccessors(
       {
-        modelCB,
+        modelCB: () => lookupModelByGlobalNameOrNames(globalAssociationNameOrNames as string | string[]),
+        globalAssociationNameOrNames,
         type: 'BelongsTo',
         as: key,
         optional,
@@ -96,6 +105,7 @@ export interface BelongsToStatement<
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
 > {
   modelCB: () => typeof Dream | (typeof Dream)[]
+  globalAssociationNameOrNames: string[]
   type: 'BelongsTo'
   as: string
   primaryKey: (associationInstance?: Dream) => keyof DB[TableName] & string
@@ -111,11 +121,23 @@ export interface BelongsToStatement<
 
 export interface BelongsToOptions<
   BaseInstance extends Dream,
-  AssociationDreamClass extends typeof Dream = typeof Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
+  AssociationGlobalName = AssociationGlobalNameOrNames extends Readonly<any[]>
+    ? AssociationGlobalNameOrNames[0] & string
+    : AssociationGlobalNameOrNames & string,
+  AssociationTableName extends AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
+    keyof BaseInstance['DB'] = TableNameForGlobalModelName<
+    BaseInstance,
+    AssociationGlobalName & GlobalModelNames<BaseInstance>
+  > &
+    AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
+    keyof BaseInstance['DB'],
 > {
   foreignKey?: DreamColumnNames<BaseInstance>
-  primaryKeyOverride?: DreamColumnNames<InstanceType<AssociationDreamClass>> | null
+  primaryKeyOverride?: TableColumnNames<BaseInstance['DB'], AssociationTableName> | null
   optional?: boolean
   polymorphic?: boolean
-  withoutDefaultScopes?: DefaultScopeName<InstanceType<AssociationDreamClass>>[]
+  withoutDefaultScopes?: DefaultScopeNameForTable<BaseInstance['schema'], AssociationTableName>[]
 }

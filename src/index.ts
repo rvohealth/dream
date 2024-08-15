@@ -1,3 +1,4 @@
+export { default as DreamBin } from './bin'
 export { default as db } from './db'
 export { closeAllDbConnections, dreamDbConnections } from './db/dream-db-connection'
 export {
@@ -8,10 +9,6 @@ export { default as createExtension } from './db/migration-helpers/createExtensi
 export { default as createGinIndex } from './db/migration-helpers/createGinIndex'
 export { default as validateColumn } from './db/validators/validateColumn'
 export { default as validateTable } from './db/validators/validateTable'
-export { default as STI } from './decorators/STI'
-export { default as BelongsTo } from './decorators/associations/belongs-to'
-export { default as HasMany } from './decorators/associations/has-many'
-export { default as HasOne } from './decorators/associations/has-one'
 export { WhereStatementForDream, WhereStatementForDreamClass } from './decorators/associations/shared'
 export { default as AfterCreate } from './decorators/hooks/after-create'
 export { default as AfterCreateCommit } from './decorators/hooks/after-create-commit'
@@ -29,11 +26,15 @@ export { default as ReplicaSafe } from './decorators/replica-safe'
 export { default as Scope } from './decorators/scope'
 export { default as SoftDelete } from './decorators/soft-delete'
 export { default as Sortable } from './decorators/sortable'
+export { default as STI } from './decorators/STI'
 export { ValidationType } from './decorators/validations/shared'
 export { default as Validate } from './decorators/validations/validate'
 export { default as Validates } from './decorators/validations/validates'
 export { default as Virtual } from './decorators/virtual'
 export { default as Dream } from './dream'
+export { default as DreamApplication, DreamApplicationOpts } from './dream-application'
+export { getCachedDreamApplicationOrFail } from './dream-application/cache'
+export { default as lookupClassByGlobalName } from './dream-application/helpers/lookupClassByGlobalName'
 export { default as Query } from './dream/query'
 export { default as DreamTransaction } from './dream/transaction'
 export {
@@ -46,8 +47,11 @@ export {
   DreamColumnNames,
   DreamConst,
   DreamOrViewModel,
+  DreamOrViewModelSerializerKey,
   DreamParamSafeAttributes,
   DreamParamSafeColumnNames,
+  DreamSerializerKey,
+  DreamSerializers,
   DreamTableSchema,
   DreamVirtualColumns,
   IdType,
@@ -56,26 +60,27 @@ export {
   Timestamp,
   UpdateableAssociationProperties,
   UpdateableProperties,
+  ViewModelSerializerKey,
   primaryKeyTypes,
 } from './dream/types'
-export { default as Dreamconf } from './dreamconf'
-export { getCachedDreamconfOrFail } from './dreamconf/cache'
 export { default as NonLoadedAssociation } from './exceptions/associations/non-loaded-association'
 export { default as CreateOrFindByFailedToCreateAndFind } from './exceptions/create-or-find-by-failed-to-create-and-find'
+export { default as GlobalNameNotSet } from './exceptions/dream-application/global-name-not-set'
 export { default as ValidationError } from './exceptions/validation-error'
-export { default as CalendarDate } from './helpers/CalendarDate'
 export { default as Benchmark } from './helpers/benchmark'
+export { default as CalendarDate } from './helpers/CalendarDate'
 export { default as camelize } from './helpers/camelize'
 export { default as capitalize } from './helpers/capitalize'
 export { default as compact } from './helpers/compact'
 export { default as debug } from './helpers/debug'
 export { default as developmentOrTestEnv } from './helpers/developmentOrTestEnv'
 export { default as hyphenize } from './helpers/hyphenize'
-export { default as initializeDream } from './helpers/initializeDream'
-export { default as loadModels } from './helpers/loadModels'
+export {
+  inferSerializerFromDreamClassOrViewModelClass,
+  default as inferSerializerFromDreamOrViewModel,
+} from './helpers/inferSerializerFromDreamOrViewModel'
 export { default as loadRepl } from './helpers/loadRepl'
 export { default as pascalize } from './helpers/pascalize'
-export { projectRootPath } from './helpers/path'
 export { Range, default as range } from './helpers/range'
 export { RoundingPrecision, default as round } from './helpers/round'
 export { default as snakeify } from './helpers/snakeify'
@@ -112,6 +117,7 @@ export {
   OpenapiSchemaObjectOneOf,
   OpenapiSchemaObjectOneOfShorthand,
   OpenapiSchemaObjectShorthand,
+  OpenapiSchemaPartialSegment,
   OpenapiSchemaPrimitiveGeneric,
   OpenapiSchemaProperties,
   OpenapiSchemaPropertiesShorthand,
@@ -125,7 +131,6 @@ export {
   OpenapiShorthandPrimitiveTypes,
   OpenapiTypeField,
   OpenapiTypeFieldObject,
-  OpenapiSchemaPartialSegment,
   openapiPrimitiveTypes,
   openapiShorthandPrimitiveTypes,
 } from './openapi/types'

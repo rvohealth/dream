@@ -1,7 +1,4 @@
 import { Query } from '../../../src'
-import BelongsTo from '../../../src/decorators/associations/belongs-to'
-import HasMany from '../../../src/decorators/associations/has-many'
-import HasOne from '../../../src/decorators/associations/has-one'
 import Scope from '../../../src/decorators/scope'
 import SoftDelete from '../../../src/decorators/soft-delete'
 import Sortable from '../../../src/decorators/sortable'
@@ -44,13 +41,13 @@ export default class Balloon extends ApplicationModel {
   @Validates('numericality', { min: 0, max: 100 })
   public volume: number
 
-  @BelongsTo(() => User, { optional: true })
+  @Balloon.BelongsTo('User', { optional: true })
   public user: User
   public userId: IdType
 
-  @HasOne(() => BalloonLine, { foreignKey: 'balloonId' })
+  @Balloon.HasOne('BalloonLine', { foreignKey: 'balloonId' })
   public balloonLine: BalloonLine
 
-  @HasMany(() => HeartRating, { polymorphic: true, foreignKey: 'extraRateableId' })
+  @Balloon.HasMany('ExtraRating/HeartRating', { polymorphic: true, foreignKey: 'extraRateableId' })
   public heartRatings: HeartRating[]
 }

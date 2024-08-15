@@ -1,8 +1,8 @@
 import { Client } from 'pg'
-import { getCachedDreamconfOrFail } from '../../dreamconf/cache'
+import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
 
 export default async function loadPgClient({ useSystemDb }: { useSystemDb?: boolean } = {}) {
-  const dreamconf = getCachedDreamconfOrFail()
+  const dreamconf = getCachedDreamApplicationOrFail()
   const creds = dreamconf.dbCredentials.primary
 
   const client = new Client({

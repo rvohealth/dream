@@ -1,9 +1,9 @@
-import Dreamconf, { SingleDbCredential } from '../dreamconf'
+import DreamApplication, { SingleDbCredential } from '../dream-application'
 import { DbConnectionType } from './types'
 
 export default class ConnectionConfRetriever {
-  public dreamconf: Dreamconf
-  constructor(dreamconf: Dreamconf) {
+  public dreamconf: DreamApplication
+  constructor(dreamconf: DreamApplication) {
     this.dreamconf = dreamconf
   }
 

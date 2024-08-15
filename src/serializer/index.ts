@@ -8,14 +8,15 @@ import {
   DreamOrViewModel,
 } from '../dream/types'
 import NonLoadedAssociation from '../exceptions/associations/non-loaded-association'
-import MissingSerializer from '../exceptions/missing-serializer'
+import GlobalNameNotSet from '../exceptions/dream-application/global-name-not-set'
+import MissingSerializer from '../exceptions/missing-serializers-definition'
 import FailedToRenderThroughAssociationForSerializer from '../exceptions/serializers/failed-to-render-through-association'
 import CalendarDate from '../helpers/CalendarDate'
 import camelize from '../helpers/camelize'
-import round from '../helpers/round'
 import inferSerializerFromDreamOrViewModel, {
   inferSerializerFromDreamClassOrViewModelClass,
 } from '../helpers/inferSerializerFromDreamOrViewModel'
+import round from '../helpers/round'
 import snakeify from '../helpers/snakeify'
 import { DreamSerializerAssociationStatement } from './decorators/associations/shared'
 import { AttributeStatement } from './decorators/attribute'
@@ -24,6 +25,21 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   public static attributeStatements: AttributeStatement[] = []
   public static associationStatements: DreamSerializerAssociationStatement[] = []
   public static readonly isDreamSerializer = true
+
+  private static _globalName: string
+
+  public static get globalName(): string {
+    if (!this._globalName) throw new GlobalNameNotSet(this)
+    return this._globalName
+  }
+
+  private static setGlobalName(globalName: string) {
+    this._globalName = globalName
+  }
+
+  public static get openapiName(): string {
+    return this.name.replace(/Serializer$/, '')
+  }
 
   public static render(data: any, opts: DreamSerializerStaticRenderOpts = {}) {
     return new this(data).passthrough(opts.passthrough).render()

@@ -1,7 +1,7 @@
 import { sql } from 'kysely'
 import { DateTime } from 'luxon'
 import db from '../../../../src/db'
-import { getCachedDreamconfOrFail } from '../../../../src/dreamconf/cache'
+import { getCachedDreamApplicationOrFail } from '../../../../src/dream-application/cache'
 import Balloon from '../../../../test-app/app/models/Balloon'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal'
@@ -16,9 +16,11 @@ import User from '../../../../test-app/app/models/User'
 describe('Query#preload with polymorphic associations', () => {
   beforeEach(async () => {
     await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(
-      db('primary', getCachedDreamconfOrFail())
+      db('primary', getCachedDreamApplicationOrFail())
     )
-    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(db('primary', getCachedDreamconfOrFail()))
+    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(
+      db('primary', getCachedDreamApplicationOrFail())
+    )
   })
 
   context('HasMany', () => {

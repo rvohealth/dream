@@ -48,6 +48,7 @@ import Sortable, { SortableFieldConfig } from './decorators/sortable'
 import resortAllRecords from './decorators/sortable/helpers/resortAllRecords'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
 import { VirtualAttributeStatement } from './decorators/virtual'
+import { getCachedDreamApplicationOrFail } from './dream-application/cache'
 import DreamClassTransactionBuilder from './dream/class-transaction-builder'
 import DreamInstanceTransactionBuilder from './dream/instance-transaction-builder'
 import associationQuery from './dream/internal/associations/associationQuery'
@@ -86,7 +87,9 @@ import {
   DreamColumnNames,
   DreamConstructorType,
   DreamParamSafeColumnNames,
+  DreamSerializeOptions,
   FinalVariadicTableName,
+  GlobalModelNames,
   IdType,
   NextPreloadArgumentType,
   OrderDir,
@@ -103,23 +106,21 @@ import {
   VariadicPluckEachThroughArgs,
   VariadicPluckThroughArgs,
 } from './dream/types'
-import { getCachedDreamconfOrFail } from './dreamconf/cache'
 import CanOnlyPassBelongsToModelParam from './exceptions/associations/can-only-pass-belongs-to-model-param'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
 import NonLoadedAssociation from './exceptions/associations/non-loaded-association'
 import CannotCallUndestroyOnANonSoftDeleteModel from './exceptions/cannot-call-undestroy-on-a-non-soft-delete-model'
 import CreateOrFindByFailedToCreateAndFind from './exceptions/create-or-find-by-failed-to-create-and-find'
-import MissingSerializer from './exceptions/missing-serializer'
+import GlobalNameNotSet from './exceptions/dream-application/global-name-not-set'
+import MissingSerializer from './exceptions/missing-serializers-definition'
 import MissingTable from './exceptions/missing-table'
 import NonExistentScopeProvidedToResort from './exceptions/non-existent-scope-provided-to-resort'
 import CalendarDate from './helpers/CalendarDate'
 import cloneDeepSafe from './helpers/cloneDeepSafe'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
-import getModelKey from './helpers/getModelKey'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel'
 import { marshalDBValue } from './helpers/marshalDBValue'
-import pascalize from './helpers/pascalize'
 import { EnvOpts } from './helpers/path/types'
 import { isString } from './helpers/typechecks'
 
@@ -207,9 +208,9 @@ export default class Dream {
    * @internal
    *
    * Model storage for association metadata, set when using the association decorators like:
-   *   @HasOne
-   *   @HasMany
-   *   @BelongsTo
+   *   @ModelName.HasOne
+   *   @ModelName.HasMany
+   *   @ModelName.BelongsTo
    */
   protected static associationMetadataByType: {
     belongsTo: BelongsToStatement<any, any, any, any>[]
@@ -398,50 +399,100 @@ export default class Dream {
   }
 
   /**
-   * Shortcut to the @BelongsTo decorator, which also provides extra type protection which cannot be provided
-   * with the @BelongsTo decorator.
+   * Establishes a "BelongsTo" association between the base dream
+   * and the child dream, where the base dream has a foreign key
+   * which points back to the child dream.
+   *
+   * ```ts
+   * class UserSettings extends ApplicationModel {
+   *   @UserSettings.BelongsTo('User')
+   *   public user: User
+   *   public userId: DreamColumn<UserSettings, 'userId'>
+   * }
+   *
+   * class User extends ApplicationModel {
+   *   @User.HasOne('UserSettings')
+   *   public userSettings: UserSettings
+   * }
+   * ```
+   *
+   *
    *
    * @param modelCB - a function that immediately returns the dream class you are associating with this dream class
    * @param options - the options you want to use to apply to this association
    * @returns A BelongsTo decorator
    */
-  public static BelongsTo<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
+  public static BelongsTo<
+    T extends typeof Dream,
+    const AssociationGlobalNameOrNames extends
+      | GlobalModelNames<InstanceType<T>>
+      | readonly GlobalModelNames<InstanceType<T>>[],
+  >(
     this: T,
-    modelCB: () => AssociationDreamClass,
-    options: BelongsToOptions<InstanceType<T>, AssociationDreamClass> = {}
+    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+    options: BelongsToOptions<InstanceType<T>, AssociationGlobalNameOrNames> = {}
   ) {
-    return BelongsTo<InstanceType<T>, AssociationDreamClass>(modelCB, options)
+    return BelongsTo<InstanceType<T>, AssociationGlobalNameOrNames>(globalAssociationNameOrNames, options)
   }
 
   ///////////
   // HasMany
   ///////////
-  public static HasMany<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
+  public static HasMany<
+    T extends typeof Dream,
+    const AssociationGlobalNameOrNames extends
+      | GlobalModelNames<InstanceType<T>>
+      | readonly GlobalModelNames<InstanceType<T>>[],
+  >(
     this: T,
-    modelCB: () => AssociationDreamClass,
-    options?: HasManyOptions<InstanceType<T>, AssociationDreamClass>
+    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+    options?: HasManyOptions<InstanceType<T>, AssociationGlobalNameOrNames>
   ): any
 
-  public static HasMany<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
+  public static HasMany<
+    T extends typeof Dream,
+    const AssociationGlobalNameOrNames extends
+      | GlobalModelNames<InstanceType<T>>
+      | readonly GlobalModelNames<InstanceType<T>>[],
+  >(
     this: T,
-    modelCB: () => AssociationDreamClass,
-    options?: HasManyThroughOptions<InstanceType<T>, AssociationDreamClass>
+    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+    options?: HasManyThroughOptions<InstanceType<T>, AssociationGlobalNameOrNames>
   ): any
 
   /**
-   * Shortcut to the @HasMany decorator, which also provides extra type protection which cannot be provided
-   * with the @HasMany decorator.
+   *
+   * Establishes a "HasMany" association between the base dream
+   * and the child dream, where the child dream has a foreign key
+   * which points back to the base dream.
+   *
+   * ```ts
+   * class User extends ApplicationModel {
+   *   @User.HasMany('Post')
+   *   public posts: Post[]
+   * }
+   *
+   * class Post extends ApplicationModel {
+   *   @Post.BelongsTo('User')
+   *   public user: User
+   *   public userId: DreamColumn<Post, 'userId'>
+   * }
+   * ```
    *
    * @param modelCB - a function that immediately returns the dream class you are associating with this dream class
    * @param options - the options you want to use to apply to this association
    * @returns A HasMany decorator
    */
-  public static HasMany<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
-    this: T,
-    modelCB: () => AssociationDreamClass,
-    options: unknown = {}
-  ): any {
-    return HasMany<InstanceType<T>, AssociationDreamClass>(modelCB, options as any)
+  public static HasMany<
+    T extends typeof Dream,
+    const AssociationGlobalNameOrNames extends
+      | GlobalModelNames<InstanceType<T>>
+      | readonly GlobalModelNames<InstanceType<T>>[],
+  >(this: T, globalAssociationNameOrNames: AssociationGlobalNameOrNames, options: unknown = {}) {
+    return HasMany<InstanceType<T>, AssociationGlobalNameOrNames>(
+      globalAssociationNameOrNames,
+      options as any
+    )
   }
   ///////////////
   // end: HasMany
@@ -450,32 +501,57 @@ export default class Dream {
   ///////////
   // HasOne
   ///////////
-  public static HasOne<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
+  public static HasOne<
+    T extends typeof Dream,
+    const AssociationGlobalNameOrNames extends
+      | GlobalModelNames<InstanceType<T>>
+      | readonly GlobalModelNames<InstanceType<T>>[],
+  >(
     this: T,
-    modelCB: () => AssociationDreamClass,
-    options?: HasOneOptions<InstanceType<T>, AssociationDreamClass>
+    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+    options?: HasOneOptions<InstanceType<T>, AssociationGlobalNameOrNames>
   ): any
 
-  public static HasOne<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
+  public static HasOne<
+    T extends typeof Dream,
+    const AssociationGlobalNameOrNames extends
+      | GlobalModelNames<InstanceType<T>>
+      | readonly GlobalModelNames<InstanceType<T>>[],
+  >(
     this: T,
-    modelCB: () => AssociationDreamClass,
-    options?: HasOneThroughOptions<InstanceType<T>, AssociationDreamClass>
+    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+    options?: HasOneThroughOptions<InstanceType<T>, AssociationGlobalNameOrNames>
   ): any
 
   /**
-   * Shortcut to the @HasOne decorator, which also provides extra type protection which cannot be provided
-   * with the @HasOne decorator.
+   * Establishes a "HasOne" association between the base dream
+   * and the child dream, where the child dream has a foreign key
+   * which points back to the base dream.
+   *
+   * ```ts
+   * class User extends ApplicationModel {
+   *   @User.HasOne('UserSettings')
+   *   public userSettings: UserSettings
+   * }
+   *
+   * class UserSettings extends ApplicationModel {
+   *   @UserSettings.BelongsTo('User')
+   *   public user: User
+   *   public userId: DreamColumn<UserSettings, 'userId'>
+   * }
+   * ```
    *
    * @param modelCB - A function that immediately returns the dream class you are associating with this dream class
    * @param options - The options you want to use to apply to this association
    * @returns A HasOne decorator
    */
-  public static HasOne<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
-    this: T,
-    modelCB: () => AssociationDreamClass,
-    options: unknown = {}
-  ): any {
-    return HasOne<InstanceType<T>, AssociationDreamClass>(modelCB, options as any)
+  public static HasOne<
+    T extends typeof Dream,
+    const AssociationGlobalNameOrNames extends
+      | GlobalModelNames<InstanceType<T>>
+      | readonly GlobalModelNames<InstanceType<T>>[],
+  >(this: T, globalAssociationNameOrNames: AssociationGlobalNameOrNames, options: unknown = {}): any {
+    return HasOne<InstanceType<T>, AssociationGlobalNameOrNames>(globalAssociationNameOrNames, options as any)
   }
   //////////////
   // end: HasOne
@@ -728,23 +804,21 @@ export default class Dream {
     return AfterDestroyCommit()
   }
 
+  private static _globalName: string
   /**
+   * @internal
+   *
    * Returns a unique global name for the given model.
-   * Since in javascript/typescript, it is possible to give
-   * two Dream classes the same name, globalName
-   * provides a model name which is unique to your class,
-   * since it considers the file path to the dream as part
-   * of the name.
    *
-   * This is used in the console so that all models can be
-   * imported to the global namespace without overriding
-   * each other.
-   *
-   * @returns A string representing a unique key for this model based on its filename and path
+   * @returns A string representing a unique key for this model
    */
-  public static async globalName<T extends typeof Dream>(this: T): Promise<string | undefined> {
-    const modelKey = await getModelKey(this)
-    return pascalize(modelKey)?.replace(/\//g, '')
+  public static get globalName(): string {
+    if (!this._globalName) throw new GlobalNameNotSet(this)
+    return this._globalName
+  }
+
+  private static setGlobalName(globalName: string) {
+    this._globalName = globalName
   }
 
   /**
@@ -1190,12 +1264,12 @@ export default class Dream {
    *
    * ```ts
    * class Image extends ApplicationModel {
-   *   @HasMany(() => LocalizedText)
+   *   @Image.HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    * }
    *
    * class Post extends ApplicationModel {
-   *   @HasMany(() => LocalizedText)
+   *   @Post.HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    * }
    *
@@ -1745,7 +1819,7 @@ export default class Dream {
     const dreamTransaction = new DreamTransaction()
     let callbackResponse: RetType = undefined as RetType
 
-    await db('primary', getCachedDreamconfOrFail())
+    await db('primary', getCachedDreamApplicationOrFail())
       .transaction()
       .execute(async kyselyTransaction => {
         dreamTransaction.kyselyTransaction = kyselyTransaction
@@ -1765,10 +1839,10 @@ export default class Dream {
    *
    * ```ts
    * class Post {
-   *   @HasMany(() => LocalizedText)
+   *   @Post.HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    *
-   *   @HasOne(() => LocalizedText, {
+   *   @Post.HasOne('LocalizedText', {
    *     where: { locale: DreamConst.passthrough },
    *   })
    *   public currentLocalizedText: LocalizedText
@@ -2300,10 +2374,10 @@ export default class Dream {
    *
    * ```ts
    * class Post extends ApplicationModel {
-   *   public get serializers() {
+   *   public get serializers(): DreamSerializers<Post> {
    *     return {
-   *       default: PostSerializer,
-   *       summary: PostSummarySerializer,
+   *       default: 'PostSerializer',
+   *       summary: 'PostSummarySerializer',
    *     }
    *   }
    * }
@@ -3665,10 +3739,10 @@ export default class Dream {
    *
    * ```ts
    * class Post {
-   *   @HasMany(() => LocalizedText)
+   *   @Post.HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    *
-   *   @HasOne(() => LocalizedText, {
+   *   @Post.HasOne('LocalizedText', {
    *     where: { locale: DreamConst.passthrough },
    *   })
    *   public currentLocalizedText: LocalizedText
@@ -3790,8 +3864,13 @@ export default class Dream {
    * @params args.serializerKey - The key to use when referencing the object returned by the `serializers` getter on the given model instance (defaults to "default")
    * @returns A serialized representation of the model
    */
-  public serialize<I extends Dream>(this: I, { casing = null, serializerKey }: RenderOptions<I> = {}) {
-    const serializerClass = inferSerializerFromDreamOrViewModel(this, serializerKey)
+  public serialize<I extends Dream>(
+    this: I,
+    { casing = null, serializerKey }: DreamSerializeOptions<I> = {}
+  ) {
+    const serializerClass = inferSerializerFromDreamOrViewModel(this, serializerKey?.toString())
+    if (!serializerClass) throw new MissingSerializer(this.constructor as typeof Dream)
+
     const serializer = new serializerClass(this)
     if (casing) serializer.casing(casing)
     return serializer.render()
@@ -4017,13 +4096,3 @@ export interface CreateOrFindByExtraOps<T extends typeof Dream> {
     | WhereStatement<InstanceType<T>['DB'], InstanceType<T>['schema'], InstanceType<T>['table']>
     | UpdateablePropertiesForClass<T>
 }
-
-export type RenderOptions<
-  T,
-  U = T extends (infer R)[] ? R : T,
-  SerializerType = U extends null
-    ? never
-    : U['serializers' & keyof U] extends object
-      ? keyof U['serializers' & keyof U]
-      : never,
-> = { serializerKey?: SerializerType; casing?: 'camel' | 'snake' | null }

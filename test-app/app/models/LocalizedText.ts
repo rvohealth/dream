@@ -1,17 +1,15 @@
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
-import BelongsTo from '../../../src/decorators/associations/belongs-to'
-import { DreamColumn } from '../../../src/dream/types'
 import Composition from './Composition'
 import CompositionAsset from './CompositionAsset'
-import { LocalizedTextBaseSerializer } from '../serializers/LocalizedText/BaseSerializer'
 
 export default class LocalizedText extends ApplicationModel {
   public get table() {
     return 'localized_texts' as const
   }
 
-  public get serializers() {
-    return { default: LocalizedTextBaseSerializer<any> } as const
+  public get serializers(): DreamSerializers<LocalizedText> {
+    return { default: 'LocalizedText/BaseSerializer' }
   }
 
   public id: DreamColumn<LocalizedText, 'id'>
@@ -24,7 +22,7 @@ export default class LocalizedText extends ApplicationModel {
   public createdAt: DreamColumn<LocalizedText, 'createdAt'>
   public updatedAt: DreamColumn<LocalizedText, 'updatedAt'>
 
-  @BelongsTo(() => [Composition, CompositionAsset], {
+  @LocalizedText.BelongsTo(['Composition', 'CompositionAsset'], {
     foreignKey: 'localizableId',
     polymorphic: true,
   })

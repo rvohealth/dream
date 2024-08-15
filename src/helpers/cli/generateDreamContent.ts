@@ -1,58 +1,50 @@
-import path from 'path'
 import pluralize from 'pluralize'
-import pascalize from '../../../src/helpers/pascalize'
 import camelize from '../camelize'
-import initializeDream from '../initializeDream'
-import pascalizePath from '../pascalizePath'
+import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName'
 import relativeDreamPath from '../path/relativeDreamPath'
+import serializerNameFromFullyQualifiedModelName from '../serializerNameFromFullyQualifiedModelName'
 import snakeify from '../snakeify'
+import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
 import uniq from '../uniq'
 
-export default async function generateDreamContent(modelName: string, attributes: string[]) {
-  await initializeDream()
-  const modelClassName = pascalizePath(modelName)
-
-  const dreamImports: string[] = ['DreamColumn']
-
+export default function generateDreamContent(fullyQualifiedModelName: string, attributes: string[]) {
+  fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
+  const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+  const dreamImports: string[] = ['DreamColumn', 'DreamSerializers']
   const idTypescriptType = `DreamColumn<${modelClassName}, 'id'>`
-
   const additionalImports: string[] = []
-
-  const serializerImport = await buildSerializerImportStatement(modelName)
-  additionalImports.push(serializerImport)
 
   const attributeStatements = attributes.map(attribute => {
     const [attributeName, attributeType] = attribute.split(':')
-    const associationImportStatement = buildImportStatement(modelName, attribute)
-    const attributeNameParts = attributeName.split('/')
-    const associationName = attributeNameParts[attributeNameParts.length - 1]
+    const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(attributeName)
+    const associationModelName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
+    const associationImportStatement = `import ${associationModelName} from '${relativeDreamPath('models', 'models', fullyQualifiedModelName, fullyQualifiedAssociatedModelName)}'`
+    const associationName = camelize(associationModelName)
 
-    if (!attributeType) throw `must pass a column type for ${attributeName} (i.e. ${attributeName}:string)`
+    if (!attributeType)
+      throw new Error(`must pass a column type for ${attributeName} (i.e. ${attributeName}:string)`)
 
     switch (attributeType) {
       case 'belongs_to':
-        dreamImports.push('BelongsTo')
         additionalImports.push(associationImportStatement)
         return `
-@BelongsTo(() => ${pascalizePath(attributeName)})
-public ${camelize(associationName)}: ${pascalizePath(attributeName)}
-public ${camelize(associationName)}Id: DreamColumn<${modelClassName}, '${camelize(associationName)}Id'>
+@${modelClassName}.BelongsTo('${fullyQualifiedAssociatedModelName}')
+public ${associationName}: ${associationModelName}
+public ${associationName}Id: DreamColumn<${modelClassName}, '${associationName}Id'>
 `
 
       case 'has_one':
-        dreamImports.push('HasOne')
         additionalImports.push(associationImportStatement)
         return `
-@HasOne(() => ${pascalizePath(attributeName)})
-public ${camelize(associationName)}: ${pascalizePath(attributeName)}
+@${modelClassName}.HasOne('${fullyQualifiedAssociatedModelName}')
+public ${associationName}: ${associationModelName}
 `
 
       case 'has_many':
-        dreamImports.push('HasMany')
         additionalImports.push(associationImportStatement)
         return `
-@HasMany(() => ${pascalizePath(attributeName)})
-public ${pluralize(camelize(associationName))}: ${pascalizePath(attributeName)}[]
+@${modelClassName}.HasMany('${fullyQualifiedAssociatedModelName}')
+public ${pluralize(associationName)}: ${associationModelName}[]
 `
 
       default:
@@ -62,18 +54,27 @@ public ${camelize(attributeName)}: ${getAttributeType(attribute, modelClassName)
     }
   })
 
-  const timestamps = `
+  const formattedFields = attributeStatements
+    .filter(attr => !/^\n@/.test(attr))
+    .map(s => s.split('\n').join('\n  '))
+    .join('')
+  const formattedDecorators = attributeStatements
+    .filter(attr => /^\n@/.test(attr))
+    .map(s => s.split('\n').join('\n  '))
+    .join('\n  ')
+    .replace(/\n {2}$/, '')
+
+  let timestamps = `
   public createdAt: DreamColumn<${modelClassName}, 'createdAt'>
   public updatedAt: DreamColumn<${modelClassName}, 'updatedAt'>
 `
+  if (!formattedDecorators.length) timestamps = timestamps.replace(/\n$/, '')
 
-  const tableName = snakeify(pluralize(modelName.replace(/\//g, '_')))
-
-  const relativePath = relativePathToModelRoot(modelName)
+  const tableName = snakeify(pluralize(fullyQualifiedModelName.replace(/\//g, '_')))
 
   return `\
 import { ${uniq(dreamImports).join(', ')} } from '@rvohealth/dream'
-import ApplicationModel from '${relativePath}ApplicationModel'${
+import ApplicationModel from '${relativeDreamPath('models', 'models', fullyQualifiedModelName, 'ApplicationModel')}'${
     additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
   }
 
@@ -82,96 +83,16 @@ export default class ${modelClassName} extends ApplicationModel {
     return '${tableName}' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<${modelClassName}> {
     return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: ${serializerNameFromModelName(modelName)}<any, any>,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      summary: ${serializerSummaryNameFromModelName(modelName)}<any, any>,
-    } as const
+      default: '${serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName)}',
+      summary: '${serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')}',
+    }
   }
 
-  public id: ${idTypescriptType}${attributeStatements
-    .filter(attr => !/^\n@/.test(attr))
-    .map(s => s.split('\n').join('\n  '))
-    .join('')}${timestamps}${attributeStatements
-    .filter(attr => /^\n@/.test(attr))
-    .map(s => s.split('\n').join('\n  '))
-    .join('\n  ')}\
-}`
-    .replace(/^\s*$/gm, '')
-    .replace(/ {2}}$/, '}')
+  public id: ${idTypescriptType}${formattedFields}${timestamps}${formattedDecorators}
 }
-
-function buildImportStatement(modelName: string, attribute: string) {
-  const relativePath = relativePathToModelRoot(modelName)
-
-  const [attributeName] = attribute.split(':')
-  const rootAssociationImport = pascalizePath(attributeName)
-  const associationImportStatement = `import ${pascalize(
-    rootAssociationImport
-  )} from '${relativePath}${attributeName
-    .split('/')
-    .map(name => pascalize(name))
-    .join('/')}'`
-  return associationImportStatement
-}
-
-async function buildSerializerImportStatement(modelName: string) {
-  const relativePath = await relativePathToSrcRoot(modelName)
-
-  const serializerPath = path.join(
-    relativePath,
-    await relativeDreamPath('serializers'),
-    relativeSerializerPathFromModelName(modelName)
-  )
-  const serializerClassName = serializerNameFromModelName(modelName)
-  const serializerSummaryClassName = serializerSummaryNameFromModelName(modelName)
-  const importStatement = `import ${serializerClassName}, { ${serializerSummaryClassName} } from '${serializerPath}'`
-  return importStatement
-}
-
-function serializerNameFromModelName(modelName: string) {
-  return (
-    modelName
-      .split('/')
-      .map(part => pascalize(part))
-      .join('') + 'Serializer'
-  )
-}
-
-function serializerSummaryNameFromModelName(modelName: string) {
-  return serializerNameFromModelName(modelName).replace(/Serializer$/, 'SummarySerializer')
-}
-
-function relativeSerializerPathFromModelName(modelName: string) {
-  return (
-    modelName
-      .split('/')
-      .map(part => pascalize(part))
-      .join('/') + 'Serializer'
-  )
-}
-
-function relativePathToModelRoot(modelName: string) {
-  const numNestedDirsForModel = modelName.split('/').length - 1
-  let updirs = ''
-  for (let i = 0; i < numNestedDirsForModel; i++) {
-    updirs += '../'
-  }
-  return numNestedDirsForModel > 0 ? updirs : './'
-}
-
-async function relativePathToSrcRoot(modelName: string) {
-  const rootPath = relativePathToModelRoot(modelName)
-  const numUpdirsInRootPath = (await relativeDreamPath('models')).split('/').length
-  let updirs = ''
-  for (let i = 0; i < numUpdirsInRootPath; i++) {
-    updirs += '../'
-  }
-
-  return rootPath === './' ? updirs : path.join(rootPath, updirs)
+`.replace(/^\s*$/gm, '')
 }
 
 function getAttributeType(attribute: string, modelClassName: string) {

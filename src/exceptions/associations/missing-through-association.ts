@@ -28,7 +28,7 @@ For example:
 
 class ${this.dreamClass.name} {
   ...
-  @HasMany(() => TheJoinModelClass)
+  @${this.dreamClass.name}.HasMany('TheJoinModelClass')
   public ${this.association.through}: TheJoinModelClass[]
 }
     `

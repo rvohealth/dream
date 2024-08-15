@@ -1,12 +1,12 @@
 import { Client } from 'pg'
-import { getCachedDreamconfOrFail } from '../src/dreamconf/cache'
+import { getCachedDreamApplicationOrFail } from '../src/dream-application/cache'
 
 export default async function truncate() {
   // this was only ever written to clear the db between tests,
   // so there is no way to truncate in dev/prod
   if (process.env.NODE_ENV !== 'test') return false
 
-  const dreamconf = getCachedDreamconfOrFail()
+  const dreamconf = getCachedDreamApplicationOrFail()
   const data = dreamconf.dbCredentials.primary
 
   const client = new Client({

@@ -44,13 +44,6 @@ export type TrigramOperator = (typeof TRIGRAM_OPERATORS)[number]
 export type ComparisonOperatorExpression = KyselyComparisonOperatorExpression | TrigramOperator
 export type OrderDir = 'asc' | 'desc'
 
-// export interface AliasCondition<DB extends any, PreviousTableNames extends AssociationTableNames<DB>> {
-//   conditionToExecute: boolean
-//   alias: keyof SyncedAssociations[PreviousTableNames]
-//   column: keyof Updateable<DB[PreviousTableNames]>
-//   columnValue: any
-// }
-
 export type DreamColumnNames<
   DreamInstance extends Dream,
   DB = DreamInstance['DB'],
@@ -288,13 +281,41 @@ export type UpdateableProperties<
     (AssociatedModelParam<I> extends never ? object : AssociatedModelParam<I>)
 >
 
+// Model global names and tables
+export type TableNameForGlobalModelName<
+  I extends Dream,
+  GMN extends GlobalModelNames<I>,
+> = GlobalModelNameTableMap<I>[GMN]
+
+export type GlobalModelNames<I extends Dream> = keyof GlobalModelNameTableMap<I>
+
+type GlobalModelNameTableMap<
+  I extends Dream,
+  GlobalSchema = I['globalSchema'],
+  GlobalNames = GlobalSchema['globalNames' & keyof GlobalSchema],
+> = GlobalNames['models' & keyof GlobalNames]
+// end:Model global names and tables
+
+// Serializer global names
+export type GlobalSerializerName<I extends Dream> = GlobalSerializerNames<I>[number]
+
+type GlobalSerializerNames<
+  I extends Dream,
+  GlobalSchema = I['globalSchema'],
+  GlobalNames = GlobalSchema['globalNames' & keyof GlobalSchema],
+> = GlobalNames['serializers' & keyof GlobalNames]
+// end:Serializer global names
+
+export type DreamSerializers<I extends Dream> = Record<'default', GlobalSerializerName<I>> &
+  Record<string, GlobalSerializerName<I>>
+
 export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) => T) & typeof Dream
 
-export type DreamOrViewModel = Dream | { serializers: Record<string, typeof DreamSerializer> }
+export type DreamOrViewModel = Dream | ViewModel
+export type ViewModel = { serializers: Record<string, string> }
+export type ViewModelClass = abstract new (...args: any) => ViewModel
 
-export type DreamClassOrViewModelClass =
-  | typeof Dream
-  | (abstract new (...args: any) => { serializers: Record<string, typeof DreamSerializer> })
+export type DreamClassOrViewModelClass = typeof Dream | ViewModelClass
 
 export type DreamClassOrViewModelClassOrSerializerClass = DreamClassOrViewModelClass | typeof DreamSerializer
 
@@ -354,6 +375,37 @@ export type TableOrAssociationName<Schema> = (keyof Schema & string) | (keyof Sc
 
 export type SqlCommandType = 'select' | 'update' | 'delete' | 'insert'
 
+export type DreamSerializeOptions<T> = {
+  serializerKey?: DreamSerializerKey<T>
+  casing?: 'camel' | 'snake' | null
+}
+
+export type DreamOrViewModelSerializerKey<T> = T extends Dream
+  ? DreamSerializerKey<T>
+  : ViewModelSerializerKey<T>
+
+export type DreamSerializerKey<
+  T,
+  U = T extends (infer R)[] ? R : T,
+  Table = U['table' & keyof U] extends string ? U['table' & keyof U] : never,
+  Schema = U['schema' & keyof U] extends object ? U['schema' & keyof U] : never,
+  TableSchema = Table extends never ? never : Schema extends never ? never : Schema[Table & keyof Schema],
+  SerializerKeys = TableSchema extends never
+    ? never
+    : TableSchema['serializerKeys' & keyof TableSchema] & (string[] | Readonly<string[]>),
+  SerializerKey = SerializerKeys extends string[] | Readonly<string[]> ? SerializerKeys[number] : never,
+> = SerializerKey
+
+export type ViewModelSerializerKey<
+  T,
+  U = T extends (infer R)[] ? R : T,
+  SerializerType = U extends null
+    ? never
+    : U['serializers' & keyof U] extends object
+      ? keyof U['serializers' & keyof U]
+      : never,
+> = SerializerType
+
 export interface SimilarityStatement {
   tableName: string
   tableAlias: string
@@ -370,7 +422,13 @@ export type PassthroughColumnNames<
 export type DefaultScopeName<
   DreamInstance extends Dream,
   Schema = DreamInstance['schema'],
-  SchemaTable = Schema[DreamInstance['table'] & keyof Schema],
+  TableName extends keyof Schema = DreamInstance['table'] & keyof Schema,
+> = DefaultScopeNameForTable<Schema, TableName>
+
+export type DefaultScopeNameForTable<
+  Schema,
+  TableName extends keyof Schema,
+  SchemaTable = Schema[TableName],
   SchemaDefaultScopes extends string[] = SchemaTable['scopes' & keyof SchemaTable]['default' &
     keyof SchemaTable['scopes' & keyof SchemaTable]] &
     string[],

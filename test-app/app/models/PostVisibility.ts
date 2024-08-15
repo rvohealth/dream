@@ -1,17 +1,15 @@
 import BeforeCreate from '../../../src/decorators/hooks/before-create'
-import HasOne from '../../../src/decorators/associations/has-one'
-import { DreamColumn } from '../../../src/dream/types'
-import Post from './Post'
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
-import { PostVisibilitySerializer } from '../serializers/PostVisibilitySerializer'
+import Post from './Post'
 
 export default class PostVisibility extends ApplicationModel {
   public get table() {
     return 'post_visibilities' as const
   }
 
-  public get serializers() {
-    return { default: PostVisibilitySerializer<any> } as const
+  public get serializers(): DreamSerializers<PostVisibility> {
+    return { default: 'PostVisibilitySerializer' }
   }
 
   public id: DreamColumn<PostVisibility, 'id'>
@@ -20,7 +18,7 @@ export default class PostVisibility extends ApplicationModel {
   public createdAt: DreamColumn<PostVisibility, 'createdAt'>
   public updatedAt: DreamColumn<PostVisibility, 'updatedAt'>
 
-  @HasOne(() => Post, { dependent: 'destroy' })
+  @PostVisibility.HasOne('Post', { dependent: 'destroy' })
   public post: Post
 
   @BeforeCreate()
