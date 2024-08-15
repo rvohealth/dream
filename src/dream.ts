@@ -1269,12 +1269,12 @@ export default class Dream {
    *
    * ```ts
    * class Image extends ApplicationModel {
-   *   @HasMany('LocalizedText')
+   *   @Image.HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    * }
    *
    * class Post extends ApplicationModel {
-   *   @HasMany('LocalizedText')
+   *   @Post.HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    * }
    *
