@@ -18,8 +18,8 @@ Try something like this in your ${this.dreamClass.name}'s serializer getter:
 class ${this.dreamClass.name} {
   public get serializers(): DreamSerializers<${this.dreamClass.name}> {
     return {
-      default: ${this.dreamClass.name}Serializer<any, any>
-    } as const
+      default: '${this.dreamClass.name}Serializer'
+    }
   }
   ...
 }`
