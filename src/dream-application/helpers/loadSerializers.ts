@@ -25,7 +25,7 @@ export default async function loadSerializers(
         if (_serializers[serializerKey]) throw new SerializerNameConflict(serializerKey)
 
         const serializer = potentialSerializer as typeof DreamSerializer
-        serializer.setGlobalName(serializerKey)
+        serializer['setGlobalName'](serializerKey)
 
         _serializers[serializerKey] = potentialSerializer
       }

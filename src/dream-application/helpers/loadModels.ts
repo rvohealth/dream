@@ -19,7 +19,7 @@ export default async function loadModels(modelsPath: string): Promise<Record<str
         // ApplicationModel does not have a table
         if (modelClass.table) {
           const modelKey = globalModelKeyFromPath(modelPath, modelsPath)
-          modelClass.setGlobalName(modelKey)
+          modelClass['setGlobalName'](modelKey)
           _models[modelKey] = modelClass
         }
       } catch {

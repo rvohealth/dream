@@ -19,8 +19,8 @@ export default async function loadServices(servicesPath: string): Promise<Record
     if (typeof serviceClass?.background === 'function' || typeof serviceClass?.schedule === 'function') {
       const serviceKey = globalServiceKeyFromPath(servicePath, servicesPath)
 
-      if (typeof serviceClass.setGlobalName === 'function') {
-        serviceClass.setGlobalName(serviceKey)
+      if (typeof serviceClass['setGlobalName'] === 'function') {
+        serviceClass['setGlobalName'](serviceKey)
       } else {
         serviceClass.globalName = serviceKey
       }

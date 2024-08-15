@@ -169,10 +169,10 @@ export default class Dream {
    *
    * ```ts
    * class Post extends ApplicationModel {
-   *   public get serializers() {
+   *   public get serializers(): DreamSerializers<Post> {
    *     return {
-   *       default: PostSerializer,
-   *       summary: PostSummarySerializer,
+   *       default: 'PostSerializer',
+   *       summary: 'PostSummarySerializer',
    *     }
    *   }
    * }
@@ -811,34 +811,9 @@ export default class Dream {
 
   private static _globalName: string
   /**
+   * @internal
+   *
    * Returns a unique global name for the given model.
-   * Since in javascript/typescript, it is possible to give
-   * two Dream classes the same name, globalName
-   * provides a way for us to have a global identifier
-   * for each model which is unique.
-   *
-   * If you have two models with the same class name in your application,
-   * overwriting the "globalName" on your model will help you to differentiate
-   * between them
-   *
-   * i.e.
-   *
-   * ```ts
-   * // models/Nutrition/LogEntry.ts
-   *
-   * export default class LogEntry extends ApplicationModel {
-   *   public get globalName() {
-   *     return 'NutritionLogEntry'
-   *   }
-   * }
-   *
-   * // models/Weight/LogEntry.ts
-   * export default class LogEntry extends ApplicationModel {
-   *   public get globalName() {
-   *     return 'WeightLogEntry'
-   *   }
-   * }
-   * ````
    *
    * @returns A string representing a unique key for this model
    */
@@ -847,7 +822,7 @@ export default class Dream {
     return this._globalName
   }
 
-  public static setGlobalName(globalName: string) {
+  private static setGlobalName(globalName: string) {
     this._globalName = globalName
   }
 

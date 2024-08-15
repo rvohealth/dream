@@ -33,7 +33,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     return this._globalName
   }
 
-  public static setGlobalName(globalName: string) {
+  private static setGlobalName(globalName: string) {
     this._globalName = globalName
   }
 
