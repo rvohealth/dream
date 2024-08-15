@@ -73,6 +73,7 @@ export default function BelongsTo<
     const partialAssociation = associationPrimaryKeyAccessors(
       {
         modelCB: () => lookupModelByGlobalNameOrNames(globalAssociationNameOrNames as string | string[]),
+        globalAssociationNameOrNames,
         type: 'BelongsTo',
         as: key,
         optional,
@@ -106,6 +107,7 @@ export interface BelongsToStatement<
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
 > {
   modelCB: () => typeof Dream | (typeof Dream)[]
+  globalAssociationNameOrNames: string[]
   type: 'BelongsTo'
   as: string
   primaryKey: (associationInstance?: Dream) => keyof DB[TableName] & string

@@ -171,6 +171,7 @@ export interface HasStatement<
   HasType extends 'HasOne' | 'HasMany',
 > {
   modelCB: () => typeof Dream
+  globalAssociationNameOrNames: string[]
   type: HasType
   as: string
   primaryKeyValue: (associationInstance: Dream) => any

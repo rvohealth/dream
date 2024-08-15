@@ -112,6 +112,7 @@ export default function HasMany<
     const partialAssociation = associationPrimaryKeyAccessors(
       {
         modelCB: () => lookupModelByGlobalNameOrNames(globalAssociationNameOrNames as string | string[]),
+        globalAssociationNameOrNames,
         type: 'HasMany',
         as: key,
         polymorphic,
