@@ -1,4 +1,3 @@
-import HasOne from '../../../src/decorators/associations/has-one'
 import BeforeCreate from '../../../src/decorators/hooks/before-create'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
@@ -19,7 +18,7 @@ export default class PostVisibility extends ApplicationModel {
   public createdAt: DreamColumn<PostVisibility, 'createdAt'>
   public updatedAt: DreamColumn<PostVisibility, 'updatedAt'>
 
-  @HasOne('Post', { dependent: 'destroy' })
+  @PostVisibility.HasOne('Post', { dependent: 'destroy' })
   public post: Post
 
   @BeforeCreate()

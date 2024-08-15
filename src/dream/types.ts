@@ -288,12 +288,32 @@ export type UpdateableProperties<
     (AssociatedModelParam<I> extends never ? object : AssociatedModelParam<I>)
 >
 
+export type TableNameForGlobalModelName<
+  I extends Dream,
+  GMN extends GlobalModelName<I>,
+  GlobalSchema = I['globalSchema' & keyof I],
+  GlobalNames = GlobalSchema['globalNames' & keyof GlobalSchema],
+  GlobalModelsObj = GlobalNames['models' & keyof GlobalNames],
+> = GlobalModelsObj[GMN]
+
 export type GlobalSerializerName<
   I extends Dream,
   GlobalSchema = I['globalSchema'],
   GlobalNames = GlobalSchema['globalNames' & keyof GlobalSchema],
   SerializerGlobalNames = GlobalNames['serializers' & keyof GlobalNames],
-> = (SerializerGlobalNames & (string[] | Readonly<string[]>))[number]
+> = (SerializerGlobalNames & (string[] | Readonly<string[]>))[number] & string
+
+export type GlobalModelName<
+  I extends Dream,
+  GlobalSchema = I['globalSchema'],
+  GlobalNames = GlobalSchema['globalNames' & keyof GlobalSchema],
+  ModelGlobalNames = GlobalNames['models' & keyof GlobalNames],
+> = (ModelGlobalNames & (string[] | Readonly<string[]>))[number] & string
+
+// export type GlobalModelTableLookup<
+//   I extends Dream,
+//   GlobalName extends GlobalModelName<I>,
+// >
 
 export type DreamSerializers<I extends Dream> = Record<'default', GlobalSerializerName<I>> &
   Record<string, GlobalSerializerName<I>>
@@ -411,7 +431,13 @@ export type PassthroughColumnNames<
 export type DefaultScopeName<
   DreamInstance extends Dream,
   Schema = DreamInstance['schema'],
-  SchemaTable = Schema[DreamInstance['table'] & keyof Schema],
+  TableName extends keyof Schema = DreamInstance['table'] & keyof Schema,
+> = DefaultScopeNameForTable<Schema, TableName>
+
+export type DefaultScopeNameForTable<
+  Schema,
+  TableName extends keyof Schema,
+  SchemaTable = Schema[TableName],
   SchemaDefaultScopes extends string[] = SchemaTable['scopes' & keyof SchemaTable]['default' &
     keyof SchemaTable['scopes' & keyof SchemaTable]] &
     string[],

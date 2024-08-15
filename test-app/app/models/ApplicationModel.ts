@@ -12,3 +12,5 @@ export default class ApplicationModel extends Dream {
     return globalSchema
   }
 }
+
+export class Decs extends ApplicationModel {}

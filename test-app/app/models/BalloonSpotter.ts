@@ -1,4 +1,3 @@
-import HasMany from '../../../src/decorators/associations/has-many'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
@@ -19,12 +18,12 @@ export default class BalloonSpotter extends ApplicationModel {
   public createdAt: DreamColumn<BalloonSpotter, 'createdAt'>
   public updatedAt: DreamColumn<BalloonSpotter, 'updatedAt'>
 
-  @HasMany('BalloonSpotterBalloon')
+  @BalloonSpotter.HasMany('BalloonSpotterBalloon')
   public balloonSpotterBalloons: BalloonSpotterBalloon[]
 
-  @HasMany('Balloon', { through: 'balloonSpotterBalloons', source: 'balloon' })
+  @BalloonSpotter.HasMany('Balloon', { through: 'balloonSpotterBalloons', source: 'balloon' })
   public balloons: Balloon[]
 
-  @HasMany('User', { through: 'balloonSpotterBalloons', source: 'user' })
+  @BalloonSpotter.HasMany('User', { through: 'balloonSpotterBalloons', source: 'user' })
   public users: User[]
 }

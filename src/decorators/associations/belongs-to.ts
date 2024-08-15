@@ -1,6 +1,14 @@
 import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../dream'
-import { DefaultScopeName, DreamColumnNames } from '../../dream/types'
+import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames'
+import {
+  DefaultScopeName,
+  DefaultScopeNameForTable,
+  DreamColumnNames,
+  GlobalModelName,
+  TableColumnNames,
+  TableNameForGlobalModelName,
+} from '../../dream/types'
 import Validates from '../validations/validates'
 import {
   applyGetterAndSetter,
@@ -38,16 +46,18 @@ import {
  */
 export default function BelongsTo<
   BaseInstance extends Dream,
-  AssociationDreamClass extends typeof Dream = typeof Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelName<BaseInstance>
+    | readonly GlobalModelName<BaseInstance>[],
 >(
-  modelCB: () => AssociationDreamClass | AssociationDreamClass[],
+  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
   {
     foreignKey,
     optional = false,
     polymorphic = false,
     primaryKeyOverride = null,
     withoutDefaultScopes,
-  }: BelongsToOptions<BaseInstance> = {}
+  }: BelongsToOptions<BaseInstance, AssociationGlobalNameOrNames> = {}
 ): any {
   return function (
     target: BaseInstance,
@@ -62,7 +72,7 @@ export default function BelongsTo<
 
     const partialAssociation = associationPrimaryKeyAccessors(
       {
-        modelCB,
+        modelCB: () => lookupModelByGlobalNameOrNames(globalAssociationNameOrNames as string | string[]),
         type: 'BelongsTo',
         as: key,
         optional,
@@ -111,11 +121,25 @@ export interface BelongsToStatement<
 
 export interface BelongsToOptions<
   BaseInstance extends Dream,
-  AssociationDreamClass extends typeof Dream = typeof Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelName<BaseInstance>
+    | readonly GlobalModelName<BaseInstance>[],
+  AssociationGlobalName = AssociationGlobalNameOrNames extends Readonly<any[]>
+    ? AssociationGlobalNameOrNames[0] & string
+    : AssociationGlobalNameOrNames & string,
+  AssociationTableName extends AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
+    keyof BaseInstance['DB'] = TableNameForGlobalModelName<
+    BaseInstance,
+    AssociationGlobalName & GlobalModelName<BaseInstance>
+  > &
+    AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
+    keyof BaseInstance['DB'],
 > {
   foreignKey?: DreamColumnNames<BaseInstance>
-  primaryKeyOverride?: DreamColumnNames<InstanceType<AssociationDreamClass>> | null
+  primaryKeyOverride?: TableColumnNames<BaseInstance['DB'], AssociationTableName> | null
   optional?: boolean
   polymorphic?: boolean
-  withoutDefaultScopes?: DefaultScopeName<InstanceType<AssociationDreamClass>>[]
+  withoutDefaultScopes?: DefaultScopeNameForTable<BaseInstance['schema'], AssociationTableName>[]
+  // withoutDefaultScopes?: AssociationTableName
+  // withoutDefaultScopes?: BaseInstance['globalSchema']['models']['User']
 }

@@ -1,5 +1,3 @@
-import BelongsTo from '../../../src/decorators/associations/belongs-to'
-import HasMany from '../../../src/decorators/associations/has-many'
 import SoftDelete from '../../../src/decorators/soft-delete'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
@@ -29,21 +27,21 @@ export default class Post extends ApplicationModel {
 
   public body: DreamColumn<Post, 'body'>
 
-  @BelongsTo('User')
+  @Post.BelongsTo('User')
   public user: User
   public userId: DreamColumn<Post, 'userId'>
 
-  @BelongsTo('PostVisibility', { optional: true })
+  @Post.BelongsTo('PostVisibility', { optional: true })
   public postVisibility: PostVisibility | null
   public postVisibilityId: DreamColumn<Post, 'postVisibilityId'>
 
-  @HasMany('PostComment', { dependent: 'destroy' })
+  @Post.HasMany('PostComment', { dependent: 'destroy' })
   public comments: PostComment[]
 
-  @HasMany('PostComment', { withoutDefaultScopes: ['dream:SoftDelete'] })
+  @Post.HasMany('PostComment', { withoutDefaultScopes: ['dream:SoftDelete'] })
   public allComments: PostComment[]
 
-  @HasMany('Rating', {
+  @Post.HasMany('Rating', {
     foreignKey: 'rateableId',
     polymorphic: true,
     dependent: 'destroy',
@@ -56,7 +54,7 @@ export default class Post extends ApplicationModel {
   // by passing withoutDefaultScopes, we
   // override the default scope, allowing us
   // to see null bodies
-  @HasMany('NonNullRating', {
+  @Post.HasMany('NonNullRating', {
     foreignKey: 'rateableId',
     polymorphic: true,
     dependent: 'destroy',
@@ -64,7 +62,7 @@ export default class Post extends ApplicationModel {
   })
   public overriddenNonNullRatings: NonNullRating[]
 
-  @HasMany('HeartRating', {
+  @Post.HasMany('ExtraRating/HeartRating', {
     foreignKey: 'extraRateableId',
     polymorphic: true,
     dependent: 'destroy',

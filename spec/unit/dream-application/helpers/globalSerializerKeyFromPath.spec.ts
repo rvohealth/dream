@@ -2,12 +2,6 @@ import globalSerializerKeyFromPath from '../../../../src/dream-application/helpe
 
 describe('globalSerializerKeyFromPath', () => {
   it('converts test-app/app/serializers/Graph/EdgeSerializer.ts to GraphEdgeSerializer', () => {
-    console.debug(
-      globalSerializerKeyFromPath(
-        'test-app/app/serializers/Graph/EdgeSerializer.ts',
-        'test-app/app/serializers/'
-      )
-    )
     expect(
       globalSerializerKeyFromPath(
         'test-app/app/serializers/Graph/EdgeSerializer.ts',

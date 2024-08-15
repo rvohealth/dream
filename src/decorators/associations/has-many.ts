@@ -1,5 +1,7 @@
 import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../dream'
+import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames'
+import { GlobalModelName } from '../../dream/types'
 import {
   HasOptions,
   HasStatement,
@@ -14,15 +16,27 @@ import {
 
 export default function HasMany<
   BaseInstance extends Dream = Dream,
-  AssociationDreamClass extends typeof Dream = typeof Dream,
->(modelCB: () => AssociationDreamClass, opts?: HasManyOptions<BaseInstance, AssociationDreamClass>): any
+  AssociationGlobalNameOrNames extends
+    | GlobalModelName<BaseInstance>
+    | readonly GlobalModelName<BaseInstance>[] =
+    | GlobalModelName<BaseInstance>
+    | readonly GlobalModelName<BaseInstance>[],
+>(
+  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+  opts?: HasManyOptions<BaseInstance, AssociationGlobalNameOrNames>
+): any
 
 export default function HasMany<
   BaseInstance extends Dream = Dream,
-  AssociationDreamClass extends typeof Dream = typeof Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelName<BaseInstance>
+    | readonly GlobalModelName<BaseInstance>[] =
+    | GlobalModelName<BaseInstance>
+    | readonly GlobalModelName<BaseInstance>[],
+  // AssociationDreamClass extends typeof Dream = typeof Dream,
 >(
-  modelCB: () => AssociationDreamClass,
-  opts?: HasManyThroughOptions<BaseInstance, AssociationDreamClass>
+  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+  opts?: HasManyThroughOptions<BaseInstance, AssociationGlobalNameOrNames>
 ): any
 
 /**
@@ -62,8 +76,9 @@ export default function HasMany<
  */
 export default function HasMany<
   BaseInstance extends Dream = Dream,
-  AssociationDreamClass extends typeof Dream = typeof Dream,
->(modelCB: () => AssociationDreamClass, opts: unknown = {}): any {
+  AssociationGlobalNameOrNames = GlobalModelName<BaseInstance> | GlobalModelName<BaseInstance>[],
+  // AssociationDreamClass extends typeof Dream = typeof Dream,
+>(globalAssociationNameOrNames: AssociationGlobalNameOrNames, opts: unknown = {}): any {
   const {
     dependent,
     distinct,
@@ -96,7 +111,7 @@ export default function HasMany<
 
     const partialAssociation = associationPrimaryKeyAccessors(
       {
-        modelCB,
+        modelCB: () => lookupModelByGlobalNameOrNames(globalAssociationNameOrNames as string | string[]),
         type: 'HasMany',
         as: key,
         polymorphic,
@@ -138,8 +153,16 @@ export interface HasManyStatement<
   ForeignTableName extends AssociationTableNames<DB, Schema> & keyof DB,
 > extends HasStatement<BaseInstance, DB, Schema, ForeignTableName, 'HasMany'> {}
 
-export interface HasManyOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream>
-  extends HasOptions<BaseInstance, AssociationDreamClass> {}
+export interface HasManyOptions<
+  BaseInstance extends Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelName<BaseInstance>
+    | readonly GlobalModelName<BaseInstance>[],
+> extends HasOptions<BaseInstance, AssociationGlobalNameOrNames> {}
 
-export interface HasManyThroughOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream>
-  extends HasThroughOptions<BaseInstance, AssociationDreamClass> {}
+export interface HasManyThroughOptions<
+  BaseInstance extends Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelName<BaseInstance>
+    | readonly GlobalModelName<BaseInstance>[],
+> extends HasThroughOptions<BaseInstance, AssociationGlobalNameOrNames> {}

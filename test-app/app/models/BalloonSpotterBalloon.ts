@@ -1,4 +1,3 @@
-import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
@@ -18,15 +17,15 @@ export default class BalloonSpotterBalloon extends ApplicationModel {
   public createdAt: DreamColumn<BalloonSpotterBalloon, 'createdAt'>
   public updatedAt: DreamColumn<BalloonSpotterBalloon, 'updatedAt'>
 
-  @BelongsTo('User', { optional: true })
+  @BalloonSpotterBalloon.BelongsTo('User', { optional: true })
   public user: User
   public userId: DreamColumn<BalloonSpotterBalloon, 'userId'>
 
-  @BelongsTo('BalloonSpotter')
+  @BalloonSpotterBalloon.BelongsTo('BalloonSpotter')
   public balloonSpotter: BalloonSpotter
   public balloonSpotterId: DreamColumn<BalloonSpotterBalloon, 'balloonSpotterId'>
 
-  @BelongsTo('Balloon', { foreignKey: 'balloonId' })
+  @BalloonSpotterBalloon.BelongsTo('Balloon', { foreignKey: 'balloonId' })
   public balloon: Balloon
   public balloonId: DreamColumn<BalloonSpotterBalloon, 'balloonId'>
 }

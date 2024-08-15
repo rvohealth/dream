@@ -1,4 +1,3 @@
-import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Composition from './Composition'
@@ -23,7 +22,7 @@ export default class LocalizedText extends ApplicationModel {
   public createdAt: DreamColumn<LocalizedText, 'createdAt'>
   public updatedAt: DreamColumn<LocalizedText, 'updatedAt'>
 
-  @BelongsTo(() => [Composition, CompositionAsset], {
+  @LocalizedText.BelongsTo(['Composition', 'CompositionAsset'], {
     foreignKey: 'localizableId',
     polymorphic: true,
   })

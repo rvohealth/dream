@@ -40,7 +40,7 @@ export const globalSchema = {
   passthroughColumns: ${stringifyArray(uniq(passthroughColumns.sort()), { indent: 4 })},
   allDefaultScopeNames: ${stringifyArray(uniq(allDefaultScopeNames.sort()), { indent: 4 })},
   globalNames: {
-    models: ${stringifyArray(Object.keys(dreamApp.models || {}).sort(), { indent: 6 })},
+    models: ${this.globalModelNames()},
     serializers: ${stringifyArray(Object.keys(dreamApp.serializers || {}).sort(), { indent: 6 })},
   },
 } as const
@@ -50,6 +50,15 @@ export const globalSchema = {
     // `
     const schemaPath = path.join(dreamApp.appRoot, dreamApp.paths.db, 'schema.ts')
     await fs.writeFile(schemaPath, newSchemaFileContents)
+  }
+
+  private globalModelNames() {
+    const dreamApp = getCachedDreamApplicationOrFail()
+    return `{
+      ${Object.keys(dreamApp.models)
+        .map(key => `'${key}': '${dreamApp.models[key].prototype.table}'`)
+        .join(',\n      ')}
+    }`
   }
 
   private async buildSchemaContent() {
@@ -246,6 +255,14 @@ ${tableName}: {
         if (targetAssociationType && associationMetaData.type !== targetAssociationType) continue
 
         const dreamClassOrClasses = associationMetaData.modelCB()
+        if (!dreamClassOrClasses)
+          throw new Error(
+            `
+An unexpected error occurred while looking up the association for the following:
+    dream: ${model.name}
+    association name: ${associationName}
+`
+          )
         const optional =
           associationMetaData.type === 'BelongsTo' ? associationMetaData.optional === true : null
 

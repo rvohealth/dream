@@ -1,6 +1,4 @@
 import { BeforeUpdate } from '../../../src'
-import HasMany from '../../../src/decorators/associations/has-many'
-import HasOne from '../../../src/decorators/associations/has-one'
 import SoftDelete from '../../../src/decorators/soft-delete'
 import Sortable from '../../../src/decorators/sortable'
 import { DreamColumn, DreamSerializers, IdType } from '../../../src/dream/types'
@@ -60,38 +58,38 @@ export default class Pet extends ApplicationModel {
   @Pet.HasOne('Post', { through: 'user' })
   public featuredPost: Post
 
-  @HasMany('Rating', { through: 'user' })
+  @Pet.HasMany('Rating', { through: 'user' })
   public ratings: Rating[]
 
   @Pet.HasMany('Rating', { through: 'user' })
   public featuredRatings: Rating[]
 
-  @HasMany('Collar', { dependent: 'destroy' })
+  @Pet.HasMany('Collar', { dependent: 'destroy' })
   public collars: Collar
 
-  @HasOne('Collar', { where: { lost: false } })
+  @Pet.HasOne('Collar', { where: { lost: false } })
   public currentCollar: Collar
 
   // begin: totally contrived for testing purposes
-  @HasOne('Collar', { whereNot: { lost: true } })
+  @Pet.HasOne('Collar', { whereNot: { lost: true } })
   public notLostCollar: Collar
 
-  @HasMany('Collar', { distinct: 'tagName' })
+  @Pet.HasMany('Collar', { distinct: 'tagName' })
   public uniqueCollars: Collar
 
   @Pet.HasMany('Balloon', { through: 'uniqueCollars', source: 'balloon' })
   public uniqueBalloons: Balloon
 
-  @HasMany('Balloon', { through: 'collars', source: 'balloon', distinct: true })
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', distinct: true })
   public distinctBalloons: Balloon
 
-  @HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: 'red' } })
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: 'red' } })
   public redBalloons: Balloon
 
-  @HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: 'red' } })
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: 'red' } })
   public notRedBalloons: Balloon
 
-  @HasMany('PetUnderstudyJoinModel', { foreignKey: 'petId' })
+  @Pet.HasMany('PetUnderstudyJoinModel', { foreignKey: 'petId' })
   public petUnderstudies: PetUnderstudyJoinModel[]
 
   @Pet.HasMany('Pet', {
