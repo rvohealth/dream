@@ -24,7 +24,7 @@ export default class MealType extends ApplicationModel {
   public id: DreamColumn<MealType, 'id'>
   public createdAt: DreamColumn<MealType, 'createdAt'>
   public updatedAt: DreamColumn<MealType, 'updatedAt'>
-}\
+}
 `
       )
     })
@@ -56,7 +56,7 @@ export default class User extends ApplicationModel {
   public passwordDigest: DreamColumn<User, 'passwordDigest'>
   public createdAt: DreamColumn<User, 'createdAt'>
   public updatedAt: DreamColumn<User, 'updatedAt'>
-}\
+}
 `
         )
       })
@@ -92,7 +92,7 @@ export default class Chalupa extends ApplicationModel {
   public existingEnum: DreamColumn<Chalupa, 'existingEnum'>
   public createdAt: DreamColumn<Chalupa, 'createdAt'>
   public updatedAt: DreamColumn<Chalupa, 'updatedAt'>
-}\
+}
 `
         )
       })
@@ -122,7 +122,7 @@ export default class Paper extends ApplicationModel {
   public name: DreamColumn<Paper, 'name'>
   public createdAt: DreamColumn<Paper, 'createdAt'>
   public updatedAt: DreamColumn<Paper, 'updatedAt'>
-}\
+}
 `
         )
       })
@@ -157,7 +157,7 @@ export default class Composition extends ApplicationModel {
   @BelongsTo('GraphNode')
   public graphNode: GraphNode
   public graphNodeId: DreamColumn<Composition, 'graphNodeId'>
-}\
+}
 `
           )
         })
@@ -190,7 +190,7 @@ export default class CatToy extends ApplicationModel {
   @BelongsTo('Pet/Domestic/Cat')
   public petDomesticCat: PetDomesticCat
   public petDomesticCatId: DreamColumn<CatToy, 'petDomesticCatId'>
-}\
+}
 `
             )
           })
@@ -221,7 +221,7 @@ export default class CatToy extends ApplicationModel {
 
   @HasMany('Pet/Domestic/Cat')
   public petDomesticCats: PetDomesticCat[]
-}\
+}
 `
             )
           })
@@ -252,7 +252,7 @@ export default class CatToy extends ApplicationModel {
 
   @HasOne('Pet/Domestic/Cat')
   public petDomesticCat: PetDomesticCat
-}\
+}
 `
             )
           })
@@ -284,7 +284,7 @@ export default class PetDomesticCat extends ApplicationModel {
   @BelongsTo('GraphNode')
   public graphNode: GraphNode
   public graphNodeId: DreamColumn<PetDomesticCat, 'graphNodeId'>
-}\
+}
 `
             )
           })
@@ -316,7 +316,7 @@ export default class PetDomesticCat extends ApplicationModel {
   @BelongsTo('Pet/Domestic/Dog')
   public petDomesticDog: PetDomesticDog
   public petDomesticDogId: DreamColumn<PetDomesticCat, 'petDomesticDogId'>
-}\
+}
 `
             )
           })
@@ -348,7 +348,7 @@ export default class PetWildCat extends ApplicationModel {
   @BelongsTo('Pet/Domestic/Dog')
   public petDomesticDog: PetDomesticDog
   public petDomesticDogId: DreamColumn<PetWildCat, 'petDomesticDogId'>
-}\
+}
 `
             )
           })
@@ -386,7 +386,7 @@ export default class Composition extends ApplicationModel {
   @BelongsTo('Chalupa')
   public chalupa: Chalupa
   public chalupaId: DreamColumn<Composition, 'chalupaId'>
-}\
+}
 `
           )
         })
@@ -419,7 +419,7 @@ export default class Composition extends ApplicationModel {
 
   @HasOne('User')
   public user: User
-}\
+}
 `
           )
         })
@@ -452,7 +452,7 @@ export default class User extends ApplicationModel {
 
   @HasMany('Composition')
   public compositions: Composition[]
-}\
+}
 `
           )
         })
@@ -486,7 +486,7 @@ export default class Composition extends ApplicationModel {
   @BelongsTo('User')
   public user: User
   public userId: DreamColumn<Composition, 'userId'>
-}\
+}
 `
           )
         })

@@ -31,7 +31,7 @@ export default function generateSerializerContent(
     modelClass = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
     dataTypeCapture = `<
   DataType extends ${modelClass},
-  Passthrough extends object
+  Passthrough extends object,
 >`
     dreamSerializerTypeArgs = `<DataType, Passthrough>`
     dreamImports.push('DreamColumn')
@@ -110,7 +110,7 @@ export default class ${serializerClass}${dataTypeCapture} extends ${extendedClas
       }
     })
     .join('\n\n  ')}
-}\
+}
 `
 }
 

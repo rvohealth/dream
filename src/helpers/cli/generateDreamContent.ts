@@ -94,7 +94,8 @@ export default class ${modelClassName} extends ApplicationModel {
   }
 
   public id: ${idTypescriptType}${formattedFields}${timestamps}${formattedDecorators}
-}`.replace(/^\s*$/gm, '')
+}
+`.replace(/^\s*$/gm, '')
 }
 
 function getAttributeType(attribute: string, modelClassName: string) {
