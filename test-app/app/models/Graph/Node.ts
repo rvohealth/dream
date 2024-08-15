@@ -1,4 +1,3 @@
-import HasMany from '../../../../src/decorators/associations/has-many'
 import { DreamColumn, DreamSerializers } from '../../../../src/dream/types'
 import ApplicationModel from '../ApplicationModel'
 import GraphEdge from './Edge'
