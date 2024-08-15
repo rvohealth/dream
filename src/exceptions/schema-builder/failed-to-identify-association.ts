@@ -22,12 +22,22 @@ export default class FailedToIdentifyAssociation extends Error {
 An unexpected error occurred while looking up an association that you have defined.
 
 While building the schema for your app, we failed to find a match for
-the ${this.associationType} association "${this.associationName}"
-on ${this.modelClass.name},
+the ${this.associationType} association "${this.associationName}" on the
+${this.modelClass.name} model.
 
-however, we did not get back a string, which is what we expect to receive
-as the first argument to the ${this.associationType} decorator. In order
-the type we received for a global model name is "${typeof attemptedName}".
+This method requires either a string or string array as the first argument,
+to the ${this.associationType} decorator. However, we received the following:
+
+  expected:
+    "string"
+
+  received:
+    "${typeof attemptedName}"
+
+Details:
+    dream: ${this.modelClass.name} (${this.modelClass.globalName})
+    association type: ${this.associationType}
+    association name: ${this.associationName}
 ".
 `
     }
