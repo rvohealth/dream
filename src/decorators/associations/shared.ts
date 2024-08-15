@@ -208,7 +208,6 @@ interface HasOptionsBase<
 > {
   foreignKey?: TableColumnNames<BaseInstance['DB'], AssociationTableName & keyof BaseInstance['DB']>
   primaryKeyOverride?: DreamColumnNames<BaseInstance> | null
-  // through?: BaseInstance['schema'][BaseInstance['table']]['associations'][number]
   through?: keyof BaseInstance['schema'][BaseInstance['table']]['associations']
   polymorphic?: boolean
   source?: string
@@ -276,7 +275,6 @@ interface HasOptionsBase<
     BaseInstance['schema'],
     AssociationTableName & keyof BaseInstance['DB']
   >[]
-  // withoutDefaultScopes?: AssociationGlobalNameOrNames
 }
 
 type ThroughIncompatibleOptions =
