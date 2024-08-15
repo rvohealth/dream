@@ -44,12 +44,12 @@ export default function HasOne<
  *
  * ```ts
  * class User extends ApplicationModel {
- *   @HasOne('UserSettings')
+ *   @User.HasOne('UserSettings')
  *   public userSettings: UserSettings
  * }
  *
  * class UserSettings extends ApplicationModel {
- *   @BelongsTo('User')
+ *   @UserSettings.BelongsTo('User')
  *   public user: User
  *   public userId: DreamColumn<UserSettings, 'userId'>
  * }

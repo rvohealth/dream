@@ -134,13 +134,13 @@ export default class User extends Dream {
 // models/user.ts
 class User {
   ...
-  @HasMany('compositions', () => Composition)
+  @User.HasMany('Composition')
   public compositions: Composition[]
 
-  @HasOne('compositions', () => Composition)
+  @User.HasOne('Composition')
   public mainComposition: Composition
 
-  @HasMany('composition_assets', () => CompositionAsset, {
+  @User.HasMany('CompositionAsset', {
     through: 'compositions',
   })
   public compositionAssets: CompositionAsset[]
@@ -149,14 +149,14 @@ class User {
 // models/composition.ts
 export default class Composition extends Dream {
   ...
-  @BelongsTo('users', () => User)
+  @Composition.BelongsTo('User')
   public user: User
 }
 
 // models/composition-asset.ts
 export default class CompositionAsset extends Dream {
   ...
-  @BelongsTo('compositions', () => Composition)
+  @CompositionAsset.BelongsTo('Composition')
   public composition: Composition
   ...
 }

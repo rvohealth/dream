@@ -27,13 +27,13 @@ import {
  *
  * ```ts
  * class UserSettings extends ApplicationModel {
- *   @BelongsTo('User')
+ *   @UserSettings.BelongsTo('User')
  *   public user: User
  *   public userId: DreamColumn<UserSettings, 'userId'>
  * }
  *
  * class User extends ApplicationModel {
- *   @HasOne('UserSettings')
+ *   @User.HasOne('UserSettings')
  *   public userSettings: UserSettings
  * }
  * ```
