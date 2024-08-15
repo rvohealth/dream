@@ -258,9 +258,9 @@ export default class Dream {
    * @internal
    *
    * Model storage for association metadata, set when using the association decorators like:
-   *   @HasOne
-   *   @HasMany
-   *   @BelongsTo
+   *   @ModelName.HasOne
+   *   @ModelName.HasMany
+   *   @ModelName.BelongsTo
    */
   protected static associationMetadataByType: {
     belongsTo: BelongsToStatement<any, any, any, any>[]
@@ -449,8 +449,24 @@ export default class Dream {
   }
 
   /**
-   * Shortcut to the @BelongsTo decorator, which also provides extra type protection which cannot be provided
-   * with the @BelongsTo decorator.
+   * Establishes a "BelongsTo" association between the base dream
+   * and the child dream, where the base dream has a foreign key
+   * which points back to the child dream.
+   *
+   * ```ts
+   * class UserSettings extends ApplicationModel {
+   *   @UserSettings.BelongsTo('User')
+   *   public user: User
+   *   public userId: DreamColumn<UserSettings, 'userId'>
+   * }
+   *
+   * class User extends ApplicationModel {
+   *   @User.HasOne('UserSettings')
+   *   public userSettings: UserSettings
+   * }
+   * ```
+   *
+   *
    *
    * @param modelCB - a function that immediately returns the dream class you are associating with this dream class
    * @param options - the options you want to use to apply to this association
@@ -495,8 +511,23 @@ export default class Dream {
   ): any
 
   /**
-   * Shortcut to the @HasMany decorator, which also provides extra type protection which cannot be provided
-   * with the @HasMany decorator.
+   *
+   * Establishes a "HasMany" association between the base dream
+   * and the child dream, where the child dream has a foreign key
+   * which points back to the base dream.
+   *
+   * ```ts
+   * class User extends ApplicationModel {
+   *   @User.HasMany('Post')
+   *   public posts: Post[]
+   * }
+   *
+   * class Post extends ApplicationModel {
+   *   @Post.BelongsTo('User')
+   *   public user: User
+   *   public userId: DreamColumn<Post, 'userId'>
+   * }
+   * ```
    *
    * @param modelCB - a function that immediately returns the dream class you are associating with this dream class
    * @param options - the options you want to use to apply to this association
@@ -543,8 +574,22 @@ export default class Dream {
   ): any
 
   /**
-   * Shortcut to the @HasOne decorator, which also provides extra type protection which cannot be provided
-   * with the @HasOne decorator.
+   * Establishes a "HasOne" association between the base dream
+   * and the child dream, where the child dream has a foreign key
+   * which points back to the base dream.
+   *
+   * ```ts
+   * class User extends ApplicationModel {
+   *   @User.HasOne('UserSettings')
+   *   public userSettings: UserSettings
+   * }
+   *
+   * class UserSettings extends ApplicationModel {
+   *   @UserSettings.BelongsTo('User')
+   *   public user: User
+   *   public userId: DreamColumn<UserSettings, 'userId'>
+   * }
+   * ```
    *
    * @param modelCB - A function that immediately returns the dream class you are associating with this dream class
    * @param options - The options you want to use to apply to this association
@@ -1844,10 +1889,10 @@ export default class Dream {
    *
    * ```ts
    * class Post {
-   *   @HasMany('LocalizedText')
+   *   @Post.HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    *
-   *   @HasOne('LocalizedText', {
+   *   @Post.HasOne('LocalizedText', {
    *     where: { locale: DreamConst.passthrough },
    *   })
    *   public currentLocalizedText: LocalizedText
@@ -3694,10 +3739,10 @@ export default class Dream {
    *
    * ```ts
    * class Post {
-   *   @HasMany('LocalizedText')
+   *   @Post.HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    *
-   *   @HasOne('LocalizedText', {
+   *   @Post.HasOne('LocalizedText', {
    *     where: { locale: DreamConst.passthrough },
    *   })
    *   public currentLocalizedText: LocalizedText

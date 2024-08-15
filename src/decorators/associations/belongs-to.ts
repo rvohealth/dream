@@ -21,9 +21,7 @@ import {
 /**
  * Establishes a "BelongsTo" association between the base dream
  * and the child dream, where the base dream has a foreign key
- * which points back to the child dream. This relationship should
- * always have a corresponding `@HasOne` or `@HasMany` association
- * on the child class.
+ * which points back to the child dream.
  *
  * ```ts
  * class UserSettings extends ApplicationModel {

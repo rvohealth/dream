@@ -42,7 +42,7 @@ There are two possible fixes:
 
 class ${this.dreamClass.name} {
   ...
-  @HasMany(() => ${this.throughClass.name}, { through: '${
+  @${this.dreamClass.name}.HasMany(() => ${this.throughClass.name}, { through: '${
     this.association.through
   }', source: '<a valid association on ${this.throughClass.name}>'})
   public ${this.association.as}: ${this.throughClass.name}[]
@@ -53,7 +53,7 @@ For example:
 
 class ${this.throughClass.name} {
   ...
-  @HasMany(() => ${this.association.modelCB().name})
+  @${this.throughClass.name}.HasMany(() => ${this.association.modelCB().name})
   public ${this.association.source}: ${this.association.modelCB().name}[]
 }
     `

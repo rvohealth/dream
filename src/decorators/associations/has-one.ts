@@ -38,9 +38,7 @@ export default function HasOne<
 /**
  * Establishes a "HasOne" association between the base dream
  * and the child dream, where the child dream has a foreign key
- * which points back to the base dream. This relationship should
- * always have a corresponding `@BelongsTo` association on the
- * child class.
+ * which points back to the base dream.
  *
  * ```ts
  * class User extends ApplicationModel {

@@ -424,18 +424,18 @@ yarn build:docs
 ```ts
 @STI(A)
 class B extends A {
-  @HasMany('X')
+  @B.HasMany('X')
   public xx: X[]
 }
 
 @STI(A)
 class C extends A {
-  @HasMany('X', { where: { something: true } })
+  @C.HasMany('X', { where: { something: true } })
   public xx: X[]
 }
 
 class Z extends Dream {
-  @HasMany('A')
+  @Z.HasMany('A')
   public aa: A[]
 }
 
