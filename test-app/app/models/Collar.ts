@@ -1,5 +1,4 @@
 import { SoftDelete } from '../../../src'
-import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import Scope from '../../../src/decorators/scope'
 import Query from '../../../src/dream/query'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
@@ -26,11 +25,11 @@ export default class Collar extends ApplicationModel {
   @Collar.Sortable({ scope: ['pet', 'tagName'] })
   public position: DreamColumn<Collar, 'position'>
 
-  @BelongsTo('Pet')
+  @Collar.BelongsTo('Pet')
   public pet: Pet
   public petId: DreamColumn<Collar, 'petId'>
 
-  @BelongsTo('Balloon', { foreignKey: 'balloonId', optional: true })
+  @Collar.BelongsTo('Balloon', { foreignKey: 'balloonId', optional: true })
   public balloon: Balloon
   public balloonId: DreamColumn<Collar, 'balloonId'>
 

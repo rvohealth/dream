@@ -89,6 +89,7 @@ import {
   DreamParamSafeColumnNames,
   DreamSerializeOptions,
   FinalVariadicTableName,
+  GlobalModelName,
   IdType,
   NextPreloadArgumentType,
   OrderDir,
@@ -455,27 +456,42 @@ export default class Dream {
    * @param options - the options you want to use to apply to this association
    * @returns A BelongsTo decorator
    */
-  public static BelongsTo<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
+  public static BelongsTo<
+    T extends typeof Dream,
+    const AssociationGlobalNameOrNames extends
+      | GlobalModelName<InstanceType<T>>
+      | readonly GlobalModelName<InstanceType<T>>[],
+  >(
     this: T,
-    modelCB: () => AssociationDreamClass,
-    options: BelongsToOptions<InstanceType<T>, AssociationDreamClass> = {}
+    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+    options: BelongsToOptions<InstanceType<T>, AssociationGlobalNameOrNames> = {}
   ) {
-    return BelongsTo<InstanceType<T>, AssociationDreamClass>(modelCB, options)
+    return BelongsTo<InstanceType<T>, AssociationGlobalNameOrNames>(globalAssociationNameOrNames, options)
   }
 
   ///////////
   // HasMany
   ///////////
-  public static HasMany<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
+  public static HasMany<
+    T extends typeof Dream,
+    const AssociationGlobalNameOrNames extends
+      | GlobalModelName<InstanceType<T>>
+      | readonly GlobalModelName<InstanceType<T>>[],
+  >(
     this: T,
-    modelCB: () => AssociationDreamClass,
-    options?: HasManyOptions<InstanceType<T>, AssociationDreamClass>
+    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+    options?: HasManyOptions<InstanceType<T>, AssociationGlobalNameOrNames>
   ): any
 
-  public static HasMany<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
+  public static HasMany<
+    T extends typeof Dream,
+    const AssociationGlobalNameOrNames extends
+      | GlobalModelName<InstanceType<T>>
+      | readonly GlobalModelName<InstanceType<T>>[],
+  >(
     this: T,
-    modelCB: () => AssociationDreamClass,
-    options?: HasManyThroughOptions<InstanceType<T>, AssociationDreamClass>
+    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+    options?: HasManyThroughOptions<InstanceType<T>, AssociationGlobalNameOrNames>
   ): any
 
   /**
@@ -486,12 +502,16 @@ export default class Dream {
    * @param options - the options you want to use to apply to this association
    * @returns A HasMany decorator
    */
-  public static HasMany<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
-    this: T,
-    modelCB: () => AssociationDreamClass,
-    options: unknown = {}
-  ): any {
-    return HasMany<InstanceType<T>, AssociationDreamClass>(modelCB, options as any)
+  public static HasMany<
+    T extends typeof Dream,
+    const AssociationGlobalNameOrNames extends
+      | GlobalModelName<InstanceType<T>>
+      | readonly GlobalModelName<InstanceType<T>>[],
+  >(this: T, globalAssociationNameOrNames: AssociationGlobalNameOrNames, options: unknown = {}) {
+    return HasMany<InstanceType<T>, AssociationGlobalNameOrNames>(
+      globalAssociationNameOrNames,
+      options as any
+    )
   }
   ///////////////
   // end: HasMany
@@ -500,16 +520,26 @@ export default class Dream {
   ///////////
   // HasOne
   ///////////
-  public static HasOne<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
+  public static HasOne<
+    T extends typeof Dream,
+    const AssociationGlobalNameOrNames extends
+      | GlobalModelName<InstanceType<T>>
+      | readonly GlobalModelName<InstanceType<T>>[],
+  >(
     this: T,
-    modelCB: () => AssociationDreamClass,
-    options?: HasOneOptions<InstanceType<T>, AssociationDreamClass>
+    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+    options?: HasOneOptions<InstanceType<T>, AssociationGlobalNameOrNames>
   ): any
 
-  public static HasOne<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
+  public static HasOne<
+    T extends typeof Dream,
+    const AssociationGlobalNameOrNames extends
+      | GlobalModelName<InstanceType<T>>
+      | readonly GlobalModelName<InstanceType<T>>[],
+  >(
     this: T,
-    modelCB: () => AssociationDreamClass,
-    options?: HasOneThroughOptions<InstanceType<T>, AssociationDreamClass>
+    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+    options?: HasOneThroughOptions<InstanceType<T>, AssociationGlobalNameOrNames>
   ): any
 
   /**
@@ -520,12 +550,13 @@ export default class Dream {
    * @param options - The options you want to use to apply to this association
    * @returns A HasOne decorator
    */
-  public static HasOne<T extends typeof Dream, AssociationDreamClass extends typeof Dream = typeof Dream>(
-    this: T,
-    modelCB: () => AssociationDreamClass,
-    options: unknown = {}
-  ): any {
-    return HasOne<InstanceType<T>, AssociationDreamClass>(modelCB, options as any)
+  public static HasOne<
+    T extends typeof Dream,
+    const AssociationGlobalNameOrNames extends
+      | GlobalModelName<InstanceType<T>>
+      | readonly GlobalModelName<InstanceType<T>>[],
+  >(this: T, globalAssociationNameOrNames: AssociationGlobalNameOrNames, options: unknown = {}): any {
+    return HasOne<InstanceType<T>, AssociationGlobalNameOrNames>(globalAssociationNameOrNames, options as any)
   }
   //////////////
   // end: HasOne

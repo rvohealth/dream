@@ -1,5 +1,3 @@
-import BelongsTo from '../../../src/decorators/associations/belongs-to'
-import HasOne from '../../../src/decorators/associations/has-one'
 import BeforeUpdate from '../../../src/decorators/hooks/before-update'
 import { DreamColumn } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
@@ -16,16 +14,16 @@ export default class CompositionAssetAudit extends ApplicationModel {
   public approval: DreamColumn<CompositionAssetAudit, 'approval'>
   public notes: DreamColumn<CompositionAssetAudit, 'notes'>
 
-  @BelongsTo('CompositionAsset')
+  @CompositionAssetAudit.BelongsTo('CompositionAsset')
   public compositionAsset: CompositionAsset
   public compositionAssetId: DreamColumn<CompositionAssetAudit, 'compositionAssetId'>
 
-  @HasOne('Composition', {
+  @CompositionAssetAudit.HasOne('Composition', {
     through: 'compositionAsset',
   })
   public composition: Composition
 
-  @HasOne('User', {
+  @CompositionAssetAudit.HasOne('User', {
     through: 'compositionAsset',
   })
   public user: User

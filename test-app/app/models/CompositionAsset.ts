@@ -1,6 +1,3 @@
-import BelongsTo from '../../../src/decorators/associations/belongs-to'
-import HasMany from '../../../src/decorators/associations/has-many'
-import HasOne from '../../../src/decorators/associations/has-one'
 import AfterDestroy from '../../../src/decorators/hooks/after-destroy'
 import AfterDestroyCommit from '../../../src/decorators/hooks/after-destroy-commit'
 import BeforeDestroy from '../../../src/decorators/hooks/before-destroy'
@@ -23,16 +20,16 @@ export default class CompositionAsset extends ApplicationModel {
   public primary: DreamColumn<CompositionAsset, 'primary'>
   public score: DreamColumn<CompositionAsset, 'score'>
 
-  @BelongsTo('Composition')
+  @CompositionAsset.BelongsTo('Composition')
   public composition: Composition
   public compositionId: DreamColumn<CompositionAsset, 'compositionId'>
 
-  @HasOne('User', {
+  @CompositionAsset.HasOne('User', {
     through: 'composition',
   })
   public user: User
 
-  @HasMany('CompositionAssetAudit')
+  @CompositionAsset.HasMany('CompositionAssetAudit')
   public compositionAssetAudits: CompositionAssetAudit[]
 
   @BeforeSave()
@@ -66,20 +63,20 @@ export default class CompositionAsset extends ApplicationModel {
       })
   }
 
-  @HasOne('LocalizedText', {
+  @CompositionAsset.HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
     where: { locale: DreamConst.required },
   })
   public inlineWhereCurrentLocalizedText: LocalizedText
 
-  @HasOne('LocalizedText', {
+  @CompositionAsset.HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
     where: { locale: DreamConst.passthrough },
   })
   public currentLocalizedText: LocalizedText
 
-  @HasMany('LocalizedText', { polymorphic: true, foreignKey: 'localizableId' })
+  @CompositionAsset.HasMany('LocalizedText', { polymorphic: true, foreignKey: 'localizableId' })
   public localizedTexts: LocalizedText[]
 }

@@ -9,9 +9,9 @@ describe('SchemaBuilder', () => {
   describe('#build', () => {
     context('global schema', () => {
       context('globalNames', () => {
-        it('renders models array', () => {
+        it('renders models key value pairs', () => {
           expect(User.prototype.globalSchema.globalNames.models).toEqual(
-            expect.arrayContaining(['Graph/Edge'])
+            expect.objectContaining({ 'Graph/Edge': 'graph_edges', User: 'users' })
           )
         })
 

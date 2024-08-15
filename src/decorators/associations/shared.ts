@@ -6,13 +6,16 @@ import Dream from '../../dream'
 import {
   AssociationTableName,
   DefaultScopeName,
+  DefaultScopeNameForTable,
   DreamBelongsToAssociationMetadata,
   DreamColumnNames,
   DreamConst,
+  GlobalModelName,
   IdType,
   OrderDir,
   RequiredWhereClauseKeys,
   TableColumnNames,
+  TableNameForGlobalModelName,
 } from '../../dream/types'
 import { checkForeignKey } from '../../exceptions/associations/explicit-foreign-key'
 import NonLoadedAssociation from '../../exceptions/associations/non-loaded-association'
@@ -189,87 +192,90 @@ export interface HasStatement<
   withoutDefaultScopes?: DefaultScopeName<BaseInstance>[]
 }
 
-interface HasOptionsBase<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream> {
-  foreignKey?: DreamColumnNames<InstanceType<AssociationDreamClass>>
+interface HasOptionsBase<
+  BaseInstance extends Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelName<BaseInstance>
+    | readonly GlobalModelName<BaseInstance>[],
+  AssociationGlobalName = AssociationGlobalNameOrNames extends any[]
+    ? AssociationGlobalNameOrNames[0] & string
+    : AssociationGlobalNameOrNames & string,
+  AssociationTableName = TableNameForGlobalModelName<
+    BaseInstance,
+    AssociationGlobalName & GlobalModelName<BaseInstance>
+  >,
+> {
+  foreignKey?: TableColumnNames<BaseInstance['DB'], AssociationTableName & keyof BaseInstance['DB']>
   primaryKeyOverride?: DreamColumnNames<BaseInstance> | null
-  through?: BaseInstance['schema'][BaseInstance['table']]['associations'][number]
+  // through?: BaseInstance['schema'][BaseInstance['table']]['associations'][number]
+  through?: keyof BaseInstance['schema'][BaseInstance['table']]['associations']
   polymorphic?: boolean
   source?: string
   where?: WhereStatementForAssociationDefinition<
-    InstanceType<AssociationDreamClass>['DB'],
-    InstanceType<AssociationDreamClass>['schema'],
-    InstanceType<AssociationDreamClass>['table'] &
-      AssociationTableNames<
-        InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['schema']
-      >
+    BaseInstance['DB'],
+    BaseInstance['schema'],
+    AssociationTableName &
+      AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
+      keyof BaseInstance['DB']
   >
   whereNot?: WhereStatement<
-    InstanceType<AssociationDreamClass>['DB'],
-    InstanceType<AssociationDreamClass>['schema'],
-    InstanceType<AssociationDreamClass>['table'] &
-      AssociationTableNames<
-        InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['schema']
-      >
+    BaseInstance['DB'],
+    BaseInstance['schema'],
+    AssociationTableName &
+      AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
+      keyof BaseInstance['DB']
   >
 
   selfWhere?: WhereSelfStatement<
     BaseInstance,
-    InstanceType<AssociationDreamClass>['DB'],
-    InstanceType<AssociationDreamClass>['schema'],
-    InstanceType<AssociationDreamClass>['table'] &
-      AssociationTableNames<
-        InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['schema']
-      >
+    BaseInstance['DB'],
+    BaseInstance['schema'],
+    AssociationTableName &
+      AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
+      keyof BaseInstance['DB']
   >
 
   selfWhereNot?: WhereSelfStatement<
     BaseInstance,
-    InstanceType<AssociationDreamClass>['DB'],
-    InstanceType<AssociationDreamClass>['schema'],
-    InstanceType<AssociationDreamClass>['table'] &
-      AssociationTableNames<
-        InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['schema']
-      >
+    BaseInstance['DB'],
+    BaseInstance['schema'],
+    AssociationTableName &
+      AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
+      keyof BaseInstance['DB']
   >
 
   order?:
     | OrderStatement<
-        InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['schema'],
-        InstanceType<AssociationDreamClass>['table'] &
-          AssociationTableNames<
-            InstanceType<AssociationDreamClass>['DB'],
-            InstanceType<AssociationDreamClass>['schema']
-          >
+        BaseInstance['DB'],
+        BaseInstance['schema'],
+        AssociationTableName &
+          AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
+          keyof BaseInstance['DB']
       >
     | OrderStatement<
-        InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['schema'],
-        InstanceType<AssociationDreamClass>['table'] &
-          AssociationTableNames<
-            InstanceType<AssociationDreamClass>['DB'],
-            InstanceType<AssociationDreamClass>['schema']
-          >
+        BaseInstance['DB'],
+        BaseInstance['schema'],
+        AssociationTableName &
+          AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
+          keyof BaseInstance['DB']
       >[]
 
   distinct?:
     | TableColumnNames<
-        InstanceType<AssociationDreamClass>['DB'],
-        InstanceType<AssociationDreamClass>['table'] &
-          AssociationTableNames<
-            InstanceType<AssociationDreamClass>['DB'],
-            InstanceType<AssociationDreamClass>['schema']
-          >
+        BaseInstance['DB'],
+        AssociationTableName &
+          AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
+          keyof BaseInstance['DB']
       >
     | boolean
 
   preloadThroughColumns?: string[] | Record<string, string>
   dependent?: DependentOptions
-  withoutDefaultScopes?: DefaultScopeName<InstanceType<AssociationDreamClass>>[]
+  withoutDefaultScopes?: DefaultScopeNameForTable<
+    BaseInstance['schema'],
+    AssociationTableName & keyof BaseInstance['DB']
+  >[]
+  // withoutDefaultScopes?: AssociationGlobalNameOrNames
 }
 
 type ThroughIncompatibleOptions =
@@ -282,15 +288,23 @@ type ThroughIncompatibleOptions =
 type ThroughOnlyOptions = 'through' | 'source' | 'preloadThroughColumns'
 export type HasManyOnlyOptions = 'distinct'
 
-export type HasOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream> = Omit<
-  HasOptionsBase<BaseInstance, AssociationDreamClass>,
-  ThroughOnlyOptions
->
+export type HasOptions<
+  BaseInstance extends Dream,
+  // AssociationDreamClass extends typeof Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelName<BaseInstance>
+    | readonly GlobalModelName<BaseInstance>[],
+> = Omit<HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames>, ThroughOnlyOptions>
 
-export type HasThroughOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream> = Omit<
-  HasOptionsBase<BaseInstance, AssociationDreamClass>,
-  ThroughIncompatibleOptions
->
+export type HasThroughOptions<
+  BaseInstance extends Dream,
+  // AssociationDreamClass extends typeof Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelName<BaseInstance>
+    | readonly GlobalModelName<BaseInstance>[] =
+    | GlobalModelName<BaseInstance>
+    | GlobalModelName<BaseInstance>[],
+> = Omit<HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames>, ThroughIncompatibleOptions>
 
 export function blankAssociationsFactory(dreamClass: typeof Dream): {
   belongsTo: BelongsToStatement<any, any, any, any>[]

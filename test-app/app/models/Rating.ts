@@ -1,4 +1,3 @@
-import BelongsTo from '../../../src/decorators/associations/belongs-to'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Composition from './Composition'
@@ -18,11 +17,11 @@ export default class Rating extends ApplicationModel {
   public body: DreamColumn<Rating, 'body'>
   public rating: DreamColumn<Rating, 'rating'>
 
-  @BelongsTo('User')
+  @Rating.BelongsTo('User')
   public user: User
   public userId: DreamColumn<Rating, 'userId'>
 
-  @BelongsTo(() => [Composition, Post], {
+  @Rating.BelongsTo(['Composition', 'Post'], {
     foreignKey: 'rateableId',
     polymorphic: true,
   })
@@ -30,7 +29,7 @@ export default class Rating extends ApplicationModel {
   public rateableId: DreamColumn<Rating, 'rateableId'>
   public rateableType: DreamColumn<Rating, 'rateableType'>
 
-  @BelongsTo(() => [Composition, Post], {
+  @Rating.BelongsTo(['Post', 'Composition'], {
     foreignKey: 'rateableId',
     polymorphic: true,
     withoutDefaultScopes: ['dream:SoftDelete'],

@@ -1,5 +1,7 @@
 import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../dream'
+import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames'
+import { GlobalModelName } from '../../dream/types'
 import {
   HasManyOnlyOptions,
   HasOptions,
@@ -15,13 +17,23 @@ import {
 
 export default function HasOne<
   BaseInstance extends Dream,
-  AssociationDreamClass extends typeof Dream = typeof Dream,
->(modelCB: () => AssociationDreamClass, opts?: HasOneOptions<BaseInstance, AssociationDreamClass>): any
+  AssociationGlobalNameOrNames extends
+    | GlobalModelName<BaseInstance>
+    | readonly GlobalModelName<BaseInstance>[],
+>(
+  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+  opts?: HasOneOptions<BaseInstance, AssociationGlobalNameOrNames>
+): any
 
 export default function HasOne<
   BaseInstance extends Dream,
-  AssociationDreamClass extends typeof Dream = typeof Dream,
->(modelCB: () => AssociationDreamClass, opts?: HasOneThroughOptions<BaseInstance, AssociationDreamClass>): any
+  AssociationGlobalNameOrNames extends
+    | GlobalModelName<BaseInstance>
+    | readonly GlobalModelName<BaseInstance>[],
+>(
+  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+  opts?: HasOneThroughOptions<BaseInstance, AssociationGlobalNameOrNames>
+): any
 
 /**
  * Establishes a "HasOne" association between the base dream
@@ -59,8 +71,10 @@ export default function HasOne<
  */
 export default function HasOne<
   BaseInstance extends Dream,
-  AssociationDreamClass extends typeof Dream = typeof Dream,
->(modelCB: () => AssociationDreamClass, opts: unknown = {}): any {
+  AssociationGlobalNameOrNames extends
+    | GlobalModelName<BaseInstance>
+    | readonly GlobalModelName<BaseInstance>[],
+>(globalAssociationNameOrNames: AssociationGlobalNameOrNames, opts: unknown = {}): any {
   const {
     dependent,
     foreignKey,
@@ -93,7 +107,7 @@ export default function HasOne<
 
     const partialAssociation = associationPrimaryKeyAccessors(
       {
-        modelCB,
+        modelCB: () => lookupModelByGlobalNameOrNames(globalAssociationNameOrNames as string | string[]),
         type: 'HasOne',
         as: key,
         polymorphic,
@@ -135,8 +149,18 @@ export interface HasOneStatement<
   ForeignTableName extends AssociationTableNames<DB, Schema> & keyof DB,
 > extends HasStatement<BaseInstance, DB, Schema, ForeignTableName, 'HasOne'> {}
 
-export interface HasOneOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream>
-  extends Omit<HasOptions<BaseInstance, AssociationDreamClass>, HasManyOnlyOptions> {}
+export interface HasOneOptions<
+  BaseInstance extends Dream,
+  // AssociationDreamClass extends typeof Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelName<BaseInstance>
+    | readonly GlobalModelName<BaseInstance>[],
+> extends Omit<HasOptions<BaseInstance, AssociationGlobalNameOrNames>, HasManyOnlyOptions> {}
 
-export interface HasOneThroughOptions<BaseInstance extends Dream, AssociationDreamClass extends typeof Dream>
-  extends Omit<HasThroughOptions<BaseInstance, AssociationDreamClass>, HasManyOnlyOptions> {}
+export interface HasOneThroughOptions<
+  BaseInstance extends Dream,
+  // AssociationDreamClass extends typeof Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelName<BaseInstance>
+    | readonly GlobalModelName<BaseInstance>[],
+> extends Omit<HasThroughOptions<BaseInstance, AssociationGlobalNameOrNames>, HasManyOnlyOptions> {}
