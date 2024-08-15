@@ -38,7 +38,10 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   }
 
   public static get openapiName(): string {
-    return this.name.replace(/Serializer$/, '')
+    // TODO: make this customizable by the user
+    const pathDelimiter = '_'
+
+    return this.name.replace(/Serializer$/, '').replace(/\//g, pathDelimiter)
   }
 
   public static render(data: any, opts: DreamSerializerStaticRenderOpts = {}) {
