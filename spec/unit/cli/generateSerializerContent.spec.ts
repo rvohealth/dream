@@ -13,7 +13,7 @@ import User from '../models/User'
 
 export class UserSummarySerializer<
   DataType extends User,
-  Passthrough extends object
+  Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
   @Attribute('string')
   public id: DreamColumn<User, 'id'>
@@ -21,11 +21,12 @@ export class UserSummarySerializer<
 
 export default class UserSerializer<
   DataType extends User,
-  Passthrough extends object
+  Passthrough extends object,
 > extends UserSummarySerializer<DataType, Passthrough> {
   @Attribute()
   public loggedInAt: DreamColumn<User, 'loggedInAt'>
-}`
+}
+`
         )
       })
     })
@@ -42,7 +43,7 @@ import UserAdmin from '../../models/User/Admin'
 
 export class UserAdminSummarySerializer<
   DataType extends UserAdmin,
-  Passthrough extends object
+  Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
   @Attribute('string')
   public id: DreamColumn<UserAdmin, 'id'>
@@ -50,10 +51,11 @@ export class UserAdminSummarySerializer<
 
 export default class UserAdminSerializer<
   DataType extends UserAdmin,
-  Passthrough extends object
+  Passthrough extends object,
 > extends UserAdminSummarySerializer<DataType, Passthrough> {
   
-}`
+}
+`
           )
         })
       })
@@ -95,7 +97,7 @@ import User from '../models/User'
 
 export class UserSummarySerializer<
   DataType extends User,
-  Passthrough extends object
+  Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
   @Attribute('string')
   public id: DreamColumn<User, 'id'>
@@ -103,11 +105,11 @@ export class UserSummarySerializer<
 
 export default class UserSerializer<
   DataType extends User,
-  Passthrough extends object
+  Passthrough extends object,
 > extends UserSummarySerializer<DataType, Passthrough> {
   @Attribute('decimal', { precision: 2 })
   public howyadoin: DreamColumn<User, 'howyadoin'>
-}\
+}
 `
           )
         })
@@ -173,7 +175,7 @@ import User from '../models/User'
 
 export class UserSummarySerializer<
   DataType extends User,
-  Passthrough extends object
+  Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
   @Attribute('string')
   public id: DreamColumn<User, 'id'>
@@ -181,11 +183,11 @@ export class UserSummarySerializer<
 
 export default class UserSerializer<
   DataType extends User,
-  Passthrough extends object
+  Passthrough extends object,
 > extends UserSummarySerializer<DataType, Passthrough> {
   @Attribute({ type: 'string', enum: ToppingEnumValues })
   public topping: DreamColumn<User, 'topping'>
-}\
+}
 `
           )
         })
@@ -204,7 +206,7 @@ import Organization from '../models/Organization'
 
 export class UserSummarySerializer<
   DataType extends User,
-  Passthrough extends object
+  Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
   @Attribute('string')
   public id: DreamColumn<User, 'id'>
@@ -212,11 +214,12 @@ export class UserSummarySerializer<
 
 export default class UserSerializer<
   DataType extends User,
-  Passthrough extends object
+  Passthrough extends object,
 > extends UserSummarySerializer<DataType, Passthrough> {
   @RendersOne(() => Organization)
   public organization: Organization
-}`
+}
+`
             )
           })
         })
@@ -233,7 +236,7 @@ import Organization from '../models/Organization'
 
 export class UserSummarySerializer<
   DataType extends User,
-  Passthrough extends object
+  Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
   @Attribute('string')
   public id: DreamColumn<User, 'id'>
@@ -241,11 +244,12 @@ export class UserSummarySerializer<
 
 export default class UserSerializer<
   DataType extends User,
-  Passthrough extends object
+  Passthrough extends object,
 > extends UserSummarySerializer<DataType, Passthrough> {
   @RendersOne(() => Organization)
   public organization: Organization
-}`
+}
+`
             )
           })
         })
@@ -262,7 +266,7 @@ import Organization from '../models/Organization'
 
 export class UserSummarySerializer<
   DataType extends User,
-  Passthrough extends object
+  Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
   @Attribute('string')
   public id: DreamColumn<User, 'id'>
@@ -270,11 +274,12 @@ export class UserSummarySerializer<
 
 export default class UserSerializer<
   DataType extends User,
-  Passthrough extends object
+  Passthrough extends object,
 > extends UserSummarySerializer<DataType, Passthrough> {
   @RendersMany(() => Organization)
   public organizations: Organization[]
-}`
+}
+`
             )
           })
 
@@ -290,7 +295,7 @@ import Paper from '../models/Paper'
 
 export class UserSummarySerializer<
   DataType extends User,
-  Passthrough extends object
+  Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
   @Attribute('string')
   public id: DreamColumn<User, 'id'>
@@ -298,11 +303,12 @@ export class UserSummarySerializer<
 
 export default class UserSerializer<
   DataType extends User,
-  Passthrough extends object
+  Passthrough extends object,
 > extends UserSummarySerializer<DataType, Passthrough> {
   @RendersMany(() => Paper)
   public paper: Paper[]
-}`
+}
+`
               )
             })
           })
@@ -320,7 +326,7 @@ import DoubleNestedMyModel from '../../models/Double/Nested/MyModel'
 
 export class UserAdminSummarySerializer<
   DataType extends UserAdmin,
-  Passthrough extends object
+  Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
   @Attribute('string')
   public id: DreamColumn<UserAdmin, 'id'>
@@ -328,11 +334,12 @@ export class UserAdminSummarySerializer<
 
 export default class UserAdminSerializer<
   DataType extends UserAdmin,
-  Passthrough extends object
+  Passthrough extends object,
 > extends UserAdminSummarySerializer<DataType, Passthrough> {
   @RendersOne(() => DoubleNestedMyModel)
   public doubleNestedMyModel: DoubleNestedMyModel
-}`
+}
+`
             )
           })
         })
@@ -350,7 +357,7 @@ import User from '../models/User'
 
 export class UserSummarySerializer<
   DataType extends User,
-  Passthrough extends object
+  Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
   @Attribute('string')
   public id: DreamColumn<User, 'id'>
@@ -358,11 +365,11 @@ export class UserSummarySerializer<
 
 export default class UserSerializer<
   DataType extends User,
-  Passthrough extends object
+  Passthrough extends object,
 > extends UserSummarySerializer<DataType, Passthrough> {
   @Attribute('${generatedAttributeType}')
   public howyadoin: DreamColumn<User, 'howyadoin'>
-}\
+}
 `
   )
 }

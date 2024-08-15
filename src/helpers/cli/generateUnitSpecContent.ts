@@ -4,5 +4,6 @@ export default function generateUnitSpecContent(dreamName: string) {
 
 describe('${dreamName}', () => {
   it.todo('add a test here to get started building ${dreamName}')
-})`
+})
+`
 }

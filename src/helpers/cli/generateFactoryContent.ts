@@ -52,5 +52,6 @@ export default async function create${modelClassName}(${args.join(', ')}) {
   return await ${modelClassName}.create({
     ${belongsToNames.join(',\n    ')}${belongsToNames.length ? ',\n    ' : ''}...overrides,
   })
-}`
+}
+`
 }
