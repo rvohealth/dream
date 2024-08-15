@@ -142,6 +142,4 @@ export interface BelongsToOptions<
   optional?: boolean
   polymorphic?: boolean
   withoutDefaultScopes?: DefaultScopeNameForTable<BaseInstance['schema'], AssociationTableName>[]
-  // withoutDefaultScopes?: AssociationTableName
-  // withoutDefaultScopes?: BaseInstance['globalSchema']['models']['User']
 }
