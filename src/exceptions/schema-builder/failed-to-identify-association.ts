@@ -16,6 +16,12 @@ export default class FailedToIdentifyAssociation extends Error {
       new RegExp(this.associationName.slice(0, 3)).test(globalName)
     )
 
+    const possibleMatchesMessage = possibleMatches.length
+      ? `\
+Did you by chance mean one of these associations?:
+    ${possibleMatches.join('\n    ')}`
+      : ''
+
     return `
 An unexpected error occurred while looking up an association that you have defined.
 
@@ -30,8 +36,7 @@ We recommend that you lean into the autocomplete when providing the
 first argument to an association, since it can help to catch these
 familiar gotchas.
 
-Did you by chance mean one of these associations?:
-    ${possibleMatches.join('\n    ')}
+${possibleMatchesMessage}
 
 Details:
     dream: ${this.modelClass.name}
