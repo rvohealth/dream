@@ -160,56 +160,6 @@ export default class Dream {
   }
 
   /**
-   * This can be left off your model definition if your
-   * application will not be rendering this instance
-   * to any front end clients.
-   *
-   * Return an object containing your serializer definitions,
-   * like so:
-   *
-   * ```ts
-   * class Post extends ApplicationModel {
-   *   public get serializers(): DreamSerializers<Post> {
-   *     return {
-   *       default: 'PostSerializer',
-   *       summary: 'PostSummarySerializer',
-   *     }
-   *   }
-   * }
-   * ```
-   *
-   * These serializer definitions will be used by Psychic
-   * to automatically render your models when you attempt
-   * to render them using Psychic's provided methods.
-   *
-   * Here is an example of this being used from your controller:
-   *
-   * ```ts
-   * class PostsController extends AuthedController {
-   *   public index() {
-   *     const posts = await this.currentUser.associationQuery('posts').all()
-   *     this.ok(posts, { serializerKey: 'summary' })
-   *   }
-   * }
-   * ```
-   *
-   * If the serializer option is not passed, Psychic will
-   * automatically use the `default` serializer, like so:
-   *
-   * ```ts
-   * class PostsController extends AuthedController {
-   *   public show() {
-   *     const post = await this.currentUser.associationQuery('posts').find(this.castParam('id', 'bigint'))
-   *     this.ok(post)
-   *   }
-   * }
-   * ```
-   */
-  public get serializers(): Record<string, any> {
-    throw new MissingSerializer(this.constructor as typeof Dream)
-  }
-
-  /**
    * A getter which can be overwritten to customize the automatic createdAt timestamp field
    * for a given model.
    *
@@ -2412,6 +2362,56 @@ export default class Dream {
    */
   public get table(): AssociationTableNames<any, any> {
     throw new MissingTable(this.constructor as typeof Dream)
+  }
+
+  /**
+   * This can be left off your model definition if your
+   * application will not be rendering this instance
+   * to any front end clients.
+   *
+   * Return an object containing your serializer definitions,
+   * like so:
+   *
+   * ```ts
+   * class Post extends ApplicationModel {
+   *   public get serializers(): DreamSerializers<Post> {
+   *     return {
+   *       default: 'PostSerializer',
+   *       summary: 'PostSummarySerializer',
+   *     }
+   *   }
+   * }
+   * ```
+   *
+   * These serializer definitions will be used by Psychic
+   * to automatically render your models when you attempt
+   * to render them using Psychic's provided methods.
+   *
+   * Here is an example of this being used from your controller:
+   *
+   * ```ts
+   * class PostsController extends AuthedController {
+   *   public index() {
+   *     const posts = await this.currentUser.associationQuery('posts').all()
+   *     this.ok(posts, { serializerKey: 'summary' })
+   *   }
+   * }
+   * ```
+   *
+   * If the serializer option is not passed, Psychic will
+   * automatically use the `default` serializer, like so:
+   *
+   * ```ts
+   * class PostsController extends AuthedController {
+   *   public show() {
+   *     const post = await this.currentUser.associationQuery('posts').find(this.castParam('id', 'bigint'))
+   *     this.ok(post)
+   *   }
+   * }
+   * ```
+   */
+  public get serializers(): Record<string, any> {
+    throw new MissingSerializer(this.constructor as typeof Dream)
   }
 
   /**
