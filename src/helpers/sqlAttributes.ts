@@ -10,7 +10,13 @@ export default function sqlAttributes(dream: Dream) {
       const val = attributes[key]
 
       if (val instanceof DateTime || val instanceof CalendarDate) {
-        result[key] = val.toJSDate()
+        // Converting toJSDate resulted in the correct timezone, but even with process.env.TZ=UTC,
+        // Kysely inserted into the database with the machine timezone, which can shift the date
+        // (e.g., toJSDate resulted in a JS Date that formats as "1987-04-07T00:00:00.000Z", but
+        // Kysely inserted "1907-04-06"  into the database). By converting to an ISO string before
+        // handing off to Kysely, we bypass Javascript dates altogether, sending the string into the
+        // database for storage as a date or datetime.
+        result[key] = val.toISO()
       } else if (val !== undefined) {
         result[key] = val
       }
