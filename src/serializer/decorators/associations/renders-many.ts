@@ -1,5 +1,6 @@
 import DreamSerializer from '../..'
-import { DreamSerializerAssociationStatement, DreamSerializerClassCB, RendersOneOrManyOpts } from './shared'
+import Dream from '../../../dream'
+import { DreamSerializerAssociationStatement, DreamSerializerClass, RendersOneOrManyOpts } from './shared'
 
 /**
  * Establishes a One to Many relationship between
@@ -40,15 +41,22 @@ import { DreamSerializerAssociationStatement, DreamSerializerClassCB, RendersOne
  * ```
  */
 export default function RendersMany(
-  dreamOrSerializerClassCB: DreamSerializerClassCB | RendersManyOpts | null = null,
+  dreamOrSerializerClass: DreamSerializerClass | RendersManyOpts | null = null,
   opts?: RendersManyOpts
 ): any {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return function (target: any, key: string, def: any) {
     const serializerClass: typeof DreamSerializer = target.constructor
-    opts ||= (dreamOrSerializerClassCB || {}) as RendersManyOpts
-    if (typeof dreamOrSerializerClassCB !== 'function') {
-      dreamOrSerializerClassCB = null
+
+    if (
+      Array.isArray(dreamOrSerializerClass) ||
+      (dreamOrSerializerClass as typeof Dream)?.isDream ||
+      (dreamOrSerializerClass as typeof DreamSerializer)?.isDreamSerializer
+    ) {
+      opts ||= {} as RendersManyOpts
+    } else {
+      opts = (dreamOrSerializerClass || {}) as RendersManyOpts
+      dreamOrSerializerClass = null
     }
 
     if (!Object.getOwnPropertyDescriptor(serializerClass, 'associationStatements'))
@@ -62,7 +70,7 @@ export default function RendersMany(
         type: 'RendersMany',
         field: key,
         optional: opts.optional || false,
-        dreamOrSerializerClassCB,
+        dreamOrSerializerClass: dreamOrSerializerClass,
         serializerKey: opts.serializerKey,
         source: opts.source || key,
         through: opts.through || null,

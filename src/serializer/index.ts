@@ -59,7 +59,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     if (serializer) return [serializer]
 
     let classOrClasses =
-      associationStatement.dreamOrSerializerClassCB?.() as DreamClassOrViewModelClassOrSerializerClass[]
+      associationStatement.dreamOrSerializerClass as DreamClassOrViewModelClassOrSerializerClass[]
     if (!classOrClasses) return null
 
     if (!Array.isArray(classOrClasses)) {
@@ -87,8 +87,8 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   private static associationDeclaredSerializer(
     associationStatement: DreamSerializerAssociationStatement
   ): typeof DreamSerializer<any, any> | null {
-    if ((associationStatement.dreamOrSerializerClassCB?.() as typeof DreamSerializer)?.isDreamSerializer) {
-      return associationStatement.dreamOrSerializerClassCB?.() as typeof DreamSerializer
+    if ((associationStatement.dreamOrSerializerClass as typeof DreamSerializer)?.isDreamSerializer) {
+      return associationStatement.dreamOrSerializerClass as typeof DreamSerializer
     }
     return null
   }

@@ -1,7 +1,24 @@
 import DreamSerializer from '..'
+import Dream from '../../dream'
+import { DreamColumnNames } from '../../dream/types'
 import { RoundingPrecision } from '../../helpers/round'
 import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../openapi/types'
 
+export default function Attribute(): any
+export default function Attribute(renderAs: OpenapiSchemaBodyShorthand): any
+export default function Attribute(
+  renderAs: Exclude<OpenapiShorthandPrimitiveTypes, 'decimal' | 'decimal[]'>,
+  options?: ShorthandAttributeRenderOptions
+): any
+export default function Attribute(
+  renderAs: 'decimal' | 'decimal[]',
+  options?: DecimalAttributeRenderOptions
+): any
+export default function Attribute<DreamClass extends typeof Dream>(
+  renderAs: DreamClass,
+  dreamAttriubte: DreamColumnNames<InstanceType<DreamClass>>,
+  options?: ModelAttributeRenderOptions
+): any
 /*
  * Used to indicate which properties or methods on a
  * serializer should be returned when rendering this
@@ -77,7 +94,11 @@ import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../.
  * }
  * ```
  */
-export default function Attribute(renderAs?: SerializableTypes, options?: AttributeRenderOptions): any {
+export default function Attribute(
+  renderAs?: unknown,
+  dreamAttriubteOrOptions?: unknown,
+  options?: unknown
+): any {
   return function (target: any, key: string, def: any) {
     const serializerClass: typeof DreamSerializer = target.constructor
     if (!Object.getOwnPropertyDescriptor(serializerClass, 'attributeStatements'))
@@ -106,4 +127,18 @@ export interface AttributeStatement {
   options?: AttributeRenderOptions
 }
 
-type AttributeRenderOptions = { precision?: RoundingPrecision; delegate?: string; allowNull?: boolean }
+interface ModelAttributeRenderOptions {
+  description?: string
+}
+
+interface ShorthandAttributeRenderOptions {
+  delegate?: string
+  allowNull?: boolean
+  description?: string
+}
+
+interface DecimalAttributeRenderOptions extends ShorthandAttributeRenderOptions {
+  precision?: RoundingPrecision
+}
+
+type AttributeRenderOptions = DecimalAttributeRenderOptions

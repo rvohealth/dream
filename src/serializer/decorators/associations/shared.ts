@@ -2,7 +2,7 @@ import DreamSerializer from '../..'
 import { DreamClassOrViewModelClass, DreamConst } from '../../../dream/types'
 
 export type SerializableTypes = 'date'
-export type DreamSerializerClassCB = () =>
+export type DreamSerializerClass =
   | typeof DreamSerializer
   | DreamClassOrViewModelClass
   | DreamClassOrViewModelClass[]
@@ -13,7 +13,7 @@ export interface DreamSerializerAssociationStatement {
   field: string
   flatten: boolean
   optional: boolean
-  dreamOrSerializerClassCB: DreamSerializerClassCB | null
+  dreamOrSerializerClass: DreamSerializerClass | null
   source: string | typeof DreamConst.passthrough
   through: string | null
   type: SerializableAssociationType
