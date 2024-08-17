@@ -532,17 +532,17 @@ describe('DreamSerializer#render', () => {
 
   context('when defined with an association', () => {
     context('RendersMany', () => {
-      class UserSerializer extends DreamSerializer {
-        @RendersMany(PetSerializer)
-        public pets: Pet[]
-      }
-
       class PetSerializer extends DreamSerializer {
         @Attribute()
         public name: string
 
         @Attribute()
         public species: string
+      }
+
+      class UserSerializer extends DreamSerializer {
+        @RendersMany(PetSerializer)
+        public pets: Pet[]
       }
 
       it('identifies associations and serializes them using respecting serializers', async () => {
@@ -555,14 +555,14 @@ describe('DreamSerializer#render', () => {
       })
 
       it('renders many from this serializer and the ancestor', () => {
-        class ChildSerializer extends UserSerializer {
-          @RendersMany(BalloonSerializer)
-          public balloons: Balloon[]
-        }
-
         class BalloonSerializer extends DreamSerializer {
           @Attribute()
           public color: string
+        }
+
+        class ChildSerializer extends UserSerializer {
+          @RendersMany(BalloonSerializer)
+          public balloons: Balloon[]
         }
 
         const serializer = new ChildSerializer({
@@ -665,14 +665,14 @@ describe('DreamSerializer#render', () => {
       })
 
       context('when the through option is passed', () => {
-        class PersonSerializer extends DreamSerializer {
-          @RendersMany(ChalupaSerializer, { through: 'chalupatown' })
-          public chalupas: any[]
-        }
-
         class ChalupaSerializer extends DreamSerializer {
           @Attribute()
           public deliciousness: number
+        }
+
+        class PersonSerializer extends DreamSerializer {
+          @RendersMany(ChalupaSerializer, { through: 'chalupatown' })
+          public chalupas: any[]
         }
 
         it('correctly serializes based on source', () => {
@@ -701,14 +701,14 @@ describe('DreamSerializer#render', () => {
 
         context('when traveling through nested associations', () => {
           context('when it is traveling through nested BelongsTo/HasOne statement', () => {
-            class UserSerializer extends DreamSerializer {
-              @RendersMany(CollarSerializer2, { through: 'firstPet' })
-              public collars: any[]
-            }
-
             class CollarSerializer2 extends DreamSerializer {
               @Attribute()
               public tagName: string
+            }
+
+            class UserSerializer extends DreamSerializer {
+              @RendersMany(CollarSerializer2, { through: 'firstPet' })
+              public collars: any[]
             }
 
             it('correctly traverses nested objects to reach through target', async () => {
@@ -727,14 +727,14 @@ describe('DreamSerializer#render', () => {
           })
 
           context('when it is traveling through nested HasMany statement', () => {
-            class UserSerializer extends DreamSerializer {
-              @RendersMany(CollarSerializer2, { through: 'pets' })
-              public collars: any[]
-            }
-
             class CollarSerializer2 extends DreamSerializer {
               @Attribute()
               public tagName: string
+            }
+
+            class UserSerializer extends DreamSerializer {
+              @RendersMany(CollarSerializer2, { through: 'pets' })
+              public collars: any[]
             }
 
             it('correctly traverses nested objects to reach through target', async () => {
@@ -922,16 +922,6 @@ describe('DreamSerializer#render', () => {
       })
 
       it('renders one from this serializer and the ancestor', () => {
-        class UserSerializer extends DreamSerializer {
-          @RendersOne(PetSerializer)
-          public pet: Pet
-        }
-
-        class ChildSerializer extends UserSerializer {
-          @RendersOne(BalloonSerializer)
-          public balloon: Balloon
-        }
-
         class PetSerializer extends DreamSerializer {
           @Attribute()
           public name: string
@@ -943,6 +933,16 @@ describe('DreamSerializer#render', () => {
         class BalloonSerializer extends DreamSerializer {
           @Attribute()
           public color: string
+        }
+
+        class UserSerializer extends DreamSerializer {
+          @RendersOne(PetSerializer)
+          public pet: Pet
+        }
+
+        class ChildSerializer extends UserSerializer {
+          @RendersOne(BalloonSerializer)
+          public balloon: Balloon
         }
 
         const serializer = new ChildSerializer({
@@ -1064,14 +1064,14 @@ describe('DreamSerializer#render', () => {
       })
 
       context('when the through option is passed', () => {
-        class PersonSerializer extends DreamSerializer {
-          @RendersOne(HappinessSerializer, { through: 'cat' })
-          public happiness: any
-        }
-
         class HappinessSerializer extends DreamSerializer {
           @Attribute()
           public level: number
+        }
+
+        class PersonSerializer extends DreamSerializer {
+          @RendersOne(HappinessSerializer, { through: 'cat' })
+          public happiness: any
         }
 
         it('correctly serializes based on source', () => {
@@ -1283,9 +1283,14 @@ describe('DreamSerializer#render', () => {
   })
 
   context('with passthrough data applied', () => {
-    class ParentSerializer extends DreamSerializer {
-      @RendersOne(IntermediateSerilizer)
-      public child: any
+    class ChildSerializer<
+      DataType extends object,
+      PassthroughData extends { howyadoin: string },
+    > extends DreamSerializer<DataType, PassthroughData> {
+      @Attribute()
+      public howyadoin() {
+        return this.passthroughData.howyadoin
+      }
     }
 
     class IntermediateSerilizer extends DreamSerializer {
@@ -1298,14 +1303,9 @@ describe('DreamSerializer#render', () => {
       }
     }
 
-    class ChildSerializer<
-      DataType extends object,
-      PassthroughData extends { howyadoin: string },
-    > extends DreamSerializer<DataType, PassthroughData> {
-      @Attribute()
-      public howyadoin() {
-        return this.passthroughData.howyadoin
-      }
+    class ParentSerializer extends DreamSerializer {
+      @RendersOne(IntermediateSerilizer)
+      public child: any
     }
 
     it('correctly sends passthrough data to child serializers', () => {
@@ -1319,16 +1319,6 @@ describe('DreamSerializer#render', () => {
   })
 
   context('with duplicate attributes applied on a child and parent serializer', () => {
-    class ParentSerializer extends DreamSerializer {
-      @RendersOne(ChildSerializer, { flatten: true })
-      public child: any
-
-      @Attribute()
-      public howyadoin() {
-        return 'superhowyadoin'
-      }
-    }
-
     class ChildSerializer extends DreamSerializer {
       @Attribute()
       public childattr() {
@@ -1338,6 +1328,16 @@ describe('DreamSerializer#render', () => {
       @Attribute()
       public howyadoin() {
         return 'howyadoin'
+      }
+    }
+
+    class ParentSerializer extends DreamSerializer {
+      @RendersOne(ChildSerializer, { flatten: true })
+      public child: any
+
+      @Attribute()
+      public howyadoin() {
+        return 'superhowyadoin'
       }
     }
 
