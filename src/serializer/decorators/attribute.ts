@@ -176,6 +176,7 @@ interface AutomaticOpenApiExtraOptions {
 }
 
 interface ShorthandAttributeRenderOptions {
+  allowNull?: boolean
   delegate?: string
 }
 
