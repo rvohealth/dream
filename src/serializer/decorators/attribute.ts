@@ -1,6 +1,7 @@
 import DreamSerializer from '..'
 import Dream from '../../dream'
 import { RoundingPrecision } from '../../helpers/round'
+import { isString } from '../../helpers/typechecks'
 import {
   OpenapiSchemaBody,
   OpenapiSchemaBodyShorthand,
@@ -16,20 +17,18 @@ export default function Attribute(
 
 export default function Attribute(
   shorthandAttribute: Exclude<OpenapiShorthandPrimitiveTypes, 'decimal' | 'decimal[]'>,
-  shorthandAttributeOpenApiOptions?: ShorthandAttributeOpenApiOptions | null,
   shorthandAttributeRenderOptions?: ShorthandAttributeRenderOptions
 ): any
 
 export default function Attribute(
   shorthandAttribute: 'decimal' | 'decimal[]',
-  shorthandAttributeOpenApiOptions?: ShorthandAttributeOpenApiOptions | null,
   shorthandAttributeRenderOptions?: DecimalAttributeRenderOptions
 ): any
 
 export default function Attribute<DreamClass extends typeof Dream>(
   dreamClass: DreamClass,
   openApiOptions?: AutomaticOpenApiExtraOptions | null,
-  openApiRenderOptions?: DecimalSpecificAttributeRenderOptions
+  renderOptions?: DecimalSpecificAttributeRenderOptions
 ): any
 
 /*
@@ -108,33 +107,55 @@ export default function Attribute<DreamClass extends typeof Dream>(
  * ```
  */
 export default function Attribute(
-  manualOpenApiOptions_or_shorthandAttribute_or_dreamClass?: unknown,
-  renderOptions_or_shorthandAttributeOpenApiOptions?: unknown,
-  shorthandAttributeRenderOptions_or_openApiOptions_or_openApiRenderOptions?: unknown
+  dreamClass_or_shorthandAttribute_or_manualOpenApiOptions?: unknown,
+  openApiOptions_or_renderOptions?: unknown,
+  renderOptions_or_undefined?: unknown
 ): any {
   return function (target: any, key: string, def: any) {
     const serializerClass: typeof DreamSerializer = target.constructor
 
-    let renderAs: SerializableTypes
-    let renderOptions: AttributeRenderOptions
-    let openApiShape: OpenapiSchemaBody
+    let renderAs: SerializableTypes | undefined
+    let openApiShape: OpenapiSchemaBodyShorthand | undefined
+    let renderOptions: AttributeRenderOptions | undefined
 
-    if ((manualOpenApiOptions_or_shorthandAttribute_or_dreamClass as typeof Dream)?.isDream) {
-      renderAs = dreamAttributeOpenApiShape(
-        manualOpenApiOptions_or_shorthandAttribute_or_dreamClass as typeof Dream,
-        key
+    if ((dreamClass_or_shorthandAttribute_or_manualOpenApiOptions as typeof Dream)?.isDream) {
+      const extraOpenApiOptions: AutomaticOpenApiExtraOptions = openApiOptions_or_renderOptions || {}
+
+      openApiShape = {
+        ...dreamAttributeOpenApiShape(
+          dreamClass_or_shorthandAttribute_or_manualOpenApiOptions as typeof Dream,
+          key
+        ),
+        ...extraOpenApiOptions,
+      }
+
+      renderOptions = renderOptions_or_undefined as AttributeRenderOptions | undefined
+      //
+    } else if (isString(dreamClass_or_shorthandAttribute_or_manualOpenApiOptions)) {
+      renderAs = dreamClass_or_shorthandAttribute_or_manualOpenApiOptions as OpenapiShorthandPrimitiveTypes
+      openApiShape = { type: renderAs }
+      renderOptions = openApiOptions_or_renderOptions as AttributeRenderOptions
+      //
+    } else if (typeof dreamClass_or_shorthandAttribute_or_manualOpenApiOptions === 'object') {
+      openApiShape = dreamClass_or_shorthandAttribute_or_manualOpenApiOptions as OpenapiSchemaBodyShorthand
+      renderOptions = openApiOptions_or_renderOptions as AttributeRenderOptions
+    } else if (dreamClass_or_shorthandAttribute_or_manualOpenApiOptions === undefined) {
+      // no-op
+    } else {
+      throw new Error(
+        `Unrecognized first argument to @Attriute decorator: ${JSON.stringify(dreamClass_or_shorthandAttribute_or_manualOpenApiOptions)}`
       )
     }
 
     serializerClass.attributeStatements = [
       ...(serializerClass.attributeStatements || []),
-      // {
-      //   field: key,
-      //   functional: typeof def?.value === 'function',
-      //   openApiShape,
-      //   renderAs,
-      //   renderOptions,
-      // } as AttributeStatement,
+      {
+        field: key,
+        functional: typeof def?.value === 'function',
+        openApiShape,
+        renderAs,
+        renderOptions,
+      } as AttributeStatement,
     ]
   }
 }
@@ -151,10 +172,6 @@ export interface AttributeStatement {
 
 interface AutomaticOpenApiExtraOptions {
   description?: string
-}
-
-interface ShorthandAttributeOpenApiOptions extends AutomaticOpenApiExtraOptions {
-  nullable?: boolean
 }
 
 interface ShorthandAttributeRenderOptions {

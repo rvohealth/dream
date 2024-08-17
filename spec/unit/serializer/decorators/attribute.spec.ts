@@ -14,9 +14,9 @@ describe('@Attribute', () => {
         {
           field: 'name',
           functional: false,
-          openApiShape: null,
-          renderAs: null,
-          renderOptions: {},
+          openApiShape: undefined,
+          renderAs: undefined,
+          renderOptions: undefined,
         },
       ])
     })
@@ -37,8 +37,8 @@ describe('@Attribute', () => {
             field: 'name',
             functional: false,
             openApiShape: expectedOpenApiShape,
-            renderAs: 'string',
-            renderOptions: {},
+            renderAs: undefined,
+            renderOptions: undefined,
           },
         ])
       })
@@ -62,8 +62,8 @@ describe('@Attribute', () => {
             field: 'species',
             functional: false,
             openApiShape: expectedOpenApiShape,
-            renderAs: 'string',
-            renderOptions: {},
+            renderAs: undefined,
+            renderOptions: undefined,
           },
         ])
       })
@@ -87,8 +87,8 @@ describe('@Attribute', () => {
             field: 'name',
             functional: false,
             openApiShape: expectedOpenApiShape,
-            renderAs: 'string',
-            renderOptions: {},
+            renderAs: undefined,
+            renderOptions: undefined,
           },
         ])
       })
@@ -107,8 +107,8 @@ describe('@Attribute', () => {
           field: 'collarCountInt',
           functional: false,
           openApiShape: expectedOpenApiShape,
-          renderAs: 'number',
-          renderOptions: {},
+          renderAs: undefined,
+          renderOptions: undefined,
         }
 
         expect(TestSerializer.attributeStatements).toEqual([expected])
@@ -128,7 +128,7 @@ describe('@Attribute', () => {
           field: 'volume',
           functional: false,
           openApiShape: expectedOpenApiShape,
-          renderAs: 'number',
+          renderAs: undefined,
           renderOptions: { precision: 2 },
         }
 
