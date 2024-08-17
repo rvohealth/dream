@@ -1,5 +1,10 @@
 import DreamSerializer from '../..'
-import { DreamSerializerAssociationStatement, DreamSerializerClass, RendersOneOrManyOpts } from './shared'
+import {
+  DreamSerializerAssociationStatement,
+  DreamSerializerClass,
+  isDreamOrSerializerClass,
+  RendersOneOrManyOpts,
+} from './shared'
 
 /**
  * Establishes a One to One relationship between
@@ -49,18 +54,21 @@ export default function RendersOne(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return function (target: any, key: string, def: any) {
     const serializerClass: typeof DreamSerializer = target.constructor
-    opts ||= (dreamOrSerializerClass || {}) as RendersOneOpts
-    if (typeof dreamOrSerializerClass !== 'function') {
+
+    if (isDreamOrSerializerClass(dreamOrSerializerClass)) {
+      opts ||= {} as RendersOneOpts
+    } else {
+      opts = (dreamOrSerializerClass || {}) as RendersOneOpts
       dreamOrSerializerClass = null
     }
 
-    if (!Object.getOwnPropertyDescriptor(serializerClass, 'associationStatements'))
-      serializerClass.associationStatements = [
-        ...(serializerClass.associationStatements || []),
-      ] as DreamSerializerAssociationStatement[]
+    // if (!Object.getOwnPropertyDescriptor(serializerClass, 'associationStatements'))
+    //   serializerClass.associationStatements = [
+    //     // ...(serializerClass.associationStatements || []),
+    //   ] as DreamSerializerAssociationStatement[]
 
     serializerClass.associationStatements = [
-      ...serializerClass.associationStatements,
+      ...(serializerClass.associationStatements || []),
       {
         type: 'RendersOne',
         field: key,

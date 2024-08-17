@@ -1,6 +1,10 @@
 import DreamSerializer from '../..'
-import Dream from '../../../dream'
-import { DreamSerializerAssociationStatement, DreamSerializerClass, RendersOneOrManyOpts } from './shared'
+import {
+  DreamSerializerAssociationStatement,
+  DreamSerializerClass,
+  isDreamOrSerializerClass,
+  RendersOneOrManyOpts,
+} from './shared'
 
 /**
  * Establishes a One to Many relationship between
@@ -48,24 +52,20 @@ export default function RendersMany(
   return function (target: any, key: string, def: any) {
     const serializerClass: typeof DreamSerializer = target.constructor
 
-    if (
-      Array.isArray(dreamOrSerializerClass) ||
-      (dreamOrSerializerClass as typeof Dream)?.isDream ||
-      (dreamOrSerializerClass as typeof DreamSerializer)?.isDreamSerializer
-    ) {
+    if (isDreamOrSerializerClass(dreamOrSerializerClass)) {
       opts ||= {} as RendersManyOpts
     } else {
       opts = (dreamOrSerializerClass || {}) as RendersManyOpts
       dreamOrSerializerClass = null
     }
 
-    if (!Object.getOwnPropertyDescriptor(serializerClass, 'associationStatements'))
-      serializerClass.associationStatements = [
-        ...(serializerClass.associationStatements || []),
-      ] as DreamSerializerAssociationStatement[]
+    // if (!Object.getOwnPropertyDescriptor(serializerClass, 'associationStatements'))
+    //   serializerClass.associationStatements = [
+    //     // ...(serializerClass.associationStatements || []),
+    //   ] as DreamSerializerAssociationStatement[]
 
     serializerClass.associationStatements = [
-      ...serializerClass.associationStatements,
+      ...(serializerClass.associationStatements || []),
       {
         type: 'RendersMany',
         field: key,

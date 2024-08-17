@@ -5,20 +5,29 @@ import { RoundingPrecision } from '../../helpers/round'
 import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../openapi/types'
 
 export default function Attribute(): any
-export default function Attribute(renderAs: OpenapiSchemaBodyShorthand): any
 export default function Attribute(
-  renderAs: Exclude<OpenapiShorthandPrimitiveTypes, 'decimal' | 'decimal[]'>,
-  options?: ShorthandAttributeRenderOptions
+  manualOpenApiOptions: OpenapiSchemaBodyShorthand,
+  renderOptions: AttributeRenderOptions
 ): any
+
 export default function Attribute(
-  renderAs: 'decimal' | 'decimal[]',
-  options?: DecimalAttributeRenderOptions
+  shorthandAttribute: Exclude<OpenapiShorthandPrimitiveTypes, 'decimal' | 'decimal[]'>,
+  shorthandAttributeOpenApiOptions?: ShorthandAttributeOpenApiOptions | null,
+  shorthandAttributeRenderOptions?: ShorthandAttributeRenderOptions
 ): any
+
+export default function Attribute(
+  shorthandAttribute: 'decimal' | 'decimal[]',
+  shorthandAttributeOpenApiOptions?: ShorthandAttributeOpenApiOptions | null,
+  shorthandAttributeRenderOptions?: DecimalAttributeRenderOptions
+): any
+
 export default function Attribute<DreamClass extends typeof Dream>(
-  renderAs: DreamClass,
-  dreamAttriubte: DreamColumnNames<InstanceType<DreamClass>>,
-  options?: ModelAttributeRenderOptions
+  dreamClass: DreamClass,
+  dreamColumn: DreamColumnNames<InstanceType<DreamClass>>,
+  openApiOptions?: AutomaticOpenApiExtraOptions
 ): any
+
 /*
  * Used to indicate which properties or methods on a
  * serializer should be returned when rendering this
@@ -95,19 +104,19 @@ export default function Attribute<DreamClass extends typeof Dream>(
  * ```
  */
 export default function Attribute(
-  renderAs?: unknown,
-  dreamAttriubteOrOptions?: unknown,
-  options?: unknown
+  manualOpenApiOptions_or_shorthandAttribute_or_dreamClass?: unknown,
+  renderOptions_or_shorthandAttributeOpenApiOptions_or_dreamColumn?: unknown,
+  shorthandAttributeRenderOptions_or_openApiOptions?: unknown
 ): any {
   return function (target: any, key: string, def: any) {
     const serializerClass: typeof DreamSerializer = target.constructor
-    if (!Object.getOwnPropertyDescriptor(serializerClass, 'attributeStatements'))
-      serializerClass.attributeStatements = [
-        ...(serializerClass.attributeStatements || []),
-      ] as AttributeStatement[]
+    // if (!Object.getOwnPropertyDescriptor(serializerClass, 'attributeStatements'))
+    //   serializerClass.attributeStatements = [
+    //     // ...(serializerClass.attributeStatements || []),
+    //   ] as AttributeStatement[]
 
     serializerClass.attributeStatements = [
-      ...serializerClass.attributeStatements,
+      ...(serializerClass.attributeStatements || []),
       {
         field: key,
         functional: typeof def?.value === 'function',
@@ -127,14 +136,16 @@ export interface AttributeStatement {
   options?: AttributeRenderOptions
 }
 
-interface ModelAttributeRenderOptions {
+interface AutomaticOpenApiExtraOptions {
   description?: string
+}
+
+interface ShorthandAttributeOpenApiOptions extends AutomaticOpenApiExtraOptions {
+  nullable?: boolean
 }
 
 interface ShorthandAttributeRenderOptions {
   delegate?: string
-  allowNull?: boolean
-  description?: string
 }
 
 interface DecimalAttributeRenderOptions extends ShorthandAttributeRenderOptions {
