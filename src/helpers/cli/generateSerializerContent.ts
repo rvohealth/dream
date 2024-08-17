@@ -58,23 +58,14 @@ export default function generateSerializerContent(
     }
   })
 
-  const enumImports: string[] = []
-  attributes.forEach(attr => {
-    const [name, type] = attr.split(':')
-    if (type === 'enum') enumImports.push(name)
-  })
-
   const additionalImportsStr = additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
-  const enumImportsStr = enumImports.length
-    ? enumValueImportStatements(fullyQualifiedModelName, uniq(enumImports))
-    : ''
 
   let summarySerializer = ''
   if (modelClass) {
     summarySerializer = `
 
 export class ${extendedClass}${dataTypeCapture} extends DreamSerializer${dreamSerializerTypeArgs} {
-  @Attribute('string')
+  @Attribute(${modelClass})
   public id: DreamColumn<${modelClass}, 'id'>
 }`
   }
@@ -82,7 +73,7 @@ export class ${extendedClass}${dataTypeCapture} extends DreamSerializer${dreamSe
   return `\
 ${luxonImport}import { ${dreamImports.join(
     ', '
-  )} } from '@rvohealth/dream'${additionalImportsStr}${enumImportsStr}${relatedModelImport}${additionalModelImports.join('')}${summarySerializer}
+  )} } from '@rvohealth/dream'${additionalImportsStr}${relatedModelImport}${additionalModelImports.join('')}${summarySerializer}
 
 export default class ${serializerClass}${dataTypeCapture} extends ${extendedClass}${dreamSerializerTypeArgs} {
   ${attributes
@@ -105,7 +96,7 @@ export default class ${serializerClass}${dataTypeCapture} extends ${extendedClas
   public ${pluralize(propertyName)}: ${associatedModelName}[]`
 
         default:
-          return `@Attribute(${attributeSpecifier(type)}${attributeOptionsSpecifier(type, attr)})
+          return `@Attribute(${modelClass}${attributeOptionsSpecifier(type, attr)})
   public ${propertyName}: ${jsType(type, attr, propertyName, modelClass)}`
       }
     })
@@ -114,81 +105,10 @@ export default class ${serializerClass}${dataTypeCapture} extends ${extendedClas
 `
 }
 
-function attributeSpecifier(type: string) {
-  switch (type) {
-    case 'date':
-      return "'date'"
-
-    case 'datetime':
-    case 'time':
-    case 'time_with_time_zone':
-    case 'timestamp':
-    case 'timestamp_with_time_zone':
-    case 'timestamp_without_time_zone':
-      return "'datetime'"
-
-    case 'decimal':
-      return "'decimal'"
-
-    case 'jsonb':
-    case 'json':
-      return "'json'"
-
-    case 'enum':
-      return ''
-
-    case 'integer':
-    case 'double':
-    case 'numeric':
-    case 'real':
-    case 'smallint':
-    case 'smallserial':
-    case 'serial':
-      return "'number'"
-
-    case 'bigint':
-    case 'bigserial':
-    case 'uuid':
-    case 'text':
-    case 'box':
-    case 'bit':
-    case 'bitvarying':
-    case 'varbit':
-    case 'bytea':
-    case 'char':
-    case 'character':
-    case 'varchar':
-    case 'character_varying':
-    case 'cidr':
-    case 'circle':
-    case 'citext':
-    case 'inet':
-    case 'interval':
-    case 'line':
-    case 'lseg':
-    case 'macaddr':
-    case 'money':
-    case 'path':
-    case 'point':
-    case 'polygon':
-    case 'tsquery':
-    case 'tsvector':
-    case 'txid_snapshot':
-    case 'xml':
-      return "'string'"
-
-    default:
-      return type ? `'${type}'` : ''
-  }
-}
-
 function attributeOptionsSpecifier(type: string, attr: string) {
   switch (type) {
     case 'decimal':
-      return `, { precision: ${attr.split(',').pop()} }`
-
-    case 'enum':
-      return `{ type: 'string', enum: ${originalAttributeToEnumValuesName(attr)} }`
+      return `, null, { precision: ${attr.split(',').pop()} }`
 
     default:
       return ''
@@ -229,14 +149,6 @@ function jsType(
   }
 }
 
-function originalAttributeToEnumValuesName(originalAttribute: string) {
-  return attributeNameToEnumValuesName(originalAttribute.split(':')[2])
-}
-
-function attributeNameToEnumValuesName(name: string) {
-  return `${pascalize(name)}EnumValues`
-}
-
 function hasJsType(attributes: string[], expectedType: 'DateTime' | 'CalendarDate') {
   return !!attributes
     .map(attr => {
@@ -246,16 +158,6 @@ function hasJsType(attributes: string[], expectedType: 'DateTime' | 'CalendarDat
     .find(a => a === expectedType)
 }
 
-function pathToDbSyncFromSerializer(fullyQualifiedModelName: string) {
-  return `${relativeDreamPath('serializers', 'db', fullyQualifiedModelName)}sync`
-}
-
 function importStatementForModel(originModelName: string, destinationModelName: string = originModelName) {
   return `\nimport ${globalClassNameFromFullyQualifiedModelName(destinationModelName)} from '${relativeDreamPath('serializers', 'models', originModelName, destinationModelName)}'`
-}
-
-function enumValueImportStatements(fullyQualifiedModelName: string, enumNames: string[]) {
-  return `\nimport { ${enumNames.map(enumName => attributeNameToEnumValuesName(enumName)).join(', ')} } from '${pathToDbSyncFromSerializer(
-    fullyQualifiedModelName
-  )}'`
 }

@@ -1,5 +1,6 @@
 import { Attribute, AttributeStatement, DreamSerializer, OpenapiSchemaBody } from '../../../../src'
 import ModelForOpenApiTypeSpecs from '../../../../test-app/app/models/ModelForOpenApiTypeSpec'
+import { SpeciesTypesEnumValues } from '../../../../test-app/db/sync'
 
 describe('@Attribute', () => {
   context('with no arguments', () => {
@@ -34,6 +35,31 @@ describe('@Attribute', () => {
         expect(TestSerializer.attributeStatements).toEqual([
           {
             field: 'name',
+            functional: false,
+            openApiShape: expectedOpenApiShape,
+            renderAs: 'string',
+            renderOptions: {},
+          },
+        ])
+      })
+    })
+
+    context('with an enum attribute', () => {
+      it('attributeStatements specify the enum type', () => {
+        class TestSerializer extends DreamSerializer {
+          @Attribute(ModelForOpenApiTypeSpecs)
+          public species: string
+        }
+
+        const expectedOpenApiShape: OpenapiSchemaBody = {
+          type: 'string',
+          enum: SpeciesTypesEnumValues,
+          nullable: true,
+        }
+
+        expect(TestSerializer.attributeStatements).toEqual([
+          {
+            field: 'species',
             functional: false,
             openApiShape: expectedOpenApiShape,
             renderAs: 'string',

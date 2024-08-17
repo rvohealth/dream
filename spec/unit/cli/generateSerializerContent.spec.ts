@@ -15,7 +15,7 @@ export class UserSummarySerializer<
   DataType extends User,
   Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
-  @Attribute('string')
+  @Attribute(User)
   public id: DreamColumn<User, 'id'>
 }
 
@@ -23,7 +23,7 @@ export default class UserSerializer<
   DataType extends User,
   Passthrough extends object,
 > extends UserSummarySerializer<DataType, Passthrough> {
-  @Attribute()
+  @Attribute(User)
   public loggedInAt: DreamColumn<User, 'loggedInAt'>
 }
 `
@@ -45,7 +45,7 @@ export class UserAdminSummarySerializer<
   DataType extends UserAdmin,
   Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
-  @Attribute('string')
+  @Attribute(UserAdmin)
   public id: DreamColumn<UserAdmin, 'id'>
 }
 
@@ -64,25 +64,25 @@ export default class UserAdminSerializer<
     context('when passed type-decorated attributes', () => {
       context('one of those attributes is a string', () => {
         it('adds a string type to the field', () => {
-          expectAttributeType('string', 'string')
+          expectAttributeType('string')
         })
       })
 
       context('one of those attributes is json', () => {
         it('adds a number type to the field', () => {
-          expectAttributeType('json', 'json')
+          expectAttributeType('json')
         })
       })
 
       context('one of those attributes is jsonb', () => {
         it('adds a number type to the field', () => {
-          expectAttributeType('jsonb', 'json')
+          expectAttributeType('jsonb')
         })
       })
 
       context('one of those attributes is a number', () => {
         it('adds a number type to the field', () => {
-          expectAttributeType('number', 'number')
+          expectAttributeType('number')
         })
       })
 
@@ -99,7 +99,7 @@ export class UserSummarySerializer<
   DataType extends User,
   Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
-  @Attribute('string')
+  @Attribute(User)
   public id: DreamColumn<User, 'id'>
 }
 
@@ -107,7 +107,7 @@ export default class UserSerializer<
   DataType extends User,
   Passthrough extends object,
 > extends UserSummarySerializer<DataType, Passthrough> {
-  @Attribute('decimal', { precision: 2 })
+  @Attribute(User, null, { precision: 2 })
   public howyadoin: DreamColumn<User, 'howyadoin'>
 }
 `
@@ -117,49 +117,49 @@ export default class UserSerializer<
 
       context('one of those attributes is an integer', () => {
         it('adds a number attribute', () => {
-          expectAttributeType('integer', 'number')
+          expectAttributeType('integer')
         })
       })
 
       context('one of those attributes is a bigint', () => {
         it('adds a string attribute', () => {
-          expectAttributeType('bigint', 'string')
+          expectAttributeType('bigint')
         })
       })
 
       context('one of those attributes is a uuid', () => {
         it('adds a string attribute', () => {
-          expectAttributeType('uuid', 'string')
+          expectAttributeType('uuid')
         })
       })
 
       context('one of those attributes is "varchar"', () => {
         it('adds a string attribute', () => {
-          expectAttributeType('varchar', 'string')
+          expectAttributeType('varchar')
         })
       })
 
       context('one of those attributes is "char"', () => {
         it('adds a string attribute', () => {
-          expectAttributeType('char', 'string')
+          expectAttributeType('char')
         })
       })
 
       context('one of those attributes is a datetime', () => {
         it('adds a datetime attribute', () => {
-          expectAttributeType('datetime', 'datetime')
+          expectAttributeType('datetime')
         })
       })
 
       context('one of those attributes is a date', () => {
         it('adds a date attribute', () => {
-          expectAttributeType('date', 'date')
+          expectAttributeType('date')
         })
       })
 
       context('one of those attributes is type "text"', () => {
         it('adds a string attribute', () => {
-          expectAttributeType('text', 'string')
+          expectAttributeType('text')
         })
       })
 
@@ -170,14 +170,13 @@ export default class UserSerializer<
           expect(res).toEqual(
             `\
 import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
-import { ToppingEnumValues } from '../../db/sync'
 import User from '../models/User'
 
 export class UserSummarySerializer<
   DataType extends User,
   Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
-  @Attribute('string')
+  @Attribute(User)
   public id: DreamColumn<User, 'id'>
 }
 
@@ -185,7 +184,7 @@ export default class UserSerializer<
   DataType extends User,
   Passthrough extends object,
 > extends UserSummarySerializer<DataType, Passthrough> {
-  @Attribute({ type: 'string', enum: ToppingEnumValues })
+  @Attribute(User)
   public topping: DreamColumn<User, 'topping'>
 }
 `
@@ -208,7 +207,7 @@ export class UserSummarySerializer<
   DataType extends User,
   Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
-  @Attribute('string')
+  @Attribute(User)
   public id: DreamColumn<User, 'id'>
 }
 
@@ -238,7 +237,7 @@ export class UserSummarySerializer<
   DataType extends User,
   Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
-  @Attribute('string')
+  @Attribute(User)
   public id: DreamColumn<User, 'id'>
 }
 
@@ -268,7 +267,7 @@ export class UserSummarySerializer<
   DataType extends User,
   Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
-  @Attribute('string')
+  @Attribute(User)
   public id: DreamColumn<User, 'id'>
 }
 
@@ -297,7 +296,7 @@ export class UserSummarySerializer<
   DataType extends User,
   Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
-  @Attribute('string')
+  @Attribute(User)
   public id: DreamColumn<User, 'id'>
 }
 
@@ -328,7 +327,7 @@ export class UserAdminSummarySerializer<
   DataType extends UserAdmin,
   Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
-  @Attribute('string')
+  @Attribute(UserAdmin)
   public id: DreamColumn<UserAdmin, 'id'>
 }
 
@@ -348,7 +347,7 @@ export default class UserAdminSerializer<
   })
 })
 
-function expectAttributeType(startingAttributeType: string, generatedAttributeType: string) {
+function expectAttributeType(startingAttributeType: string) {
   const res = generateSerializerContent('User', [`howyadoin:${startingAttributeType}`])
   expect(res).toEqual(
     `\
@@ -359,7 +358,7 @@ export class UserSummarySerializer<
   DataType extends User,
   Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
-  @Attribute('string')
+  @Attribute(User)
   public id: DreamColumn<User, 'id'>
 }
 
@@ -367,7 +366,7 @@ export default class UserSerializer<
   DataType extends User,
   Passthrough extends object,
 > extends UserSummarySerializer<DataType, Passthrough> {
-  @Attribute('${generatedAttributeType}')
+  @Attribute(User)
   public howyadoin: DreamColumn<User, 'howyadoin'>
 }
 `
