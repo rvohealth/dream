@@ -93,11 +93,17 @@ function singularAttributeOpenApiShape(dreamColumnInfo: DreamColumnInfo): Openap
 
     case 'json':
     case 'jsonb':
-      throw new Error(`Use custom OpenAPI declaration to define shape of json and jsonb fields`)
+      throw new UseCustomOpenApiForJson()
 
     default:
       throw new Error(
         `Unrecognized dbType used in serializer OpenAPI type declaration: ${dreamColumnInfo.dbType}`
       )
+  }
+}
+
+export class UseCustomOpenApiForJson extends Error {
+  public get message() {
+    return `Use custom OpenAPI declaration (OpenapiSchemaBodyShorthand) to define shape of json and jsonb fields`
   }
 }

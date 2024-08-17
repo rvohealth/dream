@@ -1,5 +1,8 @@
 import { OpenapiSchemaBody } from '../../../../../src'
-import { dreamAttributeOpenApiShape } from '../../../../../src/serializer/decorators/helpers/dreamAttributeOpenApiShape'
+import {
+  dreamAttributeOpenApiShape,
+  UseCustomOpenApiForJson,
+} from '../../../../../src/serializer/decorators/helpers/dreamAttributeOpenApiShape'
 import ModelForOpenApiTypeSpecs from '../../../../../test-app/app/models/ModelForOpenApiTypeSpec'
 import { PetTreatsEnumValues, SpeciesTypesEnumValues } from '../../../../../test-app/db/sync'
 
@@ -578,107 +581,35 @@ describe('dreamAttributeOpenApiShape', () => {
     })
   })
 
-  // context("json[]", () => {
-  //   it('generates the expected OpenApi shape', () => {
-  //     const openApiShape = dreamAttributeOpenApiShape(ModelForOpenApiTypeSpecs, 'favoriteJsons')
-  //     const expectedOpenApiShape: OpenapiSchemaBody = {
-  //       type: '',
-  //       nullable: true,
-  //     }
+  context('json', () => {
+    it('generates the expected OpenApi shape', () => {
+      expect(() => dreamAttributeOpenApiShape(ModelForOpenApiTypeSpecs, 'jsonData')).toThrow(
+        UseCustomOpenApiForJson
+      )
+    })
+  })
 
-  //     expect(openApiShape).toEqual(expectedOpenApiShape)
-  //      json[])
-  //   })
-  // })
+  context('json[]', () => {
+    it('generates the expected OpenApi shape', () => {
+      expect(() => dreamAttributeOpenApiShape(ModelForOpenApiTypeSpecs, 'favoriteJsons')).toThrow(
+        UseCustomOpenApiForJson
+      )
+    })
+  })
 
-  // context("json[], notNull", () => {
-  //   it('generates the expected OpenApi shape', () => {
-  //     const openApiShape = dreamAttributeOpenApiShape(ModelForOpenApiTypeSpecs, 'requiredFavoriteJsons')
-  //     const expectedOpenApiShape: OpenapiSchemaBody = {
-  //       type: '',
-  //       nullable: true,
-  //     }
+  context('jsonb', () => {
+    it('generates the expected OpenApi shape', () => {
+      expect(() => dreamAttributeOpenApiShape(ModelForOpenApiTypeSpecs, 'jsonbData')).toThrow(
+        UseCustomOpenApiForJson
+      )
+    })
+  })
 
-  //     expect(openApiShape).toEqual(expectedOpenApiShape)
-  //      json[], notNull
-  //   })
-  // })
-
-  // context("jsonb[]", () => {
-  //   it('generates the expected OpenApi shape', () => {
-  //     const openApiShape = dreamAttributeOpenApiShape(ModelForOpenApiTypeSpecs, 'favoriteJsonbs')
-  //     const expectedOpenApiShape: OpenapiSchemaBody = {
-  //       type: '',
-  //       nullable: true,
-  //     }
-
-  //     expect(openApiShape).toEqual(expectedOpenApiShape)
-  //      jsonb[])
-  //   })
-  // })
-
-  // context("jsonb[], notNull", () => {
-  //   it('generates the expected OpenApi shape', () => {
-  //     const openApiShape = dreamAttributeOpenApiShape(ModelForOpenApiTypeSpecs, 'requiredFavoriteJsonbs')
-  //     const expectedOpenApiShape: OpenapiSchemaBody = {
-  //       type: '',
-  //       nullable: true,
-  //     }
-
-  //     expect(openApiShape).toEqual(expectedOpenApiShape)
-  //      jsonb[], notNull
-  //   })
-  // })
-
-  // context("jsonb", () => {
-  //   it('generates the expected OpenApi shape', () => {
-  //     const openApiShape = dreamAttributeOpenApiShape(ModelForOpenApiTypeSpecs, 'jsonbData')
-  //     const expectedOpenApiShape: OpenapiSchemaBody = {
-  //       type: '',
-  //       nullable: true,
-  //     }
-
-  //     expect(openApiShape).toEqual(expectedOpenApiShape)
-  //      'jsonb')
-  //   })
-  // })
-
-  // context("jsonb', col.notNull().defaultTo('{}'))", () => {
-  //   it('generates the expected OpenApi shape', () => {
-  //     const openApiShape = dreamAttributeOpenApiShape(ModelForOpenApiTypeSpecs, 'requiredJsonbData')
-  //     const expectedOpenApiShape: OpenapiSchemaBody = {
-  //       type: '',
-  //       nullable: true,
-  //     }
-
-  //     expect(openApiShape).toEqual(expectedOpenApiShape)
-  //      'jsonb', col.notNull().defaultTo('{}'))
-  //   })
-  // })
-
-  // context("json", () => {
-  //   it('generates the expected OpenApi shape', () => {
-  //     const openApiShape = dreamAttributeOpenApiShape(ModelForOpenApiTypeSpecs, 'jsonData')
-  //     const expectedOpenApiShape: OpenapiSchemaBody = {
-  //       type: '',
-  //       nullable: true,
-  //     }
-
-  //     expect(openApiShape).toEqual(expectedOpenApiShape)
-  //      'json')
-  //   })
-  // })
-
-  // context("json', col.notNull().defaultTo('{}'))", () => {
-  //   it('generates the expected OpenApi shape', () => {
-  //     const openApiShape = dreamAttributeOpenApiShape(ModelForOpenApiTypeSpecs, 'requiredJsonData')
-  //     const expectedOpenApiShape: OpenapiSchemaBody = {
-  //       type: '',
-  //       nullable: true,
-  //     }
-
-  //     expect(openApiShape).toEqual(expectedOpenApiShape)
-  //      'json', col.notNull().defaultTo('{}'))
-  //   })
-  // })
+  context('jsonb[]', () => {
+    it('generates the expected OpenApi shape', () => {
+      expect(() => dreamAttributeOpenApiShape(ModelForOpenApiTypeSpecs, 'favoriteJsonbs')).toThrow(
+        UseCustomOpenApiForJson
+      )
+    })
+  })
 })
