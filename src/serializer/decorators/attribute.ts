@@ -137,7 +137,8 @@ export default function Attribute(
       renderOptions = openApiOptions_or_renderOptions as AttributeRenderOptions
       //
     } else if (typeof dreamClass_or_shorthandAttribute_or_manualOpenApiOptions === 'object') {
-      openApiShape = dreamClass_or_shorthandAttribute_or_manualOpenApiOptions as OpenapiSchemaBodyShorthand
+      renderAs = dreamClass_or_shorthandAttribute_or_manualOpenApiOptions as OpenapiSchemaBodyShorthand
+      openApiShape = renderAs
       renderOptions = openApiOptions_or_renderOptions as AttributeRenderOptions
     } else if (dreamClass_or_shorthandAttribute_or_manualOpenApiOptions === undefined) {
       // no-op
