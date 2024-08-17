@@ -39,7 +39,7 @@ import {
  *
  * ```ts
  * class UserSerializer {
- *   @RendersOne(() => SettingsSummarySerializer)
+ *   @RendersOne( SettingsSummarySerializer)
  *   public settings: Settings
  * }
  * ```
@@ -61,11 +61,6 @@ export default function RendersOne(
       opts = (dreamOrSerializerClass || {}) as RendersOneOpts
       dreamOrSerializerClass = null
     }
-
-    // if (!Object.getOwnPropertyDescriptor(serializerClass, 'associationStatements'))
-    //   serializerClass.associationStatements = [
-    //     // ...(serializerClass.associationStatements || []),
-    //   ] as DreamSerializerAssociationStatement[]
 
     serializerClass.associationStatements = [
       ...(serializerClass.associationStatements || []),

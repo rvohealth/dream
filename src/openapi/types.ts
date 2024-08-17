@@ -215,12 +215,13 @@ export const openapiPrimitiveTypes = [
   'number',
   'date',
   'date-time',
-  'decimal',
   'double',
   'integer',
 ] as const
+
 export const openapiShorthandPrimitiveTypes = [
   ...openapiPrimitiveTypes,
+  'decimal',
   'string[]',
   'boolean[]',
   'number[]',

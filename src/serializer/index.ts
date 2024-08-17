@@ -180,7 +180,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
       )
 
       if (attributeStatement) {
-        const { field, renderAs, options } = attributeStatement
+        const { field, renderAs, renderOptions } = attributeStatement
         const fieldWithCasing = this.applyCasingToField(field)
 
         let dateValue: CalendarDate | DateTime | null | undefined
@@ -205,9 +205,9 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
             returnObj[fieldWithCasing] =
               decimalValue === null
                 ? null
-                : options?.precision === undefined
+                : renderOptions?.precision === undefined
                   ? decimalValue
-                  : round(decimalValue, options?.precision)
+                  : round(decimalValue, renderOptions?.precision)
             break
 
           case 'integer':
@@ -313,8 +313,8 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     const { field } = attributeStatement
 
     let pathToValue: any = this as any
-    if (attributeStatement.options?.delegate) {
-      const delegateField = attributeStatement.options?.delegate
+    if (attributeStatement.renderOptions?.delegate) {
+      const delegateField = attributeStatement.renderOptions?.delegate
       pathToValue = (this as any).data?.[delegateField] || null
     }
 

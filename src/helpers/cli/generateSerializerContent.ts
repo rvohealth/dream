@@ -97,11 +97,11 @@ export default class ${serializerClass}${dataTypeCapture} extends ${extendedClas
       switch (type) {
         case 'belongs_to':
         case 'has_one':
-          return `@RendersOne(() => ${associatedModelName})
+          return `@RendersOne( ${associatedModelName})
   public ${propertyName}: ${associatedModelName}`
 
         case 'has_many':
-          return `@RendersMany(() => ${associatedModelName})
+          return `@RendersMany( ${associatedModelName})
   public ${pluralize(propertyName)}: ${associatedModelName}[]`
 
         default:

@@ -39,7 +39,7 @@ import {
  *
  * ```ts
  * class UserSerializer {
- *   @RendersMany(() => PostSummarySerializer)
+ *   @RendersMany( PostSummarySerializer)
  *   public posts: Post[]
  * }
  * ```
@@ -58,11 +58,6 @@ export default function RendersMany(
       opts = (dreamOrSerializerClass || {}) as RendersManyOpts
       dreamOrSerializerClass = null
     }
-
-    // if (!Object.getOwnPropertyDescriptor(serializerClass, 'associationStatements'))
-    //   serializerClass.associationStatements = [
-    //     // ...(serializerClass.associationStatements || []),
-    //   ] as DreamSerializerAssociationStatement[]
 
     serializerClass.associationStatements = [
       ...(serializerClass.associationStatements || []),

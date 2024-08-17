@@ -176,6 +176,15 @@ export type DreamAttributes<
   -readonly [K in keyof SchemaColumns]: SchemaColumns[K]['coercedType' & keyof SchemaColumns[K]]
 }
 
+export type DreamAttributeDbTypes<
+  DreamInstance extends Dream,
+  Schema = DreamInstance['schema'],
+  SchemaColumns = Schema[DreamInstance['table'] & keyof Schema]['columns' &
+    keyof Schema[DreamInstance['table'] & keyof Schema]],
+> = {
+  -readonly [K in keyof SchemaColumns]: SchemaColumns[K]['dbType' & keyof SchemaColumns[K]]
+}
+
 export type DreamParamSafeAttributes<DreamInstance extends Dream> = {
   [K in keyof DreamAttributes<DreamInstance> &
     DreamParamSafeColumnNames<DreamInstance>]: DreamAttributes<DreamInstance>[K]

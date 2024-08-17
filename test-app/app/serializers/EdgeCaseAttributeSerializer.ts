@@ -14,6 +14,6 @@ export default class EdgeCaseAttributeSerializer<
   @Attribute('number')
   public popKPop: number
 
-  @Attribute('decimal', { precision: 2 })
+  @Attribute('decimal', null, { precision: 2 })
   public roundedPopKPop: number
 }

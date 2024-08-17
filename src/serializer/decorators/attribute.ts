@@ -1,13 +1,16 @@
 import DreamSerializer from '..'
 import Dream from '../../dream'
-import { DreamColumnNames } from '../../dream/types'
 import { RoundingPrecision } from '../../helpers/round'
-import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../openapi/types'
+import {
+  OpenapiSchemaBody,
+  OpenapiSchemaBodyShorthand,
+  OpenapiShorthandPrimitiveTypes,
+} from '../../openapi/types'
 
 export default function Attribute(): any
 export default function Attribute(
   manualOpenApiOptions: OpenapiSchemaBodyShorthand,
-  renderOptions: AttributeRenderOptions
+  renderOptions?: AttributeRenderOptions
 ): any
 
 export default function Attribute(
@@ -24,8 +27,8 @@ export default function Attribute(
 
 export default function Attribute<DreamClass extends typeof Dream>(
   dreamClass: DreamClass,
-  dreamColumn: DreamColumnNames<InstanceType<DreamClass>>,
-  openApiOptions?: AutomaticOpenApiExtraOptions
+  openApiOptions?: AutomaticOpenApiExtraOptions | null,
+  openApiRenderOptions?: DecimalSpecificAttributeRenderOptions
 ): any
 
 /*
@@ -103,26 +106,29 @@ export default function Attribute<DreamClass extends typeof Dream>(
  * }
  * ```
  */
-export default function Attribute(
-  manualOpenApiOptions_or_shorthandAttribute_or_dreamClass?: unknown,
-  renderOptions_or_shorthandAttributeOpenApiOptions_or_dreamColumn?: unknown,
-  shorthandAttributeRenderOptions_or_openApiOptions?: unknown
-): any {
+export default function Attribute(): any {
+  // manualOpenApiOptions_or_shorthandAttribute_or_dreamClass?: unknown,
+  // renderOptions_or_shorthandAttributeOpenApiOptions?: unknown,
+  // shorthandAttributeRenderOptions_or_openApiOptions_or_openApiRenderOptions?: unknown,
   return function (target: any, key: string, def: any) {
     const serializerClass: typeof DreamSerializer = target.constructor
-    // if (!Object.getOwnPropertyDescriptor(serializerClass, 'attributeStatements'))
-    //   serializerClass.attributeStatements = [
-    //     // ...(serializerClass.attributeStatements || []),
-    //   ] as AttributeStatement[]
+
+    // let renderAs: SerializableTypes
+    // let renderOptions: AttributeRenderOptions
+
+    // if ((manualOpenApiOptions_or_shorthandAttribute_or_dreamClass as typeof Dream)?.isDream) {
+    //   renderAs = manualOpenApiOptions_or_shorthandAttribute_or_dreamClass as typeof Dream
+    // }
 
     serializerClass.attributeStatements = [
       ...(serializerClass.attributeStatements || []),
-      {
-        field: key,
-        functional: typeof def?.value === 'function',
-        renderAs,
-        options,
-      } as AttributeStatement,
+      // {
+      //   field: key,
+      //   functional: typeof def?.value === 'function',
+      //   openApiShape,
+      //   renderAs,
+      //   renderOptions,
+      // } as AttributeStatement,
     ]
   }
 }
@@ -132,8 +138,9 @@ export type SerializableTypes = OpenapiShorthandPrimitiveTypes | OpenapiSchemaBo
 export interface AttributeStatement {
   field: string
   functional: boolean
+  openApiShape: OpenapiSchemaBody
   renderAs?: SerializableTypes
-  options?: AttributeRenderOptions
+  renderOptions?: AttributeRenderOptions
 }
 
 interface AutomaticOpenApiExtraOptions {
@@ -148,8 +155,10 @@ interface ShorthandAttributeRenderOptions {
   delegate?: string
 }
 
-interface DecimalAttributeRenderOptions extends ShorthandAttributeRenderOptions {
+interface DecimalSpecificAttributeRenderOptions {
   precision?: RoundingPrecision
 }
+
+type DecimalAttributeRenderOptions = ShorthandAttributeRenderOptions & DecimalSpecificAttributeRenderOptions
 
 type AttributeRenderOptions = DecimalAttributeRenderOptions
