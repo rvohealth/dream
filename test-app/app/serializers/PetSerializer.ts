@@ -1,4 +1,4 @@
-import { IdType } from '../../../src/dream/types'
+import { DreamColumn, IdType } from '../../../src/dream/types'
 import DreamSerializer from '../../../src/serializer'
 import RendersMany from '../../../src/serializer/decorators/associations/renders-many'
 import Attribute from '../../../src/serializer/decorators/attribute'
@@ -9,17 +9,17 @@ export default class PetSerializer<DataType extends Pet, Passthrough extends obj
   DataType,
   Passthrough
 > {
-  @Attribute(Pet, 'id')
-  public id: IdType
+  @Attribute(Pet)
+  public id: DreamColumn<Pet, 'id'>
 
-  @Attribute(Pet, 'name')
-  public name: string
+  @Attribute(Pet)
+  public name: DreamColumn<Pet, 'name'>
 
-  @Attribute(Pet, 'favoriteDaysOfWeek', { description: 'The days the Pet is happiest' })
-  public favoriteDaysOfWeek: number[]
+  @Attribute(Pet, { description: 'The days the Pet is happiest' })
+  public favoriteDaysOfWeek: DreamColumn<Pet, 'favoriteDaysOfWeek'>
 
-  @Attribute(Pet, 'species')
-  public species: string
+  @Attribute(Pet)
+  public species: DreamColumn<Pet, 'species'>
 
   @RendersMany(Rating)
   public ratings: Rating[]
