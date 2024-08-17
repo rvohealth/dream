@@ -305,7 +305,7 @@ export interface ModelForOpenApiTypeSpecs {
   favoriteTexts: string[] | null;
   favoriteTreats: PetTreatsEnum[] | null;
   favoriteUuids: string[] | null;
-  id: Generated<number>;
+  id: Generated<Int8>;
   jsonData: Json | null;
   jsonbData: Json | null;
   likesTreats: Generated<boolean>;
@@ -317,7 +317,6 @@ export interface ModelForOpenApiTypeSpecs {
   passwordDigest: string;
   requiredCollarCount: Generated<Int8>;
   requiredCollarCountInt: Generated<number>;
-  requiredCollarCountNumeric: Generated<number>;
   requiredFavoriteBigint: Generated<Int8>;
   requiredFavoriteBigints: Generated<Int8[]>;
   requiredFavoriteBooleans: Generated<boolean[]>;

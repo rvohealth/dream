@@ -63,7 +63,6 @@ export default class ModelForOpenApiTypeSpecs extends ApplicationModel {
   public collarCountNumeric: DreamColumn<ModelForOpenApiTypeSpecs, 'collarCountNumeric'>
   public requiredCollarCount: DreamColumn<ModelForOpenApiTypeSpecs, 'requiredCollarCount'>
   public requiredCollarCountInt: DreamColumn<ModelForOpenApiTypeSpecs, 'requiredCollarCountInt'>
-  public requiredCollarCountNumeric: DreamColumn<ModelForOpenApiTypeSpecs, 'requiredCollarCountNumeric'>
   public likesWalks: DreamColumn<ModelForOpenApiTypeSpecs, 'likesWalks'>
   public likesTreats: DreamColumn<ModelForOpenApiTypeSpecs, 'likesTreats'>
 

@@ -29,9 +29,9 @@ export class PetSummarySerializer<DataType extends Pet, Passthrough extends obje
   DataType,
   Passthrough
 > {
-  @Attribute('string')
+  @Attribute(Pet)
   public id: IdType
 
-  @Attribute('string')
+  @Attribute(Pet)
   public favoriteTreats: string
 }

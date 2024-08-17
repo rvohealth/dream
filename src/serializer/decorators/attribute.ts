@@ -6,6 +6,7 @@ import {
   OpenapiSchemaBodyShorthand,
   OpenapiShorthandPrimitiveTypes,
 } from '../../openapi/types'
+import { dreamAttributeOpenApiShape } from './helpers/dreamAttributeOpenApiShape'
 
 export default function Attribute(): any
 export default function Attribute(
@@ -106,19 +107,24 @@ export default function Attribute<DreamClass extends typeof Dream>(
  * }
  * ```
  */
-export default function Attribute(): any {
-  // manualOpenApiOptions_or_shorthandAttribute_or_dreamClass?: unknown,
-  // renderOptions_or_shorthandAttributeOpenApiOptions?: unknown,
-  // shorthandAttributeRenderOptions_or_openApiOptions_or_openApiRenderOptions?: unknown,
+export default function Attribute(
+  manualOpenApiOptions_or_shorthandAttribute_or_dreamClass?: unknown,
+  renderOptions_or_shorthandAttributeOpenApiOptions?: unknown,
+  shorthandAttributeRenderOptions_or_openApiOptions_or_openApiRenderOptions?: unknown
+): any {
   return function (target: any, key: string, def: any) {
     const serializerClass: typeof DreamSerializer = target.constructor
 
-    // let renderAs: SerializableTypes
-    // let renderOptions: AttributeRenderOptions
+    let renderAs: SerializableTypes
+    let renderOptions: AttributeRenderOptions
+    let openApiShape: OpenapiSchemaBody
 
-    // if ((manualOpenApiOptions_or_shorthandAttribute_or_dreamClass as typeof Dream)?.isDream) {
-    //   renderAs = manualOpenApiOptions_or_shorthandAttribute_or_dreamClass as typeof Dream
-    // }
+    if ((manualOpenApiOptions_or_shorthandAttribute_or_dreamClass as typeof Dream)?.isDream) {
+      renderAs = dreamAttributeOpenApiShape(
+        manualOpenApiOptions_or_shorthandAttribute_or_dreamClass as typeof Dream,
+        key
+      )
+    }
 
     serializerClass.attributeStatements = [
       ...(serializerClass.attributeStatements || []),

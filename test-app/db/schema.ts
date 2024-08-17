@@ -1684,10 +1684,10 @@ export const schema = {
         isArray: true,
       },
       id: {
-        coercedType: {} as number,
+        coercedType: {} as IdType,
         enumType: null,
         enumValues: null,
-        dbType: 'integer',
+        dbType: 'bigint',
         allowNull: false,
         isArray: false,
       },
@@ -1772,14 +1772,6 @@ export const schema = {
         isArray: false,
       },
       requiredCollarCountInt: {
-        coercedType: {} as number,
-        enumType: null,
-        enumValues: null,
-        dbType: 'integer',
-        allowNull: false,
-        isArray: false,
-      },
-      requiredCollarCountNumeric: {
         coercedType: {} as number,
         enumType: null,
         enumValues: null,
