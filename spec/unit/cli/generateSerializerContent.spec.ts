@@ -107,7 +107,7 @@ export default class UserSerializer<
   DataType extends User,
   Passthrough extends object,
 > extends UserSummarySerializer<DataType, Passthrough> {
-  @Attribute(User, null, { precision: 2 })
+  @Attribute(User, { precision: 2 })
   public howyadoin: DreamColumn<User, 'howyadoin'>
 }
 `

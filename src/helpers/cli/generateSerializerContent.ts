@@ -108,7 +108,7 @@ export default class ${serializerClass}${dataTypeCapture} extends ${extendedClas
 function attributeOptionsSpecifier(type: string, attr: string) {
   switch (type) {
     case 'decimal':
-      return `, null, { precision: ${attr.split(',').pop()} }`
+      return `, { precision: ${attr.split(',').pop()} }`
 
     default:
       return ''

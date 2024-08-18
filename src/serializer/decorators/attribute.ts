@@ -13,28 +13,22 @@ export default function Attribute(): any
 
 export default function Attribute<DreamClass extends typeof Dream>(
   dreamClass: DreamClass,
-  openApiOptions?: AutomaticOpenApiExtraOptions | null,
-  renderOptions?: DecimalSpecificAttributeRenderOptions
+  openApiAndRenderOptions?: AutomaticOpenApiAndREnderOptions
 ): any
 
 export default function Attribute(
   manualOpenApiOptions: OpenapiSchemaBodyShorthand,
-  renderOptions?: DecimalSpecificAttributeRenderOptions
-): any
-
-export default function Attribute(
-  manualOpenApiOptions: OpenapiSchemaBodyShorthand,
-  renderOptions?: DecimalSpecificAttributeRenderOptions
+  renderOptions?: DecimalShorthandAttributeRenderOptions
 ): any
 
 export default function Attribute(
   shorthandAttribute: 'decimal' | 'decimal[]',
-  shorthandAttributeRenderOptions?: DecimalShorthandAttributeRenderOptions
+  openApiAndRenderOptions?: DecimalShorthandAttributeOpenApiAndRenderOptions
 ): any
 
 export default function Attribute(
   shorthandAttribute: OpenapiShorthandPrimitiveTypes,
-  shorthandAttributeRenderOptions?: ShorthandAttributeRenderOptions
+  openApiAndRenderOptions?: ShorthandAttributeOpenApiAndRenderOptions
 ): any
 
 /*
@@ -114,38 +108,34 @@ export default function Attribute(
  */
 export default function Attribute(
   dreamClass_or_shorthandAttribute_or_manualOpenApiOptions?: unknown,
-  openApiOptions_or_renderOptions?: unknown,
-  renderOptions_or_undefined?: unknown
+  openApiAndRenderOptions_or_renderOptions: unknown = {}
 ): any {
   return function (target: any, key: string, def: any) {
     const serializerClass: typeof DreamSerializer = target.constructor
 
     let renderAs: SerializableTypes | undefined
     let openApiShape: OpenapiSchemaBodyShorthand | undefined
-    let renderOptions: AttributeRenderOptions | undefined
+    const { openApiOptions, renderOptions } = openApiAndRenderOptionsToSeparateOptions(
+      openApiAndRenderOptions_or_renderOptions as DecimalShorthandAttributeOpenApiAndRenderOptions
+    )
 
     if ((dreamClass_or_shorthandAttribute_or_manualOpenApiOptions as typeof Dream)?.isDream) {
-      const extraOpenApiOptions: AutomaticOpenApiExtraOptions = openApiOptions_or_renderOptions || {}
-
       openApiShape = {
         ...dreamAttributeOpenApiShape(
           dreamClass_or_shorthandAttribute_or_manualOpenApiOptions as typeof Dream,
           key
         ),
-        ...extraOpenApiOptions,
+        ...openApiOptions,
       }
 
-      renderOptions = renderOptions_or_undefined as AttributeRenderOptions | undefined
       //
     } else if (isString(dreamClass_or_shorthandAttribute_or_manualOpenApiOptions)) {
       renderAs = dreamClass_or_shorthandAttribute_or_manualOpenApiOptions as OpenapiShorthandPrimitiveTypes
-      openApiShape = { type: renderAs }
-      renderOptions = openApiOptions_or_renderOptions as AttributeRenderOptions
+      openApiShape = { type: renderAs, ...openApiOptions }
       //
     } else if (typeof dreamClass_or_shorthandAttribute_or_manualOpenApiOptions === 'object') {
-      renderAs = dreamClass_or_shorthandAttribute_or_manualOpenApiOptions as OpenapiSchemaBodyShorthand
-      openApiShape = renderAs
-      renderOptions = openApiOptions_or_renderOptions as AttributeRenderOptions
+      openApiShape = dreamClass_or_shorthandAttribute_or_manualOpenApiOptions as OpenapiSchemaBodyShorthand
+      renderAs = openApiShape
     } else if (dreamClass_or_shorthandAttribute_or_manualOpenApiOptions === undefined) {
       // no-op
     } else {
@@ -167,6 +157,35 @@ export default function Attribute(
   }
 }
 
+function openApiAndRenderOptionsToSeparateOptions(
+  openApiAndRenderOptions: DecimalShorthandAttributeOpenApiAndRenderOptions
+): { openApiOptions: OpenApiOnlyOptions | undefined; renderOptions: RenderOnlyOptions | undefined } {
+  let openApiOptions: OpenApiOnlyOptions | undefined
+  let renderOptions: RenderOnlyOptions | undefined
+
+  if (openApiAndRenderOptions.description !== undefined) {
+    openApiOptions ||= {}
+    openApiOptions.description = openApiAndRenderOptions.description
+  }
+
+  if (openApiAndRenderOptions.allowNull !== undefined) {
+    openApiOptions ||= {}
+    openApiOptions.allowNull = openApiAndRenderOptions.allowNull
+  }
+
+  if (openApiAndRenderOptions.delegate !== undefined) {
+    renderOptions ||= {}
+    renderOptions.delegate = openApiAndRenderOptions.delegate
+  }
+
+  if (openApiAndRenderOptions.precision !== undefined) {
+    renderOptions ||= {}
+    renderOptions.precision = openApiAndRenderOptions.precision
+  }
+
+  return { openApiOptions, renderOptions }
+}
+
 export type SerializableTypes = OpenapiShorthandPrimitiveTypes | OpenapiSchemaBodyShorthand
 
 export interface AttributeStatement {
@@ -177,20 +196,28 @@ export interface AttributeStatement {
   renderOptions?: AttributeRenderOptions
 }
 
-interface AutomaticOpenApiExtraOptions {
-  description?: string
-}
-
-interface ShorthandAttributeRenderOptions {
-  allowNull?: boolean
+interface AttributeRenderOptions {
   delegate?: string
-}
-
-interface DecimalSpecificAttributeRenderOptions {
   precision?: RoundingPrecision
 }
 
-type DecimalShorthandAttributeRenderOptions = ShorthandAttributeRenderOptions &
-  DecimalSpecificAttributeRenderOptions
+interface OpenApiOnlyOptions {
+  allowNull?: boolean
+  description?: string
+}
 
-type AttributeRenderOptions = DecimalShorthandAttributeRenderOptions
+interface RenderOnlyOptions {
+  precision?: RoundingPrecision
+  delegate?: string
+}
+
+type AutomaticOpenApiAndREnderOptions = Pick<OpenApiOnlyOptions, 'description'> &
+  Pick<RenderOnlyOptions, 'precision'>
+
+type ShorthandAttributeOpenApiAndRenderOptions = Pick<OpenApiOnlyOptions, 'allowNull' | 'description'> &
+  Pick<RenderOnlyOptions, 'delegate'>
+
+type DecimalShorthandAttributeRenderOptions = Pick<RenderOnlyOptions, 'precision'>
+
+type DecimalShorthandAttributeOpenApiAndRenderOptions = ShorthandAttributeOpenApiAndRenderOptions &
+  DecimalShorthandAttributeRenderOptions

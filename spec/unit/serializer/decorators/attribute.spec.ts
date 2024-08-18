@@ -118,7 +118,7 @@ describe('@Attribute', () => {
     context('decorating a property corresponding to a decimal column', () => {
       it('decimals allow specification of precision', () => {
         class TestSerializer extends DreamSerializer {
-          @Attribute(ModelForOpenApiTypeSpecs, null, { precision: 2 })
+          @Attribute(ModelForOpenApiTypeSpecs, { precision: 2 })
           public volume: number
         }
 
@@ -160,7 +160,7 @@ describe('@Attribute', () => {
       () => {
         it('sets the openApiShape and renderAs to that shorthand string', () => {
           class TestSerializer extends DreamSerializer {
-            @Attribute('date-time[]', { allowNull: true, delegate: 'hello' })
+            @Attribute('date-time[]', { allowNull: true, delegate: 'hello', description: 'Hello world' })
             public name: string
           }
 
@@ -168,9 +168,9 @@ describe('@Attribute', () => {
             {
               field: 'name',
               functional: false,
-              openApiShape: { type: 'date-time[]' },
+              openApiShape: { type: 'date-time[]', allowNull: true, description: 'Hello world' },
               renderAs: 'date-time[]',
-              renderOptions: { allowNull: true, delegate: 'hello' },
+              renderOptions: { delegate: 'hello' },
             },
           ])
         })
