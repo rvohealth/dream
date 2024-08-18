@@ -10,6 +10,13 @@ import {
 import { dreamAttributeOpenApiShape } from './helpers/dreamAttributeOpenApiShape'
 
 export default function Attribute(): any
+
+export default function Attribute<DreamClass extends typeof Dream>(
+  dreamClass: DreamClass,
+  openApiOptions?: AutomaticOpenApiExtraOptions | null,
+  renderOptions?: DecimalSpecificAttributeRenderOptions
+): any
+
 export default function Attribute(
   manualOpenApiOptions: OpenapiSchemaBodyShorthand,
   renderOptions?: AttributeRenderOptions
@@ -22,13 +29,7 @@ export default function Attribute(
 
 export default function Attribute(
   shorthandAttribute: 'decimal' | 'decimal[]',
-  shorthandAttributeRenderOptions?: DecimalAttributeRenderOptions
-): any
-
-export default function Attribute<DreamClass extends typeof Dream>(
-  dreamClass: DreamClass,
-  openApiOptions?: AutomaticOpenApiExtraOptions | null,
-  renderOptions?: DecimalSpecificAttributeRenderOptions
+  shorthandAttributeRenderOptions?: DecimalShorthandAttributeRenderOptions
 ): any
 
 /*
@@ -184,6 +185,7 @@ interface DecimalSpecificAttributeRenderOptions {
   precision?: RoundingPrecision
 }
 
-type DecimalAttributeRenderOptions = ShorthandAttributeRenderOptions & DecimalSpecificAttributeRenderOptions
+type DecimalShorthandAttributeRenderOptions = ShorthandAttributeRenderOptions &
+  DecimalSpecificAttributeRenderOptions
 
-type AttributeRenderOptions = DecimalAttributeRenderOptions
+type AttributeRenderOptions = DecimalShorthandAttributeRenderOptions

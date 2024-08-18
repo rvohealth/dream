@@ -22,8 +22,8 @@ describe('@Attribute', () => {
     })
   })
 
-  context('with a Dream model and column name', () => {
-    context('with a string attribute', () => {
+  context('with a Dream model', () => {
+    context('decorating a property corresponding to a string column', () => {
       it('attributeStatements specify field, OpenAPI type, and renderAs type', () => {
         class TestSerializer extends DreamSerializer {
           @Attribute(ModelForOpenApiTypeSpecs)
@@ -44,7 +44,7 @@ describe('@Attribute', () => {
       })
     })
 
-    context('with an enum attribute', () => {
+    context('decorating a property corresponding to an enum column', () => {
       it('attributeStatements specify the enum type', () => {
         class TestSerializer extends DreamSerializer {
           @Attribute(ModelForOpenApiTypeSpecs)
@@ -94,7 +94,7 @@ describe('@Attribute', () => {
       })
     })
 
-    context('with an integer attribute', () => {
+    context('decorating a property corresponding to an integer column', () => {
       it('integers allow specification of precision', () => {
         class TestSerializer extends DreamSerializer {
           @Attribute(ModelForOpenApiTypeSpecs)
@@ -115,7 +115,7 @@ describe('@Attribute', () => {
       })
     })
 
-    context('with a decimal attribute', () => {
+    context('decorating a property corresponding to a decimal column', () => {
       it('decimals allow specification of precision', () => {
         class TestSerializer extends DreamSerializer {
           @Attribute(ModelForOpenApiTypeSpecs, null, { precision: 2 })
@@ -135,5 +135,46 @@ describe('@Attribute', () => {
         expect(TestSerializer.attributeStatements).toEqual([expected])
       })
     })
+  })
+
+  context('with a type shorthand string', () => {
+    it('sets the openApiShape and renderAs to that shorthand string', () => {
+      class TestSerializer extends DreamSerializer {
+        @Attribute('date-time[]')
+        public name: string
+      }
+
+      expect(TestSerializer.attributeStatements).toEqual([
+        {
+          field: 'name',
+          functional: false,
+          openApiShape: { type: 'date-time[]' },
+          renderAs: 'date-time[]',
+          renderOptions: undefined,
+        },
+      ])
+    })
+
+    context(
+      'with render options (which, in the shorthand case also include `allowNull`, which is an OpenAPI option)',
+      () => {
+        it('sets the openApiShape and renderAs to that shorthand string', () => {
+          class TestSerializer extends DreamSerializer {
+            @Attribute('date-time[]', { allowNull: true, delegate: 'hello' })
+            public name: string
+          }
+
+          expect(TestSerializer.attributeStatements).toEqual([
+            {
+              field: 'name',
+              functional: false,
+              openApiShape: { type: 'date-time[]' },
+              renderAs: 'date-time[]',
+              renderOptions: { allowNull: true, delegate: 'hello' },
+            },
+          ])
+        })
+      }
+    )
   })
 })
