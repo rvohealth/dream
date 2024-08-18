@@ -14,7 +14,7 @@ export default function Attribute<DreamClass extends typeof Dream>(
 
 export default function Attribute(
   manualOpenapiOptions: OpenapiSchemaBodyShorthand,
-  renderOptions?: DecimalShorthandAttributeRenderOptions
+  renderOptions?: RenderOnlyOptions
 ): any
 
 export default function Attribute(
