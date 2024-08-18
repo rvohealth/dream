@@ -1,5 +1,5 @@
 import { Attribute, AttributeStatement, DreamSerializer, OpenapiSchemaBody } from '../../../../src'
-import ModelForOpenApiTypeSpecs from '../../../../test-app/app/models/ModelForOpenApiTypeSpec'
+import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec2'
 import { SpeciesTypesEnumValues } from '../../../../test-app/db/sync'
 
 describe('@Attribute', () => {
@@ -26,17 +26,17 @@ describe('@Attribute', () => {
     context('decorating a property corresponding to a string column', () => {
       it('attributeStatements specify field, OpenAPI type, and renderAs type', () => {
         class TestSerializer extends DreamSerializer {
-          @Attribute(ModelForOpenApiTypeSpecs)
+          @Attribute(ModelForOpenapiTypeSpecs)
           public name: string
         }
 
-        const expectedOpenApiShape: OpenapiSchemaBody = { type: 'string', nullable: true }
+        const expectedOpenapiShape: OpenapiSchemaBody = { type: 'string', nullable: true }
 
         expect(TestSerializer.attributeStatements).toEqual([
           {
             field: 'name',
             functional: false,
-            openApiShape: expectedOpenApiShape,
+            openApiShape: expectedOpenapiShape,
             renderAs: undefined,
             renderOptions: undefined,
           },
@@ -47,11 +47,11 @@ describe('@Attribute', () => {
     context('decorating a property corresponding to an enum column', () => {
       it('attributeStatements specify the enum type', () => {
         class TestSerializer extends DreamSerializer {
-          @Attribute(ModelForOpenApiTypeSpecs)
+          @Attribute(ModelForOpenapiTypeSpecs)
           public species: string
         }
 
-        const expectedOpenApiShape: OpenapiSchemaBody = {
+        const expectedOpenapiShape: OpenapiSchemaBody = {
           type: 'string',
           enum: SpeciesTypesEnumValues,
           nullable: true,
@@ -61,7 +61,7 @@ describe('@Attribute', () => {
           {
             field: 'species',
             functional: false,
-            openApiShape: expectedOpenApiShape,
+            openApiShape: expectedOpenapiShape,
             renderAs: undefined,
             renderOptions: undefined,
           },
@@ -72,11 +72,11 @@ describe('@Attribute', () => {
     context('with an OpenAPI description', () => {
       it('includes the description in the OpenAPI shape', () => {
         class TestSerializer extends DreamSerializer {
-          @Attribute(ModelForOpenApiTypeSpecs, { description: 'Hello world' })
+          @Attribute(ModelForOpenapiTypeSpecs, { description: 'Hello world' })
           public name: string
         }
 
-        const expectedOpenApiShape: OpenapiSchemaBody = {
+        const expectedOpenapiShape: OpenapiSchemaBody = {
           type: 'string',
           description: 'Hello world',
           nullable: true,
@@ -86,7 +86,7 @@ describe('@Attribute', () => {
           {
             field: 'name',
             functional: false,
-            openApiShape: expectedOpenApiShape,
+            openApiShape: expectedOpenapiShape,
             renderAs: undefined,
             renderOptions: undefined,
           },
@@ -97,16 +97,16 @@ describe('@Attribute', () => {
     context('decorating a property corresponding to an integer column', () => {
       it('integers allow specification of precision', () => {
         class TestSerializer extends DreamSerializer {
-          @Attribute(ModelForOpenApiTypeSpecs)
+          @Attribute(ModelForOpenapiTypeSpecs)
           public collarCountInt: number
         }
 
-        const expectedOpenApiShape: OpenapiSchemaBody = { type: 'integer', nullable: true }
+        const expectedOpenapiShape: OpenapiSchemaBody = { type: 'integer', nullable: true }
 
         const expected: AttributeStatement = {
           field: 'collarCountInt',
           functional: false,
-          openApiShape: expectedOpenApiShape,
+          openApiShape: expectedOpenapiShape,
           renderAs: undefined,
           renderOptions: undefined,
         }
@@ -118,16 +118,16 @@ describe('@Attribute', () => {
     context('decorating a property corresponding to a decimal column', () => {
       it('decimals allow specification of precision', () => {
         class TestSerializer extends DreamSerializer {
-          @Attribute(ModelForOpenApiTypeSpecs, { precision: 2 })
+          @Attribute(ModelForOpenapiTypeSpecs, { precision: 2 })
           public volume: number
         }
 
-        const expectedOpenApiShape: OpenapiSchemaBody = { type: 'number', format: 'decimal', nullable: true }
+        const expectedOpenapiShape: OpenapiSchemaBody = { type: 'number', format: 'decimal', nullable: true }
 
         const expected: AttributeStatement = {
           field: 'volume',
           functional: false,
-          openApiShape: expectedOpenApiShape,
+          openApiShape: expectedOpenapiShape,
           renderAs: undefined,
           renderOptions: { precision: 2 },
         }

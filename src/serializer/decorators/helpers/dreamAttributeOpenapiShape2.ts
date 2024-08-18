@@ -39,7 +39,7 @@ interface DreamColumnInfo {
   isArray: boolean
 }
 
-export function dreamAttributeOpenApiShape<DreamClass extends typeof Dream>(
+export function dreamAttributeOpenapiShape<DreamClass extends typeof Dream>(
   dreamClass: DreamClass,
   column: DreamClassColumnNames<DreamClass>
 ): OpenapiSchemaBody {
@@ -53,7 +53,7 @@ Class: ${dreamClass.name}
 Column: ${column}
 `)
 
-  const singleType = singularAttributeOpenApiShape(dreamColumnInfo)
+  const singleType = singularAttributeOpenapiShape(dreamColumnInfo)
   const nullable = dreamColumnInfo.allowNull ? { nullable: true } : {}
 
   if (dreamColumnInfo.isArray) return { type: 'array', items: singleType, ...nullable }
@@ -64,7 +64,7 @@ Column: ${column}
   }
 }
 
-function singularAttributeOpenApiShape(dreamColumnInfo: DreamColumnInfo): OpenapiSchemaBody {
+function singularAttributeOpenapiShape(dreamColumnInfo: DreamColumnInfo): OpenapiSchemaBody {
   if (dreamColumnInfo.enumValues) return { type: 'string', enum: dreamColumnInfo.enumValues }
 
   switch (dreamColumnInfo.dbType.replace('[]', '')) {
@@ -93,7 +93,7 @@ function singularAttributeOpenApiShape(dreamColumnInfo: DreamColumnInfo): Openap
 
     case 'json':
     case 'jsonb':
-      throw new UseCustomOpenApiForJson()
+      throw new UseCustomOpenapiForJson()
 
     default:
       throw new Error(
@@ -102,7 +102,7 @@ function singularAttributeOpenApiShape(dreamColumnInfo: DreamColumnInfo): Openap
   }
 }
 
-export class UseCustomOpenApiForJson extends Error {
+export class UseCustomOpenapiForJson extends Error {
   public get message() {
     return `Use custom OpenAPI declaration (OpenapiSchemaBodyShorthand) to define shape of json and jsonb fields`
   }
