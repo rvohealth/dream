@@ -2,11 +2,7 @@ import DreamSerializer from '..'
 import Dream from '../../dream'
 import { RoundingPrecision } from '../../helpers/round'
 import { isString } from '../../helpers/typechecks'
-import {
-  OpenapiSchemaBody,
-  OpenapiSchemaBodyShorthand,
-  OpenapiShorthandPrimitiveTypes,
-} from '../../openapi/types'
+import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../openapi/types'
 import { dreamAttributeOpenapiShape } from './helpers/dreamAttributeOpenapiShape'
 
 export default function Attribute(): any
@@ -191,7 +187,7 @@ export type SerializableTypes = OpenapiShorthandPrimitiveTypes | OpenapiSchemaBo
 export interface AttributeStatement {
   field: string
   functional: boolean
-  openApiShape: OpenapiSchemaBody
+  openApiShape: OpenapiSchemaBodyShorthand
   renderAs?: SerializableTypes
   renderOptions?: AttributeRenderOptions
 }

@@ -156,11 +156,11 @@ describe('@Attribute', () => {
     })
 
     context(
-      'with render options (which, in the shorthand case also include `allowNull`, which is an OpenAPI option)',
+      'with render options (which, in the shorthand case also include `nullable`, which is an OpenAPI option)',
       () => {
         it('sets the openApiShape and renderAs to that shorthand string', () => {
           class TestSerializer extends DreamSerializer {
-            @Attribute('date-time[]', { allowNull: true, delegate: 'hello', description: 'Hello world' })
+            @Attribute('date-time[]', { nullable: true, delegate: 'hello', description: 'Hello world' })
             public name: string
           }
 
@@ -168,7 +168,7 @@ describe('@Attribute', () => {
             {
               field: 'name',
               functional: false,
-              openApiShape: { type: 'date-time[]', allowNull: true, description: 'Hello world' },
+              openApiShape: { type: 'date-time[]', nullable: true, description: 'Hello world' },
               renderAs: 'date-time[]',
               renderOptions: { delegate: 'hello' },
             },
@@ -197,7 +197,7 @@ describe('@Attribute', () => {
     })
 
     context(
-      'with render options (which, in the shorthand case also include `allowNull`, which is an OpenAPI option)',
+      'with render options (which, in the shorthand case also include `nullable`, which is an OpenAPI option)',
       () => {
         it('sets the openApiShape and renderAs to that shorthand string', () => {
           class TestSerializer extends DreamSerializer {
