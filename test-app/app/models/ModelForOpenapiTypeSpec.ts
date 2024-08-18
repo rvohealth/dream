@@ -3,12 +3,8 @@ import ApplicationModel from './ApplicationModel'
 
 export default class ModelForOpenapiTypeSpecs extends ApplicationModel {
   public get table() {
-    return 'model_for_open_api_type_specs' as const
+    return 'model_for_openapi_type_specs' as const
   }
-
-  // public get serializers(): DreamSerializer<ModelForOpenapiTypeSpecs> {
-  //   return {}
-  // }
 
   public id: DreamColumn<ModelForOpenapiTypeSpecs, 'id'>
   public name: DreamColumn<ModelForOpenapiTypeSpecs, 'name'>

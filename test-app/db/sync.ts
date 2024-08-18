@@ -1,6 +1,6 @@
+import CalendarDate from '../../src/helpers/CalendarDate'
+import { DateTime } from 'luxon'
 import type { ColumnType } from "kysely";
-import { DateTime } from 'luxon';
-import CalendarDate from '../../src/helpers/CalendarDate';
 
 export type BalloonColorsEnum = "blue" | "green" | "red";
 export const BalloonColorsEnumValues = [
@@ -473,7 +473,7 @@ export interface DB {
   graph_nodes: GraphNodes;
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples;
   localized_texts: LocalizedTexts;
-  model_for_open_api_type_specs: ModelForOpenapiTypeSpecs;
+  model_for_openapi_type_specs: ModelForOpenapiTypeSpecs;
   model_without_custom_deleted_ats: ModelWithoutCustomDeletedAts;
   model_without_deleted_ats: ModelWithoutDeletedAts;
   model_without_updated_at: ModelWithoutUpdatedAt;
@@ -505,7 +505,7 @@ export class DBClass {
   graph_nodes: GraphNodes
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples
   localized_texts: LocalizedTexts
-  model_for_open_api_type_specs: ModelForOpenapiTypeSpecs
+  model_for_openapi_type_specs: ModelForOpenapiTypeSpecs
   model_without_custom_deleted_ats: ModelWithoutCustomDeletedAts
   model_without_deleted_ats: ModelWithoutDeletedAts
   model_without_updated_at: ModelWithoutUpdatedAt

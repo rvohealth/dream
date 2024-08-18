@@ -9,7 +9,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema.createType('pet_treats_enum').asEnum(['snick snowcks', 'efishy feesh']).execute()
 
   await db.schema
-    .createTable('model_for_open_api_type_specs')
+    .createTable('model_for_openapi_type_specs')
     .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('name', 'varchar')
     .addColumn('nicknames', sql`varchar[]`)
@@ -75,5 +75,5 @@ export async function up(db: Kysely<any>): Promise<void> {
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropTable('model_for_open_api_type_specs').execute()
+  await db.schema.dropTable('model_for_openapi_type_specs').execute()
 }
