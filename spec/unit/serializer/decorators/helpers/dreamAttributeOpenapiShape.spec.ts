@@ -2,8 +2,8 @@ import { OpenapiSchemaBody } from '../../../../../src'
 import {
   dreamAttributeOpenapiShape,
   UseCustomOpenapiForJson,
-} from '../../../../../src/serializer/decorators/helpers/dreamAttributeOpenapiShape2'
-import ModelForOpenapiTypeSpecs from '../../../../../test-app/app/models/ModelForOpenapiTypeSpec2'
+} from '../../../../../src/serializer/decorators/helpers/dreamAttributeOpenapiShape'
+import ModelForOpenapiTypeSpecs from '../../../../../test-app/app/models/ModelForOpenapiTypeSpec'
 import { PetTreatsEnumValues, SpeciesTypesEnumValues } from '../../../../../test-app/db/sync'
 
 describe('dreamAttributeOpenapiShape', () => {

@@ -7,7 +7,7 @@ import {
   OpenapiSchemaBodyShorthand,
   OpenapiShorthandPrimitiveTypes,
 } from '../../openapi/types'
-import { dreamAttributeOpenapiShape } from './helpers/dreamAttributeOpenapiShape2'
+import { dreamAttributeOpenapiShape } from './helpers/dreamAttributeOpenapiShape'
 
 export default function Attribute(): any
 
