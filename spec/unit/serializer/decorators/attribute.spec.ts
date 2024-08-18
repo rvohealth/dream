@@ -177,4 +177,45 @@ describe('@Attribute', () => {
       }
     )
   })
+
+  context('with an OpenAPI specification', () => {
+    it('sets the openApiShape and renderAs to that shorthand string', () => {
+      class TestSerializer extends DreamSerializer {
+        @Attribute({ type: 'date', description: 'Hello world' })
+        public name: string
+      }
+
+      expect(TestSerializer.attributeStatements).toEqual([
+        {
+          field: 'name',
+          functional: false,
+          openApiShape: { type: 'date', description: 'Hello world' },
+          renderAs: { type: 'date', description: 'Hello world' },
+          renderOptions: undefined,
+        },
+      ])
+    })
+
+    context(
+      'with render options (which, in the shorthand case also include `allowNull`, which is an OpenAPI option)',
+      () => {
+        it('sets the openApiShape and renderAs to that shorthand string', () => {
+          class TestSerializer extends DreamSerializer {
+            @Attribute({ type: 'decimal', nullable: true }, { precision: 2 })
+            public name: string
+          }
+
+          expect(TestSerializer.attributeStatements).toEqual([
+            {
+              field: 'name',
+              functional: false,
+              openApiShape: { type: 'decimal', nullable: true },
+              renderAs: { type: 'decimal', nullable: true },
+              renderOptions: { precision: 2 },
+            },
+          ])
+        })
+      }
+    )
+  })
 })

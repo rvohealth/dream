@@ -19,17 +19,22 @@ export default function Attribute<DreamClass extends typeof Dream>(
 
 export default function Attribute(
   manualOpenApiOptions: OpenapiSchemaBodyShorthand,
-  renderOptions?: AttributeRenderOptions
+  renderOptions?: DecimalSpecificAttributeRenderOptions
 ): any
 
 export default function Attribute(
-  shorthandAttribute: Exclude<OpenapiShorthandPrimitiveTypes, 'decimal' | 'decimal[]'>,
-  shorthandAttributeRenderOptions?: ShorthandAttributeRenderOptions
+  manualOpenApiOptions: OpenapiSchemaBodyShorthand,
+  renderOptions?: DecimalSpecificAttributeRenderOptions
 ): any
 
 export default function Attribute(
   shorthandAttribute: 'decimal' | 'decimal[]',
   shorthandAttributeRenderOptions?: DecimalShorthandAttributeRenderOptions
+): any
+
+export default function Attribute(
+  shorthandAttribute: OpenapiShorthandPrimitiveTypes,
+  shorthandAttributeRenderOptions?: ShorthandAttributeRenderOptions
 ): any
 
 /*
