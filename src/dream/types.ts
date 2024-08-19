@@ -320,10 +320,16 @@ export type DreamSerializers<I extends Dream> = Record<'default', GlobalSerializ
 
 export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) => T) & typeof Dream
 
-export type DreamOrViewModel = Dream | ViewModel
-export type ViewModel = { serializers: Record<string, string> }
-export type DreamClassOrViewModelClass = abstract new (...args: any) => ViewModel
-export type DreamClassOrViewModelClassOrSerializerClass = DreamClassOrViewModelClass | typeof DreamSerializer
+export type SerializableDreamOrViewModel = { serializers: Record<string, string> }
+export type SerializableDreamClassOrViewModelClass = abstract new (
+  ...args: any
+) => SerializableDreamOrViewModel
+export type SerializableClass = SerializableDreamClassOrViewModelClass | typeof DreamSerializer
+
+export type SerializableClassOrClasses =
+  | typeof DreamSerializer
+  | SerializableDreamClassOrViewModelClass
+  | SerializableDreamClassOrViewModelClass[]
 
 // preload
 export type NextPreloadArgumentType<

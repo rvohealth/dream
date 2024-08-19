@@ -2,10 +2,10 @@ import isArray from 'lodash.isarray'
 import { DateTime } from 'luxon'
 import Dream from '../dream'
 import {
-  DreamClassOrViewModelClass,
-  DreamClassOrViewModelClassOrSerializerClass,
   DreamConst,
-  DreamOrViewModel,
+  SerializableClass,
+  SerializableDreamClassOrViewModelClass,
+  SerializableDreamOrViewModel,
 } from '../dream/types'
 import NonLoadedAssociation from '../exceptions/associations/non-loaded-association'
 import GlobalNameNotSet from '../exceptions/dream-application/global-name-not-set'
@@ -58,8 +58,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     const serializer = this.associationDeclaredSerializer(associationStatement)
     if (serializer) return [serializer]
 
-    let classOrClasses =
-      associationStatement.dreamOrSerializerClass as DreamClassOrViewModelClassOrSerializerClass[]
+    let classOrClasses = associationStatement.dreamOrSerializerClass as SerializableClass[]
     if (!classOrClasses) return null
 
     if (!Array.isArray(classOrClasses)) {
@@ -68,14 +67,14 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
 
     return classOrClasses.map(klass =>
       inferSerializerFromDreamClassOrViewModelClass(
-        klass as DreamClassOrViewModelClass,
+        klass as SerializableDreamClassOrViewModelClass,
         associationStatement.serializerKey
       )
     )
   }
 
   private static getAssociatedSerializerDuringRender(
-    associatedData: DreamOrViewModel,
+    associatedData: SerializableDreamOrViewModel,
     associationStatement: DreamSerializerAssociationStatement
   ): typeof DreamSerializer<any, any> | null {
     const dreamSerializerOrNull = this.associationDeclaredSerializer(associationStatement)
@@ -265,7 +264,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   }
 
   private renderAssociation(
-    associatedData: DreamOrViewModel,
+    associatedData: SerializableDreamOrViewModel,
     associationStatement: DreamSerializerAssociationStatement
   ) {
     const SerializerClass = DreamSerializer.getAssociatedSerializerDuringRender(

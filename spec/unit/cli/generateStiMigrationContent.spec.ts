@@ -26,15 +26,12 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.executeQuery(CompiledQuery.raw('CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;'))
   await db.schema
     .alterTable('users')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('email', 'varchar(128)')
     .addColumn('name', sql\`citext\`)
     .addColumn('password_digest', 'varchar(255)')
     .addColumn('chalupified_at', 'timestamp')
     .addColumn('finished_chalupa_on', 'date')
     .addColumn('finished_chalupa_at', 'timestamp')
-    .addColumn('created_at', 'timestamp', col => col.notNull())
-    .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
 }
 
@@ -42,15 +39,12 @@ export async function up(db: Kysely<any>): Promise<void> {
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable('users')
-    .dropColumn('id')
     .dropColumn('email')
     .dropColumn('name')
     .dropColumn('password_digest')
     .dropColumn('chalupified_at')
     .dropColumn('finished_chalupa_on')
     .dropColumn('finished_chalupa_at')
-    .dropColumn('created_at')
-    .dropColumn('updated_at')
     .execute()
 }\
 `
@@ -74,10 +68,7 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable('chalupas')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('deliciousness', 'decimal(4, 2)')
-    .addColumn('created_at', 'timestamp', col => col.notNull())
-    .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
 }
 
@@ -85,10 +76,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable('chalupas')
-    .dropColumn('id')
     .dropColumn('deliciousness')
-    .dropColumn('created_at')
-    .dropColumn('updated_at')
     .execute()
 }\
 `
@@ -156,18 +144,22 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   await db.schema
     .alterTable('chalupas')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('topping', sql\`topping_enum\`)
     .addColumn('protein_type', sql\`protein_enum\`)
     .addColumn('existing_enum', sql\`my_existing_enum_enum\`)
-    .addColumn('created_at', 'timestamp', col => col.notNull())
-    .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropTable('chalupas').execute()
+
+  await db.schema
+    .alterTable('chalupas')
+    .dropColumn('topping')
+    .dropColumn('protein_type')
+    .dropColumn('existing_enum')
+    .execute()
+
   await db.schema.dropType('topping_enum').execute()
   await db.schema.dropType('protein_enum').execute()
 }\
@@ -192,16 +184,19 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable('compositions')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('admin_user_id', 'bigint', col => col.references('admin_users.id').onDelete('restrict').notNull())
-    .addColumn('created_at', 'timestamp', col => col.notNull())
-    .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropTable('compositions').execute()
+  await db.schema
+    .alterTable('compositions')
+    .alterColumn('id')
+    .alterColumn('admin_user_id')
+    .alterColumn('created_at')
+    .alterColumn('updated_at')
+    .execute()
 }\
 `
       )
@@ -224,16 +219,16 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable('compositions')
-    .addColumn('id', 'uuid', col => col.primaryKey())
     .addColumn('user_id', 'uuid', col => col.references('users.id').onDelete('restrict').notNull())
-    .addColumn('created_at', 'timestamp', col => col.notNull())
-    .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropTable('compositions').execute()
+  await db.schema
+    .alterTable('compositions')
+    .dropColumn('user_id')
+    .execute()
 }\
 `
       )
@@ -256,15 +251,14 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable('compositions')
-    .addColumn('id', 'uuid', col => col.primaryKey())
-    .addColumn('created_at', 'timestamp', col => col.notNull())
-    .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropTable('compositions').execute()
+  await db.schema
+    .alterTable('compositions')
+    .execute()
 }\
 `
       )
@@ -287,15 +281,14 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable('compositions')
-    .addColumn('id', 'uuid', col => col.primaryKey())
-    .addColumn('created_at', 'timestamp', col => col.notNull())
-    .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropTable('compositions').execute()
+  await db.schema
+    .alterTable('compositions')
+    .execute()
 }\
 `
       )

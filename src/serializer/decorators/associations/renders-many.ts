@@ -1,10 +1,6 @@
 import DreamSerializer from '../..'
-import {
-  DreamSerializerAssociationStatement,
-  isSerializable,
-  RendersOneOrManyOpts,
-  SerializableClassOrClasses,
-} from './shared'
+import { SerializableClassOrClasses } from '../../../dream/types'
+import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOpts } from './shared'
 
 /**
  * Establishes a One to Many relationship between
