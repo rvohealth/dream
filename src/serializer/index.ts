@@ -57,7 +57,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   public static getAssociatedSerializersForOpenapi(
     associationStatement: DreamSerializerAssociationStatement
   ): (typeof DreamSerializer<any, any>)[] | null {
-    const serializer = this.associationDeclaredSerializer(associationStatement)
+    const serializer = serializerAssociationToDreamSerializer(associationStatement.dreamOrSerializerClass)
     if (serializer) return [serializer]
 
     let classOrClasses = associationStatement.dreamOrSerializerClass as SerializableClass[]
@@ -81,21 +81,12 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     associatedData: SerializableDreamOrViewModel,
     associationStatement: DreamSerializerAssociationStatement
   ): typeof DreamSerializer<any, any> | null {
-    const dreamSerializerOrNull = this.associationDeclaredSerializer(associationStatement)
+    const dreamSerializerOrNull = serializerAssociationToDreamSerializer(
+      associationStatement.dreamOrSerializerClass
+    )
 
     if (dreamSerializerOrNull) return dreamSerializerOrNull
     return inferSerializerFromDreamOrViewModel(associatedData, associationStatement.serializerKey)
-  }
-
-  private static associationDeclaredSerializer(
-    associationStatement: DreamSerializerAssociationStatement
-  ): typeof DreamSerializer<any, any> | null {
-    const dreamSerializer = serializerAssociationToDreamSerializer(
-      associationStatement.dreamOrSerializerClass
-    )
-    if (dreamSerializer) return dreamSerializer
-
-    return null
   }
 
   private _data: DataType
