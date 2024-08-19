@@ -39,7 +39,7 @@ import {
  *
  * ```ts
  * class UserSerializer {
- *   @RendersOne( SettingsSummarySerializer)
+ *   @RendersOne(SettingsSummarySerializer)
  *   public settings: Settings
  * }
  * ```
