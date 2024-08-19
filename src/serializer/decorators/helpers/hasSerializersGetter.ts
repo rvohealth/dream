@@ -1,6 +1,6 @@
-import { SerializableClass, SerializableDreamOrViewModel } from '../../../dream/types'
+import { SerializableClassOrSerializerCallback, SerializableDreamOrViewModel } from '../../../dream/types'
 
-export default function (dreamOrSerializerClass: SerializableClass): boolean {
+export default function (dreamOrSerializerClass: SerializableClassOrSerializerCallback): boolean {
   try {
     return !!(dreamOrSerializerClass?.prototype as SerializableDreamOrViewModel)?.serializers
   } catch {

@@ -329,7 +329,9 @@ export type SerializableDreamClassOrViewModelClass = abstract new (
 ) => SerializableDreamOrViewModel
 
 export type DreamSerializerCallback = () => typeof DreamSerializer
-export type SerializableClass = SerializableDreamClassOrViewModelClass | DreamSerializerCallback
+export type SerializableClassOrSerializerCallback =
+  | SerializableDreamClassOrViewModelClass
+  | DreamSerializerCallback
 
 export type SerializableClassOrClasses =
   | DreamSerializerCallback

@@ -3,7 +3,7 @@ import { DateTime } from 'luxon'
 import Dream from '../dream'
 import {
   DreamConst,
-  SerializableClass,
+  SerializableClassOrSerializerCallback,
   SerializableDreamClassOrViewModelClass,
   SerializableDreamOrViewModel,
 } from '../dream/types'
@@ -60,7 +60,8 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     const serializer = serializerAssociationToDreamSerializer(associationStatement.dreamOrSerializerClass)
     if (serializer) return [serializer]
 
-    let classOrClasses = associationStatement.dreamOrSerializerClass as SerializableClass[]
+    let classOrClasses =
+      associationStatement.dreamOrSerializerClass as SerializableClassOrSerializerCallback[]
     if (!classOrClasses) return null
 
     if (!Array.isArray(classOrClasses)) {

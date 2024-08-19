@@ -53,7 +53,7 @@ export {
   DreamVirtualColumns,
   IdType,
   PrimaryKeyType,
-  SerializableClass,
+  SerializableClassOrSerializerCallback,
   SerializableDreamClassOrViewModelClass,
   SerializableDreamOrViewModel,
   TRIGRAM_OPERATORS,
