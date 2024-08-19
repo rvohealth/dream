@@ -5,7 +5,7 @@ import path from 'path'
 import _db from '../../db'
 import { isPrimitiveDataType } from '../../db/dataTypes'
 import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
-import { DreamConst } from '../../dream/types'
+import { DreamConst, SerializableDreamClassOrViewModelClass } from '../../dream/types'
 import FailedToIdentifyAssociation from '../../exceptions/schema-builder/failed-to-identify-association'
 import camelize from '../camelize'
 import pascalize from '../pascalize'
@@ -173,7 +173,8 @@ may need to update the table getter in the corresponding Dream.
     const associationData = this.getAssociationData(tableName)
     let serializers: any
     try {
-      serializers = model?.prototype?.['serializers'] || {}
+      serializers =
+        (model as unknown as SerializableDreamClassOrViewModelClass)?.prototype?.['serializers'] || {}
     } catch {
       serializers = {}
     }

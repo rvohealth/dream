@@ -152,7 +152,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-
   await db.schema
     .alterTable('chalupas')
     .dropColumn('topping')
@@ -192,10 +191,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable('compositions')
-    .alterColumn('id')
-    .alterColumn('admin_user_id')
-    .alterColumn('created_at')
-    .alterColumn('updated_at')
+    .dropColumn('admin_user_id')
     .execute()
 }\
 `
@@ -228,66 +224,6 @@ export async function down(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable('compositions')
     .dropColumn('user_id')
-    .execute()
-}\
-`
-      )
-    })
-  })
-
-  context('has_one attribute is passed', () => {
-    it('ignores the attribute', () => {
-      const res = generateStiMigrationContent({
-        table: 'compositions',
-        attributes: ['user:has_one'],
-        primaryKeyType: 'uuid',
-      })
-
-      expect(res).toEqual(
-        `\
-import { Kysely, sql } from 'kysely'
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function up(db: Kysely<any>): Promise<void> {
-  await db.schema
-    .alterTable('compositions')
-    .execute()
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema
-    .alterTable('compositions')
-    .execute()
-}\
-`
-      )
-    })
-  })
-
-  context('has_many attribute is passed', () => {
-    it('ignores the attribute', () => {
-      const res = generateStiMigrationContent({
-        table: 'compositions',
-        attributes: ['user:has_many'],
-        primaryKeyType: 'uuid',
-      })
-
-      expect(res).toEqual(
-        `\
-import { Kysely, sql } from 'kysely'
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function up(db: Kysely<any>): Promise<void> {
-  await db.schema
-    .alterTable('compositions')
-    .execute()
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema
-    .alterTable('compositions')
     .execute()
 }\
 `

@@ -13,6 +13,7 @@ import MissingSerializer from '../exceptions/missing-serializers-definition'
 import FailedToRenderThroughAssociationForSerializer from '../exceptions/serializers/failed-to-render-through-association'
 import CalendarDate from '../helpers/CalendarDate'
 import camelize from '../helpers/camelize'
+import compact from '../helpers/compact'
 import inferSerializerFromDreamOrViewModel, {
   inferSerializerFromDreamClassOrViewModelClass,
 } from '../helpers/inferSerializerFromDreamOrViewModel'
@@ -65,10 +66,12 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
       classOrClasses = [classOrClasses]
     }
 
-    return classOrClasses.map(klass =>
-      inferSerializerFromDreamClassOrViewModelClass(
-        klass as SerializableDreamClassOrViewModelClass,
-        associationStatement.serializerKey
+    return compact(
+      classOrClasses.map(klass =>
+        inferSerializerFromDreamClassOrViewModelClass(
+          klass as SerializableDreamClassOrViewModelClass,
+          associationStatement.serializerKey
+        )
       )
     )
   }
