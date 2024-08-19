@@ -31,6 +31,35 @@ export default class UserSerializer<
       })
     })
 
+    context('when parentName is included', () => {
+      it('the serializers extend the parent serializers, summary omits id', () => {
+        const res = generateSerializerContent('Foo/Bar', ['hello'], 'Foo/Base')
+
+        expect(res).toEqual(
+          `\
+import { DreamSerializer, Attribute, DreamColumn } from '@rvohealth/dream'
+
+import FooBaseSerializer, { FooBaseSummarySerializer } from './BaseSerializer'
+import FooBar from '../../models/Foo/Bar'
+
+export class FooBarSummarySerializer<
+  DataType extends FooBar,
+  Passthrough extends object,
+> extends FooBaseSummarySerializer<DataType, Passthrough> {
+}
+
+export default class FooBarSerializer<
+  DataType extends FooBar,
+  Passthrough extends object,
+> extends FooBaseSerializer<DataType, Passthrough> {
+  @Attribute(FooBar)
+  public hello: DreamColumn<FooBar, 'hello'>
+}
+`
+        )
+      })
+    })
+
     context('nested paths', () => {
       context('when passed a nested model class', () => {
         it('correctly injects extra updirs to account for nested paths', () => {
@@ -53,7 +82,7 @@ export default class UserAdminSerializer<
   DataType extends UserAdmin,
   Passthrough extends object,
 > extends UserAdminSummarySerializer<DataType, Passthrough> {
-  
+
 }
 `
           )

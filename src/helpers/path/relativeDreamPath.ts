@@ -12,7 +12,18 @@ export default function (
   fullyQualifiedOriginModelName = standardizeFullyQualifiedModelName(fullyQualifiedOriginModelName)
   fullyQualifiedDestinationModelName = pascalize(fullyQualifiedDestinationModelName)
 
-  const numAdditionalUpdirs = fullyQualifiedOriginModelName.split('/').length - 1
+  let pathToRemove = fullyQualifiedOriginModelName
+
+  if (originDreamPathType === destinationDreamPathType) {
+    const sharedPrefixLength = sharedPrefix(
+      fullyQualifiedOriginModelName,
+      fullyQualifiedDestinationModelName
+    ).length
+    pathToRemove = fullyQualifiedOriginModelName.slice(sharedPrefixLength)
+    fullyQualifiedDestinationModelName = fullyQualifiedDestinationModelName.slice(sharedPrefixLength)
+  }
+
+  const numAdditionalUpdirs = pathToRemove.split('/').length - 1
   let additionalUpdirs = ''
 
   for (let i = 0; i < numAdditionalUpdirs; i++) {

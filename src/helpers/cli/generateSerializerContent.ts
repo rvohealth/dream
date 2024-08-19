@@ -9,37 +9,54 @@ import uniq from '../uniq'
 
 export default function generateSerializerContent(
   fullyQualifiedModelName: string,
-  attributes: string[] = []
+  attributes: string[] = [],
+  fullyQualifiedParentName?: string
 ) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
-  const serializerClass = globalClassNameFromFullyQualifiedModelName(
-    serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName)
-  )
-  const serializerSummaryClass = globalClassNameFromFullyQualifiedModelName(
-    serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')
-  )
   const additionalImports: string[] = []
   let relatedModelImport = ''
-  let modelClass = ''
+  let modelClassName = ''
   let dataTypeCapture = ''
   let dreamSerializerTypeArgs = ''
   const dreamImports = ['DreamSerializer', 'Attribute']
-  let extendedClass = 'DreamSerializer'
+  const isSTI = !!fullyQualifiedParentName
 
-  if (fullyQualifiedModelName) {
-    relatedModelImport = importStatementForModel(fullyQualifiedModelName)
-    modelClass = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
-    dataTypeCapture = `<
-  DataType extends ${modelClass},
-  Passthrough extends object,
->`
-    dreamSerializerTypeArgs = `<DataType, Passthrough>`
-    dreamImports.push('DreamColumn')
-    extendedClass = serializerSummaryClass
+  if (isSTI) {
+    fullyQualifiedParentName = standardizeFullyQualifiedModelName(fullyQualifiedParentName!)
+    additionalImports.push(importStatementForSerializer(fullyQualifiedModelName, fullyQualifiedParentName))
   }
 
+  relatedModelImport = importStatementForModel(fullyQualifiedModelName)
+  modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+  dataTypeCapture = `<
+  DataType extends ${modelClassName},
+  Passthrough extends object,
+>`
+  dreamSerializerTypeArgs = `<DataType, Passthrough>`
+  dreamImports.push('DreamColumn')
+
+  const defaultSerialzerClassName = globalClassNameFromFullyQualifiedModelName(
+    serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+  )
+
+  const summarySerialzerClassName = globalClassNameFromFullyQualifiedModelName(
+    serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')
+  )
+
+  const defaultSerialzerExtends = isSTI
+    ? globalClassNameFromFullyQualifiedModelName(
+        serializerNameFromFullyQualifiedModelName(fullyQualifiedParentName!)
+      )
+    : summarySerialzerClassName
+
+  const summarySerialzerExtends = isSTI
+    ? globalClassNameFromFullyQualifiedModelName(
+        serializerNameFromFullyQualifiedModelName(fullyQualifiedParentName!, 'summary')
+      )
+    : 'DreamSerializer'
+
   let luxonImport = ''
-  if (!modelClass) {
+  if (!modelClassName) {
     luxonImport = hasJsType(attributes, 'DateTime') ? "import { DateTime } from 'luxon'\n" : ''
     if (hasJsType(attributes, 'CalendarDate')) dreamImports.push('CalendarDate')
   }
@@ -52,6 +69,7 @@ export default function generateSerializerContent(
     const [name, type] = attr.split(':')
     if (['belongs_to', 'has_one', 'has_many'].includes(type)) {
       const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(name)
+
       additionalModelImports.push(
         importStatementForModel(fullyQualifiedModelName, fullyQualifiedAssociatedModelName)
       )
@@ -60,47 +78,44 @@ export default function generateSerializerContent(
 
   const additionalImportsStr = additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
 
-  let summarySerializer = ''
-  if (modelClass) {
-    summarySerializer = `
-
-export class ${extendedClass}${dataTypeCapture} extends DreamSerializer${dreamSerializerTypeArgs} {
-  @Attribute(${modelClass})
-  public id: DreamColumn<${modelClass}, 'id'>
-}`
-  }
-
   return `\
 ${luxonImport}import { ${dreamImports.join(
     ', '
-  )} } from '@rvohealth/dream'${additionalImportsStr}${relatedModelImport}${additionalModelImports.join('')}${summarySerializer}
+  )} } from '@rvohealth/dream'${additionalImportsStr}${relatedModelImport}${additionalModelImports.join('')}
 
-export default class ${serializerClass}${dataTypeCapture} extends ${extendedClass}${dreamSerializerTypeArgs} {
-  ${attributes
-    .map(attr => {
-      const [name, type] = attr.split(':')
-      const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(name)
-      const associatedModelName = globalClassNameFromFullyQualifiedModelName(
-        fullyQualifiedAssociatedModelName
-      )
-      const propertyName = camelize(associatedModelName)
+export class ${summarySerialzerClassName}${dataTypeCapture} extends ${summarySerialzerExtends}${dreamSerializerTypeArgs} {
+${
+  isSTI
+    ? ''
+    : `  @Attribute(${modelClassName})
+  public id: DreamColumn<${modelClassName}, 'id'>
+`
+}}
 
-      switch (type) {
-        case 'belongs_to':
-        case 'has_one':
-          return `@RendersOne( ${associatedModelName})
+export default class ${defaultSerialzerClassName}${dataTypeCapture} extends ${defaultSerialzerExtends}${dreamSerializerTypeArgs} {
+${attributes
+  .map(attr => {
+    const [name, type] = attr.split(':')
+    const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(name)
+    const associatedModelName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
+    const propertyName = camelize(associatedModelName)
+
+    switch (type) {
+      case 'belongs_to':
+      case 'has_one':
+        return `  @RendersOne( ${associatedModelName})
   public ${propertyName}: ${associatedModelName}`
 
-        case 'has_many':
-          return `@RendersMany( ${associatedModelName})
+      case 'has_many':
+        return `  @RendersMany( ${associatedModelName})
   public ${pluralize(propertyName)}: ${associatedModelName}[]`
 
-        default:
-          return `@Attribute(${modelClass}${attributeOptionsSpecifier(type, attr)})
-  public ${propertyName}: ${jsType(type, attr, propertyName, modelClass)}`
-      }
-    })
-    .join('\n\n  ')}
+      default:
+        return `  @Attribute(${modelClassName}${attributeOptionsSpecifier(type, attr)})
+  public ${propertyName}: ${jsType(type, attr, propertyName, modelClassName)}`
+    }
+  })
+  .join('\n\n  ')}
 }
 `
 }
@@ -156,6 +171,10 @@ function hasJsType(attributes: string[], expectedType: 'DateTime' | 'CalendarDat
       return jsType(name, attr, camelize(name))
     })
     .find(a => a === expectedType)
+}
+
+function importStatementForSerializer(originModelName: string, destinationModelName: string) {
+  return `\nimport ${globalClassNameFromFullyQualifiedModelName(serializerNameFromFullyQualifiedModelName(destinationModelName))}, { ${globalClassNameFromFullyQualifiedModelName(serializerNameFromFullyQualifiedModelName(destinationModelName, 'summary'))} } from '${relativeDreamPath('serializers', 'serializers', originModelName, destinationModelName)}'`
 }
 
 function importStatementForModel(originModelName: string, destinationModelName: string = originModelName) {

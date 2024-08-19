@@ -15,7 +15,7 @@ import generateMigrationContent from './generateMigrationContent'
 import generateSerializerContent from './generateSerializerContent'
 import generateUnitSpec from './generateUnitSpec'
 
-export default async function generateDream(dreamName: string, attributes: string[]) {
+export default async function generateDream(dreamName: string, attributes: string[], parentName?: string) {
   const dreamApp = getCachedDreamApplicationOrFail()
 
   const dreamBasePath = path.join(dreamApp.appRoot, dreamApp.paths.models)
@@ -35,7 +35,7 @@ export default async function generateDream(dreamName: string, attributes: strin
     await fs.mkdir(fullPath, { recursive: true })
   }
 
-  const content = generateDreamContent(dreamName, attributes)
+  const content = generateDreamContent(dreamName, attributes, parentName)
 
   try {
     console.log(`generating dream: ${relativeModelsPath}`)

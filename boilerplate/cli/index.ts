@@ -7,8 +7,8 @@
 
 import '../conf/loadEnv'
 
-import { Command } from 'commander'
 import { DreamBin, developmentOrTestEnv } from '@rvohealth/dream'
+import { Command } from 'commander'
 import seedDb from '../db/seed'
 import initializeDreamApplication from './helpers/initializeDreamApplication'
 
@@ -41,6 +41,19 @@ program
   .action(async () => {
     await initializeDreamApplication()
     await DreamBin.generateDream()
+    process.exit()
+  })
+
+program
+  .command('generate:sti-child')
+  .alias('g:sti-child')
+  .description('generate:dream <name> extends <base-name> [...attributes] create a new dream')
+  .argument('<name>', 'name of the dream')
+  .argument('<base-name>', 'name of the parent dream')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
+  .action(async () => {
+    await initializeDreamApplication()
+    await DreamBin.generateStiChild()
     process.exit()
   })
 

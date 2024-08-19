@@ -86,6 +86,16 @@ export default class DreamBin {
     await generateDream(name, args)
   }
 
+  public static async generateStiChild() {
+    const argv = process.argv.filter(arg => !/^--/.test(arg))
+    const name = argv[3]
+    const extendsWord = argv[4]
+    if (extendsWord !== 'extends') throw new Error('Expecting: `<child-name> extends <parent-name> <args>')
+    const parentName = argv[5]
+    const args = argv.slice(6, argv.length)
+    await generateDream(name, args, parentName)
+  }
+
   public static async generateFactory() {
     const argv = process.argv.filter(arg => !/^--/.test(arg))
     const name = argv[3]
