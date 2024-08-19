@@ -136,7 +136,11 @@ export default function Attribute(
       // no-op
     } else {
       throw new Error(
-        `Unrecognized first argument to @Attriute decorator: ${JSON.stringify(dreamClass_or_shorthandAttribute_or_manualOpenapiOptions)}`
+        `
+Unrecognized first argument to @Attriute decorator: ${JSON.stringify(dreamClass_or_shorthandAttribute_or_manualOpenapiOptions)}
+Serializer: ${serializerClass.name}
+Attribute: ${key}
+`
       )
     }
 
