@@ -17,13 +17,17 @@ export default function generateSerializerContent(
   let relatedModelImport = ''
   let modelClassName = ''
   let dataTypeCapture = ''
+  const dreamImports: string[] = []
   let dreamSerializerTypeArgs = ''
-  const dreamImports = ['DreamSerializer', 'Attribute']
   const isSTI = !!fullyQualifiedParentName
 
   if (isSTI) {
     fullyQualifiedParentName = standardizeFullyQualifiedModelName(fullyQualifiedParentName!)
     additionalImports.push(importStatementForSerializer(fullyQualifiedModelName, fullyQualifiedParentName))
+  } else {
+    dreamImports.push('Attribute')
+    dreamImports.push('DreamColumn')
+    dreamImports.push('DreamSerializer')
   }
 
   relatedModelImport = importStatementForModel(fullyQualifiedModelName)
@@ -33,7 +37,6 @@ export default function generateSerializerContent(
   Passthrough extends object,
 >`
   dreamSerializerTypeArgs = `<DataType, Passthrough>`
-  dreamImports.push('DreamColumn')
 
   const defaultSerialzerClassName = globalClassNameFromFullyQualifiedModelName(
     serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName)
@@ -55,12 +58,6 @@ export default function generateSerializerContent(
       )
     : 'DreamSerializer'
 
-  let luxonImport = ''
-  if (!modelClassName) {
-    luxonImport = hasJsType(attributes, 'DateTime') ? "import { DateTime } from 'luxon'\n" : ''
-    if (hasJsType(attributes, 'CalendarDate')) dreamImports.push('CalendarDate')
-  }
-
   if (attributes.find(attr => /:belongs_to|:has_one/.test(attr))) dreamImports.push('RendersOne')
   if (attributes.find(attr => /:has_many/.test(attr))) dreamImports.push('RendersMany')
 
@@ -73,15 +70,21 @@ export default function generateSerializerContent(
       additionalModelImports.push(
         importStatementForModel(fullyQualifiedModelName, fullyQualifiedAssociatedModelName)
       )
+    } else {
+      dreamImports.push('Attribute')
+      dreamImports.push('DreamColumn')
     }
   })
 
-  const additionalImportsStr = additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
+  let dreamImport = ''
+  if (dreamImports.length) {
+    dreamImport = `import { ${uniq(dreamImports).join(', ')} } from '@rvohealth/dream'`
+  }
+
+  const additionalImportsStr = additionalImports.length ? uniq(additionalImports).join('') : ''
 
   return `\
-${luxonImport}import { ${dreamImports.join(
-    ', '
-  )} } from '@rvohealth/dream'${additionalImportsStr}${relatedModelImport}${additionalModelImports.join('')}
+${dreamImport}${additionalImportsStr}${relatedModelImport}${additionalModelImports.join('')}
 
 export class ${summarySerialzerClassName}${dataTypeCapture} extends ${summarySerialzerExtends}${dreamSerializerTypeArgs} {
 ${
@@ -162,15 +165,6 @@ function jsType(
     default:
       return 'any'
   }
-}
-
-function hasJsType(attributes: string[], expectedType: 'DateTime' | 'CalendarDate') {
-  return !!attributes
-    .map(attr => {
-      const [name] = attr.split(':')
-      return jsType(name, attr, camelize(name))
-    })
-    .find(a => a === expectedType)
 }
 
 function importStatementForSerializer(originModelName: string, destinationModelName: string) {
