@@ -14,7 +14,7 @@ export default function Attribute<DreamClass extends typeof Dream>(
 
 export default function Attribute(
   manualOpenapiOptions: OpenapiSchemaBodyShorthand,
-  renderOptions?: RenderOnlyOptions
+  renderOptions?: AttributeRenderOptions
 ): any
 
 export default function Attribute(
@@ -155,9 +155,9 @@ export default function Attribute(
 
 function openApiAndRenderOptionsToSeparateOptions(
   openApiAndRenderOptions: DecimalShorthandAttributeOpenapiAndRenderOptions
-): { openApiOptions: OpenapiOnlyOptions | undefined; renderOptions: RenderOnlyOptions | undefined } {
+): { openApiOptions: OpenapiOnlyOptions | undefined; renderOptions: AttributeRenderOptions | undefined } {
   let openApiOptions: OpenapiOnlyOptions | undefined
-  let renderOptions: RenderOnlyOptions | undefined
+  let renderOptions: AttributeRenderOptions | undefined
 
   if (openApiAndRenderOptions.description !== undefined) {
     openApiOptions ||= {}
@@ -191,29 +191,23 @@ export interface AttributeStatement {
   renderAs?: SerializableTypes
   renderOptions?: AttributeRenderOptions
 }
+interface OpenapiOnlyOptions {
+  nullable?: boolean
+  description?: string
+}
 
 interface AttributeRenderOptions {
   delegate?: string
   precision?: RoundingPrecision
 }
 
-interface OpenapiOnlyOptions {
-  nullable?: boolean
-  description?: string
-}
-
-interface RenderOnlyOptions {
-  precision?: RoundingPrecision
-  delegate?: string
-}
-
 type AutomaticOpenapiAndRenderOptions = Pick<OpenapiOnlyOptions, 'description'> &
-  Pick<RenderOnlyOptions, 'precision'>
+  Pick<AttributeRenderOptions, 'precision'>
 
 type ShorthandAttributeOpenapiAndRenderOptions = Pick<OpenapiOnlyOptions, 'nullable' | 'description'> &
-  Pick<RenderOnlyOptions, 'delegate'>
+  Pick<AttributeRenderOptions, 'delegate'>
 
-type DecimalShorthandAttributeRenderOptions = Pick<RenderOnlyOptions, 'precision'>
+type DecimalShorthandAttributeRenderOptions = Pick<AttributeRenderOptions, 'precision'>
 
 type DecimalShorthandAttributeOpenapiAndRenderOptions = ShorthandAttributeOpenapiAndRenderOptions &
   DecimalShorthandAttributeRenderOptions
