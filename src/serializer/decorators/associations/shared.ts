@@ -1,5 +1,10 @@
 import DreamSerializer from '../..'
-import { DreamConst, SerializableClassOrClasses, SerializableDreamOrViewModel } from '../../../dream/types'
+import {
+  DreamConst,
+  SerializableClass,
+  SerializableClassOrClasses,
+  SerializableDreamOrViewModel,
+} from '../../../dream/types'
 
 export type SerializableAssociationType = 'RendersOne' | 'RendersMany'
 
@@ -29,7 +34,15 @@ export interface RendersOneOrManyOpts {
 export function isSerializable(dreamOrSerializerClass: any) {
   return (
     Array.isArray(dreamOrSerializerClass) ||
-    (dreamOrSerializerClass?.prototype as SerializableDreamOrViewModel)?.serializers ||
-    (dreamOrSerializerClass as typeof DreamSerializer)?.isDreamSerializer
+    hasSerializersGetter(dreamOrSerializerClass) ||
+    !!(dreamOrSerializerClass as typeof DreamSerializer)?.isDreamSerializer
   )
+}
+
+function hasSerializersGetter(dreamOrSerializerClass: SerializableClass): boolean {
+  try {
+    return !!(dreamOrSerializerClass?.prototype as SerializableDreamOrViewModel)?.serializers
+  } catch {
+    return false
+  }
 }

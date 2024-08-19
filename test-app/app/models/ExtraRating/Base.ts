@@ -6,6 +6,10 @@ export default class BaseExtraRating extends ApplicationModel {
     return 'extra_ratings' as const
   }
 
+  public get serializers() {
+    throw new Error('Define serializers in STI children')
+  }
+
   public id: DreamColumn<BaseExtraRating, 'id'>
   public body: DreamColumn<BaseExtraRating, 'body'>
   public rating: DreamColumn<BaseExtraRating, 'rating'>
