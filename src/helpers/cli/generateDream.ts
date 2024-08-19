@@ -16,6 +16,7 @@ import generateSerializerContent from './generateSerializerContent'
 import generateUnitSpec from './generateUnitSpec'
 
 export default async function generateDream(dreamName: string, attributes: string[], parentName?: string) {
+  const isSTI = !!parentName
   const dreamApp = getCachedDreamApplicationOrFail()
 
   const dreamBasePath = path.join(dreamApp.appRoot, dreamApp.paths.models)
@@ -57,33 +58,37 @@ export default async function generateDream(dreamName: string, attributes: strin
   await generateUnitSpec(dreamName, 'models')
   await generateFactory(dreamName, attributes)
 
-  const migrationBasePath = path.join(dreamApp.appRoot, dreamApp.paths.db, 'migrations')
-  const version = migrationVersion()
-  const migrationPath = `${migrationBasePath}/${version}-create-${pluralize(hyphenize(dreamName)).replace(/\//g, '-')}.ts`
-  const migrationsRelativeBasePath = path.join(dreamPath('db'), 'migrations')
-  const relativeMigrationPath = migrationPath.replace(
-    new RegExp(`^.*${migrationsRelativeBasePath}`),
-    migrationsRelativeBasePath
-  )
+  if (!isSTI) {
+    // generate migration file
+    const migrationBasePath = path.join(dreamApp.appRoot, dreamApp.paths.db, 'migrations')
+    const version = migrationVersion()
+    const migrationPath = `${migrationBasePath}/${version}-create-${pluralize(hyphenize(dreamName)).replace(/\//g, '-')}.ts`
+    const migrationsRelativeBasePath = path.join(dreamPath('db'), 'migrations')
+    const relativeMigrationPath = migrationPath.replace(
+      new RegExp(`^.*${migrationsRelativeBasePath}`),
+      migrationsRelativeBasePath
+    )
 
-  const finalContent = generateMigrationContent({
-    table: snakeify(pluralize(pascalizePath(dreamName))),
-    attributes,
-    primaryKeyType: primaryKeyType(),
-  })
-  try {
-    console.log(`generating migration: ${relativeMigrationPath}`)
-    await fs.writeFile(migrationPath, finalContent)
-  } catch (error) {
-    const err = `
+    const finalContent = generateMigrationContent({
+      table: snakeify(pluralize(pascalizePath(dreamName))),
+      attributes,
+      primaryKeyType: primaryKeyType(),
+    })
+    try {
+      console.log(`generating migration: ${relativeMigrationPath}`)
+      await fs.writeFile(migrationPath, finalContent)
+    } catch (error) {
+      const err = `
       Something happened while trying to create the migration file:
         ${migrationPath}
 
       Does this file already exist? Here is the error that was raised:
         ${(error as Error).message}
     `
-    console.log(err)
-    throw err
+      console.log(err)
+      throw err
+    }
+    // end: generate migration file
   }
 
   const serializerBasePath = path.join(dreamApp.appRoot, dreamApp.paths.serializers)
