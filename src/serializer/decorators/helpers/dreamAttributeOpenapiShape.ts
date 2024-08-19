@@ -46,12 +46,7 @@ export function dreamAttributeOpenapiShape<DreamClass extends typeof Dream>(
   const dream = dreamClass.prototype
   const dreamColumnInfo: DreamColumnInfo = dream.schema[dream.table]?.columns[column]
 
-  if (!dreamColumnInfo)
-    throw new Error(`
-Attempted automatic OpenAPI serialization on non-Dream column:
-Class: ${dreamClass.name}
-Column: ${column}
-`)
+  if (!dreamColumnInfo) return { type: 'string' }
 
   const singleType = singularAttributeOpenapiShape(dreamColumnInfo)
   const nullable = dreamColumnInfo.allowNull ? { nullable: true } : {}
