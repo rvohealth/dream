@@ -1,5 +1,7 @@
 import Dream from '../dream'
 import { ViewModelClass, primaryKeyTypes } from '../dream/types'
+import DreamApplicationInitMissingMissingAppRoot from '../exceptions/dream-application/init-missing-app-root'
+import DreamApplicationInitMissingCallToLoadModels from '../exceptions/dream-application/init-missing-call-to-load-models'
 import DreamSerializer from '../serializer'
 import { cacheDreamApplication } from './cache'
 import loadModels, { getModelsOrFail } from './helpers/loadModels'
@@ -12,6 +14,9 @@ export default class DreamApplication {
     await cb(dreamApp)
 
     await dreamApp.inflections?.()
+
+    if (!dreamApp.appRoot) throw new DreamApplicationInitMissingMissingAppRoot()
+    if (!dreamApp.loadedModels) throw new DreamApplicationInitMissingCallToLoadModels()
 
     if (!dreamApp.serializers) setCachedSerializers({})
     if (!dreamApp.services) setCachedServices({})
@@ -34,6 +39,8 @@ export default class DreamApplication {
     uspecs: string
   }
   public inflections?: () => void | Promise<void>
+
+  protected loadedModels: boolean = false
 
   constructor(opts?: DreamApplicationOpts) {
     if (opts?.db) this.dbCredentials = opts.db
@@ -67,11 +74,17 @@ export default class DreamApplication {
   public async load(resourceType: 'models' | 'serializers' | 'services', resourcePath: string) {
     switch (resourceType) {
       case 'models':
-        return await loadModels(resourcePath)
+        await loadModels(resourcePath)
+        this.loadedModels = true
+        break
+
       case 'serializers':
-        return await loadSerializers(resourcePath)
+        await loadSerializers(resourcePath)
+        break
+
       case 'services':
-        return await loadServices(resourcePath)
+        await loadServices(resourcePath)
+        break
     }
   }
 
