@@ -67,19 +67,43 @@ function singularAttributeOpenapiShape(dreamColumnInfo: DreamColumnInfo): Openap
       return { type: 'boolean' }
 
     case 'bigint':
+    case 'bigserial':
+    case 'bytea':
+    case 'char':
     case 'character varying':
+    case 'character':
+    case 'cidr':
     case 'citext':
+    case 'inet':
+    case 'macaddr':
+    case 'money':
+    case 'path':
     case 'text':
     case 'uuid':
+    case 'varbit':
+    case 'varchar':
+    case 'xml':
       return { type: 'string' }
 
     case 'integer':
+    case 'serial':
+    case 'smallint':
+    case 'smallserial':
       return { type: 'integer' }
 
+    case 'decimal':
     case 'numeric':
       return { type: 'number', format: 'decimal' }
 
+    case 'double':
+    case 'real':
+      return { type: 'number' }
+
+    case 'datetime':
+    case 'time':
+    case 'time with time zone':
     case 'timestamp':
+    case 'timestamp with time zone':
     case 'timestamp without time zone':
       return { type: 'string', format: 'date-time' }
 
