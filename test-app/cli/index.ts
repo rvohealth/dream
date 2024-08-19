@@ -45,6 +45,19 @@ program
   })
 
 program
+  .command('generate:sti-child')
+  .alias('g:sti-child')
+  .description('generate:dream <name> extends <base-name> [...attributes] create a new dream')
+  .argument('<name>', 'name of the dream')
+  .argument('<base-name>', 'name of the parent dream')
+  .option('--tsnode', 'runs the command using ts-node instead of node')
+  .action(async () => {
+    await initializeDreamApplication()
+    await DreamBin.generateStiChild()
+    process.exit()
+  })
+
+program
   .command('generate:factory')
   .alias('g:factory')
   .description('generate:factory [...attributes] create a new factory for a dream')

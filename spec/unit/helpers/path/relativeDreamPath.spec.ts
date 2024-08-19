@@ -73,6 +73,16 @@ describe('relativeDreamPath', () => {
         })
       })
     })
+
+    context('from model with a nested model name to a model in the same directory', () => {
+      it('returns ./<ModelName>', () => {
+        expect(relativeDreamPath('models', 'models', 'Graph/Edge', 'Graph/Base')).toEqual('./Base')
+        expect(relativeDreamPath('models', 'models', 'Graph/Edge/Hello', 'Graph/Base')).toEqual('../Base')
+        expect(relativeDreamPath('models', 'models', 'Graph/Edge', 'Graph/Hello/World')).toEqual(
+          './Hello/World'
+        )
+      })
+    })
   })
 
   context('to serializers', () => {
@@ -86,6 +96,20 @@ describe('relativeDreamPath', () => {
       it('returns ../serializers/<NestedName>/<ModelName>Serializer', () => {
         expect(relativeDreamPath('models', 'serializers', 'Graph/Edge')).toEqual(
           '../../serializers/Graph/EdgeSerializer'
+        )
+      })
+    })
+
+    context('from serializer with a nested model name to a serializer in the same directory', () => {
+      it('returns ./<ModelName>Serializer', () => {
+        expect(relativeDreamPath('serializers', 'serializers', 'Graph/Edge', 'Graph/Base')).toEqual(
+          './BaseSerializer'
+        )
+        expect(relativeDreamPath('serializers', 'serializers', 'Graph/Edge/Hello', 'Graph/Base')).toEqual(
+          '../BaseSerializer'
+        )
+        expect(relativeDreamPath('serializers', 'serializers', 'Graph/Edge', 'Graph/Hello/World')).toEqual(
+          './Hello/WorldSerializer'
         )
       })
     })

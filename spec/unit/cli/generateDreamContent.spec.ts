@@ -30,6 +30,30 @@ export default class MealType extends ApplicationModel {
     })
   })
 
+  context('when parentName is included', () => {
+    it('extends the parent, adds STI decorator, omits table and base attributes', () => {
+      const res = generateDreamContent('Foo/Bar', ['hello:string'], 'Foo/Base')
+      expect(res).toEqual(
+        `\
+import { DreamColumn, DreamSerializers, STI } from '@rvohealth/dream'
+import FooBase from './Base'
+
+@STI(FooBase)
+export default class FooBar extends FooBase {
+  public get serializers(): DreamSerializers<FooBar> {
+    return {
+      default: 'Foo/BarSerializer',
+      summary: 'Foo/BarSummarySerializer',
+    }
+  }
+
+  public hello: DreamColumn<FooBar, 'hello'>
+}
+`
+      )
+    })
+  })
+
   context('when provided attributes', () => {
     context('with a string attribute', () => {
       it('generates a dream model with multiple string fields', () => {
@@ -295,7 +319,7 @@ export default class PetDomesticCat extends ApplicationModel {
               `\
 import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
-import PetDomesticDog from '../../Pet/Domestic/Dog'
+import PetDomesticDog from './Dog'
 
 export default class PetDomesticCat extends ApplicationModel {
   public get table() {
@@ -327,7 +351,7 @@ export default class PetDomesticCat extends ApplicationModel {
               `\
 import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from '../../ApplicationModel'
-import PetDomesticDog from '../../Pet/Domestic/Dog'
+import PetDomesticDog from '../Domestic/Dog'
 
 export default class PetWildCat extends ApplicationModel {
   public get table() {

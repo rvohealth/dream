@@ -176,6 +176,15 @@ export type DreamAttributes<
   -readonly [K in keyof SchemaColumns]: SchemaColumns[K]['coercedType' & keyof SchemaColumns[K]]
 }
 
+export type DreamAttributeDbTypes<
+  DreamInstance extends Dream,
+  Schema = DreamInstance['schema'],
+  SchemaColumns = Schema[DreamInstance['table'] & keyof Schema]['columns' &
+    keyof Schema[DreamInstance['table'] & keyof Schema]],
+> = {
+  -readonly [K in keyof SchemaColumns]: SchemaColumns[K]['dbType' & keyof SchemaColumns[K]]
+}
+
 export type DreamParamSafeAttributes<DreamInstance extends Dream> = {
   [K in keyof DreamAttributes<DreamInstance> &
     DreamParamSafeColumnNames<DreamInstance>]: DreamAttributes<DreamInstance>[K]
@@ -311,13 +320,20 @@ export type DreamSerializers<I extends Dream> = Record<'default', GlobalSerializ
 
 export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) => T) & typeof Dream
 
-export type DreamOrViewModel = Dream | ViewModel
 export type ViewModel = { serializers: Record<string, string> }
 export type ViewModelClass = abstract new (...args: any) => ViewModel
 
-export type DreamClassOrViewModelClass = typeof Dream | ViewModelClass
+export type SerializableDreamOrViewModel = ViewModel
+export type SerializableDreamClassOrViewModelClass = abstract new (
+  ...args: any
+) => SerializableDreamOrViewModel
 
-export type DreamClassOrViewModelClassOrSerializerClass = DreamClassOrViewModelClass | typeof DreamSerializer
+export type SerializableClass = SerializableDreamClassOrViewModelClass | typeof DreamSerializer
+
+export type SerializableClassOrClasses =
+  | typeof DreamSerializer
+  | SerializableDreamClassOrViewModelClass
+  | SerializableDreamClassOrViewModelClass[]
 
 // preload
 export type NextPreloadArgumentType<

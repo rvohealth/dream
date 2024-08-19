@@ -109,11 +109,25 @@ export const LocalizableTypesEnumValues = [
 
 export type Numeric = ColumnType<string, number | string, number | string>;
 
+export type PetTreatsEnum = "efishy feesh" | "snick snowcks";
+export const PetTreatsEnumValues = [
+  "efishy feesh",
+  "snick snowcks"
+] as const
+
+
 export type Species = "cat" | "dog" | "frog";
 export const SpeciesValues = [
   "cat",
   "dog",
   "frog"
+] as const
+
+
+export type SpeciesTypesEnum = "cat" | "noncat";
+export const SpeciesTypesEnumValues = [
+  "cat",
+  "noncat"
 ] as const
 
 export type IdType = string | number | bigint
@@ -268,6 +282,63 @@ export interface LocalizedTexts {
   updatedAt: Timestamp;
 }
 
+export interface ModelForOpenapiTypeSpecs {
+  bio: Generated<string>;
+  birthdate: Timestamp | null;
+  collarCount: Int8 | null;
+  collarCountInt: number | null;
+  collarCountNumeric: Numeric | null;
+  createdAt: Generated<Timestamp>;
+  createdOn: Generated<Timestamp>;
+  email: string;
+  favoriteBigint: Int8 | null;
+  favoriteBigints: Int8[] | null;
+  favoriteBooleans: boolean[] | null;
+  favoriteCitext: string | null;
+  favoriteCitexts: string[] | null;
+  favoriteDates: Timestamp[] | null;
+  favoriteDatetimes: Timestamp[] | null;
+  favoriteIntegers: number[] | null;
+  favoriteJsonbs: Json[] | null;
+  favoriteJsons: Json[] | null;
+  favoriteNumerics: Numeric[] | null;
+  favoriteTexts: string[] | null;
+  favoriteTreats: PetTreatsEnum[] | null;
+  favoriteUuids: string[] | null;
+  id: Generated<Int8>;
+  jsonData: Json | null;
+  jsonbData: Json | null;
+  likesTreats: Generated<boolean>;
+  likesWalks: boolean | null;
+  name: string | null;
+  nicknames: string[] | null;
+  notes: string | null;
+  optionalUuid: Generated<string | null>;
+  passwordDigest: string;
+  requiredCollarCount: Generated<Int8>;
+  requiredCollarCountInt: Generated<number>;
+  requiredFavoriteBigint: Generated<Int8>;
+  requiredFavoriteBigints: Generated<Int8[]>;
+  requiredFavoriteBooleans: Generated<boolean[]>;
+  requiredFavoriteCitext: Generated<string>;
+  requiredFavoriteCitexts: Generated<string[]>;
+  requiredFavoriteDates: Generated<Timestamp[]>;
+  requiredFavoriteDatetimes: Generated<Timestamp[]>;
+  requiredFavoriteIntegers: Generated<number[]>;
+  requiredFavoriteJsonbs: Generated<Json[]>;
+  requiredFavoriteJsons: Generated<Json[]>;
+  requiredFavoriteNumerics: Generated<Numeric[]>;
+  requiredFavoriteTexts: Generated<string[]>;
+  requiredFavoriteUuids: Generated<string[]>;
+  requiredJsonData: Generated<Json>;
+  requiredJsonbData: Generated<Json>;
+  requiredNicknames: Generated<string[]>;
+  species: SpeciesTypesEnum | null;
+  updatedAt: Generated<Timestamp>;
+  uuid: Generated<string>;
+  volume: Numeric | null;
+}
+
 export interface ModelWithoutCustomDeletedAts {
   createdAt: Timestamp;
   deletedAt: Timestamp | null;
@@ -402,6 +473,7 @@ export interface DB {
   graph_nodes: GraphNodes;
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples;
   localized_texts: LocalizedTexts;
+  model_for_openapi_type_specs: ModelForOpenapiTypeSpecs;
   model_without_custom_deleted_ats: ModelWithoutCustomDeletedAts;
   model_without_deleted_ats: ModelWithoutDeletedAts;
   model_without_updated_at: ModelWithoutUpdatedAt;
@@ -433,6 +505,7 @@ export class DBClass {
   graph_nodes: GraphNodes
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples
   localized_texts: LocalizedTexts
+  model_for_openapi_type_specs: ModelForOpenapiTypeSpecs
   model_without_custom_deleted_ats: ModelWithoutCustomDeletedAts
   model_without_deleted_ats: ModelWithoutDeletedAts
   model_without_updated_at: ModelWithoutUpdatedAt

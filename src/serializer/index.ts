@@ -2,10 +2,10 @@ import isArray from 'lodash.isarray'
 import { DateTime } from 'luxon'
 import Dream from '../dream'
 import {
-  DreamClassOrViewModelClass,
-  DreamClassOrViewModelClassOrSerializerClass,
   DreamConst,
-  DreamOrViewModel,
+  SerializableClass,
+  SerializableDreamClassOrViewModelClass,
+  SerializableDreamOrViewModel,
 } from '../dream/types'
 import NonLoadedAssociation from '../exceptions/associations/non-loaded-association'
 import GlobalNameNotSet from '../exceptions/dream-application/global-name-not-set'
@@ -13,6 +13,7 @@ import MissingSerializer from '../exceptions/missing-serializers-definition'
 import FailedToRenderThroughAssociationForSerializer from '../exceptions/serializers/failed-to-render-through-association'
 import CalendarDate from '../helpers/CalendarDate'
 import camelize from '../helpers/camelize'
+import compact from '../helpers/compact'
 import inferSerializerFromDreamOrViewModel, {
   inferSerializerFromDreamClassOrViewModelClass,
 } from '../helpers/inferSerializerFromDreamOrViewModel'
@@ -58,24 +59,25 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     const serializer = this.associationDeclaredSerializer(associationStatement)
     if (serializer) return [serializer]
 
-    let classOrClasses =
-      associationStatement.dreamOrSerializerClassCB?.() as DreamClassOrViewModelClassOrSerializerClass[]
+    let classOrClasses = associationStatement.dreamOrSerializerClass as SerializableClass[]
     if (!classOrClasses) return null
 
     if (!Array.isArray(classOrClasses)) {
       classOrClasses = [classOrClasses]
     }
 
-    return classOrClasses.map(klass =>
-      inferSerializerFromDreamClassOrViewModelClass(
-        klass as DreamClassOrViewModelClass,
-        associationStatement.serializerKey
+    return compact(
+      classOrClasses.map(klass =>
+        inferSerializerFromDreamClassOrViewModelClass(
+          klass as SerializableDreamClassOrViewModelClass,
+          associationStatement.serializerKey
+        )
       )
     )
   }
 
   private static getAssociatedSerializerDuringRender(
-    associatedData: DreamOrViewModel,
+    associatedData: SerializableDreamOrViewModel,
     associationStatement: DreamSerializerAssociationStatement
   ): typeof DreamSerializer<any, any> | null {
     const dreamSerializerOrNull = this.associationDeclaredSerializer(associationStatement)
@@ -87,8 +89,8 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   private static associationDeclaredSerializer(
     associationStatement: DreamSerializerAssociationStatement
   ): typeof DreamSerializer<any, any> | null {
-    if ((associationStatement.dreamOrSerializerClassCB?.() as typeof DreamSerializer)?.isDreamSerializer) {
-      return associationStatement.dreamOrSerializerClassCB?.() as typeof DreamSerializer
+    if ((associationStatement.dreamOrSerializerClass as typeof DreamSerializer)?.isDreamSerializer) {
+      return associationStatement.dreamOrSerializerClass as typeof DreamSerializer
     }
     return null
   }
@@ -180,7 +182,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
       )
 
       if (attributeStatement) {
-        const { field, renderAs, options } = attributeStatement
+        const { field, renderAs, renderOptions } = attributeStatement
         const fieldWithCasing = this.applyCasingToField(field)
 
         let dateValue: CalendarDate | DateTime | null | undefined
@@ -205,9 +207,9 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
             returnObj[fieldWithCasing] =
               decimalValue === null
                 ? null
-                : options?.precision === undefined
+                : renderOptions?.precision === undefined
                   ? decimalValue
-                  : round(decimalValue, options?.precision)
+                  : round(decimalValue, renderOptions?.precision)
             break
 
           case 'integer':
@@ -265,7 +267,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   }
 
   private renderAssociation(
-    associatedData: DreamOrViewModel,
+    associatedData: SerializableDreamOrViewModel,
     associationStatement: DreamSerializerAssociationStatement
   ) {
     const SerializerClass = DreamSerializer.getAssociatedSerializerDuringRender(
@@ -313,8 +315,8 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     const { field } = attributeStatement
 
     let pathToValue: any = this as any
-    if (attributeStatement.options?.delegate) {
-      const delegateField = attributeStatement.options?.delegate
+    if (attributeStatement.renderOptions?.delegate) {
+      const delegateField = attributeStatement.renderOptions?.delegate
       pathToValue = (this as any).data?.[delegateField] || null
     }
 

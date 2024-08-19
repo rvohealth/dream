@@ -5,11 +5,11 @@ import path from 'path'
 import _db from '../../db'
 import { isPrimitiveDataType } from '../../db/dataTypes'
 import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
-import { DreamConst } from '../../dream/types'
+import { DreamConst, SerializableDreamClassOrViewModelClass } from '../../dream/types'
+import FailedToIdentifyAssociation from '../../exceptions/schema-builder/failed-to-identify-association'
 import camelize from '../camelize'
 import pascalize from '../pascalize'
 import uniq from '../uniq'
-import FailedToIdentifyAssociation from '../../exceptions/schema-builder/failed-to-identify-association'
 
 export default class SchemaBuilder {
   public async build() {
@@ -162,22 +162,31 @@ ${tableName}: {
     const models = Object.values(dreamApp.models)
     const model = models.find(model => model.table === tableName)
 
+    if (!model)
+      throw new Error(`
+Could not find a Dream model with table "${tableName}".
+
+If you recently changed the name of a table in a migration, you
+may need to update the table getter in the corresponding Dream.
+`)
+
     const associationData = this.getAssociationData(tableName)
     let serializers: any
     try {
-      serializers = model?.prototype?.['serializers'] || {}
+      serializers =
+        (model as unknown as SerializableDreamClassOrViewModelClass)?.prototype?.['serializers'] || {}
     } catch {
       serializers = {}
     }
 
     return {
-      primaryKey: model!.prototype.primaryKey,
-      createdAtField: model!.prototype.createdAtField,
-      updatedAtField: model!.prototype.updatedAtField,
-      deletedAtField: model!.prototype.deletedAtField,
+      primaryKey: model.prototype.primaryKey,
+      createdAtField: model.prototype.createdAtField,
+      updatedAtField: model.prototype.updatedAtField,
+      deletedAtField: model.prototype.deletedAtField,
       scopes: {
-        default: model!['scopes'].default.map(scopeStatement => scopeStatement.method),
-        named: model!['scopes'].named.map(scopeStatement => scopeStatement.method),
+        default: model['scopes'].default.map(scopeStatement => scopeStatement.method),
+        named: model['scopes'].named.map(scopeStatement => scopeStatement.method),
       },
       columns: await this.getColumnData(tableName, associationData),
       virtualColumns: this.getVirtualColumns(tableName),

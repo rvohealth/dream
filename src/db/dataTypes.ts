@@ -5,7 +5,7 @@ export default function dataTypes() {
 }
 
 export function isPrimitiveDataType(type: string) {
-  return dataTypes().includes(type.replace(/\[\]$/, ''))
+  return dataTypes().includes(type.replace(/\[\]$/, '') as NonArrayDbTypes)
 }
 
 export const postgresDatatypes = [
@@ -52,4 +52,7 @@ export const postgresDatatypes = [
   'txid_snapshot',
   'uuid',
   'xml',
-]
+] as const
+
+type NonArrayDbTypes = (typeof postgresDatatypes)[number]
+export type DbTypes = NonArrayDbTypes | `${NonArrayDbTypes}[]`

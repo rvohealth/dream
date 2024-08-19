@@ -1,40 +1,62 @@
 import pluralize from 'pluralize'
-import snakeify from '../snakeify'
 import { PrimaryKeyType } from '../../dream/types'
 import InvalidDecimalFieldPassedToGenerator from '../../exceptions/invalid-decimal-field-passed-to-generator'
 import foreignKeyTypeFromPrimaryKey from '../db/foreignKeyTypeFromPrimaryKey'
+import snakeify from '../snakeify'
+interface ColumnDefsAndDrops {
+  columnDefs: string[]
+  columnDrops: string[]
+}
 
 export default function generateMigrationContent({
   table,
   attributes = [],
   primaryKeyType = 'bigserial',
+  createOrAlter = 'create',
 }: {
   table?: string
   attributes?: string[]
   primaryKeyType?: PrimaryKeyType
+  createOrAlter?: 'create' | 'alter'
 } = {}) {
+  const altering = createOrAlter === 'alter'
   let requireCitextExtension = false
-  const columnDefs = attributes
-    .map(attribute => {
-      const [attributeName, attributeType, ...descriptors] = attribute.split(':')
-      if (['has_one', 'has_many'].includes(attributeType)) return null
-      if (attributeType === 'belongs_to') return generateBelongsToStr(attributeName, { primaryKeyType })
+  const { columnDefs, columnDrops } = attributes.reduce(
+    (acc: ColumnDefsAndDrops, attribute: string) => {
+      const { columnDefs, columnDrops } = acc
+      const [nonStandardAttributeName, attributeType, ...descriptors] = attribute.split(':')
+      let attributeName = snakeify(nonStandardAttributeName)
+
+      if (['has_one', 'has_many'].includes(attributeType)) return acc
 
       if (attributeType === 'citext') requireCitextExtension = true
 
       const coercedAttributeType = getAttributeType(attribute)
       switch (attributeType) {
+        case 'belongs_to':
+          columnDefs.push(generateBelongsToStr(attributeName, { primaryKeyType }))
+          attributeName = associationNameToForeignKey(attributeName)
+          break
+
         case 'enum':
-          return generateEnumStr(attribute)
+          columnDefs.push(generateEnumStr(attribute))
+          break
 
         case 'decimal':
-          return generateDecimalStr(attribute)
+          columnDefs.push(generateDecimalStr(attribute))
+          break
 
         default:
-          return generateColumnStr(attributeName, coercedAttributeType, descriptors)
+          columnDefs.push(generateColumnStr(attributeName, coercedAttributeType, descriptors))
+          break
       }
-    })
-    .filter(str => str !== null)
+
+      columnDrops.push(`.dropColumn('${attributeName}')`)
+
+      return acc
+    },
+    { columnDefs: [], columnDrops: [] } as ColumnDefsAndDrops
+  )
 
   if (!table) {
     return `\
@@ -56,22 +78,36 @@ export async function down(db: Kysely<any>): Promise<void> {
   const kyselyImports = ['Kysely', 'sql']
   if (requireCitextExtension) kyselyImports.push('CompiledQuery')
 
+  const newline = '\n    '
+  const columnDefLines = columnDefs.length ? newline + columnDefs.join(newline) : ''
+  const columnDropLines = columnDrops.length ? newline + columnDrops.join(newline) + newline : ''
+
   return `\
 import { ${kyselyImports.join(', ')} } from 'kysely'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
   ${citextExtension}${generateEnumStatements(attributes)}await db.schema
-    .createTable('${table}')
-    ${generateIdStr({ primaryKeyType })}${columnDefs.length ? '\n    ' + columnDefs.join('\n    ') : ''}
-    .addColumn('created_at', 'timestamp', col => col.notNull())
-    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .${altering ? 'alterTable' : 'createTable'}('${table}')${
+      altering ? '' : newline + generateIdStr({ primaryKeyType })
+    }${columnDefLines}${
+      altering
+        ? ''
+        : newline +
+          ".addColumn('created_at', 'timestamp', col => col.notNull())" +
+          newline +
+          ".addColumn('updated_at', 'timestamp', col => col.notNull())"
+    }
     .execute()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropTable('${table}').execute()${generateEnumDropStatements(attributes)}
+  ${
+    altering
+      ? `await db.schema${newline}.alterTable('${table}')${columnDropLines}.execute()`
+      : `await db.schema.dropTable('${table}').execute()`
+  }${generateEnumDropStatements(attributes)}
 }\
 `
 }
@@ -122,7 +158,7 @@ function generateEnumDropStatements(attributes: string[]) {
     return `await db.schema.dropType('${enumName}_enum').execute()`
   })
 
-  return finalStatements.length ? '\n  ' + finalStatements.join('\n  ') : ''
+  return finalStatements.length ? '\n\n  ' + finalStatements.join('\n  ') : ''
 }
 
 function generateEnumStr(attribute: string) {
@@ -168,17 +204,19 @@ function attributeTypeString(attributeType: string) {
   }
 }
 
-function generateBelongsToStr(attributeName: string, { primaryKeyType }: { primaryKeyType: PrimaryKeyType }) {
+function generateBelongsToStr(
+  associationName: string,
+  { primaryKeyType }: { primaryKeyType: PrimaryKeyType }
+) {
   const dataType = foreignKeyTypeFromPrimaryKey(primaryKeyType)
-  const references = pluralize(snakeify(attributeName).replace(/\//g, '_').replace(/_id$/, ''))
-  return `.addColumn('${snakeify(attributeName)
-    .replace(/\//g, '_')
-    .replace(
-      /_id$/,
-      ''
-    )}_id', '${dataType}', col => col.references('${references}.id').onDelete('restrict').notNull())`
+  const references = pluralize(associationName.replace(/\//g, '_').replace(/_id$/, ''))
+  return `.addColumn('${associationNameToForeignKey(associationName)}', '${dataType}', col => col.references('${references}.id').onDelete('restrict').notNull())`
 }
 
 function generateIdStr({ primaryKeyType }: { primaryKeyType: PrimaryKeyType }) {
   return `.addColumn('id', '${primaryKeyType}', col => col.primaryKey())`
+}
+
+function associationNameToForeignKey(associationName: string) {
+  return snakeify(associationName.replace(/\//g, '_').replace(/_id$/, '') + '_id')
 }

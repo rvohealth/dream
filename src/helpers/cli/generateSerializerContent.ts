@@ -9,40 +9,54 @@ import uniq from '../uniq'
 
 export default function generateSerializerContent(
   fullyQualifiedModelName: string,
-  attributes: string[] = []
+  attributes: string[] = [],
+  fullyQualifiedParentName?: string
 ) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
-  const serializerClass = globalClassNameFromFullyQualifiedModelName(
-    serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName)
-  )
-  const serializerSummaryClass = globalClassNameFromFullyQualifiedModelName(
-    serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')
-  )
   const additionalImports: string[] = []
   let relatedModelImport = ''
-  let modelClass = ''
+  let modelClassName = ''
   let dataTypeCapture = ''
+  const dreamImports: string[] = []
   let dreamSerializerTypeArgs = ''
-  const dreamImports = ['DreamSerializer', 'Attribute']
-  let extendedClass = 'DreamSerializer'
+  const isSTI = !!fullyQualifiedParentName
 
-  if (fullyQualifiedModelName) {
-    relatedModelImport = importStatementForModel(fullyQualifiedModelName)
-    modelClass = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
-    dataTypeCapture = `<
-  DataType extends ${modelClass},
+  if (isSTI) {
+    fullyQualifiedParentName = standardizeFullyQualifiedModelName(fullyQualifiedParentName!)
+    additionalImports.push(importStatementForSerializer(fullyQualifiedModelName, fullyQualifiedParentName))
+  } else {
+    dreamImports.push('Attribute')
+    dreamImports.push('DreamColumn')
+    dreamImports.push('DreamSerializer')
+  }
+
+  relatedModelImport = importStatementForModel(fullyQualifiedModelName)
+  modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+  dataTypeCapture = `<
+  DataType extends ${modelClassName},
   Passthrough extends object,
 >`
-    dreamSerializerTypeArgs = `<DataType, Passthrough>`
-    dreamImports.push('DreamColumn')
-    extendedClass = serializerSummaryClass
-  }
+  dreamSerializerTypeArgs = `<DataType, Passthrough>`
 
-  let luxonImport = ''
-  if (!modelClass) {
-    luxonImport = hasJsType(attributes, 'DateTime') ? "import { DateTime } from 'luxon'\n" : ''
-    if (hasJsType(attributes, 'CalendarDate')) dreamImports.push('CalendarDate')
-  }
+  const defaultSerialzerClassName = globalClassNameFromFullyQualifiedModelName(
+    serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+  )
+
+  const summarySerialzerClassName = globalClassNameFromFullyQualifiedModelName(
+    serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')
+  )
+
+  const defaultSerialzerExtends = isSTI
+    ? globalClassNameFromFullyQualifiedModelName(
+        serializerNameFromFullyQualifiedModelName(fullyQualifiedParentName!)
+      )
+    : summarySerialzerClassName
+
+  const summarySerialzerExtends = isSTI
+    ? globalClassNameFromFullyQualifiedModelName(
+        serializerNameFromFullyQualifiedModelName(fullyQualifiedParentName!, 'summary')
+      )
+    : 'DreamSerializer'
 
   if (attributes.find(attr => /:belongs_to|:has_one/.test(attr))) dreamImports.push('RendersOne')
   if (attributes.find(attr => /:has_many/.test(attr))) dreamImports.push('RendersMany')
@@ -52,143 +66,67 @@ export default function generateSerializerContent(
     const [name, type] = attr.split(':')
     if (['belongs_to', 'has_one', 'has_many'].includes(type)) {
       const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(name)
+
       additionalModelImports.push(
         importStatementForModel(fullyQualifiedModelName, fullyQualifiedAssociatedModelName)
       )
+    } else {
+      dreamImports.push('Attribute')
+      dreamImports.push('DreamColumn')
     }
   })
 
-  const enumImports: string[] = []
-  attributes.forEach(attr => {
-    const [name, type] = attr.split(':')
-    if (type === 'enum') enumImports.push(name)
-  })
-
-  const additionalImportsStr = additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
-  const enumImportsStr = enumImports.length
-    ? enumValueImportStatements(fullyQualifiedModelName, uniq(enumImports))
-    : ''
-
-  let summarySerializer = ''
-  if (modelClass) {
-    summarySerializer = `
-
-export class ${extendedClass}${dataTypeCapture} extends DreamSerializer${dreamSerializerTypeArgs} {
-  @Attribute('string')
-  public id: DreamColumn<${modelClass}, 'id'>
-}`
+  let dreamImport = ''
+  if (dreamImports.length) {
+    dreamImport = `import { ${uniq(dreamImports).join(', ')} } from '@rvohealth/dream'`
   }
+
+  const additionalImportsStr = additionalImports.length ? uniq(additionalImports).join('') : ''
 
   return `\
-${luxonImport}import { ${dreamImports.join(
-    ', '
-  )} } from '@rvohealth/dream'${additionalImportsStr}${enumImportsStr}${relatedModelImport}${additionalModelImports.join('')}${summarySerializer}
+${dreamImport}${additionalImportsStr}${relatedModelImport}${additionalModelImports.join('')}
 
-export default class ${serializerClass}${dataTypeCapture} extends ${extendedClass}${dreamSerializerTypeArgs} {
-  ${attributes
-    .map(attr => {
-      const [name, type] = attr.split(':')
-      const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(name)
-      const associatedModelName = globalClassNameFromFullyQualifiedModelName(
-        fullyQualifiedAssociatedModelName
-      )
-      const propertyName = camelize(associatedModelName)
+export class ${summarySerialzerClassName}${dataTypeCapture} extends ${summarySerialzerExtends}${dreamSerializerTypeArgs} {
+${
+  isSTI
+    ? ''
+    : `  @Attribute(${modelClassName})
+  public id: DreamColumn<${modelClassName}, 'id'>
+`
+}}
 
-      switch (type) {
-        case 'belongs_to':
-        case 'has_one':
-          return `@RendersOne(() => ${associatedModelName})
+export default class ${defaultSerialzerClassName}${dataTypeCapture} extends ${defaultSerialzerExtends}${dreamSerializerTypeArgs} {
+${attributes
+  .map(attr => {
+    const [name, type] = attr.split(':')
+    const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(name)
+    const associatedModelName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
+    const propertyName = camelize(associatedModelName)
+
+    switch (type) {
+      case 'belongs_to':
+      case 'has_one':
+        return `  @RendersOne(${associatedModelName})
   public ${propertyName}: ${associatedModelName}`
 
-        case 'has_many':
-          return `@RendersMany(() => ${associatedModelName})
+      case 'has_many':
+        return `  @RendersMany(${associatedModelName})
   public ${pluralize(propertyName)}: ${associatedModelName}[]`
 
-        default:
-          return `@Attribute(${attributeSpecifier(type)}${attributeOptionsSpecifier(type, attr)})
-  public ${propertyName}: ${jsType(type, attr, propertyName, modelClass)}`
-      }
-    })
-    .join('\n\n  ')}
+      default:
+        return `  @Attribute(${modelClassName}${attributeOptionsSpecifier(type, attr)})
+  public ${propertyName}: ${jsType(type, attr, propertyName, modelClassName)}`
+    }
+  })
+  .join('\n\n  ')}
 }
 `
-}
-
-function attributeSpecifier(type: string) {
-  switch (type) {
-    case 'date':
-      return "'date'"
-
-    case 'datetime':
-    case 'time':
-    case 'time_with_time_zone':
-    case 'timestamp':
-    case 'timestamp_with_time_zone':
-    case 'timestamp_without_time_zone':
-      return "'datetime'"
-
-    case 'decimal':
-      return "'decimal'"
-
-    case 'jsonb':
-    case 'json':
-      return "'json'"
-
-    case 'enum':
-      return ''
-
-    case 'integer':
-    case 'double':
-    case 'numeric':
-    case 'real':
-    case 'smallint':
-    case 'smallserial':
-    case 'serial':
-      return "'number'"
-
-    case 'bigint':
-    case 'bigserial':
-    case 'uuid':
-    case 'text':
-    case 'box':
-    case 'bit':
-    case 'bitvarying':
-    case 'varbit':
-    case 'bytea':
-    case 'char':
-    case 'character':
-    case 'varchar':
-    case 'character_varying':
-    case 'cidr':
-    case 'circle':
-    case 'citext':
-    case 'inet':
-    case 'interval':
-    case 'line':
-    case 'lseg':
-    case 'macaddr':
-    case 'money':
-    case 'path':
-    case 'point':
-    case 'polygon':
-    case 'tsquery':
-    case 'tsvector':
-    case 'txid_snapshot':
-    case 'xml':
-      return "'string'"
-
-    default:
-      return type ? `'${type}'` : ''
-  }
 }
 
 function attributeOptionsSpecifier(type: string, attr: string) {
   switch (type) {
     case 'decimal':
       return `, { precision: ${attr.split(',').pop()} }`
-
-    case 'enum':
-      return `{ type: 'string', enum: ${originalAttributeToEnumValuesName(attr)} }`
 
     default:
       return ''
@@ -229,33 +167,10 @@ function jsType(
   }
 }
 
-function originalAttributeToEnumValuesName(originalAttribute: string) {
-  return attributeNameToEnumValuesName(originalAttribute.split(':')[2])
-}
-
-function attributeNameToEnumValuesName(name: string) {
-  return `${pascalize(name)}EnumValues`
-}
-
-function hasJsType(attributes: string[], expectedType: 'DateTime' | 'CalendarDate') {
-  return !!attributes
-    .map(attr => {
-      const [name] = attr.split(':')
-      return jsType(name, attr, camelize(name))
-    })
-    .find(a => a === expectedType)
-}
-
-function pathToDbSyncFromSerializer(fullyQualifiedModelName: string) {
-  return `${relativeDreamPath('serializers', 'db', fullyQualifiedModelName)}sync`
+function importStatementForSerializer(originModelName: string, destinationModelName: string) {
+  return `\nimport ${globalClassNameFromFullyQualifiedModelName(serializerNameFromFullyQualifiedModelName(destinationModelName))}, { ${globalClassNameFromFullyQualifiedModelName(serializerNameFromFullyQualifiedModelName(destinationModelName, 'summary'))} } from '${relativeDreamPath('serializers', 'serializers', originModelName, destinationModelName)}'`
 }
 
 function importStatementForModel(originModelName: string, destinationModelName: string = originModelName) {
   return `\nimport ${globalClassNameFromFullyQualifiedModelName(destinationModelName)} from '${relativeDreamPath('serializers', 'models', originModelName, destinationModelName)}'`
-}
-
-function enumValueImportStatements(fullyQualifiedModelName: string, enumNames: string[]) {
-  return `\nimport { ${enumNames.map(enumName => attributeNameToEnumValuesName(enumName)).join(', ')} } from '${pathToDbSyncFromSerializer(
-    fullyQualifiedModelName
-  )}'`
 }

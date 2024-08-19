@@ -1,5 +1,6 @@
 import DreamSerializer from '../..'
-import { DreamSerializerAssociationStatement, DreamSerializerClassCB, RendersOneOrManyOpts } from './shared'
+import { SerializableClassOrClasses } from '../../../dream/types'
+import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOpts } from './shared'
 
 /**
  * Establishes a One to One relationship between
@@ -34,7 +35,7 @@ import { DreamSerializerAssociationStatement, DreamSerializerClassCB, RendersOne
  *
  * ```ts
  * class UserSerializer {
- *   @RendersOne(() => SettingsSummarySerializer)
+ *   @RendersOne(SettingsSummarySerializer)
  *   public settings: Settings
  * }
  * ```
@@ -43,30 +44,28 @@ import { DreamSerializerAssociationStatement, DreamSerializerClassCB, RendersOne
  * @param opts.nullable - whether or not this association is nullable. Defaults to false
  */
 export default function RendersOne(
-  dreamOrSerializerClassCB: DreamSerializerClassCB | RendersOneOpts | null = null,
+  serializableClassOrClasses: SerializableClassOrClasses | RendersOneOpts | null = null,
   opts?: RendersOneOpts
 ): any {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return function (target: any, key: string, def: any) {
     const serializerClass: typeof DreamSerializer = target.constructor
-    opts ||= (dreamOrSerializerClassCB || {}) as RendersOneOpts
-    if (typeof dreamOrSerializerClassCB !== 'function') {
-      dreamOrSerializerClassCB = null
+
+    if (isSerializable(serializableClassOrClasses)) {
+      opts ||= {} as RendersOneOpts
+    } else {
+      opts = (serializableClassOrClasses || {}) as RendersOneOpts
+      serializableClassOrClasses = null
     }
 
-    if (!Object.getOwnPropertyDescriptor(serializerClass, 'associationStatements'))
-      serializerClass.associationStatements = [
-        ...(serializerClass.associationStatements || []),
-      ] as DreamSerializerAssociationStatement[]
-
     serializerClass.associationStatements = [
-      ...serializerClass.associationStatements,
+      ...(serializerClass.associationStatements || []),
       {
         type: 'RendersOne',
         field: key,
         flatten: opts.flatten || false,
         optional: opts.optional || false,
-        dreamOrSerializerClassCB,
+        dreamOrSerializerClass: serializableClassOrClasses,
         serializerKey: opts.serializerKey,
         source: opts.source || key,
         through: opts.through || null,

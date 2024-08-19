@@ -1,13 +1,13 @@
 import DreamSerializer from '../../../src/serializer'
-import Attribute from '../../../src/serializer/decorators/attribute'
 import RendersMany from '../../../src/serializer/decorators/associations/renders-many'
-import BalloonSummarySerializer from './BalloonSummarySerializer'
+import Attribute from '../../../src/serializer/decorators/attribute'
 import Balloon from '../models/Balloon'
+import BalloonSummarySerializer from './BalloonSummarySerializer'
 
 export default class BalloonSpotterSerializer extends DreamSerializer {
   @Attribute()
   public name: string
 
-  @RendersMany(() => BalloonSummarySerializer)
+  @RendersMany(BalloonSummarySerializer)
   public balloons: Balloon[]
 }

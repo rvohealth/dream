@@ -7,18 +7,36 @@ import snakeify from '../snakeify'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
 import uniq from '../uniq'
 
-export default function generateDreamContent(fullyQualifiedModelName: string, attributes: string[]) {
+export default function generateDreamContent(
+  fullyQualifiedModelName: string,
+  attributes: string[],
+  fullyQualifiedParentName?: string
+) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
   const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+  let parentModelClassName: string | undefined
   const dreamImports: string[] = ['DreamColumn', 'DreamSerializers']
+  const isSTI = !!fullyQualifiedParentName
+
+  if (isSTI) {
+    fullyQualifiedParentName = standardizeFullyQualifiedModelName(fullyQualifiedParentName!)
+    parentModelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedParentName)
+    dreamImports.push('STI')
+  }
+
   const idTypescriptType = `DreamColumn<${modelClassName}, 'id'>`
-  const additionalImports: string[] = []
+  const modelImportStatements: string[] = isSTI
+    ? [importStatementForModel(fullyQualifiedModelName, fullyQualifiedParentName)]
+    : [importStatementForModel(fullyQualifiedModelName, 'ApplicationModel')]
 
   const attributeStatements = attributes.map(attribute => {
     const [attributeName, attributeType] = attribute.split(':')
     const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(attributeName)
     const associationModelName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
-    const associationImportStatement = `import ${associationModelName} from '${relativeDreamPath('models', 'models', fullyQualifiedModelName, fullyQualifiedAssociatedModelName)}'`
+    const associationImportStatement = importStatementForModel(
+      fullyQualifiedModelName,
+      fullyQualifiedAssociatedModelName
+    )
     const associationName = camelize(associationModelName)
 
     if (!attributeType)
@@ -26,7 +44,7 @@ export default function generateDreamContent(fullyQualifiedModelName: string, at
 
     switch (attributeType) {
       case 'belongs_to':
-        additionalImports.push(associationImportStatement)
+        modelImportStatements.push(associationImportStatement)
         return `
 @${modelClassName}.BelongsTo('${fullyQualifiedAssociatedModelName}')
 public ${associationName}: ${associationModelName}
@@ -34,14 +52,14 @@ public ${associationName}Id: DreamColumn<${modelClassName}, '${associationName}I
 `
 
       case 'has_one':
-        additionalImports.push(associationImportStatement)
+        modelImportStatements.push(associationImportStatement)
         return `
 @${modelClassName}.HasOne('${fullyQualifiedAssociatedModelName}')
 public ${associationName}: ${associationModelName}
 `
 
       case 'has_many':
-        additionalImports.push(associationImportStatement)
+        modelImportStatements.push(associationImportStatement)
         return `
 @${modelClassName}.HasMany('${fullyQualifiedAssociatedModelName}')
 public ${pluralize(associationName)}: ${associationModelName}[]
@@ -73,28 +91,36 @@ public ${camelize(attributeName)}: ${getAttributeType(attribute, modelClassName)
   const tableName = snakeify(pluralize(fullyQualifiedModelName.replace(/\//g, '_')))
 
   return `\
-import { ${uniq(dreamImports).join(', ')} } from '@rvohealth/dream'
-import ApplicationModel from '${relativeDreamPath('models', 'models', fullyQualifiedModelName, 'ApplicationModel')}'${
-    additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
-  }
+import { ${uniq(dreamImports).join(', ')} } from '@rvohealth/dream'${uniq(modelImportStatements).join('')}
 
-export default class ${modelClassName} extends ApplicationModel {
-  public get table() {
+${isSTI ? `\n@STI(${parentModelClassName})` : ''}
+export default class ${modelClassName} extends ${isSTI ? parentModelClassName : 'ApplicationModel'} {
+${
+  isSTI
+    ? ''
+    : `  public get table() {
     return '${tableName}' as const
   }
 
-  public get serializers(): DreamSerializers<${modelClassName}> {
+`
+}  public get serializers(): DreamSerializers<${modelClassName}> {
     return {
       default: '${serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName)}',
       summary: '${serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')}',
     }
   }
 
-  public id: ${idTypescriptType}${formattedFields}${timestamps}${formattedDecorators}
+${
+  isSTI ? formattedFields : `  public id: ${idTypescriptType}${formattedFields}${timestamps}`
+}${formattedDecorators}
 }
 `.replace(/^\s*$/gm, '')
 }
 
 function getAttributeType(attribute: string, modelClassName: string) {
   return `DreamColumn<${modelClassName}, '${camelize(attribute.split(':')[0])}'>`
+}
+
+function importStatementForModel(originModelName: string, destinationModelName: string = originModelName) {
+  return `\nimport ${globalClassNameFromFullyQualifiedModelName(destinationModelName)} from '${relativeDreamPath('models', 'models', originModelName, destinationModelName)}'`
 }

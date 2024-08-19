@@ -1,5 +1,6 @@
 import DreamSerializer from '../..'
-import { DreamSerializerAssociationStatement, DreamSerializerClassCB, RendersOneOrManyOpts } from './shared'
+import { SerializableClassOrClasses } from '../../../dream/types'
+import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOpts } from './shared'
 
 /**
  * Establishes a One to Many relationship between
@@ -34,35 +35,33 @@ import { DreamSerializerAssociationStatement, DreamSerializerClassCB, RendersOne
  *
  * ```ts
  * class UserSerializer {
- *   @RendersMany(() => PostSummarySerializer)
+ *   @RendersMany(PostSummarySerializer)
  *   public posts: Post[]
  * }
  * ```
  */
 export default function RendersMany(
-  dreamOrSerializerClassCB: DreamSerializerClassCB | RendersManyOpts | null = null,
+  serializableClassOrClasses: SerializableClassOrClasses | RendersManyOpts | null = null,
   opts?: RendersManyOpts
 ): any {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return function (target: any, key: string, def: any) {
     const serializerClass: typeof DreamSerializer = target.constructor
-    opts ||= (dreamOrSerializerClassCB || {}) as RendersManyOpts
-    if (typeof dreamOrSerializerClassCB !== 'function') {
-      dreamOrSerializerClassCB = null
+
+    if (isSerializable(serializableClassOrClasses)) {
+      opts ||= {} as RendersManyOpts
+    } else {
+      opts = (serializableClassOrClasses || {}) as RendersManyOpts
+      serializableClassOrClasses = null
     }
 
-    if (!Object.getOwnPropertyDescriptor(serializerClass, 'associationStatements'))
-      serializerClass.associationStatements = [
-        ...(serializerClass.associationStatements || []),
-      ] as DreamSerializerAssociationStatement[]
-
     serializerClass.associationStatements = [
-      ...serializerClass.associationStatements,
+      ...(serializerClass.associationStatements || []),
       {
         type: 'RendersMany',
         field: key,
         optional: opts.optional || false,
-        dreamOrSerializerClassCB,
+        dreamOrSerializerClass: serializableClassOrClasses,
         serializerKey: opts.serializerKey,
         source: opts.source || key,
         through: opts.through || null,
