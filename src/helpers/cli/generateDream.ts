@@ -13,6 +13,7 @@ import generateDreamContent from './generateDreamContent'
 import generateFactory from './generateFactory'
 import generateMigrationContent from './generateMigrationContent'
 import generateSerializerContent from './generateSerializerContent'
+import generateStiMigrationContent from './generateStiMigrationContent'
 import generateUnitSpec from './generateUnitSpec'
 
 export default async function generateDream(dreamName: string, attributes: string[], parentName?: string) {
@@ -58,7 +59,7 @@ export default async function generateDream(dreamName: string, attributes: strin
   await generateUnitSpec(dreamName, 'models')
   await generateFactory(dreamName, attributes)
 
-  if (!isSTI) {
+  if (attributes.length || !isSTI) {
     // generate migration file
     const migrationBasePath = path.join(dreamApp.appRoot, dreamApp.paths.db, 'migrations')
     const version = migrationVersion()
@@ -69,11 +70,22 @@ export default async function generateDream(dreamName: string, attributes: strin
       migrationsRelativeBasePath
     )
 
-    const finalContent = generateMigrationContent({
-      table: snakeify(pluralize(pascalizePath(dreamName))),
-      attributes,
-      primaryKeyType: primaryKeyType(),
-    })
+    let finalContent: string
+
+    if (isSTI) {
+      finalContent = generateStiMigrationContent({
+        table: snakeify(pluralize(pascalizePath(parentName))),
+        attributes,
+        primaryKeyType: primaryKeyType(),
+      })
+    } else {
+      finalContent = generateMigrationContent({
+        table: snakeify(pluralize(pascalizePath(dreamName))),
+        attributes,
+        primaryKeyType: primaryKeyType(),
+      })
+    }
+
     try {
       console.log(`generating migration: ${relativeMigrationPath}`)
       await fs.writeFile(migrationPath, finalContent)

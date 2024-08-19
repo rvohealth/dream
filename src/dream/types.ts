@@ -322,10 +322,7 @@ export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) 
 
 export type DreamOrViewModel = Dream | ViewModel
 export type ViewModel = { serializers: Record<string, string> }
-export type ViewModelClass = abstract new (...args: any) => ViewModel
-
-export type DreamClassOrViewModelClass = typeof Dream | ViewModelClass
-
+export type DreamClassOrViewModelClass = abstract new (...args: any) => ViewModel
 export type DreamClassOrViewModelClassOrSerializerClass = DreamClassOrViewModelClass | typeof DreamSerializer
 
 // preload

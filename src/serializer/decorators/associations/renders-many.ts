@@ -1,9 +1,9 @@
 import DreamSerializer from '../..'
 import {
   DreamSerializerAssociationStatement,
-  DreamSerializerClass,
-  isDreamOrSerializerClass,
+  isSerializable,
   RendersOneOrManyOpts,
+  SerializableClassOrClasses,
 } from './shared'
 
 /**
@@ -45,18 +45,18 @@ import {
  * ```
  */
 export default function RendersMany(
-  dreamOrSerializerClass: DreamSerializerClass | RendersManyOpts | null = null,
+  serializableClassOrClasses: SerializableClassOrClasses | RendersManyOpts | null = null,
   opts?: RendersManyOpts
 ): any {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return function (target: any, key: string, def: any) {
     const serializerClass: typeof DreamSerializer = target.constructor
 
-    if (isDreamOrSerializerClass(dreamOrSerializerClass)) {
+    if (isSerializable(serializableClassOrClasses)) {
       opts ||= {} as RendersManyOpts
     } else {
-      opts = (dreamOrSerializerClass || {}) as RendersManyOpts
-      dreamOrSerializerClass = null
+      opts = (serializableClassOrClasses || {}) as RendersManyOpts
+      serializableClassOrClasses = null
     }
 
     serializerClass.associationStatements = [
@@ -65,7 +65,7 @@ export default function RendersMany(
         type: 'RendersMany',
         field: key,
         optional: opts.optional || false,
-        dreamOrSerializerClass: dreamOrSerializerClass,
+        dreamOrSerializerClass: serializableClassOrClasses,
         serializerKey: opts.serializerKey,
         source: opts.source || key,
         through: opts.through || null,
