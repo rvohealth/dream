@@ -9,7 +9,7 @@ export default function Attribute(): any
 
 export default function Attribute<DreamClass extends typeof Dream>(
   dreamClass: DreamClass,
-  openApiAndRenderOptions?: AutomaticOpenapiAndREnderOptions
+  openApiAndRenderOptions?: AutomaticOpenapiAndRenderOptions
 ): any
 
 export default function Attribute(
@@ -207,7 +207,7 @@ interface RenderOnlyOptions {
   delegate?: string
 }
 
-type AutomaticOpenapiAndREnderOptions = Pick<OpenapiOnlyOptions, 'description'> &
+type AutomaticOpenapiAndRenderOptions = Pick<OpenapiOnlyOptions, 'description'> &
   Pick<RenderOnlyOptions, 'precision'>
 
 type ShorthandAttributeOpenapiAndRenderOptions = Pick<OpenapiOnlyOptions, 'nullable' | 'description'> &
