@@ -19,7 +19,7 @@ export default class CompositionAlternateSerializer extends DreamSerializer {
   @RendersMany()
   public compositionAssets: CompositionAsset[]
 
-  @RendersMany(LocalizedTextBaseSerializer<any>)
+  @RendersMany(() => LocalizedTextBaseSerializer<any>)
   public localizedTexts: LocalizedText[]
 
   // intentionally omitting the serializer callback to

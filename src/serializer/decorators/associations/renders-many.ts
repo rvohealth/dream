@@ -35,7 +35,7 @@ import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOp
  *
  * ```ts
  * class UserSerializer {
- *   @RendersMany(PostSummarySerializer)
+ *   @RendersMany(() => PostSummarySerializer)
  *   public posts: Post[]
  * }
  * ```

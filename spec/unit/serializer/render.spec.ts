@@ -541,7 +541,7 @@ describe('DreamSerializer#render', () => {
       }
 
       class UserSerializer extends DreamSerializer {
-        @RendersMany(PetSerializer)
+        @RendersMany(() => PetSerializer)
         public pets: Pet[]
       }
 
@@ -561,7 +561,7 @@ describe('DreamSerializer#render', () => {
         }
 
         class ChildSerializer extends UserSerializer {
-          @RendersMany(BalloonSerializer)
+          @RendersMany(() => BalloonSerializer)
           public balloons: Balloon[]
         }
 
@@ -597,7 +597,7 @@ describe('DreamSerializer#render', () => {
 
       context('when the source option is passed', () => {
         class UserSerializerWithSource extends DreamSerializer {
-          @RendersMany(PetSerializer, { source: 'pets' })
+          @RendersMany(() => PetSerializer, { source: 'pets' })
           public hooligans: Pet[]
         }
 
@@ -671,7 +671,7 @@ describe('DreamSerializer#render', () => {
         }
 
         class PersonSerializer extends DreamSerializer {
-          @RendersMany(ChalupaSerializer, { through: 'chalupatown' })
+          @RendersMany(() => ChalupaSerializer, { through: 'chalupatown' })
           public chalupas: any[]
         }
 
@@ -686,7 +686,7 @@ describe('DreamSerializer#render', () => {
 
         context('with an attribute that is not present in the serializer data passed as a through', () => {
           class PersonSerializer extends DreamSerializer {
-            @RendersMany(ChalupaSerializer, { through: 'a.b' })
+            @RendersMany(() => ChalupaSerializer, { through: 'a.b' })
             public chalupas: any[]
           }
 
@@ -707,7 +707,7 @@ describe('DreamSerializer#render', () => {
             }
 
             class UserSerializer extends DreamSerializer {
-              @RendersMany(CollarSerializer2, { through: 'firstPet' })
+              @RendersMany(() => CollarSerializer2, { through: 'firstPet' })
               public collars: any[]
             }
 
@@ -733,7 +733,7 @@ describe('DreamSerializer#render', () => {
             }
 
             class UserSerializer extends DreamSerializer {
-              @RendersMany(CollarSerializer2, { through: 'pets' })
+              @RendersMany(() => CollarSerializer2, { through: 'pets' })
               public collars: any[]
             }
 
@@ -766,7 +766,7 @@ describe('DreamSerializer#render', () => {
 
         context('when the serializer is optional', () => {
           class UserSerializer extends DreamSerializer {
-            @RendersMany(PetSerializer, { optional: true })
+            @RendersMany(() => PetSerializer, { optional: true })
             public pets: Pet[]
           }
 
@@ -908,7 +908,7 @@ describe('DreamSerializer#render', () => {
       }
 
       class PetSerializer extends DreamSerializer {
-        @RendersOne(UserSerializer)
+        @RendersOne(() => UserSerializer)
         public user: User
       }
 
@@ -936,12 +936,12 @@ describe('DreamSerializer#render', () => {
         }
 
         class UserSerializer extends DreamSerializer {
-          @RendersOne(PetSerializer)
+          @RendersOne(() => PetSerializer)
           public pet: Pet
         }
 
         class ChildSerializer extends UserSerializer {
-          @RendersOne(BalloonSerializer)
+          @RendersOne(() => BalloonSerializer)
           public balloon: Balloon
         }
 
@@ -968,7 +968,7 @@ describe('DreamSerializer#render', () => {
 
         context('when the serializer is optional', () => {
           class PetSerializer extends DreamSerializer {
-            @RendersOne(UserSerializer, { optional: true })
+            @RendersOne(() => UserSerializer, { optional: true })
             public user: User
           }
 
@@ -997,7 +997,7 @@ describe('DreamSerializer#render', () => {
 
       context('when the source option is passed', () => {
         class PetSerializer extends DreamSerializer {
-          @RendersOne(UserSerializer, { source: 'user' })
+          @RendersOne(() => UserSerializer, { source: 'user' })
           public owner: User
         }
 
@@ -1070,7 +1070,7 @@ describe('DreamSerializer#render', () => {
         }
 
         class PersonSerializer extends DreamSerializer {
-          @RendersOne(HappinessSerializer, { through: 'cat' })
+          @RendersOne(() => HappinessSerializer, { through: 'cat' })
           public happiness: any
         }
 
@@ -1089,7 +1089,7 @@ describe('DreamSerializer#render', () => {
 
       context('with flatten set on RendersOne', () => {
         class PetSerializerFlattened extends DreamSerializer {
-          @RendersOne(UserSerializer, { flatten: true })
+          @RendersOne(() => UserSerializer, { flatten: true })
           public user: User
         }
 
@@ -1262,7 +1262,7 @@ describe('DreamSerializer#render', () => {
           }
 
           class CollarSerializer extends DreamSerializer {
-            @RendersOne(UserSerializer, { through: 'pet' })
+            @RendersOne(() => UserSerializer, { through: 'pet' })
             public user: User
           }
 
@@ -1293,8 +1293,8 @@ describe('DreamSerializer#render', () => {
       }
     }
 
-    class IntermediateSerilizer extends DreamSerializer {
-      @RendersOne(ChildSerializer<any, any>)
+    class IntermediateSerializer extends DreamSerializer {
+      @RendersOne(() => ChildSerializer<any, any>)
       public child: any
 
       @Attribute()
@@ -1304,7 +1304,7 @@ describe('DreamSerializer#render', () => {
     }
 
     class ParentSerializer extends DreamSerializer {
-      @RendersOne(IntermediateSerilizer)
+      @RendersOne(() => IntermediateSerializer)
       public child: any
     }
 
@@ -1332,7 +1332,7 @@ describe('DreamSerializer#render', () => {
     }
 
     class ParentSerializer extends DreamSerializer {
-      @RendersOne(ChildSerializer, { flatten: true })
+      @RendersOne(() => ChildSerializer, { flatten: true })
       public child: any
 
       @Attribute()

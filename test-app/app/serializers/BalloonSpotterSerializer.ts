@@ -8,6 +8,6 @@ export default class BalloonSpotterSerializer extends DreamSerializer {
   @Attribute()
   public name: string
 
-  @RendersMany(BalloonSummarySerializer)
+  @RendersMany(() => BalloonSummarySerializer)
   public balloons: Balloon[]
 }

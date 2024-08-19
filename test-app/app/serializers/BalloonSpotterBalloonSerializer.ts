@@ -7,7 +7,7 @@ export default class BalloonSpotterBalloonSerializer extends DreamSerializer {
   @Attribute()
   public balloonSpotter: any
 
-  @RendersOne(BalloonSummarySerializer)
+  @RendersOne(() => BalloonSummarySerializer)
   public balloon: any
 
   // intentional bad association to make sure that our type generators

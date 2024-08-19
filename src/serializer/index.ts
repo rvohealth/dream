@@ -21,6 +21,7 @@ import round from '../helpers/round'
 import snakeify from '../helpers/snakeify'
 import { DreamSerializerAssociationStatement } from './decorators/associations/shared'
 import { AttributeStatement, SerializableTypes } from './decorators/attribute'
+import serializerAssociationToDreamSerializer from './decorators/helpers/serializerAssociationToDreamSerializer'
 
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
   public static attributeStatements: AttributeStatement[] = []
@@ -89,9 +90,11 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   private static associationDeclaredSerializer(
     associationStatement: DreamSerializerAssociationStatement
   ): typeof DreamSerializer<any, any> | null {
-    if ((associationStatement.dreamOrSerializerClass as typeof DreamSerializer)?.isDreamSerializer) {
-      return associationStatement.dreamOrSerializerClass as typeof DreamSerializer
-    }
+    const dreamSerializer = serializerAssociationToDreamSerializer(
+      associationStatement.dreamOrSerializerClass
+    )
+    if (dreamSerializer) return dreamSerializer
+
     return null
   }
 
