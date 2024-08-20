@@ -1,6 +1,6 @@
 import { DreamConst, SerializableClassOrClasses } from '../../../dream/types'
 import hasSerializersGetter from '../helpers/hasSerializersGetter'
-import serializerAssociationToDreamSerializer from '../helpers/serializerAssociationToDreamSerializer'
+import serializerAssociationToDreamSerializer from '../helpers/maybeSerializableToDreamSerializerCallbackFunction'
 
 export type SerializableAssociationType = 'RendersOne' | 'RendersMany'
 

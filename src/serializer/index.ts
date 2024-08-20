@@ -21,7 +21,7 @@ import round from '../helpers/round'
 import snakeify from '../helpers/snakeify'
 import { DreamSerializerAssociationStatement } from './decorators/associations/shared'
 import { AttributeStatement, SerializableTypes } from './decorators/attribute'
-import serializerAssociationToDreamSerializer from './decorators/helpers/serializerAssociationToDreamSerializer'
+import maybeSerializableToDreamSerializerCallbackFunction from './decorators/helpers/maybeSerializableToDreamSerializerCallbackFunction'
 
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
   public static attributeStatements: AttributeStatement[] = []
@@ -57,8 +57,10 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   public static getAssociatedSerializersForOpenapi(
     associationStatement: DreamSerializerAssociationStatement
   ): (typeof DreamSerializer<any, any>)[] | null {
-    const serializer = serializerAssociationToDreamSerializer(associationStatement.dreamOrSerializerClass)
-    if (serializer) return [serializer]
+    const serializer = maybeSerializableToDreamSerializerCallbackFunction(
+      associationStatement.dreamOrSerializerClass
+    )
+    if (serializer) return [serializer()]
 
     let classOrClasses =
       associationStatement.dreamOrSerializerClass as SerializableClassOrSerializerCallback[]
@@ -82,11 +84,11 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     associatedData: SerializableDreamOrViewModel,
     associationStatement: DreamSerializerAssociationStatement
   ): typeof DreamSerializer<any, any> | null {
-    const dreamSerializerOrNull = serializerAssociationToDreamSerializer(
+    const dreamSerializerCallbackFunctionOrNull = maybeSerializableToDreamSerializerCallbackFunction(
       associationStatement.dreamOrSerializerClass
     )
 
-    if (dreamSerializerOrNull) return dreamSerializerOrNull
+    if (dreamSerializerCallbackFunctionOrNull) return dreamSerializerCallbackFunctionOrNull()
     return inferSerializerFromDreamOrViewModel(associatedData, associationStatement.serializerKey)
   }
 
