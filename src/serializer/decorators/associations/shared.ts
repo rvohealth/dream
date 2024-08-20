@@ -1,6 +1,6 @@
 import { DreamConst, SerializableClassOrClasses } from '../../../dream/types'
 import hasSerializersGetter from '../helpers/hasSerializersGetter'
-import serializerAssociationToDreamSerializer from '../helpers/maybeSerializableToDreamSerializerCallbackFunction'
+import maybeSerializableToDreamSerializerCallbackFunction from '../helpers/maybeSerializableToDreamSerializerCallbackFunction'
 
 export type SerializableAssociationType = 'RendersOne' | 'RendersMany'
 
@@ -31,6 +31,6 @@ export function isSerializable(dreamOrSerializerClass: any) {
   return (
     Array.isArray(dreamOrSerializerClass) ||
     hasSerializersGetter(dreamOrSerializerClass) ||
-    !!serializerAssociationToDreamSerializer(dreamOrSerializerClass)
+    !!maybeSerializableToDreamSerializerCallbackFunction(dreamOrSerializerClass)
   )
 }
