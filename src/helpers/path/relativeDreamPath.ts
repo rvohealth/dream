@@ -1,7 +1,7 @@
 import pascalize from '../pascalize'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
 import dreamPath, { DreamPaths } from './dreamPath'
-import sharedPrefix from './sharedPathPrefix'
+import sharedPathPrefix from './sharedPathPrefix'
 
 export default function (
   originDreamPathType: DreamPaths,
@@ -15,7 +15,7 @@ export default function (
   let pathToRemove = fullyQualifiedOriginModelName
 
   if (originDreamPathType === destinationDreamPathType) {
-    const sharedPrefixLength = sharedPrefix(
+    const sharedPrefixLength = sharedPathPrefix(
       fullyQualifiedOriginModelName,
       fullyQualifiedDestinationModelName
     ).length
@@ -56,7 +56,7 @@ export function dreamPathTypeRelativePath(
 ) {
   const originPath = dreamPath(originDreamPathType)
   const destinationPath = dreamPath(destinationDreamPathType)
-  const sharedPrefixLength = sharedPrefix(originPath, destinationPath).length
+  const sharedPrefixLength = sharedPathPrefix(originPath, destinationPath).length
   const originPathToRemove = originPath.slice(sharedPrefixLength)
 
   const updirs =

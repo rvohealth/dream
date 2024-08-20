@@ -1,29 +1,28 @@
 import fs from 'fs/promises'
-import path from 'path'
-import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
+import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths'
 import dreamPath from '../path/dreamPath'
+import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
 import generateUnitSpecContent from './generateUnitSpecContent'
 
-export default async function generateUnitSpec(dreamName: string, specSubpath: 'models' | 'controllers') {
-  const dreamApp = getCachedDreamApplicationOrFail()
-  const specBasePath = path.join(dreamApp.appRoot, dreamApp.paths.uspecs)
-  const specPath = path.join(specBasePath, specSubpath, `${dreamName}.spec.ts`)
-  const specDirPath = specPath.split('/').slice(0, -1).join('/')
-  const relativeUspecPath = dreamPath('uspec')
-  const relativeSpecPath = specPath.replace(new RegExp(`^.*${relativeUspecPath}`), relativeUspecPath)
+export default async function generateUnitSpec(fullyQualifiedModelName: string) {
+  fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
+
+  const { relFilePath, absDirPath, absFilePath } = dreamFileAndDirPaths(
+    dreamPath('modelSpecs'),
+    `${fullyQualifiedModelName}.spec.ts`
+  )
 
   try {
-    console.log(`generating spec: ${relativeSpecPath}`)
-    await fs.mkdir(specDirPath, { recursive: true })
-    await fs.writeFile(specPath, generateUnitSpecContent(dreamName))
+    console.log(`generating spec: ${relFilePath}`)
+    await fs.mkdir(absDirPath, { recursive: true })
+    await fs.writeFile(absFilePath, generateUnitSpecContent(fullyQualifiedModelName))
   } catch (error) {
-    const err = `
+    throw new Error(`
       Something happened while trying to create the spec file:
-        ${relativeSpecPath}
+        ${relFilePath}
 
       Does this file already exist? Here is the error that was raised:
         ${(error as Error).message}
-    `
-    throw err
+    `)
   }
 }
