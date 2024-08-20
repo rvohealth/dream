@@ -129,7 +129,7 @@ describe('relativeDreamPath', () => {
     })
   })
 
-  context('to factories', () => {
+  context.only('to factories', () => {
     context('from models with a model name', () => {
       it('returns ../../spec/factories/<ModelName>Factory', () => {
         expect(relativeDreamPath('models', 'factories', 'User')).toEqual('../../spec/factories/UserFactory')

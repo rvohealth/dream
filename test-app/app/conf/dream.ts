@@ -8,7 +8,7 @@ export default async function dreamApplicationOpts(dreamApp: DreamApplication) {
   await dreamApp.load('services', path.join(__dirname, '..', 'services'))
 
   // sets the root directory for the dream application
-  dreamApp.set('appRoot', path.join(__dirname, '..', '..'))
+  dreamApp.set('projectRoot', path.join(__dirname, '..', '..', '..'))
 
   // sets the primary key type to use when generating new models for your app
   dreamApp.set('primaryKeyType', 'bigserial')
@@ -19,7 +19,13 @@ export default async function dreamApplicationOpts(dreamApp: DreamApplication) {
   // provides a list of path overrides for your app. This is optional, and will default
   // to the paths expected for a typical psychic application.
   dreamApp.set('paths', {
-    conf: 'app/conf',
+    conf: 'test-app/app/conf',
+    db: 'test-app/db',
+    factories: 'test-app/spec/factories',
+    models: 'test-app/app/models',
+    serializers: 'test-app/app/serializers',
+    services: 'test-app/app/services',
+    modelSpecs: 'test-app/spec/unit/models',
   })
 
   // provides db credentials and configuration for your app.

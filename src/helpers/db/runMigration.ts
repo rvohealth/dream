@@ -9,7 +9,7 @@ export default async function runMigration({
   // step = 1,
 }: { mode?: 'migrate' | 'rollback'; step?: number } = {}) {
   const dreamApp = getCachedDreamApplicationOrFail()
-  const migrationFolder = path.join(dreamApp.appRoot, dreamApp.paths.db, 'migrations')
+  const migrationFolder = path.join(dreamApp.projectRoot, dreamApp.paths.db, 'migrations')
 
   const migrator = new Migrator({
     db: db('primary', dreamApp),

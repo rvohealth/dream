@@ -10,7 +10,7 @@ describe('DreamApplication#init', () => {
   context('with a valid config', () => {
     it('does not raise an exception', async () => {
       const cb = async (app: DreamApplication) => {
-        app.set('appRoot', 'how/yadoin')
+        app.set('projectRoot', 'how/yadoin')
         await app.load('models', 'how/yadoin')
       }
 
@@ -22,14 +22,14 @@ describe('DreamApplication#init', () => {
     context('load("models") never called', () => {
       it('throws targeted exception', async () => {
         const cb = (app: DreamApplication) => {
-          app.set('appRoot', 'how/yadoin')
+          app.set('projectRoot', 'how/yadoin')
         }
 
         await expect(DreamApplication.init(cb)).rejects.toThrow()
       })
     })
 
-    context('appRoot not set', () => {
+    context('projectRoot not set', () => {
       it('throws targeted exception', async () => {
         const cb = async (app: DreamApplication) => {
           await app.load('models', 'how/yadoin')
