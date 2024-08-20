@@ -3,7 +3,7 @@ import { DateTime } from 'luxon'
 import Dream from '../dream'
 import {
   DreamConst,
-  SerializableClass,
+  SerializableClassOrSerializerCallback,
   SerializableDreamClassOrViewModelClass,
   SerializableDreamOrViewModel,
 } from '../dream/types'
@@ -21,6 +21,7 @@ import round from '../helpers/round'
 import snakeify from '../helpers/snakeify'
 import { DreamSerializerAssociationStatement } from './decorators/associations/shared'
 import { AttributeStatement, SerializableTypes } from './decorators/attribute'
+import serializerAssociationToDreamSerializer from './decorators/helpers/serializerAssociationToDreamSerializer'
 
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
   public static attributeStatements: AttributeStatement[] = []
@@ -56,10 +57,11 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   public static getAssociatedSerializersForOpenapi(
     associationStatement: DreamSerializerAssociationStatement
   ): (typeof DreamSerializer<any, any>)[] | null {
-    const serializer = this.associationDeclaredSerializer(associationStatement)
+    const serializer = serializerAssociationToDreamSerializer(associationStatement.dreamOrSerializerClass)
     if (serializer) return [serializer]
 
-    let classOrClasses = associationStatement.dreamOrSerializerClass as SerializableClass[]
+    let classOrClasses =
+      associationStatement.dreamOrSerializerClass as SerializableClassOrSerializerCallback[]
     if (!classOrClasses) return null
 
     if (!Array.isArray(classOrClasses)) {
@@ -80,19 +82,12 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     associatedData: SerializableDreamOrViewModel,
     associationStatement: DreamSerializerAssociationStatement
   ): typeof DreamSerializer<any, any> | null {
-    const dreamSerializerOrNull = this.associationDeclaredSerializer(associationStatement)
+    const dreamSerializerOrNull = serializerAssociationToDreamSerializer(
+      associationStatement.dreamOrSerializerClass
+    )
 
     if (dreamSerializerOrNull) return dreamSerializerOrNull
     return inferSerializerFromDreamOrViewModel(associatedData, associationStatement.serializerKey)
-  }
-
-  private static associationDeclaredSerializer(
-    associationStatement: DreamSerializerAssociationStatement
-  ): typeof DreamSerializer<any, any> | null {
-    if ((associationStatement.dreamOrSerializerClass as typeof DreamSerializer)?.isDreamSerializer) {
-      return associationStatement.dreamOrSerializerClass as typeof DreamSerializer
-    }
-    return null
   }
 
   private _data: DataType

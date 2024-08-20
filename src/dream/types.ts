@@ -328,10 +328,13 @@ export type SerializableDreamClassOrViewModelClass = abstract new (
   ...args: any
 ) => SerializableDreamOrViewModel
 
-export type SerializableClass = SerializableDreamClassOrViewModelClass | typeof DreamSerializer
+export type DreamSerializerCallback = () => typeof DreamSerializer
+export type SerializableClassOrSerializerCallback =
+  | SerializableDreamClassOrViewModelClass
+  | DreamSerializerCallback
 
 export type SerializableClassOrClasses =
-  | typeof DreamSerializer
+  | DreamSerializerCallback
   | SerializableDreamClassOrViewModelClass
   | SerializableDreamClassOrViewModelClass[]
 

@@ -35,7 +35,7 @@ import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOp
  *
  * ```ts
  * class UserSerializer {
- *   @RendersOne(SettingsSummarySerializer)
+ *   @RendersOne(() => SettingsSummarySerializer)
  *   public settings: Settings
  * }
  * ```
