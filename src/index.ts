@@ -1,3 +1,7 @@
+export {
+  globalClassNameFromFullyQualifiedModelName,
+  standardizeFullyQualifiedModelName,
+} from '../psychic-support-helpers'
 export { default as DreamBin } from './bin'
 export { default as db } from './db'
 export { closeAllDbConnections, dreamDbConnections } from './db/dream-db-connection'
