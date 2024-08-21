@@ -1,1 +1,0 @@
-export default function validateColumn<Schema, TableName extends keyof Schema & string>(schema: Schema, tableName: TableName, columnName: keyof Schema[TableName]['columns' & keyof Schema[TableName]] & string): keyof Schema[TableName]["columns" & keyof Schema[TableName]] & string;
