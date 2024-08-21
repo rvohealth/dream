@@ -61,6 +61,7 @@ export default class DreamApplication {
   public primaryKeyType: (typeof primaryKeyTypes)[number] = 'bigserial'
   public projectRoot: string
   public paths: Required<DreamDirectoryPaths>
+  public serializerCasing: DreamSerializerCasing
   public inflections?: () => void | Promise<void>
 
   protected loadedModels: boolean = false
@@ -70,6 +71,7 @@ export default class DreamApplication {
     if (opts?.primaryKeyType) this.primaryKeyType = opts.primaryKeyType
     if (opts?.projectRoot) this.projectRoot = opts.projectRoot
     if (opts?.inflections) this.inflections = opts.inflections
+    if (opts?.serializerCasing) this.serializerCasing = opts.serializerCasing
 
     this.paths = {
       conf: opts?.paths?.conf || 'src/app/conf',
@@ -111,7 +113,7 @@ export default class DreamApplication {
     }
   }
 
-  public set<ApplyOpt extends ApplyOption>(
+  public set<ApplyOpt extends DreamApplicationSetOption>(
     applyOption: ApplyOpt,
     options: ApplyOpt extends 'db'
       ? DreamDbCredentialOptions
@@ -142,6 +144,10 @@ export default class DreamApplication {
         this.inflections = options as () => void | Promise<void>
         break
 
+      case 'serializerCasing':
+        this.serializerCasing = options as DreamSerializerCasing
+        break
+
       case 'paths':
         this.paths = {
           ...this.paths,
@@ -161,9 +167,16 @@ export interface DreamApplicationOpts {
   db: DreamDbCredentialOptions
   inflections?: () => void | Promise<void>
   paths?: DreamDirectoryPaths
+  serializerCasing?: DreamSerializerCasing
 }
 
-export type ApplyOption = 'db' | 'primaryKeyType' | 'projectRoot' | 'inflections' | 'paths'
+export type DreamApplicationSetOption =
+  | 'db'
+  | 'primaryKeyType'
+  | 'projectRoot'
+  | 'inflections'
+  | 'paths'
+  | 'serializerCasing'
 
 export interface DreamDirectoryPaths {
   models?: string
@@ -188,3 +201,5 @@ export interface SingleDbCredential {
   port: number
   useSsl: boolean
 }
+
+export type DreamSerializerCasing = 'snake' | 'camel'
