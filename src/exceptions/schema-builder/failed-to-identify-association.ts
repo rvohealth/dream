@@ -1,5 +1,5 @@
 import Dream from '../../dream'
-import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
+import DreamApplication from '../../dream-application'
 
 export default class FailedToIdentifyAssociation extends Error {
   constructor(
@@ -12,7 +12,7 @@ export default class FailedToIdentifyAssociation extends Error {
   }
 
   public get message() {
-    const dreamApp = getCachedDreamApplicationOrFail()
+    const dreamApp = DreamApplication.getOrFail()
     const attemptedName = Array.isArray(this.globalAssociationNameOrNames)
       ? this.globalAssociationNameOrNames[0]
       : this.globalAssociationNameOrNames

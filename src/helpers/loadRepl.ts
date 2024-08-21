@@ -1,10 +1,10 @@
 import './loadEnv'
 
 import { DateTime } from 'luxon'
-import { getCachedDreamApplicationOrFail } from '../dream-application/cache'
+import DreamApplication from '../dream-application'
 
 export default async function loadRepl(context: Record<string, unknown>) {
-  const dreamApp = getCachedDreamApplicationOrFail()
+  const dreamApp = DreamApplication.getOrFail()
 
   await dreamApp.inflections?.()
 

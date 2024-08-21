@@ -1,7 +1,7 @@
-import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
+import DreamApplication from '../../dream-application'
 
 export default function (dreamPathType: DreamPaths) {
-  const dreamApp = getCachedDreamApplicationOrFail()
+  const dreamApp = DreamApplication.getOrFail()
 
   switch (dreamPathType) {
     case 'models':

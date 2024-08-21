@@ -1,8 +1,8 @@
 import path from 'path'
-import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
+import DreamApplication from '../../dream-application'
 
 export default function (relDirPath: string, partialFilePath: string) {
-  const dreamApp = getCachedDreamApplicationOrFail()
+  const dreamApp = DreamApplication.getOrFail()
   const relFilePath = path.join(relDirPath, partialFilePath)
   const absFilePath = path.join(dreamApp.projectRoot, relFilePath)
   const absDirPath = absFilePath.replace(/\/[^/]+$/, '')

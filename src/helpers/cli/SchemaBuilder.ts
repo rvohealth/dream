@@ -4,7 +4,7 @@ import sortBy from 'lodash.sortby'
 import path from 'path'
 import _db from '../../db'
 import { isPrimitiveDataType } from '../../db/dataTypes'
-import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
+import DreamApplication from '../../dream-application'
 import { DreamConst, SerializableDreamClassOrViewModelClass } from '../../dream/types'
 import FailedToIdentifyAssociation from '../../exceptions/schema-builder/failed-to-identify-association'
 import camelize from '../camelize'
@@ -28,7 +28,7 @@ import {
         ? "import CalendarDate from '../../src/helpers/CalendarDate'"
         : "import { CalendarDate } from '@rvohealth/dream'"
 
-    const dreamApp = getCachedDreamApplicationOrFail()
+    const dreamApp = DreamApplication.getOrFail()
 
     const newSchemaFileContents = `\
 ${calendarDateImportStatement}
@@ -54,7 +54,7 @@ export const globalSchema = {
   }
 
   private globalModelNames() {
-    const dreamApp = getCachedDreamApplicationOrFail()
+    const dreamApp = DreamApplication.getOrFail()
     return `{
       ${Object.keys(dreamApp.models)
         .map(key => `'${key}': '${dreamApp.models[key].prototype.table}'`)
@@ -158,7 +158,7 @@ ${tableName}: {
   }
 
   private async tableData(tableName: string) {
-    const dreamApp = getCachedDreamApplicationOrFail()
+    const dreamApp = DreamApplication.getOrFail()
     const models = Object.values(dreamApp.models)
     const model = models.find(model => model.table === tableName)
 
@@ -196,7 +196,7 @@ may need to update the table getter in the corresponding Dream.
   }
 
   private async getColumnData(tableName: string, associationData: { [key: string]: AssociationData }) {
-    const dreamconf = getCachedDreamApplicationOrFail()
+    const dreamconf = DreamApplication.getOrFail()
     const db = _db('primary', dreamconf)
     const sqlQuery = sql`SELECT column_name, udt_name::regtype, is_nullable, data_type FROM information_schema.columns WHERE table_name = ${tableName}`
     const columnToDBTypeMap = await sqlQuery.execute(db)
@@ -237,7 +237,7 @@ may need to update the table getter in the corresponding Dream.
   }
 
   private getVirtualColumns(tableName: string) {
-    const dreamApp = getCachedDreamApplicationOrFail()
+    const dreamApp = DreamApplication.getOrFail()
     const models = sortBy(Object.values(dreamApp.models), m => m.table)
     const model = models.find(model => model.table === tableName)
     return model?.['virtualAttributes']?.map(prop => prop.property) || []
@@ -255,7 +255,7 @@ may need to update the table getter in the corresponding Dream.
   }
 
   private getAssociationData(tableName: string, targetAssociationType?: string) {
-    const dreamApp = getCachedDreamApplicationOrFail()
+    const dreamApp = DreamApplication.getOrFail()
     const models = sortBy(Object.values(dreamApp.models), m => m.table)
     const tableAssociationData: { [key: string]: AssociationData } = {}
 
@@ -401,7 +401,7 @@ may need to update the table getter in the corresponding Dream.
   }
 
   private async loadDbSyncFile() {
-    const dreamApp = getCachedDreamApplicationOrFail()
+    const dreamApp = DreamApplication.getOrFail()
     const dbSyncPath = path.join(dreamApp.projectRoot, dreamApp.paths.db, 'sync.ts')
     return (await fs.readFile(dbSyncPath)).toString()
   }

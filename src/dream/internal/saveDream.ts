@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import _db from '../../db'
 import Dream from '../../dream'
-import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
+import DreamApplication from '../../dream-application'
 import ValidationError from '../../exceptions/validation-error'
 import sqlAttributes from '../../helpers/sqlAttributes'
 import DreamTransaction from '../transaction'
@@ -14,7 +14,7 @@ export default async function saveDream<DreamInstance extends Dream>(
   txn: DreamTransaction<Dream> | null = null,
   { skipHooks = false }: { skipHooks?: boolean } = {}
 ) {
-  const db = txn?.kyselyTransaction || _db('primary', getCachedDreamApplicationOrFail())
+  const db = txn?.kyselyTransaction || _db('primary', DreamApplication.getOrFail())
 
   const alreadyPersisted = dream.isPersisted
 

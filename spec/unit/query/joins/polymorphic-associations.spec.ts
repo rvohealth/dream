@@ -1,6 +1,6 @@
 import { sql } from 'kysely'
 import db from '../../../../src/db'
-import { getCachedDreamApplicationOrFail } from '../../../../src/dream-application/cache'
+import DreamApplication from '../../../../src/dream-application'
 import CannotJoinPolymorphicBelongsToError from '../../../../src/exceptions/associations/cannot-join-polymorphic-belongs-to-error'
 import ops from '../../../../src/ops'
 import Balloon from '../../../../test-app/app/models/Balloon'
@@ -16,11 +16,9 @@ import User from '../../../../test-app/app/models/User'
 describe('Query#joins with polymorphic associations', () => {
   beforeEach(async () => {
     await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(
-      db('primary', getCachedDreamApplicationOrFail())
+      db('primary', DreamApplication.getOrFail())
     )
-    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(
-      db('primary', getCachedDreamApplicationOrFail())
-    )
+    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(db('primary', DreamApplication.getOrFail()))
   })
 
   it('joins a HasMany association', async () => {

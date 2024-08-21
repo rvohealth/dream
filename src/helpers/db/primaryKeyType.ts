@@ -1,8 +1,8 @@
+import DreamApplication from '../../dream-application'
 import { primaryKeyTypes } from '../../dream/types'
-import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
 
 export default function primaryKeyType() {
-  const dreamconf = getCachedDreamApplicationOrFail()
+  const dreamconf = DreamApplication.getOrFail()
 
   switch (dreamconf.primaryKeyType) {
     case 'bigint':
