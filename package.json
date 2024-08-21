@@ -26,7 +26,6 @@
     "gdreamcore": "npx ts-node --transpile-only ./global-cli/main.ts",
     "build:global-cli": "npx tsc -p ./tsconfig.global-cli.json",
     "build": "echo \"building dream...\" && rm -rf dist && npx tsc -p ./tsconfig.build.json",
-    "after:build": "cp ../../.dream.yml dist/.dream.yml",
     "build:core": "rm -rf dist && mkdir dist && npx tsc -p ./tsconfig.build.core.json",
     "build:docs": "node dist/boot/build-docs.js",
     "spec": "DREAM_CORE_DEVELOPMENT=1 NODE_ENV=test DREAM_CORE_SPEC_RUN=1 jest --runInBand --forceExit",
