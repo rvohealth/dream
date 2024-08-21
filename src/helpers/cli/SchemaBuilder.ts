@@ -10,6 +10,7 @@ import FailedToIdentifyAssociation from '../../exceptions/schema-builder/failed-
 import camelize from '../camelize'
 import pascalize from '../pascalize'
 import uniq from '../uniq'
+import { envBool } from '../envHelpers'
 
 export default class SchemaBuilder {
   public async build() {
@@ -23,10 +24,9 @@ import {
 } from './sync'`
       : ''
 
-    const calendarDateImportStatement =
-      process.env.DREAM_CORE_DEVELOPMENT === '1'
-        ? "import CalendarDate from '../../src/helpers/CalendarDate'"
-        : "import { CalendarDate } from '@rvohealth/dream'"
+    const calendarDateImportStatement = envBool('DREAM_CORE_DEVELOPMENT')
+      ? "import CalendarDate from '../../src/helpers/CalendarDate'"
+      : "import { CalendarDate } from '@rvohealth/dream'"
 
     const dreamApp = DreamApplication.getOrFail()
 

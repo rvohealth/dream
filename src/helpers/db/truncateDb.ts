@@ -1,9 +1,10 @@
+import testEnv from '../testEnv'
 import loadPgClient from './loadPgClient'
 
 export default async function truncate() {
   // this was only ever written to clear the db between tests,
   // so there is no way to truncate in dev/prod
-  if (process.env.NODE_ENV !== 'test') return false
+  if (!testEnv()) return false
 
   const client = await loadPgClient()
   await client.query(

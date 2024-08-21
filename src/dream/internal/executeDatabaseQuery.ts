@@ -1,3 +1,5 @@
+import { envBool } from '../../helpers/envHelpers'
+
 export default async function executeDatabaseQuery<
   Command extends 'execute' | 'executeTakeFirst' | 'executeTakeFirstOrThrow',
   ReturnType extends Command extends 'execute'
@@ -11,7 +13,7 @@ export default async function executeDatabaseQuery<
   try {
     return await kyselyQuery[command]()
   } catch (error) {
-    if (process.env.DEBUG === '1') {
+    if (envBool('DEBUG')) {
       const sqlString = kyselyQuery.compile().sql
       const paramsString = kyselyQuery.compile().parameters.join(', ')
 
