@@ -14,7 +14,7 @@ export default async function writeSyncFile() {
   const dreamApp = getCachedDreamApplicationOrFail()
 
   const dbSyncFilePath = path.join(dreamPath('db'), 'sync.ts')
-  const absoluteDbSyncPath = path.join(dreamApp.appRoot, dbSyncFilePath)
+  const absoluteDbSyncPath = path.join(dreamApp.projectRoot, dbSyncFilePath)
 
   await sspawn(
     `kysely-codegen --url=postgres://${dbConf.user}:${dbConf.password}@${dbConf.host}:${dbConf.port}/${dbConf.name} --out-file=${absoluteDbSyncPath}`

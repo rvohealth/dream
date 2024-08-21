@@ -1,27 +1,35 @@
-import path from 'path'
-import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
-import fileWriter from '../fileWriter'
+import fs from 'fs/promises'
+import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths'
 import dreamPath from '../path/dreamPath'
-import generateSerializerString from './generateSerializerContent'
+import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
+import generateSerializerContent from './generateSerializerContent'
 
 export default async function generateSerializer(
   fullyQualifiedModelName: string,
   attributes: string[],
-  {
-    rootPath,
-  }: {
-    rootPath?: string
-  } = {}
+  fullyQualifiedParentName?: string
 ) {
-  const dreamApp = getCachedDreamApplicationOrFail()
+  fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
 
-  await fileWriter({
-    filePath: fullyQualifiedModelName,
-    filePostfix: 'Serializer',
-    fileExtension: '.ts',
-    pluralizeBeforePostfix: false,
-    rootPath: path.join(rootPath || dreamApp.appRoot, dreamPath('serializers')),
-    contentFunction: generateSerializerString,
-    contentFunctionAttrs: [fullyQualifiedModelName, attributes],
-  })
+  const { relFilePath, absDirPath, absFilePath } = dreamFileAndDirPaths(
+    dreamPath('serializers'),
+    `${fullyQualifiedModelName}Serializer.ts`
+  )
+
+  try {
+    console.log(`generating serializer: ${relFilePath}`)
+    await fs.mkdir(absDirPath, { recursive: true })
+    await fs.writeFile(
+      absFilePath,
+      generateSerializerContent(fullyQualifiedModelName, attributes, fullyQualifiedParentName)
+    )
+  } catch (error) {
+    throw new Error(`
+      Something happened while trying to create the serializer file:
+        ${relFilePath}
+
+      Does this file already exist? Here is the error that was raised:
+        ${(error as Error).message}
+    `)
+  }
 }

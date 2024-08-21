@@ -11,10 +11,7 @@
     "build": "APP_NAME=$npm_package_name APP_VERSION=$npm_package_version yarn --cwd=node_modules/@rvohealth/dream build && echo \"building your app...\" && rm -rf dist && echo \"node --version\" && node --version && echo \"npx tsc --version\" && npx tsc --version && npx tsc -p ./tsconfig.build.json",
     "spec": "NODE_ENV=test jest --runInBand --forceExit",
     "console": "TS_SAFE=1 npx ts-node --transpile-only --project ./tsconfig.json ./test-app/app/conf/repl.ts",
-    "types:trace": "rm -rf dist && npx tsc -p ./tsconfig.build.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
-    "types:trace-test-app": "rm -rf dist && npx tsc -p ./tsconfig.trace.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
-    "format": "yarn run prettier . --write",
-    "lint": "yarn run eslint --no-warn-ignored \"src/**/*.ts\" \"spec/**/*.ts\" \"spec-helpers/**/*.ts\" \"test-app/**/*.ts\" \"boot/**/*.ts\" && yarn run prettier . --check"
+    "lint": "yarn run eslint --no-warn-ignored \"src/**/*.ts\" \"spec/**/*.ts\""
   },
   "dependencies": {
     "@rvohealth/dream": "^0.5.16",

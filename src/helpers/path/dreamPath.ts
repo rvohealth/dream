@@ -12,11 +12,11 @@ export default function (dreamPathType: DreamPaths) {
       return dreamApp.paths.db
     case 'conf':
       return dreamApp.paths.conf
-    case 'uspec':
-      return dreamApp.paths.uspecs
+    case 'modelSpecs':
+      return dreamApp.paths.modelSpecs
     case 'factories':
       return dreamApp.paths.factories
   }
 }
 
-export type DreamPaths = 'models' | 'serializers' | 'db' | 'conf' | 'uspec' | 'factories'
+export type DreamPaths = 'models' | 'serializers' | 'db' | 'conf' | 'modelSpecs' | 'factories'

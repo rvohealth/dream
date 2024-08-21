@@ -1,7 +1,7 @@
 import Dream from '../dream'
-import { ViewModelClass, primaryKeyTypes } from '../dream/types'
-import DreamApplicationInitMissingMissingAppRoot from '../exceptions/dream-application/init-missing-app-root'
+import { primaryKeyTypes } from '../dream/types'
 import DreamApplicationInitMissingCallToLoadModels from '../exceptions/dream-application/init-missing-call-to-load-models'
+import DreamApplicationInitMissingMissingProjectRoot from '../exceptions/dream-application/init-missing-project-root'
 import DreamSerializer from '../serializer'
 import { cacheDreamApplication } from './cache'
 import loadModels, { getModelsOrFail } from './helpers/loadModels'
@@ -15,7 +15,7 @@ export default class DreamApplication {
 
     await dreamApp.inflections?.()
 
-    if (!dreamApp.appRoot) throw new DreamApplicationInitMissingMissingAppRoot()
+    if (!dreamApp.projectRoot) throw new DreamApplicationInitMissingMissingProjectRoot()
     if (!dreamApp.loadedModels) throw new DreamApplicationInitMissingCallToLoadModels()
 
     if (!dreamApp.serializers) setCachedSerializers({})
@@ -28,16 +28,8 @@ export default class DreamApplication {
 
   public dbCredentials: DreamDbCredentialOptions
   public primaryKeyType: (typeof primaryKeyTypes)[number] = 'bigserial'
-  public appRoot: string
-  public paths: {
-    conf: string
-    db: string
-    factories: string
-    models: string
-    serializers: string
-    services: string
-    uspecs: string
-  }
+  public projectRoot: string
+  public paths: Required<DreamDirectoryPaths>
   public inflections?: () => void | Promise<void>
 
   protected loadedModels: boolean = false
@@ -45,17 +37,17 @@ export default class DreamApplication {
   constructor(opts?: DreamApplicationOpts) {
     if (opts?.db) this.dbCredentials = opts.db
     if (opts?.primaryKeyType) this.primaryKeyType = opts.primaryKeyType
-    if (opts?.appRoot) this.appRoot = opts.appRoot
+    if (opts?.projectRoot) this.projectRoot = opts.projectRoot
     if (opts?.inflections) this.inflections = opts.inflections
 
     this.paths = {
-      conf: opts?.paths?.conf || 'app/conf',
-      db: opts?.paths?.db || 'db',
+      conf: opts?.paths?.conf || 'src/app/conf',
+      db: opts?.paths?.db || 'src/db',
       factories: opts?.paths?.factories || 'spec/factories',
-      models: opts?.paths?.models || 'app/models',
-      serializers: opts?.paths?.serializers || 'app/serializers',
-      services: opts?.paths?.services || 'app/services',
-      uspecs: opts?.paths?.uspecs || 'spec/unit',
+      models: opts?.paths?.models || 'src/app/models',
+      modelSpecs: opts?.paths?.modelSpecs || 'spec/unit/models',
+      serializers: opts?.paths?.serializers || 'src/app/serializers',
+      services: opts?.paths?.services || 'src/app/services',
     }
   }
 
@@ -94,7 +86,7 @@ export default class DreamApplication {
       ? DreamDbCredentialOptions
       : ApplyOpt extends 'primaryKeyType'
         ? (typeof primaryKeyTypes)[number]
-        : ApplyOpt extends 'appRoot'
+        : ApplyOpt extends 'projectRoot'
           ? string
           : ApplyOpt extends 'inflections'
             ? () => void | Promise<void>
@@ -111,8 +103,8 @@ export default class DreamApplication {
         this.primaryKeyType = options as (typeof primaryKeyTypes)[number]
         break
 
-      case 'appRoot':
-        this.appRoot = options as string
+      case 'projectRoot':
+        this.projectRoot = options as string
         break
 
       case 'inflections':
@@ -133,27 +125,22 @@ export default class DreamApplication {
 }
 
 export interface DreamApplicationOpts {
-  appRoot: string
+  projectRoot: string
   primaryKeyType: (typeof primaryKeyTypes)[number]
   db: DreamDbCredentialOptions
-  serializers: Record<string, typeof DreamSerializer>
-  models: Record<string, typeof Dream>
-  viewModels: Record<string, ViewModelClass>
-  services: Record<string, any>
   inflections?: () => void | Promise<void>
   paths?: DreamDirectoryPaths
 }
 
-export type ApplyOption = 'db' | 'primaryKeyType' | 'appRoot' | 'inflections' | 'paths'
+export type ApplyOption = 'db' | 'primaryKeyType' | 'projectRoot' | 'inflections' | 'paths'
 
 export interface DreamDirectoryPaths {
   models?: string
   serializers?: string
-  viewModels?: string
   services?: string
   conf?: string
   db?: string
-  uspecs?: string
+  modelSpecs?: string
   factories?: string
 }
 
