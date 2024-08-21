@@ -2,7 +2,7 @@ import '../../helpers/loadEnv'
 
 import fs from 'fs/promises'
 import path from 'path'
-import ConnectionConfRetriever from '../../../boot/cli/connection-conf-retriever-primitive'
+import ConnectionConfRetriever from '../../db/connection-conf-retriever'
 import DreamApplication from '../../dream-application'
 import compact from '../../helpers/compact'
 import dreamPath from '../../helpers/path/dreamPath'

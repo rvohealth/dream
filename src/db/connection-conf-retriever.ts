@@ -10,6 +10,7 @@ export default class ConnectionConfRetriever {
       throw new Error(`
       Cannot find a connection config given the following connection and node environment:
         connection: ${connection}
+        NODE_ENV: ${process.env.NODE_ENV!}
     `)
 
     return conf
