@@ -22,6 +22,7 @@ import snakeify from '../helpers/snakeify'
 import { DreamSerializerAssociationStatement } from './decorators/associations/shared'
 import { AttributeStatement, SerializableTypes } from './decorators/attribute'
 import maybeSerializableToDreamSerializerCallbackFunction from './decorators/helpers/maybeSerializableToDreamSerializerCallbackFunction'
+import DreamApplication from '../dream-application'
 
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
   public static attributeStatements: AttributeStatement[] = []
@@ -151,7 +152,8 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
 
   public render(): { [key: string]: any } {
     if (!this._casing) {
-      this._casing = (process.env['SERIALIZER_CASING'] as 'camel' | 'snake') || 'camel'
+      const dreamApp = DreamApplication.getOrFail()
+      this._casing = dreamApp.serializerCasing || 'camel'
     }
 
     return this.renderOne()
