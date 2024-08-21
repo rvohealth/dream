@@ -20,8 +20,25 @@ jobs:
           name: dist
           path: ./dist
 
+  build-docs:
+    # needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20.9.0
+      - run: yarn
+      - run: yarn dream build:docs
+      - uses: actions/upload-artifact@v2
+        with:
+          name: docs
+          path: ./docs
+
   publish:
-    needs: []
+    needs:
+      - build
+      - build-docs
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -37,6 +54,10 @@ jobs:
         with:
           name: dist
           path: ./dist
+      - uses: actions/download-artifact@v2
+        with:
+          name: docs
+          path: ./docs
       - run: yarn publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
