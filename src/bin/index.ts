@@ -1,7 +1,7 @@
 import '../helpers/loadEnv'
 
 import ConnectionConfRetriever from '../db/connection-conf-retriever'
-import { getCachedDreamApplicationOrFail } from '../dream-application/cache'
+import DreamApplication from '../dream-application'
 import SchemaBuilder from '../helpers/cli/SchemaBuilder'
 import generateDream from '../helpers/cli/generateDream'
 import generateFactory from '../helpers/cli/generateFactory'
@@ -25,7 +25,7 @@ export default class DreamBin {
   }
 
   public static async dbCreate() {
-    const connectionRetriever = new ConnectionConfRetriever(getCachedDreamApplicationOrFail())
+    const connectionRetriever = new ConnectionConfRetriever(DreamApplication.getOrFail())
     const primaryDbConf = connectionRetriever.getConnectionConf('primary')
 
     console.log(`creating ${primaryDbConf.name}`)
@@ -44,7 +44,7 @@ export default class DreamBin {
   }
 
   public static async dbDrop() {
-    const connectionRetriever = new ConnectionConfRetriever(getCachedDreamApplicationOrFail())
+    const connectionRetriever = new ConnectionConfRetriever(DreamApplication.getOrFail())
     const primaryDbConf = connectionRetriever.getConnectionConf('primary')
 
     console.log(`dropping ${primaryDbConf.name}`)
@@ -66,7 +66,7 @@ export default class DreamBin {
     await runMigration({ mode: 'migrate' })
 
     // release the db connection
-    // await db('primary', getCachedDreamApplicationOrFail()).destroy()
+    // await db('primary', DreamApplication.getOrFail()).destroy()
   }
 
   public static async dbRollback() {
@@ -76,7 +76,7 @@ export default class DreamBin {
       step -= 1
     }
 
-    // await db('primary', getCachedDreamApplicationOrFail()).destroy()
+    // await db('primary', DreamApplication.getOrFail()).destroy()
   }
 
   public static async generateDream() {

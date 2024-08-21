@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { CalendarDate, NonLoadedAssociation } from '../../../src'
+import { CalendarDate, DreamApplication, NonLoadedAssociation } from '../../../src'
 import { DreamConst } from '../../../src/dream/types'
 import MissingSerializer from '../../../src/exceptions/missing-serializers-definition'
 import FailedToRenderThroughAssociationForSerializer from '../../../src/exceptions/serializers/failed-to-render-through-association'
@@ -13,8 +13,6 @@ import Pet from '../../../test-app/app/models/Pet'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
-
-import * as DreamApplicationCacheModule from '../../../src/dream-application/cache'
 
 describe('DreamSerailizer.render', () => {
   it('renders a dream instance', () => {
@@ -639,11 +637,9 @@ describe('DreamSerializer#render', () => {
           }
 
           beforeEach(() => {
-            const dreamApp = DreamApplicationCacheModule.getCachedDreamApplicationOrFail()
+            const dreamApp = DreamApplication.getOrFail()
             dreamApp.serializers['HowdySerializer'] = HowdySerializer
-            jest
-              .spyOn(DreamApplicationCacheModule, 'getCachedDreamApplicationOrFail')
-              .mockReturnValue(dreamApp)
+            jest.spyOn(DreamApplication, 'getOrFail').mockReturnValue(dreamApp)
           })
 
           it('serializes the passthrough data', async () => {
@@ -1038,11 +1034,9 @@ describe('DreamSerializer#render', () => {
           }
 
           beforeEach(() => {
-            const dreamApp = DreamApplicationCacheModule.getCachedDreamApplicationOrFail()
+            const dreamApp = DreamApplication.getOrFail()
             dreamApp.serializers['HowdySerializer'] = HowdySerializer
-            jest
-              .spyOn(DreamApplicationCacheModule, 'getCachedDreamApplicationOrFail')
-              .mockReturnValue(dreamApp)
+            jest.spyOn(DreamApplication, 'getOrFail').mockReturnValue(dreamApp)
           })
 
           it('serializes the passthrough data', async () => {

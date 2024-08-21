@@ -48,7 +48,7 @@ import Sortable, { SortableFieldConfig } from './decorators/sortable'
 import resortAllRecords from './decorators/sortable/helpers/resortAllRecords'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
 import { VirtualAttributeStatement } from './decorators/virtual'
-import { getCachedDreamApplicationOrFail } from './dream-application/cache'
+import DreamApplication from './dream-application'
 import DreamClassTransactionBuilder from './dream/class-transaction-builder'
 import DreamInstanceTransactionBuilder from './dream/instance-transaction-builder'
 import associationQuery from './dream/internal/associations/associationQuery'
@@ -1819,7 +1819,7 @@ export default class Dream {
     const dreamTransaction = new DreamTransaction()
     let callbackResponse: RetType = undefined as RetType
 
-    await db('primary', getCachedDreamApplicationOrFail())
+    await db('primary', DreamApplication.getOrFail())
       .transaction()
       .execute(async kyselyTransaction => {
         dreamTransaction.kyselyTransaction = kyselyTransaction

@@ -3,7 +3,7 @@ import '../../helpers/loadEnv'
 import fs from 'fs/promises'
 import path from 'path'
 import ConnectionConfRetriever from '../../../boot/cli/connection-conf-retriever-primitive'
-import { getCachedDreamApplicationOrFail } from '../../dream-application/cache'
+import DreamApplication from '../../dream-application'
 import compact from '../../helpers/compact'
 import dreamPath from '../../helpers/path/dreamPath'
 import snakeify from '../../helpers/snakeify'
@@ -11,7 +11,7 @@ import sspawn from '../../helpers/sspawn'
 
 export default async function writeSyncFile() {
   const dbConf = new ConnectionConfRetriever().getConnectionConf('primary')
-  const dreamApp = getCachedDreamApplicationOrFail()
+  const dreamApp = DreamApplication.getOrFail()
 
   const dbSyncFilePath = path.join(dreamPath('db'), 'sync.ts')
   const absoluteDbSyncPath = path.join(dreamApp.projectRoot, dbSyncFilePath)

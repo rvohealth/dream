@@ -1,9 +1,7 @@
-import { SingleDbCredential } from '../../src/dream-application'
-import { getCachedDreamApplicationOrFail } from '../../src/dream-application/cache'
-
+import DreamApplication, { SingleDbCredential } from '../../src/dream-application'
 export default class ConnectionConfRetriever {
   public getConnectionConf(connection: DbConnectionType): SingleDbCredential {
-    const dreamconf = getCachedDreamApplicationOrFail()
+    const dreamconf = DreamApplication.getOrFail()
     const dbConfig = dreamconf.dbCredentials
 
     const nodeEnv = process.env.NODE_ENV! as 'production' | 'development' | 'test'

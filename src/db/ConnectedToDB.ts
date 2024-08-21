@@ -1,9 +1,9 @@
 import { Kysely, Transaction as KyselyTransaction } from 'kysely'
 import _db from '../db'
 import Dream from '../dream'
+import DreamApplication from '../dream-application'
 import DreamTransaction from '../dream/transaction'
 import { DreamConstructorType, SqlCommandType } from '../dream/types'
-import { getCachedDreamApplicationOrFail } from '../dream-application/cache'
 import { DbConnectionType } from './types'
 
 export default class ConnectedToDB<DreamInstance extends Dream> {
@@ -38,7 +38,7 @@ export default class ConnectedToDB<DreamInstance extends Dream> {
     sqlCommandType: SqlCommandType
   ): Kysely<DreamInstance['DB']> | KyselyTransaction<DreamInstance['DB']> {
     if (this.dreamTransaction?.kyselyTransaction) return this.dreamTransaction?.kyselyTransaction
-    return _db<DreamInstance>(this.dbConnectionType(sqlCommandType), getCachedDreamApplicationOrFail())
+    return _db<DreamInstance>(this.dbConnectionType(sqlCommandType), DreamApplication.getOrFail())
   }
 }
 
