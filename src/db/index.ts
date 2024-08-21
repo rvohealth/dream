@@ -8,7 +8,7 @@ import { DbConnectionType } from './types'
 if (process.env.TZ) Settings.defaultZone = process.env.TZ
 
 export default function db<T extends Dream, DB extends T['DB'] = T['DB']>(
-  connection: DbConnectionType = 'primary'
+  connectionType: DbConnectionType = 'primary'
 ): Kysely<DB> {
-  return DreamDbConnection.getConnection<DB>(connection)
+  return DreamDbConnection.getConnection<DB>(connectionType)
 }

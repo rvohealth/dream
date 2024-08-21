@@ -119,7 +119,7 @@ describe('Query#update', () => {
     it('uses primary connection', async () => {
       await User.where({ email: 'fred@fred' }).update({ email: 'how@yadoin' })
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
+      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
     })
 
     context('with replica connection specified', () => {
@@ -131,7 +131,7 @@ describe('Query#update', () => {
 
         // should always call to primary for update, regardless of replica-safe status
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
+        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
       })
     })
   })

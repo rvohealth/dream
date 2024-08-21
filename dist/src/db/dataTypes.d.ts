@@ -1,0 +1,6 @@
+export default function dataTypes(): readonly ["bigint", "bigserial", "bit", "bit varying", "boolean", "box", "bytea", "character", "character varying", "char", "cidr", "circle", "citext", "date", "double precision", "inet", "integer", "interval", "json", "jsonb", "line", "lseg", "macaddr", "money", "numeric", "path", "point", "polygon", "real", "smallint", "smallserial", "serial", "text", "time", "time with time zone", "timestamp", "timestamp with time zone", "timestamp without time zone", "tsquery", "tsvector", "txid_snapshot", "uuid", "xml"];
+export declare function isPrimitiveDataType(type: string): boolean;
+export declare const postgresDatatypes: readonly ["bigint", "bigserial", "bit", "bit varying", "boolean", "box", "bytea", "character", "character varying", "char", "cidr", "circle", "citext", "date", "double precision", "inet", "integer", "interval", "json", "jsonb", "line", "lseg", "macaddr", "money", "numeric", "path", "point", "polygon", "real", "smallint", "smallserial", "serial", "text", "time", "time with time zone", "timestamp", "timestamp with time zone", "timestamp without time zone", "tsquery", "tsvector", "txid_snapshot", "uuid", "xml"];
+type NonArrayDbTypes = (typeof postgresDatatypes)[number];
+export type DbTypes = NonArrayDbTypes | `${NonArrayDbTypes}[]`;
+export {};

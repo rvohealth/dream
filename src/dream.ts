@@ -120,15 +120,10 @@ import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel'
 import { marshalDBValue } from './helpers/marshalDBValue'
-import { EnvOpts } from './helpers/path/types'
 import { isString } from './helpers/typechecks'
 
 export default class Dream {
   public DB: any
-
-  public get env(): EnvOpts {
-    throw new Error('Must define env getter in ApplicationModel')
-  }
 
   public get schema(): any {
     throw new Error('Must define schema getter in ApplicationModel')
