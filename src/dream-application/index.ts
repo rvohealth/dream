@@ -3,12 +3,24 @@ import { primaryKeyTypes } from '../dream/types'
 import DreamApplicationInitMissingCallToLoadModels from '../exceptions/dream-application/init-missing-call-to-load-models'
 import DreamApplicationInitMissingMissingProjectRoot from '../exceptions/dream-application/init-missing-project-root'
 import DreamSerializer from '../serializer'
-import { cacheDreamApplication } from './cache'
+import { cacheDreamApplication, getCachedDreamApplicationOrFail } from './cache'
 import loadModels, { getModelsOrFail } from './helpers/loadModels'
 import loadSerializers, { getSerializersOrFail, setCachedSerializers } from './helpers/loadSerializers'
 import loadServices, { getServicesOrFail, setCachedServices } from './helpers/loadServices'
 
 export default class DreamApplication {
+  /**
+   * initializes a new dream application and caches it for use
+   * within this processes lifecycle.
+   *
+   * Within dream, we rely on cached information about your app
+   * to be able to serve routes, perform serializer lookups,
+   * generate files, connect to the database, etc...
+   *
+   * In order for this to work properly, the DreamApplication#init
+   * function must be called before anything else is called within
+   * Dream.
+   */
   public static async init(
     cb: (dreamApp: DreamApplication) => void | Promise<void>,
     opts: Partial<DreamApplicationOpts> = {},
@@ -30,6 +42,19 @@ export default class DreamApplication {
     cacheDreamApplication(dreamApp)
 
     return dreamApp
+  }
+
+  /**
+   * Returns the cached dream application if it has been set.
+   * If it has not been set, an exception is raised.
+   *
+   * The dream application can be set by calling DreamApplication#init,
+   * or alternatively, if you are using Psychic along with Dream,
+   * it can be set during PsychicApplication#init, which will set caches
+   * for both the dream and psychic applications at once.
+   */
+  public static getOrFail() {
+    return getCachedDreamApplicationOrFail()
   }
 
   public dbCredentials: DreamDbCredentialOptions
