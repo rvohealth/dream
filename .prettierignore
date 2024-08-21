@@ -6,3 +6,4 @@ test-app/client/schema.ts
 global-cli/helpers/logo.ts
 .global-cli-dist
 .github/
+dist
