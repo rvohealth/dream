@@ -2,7 +2,7 @@
   "name": "psychic-support-helpers",
   "version": "0.0.0",
   "description": "helpers shared between Dream and Psychic",
-  "main": "psychic-support-helpers/index.ts",
+  "main": "index.ts",
   "peerDependencies": {
     "@types/node": "^18.15.11",
     "ts-node": "^10.9.1",
