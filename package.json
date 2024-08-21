@@ -15,7 +15,8 @@
     "shared/**/*",
     "psychic-support-helpers/**/*",
     "spec-helpers/**/*",
-    "src/**/*"
+    "src/**/*",
+    "dist/**/*"
   ],
   "scripts": {
     "dream": "yarn dreamts",
