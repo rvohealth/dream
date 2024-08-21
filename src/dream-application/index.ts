@@ -11,12 +11,15 @@ import loadServices, { getServicesOrFail, setCachedServices } from './helpers/lo
 export default class DreamApplication {
   public static async init(
     cb: (dreamApp: DreamApplication) => void | Promise<void>,
-    opts: Partial<DreamApplicationOpts> = {}
+    opts: Partial<DreamApplicationOpts> = {},
+    deferCb?: (dreamApp: DreamApplication) => Promise<void> | void
   ) {
     const dreamApp = new DreamApplication(opts)
     await cb(dreamApp)
 
     await dreamApp.inflections?.()
+
+    await deferCb?.(dreamApp)
 
     if (!dreamApp.projectRoot) throw new DreamApplicationInitMissingMissingProjectRoot()
     if (!dreamApp.loadedModels) throw new DreamApplicationInitMissingCallToLoadModels()
