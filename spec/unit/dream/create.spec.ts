@@ -221,7 +221,7 @@ describe('Dream.create', () => {
       await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
+      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
     })
 
     context('with replica connection specified', () => {
@@ -233,7 +233,7 @@ describe('Dream.create', () => {
 
         // should always call to primary for update, regardless of replica-safe status
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
+        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
       })
     })
   })

@@ -47,7 +47,7 @@ describe('Dream.all', () => {
       await User.all()
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
+      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
     })
 
     context('with replica connection specified', () => {
@@ -58,7 +58,7 @@ describe('Dream.all', () => {
         await CustomUser.all()
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('replica', expect.objectContaining({}))
+        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('replica')
       })
 
       context('with explicit primary connection override', () => {
@@ -66,13 +66,10 @@ describe('Dream.all', () => {
           await CustomUser['connection']('primary').all()
 
           // eslint-disable-next-line @typescript-eslint/unbound-method
-          expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
+          expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
 
           // eslint-disable-next-line @typescript-eslint/unbound-method
-          expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith(
-            'replica',
-            expect.objectContaining({})
-          )
+          expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith('replica')
         })
       })
     })

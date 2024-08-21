@@ -63,10 +63,10 @@ describe('Query#findEach', () => {
       await User.all()
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary', expect.objectContaining({}))
+      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith('replica', expect.objectContaining({}))
+      expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith('replica')
     })
   })
 })
