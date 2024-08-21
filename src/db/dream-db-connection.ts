@@ -1,17 +1,17 @@
 import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely'
 import { Pool } from 'pg'
-import DreamApplication, { SingleDbCredential } from '../dream-application'
+import { SingleDbCredential } from '../dream-application'
 import ConnectionConfRetriever from './connection-conf-retriever'
 import { DbConnectionType } from './types'
 
 const connections = {} as { [key: string]: Kysely<any> }
 
 export default class DreamDbConnection {
-  public static getConnection<DB>(connectionType: DbConnectionType, dreamconf: DreamApplication): Kysely<DB> {
+  public static getConnection<DB>(connectionType: DbConnectionType): Kysely<DB> {
     const connection = connections[connectionType]
     if (connection) return connection
 
-    const connectionConf = new ConnectionConfRetriever(dreamconf).getConnectionConf(connectionType)
+    const connectionConf = new ConnectionConfRetriever().getConnectionConf(connectionType)
 
     const dbConn = new Kysely<DB>({
       log: process.env.DEBUG === '1' ? ['query', 'error'] : undefined,

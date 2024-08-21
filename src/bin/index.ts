@@ -1,7 +1,6 @@
 import '../helpers/loadEnv'
 
 import ConnectionConfRetriever from '../db/connection-conf-retriever'
-import DreamApplication from '../dream-application'
 import SchemaBuilder from '../helpers/cli/SchemaBuilder'
 import generateDream from '../helpers/cli/generateDream'
 import generateFactory from '../helpers/cli/generateFactory'
@@ -25,7 +24,7 @@ export default class DreamBin {
   }
 
   public static async dbCreate() {
-    const connectionRetriever = new ConnectionConfRetriever(DreamApplication.getOrFail())
+    const connectionRetriever = new ConnectionConfRetriever()
     const primaryDbConf = connectionRetriever.getConnectionConf('primary')
 
     console.log(`creating ${primaryDbConf.name}`)
@@ -44,7 +43,7 @@ export default class DreamBin {
   }
 
   public static async dbDrop() {
-    const connectionRetriever = new ConnectionConfRetriever(DreamApplication.getOrFail())
+    const connectionRetriever = new ConnectionConfRetriever()
     const primaryDbConf = connectionRetriever.getConnectionConf('primary')
 
     console.log(`dropping ${primaryDbConf.name}`)

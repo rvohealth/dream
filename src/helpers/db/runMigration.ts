@@ -12,7 +12,7 @@ export default async function runMigration({
   const migrationFolder = path.join(dreamApp.projectRoot, dreamApp.paths.db, 'migrations')
 
   const migrator = new Migrator({
-    db: db('primary', dreamApp),
+    db: db('primary'),
     allowUnorderedMigrations: true,
     provider: new FileMigrationProvider({
       fs,

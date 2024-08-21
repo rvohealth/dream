@@ -1,7 +1,6 @@
 import { sql } from 'kysely'
 import { DateTime } from 'luxon'
 import db from '../../../../src/db'
-import DreamApplication from '../../../../src/dream-application'
 import Balloon from '../../../../test-app/app/models/Balloon'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal'
@@ -15,10 +14,8 @@ import User from '../../../../test-app/app/models/User'
 
 describe('Query#preload with polymorphic associations', () => {
   beforeEach(async () => {
-    await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(
-      db('primary', DreamApplication.getOrFail())
-    )
-    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(db('primary', DreamApplication.getOrFail()))
+    await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(db('primary'))
+    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(db('primary'))
   })
 
   context('HasMany', () => {

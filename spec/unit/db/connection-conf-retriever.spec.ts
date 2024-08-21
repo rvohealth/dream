@@ -4,7 +4,7 @@ import DreamApplication, { SingleDbCredential } from '../../../src/dream-applica
 import { cacheDreamApplication } from '../../../src/dream-application/cache'
 
 describe('ConnectionConfRetriever', () => {
-  const getConfig = () => {
+  const updateDbCredentials = () => {
     const dreamApp = DreamApplication.getOrFail()
     dreamApp.dbCredentials = {
       primary: primaryConfig,
@@ -40,7 +40,8 @@ describe('ConnectionConfRetriever', () => {
 
   describe('#getConnectionConf', () => {
     const subject = () => {
-      const connectionRetriever = new ConnectionConfRetriever(getConfig())
+      updateDbCredentials()
+      const connectionRetriever = new ConnectionConfRetriever()
       return connectionRetriever.getConnectionConf(connection)
     }
 
@@ -111,7 +112,8 @@ describe('ConnectionConfRetriever', () => {
 
   describe('#hasReplicaConfig', () => {
     const subject = () => {
-      const connectionRetriever = new ConnectionConfRetriever(getConfig())
+      updateDbCredentials()
+      const connectionRetriever = new ConnectionConfRetriever()
       return connectionRetriever.hasReplicaConfig()
     }
 
