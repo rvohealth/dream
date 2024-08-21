@@ -2,13 +2,9 @@ import DreamApplication, { SingleDbCredential } from '../dream-application'
 import { DbConnectionType } from './types'
 
 export default class ConnectionConfRetriever {
-  public dreamconf: DreamApplication
-  constructor(dreamconf: DreamApplication) {
-    this.dreamconf = dreamconf
-  }
-
   public getConnectionConf(connection: DbConnectionType): SingleDbCredential {
-    const conf = this.dreamconf.dbCredentials?.[connection] || this.dreamconf.dbCredentials?.primary
+    const dreamApplication = DreamApplication.getOrFail()
+    const conf = dreamApplication.dbCredentials?.[connection] || dreamApplication.dbCredentials?.primary
 
     if (!conf)
       throw new Error(`
@@ -20,6 +16,7 @@ export default class ConnectionConfRetriever {
   }
 
   public hasReplicaConfig() {
-    return !!this.dreamconf.dbCredentials.replica
+    const dreamApplication = DreamApplication.getOrFail()
+    return !!dreamApplication.dbCredentials.replica
   }
 }

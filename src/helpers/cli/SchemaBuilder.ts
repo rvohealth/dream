@@ -196,8 +196,7 @@ may need to update the table getter in the corresponding Dream.
   }
 
   private async getColumnData(tableName: string, associationData: { [key: string]: AssociationData }) {
-    const dreamconf = DreamApplication.getOrFail()
-    const db = _db('primary', dreamconf)
+    const db = _db('primary')
     const sqlQuery = sql`SELECT column_name, udt_name::regtype, is_nullable, data_type FROM information_schema.columns WHERE table_name = ${tableName}`
     const columnToDBTypeMap = await sqlQuery.execute(db)
     const rows = columnToDBTypeMap.rows as InformationSchemaRow[]

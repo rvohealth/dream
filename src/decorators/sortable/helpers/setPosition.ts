@@ -1,7 +1,6 @@
 import { ExpressionBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
 import db from '../../../db'
 import Dream from '../../../dream'
-import DreamApplication from '../../../dream-application'
 import Query from '../../../dream/query'
 import DreamTransaction from '../../../dream/transaction'
 import range from '../../../helpers/range'
@@ -157,7 +156,7 @@ async function setNewPosition({
 }) {
   const newPosition = (await sortableQueryExcludingDream(dream, query, scope).max(positionField)) + 1
 
-  const dbOrTxn = txn ? txn.kyselyTransaction : db('primary', DreamApplication.getOrFail())
+  const dbOrTxn = txn ? txn.kyselyTransaction : db('primary')
   await dbOrTxn
     .updateTable(dream.table as any)
     .where(dream.primaryKey as any, '=', dream.primaryKeyValue)
