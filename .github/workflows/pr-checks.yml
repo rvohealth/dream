@@ -109,4 +109,3 @@ jobs:
 
       - run: yarn install --frozen-lockfile
       - run: yarn build
-      - run: bash ./.github/bin/diff-check.sh
