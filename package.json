@@ -8,10 +8,8 @@
   "license": "MIT",
   "private": false,
   "files": [
-    "tsconfig.boot.json",
     "tsconfig.build.json",
     "tsconfig.json",
-    "boot/**/*",
     "shared/**/*",
     "psychic-support-helpers/**/*",
     "spec-helpers/**/*",
@@ -20,7 +18,7 @@
   ],
   "scripts": {
     "dream": "yarn dreamts",
-    "dreamjs": "node  --experimental-modules dist/boot/cli.js",
+    "dreamjs": "node --experimental-modules dist/test-app/cli/index.js",
     "dreamts": "npx ts-node --transpile-only -r ./src/helpers/loadEnv.ts test-app/cli/index.ts",
     "dreamcore": "DREAM_CORE_DEVELOPMENT=1 yarn dreamts",
     "gdreamcore": "npx ts-node --transpile-only ./global-cli/main.ts",
@@ -84,7 +82,7 @@
     "jest-plugin-context": "^2.9.0",
     "luxon-jest-matchers": "^0.1.14",
     "prettier": "^3.2.5",
-    "typedoc": "^0.24.6",
+    "typedoc": "^0.26.6",
     "typescript": "^5.4.5",
     "typescript-eslint": "^7.6.0"
   }

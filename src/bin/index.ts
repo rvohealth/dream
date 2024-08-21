@@ -10,6 +10,8 @@ import createDb from '../helpers/db/createDb'
 import _dropDb from '../helpers/db/dropDb'
 import runMigration from '../helpers/db/runMigration'
 import writeSyncFile from './helpers/sync'
+import packageJson from '../../package.json'
+import sspawn from '../helpers/sspawn'
 
 export default class DreamBin {
   public static async sync() {
@@ -113,5 +115,14 @@ export default class DreamBin {
     const name = argv[3]
     const args = argv.slice(4, argv.length)
     await generateSerializer(name, args)
+  }
+
+  // though this is a private method, it is still used internally.
+  // It is only made private so that people don't mistakenly try
+  // to use it to generate docs for their apps.
+  private static async buildDocs() {
+    console.log('generating docs...')
+    await sspawn('yarn typedoc src/index.ts --tsconfig ./tsconfig.build.json --out docs')
+    console.log('done!')
   }
 }

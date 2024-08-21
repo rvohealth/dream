@@ -19,11 +19,19 @@ function cmdargs() {
 }
 
 program
+  .command('build:docs')
+  .description('build:docs builds docs for the dream repository')
+  .action(async () => {
+    await initializeDreamApplication()
+    await DreamBin['buildDocs']()
+    process.exit()
+  })
+
+program
   .command('generate:migration')
   .alias('g:migration')
   .description('g:migration <name> create a new dream migration')
   .argument('<name>', 'name of the migration')
-  .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
     await initializeDreamApplication()
     await DreamBin.generateMigration()
@@ -37,7 +45,6 @@ program
   .alias('g:model')
   .description('generate:dream <name> [...attributes] create a new dream')
   .argument('<name>', 'name of the dream')
-  .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
     await initializeDreamApplication()
     await DreamBin.generateDream()
@@ -50,7 +57,6 @@ program
   .description('generate:dream <name> extends <base-name> [...attributes] create a new dream')
   .argument('<name>', 'name of the dream')
   .argument('<base-name>', 'name of the parent dream')
-  .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
     await initializeDreamApplication()
     await DreamBin.generateStiChild()
@@ -62,7 +68,6 @@ program
   .alias('g:factory')
   .description('generate:factory [...attributes] create a new factory for a dream')
   .argument('<name>', 'name of the dream')
-  .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
     await initializeDreamApplication()
     await DreamBin.generateFactory()
@@ -74,7 +79,6 @@ program
   .description(
     'sync introspects your database, updating your schema to reflect, and then syncs the new schema with the installed dream node module, allowing it provide your schema to the underlying kysely integration'
   )
-  .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
     await initializeDreamApplication()
     await DreamBin.sync()
@@ -86,7 +90,6 @@ program
   .description(
     'creates a new database, seeding from local .env or .env.test if NODE_ENV=test is set for env vars'
   )
-  .option('--tsnode', 'runs the command using ts-node instead of node')
   .option(
     '--bypass-config-cache',
     'bypasses running type cache build (this is typically used internally only)'
@@ -100,7 +103,6 @@ program
 program
   .command('db:migrate')
   .description('db:migrate runs any outstanding database migrations')
-  .option('--tsnode', 'runs the command using ts-node instead of node')
   .option('--skip-sync', 'skips syncing local schema after running migrations')
   .option(
     '--bypass-config-cache',
@@ -122,7 +124,6 @@ program
   .description('db:rollback rolls back the migration')
   .option('--step <integer>', '--step <integer> number of steps back to travel')
   .option('--core', 'sets core to true')
-  .option('--tsnode', 'runs the command using ts-node instead of node')
   .option(
     '--bypass-config-cache',
     'bypasses running type cache build (this is typically used internally only)'
@@ -140,7 +141,6 @@ program
     'drops the database, seeding from local .env or .env.test if NODE_ENV=test is set for env vars'
   )
   .option('--core', 'sets core to true')
-  .option('--tsnode', 'runs the command using ts-node instead of node')
   .option(
     '--bypass-config-cache',
     'bypasses running type cache build (this is typically used internally only)'
@@ -155,7 +155,6 @@ program
   .command('db:reset')
   .description('db:reset runs db:drop (safely), then db:create, then db:migrate')
   .option('--core', 'sets core to true')
-  .option('--tsnode', 'runs the command using ts-node instead of node')
   .action(async () => {
     await initializeDreamApplication()
     await DreamBin.dbDrop()
@@ -170,7 +169,6 @@ program
   .command('db:seed')
   .description('seeds the database using the file located in db/seed.ts')
   .option('--core', 'sets core to true')
-  .option('--tsnode', 'runs the command using ts-node instead of node')
   .option(
     '--bypass-config-cache',
     'bypasses running type cache build (this is typically used internally only)'
