@@ -29,7 +29,6 @@
     "test-app/**/*",
     "spec/**/*",
     "psychic-support-helpers/**/*",
-    "spec-helpers/**/*",
-    "boot/**/*"
+    "spec-helpers/**/*"
   ]
 }
