@@ -8,6 +8,7 @@ import compact from '../../helpers/compact'
 import dreamPath from '../../helpers/path/dreamPath'
 import snakeify from '../../helpers/snakeify'
 import sspawn from '../../helpers/sspawn'
+import { envBool } from '../../helpers/envHelpers'
 
 export default async function writeSyncFile() {
   const dbConf = new ConnectionConfRetriever().getConnectionConf('primary')
@@ -73,10 +74,9 @@ export type Timestamp = ColumnType<DateTime | CalendarDate>`
 }
 
 function addCustomImports(file: string) {
-  const calendarDateImportStatement =
-    process.env.DREAM_CORE_DEVELOPMENT === '1'
-      ? "import CalendarDate from '../../src/helpers/CalendarDate'"
-      : "import { CalendarDate } from '@rvohealth/dream'"
+  const calendarDateImportStatement = envBool('DREAM_CORE_DEVELOPMENT')
+    ? "import CalendarDate from '../../src/helpers/CalendarDate'"
+    : "import { CalendarDate } from '@rvohealth/dream'"
 
   const customImports = `${calendarDateImportStatement}
 import { DateTime } from 'luxon'`

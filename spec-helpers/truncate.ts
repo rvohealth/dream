@@ -1,10 +1,11 @@
 import { Client } from 'pg'
 import DreamApplication from '../src/dream-application'
+import { envValue } from '../src/helpers/envHelpers'
 
 export default async function truncate() {
   // this was only ever written to clear the db between tests,
   // so there is no way to truncate in dev/prod
-  if (process.env.NODE_ENV !== 'test') return false
+  if (envValue('NODE_ENV') !== 'test') return false
 
   const dreamconf = DreamApplication.getOrFail()
   const data = dreamconf.dbCredentials.primary

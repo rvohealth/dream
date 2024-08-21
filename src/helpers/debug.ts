@@ -1,3 +1,5 @@
+import { envBool, envValue } from './envHelpers'
+
 export type DebugLogLevel = 'log' | 'warn' | 'error'
 
 export default function debug(
@@ -8,7 +10,7 @@ export default function debug(
     level?: DebugLogLevel
   } = {}
 ) {
-  if (process.env.NODE_ENV === 'test') return
-  if (process.env.DEBUG !== '1') return
+  if (envValue('NODE_ENV') === 'test') return
+  if (!envBool('DEBUG')) return
   console[level](message)
 }

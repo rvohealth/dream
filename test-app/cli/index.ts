@@ -11,6 +11,7 @@ import { Command } from 'commander'
 import { DreamBin, developmentOrTestEnv } from '../../src'
 import seedDb from '../db/seed'
 import initializeDreamApplication from './helpers/initializeDreamApplication'
+import { envValue } from '../../src/helpers/envHelpers'
 
 const program = new Command()
 
@@ -174,7 +175,7 @@ program
     'bypasses running type cache build (this is typically used internally only)'
   )
   .action(async () => {
-    if (process.env.NODE_ENV === 'test' && process.env.DREAM_SEED_DB_IN_TEST !== '1') {
+    if (envValue('NODE_ENV') === 'test' && process.env.DREAM_SEED_DB_IN_TEST !== '1') {
       console.log('skipping db seed for test env. To really seed for test, add DREAM_SEED_DB_IN_TEST=1')
       return
     }

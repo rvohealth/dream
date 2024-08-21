@@ -9,9 +9,8 @@ import generateSerializer from '../helpers/cli/generateSerializer'
 import createDb from '../helpers/db/createDb'
 import _dropDb from '../helpers/db/dropDb'
 import runMigration from '../helpers/db/runMigration'
-import writeSyncFile from './helpers/sync'
-import packageJson from '../../package.json'
 import sspawn from '../helpers/sspawn'
+import writeSyncFile from './helpers/sync'
 
 export default class DreamBin {
   public static async sync() {
