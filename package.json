@@ -21,7 +21,7 @@
   "scripts": {
     "dream": "yarn dreamts",
     "dreamjs": "node  --experimental-modules dist/boot/cli.js",
-    "dreamts": "DREAM_OMIT_DIST_FOLDER=1 TS_SAFE=1 npx ts-node --transpile-only -r ./src/helpers/loadEnv.ts test-app/cli/index.ts",
+    "dreamts": "npx ts-node --transpile-only -r ./src/helpers/loadEnv.ts test-app/cli/index.ts",
     "dreamcore": "DREAM_CORE_DEVELOPMENT=1 yarn dreamts",
     "gdreamcore": "npx ts-node --transpile-only ./global-cli/main.ts",
     "build:global-cli": "npx tsc -p ./tsconfig.global-cli.json",
@@ -29,7 +29,7 @@
     "build:core": "rm -rf dist && mkdir dist && npx tsc -p ./tsconfig.build.core.json",
     "build:docs": "node dist/boot/build-docs.js",
     "spec": "DREAM_CORE_DEVELOPMENT=1 NODE_ENV=test DREAM_CORE_SPEC_RUN=1 jest --runInBand --forceExit",
-    "console": "DREAM_CORE_DEVELOPMENT=1 TS_SAFE=1 npx ts-node --transpile-only --project ./tsconfig.json ./test-app/app/conf/repl.ts",
+    "console": "DREAM_CORE_DEVELOPMENT=1 npx ts-node --transpile-only --project ./tsconfig.json ./test-app/app/conf/repl.ts",
     "types:trace": "rm -rf dist && npx tsc -p ./tsconfig.build.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
     "types:trace-test-app": "rm -rf dist && npx tsc -p ./tsconfig.trace.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
     "format": "yarn run prettier . --write",
