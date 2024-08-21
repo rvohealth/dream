@@ -9,8 +9,11 @@ import loadSerializers, { getSerializersOrFail, setCachedSerializers } from './h
 import loadServices, { getServicesOrFail, setCachedServices } from './helpers/loadServices'
 
 export default class DreamApplication {
-  public static async init(cb: (dreamApp: DreamApplication) => void | Promise<void>) {
-    const dreamApp = new DreamApplication()
+  public static async init(
+    cb: (dreamApp: DreamApplication) => void | Promise<void>,
+    opts: Partial<DreamApplicationOpts> = {}
+  ) {
+    const dreamApp = new DreamApplication(opts)
     await cb(dreamApp)
 
     await dreamApp.inflections?.()
@@ -34,7 +37,7 @@ export default class DreamApplication {
 
   protected loadedModels: boolean = false
 
-  constructor(opts?: DreamApplicationOpts) {
+  constructor(opts?: Partial<DreamApplicationOpts>) {
     if (opts?.db) this.dbCredentials = opts.db
     if (opts?.primaryKeyType) this.primaryKeyType = opts.primaryKeyType
     if (opts?.projectRoot) this.projectRoot = opts.projectRoot
