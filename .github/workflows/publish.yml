@@ -5,44 +5,20 @@ on:
     types: [created]
 
 jobs:
-  # test:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-node@v3
-  #       with:
-  #         node-version: 18.15.0
-  #     - run: yarn
-  #     - run: yarn test:unit
-
-  # generate-types:
-  #   needs: test
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-node@v3
-  #       with:
-  #         node-version: 18.15.0
-  #     - run: yarn
-  #     - uses: actions/upload-artifact@v2
-  #       with:
-  #         name: types
-  #         path: ./@types
-
-  # build:
-  #   needs: test
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-node@v3
-  #       with:
-  #         node-version: 18.15.0
-  #     - run: yarn
-  #     - run: yarn build
-  #     - uses: actions/upload-artifact@v2
-  #       with:
-  #         name: dist
-  #         path: ./dist
+  build:
+    # needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20.9.0
+      - run: yarn
+      - run: yarn build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: ./dist
 
   publish:
     needs: []
@@ -54,17 +30,13 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: 18.15.0
+          node-version: 20.9.0
           registry-url: https://npm.pkg.github.com/
       - run: yarn
-      # - uses: actions/download-artifact@v2
-      #   with:
-      #     name: types
-      #     path: ./@types
-      # - uses: actions/download-artifact@v2
-      #   with:
-      #     name: dist
-      #     path: ./dist
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
+          path: ./dist
       - run: yarn publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
