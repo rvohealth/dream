@@ -7,10 +7,10 @@
   "scripts": {
     "dream": "yarn dreamts",
     "dreamjs": "node  --experimental-modules dist/boot/cli.js",
-    "dreamts": "DREAM_OMIT_DIST_FOLDER=1 TS_SAFE=1 npx ts-node --transpile-only -r ./src/helpers/loadEnv.ts test-app/cli/index.ts",
+    "dreamts": "npx ts-node --transpile-only -r ./src/helpers/loadEnv.ts test-app/cli/index.ts",
     "build": "APP_NAME=$npm_package_name APP_VERSION=$npm_package_version yarn --cwd=node_modules/@rvohealth/dream build && echo \"building your app...\" && rm -rf dist && echo \"node --version\" && node --version && echo \"npx tsc --version\" && npx tsc --version && npx tsc -p ./tsconfig.build.json",
     "spec": "NODE_ENV=test jest --runInBand --forceExit",
-    "console": "TS_SAFE=1 npx ts-node --transpile-only --project ./tsconfig.json ./test-app/app/conf/repl.ts",
+    "console": "npx ts-node --transpile-only --project ./tsconfig.json ./test-app/app/conf/repl.ts",
     "lint": "yarn run eslint --no-warn-ignored \"src/**/*.ts\" \"spec/**/*.ts\""
   },
   "dependencies": {
