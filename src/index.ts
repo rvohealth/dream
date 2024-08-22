@@ -1,7 +1,3 @@
-export {
-  globalClassNameFromFullyQualifiedModelName,
-  standardizeFullyQualifiedModelName,
-} from '../psychic-support-helpers'
 export { default as DreamBin } from './bin'
 export { default as db } from './db'
 export { closeAllDbConnections, dreamDbConnections } from './db/dream-db-connection'
@@ -77,6 +73,7 @@ export { default as capitalize } from './helpers/capitalize'
 export { default as compact } from './helpers/compact'
 export { default as debug } from './helpers/debug'
 export { default as developmentOrTestEnv } from './helpers/developmentOrTestEnv'
+export { default as globalClassNameFromFullyQualifiedModelName } from './helpers/globalClassNameFromFullyQualifiedModelName'
 export { default as hyphenize } from './helpers/hyphenize'
 export {
   inferSerializerFromDreamClassOrViewModelClass,
@@ -85,9 +82,13 @@ export {
 export { default as loadRepl } from './helpers/loadRepl'
 export { default as pascalize } from './helpers/pascalize'
 export { default as dreamPath } from './helpers/path/dreamPath'
+export { default as relativeDreamPath } from './helpers/path/relativeDreamPath'
+export { default as sharedPathPrefix } from './helpers/path/sharedPathPrefix'
 export { Range, default as range } from './helpers/range'
 export { RoundingPrecision, default as round } from './helpers/round'
+export { default as serializerNameFromFullyQualifiedModelName } from './helpers/serializerNameFromFullyQualifiedModelName'
 export { default as snakeify } from './helpers/snakeify'
+export { default as standardizeFullyQualifiedModelName } from './helpers/standardizeFullyQualifiedModelName'
 export { Camelized, Hyphenized, Pascalized, Snakeified } from './helpers/stringCasing'
 export { default as testEnv } from './helpers/testEnv'
 export { default as uncapitalize } from './helpers/uncapitalize'
