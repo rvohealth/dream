@@ -40,6 +40,6 @@ export default async function generateDream(
 
   const isSTI = !!parentName
   if (attributes.length || !isSTI) {
-    await generateMigration(fullyQualifiedModelName, attributes, parentName)
+    await generateMigration(fullyQualifiedModelName, attributes, fullyQualifiedModelName, parentName)
   }
 }

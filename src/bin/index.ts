@@ -106,7 +106,8 @@ export default class DreamBin {
   public static async generateMigration() {
     const argv = process.argv.filter(arg => !/^--/.test(arg))
     const name = argv[3]
-    await generateMigration(name, [])
+    const args = argv.slice(4, argv.length)
+    await generateMigration(name, args)
   }
 
   public static async generateSerializer() {

@@ -12,13 +12,14 @@ import snakeify from '../snakeify'
 import generateStiMigrationContent from './generateStiMigrationContent'
 
 export default async function generateMigration(
-  fullyQualifiedModelName: string,
+  migrationName: string,
   attributes: string[],
+  fullyQualifiedModelName?: string,
   parentName?: string
 ) {
   const { relFilePath, absFilePath } = dreamFileAndDirPaths(
     path.join(dreamPath('db'), 'migrations'),
-    `${migrationVersion()}-${hyphenize(fullyQualifiedModelName).replace(/\//g, '-')}.ts`
+    `${migrationVersion()}-${hyphenize(migrationName).replace(/\//g, '-')}.ts`
   )
 
   const isSTI = !!parentName
@@ -35,6 +36,14 @@ export default async function generateMigration(
       table: snakeify(pluralize(pascalizePath(fullyQualifiedModelName))),
       attributes,
       primaryKeyType: primaryKeyType(),
+    })
+  } else {
+    const tableName: string | undefined = migrationName.match(/-to-(.+)$/)?.[1]
+    finalContent = generateMigrationContent({
+      table: tableName ? pluralize(tableName) : '<table-name>',
+      attributes,
+      primaryKeyType: primaryKeyType(),
+      createOrAlter: 'alter',
     })
   }
 
