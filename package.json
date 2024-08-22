@@ -1,6 +1,6 @@
 {
   "name": "@rvohealth/dream",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "description": "dream orm",
   "main": "dist/src/index.js",
   "repository": "https://github.com/rvohealth/dream.git",
@@ -11,7 +11,6 @@
     "tsconfig.build.json",
     "tsconfig.json",
     "shared/**/*",
-    "psychic-support-helpers/**/*",
     "spec-helpers/**/*",
     "src/**/*",
     "dist/**/*"
@@ -30,7 +29,7 @@
     "types:trace": "rm -rf dist && npx tsc -p ./tsconfig.build.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
     "types:trace-test-app": "rm -rf dist && npx tsc -p ./tsconfig.trace.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
     "format": "yarn run prettier . --write",
-    "lint": "yarn run eslint --no-warn-ignored \"src/**/*.ts\" \"spec/**/*.ts\" \"psychic-support-helpers/**/*.ts\" \"spec-helpers/**/*.ts\" \"test-app/**/*.ts\" && yarn run prettier . --check",
+    "lint": "yarn run eslint --no-warn-ignored \"src/**/*.ts\" \"spec/**/*.ts\" \"spec-helpers/**/*.ts\" \"test-app/**/*.ts\" && yarn run prettier . --check",
     "prepack": "yarn build && yarn dreamcore build:docs"
   },
   "publishConfig": {

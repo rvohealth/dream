@@ -23,12 +23,5 @@
     "rootDir": "./",
     "outDir": "./dist"
   },
-  "include": [
-    "src/**/*",
-    "shared/**/*",
-    "test-app/**/*",
-    "spec/**/*",
-    "psychic-support-helpers/**/*",
-    "spec-helpers/**/*"
-  ]
+  "include": ["src/**/*", "shared/**/*", "test-app/**/*", "spec/**/*", "spec-helpers/**/*"]
 }
