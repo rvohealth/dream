@@ -13,7 +13,8 @@
     "shared/**/*",
     "spec-helpers/**/*",
     "src/**/*",
-    "dist/**/*"
+    "dist/**/*",
+    "docs/**/*"
   ],
   "scripts": {
     "dream": "yarn dreamts",
