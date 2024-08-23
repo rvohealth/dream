@@ -32,7 +32,12 @@ export { default as Validate } from './decorators/validations/validate'
 export { default as Validates } from './decorators/validations/validates'
 export { default as Virtual } from './decorators/virtual'
 export { default as Dream } from './dream'
-export { default as DreamApplication, DreamApplicationOpts } from './dream-application'
+export {
+  default as DreamApplication,
+  DreamApplicationOpts,
+  DreamLogLevel,
+  DreamLogger,
+} from './dream-application'
 export { default as lookupClassByGlobalName } from './dream-application/helpers/lookupClassByGlobalName'
 export { default as Query } from './dream/query'
 export { default as DreamTransaction } from './dream/transaction'

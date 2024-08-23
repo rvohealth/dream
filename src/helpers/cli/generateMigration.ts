@@ -1,6 +1,7 @@
 import fs from 'fs/promises'
 import path from 'path'
 import pluralize from 'pluralize'
+import DreamApplication from '../../dream-application'
 import generateMigrationContent from '../cli/generateMigrationContent'
 import primaryKeyType from '../db/primaryKeyType'
 import hyphenize from '../hyphenize'
@@ -48,7 +49,7 @@ export default async function generateMigration(
   }
 
   try {
-    console.log(`generating migration: ${relFilePath}`)
+    DreamApplication.log(`generating migration: ${relFilePath}`)
     await fs.writeFile(absFilePath, finalContent)
   } catch (error) {
     throw new Error(`

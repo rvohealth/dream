@@ -57,11 +57,20 @@ export default class DreamApplication {
     return getCachedDreamApplicationOrFail()
   }
 
+  public static log(...args: any[]) {
+    this.getOrFail().logger.info(...args)
+  }
+
+  public static logWithLevel(level: DreamLogLevel, ...args: any[]) {
+    this.getOrFail().logger[level](...args)
+  }
+
   public dbCredentials: DreamDbCredentialOptions
   public primaryKeyType: (typeof primaryKeyTypes)[number] = 'bigserial'
   public projectRoot: string
   public paths: Required<DreamDirectoryPaths>
   public serializerCasing: DreamSerializerCasing
+  public logger: DreamLogger = console
   public inflections?: () => void | Promise<void>
 
   protected loadedModels: boolean = false
@@ -119,13 +128,15 @@ export default class DreamApplication {
       ? DreamDbCredentialOptions
       : ApplyOpt extends 'primaryKeyType'
         ? (typeof primaryKeyTypes)[number]
-        : ApplyOpt extends 'projectRoot'
-          ? string
-          : ApplyOpt extends 'inflections'
-            ? () => void | Promise<void>
-            : ApplyOpt extends 'paths'
-              ? DreamDirectoryPaths
-              : never
+        : ApplyOpt extends 'logger'
+          ? DreamLogger
+          : ApplyOpt extends 'projectRoot'
+            ? string
+            : ApplyOpt extends 'inflections'
+              ? () => void | Promise<void>
+              : ApplyOpt extends 'paths'
+                ? DreamDirectoryPaths
+                : never
   ) {
     switch (applyOption) {
       case 'db':
@@ -134,6 +145,10 @@ export default class DreamApplication {
 
       case 'primaryKeyType':
         this.primaryKeyType = options as (typeof primaryKeyTypes)[number]
+        break
+
+      case 'logger':
+        this.logger = options as DreamLogger
         break
 
       case 'projectRoot':
@@ -172,10 +187,11 @@ export interface DreamApplicationOpts {
 
 export type DreamApplicationSetOption =
   | 'db'
+  | 'inflections'
+  | 'logger'
+  | 'paths'
   | 'primaryKeyType'
   | 'projectRoot'
-  | 'inflections'
-  | 'paths'
   | 'serializerCasing'
 
 export interface DreamDirectoryPaths {
@@ -201,5 +217,14 @@ export interface SingleDbCredential {
   port: number
   useSsl: boolean
 }
+
+export type DreamLogger = {
+  info: (...args: any[]) => void
+  warn: (...args: any[]) => void
+  debug: (...args: any[]) => void
+  error: (...args: any[]) => void
+}
+
+export type DreamLogLevel = 'info' | 'warn' | 'debug' | 'error'
 
 export type DreamSerializerCasing = 'snake' | 'camel'

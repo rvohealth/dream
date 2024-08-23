@@ -551,7 +551,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * ```ts
    * await User.order('id').findEach(user => {
-   *   console.log(user)
+   *   DreamApplication.log(user)
    * })
    * // User{id: 1}
    * // User{id: 2}

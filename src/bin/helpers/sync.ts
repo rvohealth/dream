@@ -28,7 +28,7 @@ export default async function writeSyncFile() {
 
   await fs.writeFile(absoluteDbSyncPath, enhancedSchema)
 
-  console.log('done writing dream sync file!')
+  DreamApplication.log('done writing dream sync file!')
 }
 
 // begin: schema helpers

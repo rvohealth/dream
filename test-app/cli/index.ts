@@ -8,10 +8,10 @@
 import '../app/conf/loadEnv'
 
 import { Command } from 'commander'
-import { DreamBin, developmentOrTestEnv } from '../../src'
+import { DreamApplication, DreamBin, developmentOrTestEnv } from '../../src'
+import { envValue } from '../../src/helpers/envHelpers'
 import seedDb from '../db/seed'
 import initializeDreamApplication from './helpers/initializeDreamApplication'
-import { envValue } from '../../src/helpers/envHelpers'
 
 const program = new Command()
 
@@ -176,7 +176,9 @@ program
   )
   .action(async () => {
     if (envValue('NODE_ENV') === 'test' && process.env.DREAM_SEED_DB_IN_TEST !== '1') {
-      console.log('skipping db seed for test env. To really seed for test, add DREAM_SEED_DB_IN_TEST=1')
+      DreamApplication.log(
+        'skipping db seed for test env. To really seed for test, add DREAM_SEED_DB_IN_TEST=1'
+      )
       return
     }
 
