@@ -28,16 +28,22 @@ export default async function runMigration({
   const migratedActionCurrentTense = mode === 'migrate' ? 'migrate' : 'roll'
   results?.forEach(it => {
     if (it.status === 'Success') {
-      console.log(`migration "${it.migrationName}" was ${migratedActionPastTense} successfully`)
+      DreamApplication.log(
+        'log',
+        `migration "${it.migrationName}" was ${migratedActionPastTense} successfully`
+      )
     } else if (it.status === 'Error') {
-      console.log(it)
-      console.error(`failed to ${migratedActionCurrentTense} migration "${it.migrationName}"`)
+      DreamApplication.log(it)
+      DreamApplication.logWithLevel(
+        'error',
+        `failed to ${migratedActionCurrentTense} migration "${it.migrationName}"`
+      )
     }
   })
 
   if (error) {
-    console.error(`failed to ${migratedActionCurrentTense}`)
-    console.error(error)
+    DreamApplication.logWithLevel('error', `failed to ${migratedActionCurrentTense}`)
+    DreamApplication.logWithLevel('error', error)
     process.exit(1)
   }
 }
