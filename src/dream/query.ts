@@ -2010,7 +2010,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * were destroyed.
    *
    * If the record being destroyed is using
-   * a @SoftDelete decorator, the soft delete
+   * a SoftDelete decorator, the soft delete
    * will be bypassed, causing the record
    * to be permanently removed from the database.
    *

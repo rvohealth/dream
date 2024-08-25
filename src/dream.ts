@@ -215,7 +215,7 @@ export default class Dream {
   /**
    * @internal
    *
-   * Model storage for scope metadata, set when using the @Scope decorator
+   * Model storage for scope metadata, set when using the Scope decorator
    */
   protected static scopes: {
     default: ScopeStatement[]
@@ -228,28 +228,28 @@ export default class Dream {
   /**
    * @internal
    *
-   * Model storage for virtual attribute metadata, set when using the @Virtual decorator
+   * Model storage for virtual attribute metadata, set when using the Virtual decorator
    */
   protected static virtualAttributes: VirtualAttributeStatement[] = []
 
   /**
    * @internal
    *
-   * Model storage for sortable metadata, set when using the @Sortable decorator
+   * Model storage for sortable metadata, set when using the Sortable decorator
    */
   protected static sortableFields: SortableFieldConfig[] = []
 
   /**
    * @internal
    *
-   * Model storage for STI metadata, set when using the @STI decorator
+   * Model storage for STI metadata, set when using the STI decorator
    */
   protected static extendedBy: (typeof Dream)[] | null = null
 
   /**
    * @internal
    *
-   * Model storage for STI metadata, set when using the @STI decorator
+   * Model storage for STI metadata, set when using the STI decorator
    */
   protected static sti: {
     active: boolean
@@ -265,18 +265,18 @@ export default class Dream {
    * @internal
    *
    * Model storage for model hook metadata, set when using the following decorators:
-   *   @BeforeCreate
-   *   @BeforeUpdate
-   *   @BeforeSave
-   *   @BeforeDestroy
-   *   @AfterCreate
-   *   @AfterCreateCommit
-   *   @AfterUpdate
-   *   @AfterUpdateCommit
-   *   @AfterSave
-   *   @AfterSaveCommit
-   *   @AfterDestroy
-   *   @AfterDestroyCommit
+   *   BeforeCreate
+   *   BeforeUpdate
+   *   BeforeSave
+   *   BeforeDestroy
+   *   AfterCreate
+   *   AfterCreateCommit
+   *   AfterUpdate
+   *   AfterUpdateCommit
+   *   AfterSave
+   *   AfterSaveCommit
+   *   AfterDestroy
+   *   AfterDestroyCommit
    */
   protected static hooks: {
     beforeCreate: HookStatement[]
@@ -296,28 +296,28 @@ export default class Dream {
   /**
    * @internal
    *
-   * Model storage for validation metadata, set when using the @Validates decorator
+   * Model storage for validation metadata, set when using the Validates decorator
    */
   protected static validations: ValidationStatement[] = []
 
   /**
    * @internal
    *
-   * model storage for custom validation metadata, set when using the @Validate decorator
+   * model storage for custom validation metadata, set when using the Validate decorator
    */
   protected static customValidations: string[] = []
 
   /**
    * @internal
    *
-   * Model storage for replica-safe metadata, set when using the @ReplicaSafe decorator
+   * Model storage for replica-safe metadata, set when using the ReplicaSafe decorator
    */
   protected static replicaSafe = false
 
   /**
    * @internal
    *
-   * Model storage for soft-delete metadata, set when using the @SoftDelete decorator
+   * Model storage for soft-delete metadata, set when using the SoftDelete decorator
    */
   protected static softDelete = false
 
@@ -552,8 +552,8 @@ export default class Dream {
   //////////////
 
   /**
-   * Shortcut to the @Sortable decorator, which also provides extra type protection which cannot be provided
-   * with the @Sortable decorator.
+   * Shortcut to the Sortable decorator, which also provides extra type protection which cannot be provided
+   * with the Sortable decorator.
    *
    * @param scope - The column, association, or combination there-of which you would like to restrict the incrementing logic to
    * @returns A Sortable decorator
@@ -573,7 +573,7 @@ export default class Dream {
   }
 
   /**
-   * Shortcut to the @BeforeCreate decorator
+   * Shortcut to the BeforeCreate decorator
    *
    * ```ts
    * class User {
@@ -592,7 +592,7 @@ export default class Dream {
   }
 
   /**
-   * Shortcut to the @BeforeSave decorator
+   * Shortcut to the BeforeSave decorator
    *
    * ```ts
    * class User {
@@ -611,7 +611,7 @@ export default class Dream {
   }
 
   /**
-   * Shortcut to the @BeforeUpdate decorator
+   * Shortcut to the BeforeUpdate decorator
    *
    * ```ts
    * class User {
@@ -630,7 +630,7 @@ export default class Dream {
   }
 
   /**
-   * Shortcut to the @BeforeDestroy decorator
+   * Shortcut to the BeforeDestroy decorator
    *
    * ```ts
    * class User {
@@ -648,7 +648,7 @@ export default class Dream {
   }
 
   /**
-   * Shortcut to the @AfterCreate decorator
+   * Shortcut to the AfterCreate decorator
    *
    * ```ts
    * class User {
@@ -667,7 +667,7 @@ export default class Dream {
   }
 
   /**
-   * Shortcut to the @AfterCreateCommit decorator
+   * Shortcut to the AfterCreateCommit decorator
    *
    * ```ts
    * class User {
@@ -685,7 +685,7 @@ export default class Dream {
   }
 
   /**
-   * Shortcut to the @AfterSave decorator
+   * Shortcut to the AfterSave decorator
    *
    * ```ts
    * class User {
@@ -704,7 +704,7 @@ export default class Dream {
   }
 
   /**
-   * Shortcut to the @AfterSaveCommit decorator
+   * Shortcut to the AfterSaveCommit decorator
    *
    * ```ts
    * class User {
@@ -723,7 +723,7 @@ export default class Dream {
   }
 
   /**
-   * Shortcut to the @AfterUpdate decorator
+   * Shortcut to the AfterUpdate decorator
    *
    * ```ts
    * class User {
@@ -742,7 +742,7 @@ export default class Dream {
   }
 
   /**
-   * Shortcut to the @AfterUpdateCommit decorator
+   * Shortcut to the AfterUpdateCommit decorator
    *
    * ```ts
    * class User {
@@ -761,7 +761,7 @@ export default class Dream {
   }
 
   /**
-   * Shortcut to the @AfterDestroy decorator
+   * Shortcut to the AfterDestroy decorator
    *
    * ```ts
    * class User {
@@ -780,7 +780,7 @@ export default class Dream {
   }
 
   /**
-   * Shortcut to the @AfterDestroyCommit decorator
+   * Shortcut to the AfterDestroyCommit decorator
    *
    * ```ts
    * class User {
@@ -895,7 +895,7 @@ export default class Dream {
   /**
    * @internal
    *
-   * Returns true if the column is virtual (set using the @Virtual decorator)
+   * Returns true if the column is virtual (set using the Virtual decorator)
    *
    * @param columnName - the name of the property you are checking for
    * @returns boolean
@@ -1628,17 +1628,17 @@ export default class Dream {
   }
 
   /**
-   * Used in conjunction with the @Sortable decorator, `resort`
+   * Used in conjunction with the Sortable decorator, `resort`
    * takes a list of sortable fields, and for each one, finds and
    * sorts each record in the DB matching the field based on the
-   * scope provided for each @Sortable decorator found.
+   * scope provided for each Sortable decorator found.
    *
    * Calling this method shouldn't be necessary, but if
    * the contents of the database have shifted without firing the
    * correct callback mechanisms at the application layer, calling
    * `resort` will ensure that all sortable fields are set from 1..n
    * with no gaps, accounting for the scopes specified in the
-   * corresponding @Sortable decorator.
+   * corresponding Sortable decorator.
    *
    * ```ts
    * class Post extends ApplicationModel {
@@ -2221,7 +2221,7 @@ export default class Dream {
 
   /**
    * Runs validation checks against all validations
-   * declared using the @Validate and @Validates decorators,
+   * declared using the Validate and Validates decorators,
    * and returns true if any of them fail.
    *
    * ```ts
@@ -2266,7 +2266,7 @@ export default class Dream {
 
   /**
    * Runs validation checks against all validations
-   * declared using the @Validate and @Validates decorators.
+   * declared using the Validate and Validates decorators.
    * Returns true if none of the validations fail.
    *
    * NOTE: Any validations that fail will leave the errors
@@ -3059,7 +3059,7 @@ export default class Dream {
    * hooks on this model.
    *
    * If the record being destroyed is using
-   * a @SoftDelete decorator, the soft delete
+   * a SoftDelete decorator, the soft delete
    * will be bypassed, causing the record
    * to be permanently removed from the database.
    *
@@ -3805,7 +3805,7 @@ export default class Dream {
    * ```
    *
    * @param args.casing - Which casing to use when serializing (camel or snake, default camel)
-   * @params args.serializerKey - The key to use when referencing the object returned by the `serializers` getter on the given model instance (defaults to "default")
+   * @param args.serializerKey - The key to use when referencing the object returned by the `serializers` getter on the given model instance (defaults to "default")
    * @returns A serialized representation of the model
    */
   public serialize<I extends Dream>(
