@@ -1,6 +1,6 @@
-import isArray from 'lodash.isarray'
 import { DateTime } from 'luxon'
 import Dream from '../dream'
+import DreamApplication from '../dream-application'
 import {
   DreamConst,
   SerializableClassOrSerializerCallback,
@@ -22,7 +22,6 @@ import snakeify from '../helpers/snakeify'
 import { DreamSerializerAssociationStatement } from './decorators/associations/shared'
 import { AttributeStatement, SerializableTypes } from './decorators/attribute'
 import maybeSerializableToDreamSerializerCallbackFunction from './decorators/helpers/maybeSerializableToDreamSerializerCallbackFunction'
-import DreamApplication from '../dream-application'
 
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
   public static attributeStatements: AttributeStatement[] = []
@@ -285,7 +284,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     if (associationStatement.through) {
       const throughField = associationStatement.through
 
-      if (isArray(self)) {
+      if (Array.isArray(self)) {
         self = self.flatMap(singleField => singleField[throughField])
       } else {
         self = self[throughField]
@@ -296,13 +295,13 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
       }
     }
 
-    if (isArray(self)) {
+    if (Array.isArray(self)) {
       return self.flatMap(item => {
         let returnValue: any
         if (delegateToPassthroughData) returnValue = item[associationStatement.field]
         returnValue = item[associationStatement.source as string]
 
-        return isArray(returnValue) ? returnValue.flat() : returnValue
+        return Array.isArray(returnValue) ? returnValue.flat() : returnValue
       })
     } else {
       if (delegateToPassthroughData) return self[associationStatement.field]

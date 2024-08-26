@@ -40,6 +40,9 @@ jobs:
         with:
           node-version: '18'
 
+      - run: echo "@rvohealth:registry=https://npm.pkg.github.com" > ./.npmrc
+      - run: echo -e "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ./.npmrc
+
       - name: Cache node_modules
         id: cache-node-modules
         uses: actions/cache@v4
@@ -68,6 +71,9 @@ jobs:
         with:
           node-version: '18'
 
+      - run: echo "@rvohealth:registry=https://npm.pkg.github.com" > ./.npmrc
+      - run: echo -e "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ./.npmrc
+
       - name: Cache node_modules
         id: cache-node-modules
         uses: actions/cache@v4
@@ -95,6 +101,9 @@ jobs:
         with:
           node-version: '18'
 
+      - run: echo "@rvohealth:registry=https://npm.pkg.github.com" > ./.npmrc
+      - run: echo -e "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ./.npmrc
+
       - name: Cache node_modules
         id: cache-node-modules
         uses: actions/cache@v4
@@ -108,4 +117,6 @@ jobs:
         run: yarn list
 
       - run: yarn install --frozen-lockfile
+      # Add peer dependencies
+      - run: yarn add @types/luxon @types/node @types/pg kysely kysely-codegen luxon pg typescript
       - run: yarn build

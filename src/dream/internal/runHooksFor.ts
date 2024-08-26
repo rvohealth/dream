@@ -97,7 +97,7 @@ async function runConditionalAfterHooksForCreate(
   for (const attribute of statement.ifChanged!) {
     if (
       beforeSaveChanges?.[attribute] &&
-      beforeSaveChanges[attribute]!.was !== beforeSaveChanges[attribute]!.now
+      beforeSaveChanges[attribute].was !== beforeSaveChanges[attribute].now
     )
       shouldRun = true
   }

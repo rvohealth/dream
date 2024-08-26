@@ -1,9 +1,10 @@
+import '@rvohealth/dream-spec-helpers'
 import 'jest-extended'
 import 'luxon-jest-matchers'
-import '../../spec-helpers/jestMatchers'
 
+import { truncate } from '@rvohealth/dream-spec-helpers'
 import { toBeOneOf } from 'jest-extended'
-import truncate from '../../spec-helpers/truncate'
+import { DreamApplication } from '../../src'
 import initializeDreamApplication from '../../test-app/cli/helpers/initializeDreamApplication'
 
 expect.extend({ toBeOneOf } as any)
@@ -15,5 +16,5 @@ beforeEach(async () => {
     console.error(err)
     throw err
   }
-  await truncate()
+  await truncate(DreamApplication)
 }, 15000)
