@@ -7,14 +7,14 @@ import { dreamAttributeOpenapiShape } from './helpers/dreamAttributeOpenapiShape
 
 export default function Attribute(): any
 
-export default function Attribute<DreamClass extends typeof Dream>(
-  dreamClass: DreamClass,
-  openApiAndRenderOptions?: AutomaticOpenapiAndRenderOptions
-): any
-
 export default function Attribute(
   manualOpenapiOptions: OpenapiSchemaBodyShorthand,
   renderOptions?: AttributeRenderOptions
+): any
+
+export default function Attribute<DreamClass extends typeof Dream>(
+  dreamClass: DreamClass,
+  openApiAndRenderOptions?: AutomaticOpenapiAndRenderOptions
 ): any
 
 export default function Attribute(
