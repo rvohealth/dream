@@ -58,4 +58,16 @@ export default class SandbagSerializer extends DreamSerializer {
     enum: ['hello', 'world'],
   })
   public enumTest() {}
+
+  @Attribute({ type: 'object', additionalProperties: 'number' })
+  public history: Record<string, number>
+
+  @Attribute({
+    type: 'object',
+    additionalProperties: {
+      type: 'object',
+      properties: { code: { type: 'integer' }, text: { type: 'string' } },
+    },
+  })
+  public howyadoin: Record<string, { code: string; text: string }>
 }
