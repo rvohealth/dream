@@ -1,8 +1,8 @@
 import fs from 'fs/promises'
-import installCoreDreamDependenciesToDir from './installCoreDreamDependenciesToDir'
+import buildNewDreamApp from './helpers/buildNewDreamApp'
 
 export default async function newDreamApp(appName: string, args: string[]) {
   const projectPath = `./${appName}`
   await fs.mkdir(projectPath)
-  await installCoreDreamDependenciesToDir(appName, projectPath, args)
+  await buildNewDreamApp(appName, projectPath, args)
 }

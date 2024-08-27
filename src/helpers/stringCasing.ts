@@ -74,7 +74,9 @@ type InnerCamelizeString<T extends string> = T extends `${infer A}_${infer B}`
   ? `${A}${InnerCamelizeString<Capitalize<B>>}`
   : T extends `${infer A}-${infer B}`
     ? `${A}${InnerCamelizeString<Capitalize<B>>}`
-    : T
+    : T extends `${infer A} ${infer B}`
+      ? `${A}${InnerCamelizeString<Capitalize<B>>}`
+      : T
 
 type Punctuation =
   | ','

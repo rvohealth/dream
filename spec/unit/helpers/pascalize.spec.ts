@@ -17,6 +17,36 @@ describe('pascalize', () => {
       }
     })
 
+    context('spaces', () => {
+      context('single space', () => {
+        it('are camelized', () => {
+          expect(pascalize('hello world')).toEqual('HelloWorld')
+        })
+
+        it.skip('type test', () => {
+          const alteredCase = pascalize('hello world')
+          if (alteredCase === 'HelloWorld') {
+            // The previous line will start being a type error if `alteredCase` is anything other
+            // than what we've written in conditional
+          }
+        })
+      })
+
+      context('multiple spaces', () => {
+        it('are camelized', () => {
+          expect(pascalize('hello    world')).toEqual('HelloWorld')
+        })
+
+        it.skip('type test', () => {
+          const alteredCase = pascalize('hello   world')
+          if (alteredCase === 'HelloWorld') {
+            // The previous line will start being a type error if `alteredCase` is anything other
+            // than what we've written in conditional
+          }
+        })
+      })
+    })
+
     context('when the string is snake case, and a number starts one of the sections of the string', () => {
       it('pascalizes string', () => {
         expect(pascalize('fiber_2016_2018_2020_2022_2024')).toEqual('Fiber20162018202020222024')
