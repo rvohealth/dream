@@ -23,21 +23,33 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = copyRecursive;
-const fs = __importStar(require("fs"));
-const path = __importStar(require("path"));
-function copyRecursive(src, dest) {
-    const exists = fs.existsSync(src);
-    const stats = exists && fs.statSync(src);
-    const isDirectory = exists && stats.isDirectory();
-    if (isDirectory) {
-        if (!['.', './.'].includes(dest) && !fs.existsSync(dest))
-            fs.mkdirSync(dest);
-        fs.readdirSync(src).forEach(function (childItemName) {
-            copyRecursive(path.join(src, childItemName), path.join(dest, childItemName));
+const readline = __importStar(require("readline"));
+const input = process.stdin;
+class Prompt {
+    constructor(question) {
+        this.cb = null;
+        this.close = () => {
+            input.setRawMode(false);
+            input.pause();
+            process.exit(0);
+        };
+        this.question = question;
+    }
+    async run() {
+        await this.init();
+        return new Promise(accept => {
+            this.cb = accept;
         });
     }
-    else {
-        fs.copyFileSync(src, dest);
+    async init() {
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+        });
+        rl.question(this.question + '\n', res => {
+            this.cb?.(res);
+            rl.close();
+        });
     }
 }
+exports.default = Prompt;

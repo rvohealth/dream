@@ -21,6 +21,7 @@ exports.default = EnvBuilder;
 // though we don't really use it for anything other than string transformations, so this version has been simplified.
 function snakeify(str) {
     return str
+        .replace(/[ _-]+/g, '_')
         .replace(/(?:^|\.?)([A-Z])/g, (_, y) => '_' + y.toLowerCase())
         .replace(/^_/, '')
         .replace(/\//g, '_')

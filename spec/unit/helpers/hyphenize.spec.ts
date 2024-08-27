@@ -36,6 +36,36 @@ describe('hyphenize', () => {
         // than what we've written in conditional
       }
     })
+
+    context('spaces', () => {
+      context('single space', () => {
+        it('are camelized', () => {
+          expect(hyphenize('hello world')).toEqual('hello-world')
+        })
+
+        it.skip('type test', () => {
+          const alteredCase = hyphenize('hello world')
+          if (alteredCase === 'hello-world') {
+            // The previous line will start being a type error if `alteredCase` is anything other
+            // than what we've written in conditional
+          }
+        })
+      })
+
+      context('multiple spaces', () => {
+        it('are camelized', () => {
+          expect(hyphenize('hello    world')).toEqual('hello-world')
+        })
+
+        it.skip('type test', () => {
+          const alteredCase = hyphenize('hello   world')
+          if (alteredCase === 'hello-world') {
+            // The previous line will start being a type error if `alteredCase` is anything other
+            // than what we've written in conditional
+          }
+        })
+      })
+    })
   })
 
   context('when passed an object', () => {

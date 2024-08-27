@@ -68,6 +68,36 @@ describe('camelize', () => {
         // than what we've written in conditional
       }
     })
+
+    context('spaces', () => {
+      context('single space', () => {
+        it('are camelized', () => {
+          expect(camelize('hello world')).toEqual('helloWorld')
+        })
+
+        it.skip('type test', () => {
+          const alteredCase = camelize('hello world')
+          if (alteredCase === 'helloWorld') {
+            // The previous line will start being a type error if `alteredCase` is anything other
+            // than what we've written in conditional
+          }
+        })
+      })
+
+      context('multiple spaces', () => {
+        it('are camelized', () => {
+          expect(camelize('hello    world')).toEqual('helloWorld')
+        })
+
+        it.skip('type test', () => {
+          const alteredCase = camelize('hello   world')
+          if (alteredCase === 'helloWorld') {
+            // The previous line will start being a type error if `alteredCase` is anything other
+            // than what we've written in conditional
+          }
+        })
+      })
+    })
   })
 
   context('when passed an object', () => {

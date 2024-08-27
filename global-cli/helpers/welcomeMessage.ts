@@ -2,7 +2,7 @@ import * as c from 'colorette'
 
 export default function welcomeMessage(appName: string) {
   return `
-  ${c.green(c.bold(c.italic(`Welcome to Dream! \ncd into ${c.magentaBright(appName)} to get started`)))}
+  ${c.green(c.bold(c.italic(`Welcome to Dream! \n  cd into ${c.magentaBright(appName)} to get started`)))}
 
   ${c.magenta(`to create a database,`)}
   ${c.magenta(`$ NODE_ENV=development yarn dream db:create`)}
@@ -19,11 +19,6 @@ export default function welcomeMessage(appName: string) {
   ${c.blueBright(`to drop a database,`)}
   ${c.blueBright(`$ NODE_ENV=development yarn dream db:drop`)}
   ${c.blueBright(`$ NODE_ENV=test yarn dream db:drop`)}
-
-  ${c.green(`to create a resource (model, migration, serializer, and controller)`)}
-  ${c.green(
-    `$ yarn dream g:resource api/v1/users user organization:belongs_to favorites:enum:favorite_foods:Chalupas,Other`
-  )}
 
   # NOTE: doing it this way, you will still need to
   # plug the routes manually in your api/src/app/conf/routes.ts file
