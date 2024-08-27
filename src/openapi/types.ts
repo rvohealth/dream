@@ -113,7 +113,11 @@ export type OpenapiSchemaObjectBase = CommonOpenapiSchemaObjectFields<{
     | OpenapiSchemaExpressionOneOf
     | OpenapiSchemaExpressionAnyOf
     | OpenapiSchemaExpressionAllOf
-  additionalProperties?: OpenapiSchemaObject
+  additionalProperties?:
+    | OpenapiSchemaObject
+    | OpenapiSchemaExpressionOneOf
+    | OpenapiSchemaExpressionAnyOf
+    | OpenapiSchemaExpressionAllOf
 }>
 
 export type OpenapiSchemaObjectOneOf = CommonOpenapiSchemaObjectFields<{
@@ -143,7 +147,13 @@ export type OpenapiSchemaObjectBaseShorthand = CommonOpenapiSchemaObjectFields<{
     | OpenapiSchemaShorthandExpressionAnyOf
     | OpenapiSchemaShorthandExpressionAllOf
     | OpenapiSchemaShorthandExpressionSerializerRef
-  additionalProperties?: OpenapiShorthandPrimitiveTypes | OpenapiSchemaObjectShorthand
+  additionalProperties?:
+    | OpenapiShorthandPrimitiveTypes
+    | OpenapiSchemaObjectShorthand
+    | OpenapiSchemaShorthandExpressionOneOf
+    | OpenapiSchemaShorthandExpressionAnyOf
+    | OpenapiSchemaShorthandExpressionAllOf
+    | OpenapiSchemaShorthandExpressionSerializerRef
 }>
 
 export type OpenapiSchemaObjectOneOfShorthand = CommonOpenapiSchemaObjectFields<{
