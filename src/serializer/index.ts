@@ -106,11 +106,11 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
         if (!Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), attributeStatement.field)?.get) {
           Object.defineProperty(Object.getPrototypeOf(this), attributeStatement.field, {
             get() {
-              return this.data[attributeStatement.field]
+              return this.$data[attributeStatement.field]
             },
 
             set(val: any) {
-              this.data[attributeStatement.field] = val
+              this.$data[attributeStatement.field] = val
             },
           })
         }
@@ -118,7 +118,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     })
   }
 
-  public get data() {
+  public get $data() {
     return this._data
   }
 
@@ -279,7 +279,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
 
   private associatedData(associationStatement: DreamSerializerAssociationStatement) {
     const delegateToPassthroughData = associationStatement.source === DreamConst.passthrough
-    let self = (delegateToPassthroughData ? this.passthroughData : this.data) as any
+    let self = (delegateToPassthroughData ? this.passthroughData : this.$data) as any
 
     if (associationStatement.through) {
       const throughField = associationStatement.through
@@ -315,13 +315,13 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     let pathToValue: any = this as any
     if (attributeStatement.renderOptions?.delegate) {
       const delegateField = attributeStatement.renderOptions?.delegate
-      pathToValue = (this as any).data?.[delegateField] || null
+      pathToValue = (this as any).$data?.[delegateField] || null
     }
 
     const valueOrCb = pathToValue[field]
 
     if (attributeStatement.functional) {
-      return valueOrCb.call(this, this.data)
+      return valueOrCb.call(this, this.$data)
     } else {
       return valueOrCb
     }
