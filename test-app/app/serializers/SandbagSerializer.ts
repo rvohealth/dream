@@ -62,6 +62,9 @@ export default class SandbagSerializer extends DreamSerializer {
   @Attribute({ type: 'object', additionalProperties: 'number' })
   public history: Record<string, number>
 
+  @Attribute({ type: 'object', additionalProperties: { type: 'number', nullable: true } })
+  public nullableHistory: Record<string, number>
+
   @Attribute({
     type: 'object',
     additionalProperties: {

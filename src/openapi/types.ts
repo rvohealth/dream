@@ -149,7 +149,7 @@ export type OpenapiSchemaObjectBaseShorthand = CommonOpenapiSchemaObjectFields<{
     | OpenapiSchemaShorthandExpressionSerializerRef
   additionalProperties?:
     | OpenapiShorthandPrimitiveTypes
-    | OpenapiSchemaObjectShorthand
+    | OpenapiSchemaBodyShorthand
     | OpenapiSchemaShorthandExpressionOneOf
     | OpenapiSchemaShorthandExpressionAnyOf
     | OpenapiSchemaShorthandExpressionAllOf
