@@ -81,7 +81,6 @@ describe('dropValueFromEnum', () => {
             {
               table: 'pets',
               column: 'temporary_enum',
-              behavior: 'replace',
               replaceWith: null,
             },
           ],

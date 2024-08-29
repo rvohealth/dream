@@ -6,19 +6,9 @@ export default async function dropValueFromEnum(
 ) {
   // temporarily set all table columns depending on this enum to an acceptable alternate type
   for (const tableAndColumnToChange of tablesAndColumnsToChange) {
-    const tableAndColumnToChangeAsArray = tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArray
+    const tableAndColumnToChangeAsArray =
+      tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArrayBase
     const isArray = tableAndColumnToChangeAsArray.array || false
-    if (
-      isArray &&
-      tableAndColumnToChangeAsArray.behavior === 'replace' &&
-      !tableAndColumnToChangeAsArray.replaceWith
-    ) {
-      throw new Error(
-        `
-When calling dropValueFromEnum, you must provide a "replaceWith" value whenever using behavior: "replace"
-`
-      )
-    }
 
     await db.schema
       .alterTable(tableAndColumnToChange.table)
@@ -39,21 +29,20 @@ When calling dropValueFromEnum, you must provide a "replaceWith" value whenever 
 
   for (const tableAndColumnToChange of tablesAndColumnsToChange) {
     const isArray = (tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArray).array || false
-    const rawTemporarilySetTo = computedTemporaryType(isArray)
 
-    const temporarilySetTo: string = (rawTemporarilySetTo as RawBuilder<unknown>)?.compile
-      ? (rawTemporarilySetTo as RawBuilder<unknown>).compile(db).sql
-      : (rawTemporarilySetTo as string)
-
-    // if temporarilySetTo ends with [] (i.e. text[]), this means
-    // that the value it is replacing was originally an enum array
-    const columnIsArrayType = /\[\]$/.test(temporarilySetTo)
-
-    if (columnIsArrayType) {
-      await replaceVulnerableArrayValues(db, enumValueToDrop, tableAndColumnToChange)
+    if (isArray) {
+      await replaceVulnerableArrayValues(
+        db,
+        enumValueToDrop,
+        tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArray
+      )
       await updateTableColumnToNewEnumArrayType(db, enumName, tableAndColumnToChange)
     } else {
-      await replaceVulnerableValues(db, enumValueToDrop, tableAndColumnToChange)
+      await replaceVulnerableValues(
+        db,
+        enumValueToDrop,
+        tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForNonArray
+      )
       await updateTableColumnToNewEnumType(db, enumName, tableAndColumnToChange)
     }
   }
@@ -72,27 +61,24 @@ async function getEnumValues(db: Kysely<any>, enumName: string) {
 async function replaceVulnerableArrayValues(
   db: Kysely<any>,
   enumValueToDrop: string,
-  tableAndColumnToChange: DropValueFromEnumTablesAndColumns
+  tableAndColumnToChange: DropValueFromEnumTablesAndColumnsForArray
 ) {
-  const temporarilySetTo = computeTemporarilySetToValue(tableAndColumnToChange)
-  const setExistingUsesOfValueTo = computedAlternateValue(tableAndColumnToChange)
-
   const { column, table } = tableAndColumnToChange
 
-  if (setExistingUsesOfValueTo === null) {
+  if (tableAndColumnToChange.behavior === 'remove') {
     await sql`
       UPDATE ${sql.raw(table)}
       SET ${sql.raw(column)} = (select array_remove(${sql.raw(column)}, '${sql.raw(enumValueToDrop)}') from ${sql.raw(table)})
-      WHERE '${sql.raw(enumValueToDrop)}'::${sql.raw(temporarilySetTo.replace(/\[\]$/, ''))} = ANY(${sql.raw(column)})
+      WHERE '${sql.raw(enumValueToDrop)}'::text = ANY(${sql.raw(column)})
     `.execute(db)
   } else {
     await sql`
       UPDATE ${sql.raw(table)}
       SET ${sql.raw(column)} = (
-        SELECT array_replace(${sql.raw(column)}, '${sql.raw(enumValueToDrop)}', '${sql.raw(setExistingUsesOfValueTo)}')
+        SELECT array_replace(${sql.raw(column)}, '${sql.raw(enumValueToDrop)}', '${sql.raw(tableAndColumnToChange.replaceWith)}')
         FROM ${sql.raw(table)}
       )
-      WHERE '${sql.raw(enumValueToDrop)}'::${sql.raw(temporarilySetTo.replace(/\[\]$/, ''))} = ANY(${sql.raw(column)})
+      WHERE '${sql.raw(enumValueToDrop)}'::text = ANY(${sql.raw(column)})
     `.execute(db)
   }
 }
@@ -105,22 +91,21 @@ async function replaceVulnerableArrayValues(
 async function replaceVulnerableValues(
   db: Kysely<any>,
   enumValueToDrop: string,
-  tableAndColumnToChange: DropValueFromEnumTablesAndColumns
+  tableAndColumnToChange: DropValueFromEnumTablesAndColumnsForNonArray
 ) {
-  const temporarilySetTo = computeTemporarilySetToValue(tableAndColumnToChange)
   const { table, column, replaceWith } = tableAndColumnToChange
 
   if (replaceWith) {
     await sql`
       UPDATE ${sql.raw(table)}
       SET ${sql.raw(column)} = '${sql.raw(replaceWith)}'
-      WHERE '${sql.raw(enumValueToDrop)}'::${sql.raw(temporarilySetTo)} = ${sql.raw(column)}
+      WHERE '${sql.raw(enumValueToDrop)}'::text = ${sql.raw(column)}
     `.execute(db)
   } else {
     await sql`
       UPDATE ${sql.raw(table)}
       SET ${sql.raw(column)} = null
-      WHERE '${sql.raw(enumValueToDrop)}'::${sql.raw(temporarilySetTo)} = ${sql.raw(column)}
+      WHERE '${sql.raw(enumValueToDrop)}'::text = ${sql.raw(column)}
     `.execute(db)
   }
 }
@@ -132,6 +117,7 @@ async function updateTableColumnToNewEnumArrayType(
   tableAndColumnToChange: DropValueFromEnumTablesAndColumns
 ) {
   const { table, column } = tableAndColumnToChange
+
   await sql`
     ALTER TABLE ${sql.raw(table)}
     ALTER ${sql.raw(column)}
@@ -147,29 +133,13 @@ async function updateTableColumnToNewEnumType(
   tableAndColumnToChange: DropValueFromEnumTablesAndColumns
 ) {
   const { table, column } = tableAndColumnToChange
+
   await sql`
     ALTER TABLE ${sql.raw(table)}
     ALTER ${sql.raw(column)}
     TYPE ${sql.raw(enumName)}
     USING ${sql.raw(column)}::${sql.raw(enumName)};
   `.execute(db)
-}
-
-function computedAlternateValue(tableAndColumnToChange: DropValueFromEnumTablesAndColumns) {
-  const tableAndColumnToChangeAsArray = tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArray
-
-  if (tableAndColumnToChangeAsArray.array && tableAndColumnToChangeAsArray.behavior === 'remove') {
-    return null
-  }
-
-  return tableAndColumnToChange.replaceWith || null
-}
-
-// the user can provide a value to set the column to. This will either be a
-// string (i.e. text) or a RawBuilder statement (i.e. sql`text[]`).
-// This function will grab the raw string value for either of these types.
-function computeTemporarilySetToValue(tableAndColumnToChange: DropValueFromEnumTablesAndColumns) {
-  return (tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArray).array ? 'text[]' : 'text'
 }
 
 function computedTemporaryType(array: boolean): ColumnDataType | RawBuilder<unknown> {
@@ -184,16 +154,30 @@ export interface DropValueFromEnumOpts {
 }
 
 export type DropValueFromEnumTablesAndColumns =
-  | DropValueFromEnumTablesAndColumnsForArray
+  | DropValueWithRemovalFromEnumTablesAndColumnsForArray
+  | DropValueWithReplacementFromEnumTablesAndColumnsForArray
   | DropValueFromEnumTablesAndColumnsForNonArray
 
-export type DropValueFromEnumTablesAndColumnsForArray = {
+interface DropValueFromEnumTablesAndColumnsForArrayBase {
   table: string
   column: string
   array: true
-  behavior: 'remove' | 'replace'
-  replaceWith?: string
 }
+
+export interface DropValueWithRemovalFromEnumTablesAndColumnsForArray
+  extends DropValueFromEnumTablesAndColumnsForArrayBase {
+  behavior: 'replace'
+  replaceWith: string
+}
+
+export interface DropValueWithReplacementFromEnumTablesAndColumnsForArray
+  extends DropValueFromEnumTablesAndColumnsForArrayBase {
+  behavior: 'remove'
+}
+
+type DropValueFromEnumTablesAndColumnsForArray =
+  | DropValueWithRemovalFromEnumTablesAndColumnsForArray
+  | DropValueWithReplacementFromEnumTablesAndColumnsForArray
 
 export type DropValueFromEnumTablesAndColumnsForNonArray = {
   table: string
