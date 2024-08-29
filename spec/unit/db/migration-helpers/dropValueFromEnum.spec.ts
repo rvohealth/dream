@@ -108,10 +108,16 @@ describe('dropValueFromEnum', () => {
       it('replaces dead value with specified replaceWith, preserving other values within the enum', async () => {
         await _db
           .insertInto('pets')
-          .values({
-            temporary_enums: ['a', 'b', 'c', 'c'],
-            created_at: '2024-02-02',
-          })
+          .values([
+            {
+              temporary_enums: ['a', 'b', 'c', 'c'],
+              created_at: '2024-02-02',
+            },
+            {
+              temporary_enums: ['a', 'c'],
+              created_at: '2024-02-02',
+            },
+          ])
           .execute()
 
         await dropValueFromEnum(_db, {
@@ -130,6 +136,8 @@ describe('dropValueFromEnum', () => {
 
         const pet = await _db.selectFrom('pets').selectAll().executeTakeFirst()
         expect(pet!.temporaryEnums).toEqual('{a,b,b,b}')
+        const lastPet = await _db.selectFrom('pets').orderBy('id', 'desc').selectAll().executeTakeFirst()
+        expect(lastPet!.temporaryEnums).toEqual('{a,b}')
       })
     })
 
@@ -137,10 +145,16 @@ describe('dropValueFromEnum', () => {
       it('removes dead value, preserving other values within the enum', async () => {
         await _db
           .insertInto('pets')
-          .values({
-            temporary_enums: ['a', 'b', 'c'],
-            created_at: '2024-02-02',
-          })
+          .values([
+            {
+              temporary_enums: ['a', 'b', 'c'],
+              created_at: '2024-02-02',
+            },
+            {
+              temporary_enums: ['a', 'c'],
+              created_at: '2024-02-02',
+            },
+          ])
           .execute()
 
         await dropValueFromEnum(_db, {
@@ -158,6 +172,8 @@ describe('dropValueFromEnum', () => {
 
         const pet = await _db.selectFrom('pets').selectAll().executeTakeFirst()
         expect(pet!.temporaryEnums).toEqual('{a,b}')
+        const lastPet = await _db.selectFrom('pets').orderBy('id', 'desc').selectAll().executeTakeFirst()
+        expect(lastPet!.temporaryEnums).toEqual('{a}')
       })
     })
   })
