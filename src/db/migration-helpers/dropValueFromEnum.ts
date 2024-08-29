@@ -65,25 +65,18 @@ async function replaceVulnerableArrayValues(
 ) {
   const { column, table } = tableAndColumnToChange
 
-  if (tableAndColumnToChange.behavior === 'remove') {
-    await db
-      .updateTable(table)
-      .set(() => ({
-        [column]: sql.raw(`array_remove(${column}, '${enumValueToDrop}')`),
-      }))
-      .where(sql.raw(`'${enumValueToDrop}'`), '=', sql.raw(`ANY(${column})`))
-      .execute()
-  } else {
-    await db
-      .updateTable(table)
-      .set(() => ({
-        [column]: sql.raw(
-          `array_replace(${column}, '${enumValueToDrop}', '${tableAndColumnToChange.replaceWith}')`
-        ),
-      }))
-      .where(sql.raw(`'${enumValueToDrop}'`), '=', sql.raw(`ANY(${column})`))
-      .execute()
-  }
+  await db
+    .updateTable(table)
+    .set({
+      [column]:
+        tableAndColumnToChange.behavior === 'remove'
+          ? sql.raw(`array_remove(${column}, '${enumValueToDrop}')`)
+          : sql.raw(
+              `array_replace(${column}, '${enumValueToDrop}', '${tableAndColumnToChange.replaceWith}')`
+            ),
+    })
+    .where(sql.raw(`'${enumValueToDrop}'`), '=', sql.raw(`ANY(${column})`))
+    .execute()
 }
 
 // finds any records in the specified table
@@ -98,19 +91,11 @@ async function replaceVulnerableValues(
 ) {
   const { table, column, replaceWith } = tableAndColumnToChange
 
-  if (replaceWith) {
-    await sql`
-      UPDATE ${sql.raw(table)}
-      SET ${sql.raw(column)} = '${sql.raw(replaceWith)}'
-      WHERE '${sql.raw(enumValueToDrop)}' = ${sql.raw(column)}
-    `.execute(db)
-  } else {
-    await sql`
-      UPDATE ${sql.raw(table)}
-      SET ${sql.raw(column)} = null
-      WHERE '${sql.raw(enumValueToDrop)}' = ${sql.raw(column)}
-    `.execute(db)
-  }
+  await db
+    .updateTable(table)
+    .set({ [column]: replaceWith })
+    .where(column, '=', enumValueToDrop)
+    .execute()
 }
 
 // updates the table's targeted column to the newly-created enum array
