@@ -7,6 +7,7 @@ export {
 } from './db/migration-helpers/addDeferrableUniqueConstraint'
 export { default as createExtension } from './db/migration-helpers/createExtension'
 export { default as createGinIndex } from './db/migration-helpers/createGinIndex'
+export { default as dropValueFromEnum } from './db/migration-helpers/dropValueFromEnum'
 export { default as validateColumn } from './db/validators/validateColumn'
 export { default as validateTable } from './db/validators/validateTable'
 export { WhereStatementForDream, WhereStatementForDreamClass } from './decorators/associations/shared'
