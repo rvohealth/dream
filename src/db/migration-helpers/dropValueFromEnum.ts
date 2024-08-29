@@ -31,14 +31,14 @@ export default async function dropValueFromEnum(
     const isArray = (tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArray).array || false
 
     if (isArray) {
-      await replaceVulnerableArrayValues(
+      await replaceArrayValues(
         db,
         enumValueToDrop,
         tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArray
       )
       await updateTableColumnToNewEnumArrayType(db, enumName, tableAndColumnToChange)
     } else {
-      await replaceVulnerableValues(
+      await replaceNonArrayValues(
         db,
         enumValueToDrop,
         tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForNonArray
@@ -58,7 +58,7 @@ async function getEnumValues(db: Kysely<any>, enumName: string) {
 // the enum value we are trying to drop,
 // and updates their values to a safe value
 // provided by the user
-async function replaceVulnerableArrayValues(
+async function replaceArrayValues(
   db: Kysely<any>,
   enumValueToDrop: string,
   tableAndColumnToChange: DropValueFromEnumTablesAndColumnsForArray
@@ -84,7 +84,7 @@ async function replaceVulnerableArrayValues(
 // we are trying to drop, and updates their
 // values to a safe value provided by
 // the user
-async function replaceVulnerableValues(
+async function replaceNonArrayValues(
   db: Kysely<any>,
   enumValueToDrop: string,
   tableAndColumnToChange: DropValueFromEnumTablesAndColumnsForNonArray
