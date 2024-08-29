@@ -69,7 +69,7 @@ async function replaceVulnerableArrayValues(
     await sql`
       UPDATE ${sql.raw(table)}
       SET ${sql.raw(column)} = (select array_remove(${sql.raw(column)}, '${sql.raw(enumValueToDrop)}') from ${sql.raw(table)})
-      WHERE '${sql.raw(enumValueToDrop)}'::text = ANY(${sql.raw(column)})
+      WHERE '${sql.raw(enumValueToDrop)}' = ANY(${sql.raw(column)})
     `.execute(db)
   } else {
     await sql`
@@ -78,7 +78,7 @@ async function replaceVulnerableArrayValues(
         SELECT array_replace(${sql.raw(column)}, '${sql.raw(enumValueToDrop)}', '${sql.raw(tableAndColumnToChange.replaceWith)}')
         FROM ${sql.raw(table)}
       )
-      WHERE '${sql.raw(enumValueToDrop)}'::text = ANY(${sql.raw(column)})
+      WHERE '${sql.raw(enumValueToDrop)}' = ANY(${sql.raw(column)})
     `.execute(db)
   }
 }
@@ -99,13 +99,13 @@ async function replaceVulnerableValues(
     await sql`
       UPDATE ${sql.raw(table)}
       SET ${sql.raw(column)} = '${sql.raw(replaceWith)}'
-      WHERE '${sql.raw(enumValueToDrop)}'::text = ${sql.raw(column)}
+      WHERE '${sql.raw(enumValueToDrop)}' = ${sql.raw(column)}
     `.execute(db)
   } else {
     await sql`
       UPDATE ${sql.raw(table)}
       SET ${sql.raw(column)} = null
-      WHERE '${sql.raw(enumValueToDrop)}'::text = ${sql.raw(column)}
+      WHERE '${sql.raw(enumValueToDrop)}' = ${sql.raw(column)}
     `.execute(db)
   }
 }
