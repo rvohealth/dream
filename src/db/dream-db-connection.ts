@@ -1,6 +1,6 @@
 import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely'
 import { Pool } from 'pg'
-import { SingleDbCredential } from '../dream-application'
+import DreamApplication, { SingleDbCredential } from '../dream-application'
 import { envBool } from '../helpers/envHelpers'
 import ConnectionConfRetriever from './connection-conf-retriever'
 import { DbConnectionType } from './types'
@@ -55,9 +55,7 @@ function getDatabaseName(dbName: string): string {
 
 function parallelDatabasesEnabled(): boolean {
   return (
-    process.env.NODE_ENV === 'test' &&
-    !Number.isNaN(Number(process.env.PARALLEL_TEST_DATABASES)) &&
-    Number(process.env.PARALLEL_TEST_DATABASES) > 1 &&
+    !!DreamApplication.getOrFail().parallelTests &&
     !Number.isNaN(Number(process.env.JEST_WORKER_ID)) &&
     Number(process.env.JEST_WORKER_ID) > 1
   )

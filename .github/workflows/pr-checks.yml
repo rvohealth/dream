@@ -33,7 +33,7 @@ jobs:
       DB_PORT: 5432
       TZ: UTC
       YARN_CACHE_FOLDER: ~/.yarn-cache
-      PARALLEL_TEST_DATABASES: 2
+      DREAM_PARALLEL_TESTS: 2
 
     steps:
       - uses: actions/checkout@v4

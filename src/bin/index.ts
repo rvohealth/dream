@@ -130,14 +130,14 @@ export default class DreamBin {
   }
 
   private static async duplicateDatabase() {
-    const numberOfDatabases = Number(process.env.PARALLEL_TEST_DATABASES)
-    if (process.env.NODE_ENV !== 'test' || Number.isNaN(numberOfDatabases)) return
+    const parallelTests = DreamApplication.getOrFail().parallelTests
+    if (!parallelTests) return
 
     const connectionRetriever = new ConnectionConfRetriever()
     const dbConf = connectionRetriever.getConnectionConf('primary')
     const client = await loadPgClient({ useSystemDb: true })
 
-    for (let i = 2; i <= numberOfDatabases; i++) {
+    for (let i = 2; i <= parallelTests; i++) {
       const workerDatabaseName = `${dbConf.name}_${i}`
 
       console.log(`creating duplicate test database ${workerDatabaseName} for concurrent tests`)
