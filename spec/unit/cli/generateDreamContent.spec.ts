@@ -186,6 +186,40 @@ export default class Composition extends ApplicationModel {
           )
         })
 
+        context('when optional is included', () => {
+          it('declares the BelongsTo association optional', () => {
+            const res = generateDreamContent('composition', ['graph_node:belongs_to:optional'])
+            expect(res).toEqual(
+              `\
+import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
+import ApplicationModel from './ApplicationModel'
+import GraphNode from './GraphNode'
+
+export default class Composition extends ApplicationModel {
+  public get table() {
+    return 'compositions' as const
+  }
+
+  public get serializers(): DreamSerializers<Composition> {
+    return {
+      default: 'CompositionSerializer',
+      summary: 'CompositionSummarySerializer',
+    }
+  }
+
+  public id: DreamColumn<Composition, 'id'>
+  public createdAt: DreamColumn<Composition, 'createdAt'>
+  public updatedAt: DreamColumn<Composition, 'updatedAt'>
+
+  @Composition.BelongsTo('GraphNode', { optional: true })
+  public graphNode: GraphNode
+  public graphNodeId: DreamColumn<Composition, 'graphNodeId'>
+}
+`
+            )
+          })
+        })
+
         context('namespaced relationships', () => {
           it('can handle belongs to associations with nested paths', () => {
             const res = generateDreamContent('cat_toy', ['pet/domestic/cat:belongs_to'])

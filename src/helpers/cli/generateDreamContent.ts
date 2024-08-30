@@ -30,7 +30,7 @@ export default function generateDreamContent(
     : [importStatementForModel(fullyQualifiedModelName, 'ApplicationModel')]
 
   const attributeStatements = attributes.map(attribute => {
-    const [attributeName, attributeType] = attribute.split(':')
+    const [attributeName, attributeType, ...descriptors] = attribute.split(':')
     const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(attributeName)
     const associationModelName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
     const associationImportStatement = importStatementForModel(
@@ -46,7 +46,7 @@ export default function generateDreamContent(
       case 'belongs_to':
         modelImportStatements.push(associationImportStatement)
         return `
-@${modelClassName}.BelongsTo('${fullyQualifiedAssociatedModelName}')
+@${modelClassName}.BelongsTo('${fullyQualifiedAssociatedModelName}'${descriptors.includes('optional') ? ', { optional: true }' : ''})
 public ${associationName}: ${associationModelName}
 public ${associationName}Id: DreamColumn<${modelClassName}, '${associationName}Id'>
 `

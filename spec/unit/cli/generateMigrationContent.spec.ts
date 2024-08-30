@@ -218,18 +218,49 @@ export async function down(db: Kysely<any>): Promise<void> {
 `
         )
       })
-    })
 
-    context('belongs_to attribute is passed AND useUUID=false', () => {
-      it('generates a kysely model with the belongsTo association', () => {
-        const res = generateMigrationContent({
-          table: 'compositions',
-          attributes: ['user:belongs_to'],
-          primaryKeyType: 'uuid',
+      context('when optional is included', () => {
+        it('omits notNull', () => {
+          const res = generateMigrationContent({
+            table: 'compositions',
+            attributes: ['admin/user:belongs_to:optional'],
+            primaryKeyType: 'bigserial',
+          })
+
+          expect(res).toEqual(
+            `\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createTable('compositions')
+    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('admin_user_id', 'bigint', col => col.references('admin_users.id').onDelete('restrict'))
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropTable('compositions').execute()
+}\
+`
+          )
         })
+      })
 
-        expect(res).toEqual(
-          `\
+      context('when useUUID=false', () => {
+        it('generates a kysely model with the belongsTo association', () => {
+          const res = generateMigrationContent({
+            table: 'compositions',
+            attributes: ['user:belongs_to'],
+            primaryKeyType: 'uuid',
+          })
+
+          expect(res).toEqual(
+            `\
 import { Kysely, sql } from 'kysely'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -248,7 +279,8 @@ export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable('compositions').execute()
 }\
 `
-        )
+          )
+        })
       })
     })
 

@@ -34,7 +34,12 @@ export default function generateMigrationContent({
       const coercedAttributeType = getAttributeType(attribute)
       switch (attributeType) {
         case 'belongs_to':
-          columnDefs.push(generateBelongsToStr(attributeName, { primaryKeyType }))
+          columnDefs.push(
+            generateBelongsToStr(attributeName, {
+              primaryKeyType,
+              optional: descriptors.includes('optional'),
+            })
+          )
           attributeName = associationNameToForeignKey(attributeName)
           break
 
@@ -206,11 +211,17 @@ function attributeTypeString(attributeType: string) {
 
 function generateBelongsToStr(
   associationName: string,
-  { primaryKeyType }: { primaryKeyType: PrimaryKeyType }
+  {
+    primaryKeyType,
+    optional = false,
+  }: {
+    primaryKeyType: PrimaryKeyType
+    optional?: boolean
+  }
 ) {
   const dataType = foreignKeyTypeFromPrimaryKey(primaryKeyType)
   const references = pluralize(associationName.replace(/\//g, '_').replace(/_id$/, ''))
-  return `.addColumn('${associationNameToForeignKey(associationName)}', '${dataType}', col => col.references('${references}.id').onDelete('restrict').notNull())`
+  return `.addColumn('${associationNameToForeignKey(associationName)}', '${dataType}', col => col.references('${references}.id').onDelete('restrict')${optional ? '' : '.notNull()'})`
 }
 
 function generateIdStr({ primaryKeyType }: { primaryKeyType: PrimaryKeyType }) {
