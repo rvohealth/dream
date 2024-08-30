@@ -20,16 +20,16 @@ export default class DreamBin {
   }
 
   public static async buildDreamSchema() {
-    DreamApplication.log('writing dream schema...')
+    console.log('writing dream schema...')
     await new SchemaBuilder().build()
-    DreamApplication.log('Done!')
+    console.log('Done!')
   }
 
   public static async dbCreate() {
     const connectionRetriever = new ConnectionConfRetriever()
     const primaryDbConf = connectionRetriever.getConnectionConf('primary')
 
-    DreamApplication.log(`creating ${primaryDbConf.name}`)
+    console.log(`creating ${primaryDbConf.name}`)
     await createDb('primary')
 
     // TODO: add support for creating replicas. Began doing it below, but it is very tricky,
@@ -37,18 +37,18 @@ export default class DreamBin {
     // to flesh this out.
     // if (connectionRetriever.hasReplicaConfig()) {
     //   const replicaDbConf = connectionRetriever.getConnectionConf('replica')
-    //   DreamApplication.log(`creating ${process.env[replicaDbConf.name]}`)
+    //   console.log(`creating ${process.env[replicaDbConf.name]}`)
     //   await createDb('replica')
     // }
 
-    DreamApplication.log('complete!')
+    console.log('complete!')
   }
 
   public static async dbDrop() {
     const connectionRetriever = new ConnectionConfRetriever()
     const primaryDbConf = connectionRetriever.getConnectionConf('primary')
 
-    DreamApplication.log(`dropping ${primaryDbConf.name}`)
+    console.log(`dropping ${primaryDbConf.name}`)
     await _dropDb('primary')
 
     // TODO: add support for dropping replicas. Began doing it below, but it is very tricky,
@@ -56,11 +56,11 @@ export default class DreamBin {
     // to flesh this out.
     // if (connectionRetriever.hasReplicaConfig()) {
     //   const replicaDbConf = connectionRetriever.getConnectionConf('replica')
-    //   DreamApplication.log(`dropping ${process.env[replicaDbConf.name]}`)
+    //   console.log(`dropping ${process.env[replicaDbConf.name]}`)
     //   await _dropDb('replica')
     // }
 
-    DreamApplication.log('complete!')
+    console.log('complete!')
   }
 
   public static async dbMigrate() {
@@ -124,9 +124,9 @@ export default class DreamBin {
   // It is only made private so that people don't mistakenly try
   // to use it to generate docs for their apps.
   private static async buildDocs() {
-    DreamApplication.log('generating docs...')
+    console.log('generating docs...')
     await sspawn('yarn typedoc src/index.ts --tsconfig ./tsconfig.build.json --out docs')
-    DreamApplication.log('done!')
+    console.log('done!')
   }
 
   private static async duplicateDatabase() {

@@ -1,5 +1,4 @@
 import fs from 'fs/promises'
-import DreamApplication from '../../dream-application'
 import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths'
 import dreamPath from '../path/dreamPath'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
@@ -22,7 +21,7 @@ export default async function generateDream(
   )
 
   try {
-    DreamApplication.log(`generating dream: ${relFilePath}`)
+    console.log(`generating dream: ${relFilePath}`)
     await fs.mkdir(absDirPath, { recursive: true })
     await fs.writeFile(absFilePath, generateDreamContent(fullyQualifiedModelName, attributes, parentName))
   } catch (error) {

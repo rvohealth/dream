@@ -1,5 +1,4 @@
 import fs from 'fs/promises'
-import DreamApplication from '../../dream-application'
 import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths'
 import dreamPath from '../path/dreamPath'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
@@ -18,7 +17,7 @@ export default async function generateSerializer(
   )
 
   try {
-    DreamApplication.log(`generating serializer: ${relFilePath}`)
+    console.log(`generating serializer: ${relFilePath}`)
     await fs.mkdir(absDirPath, { recursive: true })
     await fs.writeFile(
       absFilePath,
