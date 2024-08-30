@@ -1,7 +1,9 @@
+import { Client } from 'pg'
 import ConnectionConfRetriever from '../../db/connection-conf-retriever'
 import { DbConnectionType } from '../../db/types'
 import { envValue } from '../envHelpers'
 import loadPgClient from './loadPgClient'
+import DreamApplication from '../../dream-application'
 
 export default async function dropDb(connection: DbConnectionType, dbName?: string | null) {
   // this was only ever written to clear the db between tests or in development,
@@ -16,5 +18,18 @@ export default async function dropDb(connection: DbConnectionType, dbName?: stri
     throw `Must either pass a dbName to the drop function, or else ensure that DB_NAME is set in the env`
 
   const client = await loadPgClient({ useSystemDb: true })
+
+  await maybeDropDuplicateDatabases(client, dbName)
   await client.query(`DROP DATABASE IF EXISTS ${dbName};`)
+}
+
+async function maybeDropDuplicateDatabases(client: Client, dbName: string) {
+  const parallelTests = DreamApplication.getOrFail().parallelTests
+  if (!parallelTests) return
+
+  for (let i = 2; i <= parallelTests; i++) {
+    const workerDatabaseName = `${dbName}_${i}`
+    console.log(`dropping duplicate test database ${workerDatabaseName}`)
+    await client.query(`DROP DATABASE IF EXISTS ${workerDatabaseName};`)
+  }
 }

@@ -41,6 +41,8 @@ export default async function (dreamApp: DreamApplication) {
     modelSpecs: 'test-app/spec/unit/models',
   })
 
+  dreamApp.set('parallelTests', Number(process.env.DREAM_PARALLEL_TESTS))
+
   // provides db credentials and configuration for your app.
   dreamApp.set('db', {
     primary: {
