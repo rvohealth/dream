@@ -784,10 +784,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@rvohealth/dream-spec-helpers@^0.0.5-thbeta-2":
-  version "0.0.5-thbeta-2"
-  resolved "https://npm.pkg.github.com/download/@rvohealth/dream-spec-helpers/0.0.5-thbeta-2/59663077c0dbf5c5a41a5a5b2864bd7c5516369f#59663077c0dbf5c5a41a5a5b2864bd7c5516369f"
-  integrity sha512-GVeXy0o3i73SgUk3BLglQNzThmDymfjIYVQfPsPQtvbTNBdGawyHuiNIIN2dOtfb9q+AwJQEhnzQxxb1XQxO7w==
+"@rvohealth/dream-spec-helpers@^0.0.5":
+  version "0.0.5"
+  resolved "https://npm.pkg.github.com/download/@rvohealth/dream-spec-helpers/0.0.5/73aefef0713961517190fc80aa6d217002938c72#73aefef0713961517190fc80aa6d217002938c72"
+  integrity sha512-NogZ+/FP+/WuI43jFLbReNOkDY5JLqgaV4iHiJbQoBOYA/cH2JVIuJr0h8Soz5CqX3GZI+dEm01Xjjf8otRxFA==
   dependencies:
     "@types/jest" "^29.5.12"
     "@types/lodash.sortby" "^4.7.9"
