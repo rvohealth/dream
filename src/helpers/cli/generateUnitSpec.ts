@@ -1,5 +1,4 @@
 import fs from 'fs/promises'
-import DreamApplication from '../../dream-application'
 import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths'
 import dreamPath from '../path/dreamPath'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
@@ -14,7 +13,7 @@ export default async function generateUnitSpec(fullyQualifiedModelName: string) 
   )
 
   try {
-    DreamApplication.log(`generating spec: ${relFilePath}`)
+    console.log(`generating spec: ${relFilePath}`)
     await fs.mkdir(absDirPath, { recursive: true })
     await fs.writeFile(absFilePath, generateUnitSpecContent(fullyQualifiedModelName))
   } catch (error) {
