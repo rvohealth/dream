@@ -23,7 +23,9 @@ export default function generateFactoryContent(
     const associationName = camelize(associationModelName)
 
     if (!attributeType)
-      throw `must pass a column type for ${fullyQualifiedAssociatedModelName} (i.e. ${fullyQualifiedAssociatedModelName}:string)`
+      throw new Error(
+        `Must pass a column type for ${fullyQualifiedAssociatedModelName} (i.e. ${fullyQualifiedAssociatedModelName}:string)`
+      )
 
     switch (attributeType) {
       case 'belongs_to':

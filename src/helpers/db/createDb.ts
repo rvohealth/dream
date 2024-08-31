@@ -13,7 +13,9 @@ export default async function createDb(connection: DbConnectionType, dbName?: st
 
   dbName ||= dbConf.name || null
   if (!dbName)
-    throw `Must either pass a dbName to the create function, or else ensure that DB_NAME is set in the env`
+    throw new Error(
+      'Must either pass a dbName to the create function, or else ensure that DB_NAME is set in the env'
+    )
 
   const client = await loadPgClient({ useSystemDb: true })
   await client.query(`CREATE DATABASE ${dbName};`)

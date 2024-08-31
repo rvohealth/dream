@@ -11,7 +11,7 @@ describe('Dream#serialize', () => {
   context('a serializer is not defined on the model', () => {
     it('raises a targeted exception', () => {
       const record = CompositionAsset.new({ name: 'howyadoin' })
-      expect(() => record.serialize()).toThrowError(MissingSerializersDefinition)
+      expect(() => record.serialize()).toThrow(MissingSerializersDefinition)
     })
   })
 })

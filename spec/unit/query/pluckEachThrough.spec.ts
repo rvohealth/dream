@@ -1,15 +1,15 @@
 import { DateTime } from 'luxon'
-import Node from '../../../test-app/app/models/Graph/Node'
-import Edge from '../../../test-app/app/models/Graph/Edge'
-import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode'
+import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../../../src/exceptions/cannot-pass-additional-fields-to-pluck-each-after-callback-function'
+import MissingRequiredCallbackFunctionToPluckEach from '../../../src/exceptions/missing-required-callback-function-to-pluck-each'
 import ops from '../../../src/ops'
-import User from '../../../test-app/app/models/User'
 import Composition from '../../../test-app/app/models/Composition'
-import Pet from '../../../test-app/app/models/Pet'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit'
-import MissingRequiredCallbackFunctionToPluckEach from '../../../src/exceptions/missing-required-callback-function-to-pluck-each'
-import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../../../src/exceptions/cannot-pass-additional-fields-to-pluck-each-after-callback-function'
+import Edge from '../../../test-app/app/models/Graph/Edge'
+import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode'
+import Node from '../../../test-app/app/models/Graph/Node'
+import Pet from '../../../test-app/app/models/Pet'
+import User from '../../../test-app/app/models/User'
 
 describe('Query#pluckEachThrough', () => {
   it('can pluck from the associated namespace', async () => {
@@ -55,7 +55,7 @@ describe('Query#pluckEachThrough', () => {
       it('raises a targeted exception', async () => {
         await expect(
           async () => await Node.query().pluckEachThrough('edgeNodes', 'edge', ['edge.id'])
-        ).rejects.toThrowError(MissingRequiredCallbackFunctionToPluckEach)
+        ).rejects.toThrow(MissingRequiredCallbackFunctionToPluckEach)
       })
     })
 
@@ -63,7 +63,7 @@ describe('Query#pluckEachThrough', () => {
       it('raises a targeted exception', async () => {
         await expect(
           async () => await Node.query().pluckEachThrough('edgeNodes', 'edge', () => {}, ['edge.id'] as any)
-        ).rejects.toThrowError(CannotPassAdditionalFieldsToPluckEachAfterCallback)
+        ).rejects.toThrow(CannotPassAdditionalFieldsToPluckEachAfterCallback)
       })
     })
   })

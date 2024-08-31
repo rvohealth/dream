@@ -1,10 +1,10 @@
 import { DateTime } from 'luxon'
-import User from '../../../test-app/app/models/User'
-import Pet from '../../../test-app/app/models/Pet'
-import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from '../../../src/exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
-import Composition from '../../../test-app/app/models/Composition'
 import CalendarDate from '../../../src/helpers/CalendarDate'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar'
+import Composition from '../../../test-app/app/models/Composition'
+import Pet from '../../../test-app/app/models/Pet'
+import User from '../../../test-app/app/models/User'
 
 describe('Dream initialization', () => {
   it('sets attributes', () => {
@@ -30,7 +30,7 @@ describe('Dream initialization', () => {
 
       context('the relationship is required', () => {
         it('throws a targeted exception', () => {
-          expect(() => Mylar.new({ user: null })).toThrowError(CannotPassNullOrUndefinedToRequiredBelongsTo)
+          expect(() => Mylar.new({ user: null })).toThrow(CannotPassNullOrUndefinedToRequiredBelongsTo)
         })
       })
     })
@@ -38,15 +38,13 @@ describe('Dream initialization', () => {
     context('undefined is passed', () => {
       context('the relationship is optional', () => {
         it('allows undefined to be set', () => {
-          expect(() => Pet.new({ user: undefined })).not.toThrowError()
+          expect(() => Pet.new({ user: undefined })).not.toThrow()
         })
       })
 
       context('the relationship is required', () => {
         it('throws a targeted exception', () => {
-          expect(() => Mylar.new({ user: undefined })).toThrowError(
-            CannotPassNullOrUndefinedToRequiredBelongsTo
-          )
+          expect(() => Mylar.new({ user: undefined })).toThrow(CannotPassNullOrUndefinedToRequiredBelongsTo)
         })
       })
     })

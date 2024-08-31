@@ -46,7 +46,7 @@ describe('Dream.createOrFindBy', () => {
             { email: 'howya@doin' },
             { createWith: { socialSecurityNumber: '1234567890', password: 'nothowyadoin' } }
           )
-        ).rejects.toThrowError(CreateOrFindByFailedToCreateAndFind)
+        ).rejects.toThrow(CreateOrFindByFailedToCreateAndFind)
       })
     }
   )
@@ -61,7 +61,7 @@ describe('Dream.createOrFindBy', () => {
     it('does not mask error', async () => {
       await expect(
         User.createOrFindBy({ email: 'fred@fred' }, { createWith: { password: 'nothowyadoin' } })
-      ).rejects.toThrowError()
+      ).rejects.toThrow()
     })
   })
 

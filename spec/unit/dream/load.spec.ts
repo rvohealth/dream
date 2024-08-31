@@ -19,7 +19,7 @@ describe('Dream#load', () => {
     expect(clone).not.toBe(user)
 
     expect(clone.pets).toMatchDreamModels([pet])
-    expect(() => user.pets).toThrowError(NonLoadedAssociation)
+    expect(() => user.pets).toThrow(NonLoadedAssociation)
   })
 
   context('with a transaction', () => {

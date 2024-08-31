@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt'
+import { randomBytes, scrypt, timingSafeEqual } from 'crypto'
 import { DateTime } from 'luxon'
 import BeforeSave from '../../../src/decorators/hooks/before-save'
 import Scope from '../../../src/decorators/scope'
@@ -230,12 +230,51 @@ export default class User extends ApplicationModel {
 
   @BeforeSave()
   public async hashPass() {
-    if (this.password) this.passwordDigest = await bcrypt.hash(this.password, 4)
+    if (this.password)
+      this.passwordDigest = await insecurePasswordHashSinceBcryptBringsInTooMuchGarbage(this.password)
     this.password = undefined
   }
 
   public async checkPassword(password: string) {
     if (!this.passwordDigest) return false
-    return await bcrypt.compare(password, this.passwordDigest)
+    return await insecurePasswordCompareSinceBcryptBringsInTooMuchGarbage(password, this.passwordDigest)
   }
+}
+
+const keyLength = 64
+/**
+ * Has a password or a secret with a password hashing algorithm (scrypt)
+ * @param {string} password
+ * @returns {string} The salt+hash
+ */
+export const insecurePasswordHashSinceBcryptBringsInTooMuchGarbage = (password: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const salt = randomBytes(16).toString('hex')
+
+    scrypt(password, salt, keyLength, (err, derivedKey) => {
+      if (err) reject(err)
+      resolve(`${salt}.${derivedKey.toString('hex')}`)
+    })
+  })
+}
+
+/**
+ * Compare a plain text password with a salt+hash password
+ * @param {string} password The plain text password
+ * @param {string} hash The hash+salt to check against
+ * @returns {boolean}
+ */
+export const insecurePasswordCompareSinceBcryptBringsInTooMuchGarbage = (
+  password: string,
+  hash: string
+): Promise<boolean> => {
+  return new Promise((resolve, reject) => {
+    const [salt, hashKey] = hash.split('.')
+    const hashKeyBuff = Buffer.from(hashKey, 'hex')
+
+    scrypt(password, salt, keyLength, (err, derivedKey) => {
+      if (err) reject(err)
+      resolve(timingSafeEqual(hashKeyBuff, derivedKey))
+    })
+  })
 }

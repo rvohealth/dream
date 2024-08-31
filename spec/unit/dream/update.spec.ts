@@ -321,7 +321,7 @@ describe('Dream#update', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const userSettings = UserSettings.new({ likesChalupas: true })
 
-      await expect(user.update({ userSettings } as any)).rejects.toThrowError(CanOnlyPassBelongsToModelParam)
+      await expect(user.update({ userSettings } as any)).rejects.toThrow(CanOnlyPassBelongsToModelParam)
     })
   })
 

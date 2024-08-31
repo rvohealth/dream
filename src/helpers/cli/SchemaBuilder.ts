@@ -8,9 +8,9 @@ import DreamApplication from '../../dream-application'
 import { DreamConst, SerializableDreamClassOrViewModelClass } from '../../dream/types'
 import FailedToIdentifyAssociation from '../../exceptions/schema-builder/failed-to-identify-association'
 import camelize from '../camelize'
+import { envBool } from '../envHelpers'
 import pascalize from '../pascalize'
 import uniq from '../uniq'
-import { envBool } from '../envHelpers'
 
 export default class SchemaBuilder {
   public async build() {
@@ -151,8 +151,11 @@ ${tableName}: {
     const schemaContentWithoutImports = schemaContent.replace(/import {[^}]*}/gm, '')
     return allExports.filter(exportedModule => {
       if (new RegExp(`coercedType: {} as ${exportedModule}`).test(schemaContentWithoutImports)) return true
+      if (new RegExp(`coercedType: {} as ArrayType<${exportedModule}`).test(schemaContentWithoutImports))
+        return true
       if (new RegExp(`enumType: {} as ${exportedModule}`).test(schemaContentWithoutImports)) return true
       if (new RegExp(`enumValues: ${exportedModule}`).test(schemaContentWithoutImports)) return true
+
       return false
     })
   }
@@ -289,7 +292,7 @@ may need to update the table getter in the corresponding Dream.
         try {
           const _foreignKey = associationMetaData.foreignKey()
           foreignKey = _foreignKey
-        } catch (_) {
+        } catch {
           // noop
         }
 

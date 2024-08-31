@@ -1,16 +1,16 @@
 import { DateTime } from 'luxon'
-import User from '../../../test-app/app/models/User'
+import { CalendarDate } from '../../../src'
+import AnyRequiresArrayColumn from '../../../src/exceptions/ops/any-requires-array-column'
+import ScoreMustBeANormalNumber from '../../../src/exceptions/ops/score-must-be-a-normal-number'
 import range from '../../../src/helpers/range'
 import ops from '../../../src/ops'
-import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import Balloon from '../../../test-app/app/models/Balloon'
-import Rating from '../../../test-app/app/models/Rating'
-import Post from '../../../test-app/app/models/Post'
-import AnyRequiresArrayColumn from '../../../src/exceptions/ops/any-requires-array-column'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import Composition from '../../../test-app/app/models/Composition'
-import ScoreMustBeANormalNumber from '../../../src/exceptions/ops/score-must-be-a-normal-number'
-import { CalendarDate } from '../../../src'
 import Pet from '../../../test-app/app/models/Pet'
+import Post from '../../../test-app/app/models/Post'
+import Rating from '../../../test-app/app/models/Rating'
+import User from '../../../test-app/app/models/User'
 
 describe('Query#where', () => {
   it('supports multiple clauses', async () => {
@@ -360,7 +360,7 @@ describe('Query#where', () => {
           User.query()
             .where({ email: ops.any('fred@fred') })
             .all()
-        ).rejects.toThrowError(AnyRequiresArrayColumn)
+        ).rejects.toThrow(AnyRequiresArrayColumn)
       })
     })
   })
@@ -534,7 +534,7 @@ describe('Query#where', () => {
         it('raises a targeted exception', async () => {
           await expect(async () => {
             await User.where({ name: ops.similarity('world', { score: -0.001 }) }).all()
-          }).rejects.toThrowError(ScoreMustBeANormalNumber)
+          }).rejects.toThrow(ScoreMustBeANormalNumber)
         })
       })
 
@@ -542,7 +542,7 @@ describe('Query#where', () => {
         it('raises a targeted exception', async () => {
           await expect(async () => {
             await User.where({ name: ops.similarity('world', { score: 1.000001 }) }).all()
-          }).rejects.toThrowError(ScoreMustBeANormalNumber)
+          }).rejects.toThrow(ScoreMustBeANormalNumber)
         })
       })
     })

@@ -143,23 +143,23 @@ export default function HasMany<
   }
 }
 
-export interface HasManyStatement<
+export type HasManyStatement<
   BaseInstance extends Dream,
   DB,
   Schema,
   ForeignTableName extends AssociationTableNames<DB, Schema> & keyof DB,
-> extends HasStatement<BaseInstance, DB, Schema, ForeignTableName, 'HasMany'> {}
+> = HasStatement<BaseInstance, DB, Schema, ForeignTableName, 'HasMany'>
 
-export interface HasManyOptions<
+export type HasManyOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
     | GlobalModelNames<BaseInstance>
     | readonly GlobalModelNames<BaseInstance>[],
-> extends HasOptions<BaseInstance, AssociationGlobalNameOrNames> {}
+> = HasOptions<BaseInstance, AssociationGlobalNameOrNames>
 
-export interface HasManyThroughOptions<
+export type HasManyThroughOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
     | GlobalModelNames<BaseInstance>
     | readonly GlobalModelNames<BaseInstance>[],
-> extends HasThroughOptions<BaseInstance, AssociationGlobalNameOrNames> {}
+> = HasThroughOptions<BaseInstance, AssociationGlobalNameOrNames>

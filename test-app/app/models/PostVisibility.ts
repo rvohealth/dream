@@ -24,6 +24,8 @@ export default class PostVisibility extends ApplicationModel {
   @BeforeCreate()
   public conditionallyRaise() {
     if (this.notes === 'raise exception if notes set to this')
-      throw `intentionally raising exception because PostVisibility#notes is set to '${this.notes}'`
+      throw new Error(
+        `intentionally raising exception because PostVisibility#notes is set to '${this.notes}'`
+      )
   }
 }

@@ -122,7 +122,7 @@ describe('Dream#resort', () => {
 
   context('with an invalid scope passed', () => {
     it('raises a targeted exception', async () => {
-      await expect(EdgeNode.resort('createdAt')).rejects.toThrowError(NonExistentScopeProvidedToResort)
+      await expect(EdgeNode.resort('createdAt')).rejects.toThrow(NonExistentScopeProvidedToResort)
     })
   })
 

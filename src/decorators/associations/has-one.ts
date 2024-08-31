@@ -141,23 +141,23 @@ export default function HasOne<
   }
 }
 
-export interface HasOneStatement<
+export type HasOneStatement<
   BaseInstance extends Dream,
   DB,
   Schema,
   ForeignTableName extends AssociationTableNames<DB, Schema> & keyof DB,
-> extends HasStatement<BaseInstance, DB, Schema, ForeignTableName, 'HasOne'> {}
+> = HasStatement<BaseInstance, DB, Schema, ForeignTableName, 'HasOne'>
 
-export interface HasOneOptions<
+export type HasOneOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
     | GlobalModelNames<BaseInstance>
     | readonly GlobalModelNames<BaseInstance>[],
-> extends Omit<HasOptions<BaseInstance, AssociationGlobalNameOrNames>, HasManyOnlyOptions> {}
+> = Omit<HasOptions<BaseInstance, AssociationGlobalNameOrNames>, HasManyOnlyOptions>
 
-export interface HasOneThroughOptions<
+export type HasOneThroughOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
     | GlobalModelNames<BaseInstance>
     | readonly GlobalModelNames<BaseInstance>[],
-> extends Omit<HasThroughOptions<BaseInstance, AssociationGlobalNameOrNames>, HasManyOnlyOptions> {}
+> = Omit<HasThroughOptions<BaseInstance, AssociationGlobalNameOrNames>, HasManyOnlyOptions>

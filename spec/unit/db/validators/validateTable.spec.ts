@@ -10,6 +10,6 @@ describe('validateTable', () => {
   it('raises an exception with an invalid table', () => {
     expect(() => {
       validateTable(User.prototype.schema, 'compositionz' as any)
-    }).toThrowError(InvalidTableName)
+    }).toThrow(InvalidTableName)
   })
 })

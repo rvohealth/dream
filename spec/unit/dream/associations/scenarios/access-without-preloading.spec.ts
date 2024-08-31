@@ -8,7 +8,7 @@ describe('Accessing an association that hasn’t been loaded', () => {
   context('HasOne', () => {
     it('throws an NonLoadedAssociation exception', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      expect(() => user.userSettings).toThrowError(NonLoadedAssociation)
+      expect(() => user.userSettings).toThrow(NonLoadedAssociation)
     })
   })
 
@@ -17,14 +17,14 @@ describe('Accessing an association that hasn’t been loaded', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const balloon = await Mylar.create({ user })
       const reloadedBalloon = await Mylar.find(balloon.id)
-      expect(() => reloadedBalloon!.user).toThrowError(NonLoadedAssociation)
+      expect(() => reloadedBalloon!.user).toThrow(NonLoadedAssociation)
     })
   })
 
   context('HasMany', () => {
     it('throws an NonLoadedAssociation exception', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      expect(() => user.compositions).toThrowError(NonLoadedAssociation)
+      expect(() => user.compositions).toThrow(NonLoadedAssociation)
     })
   })
 

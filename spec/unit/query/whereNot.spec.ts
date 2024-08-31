@@ -1,8 +1,8 @@
-import User from '../../../test-app/app/models/User'
-import ops from '../../../src/ops'
-import Rating from '../../../test-app/app/models/Rating'
-import Post from '../../../test-app/app/models/Post'
 import CannotNegateSimilarityClause from '../../../src/exceptions/cannot-negate-similarity-clause'
+import ops from '../../../src/ops'
+import Post from '../../../test-app/app/models/Post'
+import Rating from '../../../test-app/app/models/Rating'
+import User from '../../../test-app/app/models/User'
 
 describe('Query#whereNot', () => {
   it('negates a query', async () => {
@@ -295,7 +295,7 @@ describe('Query#whereNot', () => {
       it('raises a targeted exception', async () => {
         await expect(async () => {
           await User.whereNot({ name: ops.similarity('world') }).all()
-        }).rejects.toThrowError(CannotNegateSimilarityClause)
+        }).rejects.toThrow(CannotNegateSimilarityClause)
       })
     })
 
@@ -303,7 +303,7 @@ describe('Query#whereNot', () => {
       it('raises a targeted exception', async () => {
         await expect(async () => {
           await User.whereNot({ name: ops.wordSimilarity('world') }).all()
-        }).rejects.toThrowError(CannotNegateSimilarityClause)
+        }).rejects.toThrow(CannotNegateSimilarityClause)
       })
     })
 
@@ -311,7 +311,7 @@ describe('Query#whereNot', () => {
       it('raises a targeted exception', async () => {
         await expect(async () => {
           await User.whereNot({ name: ops.strictWordSimilarity('world') }).all()
-        }).rejects.toThrowError(CannotNegateSimilarityClause)
+        }).rejects.toThrow(CannotNegateSimilarityClause)
       })
     })
     // END: trigram search

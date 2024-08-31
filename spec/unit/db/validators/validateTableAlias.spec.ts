@@ -12,27 +12,27 @@ describe('validateTableAlias', () => {
 
   context('invalid table alias is provided', () => {
     it('raises an exception with space', () => {
-      expect(() => validateTableAlias('compositions ')).toThrowError(InvalidTableAlias)
+      expect(() => validateTableAlias('compositions ')).toThrow(InvalidTableAlias)
     })
 
     it('raises an exception with a dot', () => {
-      expect(() => validateTableAlias('compositions.id')).toThrowError(InvalidTableAlias)
+      expect(() => validateTableAlias('compositions.id')).toThrow(InvalidTableAlias)
     })
 
     it('raises an exception with a semicolon', () => {
-      expect(() => validateTableAlias('compositions;')).toThrowError(InvalidTableAlias)
+      expect(() => validateTableAlias('compositions;')).toThrow(InvalidTableAlias)
     })
 
     it('raises an exception when using an sql keyword', () => {
-      expect(() => validateTableAlias('select')).toThrowError(InvalidTableAlias)
-      expect(() => validateTableAlias('SELECT')).toThrowError(InvalidTableAlias)
-      expect(() => validateTableAlias('create')).toThrowError(InvalidTableAlias)
-      expect(() => validateTableAlias('update')).toThrowError(InvalidTableAlias)
-      expect(() => validateTableAlias('delete')).toThrowError(InvalidTableAlias)
-      expect(() => validateTableAlias('table')).toThrowError(InvalidTableAlias)
-      expect(() => validateTableAlias('truncate')).toThrowError(InvalidTableAlias)
-      expect(() => validateTableAlias('drop')).toThrowError(InvalidTableAlias)
-      expect(() => validateTableAlias('exec')).toThrowError(InvalidTableAlias)
+      expect(() => validateTableAlias('select')).toThrow(InvalidTableAlias)
+      expect(() => validateTableAlias('SELECT')).toThrow(InvalidTableAlias)
+      expect(() => validateTableAlias('create')).toThrow(InvalidTableAlias)
+      expect(() => validateTableAlias('update')).toThrow(InvalidTableAlias)
+      expect(() => validateTableAlias('delete')).toThrow(InvalidTableAlias)
+      expect(() => validateTableAlias('table')).toThrow(InvalidTableAlias)
+      expect(() => validateTableAlias('truncate')).toThrow(InvalidTableAlias)
+      expect(() => validateTableAlias('drop')).toThrow(InvalidTableAlias)
+      expect(() => validateTableAlias('exec')).toThrow(InvalidTableAlias)
     })
   })
 })

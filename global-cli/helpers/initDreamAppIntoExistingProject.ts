@@ -1,17 +1,17 @@
 import * as c from 'colorette'
 import * as fs from 'fs'
 
-import pick from 'lodash.pick'
 import path from 'path'
 import DreamtsBuilder from '../file-builders/DreamtsBuilder'
 import EnvBuilder from '../file-builders/EnvBuilder'
 import PackagejsonBuilder from '../file-builders/PackagejsonBuilder'
+import { InitDreamAppCLIOptions } from '../init'
 import copyRecursive from './copyRecursive'
+import filterObjectByKey from './filterObjectByKey'
 import log from './log'
 import sleep from './sleep'
 import sspawn from './sspawn'
 import welcomeMessage from './welcomeMessage'
-import { InitDreamAppCLIOptions } from '../init'
 
 export default async function initDreamAppIntoExistingProject(
   appName: string,
@@ -121,7 +121,10 @@ function mergePackageJsonField(field: string, boilerplatePackagejson: any, userP
     ...userPackagejson[field],
     ...boilerplatePackagejson[field],
   }
-  userPackagejson[field] = pick(userPackagejson[field], Object.keys(userPackagejson[field]).sort())
+  userPackagejson[field] = filterObjectByKey(
+    userPackagejson[field],
+    Object.keys(userPackagejson[field]).sort()
+  )
 }
 
 function testEnv() {

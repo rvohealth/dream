@@ -1,11 +1,11 @@
 import { DateTime } from 'luxon'
-import User from '../../../../test-app/app/models/User'
-import Post from '../../../../test-app/app/models/Post'
 import CannotCreateAssociationWithThroughContext from '../../../../src/exceptions/associations/cannot-create-association-with-through-context'
-import PostVisibility from '../../../../test-app/app/models/PostVisibility'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
-import Pet from '../../../../test-app/app/models/Pet'
 import Composition from '../../../../test-app/app/models/Composition'
+import Pet from '../../../../test-app/app/models/Pet'
+import Post from '../../../../test-app/app/models/Post'
+import PostVisibility from '../../../../test-app/app/models/PostVisibility'
+import User from '../../../../test-app/app/models/User'
 
 describe('Dream#createAssociation', () => {
   context('with a HasMany association', () => {
@@ -32,7 +32,7 @@ describe('Dream#createAssociation', () => {
   context('with a HasMany through association', () => {
     it('raises a targeted exception, alerting the user to their mistake', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      await expect(user.createAssociation('compositionAssets', {})).rejects.toThrowError(
+      await expect(user.createAssociation('compositionAssets', {})).rejects.toThrow(
         CannotCreateAssociationWithThroughContext
       )
     })
@@ -62,7 +62,7 @@ describe('Dream#createAssociation', () => {
   context('with a HasOne through association', () => {
     it('raises a targeted exception, alerting the user to their mistake', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      await expect(user.createAssociation('mainCompositionAsset', {})).rejects.toThrowError(
+      await expect(user.createAssociation('mainCompositionAsset', {})).rejects.toThrow(
         CannotCreateAssociationWithThroughContext
       )
     })

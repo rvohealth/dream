@@ -419,9 +419,9 @@ describe('Dream#destroy', () => {
         await ApplicationModel.transaction(async txn => {
           await user.txn(txn).destroy()
           beforeFailureCount = await User.txn(txn).count()
-          throw 'throwing to kill transaction'
+          throw new Error('throwing to kill transaction')
         })
-      } catch (err) {
+      } catch {
         // noop
       }
 

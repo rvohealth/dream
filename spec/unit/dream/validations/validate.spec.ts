@@ -14,7 +14,7 @@ describe('Dream "validate" validation (the "validate" decorator is used to run c
     const sandbag = Sandbag.new({ mylar, weight: 100, weightKgs: 0 })
     expect(sandbag.isInvalid).toEqual(true)
 
-    await expect(sandbag.save()).rejects.toThrowError(ValidationError)
+    await expect(sandbag.save()).rejects.toThrow(ValidationError)
 
     expect(sandbag.isPersisted).toEqual(false)
     expect(await Sandbag.count()).toEqual(0)

@@ -691,7 +691,7 @@ describe('DreamSerializer#render', () => {
               a: { chalupas: [{ deliciousness: 5000 }, { deliciousness: 7000 }] },
             })
 
-            expect(() => serializer.render()).toThrowError(FailedToRenderThroughAssociationForSerializer)
+            expect(() => serializer.render()).toThrow(FailedToRenderThroughAssociationForSerializer)
           })
         })
 
@@ -757,7 +757,7 @@ describe('DreamSerializer#render', () => {
           await Pet.create({ user, name: 'aster', species: 'cat' })
 
           const serializer = new UserSerializer(user)
-          expect(() => serializer.render()).toThrowError(NonLoadedAssociation)
+          expect(() => serializer.render()).toThrow(NonLoadedAssociation)
         })
 
         context('when the serializer is optional', () => {
@@ -815,7 +815,7 @@ describe('DreamSerializer#render', () => {
             const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
 
             const serializer = new UserSerializer({ pets: [pet] })
-            expect(() => serializer.render()).toThrowError(MissingSerializer)
+            expect(() => serializer.render()).toThrow(MissingSerializer)
           })
         })
       })
@@ -959,7 +959,7 @@ describe('DreamSerializer#render', () => {
           const reloadedPet = await Pet.find(pet.id)
 
           const serializer = new PetSerializer(reloadedPet)
-          expect(() => serializer.render()).toThrowError(NonLoadedAssociation)
+          expect(() => serializer.render()).toThrow(NonLoadedAssociation)
         })
 
         context('when the serializer is optional', () => {
@@ -1205,7 +1205,7 @@ describe('DreamSerializer#render', () => {
           const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
 
           const serializer = new UserSerializer({ pet })
-          expect(() => serializer.render()).toThrowError(MissingSerializer)
+          expect(() => serializer.render()).toThrow(MissingSerializer)
         })
       })
     })

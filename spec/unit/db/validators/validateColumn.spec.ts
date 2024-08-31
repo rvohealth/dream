@@ -10,12 +10,12 @@ describe('validateColumn', () => {
   it('raises an exception with an invalid table', () => {
     expect(() => {
       validateColumn(User.prototype.schema, 'compositionz' as any, 'content')
-    }).toThrowError(InvalidColumnName)
+    }).toThrow(InvalidColumnName)
   })
 
   it('raises an exception with an invalid columnName', () => {
     expect(() => {
       validateColumn(User.prototype.schema, 'compositions', 'contenz' as any)
-    }).toThrowError(InvalidColumnName)
+    }).toThrow(InvalidColumnName)
   })
 })

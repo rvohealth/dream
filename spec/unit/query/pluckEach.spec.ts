@@ -42,15 +42,13 @@ describe('Query#pluckEach', () => {
   context('with invalid arguments', () => {
     context('when the cb function is not provided', () => {
       it('raises a targeted exception', async () => {
-        await expect(User.query().pluckEach('id')).rejects.toThrowError(
-          MissingRequiredCallbackFunctionToPluckEach
-        )
+        await expect(User.query().pluckEach('id')).rejects.toThrow(MissingRequiredCallbackFunctionToPluckEach)
       })
     })
 
     context('when additional pluck arguments are following the call to pluckEachThrough', () => {
       it('raises a targeted exception', async () => {
-        await expect(User.query().pluckEach('id', () => {}, 'email')).rejects.toThrowError(
+        await expect(User.query().pluckEach('id', () => {}, 'email')).rejects.toThrow(
           CannotPassAdditionalFieldsToPluckEachAfterCallback
         )
       })

@@ -114,7 +114,7 @@ export async function down(db: Kysely<any>): Promise<void> {
               attributes: ['deliciousness:decimal'],
               primaryKeyType: 'bigserial',
             })
-          }).toThrowError(InvalidDecimalFieldPassedToGenerator)
+          }).toThrow(InvalidDecimalFieldPassedToGenerator)
         })
       })
 
@@ -126,7 +126,7 @@ export async function down(db: Kysely<any>): Promise<void> {
               attributes: ['deliciousness:decimal:4'],
               primaryKeyType: 'bigserial',
             })
-          }).toThrowError(InvalidDecimalFieldPassedToGenerator)
+          }).toThrow(InvalidDecimalFieldPassedToGenerator)
         })
       })
     })

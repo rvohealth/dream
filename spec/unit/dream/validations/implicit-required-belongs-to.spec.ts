@@ -8,7 +8,7 @@ describe('associated BelongsTo models', () => {
     await User.create({ email: 'fred@frewd', password: 'howadoin' })
     const composition = Composition.new({ content: 'Aster is the Flufflord: a philosophic approach' })
 
-    await expect(composition.save()).rejects.toThrowError(ValidationError)
+    await expect(composition.save()).rejects.toThrow(ValidationError)
 
     expect(composition.errors).toMatchObject({ user: ['requiredBelongsTo'] })
   })

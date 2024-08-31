@@ -14,7 +14,7 @@ describe('Dream presence numericality', () => {
     const balloon = Mylar.new({ user, volume: 'not valid' })
     expect(balloon.isInvalid).toEqual(true)
 
-    await expect(balloon.save()).rejects.toThrowError(ValidationError)
+    await expect(balloon.save()).rejects.toThrow(ValidationError)
 
     expect(balloon.isPersisted).toEqual(false)
     expect(await Mylar.count()).toEqual(0)
@@ -26,7 +26,7 @@ describe('Dream presence numericality', () => {
     const balloon = Mylar.new({ user, volume: 101 })
     expect(balloon.isInvalid).toEqual(true)
 
-    await expect(balloon.save()).rejects.toThrowError(ValidationError)
+    await expect(balloon.save()).rejects.toThrow(ValidationError)
 
     expect(balloon.isPersisted).toEqual(false)
     expect(await Mylar.count()).toEqual(0)
@@ -38,7 +38,7 @@ describe('Dream presence numericality', () => {
     const balloon = Mylar.new({ user, volume: -1 })
     expect(balloon.isInvalid).toEqual(true)
 
-    await expect(balloon.save()).rejects.toThrowError(ValidationError)
+    await expect(balloon.save()).rejects.toThrow(ValidationError)
 
     expect(balloon.isPersisted).toEqual(false)
     expect(await Mylar.count()).toEqual(0)

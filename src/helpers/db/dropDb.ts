@@ -1,9 +1,9 @@
 import { Client } from 'pg'
 import ConnectionConfRetriever from '../../db/connection-conf-retriever'
 import { DbConnectionType } from '../../db/types'
+import DreamApplication from '../../dream-application'
 import { envValue } from '../envHelpers'
 import loadPgClient from './loadPgClient'
-import DreamApplication from '../../dream-application'
 
 export default async function dropDb(connection: DbConnectionType, dbName?: string | null) {
   // this was only ever written to clear the db between tests or in development,
@@ -15,7 +15,9 @@ export default async function dropDb(connection: DbConnectionType, dbName?: stri
 
   dbName ||= dbConf.name || null
   if (!dbName)
-    throw `Must either pass a dbName to the drop function, or else ensure that DB_NAME is set in the env`
+    throw new Error(
+      'Must either pass a dbName to the drop function, or else ensure that DB_NAME is set in the env'
+    )
 
   const client = await loadPgClient({ useSystemDb: true })
 

@@ -780,7 +780,7 @@ describe('@Sortable', () => {
       }
 
       it('raises a targeted exception', async () => {
-        await expect(InvalidPost.create({ body: 'hello', user })).rejects.toThrowError(
+        await expect(InvalidPost.create({ body: 'hello', user })).rejects.toThrow(
           SortableDecoratorRequiresColumnOrBelongsToAssociation
         )
       })
@@ -793,7 +793,7 @@ describe('@Sortable', () => {
       }
 
       it('raises a targeted exception', async () => {
-        await expect(InvalidPost.create({ body: 'hello', user })).rejects.toThrowError(
+        await expect(InvalidPost.create({ body: 'hello', user })).rejects.toThrow(
           NonBelongsToAssociationProvidedAsSortableDecoratorScope
         )
       })

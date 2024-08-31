@@ -2336,7 +2336,7 @@ export default class Dream {
    * types used by Dream internals related to the passthrough api.
    */
   public get passthroughColumns(): any {
-    throw 'must have get passthroughColumns defined on child'
+    throw new Error('must have get passthroughColumns defined on child')
   }
 
   /**

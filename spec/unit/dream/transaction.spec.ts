@@ -1,7 +1,7 @@
-import User from '../../../test-app/app/models/User'
-import Composition from '../../../test-app/app/models/Composition'
 import { ValidationError } from '../../../src'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
+import Composition from '../../../test-app/app/models/Composition'
+import User from '../../../test-app/app/models/User'
 
 describe('ApplicationModel.transaction', () => {
   it('completes all database actions within the transaction', async () => {
@@ -34,7 +34,7 @@ describe('ApplicationModel.transaction', () => {
           await Composition.txn(txn).create({ user })
           await user.txn(txn).update({ email: null } as any)
         })
-      ).rejects.toThrowError(ValidationError)
+      ).rejects.toThrow(ValidationError)
 
       expect(await Composition.count()).toEqual(0)
     })

@@ -208,7 +208,7 @@ describe('Dream.create', () => {
       const userSettings = UserSettings.new({ likesChalupas: true })
       await expect(
         User.create({ email: 'fred@fishman', password: 'howyadoin', userSettings } as any)
-      ).rejects.toThrowError(CanOnlyPassBelongsToModelParam)
+      ).rejects.toThrow(CanOnlyPassBelongsToModelParam)
     })
   })
 

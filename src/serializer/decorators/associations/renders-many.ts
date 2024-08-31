@@ -72,4 +72,4 @@ export default function RendersMany(
   }
 }
 
-export interface RendersManyOpts extends RendersOneOrManyOpts {}
+export type RendersManyOpts = RendersOneOrManyOpts
