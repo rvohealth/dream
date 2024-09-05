@@ -159,6 +159,20 @@ describe('CalendarDate', () => {
     })
   })
 
+  describe('#toSQL', () => {
+    it('returns a YYYY-MM-DD string', () => {
+      const calendarDate = CalendarDate.fromISO('2024-03-02')
+      expect(calendarDate.toSQL()).toEqual('2024-03-02')
+    })
+
+    context('with an invalid date string', () => {
+      it('returns null', () => {
+        const calendarDate = CalendarDate.fromISO('2023-02-29')
+        expect(calendarDate.toSQL()).toBeNull()
+      })
+    })
+  })
+
   describe('#toISODate', () => {
     it('aliases toISO', () => {
       const calendarDate = CalendarDate.today()

@@ -84,6 +84,11 @@ export default class CalendarDate {
     return this.luxonDateTime.toISODate()
   }
 
+  public toSQL(): string | null {
+    if (this.luxonDateTime === null) return null
+    return this.luxonDateTime.toSQLDate()
+  }
+
   public toJSON() {
     return this.toISO()
   }
