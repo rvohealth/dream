@@ -54,6 +54,10 @@ export default class CalendarDate {
     else return new CalendarDate(DateTime.fromISO(str, { setZone: true }))
   }
 
+  public static fromSQL(str: string): CalendarDate {
+    return new CalendarDate(DateTime.fromSQL(str, { zone: 'UTC' }))
+  }
+
   public static fromObject(obj: DateObjectUnits, opts?: DateTimeJSOptions): CalendarDate {
     return new CalendarDate(DateTime.fromObject(obj, opts))
   }

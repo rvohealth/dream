@@ -117,6 +117,20 @@ describe('CalendarDate', () => {
     })
   })
 
+  describe('.fromSQL', () => {
+    it('creates a valid CalendarDate', () => {
+      const calendarDate = CalendarDate.fromSQL('2024-03-02')
+      expect(calendarDate.isValid).toBe(true)
+    })
+
+    context('with an invalid date string', () => {
+      it('creates an invalid CalendarDate', () => {
+        const calendarDate = CalendarDate.fromSQL('2023-02-29')
+        expect(calendarDate.isValid).toBe(false)
+      })
+    })
+  })
+
   describe('.fromObject', () => {
     it('creates a valid CalendarDate', () => {
       const calendarDate = CalendarDate.fromObject({ year: 2023, month: 6, day: 16 })

@@ -16,23 +16,30 @@ export function marshalDBValue<
   if (value !== null && value !== undefined && isDecimalColumn(dreamClass, column))
     return parseFloat(value as string)
 
+  // NOTE: DateTime and CalendarDate conversion here is solely for standardizing
+  // attributes received during `new` (so that types for unpersisted Dream models
+  // are the same as if they had been persisted). Data coming out of the database
+  // are standardized by `setTypeParser` in src/dream-application/index.ts
   if (value instanceof Date) {
     if (isDateTimeColumn(dreamClass, column)) {
       return DateTime.fromJSDate(value, { zone: 'UTC' })
     } else if (isDateColumn(dreamClass, column)) {
-      const dateString = value.toISOString().split('T')[0]
-      return CalendarDate.fromISO(dateString, { zone: 'UTC' })
-    } else {
-      throw new Error(`marshalDBValue() received Javascript Date, but isDateTimeColumn and isDateColumn
-return false for column '${column.toString()}' on '${dreamClass.name}'`)
+      return CalendarDate.fromDateTime(DateTime.fromJSDate(value))
+    }
+  } else if (value instanceof DateTime) {
+    if (isDateTimeColumn(dreamClass, column)) {
+      return value.setZone('UTC')
+    } else if (isDateColumn(dreamClass, column)) {
+      return CalendarDate.fromDateTime(value)
+    }
+  } else if (typeof value === 'string') {
+    if (isDateTimeColumn(dreamClass, column)) {
+      return DateTime.fromISO(value, { zone: 'UTC' })
+    } else if (isDateColumn(dreamClass, column)) {
+      return CalendarDate.fromISO(value)
     }
   }
-
-  if (typeof value === 'string' && isDateTimeColumn(dreamClass, column)) {
-    return DateTime.fromISO(value, { zone: 'UTC' })
-  } else if (typeof value === 'string' && isDateColumn(dreamClass, column)) {
-    return CalendarDate.fromISO(value, { zone: 'UTC' })
-  }
+  // end:NOTE: DateTime and CalendarDate conversion here is solely for...
 
   if (isDatabaseArrayColumn(dreamClass, column)) {
     return marshalDBArrayValue(dreamClass, value as string)

@@ -1,7 +1,9 @@
+import { types } from 'pg'
 import Dream from '../dream'
 import { primaryKeyTypes } from '../dream/types'
 import DreamApplicationInitMissingCallToLoadModels from '../exceptions/dream-application/init-missing-call-to-load-models'
 import DreamApplicationInitMissingMissingProjectRoot from '../exceptions/dream-application/init-missing-project-root'
+import { parseDate, parseDatetime, parseDecimal } from '../helpers/customPgParsers'
 import DreamSerializer from '../serializer'
 import { cacheDreamApplication, getCachedDreamApplicationOrFail } from './cache'
 import loadModels, { getModelsOrFail } from './helpers/loadModels'
@@ -26,6 +28,11 @@ export default class DreamApplication {
     opts: Partial<DreamApplicationOpts> = {},
     deferCb?: (dreamApp: DreamApplication) => Promise<void> | void
   ) {
+    types.setTypeParser(types.builtins.DATE, parseDate)
+    types.setTypeParser(types.builtins.TIMESTAMP, parseDatetime)
+    types.setTypeParser(types.builtins.TIMESTAMPTZ, parseDatetime)
+    types.setTypeParser(types.builtins.NUMERIC, parseDecimal)
+
     const dreamApp = new DreamApplication(opts)
     await cb(dreamApp)
 

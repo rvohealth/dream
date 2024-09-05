@@ -51,17 +51,33 @@ describe('Dream initialization', () => {
   })
 
   context('a string is passed into a datetime field', () => {
-    it('converts the datetime string to a luxon date', () => {
+    it('converts the datetime string to a DateTime', () => {
       const nowString = DateTime.now().toISO()
       const user = User.new({ deletedAt: nowString as any })
-      expect(user.deletedAt).toEqual(DateTime.fromISO(nowString))
+      expect(user.deletedAt).toEqualDateTime(DateTime.fromISO(nowString))
+    })
+  })
+
+  context('a DateTime in a non-UTC timezone, passed into a datetime field', () => {
+    it('is converted to UTC', () => {
+      const dateString = DateTime.fromISO('2024-09-05T10:42:16.603-04:00')
+      const user = User.new({ deletedAt: dateString as any })
+      expect(user.deletedAt?.toISO()).toEqual('2024-09-05T14:42:16.603Z')
     })
   })
 
   context('a string is passed into a date field', () => {
-    it('converts the date string to a luxon date', () => {
+    it('converts the date string to a CalendarDate', () => {
       const user = User.new({ birthdate: '2000-10-10' as any })
-      expect(user.birthdate).toEqual(CalendarDate.fromISO('2000-10-10'))
+      expect(user.birthdate).toEqualCalendarDate(CalendarDate.fromISO('2000-10-10'))
+    })
+  })
+
+  context('a datetime string in non UTC is passed into a date field', () => {
+    it('is converted to a CalendarDate with the date matching the original timezone date', () => {
+      const dateString = '2024-09-05T22:42:16.603-04:00'
+      const user = User.new({ birthdate: dateString as any })
+      expect(user.birthdate).toEqualCalendarDate(CalendarDate.fromISO('2024-09-05'))
     })
   })
 
@@ -80,7 +96,7 @@ describe('Dream initialization', () => {
   })
 
   context('an object is marshaled as a javascript date by kysely', () => {
-    it('converts the date to a luxon date', async () => {
+    it('converts the date to a DateTime', async () => {
       const user = await User.create({ email: 'fred@', password: 'howyadoin' })
       const u = await User.find(user.id)
       expect(u!.createdAt.constructor).toEqual(DateTime)
