@@ -1,4 +1,5 @@
 export { default as DreamBin } from './bin'
+export { default as DreamCLI } from './cli'
 export { default as db } from './db'
 export { closeAllDbConnections, dreamDbConnections } from './db/dream-db-connection'
 export {
