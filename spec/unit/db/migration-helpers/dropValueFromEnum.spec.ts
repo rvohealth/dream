@@ -14,7 +14,7 @@ describe('dropValueFromEnum', () => {
     await _db.schema.dropType('temp_enum').execute()
   })
 
-  it('removes the field from the enum', async () => {
+  it('removes the value from the enum', async () => {
     await dropValueFromEnum(_db, {
       enumName: 'temp_enum',
       enumValueToDrop: 'c',

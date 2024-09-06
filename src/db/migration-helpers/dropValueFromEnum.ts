@@ -135,13 +135,13 @@ function computedTemporaryType(array: boolean): ColumnDataType | RawBuilder<unkn
   return 'text'
 }
 
-export interface DropValueFromEnumOpts {
+interface DropValueFromEnumOpts {
   enumName: string
   enumValueToDrop: string
   tablesAndColumnsToChange: DropValueFromEnumTablesAndColumns[]
 }
 
-export type DropValueFromEnumTablesAndColumns =
+type DropValueFromEnumTablesAndColumns =
   | DropValueWithRemovalFromEnumTablesAndColumnsForArray
   | DropValueWithReplacementFromEnumTablesAndColumnsForArray
   | DropValueFromEnumTablesAndColumnsForNonArray
@@ -152,13 +152,13 @@ interface DropValueFromEnumTablesAndColumnsForArrayBase {
   array: true
 }
 
-export interface DropValueWithRemovalFromEnumTablesAndColumnsForArray
+interface DropValueWithRemovalFromEnumTablesAndColumnsForArray
   extends DropValueFromEnumTablesAndColumnsForArrayBase {
   behavior: 'replace'
   replaceWith: string
 }
 
-export interface DropValueWithReplacementFromEnumTablesAndColumnsForArray
+interface DropValueWithReplacementFromEnumTablesAndColumnsForArray
   extends DropValueFromEnumTablesAndColumnsForArrayBase {
   behavior: 'remove'
 }
@@ -167,7 +167,7 @@ type DropValueFromEnumTablesAndColumnsForArray =
   | DropValueWithRemovalFromEnumTablesAndColumnsForArray
   | DropValueWithReplacementFromEnumTablesAndColumnsForArray
 
-export type DropValueFromEnumTablesAndColumnsForNonArray = {
+type DropValueFromEnumTablesAndColumnsForNonArray = {
   table: string
   column: string
   replaceWith: string | null

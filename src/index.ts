@@ -6,6 +6,7 @@ export {
   default as addDeferrableUniqueConstraint,
   default as dropConstraint,
 } from './db/migration-helpers/addDeferrableUniqueConstraint'
+export { default as addValueToEnum } from './db/migration-helpers/addValueToEnum'
 export { default as createExtension } from './db/migration-helpers/createExtension'
 export { default as createGinIndex } from './db/migration-helpers/createGinIndex'
 export { default as dropValueFromEnum } from './db/migration-helpers/dropValueFromEnum'
