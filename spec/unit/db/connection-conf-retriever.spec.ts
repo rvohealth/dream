@@ -6,10 +6,10 @@ import { cacheDreamApplication } from '../../../src/dream-application/cache'
 describe('ConnectionConfRetriever', () => {
   const updateDbCredentials = () => {
     const dreamApp = DreamApplication.getOrFail()
-    dreamApp.dbCredentials = {
+    dreamApp.set('db', {
       primary: primaryConfig,
       replica: replicaConfig,
-    }
+    })
     cacheDreamApplication(dreamApp)
     return dreamApp
   }
