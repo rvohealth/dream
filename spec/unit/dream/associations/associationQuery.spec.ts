@@ -401,4 +401,15 @@ describe('Dream#associationQuery', () => {
       expect(unscopedBalloons).toMatchDreamModels([balloon])
     })
   })
+
+  context('with specific columns to select', () => {
+    it('only selects those fields', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'password' })
+      await Post.create({ user, body: 'Hello world', position: 1 })
+
+      const posts = await user.associationQuery('posts').all({ columns: ['position'] })
+      expect(posts[0].position).toEqual(1)
+      expect(posts[0].body).toBeUndefined()
+    })
+  })
 })

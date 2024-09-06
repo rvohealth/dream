@@ -17,6 +17,41 @@ describe('Dream.all', () => {
     expect(results[1].id).toEqual(user2.id)
   })
 
+  context('with specific columns to select', () => {
+    it('only selects those fields', async () => {
+      await User.create({ name: 'Fred', email: 'fred@frewd', password: 'howyadoin' })
+
+      const results = await User.all({ columns: ['name'] })
+      expect(results[0].name).toEqual('Fred')
+      expect(results[0].email).toBeUndefined()
+    })
+
+    it('always selects id', async () => {
+      const user = await User.create({ name: 'Fred', email: 'fred@frewd', password: 'howyadoin' })
+
+      const results = await User.all({ columns: ['name'] })
+      expect(results[0].id).toEqual(user.id)
+    })
+
+    context('STI models when "type" is not explicitly listed as a column to select', () => {
+      it('querying an STI base instantiates the correct STI children', async () => {
+        await Latex.create({ color: 'green' })
+
+        const balloons = await Balloon.all({ columns: ['color'] })
+        expect(balloons[0].type).toEqual('Latex')
+        expect(balloons[0].color).toEqual('green')
+      })
+
+      it('querying an STI child works', async () => {
+        await Latex.create({ color: 'green' })
+
+        const latexBalloons = await Latex.all({ columns: ['color'] })
+        expect(latexBalloons[0].type).toEqual('Latex')
+        expect(latexBalloons[0].color).toEqual('green')
+      })
+    })
+  })
+
   context('STI models', () => {
     it('are instantiated as the type specified in the type field', async () => {
       const latexBalloon = await Latex.create({ color: 'green' })
@@ -35,6 +70,20 @@ describe('Dream.all', () => {
         users = await User.txn(txn).all()
       })
       expect(users).toMatchDreamModels([user])
+    })
+
+    context('with specific columns to select', () => {
+      it('only selects those fields', async () => {
+        await User.create({ name: 'Fred', email: 'fred@frewd', password: 'howyadoin' })
+        let results: User[] = []
+
+        await ApplicationModel.transaction(async txn => {
+          results = await User.txn(txn).all({ columns: ['name'] })
+        })
+
+        expect(results[0].name).toEqual('Fred')
+        expect(results[0].email).toBeUndefined()
+      })
     })
   })
 

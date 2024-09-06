@@ -56,6 +56,7 @@ import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutin
 import { Range } from '../helpers/range'
 import snakeify from '../helpers/snakeify'
 import { isObject, isString } from '../helpers/typechecks'
+import uniq from '../helpers/uniq'
 import ops from '../ops'
 import CurriedOpsStatement from '../ops/curried-ops-statement'
 import OpsStatement from '../ops/ops-statement'
@@ -1822,8 +1823,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns an array of dreams
    */
-  public async all() {
-    const kyselyQuery = this.buildSelect()
+  public async all(
+    options: {
+      columns?: DreamColumnNames<DreamInstance>[]
+    } = {}
+  ) {
+    const kyselyQuery = this.buildSelect(options)
 
     const results = await executeDatabaseQuery(kyselyQuery, 'execute')
 
@@ -3425,9 +3430,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     {
       bypassSelectAll = false,
       bypassOrder = false,
+      columns,
     }: {
       bypassSelectAll?: boolean
       bypassOrder?: boolean
+      columns?: DreamColumnNames<DreamInstance>[]
     } = {}
   ): SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object> {
     let kyselyQuery: SelectQueryBuilder<DB, any, object>
@@ -3465,7 +3472,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     if (this.limitStatement) kyselyQuery = kyselyQuery.limit(this.limitStatement)
     if (this.offsetStatement) kyselyQuery = kyselyQuery.offset(this.offsetStatement)
 
-    if (!bypassSelectAll) {
+    if (columns) {
+      const columnsWithDefaults = uniq(
+        compact([this.dreamClass.primaryKey, this.dreamClass['isSTIBase'] ? 'type' : null, ...columns])
+      )
+      kyselyQuery = kyselyQuery.select(columnsWithDefaults.map(column => this.namespaceColumn(column)))
+    } else if (!bypassSelectAll) {
       kyselyQuery = kyselyQuery.selectAll(this.baseSqlAlias as ExtractTableAlias<DB, DreamInstance['table']>)
     }
 

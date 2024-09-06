@@ -1,8 +1,8 @@
 import { DateTime } from 'luxon'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
-import User from '../../../test-app/app/models/User'
 import Pet from '../../../test-app/app/models/Pet'
+import User from '../../../test-app/app/models/User'
 
 describe('Dream#save', () => {
   context('a new record', () => {
@@ -127,6 +127,19 @@ describe('Dream#save', () => {
           })
           expect(user.featuredPostPosition).toEqual(3)
         })
+      })
+    })
+
+    context('loaded with specific columns to select', () => {
+      it('does not overwrite columns that were not loaded', async () => {
+        await Pet.create({ species: 'cat', name: 'Aster' })
+
+        const results = await Pet.all({ columns: ['species'] })
+        const pet = results[0]
+        await pet.update({ species: 'dog' })
+        await pet.reload()
+        expect(pet.species).toEqual('dog')
+        expect(pet.name).toEqual('Aster')
       })
     })
   })

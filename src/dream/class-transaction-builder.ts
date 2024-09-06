@@ -37,8 +37,13 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    *
    * @returns an array of dreams
    */
-  public async all<I extends DreamClassTransactionBuilder<DreamInstance>>(this: I): Promise<DreamInstance[]> {
-    return this.queryInstance().all()
+  public async all<I extends DreamClassTransactionBuilder<DreamInstance>>(
+    this: I,
+    options: {
+      columns?: DreamColumnNames<DreamInstance>[]
+    } = {}
+  ): Promise<DreamInstance[]> {
+    return this.queryInstance().all(options)
   }
 
   /**

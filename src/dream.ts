@@ -1022,8 +1022,13 @@ export default class Dream {
    *
    * @returns an array of dreams
    */
-  public static async all<T extends typeof Dream>(this: T): Promise<InstanceType<T>[]> {
-    return await this.query().all()
+  public static async all<T extends typeof Dream>(
+    this: T,
+    options: {
+      columns?: DreamColumnNames<InstanceType<T>>[]
+    } = {}
+  ): Promise<InstanceType<T>[]> {
+    return await this.query().all(options)
   }
 
   /**
