@@ -1,49 +1,96 @@
 import { ColumnDataType, Kysely, RawBuilder, sql } from 'kysely'
 
-export default async function dropEnumValue(
-  db: Kysely<any>,
-  { enumName, enumValue, tablesAndColumnsToChange }: DropValueFromEnumOpts
-) {
-  // temporarily set all table columns depending on this enum to an acceptable alternate type
-  for (const tableAndColumnToChange of tablesAndColumnsToChange) {
-    const tableAndColumnToChangeAsArray =
-      tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArrayBase
-    const isArray = tableAndColumnToChangeAsArray.array || false
-
-    await db.schema
-      .alterTable(tableAndColumnToChange.table)
-      .alterColumn(tableAndColumnToChange.column, col => col.setDataType(computedTemporaryType(isArray)))
-      .execute()
+export default class DreamMigrationHelpers {
+  public static async addDeferrableUniqueConstraint(
+    constraintName: string,
+    tableName: string,
+    columns: string[],
+    db: Kysely<any>
+  ) {
+    await this.dropConstraint(constraintName, tableName, db)
+    await sql`
+    ALTER TABLE ${sql.table(tableName)}
+    ADD CONSTRAINT ${sql.table(constraintName)}
+      UNIQUE (${sql.raw(columns.join(', '))})
+      DEFERRABLE INITIALLY DEFERRED;
+  `.execute(db)
   }
 
-  // collect enum values before dropping type
-  const allEnumValues = await getEnumValues(db, enumName)
+  public static async addEnumValue(db: Kysely<any>, { enumName, enumValue }: AddValueToEnumOpts) {
+    await sql`ALTER TYPE ${sql.raw(enumName)} ADD VALUE IF NOT EXISTS '${sql.raw(enumValue)}';`.execute(db)
+  }
 
-  // drop type and re-create it without the enum value
-  // we are trying to drop
-  await db.schema.dropType(enumName).execute()
-  await db.schema
-    .createType(enumName)
-    .asEnum(allEnumValues.filter(val => val !== enumValue))
-    .execute()
+  public static async createExtension(
+    extensionName: string,
+    db: Kysely<any>,
+    { ifNotExists = true, publicSchema = true }: { ifNotExists?: boolean; publicSchema?: boolean } = {}
+  ) {
+    const ifNotExistsText = ifNotExists ? ' IF NOT EXISTS ' : ' '
+    const publicSchemaText = publicSchema ? ' WITH SCHEMA public' : ''
+    await sql`
+    CREATE EXTENSION${sql.raw(ifNotExistsText)}"${sql.raw(extensionName)}"${sql.raw(publicSchemaText)};
+  `.execute(db)
+  }
 
-  for (const tableAndColumnToChange of tablesAndColumnsToChange) {
-    const isArray = (tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArray).array || false
+  public static async createGinIndex(tableName: string, column: string, indexName: string, db: Kysely<any>) {
+    await sql`
+    CREATE INDEX IF NOT EXISTS ${sql.raw(indexName)} ON ${sql.raw(tableName)} USING GIN (${sql.raw(
+      `${column} gin_trgm_ops`
+    )});
+  `.execute(db)
+  }
 
-    if (isArray) {
-      await replaceArrayValues(
-        db,
-        enumValue,
-        tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArray
-      )
-      await updateTableColumnToNewEnumArrayType(db, enumName, tableAndColumnToChange)
-    } else {
-      await replaceNonArrayValues(
-        db,
-        enumValue,
-        tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForNonArray
-      )
-      await updateTableColumnToNewEnumType(db, enumName, tableAndColumnToChange)
+  public static async dropConstraint(constraintName: string, tableName: string, db: Kysely<any>) {
+    await sql`
+    ALTER TABLE ${sql.table(tableName)} DROP CONSTRAINT IF EXISTS ${sql.table(constraintName)};
+  `.execute(db)
+  }
+
+  public static async dropEnumValue(
+    db: Kysely<any>,
+    { enumName, enumValue, tablesAndColumnsToChange }: DropValueFromEnumOpts
+  ) {
+    // temporarily set all table columns depending on this enum to an acceptable alternate type
+    for (const tableAndColumnToChange of tablesAndColumnsToChange) {
+      const tableAndColumnToChangeAsArray =
+        tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArrayBase
+      const isArray = tableAndColumnToChangeAsArray.array || false
+
+      await db.schema
+        .alterTable(tableAndColumnToChange.table)
+        .alterColumn(tableAndColumnToChange.column, col => col.setDataType(computedTemporaryType(isArray)))
+        .execute()
+    }
+
+    // collect enum values before dropping type
+    const allEnumValues = await getEnumValues(db, enumName)
+
+    // drop type and re-create it without the enum value
+    // we are trying to drop
+    await db.schema.dropType(enumName).execute()
+    await db.schema
+      .createType(enumName)
+      .asEnum(allEnumValues.filter(val => val !== enumValue))
+      .execute()
+
+    for (const tableAndColumnToChange of tablesAndColumnsToChange) {
+      const isArray = (tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArray).array || false
+
+      if (isArray) {
+        await replaceArrayValues(
+          db,
+          enumValue,
+          tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArray
+        )
+        await updateTableColumnToNewEnumArrayType(db, enumName, tableAndColumnToChange)
+      } else {
+        await replaceNonArrayValues(
+          db,
+          enumValue,
+          tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForNonArray
+        )
+        await updateTableColumnToNewEnumType(db, enumName, tableAndColumnToChange)
+      }
     }
   }
 }
@@ -169,4 +216,9 @@ type DropValueFromEnumTablesAndColumnsForNonArray = {
   table: string
   column: string
   replaceWith: string | null
+}
+
+interface AddValueToEnumOpts {
+  enumName: string
+  enumValue: string
 }

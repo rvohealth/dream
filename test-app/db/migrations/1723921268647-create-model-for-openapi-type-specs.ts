@@ -1,9 +1,9 @@
 import { Kysely, sql } from 'kysely'
-import { createExtension } from '../../../src'
+import { DreamMigrationHelpers } from '../../../src'
 
 export async function up(db: Kysely<any>): Promise<void> {
-  await createExtension('uuid-ossp', db)
-  await createExtension('citext', db)
+  await DreamMigrationHelpers.createExtension('uuid-ossp', db)
+  await DreamMigrationHelpers.createExtension('citext', db)
 
   await db.schema.createType('species_types_enum').asEnum(['cat', 'noncat']).execute()
   await db.schema.createType('pet_treats_enum').asEnum(['snick snowcks', 'efishy feesh']).execute()

@@ -1,10 +1,9 @@
 import { Kysely, sql } from 'kysely'
-import createGinIndex from '../../../src/db/migration-helpers/createGinIndex'
-import createExtension from '../../../src/db/migration-helpers/createExtension'
+import { DreamMigrationHelpers } from '../../../src'
 
 export async function up(db: Kysely<any>): Promise<void> {
-  await createExtension('uuid-ossp', db)
-  await createExtension('citext', db)
+  await DreamMigrationHelpers.createExtension('uuid-ossp', db)
+  await DreamMigrationHelpers.createExtension('citext', db)
 
   await db.schema
     .createTable('users')
@@ -31,9 +30,9 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('deleted_at', 'timestamp', col => col.defaultTo(null))
     .execute()
 
-  await createExtension('pg_trgm', db)
-  await createGinIndex('users', 'email', 'index_users_email_gin', db)
-  await createGinIndex('users', 'name', 'index_users_name_gin', db)
+  await DreamMigrationHelpers.createExtension('pg_trgm', db)
+  await DreamMigrationHelpers.createGinIndex('users', 'email', 'index_users_email_gin', db)
+  await DreamMigrationHelpers.createGinIndex('users', 'name', 'index_users_name_gin', db)
 }
 
 export async function down(db: Kysely<any>): Promise<void> {

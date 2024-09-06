@@ -1,8 +1,8 @@
 import { Kysely, sql } from 'kysely'
 import { db } from '../../../../src'
-import dropEnumValue from '../../../../src/db/migration-helpers/dropEnumValue'
+import DreamMigrationHelpers from '../../../../src/db/migration-helpers/DreamMigrationHelpers'
 
-describe('dropEnumValue', () => {
+describe('DreamMigrationHelpers.dropEnumValue', () => {
   let _db: Kysely<any>
 
   beforeEach(async () => {
@@ -15,7 +15,7 @@ describe('dropEnumValue', () => {
   })
 
   it('removes the value from the enum', async () => {
-    await dropEnumValue(_db, {
+    await DreamMigrationHelpers.dropEnumValue(_db, {
       enumName: 'temp_enum',
       enumValue: 'c',
       tablesAndColumnsToChange: [],
@@ -47,7 +47,7 @@ describe('dropEnumValue', () => {
         })
         .execute()
 
-      await dropEnumValue(_db, {
+      await DreamMigrationHelpers.dropEnumValue(_db, {
         enumName: 'temp_enum',
         enumValue: 'c',
         tablesAndColumnsToChange: [
@@ -74,7 +74,7 @@ describe('dropEnumValue', () => {
           })
           .execute()
 
-        await dropEnumValue(_db, {
+        await DreamMigrationHelpers.dropEnumValue(_db, {
           enumName: 'temp_enum',
           enumValue: 'c',
           tablesAndColumnsToChange: [
@@ -120,7 +120,7 @@ describe('dropEnumValue', () => {
           ])
           .execute()
 
-        await dropEnumValue(_db, {
+        await DreamMigrationHelpers.dropEnumValue(_db, {
           enumName: 'temp_enum',
           enumValue: 'c',
           tablesAndColumnsToChange: [
@@ -157,7 +157,7 @@ describe('dropEnumValue', () => {
           ])
           .execute()
 
-        await dropEnumValue(_db, {
+        await DreamMigrationHelpers.dropEnumValue(_db, {
           enumName: 'temp_enum',
           enumValue: 'c',
           tablesAndColumnsToChange: [
