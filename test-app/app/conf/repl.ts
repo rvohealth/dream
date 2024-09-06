@@ -7,5 +7,5 @@ import initializeDreamApplication from '../../cli/helpers/initializeDreamApplica
 const replServer = repl.start('> ')
 export default (async function () {
   await initializeDreamApplication()
-  await loadRepl(replServer.context)
+  loadRepl(replServer.context)
 })()
