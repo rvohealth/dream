@@ -72,26 +72,57 @@ export default class DreamApplication {
     this.getOrFail().logger[level](...args)
   }
 
-  public dbCredentials: DreamDbCredentialOptions
-  public parallelTests: number | undefined
-  public primaryKeyType: (typeof primaryKeyTypes)[number] = 'bigserial'
-  public projectRoot: string
-  public paths: Required<DreamDirectoryPaths>
-  public serializerCasing: DreamSerializerCasing
-  public logger: DreamLogger = console
-  public inflections?: () => void | Promise<void>
+  private _dbCredentials: DreamDbCredentialOptions
+  public get dbCredentials() {
+    return this._dbCredentials
+  }
+
+  private _parallelTests: number | undefined
+  public get parallelTests() {
+    return this._parallelTests
+  }
+
+  private _primaryKeyType: (typeof primaryKeyTypes)[number] = 'bigserial'
+  public get primaryKeyType() {
+    return this._primaryKeyType
+  }
+
+  private _projectRoot: string
+  public get projectRoot() {
+    return this._projectRoot
+  }
+
+  private _paths: Required<DreamDirectoryPaths>
+  public get paths() {
+    return this._paths
+  }
+
+  private _serializerCasing: DreamSerializerCasing
+  public get serializerCasing() {
+    return this._serializerCasing
+  }
+
+  private _logger: DreamLogger = console
+  public get logger() {
+    return this._logger
+  }
+
+  private _inflections?: () => void | Promise<void>
+  public get inflections() {
+    return this._inflections
+  }
 
   protected loadedModels: boolean = false
 
   constructor(opts?: Partial<DreamApplicationOpts>) {
-    if (opts?.db) this.dbCredentials = opts.db
-    if (opts?.primaryKeyType) this.primaryKeyType = opts.primaryKeyType
-    if (opts?.projectRoot) this.projectRoot = opts.projectRoot
-    if (opts?.inflections) this.inflections = opts.inflections
-    if (opts?.serializerCasing) this.serializerCasing = opts.serializerCasing
-    if (opts?.parallelTests) this.parallelTests = opts.parallelTests
+    if (opts?.db) this._dbCredentials = opts.db
+    if (opts?.primaryKeyType) this._primaryKeyType = opts.primaryKeyType
+    if (opts?.projectRoot) this._projectRoot = opts.projectRoot
+    if (opts?.inflections) this._inflections = opts.inflections
+    if (opts?.serializerCasing) this._serializerCasing = opts.serializerCasing
+    if (opts?.parallelTests) this._parallelTests = opts.parallelTests
 
-    this.paths = {
+    this._paths = {
       conf: opts?.paths?.conf || 'src/app/conf',
       db: opts?.paths?.db || 'src/db',
       factories: opts?.paths?.factories || 'spec/factories',
@@ -151,31 +182,31 @@ export default class DreamApplication {
   ) {
     switch (applyOption) {
       case 'db':
-        this.dbCredentials = options as DreamDbCredentialOptions
+        this._dbCredentials = options as DreamDbCredentialOptions
         break
 
       case 'primaryKeyType':
-        this.primaryKeyType = options as (typeof primaryKeyTypes)[number]
+        this._primaryKeyType = options as (typeof primaryKeyTypes)[number]
         break
 
       case 'logger':
-        this.logger = options as DreamLogger
+        this._logger = options as DreamLogger
         break
 
       case 'projectRoot':
-        this.projectRoot = options as string
+        this._projectRoot = options as string
         break
 
       case 'inflections':
-        this.inflections = options as () => void | Promise<void>
+        this._inflections = options as () => void | Promise<void>
         break
 
       case 'serializerCasing':
-        this.serializerCasing = options as DreamSerializerCasing
+        this._serializerCasing = options as DreamSerializerCasing
         break
 
       case 'paths':
-        this.paths = {
+        this._paths = {
           ...this.paths,
           ...(options as DreamDirectoryPaths),
         }
@@ -183,7 +214,7 @@ export default class DreamApplication {
 
       case 'parallelTests':
         if (process.env.NODE_ENV === 'test' && !Number.isNaN(Number(options)) && Number(options) > 1) {
-          this.parallelTests = options as number
+          this._parallelTests = options as number
         }
         break
 
