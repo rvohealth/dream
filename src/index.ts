@@ -2,14 +2,7 @@ export { default as DreamBin } from './bin'
 export { default as DreamCLI } from './cli'
 export { default as db } from './db'
 export { closeAllDbConnections, dreamDbConnections } from './db/dream-db-connection'
-export {
-  default as addDeferrableUniqueConstraint,
-  default as dropConstraint,
-} from './db/migration-helpers/addDeferrableUniqueConstraint'
-export { default as addEnumValue } from './db/migration-helpers/addEnumValue'
-export { default as createExtension } from './db/migration-helpers/createExtension'
-export { default as createGinIndex } from './db/migration-helpers/createGinIndex'
-export { default as dropEnumValue } from './db/migration-helpers/dropEnumValue'
+export { default as DreamMigrationHelpers } from './db/migration-helpers/DreamMigrationHelpers'
 export { default as validateColumn } from './db/validators/validateColumn'
 export { default as validateTable } from './db/validators/validateTable'
 export { WhereStatementForDream, WhereStatementForDreamClass } from './decorators/associations/shared'

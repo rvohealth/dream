@@ -1,8 +1,8 @@
 import { Kysely, sql } from 'kysely'
 import { db } from '../../../../src'
-import addEnumValue from '../../../../src/db/migration-helpers/addEnumValue'
+import DreamMigrationHelpers from '../../../../src/db/migration-helpers/DreamMigrationHelpers'
 
-describe('addEnumValue', () => {
+describe('DreamMigrationHelpers.addEnumValue', () => {
   let _db: Kysely<any>
 
   beforeEach(async () => {
@@ -15,7 +15,7 @@ describe('addEnumValue', () => {
   })
 
   it('adds the value to the enum', async () => {
-    await addEnumValue(_db, {
+    await DreamMigrationHelpers.addEnumValue(_db, {
       enumName: 'temp_enum',
       enumValue: 'c',
     })
