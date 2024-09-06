@@ -1,6 +1,5 @@
 import { Kysely } from 'kysely'
-import addDeferrableUniqueConstraint from '../../../src/db/migration-helpers/addDeferrableUniqueConstraint'
-import dropConstraint from '../../../src/db/migration-helpers/dropConstraint'
+import { DreamMigrationHelpers } from '../../../src'
 
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
@@ -14,7 +13,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
 
-  await addDeferrableUniqueConstraint(
+  await DreamMigrationHelpers.addDeferrableUniqueConstraint(
     'graph_edge_nodes_uniq_on_edge_id_node_id_position',
     'graph_edge_nodes',
     ['edge_id', 'node_id', 'position'],
@@ -23,7 +22,11 @@ export async function up(db: Kysely<any>): Promise<void> {
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-  await dropConstraint('graph_edge_nodes_uniq_on_edge_id_node_id_position', 'graph_edge_nodes', db)
+  await DreamMigrationHelpers.dropConstraint(
+    'graph_edge_nodes_uniq_on_edge_id_node_id_position',
+    'graph_edge_nodes',
+    db
+  )
 
   await db.schema.dropTable('graph_edge_nodes').execute()
 }
