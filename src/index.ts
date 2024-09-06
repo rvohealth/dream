@@ -6,10 +6,10 @@ export {
   default as addDeferrableUniqueConstraint,
   default as dropConstraint,
 } from './db/migration-helpers/addDeferrableUniqueConstraint'
-export { default as addValueToEnum } from './db/migration-helpers/addValueToEnum'
+export { default as addEnumValue } from './db/migration-helpers/addEnumValue'
 export { default as createExtension } from './db/migration-helpers/createExtension'
 export { default as createGinIndex } from './db/migration-helpers/createGinIndex'
-export { default as dropValueFromEnum } from './db/migration-helpers/dropValueFromEnum'
+export { default as dropEnumValue } from './db/migration-helpers/dropEnumValue'
 export { default as validateColumn } from './db/validators/validateColumn'
 export { default as validateTable } from './db/validators/validateTable'
 export { WhereStatementForDream, WhereStatementForDreamClass } from './decorators/associations/shared'

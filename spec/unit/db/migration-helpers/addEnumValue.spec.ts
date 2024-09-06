@@ -1,8 +1,8 @@
 import { Kysely, sql } from 'kysely'
 import { db } from '../../../../src'
-import addValueToEnum from '../../../../src/db/migration-helpers/addValueToEnum'
+import addEnumValue from '../../../../src/db/migration-helpers/addEnumValue'
 
-describe('addValueToEnum', () => {
+describe('addEnumValue', () => {
   let _db: Kysely<any>
 
   beforeEach(async () => {
@@ -15,9 +15,9 @@ describe('addValueToEnum', () => {
   })
 
   it('adds the value to the enum', async () => {
-    await addValueToEnum(_db, {
+    await addEnumValue(_db, {
       enumName: 'temp_enum',
-      enumValueToAdd: 'c',
+      enumValue: 'c',
     })
 
     const response = await sql`SELECT unnest(enum_range(NULL::temp_enum))`.execute(_db)
