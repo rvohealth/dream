@@ -1,8 +1,8 @@
 import { Kysely, sql } from 'kysely'
 import { db } from '../../../../src'
-import dropValueFromEnum from '../../../../src/db/migration-helpers/dropValueFromEnum'
+import dropEnumValue from '../../../../src/db/migration-helpers/dropEnumValue'
 
-describe('dropValueFromEnum', () => {
+describe('dropEnumValue', () => {
   let _db: Kysely<any>
 
   beforeEach(async () => {
@@ -14,10 +14,10 @@ describe('dropValueFromEnum', () => {
     await _db.schema.dropType('temp_enum').execute()
   })
 
-  it('removes the field from the enum', async () => {
-    await dropValueFromEnum(_db, {
+  it('removes the value from the enum', async () => {
+    await dropEnumValue(_db, {
       enumName: 'temp_enum',
-      enumValueToDrop: 'c',
+      enumValue: 'c',
       tablesAndColumnsToChange: [],
     })
 
@@ -47,9 +47,9 @@ describe('dropValueFromEnum', () => {
         })
         .execute()
 
-      await dropValueFromEnum(_db, {
+      await dropEnumValue(_db, {
         enumName: 'temp_enum',
-        enumValueToDrop: 'c',
+        enumValue: 'c',
         tablesAndColumnsToChange: [
           {
             table: 'pets',
@@ -74,9 +74,9 @@ describe('dropValueFromEnum', () => {
           })
           .execute()
 
-        await dropValueFromEnum(_db, {
+        await dropEnumValue(_db, {
           enumName: 'temp_enum',
-          enumValueToDrop: 'c',
+          enumValue: 'c',
           tablesAndColumnsToChange: [
             {
               table: 'pets',
@@ -120,9 +120,9 @@ describe('dropValueFromEnum', () => {
           ])
           .execute()
 
-        await dropValueFromEnum(_db, {
+        await dropEnumValue(_db, {
           enumName: 'temp_enum',
-          enumValueToDrop: 'c',
+          enumValue: 'c',
           tablesAndColumnsToChange: [
             {
               table: 'pets',
@@ -157,9 +157,9 @@ describe('dropValueFromEnum', () => {
           ])
           .execute()
 
-        await dropValueFromEnum(_db, {
+        await dropEnumValue(_db, {
           enumName: 'temp_enum',
-          enumValueToDrop: 'c',
+          enumValue: 'c',
           tablesAndColumnsToChange: [
             {
               table: 'pets',

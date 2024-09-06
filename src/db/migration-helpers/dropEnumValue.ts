@@ -1,8 +1,8 @@
 import { ColumnDataType, Kysely, RawBuilder, sql } from 'kysely'
 
-export default async function dropValueFromEnum(
+export default async function dropEnumValue(
   db: Kysely<any>,
-  { enumName, enumValueToDrop, tablesAndColumnsToChange }: DropValueFromEnumOpts
+  { enumName, enumValue, tablesAndColumnsToChange }: DropValueFromEnumOpts
 ) {
   // temporarily set all table columns depending on this enum to an acceptable alternate type
   for (const tableAndColumnToChange of tablesAndColumnsToChange) {
@@ -24,7 +24,7 @@ export default async function dropValueFromEnum(
   await db.schema.dropType(enumName).execute()
   await db.schema
     .createType(enumName)
-    .asEnum(allEnumValues.filter(val => val !== enumValueToDrop))
+    .asEnum(allEnumValues.filter(val => val !== enumValue))
     .execute()
 
   for (const tableAndColumnToChange of tablesAndColumnsToChange) {
@@ -33,14 +33,14 @@ export default async function dropValueFromEnum(
     if (isArray) {
       await replaceArrayValues(
         db,
-        enumValueToDrop,
+        enumValue,
         tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArray
       )
       await updateTableColumnToNewEnumArrayType(db, enumName, tableAndColumnToChange)
     } else {
       await replaceNonArrayValues(
         db,
-        enumValueToDrop,
+        enumValue,
         tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForNonArray
       )
       await updateTableColumnToNewEnumType(db, enumName, tableAndColumnToChange)
@@ -60,7 +60,7 @@ async function getEnumValues(db: Kysely<any>, enumName: string) {
 // provided by the user
 async function replaceArrayValues(
   db: Kysely<any>,
-  enumValueToDrop: string,
+  enumValue: string,
   tableAndColumnToChange: DropValueFromEnumTablesAndColumnsForArray
 ) {
   const { column, table } = tableAndColumnToChange
@@ -70,12 +70,10 @@ async function replaceArrayValues(
     .set({
       [column]:
         tableAndColumnToChange.behavior === 'remove'
-          ? sql.raw(`array_remove(${column}, '${enumValueToDrop}')`)
-          : sql.raw(
-              `array_replace(${column}, '${enumValueToDrop}', '${tableAndColumnToChange.replaceWith}')`
-            ),
+          ? sql.raw(`array_remove(${column}, '${enumValue}')`)
+          : sql.raw(`array_replace(${column}, '${enumValue}', '${tableAndColumnToChange.replaceWith}')`),
     })
-    .where(sql.raw(`'${enumValueToDrop}'`), '=', sql.raw(`ANY(${column})`))
+    .where(sql.raw(`'${enumValue}'`), '=', sql.raw(`ANY(${column})`))
     .execute()
 }
 
@@ -86,7 +84,7 @@ async function replaceArrayValues(
 // the user
 async function replaceNonArrayValues(
   db: Kysely<any>,
-  enumValueToDrop: string,
+  enumValue: string,
   tableAndColumnToChange: DropValueFromEnumTablesAndColumnsForNonArray
 ) {
   const { table, column, replaceWith } = tableAndColumnToChange
@@ -94,7 +92,7 @@ async function replaceNonArrayValues(
   await db
     .updateTable(table)
     .set({ [column]: replaceWith })
-    .where(column, '=', enumValueToDrop)
+    .where(column, '=', enumValue)
     .execute()
 }
 
@@ -135,13 +133,13 @@ function computedTemporaryType(array: boolean): ColumnDataType | RawBuilder<unkn
   return 'text'
 }
 
-export interface DropValueFromEnumOpts {
+interface DropValueFromEnumOpts {
   enumName: string
-  enumValueToDrop: string
+  enumValue: string
   tablesAndColumnsToChange: DropValueFromEnumTablesAndColumns[]
 }
 
-export type DropValueFromEnumTablesAndColumns =
+type DropValueFromEnumTablesAndColumns =
   | DropValueWithRemovalFromEnumTablesAndColumnsForArray
   | DropValueWithReplacementFromEnumTablesAndColumnsForArray
   | DropValueFromEnumTablesAndColumnsForNonArray
@@ -152,13 +150,13 @@ interface DropValueFromEnumTablesAndColumnsForArrayBase {
   array: true
 }
 
-export interface DropValueWithRemovalFromEnumTablesAndColumnsForArray
+interface DropValueWithRemovalFromEnumTablesAndColumnsForArray
   extends DropValueFromEnumTablesAndColumnsForArrayBase {
   behavior: 'replace'
   replaceWith: string
 }
 
-export interface DropValueWithReplacementFromEnumTablesAndColumnsForArray
+interface DropValueWithReplacementFromEnumTablesAndColumnsForArray
   extends DropValueFromEnumTablesAndColumnsForArrayBase {
   behavior: 'remove'
 }
@@ -167,7 +165,7 @@ type DropValueFromEnumTablesAndColumnsForArray =
   | DropValueWithRemovalFromEnumTablesAndColumnsForArray
   | DropValueWithReplacementFromEnumTablesAndColumnsForArray
 
-export type DropValueFromEnumTablesAndColumnsForNonArray = {
+type DropValueFromEnumTablesAndColumnsForNonArray = {
   table: string
   column: string
   replaceWith: string | null
