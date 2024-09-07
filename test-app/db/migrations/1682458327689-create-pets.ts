@@ -24,12 +24,10 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .execute()
 
-  await DreamMigrationHelpers.addDeferrableUniqueConstraint(
-    'pets_unique_position_within_species',
-    'pets',
-    ['species', 'position_within_species'],
-    db
-  )
+  await DreamMigrationHelpers.addDeferrableUniqueConstraint(db, 'pets_unique_position_within_species', {
+    table: 'pets',
+    columns: ['species', 'position_within_species'],
+  })
 }
 
 export async function down(db: Kysely<any>): Promise<void> {

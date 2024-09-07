@@ -21,17 +21,21 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 
   await DreamMigrationHelpers.addDeferrableUniqueConstraint(
+    db,
     'beautiful_balloons_unique_user_id_position_alpha',
-    'beautiful_balloons',
-    ['user_id', 'position_alpha'],
-    db
+    {
+      table: 'beautiful_balloons',
+      columns: ['user_id', 'position_alpha'],
+    }
   )
 
   await DreamMigrationHelpers.addDeferrableUniqueConstraint(
+    db,
     'beautiful_balloons_unique_user_id_type_position_beta',
-    'beautiful_balloons',
-    ['user_id', 'type', 'position_alpha'],
-    db
+    {
+      table: 'beautiful_balloons',
+      columns: ['user_id', 'type', 'position_alpha'],
+    }
   )
 }
 

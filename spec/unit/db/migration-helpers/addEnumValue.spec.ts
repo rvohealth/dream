@@ -17,7 +17,7 @@ describe('DreamMigrationHelpers.addEnumValue', () => {
   it('adds the value to the enum', async () => {
     await DreamMigrationHelpers.addEnumValue(_db, {
       enumName: 'temp_enum',
-      enumValue: 'c',
+      value: 'c',
     })
 
     const response = await sql`SELECT unnest(enum_range(NULL::temp_enum))`.execute(_db)
