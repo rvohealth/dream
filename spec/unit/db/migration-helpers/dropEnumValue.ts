@@ -17,8 +17,8 @@ describe('DreamMigrationHelpers.dropEnumValue', () => {
   it('removes the value from the enum', async () => {
     await DreamMigrationHelpers.dropEnumValue(_db, {
       enumName: 'temp_enum',
-      enumValue: 'c',
-      tablesAndColumnsToChange: [],
+      value: 'c',
+      replacements: [],
     })
 
     const response = await sql`SELECT unnest(enum_range(NULL::temp_enum))`.execute(_db)
@@ -49,8 +49,8 @@ describe('DreamMigrationHelpers.dropEnumValue', () => {
 
       await DreamMigrationHelpers.dropEnumValue(_db, {
         enumName: 'temp_enum',
-        enumValue: 'c',
-        tablesAndColumnsToChange: [
+        value: 'c',
+        replacements: [
           {
             table: 'pets',
             column: 'temporary_enum',
@@ -76,8 +76,8 @@ describe('DreamMigrationHelpers.dropEnumValue', () => {
 
         await DreamMigrationHelpers.dropEnumValue(_db, {
           enumName: 'temp_enum',
-          enumValue: 'c',
-          tablesAndColumnsToChange: [
+          value: 'c',
+          replacements: [
             {
               table: 'pets',
               column: 'temporary_enum',
@@ -122,8 +122,8 @@ describe('DreamMigrationHelpers.dropEnumValue', () => {
 
         await DreamMigrationHelpers.dropEnumValue(_db, {
           enumName: 'temp_enum',
-          enumValue: 'c',
-          tablesAndColumnsToChange: [
+          value: 'c',
+          replacements: [
             {
               table: 'pets',
               column: 'temporary_enums',
@@ -159,8 +159,8 @@ describe('DreamMigrationHelpers.dropEnumValue', () => {
 
         await DreamMigrationHelpers.dropEnumValue(_db, {
           enumName: 'temp_enum',
-          enumValue: 'c',
-          tablesAndColumnsToChange: [
+          value: 'c',
+          replacements: [
             {
               table: 'pets',
               column: 'temporary_enums',

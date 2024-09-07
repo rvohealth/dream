@@ -1,28 +1,73 @@
 import { ColumnDataType, Kysely, RawBuilder, sql } from 'kysely'
 
 export default class DreamMigrationHelpers {
+  /**
+   * Unique indexes cannot be populated by the same value even within a transaction,
+   * but deferrable unique constraints can.
+   *
+   * The Sortable decorator requires deferrable unique constraints rather than unique
+   * indexes.
+   *
+   * @param db - The Kysely database object passed into the migration up/down function
+   * @param constraintName - The name of the constraint to create
+   * @param opts.table - The name of the table
+   * @param opts.columns[] - The names of the columns to include in the constraint
+   *
+   */
   public static async addDeferrableUniqueConstraint(
+    db: Kysely<any>,
     constraintName: string,
-    tableName: string,
-    columns: string[],
-    db: Kysely<any>
+    {
+      table,
+      columns,
+    }: {
+      table: string
+      columns: string[]
+    }
   ) {
-    await this.dropConstraint(constraintName, tableName, db)
+    await this.dropConstraint(db, constraintName, { table })
     await sql`
-    ALTER TABLE ${sql.table(tableName)}
+    ALTER TABLE ${sql.table(table)}
     ADD CONSTRAINT ${sql.table(constraintName)}
       UNIQUE (${sql.raw(columns.join(', '))})
       DEFERRABLE INITIALLY DEFERRED;
   `.execute(db)
   }
 
-  public static async addEnumValue(db: Kysely<any>, { enumName, enumValue }: AddValueToEnumOpts) {
-    await sql`ALTER TYPE ${sql.raw(enumName)} ADD VALUE IF NOT EXISTS '${sql.raw(enumValue)}';`.execute(db)
+  /**
+   * Add a value to an enum.
+   *
+   * Note that this always includes "IF NOT EXISTS", so is safe to re-run multiple times.
+   *
+   * @param db - The Kysely database object passed into the migration up/down function
+   * @param opt.enumName - The name of the enum to modify
+   * @param opt.value - The name of the value to add to the enum
+   *
+   */
+  public static async addEnumValue(db: Kysely<any>, { enumName, value }: AddValueToEnumOpts) {
+    await sql`ALTER TYPE ${sql.raw(enumName)} ADD VALUE IF NOT EXISTS '${sql.raw(value)}';`.execute(db)
   }
 
+  /**
+   * Create a database extension.
+   *
+   * ```
+   *   // Add the case insensitive extension
+   *   await DreamMigrationHelpers.createExtension(db, 'citext')
+   *
+   *   // Add the pg trigram extension
+   *   await DreamMigrationHelpers.createExtension(db, 'pg_trgm')
+   * ```
+   *
+   * @param db - The Kysely database object passed into the migration up/down function
+   * @param extensionName - The name of the database extension to add
+   * @param opt.ifNotExists - Only add the extension if it doesn't already exist
+   * @param opt.publicSchema - Create using the public schema
+   *
+   */
   public static async createExtension(
-    extensionName: string,
     db: Kysely<any>,
+    extensionName: string,
     { ifNotExists = true, publicSchema = true }: { ifNotExists?: boolean; publicSchema?: boolean } = {}
   ) {
     const ifNotExistsText = ifNotExists ? ' IF NOT EXISTS ' : ' '
@@ -32,26 +77,58 @@ export default class DreamMigrationHelpers {
   `.execute(db)
   }
 
-  public static async createGinIndex(tableName: string, column: string, indexName: string, db: Kysely<any>) {
+  /**
+   * Create a gin index
+   *
+   * @param db - The Kysely database object passed into the migration up/down function
+   * @param indexName - The name of the constraint to create
+   * @param opts.table - The name of the table
+   * @param opts.column - The name of the column to index
+   *
+   */
+  public static async createGinIndex(
+    db: Kysely<any>,
+    indexName: string,
+    { table, column }: { table: string; column: string }
+  ) {
     await sql`
-    CREATE INDEX IF NOT EXISTS ${sql.raw(indexName)} ON ${sql.raw(tableName)} USING GIN (${sql.raw(
+    CREATE INDEX IF NOT EXISTS ${sql.raw(indexName)} ON ${sql.raw(table)} USING GIN (${sql.raw(
       `${column} gin_trgm_ops`
     )});
   `.execute(db)
   }
 
-  public static async dropConstraint(constraintName: string, tableName: string, db: Kysely<any>) {
+  /**
+   * Drop a constraint
+   *
+   * Note that this always includes "IF NOT EXISTS", so is safe to re-run multiple times.
+   *
+   * @param db - The Kysely database object passed into the migration up/down function
+   * @param constraintName - The name of the constraint to create
+   * @param opts.table - The name of the table
+   *
+   */
+  public static async dropConstraint(db: Kysely<any>, constraintName: string, { table }: { table: string }) {
     await sql`
-    ALTER TABLE ${sql.table(tableName)} DROP CONSTRAINT IF EXISTS ${sql.table(constraintName)};
+    ALTER TABLE ${sql.table(table)} DROP CONSTRAINT IF EXISTS ${sql.table(constraintName)};
   `.execute(db)
   }
 
+  /**
+   * Drop a value from an enum and replace it (or optionally remove it from array columns)
+   *
+   * @param db - The Kysely database object passed into the migration up/down function
+   * @param opt.enumName - The name of the enum to modify
+   * @param opt.value - The name of the value to drop from the enum
+   * @param opt.replacements[] - Details about which table and column to change and which value to replace the dropped value with (or remove it if the column is an array)
+   *
+   */
   public static async dropEnumValue(
     db: Kysely<any>,
-    { enumName, enumValue, tablesAndColumnsToChange }: DropValueFromEnumOpts
+    { enumName, value, replacements }: DropValueFromEnumOpts
   ) {
     // temporarily set all table columns depending on this enum to an acceptable alternate type
-    for (const tableAndColumnToChange of tablesAndColumnsToChange) {
+    for (const tableAndColumnToChange of replacements) {
       const tableAndColumnToChangeAsArray =
         tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArrayBase
       const isArray = tableAndColumnToChangeAsArray.array || false
@@ -70,23 +147,23 @@ export default class DreamMigrationHelpers {
     await db.schema.dropType(enumName).execute()
     await db.schema
       .createType(enumName)
-      .asEnum(allEnumValues.filter(val => val !== enumValue))
+      .asEnum(allEnumValues.filter(val => val !== value))
       .execute()
 
-    for (const tableAndColumnToChange of tablesAndColumnsToChange) {
+    for (const tableAndColumnToChange of replacements) {
       const isArray = (tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArray).array || false
 
       if (isArray) {
         await replaceArrayValues(
           db,
-          enumValue,
+          value,
           tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArray
         )
         await updateTableColumnToNewEnumArrayType(db, enumName, tableAndColumnToChange)
       } else {
         await replaceNonArrayValues(
           db,
-          enumValue,
+          value,
           tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForNonArray
         )
         await updateTableColumnToNewEnumType(db, enumName, tableAndColumnToChange)
@@ -107,7 +184,7 @@ async function getEnumValues(db: Kysely<any>, enumName: string) {
 // provided by the user
 async function replaceArrayValues(
   db: Kysely<any>,
-  enumValue: string,
+  value: string,
   tableAndColumnToChange: DropValueFromEnumTablesAndColumnsForArray
 ) {
   const { column, table } = tableAndColumnToChange
@@ -117,10 +194,10 @@ async function replaceArrayValues(
     .set({
       [column]:
         tableAndColumnToChange.behavior === 'remove'
-          ? sql.raw(`array_remove(${column}, '${enumValue}')`)
-          : sql.raw(`array_replace(${column}, '${enumValue}', '${tableAndColumnToChange.replaceWith}')`),
+          ? sql.raw(`array_remove(${column}, '${value}')`)
+          : sql.raw(`array_replace(${column}, '${value}', '${tableAndColumnToChange.replaceWith}')`),
     })
-    .where(sql.raw(`'${enumValue}'`), '=', sql.raw(`ANY(${column})`))
+    .where(sql.raw(`'${value}'`), '=', sql.raw(`ANY(${column})`))
     .execute()
 }
 
@@ -131,7 +208,7 @@ async function replaceArrayValues(
 // the user
 async function replaceNonArrayValues(
   db: Kysely<any>,
-  enumValue: string,
+  value: string,
   tableAndColumnToChange: DropValueFromEnumTablesAndColumnsForNonArray
 ) {
   const { table, column, replaceWith } = tableAndColumnToChange
@@ -139,7 +216,7 @@ async function replaceNonArrayValues(
   await db
     .updateTable(table)
     .set({ [column]: replaceWith })
-    .where(column, '=', enumValue)
+    .where(column, '=', value)
     .execute()
 }
 
@@ -182,8 +259,8 @@ function computedTemporaryType(array: boolean): ColumnDataType | RawBuilder<unkn
 
 interface DropValueFromEnumOpts {
   enumName: string
-  enumValue: string
-  tablesAndColumnsToChange: DropValueFromEnumTablesAndColumns[]
+  value: string
+  replacements: DropValueFromEnumTablesAndColumns[]
 }
 
 type DropValueFromEnumTablesAndColumns =
@@ -220,5 +297,5 @@ type DropValueFromEnumTablesAndColumnsForNonArray = {
 
 interface AddValueToEnumOpts {
   enumName: string
-  enumValue: string
+  value: string
 }
