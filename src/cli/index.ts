@@ -15,6 +15,15 @@ export default class DreamCLI {
     }
   ) {
     program
+      .command('build:docs')
+      .description('builds docs for the dream repository')
+      .action(async () => {
+        await initializeDreamApplication()
+        await DreamBin['buildDocs']()
+        process.exit()
+      })
+
+    program
       .command('generate:migration')
       .alias('g:migration')
       .description('create a new migration')
