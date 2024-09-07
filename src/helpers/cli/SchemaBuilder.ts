@@ -379,24 +379,29 @@ may need to update the table getter in the corresponding Dream.
   }
 
   private coercedType(kyselyType: string, dbType: string) {
+    const postfix = /\[\]$/.test(dbType) ? '[]' : ''
+
     return kyselyType
       .replace(/\s/g, '')
-      .replace(/Generated<(.*)>/, '$1')
+      .replace(/Generated<(.*)>/g, '$1')
+      .replace(/ArrayType<(.*)>/g, '$1[]')
       .split('|')
       .map(individualType => {
-        const withoutGenerated = individualType.replace(/Generated<(.*)>/, '$1')
-        switch (withoutGenerated) {
+        switch (individualType) {
           case 'Numeric':
-            return 'number'
+          case 'Numeric[]':
+            return `number${postfix}`
 
           case 'Timestamp':
-            return dbType === 'date' ? 'CalendarDate' : 'DateTime'
+          case 'Timestamp[]':
+            return /^date[[\]]*$/.test(dbType) ? `CalendarDate${postfix}` : `DateTime${postfix}`
 
           case 'Int8':
-            return 'IdType'
+          case 'Int8[]':
+            return `IdType${postfix}`
 
           default:
-            return withoutGenerated
+            return individualType
         }
       })
       .join(' | ')
