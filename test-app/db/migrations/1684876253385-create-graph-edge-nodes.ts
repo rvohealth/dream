@@ -14,19 +14,19 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 
   await DreamMigrationHelpers.addDeferrableUniqueConstraint(
+    db,
     'graph_edge_nodes_uniq_on_edge_id_node_id_position',
-    'graph_edge_nodes',
-    ['edge_id', 'node_id', 'position'],
-    db
+    {
+      table: 'graph_edge_nodes',
+      columns: ['edge_id', 'node_id', 'position'],
+    }
   )
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-  await DreamMigrationHelpers.dropConstraint(
-    'graph_edge_nodes_uniq_on_edge_id_node_id_position',
-    'graph_edge_nodes',
-    db
-  )
+  await DreamMigrationHelpers.dropConstraint(db, 'graph_edge_nodes_uniq_on_edge_id_node_id_position', {
+    table: 'graph_edge_nodes',
+  })
 
   await db.schema.dropTable('graph_edge_nodes').execute()
 }

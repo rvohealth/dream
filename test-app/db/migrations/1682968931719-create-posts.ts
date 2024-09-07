@@ -16,12 +16,10 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
 
-  await DreamMigrationHelpers.addDeferrableUniqueConstraint(
-    'posts_unique_position_user_id',
-    'posts',
-    ['user_id', 'position'],
-    db
-  )
+  await DreamMigrationHelpers.addDeferrableUniqueConstraint(db, 'posts_unique_position_user_id', {
+    table: 'posts',
+    columns: ['user_id', 'position'],
+  })
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
