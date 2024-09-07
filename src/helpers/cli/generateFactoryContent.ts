@@ -4,7 +4,13 @@ import relativeDreamPath from '../path/relativeDreamPath'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
 import uniq from '../uniq'
 
-export default function generateFactoryContent(fullyQualifiedModelName: string, attrs: string[]): string {
+export default function generateFactoryContent({
+  fullyQualifiedModelName,
+  columnsWithTypes,
+}: {
+  fullyQualifiedModelName: string
+  columnsWithTypes: string[]
+}): string {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
   const dreamImports: string[] = ['UpdateableProperties']
   const additionalImports: string[] = []
@@ -15,7 +21,7 @@ export default function generateFactoryContent(fullyQualifiedModelName: string, 
   const stringAttributes: string[] = []
   let firstStringAttr = true
 
-  for (const attribute of attrs) {
+  for (const attribute of columnsWithTypes) {
     const [attributeName, attributeType, ...descriptors] = attribute.split(':')
     const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(attributeName)
     const associationModelName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)

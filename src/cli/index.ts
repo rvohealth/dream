@@ -20,20 +20,20 @@ export default class DreamCLI {
       .description('create a new migration')
       .argument('<migrationName>', 'end with -to-table-name to prepopulate with an alterTable command')
       .argument(
-        '<args...>',
-        'properties of the model property1:text/string/enum/etc. property2:text/string/enum/etc. ... propertyN:text/string/enum/etc.'
+        '<columnsWithTypes...>',
+        'properties of the model column1:text/string/enum/etc. column2:text/string/enum/etc. ... columnN:text/string/enum/etc.'
       )
-      .action(async (migrationName: string, args: string[]) => {
+      .action(async (migrationName: string, columnsWithTypes: string[]) => {
         await initializeDreamApplication()
-        await DreamBin.generateMigration(migrationName, args)
+        await DreamBin.generateMigration(migrationName, columnsWithTypes)
         process.exit()
       })
 
     program
-      .command('generate:dream')
-      .alias('generate:model')
-      .alias('g:dream')
+      .command('generate:model')
       .alias('g:model')
+      .alias('generate:dream')
+      .alias('g:dream')
       .option('--no-serializer')
       .description('create a new Dream model')
       .argument(
@@ -41,12 +41,12 @@ export default class DreamCLI {
         'the name of the model to create, e.g. Post or Settings/CommunicationPreferences'
       )
       .argument(
-        '<args...>',
+        '<columnsWithTypes...>',
         'properties of the model property1:text/string/enum/etc. property2:text/string/enum/etc. ... propertyN:text/string/enum/etc.'
       )
-      .action(async (modelName: string, args: string[], options: { serializer: boolean }) => {
+      .action(async (modelName: string, columnsWithTypes: string[], options: { serializer: boolean }) => {
         await initializeDreamApplication()
-        await DreamBin.generateDream(modelName, args, options)
+        await DreamBin.generateDream(modelName, columnsWithTypes, options)
         process.exit()
       })
 
@@ -64,7 +64,7 @@ export default class DreamCLI {
       .argument('<extends>', 'just the word extends')
       .argument('<parentModelName>', 'name of the parent model')
       .argument(
-        '<args...>',
+        '<columnsWithTypes...>',
         'properties of the model property1:text/string/enum/etc. property2:text/string/enum/etc. ... propertyN:text/string/enum/etc.'
       )
       .action(
@@ -72,13 +72,13 @@ export default class DreamCLI {
           childModelName: string,
           extendsWord: string,
           parentModelName: string,
-          args: string[],
+          columnsWithTypes: string[],
           options: { serializer: boolean }
         ) => {
           await initializeDreamApplication()
           if (extendsWord !== 'extends')
-            throw new Error('Expecting: `<child-name> extends <parent-name> <args>')
-          await DreamBin.generateStiChild(childModelName, parentModelName, args, options)
+            throw new Error('Expecting: `<child-name> extends <parent-name> <columns-and-types>')
+          await DreamBin.generateStiChild(childModelName, parentModelName, columnsWithTypes, options)
           process.exit()
         }
       )
@@ -124,7 +124,7 @@ export default class DreamCLI {
     program
       .command('db:rollback')
       .description('db:rollback rolls back the migration')
-      .option('--step <integer>', 'number of steps back to travel', '1')
+      .option('--steps <integer>', 'number of steps back to travel', '1')
       .option('--skip-sync', 'skips syncing local schema after running migrations')
       .action(async ({ steps, skipSync }: { steps: number; skipSync: boolean }) => {
         await initializeDreamApplication()

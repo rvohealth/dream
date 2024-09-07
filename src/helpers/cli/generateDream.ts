@@ -8,12 +8,17 @@ import generateMigration from './generateMigration'
 import generateSerializer from './generateSerializer'
 import generateUnitSpec from './generateUnitSpec'
 
-export default async function generateDream(
-  fullyQualifiedModelName: string,
-  attributes: string[],
-  options: { serializer: boolean },
-  parentName?: string
-) {
+export default async function generateDream({
+  fullyQualifiedModelName,
+  columnsWithTypes,
+  options,
+  fullyQualifiedParentName,
+}: {
+  fullyQualifiedModelName: string
+  columnsWithTypes: string[]
+  options: { serializer: boolean }
+  fullyQualifiedParentName?: string
+}) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
 
   const { relFilePath, absDirPath, absFilePath } = dreamFileAndDirPaths(
@@ -24,7 +29,15 @@ export default async function generateDream(
   try {
     console.log(`generating dream: ${relFilePath}`)
     await fs.mkdir(absDirPath, { recursive: true })
-    await fs.writeFile(absFilePath, generateDreamContent(fullyQualifiedModelName, attributes, parentName))
+    await fs.writeFile(
+      absFilePath,
+      generateDreamContent({
+        fullyQualifiedModelName,
+        columnsWithTypes,
+        fullyQualifiedParentName,
+        serializer: options.serializer,
+      })
+    )
   } catch (error) {
     throw new Error(`
       Something happened while trying to create the Dream file:
@@ -35,12 +48,18 @@ export default async function generateDream(
     `)
   }
 
-  await generateUnitSpec(fullyQualifiedModelName)
-  await generateFactory(fullyQualifiedModelName, attributes)
-  await generateSerializer(fullyQualifiedModelName, attributes, parentName)
+  await generateUnitSpec({ fullyQualifiedModelName })
+  await generateFactory({ fullyQualifiedModelName, columnsWithTypes })
+  if (options.serializer)
+    await generateSerializer({ fullyQualifiedModelName, columnsWithTypes, fullyQualifiedParentName })
 
-  const isSTI = !!parentName
-  if (attributes.length || !isSTI) {
-    await generateMigration(fullyQualifiedModelName, attributes, fullyQualifiedModelName, parentName)
+  const isSTI = !!fullyQualifiedParentName
+  if (columnsWithTypes.length || !isSTI) {
+    await generateMigration({
+      migrationName: fullyQualifiedModelName,
+      columnsWithTypes,
+      fullyQualifiedModelName,
+      fullyQualifiedParentName,
+    })
   }
 }
