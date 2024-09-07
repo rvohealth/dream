@@ -1,5 +1,5 @@
-import '../helpers/loadEnv'
 import ConnectionConfRetriever from '../db/connection-conf-retriever'
+import DreamApplication from '../dream-application'
 import SchemaBuilder from '../helpers/cli/SchemaBuilder'
 import generateDream from '../helpers/cli/generateDream'
 import generateFactory from '../helpers/cli/generateFactory'
@@ -7,11 +7,11 @@ import generateMigration from '../helpers/cli/generateMigration'
 import generateSerializer from '../helpers/cli/generateSerializer'
 import createDb from '../helpers/db/createDb'
 import _dropDb from '../helpers/db/dropDb'
+import loadPgClient from '../helpers/db/loadPgClient'
 import runMigration from '../helpers/db/runMigration'
+import '../helpers/loadEnv'
 import sspawn from '../helpers/sspawn'
 import writeSyncFile from './helpers/sync'
-import DreamApplication from '../dream-application'
-import loadPgClient from '../helpers/db/loadPgClient'
 
 export default class DreamBin {
   public static async sync() {
@@ -74,7 +74,7 @@ export default class DreamBin {
   public static async dbRollback() {
     let step = process.argv[3] ? parseInt(process.argv[3]) : 1
     while (step > 0) {
-      await runMigration({ mode: 'rollback', step })
+      await runMigration({ mode: 'rollback' })
       step -= 1
     }
     await this.duplicateDatabase()

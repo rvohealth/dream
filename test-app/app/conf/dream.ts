@@ -1,5 +1,4 @@
 import path from 'path'
-import winston from 'winston'
 import { DreamApplication } from '../../../src'
 import inflections from './inflections'
 
@@ -14,19 +13,20 @@ export default async function (dreamApp: DreamApplication) {
 
   dreamApp.set(
     'logger',
-    winston.createLogger({
-      level: 'info',
-      format: winston.format.json(),
-      defaultMeta: { service: 'user-service' },
-      transports: [
-        //
-        // - Write all logs with importance level of `error` or less to `error.log`
-        // - Write all logs with importance level of `info` or less to `combined.log`
-        //
-        new winston.transports.File({ filename: 'error.log', level: 'error' }),
-        new winston.transports.File({ filename: 'combined.log' }),
-      ],
-    })
+    console
+    // winston.createLogger({
+    //   level: 'info',
+    //   format: winston.format.json(),
+    //   defaultMeta: { service: 'user-service' },
+    //   transports: [
+    //     //
+    //     // - Write all logs with importance level of `error` or less to `error.log`
+    //     // - Write all logs with importance level of `info` or less to `combined.log`
+    //     //
+    //     new winston.transports.File({ filename: 'error.log', level: 'error' }),
+    //     new winston.transports.File({ filename: 'combined.log' }),
+    //   ],
+    // })
   )
 
   // provides a list of path overrides for your app. This is optional, and will default
