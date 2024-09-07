@@ -1,14 +1,17 @@
 import fs from 'fs/promises'
-import { FileMigrationProvider, Migrator } from 'kysely'
+import { FileMigrationProvider, MigrationResult, Migrator } from 'kysely'
 import path from 'path'
 import db from '../../db'
-import DreamApplication from '../../dream-application'
 import DreamDbConnection from '../../db/dream-db-connection'
+import DreamApplication from '../../dream-application'
 
-export default async function runMigration({
-  mode = 'migrate',
-  // step = 1,
-}: { mode?: 'migrate' | 'rollback'; step?: number } = {}) {
+type MigrationModes = 'migrate' | 'rollback'
+
+interface MigrationOpts {
+  mode?: MigrationModes
+}
+
+export default async function runMigration({ mode = 'migrate' }: MigrationOpts = {}) {
   const dreamApp = DreamApplication.getOrFail()
   const migrationFolder = path.join(dreamApp.projectRoot, dreamApp.paths.db, 'migrations')
 
@@ -24,31 +27,117 @@ export default async function runMigration({
     }),
   })
 
-  const migrationMethod = mode === 'migrate' ? 'migrateToLatest' : 'migrateDown'
-  const { error, results } = await migrator[migrationMethod]()
+  if (mode === 'migrate') {
+    await migrate(migrator, migrationFolder)
+  } else if (mode === 'rollback') {
+    await rollback(migrator)
+  }
 
-  const migratedActionPastTense = mode === 'migrate' ? 'migrated' : 'rolled back'
-  const migratedActionCurrentTense = mode === 'migrate' ? 'migrate' : 'roll'
+  await DreamDbConnection.dropAllConnections()
+}
+
+async function migrate(migrator: Migrator, migrationFolder: string) {
+  let nextMigrationRequiringNewTransaction = await findNextMigrationRequiringNewTransaction(
+    migrator,
+    migrationFolder
+  )
+
+  while (nextMigrationRequiringNewTransaction) {
+    const migrateTo = await findMigrationBeforeNextMigrationRequiringNewTransaction(
+      migrator,
+      nextMigrationRequiringNewTransaction
+    )
+
+    if (migrateTo) {
+      const { error, results } = await migrator.migrateTo(migrateTo)
+      logResults(results, 'migrate')
+
+      if (error) {
+        await handleError(error, 'migrate')
+        break
+      }
+    }
+
+    nextMigrationRequiringNewTransaction = await findNextMigrationRequiringNewTransaction(
+      migrator,
+      migrationFolder,
+      { ignore: nextMigrationRequiringNewTransaction }
+    )
+  }
+
+  const { error, results } = await migrator.migrateToLatest()
+  logResults(results, 'migrate')
+
+  if (error) await handleError(error, 'migrate')
+}
+
+async function findMigrationBeforeNextMigrationRequiringNewTransaction(
+  migrator: Migrator,
+  nextMigrationRequiringNewTransaction: string
+) {
+  const notYetRunMigrations = (await migrator.getMigrations())
+    .filter(migrationInfo => !migrationInfo.executedAt)
+    .map(migrationInfo => migrationInfo.name)
+
+  const indexOfNextMigrationRequiringNewTransaction = notYetRunMigrations.findIndex(
+    migrationName => migrationName === nextMigrationRequiringNewTransaction
+  )
+
+  return notYetRunMigrations[indexOfNextMigrationRequiringNewTransaction - 1]
+}
+
+async function findNextMigrationRequiringNewTransaction(
+  migrator: Migrator,
+  migrationFolder: string,
+  { ignore }: { ignore?: string } = {}
+) {
+  const notYetRunMigrations = (await migrator.getMigrations())
+    .filter(migrationInfo => !migrationInfo.executedAt)
+    .map(migrationInfo => migrationInfo.name)
+    .filter(name => name !== ignore)
+
+  for (const notYetRunMigration of notYetRunMigrations) {
+    const filepath = path.join(migrationFolder, `${notYetRunMigration}.ts`)
+    const migrationRequiresNewTransaction = (await fs.readFile(filepath)).includes(
+      'DreamMigrationHelpers.dropEnumValue'
+    )
+    if (migrationRequiresNewTransaction) return notYetRunMigration
+  }
+}
+
+async function rollback(migrator: Migrator) {
+  const { error, results } = await migrator.migrateDown()
+  logResults(results, 'rollback')
+  if (error) await handleError(error, 'rollback')
+}
+
+async function handleError(error: any, mode: MigrationModes) {
+  await DreamDbConnection.dropAllConnections()
+  DreamApplication.logWithLevel('error', `failed to ${migratedActionCurrentTense(mode)}`)
+  DreamApplication.logWithLevel('error', error)
+  process.exit(1)
+}
+
+function migratedActionCurrentTense(mode: MigrationModes) {
+  return mode === 'migrate' ? 'migrate' : 'roll'
+}
+
+function migratedActionPastTense(mode: MigrationModes) {
+  return mode === 'migrate' ? 'migrated' : 'rolled back'
+}
+
+function logResults(results: MigrationResult[] | undefined, mode: MigrationModes) {
   results?.forEach(it => {
     if (it.status === 'Success') {
       DreamApplication.log(
-        'log',
-        `migration "${it.migrationName}" was ${migratedActionPastTense} successfully`
+        `migration "${it.migrationName}" was ${migratedActionPastTense(mode)} successfully`
       )
     } else if (it.status === 'Error') {
       DreamApplication.log(it)
       DreamApplication.logWithLevel(
         'error',
-        `failed to ${migratedActionCurrentTense} migration "${it.migrationName}"`
+        `failed to ${migratedActionCurrentTense(mode)} migration "${it.migrationName}"`
       )
     }
   })
-
-  if (error) {
-    DreamApplication.logWithLevel('error', `failed to ${migratedActionCurrentTense}`)
-    DreamApplication.logWithLevel('error', error)
-    process.exit(1)
-  }
-
-  await DreamDbConnection.dropAllConnections()
 }

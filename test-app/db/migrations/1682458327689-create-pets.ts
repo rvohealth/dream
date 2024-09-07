@@ -4,7 +4,7 @@ import { DreamMigrationHelpers } from '../../../src'
 export async function up(db: Kysely<any>): Promise<void> {
   // NOTE: intentionally leaving out updated at field on this model so that models without
   // an updated_at field can be tested for regressions
-  await db.schema.createType('species').asEnum(['cat', 'dog', 'frog']).execute()
+  await db.schema.createType('species').asEnum(['cat', 'dog', 'forg']).execute()
   await db.schema
     .createType('cat_treats')
     .asEnum(['tuna', 'chicken', 'ocean fish', 'cat-safe chalupas (catlupas,supaloopas)'])
