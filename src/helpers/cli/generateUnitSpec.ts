@@ -4,7 +4,11 @@ import dreamPath from '../path/dreamPath'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
 import generateUnitSpecContent from './generateUnitSpecContent'
 
-export default async function generateUnitSpec(fullyQualifiedModelName: string) {
+export default async function generateUnitSpec({
+  fullyQualifiedModelName,
+}: {
+  fullyQualifiedModelName: string
+}) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
 
   const { relFilePath, absDirPath, absFilePath } = dreamFileAndDirPaths(
@@ -15,7 +19,7 @@ export default async function generateUnitSpec(fullyQualifiedModelName: string) 
   try {
     console.log(`generating spec: ${relFilePath}`)
     await fs.mkdir(absDirPath, { recursive: true })
-    await fs.writeFile(absFilePath, generateUnitSpecContent(fullyQualifiedModelName))
+    await fs.writeFile(absFilePath, generateUnitSpecContent({ fullyQualifiedModelName }))
   } catch (error) {
     throw new Error(`
       Something happened while trying to create the spec file:

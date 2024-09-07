@@ -11,37 +11,42 @@ import dreamPath from '../path/dreamPath'
 import snakeify from '../snakeify'
 import generateStiMigrationContent from './generateStiMigrationContent'
 
-export default async function generateMigration(
-  migrationName: string,
-  attributes: string[],
-  fullyQualifiedModelName?: string,
-  parentName?: string
-) {
+export default async function generateMigration({
+  migrationName,
+  columnsWithTypes,
+  fullyQualifiedModelName,
+  fullyQualifiedParentName,
+}: {
+  migrationName: string
+  columnsWithTypes: string[]
+  fullyQualifiedModelName?: string
+  fullyQualifiedParentName?: string
+}) {
   const { relFilePath, absFilePath } = dreamFileAndDirPaths(
     path.join(dreamPath('db'), 'migrations'),
     `${migrationVersion()}-${hyphenize(migrationName).replace(/\//g, '-')}.ts`
   )
 
-  const isSTI = !!parentName
+  const isSTI = !!fullyQualifiedParentName
   let finalContent: string = ''
 
   if (isSTI) {
     finalContent = generateStiMigrationContent({
-      table: snakeify(pluralize(pascalizePath(parentName))),
-      attributes,
+      table: snakeify(pluralize(pascalizePath(fullyQualifiedParentName))),
+      columnsWithTypes,
       primaryKeyType: primaryKeyType(),
     })
   } else if (fullyQualifiedModelName) {
     finalContent = generateMigrationContent({
       table: snakeify(pluralize(pascalizePath(fullyQualifiedModelName))),
-      attributes,
+      columnsWithTypes,
       primaryKeyType: primaryKeyType(),
     })
   } else {
     const tableName: string | undefined = migrationName.match(/-to-(.+)$/)?.[1]
     finalContent = generateMigrationContent({
       table: tableName ? pluralize(tableName) : '<table-name>',
-      attributes,
+      columnsWithTypes,
       primaryKeyType: primaryKeyType(),
       createOrAlter: 'alter',
     })
