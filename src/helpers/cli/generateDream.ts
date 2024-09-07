@@ -11,6 +11,7 @@ import generateUnitSpec from './generateUnitSpec'
 export default async function generateDream(
   fullyQualifiedModelName: string,
   attributes: string[],
+  options: { serializer: boolean },
   parentName?: string
 ) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)

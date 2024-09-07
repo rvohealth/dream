@@ -2,9 +2,7 @@ import ConnectionConfRetriever from '../db/connection-conf-retriever'
 import DreamApplication from '../dream-application'
 import SchemaBuilder from '../helpers/cli/SchemaBuilder'
 import generateDream from '../helpers/cli/generateDream'
-import generateFactory from '../helpers/cli/generateFactory'
 import generateMigration from '../helpers/cli/generateMigration'
-import generateSerializer from '../helpers/cli/generateSerializer'
 import createDb from '../helpers/db/createDb'
 import _dropDb from '../helpers/db/dropDb'
 import loadPgClient from '../helpers/db/loadPgClient'
@@ -71,8 +69,8 @@ export default class DreamBin {
     // await db('primary', DreamApplication.getOrFail()).destroy()
   }
 
-  public static async dbRollback() {
-    let step = process.argv[3] ? parseInt(process.argv[3]) : 1
+  public static async dbRollback(opts: { steps: number }) {
+    let step = opts.steps
     while (step > 0) {
       await runMigration({ mode: 'rollback' })
       step -= 1
@@ -82,42 +80,21 @@ export default class DreamBin {
     // await db('primary', DreamApplication.getOrFail()).destroy()
   }
 
-  public static async generateDream() {
-    const argv = process.argv.filter(arg => !/^--/.test(arg))
-    const name = argv[3]
-    const args = argv.slice(4, argv.length)
-    await generateDream(name, args)
+  public static async generateDream(modelName: string, args: string[], options: { serializer: boolean }) {
+    await generateDream(modelName, args, options)
   }
 
-  public static async generateStiChild() {
-    const argv = process.argv.filter(arg => !/^--/.test(arg))
-    const name = argv[3]
-    const extendsWord = argv[4]
-    if (extendsWord !== 'extends') throw new Error('Expecting: `<child-name> extends <parent-name> <args>')
-    const parentName = argv[5]
-    const args = argv.slice(6, argv.length)
-    await generateDream(name, args, parentName)
+  public static async generateStiChild(
+    childModelName: string,
+    parentModelName: string,
+    args: string[],
+    options: { serializer: boolean }
+  ) {
+    await generateDream(childModelName, args, options, parentModelName)
   }
 
-  public static async generateFactory() {
-    const argv = process.argv.filter(arg => !/^--/.test(arg))
-    const name = argv[3]
-    const args = argv.slice(4, argv.length)
-    await generateFactory(name, args)
-  }
-
-  public static async generateMigration() {
-    const argv = process.argv.filter(arg => !/^--/.test(arg))
-    const name = argv[3]
-    const args = argv.slice(4, argv.length)
-    await generateMigration(name, args)
-  }
-
-  public static async generateSerializer() {
-    const argv = process.argv.filter(arg => !/^--/.test(arg))
-    const name = argv[3]
-    const args = argv.slice(4, argv.length)
-    await generateSerializer(name, args)
+  public static async generateMigration(migrationName: string, args: string[]) {
+    await generateMigration(migrationName, args)
   }
 
   // though this is a private method, it is still used internally.
