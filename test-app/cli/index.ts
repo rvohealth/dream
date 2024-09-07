@@ -15,7 +15,7 @@ const program = new Command()
 
 DreamCLI.provide(program, {
   initializeDreamApplication,
-  seedDb: async () => void
+  seedDb: async () => {},
 })
 
 program.parse(process.argv)
