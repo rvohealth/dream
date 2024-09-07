@@ -3,7 +3,7 @@ import generateFactoryContent from '../../../src/helpers/cli/generateFactoryCont
 describe('dream generate:model <name> [...attributes] (factory context)', () => {
   context('when provided with a pascalized table name', () => {
     it('generates a factory with the given name', () => {
-      const res = generateFactoryContent('User', [])
+      const res = generateFactoryContent({ fullyQualifiedModelName: 'User', columnsWithTypes: [] })
       expect(res).toEqual(
         `\
 import { UpdateableProperties } from '@rvohealth/dream'
@@ -19,11 +19,10 @@ export default async function createUser(attrs: UpdateableProperties<User> = {})
 
   context('with attrs', () => {
     it('defaults are provided when not supplied', () => {
-      const res = generateFactoryContent('Post', [
-        'title:string',
-        'body:text',
-        'type:enum:post_type:WeeklyPost,GuestPost',
-      ])
+      const res = generateFactoryContent({
+        fullyQualifiedModelName: 'Post',
+        columnsWithTypes: ['title:string', 'body:text', 'type:enum:post_type:WeeklyPost,GuestPost'],
+      })
       expect(res).toEqual(
         `\
 import { UpdateableProperties } from '@rvohealth/dream'
@@ -44,7 +43,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
 
   context('with a nested name', () => {
     it('applies nesting to name and directory structure', () => {
-      const res = generateFactoryContent('My/Nested/User', [])
+      const res = generateFactoryContent({ fullyQualifiedModelName: 'My/Nested/User', columnsWithTypes: [] })
       expect(res).toEqual(
         `\
 import { UpdateableProperties } from '@rvohealth/dream'
@@ -60,7 +59,10 @@ export default async function createMyNestedUser(attrs: UpdateableProperties<MyN
 
   context('with belongs_to attrs', () => {
     it('includes includes automatic creation of associations', () => {
-      const res = generateFactoryContent('Post', ['name:string', 'User:belongs_to'])
+      const res = generateFactoryContent({
+        fullyQualifiedModelName: 'Post',
+        columnsWithTypes: ['name:string', 'User:belongs_to'],
+      })
       expect(res).toEqual(
         `\
 import { UpdateableProperties } from '@rvohealth/dream'
@@ -81,10 +83,10 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
 
     context('with nesting', () => {
       it('includes includes automatic creation of associations', () => {
-        const res = generateFactoryContent('My/Nested/User', [
-          'name:string',
-          'My/Nested/DoubleNested/Organization:belongs_to',
-        ])
+        const res = generateFactoryContent({
+          fullyQualifiedModelName: 'My/Nested/User',
+          columnsWithTypes: ['name:string', 'My/Nested/DoubleNested/Organization:belongs_to'],
+        })
         expect(res).toEqual(
           `\
 import { UpdateableProperties } from '@rvohealth/dream'

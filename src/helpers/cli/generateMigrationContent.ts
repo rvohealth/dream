@@ -10,18 +10,18 @@ interface ColumnDefsAndDrops {
 
 export default function generateMigrationContent({
   table,
-  attributes = [],
+  columnsWithTypes = [],
   primaryKeyType = 'bigserial',
   createOrAlter = 'create',
 }: {
   table?: string
-  attributes?: string[]
+  columnsWithTypes?: string[]
   primaryKeyType?: PrimaryKeyType
   createOrAlter?: 'create' | 'alter'
 } = {}) {
   const altering = createOrAlter === 'alter'
   let requireCitextExtension = false
-  const { columnDefs, columnDrops } = attributes.reduce(
+  const { columnDefs, columnDrops } = columnsWithTypes.reduce(
     (acc: ColumnDefsAndDrops, attribute: string) => {
       const { columnDefs, columnDrops } = acc
       const [nonStandardAttributeName, attributeType, ...descriptors] = attribute.split(':')
@@ -92,7 +92,7 @@ import { ${kyselyImports.join(', ')} } from 'kysely'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
-  ${citextExtension}${generateEnumStatements(attributes)}await db.schema
+  ${citextExtension}${generateEnumStatements(columnsWithTypes)}await db.schema
     .${altering ? 'alterTable' : 'createTable'}('${table}')${
       altering ? '' : newline + generateIdStr({ primaryKeyType })
     }${columnDefLines}${
@@ -112,7 +112,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     altering
       ? `await db.schema${newline}.alterTable('${table}')${columnDropLines}.execute()`
       : `await db.schema.dropTable('${table}').execute()`
-  }${generateEnumDropStatements(attributes)}
+  }${generateEnumDropStatements(columnsWithTypes)}
 }\
 `
 }
@@ -140,15 +140,15 @@ function enumAttributeType(attribute: string) {
   return `sql\`${descriptors[0]}_enum\``
 }
 
-function generateEnumStatements(attributes: string[]) {
-  const enumStatements = attributes.filter(attribute => /:enum:.*:/.test(attribute))
+function generateEnumStatements(columnsWithTypes: string[]) {
+  const enumStatements = columnsWithTypes.filter(attribute => /:enum:.*:/.test(attribute))
   const finalStatements = enumStatements.map(statement => {
     const enumName = statement.split(':')[2]
-    const attributes = statement.split(':')[3].split(/,\s{0,}/)
+    const columnsWithTypes = statement.split(':')[3].split(/,\s{0,}/)
     return `await db.schema
     .createType('${enumName}_enum')
     .asEnum([
-      ${attributes.map(attr => `'${attr}'`).join(',\n      ')}
+      ${columnsWithTypes.map(attr => `'${attr}'`).join(',\n      ')}
     ])
     .execute()`
   })
@@ -156,8 +156,8 @@ function generateEnumStatements(attributes: string[]) {
   return finalStatements.length ? finalStatements.join('\n\n  ') + '\n\n  ' : ''
 }
 
-function generateEnumDropStatements(attributes: string[]) {
-  const enumStatements = attributes.filter(attribute => /:enum:.*:/.test(attribute))
+function generateEnumDropStatements(columnsWithTypes: string[]) {
+  const enumStatements = columnsWithTypes.filter(attribute => /:enum:.*:/.test(attribute))
   const finalStatements = enumStatements.map(statement => {
     const enumName = statement.split(':')[2]
     return `await db.schema.dropType('${enumName}_enum').execute()`

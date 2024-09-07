@@ -2,7 +2,7 @@ import generateUnitSpecContent from '../../../src/helpers/cli/generateUnitSpecCo
 
 describe('generateUnitSpecContent', () => {
   it('generates a blank unit spec for a dream model, with context commented out above', () => {
-    const res = generateUnitSpecContent('User')
+    const res = generateUnitSpecContent({ fullyQualifiedModelName: 'User' })
     expect(res).toEqual(`\
 // import { describe as context } from '@jest/globals'
 

@@ -4,7 +4,10 @@ describe('dream generate:serializer <name> [...attributes]', () => {
   context('when provided attributes', () => {
     context('when passed a dream class', () => {
       it('generates a serializer adding requested attributes, casting the serializer type to the specified model', () => {
-        const res = generateSerializerContent('User', ['logged_in_at'])
+        const res = generateSerializerContent({
+          fullyQualifiedModelName: 'User',
+          columnsWithTypes: ['logged_in_at'],
+        })
 
         expect(res).toEqual(
           `\
@@ -33,7 +36,11 @@ export default class UserSerializer<
 
     context('when parentName is included', () => {
       it('the serializers extend the parent serializers, summary omits id', () => {
-        const res = generateSerializerContent('Foo/Bar', ['hello'], 'Foo/Base')
+        const res = generateSerializerContent({
+          fullyQualifiedModelName: 'Foo/Bar',
+          columnsWithTypes: ['hello'],
+          fullyQualifiedParentName: 'Foo/Base',
+        })
 
         expect(res).toEqual(
           `\
@@ -62,7 +69,7 @@ export default class FooBarSerializer<
     context('nested paths', () => {
       context('when passed a nested model class', () => {
         it('correctly injects extra updirs to account for nested paths', () => {
-          const res = generateSerializerContent('User/Admin')
+          const res = generateSerializerContent({ fullyQualifiedModelName: 'User/Admin' })
 
           expect(res).toEqual(
             `\
@@ -116,7 +123,10 @@ export default class UserAdminSerializer<
 
       context('one of those attributes is a decimal', () => {
         it('adds a number attribute, rounded to the precision of the decimal', () => {
-          const res = generateSerializerContent('User', ['howyadoin:decimal:4,2'])
+          const res = generateSerializerContent({
+            fullyQualifiedModelName: 'User',
+            columnsWithTypes: ['howyadoin:decimal:4,2'],
+          })
 
           expect(res).toEqual(
             `\
@@ -193,7 +203,10 @@ export default class UserSerializer<
 
       context('one of those attributes is an enum', () => {
         it('adds an enum type to the Attribute call', () => {
-          const res = generateSerializerContent('User', ['topping:enum:topping:cheese,baja_sauce'])
+          const res = generateSerializerContent({
+            fullyQualifiedModelName: 'User',
+            columnsWithTypes: ['topping:enum:topping:cheese,baja_sauce'],
+          })
 
           expect(res).toEqual(
             `\
@@ -223,7 +236,10 @@ export default class UserSerializer<
       context('when one of those attributes is an association', () => {
         context('BelongsTo', () => {
           it('correctly injects RendersOne decorator and imports for the model', () => {
-            const res = generateSerializerContent('user', ['organization:belongs_to'])
+            const res = generateSerializerContent({
+              fullyQualifiedModelName: 'user',
+              columnsWithTypes: ['organization:belongs_to'],
+            })
 
             expect(res).toEqual(
               `\
@@ -253,7 +269,10 @@ export default class UserSerializer<
 
         context('HasOne', () => {
           it('correctly injects RendersOne decorator and imports for the model', () => {
-            const res = generateSerializerContent('User', ['Organization:has_one'])
+            const res = generateSerializerContent({
+              fullyQualifiedModelName: 'User',
+              columnsWithTypes: ['Organization:has_one'],
+            })
 
             expect(res).toEqual(
               `\
@@ -283,7 +302,10 @@ export default class UserSerializer<
 
         context('HasMany', () => {
           it('correctly injects RendersMany decorator and imports for the model', () => {
-            const res = generateSerializerContent('User', ['Organization:has_many'])
+            const res = generateSerializerContent({
+              fullyQualifiedModelName: 'User',
+              columnsWithTypes: ['Organization:has_many'],
+            })
 
             expect(res).toEqual(
               `\
@@ -312,7 +334,10 @@ export default class UserSerializer<
 
           context('when passed an association that should not be pluralized', () => {
             it('correctly injects RendersMany decorator and imports for the model', () => {
-              const res = generateSerializerContent('User', ['Paper:has_many'])
+              const res = generateSerializerContent({
+                fullyQualifiedModelName: 'User',
+                columnsWithTypes: ['Paper:has_many'],
+              })
 
               expect(res).toEqual(
                 `\
@@ -343,7 +368,10 @@ export default class UserSerializer<
 
         context('nested models', () => {
           it('correctly injects decorator and imports for the model, accounting for nesting', () => {
-            const res = generateSerializerContent('User/Admin', ['Double/Nested/MyModel:belongs_to'])
+            const res = generateSerializerContent({
+              fullyQualifiedModelName: 'User/Admin',
+              columnsWithTypes: ['Double/Nested/MyModel:belongs_to'],
+            })
 
             expect(res).toEqual(
               `\
@@ -376,7 +404,10 @@ export default class UserAdminSerializer<
 })
 
 function expectAttributeType(startingAttributeType: string) {
-  const res = generateSerializerContent('User', [`howyadoin:${startingAttributeType}`])
+  const res = generateSerializerContent({
+    fullyQualifiedModelName: 'User',
+    columnsWithTypes: [`howyadoin:${startingAttributeType}`],
+  })
   expect(res).toEqual(
     `\
 import { Attribute, DreamColumn, DreamSerializer } from '@rvohealth/dream'

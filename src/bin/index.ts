@@ -64,9 +64,6 @@ export default class DreamBin {
   public static async dbMigrate() {
     await runMigration({ mode: 'migrate' })
     await this.duplicateDatabase()
-
-    // release the db connection
-    // await db('primary', DreamApplication.getOrFail()).destroy()
   }
 
   public static async dbRollback(opts: { steps: number }) {
@@ -76,25 +73,27 @@ export default class DreamBin {
       step -= 1
     }
     await this.duplicateDatabase()
-
-    // await db('primary', DreamApplication.getOrFail()).destroy()
   }
 
-  public static async generateDream(modelName: string, args: string[], options: { serializer: boolean }) {
-    await generateDream(modelName, args, options)
+  public static async generateDream(
+    fullyQualifiedModelName: string,
+    columnsWithTypes: string[],
+    options: { serializer: boolean }
+  ) {
+    await generateDream({ fullyQualifiedModelName, columnsWithTypes, options })
   }
 
   public static async generateStiChild(
-    childModelName: string,
-    parentModelName: string,
-    args: string[],
+    fullyQualifiedModelName: string,
+    fullyQualifiedParentName: string,
+    columnsWithTypes: string[],
     options: { serializer: boolean }
   ) {
-    await generateDream(childModelName, args, options, parentModelName)
+    await generateDream({ fullyQualifiedModelName, columnsWithTypes, options, fullyQualifiedParentName })
   }
 
-  public static async generateMigration(migrationName: string, args: string[]) {
-    await generateMigration(migrationName, args)
+  public static async generateMigration(migrationName: string, columnsWithTypes: string[]) {
+    await generateMigration({ migrationName, columnsWithTypes })
   }
 
   // though this is a private method, it is still used internally.

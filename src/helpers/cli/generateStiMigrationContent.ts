@@ -3,12 +3,12 @@ import generateMigrationContent from './generateMigrationContent'
 
 export default function generateStiMigrationContent({
   table,
-  attributes = [],
+  columnsWithTypes = [],
   primaryKeyType = 'bigserial',
 }: {
   table?: string
-  attributes?: string[]
+  columnsWithTypes?: string[]
   primaryKeyType?: PrimaryKeyType
 } = {}) {
-  return generateMigrationContent({ table, attributes, primaryKeyType, createOrAlter: 'alter' })
+  return generateMigrationContent({ table, columnsWithTypes, primaryKeyType, createOrAlter: 'alter' })
 }

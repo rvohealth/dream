@@ -5,17 +5,26 @@
 // commanderjs docs:
 // https://github.com/tj/commander.js#quick-start
 
-import '../conf/loadEnv'
+import '../app/conf/loadEnv'
 
 import { Command } from 'commander'
-import { DreamCLI } from '../../src'
+import { DreamBin, DreamCLI } from '../../src'
 import initializeDreamApplication from './helpers/initializeDreamApplication'
 
 const program = new Command()
 
+program
+  .command('build:docs')
+  .description('builds docs for the dream repository')
+  .action(async () => {
+    await initializeDreamApplication()
+    await DreamBin['buildDocs']()
+    process.exit()
+  })
+
 DreamCLI.provide(program, {
   initializeDreamApplication,
-  seedDb: async () => void
+  seedDb: async () => {},
 })
 
 program.parse(process.argv)
