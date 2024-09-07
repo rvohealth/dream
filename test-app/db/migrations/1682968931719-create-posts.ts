@@ -1,5 +1,5 @@
 import { Kysely } from 'kysely'
-import addDeferrableUniqueConstraint from '../../../src/db/migration-helpers/addDeferrableUniqueConstraint'
+import { DreamMigrationHelpers } from '../../../src'
 
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
@@ -16,7 +16,12 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
 
-  await addDeferrableUniqueConstraint('posts_unique_position_user_id', 'posts', ['user_id', 'position'], db)
+  await DreamMigrationHelpers.addDeferrableUniqueConstraint(
+    'posts_unique_position_user_id',
+    'posts',
+    ['user_id', 'position'],
+    db
+  )
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
