@@ -5,7 +5,7 @@
 // commanderjs docs:
 // https://github.com/tj/commander.js#quick-start
 
-import '../conf/loadEnv'
+import '../conf/app/loadEnv'
 
 import { Command } from 'commander'
 import { DreamCLI } from '../../src'
