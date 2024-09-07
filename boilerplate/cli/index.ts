@@ -10,12 +10,12 @@ import '../conf/loadEnv'
 import { DreamCLI } from '@rvohealth/dream'
 import { Command } from 'commander'
 import seedDb from '../db/seed'
-import initializDreamcApplication from './helpers/initializeDreamApplication'
+import initializeDreamApplication from './helpers/initializeDreamApplication'
 
 const program = new Command()
 
 DreamCLI.provide(program, {
-  initializDreamcApplication,
+  initializeDreamApplication,
   seedDb,
 })
 
