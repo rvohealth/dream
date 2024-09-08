@@ -39,10 +39,10 @@ export default class DreamCLI {
       })
 
     program
-      .command('generate:dream')
-      .alias('generate:model')
-      .alias('g:dream')
+      .command('generate:model')
       .alias('g:model')
+      .alias('generate:dream')
+      .alias('g:dream')
       .option('--no-serializer')
       .description('create a new Dream model')
       .argument(
