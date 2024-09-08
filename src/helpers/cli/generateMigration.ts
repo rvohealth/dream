@@ -13,7 +13,7 @@ import generateStiMigrationContent from './generateStiMigrationContent'
 
 export default async function generateMigration(
   migrationName: string,
-  attributes: string[],
+  columnsWithTypes: string[],
   fullyQualifiedModelName?: string,
   parentName?: string
 ) {
@@ -28,20 +28,20 @@ export default async function generateMigration(
   if (isSTI) {
     finalContent = generateStiMigrationContent({
       table: snakeify(pluralize(pascalizePath(parentName))),
-      attributes,
+      columnsWithTypes,
       primaryKeyType: primaryKeyType(),
     })
   } else if (fullyQualifiedModelName) {
     finalContent = generateMigrationContent({
       table: snakeify(pluralize(pascalizePath(fullyQualifiedModelName))),
-      attributes,
+      columnsWithTypes,
       primaryKeyType: primaryKeyType(),
     })
   } else {
     const tableName: string | undefined = migrationName.match(/-to-(.+)$/)?.[1]
     finalContent = generateMigrationContent({
       table: tableName ? pluralize(tableName) : '<table-name>',
-      attributes,
+      columnsWithTypes,
       primaryKeyType: primaryKeyType(),
       createOrAlter: 'alter',
     })

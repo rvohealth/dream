@@ -6,7 +6,7 @@ describe('dream generate:model <name> [...attributes]', () => {
     it('generates a migration with no columns', () => {
       const res = generateMigrationContent({
         table: 'users',
-        attributes: [],
+        columnsWithTypes: [],
         primaryKeyType: 'bigserial',
       })
       expect(res).toEqual(`\
@@ -34,7 +34,7 @@ export async function down(db: Kysely<any>): Promise<void> {
       it('generates a kysely migration with multiple text fields', () => {
         const res = generateMigrationContent({
           table: 'users',
-          attributes: [
+          columnsWithTypes: [
             'email:string:128',
             'name:citext',
             'password_digest:string',
@@ -79,7 +79,7 @@ export async function down(db: Kysely<any>): Promise<void> {
       it('generates a kysely migration with decimal field', () => {
         const res = generateMigrationContent({
           table: 'chalupas',
-          attributes: ['deliciousness:decimal:4,2'],
+          columnsWithTypes: ['deliciousness:decimal:4,2'],
           primaryKeyType: 'bigserial',
         })
 
@@ -111,7 +111,7 @@ export async function down(db: Kysely<any>): Promise<void> {
           expect(() => {
             generateMigrationContent({
               table: 'chalupas',
-              attributes: ['deliciousness:decimal'],
+              columnsWithTypes: ['deliciousness:decimal'],
               primaryKeyType: 'bigserial',
             })
           }).toThrow(InvalidDecimalFieldPassedToGenerator)
@@ -123,7 +123,7 @@ export async function down(db: Kysely<any>): Promise<void> {
           expect(() => {
             generateMigrationContent({
               table: 'chalupas',
-              attributes: ['deliciousness:decimal:4'],
+              columnsWithTypes: ['deliciousness:decimal:4'],
               primaryKeyType: 'bigserial',
             })
           }).toThrow(InvalidDecimalFieldPassedToGenerator)
@@ -135,7 +135,7 @@ export async function down(db: Kysely<any>): Promise<void> {
       it('generates a kysely migration with enum', () => {
         const res = generateMigrationContent({
           table: 'chalupas',
-          attributes: [
+          columnsWithTypes: [
             'topping:enum:topping:lettuce,cheese,baja_sauce',
             'protein_type:enum:protein:beef,nonbeef',
             'existing_enum:enum:my_existing_enum',
@@ -192,7 +192,7 @@ export async function down(db: Kysely<any>): Promise<void> {
       it('generates a kysely model with the belongsTo association', () => {
         const res = generateMigrationContent({
           table: 'compositions',
-          attributes: ['admin/user:belongs_to'],
+          columnsWithTypes: ['admin/user:belongs_to'],
           primaryKeyType: 'bigserial',
         })
 
@@ -223,7 +223,7 @@ export async function down(db: Kysely<any>): Promise<void> {
         it('omits notNull', () => {
           const res = generateMigrationContent({
             table: 'compositions',
-            attributes: ['admin/user:belongs_to:optional'],
+            columnsWithTypes: ['admin/user:belongs_to:optional'],
             primaryKeyType: 'bigserial',
           })
 
@@ -255,7 +255,7 @@ export async function down(db: Kysely<any>): Promise<void> {
         it('generates a kysely model with the belongsTo association', () => {
           const res = generateMigrationContent({
             table: 'compositions',
-            attributes: ['user:belongs_to'],
+            columnsWithTypes: ['user:belongs_to'],
             primaryKeyType: 'uuid',
           })
 
@@ -288,7 +288,7 @@ export async function down(db: Kysely<any>): Promise<void> {
       it('ignores the attribute', () => {
         const res = generateMigrationContent({
           table: 'compositions',
-          attributes: ['user:has_one'],
+          columnsWithTypes: ['user:has_one'],
           primaryKeyType: 'uuid',
         })
 
@@ -319,7 +319,7 @@ export async function down(db: Kysely<any>): Promise<void> {
       it('ignores the attribute', () => {
         const res = generateMigrationContent({
           table: 'compositions',
-          attributes: ['user:has_many'],
+          columnsWithTypes: ['user:has_many'],
           primaryKeyType: 'uuid',
         })
 
