@@ -8,12 +8,17 @@ import generateMigration from './generateMigration'
 import generateSerializer from './generateSerializer'
 import generateUnitSpec from './generateUnitSpec'
 
-export default async function generateDream(
-  fullyQualifiedModelName: string,
-  columnsWithTypes: string[],
-  options: { serializer: boolean },
-  parentName?: string
-) {
+export default async function generateDream({
+  fullyQualifiedModelName,
+  columnsWithTypes,
+  options,
+  fullyQualifiedParentName,
+}: {
+  fullyQualifiedModelName: string
+  columnsWithTypes: string[]
+  options: { serializer: boolean }
+  fullyQualifiedParentName?: string
+}) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
 
   const { relFilePath, absDirPath, absFilePath } = dreamFileAndDirPaths(
@@ -26,7 +31,7 @@ export default async function generateDream(
     await fs.mkdir(absDirPath, { recursive: true })
     await fs.writeFile(
       absFilePath,
-      generateDreamContent(fullyQualifiedModelName, columnsWithTypes, parentName)
+      generateDreamContent({ fullyQualifiedModelName, columnsWithTypes, fullyQualifiedParentName })
     )
   } catch (error) {
     throw new Error(`
@@ -38,12 +43,18 @@ export default async function generateDream(
     `)
   }
 
-  await generateUnitSpec(fullyQualifiedModelName)
-  await generateFactory(fullyQualifiedModelName, columnsWithTypes)
-  if (options.serializer) await generateSerializer(fullyQualifiedModelName, columnsWithTypes, parentName)
+  await generateUnitSpec({ fullyQualifiedModelName })
+  await generateFactory({ fullyQualifiedModelName, columnsWithTypes })
+  if (options.serializer)
+    await generateSerializer({ fullyQualifiedModelName, columnsWithTypes, fullyQualifiedParentName })
 
-  const isSTI = !!parentName
+  const isSTI = !!fullyQualifiedParentName
   if (columnsWithTypes.length || !isSTI) {
-    await generateMigration(fullyQualifiedModelName, columnsWithTypes, fullyQualifiedModelName, parentName)
+    await generateMigration({
+      migrationName: fullyQualifiedModelName,
+      columnsWithTypes,
+      fullyQualifiedModelName,
+      fullyQualifiedParentName,
+    })
   }
 }

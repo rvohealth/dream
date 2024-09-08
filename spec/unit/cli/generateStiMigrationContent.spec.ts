@@ -6,7 +6,7 @@ describe('dream generate:model <name> [...attributes]', () => {
     it('generates a kysely migration with multiple text fields', () => {
       const res = generateStiMigrationContent({
         table: 'users',
-        attributes: [
+        columnsWithTypes: [
           'email:string:128',
           'name:citext',
           'password_digest:string',
@@ -56,7 +56,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     it('generates a kysely migration with decimal field', () => {
       const res = generateStiMigrationContent({
         table: 'chalupas',
-        attributes: ['deliciousness:decimal:4,2'],
+        columnsWithTypes: ['deliciousness:decimal:4,2'],
         primaryKeyType: 'bigserial',
       })
 
@@ -88,7 +88,7 @@ export async function down(db: Kysely<any>): Promise<void> {
         expect(() => {
           generateStiMigrationContent({
             table: 'chalupas',
-            attributes: ['deliciousness:decimal'],
+            columnsWithTypes: ['deliciousness:decimal'],
             primaryKeyType: 'bigserial',
           })
         }).toThrow(InvalidDecimalFieldPassedToGenerator)
@@ -100,7 +100,7 @@ export async function down(db: Kysely<any>): Promise<void> {
         expect(() => {
           generateStiMigrationContent({
             table: 'chalupas',
-            attributes: ['deliciousness:decimal:4'],
+            columnsWithTypes: ['deliciousness:decimal:4'],
             primaryKeyType: 'bigserial',
           })
         }).toThrow(InvalidDecimalFieldPassedToGenerator)
@@ -112,7 +112,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     it('generates a kysely migration with enum', () => {
       const res = generateStiMigrationContent({
         table: 'chalupas',
-        attributes: [
+        columnsWithTypes: [
           'topping:enum:topping:lettuce,cheese,baja_sauce',
           'protein_type:enum:protein:beef,nonbeef',
           'existing_enum:enum:my_existing_enum',
@@ -171,7 +171,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     it('generates a kysely model with the belongsTo association', () => {
       const res = generateStiMigrationContent({
         table: 'compositions',
-        attributes: ['admin/user:belongs_to'],
+        columnsWithTypes: ['admin/user:belongs_to'],
         primaryKeyType: 'bigserial',
       })
 
@@ -203,7 +203,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     it('generates a kysely model with the belongsTo association', () => {
       const res = generateStiMigrationContent({
         table: 'compositions',
-        attributes: ['user:belongs_to'],
+        columnsWithTypes: ['user:belongs_to'],
         primaryKeyType: 'uuid',
       })
 

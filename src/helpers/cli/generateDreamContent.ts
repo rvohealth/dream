@@ -7,11 +7,15 @@ import snakeify from '../snakeify'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
 import uniq from '../uniq'
 
-export default function generateDreamContent(
-  fullyQualifiedModelName: string,
-  attributes: string[],
+export default function generateDreamContent({
+  fullyQualifiedModelName,
+  columnsWithTypes,
+  fullyQualifiedParentName,
+}: {
+  fullyQualifiedModelName: string
+  columnsWithTypes: string[]
   fullyQualifiedParentName?: string
-) {
+}) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
   const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
   let parentModelClassName: string | undefined
@@ -29,7 +33,7 @@ export default function generateDreamContent(
     ? [importStatementForModel(fullyQualifiedModelName, fullyQualifiedParentName)]
     : [importStatementForModel(fullyQualifiedModelName, 'ApplicationModel')]
 
-  const attributeStatements = attributes.map(attribute => {
+  const attributeStatements = columnsWithTypes.map(attribute => {
     const [attributeName, attributeType, ...descriptors] = attribute.split(':')
     const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(attributeName)
     const associationModelName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)

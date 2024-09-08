@@ -76,24 +76,24 @@ export default class DreamBin {
   }
 
   public static async generateDream(
-    modelName: string,
+    fullyQualifiedModelName: string,
     columnsWithTypes: string[],
     options: { serializer: boolean }
   ) {
-    await generateDream(modelName, columnsWithTypes, options)
+    await generateDream({ fullyQualifiedModelName, columnsWithTypes, options })
   }
 
   public static async generateStiChild(
-    childModelName: string,
-    parentModelName: string,
+    fullyQualifiedModelName: string,
+    fullyQualifiedParentName: string,
     columnsWithTypes: string[],
     options: { serializer: boolean }
   ) {
-    await generateDream(childModelName, columnsWithTypes, options, parentModelName)
+    await generateDream({ fullyQualifiedModelName, columnsWithTypes, options, fullyQualifiedParentName })
   }
 
   public static async generateMigration(migrationName: string, columnsWithTypes: string[]) {
-    await generateMigration(migrationName, columnsWithTypes)
+    await generateMigration({ migrationName, columnsWithTypes })
   }
 
   // though this is a private method, it is still used internally.

@@ -4,11 +4,15 @@ import dreamPath from '../path/dreamPath'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
 import generateSerializerContent from './generateSerializerContent'
 
-export default async function generateSerializer(
-  fullyQualifiedModelName: string,
-  attributes: string[],
+export default async function generateSerializer({
+  fullyQualifiedModelName,
+  columnsWithTypes,
+  fullyQualifiedParentName,
+}: {
+  fullyQualifiedModelName: string
+  columnsWithTypes: string[]
   fullyQualifiedParentName?: string
-) {
+}) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
 
   const { relFilePath, absDirPath, absFilePath } = dreamFileAndDirPaths(
@@ -21,7 +25,7 @@ export default async function generateSerializer(
     await fs.mkdir(absDirPath, { recursive: true })
     await fs.writeFile(
       absFilePath,
-      generateSerializerContent(fullyQualifiedModelName, attributes, fullyQualifiedParentName)
+      generateSerializerContent({ fullyQualifiedModelName, columnsWithTypes, fullyQualifiedParentName })
     )
   } catch (error) {
     throw new Error(`

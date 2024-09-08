@@ -7,11 +7,15 @@ import serializerNameFromFullyQualifiedModelName from '../serializerNameFromFull
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
 import uniq from '../uniq'
 
-export default function generateSerializerContent(
-  fullyQualifiedModelName: string,
-  attributes: string[] = [],
+export default function generateSerializerContent({
+  fullyQualifiedModelName,
+  columnsWithTypes = [],
+  fullyQualifiedParentName,
+}: {
+  fullyQualifiedModelName: string
+  columnsWithTypes?: string[]
   fullyQualifiedParentName?: string
-) {
+}) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
   const additionalImports: string[] = []
   let relatedModelImport = ''
@@ -58,11 +62,11 @@ export default function generateSerializerContent(
       )
     : 'DreamSerializer'
 
-  if (attributes.find(attr => /:belongs_to|:has_one/.test(attr))) dreamImports.push('RendersOne')
-  if (attributes.find(attr => /:has_many/.test(attr))) dreamImports.push('RendersMany')
+  if (columnsWithTypes.find(attr => /:belongs_to|:has_one/.test(attr))) dreamImports.push('RendersOne')
+  if (columnsWithTypes.find(attr => /:has_many/.test(attr))) dreamImports.push('RendersMany')
 
   const additionalModelImports: string[] = []
-  attributes.forEach(attr => {
+  columnsWithTypes.forEach(attr => {
     const [name, type] = attr.split(':')
     if (['belongs_to', 'has_one', 'has_many'].includes(type)) {
       const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(name)
@@ -96,7 +100,7 @@ ${
 }}
 
 export default class ${defaultSerialzerClassName}${dataTypeCapture} extends ${defaultSerialzerExtends}${dreamSerializerTypeArgs} {
-${attributes
+${columnsWithTypes
   .map(attr => {
     const [name, type] = attr.split(':')
     const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(name)

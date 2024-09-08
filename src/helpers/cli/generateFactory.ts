@@ -4,7 +4,13 @@ import dreamPath from '../path/dreamPath'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
 import generateFactoryContent from './generateFactoryContent'
 
-export default async function generateFactory(fullyQualifiedModelName: string, attributes: string[]) {
+export default async function generateFactory({
+  fullyQualifiedModelName,
+  columnsWithTypes,
+}: {
+  fullyQualifiedModelName: string
+  columnsWithTypes: string[]
+}) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
 
   const { relFilePath, absDirPath, absFilePath } = dreamFileAndDirPaths(
@@ -15,7 +21,7 @@ export default async function generateFactory(fullyQualifiedModelName: string, a
   try {
     console.log(`generating factory: ${relFilePath}`)
     await fs.mkdir(absDirPath, { recursive: true })
-    await fs.writeFile(absFilePath, generateFactoryContent(fullyQualifiedModelName, attributes))
+    await fs.writeFile(absFilePath, generateFactoryContent({ fullyQualifiedModelName, columnsWithTypes }))
   } catch (error) {
     throw new Error(`
       Something happened while trying to create the spec file:

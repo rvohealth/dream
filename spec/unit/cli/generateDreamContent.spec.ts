@@ -3,7 +3,7 @@ import generateDreamContent from '../../../src/helpers/cli/generateDreamContent'
 describe('dream generate:model <name> [...attributes]', () => {
   context('when provided with a pascalized model name', () => {
     it('generates a dream model with multiple string fields', () => {
-      const res = generateDreamContent('MealType', [])
+      const res = generateDreamContent({ fullyQualifiedModelName: 'MealType', columnsWithTypes: [] })
       expect(res).toEqual(
         `\
 import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
@@ -32,7 +32,11 @@ export default class MealType extends ApplicationModel {
 
   context('when parentName is included', () => {
     it('extends the parent, adds STI decorator, omits table and base attributes', () => {
-      const res = generateDreamContent('Foo/Bar', ['hello:string'], 'Foo/Base')
+      const res = generateDreamContent({
+        fullyQualifiedModelName: 'Foo/Bar',
+        columnsWithTypes: ['hello:string'],
+        fullyQualifiedParentName: 'Foo/Base',
+      })
       expect(res).toEqual(
         `\
 import { DreamColumn, DreamSerializers, STI } from '@rvohealth/dream'
@@ -57,7 +61,10 @@ export default class FooBar extends FooBase {
   context('when provided attributes', () => {
     context('with a string attribute', () => {
       it('generates a dream model with multiple string fields', () => {
-        const res = generateDreamContent('user', ['email:string', 'password_digest:string'])
+        const res = generateDreamContent({
+          fullyQualifiedModelName: 'user',
+          columnsWithTypes: ['email:string', 'password_digest:string'],
+        })
         expect(res).toEqual(
           `\
 import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
@@ -88,11 +95,14 @@ export default class User extends ApplicationModel {
 
     context('with enum attributes', () => {
       it('generates a dream model with multiple enum fields', () => {
-        const res = generateDreamContent('chalupa', [
-          'topping:enum:topping:cheese,baja_sauce',
-          'protein:enum:protein:beef,non_beef',
-          'existing_enum:enum:my_existing_enum',
-        ])
+        const res = generateDreamContent({
+          fullyQualifiedModelName: 'chalupa',
+          columnsWithTypes: [
+            'topping:enum:topping:cheese,baja_sauce',
+            'protein:enum:protein:beef,non_beef',
+            'existing_enum:enum:my_existing_enum',
+          ],
+        })
         expect(res).toEqual(
           `\
 import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
@@ -124,7 +134,10 @@ export default class Chalupa extends ApplicationModel {
 
     context('when name has an uncountable rule applied in inflections conf', () => {
       it('respects inflections conf while generating model name', () => {
-        const res = generateDreamContent('paper', ['name:string'])
+        const res = generateDreamContent({
+          fullyQualifiedModelName: 'paper',
+          columnsWithTypes: ['name:string'],
+        })
         expect(res).toEqual(
           `\
 import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
@@ -155,7 +168,10 @@ export default class Paper extends ApplicationModel {
     context('relationships', () => {
       context('when provided with a belongsTo relationship', () => {
         it('generates a BelongsTo relationship in model', () => {
-          const res = generateDreamContent('composition', ['graph_node:belongs_to'])
+          const res = generateDreamContent({
+            fullyQualifiedModelName: 'composition',
+            columnsWithTypes: ['graph_node:belongs_to'],
+          })
           expect(res).toEqual(
             `\
 import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
@@ -188,7 +204,10 @@ export default class Composition extends ApplicationModel {
 
         context('when optional is included', () => {
           it('declares the BelongsTo association optional', () => {
-            const res = generateDreamContent('composition', ['graph_node:belongs_to:optional'])
+            const res = generateDreamContent({
+              fullyQualifiedModelName: 'composition',
+              columnsWithTypes: ['graph_node:belongs_to:optional'],
+            })
             expect(res).toEqual(
               `\
 import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
@@ -222,7 +241,10 @@ export default class Composition extends ApplicationModel {
 
         context('namespaced relationships', () => {
           it('can handle belongs to associations with nested paths', () => {
-            const res = generateDreamContent('cat_toy', ['pet/domestic/cat:belongs_to'])
+            const res = generateDreamContent({
+              fullyQualifiedModelName: 'cat_toy',
+              columnsWithTypes: ['pet/domestic/cat:belongs_to'],
+            })
             expect(res).toEqual(
               `\
 import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
@@ -254,7 +276,10 @@ export default class CatToy extends ApplicationModel {
           })
 
           it('can handle has many associations with nested paths', () => {
-            const res = generateDreamContent('cat_toy', ['pet/domestic/cat:has_many'])
+            const res = generateDreamContent({
+              fullyQualifiedModelName: 'cat_toy',
+              columnsWithTypes: ['pet/domestic/cat:has_many'],
+            })
             expect(res).toEqual(
               `\
 import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
@@ -285,7 +310,10 @@ export default class CatToy extends ApplicationModel {
           })
 
           it('can handle has one associations with nested paths', () => {
-            const res = generateDreamContent('cat_toy', ['pet/domestic/cat:has_one'])
+            const res = generateDreamContent({
+              fullyQualifiedModelName: 'cat_toy',
+              columnsWithTypes: ['pet/domestic/cat:has_one'],
+            })
             expect(res).toEqual(
               `\
 import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
@@ -316,7 +344,10 @@ export default class CatToy extends ApplicationModel {
           })
 
           it('produces valid association paths when the model being generated is namespaced', () => {
-            const res = generateDreamContent('pet/domestic/cat', ['graph_node:belongs_to'])
+            const res = generateDreamContent({
+              fullyQualifiedModelName: 'pet/domestic/cat',
+              columnsWithTypes: ['graph_node:belongs_to'],
+            })
             expect(res).toEqual(
               `\
 import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
@@ -348,7 +379,10 @@ export default class PetDomesticCat extends ApplicationModel {
           })
 
           it('produces valid association paths when both the model being generated and the associated model are namespaced', () => {
-            const res = generateDreamContent('pet/domestic/cat', ['pet/domestic/dog:belongs_to'])
+            const res = generateDreamContent({
+              fullyQualifiedModelName: 'pet/domestic/cat',
+              columnsWithTypes: ['pet/domestic/dog:belongs_to'],
+            })
             expect(res).toEqual(
               `\
 import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
@@ -380,7 +414,10 @@ export default class PetDomesticCat extends ApplicationModel {
           })
 
           it('produces valid association paths when both the model being generated and the associated model are namespaced', () => {
-            const res = generateDreamContent('pet/wild/cat', ['pet/domestic/dog:belongs_to'])
+            const res = generateDreamContent({
+              fullyQualifiedModelName: 'pet/wild/cat',
+              columnsWithTypes: ['pet/domestic/dog:belongs_to'],
+            })
             expect(res).toEqual(
               `\
 import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
@@ -413,7 +450,10 @@ export default class PetWildCat extends ApplicationModel {
         })
 
         it('can handle multiple associations without duplicate imports', () => {
-          const res = generateDreamContent('composition', ['user:belongs_to', 'chalupa:belongs_to'])
+          const res = generateDreamContent({
+            fullyQualifiedModelName: 'composition',
+            columnsWithTypes: ['user:belongs_to', 'chalupa:belongs_to'],
+          })
           expect(res).toEqual(
             `\
 import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
@@ -452,7 +492,10 @@ export default class Composition extends ApplicationModel {
 
       context('when provided with a hasOne relationship', () => {
         it('generates a HasOne relationship in model', () => {
-          const res = generateDreamContent('composition', ['user:has_one'])
+          const res = generateDreamContent({
+            fullyQualifiedModelName: 'composition',
+            columnsWithTypes: ['user:has_one'],
+          })
           expect(res).toEqual(
             `\
 import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
@@ -485,7 +528,10 @@ export default class Composition extends ApplicationModel {
 
       context('when provided with a hasMany relationship', () => {
         it('generates a HasMany relationship in model', () => {
-          const res = generateDreamContent('user', ['composition:has_many'])
+          const res = generateDreamContent({
+            fullyQualifiedModelName: 'user',
+            columnsWithTypes: ['composition:has_many'],
+          })
           expect(res).toEqual(
             `\
 import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
@@ -518,7 +564,10 @@ export default class User extends ApplicationModel {
 
       context('when provided with a relationship and using uuids', () => {
         it('generates a uuid id field for relations relationship in model', () => {
-          const res = generateDreamContent('composition', ['user:belongs_to'])
+          const res = generateDreamContent({
+            fullyQualifiedModelName: 'composition',
+            columnsWithTypes: ['user:belongs_to'],
+          })
           expect(res).toEqual(
             `\
 import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
