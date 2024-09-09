@@ -20,7 +20,7 @@ export default class DreamCLI {
       .description('create a new migration')
       .argument('<migrationName>', 'end with -to-table-name to prepopulate with an alterTable command')
       .argument(
-        '<columnsWithTypes...>',
+        '[columnsWithTypes...]',
         'properties of the model column1:text/string/enum/etc. column2:text/string/enum/etc. ... columnN:text/string/enum/etc.'
       )
       .action(async (migrationName: string, columnsWithTypes: string[]) => {
@@ -64,7 +64,7 @@ export default class DreamCLI {
       .argument('<extends>', 'just the word extends')
       .argument('<parentModelName>', 'name of the parent model')
       .argument(
-        '<columnsWithTypes...>',
+        '[columnsWithTypes...]',
         'properties of the model property1:text/string/enum/etc. property2:text/string/enum/etc. ... propertyN:text/string/enum/etc.'
       )
       .action(
@@ -124,7 +124,7 @@ export default class DreamCLI {
     program
       .command('db:rollback')
       .description('db:rollback rolls back the migration')
-      .option('--steps <integer>', 'number of steps back to travel', '1')
+      .option('--step [integer]', 'number of steps back to travel', '1')
       .option('--skip-sync', 'skips syncing local schema after running migrations')
       .action(async ({ steps, skipSync }: { steps: number; skipSync: boolean }) => {
         await initializeDreamApplication()
