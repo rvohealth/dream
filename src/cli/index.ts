@@ -124,7 +124,7 @@ export default class DreamCLI {
     program
       .command('db:rollback')
       .description('db:rollback rolls back the migration')
-      .option('--step <integer>', 'number of steps back to travel', '1')
+      .option('--steps <integer>', 'number of steps back to travel', '1')
       .option('--skip-sync', 'skips syncing local schema after running migrations')
       .action(async ({ steps, skipSync }: { steps: number; skipSync: boolean }) => {
         await initializeDreamApplication()

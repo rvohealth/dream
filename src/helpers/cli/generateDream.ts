@@ -31,7 +31,12 @@ export default async function generateDream({
     await fs.mkdir(absDirPath, { recursive: true })
     await fs.writeFile(
       absFilePath,
-      generateDreamContent({ fullyQualifiedModelName, columnsWithTypes, fullyQualifiedParentName })
+      generateDreamContent({
+        fullyQualifiedModelName,
+        columnsWithTypes,
+        fullyQualifiedParentName,
+        serializer: options.serializer,
+      })
     )
   } catch (error) {
     throw new Error(`
