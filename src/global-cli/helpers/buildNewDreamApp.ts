@@ -20,7 +20,7 @@ function testEnv() {
 export default async function buildNewDreamApp(appName: string, projectPath: string, args: string[]) {
   const userOptions = await gatherUserInput(args)
 
-  copyRecursive(__dirname + '/../../boilerplate', `${projectPath}/src`)
+  copyRecursive(__dirname + '/../../../boilerplate', `${projectPath}/src`)
 
   if (!testEnv()) {
     log.restoreCache()

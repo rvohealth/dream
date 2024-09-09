@@ -18,7 +18,7 @@ export default class Select<T extends readonly any[]> {
   }
 
   public async run(): Promise<T[number]> {
-    await this.init()
+    this.init()
     return new Promise(accept => {
       this.cb = accept as any
     })
@@ -71,7 +71,7 @@ export default class Select<T extends readonly any[]> {
     return clear
   }
 
-  private async init() {
+  private init() {
     console.log(this.question)
 
     readline.emitKeypressEvents(input)

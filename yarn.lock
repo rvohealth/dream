@@ -909,6 +909,7 @@ __metadata:
     "@types/pluralize": "npm:^0.0.33"
     "@types/winston": "npm:^2.4.4"
     "@typescript/analyze-trace": "npm:^0.10.1"
+    colorette: "npm:^2.0.20"
     commander: "npm:^12.1.0"
     dotenv: "npm:^16.4.5"
     eslint: "npm:=9.0.0"
@@ -939,11 +940,12 @@ __metadata:
     "@types/luxon": ^3.4.2
     "@types/node": "*"
     "@types/pg": "*"
-    commander: "*"
     kysely: ^0.27.4
     kysely-codegen: ~0.16.3
     luxon: ^3.5.0
     pg: "*"
+  bin:
+    dream: ./dist/src/global-cli/dream.js
   languageName: unknown
   linkType: soft
 
@@ -1900,6 +1902,13 @@ __metadata:
     color-convert: "npm:^1.9.3"
     color-string: "npm:^1.6.0"
   checksum: 10c0/39345d55825884c32a88b95127d417a2c24681d8b57069413596d9fcbb721459ef9d9ec24ce3e65527b5373ce171b73e38dbcd9c830a52a6487e7f37bf00e83c
+  languageName: node
+  linkType: hard
+
+"colorette@npm:^2.0.20":
+  version: 2.0.20
+  resolution: "colorette@npm:2.0.20"
+  checksum: 10c0/e94116ff33b0ff56f3b83b9ace895e5bf87c2a7a47b3401b8c3f3226e050d5ef76cf4072fb3325f9dc24d1698f9b730baf4e05eeaf861d74a1883073f4c98a40
   languageName: node
   linkType: hard
 

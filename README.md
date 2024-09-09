@@ -42,6 +42,28 @@ NODE_ENV=test yarn dreamcore db:create
 NODE_ENV=test yarn dreamcore db:migrate
 ```
 
+## Global CLI
+
+The global CLI is used to build a new psychic app. You can access the global cli on your machine by doing the following:
+
+```bash
+yarn dlx @rvohealth/dream
+```
+
+Once installed globally, you can access the global cli like so:
+
+```bash
+dream new myapp
+```
+
+To test the global cli without publishing, you can run the following from within the psychic directory:
+
+```bash
+yarn gdreamcore new myapp
+```
+
+NOTE: doing so will create the new app in the dream folder, so once done testing remember to remove it.
+
 ## Features
 
 The dream ORM features:
@@ -409,7 +431,7 @@ psy db:migrate --core
 NODE_ENV=test psy db:migrate --core
 ```
 
-#### Generating type docs:
+#### Generating type docs
 
 ```bash
 # first, you will need to update package.json version, in order to keep
