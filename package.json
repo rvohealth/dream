@@ -2,6 +2,7 @@
   "name": "@rvohealth/dream",
   "version": "0.10.20",
   "description": "dream orm",
+  "main": "dist/src/index.js",
   "repository": "https://github.com/rvohealth/dream.git",
   "author": "RVOHealth",
   "license": "MIT",
@@ -9,10 +10,6 @@
     "dist/**/*",
     "docs/**/*"
   ],
-  "exports": {
-    ".": "./dist/src/index.js",
-    "./openapi-types": "./dist/src/openapi/types.d.ts"
-  },
   "scripts": {
     "publish": "yarn npm publish",
     "dream": "yarn dreamts",
