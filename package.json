@@ -7,13 +7,13 @@
   "author": "RVOHealth",
   "license": "MIT",
   "files": [
-    "tsconfig.build.json",
-    "tsconfig.json",
-    "shared/**/*",
-    "src/**/*",
     "dist/**/*",
     "docs/**/*"
   ],
+  "exports": {
+    ".": "./dist/src/index.js",
+    "./openapi-types": "./dist/src/openapi/types.d.ts"
+  },
   "scripts": {
     "publish": "yarn npm publish",
     "dream": "yarn dreamts",
