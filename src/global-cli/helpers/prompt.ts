@@ -10,13 +10,13 @@ export default class Prompt {
   }
 
   public async run(): Promise<string> {
-    await this.init()
+    this.init()
     return new Promise(accept => {
       this.cb = accept as any
     })
   }
 
-  private async init() {
+  private init() {
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,

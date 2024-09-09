@@ -6,7 +6,7 @@ test-app/client/schema.ts
 boilerplate/
 .yarn/
 .yarnrc.yml
-global-cli/helpers/logo.ts
+src/global-cli/helpers/logo.ts
 .global-cli-dist
 .github/
 dist

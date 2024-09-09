@@ -25,19 +25,19 @@ export default async function initDreamAppIntoExistingProject(
   createDirIfNotExists(path.join(options.dbPath, options.dbPath))
 
   copyRecursive(
-    __dirname + '/../../boilerplate/conf',
+    __dirname + '/../../../boilerplate/conf',
     path.join(process.cwd(), options.projectPath, options.configPath)
   )
   copyRecursive(
-    __dirname + '/../../boilerplate/app/models',
+    __dirname + '/../../../boilerplate/app/models',
     path.join(process.cwd(), options.projectPath, options.modelsPath)
   )
   copyRecursive(
-    __dirname + '/../../boilerplate/app/serializers',
+    __dirname + '/../../../boilerplate/app/serializers',
     path.join(options.projectPath, options.serializersPath)
   )
   copyRecursive(
-    __dirname + '/../../boilerplate/db',
+    __dirname + '/../../../boilerplate/db',
     path.join(process.cwd(), options.projectPath, options.dbPath)
   )
 
@@ -65,7 +65,7 @@ export default async function initDreamAppIntoExistingProject(
 
   const packageJsonPath = path.join(process.cwd(), options.projectPath, 'package.json')
   if (fs.existsSync(packageJsonPath)) {
-    const packagejson = (await import('../../boilerplate/package.json')).default
+    const packagejson = (await import('../../../boilerplate/package.json')).default
     const userPackagejson = (await import(packageJsonPath)).default
 
     mergePackageJsonField('scripts', packagejson, userPackagejson)
