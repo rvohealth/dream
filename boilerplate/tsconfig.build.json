@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "CommonJS",
+    "module": "Node16",
     "moduleResolution": "Node16",
     "removeComments": true,
     "emitDecoratorMetadata": true,

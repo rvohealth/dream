@@ -1,5 +1,4 @@
 import { SelectQueryBuilder, UpdateQueryBuilder, sql } from 'kysely'
-import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import ConnectedToDB from '../../../db/ConnectedToDB'
 import { DbConnectionType } from '../../../db/types'
 import validateColumn from '../../../db/validators/validateColumn'
@@ -157,18 +156,8 @@ export default class SimilarityBuilder<
   */
   public update<T extends SimilarityBuilder<DreamInstance>>(
     this: T,
-    kyselyQuery: UpdateQueryBuilder<
-      DreamInstance['DB'],
-      ExtractTableAlias<DreamInstance['DB'], DreamInstance['table']>,
-      ExtractTableAlias<any, any>,
-      any
-    >
-  ): UpdateQueryBuilder<
-    DreamInstance['DB'],
-    ExtractTableAlias<DreamInstance['DB'], DreamInstance['table']>,
-    ExtractTableAlias<any, any>,
-    any
-  > {
+    kyselyQuery: UpdateQueryBuilder<DreamInstance['DB'], any, any, any>
+  ): UpdateQueryBuilder<DreamInstance['DB'], any, any, any> {
     this.whereStatementsWithSimilarityClauses().forEach((similarityStatement, index) => {
       kyselyQuery = this.addStatementToUpdateQuery({
         kyselyQuery,
@@ -316,22 +305,12 @@ export default class SimilarityBuilder<
       statementType,
       index,
     }: {
-      kyselyQuery: UpdateQueryBuilder<
-        DreamInstance['DB'],
-        ExtractTableAlias<DreamInstance['DB'], DreamInstance['table']>,
-        ExtractTableAlias<any, any>,
-        any
-      >
+      kyselyQuery: UpdateQueryBuilder<DreamInstance['DB'], any, any, any>
       similarityStatement: SimilarityStatement
       statementType: SimilarityStatementType
       index: number
     }
-  ): UpdateQueryBuilder<
-    DreamInstance['DB'],
-    ExtractTableAlias<DreamInstance['DB'], DreamInstance['table']>,
-    ExtractTableAlias<any, any>,
-    any
-  > {
+  ): UpdateQueryBuilder<DreamInstance['DB'], any, any, any> {
     const { tableName, tableAlias, columnName } = similarityStatement
     const schema = this.dreamClass.prototype.schema
     const primaryKeyName = this.dreamClass.primaryKey
