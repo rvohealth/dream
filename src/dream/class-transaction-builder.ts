@@ -1,5 +1,4 @@
 import { SelectArg, SelectExpression, Updateable } from 'kysely'
-import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import { AssociationTableNames } from '../db/reflections'
 import { PassthroughWhere, WhereStatement } from '../decorators/associations/shared'
 import Dream from '../dream'
@@ -495,8 +494,8 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
   public nestedSelect<
     I extends DreamClassTransactionBuilder<DreamInstance>,
     DB extends DreamInstance['DB'],
-    SE extends SelectExpression<DB, ExtractTableAlias<DB, DreamInstance['table']>>,
-  >(this: I, selection: SelectArg<DB, ExtractTableAlias<DB, DreamInstance['table']>, SE>) {
+    SE extends SelectExpression<DB, DreamInstance['table']>,
+  >(this: I, selection: SelectArg<DB, DreamInstance['table'], SE>) {
     return this.queryInstance().nestedSelect(selection as any)
   }
 

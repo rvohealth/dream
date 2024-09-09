@@ -1,4 +1,5 @@
-import { Attribute, AttributeStatement, DreamSerializer, OpenapiSchemaBody } from '../../../../src'
+import { Attribute, AttributeStatement, DreamSerializer } from '../../../../src'
+import { OpenapiSchemaBody } from '../../../../src/openapi/types'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec'
 import { SpeciesTypesEnumValues } from '../../../../test-app/db/sync'
 
