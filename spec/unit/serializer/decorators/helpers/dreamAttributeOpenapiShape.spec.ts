@@ -1,4 +1,4 @@
-import { OpenapiSchemaBody } from '../../../../../src'
+import { OpenapiSchemaBody } from '../../../../../src/openapi/types'
 import {
   dreamAttributeOpenapiShape,
   UseCustomOpenapiForJson,
