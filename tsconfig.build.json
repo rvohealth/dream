@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "moduleResolution": "node",
     "target": "es2021",
     "strict": true,
     "noImplicitAny": true,
@@ -11,6 +10,7 @@
     "esModuleInterop": true,
     "declaration": true,
     "skipLibCheck": true,
+    "strictNullChecks": true,
 
     /* do not require all properties to be initialized in constructor */
     "strictPropertyInitialization": false,

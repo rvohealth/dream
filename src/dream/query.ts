@@ -11,7 +11,6 @@ import {
   Updateable,
   sql,
 } from 'kysely'
-import { ExtractTableAlias } from 'kysely/dist/cjs/parser/table-parser'
 import isEmpty from 'lodash.isempty'
 import { DateTime } from 'luxon'
 import { singular } from 'pluralize'
@@ -2556,7 +2555,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     association,
     previousAssociationTableOrAlias,
   }: {
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>
+    query: SelectQueryBuilder<DB, any, object>
     dreamClass: typeof Dream
     association:
       | HasOneStatement<any, any, any, any>
@@ -2564,7 +2563,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       | BelongsToStatement<any, any, any, any>
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
   }): {
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>
+    query: SelectQueryBuilder<DB, any, object>
     dreamClass: typeof Dream
     association:
       | HasOneStatement<any, any, any, any>
@@ -2633,14 +2632,14 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     originalAssociation,
     joinsWhereStatements = {},
   }: {
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>
+    query: SelectQueryBuilder<DB, any, object>
     dreamClass: typeof Dream
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
     currentAssociationTableOrAlias: TableOrAssociationName<Schema>
     originalAssociation?: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
     joinsWhereStatements?: RelaxedJoinsWhereStatement<DB, Schema>
   }): {
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>
+    query: SelectQueryBuilder<DB, any, object>
     association: any
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
     currentAssociationTableOrAlias: TableOrAssociationName<Schema>
@@ -2866,7 +2865,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     tableNameOrAlias,
     association,
   }: {
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>
+    query: SelectQueryBuilder<DB, any, object>
     tableNameOrAlias: string
     association:
       | HasOneStatement<any, any, any, any>
@@ -2924,12 +2923,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     dreamClass,
     previousAssociationTableOrAlias,
   }: {
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>
+    query: SelectQueryBuilder<DB, any, object>
     joinsStatement: RelaxedJoinsWhereStatement<DB, Schema>
     joinsWhereStatements: RelaxedJoinsWhereStatement<DB, Schema>
     dreamClass: typeof Dream
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
-  }): SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object> {
+  }): SelectQueryBuilder<DB, any, object> {
     for (const currentAssociationTableOrAlias of Object.keys(joinsStatement)) {
       const results = this.applyOneJoin({
         query,
@@ -2979,7 +2978,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     Schema extends DreamInstance['schema'],
     WS extends WhereStatement<DB, Schema, DreamInstance['table']>,
   >(
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>,
+    query: SelectQueryBuilder<DB, any, object>,
     whereStatements: WS | WS[],
     {
       negate = false,
@@ -2999,7 +2998,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     tableNameOrAlias,
     association,
   }: {
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>
+    query: SelectQueryBuilder<DB, any, object>
     tableNameOrAlias: string
     association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
   }) {
@@ -3022,7 +3021,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   private applySingleWhereStatement<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>,
+    query: SelectQueryBuilder<DB, any, object>,
     whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>,
     {
       negate = false,
@@ -3295,7 +3294,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     Schema extends DreamInstance['schema'],
     PreviousTableName extends AssociationTableNames<DreamInstance['DB'], Schema> & keyof Schema,
   >(
-    query: SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>,
+    query: SelectQueryBuilder<DB, any, object>,
     whereJoinsStatement: RelaxedJoinsWhereStatement<DB, Schema>,
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
   ) {
@@ -3416,7 +3415,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
   private buildDelete<DB extends DreamInstance['DB']>(
     this: Query<DreamInstance>
-  ): DeleteQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object> {
+  ): DeleteQueryBuilder<DB, any, object> {
     const kyselyQuery = this.dbFor('delete').deleteFrom(
       this.baseSqlAlias as unknown as AliasedExpression<any, any>
     )
@@ -3436,7 +3435,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       bypassOrder?: boolean
       columns?: DreamColumnNames<DreamInstance>[]
     } = {}
-  ): SelectQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object> {
+  ): SelectQueryBuilder<DB, any, object> {
     let kyselyQuery: SelectQueryBuilder<DB, any, object>
 
     if (this.baseSelectQuery) {
@@ -3478,7 +3477,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       )
       kyselyQuery = kyselyQuery.select(columnsWithDefaults.map(column => this.namespaceColumn(column)))
     } else if (!bypassSelectAll) {
-      kyselyQuery = kyselyQuery.selectAll(this.baseSqlAlias as ExtractTableAlias<DB, DreamInstance['table']>)
+      kyselyQuery = kyselyQuery.selectAll(this.baseSqlAlias as any)
     }
 
     return kyselyQuery
@@ -3486,7 +3485,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
   private buildUpdate<DB extends DreamInstance['DB']>(
     attributes: Updateable<DreamInstance['table']>
-  ): UpdateQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, any, object> {
+  ): UpdateQueryBuilder<DB, any, any, object> {
     let kyselyQuery = this.dbFor('update')
       .updateTable(this.dreamClass.table as DreamInstance['table'])
       .set(attributes as any)
@@ -3500,9 +3499,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   private attachLimitAndOrderStatementsToNonSelectQuery<
     T extends Query<DreamInstance>,
     DB extends DreamInstance['DB'],
-    QueryType extends
-      | UpdateQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, any, object>
-      | DeleteQueryBuilder<DB, ExtractTableAlias<DB, DreamInstance['table']>, object>,
+    QueryType extends UpdateQueryBuilder<DB, any, any, object> | DeleteQueryBuilder<DB, any, object>,
   >(this: T, kyselyQuery: QueryType): { kyselyQuery: QueryType; clone: T } {
     if (this.limitStatement || this.orderStatements.length) {
       kyselyQuery = (kyselyQuery as any).where((eb: any) => {
@@ -3536,11 +3533,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
   private conditionallyAttachSimilarityColumnsToSelect(
     this: Query<DreamInstance>,
-    kyselyQuery: SelectQueryBuilder<
-      DreamInstance['DB'],
-      ExtractTableAlias<DreamInstance['DB'], DreamInstance['table']>,
-      object
-    >,
+    kyselyQuery: SelectQueryBuilder<DreamInstance['DB'], any, object>,
     { bypassOrder = false }: { bypassOrder?: boolean } = {}
   ) {
     const similarityBuilder = this.similarityStatementBuilder()
@@ -3553,12 +3546,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
   private conditionallyAttachSimilarityColumnsToUpdate(
     this: Query<DreamInstance>,
-    kyselyQuery: UpdateQueryBuilder<
-      DreamInstance['DB'],
-      ExtractTableAlias<DreamInstance['DB'], DreamInstance['table']>,
-      ExtractTableAlias<any, any>,
-      any
-    >
+    kyselyQuery: UpdateQueryBuilder<DreamInstance['DB'], any, any, any>
   ) {
     const similarityBuilder = this.similarityStatementBuilder()
     if (similarityBuilder.hasSimilarityClauses) {

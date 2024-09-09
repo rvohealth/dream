@@ -7,10 +7,6 @@
   "author": "RVOHealth",
   "license": "MIT",
   "files": [
-    "tsconfig.build.json",
-    "tsconfig.json",
-    "shared/**/*",
-    "src/**/*",
     "dist/**/*",
     "docs/**/*"
   ],
