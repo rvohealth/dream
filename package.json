@@ -2,7 +2,6 @@
   "name": "@rvohealth/dream",
   "version": "0.10.20",
   "description": "dream orm",
-  "main": "dist/src/index.js",
   "repository": "https://github.com/rvohealth/dream.git",
   "author": "RVOHealth",
   "license": "MIT",
