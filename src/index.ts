@@ -63,6 +63,7 @@ export {
   ViewModelSerializerKey,
   primaryKeyTypes,
 } from './dream/types'
+export { default as Encrypt, EncryptAlgorithm, EncryptOptions } from './encrypt'
 export { default as NonLoadedAssociation } from './exceptions/associations/non-loaded-association'
 export { default as CreateOrFindByFailedToCreateAndFind } from './exceptions/create-or-find-by-failed-to-create-and-find'
 export { default as GlobalNameNotSet } from './exceptions/dream-application/global-name-not-set'

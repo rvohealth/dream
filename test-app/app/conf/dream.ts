@@ -7,6 +7,19 @@ export default async function (dreamApp: DreamApplication) {
   await dreamApp.load('serializers', path.join(__dirname, '..', 'serializers'))
   await dreamApp.load('services', path.join(__dirname, '..', 'services'))
 
+  dreamApp.set('encryption', {
+    columns: {
+      current: {
+        algorithm: 'aes-256-gcm',
+        key: process.env.APP_ENCRYPTION_KEY!,
+      },
+      legacy: {
+        algorithm: 'aes-256-gcm',
+        key: process.env.LEGACY_APP_ENCRYPTION_KEY!,
+      },
+    },
+  })
+
   dreamApp.set('projectRoot', path.join(__dirname, '..', '..', '..'))
   dreamApp.set('primaryKeyType', 'bigserial')
   dreamApp.set('inflections', inflections)

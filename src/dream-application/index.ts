@@ -1,6 +1,7 @@
 import { types } from 'pg'
 import Dream from '../dream'
 import { primaryKeyTypes } from '../dream/types'
+import Encrypt, { EncryptAlgorithm, EncryptOptions } from '../encrypt'
 import DreamApplicationInitMissingCallToLoadModels from '../exceptions/dream-application/init-missing-call-to-load-models'
 import DreamApplicationInitMissingMissingProjectRoot from '../exceptions/dream-application/init-missing-project-root'
 import { parseDate, parseDatetime, parseDecimal } from '../helpers/customPgParsers'
@@ -42,6 +43,12 @@ export default class DreamApplication {
 
     if (!dreamApp.projectRoot) throw new DreamApplicationInitMissingMissingProjectRoot()
     if (!dreamApp.loadedModels) throw new DreamApplicationInitMissingCallToLoadModels()
+    if (dreamApp.encryption?.columns?.current)
+      this.checkKey(
+        'columns',
+        dreamApp.encryption.columns.current.key,
+        dreamApp.encryption.columns.current.algorithm
+      )
 
     if (!dreamApp.serializers) setCachedSerializers({})
     if (!dreamApp.services) setCachedServices({})
@@ -49,6 +56,20 @@ export default class DreamApplication {
     cacheDreamApplication(dreamApp)
 
     return dreamApp
+  }
+
+  private static checkKey(encryptionIdentifier: 'columns', key: string, algorithm: EncryptAlgorithm) {
+    if (!Encrypt.validateKey(key, algorithm))
+      console.warn(
+        `
+Your current key value for ${encryptionIdentifier} encryption is invalid.
+Try setting it to something valid, like:
+  ${Encrypt.generateKey(algorithm)}
+
+(This was done by calling:
+  Encrypt.generateKey('${algorithm}')
+`
+      )
   }
 
   /**
@@ -75,6 +96,11 @@ export default class DreamApplication {
   private _dbCredentials: DreamDbCredentialOptions
   public get dbCredentials() {
     return this._dbCredentials
+  }
+
+  private _encryption: DreamApplicationEncryptionOptions
+  public get encryption() {
+    return this._encryption
   }
 
   private _parallelTests: number | undefined
@@ -166,23 +192,29 @@ export default class DreamApplication {
     applyOption: ApplyOpt,
     options: ApplyOpt extends 'db'
       ? DreamDbCredentialOptions
-      : ApplyOpt extends 'primaryKeyType'
-        ? (typeof primaryKeyTypes)[number]
-        : ApplyOpt extends 'logger'
-          ? DreamLogger
-          : ApplyOpt extends 'projectRoot'
-            ? string
-            : ApplyOpt extends 'inflections'
-              ? () => void | Promise<void>
-              : ApplyOpt extends 'paths'
-                ? DreamDirectoryPaths
-                : ApplyOpt extends 'parallelTests'
-                  ? number
-                  : never
+      : ApplyOpt extends 'encryption'
+        ? DreamApplicationEncryptionOptions
+        : ApplyOpt extends 'primaryKeyType'
+          ? (typeof primaryKeyTypes)[number]
+          : ApplyOpt extends 'logger'
+            ? DreamLogger
+            : ApplyOpt extends 'projectRoot'
+              ? string
+              : ApplyOpt extends 'inflections'
+                ? () => void | Promise<void>
+                : ApplyOpt extends 'paths'
+                  ? DreamDirectoryPaths
+                  : ApplyOpt extends 'parallelTests'
+                    ? number
+                    : never
   ) {
     switch (applyOption) {
       case 'db':
         this._dbCredentials = options as DreamDbCredentialOptions
+        break
+
+      case 'encryption':
+        this._encryption = options as DreamApplicationEncryptionOptions
         break
 
       case 'primaryKeyType':
@@ -236,6 +268,7 @@ export interface DreamApplicationOpts {
 
 export type DreamApplicationSetOption =
   | 'db'
+  | 'encryption'
   | 'inflections'
   | 'logger'
   | 'paths'
@@ -274,7 +307,13 @@ export type DreamLogger = {
   debug: (...args: any[]) => void
   error: (...args: any[]) => void
 }
-
 export type DreamLogLevel = 'info' | 'warn' | 'debug' | 'error'
-
 export type DreamSerializerCasing = 'snake' | 'camel'
+
+export interface DreamApplicationEncryptionOptions {
+  columns: SegmentedEncryptionOptions
+}
+interface SegmentedEncryptionOptions {
+  current: EncryptOptions
+  legacy?: EncryptOptions
+}
