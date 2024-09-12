@@ -373,7 +373,7 @@ export type RelaxedPreloadStatement<Depth extends number = 0> = RelaxedJoinsStat
 
 export type RelaxedJoinsStatement<Depth extends number = 0> = Depth extends 7
   ? object
-  : { [key: string]: RelaxedJoinsStatement<Inc<Depth>> | object }
+  : Record<string, RelaxedJoinsStatement<Inc<Depth>>>
 
 export type RelaxedPreloadWhereStatement<DB, Schema, Depth extends number = 0> = RelaxedJoinsWhereStatement<
   DB,
