@@ -1459,11 +1459,40 @@ export default class Dream {
   }
 
   /**
+   * Applies include statement to a Query scoped to this model.
+   * Upon instantiating records of this model type,
+   * specified associations will be preloaded in a single query.
+   *
+   * Preloading/loading/including is necessary prior to accessing associations
+   * on a Dream instance.
+   *
+   *
+   * ```ts
+   * const user = await User.include('posts', 'comments', { visibilty: 'public' }, 'replies').first()
+   * console.log(user.posts[0].comments[0].replies)
+   * // [Reply{id: 1}, Reply{id: 2}]
+   * ```
+   *
+   * @param args - A chain of associaition names and where clauses
+   * @returns A query for this model with the include statement applied
+   */
+  public static include<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    TableName extends InstanceType<T>['table'],
+    Schema extends I['schema'],
+    const Arr extends readonly unknown[],
+  >(this: T, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
+    return this.query().include(...(args as any))
+  }
+
+  /**
    * Applies preload statement to a Query scoped to this model.
    * Upon instantiating records of this model type,
    * specified associations will be preloaded.
    *
-   * Preloading/loading is necessary prior to accessing associations
+   * Preloading/loading/including is necessary prior to accessing associations
    * on a Dream instance.
    *
    * Preload is useful for avoiding the N+1 query problem

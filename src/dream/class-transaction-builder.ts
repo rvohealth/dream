@@ -343,6 +343,37 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
   }
 
   /**
+   * Applies include statement to a Query scoped to this model.
+   * Upon instantiating records of this model type,
+   * specified associations will be included.
+   *
+   * Preloading/loading is necessary prior to accessing associations
+   * on a Dream instance.
+   *
+   * Include is useful for avoiding the N+1 query problem in a single query
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   const user = await User.txn(txn).include('posts', 'comments', { visibilty: 'public' }, 'replies').first()
+   *   console.log(user.posts[0].comments[0].replies)
+   *   // [Reply{id: 1}, Reply{id: 2}]
+   * })
+   * ```
+   *
+   * @param args - A chain of associaition names and where clauses
+   * @returns A query for this model with the include statement applied
+   */
+  public include<
+    I extends DreamClassTransactionBuilder<DreamInstance>,
+    DB extends DreamInstance['DB'],
+    TableName extends DreamInstance['table'],
+    Schema extends DreamInstance['schema'],
+    const Arr extends readonly unknown[],
+  >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
+    return this.queryInstance().include(...(args as any))
+  }
+
+  /**
    * Applies preload statement to a Query scoped to this model.
    * Upon instantiating records of this model type,
    * specified associations will be preloaded.
