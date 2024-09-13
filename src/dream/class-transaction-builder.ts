@@ -417,7 +417,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @param args - A chain of associaition names and where clauses
    * @returns A Query for this model with the joins clause applied
    */
-  public joins<
+  public innerJoin<
     I extends DreamClassTransactionBuilder<DreamInstance>,
     DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],

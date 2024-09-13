@@ -47,7 +47,7 @@ describe('Query#nestedSelect', () => {
         await EdgeNode.create({ node, edge })
 
         const nodes = await Node.where({
-          id: Node.joins('edges').nestedSelect('id'),
+          id: Node.innerJoin('edges').nestedSelect('id'),
         }).all()
         expect(nodes).toMatchDreamModels([node])
       })

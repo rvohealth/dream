@@ -1,10 +1,10 @@
-import User from '../../../test-app/app/models/User'
-import ReplicaSafe from '../../../src/decorators/replica-safe'
 import DreamDbConnection from '../../../src/db/dream-db-connection'
+import ReplicaSafe from '../../../src/decorators/replica-safe'
 import NoUpdateAllOnAssociationQuery from '../../../src/exceptions/no-updateall-on-association-query'
-import ops from '../../../src/ops'
 import NoUpdateAllOnJoins from '../../../src/exceptions/no-updateall-on-joins'
+import ops from '../../../src/ops'
 import Pet from '../../../test-app/app/models/Pet'
+import User from '../../../test-app/app/models/User'
 
 describe('Query#update', () => {
   it('takes passed params and sends them through to all models matchin query', async () => {
@@ -67,7 +67,9 @@ describe('Query#update', () => {
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
       await user.createAssociation('compositions', { content: 'Opus' })
 
-      await expect(User.joins('compositions').update({ name: 'cool' })).rejects.toThrow(NoUpdateAllOnJoins)
+      await expect(User.innerJoin('compositions').update({ name: 'cool' })).rejects.toThrow(
+        NoUpdateAllOnJoins
+      )
     })
   })
 

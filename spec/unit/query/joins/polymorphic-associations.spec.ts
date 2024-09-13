@@ -87,7 +87,7 @@ describe('Query#joins with polymorphic associations', () => {
         rating: 8,
       })
 
-      const balloons = await Balloon.joins('heartRatings').all()
+      const balloons = await Balloon.innerJoin('heartRatings').all()
       expect(balloons).toMatchDreamModels([mylar, animal])
     })
   })

@@ -21,7 +21,7 @@ describe('Query#pluck', () => {
   context('plucking from base model when joining associations', () => {
     it('plucks the specified attributes from the base model', async () => {
       await user2.createAssociation('compositions')
-      const plucked = await User.joins('compositions').pluck('id')
+      const plucked = await User.innerJoin('compositions').pluck('id')
       expect(plucked).toEqual([user2.id])
     })
   })

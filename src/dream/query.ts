@@ -759,7 +759,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @param args - A chain of associaition names and where clauses
    * @returns A cloned Query with the joins clause applied
    */
-  public leftJoin<
+  protected leftJoin<
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
