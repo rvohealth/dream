@@ -1483,7 +1483,7 @@ export default class Dream {
    * joins statement attached
    *
    * ```ts
-   * await User.joins('posts').first()
+   * await User.innerJoin('posts').first()
    * ```
    *
    * @param args - A chain of associaition names and where clauses
