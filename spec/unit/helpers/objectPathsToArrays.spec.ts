@@ -24,7 +24,6 @@ describe('objectPathsToArrays', () => {
 
   context('{ hello: { world: {}, hello2: { world2: {} } } }', () => {
     it('returns [["hello", "world"], ["hello", "hello2", "world2"]]', () => {
-      console.dir(objectPathsToArrays({ hello: { world: {}, hello2: { world2: {} } } }), { depth: null })
       expect(objectPathsToArrays({ hello: { world: {}, hello2: { world2: {} } } })).toEqual([
         ['hello', 'world'],
         ['hello', 'hello2', 'world2'],

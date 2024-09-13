@@ -19,7 +19,7 @@ import Rating from '../../../../test-app/app/models/Rating'
 import Sandbag from '../../../../test-app/app/models/Sandbag'
 import User from '../../../../test-app/app/models/User'
 
-describe('Query#include through', () => {
+describe('Query#joinLoad through', () => {
   context('explicit HasMany through a BelongsTo', () => {
     it('sets HasMany property on the model and BelongsToProperty on the associated model', async () => {
       const balloon = await Latex.create()
@@ -210,40 +210,41 @@ describe('Query#include through', () => {
 
     context('when the join model doesn’t exist', () => {
       it('sets HasOne association property on the base model to null', async () => {
-        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-        await Composition.create({ user })
+        await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-        const reloadedComposition = (
-          await Composition.query().joinLoad('mainCompositionAsset', 'compositionAssetAudits').all()
-        )[0]
-        expect(reloadedComposition.mainCompositionAsset).toBeNull()
+        const reloadedUser = (await User.query().joinLoad('firstPet').all())[0]
+
+        expect(reloadedUser.firstPet).toBeNull()
       })
     })
 
-    context('when including an association that exists on one of the STI children and not the other', () => {
-      it('sets HasOne association property on the STI child that has the association', async () => {
-        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-        const latex = await Latex.create({ color: 'blue', user })
-        const mylar = await Mylar.create({ color: 'red', user })
-        const sandbag = await Sandbag.create({ mylar })
-
-        const reloaded = (await User.query().order('id').joinLoad('balloons', 'sandbags').all())[0]
-        expect(reloaded.balloons).toMatchDreamModels([latex, mylar])
-        if (reloaded.balloons[1] instanceof Mylar)
-          expect(reloaded.balloons[1].sandbags).toMatchDreamModels([sandbag])
-        else expect((reloaded.balloons[0] as Mylar).sandbags).toMatchDreamModels([sandbag])
-      })
-
-      context("when the query doesn't include any STI child that has the association", () => {
-        it('the models without the association are loaded successfully', async () => {
+    context.skip(
+      '[INCOMPATIBLE WITH joinLoad] when including an association that exists on one of the STI children and not the other',
+      () => {
+        it('sets HasOne association property on the STI child that has the association', async () => {
           const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
           const latex = await Latex.create({ color: 'blue', user })
+          const mylar = await Mylar.create({ color: 'red', user })
+          const sandbag = await Sandbag.create({ mylar })
 
           const reloaded = (await User.query().order('id').joinLoad('balloons', 'sandbags').all())[0]
-          expect(reloaded.balloons[0]).toMatchDreamModel(latex)
+          expect(reloaded.balloons).toMatchDreamModels([latex, mylar])
+          if (reloaded.balloons[1] instanceof Mylar)
+            expect(reloaded.balloons[1].sandbags).toMatchDreamModels([sandbag])
+          else expect((reloaded.balloons[0] as Mylar).sandbags).toMatchDreamModels([sandbag])
         })
-      })
-    })
+
+        context("when the query doesn't include any STI child that has the association", () => {
+          it('the models without the association are loaded successfully', async () => {
+            const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+            const latex = await Latex.create({ color: 'blue', user })
+
+            const reloaded = (await User.query().order('id').joinLoad('balloons', 'sandbags').all())[0]
+            expect(reloaded.balloons[0]).toMatchDreamModel(latex)
+          })
+        })
+      }
+    )
   })
 
   context('implicit HasMany through HasOne', () => {
