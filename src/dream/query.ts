@@ -2970,7 +2970,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           ? currentAssociationTableOrAlias
           : `${to} as ${currentAssociationTableOrAlias}`
 
-      query = this.queryJoinFunction(query, joinType)(
+      query = query[(joinType === 'inner' ? 'innerJoin' : 'leftJoin') as 'innerJoin'](
         joinTableExpression,
         `${previousAssociationTableOrAlias}.${association.foreignKey()}`,
         `${currentAssociationTableOrAlias}.${association.primaryKey()}`
@@ -2982,7 +2982,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           ? currentAssociationTableOrAlias
           : `${to} as ${currentAssociationTableOrAlias}`
 
-      query = this.queryJoinFunction(query, joinType)(
+      query = query[(joinType === 'inner' ? 'innerJoin' : 'leftJoin') as 'innerJoin'](
         joinTableExpression,
         `${previousAssociationTableOrAlias}.${association.primaryKey()}`,
         `${currentAssociationTableOrAlias}.${association.foreignKey()}`
@@ -3015,7 +3015,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         this.throwUnlessAllRequiredWhereClausesProvided(
           association,
           currentAssociationTableOrAlias,
-          innerJoinWhereStatements
+          joinWhereStatements
         )
       }
 
@@ -3083,15 +3083,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       association,
       previousAssociationTableOrAlias,
       currentAssociationTableOrAlias,
-    }
-  }
-
-  private queryJoinFunction(query: SelectQueryBuilder<any, any, any>, joinType: JoinTypes) {
-    switch (joinType) {
-      case 'inner':
-        return query.innerJoin
-      case 'left':
-        return query.leftJoin
     }
   }
 
@@ -3572,9 +3563,21 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       kyselyQuery = query.recursivelyJoin({
         query: kyselyQuery,
         joinsStatement: query.innerJoinStatements,
-        innerJoinWhereStatements: query.innerJoinWhereStatements,
+        joinWhereStatements: query.innerJoinWhereStatements,
         dreamClass: query.dreamClass,
         previousAssociationTableOrAlias: this.baseSqlAlias,
+        joinType: 'inner',
+      })
+    }
+
+    if (!isEmpty(query.leftJoinStatements)) {
+      kyselyQuery = query.recursivelyJoin({
+        query: kyselyQuery,
+        joinsStatement: query.leftJoinStatements,
+        joinWhereStatements: query.leftJoinWhereStatements,
+        dreamClass: query.dreamClass,
+        previousAssociationTableOrAlias: this.baseSqlAlias,
+        joinType: 'left',
       })
     }
 
@@ -3764,7 +3767,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return new SimilarityBuilder(this.dreamInstance, {
       where: [...this.whereStatements],
       whereNot: [...this.whereNotStatements],
-      innerJoinWhereStatements: this.innerJoinWhereStatements,
+      joinWhereStatements: this.innerJoinWhereStatements,
       transaction: this.dreamTransaction,
       connection: this.connectionOverride,
     })
