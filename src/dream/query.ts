@@ -776,7 +776,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    */
   private fleshOutJoinsStatements<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
-    joinStatements: RelaxedPreloadStatement,
+    joinStatements: RelaxedJoinStatement,
     joinWhereStatements: RelaxedJoinWhereStatement<DB, Schema>,
     previousAssociationName: null | string,
     associationStatements: (string | WhereStatement<DB, Schema, any> | undefined)[]
