@@ -410,7 +410,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
-   *   await User.txn(txn).joins('posts').first()
+   *   await User.txn(txn).innerJoin('posts').first()
    * })
    * ```
    *

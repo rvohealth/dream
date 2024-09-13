@@ -727,7 +727,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * joins statement attached
    *
    * ```ts
-   * await User.query().joins('posts').first()
+   * await User.query().innerJoin('posts').first()
    * ```
    *
    * @param args - A chain of associaition names and where clauses
@@ -749,12 +749,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   /**
-   * Returns a new Query instance, with the provided
-   * joins statement attached
-   *
-   * ```ts
-   * await User.query().joins('posts').first()
-   * ```
+   * @internal
    *
    * @param args - A chain of associaition names and where clauses
    * @returns A cloned Query with the joins clause applied
