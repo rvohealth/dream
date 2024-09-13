@@ -1904,7 +1904,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         aliasToDreamClassesMap,
         leftJoinStatements: leftJoinStatements[nextAlias] as RelaxedJoinStatement,
       })
-      if (!associatedDream) return
       const hasMany = association.type === 'HasMany'
 
       // initialize by trying to access the association, which throws an exception if not yet initialized
@@ -1915,7 +1914,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         else dream[associationToGetterSetterProp(association)] = null
       }
 
-      if (hasMany) dream[associationToGetterSetterProp(association)].push(associatedDream)
+      if (!associatedDream) return
+
+      if (hasMany) dream[association.as].push(associatedDream)
       else dream[associationToGetterSetterProp(association)] = associatedDream
     })
 
@@ -2042,11 +2043,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     if (this.loadFromJoins) return this.allWithIncludes()
 
     const kyselyQuery = this.buildSelect(options)
-
     const results = await executeDatabaseQuery(kyselyQuery, 'execute')
-
     const theAll = results.map(r => sqlResultToDreamInstance(this.dreamClass, r)) as DreamInstance[]
-
     await this.applyPreload(this.preloadStatements as any, this.preloadWhereStatements as any, theAll)
 
     return theAll
@@ -2868,7 +2866,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     let association = dreamClass['getAssociationMetadata'](currentAssociationTableOrAlias)
 
     if (!association) {
-      console.dir(currentAssociationTableOrAlias, { depth: null })
       throw new JoinAttemptedOnMissingAssociation({
         dreamClass,
         associationName: currentAssociationTableOrAlias,
@@ -3610,6 +3607,14 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       kyselyQuery = query.recursivelyApplyJoinWhereStatement(
         kyselyQuery,
         query.innerJoinWhereStatements,
+        query.baseSqlAlias
+      )
+    }
+
+    if (!isEmpty(query.leftJoinWhereStatements)) {
+      kyselyQuery = query.recursivelyApplyJoinWhereStatement(
+        kyselyQuery,
+        query.leftJoinWhereStatements,
         query.baseSqlAlias
       )
     }

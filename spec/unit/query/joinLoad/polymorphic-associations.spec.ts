@@ -12,7 +12,7 @@ import Post from '../../../../test-app/app/models/Post'
 import Rating from '../../../../test-app/app/models/Rating'
 import User from '../../../../test-app/app/models/User'
 
-describe('Query#include with polymorphic associations', () => {
+describe('Query#joinLoad with polymorphic associations', () => {
   beforeEach(async () => {
     await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(db('primary'))
     await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(db('primary'))

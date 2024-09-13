@@ -1,7 +1,7 @@
 import Pet from '../../../../../test-app/app/models/Pet'
 import User from '../../../../../test-app/app/models/User'
 
-describe('Query#include with simple associations and overriding primary key', () => {
+describe('Query#joinLoad with simple associations and overriding primary key', () => {
   context('HasOne', () => {
     it('loads the association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })

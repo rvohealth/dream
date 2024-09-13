@@ -14,7 +14,7 @@ import Post from '../../../../test-app/app/models/Post'
 import PostComment from '../../../../test-app/app/models/PostComment'
 import User from '../../../../test-app/app/models/User'
 
-describe('Query#include with simple associations', () => {
+describe('Query#joinLoad with simple associations', () => {
   context('HasOne', () => {
     it('loads the association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
