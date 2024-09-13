@@ -1,6 +1,6 @@
-import { RelaxedJoinsStatement } from '../dream/types'
+import { RelaxedJoinStatement } from '../dream/types'
 
-export default function objectPathsToArrays(obj: RelaxedJoinsStatement): string[][] {
+export default function objectPathsToArrays(obj: RelaxedJoinStatement): string[][] {
   const completePaths: string[][] = []
   const workingPath: string[] = []
 
@@ -9,10 +9,10 @@ export default function objectPathsToArrays(obj: RelaxedJoinsStatement): string[
   return completePaths
 }
 
-function depthFirstSearch(obj: RelaxedJoinsStatement, workingPath: string[], completePaths: string[][]) {
+function depthFirstSearch(obj: RelaxedJoinStatement, workingPath: string[], completePaths: string[][]) {
   return Object.keys(obj).forEach(key => {
     if (Object.keys(obj[key]).length) {
-      depthFirstSearch(obj[key] as RelaxedJoinsStatement, [...workingPath, key], completePaths)
+      depthFirstSearch(obj[key] as RelaxedJoinStatement, [...workingPath, key], completePaths)
     } else {
       completePaths.push([...workingPath, key])
     }
