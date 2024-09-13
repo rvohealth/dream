@@ -1263,7 +1263,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    */
   public where<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
     whereStatement: WhereStatement<DB, Schema, DreamInstance['table']> | null
-  ) {
+  ): Query<DreamInstance> {
     return this._where(whereStatement, 'where')
   }
 
@@ -1281,7 +1281,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    */
   public whereAny<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
     whereStatements: WhereStatement<DB, Schema, DreamInstance['table']>[]
-  ) {
+  ): Query<DreamInstance> {
     return this.clone({
       or: [whereStatements.map(obj => ({ ...obj }))],
     })
@@ -1300,7 +1300,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    */
   public whereNot<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
     whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>
-  ) {
+  ): Query<DreamInstance> {
     return this._where(whereStatement, 'whereNot')
   }
 
@@ -1312,7 +1312,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   private _where<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
     whereStatement: WhereStatement<DB, Schema, DreamInstance['table']> | null,
     typeOfWhere: 'where' | 'whereNot'
-  ) {
+  ): Query<DreamInstance> {
     return this.clone({
       [typeOfWhere]: whereStatement === null ? null : [{ ...whereStatement }],
     })
@@ -1364,7 +1364,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    */
   public order(
     arg: DreamColumnNames<DreamInstance> | Partial<Record<DreamColumnNames<DreamInstance>, OrderDir>> | null
-  ) {
+  ): Query<DreamInstance> {
     if (arg === null) return this.clone({ order: null })
     if (isString(arg)) return this.clone({ order: [{ column: arg as any, direction: 'asc' }] })
 
@@ -1392,7 +1392,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns A cloned Query with the limit clause applied
    */
-  public limit(limit: number | null) {
+  public limit(limit: number | null): Query<DreamInstance> {
     return this.clone({ limit })
   }
 
@@ -1406,7 +1406,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns A cloned Query with the offset clause applied
    */
-  public offset(offset: number | null) {
+  public offset(offset: number | null): Query<DreamInstance> {
     return this.clone({ offset })
   }
 
