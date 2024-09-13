@@ -369,6 +369,11 @@ export type AssociationNameToDotReference<
   AssociationName,
 > = `${AssociationName & string}.${keyof Schema[TableNames]['columns' & keyof Schema[TableNames]] & string}`
 
+export type AssociationNameToDreamClass = Record<string, typeof Dream>
+
+type IdToDreamMap = Record<string, Dream>
+export type AliasToDreamIdMap = Record<string, IdToDreamMap>
+
 export type RelaxedPreloadStatement<Depth extends number = 0> = RelaxedJoinsStatement<Depth>
 
 export type RelaxedJoinsStatement<Depth extends number = 0> = Depth extends 7

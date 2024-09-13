@@ -1,4 +1,4 @@
-import { allNestedObjectKeys } from '../../../src/helpers/allNestedObjectKeys'
+import allNestedObjectKeys from '../../../src/helpers/allNestedObjectKeys'
 
 describe('allNestedObjectKeys', () => {
   context('{ hello: "world" }', () => {
@@ -8,13 +8,13 @@ describe('allNestedObjectKeys', () => {
   })
 
   context('{ hello: { world: "goodbye" } }', () => {
-    it('returns ["hello"]', () => {
+    it('returns ["hello", "world"]', () => {
       expect(allNestedObjectKeys({ hello: { world: 'goodbye' } })).toEqual(['hello', 'world'])
     })
   })
 
   context('{ hello: { world: "goodbye" }, hello2: { world2: "goodbye2" } }', () => {
-    it('returns ["hello"]', () => {
+    it('returns ["hello", "world", "hello2", "world2"]', () => {
       expect(allNestedObjectKeys({ hello: { world: 'goodbye' }, hello2: { world2: 'goodbye' } })).toEqual([
         'hello',
         'world',
@@ -25,7 +25,7 @@ describe('allNestedObjectKeys', () => {
   })
 
   context('{ hello: { world: "goodbye", hello2: { world2: "goodbye2" } } }', () => {
-    it('returns ["hello"]', () => {
+    it('returns ["hello", "world", "hello2", "world2"]', () => {
       expect(allNestedObjectKeys({ hello: { world: 'goodbye', hello2: { world2: 'goodbye' } } })).toEqual([
         'hello',
         'world',
