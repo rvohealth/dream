@@ -7,7 +7,7 @@ describe('Query#include with simple associations and overriding primary key', ()
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const pet = await Pet.create({ userThroughUuid: user })
 
-      const reloadedUser = (await User.query().include('firstPetFromUuid').all())[0]
+      const reloadedUser = (await User.query().joinLoad('firstPetFromUuid').all())[0]
       expect(reloadedUser.firstPetFromUuid).toMatchDreamModel(pet)
     })
 
@@ -15,7 +15,7 @@ describe('Query#include with simple associations and overriding primary key', ()
       it('sets it to null', async () => {
         await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-        const reloadedUser = (await User.query().include('firstPetFromUuid').all())[0]
+        const reloadedUser = (await User.query().joinLoad('firstPetFromUuid').all())[0]
         expect(reloadedUser.firstPetFromUuid).toBeNull()
       })
     })
@@ -27,7 +27,7 @@ describe('Query#include with simple associations and overriding primary key', ()
       const pet1 = await Pet.create({ userThroughUuid: user })
       const pet2 = await Pet.create({ userThroughUuid: user })
 
-      const reloadedUser = (await User.query().include('petsFromUuid').all())[0]
+      const reloadedUser = (await User.query().joinLoad('petsFromUuid').all())[0]
       expect(reloadedUser.petsFromUuid).toMatchDreamModels([pet1, pet2])
     })
 
@@ -35,7 +35,7 @@ describe('Query#include with simple associations and overriding primary key', ()
       it('sets it to an empty array', async () => {
         await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-        const reloadedUser = (await User.query().include('petsFromUuid').all())[0]
+        const reloadedUser = (await User.query().joinLoad('petsFromUuid').all())[0]
         expect(reloadedUser.petsFromUuid).toEqual([])
       })
     })
@@ -45,7 +45,7 @@ describe('Query#include with simple associations and overriding primary key', ()
     it('loads the association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       await Pet.create({ userThroughUuid: user })
-      const reloaded = (await Pet.query().include('userThroughUuid').all())[0]
+      const reloaded = (await Pet.query().joinLoad('userThroughUuid').all())[0]
       expect(reloaded.userThroughUuid).toMatchDreamModel(user)
     })
   })

@@ -225,9 +225,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   /**
    * @internal
    *
-   * whether or not to turn joins into includes
+   * whether or not to turn joins into load statements
    */
-  private readonly includeFromJoins: boolean = false
+  private readonly loadFromJoins: boolean = false
 
   /**
    * @internal
@@ -337,7 +337,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     this.whereNotStatements = Object.freeze(opts.whereNot || [])
     this.orStatements = Object.freeze(opts.or || [])
     this.orderStatements = Object.freeze(opts.order || [])
-    this.includeFromJoins = opts.includeFromJoins || false
+    this.loadFromJoins = opts.loadFromJoins || false
     this.preloadStatements = Object.freeze(opts.preloadStatements || {})
     this.preloadWhereStatements = Object.freeze(opts.preloadWhereStatements || {})
     this.joinsStatements = Object.freeze(opts.joinsStatements || {})
@@ -430,7 +430,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       order: opts.order === null ? [] : [...this.orderStatements, ...(opts.order || [])],
 
       distinctColumn: opts.distinctColumn !== undefined ? opts.distinctColumn : this.distinctColumn,
-      includeFromJoins: opts.includeFromJoins !== undefined ? opts.includeFromJoins : this.includeFromJoins,
+      loadFromJoins: opts.loadFromJoins !== undefined ? opts.loadFromJoins : this.loadFromJoins,
 
       // when passed, preloadStatements, preloadWhereStatements, joinsStatements, and joinsWhereStatements are already
       // cloned versions of the `this.` versions, handled in the `preload` and `joins` methods
@@ -641,18 +641,18 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   /**
-   * Includes associated records in a single query.
+   * Loads associated records in a single query.
    *
    * ```ts
-   * const posts = await user.associationQuery('posts').include('comments', { visibilty: 'public' }, 'replies').all()
+   * const posts = await user.associationQuery('posts').joinLoad('comments', { visibilty: 'public' }, 'replies').all()
    * console.log(posts[0].comments[0].replies[0])
    * // [Reply{id: 1}, Reply{id: 2}]
    * ```
    *
    * @param args - A chain of associaition names and where clauses
-   * @returns A cloned Query with the include statement applied
+   * @returns A cloned Query with the joinLoad statement applied
    */
-  public include<
+  public joinLoad<
     Q extends Query<DreamInstance> | Omit<Query<DreamInstance>, IncludeIncompatibleMethodNames>,
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['schema'],
@@ -671,7 +671,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       joinedClone = joinedClone.joins(...untypedArgs, associationName)
     })
 
-    return joinedClone.clone({ includeFromJoins: true }) as Omit<Q, IncludeIncompatibleMethodNames>
+    return joinedClone.clone({ loadFromJoins: true }) as Omit<Q, IncludeIncompatibleMethodNames>
   }
 
   /**
@@ -2023,7 +2023,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       columns?: DreamColumnNames<DreamInstance>[]
     } = {}
   ) {
-    if (this.includeFromJoins) return this.allWithIncludes()
+    if (this.loadFromJoins) return this.allWithIncludes()
 
     const kyselyQuery = this.buildSelect(options)
 
@@ -3785,7 +3785,7 @@ export interface QueryOpts<
   offset?: OffsetStatement | null
   or?: WhereStatement<DB, Schema, any>[][] | null
   order?: OrderQueryStatement<ColumnType>[] | null
-  includeFromJoins?: boolean
+  loadFromJoins?: boolean
   preloadStatements?: RelaxedPreloadStatement
   preloadWhereStatements?: RelaxedPreloadWhereStatement<DB, Schema>
   distinctColumn?: ColumnType | null

@@ -26,7 +26,7 @@ describe('Query#include with polymorphic associations', () => {
       const post = await Post.create({ user })
       const postRating = await Rating.create({ user, rateable: post })
 
-      const reloaded = (await Post.where({ id: post.id }).include('ratings').all())[0]
+      const reloaded = (await Post.where({ id: post.id }).joinLoad('ratings').all())[0]
       expect(reloaded.ratings).toMatchDreamModels([postRating])
     })
 
@@ -38,7 +38,7 @@ describe('Query#include with polymorphic associations', () => {
       await Rating.create({ user, rateable: post, rating: 3 })
       const postRating = await Rating.create({ user, rateable: post, rating: 7 })
 
-      const reloaded = (await Post.where({ id: post.id }).include('ratings', { rating: 7 }).all())[0]
+      const reloaded = (await Post.where({ id: post.id }).joinLoad('ratings', { rating: 7 }).all())[0]
       expect(reloaded.ratings).toMatchDreamModels([postRating])
     })
 
@@ -48,7 +48,7 @@ describe('Query#include with polymorphic associations', () => {
       const post = await Post.create({ user })
       const heartRating = await HeartRating.create({ user, extraRateable: post })
 
-      const reloaded = (await Post.where({ id: post.id }).include('heartRatings').all())[0]
+      const reloaded = (await Post.where({ id: post.id }).joinLoad('heartRatings').all())[0]
       expect(reloaded.heartRatings).toMatchDreamModels([heartRating])
     })
 
@@ -65,7 +65,7 @@ describe('Query#include with polymorphic associations', () => {
         const post2 = await Post.create({ user })
         const rating2 = await Rating.create({ user, rateable: post2 })
 
-        const reloadedUser = (await User.query().include('ratings').all())[0]
+        const reloadedUser = (await User.query().joinLoad('ratings').all())[0]
         expect(reloadedUser.ratings).toMatchDreamModels([rating1, rating2])
       })
     })
@@ -96,7 +96,7 @@ describe('Query#include with polymorphic associations', () => {
           rating: 8,
         })
 
-        const balloons = await Balloon.include('heartRatings').all()
+        const balloons = await Balloon.joinLoad('heartRatings').all()
 
         const reloadedMylar = balloons.find(obj => obj.type === 'Mylar') as Mylar
         expect(reloadedMylar).toMatchDreamModel(mylar)
@@ -123,7 +123,7 @@ describe('Query#include with polymorphic associations', () => {
         const rating = await NonNullRating.create({ user, rateable: post })
 
         const reloaded = (
-          await Post.where({ id: post.id }).include('overriddenNonNullRatings', 'user').all()
+          await Post.where({ id: post.id }).joinLoad('overriddenNonNullRatings', 'user').all()
         )[0]
 
         expect(await NonNullRating.count()).toEqual(0)
@@ -140,7 +140,7 @@ describe('Query#include with polymorphic associations', () => {
       const post = await Post.create({ user })
       const rating = await Rating.create({ user, rateable: post })
 
-      const reloaded = (await Rating.where({ id: rating.id }).include('rateable').all())[0]
+      const reloaded = (await Rating.where({ id: rating.id }).joinLoad('rateable').all())[0]
       expect(reloaded.rateable).toMatchDreamModel(post)
     })
 
@@ -155,11 +155,11 @@ describe('Query#include with polymorphic associations', () => {
         const post = await Post.create({ user, deletedAt: DateTime.now() })
         const rating = await Rating.create({ user, rateable: post })
 
-        const reloaded = (await Rating.where({ id: rating.id }).include('rateable', 'user').all())[0]
+        const reloaded = (await Rating.where({ id: rating.id }).joinLoad('rateable', 'user').all())[0]
         expect(reloaded.rateable).toBeNull()
 
         const unscopedReloaded = (
-          await Rating.removeAllDefaultScopes().where({ id: rating.id }).include('rateable', 'user').all()
+          await Rating.removeAllDefaultScopes().where({ id: rating.id }).joinLoad('rateable', 'user').all()
         )[0]
         expect(unscopedReloaded.rateable.user).toMatchDreamModel(user)
       })
@@ -175,11 +175,11 @@ describe('Query#include with polymorphic associations', () => {
         const post = await Post.create({ user, deletedAt: DateTime.now() })
         const rating = await Rating.create({ user, rateable: post })
 
-        const reloaded = (await Rating.where({ id: rating.id }).include('rateable', 'user').all())[0]
+        const reloaded = (await Rating.where({ id: rating.id }).joinLoad('rateable', 'user').all())[0]
         expect(reloaded.rateable).toBeNull()
 
         const unscopedReloaded = (
-          await Rating.where({ id: rating.id }).include('rateableEvenIfDeleted', 'user').all()
+          await Rating.where({ id: rating.id }).joinLoad('rateableEvenIfDeleted', 'user').all()
         )[0]
         expect(unscopedReloaded.rateableEvenIfDeleted.user).toMatchDreamModel(user)
       })

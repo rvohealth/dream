@@ -15,7 +15,7 @@ describe('Dream.include', () => {
       compositionAssetId: compositionAsset.id,
     })
 
-    const reloaded = (await CompositionAssetAudit.include('compositionAsset').all())[0]
+    const reloaded = (await CompositionAssetAudit.joinLoad('compositionAsset').all())[0]
     expect(reloaded.compositionAsset).toMatchDreamModel(compositionAsset)
   })
 
@@ -24,7 +24,7 @@ describe('Dream.include', () => {
     await Composition.create({ user, content: 'hello' })
     const composition = await Composition.create({ user, content: 'goodbye' })
 
-    const reloaded = (await User.include('compositions', { content: 'goodbye' }).all())[0]
+    const reloaded = (await User.joinLoad('compositions', { content: 'goodbye' }).all())[0]
     expect(reloaded.compositions).toMatchDreamModels([composition])
   })
 
@@ -41,7 +41,7 @@ describe('Dream.include', () => {
         })
 
         reloadedCompositionAssetAudit = (
-          await CompositionAssetAudit.txn(txn).include('compositionAsset').all()
+          await CompositionAssetAudit.txn(txn).joinLoad('compositionAsset').all()
         )[0]
       })
 
@@ -55,7 +55,7 @@ describe('Dream.include', () => {
       const mylar = await Mylar.create({ user, color: 'red' })
       const latex = await Latex.create({ user, color: 'blue' })
 
-      const users = await User.include('balloons').all()
+      const users = await User.joinLoad('balloons').all()
       expect(users[0].balloons).toMatchDreamModels([mylar, latex])
     })
   })
