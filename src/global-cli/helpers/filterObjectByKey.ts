@@ -16,7 +16,7 @@ export default function filterObjectByKey<
 }
 
 const reservedKeys = new Map([
-  ['_proto_', true],
+  ['__proto__', true],
   ['constructor', true],
   ['prototype', true],
 ])
