@@ -1,6 +1,6 @@
-import User from '../../../../../test-app/app/models/User'
-import Pet from '../../../../../test-app/app/models/Pet'
 import Collar from '../../../../../test-app/app/models/Collar'
+import Pet from '../../../../../test-app/app/models/Pet'
+import User from '../../../../../test-app/app/models/User'
 
 describe('Query#joins with simple associations and overriding primary key', () => {
   it('joins a HasOne association', async () => {
@@ -8,7 +8,7 @@ describe('Query#joins with simple associations and overriding primary key', () =
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
     await Pet.create({ userUuid: user.uuid })
 
-    const reloadedUsers = await User.query().joins('firstPetFromUuid').all()
+    const reloadedUsers = await User.query().innerJoin('firstPetFromUuid').all()
     expect(reloadedUsers).toMatchDreamModels([user])
   })
 
@@ -17,7 +17,7 @@ describe('Query#joins with simple associations and overriding primary key', () =
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
     await Pet.create({ userUuid: user.uuid })
 
-    const reloadedUsers = await User.query().joins('petsFromUuid').all()
+    const reloadedUsers = await User.query().innerJoin('petsFromUuid').all()
     expect(reloadedUsers).toMatchDreamModels([user])
   })
 
@@ -25,10 +25,10 @@ describe('Query#joins with simple associations and overriding primary key', () =
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
     const pet = await Pet.create({ userUuid: user.uuid })
 
-    const reloadedPets = await Pet.query().joins('userThroughUuid').all()
+    const reloadedPets = await Pet.query().innerJoin('userThroughUuid').all()
     expect(reloadedPets).toMatchDreamModels([pet])
 
-    const noResults = await Pet.query().joins('user').all()
+    const noResults = await Pet.query().innerJoin('user').all()
     expect(noResults).toEqual([])
   })
 
@@ -38,7 +38,7 @@ describe('Query#joins with simple associations and overriding primary key', () =
       const pet = await Pet.create({ userUuid: user.uuid, name: 'Violet' })
       await Collar.create({ pet })
 
-      const reloadedUsers = await User.query().joins('firstPetFromUuid', 'collars').all()
+      const reloadedUsers = await User.query().innerJoin('firstPetFromUuid', 'collars').all()
       expect(reloadedUsers).toMatchDreamModels([user])
     })
   })
@@ -51,20 +51,20 @@ describe('Query#joins with simple associations and overriding primary key', () =
       await Collar.create({ pet, tagName: 'Violet' })
 
       const reloadedUsers = await User.query()
-        .joins('petsFromUuid', { name: 'Violet' })
-        .joins('petsFromUuid', 'collars', { tagName: 'Violet' })
+        .innerJoin('petsFromUuid', { name: 'Violet' })
+        .innerJoin('petsFromUuid', 'collars', { tagName: 'Violet' })
         .all()
       expect(reloadedUsers).toMatchDreamModels([user])
 
       const noResults1 = await User.query()
-        .joins('petsFromUuid', { name: 'Aster' })
-        .joins('petsFromUuid', 'collars', { tagName: 'Aster' })
+        .innerJoin('petsFromUuid', { name: 'Aster' })
+        .innerJoin('petsFromUuid', 'collars', { tagName: 'Aster' })
         .all()
       expect(noResults1).toEqual([])
 
       const noResults2 = await User.query()
-        .joins('petsFromUuid', { name: 'Violet' })
-        .joins('petsFromUuid', 'collars', { tagName: 'Aster' })
+        .innerJoin('petsFromUuid', { name: 'Violet' })
+        .innerJoin('petsFromUuid', 'collars', { tagName: 'Aster' })
         .all()
       expect(noResults2).toEqual([])
     })

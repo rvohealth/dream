@@ -424,7 +424,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicJoinsArgs<DB, Schema, TableName, Arr>]) {
-    return this.queryInstance().joins(...(args as any))
+    return this.queryInstance().innerJoin(...(args as any))
   }
 
   /**

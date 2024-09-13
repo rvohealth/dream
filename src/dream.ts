@@ -1536,7 +1536,7 @@ export default class Dream {
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
   >(this: T, ...args: [...Arr, VariadicJoinsArgs<DB, Schema, TableName, Arr>]) {
-    return this.query().joins(...(args as any))
+    return this.query().innerJoin(...(args as any))
   }
 
   /**

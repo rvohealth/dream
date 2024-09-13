@@ -1,8 +1,8 @@
-import User from '../../../test-app/app/models/User'
+import MissingRequiredPassthroughForAssociationWhereClause from '../../../src/exceptions/associations/missing-required-passthrough-for-association-where-clause'
 import Composition from '../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import LocalizedText from '../../../test-app/app/models/LocalizedText'
-import MissingRequiredPassthroughForAssociationWhereClause from '../../../src/exceptions/associations/missing-required-passthrough-for-association-where-clause'
+import User from '../../../test-app/app/models/User'
 
 describe('Query#passthrough', () => {
   context('preload', () => {
@@ -68,7 +68,7 @@ describe('Query#passthrough', () => {
 
     context('when the passthrough has not been set', () => {
       it('throws MissingRequiredPassthroughForAssociationWhereClause', async () => {
-        await expect(User.query().joins('compositions', 'currentLocalizedText').first()).rejects.toThrow(
+        await expect(User.query().innerJoin('compositions', 'currentLocalizedText').first()).rejects.toThrow(
           MissingRequiredPassthroughForAssociationWhereClause
         )
       })
