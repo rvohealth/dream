@@ -6,8 +6,8 @@ import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit'
 import User from '../../../test-app/app/models/User'
 
-describe('Dream.include', () => {
-  it('loads a HasOne association', async () => {
+describe('Dream.joinLoad', () => {
+  it.only('loads a HasOne association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ user })
     const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })

@@ -407,7 +407,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @param opts - Statements to override when cloning the Query
    * @returns A cloned Query with the provided overrides clause applied
    */
-  public clone<Q extends Query<DreamInstance>>(this: Q, opts: QueryOpts<DreamInstance> = {}): Q {
+  public clone(opts: QueryOpts<DreamInstance> = {}): Query<DreamInstance> {
     return new Query<DreamInstance>(this.dreamInstance, {
       baseSqlAlias: opts.baseSqlAlias || this.baseSqlAlias,
       baseSelectQuery: opts.baseSelectQuery || this.baseSelectQuery,
@@ -458,7 +458,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       connection: opts.connection,
       shouldReallyDestroy:
         opts.shouldReallyDestroy !== undefined ? opts.shouldReallyDestroy : this.shouldReallyDestroy,
-    }) as Q
+    })
   }
 
   /**
@@ -659,7 +659,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
   >(
-    this: Q,
     ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]
   ): Omit<Q, IncludeIncompatibleMethodNames> {
     const untypedArgs: any[] = [...args] as any[]
@@ -688,12 +687,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @returns A cloned Query with the preload statement applied
    */
   public preload<
-    Q extends Query<DreamInstance>,
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-  >(this: Q, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
+  >(...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
     const preloadStatements = cloneDeepSafe(this.preloadStatements)
 
     const preloadWhereStatements: RelaxedPreloadWhereStatement<DB, Schema> = cloneDeepSafe(
@@ -716,12 +714,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @returns A cloned Query with the joins clause applied
    */
   public joins<
-    Q extends Query<DreamInstance>,
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-  >(this: Q, ...args: [...Arr, VariadicJoinsArgs<DB, Schema, TableName, Arr>]) {
+  >(...args: [...Arr, VariadicJoinsArgs<DB, Schema, TableName, Arr>]) {
     const joinsStatements = cloneDeepSafe(this.joinsStatements)
 
     const joinsWhereStatements: RelaxedJoinsWhereStatement<DB, Schema> = cloneDeepSafe(
@@ -1175,7 +1172,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns A new Query which will prevent default scopes from applying
    */
-  public removeAllDefaultScopes<Q extends Query<DreamInstance>>(this: Q): Q {
+  public removeAllDefaultScopes(): Query<DreamInstance> {
     return this.clone({
       bypassAllDefaultScopes: true,
       baseSelectQuery: this.baseSelectQuery?.removeAllDefaultScopes(),
@@ -1188,7 +1185,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns A new Query which will prevent default scopes from applying, but not when applying to asociations
    */
-  protected removeAllDefaultScopesExceptOnAssociations<Q extends Query<DreamInstance>>(this: Q): Q {
+  protected removeAllDefaultScopesExceptOnAssociations(): Query<DreamInstance> {
     return this.clone({
       bypassAllDefaultScopesExceptOnAssociations: true,
       baseSelectQuery: this.baseSelectQuery?.removeAllDefaultScopesExceptOnAssociations(),
@@ -1201,10 +1198,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns A new Query which will prevent a specific default scope from applying
    */
-  public removeDefaultScope<Q extends Query<DreamInstance>>(
-    this: Q,
-    scopeName: AllDefaultScopeNames<DreamInstance>
-  ): Q {
+  public removeDefaultScope(scopeName: AllDefaultScopeNames<DreamInstance>): Query<DreamInstance> {
     return this.clone({
       defaultScopesToBypass: [...this.defaultScopesToBypass, scopeName],
       baseSelectQuery: this.baseSelectQuery?.removeDefaultScope(scopeName),
@@ -1217,10 +1211,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns A new Query which will prevent a specific default scope from applying, but not when applying to asociations
    */
-  protected removeDefaultScopeExceptOnAssociations<Q extends Query<DreamInstance>>(
-    this: Q,
+  protected removeDefaultScopeExceptOnAssociations(
     scopeName: DefaultScopeName<DreamInstance>
-  ): Q {
+  ): Query<DreamInstance> {
     return this.clone({
       defaultScopesToBypassExceptOnAssociations: [
         ...this.defaultScopesToBypassExceptOnAssociations,
@@ -1253,10 +1246,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @param passthroughWhereStatement - where statement used for associations that require passthrough data
    * @returns A cloned Query with the passthrough data
    */
-  public passthrough<Q extends Query<DreamInstance>>(
-    this: Q,
-    passthroughWhereStatement: PassthroughWhere<PassthroughColumnNames<DreamInstance>>
-  ): Q {
+  public passthrough(passthroughWhereStatement: PassthroughWhere<PassthroughColumnNames<DreamInstance>>) {
     return this.clone({ passthroughWhereStatement })
   }
 
@@ -1271,11 +1261,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @param whereStatement - Where statement to apply to the Query
    * @returns A cloned Query with the where clause applied
    */
-  public where<
-    Q extends Query<DreamInstance>,
-    DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['schema'],
-  >(this: Q, whereStatement: WhereStatement<DB, Schema, DreamInstance['table']> | null): Q {
+  public where<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
+    whereStatement: WhereStatement<DB, Schema, DreamInstance['table']> | null
+  ) {
     return this._where(whereStatement, 'where')
   }
 
@@ -1291,11 +1279,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @param whereStatements - a list of where statements to `OR` together
    * @returns A cloned Query with the whereAny clause applied
    */
-  public whereAny<
-    Q extends Query<DreamInstance>,
-    DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['schema'],
-  >(this: Q, whereStatements: WhereStatement<DB, Schema, DreamInstance['table']>[]): Q {
+  public whereAny<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
+    whereStatements: WhereStatement<DB, Schema, DreamInstance['table']>[]
+  ) {
     return this.clone({
       or: [whereStatements.map(obj => ({ ...obj }))],
     })
@@ -1312,11 +1298,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @param whereStatement - A where statement to negate and apply to the Query
    * @returns A cloned Query with the whereNot clause applied
    */
-  public whereNot<
-    Q extends Query<DreamInstance>,
-    DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['schema'],
-  >(this: Q, whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>): Q {
+  public whereNot<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
+    whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>
+  ) {
     return this._where(whereStatement, 'whereNot')
   }
 
@@ -1325,15 +1309,10 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * Applies a where clause
    */
-  private _where<
-    Q extends Query<DreamInstance>,
-    DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['schema'],
-  >(
-    this: Q,
+  private _where<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
     whereStatement: WhereStatement<DB, Schema, DreamInstance['table']> | null,
     typeOfWhere: 'where' | 'whereNot'
-  ): Q {
+  ) {
     return this.clone({
       [typeOfWhere]: whereStatement === null ? null : [{ ...whereStatement }],
     })
@@ -1383,10 +1362,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @param orderStatement - Either a string or an object specifying order. If a string, the order is implicitly ascending. If the orderStatement is an object, statements will be provided in the order of the keys set in the object
    * @returns A cloned Query with the order clause applied
    */
-  public order<Q extends Query<DreamInstance>>(
-    this: Q,
+  public order(
     arg: DreamColumnNames<DreamInstance> | Partial<Record<DreamColumnNames<DreamInstance>, OrderDir>> | null
-  ): Q {
+  ) {
     if (arg === null) return this.clone({ order: null })
     if (isString(arg)) return this.clone({ order: [{ column: arg as any, direction: 'asc' }] })
 
@@ -1414,7 +1392,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns A cloned Query with the limit clause applied
    */
-  public limit<Q extends Query<DreamInstance>>(this: Q, limit: number | null): Q {
+  public limit(limit: number | null) {
     return this.clone({ limit })
   }
 
@@ -1428,7 +1406,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns A cloned Query with the offset clause applied
    */
-  public offset<Q extends Query<DreamInstance>>(this: Q, offset: number | null): Q {
+  public offset(offset: number | null) {
     return this.clone({ offset })
   }
 
@@ -1520,7 +1498,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @returns A cloned Query with the transaction applied
    *
    */
-  public txn<Q extends Query<DreamInstance>>(this: Q, dreamTransaction: DreamTransaction<Dream>): Q {
+  public txn(dreamTransaction: DreamTransaction<Dream>) {
     return this.clone({ transaction: dreamTransaction })
   }
 
@@ -1561,10 +1539,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns A cloned Query with the distinct clause applied
    */
-  public distinct<Q extends Query<DreamInstance>>(
-    this: Q,
-    column: TableColumnNames<DreamInstance['DB'], DreamInstance['table']> | boolean = true
-  ): Q {
+  public distinct(column: TableColumnNames<DreamInstance['DB'], DreamInstance['table']> | boolean = true) {
     if (column === true) {
       return this.clone({
         distinctColumn: this.namespaceColumn(
@@ -2044,7 +2019,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @param connection - The connection you wish to access
    * @returns A Query with the requested connection
    */
-  protected connection<Q extends Query<DreamInstance>>(this: Q, connection: DbConnectionType): Q {
+  protected connection(connection: DbConnectionType) {
     return this.clone({ connection })
   }
 
@@ -2720,7 +2695,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     )
   }
 
-  private conditionallyApplyDefaultScopes<Q extends Query<DreamInstance>>(this: Q): Q {
+  private conditionallyApplyDefaultScopes() {
     if (this.bypassAllDefaultScopes || this.bypassAllDefaultScopesExceptOnAssociations) return this
 
     const thisScopes = this.dreamClass['scopes'].default
@@ -2738,7 +2713,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       }
     }
 
-    return query as Q
+    return query
   }
 
   // Through associations don't get written into the SQL; they
@@ -3711,7 +3686,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
       return {
         kyselyQuery,
-        clone: this.clone({ where: null, whereNot: null, order: null, limit: null }),
+        clone: this.clone({ where: null, whereNot: null, order: null, limit: null }) as any,
       }
     }
 
