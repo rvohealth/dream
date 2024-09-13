@@ -23,6 +23,20 @@ describe('InternalEncrypt', () => {
         expect(decrypted).toEqual('howyadoin')
       })
 
+      context('when provided null as an argument', () => {
+        it('does not encrypt null', () => {
+          expect(InternalEncrypt.encryptColumn(null)).toBeNull()
+          expect(InternalEncrypt.decryptColumn(null)).toBeNull()
+        })
+      })
+
+      context('when provided undefined as an argument', () => {
+        it('does not encrypt null', () => {
+          expect(InternalEncrypt.encryptColumn(undefined)).toBeNull()
+          expect(InternalEncrypt.decryptColumn(undefined)).toBeNull()
+        })
+      })
+
       it('when the value was encrypted using the legacy encryption key', () => {
         const val = Encrypt.encrypt('howyadoin', {
           algorithm: 'aes-256-gcm',

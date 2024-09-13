@@ -1,7 +1,5 @@
 import Encrypt, { DecryptOptions, EncryptOptions } from '.'
 import DreamApplication from '../dream-application'
-import FailedToDecryptColumn from '../exceptions/encrypt/failed-to-decrypt-column'
-import FailedToEncryptColumn from '../exceptions/encrypt/failed-to-encrypt-column'
 import MissingColumnEncryptionOpts from '../exceptions/encrypt/missing-column-encryption-opts'
 
 export default class InternalEncrypt {
@@ -10,10 +8,9 @@ export default class InternalEncrypt {
     const encryptOpts = dreamApp.encryption?.columns
     if (!encryptOpts) throw new MissingColumnEncryptionOpts()
 
-    const res = this.doEncryption(data, encryptOpts.current, encryptOpts.legacy)
-    if (!res) throw new FailedToEncryptColumn()
+    if (data === null || data === undefined) return null
 
-    return res
+    return this.doEncryption(data, encryptOpts.current)
   }
 
   public static decryptColumn(data: any) {
@@ -21,35 +18,13 @@ export default class InternalEncrypt {
     const encryptOpts = dreamApp.encryption?.columns
     if (!encryptOpts) throw new MissingColumnEncryptionOpts()
 
-    const res = this.doDecryption(data, encryptOpts.current, encryptOpts.legacy)
-    if (!res) throw new FailedToDecryptColumn()
+    if (data === null || data === undefined) return null
 
-    return res
+    return this.doDecryption(data, encryptOpts.current, encryptOpts.legacy)
   }
 
-  private static doEncryption(
-    data: any,
-    encryptionOpts: EncryptOptions,
-    legacyEncryptionOpts?: EncryptOptions
-  ) {
-    let res: string | null = null
-    try {
-      res = Encrypt.encrypt(data, encryptionOpts)
-    } catch {
-      // noop
-    }
-
-    if (res) return res
-
-    if (legacyEncryptionOpts) {
-      try {
-        res = Encrypt.encrypt(data, legacyEncryptionOpts)
-      } catch {
-        // noop
-      }
-    }
-
-    return res
+  private static doEncryption(data: any, encryptionOpts: EncryptOptions) {
+    return Encrypt.encrypt(data, encryptionOpts)
   }
 
   private static doDecryption(
@@ -57,23 +32,14 @@ export default class InternalEncrypt {
     encryptionOpts: DecryptOptions,
     legacyEncryptionOpts?: DecryptOptions
   ) {
-    let res: string | null = null
     try {
-      res = Encrypt.decrypt(data, encryptionOpts)
-    } catch {
-      // noop
-    }
-
-    if (res) return res
-
-    if (legacyEncryptionOpts) {
-      try {
-        res = Encrypt.decrypt(data, legacyEncryptionOpts)
-      } catch {
-        // noop
+      return Encrypt.decrypt(data, encryptionOpts)
+    } catch (error) {
+      if (legacyEncryptionOpts) {
+        return Encrypt.decrypt(data, legacyEncryptionOpts)
+      } else {
+        throw error
       }
     }
-
-    return res
   }
 }

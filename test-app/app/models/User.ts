@@ -20,6 +20,7 @@ import Post from './Post'
 import PostComment from './PostComment'
 import Rating from './Rating'
 import UserSettings from './UserSettings'
+import Encrypted from '../../../src/decorators/Encrypted'
 
 export default class User extends ApplicationModel {
   public get table() {
@@ -45,6 +46,12 @@ export default class User extends ApplicationModel {
   public deletedAt: DreamColumn<User, 'deletedAt'>
   public createdAt: DreamColumn<User, 'createdAt'>
   public updatedAt: DreamColumn<User, 'updatedAt'>
+
+  @Encrypted()
+  public secret: DreamColumn<User, 'encryptedSecret'>
+
+  @Encrypted('myOtherEncryptedSecret')
+  public otherSecret: { token: string } | null
 
   @Virtual()
   public password: string | undefined

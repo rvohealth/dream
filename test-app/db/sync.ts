@@ -448,12 +448,14 @@ export interface Users {
   createdAt: Timestamp;
   deletedAt: Timestamp | null;
   email: string;
+  encryptedSecret: string | null;
   favoriteDates: ArrayType<Timestamp> | null;
   favoriteDatetimes: ArrayType<Timestamp> | null;
   favoriteNumbers: number[] | null;
   favoriteWord: string | null;
   featuredPostPosition: number | null;
   id: Generated<Int8>;
+  myOtherEncryptedSecret: string | null;
   name: string | null;
   passwordDigest: string;
   socialSecurityNumber: string | null;

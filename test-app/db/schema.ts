@@ -2916,6 +2916,14 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
+      encryptedSecret: {
+        coercedType: {} as string | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'text',
+        allowNull: true,
+        isArray: false,
+      },
       favoriteDates: {
         coercedType: {} as CalendarDate[] | null,
         enumType: null,
@@ -2962,6 +2970,14 @@ export const schema = {
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
+        isArray: false,
+      },
+      myOtherEncryptedSecret: {
+        coercedType: {} as string | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'text',
+        allowNull: true,
         isArray: false,
       },
       name: {
