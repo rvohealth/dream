@@ -1,8 +1,8 @@
-import User from '../../../test-app/app/models/User'
-import Post from '../../../test-app/app/models/Post'
-import Rating from '../../../test-app/app/models/Rating'
 import ops from '../../../src/ops'
 import Composition from '../../../test-app/app/models/Composition'
+import Post from '../../../test-app/app/models/Post'
+import Rating from '../../../test-app/app/models/Rating'
+import User from '../../../test-app/app/models/User'
 
 describe('Query#count', () => {
   it('counts query results', async () => {
@@ -21,7 +21,7 @@ describe('Query#count', () => {
       await Composition.create({ user, content: 'Hello' })
       await Composition.create({ user, content: 'Goodbye' })
 
-      const count = await User.joins('compositions', { content: 'Hello' }).distinct().count()
+      const count = await User.innerJoin('compositions', { content: 'Hello' }).distinct().count()
       expect(count).toEqual(1)
     })
   })

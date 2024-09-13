@@ -1489,7 +1489,7 @@ export default class Dream {
    * @param args - A chain of associaition names and where clauses
    * @returns A Query for this model with the joins clause applied
    */
-  public static joins<
+  public static innerJoin<
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],

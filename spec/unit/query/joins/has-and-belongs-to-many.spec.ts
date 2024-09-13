@@ -1,7 +1,7 @@
-import Node from '../../../../test-app/app/models/Graph/Node'
+import ops from '../../../../src/ops'
 import Edge from '../../../../test-app/app/models/Graph/Edge'
 import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
-import ops from '../../../../src/ops'
+import Node from '../../../../test-app/app/models/Graph/Node'
 
 describe('Query#joins has and belongs to many', () => {
   it('joins the associated models', async () => {
@@ -11,10 +11,10 @@ describe('Query#joins has and belongs to many', () => {
     await EdgeNode.create({ node, edge: edge1 })
     await EdgeNode.create({ node, edge: edge2 })
 
-    const reloadedNode = await Node.joins('edges', { name: 'E2' }).first()
+    const reloadedNode = await Node.innerJoin('edges', { name: 'E2' }).first()
     expect(reloadedNode).toMatchDreamModel(node)
 
-    const reloadedNode2 = await Node.joins('edges', { name: 'E3' }).first()
+    const reloadedNode2 = await Node.innerJoin('edges', { name: 'E3' }).first()
     expect(reloadedNode2).toBeNull()
   })
 
@@ -30,10 +30,10 @@ describe('Query#joins has and belongs to many', () => {
       await EdgeNode.create({ node, edge: edge1 })
       await EdgeNode.create({ node, edge: edge2 })
 
-      const reloadedNode = await Node.joins('edges', { name: ops.similarity('coolidge') }).first()
+      const reloadedNode = await Node.innerJoin('edges', { name: ops.similarity('coolidge') }).first()
       expect(reloadedNode).toMatchDreamModel(node)
 
-      const reloadedNode2 = await Node.joins('edges', { name: ops.similarity('nonmatch') }).first()
+      const reloadedNode2 = await Node.innerJoin('edges', { name: ops.similarity('nonmatch') }).first()
       expect(reloadedNode2).toBeNull()
     })
   })
