@@ -11,7 +11,9 @@
     "dist/**/*",
     "docs/**/*"
   ],
-  "bin": "./dist/src/global-cli/dream.js",
+  "bin": {
+    "dream": "./dist/src/global-cli/dream.js"
+  },
   "scripts": {
     "publish": "yarn npm publish",
     "dream": "yarn dreamts",
