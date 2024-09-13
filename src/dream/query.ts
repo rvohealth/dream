@@ -641,12 +641,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   /**
-   * Applies include statement to Query, which will load the
-   * specified associations onto the instance upon execution.
+   * Includes associated records in a single query.
    *
    * ```ts
-   * const user = await User.query().include('posts', 'comments', { visibilty: 'public' }, 'replies').first()
-   * console.log(user.posts[0].comments[0].replies[0])
+   * const posts = await user.associationQuery('posts').include('comments', { visibilty: 'public' }, 'replies').all()
+   * console.log(posts[0].comments[0].replies[0])
    * // [Reply{id: 1}, Reply{id: 2}]
    * ```
    *
