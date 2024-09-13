@@ -121,6 +121,8 @@ import isJsonColumn from './helpers/db/types/isJsonColumn'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel'
 import { marshalDBValue } from './helpers/marshalDBValue'
 import { isString } from './helpers/typechecks'
+import { EncryptedAttributeStatement } from './decorators/Encrypted'
+import InternalEncrypt from './encrypt/internal-encrypt'
 
 export default class Dream {
   public DB: any
@@ -231,6 +233,13 @@ export default class Dream {
    * Model storage for virtual attribute metadata, set when using the Virtual decorator
    */
   protected static virtualAttributes: VirtualAttributeStatement[] = []
+
+  /**
+   * @internal
+   *
+   * Model storage for encrypted attribute metadata, set when using the Encrypted decorator
+   */
+  protected static encryptedAttributes: EncryptedAttributeStatement[] = []
 
   /**
    * @internal
@@ -826,10 +835,40 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
     Table extends DB[keyof DB] = DB[TableName],
-  >(this: T): Set<keyof Table & string> {
+    RetType = Set<keyof Table & string>,
+  >(this: T): RetType {
+    if (this._columns) return this._columns as RetType
+
     const columns = this.prototype.schema[this.table]?.columns
-    return new Set(columns ? Object.keys(columns) : [])
+    this._columns = new Set(columns ? Object.keys(columns) : [])
+
+    return this._columns as RetType
   }
+  private static _columns: Set<any>
+
+  /**
+   * Returns the column names for the given model
+   *
+   * @returns The column names for the given model
+   */
+  public static accessibleColumns<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
+    Table extends DB[keyof DB] = DB[TableName],
+    RetType = Set<keyof Table & string>,
+  >(this: T): RetType {
+    if (this._accessibleColumns) return this._accessibleColumns as RetType
+    const accessibleColumns = [...this.columns()].filter(
+      column => !this['encryptedAttributes'].find(attr => attr.encryptedColumnName === column)
+    )
+
+    this._accessibleColumns = new Set(accessibleColumns)
+
+    return this._accessibleColumns as RetType
+  }
+  private static _accessibleColumns: Set<any>
 
   /**
    * Returns the list of column names that are safe for
@@ -2496,6 +2535,31 @@ export default class Dream {
         })
       }
     }
+
+    this.defineEncryptedAttributeAccessors()
+  }
+
+  /**
+   * @internal
+   *
+   * applies setters and getters for any proerties on your model
+   * that are utilizing the Encrypted decorator
+   */
+  private defineEncryptedAttributeAccessors() {
+    const encryptedAttributes = [...(this.constructor as typeof Dream).encryptedAttributes]
+    encryptedAttributes.forEach(encryptedAttribute => {
+      if (!Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), encryptedAttribute.property)?.get) {
+        Object.defineProperty(Object.getPrototypeOf(this), encryptedAttribute.property, {
+          get() {
+            return InternalEncrypt.decryptColumn(this.getAttribute(encryptedAttribute.encryptedColumnName))
+          },
+
+          set(val: any) {
+            this.setAttribute(encryptedAttribute.encryptedColumnName, InternalEncrypt.encryptColumn(val))
+          },
+        })
+      }
+    })
   }
 
   /**
@@ -2568,7 +2632,7 @@ export default class Dream {
    */
   protected defineAttributeAccessors() {
     const dreamClass = this.constructor as typeof Dream
-    const columns = dreamClass.columns()
+    const columns = dreamClass.accessibleColumns()
 
     columns.forEach(column => {
       // this ensures that the currentAttributes object will contain keys
