@@ -374,22 +374,22 @@ export type AssociationNameToDreamClass = Record<string, typeof Dream>
 type IdToDreamMap = Record<string, Dream>
 export type AliasToDreamIdMap = Record<string, IdToDreamMap>
 
-export type RelaxedPreloadStatement<Depth extends number = 0> = RelaxedJoinsStatement<Depth>
+export type RelaxedPreloadStatement<Depth extends number = 0> = RelaxedJoinStatement<Depth>
 
-export type RelaxedJoinsStatement<Depth extends number = 0> = Depth extends 7
+export type RelaxedJoinStatement<Depth extends number = 0> = Depth extends 7
   ? object
-  : Record<string, RelaxedJoinsStatement<Inc<Depth>>>
+  : Record<string, RelaxedJoinStatement<Inc<Depth>>>
 
-export type RelaxedPreloadWhereStatement<DB, Schema, Depth extends number = 0> = RelaxedJoinsWhereStatement<
+export type RelaxedPreloadWhereStatement<DB, Schema, Depth extends number = 0> = RelaxedJoinWhereStatement<
   DB,
   Schema,
   Depth
 >
 
-export type RelaxedJoinsWhereStatement<DB, Schema, Depth extends number = 0> = Depth extends 7
+export type RelaxedJoinWhereStatement<DB, Schema, Depth extends number = 0> = Depth extends 7
   ? object
   : {
-      [key: string]: RelaxedJoinsWhereStatement<DB, Schema, Inc<Depth>> | FakeWhereClauseValue | object
+      [key: string]: RelaxedJoinWhereStatement<DB, Schema, Inc<Depth>> | FakeWhereClauseValue | object
     }
 
 // Just need something that is not an object, but that could be an array and also null
