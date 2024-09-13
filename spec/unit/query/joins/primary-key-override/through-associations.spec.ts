@@ -1,7 +1,7 @@
-import User from '../../../../../test-app/app/models/User'
-import Pet from '../../../../../test-app/app/models/Pet'
-import Collar from '../../../../../test-app/app/models/Collar'
 import Mylar from '../../../../../test-app/app/models/Balloon/Mylar'
+import Collar from '../../../../../test-app/app/models/Collar'
+import Pet from '../../../../../test-app/app/models/Pet'
+import User from '../../../../../test-app/app/models/User'
 
 describe('Query#joins through with simple associations and overriding primary key', () => {
   context('explicit HasMany through', () => {
@@ -11,7 +11,7 @@ describe('Query#joins through with simple associations and overriding primary ke
       const pet = await Pet.create({ name: 'Aster', userUuid: user.uuid })
       await Collar.create({ pet })
 
-      const reloaded = await User.query().joins('petsFromUuid', 'collars').all()
+      const reloaded = await User.query().innerJoin('petsFromUuid', 'collars').all()
       expect(reloaded).toMatchDreamModels([user])
     })
   })
@@ -23,7 +23,7 @@ describe('Query#joins through with simple associations and overriding primary ke
       const pet = await Pet.create({ name: 'Aster', userUuid: user.uuid })
       await Collar.create({ pet })
 
-      const reloaded = await User.query().joins('collarsFromUuid').all()
+      const reloaded = await User.query().innerJoin('collarsFromUuid').all()
       expect(reloaded).toMatchDreamModels([user])
     })
   })
@@ -34,7 +34,7 @@ describe('Query#joins through with simple associations and overriding primary ke
     const pet = await Pet.create({ name: 'Aster', userUuid: user.uuid })
     await Collar.create({ pet })
 
-    const reloadedUsers = await User.query().joins('firstCollarFromUuid').all()
+    const reloadedUsers = await User.query().innerJoin('firstCollarFromUuid').all()
     expect(reloadedUsers).toMatchDreamModels([user])
   })
 
@@ -46,7 +46,7 @@ describe('Query#joins through with simple associations and overriding primary ke
       const balloon = await Mylar.create({ color: 'red', user })
       await Collar.create({ pet, balloon })
 
-      const reloadedUsers = await User.query().joins('balloonsFromUuid').all()
+      const reloadedUsers = await User.query().innerJoin('balloonsFromUuid').all()
       expect(reloadedUsers).toMatchDreamModels([user])
     })
   })

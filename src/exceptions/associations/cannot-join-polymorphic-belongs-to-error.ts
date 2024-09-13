@@ -4,21 +4,25 @@ import Dream from '../../dream'
 export default class CannotJoinPolymorphicBelongsToError extends Error {
   public dreamClass: typeof Dream
   public association: BelongsToStatement<any, any, any, any>
-  public joinsStatements: any
+  public innerJoinStatements: any
+  public leftJoinStatements: any
 
   constructor({
     dreamClass,
     association,
-    joinsStatements,
+    innerJoinStatements,
+    leftJoinStatements,
   }: {
     dreamClass: typeof Dream
     association: BelongsToStatement<any, any, any, any>
-    joinsStatements: any
+    innerJoinStatements: any
+    leftJoinStatements: any
   }) {
     super()
     this.dreamClass = dreamClass
     this.association = association
-    this.joinsStatements = joinsStatements
+    this.innerJoinStatements = innerJoinStatements
+    this.leftJoinStatements = leftJoinStatements
   }
 
   public get message() {
@@ -26,8 +30,10 @@ export default class CannotJoinPolymorphicBelongsToError extends Error {
 Cannot join on a polymorphic BelongsTo
 Dream class: ${this.dreamClass.name}
 Association: ${this.association.as}
-Joins statements:
-${JSON.stringify(this.joinsStatements, null, 2)}
+Inner Join statements:
+${JSON.stringify(this.innerJoinStatements, null, 2)}
+Left Join statements:
+${JSON.stringify(this.leftJoinStatements, null, 2)}
     `
   }
 }

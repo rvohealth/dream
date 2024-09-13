@@ -223,17 +223,17 @@ describe('Dream#associationQuery', () => {
       })
 
       expect(
-        await user.associationQuery('compositions').joins('compositionAssets', { score: 3 }).first()
+        await user.associationQuery('compositions').innerJoin('compositionAssets', { score: 3 }).first()
       ).toMatchDreamModel(composition)
 
       expect(
-        await user.associationQuery('compositions').joins('compositionAssets', { score: 7 }).first()
+        await user.associationQuery('compositions').innerJoin('compositionAssets', { score: 7 }).first()
       ).toBeNull()
 
       expect(
         await user
           .associationQuery('compositions')
-          .joins('compositionAssets', 'compositionAssetAudits')
+          .innerJoin('compositionAssets', 'compositionAssetAudits')
           .first()
       ).toBeNull()
     })

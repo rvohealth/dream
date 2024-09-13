@@ -49,8 +49,9 @@ export default function associationUpdateQuery<
     defaultScopesToBypass,
   })
 
-  if (associationWhereStatement) nestedScope = nestedScope.joins(association.as, associationWhereStatement)
-  else nestedScope = nestedScope.joins(association.as)
+  if (associationWhereStatement)
+    nestedScope = nestedScope.innerJoin(association.as, associationWhereStatement)
+  else nestedScope = nestedScope.innerJoin(association.as)
 
   const nestedSelect = nestedScope
     .where({ [dream.primaryKey]: dream.primaryKeyValue as any })
