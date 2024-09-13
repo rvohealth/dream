@@ -20,7 +20,7 @@ describe('Query#include with simple associations', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ userId: user.id, primary: true })
 
-      const reloadedUser = (await User.query().include('mainComposition').all())[0]
+      const reloadedUser = (await User.query().joinLoad('mainComposition').all())[0]
       expect(reloadedUser.mainComposition).toMatchDreamModel(composition)
     })
 
@@ -28,10 +28,10 @@ describe('Query#include with simple associations', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ userId: user.id, primary: true, content: 'Hello' })
 
-      const reloadedUser = (await User.query().include('mainComposition', { content: 'Goodbye' }).all())[0]
+      const reloadedUser = (await User.query().joinLoad('mainComposition', { content: 'Goodbye' }).all())[0]
       expect(reloadedUser?.mainComposition).toBeNull()
 
-      const reloadedUser2 = (await User.query().include('mainComposition', { content: 'Hello' }).all())[0]
+      const reloadedUser2 = (await User.query().joinLoad('mainComposition', { content: 'Hello' }).all())[0]
       expect(reloadedUser2.mainComposition).toMatchDreamModel(composition)
     })
 
@@ -39,7 +39,7 @@ describe('Query#include with simple associations', () => {
       it('sets it to null', async () => {
         await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-        const reloadedUser = (await User.query().include('mainComposition').all())[0]
+        const reloadedUser = (await User.query().joinLoad('mainComposition').all())[0]
         expect(reloadedUser.mainComposition).toBeNull()
       })
     })
@@ -49,7 +49,7 @@ describe('Query#include with simple associations', () => {
         const balloon = await Latex.create({ color: 'blue' })
         const line = await BalloonLine.create({ balloon, material: 'ribbon' })
 
-        const reloaded = (await Balloon.query().include('balloonLine').all())[0]
+        const reloaded = (await Balloon.query().joinLoad('balloonLine').all())[0]
         expect(reloaded.balloonLine).toMatchDreamModel(line)
       })
     })
@@ -61,7 +61,7 @@ describe('Query#include with simple associations', () => {
       const composition1 = await Composition.create({ user })
       const composition2 = await Composition.create({ user })
 
-      const reloadedUser = (await User.query().include('compositions').all())[0]
+      const reloadedUser = (await User.query().joinLoad('compositions').all())[0]
       expect(reloadedUser.compositions).toMatchDreamModels([composition1, composition2])
     })
 
@@ -70,7 +70,7 @@ describe('Query#include with simple associations', () => {
       await Composition.create({ user, content: 'Hello' })
       const composition2 = await Composition.create({ user, content: 'Goodbye' })
 
-      const reloadedUser = (await User.query().include('compositions', { content: 'Goodbye' }).all())[0]
+      const reloadedUser = (await User.query().joinLoad('compositions', { content: 'Goodbye' }).all())[0]
       expect(reloadedUser.compositions).toMatchDreamModels([composition2])
     })
 
@@ -78,7 +78,7 @@ describe('Query#include with simple associations', () => {
       it('sets it to an empty array', async () => {
         await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-        const reloadedUser = (await User.query().include('compositions').all())[0]
+        const reloadedUser = (await User.query().joinLoad('compositions').all())[0]
         expect(reloadedUser.compositions).toEqual([])
       })
     })
@@ -88,7 +88,7 @@ describe('Query#include with simple associations', () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const balloon = await Latex.create({ user, color: 'blue' })
 
-        const reloadedUser = (await User.query().include('balloons').all())[0]
+        const reloadedUser = (await User.query().joinLoad('balloons').all())[0]
         expect(reloadedUser.balloons).toMatchDreamModels([balloon])
       })
     })
@@ -98,7 +98,7 @@ describe('Query#include with simple associations', () => {
     it('sets the association to an empty array', async () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-      const reloadedUser = (await User.query().include('compositions').all())[0]
+      const reloadedUser = (await User.query().joinLoad('compositions').all())[0]
       expect(reloadedUser.compositions).toEqual([])
     })
   })
@@ -107,7 +107,7 @@ describe('Query#include with simple associations', () => {
     it('loads the association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       await Composition.create({ user })
-      const reloadedComposition = (await Composition.query().include('user').all())[0]
+      const reloadedComposition = (await Composition.query().joinLoad('user').all())[0]
       expect(reloadedComposition.user).toMatchDreamModel(user)
     })
 
@@ -116,7 +116,7 @@ describe('Query#include with simple associations', () => {
         const balloon = await Latex.create({ color: 'blue' })
         await BalloonLine.create({ balloon, material: 'ribbon' })
 
-        const reloaded = (await BalloonLine.query().include('balloon').all())[0]
+        const reloaded = (await BalloonLine.query().joinLoad('balloon').all())[0]
         expect(reloaded.balloon).toMatchDreamModel(balloon)
       })
     })
@@ -142,7 +142,7 @@ describe('Query#include with simple associations', () => {
     const composition = await Composition.create({ user })
     const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
 
-    const reloaded = (await User.query().include('compositions', 'compositionAssets').all())[0]
+    const reloaded = (await User.query().joinLoad('compositions', 'compositionAssets').all())[0]
     expect(reloaded.compositions).toMatchDreamModels([composition])
     expect(reloaded.compositions[0].compositionAssets).toMatchDreamModels([compositionAsset])
   })
@@ -154,7 +154,7 @@ describe('Query#include with simple associations', () => {
     const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
 
     const reloadedUser = (
-      await User.query().include('compositions').include('mainComposition', 'compositionAssets').all()
+      await User.query().joinLoad('compositions').joinLoad('mainComposition', 'compositionAssets').all()
     )[0]
 
     expect(reloadedUser.compositions).toMatchDreamModels([composition, composition2])
@@ -171,7 +171,7 @@ describe('Query#include with simple associations', () => {
           createdAt: DateTime.now().minus({ day: 1 }),
         })
 
-        const reloadedUser = (await User.query().include('recentCompositions').all())[0]
+        const reloadedUser = (await User.query().joinLoad('recentCompositions').all())[0]
         expect(reloadedUser.recentCompositions).toMatchDreamModels([composition])
       })
 
@@ -196,8 +196,8 @@ describe('Query#include with simple associations', () => {
           const reloadedUser = (
             await User.query()
               .passthrough({ locale: 'es-ES' })
-              .include('compositions', 'currentLocalizedText')
-              .include('compositions', 'compositionAssets', 'currentLocalizedText')
+              .joinLoad('compositions', 'currentLocalizedText')
+              .joinLoad('compositions', 'compositionAssets', 'currentLocalizedText')
               .all()
           )[0]
           expect(reloadedUser.compositions[0].currentLocalizedText).toMatchDreamModel(compositionText2)
@@ -216,7 +216,7 @@ describe('Query#include with simple associations', () => {
           createdAt: DateTime.now().minus({ year: 1 }),
         })
 
-        const reloadedUser = (await User.query().include('recentCompositions').all())[0]
+        const reloadedUser = (await User.query().joinLoad('recentCompositions').all())[0]
         expect(reloadedUser.recentCompositions).toEqual([])
       })
     })
@@ -233,7 +233,7 @@ describe('Query#include with simple associations', () => {
         await Post.create({ user })
         const post2 = await Post.create({ user })
 
-        const reloadedUser = (await User.query().include('featuredPost').all())[0]
+        const reloadedUser = (await User.query().joinLoad('featuredPost').all())[0]
         expect(reloadedUser.featuredPost).toMatchDreamModel(post2)
       })
     })
@@ -259,10 +259,10 @@ describe('Query#include with simple associations', () => {
       })
 
       it('loads the associated models', async () => {
-        const sanityCheckNode = (await Node.query().include('edges').all())[0]
+        const sanityCheckNode = (await Node.query().joinLoad('edges').all())[0]
         expect(sanityCheckNode.edges).toMatchDreamModels([edge1, edge2, edge3])
 
-        const reloadedNode = (await Node.query().include('nonOmittedPositionEdgeNodes').all())[0]
+        const reloadedNode = (await Node.query().joinLoad('nonOmittedPositionEdgeNodes').all())[0]
         expect(reloadedNode.nonOmittedPositionEdgeNodes).toMatchDreamModels([edgeNode2, edgeNode3])
       })
     })
@@ -275,7 +275,7 @@ describe('Query#include with simple associations', () => {
           createdAt: DateTime.now().minus({ day: 1 }),
         })
 
-        const reloadedUser = (await User.query().include('notRecentCompositions').all())[0]
+        const reloadedUser = (await User.query().joinLoad('notRecentCompositions').all())[0]
         expect(reloadedUser.notRecentCompositions).toEqual([])
       })
     })
@@ -288,7 +288,7 @@ describe('Query#include with simple associations', () => {
           createdAt: DateTime.now().minus({ year: 1 }),
         })
 
-        const reloadedUser = (await User.query().include('notRecentCompositions').all())[0]
+        const reloadedUser = (await User.query().joinLoad('notRecentCompositions').all())[0]
         expect(reloadedUser.notRecentCompositions).toMatchDreamModels([composition])
       })
     })
@@ -305,7 +305,7 @@ describe('Query#include with simple associations', () => {
           lost: false,
         })
 
-        const reloaded = (await Pet.include('currentCollar').all())[0]
+        const reloaded = (await Pet.joinLoad('currentCollar').all())[0]
         expect(reloaded?.currentCollar).toMatchDreamModel(currentCollar)
       })
     })
@@ -317,7 +317,7 @@ describe('Query#include with simple associations', () => {
           lost: true,
         })
 
-        const reloaded = (await Pet.include('currentCollar').all())[0]
+        const reloaded = (await Pet.joinLoad('currentCollar').all())[0]
         expect(reloaded?.currentCollar).toBeNull()
       })
     })
@@ -329,7 +329,7 @@ describe('Query#include with simple associations', () => {
           lost: true,
         })
 
-        const reloaded = (await Pet.include('notLostCollar').all())[0]
+        const reloaded = (await Pet.joinLoad('notLostCollar').all())[0]
         expect(reloaded?.notLostCollar).toBeNull()
       })
     })
@@ -341,7 +341,7 @@ describe('Query#include with simple associations', () => {
           lost: false,
         })
 
-        const reloaded = (await Pet.include('notLostCollar').all())[0]
+        const reloaded = (await Pet.joinLoad('notLostCollar').all())[0]
         expect(reloaded?.notLostCollar).toMatchDreamModel(notLostCollar)
       })
     })
@@ -356,7 +356,7 @@ describe('Query#include with simple associations', () => {
           user,
         })
 
-        const reloadedUser = (await User.include('firstComposition').include('lastComposition').all())[0]
+        const reloadedUser = (await User.joinLoad('firstComposition').joinLoad('lastComposition').all())[0]
         expect(reloadedUser.firstComposition).toMatchDreamModel(firstComposition)
         expect(reloadedUser.lastComposition).toMatchDreamModel(lastComposition)
       })
@@ -369,7 +369,7 @@ describe('Query#include with simple associations', () => {
         const pet = await Pet.create({ name: 'aster' })
         await pet.createAssociation('collars', { tagName: 'Aster', pet, hidden: true })
 
-        const result = (await Pet.include('collars').all())[0]
+        const result = (await Pet.joinLoad('collars').all())[0]
         expect(result.collars).toHaveLength(0)
       })
     })
@@ -379,7 +379,7 @@ describe('Query#include with simple associations', () => {
         const pet = await Pet.create({ name: 'aster', deletedAt: DateTime.now() })
         await pet.createAssociation('collars', { tagName: 'Aster', pet })
 
-        const result = (await Collar.include('pet').all())[0]
+        const result = (await Collar.joinLoad('pet').all())[0]
         expect(result.pet).toBeNull()
       })
     })
@@ -388,6 +388,6 @@ describe('Query#include with simple associations', () => {
   it.skip('type test', async () => {
     // include allows re-using of association names since includeing does not occur within a single
     // query, so will not result in namespace collision
-    await Edge.include('nodes', 'edges', 'nodes').all()
+    await Edge.joinLoad('nodes', 'edges', 'nodes').all()
   })
 })

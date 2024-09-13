@@ -363,14 +363,14 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @param args - A chain of associaition names and where clauses
    * @returns A query for this model with the include statement applied
    */
-  public include<
+  public joinLoad<
     I extends DreamClassTransactionBuilder<DreamInstance>,
     DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
-    return this.queryInstance().include(...(args as any))
+    return this.queryInstance().joinLoad(...(args as any))
   }
 
   /**
