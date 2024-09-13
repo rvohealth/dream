@@ -1,12 +1,13 @@
 import Dream from '../../dream'
 import { marshalDBValue } from '../../helpers/marshalDBValue'
+import { AssociationNameToDreamClass } from '../types'
 
 export const extractValueFromJoinsPluckResponse = (
   val: any,
   index: number,
   pluckStatement: any[],
   dreamClass: typeof Dream,
-  associationNameMap: { [key: string]: typeof Dream }
+  associationNameMap: AssociationNameToDreamClass
 ) => {
   const parts = pluckStatement[index].split('.')
 
