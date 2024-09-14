@@ -47,11 +47,13 @@ export async function down(db: Kysely<any>): Promise<void> {
 
         expect(res).toEqual(
           `\
-import { Kysely, sql, CompiledQuery } from 'kysely'
+import { DreamMigrationHelpers } from '@rvohealth/dream'
+import { Kysely, sql } from 'kysely'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
-  await db.executeQuery(CompiledQuery.raw('CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;'))
+  await DreamMigrationHelpers.createExtension(db, 'citext')
+
   await db.schema
     .createTable('users')
     .addColumn('id', 'bigserial', col => col.primaryKey())
@@ -61,6 +63,70 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('chalupified_at', 'timestamp')
     .addColumn('finished_chalupa_on', 'date')
     .addColumn('finished_chalupa_at', 'timestamp')
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropTable('users').execute()
+}\
+`
+        )
+      })
+    })
+
+    context('columns written in camelcase', () => {
+      it('are converted to snakecase', () => {
+        const res = generateMigrationContent({
+          table: 'users',
+          columnsWithTypes: ['phoneNumber:string'],
+          primaryKeyType: 'bigserial',
+        })
+
+        expect(res).toEqual(
+          `\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createTable('users')
+    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('phone_number', 'varchar(255)')
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropTable('users').execute()
+}\
+`
+        )
+      })
+    })
+
+    context('encrypted attribute', () => {
+      it('generates a kysely migration with multiple text fields', () => {
+        const res = generateMigrationContent({
+          table: 'users',
+          columnsWithTypes: ['phone_number:encrypted'],
+          primaryKeyType: 'bigserial',
+        })
+
+        expect(res).toEqual(
+          `\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createTable('users')
+    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('encrypted_phone_number', 'text')
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
