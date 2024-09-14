@@ -578,7 +578,6 @@ describe('Query#joinLoad through', () => {
         await pet.createAssociation('collars', { balloon: greenBalloon })
 
         const reloaded = await Pet.joinLoad('redBalloons').firstOrFail()
-        console.debug({ redBalloons: reloaded.redBalloons })
         expect(reloaded.redBalloons).toEqual([])
       })
     })

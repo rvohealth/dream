@@ -3175,12 +3175,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
     joinWhereStatements: RelaxedJoinWhereStatement<any, any>
   }) {
-    console.debug({
-      currentAssociationTableOrAlias,
-      previousAssociationTableOrAlias,
-      association: association.as,
-    })
-
     if (association.where) {
       join = this.applyWhereStatements(
         join,
