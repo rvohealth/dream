@@ -72,8 +72,6 @@ import DreamTransaction from './transaction'
 import {
   AliasToDreamIdMap,
   AllDefaultScopeNames,
-  AssociationNameToAssociation,
-  AssociationNameToAssociationDataAndDreamClass,
   AssociationNameToDreamClass,
   DefaultScopeName,
   DreamAttributes,
@@ -1063,80 +1061,25 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    */
   private associationNamesToDreamClassesMap(
     associationNames: string[],
-    associationsToDreamClasses: AssociationNameToDreamClass = {}
+    associationsToDreamClassesMap: AssociationNameToDreamClass = {}
   ): AssociationNameToDreamClass {
-    const namesToAssociationsAndDreamClasses =
-      this.associationNamesToAssociationDataAndDreamClassesMap(associationNames)
-    return Object.keys(namesToAssociationsAndDreamClasses).reduce((remap, associationName) => {
-      remap[associationName] = namesToAssociationsAndDreamClasses[associationName].dreamClass
-      return remap
-    }, associationsToDreamClasses)
-  }
-
-  /**
-   * @internal
-   *
-   *
-   */
-  private associationNamesToAssociationsMap(
-    associationNames: string[],
-    associationsToAssociations: AssociationNameToAssociation = {}
-  ): AssociationNameToAssociation {
-    const namesToAssociationsAndDreamClasses =
-      this.associationNamesToAssociationDataAndDreamClassesMap(associationNames)
-    return Object.keys(namesToAssociationsAndDreamClasses).reduce((remap, associationName) => {
-      remap[associationName] = namesToAssociationsAndDreamClasses[associationName].association
-      return remap
-    }, associationsToAssociations)
-  }
-
-  /**
-   * @internal
-   */
-  private associationNamesToAssociationDataAndDreamClassesMap(
-    associationNames: string[]
-  ): AssociationNameToAssociationDataAndDreamClass {
-    const associationsToDreamClassesMap: AssociationNameToAssociationDataAndDreamClass = {}
-
     associationNames.reduce((dreamClass: typeof Dream, associationName: string) => {
       const association = dreamClass['getAssociationMetadata'](associationName)
       const through = (association as any).through
 
       if (through) {
-        const { throughAssociation, throughAssociationDreamClass } = this.throughAssociationDetails(
-          dreamClass,
-          through
-        )
-        associationsToDreamClassesMap[through] = {
-          association: throughAssociation,
-          dreamClass: throughAssociationDreamClass,
-        }
+        const throughAssociation = dreamClass['getAssociationMetadata'](through)
+        const throughAssociationDreamClass = throughAssociation.modelCB() as typeof Dream
+
+        associationsToDreamClassesMap[through] = throughAssociationDreamClass
       }
 
       const nextDreamClass = association.modelCB() as typeof Dream
-      associationsToDreamClassesMap[associationName] = { association, dreamClass: nextDreamClass }
+      associationsToDreamClassesMap[associationName] = nextDreamClass
       return nextDreamClass
     }, this.dreamClass)
 
     return associationsToDreamClassesMap
-  }
-
-  /**
-   * @internal
-   */
-  private throughAssociationDetails(
-    dreamClass: typeof Dream,
-    through: string
-  ): {
-    throughAssociation:
-      | BelongsToStatement<any, any, any, any>
-      | HasOneStatement<any, any, any, any>
-      | HasManyStatement<any, any, any, any>
-    throughAssociationDreamClass: typeof Dream
-  } {
-    const throughAssociation = dreamClass['getAssociationMetadata'](through)
-    const throughAssociationDreamClass = throughAssociation.modelCB() as typeof Dream
-    return { throughAssociation, throughAssociationDreamClass }
   }
 
   /**
@@ -1152,21 +1095,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     )
 
     return associationsToDreamClassesMap
-  }
-
-  /**
-   * @internal
-   *
-   *
-   */
-  private joinStatementsToAssociationsMap(joinStatements: RelaxedJoinStatement) {
-    const associationsToAssociationsMap: AssociationNameToAssociation = {}
-
-    objectPathsToArrays(joinStatements).forEach(associationChain =>
-      this.associationNamesToAssociationsMap(associationChain, associationsToAssociationsMap)
-    )
-
-    return associationsToAssociationsMap
   }
 
   /**
