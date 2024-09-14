@@ -262,6 +262,20 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   }
 
   /**
+   *
+   * @param args - A list of associations (and optional where clauses) to load
+   */
+  public joinLoad<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    DB extends DreamInstance['DB'],
+    TableName extends DreamInstance['table'],
+    Schema extends DreamInstance['schema'],
+    const Arr extends readonly unknown[],
+  >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]): Query<DreamInstance> {
+    return this.queryInstance().joinLoad(...(args as any))
+  }
+
+  /**
    * Deletes the record represented by this instance
    * from the database, calling any destroy
    * hooks on this model.

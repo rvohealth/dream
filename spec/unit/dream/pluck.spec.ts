@@ -1,17 +1,33 @@
+import { CalendarDate } from '../../../src'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import User from '../../../test-app/app/models/User'
 
 describe('Dream#pluck', () => {
   let user1: User
   let user2: User
+
   beforeEach(async () => {
-    user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+    user1 = await User.create({
+      email: 'fred@frewd',
+      password: 'howyadoin',
+      birthdate: CalendarDate.fromISO('1987-07-22'),
+    })
+    user2 = await User.create({
+      email: 'how@yadoin',
+      password: 'howyadoin',
+      birthdate: CalendarDate.fromISO('1993-11-03'),
+    })
   })
 
   it('plucks the specified attributes and returns them as raw data', async () => {
     const records = await User.pluck('id')
     expect(records).toEqual([user1.id, user2.id])
+  })
+
+  it('marshals to the proper type', async () => {
+    const records = await User.order({ birthdate: 'desc' }).pluck('birthdate')
+    expect(records[0]).toEqualCalendarDate(CalendarDate.fromISO('1993-11-03'))
+    expect(records[1]).toEqualCalendarDate(CalendarDate.fromISO('1987-07-22'))
   })
 
   context('when encased in a transaction', () => {

@@ -71,6 +71,8 @@ import DreamTransaction from './transaction'
 import {
   AliasToDreamIdMap,
   AllDefaultScopeNames,
+  AssociationNameToAssociation,
+  AssociationNameToAssociationDataAndDreamClass,
   AssociationNameToDreamClass,
   DefaultScopeName,
   DreamAttributes,
@@ -227,7 +229,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * whether or not to turn joins into load statements
    */
-  private readonly loadFromJoins: boolean = false
+  private readonly joinLoadActivated: boolean = false
 
   /**
    * @internal
@@ -356,7 +358,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     this.whereNotStatements = Object.freeze(opts.whereNot || [])
     this.orStatements = Object.freeze(opts.or || [])
     this.orderStatements = Object.freeze(opts.order || [])
-    this.loadFromJoins = opts.loadFromJoins || false
+    this.joinLoadActivated = opts.loadFromJoins || false
     this.preloadStatements = Object.freeze(opts.preloadStatements || {})
     this.preloadWhereStatements = Object.freeze(opts.preloadWhereStatements || {})
     this.innerJoinStatements = Object.freeze(opts.innerJoinStatements || {})
@@ -451,7 +453,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       order: opts.order === null ? [] : [...this.orderStatements, ...(opts.order || [])],
 
       distinctColumn: opts.distinctColumn !== undefined ? opts.distinctColumn : this.distinctColumn,
-      loadFromJoins: opts.loadFromJoins !== undefined ? opts.loadFromJoins : this.loadFromJoins,
+      loadFromJoins: opts.loadFromJoins !== undefined ? opts.loadFromJoins : this.joinLoadActivated,
 
       // when passed, preloadStatements, preloadWhereStatements, innerJoinStatements, and innerJoinWhereStatements are already
       // cloned versions of the `this.` versions, handled in the `preload` and `joins` methods
@@ -1050,32 +1052,68 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     associationStatements: any[]
   ): AssociationNameToDreamClass {
     const associations = this.pluckThroughArgumentsToAssociationNames(associationStatements)
-    return this.associationsToDreamClassesMap(associations)
+    return this.associationNamesToDreamClassesMap(associations)
   }
 
   /**
    * @internal
    *
-   * Builds an association map for use when
-   * applying pluckThrough statements
    *
    */
-  private associationsToDreamClassesMap(
+  private associationNamesToDreamClassesMap(
     associationNames: string[],
-    associationsToDreamClassesMap: AssociationNameToDreamClass = {}
-  ) {
+    associationsToDreamClasses: AssociationNameToDreamClass = {}
+  ): AssociationNameToDreamClass {
+    const namesToAssociationsAndDreamClasses =
+      this.associationNamesToAssociationDataAndDreamClassesMap(associationNames)
+    return Object.keys(namesToAssociationsAndDreamClasses).reduce((remap, associationName) => {
+      remap[associationName] = namesToAssociationsAndDreamClasses[associationName].dreamClass
+      return remap
+    }, associationsToDreamClasses)
+  }
+
+  /**
+   * @internal
+   *
+   *
+   */
+  private associationNamesToAssociationsMap(
+    associationNames: string[],
+    associationsToAssociations: AssociationNameToAssociation = {}
+  ): AssociationNameToAssociation {
+    const namesToAssociationsAndDreamClasses =
+      this.associationNamesToAssociationDataAndDreamClassesMap(associationNames)
+    return Object.keys(namesToAssociationsAndDreamClasses).reduce((remap, associationName) => {
+      remap[associationName] = namesToAssociationsAndDreamClasses[associationName].association
+      return remap
+    }, associationsToAssociations)
+  }
+
+  /**
+   * @internal
+   */
+  private associationNamesToAssociationDataAndDreamClassesMap(
+    associationNames: string[]
+  ): AssociationNameToAssociationDataAndDreamClass {
+    const associationsToDreamClassesMap: AssociationNameToAssociationDataAndDreamClass = {}
+
     associationNames.reduce((dreamClass: typeof Dream, associationName: string) => {
       const association = dreamClass['getAssociationMetadata'](associationName)
       const through = (association as any).through
 
       if (through) {
-        const throughAssociation = dreamClass['getAssociationMetadata'](through)
-        const throughAssociationDreamClass = throughAssociation.modelCB() as typeof Dream
-        associationsToDreamClassesMap[through] = throughAssociationDreamClass
+        const { throughAssociation, throughAssociationDreamClass } = this.throughAssociationDetails(
+          dreamClass,
+          through
+        )
+        associationsToDreamClassesMap[through] = {
+          association: throughAssociation,
+          dreamClass: throughAssociationDreamClass,
+        }
       }
 
       const nextDreamClass = association.modelCB() as typeof Dream
-      associationsToDreamClassesMap[associationName] = nextDreamClass
+      associationsToDreamClassesMap[associationName] = { association, dreamClass: nextDreamClass }
       return nextDreamClass
     }, this.dreamClass)
 
@@ -1084,19 +1122,50 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
   /**
    * @internal
+   */
+  private throughAssociationDetails(
+    dreamClass: typeof Dream,
+    through: string
+  ): {
+    throughAssociation:
+      | BelongsToStatement<any, any, any, any>
+      | HasOneStatement<any, any, any, any>
+      | HasManyStatement<any, any, any, any>
+    throughAssociationDreamClass: typeof Dream
+  } {
+    const throughAssociation = dreamClass['getAssociationMetadata'](through)
+    const throughAssociationDreamClass = throughAssociation.modelCB() as typeof Dream
+    return { throughAssociation, throughAssociationDreamClass }
+  }
+
+  /**
+   * @internal
    *
-   * Builds an association map for use when
-   * applying pluckThrough statements
    *
    */
   private joinStatementsToDreamClassesMap(joinStatements: RelaxedJoinStatement) {
     const associationsToDreamClassesMap: AssociationNameToDreamClass = {}
 
     objectPathsToArrays(joinStatements).forEach(associationChain =>
-      this.associationsToDreamClassesMap(associationChain, associationsToDreamClassesMap)
+      this.associationNamesToDreamClassesMap(associationChain, associationsToDreamClassesMap)
     )
 
     return associationsToDreamClassesMap
+  }
+
+  /**
+   * @internal
+   *
+   *
+   */
+  private joinStatementsToAssociationsMap(joinStatements: RelaxedJoinStatement) {
+    const associationsToAssociationsMap: AssociationNameToAssociation = {}
+
+    objectPathsToArrays(joinStatements).forEach(associationChain =>
+      this.associationNamesToAssociationsMap(associationChain, associationsToAssociationsMap)
+    )
+
+    return associationsToAssociationsMap
   }
 
   /**
@@ -1818,8 +1887,14 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @internal
    *
    */
-  private async allWithIncludes(): Promise<DreamInstance[]> {
-    let kyselyQuery = this.buildSelect({ bypassSelectAll: true })
+  private async executeJoinLoad(
+    options: {
+      columns?: DreamColumnNames<DreamInstance>[]
+    } = {}
+  ): Promise<DreamInstance[]> {
+    const query = this.limit(null).offset(null)
+
+    let kyselyQuery = query.buildSelect({ bypassSelectAll: true })
 
     const aliasToDreamClassesMap = {
       [this.baseSqlAlias]: this.dreamClass,
@@ -1827,7 +1902,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     }
 
     const aliasColumnAliases: Record<string, Record<string, string>> = {}
-
     const aliases = Object.keys(aliasToDreamClassesMap)
 
     let nextColumnAliasCounter = 0
@@ -1836,7 +1910,14 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       aliasColumnAliases[alias] ||= {}
       const aliasedDreamClass = aliasToDreamClassesMap[alias]
 
-      aliasedDreamClass.columns().forEach((column: string) => {
+      const columns =
+        alias === this.baseSqlAlias
+          ? options.columns
+            ? this.columnsWithRequiredLoadColumns(options.columns)
+            : this.dreamClass.columns()
+          : aliasedDreamClass.columns()
+
+      columns.forEach((column: string) => {
         const columnAlias = `dr${nextColumnAliasCounter++}`
         kyselyQuery = kyselyQuery.select(`${alias}.${column} as ${columnAlias}`)
         aliasColumnAliases[alias][column] = columnAlias
@@ -1848,7 +1929,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return compact(
       (await executeDatabaseQuery(kyselyQuery, 'execute')).map(
         singleSqlResult =>
-          (this.fleshOutAllWithIncludes({
+          (this.fleshOutJoinLoadExecutionResults({
             currentAlias: this.baseSqlAlias,
             singleSqlResult,
             aliasToDreamIdMap,
@@ -1860,7 +1941,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     )
   }
 
-  private fleshOutAllWithIncludes({
+  private fleshOutJoinLoadExecutionResults({
     currentAlias,
     singleSqlResult,
     aliasToDreamIdMap,
@@ -1872,7 +1953,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     singleSqlResult: any
     aliasToDreamIdMap: AliasToDreamIdMap
     aliasColumnAliases: Record<string, Record<string, string>>
-    aliasToDreamClassesMap: Record<string, typeof Dream>
+    aliasToDreamClassesMap: AssociationNameToDreamClass
     leftJoinStatements: RelaxedJoinStatement
   }) {
     const dreamClass = aliasToDreamClassesMap[currentAlias]
@@ -1888,7 +1969,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       Object.keys(columnAliases).forEach(
         column => (columnValues[column] = singleSqlResult[columnAliases[column]])
       )
-
       aliasToDreamIdMap[currentAlias][primaryKeyValue] = sqlResultToDreamInstance(dreamClass, columnValues)
     }
 
@@ -1896,7 +1976,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     Object.keys(leftJoinStatements).forEach(nextAlias => {
       const association = dreamClass['getAssociationMetadata'](nextAlias)
-      const associatedDream = this.fleshOutAllWithIncludes({
+      const associatedDream = this.fleshOutJoinLoadExecutionResults({
         currentAlias: nextAlias,
         singleSqlResult,
         aliasToDreamIdMap,
@@ -2040,7 +2120,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       columns?: DreamColumnNames<DreamInstance>[]
     } = {}
   ) {
-    if (this.loadFromJoins) return this.allWithIncludes()
+    if (this.joinLoadActivated) return await this.executeJoinLoad(options)
 
     const kyselyQuery = this.buildSelect(options)
     const results = await executeDatabaseQuery(kyselyQuery, 'execute')
@@ -2387,10 +2467,15 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @returns A dream instance or null
    */
   private async takeOne() {
-    const kyselyQuery = this.buildSelect()
+    const kyselyQuery = (this.joinLoadActivated ? this.limit(1) : this).buildSelect()
     const results = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirst')
 
     if (results) {
+      if (this.joinLoadActivated) {
+        const query = this.where({ [this.dreamClass.primaryKey]: results[this.dreamClass.primaryKey] } as any)
+        return (await query.executeJoinLoad())[0]
+      }
+
       const theFirst = sqlResultToDreamInstance(this.dreamClass, results) as DreamInstance
 
       if (theFirst)
@@ -3719,15 +3804,20 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     if (this.offsetStatement) kyselyQuery = kyselyQuery.offset(this.offsetStatement)
 
     if (columns) {
-      const columnsWithDefaults = uniq(
-        compact([this.dreamClass.primaryKey, this.dreamClass['isSTIBase'] ? 'type' : null, ...columns])
+      kyselyQuery = kyselyQuery.select(
+        this.columnsWithRequiredLoadColumns(columns).map(column => this.namespaceColumn(column))
       )
-      kyselyQuery = kyselyQuery.select(columnsWithDefaults.map(column => this.namespaceColumn(column)))
     } else if (!bypassSelectAll) {
       kyselyQuery = kyselyQuery.selectAll(this.baseSqlAlias as any)
     }
 
     return kyselyQuery
+  }
+
+  private columnsWithRequiredLoadColumns(columns: string[]) {
+    return uniq(
+      compact([this.dreamClass.primaryKey, this.dreamClass['isSTIBase'] ? 'type' : null, ...columns])
+    )
   }
 
   private buildUpdate<DB extends DreamInstance['DB']>(

@@ -6,6 +6,9 @@ import {
 import { DateTime } from 'luxon'
 import { AssociationTableNames } from '../db/reflections'
 import { STI_SCOPE_NAME } from '../decorators/STI'
+import { BelongsToStatement } from '../decorators/associations/belongs-to'
+import { HasManyStatement } from '../decorators/associations/has-many'
+import { HasOneStatement } from '../decorators/associations/has-one'
 import {
   AssociatedModelParam,
   WhereStatement,
@@ -370,6 +373,22 @@ export type AssociationNameToDotReference<
 > = `${AssociationName & string}.${keyof Schema[TableNames]['columns' & keyof Schema[TableNames]] & string}`
 
 export type AssociationNameToDreamClass = Record<string, typeof Dream>
+export type AssociationNameToAssociation = Record<
+  string,
+  | BelongsToStatement<any, any, any, any>
+  | HasOneStatement<any, any, any, any>
+  | HasManyStatement<any, any, any, any>
+>
+export type AssociationNameToAssociationDataAndDreamClass = Record<
+  string,
+  {
+    dreamClass: typeof Dream
+    association:
+      | BelongsToStatement<any, any, any, any>
+      | HasOneStatement<any, any, any, any>
+      | HasManyStatement<any, any, any, any>
+  }
+>
 
 type IdToDreamMap = Record<string, Dream>
 export type AliasToDreamIdMap = Record<string, IdToDreamMap>

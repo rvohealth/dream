@@ -3838,6 +3838,20 @@ export default class Dream {
   }
 
   /**
+   *
+   * @param args - A list of associations (and optional where clauses) to load
+   */
+  public joinLoad<
+    I extends Dream,
+    DB extends I['DB'],
+    TableName extends I['table'],
+    Schema extends I['schema'],
+    const Arr extends readonly unknown[],
+  >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]): Query<I> {
+    return this.query().joinLoad(...(args as any))
+  }
+
+  /**
    * Returns true if the association specified has
    * been loaded on this instance
    *
