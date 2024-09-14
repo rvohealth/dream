@@ -569,6 +569,19 @@ describe('Query#joinLoad through', () => {
       const reloaded = await Pet.joinLoad('redBalloons').firstOrFail()
       expect(reloaded.redBalloons).toMatchDreamModels([redBalloon])
     })
+
+    context('when no association matches the where clause', () => {
+      it('still finds the base model', async () => {
+        const pet = await Pet.create()
+        const greenBalloon = await Latex.create({ color: 'green' })
+
+        await pet.createAssociation('collars', { balloon: greenBalloon })
+
+        const reloaded = await Pet.joinLoad('redBalloons').firstOrFail()
+        console.debug({ redBalloons: reloaded.redBalloons })
+        expect(reloaded.redBalloons).toEqual([])
+      })
+    })
   })
 
   context('with a whereNot clause on an implicit through association', () => {

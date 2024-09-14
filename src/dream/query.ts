@@ -1447,12 +1447,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     this: Query<DreamInstance>,
     selection: SimpleFieldType | PluckThroughFieldType
   ) {
-    const query = this.buildSelect({ bypassSelectAll: true, bypassOrder: true }) as SelectQueryBuilder<
-      any,
-      any,
-      any
-    >
-
+    const query = this.buildSelect({ bypassSelectAll: true, bypassOrder: true })
     return query.select(this.namespaceColumn(selection as any))
   }
 
@@ -2846,26 +2841,25 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   // Through associations don't get written into the SQL; they
   // locate the next association we need to build into the SQL
   // AND the source to reference on the other side
-  private joinsBridgeThroughAssociations<
-    DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['schema'],
-  >({
+  private joinsBridgeThroughAssociations<Schema extends DreamInstance['schema']>({
     query,
     dreamClass,
     association,
     previousAssociationTableOrAlias,
+    throughAssociations,
     joinType,
   }: {
-    query: SelectQueryBuilder<DB, any, object>
+    query: SelectQueryBuilder<any, any, any>
     dreamClass: typeof Dream
     association:
       | HasOneStatement<any, any, any, any>
       | HasManyStatement<any, any, any, any>
       | BelongsToStatement<any, any, any, any>
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
+    throughAssociations: (HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>)[]
     joinType: JoinTypes
   }): {
-    query: SelectQueryBuilder<DB, any, object>
+    query: SelectQueryBuilder<any, any, any>
     dreamClass: typeof Dream
     association:
       | HasOneStatement<any, any, any, any>
@@ -2882,6 +2876,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         previousAssociationTableOrAlias,
       }
     } else {
+      throughAssociations.push(association)
+
       // We have entered joinsBridgeThroughAssociations with the
       // CompositionAssetAudits HasOne User association, which
       // is through compositionAsset
@@ -2892,7 +2888,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         dreamClass,
         previousAssociationTableOrAlias,
         currentAssociationTableOrAlias: association.through as TableOrAssociationName<Schema>,
-        originalAssociation: association,
+        throughAssociations,
         joinType,
       })
 
@@ -2912,6 +2908,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           dreamClass: throughClass,
           association: newAssociation,
           previousAssociationTableOrAlias: throughAssociation.as as TableOrAssociationName<Schema>,
+          throughAssociations,
           joinType,
         })
       } else {
@@ -2933,20 +2930,24 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     dreamClass,
     previousAssociationTableOrAlias,
     currentAssociationTableOrAlias,
-    originalAssociation,
     joinWhereStatements = {},
+    throughAssociations = [],
     joinType,
   }: {
-    query: SelectQueryBuilder<DB, any, object>
+    query: SelectQueryBuilder<any, any, any>
     dreamClass: typeof Dream
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
     currentAssociationTableOrAlias: TableOrAssociationName<Schema>
-    originalAssociation?: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
-    joinWhereStatements?: RelaxedJoinWhereStatement<DB, Schema>
+    joinWhereStatements?: RelaxedJoinWhereStatement<any, any>
+    throughAssociations?: (HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>)[]
+
     joinType: JoinTypes
   }): {
-    query: SelectQueryBuilder<DB, any, object>
-    association: any
+    query: SelectQueryBuilder<any, any, any>
+    association:
+      | HasOneStatement<any, any, any, any>
+      | HasManyStatement<any, any, any, any>
+      | BelongsToStatement<any, any, any, any>
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
     currentAssociationTableOrAlias: TableOrAssociationName<Schema>
   } {
@@ -2964,79 +2965,47 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       dreamClass,
       association,
       previousAssociationTableOrAlias,
+      throughAssociations,
       joinType,
     })
 
     query = results.query
     dreamClass = results.dreamClass
+
     association = results.association
+    const timeToApplyThroughAssociations =
+      throughAssociations.length && throughAssociations[0].source === association.as
+
+    const originalPreviousAssociationTableOrAlias = previousAssociationTableOrAlias
     previousAssociationTableOrAlias = results.previousAssociationTableOrAlias
     const throughClass = results.throughClass
 
-    if (originalAssociation?.through) {
+    if (timeToApplyThroughAssociations) {
       ///////////////////////////////////////////////////////////////////////////////////////
       // when an association is through another association, `joinsBridgeThroughAssociations`
       // is called, which eventually calls back to this method, passing in the original
       // through association as `originalAssociation`
       ///////////////////////////////////////////////////////////////////////////////////////
-
-      if (originalAssociation.distinct) {
-        query = query.distinctOn(
-          this.distinctColumnNameForAssociation({
-            association: originalAssociation,
-            tableNameOrAlias: originalAssociation.as,
-            foreignKey: originalAssociation.primaryKey(),
-          }) as any
-        )
-      }
-
-      if (originalAssociation.where) {
-        query = this.applyWhereStatements(
-          query,
-          this.aliasWhereStatements([originalAssociation.where], originalAssociation.as)
-        )
-
-        this.throwUnlessAllRequiredWhereClausesProvided(originalAssociation, originalAssociation.as, {})
-      }
-
-      if (originalAssociation.whereNot) {
-        query = this.applyWhereStatements(
-          query,
-          this.aliasWhereStatements([originalAssociation.whereNot], originalAssociation.as),
-          { negate: true }
-        )
-      }
-
-      if (originalAssociation.selfWhere) {
-        query = this.applyWhereStatements(
-          query,
-          this.rawifiedSelfWhereClause({
-            associationAlias: originalAssociation.as,
-            selfAlias: previousAssociationTableOrAlias,
-            selfWhereClause: originalAssociation.selfWhere,
-          })
-        )
-      }
-
-      if (originalAssociation.selfWhereNot) {
-        query = this.applyWhereStatements(
-          query,
-          this.rawifiedSelfWhereClause({
-            associationAlias: originalAssociation.as,
-            selfAlias: previousAssociationTableOrAlias,
-            selfWhereClause: originalAssociation.selfWhereNot,
-          }),
-          { negate: true }
-        )
-      }
-
-      if (originalAssociation.order) {
-        query = this.applyOrderStatementForAssociation({
-          query,
-          tableNameOrAlias: originalAssociation.as,
-          association: originalAssociation,
-        })
-      }
+      throughAssociations.forEach(
+        (throughAssociation: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>) => {
+          if (throughAssociation.distinct) {
+            query = query.distinctOn(
+              this.distinctColumnNameForAssociation({
+                association: throughAssociation,
+                tableNameOrAlias: throughAssociation.as,
+                foreignKey: throughAssociation.primaryKey(),
+              }) as any
+            )
+          }
+          if (throughAssociation.order) {
+            query = this.applyOrderStatementForAssociation({
+              query,
+              tableNameOrAlias: throughAssociation.as,
+              association: throughAssociation,
+            })
+          }
+        }
+      )
     }
 
     if (association.type === 'BelongsTo') {
@@ -3063,17 +3032,28 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
             `${currentAssociationTableOrAlias}.${association.primaryKey()}`
           )
 
+          if (timeToApplyThroughAssociations) {
+            throughAssociations.forEach(
+              (
+                throughAssociation: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
+              ) => {
+                join = this.applyAssociationWhereStatementsToJoinStatement({
+                  join,
+                  association: throughAssociation,
+                  currentAssociationTableOrAlias,
+                  previousAssociationTableOrAlias: originalPreviousAssociationTableOrAlias,
+                  joinWhereStatements,
+                })
+              }
+            )
+          }
+
           join = this.conditionallyApplyDefaultScopesDependentOnAssociation({
             join,
             tableNameOrAlias: currentAssociationTableOrAlias,
             association,
           })
 
-          // console.debug({
-          //   joinWhereStatements,
-          //   previousAssociationTableOrAlias,
-          //   currentAssociationTableOrAlias,
-          // })
           join = this.applyJoinWhereStatements(
             join,
             joinWhereStatements[currentAssociationTableOrAlias] as RelaxedJoinWhereStatement<DB, Schema>,
@@ -3082,7 +3062,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
           return join
         }
-      ) as typeof query
+      )
     } else {
       const to = association.modelCB().table
       const joinTableExpression =
@@ -3115,54 +3095,29 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
             )
           }
 
-          if (association.where) {
-            join = this.applyWhereStatements(
-              join,
-              this.aliasWhereStatements(
-                [association.where as WhereStatement<DB, Schema, DreamInstance['table']>],
-                currentAssociationTableOrAlias
-              )
-            )
-            this.throwUnlessAllRequiredWhereClausesProvided(
-              association,
-              currentAssociationTableOrAlias,
-              joinWhereStatements
-            )
-          }
-
-          if (association.whereNot) {
-            join = this.applyWhereStatements(
-              join,
-              this.aliasWhereStatements(
-                [association.whereNot as WhereStatement<DB, Schema, DreamInstance['table']>],
-                currentAssociationTableOrAlias
-              ),
-              { negate: true }
+          if (timeToApplyThroughAssociations) {
+            throughAssociations.forEach(
+              (
+                throughAssociation: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
+              ) => {
+                join = this.applyAssociationWhereStatementsToJoinStatement({
+                  join,
+                  association: throughAssociation,
+                  currentAssociationTableOrAlias,
+                  previousAssociationTableOrAlias: originalPreviousAssociationTableOrAlias,
+                  joinWhereStatements,
+                })
+              }
             )
           }
 
-          if (association.selfWhere) {
-            join = this.applyWhereStatements(
-              join,
-              this.rawifiedSelfWhereClause({
-                associationAlias: currentAssociationTableOrAlias,
-                selfAlias: previousAssociationTableOrAlias,
-                selfWhereClause: association.selfWhere,
-              })
-            )
-          }
-
-          if (association.selfWhereNot) {
-            join = this.applyWhereStatements(
-              join,
-              this.rawifiedSelfWhereClause({
-                associationAlias: currentAssociationTableOrAlias,
-                selfAlias: previousAssociationTableOrAlias,
-                selfWhereClause: association.selfWhereNot,
-              }),
-              { negate: true }
-            )
-          }
+          join = this.applyAssociationWhereStatementsToJoinStatement({
+            join,
+            association,
+            currentAssociationTableOrAlias,
+            previousAssociationTableOrAlias,
+            joinWhereStatements,
+          })
 
           join = this.conditionallyApplyDefaultScopesDependentOnAssociation({
             join,
@@ -3170,11 +3125,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
             association,
           })
 
-          // console.debug({
-          //   joinWhereStatements,
-          //   previousAssociationTableOrAlias,
-          //   currentAssociationTableOrAlias,
-          // })
           join = this.applyJoinWhereStatements(
             join,
             joinWhereStatements[currentAssociationTableOrAlias] as RelaxedJoinWhereStatement<DB, Schema>,
@@ -3183,7 +3133,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
           return join
         }
-      ) as typeof query
+      )
 
       if (association.order) {
         query = this.applyOrderStatementForAssociation({
@@ -3210,6 +3160,77 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       previousAssociationTableOrAlias,
       currentAssociationTableOrAlias,
     }
+  }
+
+  private applyAssociationWhereStatementsToJoinStatement({
+    join,
+    currentAssociationTableOrAlias,
+    previousAssociationTableOrAlias,
+    association,
+    joinWhereStatements,
+  }: {
+    join: JoinBuilder<any, any>
+    currentAssociationTableOrAlias: string
+    previousAssociationTableOrAlias: string
+    association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
+    joinWhereStatements: RelaxedJoinWhereStatement<any, any>
+  }) {
+    console.debug({
+      currentAssociationTableOrAlias,
+      previousAssociationTableOrAlias,
+      association: association.as,
+    })
+
+    if (association.where) {
+      join = this.applyWhereStatements(
+        join,
+        this.aliasWhereStatements(
+          [association.where as WhereStatement<any, any, any>],
+          currentAssociationTableOrAlias
+        )
+      )
+      this.throwUnlessAllRequiredWhereClausesProvided(
+        association,
+        currentAssociationTableOrAlias,
+        joinWhereStatements
+      )
+    }
+
+    if (association.whereNot) {
+      join = this.applyWhereStatements(
+        join,
+        this.aliasWhereStatements(
+          [association.whereNot as WhereStatement<any, any, any>],
+          currentAssociationTableOrAlias
+        ),
+        { negate: true }
+      )
+    }
+
+    if (association.selfWhere) {
+      join = this.applyWhereStatements(
+        join,
+        this.rawifiedSelfWhereClause({
+          associationAlias: association.as,
+          selfAlias: previousAssociationTableOrAlias,
+          selfWhereClause: association.selfWhere,
+        })
+      )
+    }
+
+    if (association.selfWhereNot) {
+      join = this.applyWhereStatements(
+        join,
+        this.rawifiedSelfWhereClause({
+          associationAlias: association.as,
+          selfAlias: previousAssociationTableOrAlias,
+          selfWhereClause: association.selfWhereNot,
+        }),
+        { negate: true }
+      )
+    }
+
+    return join
   }
 
   private conditionallyApplyDefaultScopesDependentOnAssociation({
@@ -3268,7 +3289,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return `${tableNameOrAlias}.${association.distinct}`
   }
 
-  private recursivelyJoin<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>({
+  private recursivelyJoin<Schema extends DreamInstance['schema']>({
     query,
     joinsStatement,
     joinWhereStatements,
@@ -3276,13 +3297,13 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     previousAssociationTableOrAlias,
     joinType,
   }: {
-    query: SelectQueryBuilder<DB, any, object>
-    joinsStatement: RelaxedJoinWhereStatement<DB, Schema>
-    joinWhereStatements: RelaxedJoinWhereStatement<DB, Schema>
+    query: SelectQueryBuilder<any, any, any>
+    joinsStatement: RelaxedJoinWhereStatement<any, any>
+    joinWhereStatements: RelaxedJoinWhereStatement<any, any>
     dreamClass: typeof Dream
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
     joinType: 'inner' | 'left'
-  }): SelectQueryBuilder<DB, any, object> {
+  }): SelectQueryBuilder<any, any, any> {
     for (const currentAssociationTableOrAlias of Object.keys(joinsStatement)) {
       const results = this.applyOneJoin({
         query,
@@ -3330,10 +3351,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   private applyWhereStatements<
-    T extends SelectQueryBuilder<DB, any, object> | JoinBuilder<any, any>,
-    DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['schema'],
-    WS extends WhereStatement<DB, Schema, DreamInstance['table']>,
+    T extends SelectQueryBuilder<any, any, any> | JoinBuilder<any, any>,
+    WS extends WhereStatement<any, any, any>,
   >(
     query: T,
     whereStatements: WS | WS[],
@@ -3350,12 +3369,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return query
   }
 
-  private applyOrderStatementForAssociation<DB extends DreamInstance['DB']>({
+  private applyOrderStatementForAssociation({
     query,
     tableNameOrAlias,
     association,
   }: {
-    query: SelectQueryBuilder<DB, any, object>
+    query: SelectQueryBuilder<any, any, any>
     tableNameOrAlias: string
     association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
   }) {
@@ -3377,13 +3396,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return query
   }
 
-  private applySingleWhereStatement<
-    T extends SelectQueryBuilder<DB, any, object> | JoinBuilder<any, any>,
-    DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['schema'],
-  >(
+  private applySingleWhereStatement<T extends SelectQueryBuilder<any, any, any> | JoinBuilder<any, any>>(
     query: T,
-    whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>,
+    whereStatement: WhereStatement<any, any, any>,
     {
       negate = false,
     }: {
@@ -3455,12 +3470,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return query
   }
 
-  private whereStatementsToExpressionWrappers<
-    DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['schema'],
-  >(
+  private whereStatementsToExpressionWrappers(
     eb: ExpressionBuilder<any, any>,
-    whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>,
+    whereStatement: WhereStatement<any, any, any>,
     {
       negate = false,
     }: {
@@ -3526,12 +3538,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     )
   }
 
-  private orStatementsToExpressionWrappers<
-    DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['schema'],
-  >(
+  private orStatementsToExpressionWrappers(
     eb: ExpressionBuilder<any, any>,
-    orStatement: WhereStatement<DB, Schema, DreamInstance['table']>
+    orStatement: WhereStatement<any, any, any>
   ): ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any> {
     return Object.keys(orStatement)
       .filter(key => (orStatement as any)[key] !== undefined)
@@ -3787,9 +3796,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     }, {} as any)
   }
 
-  private buildDelete<DB extends DreamInstance['DB']>(
-    this: Query<DreamInstance>
-  ): DeleteQueryBuilder<DB, any, object> {
+  private buildDelete(this: Query<DreamInstance>): DeleteQueryBuilder<any, any, any> {
     const kyselyQuery = this.dbFor('delete').deleteFrom(
       this.baseSqlAlias as unknown as AliasedExpression<any, any>
     )
@@ -3798,7 +3805,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return results.clone.buildCommon(results.kyselyQuery)
   }
 
-  private buildSelect<DB extends DreamInstance['DB']>(
+  private buildSelect(
     this: Query<DreamInstance>,
     {
       bypassSelectAll = false,
@@ -3809,8 +3816,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       bypassOrder?: boolean
       columns?: DreamColumnNames<DreamInstance>[]
     } = {}
-  ): SelectQueryBuilder<DB, any, object> {
-    let kyselyQuery: SelectQueryBuilder<DB, any, object>
+  ): SelectQueryBuilder<any, any, any> {
+    let kyselyQuery: SelectQueryBuilder<any, any, any>
 
     if (this.baseSelectQuery) {
       kyselyQuery = this.baseSelectQuery.buildSelect({ bypassSelectAll: true })
@@ -3820,16 +3827,16 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           ? this.dreamClass.table
           : `${this.dreamClass.table} as ${this.baseSqlAlias}`
 
-      kyselyQuery = this.dbFor('select').selectFrom(from as any)
+      kyselyQuery = this.dbFor('select').selectFrom(from)
     }
 
     if (this.distinctColumn) {
-      kyselyQuery = kyselyQuery.distinctOn(this.distinctColumn as any)
+      kyselyQuery = kyselyQuery.distinctOn(this.distinctColumn)
     }
 
     kyselyQuery = this.buildCommon(kyselyQuery)
 
-    kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery as any, {
+    kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery, {
       bypassOrder: bypassOrder || !!this.distinctColumn,
     }) as typeof kyselyQuery
 
@@ -3850,7 +3857,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         this.columnsWithRequiredLoadColumns(columns).map(column => this.namespaceColumn(column))
       )
     } else if (!bypassSelectAll) {
-      kyselyQuery = kyselyQuery.selectAll(this.baseSqlAlias as any)
+      kyselyQuery = kyselyQuery.selectAll(this.baseSqlAlias)
     }
 
     return kyselyQuery
@@ -3877,8 +3884,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
   private attachLimitAndOrderStatementsToNonSelectQuery<
     T extends Query<DreamInstance>,
-    DB extends DreamInstance['DB'],
-    QueryType extends UpdateQueryBuilder<DB, any, any, object> | DeleteQueryBuilder<DB, any, object>,
+    QueryType extends UpdateQueryBuilder<any, any, any, any> | DeleteQueryBuilder<any, any, any>,
   >(this: T, kyselyQuery: QueryType): { kyselyQuery: QueryType; clone: T } {
     if (this.limitStatement || this.orderStatements.length) {
       kyselyQuery = (kyselyQuery as any).where((eb: any) => {
@@ -3889,7 +3895,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
       return {
         kyselyQuery,
-        clone: this.clone({ where: null, whereNot: null, order: null, limit: null }) as any,
+        clone: this.clone({ where: null, whereNot: null, order: null, limit: null }) as T,
       }
     }
 
