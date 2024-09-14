@@ -4,6 +4,7 @@ import {
   DeleteQueryBuilder,
   ExpressionBuilder,
   ExpressionWrapper,
+  JoinBuilder,
   ComparisonOperatorExpression as KyselyComparisonOperatorExpression,
   RawBuilder,
   SelectQueryBuilder,
@@ -1996,8 +1997,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
       if (!associatedDream) return
 
-      if (hasMany) dream[association.as].push(associatedDream)
-      else dream[associationToGetterSetterProp(association)] = associatedDream
+      if (hasMany) {
+        if (!dream[association.as].includes(associatedDream)) dream[association.as].push(associatedDream)
+      } else dream[associationToGetterSetterProp(association)] = associatedDream
     })
 
     return dream
@@ -3054,8 +3056,32 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
       query = query[(joinType === 'inner' ? 'innerJoin' : 'leftJoin') as 'innerJoin'](
         joinTableExpression,
-        `${previousAssociationTableOrAlias}.${association.foreignKey()}`,
-        `${currentAssociationTableOrAlias}.${association.primaryKey()}`
+        (join: JoinBuilder<any, any>) => {
+          join = join.onRef(
+            `${previousAssociationTableOrAlias}.${association.foreignKey()}`,
+            '=',
+            `${currentAssociationTableOrAlias}.${association.primaryKey()}`
+          )
+
+          join = this.conditionallyApplyDefaultScopesDependentOnAssociation({
+            join,
+            tableNameOrAlias: currentAssociationTableOrAlias,
+            association,
+          })
+
+          // console.debug({
+          //   joinWhereStatements,
+          //   previousAssociationTableOrAlias,
+          //   currentAssociationTableOrAlias,
+          // })
+          join = this.applyJoinWhereStatements(
+            join,
+            joinWhereStatements[currentAssociationTableOrAlias] as RelaxedJoinWhereStatement<DB, Schema>,
+            currentAssociationTableOrAlias
+          )
+
+          return join
+        }
       ) as typeof query
     } else {
       const to = association.modelCB().table
@@ -3066,74 +3092,98 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
       query = query[(joinType === 'inner' ? 'innerJoin' : 'leftJoin') as 'innerJoin'](
         joinTableExpression,
-        `${previousAssociationTableOrAlias}.${association.primaryKey()}`,
-        `${currentAssociationTableOrAlias}.${association.foreignKey()}`
-      ) as typeof query
-
-      if (association.polymorphic) {
-        query = this.applyWhereStatements(
-          query,
-          this.aliasWhereStatements(
-            [
-              {
-                [association.foreignKeyTypeField()]: throughClass
-                  ? throughClass['stiBaseClassOrOwnClass'].name
-                  : dreamClass['stiBaseClassOrOwnClass'].name,
-              } as any,
-            ],
-            currentAssociationTableOrAlias
+        (join: JoinBuilder<any, any>) => {
+          join = join.onRef(
+            `${previousAssociationTableOrAlias}.${association.primaryKey()}`,
+            '=',
+            `${currentAssociationTableOrAlias}.${association.foreignKey()}` as any
           )
-        )
-      }
 
-      if (association.where) {
-        query = this.applyWhereStatements(
-          query,
-          this.aliasWhereStatements(
-            [association.where as WhereStatement<DB, Schema, DreamInstance['table']>],
-            currentAssociationTableOrAlias
-          )
-        )
-        this.throwUnlessAllRequiredWhereClausesProvided(
-          association,
-          currentAssociationTableOrAlias,
-          joinWhereStatements
-        )
-      }
+          if (association.polymorphic) {
+            join = this.applyWhereStatements(
+              join,
+              this.aliasWhereStatements(
+                [
+                  {
+                    [association.foreignKeyTypeField()]: throughClass
+                      ? throughClass['stiBaseClassOrOwnClass'].name
+                      : dreamClass['stiBaseClassOrOwnClass'].name,
+                  } as any,
+                ],
+                currentAssociationTableOrAlias
+              )
+            )
+          }
 
-      if (association.whereNot) {
-        query = this.applyWhereStatements(
-          query,
-          this.aliasWhereStatements(
-            [association.whereNot as WhereStatement<DB, Schema, DreamInstance['table']>],
-            currentAssociationTableOrAlias
-          ),
-          { negate: true }
-        )
-      }
+          if (association.where) {
+            join = this.applyWhereStatements(
+              join,
+              this.aliasWhereStatements(
+                [association.where as WhereStatement<DB, Schema, DreamInstance['table']>],
+                currentAssociationTableOrAlias
+              )
+            )
+            this.throwUnlessAllRequiredWhereClausesProvided(
+              association,
+              currentAssociationTableOrAlias,
+              joinWhereStatements
+            )
+          }
 
-      if (association.selfWhere) {
-        query = this.applyWhereStatements(
-          query,
-          this.rawifiedSelfWhereClause({
-            associationAlias: currentAssociationTableOrAlias,
-            selfAlias: previousAssociationTableOrAlias,
-            selfWhereClause: association.selfWhere,
+          if (association.whereNot) {
+            join = this.applyWhereStatements(
+              join,
+              this.aliasWhereStatements(
+                [association.whereNot as WhereStatement<DB, Schema, DreamInstance['table']>],
+                currentAssociationTableOrAlias
+              ),
+              { negate: true }
+            )
+          }
+
+          if (association.selfWhere) {
+            join = this.applyWhereStatements(
+              join,
+              this.rawifiedSelfWhereClause({
+                associationAlias: currentAssociationTableOrAlias,
+                selfAlias: previousAssociationTableOrAlias,
+                selfWhereClause: association.selfWhere,
+              })
+            )
+          }
+
+          if (association.selfWhereNot) {
+            join = this.applyWhereStatements(
+              join,
+              this.rawifiedSelfWhereClause({
+                associationAlias: currentAssociationTableOrAlias,
+                selfAlias: previousAssociationTableOrAlias,
+                selfWhereClause: association.selfWhereNot,
+              }),
+              { negate: true }
+            )
+          }
+
+          join = this.conditionallyApplyDefaultScopesDependentOnAssociation({
+            join,
+            tableNameOrAlias: currentAssociationTableOrAlias,
+            association,
           })
-        )
-      }
 
-      if (association.selfWhereNot) {
-        query = this.applyWhereStatements(
-          query,
-          this.rawifiedSelfWhereClause({
-            associationAlias: currentAssociationTableOrAlias,
-            selfAlias: previousAssociationTableOrAlias,
-            selfWhereClause: association.selfWhereNot,
-          }),
-          { negate: true }
-        )
-      }
+          // console.debug({
+          //   joinWhereStatements,
+          //   previousAssociationTableOrAlias,
+          //   currentAssociationTableOrAlias,
+          // })
+          join = this.applyJoinWhereStatements(
+            join,
+            joinWhereStatements[currentAssociationTableOrAlias] as RelaxedJoinWhereStatement<DB, Schema>,
+            currentAssociationTableOrAlias
+          )
+
+          return join
+        }
+      ) as typeof query
 
       if (association.order) {
         query = this.applyOrderStatementForAssociation({
@@ -3154,12 +3204,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       }
     }
 
-    query = this.conditionallyApplyDefaultScopesDependentOnAssociation({
-      query,
-      tableNameOrAlias: currentAssociationTableOrAlias,
-      association,
-    })
-
     return {
       query,
       association,
@@ -3168,12 +3212,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     }
   }
 
-  private conditionallyApplyDefaultScopesDependentOnAssociation<DB extends DreamInstance['DB']>({
-    query,
+  private conditionallyApplyDefaultScopesDependentOnAssociation({
+    join,
     tableNameOrAlias,
     association,
   }: {
-    query: SelectQueryBuilder<DB, any, object>
+    join: JoinBuilder<any, any>
     tableNameOrAlias: string
     association:
       | HasOneStatement<any, any, any, any>
@@ -3201,13 +3245,13 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     }
 
     if (scopesQuery.whereStatements.length) {
-      query = this.applyWhereStatements(
-        query,
+      join = this.applyWhereStatements(
+        join,
         this.aliasWhereStatements(scopesQuery.whereStatements, tableNameOrAlias)
       )
     }
 
-    return query
+    return join
   }
 
   private distinctColumnNameForAssociation({
@@ -3286,18 +3330,19 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   private applyWhereStatements<
+    T extends SelectQueryBuilder<DB, any, object> | JoinBuilder<any, any>,
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['schema'],
     WS extends WhereStatement<DB, Schema, DreamInstance['table']>,
   >(
-    query: SelectQueryBuilder<DB, any, object>,
+    query: T,
     whereStatements: WS | WS[],
     {
       negate = false,
     }: {
       negate?: boolean
     } = {}
-  ) {
+  ): T {
     ;([whereStatements].flat() as WS[]).forEach(statement => {
       query = this.applySingleWhereStatement(query, statement, { negate })
     })
@@ -3332,8 +3377,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return query
   }
 
-  private applySingleWhereStatement<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
-    query: SelectQueryBuilder<DB, any, object>,
+  private applySingleWhereStatement<
+    T extends SelectQueryBuilder<DB, any, object> | JoinBuilder<any, any>,
+    DB extends DreamInstance['DB'],
+    Schema extends DreamInstance['schema'],
+  >(
+    query: T,
     whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>,
     {
       negate = false,
@@ -3369,22 +3418,37 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         //    then it is the same as the where statement not being present at all,
         //    resulting in a noop on our end
         if (b === 'in' && Array.isArray(c) && c.length === 0) {
-          query = negate ? query.where(sql<boolean>`TRUE`) : query.where(sql<boolean>`FALSE`)
+          if (query instanceof JoinBuilder)
+            return negate ? query.on(sql<boolean>`TRUE`) : query.on(sql<boolean>`FALSE`)
+          else return negate ? query.where(sql<boolean>`TRUE`) : query.where(sql<boolean>`FALSE`)
+          //
         } else if (b === 'not in' && Array.isArray(c) && c.length === 0) {
-          query = negate ? query.where(sql<boolean>`FALSE`) : query.where(sql<boolean>`TRUE`)
+          if (query instanceof JoinBuilder)
+            return negate ? query.on(sql<boolean>`FALSE`) : query.on(sql<boolean>`TRUE`)
+          else return negate ? query.where(sql<boolean>`FALSE`) : query.where(sql<boolean>`TRUE`)
+          //
         } else if (negate) {
           const negatedB = OPERATION_NEGATION_MAP[b as keyof typeof OPERATION_NEGATION_MAP]
           if (!negatedB) throw new Error(`no negation available for comparison operator ${b as string}`)
-          query = query.where(a, negatedB, c)
+
+          if (query instanceof JoinBuilder) query = query.on(a, negatedB, c) as T
+          else query = query.where(a, negatedB, c) as T
 
           if (b2) {
             const negatedB2 = OPERATION_NEGATION_MAP[b2 as keyof typeof OPERATION_NEGATION_MAP]
             if (!negatedB2) throw new Error(`no negation available for comparison operator ${b2}`)
-            query.where(a2, negatedB2, c2)
+
+            if (query instanceof JoinBuilder) query = query.on(a2, negatedB2, c2) as T
+            else query = query.where(a2, negatedB2, c2) as T
           }
         } else {
-          query = query.where(a, b, c)
-          if (b2) query = query.where(a2, b2, c2)
+          if (query instanceof JoinBuilder) query = query.on(a, b, c) as T
+          else query = query.where(a, b, c) as T
+
+          if (b2) {
+            if (query instanceof JoinBuilder) query = query.on(a2, b2, c2) as T
+            else query = query.where(a2, b2, c2) as T
+          }
         }
       })
 
@@ -3601,15 +3665,17 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return { a, b, c, a2, b2, c2 }
   }
 
-  private recursivelyApplyJoinWhereStatement<
+  private applyJoinWhereStatements<
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['schema'],
     PreviousTableName extends AssociationTableNames<DreamInstance['DB'], Schema> & keyof Schema,
   >(
-    query: SelectQueryBuilder<DB, any, object>,
-    whereJoinsStatement: RelaxedJoinWhereStatement<DB, Schema>,
-    previousAssociationTableOrAlias: TableOrAssociationName<Schema>
+    join: JoinBuilder<any, any>,
+    whereJoinsStatement: RelaxedJoinWhereStatement<DB, Schema> | null,
+    associationTableOrAlias: TableOrAssociationName<Schema>
   ) {
+    if (!whereJoinsStatement) return join
+
     for (const key of Object.keys(whereJoinsStatement) as (
       | keyof Schema[PreviousTableName]['associations']
       | keyof Updateable<DB[PreviousTableName]>
@@ -3619,21 +3685,13 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       ]
 
       if (columnValue!.constructor !== Object) {
-        query = (this as any).applyWhereStatements(query, {
-          [`${previousAssociationTableOrAlias}.${String(key)}`]: columnValue,
-        })
-      } else {
-        const currentAssociationTableOrAlias = key as TableOrAssociationName<Schema>
-
-        query = this.recursivelyApplyJoinWhereStatement(
-          query,
-          whereJoinsStatement[currentAssociationTableOrAlias] as any,
-          currentAssociationTableOrAlias
-        )
+        join = (this as Query<DreamInstance>).applySingleWhereStatement(join, {
+          [`${associationTableOrAlias}.${String(key)}`]: columnValue,
+        } as WhereStatement<any, any, any>)
       }
     }
 
-    return query
+    return join
   }
 
   private buildCommon(this: Query<DreamInstance>, kyselyQuery: any) {
@@ -3686,22 +3744,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
         return eb.and(compact([...whereStatement, ...whereNotStatement, ...orEbs]))
       })
-    }
-
-    if (!isEmpty(query.innerJoinWhereStatements)) {
-      kyselyQuery = query.recursivelyApplyJoinWhereStatement(
-        kyselyQuery,
-        query.innerJoinWhereStatements,
-        query.baseSqlAlias
-      )
-    }
-
-    if (!isEmpty(query.leftJoinWhereStatements)) {
-      kyselyQuery = query.recursivelyApplyJoinWhereStatement(
-        kyselyQuery,
-        query.leftJoinWhereStatements,
-        query.baseSqlAlias
-      )
     }
 
     return kyselyQuery
