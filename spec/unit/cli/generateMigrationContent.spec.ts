@@ -141,6 +141,38 @@ export async function down(db: Kysely<any>): Promise<void> {
       })
     })
 
+    context('boolean attributes', () => {
+      it('sets not null and defaults to false', () => {
+        const res = generateMigrationContent({
+          table: 'communication_preferences',
+          columnsWithTypes: ['sms_marketing:boolean'],
+          primaryKeyType: 'bigserial',
+        })
+
+        expect(res).toEqual(
+          `\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createTable('communication_preferences')
+    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('sms_marketing', 'boolean', col => col.notNull().defaultTo(false))
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropTable('communication_preferences').execute()
+}\
+`
+        )
+      })
+    })
+
     context('decimal attributes', () => {
       it('generates a kysely migration with decimal field', () => {
         const res = generateMigrationContent({
@@ -254,7 +286,7 @@ export async function down(db: Kysely<any>): Promise<void> {
       })
     })
 
-    context('belongs_to attribute is passed', () => {
+    context('belongs_to attribute', () => {
       it('generates a kysely model with the belongsTo association', () => {
         const res = generateMigrationContent({
           table: 'compositions',

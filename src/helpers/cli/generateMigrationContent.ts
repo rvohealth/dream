@@ -51,6 +51,10 @@ export default function generateMigrationContent({
           columnDefs.push(generateDecimalStr(attribute))
           break
 
+        case 'boolean':
+          columnDefs.push(generateBooleanStr(attributeName))
+          break
+
         case 'encrypted':
           columnDefs.push(generateColumnStr(`encrypted_${attributeName}`, 'text', descriptors))
           break
@@ -169,6 +173,10 @@ function generateEnumDropStatements(columnsWithTypes: string[]) {
   })
 
   return finalStatements.length ? '\n\n  ' + finalStatements.join('\n  ') : ''
+}
+
+function generateBooleanStr(attributeName: string) {
+  return `.addColumn('${attributeName}', 'boolean', col => col.notNull().defaultTo(false))`
 }
 
 function generateEnumStr(attribute: string) {
