@@ -72,7 +72,7 @@ describe('Dream.joinLoad', () => {
     })
 
     it('returns a copy of the dream instance', async () => {
-      const clone = await user.joinLoad('pets').firstOrFail()
+      const clone = await user.joinLoad('pets').execute()
       expect(clone).toMatchDreamModel(user)
       expect(clone).not.toBe(user)
 
@@ -85,7 +85,7 @@ describe('Dream.joinLoad', () => {
         let pets: Pet[] = []
         await ApplicationModel.transaction(async txn => {
           await user.txn(txn).createAssociation('pets', { species: 'dog', name: 'violet' })
-          user = await user.txn(txn).joinLoad('pets').firstOrFail()
+          user = await user.txn(txn).joinLoad('pets').execute()
           pets = user.pets
         })
 
@@ -95,14 +95,14 @@ describe('Dream.joinLoad', () => {
 
     context('Has(One/Many) association', () => {
       it('joinLoads the association', async () => {
-        const clone = await user.joinLoad('pets').firstOrFail()
+        const clone = await user.joinLoad('pets').execute()
         expect(clone.pets).toMatchDreamModels([await Pet.findBy({ name: 'aster' })])
       })
     })
 
     context('BelongsTo association', () => {
       it('joinLoads the association', async () => {
-        const clone = await pet.joinLoad('user').firstOrFail()
+        const clone = await pet.joinLoad('user').execute()
         expect(clone.user).toMatchDreamModel(await User.findBy({ email: 'fred@fred' }))
       })
     })
@@ -113,7 +113,7 @@ describe('Dream.joinLoad', () => {
         const compositionAsset = await composition?.createAssociation('compositionAssets', {
           name: 'compositionAsset X',
         })
-        const clone = await user.joinLoad('compositionAssets').firstOrFail()
+        const clone = await user.joinLoad('compositionAssets').execute()
         expect(clone.compositionAssets).toMatchDreamModels([compositionAsset])
       })
     })

@@ -30,6 +30,7 @@ import {
   WhereStatement,
   WhereStatementForAssociation,
 } from './decorators/associations/shared'
+import { EncryptedAttributeStatement } from './decorators/Encrypted'
 import AfterCreate from './decorators/hooks/after-create'
 import AfterCreateCommit from './decorators/hooks/after-create-commit'
 import AfterDestroy from './decorators/hooks/after-destroy'
@@ -71,6 +72,7 @@ import {
   DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
 } from './dream/internal/scopeHelpers'
 import undestroyDream from './dream/internal/undestroyDream'
+import JoinLoadBuilder from './dream/join-load-builder'
 import LoadBuilder from './dream/load-builder'
 import Query, { FindEachOpts } from './dream/query'
 import DreamTransaction from './dream/transaction'
@@ -105,6 +107,7 @@ import {
   VariadicPluckEachThroughArgs,
   VariadicPluckThroughArgs,
 } from './dream/types'
+import InternalEncrypt from './encrypt/internal-encrypt'
 import CanOnlyPassBelongsToModelParam from './exceptions/associations/can-only-pass-belongs-to-model-param'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
 import NonLoadedAssociation from './exceptions/associations/non-loaded-association'
@@ -121,8 +124,6 @@ import isJsonColumn from './helpers/db/types/isJsonColumn'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel'
 import { marshalDBValue } from './helpers/marshalDBValue'
 import { isString } from './helpers/typechecks'
-import { EncryptedAttributeStatement } from './decorators/Encrypted'
-import InternalEncrypt from './encrypt/internal-encrypt'
 
 export default class Dream {
   public DB: any
@@ -3847,8 +3848,8 @@ export default class Dream {
     TableName extends I['table'],
     Schema extends I['schema'],
     const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]): Query<I> {
-    return this.query().joinLoad(...(args as any))
+  >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]): JoinLoadBuilder<I> {
+    return new JoinLoadBuilder<I>(this).joinLoad(...(args as any))
   }
 
   /**

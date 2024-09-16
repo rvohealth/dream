@@ -20,6 +20,7 @@ import {
   DEFAULT_SKIP_HOOKS,
 } from './internal/scopeHelpers'
 import undestroyDream from './internal/undestroyDream'
+import JoinLoadBuilder from './join-load-builder'
 import LoadBuilder from './load-builder'
 import Query from './query'
 import DreamTransaction from './transaction'
@@ -271,8 +272,13 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]): Query<DreamInstance> {
-    return this.queryInstance().joinLoad(...(args as any))
+  >(
+    this: I,
+    ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]
+  ): JoinLoadBuilder<DreamInstance> {
+    return new JoinLoadBuilder<DreamInstance>(this.dreamInstance, this.dreamTransaction).joinLoad(
+      ...(args as any)
+    )
   }
 
   /**
