@@ -18,7 +18,7 @@ describe('Query#joins with simple associations', () => {
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
     await Composition.create({ userId: user.id, primary: true })
 
-    const reloadedUsers = await User.query().joins('mainComposition').all()
+    const reloadedUsers = await User.query().innerJoin('mainComposition').all()
     expect(reloadedUsers).toMatchDreamModels([user])
   })
 
@@ -27,7 +27,7 @@ describe('Query#joins with simple associations', () => {
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
     await Composition.create({ userId: user.id })
 
-    const reloadedUsers = await User.query().joins('compositions').all()
+    const reloadedUsers = await User.query().innerJoin('compositions').all()
     expect(reloadedUsers).toMatchDreamModels([user])
   })
 
@@ -39,7 +39,7 @@ describe('Query#joins with simple associations', () => {
       const composition = await Composition.create({ userId: user.id, primary: true })
       await CompositionAsset.create({ compositionId: composition.id })
 
-      const reloadedUsers = await User.query().joins('mainComposition', 'compositionAssets').all()
+      const reloadedUsers = await User.query().innerJoin('mainComposition', 'compositionAssets').all()
 
       expect(reloadedUsers).toMatchDreamModels([user])
     })
@@ -53,8 +53,8 @@ describe('Query#joins with simple associations', () => {
       await CompositionAsset.create({ compositionId: composition.id })
 
       const reloadedUsers = await User.query()
-        .joins('compositions')
-        .joins('mainComposition', 'compositionAssets')
+        .innerJoin('compositions')
+        .innerJoin('mainComposition', 'compositionAssets')
         .all()
       expect(reloadedUsers).toMatchDreamModels([user])
     })
@@ -66,11 +66,11 @@ describe('Query#joins with simple associations', () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
       const composition = await Composition.create({ userId: user.id, primary: true })
 
-      const reloadedUsers = await User.query().joins('mainComposition', { id: composition.id }).all()
+      const reloadedUsers = await User.query().innerJoin('mainComposition', { id: composition.id }).all()
       expect(reloadedUsers).toMatchDreamModels([user])
 
       const noResults = await User.query()
-        .joins('mainComposition', { id: parseInt(composition.id.toString()) + 1 })
+        .innerJoin('mainComposition', { id: parseInt(composition.id.toString()) + 1 })
         .all()
       expect(noResults).toEqual([])
     })
@@ -80,11 +80,11 @@ describe('Query#joins with simple associations', () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
       const composition = await Composition.create({ userId: user.id, primary: true })
 
-      const reloadedUsers = await User.query().joins('mainComposition', { id: composition.id }).all()
+      const reloadedUsers = await User.query().innerJoin('mainComposition', { id: composition.id }).all()
       expect(reloadedUsers).toMatchDreamModels([user])
 
       const noResults = await User.query()
-        .joins('mainComposition', {
+        .innerJoin('mainComposition', {
           id: [parseInt(composition.id.toString()) + 1, parseInt(composition.id.toString()) + 2],
         })
         .all()
@@ -102,7 +102,7 @@ describe('Query#joins with simple associations', () => {
         await LocalizedText.create({ localizable: composition2, locale: 'es-ES' })
 
         const reloaded = await User.passthrough({ locale: 'es-ES' })
-          .joins('compositions', 'currentLocalizedText')
+          .innerJoin('compositions', 'currentLocalizedText')
           .all()
         expect(reloaded).toMatchDreamModels([user2])
       })
@@ -118,7 +118,7 @@ describe('Query#joins with simple associations', () => {
         const composition2 = await Composition.create({ user: user2 })
         await LocalizedText.create({ localizable: composition2, locale: 'es-ES' })
 
-        const reloaded = await User.joins('compositions', 'inlineWhereCurrentLocalizedText', {
+        const reloaded = await User.innerJoin('compositions', 'inlineWhereCurrentLocalizedText', {
           locale: 'es-ES',
         }).all()
         expect(reloaded).toMatchDreamModels([user2])
@@ -126,9 +126,9 @@ describe('Query#joins with simple associations', () => {
 
       context('when the required where clause isn’t passed', () => {
         it('throws MissingRequiredAssociationWhereClause', async () => {
-          await expect(User.joins('compositions', 'inlineWhereCurrentLocalizedText').all()).rejects.toThrow(
-            MissingRequiredAssociationWhereClause
-          )
+          await expect(
+            User.innerJoin('compositions', 'inlineWhereCurrentLocalizedText').all()
+          ).rejects.toThrow(MissingRequiredAssociationWhereClause)
         })
       })
     })
@@ -142,7 +142,7 @@ describe('Query#joins with simple associations', () => {
         const balloon2 = await Mylar.create({ user: user2 })
         await Mylar.create({ user: user3 })
 
-        const balloons = await Balloon.joins('user', { name: ops.similarity('hello') }).all()
+        const balloons = await Balloon.innerJoin('user', { name: ops.similarity('hello') }).all()
         expect(balloons).toMatchDreamModels([balloon1, balloon2])
       })
     })
@@ -155,7 +155,7 @@ describe('Query#joins with simple associations', () => {
         await Mylar.create({ user: user2 })
 
         const whereClause: Record<string, OpsStatement<any, any>> = { id: ops.equal(user1.id) }
-        const query = Balloon.joins('user', whereClause)
+        const query = Balloon.innerJoin('user', whereClause)
         whereClause.id.value = user2.id
         const balloons = await query.all()
         expect(balloons).toMatchDreamModels([balloon1])
@@ -167,11 +167,11 @@ describe('Query#joins with simple associations', () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
       const composition = await Composition.create({ userId: user.id })
 
-      const reloadedUsers = await User.query().joins('compositions', { id: composition.id }).all()
+      const reloadedUsers = await User.query().innerJoin('compositions', { id: composition.id }).all()
       expect(reloadedUsers).toMatchDreamModels([user])
 
       const noResults = await User.query()
-        .joins('compositions', { id: parseInt(composition.id.toString()) + 1 })
+        .innerJoin('compositions', { id: parseInt(composition.id.toString()) + 1 })
         .all()
       expect(noResults).toEqual([])
     })
@@ -183,11 +183,11 @@ describe('Query#joins with simple associations', () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
       const composition = await Composition.create({ userId: user.id })
 
-      const reloadedComposition = await Composition.query().joins('user', { id: user.id }).all()
+      const reloadedComposition = await Composition.query().innerJoin('user', { id: user.id }).all()
       expect(reloadedComposition).toMatchDreamModels([composition])
 
       const noResults = await Composition.query()
-        .joins('user', { id: parseInt(user.id.toString()) + 1 })
+        .innerJoin('user', { id: parseInt(user.id.toString()) + 1 })
         .all()
       expect(noResults).toEqual([])
     })
@@ -198,12 +198,12 @@ describe('Query#joins with simple associations', () => {
         const composition = await Composition.create({ user })
 
         const reloadedComposition = await Composition.query()
-          .joins('user', { createdAt: range(DateTime.now().minus({ day: 1 })) })
+          .innerJoin('user', { createdAt: range(DateTime.now().minus({ day: 1 })) })
           .first()
         expect(reloadedComposition).toMatchDreamModel(composition)
 
         const noResults = await Composition.query()
-          .joins('user', { createdAt: range(DateTime.now().plus({ day: 1 })) })
+          .innerJoin('user', { createdAt: range(DateTime.now().plus({ day: 1 })) })
           .first()
         expect(noResults).toBeNull()
       })
@@ -213,12 +213,12 @@ describe('Query#joins with simple associations', () => {
         await Composition.create({ user })
 
         const reloadedUser = await User.query()
-          .joins('compositions', { createdAt: range(DateTime.now().minus({ day: 1 })) })
+          .innerJoin('compositions', { createdAt: range(DateTime.now().minus({ day: 1 })) })
           .first()
         expect(reloadedUser).toMatchDreamModel(user)
 
         const noResults = await User.query()
-          .joins('compositions', { createdAt: range(DateTime.now().plus({ day: 1 })) })
+          .innerJoin('compositions', { createdAt: range(DateTime.now().plus({ day: 1 })) })
           .first()
         expect(noResults).toBeNull()
       })
@@ -233,12 +233,12 @@ describe('Query#joins with simple associations', () => {
         const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
 
         const reloadedUsers = await User.query()
-          .joins('mainComposition', 'compositionAssets', { id: compositionAsset.id })
+          .innerJoin('mainComposition', 'compositionAssets', { id: compositionAsset.id })
           .all()
         expect(reloadedUsers).toMatchDreamModels([user])
 
         const noResults = await User.query()
-          .joins('mainComposition', 'compositionAssets', {
+          .innerJoin('mainComposition', 'compositionAssets', {
             id: parseInt(compositionAsset.id.toString()) + 1,
           })
           .all()
@@ -254,20 +254,20 @@ describe('Query#joins with simple associations', () => {
         const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
 
         const reloadedUsers = await User.query()
-          .joins('compositions', { id: composition.id })
-          .joins('mainComposition', 'compositionAssets', { id: compositionAsset.id })
+          .innerJoin('compositions', { id: composition.id })
+          .innerJoin('mainComposition', 'compositionAssets', { id: compositionAsset.id })
           .all()
         expect(reloadedUsers).toMatchDreamModels([user])
 
         const noResults1 = await User.query()
-          .joins('compositions', { id: parseInt(composition.id.toString()) + 1 })
-          .joins('mainComposition', 'compositionAssets', { id: compositionAsset.id })
+          .innerJoin('compositions', { id: parseInt(composition.id.toString()) + 1 })
+          .innerJoin('mainComposition', 'compositionAssets', { id: compositionAsset.id })
           .all()
         expect(noResults1).toEqual([])
 
         const noResults2 = await User.query()
-          .joins('compositions', { id: composition.id })
-          .joins('mainComposition', 'compositionAssets', {
+          .innerJoin('compositions', { id: composition.id })
+          .innerJoin('mainComposition', 'compositionAssets', {
             id: parseInt(compositionAsset.id.toString()) + 1,
           })
           .all()
@@ -285,7 +285,7 @@ describe('Query#joins with simple associations', () => {
           createdAt: DateTime.now().minus({ day: 1 }),
         })
 
-        const reloadedUser = await User.joins('recentCompositions').first()
+        const reloadedUser = await User.innerJoin('recentCompositions').first()
         expect(reloadedUser).toMatchDreamModel(user)
       })
     })
@@ -298,7 +298,7 @@ describe('Query#joins with simple associations', () => {
           createdAt: DateTime.now().minus({ year: 1 }),
         })
 
-        const reloadedUser = await User.joins('recentCompositions').first()
+        const reloadedUser = await User.innerJoin('recentCompositions').first()
         expect(reloadedUser).toBeNull()
       })
     })
@@ -311,7 +311,7 @@ describe('Query#joins with simple associations', () => {
           createdAt: DateTime.now().minus({ day: 1 }),
         })
 
-        const reloadedUser = await User.joins('notRecentCompositions').first()
+        const reloadedUser = await User.innerJoin('notRecentCompositions').first()
         expect(reloadedUser).toBeNull()
       })
     })
@@ -324,7 +324,7 @@ describe('Query#joins with simple associations', () => {
           createdAt: DateTime.now().minus({ year: 1 }),
         })
 
-        const reloadedUser = await User.joins('notRecentCompositions').first()
+        const reloadedUser = await User.innerJoin('notRecentCompositions').first()
         expect(reloadedUser).toMatchDreamModel(user)
       })
     })
@@ -336,7 +336,7 @@ describe('Query#joins with simple associations', () => {
           user,
         })
 
-        const reloadedUser = await User.joins('sortedCompositions').first()
+        const reloadedUser = await User.innerJoin('sortedCompositions').first()
         expect(reloadedUser).toMatchDreamModel(user)
       })
     })
@@ -346,7 +346,7 @@ describe('Query#joins with simple associations', () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         await Mylar.create({ user, color: 'blue' })
 
-        const reloadedUser = await User.query().joins('balloons').first()
+        const reloadedUser = await User.query().innerJoin('balloons').first()
         expect(reloadedUser).toMatchDreamModel(user)
       })
     })
@@ -360,7 +360,7 @@ describe('Query#joins with simple associations', () => {
           lost: false,
         })
 
-        const reloaded = await Pet.joins('currentCollar').first()
+        const reloaded = await Pet.innerJoin('currentCollar').first()
         expect(reloaded).toMatchDreamModel(pet)
       })
     })
@@ -372,7 +372,7 @@ describe('Query#joins with simple associations', () => {
           lost: true,
         })
 
-        const reloaded = await Pet.joins('currentCollar').first()
+        const reloaded = await Pet.innerJoin('currentCollar').first()
         expect(reloaded).toBeNull()
       })
     })
@@ -384,7 +384,7 @@ describe('Query#joins with simple associations', () => {
           lost: true,
         })
 
-        const reloaded = await Pet.joins('notLostCollar').first()
+        const reloaded = await Pet.innerJoin('notLostCollar').first()
         expect(reloaded).toBeNull()
       })
     })
@@ -396,7 +396,7 @@ describe('Query#joins with simple associations', () => {
           lost: false,
         })
 
-        const reloaded = await Pet.joins('notLostCollar').first()
+        const reloaded = await Pet.innerJoin('notLostCollar').first()
         expect(reloaded).toMatchDreamModel(pet)
       })
     })
@@ -408,7 +408,7 @@ describe('Query#joins with simple associations', () => {
           user,
         })
 
-        const reloadedUser = await User.joins('lastComposition').first()
+        const reloadedUser = await User.innerJoin('lastComposition').first()
         expect(reloadedUser).toMatchDreamModel(user)
       })
     })
@@ -418,7 +418,7 @@ describe('Query#joins with simple associations', () => {
     it('namespaces the scope', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       await Pet.create({ user })
-      const reloadedUser = await User.where({ email: user.email }).joins('pets').first()
+      const reloadedUser = await User.where({ email: user.email }).innerJoin('pets').first()
       // prior to fixing, this line would throw:
       //   error: column reference "deleted_at" is ambiguous
       expect(reloadedUser).toMatchDreamModel(user)
@@ -430,7 +430,7 @@ describe('Query#joins with simple associations', () => {
       await Pet.create({ user: user1, name: 'Snoopy', deletedAt: DateTime.now() })
       await Pet.create({ user: user2, name: 'Woodstock' })
 
-      const users = await User.joins('pets').all()
+      const users = await User.innerJoin('pets').all()
       expect(users).toMatchDreamModels([user2])
     })
   })
@@ -459,7 +459,7 @@ describe('Query#joins with simple associations', () => {
     })
 
     it('is able to apply date ranges to where clause', async () => {
-      const pets = await Pet.joins('user', { createdAt: range(begin.plus({ hour: 1 })) }).all()
+      const pets = await Pet.innerJoin('user', { createdAt: range(begin.plus({ hour: 1 })) }).all()
       expect(pets).toMatchDreamModels([pet1])
     })
   })
@@ -470,7 +470,7 @@ describe('Query#joins with simple associations', () => {
         const pet = await Pet.create({ name: 'aster' })
         await pet.createAssociation('collars', { tagName: 'Aster', pet, hidden: true })
 
-        const results = await Pet.joins('collars').all()
+        const results = await Pet.innerJoin('collars').all()
         expect(results).toHaveLength(0)
       })
     })
@@ -481,7 +481,7 @@ describe('Query#joins with simple associations', () => {
         await pet.createAssociation('collars', { tagName: 'Aster', pet })
         await pet.destroy()
 
-        const results = await Collar.joins('pet').all()
+        const results = await Collar.innerJoin('pet').all()
         expect(results).toHaveLength(0)
       })
     })
@@ -492,16 +492,16 @@ describe('Query#joins with simple associations', () => {
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
       const pet = await user.createAssociation('pets', { name: 'aster' })
       await pet.createAssociation('collars', { tagName: 'Aster', pet })
-      const baseScope = User.joins('pets')
+      const baseScope = User.innerJoin('pets')
 
       const results = await baseScope
-        .joins('pets', 'collars')
+        .innerJoin('pets', 'collars')
         .whereAny([
           {
-            id: baseScope.joins('pets', 'collars', { tagName: 'Aster' }).nestedSelect('pets.userId'),
+            id: baseScope.innerJoin('pets', 'collars', { tagName: 'Aster' }).nestedSelect('pets.userId'),
           },
           {
-            id: baseScope.joins('pets', 'collars', { tagName: 'Snoopy' }).nestedSelect('pets.userId'),
+            id: baseScope.innerJoin('pets', 'collars', { tagName: 'Snoopy' }).nestedSelect('pets.userId'),
           },
         ])
         .limit(1)

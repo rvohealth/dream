@@ -14,33 +14,37 @@ import Post from '../../../../test-app/app/models/Post'
 import PostComment from '../../../../test-app/app/models/PostComment'
 import User from '../../../../test-app/app/models/User'
 
-describe('Query#preload with simple associations', () => {
+describe('Query#leftJoinPreload with simple associations', () => {
   context('HasOne', () => {
     it('loads the association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ userId: user.id, primary: true })
 
-      const reloadedUser = await User.query().preload('mainComposition').first()
-      expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
+      const reloadedUser = await User.query().leftJoinPreload('mainComposition').firstOrFail()
+      expect(reloadedUser.mainComposition).toMatchDreamModel(composition)
     })
 
     it('supports where clauses', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ userId: user.id, primary: true, content: 'Hello' })
 
-      const reloadedUser = await User.query().preload('mainComposition', { content: 'Goodbye' }).first()
-      expect(reloadedUser?.mainComposition).toBeNull()
+      const reloadedUser = await User.query()
+        .leftJoinPreload('mainComposition', { content: 'Goodbye' })
+        .firstOrFail()
+      expect(reloadedUser.mainComposition).toBeNull()
 
-      const reloadedUser2 = await User.query().preload('mainComposition', { content: 'Hello' }).first()
-      expect(reloadedUser2!.mainComposition).toMatchDreamModel(composition)
+      const reloadedUser2 = await User.query()
+        .leftJoinPreload('mainComposition', { content: 'Hello' })
+        .firstOrFail()
+      expect(reloadedUser2.mainComposition).toMatchDreamModel(composition)
     })
 
     context('when the association does not exist', () => {
       it('sets it to null', async () => {
         await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-        const reloadedUser = await User.query().preload('mainComposition').first()
-        expect(reloadedUser!.mainComposition).toBeNull()
+        const reloadedUser = await User.query().leftJoinPreload('mainComposition').firstOrFail()
+        expect(reloadedUser.mainComposition).toBeNull()
       })
     })
 
@@ -49,8 +53,8 @@ describe('Query#preload with simple associations', () => {
         const balloon = await Latex.create({ color: 'blue' })
         const line = await BalloonLine.create({ balloon, material: 'ribbon' })
 
-        const reloaded = await Balloon.query().preload('balloonLine').first()
-        expect(reloaded!.balloonLine).toMatchDreamModel(line)
+        const reloaded = await Balloon.query().leftJoinPreload('balloonLine').firstOrFail()
+        expect(reloaded.balloonLine).toMatchDreamModel(line)
       })
     })
   })
@@ -61,8 +65,8 @@ describe('Query#preload with simple associations', () => {
       const composition1 = await Composition.create({ user })
       const composition2 = await Composition.create({ user })
 
-      const reloadedUser = await User.query().preload('compositions').first()
-      expect(reloadedUser!.compositions).toMatchDreamModels([composition1, composition2])
+      const reloadedUser = await User.query().leftJoinPreload('compositions').firstOrFail()
+      expect(reloadedUser.compositions).toMatchDreamModels([composition1, composition2])
     })
 
     it('supports where clauses', async () => {
@@ -70,16 +74,18 @@ describe('Query#preload with simple associations', () => {
       await Composition.create({ user, content: 'Hello' })
       const composition2 = await Composition.create({ user, content: 'Goodbye' })
 
-      const reloadedUser = await User.query().preload('compositions', { content: 'Goodbye' }).first()
-      expect(reloadedUser!.compositions).toMatchDreamModels([composition2])
+      const reloadedUser = await User.query()
+        .leftJoinPreload('compositions', { content: 'Goodbye' })
+        .firstOrFail()
+      expect(reloadedUser.compositions).toMatchDreamModels([composition2])
     })
 
     context('when no association exists', () => {
       it('sets it to an empty array', async () => {
         await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-        const reloadedUser = await User.query().preload('compositions').first()
-        expect(reloadedUser!.compositions).toEqual([])
+        const reloadedUser = await User.query().leftJoinPreload('compositions').firstOrFail()
+        expect(reloadedUser.compositions).toEqual([])
       })
     })
 
@@ -88,8 +94,8 @@ describe('Query#preload with simple associations', () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const balloon = await Latex.create({ user, color: 'blue' })
 
-        const reloadedUser = await User.query().preload('balloons').first()
-        expect(reloadedUser!.balloons).toMatchDreamModels([balloon])
+        const reloadedUser = await User.query().leftJoinPreload('balloons').firstOrFail()
+        expect(reloadedUser.balloons).toMatchDreamModels([balloon])
       })
     })
   })
@@ -98,8 +104,8 @@ describe('Query#preload with simple associations', () => {
     it('sets the association to an empty array', async () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-      const reloadedUser = await User.query().preload('compositions').first()
-      expect(reloadedUser!.compositions).toEqual([])
+      const reloadedUser = await User.query().leftJoinPreload('compositions').firstOrFail()
+      expect(reloadedUser.compositions).toEqual([])
     })
   })
 
@@ -107,8 +113,8 @@ describe('Query#preload with simple associations', () => {
     it('loads the association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       await Composition.create({ user })
-      const reloadedComposition = await Composition.query().preload('user').first()
-      expect(reloadedComposition!.user).toMatchDreamModel(user)
+      const reloadedComposition = await Composition.query().leftJoinPreload('user').firstOrFail()
+      expect(reloadedComposition.user).toMatchDreamModel(user)
     })
 
     context('pointing to an STI model', () => {
@@ -116,8 +122,8 @@ describe('Query#preload with simple associations', () => {
         const balloon = await Latex.create({ color: 'blue' })
         await BalloonLine.create({ balloon, material: 'ribbon' })
 
-        const reloaded = await BalloonLine.query().preload('balloon').first()
-        expect(reloaded!.balloon).toMatchDreamModel(balloon)
+        const reloaded = await BalloonLine.query().leftJoinPreload('balloon').firstOrFail()
+        expect(reloaded.balloon).toMatchDreamModel(balloon)
       })
     })
 
@@ -137,20 +143,20 @@ describe('Query#preload with simple associations', () => {
     })
   })
 
-  it('can handle sibling preload', async () => {
+  it('can handle sibling leftJoinPreload statements', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ userId: user.id, primary: true })
     const composition2 = await Composition.create({ user })
     const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
 
     const reloadedUser = await User.query()
-      .preload('compositions')
-      .preload('mainComposition', 'compositionAssets')
-      .first()
+      .leftJoinPreload('compositions')
+      .leftJoinPreload('mainComposition', 'compositionAssets')
+      .firstOrFail()
 
-    expect(reloadedUser!.compositions).toMatchDreamModels([composition, composition2])
-    expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
-    expect(reloadedUser!.mainComposition.compositionAssets).toMatchDreamModels([compositionAsset])
+    expect(reloadedUser.compositions).toMatchDreamModels([composition, composition2])
+    expect(reloadedUser.mainComposition).toMatchDreamModel(composition)
+    expect(reloadedUser.mainComposition.compositionAssets).toMatchDreamModels([compositionAsset])
   })
 
   context('HasMany', () => {
@@ -162,8 +168,8 @@ describe('Query#preload with simple associations', () => {
           createdAt: DateTime.now().minus({ day: 1 }),
         })
 
-        const reloadedUser = await User.query().preload('recentCompositions').first()
-        expect(reloadedUser!.recentCompositions).toMatchDreamModels([composition])
+        const reloadedUser = await User.query().leftJoinPreload('recentCompositions').firstOrFail()
+        expect(reloadedUser.recentCompositions).toMatchDreamModels([composition])
       })
 
       context('with "passthrough"', () => {
@@ -174,25 +180,11 @@ describe('Query#preload with simple associations', () => {
           await LocalizedText.create({ localizable: composition, locale: 'en-US' })
           const compositionText2 = await LocalizedText.create({ localizable: composition, locale: 'es-ES' })
 
-          const compositionAsset = await CompositionAsset.create({ composition })
-          const compositionAssetText1 = await LocalizedText.create({
-            localizable: compositionAsset,
-            locale: 'es-ES',
-          })
-          await LocalizedText.create({
-            localizable: compositionAsset,
-            locale: 'en-US',
-          })
-
           const reloadedUser = await User.query()
             .passthrough({ locale: 'es-ES' })
-            .preload('compositions', 'currentLocalizedText')
-            .preload('compositions', 'compositionAssets', 'currentLocalizedText')
-            .first()
-          expect(reloadedUser!.compositions[0].currentLocalizedText).toMatchDreamModel(compositionText2)
-          expect(reloadedUser!.compositions[0].compositionAssets[0].currentLocalizedText).toMatchDreamModel(
-            compositionAssetText1
-          )
+            .leftJoinPreload('compositions', 'currentLocalizedText')
+            .firstOrFail()
+          expect(reloadedUser.compositions[0].currentLocalizedText).toMatchDreamModel(compositionText2)
         })
       })
     })
@@ -205,8 +197,8 @@ describe('Query#preload with simple associations', () => {
           createdAt: DateTime.now().minus({ year: 1 }),
         })
 
-        const reloadedUser = await User.query().preload('recentCompositions').first()
-        expect(reloadedUser!.recentCompositions).toEqual([])
+        const reloadedUser = await User.query().leftJoinPreload('recentCompositions').firstOrFail()
+        expect(reloadedUser.recentCompositions).toEqual([])
       })
     })
 
@@ -222,8 +214,8 @@ describe('Query#preload with simple associations', () => {
         await Post.create({ user })
         const post2 = await Post.create({ user })
 
-        const reloadedUser = await User.query().preload('featuredPost').first()
-        expect(reloadedUser!.featuredPost).toMatchDreamModel(post2)
+        const reloadedUser = await User.query().leftJoinPreload('featuredPost').firstOrFail()
+        expect(reloadedUser.featuredPost).toMatchDreamModel(post2)
       })
     })
 
@@ -248,11 +240,11 @@ describe('Query#preload with simple associations', () => {
       })
 
       it('loads the associated models', async () => {
-        const sanityCheckNode = await Node.query().preload('edges').first()
-        expect(sanityCheckNode!.edges).toMatchDreamModels([edge1, edge2, edge3])
+        const sanityCheckNode = await Node.query().leftJoinPreload('edges').firstOrFail()
+        expect(sanityCheckNode.edges).toMatchDreamModels([edge1, edge2, edge3])
 
-        const reloadedNode = await Node.query().preload('nonOmittedPositionEdgeNodes').first()
-        expect(reloadedNode!.nonOmittedPositionEdgeNodes).toMatchDreamModels([edgeNode2, edgeNode3])
+        const reloadedNode = await Node.query().leftJoinPreload('nonOmittedPositionEdgeNodes').firstOrFail()
+        expect(reloadedNode.nonOmittedPositionEdgeNodes).toMatchDreamModels([edgeNode2, edgeNode3])
       })
     })
 
@@ -264,8 +256,8 @@ describe('Query#preload with simple associations', () => {
           createdAt: DateTime.now().minus({ day: 1 }),
         })
 
-        const reloadedUser = await User.query().preload('notRecentCompositions').first()
-        expect(reloadedUser!.notRecentCompositions).toEqual([])
+        const reloadedUser = await User.query().leftJoinPreload('notRecentCompositions').firstOrFail()
+        expect(reloadedUser.notRecentCompositions).toEqual([])
       })
     })
 
@@ -277,8 +269,8 @@ describe('Query#preload with simple associations', () => {
           createdAt: DateTime.now().minus({ year: 1 }),
         })
 
-        const reloadedUser = await User.query().preload('notRecentCompositions').first()
-        expect(reloadedUser!.notRecentCompositions).toMatchDreamModels([composition])
+        const reloadedUser = await User.query().leftJoinPreload('notRecentCompositions').firstOrFail()
+        expect(reloadedUser.notRecentCompositions).toMatchDreamModels([composition])
       })
     })
   })
@@ -294,8 +286,8 @@ describe('Query#preload with simple associations', () => {
           lost: false,
         })
 
-        const reloaded = await Pet.preload('currentCollar').first()
-        expect(reloaded?.currentCollar).toMatchDreamModel(currentCollar)
+        const reloaded = await Pet.leftJoinPreload('currentCollar').firstOrFail()
+        expect(reloaded.currentCollar).toMatchDreamModel(currentCollar)
       })
     })
 
@@ -306,8 +298,8 @@ describe('Query#preload with simple associations', () => {
           lost: true,
         })
 
-        const reloaded = await Pet.preload('currentCollar').first()
-        expect(reloaded?.currentCollar).toBeNull()
+        const reloaded = await Pet.leftJoinPreload('currentCollar').firstOrFail()
+        expect(reloaded.currentCollar).toBeNull()
       })
     })
 
@@ -318,8 +310,8 @@ describe('Query#preload with simple associations', () => {
           lost: true,
         })
 
-        const reloaded = await Pet.preload('notLostCollar').first()
-        expect(reloaded?.notLostCollar).toBeNull()
+        const reloaded = await Pet.leftJoinPreload('notLostCollar').firstOrFail()
+        expect(reloaded.notLostCollar).toBeNull()
       })
     })
 
@@ -330,8 +322,8 @@ describe('Query#preload with simple associations', () => {
           lost: false,
         })
 
-        const reloaded = await Pet.preload('notLostCollar').first()
-        expect(reloaded?.notLostCollar).toMatchDreamModel(notLostCollar)
+        const reloaded = await Pet.leftJoinPreload('notLostCollar').firstOrFail()
+        expect(reloaded.notLostCollar).toMatchDreamModel(notLostCollar)
       })
     })
 
@@ -345,38 +337,40 @@ describe('Query#preload with simple associations', () => {
           user,
         })
 
-        const reloadedUser = await User.preload('firstComposition').preload('lastComposition').first()
-        expect(reloadedUser!.firstComposition).toMatchDreamModel(firstComposition)
-        expect(reloadedUser!.lastComposition).toMatchDreamModel(lastComposition)
+        const reloadedUser = await User.leftJoinPreload('firstComposition')
+          .leftJoinPreload('lastComposition')
+          .firstOrFail()
+        expect(reloadedUser.firstComposition).toMatchDreamModel(firstComposition)
+        expect(reloadedUser.lastComposition).toMatchDreamModel(lastComposition)
       })
     })
   })
 
-  context('with default scopes on the preloaded models', () => {
-    context('preloading a HasMany', () => {
+  context('with default scopes on the loaded models', () => {
+    context('a HasMany', () => {
       it('applies default scopes when joining', async () => {
         const pet = await Pet.create({ name: 'aster' })
         await pet.createAssociation('collars', { tagName: 'Aster', pet, hidden: true })
 
-        const result = await Pet.preload('collars').first()
-        expect(result!.collars).toHaveLength(0)
+        const result = await Pet.leftJoinPreload('collars').firstOrFail()
+        expect(result.collars).toHaveLength(0)
       })
     })
 
-    context('preloading a BelongsTo', () => {
+    context('a BelongsTo', () => {
       it('applies default scopes when joining', async () => {
         const pet = await Pet.create({ name: 'aster', deletedAt: DateTime.now() })
         await pet.createAssociation('collars', { tagName: 'Aster', pet })
 
-        const result = await Collar.preload('pet').first()
-        expect(result!.pet).toBeNull()
+        const result = await Collar.leftJoinPreload('pet').firstOrFail()
+        expect(result.pet).toBeNull()
       })
     })
   })
 
   it.skip('type test', async () => {
-    // preload allows re-using of association names since preloading does not occur within a single
-    // query, so will not result in namespace collision
-    await Edge.preload('nodes', 'edges', 'nodes').all()
+    // leftJoinPreload does not allow re-using of association names since a
+    // single query does not allow name collisions
+    await Edge.leftJoinPreload('nodes', 'edges').all()
   })
 })

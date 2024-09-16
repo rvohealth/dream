@@ -30,6 +30,7 @@ import {
   WhereStatement,
   WhereStatementForAssociation,
 } from './decorators/associations/shared'
+import { EncryptedAttributeStatement } from './decorators/Encrypted'
 import AfterCreate from './decorators/hooks/after-create'
 import AfterCreateCommit from './decorators/hooks/after-create-commit'
 import AfterDestroy from './decorators/hooks/after-destroy'
@@ -71,6 +72,7 @@ import {
   DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
 } from './dream/internal/scopeHelpers'
 import undestroyDream from './dream/internal/undestroyDream'
+import LeftJoinLoadBuilder from './dream/left-join-load-builder'
 import LoadBuilder from './dream/load-builder'
 import Query, { FindEachOpts } from './dream/query'
 import DreamTransaction from './dream/transaction'
@@ -100,11 +102,13 @@ import {
   UpdateablePropertiesForClass,
   VariadicCountThroughArgs,
   VariadicJoinsArgs,
+  VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
   VariadicMinMaxThroughArgs,
   VariadicPluckEachThroughArgs,
   VariadicPluckThroughArgs,
 } from './dream/types'
+import InternalEncrypt from './encrypt/internal-encrypt'
 import CanOnlyPassBelongsToModelParam from './exceptions/associations/can-only-pass-belongs-to-model-param'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
 import NonLoadedAssociation from './exceptions/associations/non-loaded-association'
@@ -121,8 +125,6 @@ import isJsonColumn from './helpers/db/types/isJsonColumn'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel'
 import { marshalDBValue } from './helpers/marshalDBValue'
 import { isString } from './helpers/typechecks'
-import { EncryptedAttributeStatement } from './decorators/Encrypted'
-import InternalEncrypt from './encrypt/internal-encrypt'
 
 export default class Dream {
   public DB: any
@@ -1459,11 +1461,43 @@ export default class Dream {
   }
 
   /**
+   * Load each specified association using a single SQL query.
+   * See {@link #preload} for preloading in separate queries.
+   *
+   * Note: since leftJoinPreload loads via single query, it has
+   * some downsides and that may be avoided using {@link #preload}:
+   * 1. `limit` and `offset` will be automatically removed
+   * 2. `through` associations will bring additional namespaces into the query that can conflict with through associations from other associations, creating an invalid query
+   * 3. each nested association will result in an additional record which duplicates data from the outer record. E.g., given `.leftJoinPreload('a', 'b', 'c')`, if each `a` has 10 `b` and each `b` has 10 `c`, then for one `a`, 100 records will be returned, each of which has all of the columns of `a`. `.preload('a', 'b', 'c')` would perform three separate SQL queries, but the data for a single `a` would only be returned once.
+   * 4. the individual query becomes more complex the more associations are included
+   * 5. associations loading associations loading associations could result in exponential amounts of data; in those cases, `.preload(...).findEach(...)` avoids instantiating massive amounts of data at once
+   *
+   * ```ts
+   * const user = await User.leftJoinPreload('posts', 'comments', { visibilty: 'public' }, 'replies').first()
+   * console.log(user.posts[0].comments[0].replies)
+   * // [Reply{id: 1}, Reply{id: 2}]
+   * ```
+   *
+   * @param args - A chain of associaition names and where clauses
+   * @returns A query for this model with the include statement applied
+   */
+  public static leftJoinPreload<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    TableName extends InstanceType<T>['table'],
+    Schema extends I['schema'],
+    const Arr extends readonly unknown[],
+  >(this: T, ...args: [...Arr, VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>]) {
+    return this.query().leftJoinPreload(...(args as any))
+  }
+
+  /**
    * Applies preload statement to a Query scoped to this model.
    * Upon instantiating records of this model type,
    * specified associations will be preloaded.
    *
-   * Preloading/loading is necessary prior to accessing associations
+   * Preloading/loading/including is necessary prior to accessing associations
    * on a Dream instance.
    *
    * Preload is useful for avoiding the N+1 query problem
@@ -1493,13 +1527,13 @@ export default class Dream {
    * joins statement attached
    *
    * ```ts
-   * await User.joins('posts').first()
+   * await User.innerJoin('posts').first()
    * ```
    *
    * @param args - A chain of associaition names and where clauses
    * @returns A Query for this model with the joins clause applied
    */
-  public static joins<
+  public static innerJoin<
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
@@ -1507,7 +1541,7 @@ export default class Dream {
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
   >(this: T, ...args: [...Arr, VariadicJoinsArgs<DB, Schema, TableName, Arr>]) {
-    return this.query().joins(...(args as any))
+    return this.query().innerJoin(...(args as any))
   }
 
   /**
@@ -3779,7 +3813,7 @@ export default class Dream {
   /**
    * Loads the requested associations upon execution
    *
-   * NOTE: Preload is often a preferrable way of achieving the
+   * NOTE: {@link #preload} is often a preferrable way of achieving the
    * same goal.
    *
    * ```ts
@@ -3806,6 +3840,51 @@ export default class Dream {
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]): LoadBuilder<I> {
     return new LoadBuilder<I>(this).load(...(args as any))
+  }
+
+  /**
+   * Load each specified association using a single SQL query.
+   * See {@link #load} for loading in separate queries.
+   *
+   * Note: since leftJoinPreload loads via single query, it has
+   * some downsides and that may be avoided using {@link #load}:
+   * 1. `limit` and `offset` will be automatically removed
+   * 2. `through` associations will bring additional namespaces into the query that can conflict with through associations from other associations, creating an invalid query
+   * 3. each nested association will result in an additional record which duplicates data from the outer record. E.g., given `.leftJoinPreload('a', 'b', 'c')`, if each `a` has 10 `b` and each `b` has 10 `c`, then for one `a`, 100 records will be returned, each of which has all of the columns of `a`. `.load('a', 'b', 'c')` would perform three separate SQL queries, but the data for a single `a` would only be returned once.
+   * 4. the individual query becomes more complex the more associations are included
+   * 5. associations loading associations loading associations could result in exponential amounts of data; in those cases, `.load(...).findEach(...)` avoids instantiating massive amounts of data at once
+   * Loads the requested associations upon execution
+   *
+   * NOTE: {@link #leftJoinPreload} is often a preferrable way of achieving the
+   * same goal.
+   *
+   * ```ts
+   * await user
+   *  .leftJoinLoad('posts', { body: ops.ilike('%hello world%') }, 'comments', 'replies')
+   *  .leftJoinLoad('images')
+   *  .execute()
+   *
+   * user.posts[0].comments[0].replies[0]
+   * // Reply{}
+   *
+   * user.images[0]
+   * // Image{}
+   * ```
+   *
+   * @param args - A list of associations (and optional where clauses) to load
+   * @returns A chainable LeftJoinLoadBuilder instance
+   */
+  public leftJoinLoad<
+    I extends Dream,
+    DB extends I['DB'],
+    TableName extends I['table'],
+    Schema extends I['schema'],
+    const Arr extends readonly unknown[],
+  >(
+    this: I,
+    ...args: [...Arr, VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>]
+  ): LeftJoinLoadBuilder<I> {
+    return new LeftJoinLoadBuilder<I>(this).leftJoinLoad(...(args as any))
   }
 
   /**

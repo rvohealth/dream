@@ -31,7 +31,7 @@ describe('Query#joins with polymorphic associations', () => {
     const post = await Post.create({ user })
     await Rating.create({ user, rateable: post })
 
-    const reloaded = await Post.query().joins('ratings').all()
+    const reloaded = await Post.query().innerJoin('ratings').all()
     expect(reloaded).toMatchDreamModels([post])
   })
 
@@ -45,7 +45,7 @@ describe('Query#joins with polymorphic associations', () => {
     const post = await Post.create({ user })
     await HeartRating.create({ user, extraRateable: post })
 
-    const reloaded = await Post.query().joins('heartRatings').all()
+    const reloaded = await Post.query().innerJoin('heartRatings').all()
     expect(reloaded).toMatchDreamModels([post])
   })
 
@@ -60,7 +60,7 @@ describe('Query#joins with polymorphic associations', () => {
       await HeartRating.create({ user, extraRateable: post2, body: 'goodbye' })
 
       const reloaded = await Post.query()
-        .joins('heartRatings', { body: ops.similarity('hello') })
+        .innerJoin('heartRatings', { body: ops.similarity('hello') })
         .all()
 
       expect(reloaded).toMatchDreamModels([post])
@@ -87,7 +87,7 @@ describe('Query#joins with polymorphic associations', () => {
         rating: 8,
       })
 
-      const balloons = await Balloon.joins('heartRatings').all()
+      const balloons = await Balloon.innerJoin('heartRatings').all()
       expect(balloons).toMatchDreamModels([mylar, animal])
     })
   })
@@ -97,7 +97,7 @@ describe('Query#joins with polymorphic associations', () => {
     const post = await Post.create({ user })
     await Rating.create({ user, rateable: post })
 
-    await expect(Rating.limit(2).joins('rateable').first()).rejects.toThrow(
+    await expect(Rating.limit(2).innerJoin('rateable').first()).rejects.toThrow(
       CannotJoinPolymorphicBelongsToError
     )
   })
@@ -109,11 +109,11 @@ describe('Query#joins with polymorphic associations', () => {
       const post = await Post.create({ user })
       const rating = await Rating.create({ user, rateable: post })
 
-      const reloaded = await Post.query().joins('ratings', { id: rating.id }).first()
+      const reloaded = await Post.query().innerJoin('ratings', { id: rating.id }).first()
       expect(reloaded).toMatchDreamModel(post)
 
       const noResults = await Post.query()
-        .joins('ratings', { id: parseInt(rating.id.toString()) + 1 })
+        .innerJoin('ratings', { id: parseInt(rating.id.toString()) + 1 })
         .first()
       expect(noResults).toBeNull()
     })

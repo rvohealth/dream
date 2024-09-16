@@ -1,6 +1,6 @@
-import Node from '../../../test-app/app/models/Graph/Node'
-import Edge from '../../../test-app/app/models/Graph/Edge'
 import ops from '../../../src/ops'
+import Edge from '../../../test-app/app/models/Graph/Edge'
+import Node from '../../../test-app/app/models/Graph/Node'
 
 describe('Query#distinct', () => {
   it('returns unique results distinct on the primary key', async () => {
@@ -9,10 +9,10 @@ describe('Query#distinct', () => {
     await node.createAssociation('edgeNodes', { edge })
     await node.createAssociation('edgeNodes', { edge })
 
-    let ids = await Edge.joins('edgeNodes').pluck('id')
+    let ids = await Edge.innerJoin('edgeNodes').pluck('id')
     expect(ids).toEqual([edge.id, edge.id])
 
-    ids = await Edge.joins('edgeNodes').distinct().pluck('id')
+    ids = await Edge.innerJoin('edgeNodes').distinct().pluck('id')
     expect(ids).toEqual([edge.id])
   })
 
@@ -24,10 +24,10 @@ describe('Query#distinct', () => {
       await node.createAssociation('edgeNodes', { edge: edge1 })
       await node.createAssociation('edgeNodes', { edge: edge2 })
 
-      let ids = await Edge.joins('edgeNodes').pluck('id')
+      let ids = await Edge.innerJoin('edgeNodes').pluck('id')
       expect(ids).toEqual([edge1.id, edge2.id])
 
-      ids = await Edge.joins('edgeNodes').distinct('name').pluck('id')
+      ids = await Edge.innerJoin('edgeNodes').distinct('name').pluck('id')
       expect(ids).toEqual([edge1.id])
     })
   })
@@ -39,10 +39,10 @@ describe('Query#distinct', () => {
       await node.createAssociation('edgeNodes', { edge })
       await node.createAssociation('edgeNodes', { edge })
 
-      let ids = await Edge.joins('edgeNodes').pluck('id')
+      let ids = await Edge.innerJoin('edgeNodes').pluck('id')
       expect(ids).toEqual([edge.id, edge.id])
 
-      ids = await Edge.joins('edgeNodes').distinct(true).pluck('id')
+      ids = await Edge.innerJoin('edgeNodes').distinct(true).pluck('id')
       expect(ids).toEqual([edge.id])
     })
   })
@@ -55,7 +55,7 @@ describe('Query#distinct', () => {
       await node.createAssociation('edgeNodes', { edge: edge1 })
       await node.createAssociation('edgeNodes', { edge: edge2 })
 
-      const ids = await Edge.joins('edgeNodes').distinct('name').distinct(false).pluck('id')
+      const ids = await Edge.innerJoin('edgeNodes').distinct('name').distinct(false).pluck('id')
       expect(ids).toEqual([edge1.id, edge2.id])
     })
   })
@@ -68,7 +68,7 @@ describe('Query#distinct', () => {
       await node.createAssociation('edgeNodes', { edge: edge1 })
       await node.createAssociation('edgeNodes', { edge: edge2 })
 
-      const ids = await Edge.joins('edgeNodes')
+      const ids = await Edge.innerJoin('edgeNodes')
         .distinct('name')
         .where({ name: ops.similarity('myedg') })
         .order({ name: 'desc' })

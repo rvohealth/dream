@@ -6,6 +6,9 @@ import {
 import { DateTime } from 'luxon'
 import { AssociationTableNames } from '../db/reflections'
 import { STI_SCOPE_NAME } from '../decorators/STI'
+import { BelongsToStatement } from '../decorators/associations/belongs-to'
+import { HasManyStatement } from '../decorators/associations/has-many'
+import { HasOneStatement } from '../decorators/associations/has-one'
 import {
   AssociatedModelParam,
   WhereStatement,
@@ -369,22 +372,43 @@ export type AssociationNameToDotReference<
   AssociationName,
 > = `${AssociationName & string}.${keyof Schema[TableNames]['columns' & keyof Schema[TableNames]] & string}`
 
-export type RelaxedPreloadStatement<Depth extends number = 0> = RelaxedJoinsStatement<Depth>
+export type AssociationNameToDreamClass = Record<string, typeof Dream>
+export type AssociationNameToAssociation = Record<
+  string,
+  | BelongsToStatement<any, any, any, any>
+  | HasOneStatement<any, any, any, any>
+  | HasManyStatement<any, any, any, any>
+>
+export type AssociationNameToAssociationDataAndDreamClass = Record<
+  string,
+  {
+    dreamClass: typeof Dream
+    association:
+      | BelongsToStatement<any, any, any, any>
+      | HasOneStatement<any, any, any, any>
+      | HasManyStatement<any, any, any, any>
+  }
+>
 
-export type RelaxedJoinsStatement<Depth extends number = 0> = Depth extends 7
+type IdToDreamMap = Record<string, Dream>
+export type AliasToDreamIdMap = Record<string, IdToDreamMap>
+
+export type RelaxedPreloadStatement<Depth extends number = 0> = RelaxedJoinStatement<Depth>
+
+export type RelaxedJoinStatement<Depth extends number = 0> = Depth extends 7
   ? object
-  : { [key: string]: RelaxedJoinsStatement<Inc<Depth>> | object }
+  : Record<string, RelaxedJoinStatement<Inc<Depth>>>
 
-export type RelaxedPreloadWhereStatement<DB, Schema, Depth extends number = 0> = RelaxedJoinsWhereStatement<
+export type RelaxedPreloadWhereStatement<DB, Schema, Depth extends number = 0> = RelaxedJoinWhereStatement<
   DB,
   Schema,
   Depth
 >
 
-export type RelaxedJoinsWhereStatement<DB, Schema, Depth extends number = 0> = Depth extends 7
+export type RelaxedJoinWhereStatement<DB, Schema, Depth extends number = 0> = Depth extends 7
   ? object
   : {
-      [key: string]: RelaxedJoinsWhereStatement<DB, Schema, Inc<Depth>> | FakeWhereClauseValue | object
+      [key: string]: RelaxedJoinWhereStatement<DB, Schema, Inc<Depth>> | FakeWhereClauseValue | object
     }
 
 // Just need something that is not an object, but that could be an array and also null
@@ -485,7 +509,8 @@ type IS_NOT_ASSOCIATION_NAME = 'not_association_name'
 
 type RecursionTypes =
   | 'load'
-  | 'joins'
+  | 'leftJoinLoad'
+  | 'join'
   | 'pluckThrough'
   | 'pluckEachThrough'
   | 'minMaxThrough'
@@ -520,6 +545,34 @@ export type VariadicLoadArgs<
 ///////////////////////////////
 
 ///////////////////////////////
+// VARIADIC LEFT JOIN LOAD
+///////////////////////////////
+export type VariadicLeftJoinLoadArgs<
+  DB,
+  Schema,
+  ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
+  ConcreteArgs extends readonly unknown[],
+  //
+  SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
+  AllowedNextArgValues = keyof SchemaAssociations & string,
+> = VariadicCheckThenRecurse<
+  DB,
+  Schema,
+  ConcreteTableName,
+  ConcreteArgs,
+  'leftJoinLoad',
+  ConcreteTableName,
+  never,
+  0,
+  null,
+  never,
+  AllowedNextArgValues | AllowedNextArgValues[]
+>
+///////////////////////////////
+// end:VARIADIC LEFT JOIN LOAD
+///////////////////////////////
+
+///////////////////////////////
 // VARIADIC JOINS
 ///////////////////////////////
 export type VariadicJoinsArgs<
@@ -535,7 +588,7 @@ export type VariadicJoinsArgs<
   Schema,
   ConcreteTableName,
   ConcreteArgs,
-  'joins',
+  'join',
   ConcreteTableName,
   never,
   0,
@@ -778,7 +831,7 @@ type VariadicCheckThenRecurse<
         ? VALID
         : ConcreteArgs[0] extends WhereStatement<DB, Schema, ConcreteTableName>
           ? VALID
-          : RecursionType extends 'load' | 'joins' | 'countThrough'
+          : RecursionType extends 'load' | 'leftJoinLoad' | 'join' | 'countThrough'
             ? INVALID
             : ConcreteArgs[0] extends AssociationNameToDotReference<
                   Schema,
@@ -880,7 +933,7 @@ type VariadicRecurse<
   AllowedNextArgValues = RequiredWhereClauses extends null
     ? RecursionType extends 'load'
       ? AllowedNextArgValuesForLoad<DB, Schema, NextTableName>
-      : RecursionType extends 'joins' | 'countThrough'
+      : RecursionType extends 'leftJoinLoad' | 'join' | 'countThrough'
         ? AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
         : RecursionType extends 'minMaxThrough'
           ?

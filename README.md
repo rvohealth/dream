@@ -394,7 +394,7 @@ const petIds = await User.pluckThrough('pets', { name: ops.similarity('fido') },
 const numUpdatedRecords = await User.where({ name: ops.similarity('steeven hawkins') }).update({
   name: 'Stephen Hawking',
 })
-const users = await User.joins('pets', { name: ops.similarity('fido') }).all()
+const users = await User.innerJoin('pets', { name: ops.similarity('fido') }).all()
 
 const user = await User.first()
 const pets = await user

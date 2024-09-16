@@ -42,7 +42,7 @@ describe('Dream#load', () => {
     })
   })
 
-  context('BelongsATo association', () => {
+  context('BelongsTo association', () => {
     it('loads the association', async () => {
       const clone = await pet.load('user').execute()
       expect(clone.user).toMatchDreamModel(await User.findBy({ email: 'fred@fred' }))

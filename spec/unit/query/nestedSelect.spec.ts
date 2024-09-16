@@ -1,8 +1,8 @@
-import User from '../../../test-app/app/models/User'
-import Node from '../../../test-app/app/models/Graph/Node'
+import { ops } from '../../../src'
 import Edge from '../../../test-app/app/models/Graph/Edge'
 import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode'
-import { ops } from '../../../src'
+import Node from '../../../test-app/app/models/Graph/Node'
+import User from '../../../test-app/app/models/User'
 
 describe('Query#nestedSelect', () => {
   it('allows nested select statements', async () => {
@@ -34,7 +34,7 @@ describe('Query#nestedSelect', () => {
       await EdgeNode.create({ node, edge: edge2 })
 
       const edges = await Edge.where({
-        id: Node.where({ id: node.id }).joins('edges').nestedSelect('edges.id'),
+        id: Node.where({ id: node.id }).innerJoin('edges').nestedSelect('edges.id'),
       }).all()
       expect(edges).toMatchDreamModels([edge1, edge2])
     })
@@ -47,7 +47,7 @@ describe('Query#nestedSelect', () => {
         await EdgeNode.create({ node, edge })
 
         const nodes = await Node.where({
-          id: Node.joins('edges').nestedSelect('id'),
+          id: Node.innerJoin('edges').nestedSelect('id'),
         }).all()
         expect(nodes).toMatchDreamModels([node])
       })
@@ -64,7 +64,7 @@ describe('Query#nestedSelect', () => {
 
       const edges = await Edge.where({
         id: Node.where({ id: node.id })
-          .joins('edges', { name: ops.similarity('yedge') })
+          .innerJoin('edges', { name: ops.similarity('yedge') })
           .nestedSelect('edges.id'),
       }).all()
       expect(edges).toMatchDreamModels([edge1])

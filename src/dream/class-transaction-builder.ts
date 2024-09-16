@@ -12,6 +12,7 @@ import {
   PassthroughColumnNames,
   UpdateableProperties,
   VariadicJoinsArgs,
+  VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
 } from './types'
 
@@ -343,6 +344,37 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
   }
 
   /**
+   * Load each specified association using a single SQL query.
+   * See {@link #preload} for preloading in separate queries.
+   *
+   * Note: since leftJoinPreload loads via single query, it has
+   * some downsides and that may be avoided using {@link #preload}:
+   * 1. `limit` and `offset` will be automatically removed
+   * 2. `through` associations will bring additional namespaces into the query that can conflict with through associations from other associations, creating an invalid query
+   * 3. each nested association will result in an additional record which duplicates data from the outer record. E.g., given `.leftJoinPreload('a', 'b', 'c')`, if each `a` has 10 `b` and each `b` has 10 `c`, then for one `a`, 100 records will be returned, each of which has all of the columns of `a`. `.preload('a', 'b', 'c')` would perform three separate SQL queries, but the data for a single `a` would only be returned once.
+   * 4. the individual query becomes more complex the more associations are included
+   * 5. associations loading associations loading associations could result in exponential amounts of data; in those cases, `.preload(...).findEach(...)` avoids instantiating massive amounts of data at once
+   *
+   * ```ts
+   * const user = await User.txn(txn).leftJoinPreload('posts', 'comments', { visibilty: 'public' }, 'replies').first()
+   * console.log(user.posts[0].comments[0].replies)
+   * // [Reply{id: 1}, Reply{id: 2}]
+   * ```
+   *
+   * @param args - A chain of associaition names and where clauses
+   * @returns A query for this model with the include statement applied
+   */
+  public leftJoinPreload<
+    I extends DreamClassTransactionBuilder<DreamInstance>,
+    DB extends DreamInstance['DB'],
+    TableName extends DreamInstance['table'],
+    Schema extends DreamInstance['schema'],
+    const Arr extends readonly unknown[],
+  >(this: I, ...args: [...Arr, VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>]) {
+    return this.queryInstance().leftJoinPreload(...(args as any))
+  }
+
+  /**
    * Applies preload statement to a Query scoped to this model.
    * Upon instantiating records of this model type,
    * specified associations will be preloaded.
@@ -379,21 +411,21 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
-   *   await User.txn(txn).joins('posts').first()
+   *   await User.txn(txn).innerJoin('posts').first()
    * })
    * ```
    *
    * @param args - A chain of associaition names and where clauses
    * @returns A Query for this model with the joins clause applied
    */
-  public joins<
+  public innerJoin<
     I extends DreamClassTransactionBuilder<DreamInstance>,
     DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicJoinsArgs<DB, Schema, TableName, Arr>]) {
-    return this.queryInstance().joins(...(args as any))
+    return this.queryInstance().innerJoin(...(args as any))
   }
 
   /**

@@ -9,7 +9,7 @@ import Dream from '../../../dream'
 import { isObject } from '../../../helpers/typechecks'
 import OpsStatement from '../../../ops/ops-statement'
 import DreamTransaction from '../../transaction'
-import { RelaxedJoinsWhereStatement, SimilarityStatement, TRIGRAM_OPERATORS } from '../../types'
+import { RelaxedJoinWhereStatement, SimilarityStatement, TRIGRAM_OPERATORS } from '../../types'
 import similaritySelectSql from './similaritySelectSql'
 import similarityWhereSql from './similarityWhereSql'
 
@@ -20,13 +20,13 @@ export default class SimilarityBuilder<
 > extends ConnectedToDB<DreamInstance> {
   public readonly whereStatement: readonly WhereStatement<DB, Schema, any>[]
   public readonly whereNotStatement: readonly WhereStatement<DB, Schema, any>[]
-  public readonly joinsWhereStatements: RelaxedJoinsWhereStatement<DB, Schema> = Object.freeze({})
+  public readonly joinWhereStatements: RelaxedJoinWhereStatement<DB, Schema> = Object.freeze({})
 
   constructor(dreamInstance: DreamInstance, opts: SimilarityBuilderOpts<DreamInstance> = {}) {
     super(dreamInstance, opts)
     this.whereStatement = Object.freeze(opts.where || [])
     this.whereNotStatement = Object.freeze(opts.whereNot || [])
-    this.joinsWhereStatements = Object.freeze(opts.joinsWhereStatements || {})
+    this.joinWhereStatements = Object.freeze(opts.joinWhereStatements || {})
   }
 
   /*
@@ -192,7 +192,7 @@ export default class SimilarityBuilder<
   }
 
   public whereJoinsStatementsWithSimilarityClauses() {
-    return this.recursiveWhereJoinsFinder(this.joinsWhereStatements, this.dreamClass)
+    return this.recursiveWhereJoinsFinder(this.joinWhereStatements, this.dreamClass)
   }
 
   private recursiveWhereJoinsFinder(obj: any, dreamClass: typeof Dream) {
@@ -429,7 +429,7 @@ export interface SimilarityBuilderOpts<
 > {
   where?: WhereStatement<DB, Schema, any>[]
   whereNot?: WhereStatement<DB, Schema, any>[]
-  joinsWhereStatements?: RelaxedJoinsWhereStatement<DB, Schema>
+  joinWhereStatements?: RelaxedJoinWhereStatement<DB, Schema>
   transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType
 }
