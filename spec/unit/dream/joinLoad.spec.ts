@@ -17,7 +17,7 @@ describe('Dream.joinLoad', () => {
       compositionAssetId: compositionAsset.id,
     })
 
-    const reloaded = (await CompositionAssetAudit.joinLoad('compositionAsset').all())[0]
+    const reloaded = (await CompositionAssetAudit.joinPreload('compositionAsset').all())[0]
     expect(reloaded.compositionAsset).toMatchDreamModel(compositionAsset)
   })
 
@@ -26,7 +26,9 @@ describe('Dream.joinLoad', () => {
     await Composition.create({ user, content: 'hello' })
     const composition = await Composition.create({ user, content: 'goodbye' })
 
-    const reloaded = (await User.joinLoad('compositions', { content: 'goodbye' }).order('birthdate').all())[0]
+    const reloaded = (
+      await User.joinPreload('compositions', { content: 'goodbye' }).order('birthdate').all()
+    )[0]
     expect(reloaded.compositions).toMatchDreamModels([composition])
   })
 
@@ -57,7 +59,7 @@ describe('Dream.joinLoad', () => {
       const mylar = await Mylar.create({ user, color: 'red' })
       const latex = await Latex.create({ user, color: 'blue' })
 
-      const users = await User.joinLoad('balloons').all()
+      const users = await User.joinPreload('balloons').all()
       expect(users[0].balloons).toMatchDreamModels([mylar, latex])
     })
   })

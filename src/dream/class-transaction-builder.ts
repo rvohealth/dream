@@ -370,7 +370,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
-    return this.queryInstance().joinLoad(...(args as any))
+    return this.queryInstance().joinPreload(...(args as any))
   }
 
   /**

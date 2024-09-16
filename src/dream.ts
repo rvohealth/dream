@@ -1477,7 +1477,7 @@ export default class Dream {
    * @param args - A chain of associaition names and where clauses
    * @returns A query for this model with the include statement applied
    */
-  public static joinLoad<
+  public static joinPreload<
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
@@ -1485,7 +1485,7 @@ export default class Dream {
     Schema extends I['schema'],
     const Arr extends readonly unknown[],
   >(this: T, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
-    return this.query().joinLoad(...(args as any))
+    return this.query().joinPreload(...(args as any))
   }
 
   /**
