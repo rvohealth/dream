@@ -1461,7 +1461,7 @@ export default class Dream {
   }
 
   /**
-   * Load each specified association using a separate SQL query.
+   * Load each specified association using a single SQL query.
    * See {@link #preload} for preloading in separate queries.
    *
    * Note: since leftJoinPreload loads via single query, it has
@@ -3843,7 +3843,7 @@ export default class Dream {
   }
 
   /**
-   * Load each specified association using a separate SQL query.
+   * Load each specified association using a single SQL query.
    * See {@link #load} for loading in separate queries.
    *
    * Note: since leftJoinPreload loads via single query, it has

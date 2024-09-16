@@ -665,7 +665,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   /**
-   * Load each specified association using a separate SQL query.
+   * Load each specified association using a single SQL query.
    * See {@link #preload} for preloading in separate queries.
    *
    * Note: since leftJoinPreload loads via single query, it has
