@@ -135,9 +135,10 @@ describe('Query#leftJoinPreload with simple associations', () => {
 
         await post.destroy()
 
-        const reloadedPostComment = await postComment.load('post').execute()
+        const reloadedPostComment = await postComment.leftJoinLoad('post').execute()
         expect(reloadedPostComment.post).toBeNull()
-        const reloadedPostComment2 = await postComment.load('postEvenIfDeleted').execute()
+
+        const reloadedPostComment2 = await postComment.leftJoinLoad('postEvenIfDeleted').execute()
         expect(reloadedPostComment2.postEvenIfDeleted).toMatchDreamModel(post)
       })
     })
@@ -346,8 +347,8 @@ describe('Query#leftJoinPreload with simple associations', () => {
     })
   })
 
-  context('with default scopes on the loaded models', () => {
-    context('a HasMany', () => {
+  context('with default scopes on the leftJoinPreloaded models', () => {
+    context('loading a HasMany', () => {
       it('applies default scopes when joining', async () => {
         const pet = await Pet.create({ name: 'aster' })
         await pet.createAssociation('collars', { tagName: 'Aster', pet, hidden: true })
@@ -357,7 +358,7 @@ describe('Query#leftJoinPreload with simple associations', () => {
       })
     })
 
-    context('a BelongsTo', () => {
+    context('loading a BelongsTo', () => {
       it('applies default scopes when joining', async () => {
         const pet = await Pet.create({ name: 'aster', deletedAt: DateTime.now() })
         await pet.createAssociation('collars', { tagName: 'Aster', pet })

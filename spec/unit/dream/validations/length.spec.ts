@@ -7,7 +7,7 @@ describe('Dream length validation', () => {
     expect(validation.type).toEqual('length')
     expect(validation.column).toEqual('email')
     expect(validation.options!.length!.min).toEqual(4)
-    expect(validation.options!.length!.max).toEqual(18)
+    expect(validation.options!.length!.max).toEqual(64)
   })
 
   it('permits saving a record that passes length validations', () => {

@@ -1,5 +1,7 @@
 import { NonLoadedAssociation } from '../../../src'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
+import Composition from '../../../test-app/app/models/Composition'
+import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import Pet from '../../../test-app/app/models/Pet'
 import User from '../../../test-app/app/models/User'
 
@@ -12,13 +14,26 @@ describe('Dream#leftJoinLoad', () => {
     pet = await user.createAssociation('pets', { species: 'cat', name: 'aster' })
   })
 
-  it('returns a copy of the dream instance', async () => {
-    const clone = await user.leftJoinLoad('pets').execute()
-    expect(clone).toMatchDreamModel(user)
-    expect(clone).not.toBe(user)
+  it('returns a clone of the dream instance in its current state', async () => {
+    const freshUser = await User.create({ email: 'charlie@peanuts.com', password: 'howyadoin' })
+    freshUser.name = 'Snoopy Snoopy Snoopy'
+    const freshPet = await Pet.create({ user: freshUser, species: 'dog', name: 'Snoopy' })
+    const clone = await freshUser.leftJoinLoad('pets').execute()
+    expect(clone).toMatchDreamModel(freshUser)
+    expect(clone).not.toBe(freshUser)
 
-    expect(clone.pets).toMatchDreamModels([pet])
-    expect(() => user.pets).toThrow(NonLoadedAssociation)
+    expect(clone.name).toEqual('Snoopy Snoopy Snoopy')
+    expect(clone.pets).toMatchDreamModels([freshPet])
+    expect(() => freshUser.pets).toThrow(NonLoadedAssociation)
+  })
+
+  it('includes previously loaded associations', async () => {
+    const composition = await Composition.create({ user })
+    const clone = await user.leftJoinLoad('pets').execute()
+    const clone2 = await clone.leftJoinLoad('compositions').execute()
+
+    expect(clone2.pets).toMatchDreamModels([pet])
+    expect(clone2.compositions).toMatchDreamModels([composition])
   })
 
   context('with a transaction', () => {
@@ -56,6 +71,50 @@ describe('Dream#leftJoinLoad', () => {
       })
       const clone = await user.leftJoinLoad('compositionAssets').execute()
       expect(clone.compositionAssets).toMatchDreamModels([compositionAsset])
+    })
+  })
+
+  context('when called twice', () => {
+    context('Has(One/Many) association', () => {
+      it('loads the association fresh from the database', async () => {
+        const clone = await user.leftJoinLoad('pets').execute()
+        await Pet.query().update({ name: 'Snoopy' })
+        const clone2 = await clone.leftJoinLoad('pets').execute()
+        expect(clone.pets[0].name).toEqual('aster')
+        expect(clone2.pets[0].name).toEqual('Snoopy')
+      })
+    })
+
+    context('BelongsTo association', () => {
+      it('loads the association fresh from the database', async () => {
+        const clone = await pet.leftJoinLoad('user').execute()
+        await User.query().update({ email: 'lucy@peanuts.com' })
+        const clone2 = await clone.leftJoinLoad('user').execute()
+        expect(clone2.user!.email).toEqual('lucy@peanuts.com')
+      })
+    })
+
+    context('through associations', () => {
+      it('loads the association fresh from the database', async () => {
+        const composition = await user.createAssociation('compositions')
+        await composition.createAssociation('compositionAssets', {
+          name: 'compositionAsset X',
+        })
+        const clone = await user.leftJoinLoad('compositionAssets').execute()
+        await CompositionAsset.query().update({ name: 'hello' })
+        const clone2 = await clone.leftJoinLoad('compositionAssets').execute()
+        expect(clone2.compositionAssets[0].name).toEqual('hello')
+      })
+    })
+
+    it('allows chaining load statements', async () => {
+      const composition = await user.createAssociation('compositions')
+      await composition?.createAssociation('compositionAssets', {
+        name: 'compositionAsset X',
+      })
+      const clone = await user.leftJoinLoad('compositionAssets').leftJoinLoad('pets').execute()
+      expect(clone.compositionAssets[0].name).toEqual('compositionAsset X')
+      expect(clone.pets[0].name).toEqual('aster')
     })
   })
 })
