@@ -12,6 +12,7 @@ import {
   PassthroughColumnNames,
   UpdateableProperties,
   VariadicJoinsArgs,
+  VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
 } from './types'
 
@@ -363,13 +364,13 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @param args - A chain of associaition names and where clauses
    * @returns A query for this model with the include statement applied
    */
-  public joinLoad<
+  public leftJoinPreload<
     I extends DreamClassTransactionBuilder<DreamInstance>,
     DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
+  >(this: I, ...args: [...Arr, VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>]) {
     return this.queryInstance().leftJoinPreload(...(args as any))
   }
 

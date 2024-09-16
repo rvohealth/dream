@@ -17,7 +17,7 @@ import Post from '../../../../test-app/app/models/Post'
 import Rating from '../../../../test-app/app/models/Rating'
 import User from '../../../../test-app/app/models/User'
 
-describe('Query#joinLoad through', () => {
+describe('Query#leftJoinPreload through', () => {
   context('explicit HasMany through a BelongsTo', () => {
     it('sets HasMany property on the model and BelongsToProperty on the associated model', async () => {
       const balloon = await Latex.create()
@@ -171,8 +171,8 @@ describe('Query#joinLoad through', () => {
       })
     })
 
-    context('multiple, final joinLoad', () => {
-      it('joinLoad all of the specified associations', async () => {
+    context('multiple, final associations', () => {
+      it('loads all of the specified associations', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user, primary: true })
         const compositionAsset = await CompositionAsset.create({ composition })

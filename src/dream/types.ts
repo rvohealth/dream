@@ -509,7 +509,8 @@ type IS_NOT_ASSOCIATION_NAME = 'not_association_name'
 
 type RecursionTypes =
   | 'load'
-  | 'joins'
+  | 'leftJoinLoad'
+  | 'join'
   | 'pluckThrough'
   | 'pluckEachThrough'
   | 'minMaxThrough'
@@ -544,6 +545,34 @@ export type VariadicLoadArgs<
 ///////////////////////////////
 
 ///////////////////////////////
+// VARIADIC LEFT JOIN LOAD
+///////////////////////////////
+export type VariadicLeftJoinLoadArgs<
+  DB,
+  Schema,
+  ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
+  ConcreteArgs extends readonly unknown[],
+  //
+  SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
+  AllowedNextArgValues = keyof SchemaAssociations & string,
+> = VariadicCheckThenRecurse<
+  DB,
+  Schema,
+  ConcreteTableName,
+  ConcreteArgs,
+  'leftJoinLoad',
+  ConcreteTableName,
+  never,
+  0,
+  null,
+  never,
+  AllowedNextArgValues | AllowedNextArgValues[]
+>
+///////////////////////////////
+// end:VARIADIC LEFT JOIN LOAD
+///////////////////////////////
+
+///////////////////////////////
 // VARIADIC JOINS
 ///////////////////////////////
 export type VariadicJoinsArgs<
@@ -559,7 +588,7 @@ export type VariadicJoinsArgs<
   Schema,
   ConcreteTableName,
   ConcreteArgs,
-  'joins',
+  'join',
   ConcreteTableName,
   never,
   0,
@@ -802,7 +831,7 @@ type VariadicCheckThenRecurse<
         ? VALID
         : ConcreteArgs[0] extends WhereStatement<DB, Schema, ConcreteTableName>
           ? VALID
-          : RecursionType extends 'load' | 'joins' | 'countThrough'
+          : RecursionType extends 'load' | 'leftJoinLoad' | 'join' | 'countThrough'
             ? INVALID
             : ConcreteArgs[0] extends AssociationNameToDotReference<
                   Schema,
@@ -904,7 +933,7 @@ type VariadicRecurse<
   AllowedNextArgValues = RequiredWhereClauses extends null
     ? RecursionType extends 'load'
       ? AllowedNextArgValuesForLoad<DB, Schema, NextTableName>
-      : RecursionType extends 'joins' | 'countThrough'
+      : RecursionType extends 'leftJoinLoad' | 'join' | 'countThrough'
         ? AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
         : RecursionType extends 'minMaxThrough'
           ?

@@ -22,7 +22,7 @@ describe('Dream#leftJoinLoad', () => {
   })
 
   context('with a transaction', () => {
-    it('joinLoads the association', async () => {
+    it('loads the association', async () => {
       let pets: Pet[] = []
       await ApplicationModel.transaction(async txn => {
         await user.txn(txn).createAssociation('pets', { species: 'dog', name: 'violet' })
@@ -35,21 +35,21 @@ describe('Dream#leftJoinLoad', () => {
   })
 
   context('Has(One/Many) association', () => {
-    it('joinLoads the association', async () => {
+    it('loads the association', async () => {
       const clone = await user.leftJoinLoad('pets').execute()
       expect(clone.pets).toMatchDreamModels([await Pet.findBy({ name: 'aster' })])
     })
   })
 
   context('BelongsTo association', () => {
-    it('joinLoads the association', async () => {
+    it('loads the association', async () => {
       const clone = await pet.leftJoinLoad('user').execute()
       expect(clone.user).toMatchDreamModel(await User.findBy({ email: 'fred@fred' }))
     })
   })
 
   context('through associations', () => {
-    it('joinLoads the association', async () => {
+    it('loads the association', async () => {
       const composition = await user.createAssociation('compositions')
       const compositionAsset = await composition?.createAssociation('compositionAssets', {
         name: 'compositionAsset X',

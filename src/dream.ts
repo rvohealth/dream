@@ -102,6 +102,7 @@ import {
   UpdateablePropertiesForClass,
   VariadicCountThroughArgs,
   VariadicJoinsArgs,
+  VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
   VariadicMinMaxThroughArgs,
   VariadicPluckEachThroughArgs,
@@ -1460,16 +1461,19 @@ export default class Dream {
   }
 
   /**
-   * Applies include statement to a Query scoped to this model.
-   * Upon instantiating records of this model type,
-   * specified associations will be preloaded in a single query.
+   * Load each specified association using a separate SQL query.
+   * See {@link #preload} for preloading in separate queries.
    *
-   * Preloading/loading/including is necessary prior to accessing associations
-   * on a Dream instance.
-   *
+   * Note: since leftJoinPreload loads via single query, it has
+   * some downsides and that may be avoided using {@link #preload}:
+   * 1. `limit` and `offset` will be automatically removed
+   * 2. `through` associations will bring additional namespaces into the query that can conflict with through associations from other associations, creating an invalid query
+   * 3. each nested association will result in an additional record which duplicates data from the outer record. E.g., given `.leftJoinPreload('a', 'b', 'c')`, if each `a` has 10 `b` and each `b` has 10 `c`, then for one `a`, 100 records will be returned, each of which has all of the columns of `a`. `.preload('a', 'b', 'c')` would perform three separate SQL queries, but the data for a single `a` would only be returned once.
+   * 4. the individual query becomes more complex the more associations are included
+   * 5. associations loading associations loading associations could result in exponential amounts of data; in those cases, `.preload(...).findEach(...)` avoids instantiating massive amounts of data at once
    *
    * ```ts
-   * const user = await User.include('posts', 'comments', { visibilty: 'public' }, 'replies').first()
+   * const user = await User.leftJoinPreload('posts', 'comments', { visibilty: 'public' }, 'replies').first()
    * console.log(user.posts[0].comments[0].replies)
    * // [Reply{id: 1}, Reply{id: 2}]
    * ```
@@ -1484,7 +1488,7 @@ export default class Dream {
     TableName extends InstanceType<T>['table'],
     Schema extends I['schema'],
     const Arr extends readonly unknown[],
-  >(this: T, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
+  >(this: T, ...args: [...Arr, VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>]) {
     return this.query().leftJoinPreload(...(args as any))
   }
 
@@ -3809,7 +3813,7 @@ export default class Dream {
   /**
    * Loads the requested associations upon execution
    *
-   * NOTE: Preload is often a preferrable way of achieving the
+   * NOTE: {@link #preload} is often a preferrable way of achieving the
    * same goal.
    *
    * ```ts
@@ -3839,8 +3843,36 @@ export default class Dream {
   }
 
   /**
+   * Load each specified association using a separate SQL query.
+   * See {@link #load} for loading in separate queries.
+   *
+   * Note: since leftJoinPreload loads via single query, it has
+   * some downsides and that may be avoided using {@link #load}:
+   * 1. `limit` and `offset` will be automatically removed
+   * 2. `through` associations will bring additional namespaces into the query that can conflict with through associations from other associations, creating an invalid query
+   * 3. each nested association will result in an additional record which duplicates data from the outer record. E.g., given `.leftJoinPreload('a', 'b', 'c')`, if each `a` has 10 `b` and each `b` has 10 `c`, then for one `a`, 100 records will be returned, each of which has all of the columns of `a`. `.load('a', 'b', 'c')` would perform three separate SQL queries, but the data for a single `a` would only be returned once.
+   * 4. the individual query becomes more complex the more associations are included
+   * 5. associations loading associations loading associations could result in exponential amounts of data; in those cases, `.load(...).findEach(...)` avoids instantiating massive amounts of data at once
+   * Loads the requested associations upon execution
+   *
+   * NOTE: {@link #leftJoinPreload} is often a preferrable way of achieving the
+   * same goal.
+   *
+   * ```ts
+   * await user
+   *  .leftJoinLoad('posts', { body: ops.ilike('%hello world%') }, 'comments', 'replies')
+   *  .leftJoinLoad('images')
+   *  .execute()
+   *
+   * user.posts[0].comments[0].replies[0]
+   * // Reply{}
+   *
+   * user.images[0]
+   * // Image{}
+   * ```
    *
    * @param args - A list of associations (and optional where clauses) to load
+   * @returns A chainable LeftJoinLoadBuilder instance
    */
   public leftJoinLoad<
     I extends Dream,
@@ -3848,7 +3880,10 @@ export default class Dream {
     TableName extends I['table'],
     Schema extends I['schema'],
     const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]): LeftJoinLoadBuilder<I> {
+  >(
+    this: I,
+    ...args: [...Arr, VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>]
+  ): LeftJoinLoadBuilder<I> {
     return new LeftJoinLoadBuilder<I>(this).leftJoinLoad(...(args as any))
   }
 

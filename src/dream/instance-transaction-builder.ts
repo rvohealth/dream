@@ -36,6 +36,7 @@ import {
   UpdateableAssociationProperties,
   UpdateableProperties,
   VariadicCountThroughArgs,
+  VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
   VariadicMinMaxThroughArgs,
   VariadicPluckEachThroughArgs,
@@ -230,23 +231,20 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   /**
    * Loads the requested associations upon execution
    *
-   * NOTE: Preload is often a preferrable way of achieving the
+   * NOTE: {@link Dream#preload} is often a preferrable way of achieving the
    * same goal.
    *
    * ```ts
-   * await ApplicationModel.transaction(async txn => {
-   *   await user
-   *    .txn(txn)
-   *    .load('posts', { body: ops.ilike('%hello world%') }, 'comments', 'replies')
-   *    .load('images')
-   *    .execute()
+   * await user
+   *  .load('posts', { body: ops.ilike('%hello world%') }, 'comments', 'replies')
+   *  .load('images')
+   *  .execute()
    *
-   *   user.posts[0].comments[0].replies[0]
-   *   // Reply{}
+   * user.posts[0].comments[0].replies[0]
+   * // Reply{}
    *
-   *   user.images[0]
-   *   // Image{}
-   * })
+   * user.images[0]
+   * // Image{}
    * ```
    *
    * @param args - A list of associations (and optional where clauses) to load
@@ -263,8 +261,36 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   }
 
   /**
+   * Load each specified association using a separate SQL query.
+   * See {@link #load} for loading in separate queries.
+   *
+   * Note: since leftJoinPreload loads via single query, it has
+   * some downsides and that may be avoided using {@link #load}:
+   * 1. `limit` and `offset` will be automatically removed
+   * 2. `through` associations will bring additional namespaces into the query that can conflict with through associations from other associations, creating an invalid query
+   * 3. each nested association will result in an additional record which duplicates data from the outer record. E.g., given `.leftJoinPreload('a', 'b', 'c')`, if each `a` has 10 `b` and each `b` has 10 `c`, then for one `a`, 100 records will be returned, each of which has all of the columns of `a`. `.load('a', 'b', 'c')` would perform three separate SQL queries, but the data for a single `a` would only be returned once.
+   * 4. the individual query becomes more complex the more associations are included
+   * 5. associations loading associations loading associations could result in exponential amounts of data; in those cases, `.load(...).findEach(...)` avoids instantiating massive amounts of data at once
+   * Loads the requested associations upon execution
+   *
+   * NOTE: {@link Dream#leftJoinPreload} is often a preferrable way of achieving the
+   * same goal.
+   *
+   * ```ts
+   * await user
+   *  .leftJoinLoad('posts', { body: ops.ilike('%hello world%') }, 'comments', 'replies')
+   *  .leftJoinLoad('images')
+   *  .execute()
+   *
+   * user.posts[0].comments[0].replies[0]
+   * // Reply{}
+   *
+   * user.images[0]
+   * // Image{}
+   * ```
    *
    * @param args - A list of associations (and optional where clauses) to load
+   * @returns A chainable LeftJoinLoadBuilder instance
    */
   public leftJoinLoad<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
@@ -274,7 +300,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     const Arr extends readonly unknown[],
   >(
     this: I,
-    ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]
+    ...args: [...Arr, VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>]
   ): JoinLoadBuilder<DreamInstance> {
     return new JoinLoadBuilder<DreamInstance>(this.dreamInstance, this.dreamTransaction).leftJoinLoad(
       ...(args as any)

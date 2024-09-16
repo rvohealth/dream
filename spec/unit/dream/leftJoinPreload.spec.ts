@@ -43,7 +43,7 @@ describe('Dream.leftJoinPreload', () => {
         })
 
         reloadedCompositionAssetAudit = (
-          await CompositionAssetAudit.txn(txn).joinLoad('compositionAsset').all()
+          await CompositionAssetAudit.txn(txn).leftJoinPreload('compositionAsset').all()
         )[0]
       })
 

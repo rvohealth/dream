@@ -143,7 +143,7 @@ describe('Query#leftJoinPreload with simple associations', () => {
     })
   })
 
-  it('can handle sibling joinLoad', async () => {
+  it('can handle sibling leftJoinPreload statements', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ userId: user.id, primary: true })
     const composition2 = await Composition.create({ user })
@@ -346,8 +346,8 @@ describe('Query#leftJoinPreload with simple associations', () => {
     })
   })
 
-  context('with default scopes on the joinLoaded models', () => {
-    context('joinLoading a HasMany', () => {
+  context('with default scopes on the loaded models', () => {
+    context('a HasMany', () => {
       it('applies default scopes when joining', async () => {
         const pet = await Pet.create({ name: 'aster' })
         await pet.createAssociation('collars', { tagName: 'Aster', pet, hidden: true })
@@ -357,7 +357,7 @@ describe('Query#leftJoinPreload with simple associations', () => {
       })
     })
 
-    context('joinLoading a BelongsTo', () => {
+    context('a BelongsTo', () => {
       it('applies default scopes when joining', async () => {
         const pet = await Pet.create({ name: 'aster', deletedAt: DateTime.now() })
         await pet.createAssociation('collars', { tagName: 'Aster', pet })
@@ -369,8 +369,8 @@ describe('Query#leftJoinPreload with simple associations', () => {
   })
 
   it.skip('type test', async () => {
-    // joinLoad allows re-using of association names since joinLoading does not occur within a single
-    // query, so will not result in namespace collision
-    await Edge.leftJoinPreload('nodes', 'edges', 'nodes').all()
+    // leftJoinPreload does not allow re-using of association names since a
+    // single query does not allow name collisions
+    await Edge.leftJoinPreload('nodes', 'edges').all()
   })
 })
