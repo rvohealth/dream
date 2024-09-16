@@ -72,7 +72,7 @@ import {
   DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
 } from './dream/internal/scopeHelpers'
 import undestroyDream from './dream/internal/undestroyDream'
-import JoinLoadBuilder from './dream/join-load-builder'
+import LeftJoinLoadBuilder from './dream/left-join-load-builder'
 import LoadBuilder from './dream/load-builder'
 import Query, { FindEachOpts } from './dream/query'
 import DreamTransaction from './dream/transaction'
@@ -1477,7 +1477,7 @@ export default class Dream {
    * @param args - A chain of associaition names and where clauses
    * @returns A query for this model with the include statement applied
    */
-  public static joinLoad<
+  public static leftJoinPreload<
     T extends typeof Dream,
     I extends InstanceType<T>,
     DB extends I['DB'],
@@ -1485,7 +1485,7 @@ export default class Dream {
     Schema extends I['schema'],
     const Arr extends readonly unknown[],
   >(this: T, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
-    return this.query().joinLoad(...(args as any))
+    return this.query().leftJoinPreload(...(args as any))
   }
 
   /**
@@ -3842,14 +3842,14 @@ export default class Dream {
    *
    * @param args - A list of associations (and optional where clauses) to load
    */
-  public joinLoad<
+  public leftJoinLoad<
     I extends Dream,
     DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['schema'],
     const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]): JoinLoadBuilder<I> {
-    return new JoinLoadBuilder<I>(this).joinLoad(...(args as any))
+  >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]): LeftJoinLoadBuilder<I> {
+    return new LeftJoinLoadBuilder<I>(this).leftJoinLoad(...(args as any))
   }
 
   /**

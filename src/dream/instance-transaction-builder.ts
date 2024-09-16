@@ -20,7 +20,7 @@ import {
   DEFAULT_SKIP_HOOKS,
 } from './internal/scopeHelpers'
 import undestroyDream from './internal/undestroyDream'
-import JoinLoadBuilder from './join-load-builder'
+import JoinLoadBuilder from './left-join-load-builder'
 import LoadBuilder from './load-builder'
 import Query from './query'
 import DreamTransaction from './transaction'
@@ -266,7 +266,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    *
    * @param args - A list of associations (and optional where clauses) to load
    */
-  public joinLoad<
+  public leftJoinLoad<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
@@ -276,7 +276,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     this: I,
     ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]
   ): JoinLoadBuilder<DreamInstance> {
-    return new JoinLoadBuilder<DreamInstance>(this.dreamInstance, this.dreamTransaction).joinLoad(
+    return new JoinLoadBuilder<DreamInstance>(this.dreamInstance, this.dreamTransaction).leftJoinLoad(
       ...(args as any)
     )
   }

@@ -51,11 +51,11 @@ describe('Dream.all', () => {
       })
     })
 
-    context('with joinLoad', () => {
+    context('with leftJoinPreload', () => {
       it('only selects those fields', async () => {
         await User.create({ name: 'Fred', email: 'fred@frewd', password: 'howyadoin' })
 
-        const results = await User.joinLoad('pets').all({ columns: ['name'] })
+        const results = await User.leftJoinPreload('pets').all({ columns: ['name'] })
         expect(results[0].name).toEqual('Fred')
         expect(results[0].email).toBeUndefined()
       })
@@ -63,7 +63,7 @@ describe('Dream.all', () => {
       it('always selects id', async () => {
         const user = await User.create({ name: 'Fred', email: 'fred@frewd', password: 'howyadoin' })
 
-        const results = await User.joinLoad('pets').all({ columns: ['name'] })
+        const results = await User.leftJoinPreload('pets').all({ columns: ['name'] })
         expect(results[0].id).toEqual(user.id)
       })
 
@@ -71,7 +71,7 @@ describe('Dream.all', () => {
         it('querying an STI base instantiates the correct STI children', async () => {
           await Latex.create({ color: 'green' })
 
-          const balloons = await Balloon.joinLoad('user').all({ columns: ['color'] })
+          const balloons = await Balloon.leftJoinPreload('user').all({ columns: ['color'] })
           expect(balloons[0].type).toEqual('Latex')
           expect(balloons[0].color).toEqual('green')
         })
@@ -79,7 +79,7 @@ describe('Dream.all', () => {
         it('querying an STI child works', async () => {
           await Latex.create({ color: 'green' })
 
-          const latexBalloons = await Latex.joinLoad('user').all({ columns: ['color'] })
+          const latexBalloons = await Latex.leftJoinPreload('user').all({ columns: ['color'] })
           expect(latexBalloons[0].type).toEqual('Latex')
           expect(latexBalloons[0].color).toEqual('green')
         })

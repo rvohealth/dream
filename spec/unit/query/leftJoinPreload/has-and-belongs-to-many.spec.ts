@@ -10,7 +10,7 @@ describe('Query#joinLoad has and belongs to many', () => {
     await EdgeNode.create({ node, edge: edge1 })
     await EdgeNode.create({ node, edge: edge2 })
 
-    const reloadedNode = await Node.where({ id: node.id }).joinLoad('edges').first()
+    const reloadedNode = await Node.where({ id: node.id }).leftJoinPreload('edges').first()
     expect(reloadedNode!.edges).toMatchDreamModels([edge1, edge2])
   })
 })

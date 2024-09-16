@@ -9,7 +9,7 @@ describe('Query#joinLoad with sti associations', () => {
       const mylar = await Mylar.create({ user, color: 'red' })
       const latex = await Latex.create({ user, color: 'blue' })
 
-      const reloadedUser = await User.query().joinLoad('balloons').first()
+      const reloadedUser = await User.query().leftJoinPreload('balloons').first()
       expect(reloadedUser!.balloons).toMatchDreamModels([mylar, latex])
     })
   })

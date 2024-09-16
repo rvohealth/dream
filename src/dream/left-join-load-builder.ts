@@ -53,14 +53,14 @@ export default class JoinLoadBuilder<DreamInstance extends Dream> {
    *   .execute()
    * ```
    */
-  public joinLoad<
+  public leftJoinLoad<
     I extends JoinLoadBuilder<DreamInstance>,
     DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
-    this.query = this.query.joinLoad(...(args as any))
+    this.query = this.query.leftJoinPreload(...(args as any))
     return this
   }
 
