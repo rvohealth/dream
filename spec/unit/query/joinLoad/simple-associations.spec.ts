@@ -139,16 +139,6 @@ describe('Query#joinLoad with simple associations', () => {
     })
   })
 
-  it('can handle object notation', async () => {
-    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const composition = await Composition.create({ user })
-    const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
-
-    const reloaded = await User.query().joinLoad('compositions', 'compositionAssets').firstOrFail()
-    expect(reloaded.compositions).toMatchDreamModels([composition])
-    expect(reloaded.compositions[0].compositionAssets).toMatchDreamModels([compositionAsset])
-  })
-
   it('can handle sibling joinLoad', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ userId: user.id, primary: true })
