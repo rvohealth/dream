@@ -51,7 +51,7 @@ describe('Dream.all', () => {
       })
     })
 
-    context('with joinLoad', () => {
+    context('with preloadJoin', () => {
       it('only selects those fields', async () => {
         await User.create({ name: 'Fred', email: 'fred@frewd', password: 'howyadoin' })
 

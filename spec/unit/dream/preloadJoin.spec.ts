@@ -8,7 +8,7 @@ import CompositionAssetAudit from '../../../test-app/app/models/CompositionAsset
 import Pet from '../../../test-app/app/models/Pet'
 import User from '../../../test-app/app/models/User'
 
-describe('Dream.joinLoad', () => {
+describe('Dream.preloadJoin', () => {
   it('loads a HasOne association', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ user })
@@ -74,7 +74,7 @@ describe('Dream.joinLoad', () => {
     })
 
     it('returns a copy of the dream instance', async () => {
-      const clone = await user.joinLoad('pets').execute()
+      const clone = await user.loadJoin('pets').execute()
       expect(clone).toMatchDreamModel(user)
       expect(clone).not.toBe(user)
 
@@ -97,14 +97,14 @@ describe('Dream.joinLoad', () => {
 
     context('Has(One/Many) association', () => {
       it('joinLoads the association', async () => {
-        const clone = await user.joinLoad('pets').execute()
+        const clone = await user.loadJoin('pets').execute()
         expect(clone.pets).toMatchDreamModels([await Pet.findBy({ name: 'aster' })])
       })
     })
 
     context('BelongsTo association', () => {
       it('joinLoads the association', async () => {
-        const clone = await pet.joinLoad('user').execute()
+        const clone = await pet.loadJoin('user').execute()
         expect(clone.user).toMatchDreamModel(await User.findBy({ email: 'fred@fred' }))
       })
     })
@@ -115,7 +115,7 @@ describe('Dream.joinLoad', () => {
         const compositionAsset = await composition?.createAssociation('compositionAssets', {
           name: 'compositionAsset X',
         })
-        const clone = await user.joinLoad('compositionAssets').execute()
+        const clone = await user.loadJoin('compositionAssets').execute()
         expect(clone.compositionAssets).toMatchDreamModels([compositionAsset])
       })
     })

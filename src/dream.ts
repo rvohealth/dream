@@ -72,8 +72,8 @@ import {
   DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
 } from './dream/internal/scopeHelpers'
 import undestroyDream from './dream/internal/undestroyDream'
-import JoinLoadBuilder from './dream/join-load-builder'
 import LoadBuilder from './dream/load-builder'
+import LoadJoinBuilder from './dream/load-join-builder'
 import Query, { FindEachOpts } from './dream/query'
 import DreamTransaction from './dream/transaction'
 import {
@@ -3842,14 +3842,14 @@ export default class Dream {
    *
    * @param args - A list of associations (and optional where clauses) to load
    */
-  public joinLoad<
+  public loadJoin<
     I extends Dream,
     DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['schema'],
     const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]): JoinLoadBuilder<I> {
-    return new JoinLoadBuilder<I>(this).joinLoad(...(args as any))
+  >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]): LoadJoinBuilder<I> {
+    return new LoadJoinBuilder<I>(this).loadJoin(...(args as any))
   }
 
   /**

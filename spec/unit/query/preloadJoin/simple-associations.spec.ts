@@ -135,9 +135,9 @@ describe('Query#joinLoad with simple associations', () => {
 
         await post.destroy()
 
-        const reloadedPostComment = await postComment.joinLoad('post').execute()
+        const reloadedPostComment = await postComment.loadJoin('post').execute()
         expect(reloadedPostComment.post).toBeNull()
-        const reloadedPostComment2 = await postComment.joinLoad('postEvenIfDeleted').execute()
+        const reloadedPostComment2 = await postComment.loadJoin('postEvenIfDeleted').execute()
         expect(reloadedPostComment2.postEvenIfDeleted).toMatchDreamModel(post)
       })
     })
