@@ -60,7 +60,7 @@ export default class JoinLoadBuilder<DreamInstance extends Dream> {
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
   >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
-    this.query = this.query.joinPreload(...(args as any))
+    this.query = this.query.preloadJoin(...(args as any))
     return this
   }
 
