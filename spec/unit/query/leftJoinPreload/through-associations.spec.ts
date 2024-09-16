@@ -475,14 +475,14 @@ describe('Query#leftJoinPreload through', () => {
             const edgeNode2 = await EdgeNode.create({ node, edge: edge2 })
             const edgeNode3 = await EdgeNode.create({ node, edge: edge3 })
 
-            const sanityCheckEdgeNode = await edgeNode2.load('siblingsIncludingMe').execute()
+            const sanityCheckEdgeNode = await edgeNode2.leftJoinLoad('siblingsIncludingMe').execute()
             expect(sanityCheckEdgeNode.siblingsIncludingMe).toMatchDreamModels([
               edgeNode1,
               edgeNode2,
               edgeNode3,
             ])
 
-            const reloadedEdgeNode = await edgeNode2.load('justThisSibling').execute()
+            const reloadedEdgeNode = await edgeNode2.leftJoinLoad('justThisSibling').execute()
             expect(reloadedEdgeNode.justThisSibling).toMatchDreamModel(edgeNode2)
           })
         })
@@ -531,14 +531,14 @@ describe('Query#leftJoinPreload through', () => {
 
         context('through a BelongsTo', () => {
           it('applies conditional to selectively bring in records', async () => {
-            const sanityCheckEdgeNode = await edgeNode2.load('siblingsIncludingMe').execute()
+            const sanityCheckEdgeNode = await edgeNode2.leftJoinLoad('siblingsIncludingMe').execute()
             expect(sanityCheckEdgeNode.siblingsIncludingMe).toMatchDreamModels([
               edgeNode1,
               edgeNode2,
               edgeNode3,
             ])
 
-            const reloadedEdgeNode = await edgeNode2.load('siblings').execute()
+            const reloadedEdgeNode = await edgeNode2.leftJoinLoad('siblings').execute()
             expect(reloadedEdgeNode.siblings).toMatchDreamModels([edgeNode1, edgeNode3])
           })
         })
@@ -557,7 +557,7 @@ describe('Query#leftJoinPreload through', () => {
         const edgeNode2 = await EdgeNode.create({ node, edge: edge2 })
         await EdgeNode.create({ node, edge: edge3 })
 
-        const reloadedEdgeNode = await edgeNode2.load('headSibling').execute()
+        const reloadedEdgeNode = await edgeNode2.leftJoinLoad('headSibling').execute()
         expect(reloadedEdgeNode.headSibling).toMatchDreamModel(edgeNode1)
       })
     })
@@ -616,7 +616,7 @@ describe('Query#leftJoinPreload through', () => {
         const edgeNode2 = await EdgeNode.create({ node, edge: edge2 })
         const edgeNode3 = await EdgeNode.create({ node, edge: edge3 })
 
-        const reloadedEdgeNode = await edgeNode2.load('tailSiblings').execute()
+        const reloadedEdgeNode = await edgeNode2.leftJoinLoad('tailSiblings').execute()
         expect(reloadedEdgeNode.tailSiblings).toMatchDreamModels([edgeNode2, edgeNode3])
       })
     })
@@ -662,6 +662,52 @@ describe('Query#leftJoinPreload through', () => {
     })
   })
 
+  context('leftJoinPreloadThroughColumns', () => {
+    it('loads the specified columns onto the loaded model', async () => {
+      const node = await Node.create({ name: 'mynode' })
+      const edge1 = await Edge.create({ name: 'myedge1' })
+      const edge2 = await Edge.create({ name: 'myedge2' })
+
+      // position automatically set by Sortable decorator
+      const edgeNode1 = await node.createAssociation('edgeNodes', { edge: edge1 })
+      const edgeNode2 = await node.createAssociation('edgeNodes', { edge: edge2 })
+
+      const reloadedNode = await Node.leftJoinPreload('edges').firstOrFail()
+
+      const reloadedEdge1 = reloadedNode.edges.find(obj => obj.name === 'myedge1')
+      const reloadedEdge2 = reloadedNode.edges.find(obj => obj.name === 'myedge2')
+
+      expect(reloadedEdge1!.preloadedThroughColumns.position).toEqual(1)
+      expect(reloadedEdge1!.preloadedThroughColumns.createdAt).toEqualDateTime(edgeNode1.createdAt)
+
+      expect(reloadedEdge2!.preloadedThroughColumns.position).toEqual(2)
+      expect(reloadedEdge2!.preloadedThroughColumns.createdAt).toEqualDateTime(edgeNode2.createdAt)
+    })
+
+    context('with aliased set values', () => {
+      it('loads the specified columns onto the loaded model', async () => {
+        const node = await Node.create({ name: 'mynode' })
+        const edge1 = await Edge.create({ name: 'myedge1' })
+        const edge2 = await Edge.create({ name: 'myedge2' })
+
+        // position automatically set by Sortable decorator
+        const edgeNode1 = await node.createAssociation('edgeNodes', { edge: edge1 })
+        const edgeNode2 = await node.createAssociation('edgeNodes', { edge: edge2 })
+
+        const reloadedNode = await Node.leftJoinPreload('edgesWithAliasedPreloads').firstOrFail()
+
+        const reloadedEdge1 = reloadedNode.edgesWithAliasedPreloads.find(obj => obj.name === 'myedge1')
+        const reloadedEdge2 = reloadedNode.edgesWithAliasedPreloads.find(obj => obj.name === 'myedge2')
+
+        expect(reloadedEdge1!.preloadedThroughColumns.aliasedPosition).toEqual(1)
+        expect(reloadedEdge1!.preloadedThroughColumns.aliasedCreatedAt).toEqualDateTime(edgeNode1.createdAt)
+
+        expect(reloadedEdge2!.preloadedThroughColumns.aliasedPosition).toEqual(2)
+        expect(reloadedEdge2!.preloadedThroughColumns.aliasedCreatedAt).toEqualDateTime(edgeNode2.createdAt)
+      })
+    })
+  })
+
   context('with order-clause-on-the-association', () => {
     let node: Node
     let edge1: Edge
@@ -702,14 +748,14 @@ describe('Query#leftJoinPreload through', () => {
 
     context('through a BelongsTo association', () => {
       it('orders the results based on the order specified in the root association', async () => {
-        const node = await edgeNode2.load('orderedSiblings').execute()
+        const node = await edgeNode2.leftJoinLoad('orderedSiblings').execute()
         expect(node.orderedSiblings[0]).toMatchDreamModel(edgeNode3)
         expect(node.orderedSiblings[1]).toMatchDreamModel(edgeNode1)
         expect(node.orderedSiblings[2]).toMatchDreamModel(edgeNode2)
       })
 
       it('orders the results based on the order specified in the source association', async () => {
-        const node = await edgeNode2.load('orderedSiblingsWithOrderOnSource').execute()
+        const node = await edgeNode2.leftJoinLoad('orderedSiblingsWithOrderOnSource').execute()
         expect(node.orderedSiblingsWithOrderOnSource[0]).toMatchDreamModel(edgeNode3)
         expect(node.orderedSiblingsWithOrderOnSource[1]).toMatchDreamModel(edgeNode1)
         expect(node.orderedSiblingsWithOrderOnSource[2]).toMatchDreamModel(edgeNode2)
