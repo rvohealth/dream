@@ -15,7 +15,7 @@
     "dream": "./dist/src/global-cli/dream.js"
   },
   "scripts": {
-    "publish": "yarn npm publish",
+    "publish": "yarn && yarn npm publish",
     "dream": "yarn dreamts",
     "dreamjs": "node --experimental-modules dist/test-app/cli/index.js",
     "dreamts": "npx ts-node --transpile-only -r ./src/helpers/loadEnv.ts test-app/cli/index.ts",
