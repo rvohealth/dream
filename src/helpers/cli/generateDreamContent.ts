@@ -72,6 +72,13 @@ public ${associationName}: ${associationModelName}
 public ${pluralize(associationName)}: ${associationModelName}[]
 `
 
+      case 'encrypted':
+        dreamImports.push('Encrypted')
+        return `
+@Encrypted()
+public ${camelize(attributeName)}: ${getAttributeType(attribute, modelClassName)}\
+`
+
       default:
         return `
 public ${camelize(attributeName)}: ${getAttributeType(attribute, modelClassName)}\

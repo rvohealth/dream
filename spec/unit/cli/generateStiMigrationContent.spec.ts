@@ -19,11 +19,13 @@ describe('dream generate:model <name> [...attributes]', () => {
 
       expect(res).toEqual(
         `\
-import { Kysely, sql, CompiledQuery } from 'kysely'
+import { DreamMigrationHelpers } from '@rvohealth/dream'
+import { Kysely, sql } from 'kysely'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
-  await db.executeQuery(CompiledQuery.raw('CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;'))
+  await DreamMigrationHelpers.createExtension(db, 'citext')
+
   await db.schema
     .alterTable('users')
     .addColumn('email', 'varchar(128)')

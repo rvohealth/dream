@@ -125,6 +125,43 @@ export default class User extends ApplicationModel {
       })
     })
 
+    context('with an encrypted attribute', () => {
+      it('adds the @Encrypted decorator', () => {
+        const res = generateDreamContent({
+          fullyQualifiedModelName: 'user',
+          columnsWithTypes: ['email:string', 'phone_number:encrypted'],
+          serializer: true,
+        })
+        expect(res).toEqual(
+          `\
+import { DreamColumn, DreamSerializers, Encrypted } from '@rvohealth/dream'
+import ApplicationModel from './ApplicationModel'
+
+export default class User extends ApplicationModel {
+  public get table() {
+    return 'users' as const
+  }
+
+  public get serializers(): DreamSerializers<User> {
+    return {
+      default: 'UserSerializer',
+      summary: 'UserSummarySerializer',
+    }
+  }
+
+  public id: DreamColumn<User, 'id'>
+  public email: DreamColumn<User, 'email'>
+  public createdAt: DreamColumn<User, 'createdAt'>
+  public updatedAt: DreamColumn<User, 'updatedAt'>
+
+  @Encrypted()
+  public phoneNumber: DreamColumn<User, 'phoneNumber'>
+}
+`
+        )
+      })
+    })
+
     context('with enum attributes', () => {
       it('generates a dream model with multiple enum fields', () => {
         const res = generateDreamContent({

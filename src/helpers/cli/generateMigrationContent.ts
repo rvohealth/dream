@@ -51,6 +51,14 @@ export default function generateMigrationContent({
           columnDefs.push(generateDecimalStr(attribute))
           break
 
+        case 'boolean':
+          columnDefs.push(generateBooleanStr(attributeName))
+          break
+
+        case 'encrypted':
+          columnDefs.push(generateColumnStr(`encrypted_${attributeName}`, 'text', descriptors))
+          break
+
         default:
           columnDefs.push(generateColumnStr(attributeName, coercedAttributeType, descriptors))
           break
@@ -78,21 +86,22 @@ export async function down(db: Kysely<any>): Promise<void> {
   }
 
   const citextExtension = requireCitextExtension
-    ? `await db.executeQuery(CompiledQuery.raw('CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;'))\n  `
+    ? `  await DreamMigrationHelpers.createExtension(db, 'citext')\n\n`
     : ''
   const kyselyImports = ['Kysely', 'sql']
-  if (requireCitextExtension) kyselyImports.push('CompiledQuery')
+  const dreamImports = []
+  if (requireCitextExtension) dreamImports.push('DreamMigrationHelpers')
 
   const newline = '\n    '
   const columnDefLines = columnDefs.length ? newline + columnDefs.join(newline) : ''
   const columnDropLines = columnDrops.length ? newline + columnDrops.join(newline) + newline : ''
 
   return `\
-import { ${kyselyImports.join(', ')} } from 'kysely'
+${dreamImports.length ? `import { ${dreamImports.join(', ')} } from '@rvohealth/dream'\n` : ''}import { ${kyselyImports.join(', ')} } from 'kysely'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
-  ${citextExtension}${generateEnumStatements(columnsWithTypes)}await db.schema
+${citextExtension}${generateEnumStatements(columnsWithTypes)}  await db.schema
     .${altering ? 'alterTable' : 'createTable'}('${table}')${
       altering ? '' : newline + generateIdStr({ primaryKeyType })
     }${columnDefLines}${
@@ -145,7 +154,7 @@ function generateEnumStatements(columnsWithTypes: string[]) {
   const finalStatements = enumStatements.map(statement => {
     const enumName = statement.split(':')[2]
     const columnsWithTypes = statement.split(':')[3].split(/,\s{0,}/)
-    return `await db.schema
+    return `  await db.schema
     .createType('${enumName}_enum')
     .asEnum([
       ${columnsWithTypes.map(attr => `'${attr}'`).join(',\n      ')}
@@ -153,7 +162,7 @@ function generateEnumStatements(columnsWithTypes: string[]) {
     .execute()`
   })
 
-  return finalStatements.length ? finalStatements.join('\n\n  ') + '\n\n  ' : ''
+  return finalStatements.length ? finalStatements.join('\n\n') + '\n\n' : ''
 }
 
 function generateEnumDropStatements(columnsWithTypes: string[]) {
@@ -164,6 +173,10 @@ function generateEnumDropStatements(columnsWithTypes: string[]) {
   })
 
   return finalStatements.length ? '\n\n  ' + finalStatements.join('\n  ') : ''
+}
+
+function generateBooleanStr(attributeName: string) {
+  return `.addColumn('${attributeName}', 'boolean', col => col.notNull().defaultTo(false))`
 }
 
 function generateEnumStr(attribute: string) {
