@@ -1952,9 +1952,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     })
 
     const aliasToDreamIdMap: AliasToDreamIdMap = {}
+    console.debug('111111111111111111111111111111111111111111111111111111111111111111')
+    const queryResults = await executeDatabaseQuery(kyselyQuery, 'execute')
+    console.debug(queryResults)
 
     return compact(
-      (await executeDatabaseQuery(kyselyQuery, 'execute')).map(
+      queryResults.map(
         singleSqlResult =>
           (this.fleshOutJoinLoadExecutionResults({
             currentAlias: this.baseSqlAlias,
@@ -1986,6 +1989,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     aliasToDreamClassesMap: AssociationNameToDreamClass
     leftJoinStatements: RelaxedJoinStatement
   }) {
+    console.debug({ singleSqlResult })
     const dreamClass = aliasToDreamClassesMap[currentAlias]
     const columnToColumnAliasMap = associationAliasToColumnAliasMap[currentAlias]
     const primaryKeyValue = singleSqlResult[columnToColumnAliasMap[dreamClass.primaryKey]]
@@ -2009,6 +2013,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         | HasManyStatement<any, any, any, any>
       if (association && association.through && association.preloadThroughColumns) {
         const throughAssociationColumnToColumnAliasMap = associationAliasToColumnAliasMap[association.through]
+
         this.hydratePreloadedThroughColumns({
           association,
           columnToColumnAliasMap: throughAssociationColumnToColumnAliasMap,
@@ -2018,7 +2023,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         })
       }
 
-      aliasToDreamIdMap[currentAlias][primaryKeyValue] = dream
+      aliasToDreamIdMap[protectAgainstPollutingAssignment(currentAlias)][
+        protectAgainstPollutingAssignment(primaryKeyValue)
+      ] = dream
     }
 
     const dream = aliasToDreamIdMap[currentAlias][primaryKeyValue] as any
@@ -2518,15 +2525,25 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @returns A dream instance or null
    */
   private async takeOne() {
-    const kyselyQuery = (this.joinLoadActivated ? this.limit(1) : this).buildSelect()
+    if (this.joinLoadActivated) {
+      if (this.whereStatements.find(whereStatement => (whereStatement as any)[this.dreamClass.primaryKey])) {
+        console.debug('77777777777777777777777777777777777777777777777777777777', this.whereStatements)
+        // the query already includes a primary key where statement
+        return (await this.executeJoinLoad())[0] || null
+      }
+
+      console.debug('88888888888888888888888888888888888888888888888888888888', this.whereStatements)
+      // otherwise find the primary key and apply it to the query
+      const primaryKeyValue = (await this.pluck(this.dreamClass.primaryKey))[0]
+      return primaryKeyValue
+        ? (await this.where({ [this.dreamClass.primaryKey]: primaryKeyValue } as any).executeJoinLoad())[0]
+        : null
+    }
+
+    const kyselyQuery = this.buildSelect()
     const results = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirst')
 
     if (results) {
-      if (this.joinLoadActivated) {
-        const query = this.where({ [this.dreamClass.primaryKey]: results[this.dreamClass.primaryKey] } as any)
-        return (await query.executeJoinLoad())[0]
-      }
-
       const theFirst = sqlResultToDreamInstance(this.dreamClass, results) as DreamInstance
 
       if (theFirst)

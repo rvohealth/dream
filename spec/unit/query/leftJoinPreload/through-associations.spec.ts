@@ -464,7 +464,7 @@ describe('Query#leftJoinPreload through', () => {
         )
 
         context('through a BelongsTo', () => {
-          it('applies conditional to selectively bring in records', async () => {
+          it.only('applies conditional to selectively bring in records', async () => {
             const node = await Node.create({ name: 'world', omittedEdgePosition: 1 })
             const edge1 = await Edge.create({ name: 'hello' })
             const edge2 = await Edge.create({ name: 'world' })
@@ -482,7 +482,15 @@ describe('Query#leftJoinPreload through', () => {
               edgeNode3,
             ])
 
+            console.debug(
+              '::::::::::::::::::::::::::::::::::::::::::',
+              'edgeNode2:',
+              edgeNode2.id,
+              'edge2:',
+              edge2.id
+            )
             const reloadedEdgeNode = await edgeNode2.leftJoinLoad('justThisSibling').execute()
+            expect(reloadedEdgeNode).toMatchDreamModel(edgeNode2)
             expect(reloadedEdgeNode.justThisSibling).toMatchDreamModel(edgeNode2)
           })
         })

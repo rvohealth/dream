@@ -28,9 +28,7 @@ export default class LoadBuilder<DreamInstance extends Dream> {
     // a load must be unscoped, but that unscoping should not carry through
     // to other associations (thus the use of `removeAllDefaultScopesExceptOnAssociations`
     // instead of `removeAllDefaultScopes`).
-    this.query = new Query<DreamInstance>(this.dream as DreamInstance)[
-      'removeAllDefaultScopesExceptOnAssociations'
-    ]()
+    this.query = (this.dream as any).query()['removeAllDefaultScopesExceptOnAssociations']()
     this.dreamTransaction = txn
   }
 
