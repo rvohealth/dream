@@ -1,6 +1,6 @@
 {
   "name": "@rvohealth/dream",
-  "version": "0.11.00",
+  "version": "0.13.0",
   "description": "dream orm",
   "main": "dist/src/index.js",
   "repository": "https://github.com/rvohealth/dream.git",
@@ -11,9 +11,7 @@
     "dist/**/*",
     "docs/**/*"
   ],
-  "bin": {
-    "dream": "./dist/src/global-cli/dream.js"
-  },
+  "bin": "./dist/src/global-cli/dream.js",
   "scripts": {
     "publish": "yarn && yarn npm publish",
     "dream": "yarn dreamts",
