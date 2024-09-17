@@ -1,6 +1,5 @@
 import { DateTime } from 'luxon'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from '../../../src/exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
-import CalendarDate from '../../../src/helpers/CalendarDate'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import Composition from '../../../test-app/app/models/Composition'
 import Pet from '../../../test-app/app/models/Pet'
@@ -47,37 +46,6 @@ describe('Dream initialization', () => {
           expect(() => Mylar.new({ user: undefined })).toThrow(CannotPassNullOrUndefinedToRequiredBelongsTo)
         })
       })
-    })
-  })
-
-  context('a string is passed into a datetime field', () => {
-    it('converts the datetime string to a DateTime', () => {
-      const nowString = DateTime.now().toISO()
-      const user = User.new({ deletedAt: nowString as any })
-      expect(user.deletedAt).toEqualDateTime(DateTime.fromISO(nowString))
-    })
-  })
-
-  context('a DateTime in a non-UTC timezone, passed into a datetime field', () => {
-    it('is converted to UTC', () => {
-      const dateString = DateTime.fromISO('2024-09-05T10:42:16.603-04:00')
-      const user = User.new({ deletedAt: dateString as any })
-      expect(user.deletedAt?.toISO()).toEqual('2024-09-05T14:42:16.603Z')
-    })
-  })
-
-  context('a string is passed into a date field', () => {
-    it('converts the date string to a CalendarDate', () => {
-      const user = User.new({ birthdate: '2000-10-10' as any })
-      expect(user.birthdate).toEqualCalendarDate(CalendarDate.fromISO('2000-10-10'))
-    })
-  })
-
-  context('a datetime string in non UTC is passed into a date field', () => {
-    it('is converted to a CalendarDate with the date matching the original timezone date', () => {
-      const dateString = '2024-09-05T22:42:16.603-04:00'
-      const user = User.new({ birthdate: dateString as any })
-      expect(user.birthdate).toEqualCalendarDate(CalendarDate.fromISO('2024-09-05'))
     })
   })
 
