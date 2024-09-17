@@ -1,13 +1,18 @@
 import { DateTime } from 'luxon'
 import Dream from '../dream'
 import CalendarDate from './CalendarDate'
+import isDateTimeColumn from './db/types/isDateTimeColumn'
+import { isString } from './typechecks'
 
 export default function sqlAttributes(dream: Dream) {
   const attributes = dream.dirtyAttributes()
 
   return Object.keys(attributes).reduce(
     (result, key) => {
-      const val = attributes[key]
+      let val = attributes[key]
+
+      if (isString(val) && isDateTimeColumn(dream.constructor as typeof Dream, key))
+        val = DateTime.fromISO(val, { zone: 'UTC' })
 
       if (val instanceof DateTime || val instanceof CalendarDate) {
         // Converting toJSDate resulted in the correct timezone, but even with process.env.TZ=UTC,

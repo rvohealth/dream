@@ -263,13 +263,13 @@ describe('Dream.create', () => {
     })
 
     context('with a string representation of a datetime', () => {
-      it('creates the model with the specified datetime', async () => {
+      it('creates the model with the specified datetime, converting to UTC  before saving', async () => {
         const aTime = DateTime.now().minus({ days: 7 })
 
         const user = await User.create({
           email: 'ham@',
           password: 'chalupas',
-          deletedAt: aTime.toISO() as any,
+          deletedAt: aTime.setZone('America/Chicago').toISO() as any,
         })
 
         const reloaded = await User.removeAllDefaultScopes().find(user.id)
@@ -304,6 +304,19 @@ describe('Dream.create', () => {
 
         const reloaded = await User.removeAllDefaultScopes().find(user.id)
         expect(reloaded!.birthdate!.toISODate()).toEqual(dateString)
+      })
+    })
+
+    context('with a string representation of a datetime', () => {
+      it('creates the model with the specified date', async () => {
+        const user = await User.create({
+          email: 'ham@',
+          password: 'chalupas',
+          birthdate: '2024-09-17T21:03:24.524-05:00' as any,
+        })
+
+        const reloaded = await User.removeAllDefaultScopes().find(user.id)
+        expect(reloaded!.birthdate!.toISODate()).toEqual('2024-09-17')
       })
     })
   })

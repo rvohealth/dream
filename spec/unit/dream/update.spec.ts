@@ -359,7 +359,7 @@ describe('Dream#update', () => {
     context('with a string representation of a datetime', () => {
       it('updates to the datetime', async () => {
         const newTime = DateTime.now().minus({ days: 7 })
-        await user.update({ deletedAt: newTime.toISO() as any })
+        await user.update({ deletedAt: newTime.setZone('America/Chicago').toISO() as any })
         const reloaded = await User.removeAllDefaultScopes().find(user.id)
         expect(reloaded!.deletedAt).toEqualDateTime(newTime)
       })
