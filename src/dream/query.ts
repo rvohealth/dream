@@ -82,6 +82,7 @@ import {
   DreamConst,
   DreamTableSchema,
   FinalVariadicTableName,
+  IdType,
   OrderDir,
   PassthroughColumnNames,
   RelaxedJoinStatement,
@@ -4107,9 +4108,9 @@ function getSourceAssociation(dream: Dream | typeof Dream | undefined, sourceNam
   )
 }
 
-interface PreloadedDreamsAndWhatTheyPointTo {
+export interface PreloadedDreamsAndWhatTheyPointTo {
   dream: Dream
-  pointsToPrimaryKey: string
+  pointsToPrimaryKey: IdType
 }
 
 export interface FindEachOpts {

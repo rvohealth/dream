@@ -1,8 +1,8 @@
 import { PassthroughWhere } from '../decorators/associations/shared'
 import Dream from '../dream'
-import Query from './query'
+import Query, { PreloadedDreamsAndWhatTheyPointTo } from './query'
 import DreamTransaction from './transaction'
-import { PassthroughColumnNames, VariadicLoadArgs } from './types'
+import { IdType, PassthroughColumnNames, VariadicLoadArgs } from './types'
 
 export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
   private dream: Dream
@@ -20,7 +20,7 @@ export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
    * ```
    */
   constructor(dream: Dream, txn?: DreamTransaction<any>) {
-    this.dream = dream
+    this.dream = dream['clone']()
 
     // Load queries start from the table corresponding to an instance
     // of a Dream. However, the Dream may have default scopes that would
@@ -80,6 +80,29 @@ export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
       this.query = this.query.txn(this.dreamTransaction)
     }
 
-    return await this.query.firstOrFail()
+    const dreamWithLoadedAssociations = await this.query.firstOrFail()
+
+    Object.keys(this.query['leftJoinStatements']).forEach(associationName => {
+      this.query['hydrateAssociation'](
+        [this.dream],
+        this.dream['getAssociationMetadata'](associationName),
+        this.associationToPreloadedDreamsAndWhatTheyPointTo({
+          pointsToPrimaryKey: this.dream.primaryKeyValue,
+          associatedModels: (dreamWithLoadedAssociations as any)[associationName] as Dream | Dream[],
+        })
+      )
+    })
+
+    return this.dream as DreamInstance
+  }
+
+  private associationToPreloadedDreamsAndWhatTheyPointTo({
+    pointsToPrimaryKey,
+    associatedModels,
+  }: {
+    pointsToPrimaryKey: IdType
+    associatedModels: Dream | Dream[]
+  }): PreloadedDreamsAndWhatTheyPointTo[] {
+    return [associatedModels].flat().map(dream => ({ dream, pointsToPrimaryKey }))
   }
 }

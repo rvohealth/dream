@@ -1,5 +1,6 @@
 import { NonLoadedAssociation } from '../../../src'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
+import Composition from '../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import Pet from '../../../test-app/app/models/Pet'
 import User from '../../../test-app/app/models/User'
@@ -10,18 +11,29 @@ describe('Dream#load', () => {
 
   beforeEach(async () => {
     user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
-    pet = await user.createAssociation('pets', { species: 'cat', name: 'aster' })
+    pet = await Pet.create({ user, species: 'cat', name: 'aster' })
   })
 
-  it('returns a copy of the dream instance', async () => {
+  it('returns a clone of the dream instance in its current state', async () => {
     const freshUser = await User.create({ email: 'charlie@peanuts.com', password: 'howyadoin' })
-    const freshPet = await freshUser.createAssociation('pets', { species: 'dog', name: 'Snoopy' })
+    freshUser.name = 'Snoopy Snoopy Snoopy'
+    const freshPet = await Pet.create({ user: freshUser, species: 'dog', name: 'Snoopy' })
     const clone = await freshUser.load('pets').execute()
     expect(clone).toMatchDreamModel(freshUser)
     expect(clone).not.toBe(freshUser)
 
+    expect(clone.name).toEqual('Snoopy Snoopy Snoopy')
     expect(clone.pets).toMatchDreamModels([freshPet])
     expect(() => freshUser.pets).toThrow(NonLoadedAssociation)
+  })
+
+  it('includes previously loaded associations', async () => {
+    const composition = await Composition.create({ user })
+    const clone = await user.load('pets').execute()
+    const clone2 = await clone.load('compositions').execute()
+
+    expect(clone2.pets).toMatchDreamModels([pet])
+    expect(clone2.compositions).toMatchDreamModels([composition])
   })
 
   context('with a transaction', () => {
