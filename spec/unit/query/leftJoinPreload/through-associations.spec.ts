@@ -464,7 +464,7 @@ describe('Query#leftJoinPreload through', () => {
         )
 
         context('through a BelongsTo', () => {
-          it.only('applies conditional to selectively bring in records', async () => {
+          it('applies conditional to selectively bring in records', async () => {
             const node = await Node.create({ name: 'world', omittedEdgePosition: 1 })
             const edge1 = await Edge.create({ name: 'hello' })
             const edge2 = await Edge.create({ name: 'world' })

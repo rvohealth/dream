@@ -1,5 +1,6 @@
 import { randomBytes, scrypt, timingSafeEqual } from 'crypto'
 import { DateTime } from 'luxon'
+import Encrypted from '../../../src/decorators/Encrypted'
 import BeforeSave from '../../../src/decorators/hooks/before-save'
 import Scope from '../../../src/decorators/scope'
 import Validates from '../../../src/decorators/validations/validates'
@@ -20,7 +21,6 @@ import Post from './Post'
 import PostComment from './PostComment'
 import Rating from './Rating'
 import UserSettings from './UserSettings'
-import Encrypted from '../../../src/decorators/Encrypted'
 
 export default class User extends ApplicationModel {
   public get table() {
@@ -59,7 +59,7 @@ export default class User extends ApplicationModel {
 
   @Validates('contains', '@')
   @Validates('presence')
-  @Validates('length', { min: 4, max: 18 })
+  @Validates('length', { min: 4, max: 64 })
   public email: DreamColumn<User, 'email'>
 
   @User.HasOne('UserSettings')

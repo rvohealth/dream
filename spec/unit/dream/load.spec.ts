@@ -14,12 +14,14 @@ describe('Dream#load', () => {
   })
 
   it('returns a copy of the dream instance', async () => {
-    const clone = await user.load('pets').execute()
-    expect(clone).toMatchDreamModel(user)
-    expect(clone).not.toBe(user)
+    const freshUser = await User.create({ email: 'charlie@peanuts.com', password: 'howyadoin' })
+    const freshPet = await freshUser.createAssociation('pets', { species: 'dog', name: 'Snoopy' })
+    const clone = await freshUser.load('pets').execute()
+    expect(clone).toMatchDreamModel(freshUser)
+    expect(clone).not.toBe(freshUser)
 
-    expect(clone.pets).toMatchDreamModels([pet])
-    expect(() => user.pets).toThrow(NonLoadedAssociation)
+    expect(clone.pets).toMatchDreamModels([freshPet])
+    expect(() => freshUser.pets).toThrow(NonLoadedAssociation)
   })
 
   context('with a transaction', () => {
@@ -66,6 +68,7 @@ describe('Dream#load', () => {
         const clone = await user.load('pets').execute()
         await Pet.query().update({ name: 'Snoopy' })
         const clone2 = await clone.load('pets').execute()
+        expect(clone.pets[0].name).toEqual('aster')
         expect(clone2.pets[0].name).toEqual('Snoopy')
       })
     })
