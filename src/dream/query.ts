@@ -1952,9 +1952,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     })
 
     const aliasToDreamIdMap: AliasToDreamIdMap = {}
-    console.debug('111111111111111111111111111111111111111111111111111111111111111111')
     const queryResults = await executeDatabaseQuery(kyselyQuery, 'execute')
-    console.debug(queryResults)
 
     return compact(
       queryResults.map(
@@ -1989,7 +1987,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     aliasToDreamClassesMap: AssociationNameToDreamClass
     leftJoinStatements: RelaxedJoinStatement
   }) {
-    console.debug({ singleSqlResult })
     const dreamClass = aliasToDreamClassesMap[currentAlias]
     const columnToColumnAliasMap = associationAliasToColumnAliasMap[currentAlias]
     const primaryKeyValue = singleSqlResult[columnToColumnAliasMap[dreamClass.primaryKey]]
@@ -2527,12 +2524,10 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   private async takeOne() {
     if (this.joinLoadActivated) {
       if (this.whereStatements.find(whereStatement => (whereStatement as any)[this.dreamClass.primaryKey])) {
-        console.debug('77777777777777777777777777777777777777777777777777777777', this.whereStatements)
         // the query already includes a primary key where statement
         return (await this.executeJoinLoad())[0] || null
       }
 
-      console.debug('88888888888888888888888888888888888888888888888888888888', this.whereStatements)
       // otherwise find the primary key and apply it to the query
       const primaryKeyValue = (await this.pluck(this.dreamClass.primaryKey))[0]
       return primaryKeyValue

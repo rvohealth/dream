@@ -482,13 +482,6 @@ describe('Query#leftJoinPreload through', () => {
               edgeNode3,
             ])
 
-            console.debug(
-              '::::::::::::::::::::::::::::::::::::::::::',
-              'edgeNode2:',
-              edgeNode2.id,
-              'edge2:',
-              edge2.id
-            )
             const reloadedEdgeNode = await edgeNode2.leftJoinLoad('justThisSibling').execute()
             expect(reloadedEdgeNode).toMatchDreamModel(edgeNode2)
             expect(reloadedEdgeNode.justThisSibling).toMatchDreamModel(edgeNode2)
