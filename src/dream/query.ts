@@ -2524,16 +2524,19 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    */
   private async takeOne() {
     if (this.joinLoadActivated) {
+      let query: Query<DreamInstance>
+
       if (this.whereStatements.find(whereStatement => (whereStatement as any)[this.dreamClass.primaryKey])) {
         // the query already includes a primary key where statement
-        return (await this.executeJoinLoad())[0] || null
+        query = this
+      } else {
+        // otherwise find the primary key and apply it to the query
+        const primaryKeyValue = (await this.limit(1).pluck(this.dreamClass.primaryKey))[0]
+        if (primaryKeyValue === undefined) return null
+        query = this.where({ [this.dreamClass.primaryKey]: primaryKeyValue } as any)
       }
 
-      // otherwise find the primary key and apply it to the query
-      const primaryKeyValue = (await this.pluck(this.dreamClass.primaryKey))[0]
-      return primaryKeyValue
-        ? (await this.where({ [this.dreamClass.primaryKey]: primaryKeyValue } as any).executeJoinLoad())[0]
-        : null
+      return (await query.executeJoinLoad())[0] || null
     }
 
     const kyselyQuery = this.buildSelect()
