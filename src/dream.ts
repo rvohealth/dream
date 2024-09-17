@@ -123,7 +123,7 @@ import cloneDeepSafe from './helpers/cloneDeepSafe'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel'
-import { marshalDBValue } from './helpers/marshalDBValue'
+import { standardizeParamInputToDreamModel } from './helpers/standardizeParamInputToDreamModel'
 import { isString } from './helpers/typechecks'
 
 export default class Dream {
@@ -2607,7 +2607,7 @@ export default class Dream {
     dreamInstance?: InstanceType<T>,
     { bypassUserDefinedSetters = false }: { bypassUserDefinedSetters?: boolean } = {}
   ): WhereStatement<InstanceType<T>['DB'], InstanceType<T>['schema'], InstanceType<T>['table']> {
-    const marshalledOpts: any = {}
+    const returnValues: any = {}
 
     const setAttributeOnDreamInstance = (attr: any, value: any) => {
       if (!dreamInstance) return
@@ -2640,22 +2640,22 @@ export default class Dream {
         const foreignKey = belongsToAssociationMetaData.foreignKey()
         const foreignKeyValue = belongsToAssociationMetaData.primaryKeyValue(associatedObject)
         if (foreignKeyValue !== undefined) {
-          marshalledOpts[foreignKey] = foreignKeyValue
-          setAttributeOnDreamInstance(foreignKey, marshalledOpts[foreignKey])
+          returnValues[foreignKey] = foreignKeyValue
+          setAttributeOnDreamInstance(foreignKey, returnValues[foreignKey])
         }
 
         if (belongsToAssociationMetaData.polymorphic) {
           const foreignKeyTypeField = belongsToAssociationMetaData.foreignKeyTypeField()
-          marshalledOpts[foreignKeyTypeField] = associatedObject?.stiBaseClassOrOwnClass?.name
+          returnValues[foreignKeyTypeField] = associatedObject?.stiBaseClassOrOwnClass?.name
           setAttributeOnDreamInstance(foreignKeyTypeField, associatedObject?.stiBaseClassOrOwnClass?.name)
         }
       } else {
-        marshalledOpts[attr] = marshalDBValue(this, attr as any, (attributes as any)[attr])
-        setAttributeOnDreamInstance(attr, marshalledOpts[attr])
+        returnValues[attr] = standardizeParamInputToDreamModel(this, attr as any, (attributes as any)[attr])
+        setAttributeOnDreamInstance(attr, returnValues[attr])
       }
     })
 
-    return marshalledOpts
+    return returnValues
   }
 
   /**

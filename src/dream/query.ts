@@ -51,7 +51,6 @@ import CalendarDate from '../helpers/CalendarDate'
 import allNestedObjectKeys from '../helpers/allNestedObjectKeys'
 import cloneDeepSafe from '../helpers/cloneDeepSafe'
 import compact from '../helpers/compact'
-import { marshalDBValue } from '../helpers/marshalDBValue'
 import objectPathsToArrays from '../helpers/objectPathsToArrays'
 import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment'
 import { Range } from '../helpers/range'
@@ -63,7 +62,6 @@ import CurriedOpsStatement from '../ops/curried-ops-statement'
 import OpsStatement from '../ops/ops-statement'
 import LoadIntoModels from './internal/associations/load-into-models'
 import executeDatabaseQuery from './internal/executeDatabaseQuery'
-import { extractValueFromJoinsPluckResponse } from './internal/extractValueFromJoinsPluckResponse'
 import orderByDirection from './internal/orderByDirection'
 import shouldBypassDefaultScope from './internal/shouldBypassDefaultScope'
 import SimilarityBuilder from './internal/similarity/SimilarityBuilder'
@@ -889,23 +887,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       this.fleshOutPluckThroughStatements(innerJoinStatements, innerJoinWhereStatements, null, [...args]),
     ].flat() as any[]
 
-    const vals = await this.clone({ innerJoinStatements, innerJoinWhereStatements }).pluckWithoutMarshalling(
+    const vals = await this.clone({ innerJoinStatements, innerJoinWhereStatements }).executePluck(
       ...pluckStatement
     )
 
-    const associationNamesToDreamClasses = this.pluckThroughArgumentsToDreamClassesMap([...args])
-
-    const mapFn = (val: any, index: number) => {
-      return extractValueFromJoinsPluckResponse(
-        val,
-        index,
-        pluckStatement,
-        this.dreamClass,
-        associationNamesToDreamClasses
-      )
-    }
-
-    const response = this.pluckValuesToPluckResponse(pluckStatement, vals, mapFn, {
+    const response = this.pluckValuesToPluckResponse(pluckStatement, vals, {
       excludeFirstValue: false,
     })
     return response
@@ -984,15 +970,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       : [finalPrimaryKey, ...pluckStatement]
 
     const baseQuery = this.clone({ innerJoinStatements, innerJoinWhereStatements })
-    const mapFn = (val: any, index: number) => {
-      return extractValueFromJoinsPluckResponse(
-        val,
-        index,
-        pluckStatement,
-        this.dreamClass,
-        associationNamesToDreamClasses
-      )
-    }
 
     let offset = 0
     let results: any[]
@@ -1002,8 +979,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         .order(finalPrimaryKey)
         .offset(offset)
         .limit(batchSize)
-        .pluckWithoutMarshalling(...columnsIncludingPrimaryKey)
-      const plucked = this.pluckValuesToPluckResponse(pluckStatement, results, mapFn, {
+        .executePluck(...columnsIncludingPrimaryKey)
+      const plucked = this.pluckValuesToPluckResponse(pluckStatement, results, {
         excludeFirstValue: !pluckStatementIncludesPrimaryKey,
       })
 
@@ -1045,6 +1022,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     const associations = this.pluckThroughArgumentsToAssociationNames(associationStatements)
     return associations[associations.length - 1]
   }
+
   /**
    * @internal
    *
@@ -1706,7 +1684,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
 
-    return marshalDBValue(this.dreamClass, columnName as any, data.max)
+    return data.max
   }
 
   /**
@@ -1731,7 +1709,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     kyselyQuery = kyselyQuery.select(min(columnName as any) as any)
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
 
-    return marshalDBValue(this.dreamClass, columnName as any, data.min)
+    return data.min
   }
 
   /**
@@ -1819,7 +1797,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     }
 
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
-    return marshalDBValue(this.dreamClass, columnName, data[minOrMax])
+    return data[minOrMax]
   }
 
   /**
@@ -1875,7 +1853,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    * @returns An array of plucked values
    */
-  private async pluckWithoutMarshalling(...fields: DreamColumnNames<DreamInstance>[]): Promise<any[]> {
+  private async executePluck(...fields: DreamColumnNames<DreamInstance>[]): Promise<any[]> {
     let kyselyQuery = this.removeAllDefaultScopesExceptOnAssociations().buildSelect({ bypassSelectAll: true })
     const aliases: string[] = []
 
@@ -2016,7 +1994,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           association,
           columnToColumnAliasMap: throughAssociationColumnToColumnAliasMap,
           dream,
-          dreamClass,
           singleSqlResult,
         })
       }
@@ -2081,10 +2058,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   public async pluck<TableName extends DreamInstance['table']>(
     ...fields: (DreamColumnNames<DreamInstance> | `${TableName}.${DreamColumnNames<DreamInstance>}`)[]
   ): Promise<any[]> {
-    const vals = await this.pluckWithoutMarshalling(...fields)
+    const vals = await this.executePluck(...fields)
 
-    const mapFn = (val: any, index: number) => marshalDBValue(this.dreamClass, fields[index] as any, val)
-    return this.pluckValuesToPluckResponse(fields, vals, mapFn, {
+    return this.pluckValuesToPluckResponse(fields, vals, {
       excludeFirstValue: false,
     })
   }
@@ -2131,8 +2107,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     const batchSize = providedOpts?.batchSize || Query.BATCH_SIZES.PLUCK_EACH_THROUGH
 
-    const mapFn = (val: any, index: number) => marshalDBValue(this.dreamClass, fields[index] as any, val)
-
     let offset = 0
     let records: any[]
     do {
@@ -2145,9 +2119,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         .order(null)
         .order(this.dreamClass.primaryKey)
         .limit(batchSize)
-        .pluckWithoutMarshalling(...columnsIncludingPrimaryKey)
+        .executePluck(...columnsIncludingPrimaryKey)
 
-      const vals = this.pluckValuesToPluckResponse(onlyColumns, records, mapFn, {
+      const vals = this.pluckValuesToPluckResponse(onlyColumns, records, {
         excludeFirstValue: !onlyIncludesPrimaryKey,
       })
       for (const val of vals) {
@@ -2503,15 +2477,14 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   private pluckValuesToPluckResponse(
     fields: any[],
     vals: any[],
-    mapFn: (value: any, index: number) => any,
     { excludeFirstValue }: { excludeFirstValue: boolean }
   ) {
     if (excludeFirstValue) vals = vals.map(valueArr => valueArr.slice(1))
 
     if (fields.length > 1) {
-      return vals.map(arr => arr.map(mapFn))
+      return vals
     } else {
-      return vals.flat().map(val => mapFn(val, 0))
+      return vals.flat()
     }
   }
 
@@ -2831,19 +2804,15 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     association,
     columnToColumnAliasMap,
     dream,
-    dreamClass,
     singleSqlResult,
   }: {
     association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
     columnToColumnAliasMap: Record<string, string>
     dream: Dream
-    dreamClass: typeof Dream
     singleSqlResult: any
   }) {
     if (!association.through) return
     if (!(dream as any).preloadedThroughColumns) return
-
-    const { throughAssociationDreamClass } = this.throughAssociationDetails(dreamClass, association.through)
 
     let columnNames: string[] = []
     const columnNameToPreloadedThroughColumnNameMap: Record<string, string> = {}
@@ -2861,21 +2830,10 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       })
     }
 
-    const columnValueMap = columnNames.reduce(
-      (columnValueMap, columnName) => {
-        columnValueMap[columnName] = singleSqlResult[columnToColumnAliasMap[columnName]]
-        return columnValueMap
-      },
-      {} as Record<string, string>
-    )
-
-    const throughDream = sqlResultToDreamInstance(throughAssociationDreamClass, columnValueMap)
-
     columnNames.forEach(
       columnName =>
-        ((dream as any).preloadedThroughColumns[columnNameToPreloadedThroughColumnNameMap[columnName]] = (
-          throughDream as any
-        )[columnName])
+        ((dream as any).preloadedThroughColumns[columnNameToPreloadedThroughColumnNameMap[columnName]] =
+          singleSqlResult[columnToColumnAliasMap[columnName]])
     )
   }
 

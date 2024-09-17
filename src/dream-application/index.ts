@@ -1,10 +1,19 @@
-import { types } from 'pg'
+import { types as pgTypes } from 'pg'
+import db from '../db'
 import Dream from '../dream'
 import { primaryKeyTypes } from '../dream/types'
 import Encrypt, { EncryptAlgorithm, EncryptOptions } from '../encrypt'
 import DreamApplicationInitMissingCallToLoadModels from '../exceptions/dream-application/init-missing-call-to-load-models'
 import DreamApplicationInitMissingMissingProjectRoot from '../exceptions/dream-application/init-missing-project-root'
-import { parseDate, parseDatetime, parseDecimal } from '../helpers/customPgParsers'
+import {
+  findCitextArrayOid,
+  correspondingArrayOid as findCorrespondingArrayOid,
+  enumArrayOids as findEnumArrayOids,
+  parsePostgresArrayWithTransformation,
+  parsePostgresDate,
+  parsePostgresDatetime,
+  parsePostgresDecimal,
+} from '../helpers/customPgParsers'
 import DreamSerializer from '../serializer'
 import { cacheDreamApplication, getCachedDreamApplicationOrFail } from './cache'
 import loadModels, { getModelsOrFail } from './helpers/loadModels'
@@ -29,11 +38,6 @@ export default class DreamApplication {
     opts: Partial<DreamApplicationOpts> = {},
     deferCb?: (dreamApp: DreamApplication) => Promise<void> | void
   ) {
-    types.setTypeParser(types.builtins.DATE, parseDate)
-    types.setTypeParser(types.builtins.TIMESTAMP, parseDatetime)
-    types.setTypeParser(types.builtins.TIMESTAMPTZ, parseDatetime)
-    types.setTypeParser(types.builtins.NUMERIC, parseDecimal)
-
     const dreamApp = new DreamApplication(opts)
     await cb(dreamApp)
 
@@ -54,6 +58,39 @@ export default class DreamApplication {
     if (!dreamApp.services) setCachedServices({})
 
     cacheDreamApplication(dreamApp)
+
+    let oid: number | undefined
+    const kyselyDb = db('primary')
+
+    pgTypes.setTypeParser(pgTypes.builtins.DATE, parsePostgresDate)
+    oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.DATE)
+    if (oid) pgTypes.setTypeParser(oid, parsePostgresArrayWithTransformation(parsePostgresDate))
+
+    pgTypes.setTypeParser(pgTypes.builtins.TIMESTAMP, parsePostgresDatetime)
+    oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TIMESTAMP)
+    if (oid) pgTypes.setTypeParser(oid, parsePostgresArrayWithTransformation(parsePostgresDatetime))
+
+    pgTypes.setTypeParser(pgTypes.builtins.TIMESTAMPTZ, parsePostgresDatetime)
+    oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TIMESTAMPTZ)
+    if (oid) pgTypes.setTypeParser(oid, parsePostgresArrayWithTransformation(parsePostgresDatetime))
+
+    pgTypes.setTypeParser(pgTypes.builtins.NUMERIC, parsePostgresDecimal)
+    oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.NUMERIC)
+    if (oid) pgTypes.setTypeParser(oid, parsePostgresArrayWithTransformation(parsePostgresDecimal))
+
+    const textArrayOid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TEXT)
+    if (textArrayOid) {
+      const textArrayParser = pgTypes.getTypeParser(textArrayOid)
+
+      const citextArrayOid = await findCitextArrayOid(kyselyDb)
+      if (citextArrayOid) pgTypes.setTypeParser(citextArrayOid, textArrayParser)
+
+      const uuidArrayOid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.UUID)
+      if (uuidArrayOid) pgTypes.setTypeParser(uuidArrayOid, textArrayParser)
+
+      const enumArrayOids = await findEnumArrayOids(kyselyDb)
+      enumArrayOids.forEach((enumArrayOid: number) => pgTypes.setTypeParser(enumArrayOid, textArrayParser))
+    }
 
     return dreamApp
   }
