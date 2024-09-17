@@ -7,9 +7,8 @@ import DreamApplicationInitMissingCallToLoadModels from '../exceptions/dream-app
 import DreamApplicationInitMissingMissingProjectRoot from '../exceptions/dream-application/init-missing-project-root'
 import {
   findCitextArrayOid,
-  correspondingArrayOid as findCorrespondingArrayOid,
-  enumArrayOids as findEnumArrayOids,
-  parsePostgresArrayWithTransformation,
+  findCorrespondingArrayOid,
+  findEnumArrayOids,
   parsePostgresDate,
   parsePostgresDatetime,
   parsePostgresDecimal,
@@ -59,40 +58,60 @@ export default class DreamApplication {
 
     cacheDreamApplication(dreamApp)
 
-    let oid: number | undefined
+    await this.setDatabaseTypeParsers()
+
+    return dreamApp
+  }
+
+  /**
+   * @internal
+   *
+   *
+   */
+  private static async setDatabaseTypeParsers() {
     const kyselyDb = db('primary')
 
     pgTypes.setTypeParser(pgTypes.builtins.DATE, parsePostgresDate)
-    oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.DATE)
-    if (oid) pgTypes.setTypeParser(oid, parsePostgresArrayWithTransformation(parsePostgresDate))
 
     pgTypes.setTypeParser(pgTypes.builtins.TIMESTAMP, parsePostgresDatetime)
-    oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TIMESTAMP)
-    if (oid) pgTypes.setTypeParser(oid, parsePostgresArrayWithTransformation(parsePostgresDatetime))
 
     pgTypes.setTypeParser(pgTypes.builtins.TIMESTAMPTZ, parsePostgresDatetime)
-    oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TIMESTAMPTZ)
-    if (oid) pgTypes.setTypeParser(oid, parsePostgresArrayWithTransformation(parsePostgresDatetime))
 
     pgTypes.setTypeParser(pgTypes.builtins.NUMERIC, parsePostgresDecimal)
-    oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.NUMERIC)
-    if (oid) pgTypes.setTypeParser(oid, parsePostgresArrayWithTransformation(parsePostgresDecimal))
 
     const textArrayOid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TEXT)
     if (textArrayOid) {
+      let oid: number | undefined
+
       const textArrayParser = pgTypes.getTypeParser(textArrayOid)
 
-      const citextArrayOid = await findCitextArrayOid(kyselyDb)
-      if (citextArrayOid) pgTypes.setTypeParser(citextArrayOid, textArrayParser)
-
-      const uuidArrayOid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.UUID)
-      if (uuidArrayOid) pgTypes.setTypeParser(uuidArrayOid, textArrayParser)
+      function transformPostgresArray(
+        transformer: typeof parsePostgresDate | typeof parsePostgresDatetime | typeof parsePostgresDecimal
+      ) {
+        return (value: string) => (textArrayParser(value) as string[]).map(str => transformer(str))
+      }
 
       const enumArrayOids = await findEnumArrayOids(kyselyDb)
       enumArrayOids.forEach((enumArrayOid: number) => pgTypes.setTypeParser(enumArrayOid, textArrayParser))
-    }
 
-    return dreamApp
+      oid = await findCitextArrayOid(kyselyDb)
+      if (oid) pgTypes.setTypeParser(oid, textArrayParser)
+
+      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.UUID)
+      if (oid) pgTypes.setTypeParser(oid, textArrayParser)
+
+      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.DATE)
+      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDate))
+
+      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TIMESTAMP)
+      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDatetime))
+
+      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TIMESTAMPTZ)
+      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDatetime))
+
+      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.NUMERIC)
+      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDecimal))
+    }
   }
 
   private static checkKey(encryptionIdentifier: 'columns', key: string, algorithm: EncryptAlgorithm) {

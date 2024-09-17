@@ -2036,6 +2036,43 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return dream
   }
 
+  private hydratePreloadedThroughColumns({
+    association,
+    columnToColumnAliasMap,
+    dream,
+    singleSqlResult,
+  }: {
+    association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
+    columnToColumnAliasMap: Record<string, string>
+    dream: Dream
+    singleSqlResult: any
+  }) {
+    if (!association.through) return
+    if (!(dream as any).preloadedThroughColumns) return
+
+    let columnNames: string[] = []
+    const columnNameToPreloadedThroughColumnNameMap: Record<string, string> = {}
+
+    if (isObject(association.preloadThroughColumns)) {
+      const preloadMap = association.preloadThroughColumns as Record<string, string>
+      columnNames = Object.keys(preloadMap).map(columnName => {
+        columnNameToPreloadedThroughColumnNameMap[columnName] = preloadMap[columnName]
+        return columnName
+      })
+    } else if (Array.isArray(association.preloadThroughColumns)) {
+      columnNames = association.preloadThroughColumns.map(columnName => {
+        columnNameToPreloadedThroughColumnNameMap[columnName] = columnName
+        return columnName
+      })
+    }
+
+    columnNames.forEach(
+      columnName =>
+        ((dream as any).preloadedThroughColumns[columnNameToPreloadedThroughColumnNameMap[columnName]] =
+          singleSqlResult[columnToColumnAliasMap[columnName]])
+    )
+  }
+
   /**
    * Plucks the provided fields from the given dream class table
    *
@@ -2798,43 +2835,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     this.hydrateAssociation(dreams, association, preloadedDreamsAndWhatTheyPointTo)
 
     return preloadedDreamsAndWhatTheyPointTo.map(obj => obj.dream)
-  }
-
-  private hydratePreloadedThroughColumns({
-    association,
-    columnToColumnAliasMap,
-    dream,
-    singleSqlResult,
-  }: {
-    association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
-    columnToColumnAliasMap: Record<string, string>
-    dream: Dream
-    singleSqlResult: any
-  }) {
-    if (!association.through) return
-    if (!(dream as any).preloadedThroughColumns) return
-
-    let columnNames: string[] = []
-    const columnNameToPreloadedThroughColumnNameMap: Record<string, string> = {}
-
-    if (isObject(association.preloadThroughColumns)) {
-      const preloadMap = association.preloadThroughColumns as Record<string, string>
-      columnNames = Object.keys(preloadMap).map(columnName => {
-        columnNameToPreloadedThroughColumnNameMap[columnName] = preloadMap[columnName]
-        return columnName
-      })
-    } else if (Array.isArray(association.preloadThroughColumns)) {
-      columnNames = association.preloadThroughColumns.map(columnName => {
-        columnNameToPreloadedThroughColumnNameMap[columnName] = columnName
-        return columnName
-      })
-    }
-
-    columnNames.forEach(
-      columnName =>
-        ((dream as any).preloadedThroughColumns[columnNameToPreloadedThroughColumnNameMap[columnName]] =
-          singleSqlResult[columnToColumnAliasMap[columnName]])
-    )
   }
 
   /**

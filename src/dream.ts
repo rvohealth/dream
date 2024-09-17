@@ -123,7 +123,6 @@ import cloneDeepSafe from './helpers/cloneDeepSafe'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel'
-import { standardizeParamInputToDreamModel } from './helpers/standardizeParamInputToDreamModel'
 import { isString } from './helpers/typechecks'
 
 export default class Dream {
@@ -2650,7 +2649,7 @@ export default class Dream {
           setAttributeOnDreamInstance(foreignKeyTypeField, associatedObject?.stiBaseClassOrOwnClass?.name)
         }
       } else {
-        returnValues[attr] = standardizeParamInputToDreamModel(this, attr as any, (attributes as any)[attr])
+        returnValues[attr] = (attributes as any)[attr]
         setAttributeOnDreamInstance(attr, returnValues[attr])
       }
     })
