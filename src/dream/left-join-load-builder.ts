@@ -4,7 +4,7 @@ import Query from './query'
 import DreamTransaction from './transaction'
 import { PassthroughColumnNames, VariadicLoadArgs } from './types'
 
-export default class JoinLoadBuilder<DreamInstance extends Dream> {
+export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
   private dream: Dream
   private dreamTransaction: DreamTransaction<any> | undefined
   private query: Query<DreamInstance>
@@ -33,7 +33,7 @@ export default class JoinLoadBuilder<DreamInstance extends Dream> {
   }
 
   public passthrough<
-    I extends JoinLoadBuilder<DreamInstance>,
+    I extends LeftJoinLoadBuilder<DreamInstance>,
     PassthroughColumns extends PassthroughColumnNames<DreamInstance>,
   >(this: I, passthroughWhereStatement: PassthroughWhere<PassthroughColumns>) {
     this.query = this.query.passthrough(passthroughWhereStatement)
@@ -52,7 +52,7 @@ export default class JoinLoadBuilder<DreamInstance extends Dream> {
    * ```
    */
   public leftJoinLoad<
-    I extends JoinLoadBuilder<DreamInstance>,
+    I extends LeftJoinLoadBuilder<DreamInstance>,
     DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
