@@ -18,6 +18,7 @@ import { cacheDreamApplication, getCachedDreamApplicationOrFail } from './cache'
 import loadModels, { getModelsOrFail } from './helpers/loadModels'
 import loadSerializers, { getSerializersOrFail, setCachedSerializers } from './helpers/loadSerializers'
 import loadServices, { getServicesOrFail, setCachedServices } from './helpers/loadServices'
+import { envBool } from '../helpers/envHelpers'
 
 export default class DreamApplication {
   /**
@@ -58,7 +59,7 @@ export default class DreamApplication {
 
     cacheDreamApplication(dreamApp)
 
-    await this.setDatabaseTypeParsers()
+    if (!envBool('BYPASS_DB_CONNECTIONS_DURING_INIT')) await this.setDatabaseTypeParsers()
 
     return dreamApp
   }
