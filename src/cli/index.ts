@@ -2,6 +2,7 @@ import { Command } from 'commander'
 import DreamBin from '../bin'
 import DreamApplication from '../dream-application'
 import developmentOrTestEnv from '../helpers/developmentOrTestEnv'
+import { setEnvBool } from '../helpers/envHelpers'
 
 export default class DreamCLI {
   public static provide(
@@ -101,6 +102,7 @@ export default class DreamCLI {
         'creates a new database, seeding from local .env or .env.test if NODE_ENV=test is set for env vars'
       )
       .action(async () => {
+        setEnvBool('BYPASS_DB_CONNECTIONS_DURING_INIT', '1')
         await initializeDreamApplication()
         await DreamBin.dbCreate()
         process.exit()
@@ -143,6 +145,7 @@ export default class DreamCLI {
         'drops the database, seeding from local .env or .env.test if NODE_ENV=test is set for env vars'
       )
       .action(async () => {
+        setEnvBool('BYPASS_DB_CONNECTIONS_DURING_INIT', '1')
         await initializeDreamApplication()
         await DreamBin.dbDrop()
         process.exit()
@@ -152,9 +155,15 @@ export default class DreamCLI {
       .command('db:reset')
       .description('runs db:drop (safely), then db:create, db:migrate, and db:seed')
       .action(async () => {
+        setEnvBool('BYPASS_DB_CONNECTIONS_DURING_INIT', '1')
         await initializeDreamApplication()
+
         await DreamBin.dbDrop()
         await DreamBin.dbCreate()
+
+        setEnvBool('BYPASS_DB_CONNECTIONS_DURING_INIT', undefined)
+        await initializeDreamApplication()
+
         await DreamBin.dbMigrate()
         await DreamBin.sync()
         await seedDb()

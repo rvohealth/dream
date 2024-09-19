@@ -12,6 +12,10 @@ export function envBool(env: AllowedBoolEnv) {
   return process.env[env] === '1'
 }
 
+export function setEnvBool(env: AllowedBoolEnv, val: '1' | undefined) {
+  process.env[env] = val
+}
+
 export type AllowedEnv = 'NODE_ENV' | 'DREAM_CORE_DEVELOPMENT' | 'TZ'
 
 export type AllowedBoolEnv =
@@ -20,3 +24,4 @@ export type AllowedBoolEnv =
   | 'DREAM_CORE_DEVELOPMENT'
   | 'DREAM_CORE_SPEC_RUN'
   | 'PSYCHIC_CORE_DEVELOPMENT'
+  | 'BYPASS_DB_CONNECTIONS_DURING_INIT'
