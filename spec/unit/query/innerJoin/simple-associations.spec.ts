@@ -75,20 +75,48 @@ describe('Query#joins with simple associations', () => {
       expect(noResults).toEqual([])
     })
 
-    it('accepts an array as the where clause value', async () => {
-      await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-      const composition = await Composition.create({ userId: user.id, primary: true })
+    context('with an array as the where clause value', () => {
+      it('selects results that match items in the array', async () => {
+        await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+        const composition = await Composition.create({ userId: user.id, primary: true })
 
-      const reloadedUsers = await User.query().innerJoin('mainComposition', { id: composition.id }).all()
-      expect(reloadedUsers).toMatchDreamModels([user])
+        const reloadedUsers = await User.query()
+          .innerJoin('mainComposition', { id: [composition.id] })
+          .all()
+        expect(reloadedUsers).toMatchDreamModels([user])
 
-      const noResults = await User.query()
-        .innerJoin('mainComposition', {
-          id: [parseInt(composition.id.toString()) + 1, parseInt(composition.id.toString()) + 2],
+        const noResults = await User.query()
+          .innerJoin('mainComposition', {
+            id: [parseInt(composition.id.toString()) + 1, parseInt(composition.id.toString()) + 2],
+          })
+          .all()
+        expect(noResults).toEqual([])
+      })
+
+      context('when the array is empty', () => {
+        it('selects no results', async () => {
+          await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+          const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+          await Composition.create({ userId: user.id, primary: true })
+
+          const noResults = await User.query().innerJoin('compositions', { id: [] }).all()
+          expect(noResults).toEqual([])
         })
-        .all()
-      expect(noResults).toEqual([])
+
+        context('negated', () => {
+          it('selects no results', async () => {
+            await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+            const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+            await Composition.create({ userId: user.id, primary: true })
+
+            const reloadedUsers = await User.query()
+              .innerJoin('compositions', { id: ops.not.in([]) })
+              .all()
+            expect(reloadedUsers).toMatchDreamModels([user])
+          })
+        })
+      })
     })
 
     context('with "passthrough"', () => {

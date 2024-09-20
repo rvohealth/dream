@@ -1,4 +1,4 @@
-import { BeforeUpdate } from '../../../src'
+import { BeforeUpdate, ops } from '../../../src'
 import SoftDelete from '../../../src/decorators/soft-delete'
 import Sortable from '../../../src/decorators/sortable'
 import { DreamColumn, DreamSerializers, IdType } from '../../../src/dream/types'
@@ -86,8 +86,42 @@ export default class Pet extends ApplicationModel {
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: 'red' } })
   public redBalloons: Balloon
 
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: ops.not.equal('red') } })
+  public redBalloonsNegated: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: ['red'] } })
+  public redBalloonsWithArrayWhere: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: ops.not.in(['red']) } })
+  public redBalloonsWithArrayWhereNegated: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: [] } })
+  public redBalloonsWithEmptyArrayWhere: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: ops.not.in([]) } })
+  public redBalloonsWithEmptyArrayWhereNegated: Balloon
+
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: 'red' } })
   public notRedBalloons: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    whereNot: { color: ops.not.equal('red') },
+  })
+  public notRedBalloonsNegated: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: ['red'] } })
+  public notRedBalloonsWithArrayWhereNot: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: ops.not.in(['red']) } })
+  public notRedBalloonsWithArrayWhereNotNegated: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: [] } })
+  public notRedBalloonsWithEmptyArrayWhereNot: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: ops.not.in([]) } })
+  public notRedBalloonsWithEmptyArrayWhereNotNegated: Balloon
 
   @Pet.HasMany('PetUnderstudyJoinModel', { foreignKey: 'petId' })
   public petUnderstudies: PetUnderstudyJoinModel[]

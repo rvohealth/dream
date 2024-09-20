@@ -3500,21 +3500,20 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
         // postgres is unable to handle WHERE IN statements with blank arrays, such as in
         // "WHERE id IN ()", meaning that:
-        // 1. If we receive a blank array during a IN comparison,
+        // 1. If we receive a blank array during an IN comparison,
         //    then we need to simply regurgitate a where statement which
         //    guarantees no records.
         // 2. If we receive a blank array during a NOT IN comparison,
         //    then it is the same as the where statement not being present at all,
         //    resulting in a noop on our end
         if (b === 'in' && Array.isArray(c) && c.length === 0) {
-          if (query instanceof JoinBuilder)
-            return negate ? query.on(sql<boolean>`TRUE`) : query.on(sql<boolean>`FALSE`)
-          else return negate ? query.where(sql<boolean>`TRUE`) : query.where(sql<boolean>`FALSE`)
+          if (query instanceof JoinBuilder) {
+            query = negate ? query : (query.on(sql<boolean>`FALSE`) as T)
+          } else query = negate ? query : (query.where(sql<boolean>`FALSE`) as T)
           //
         } else if (b === 'not in' && Array.isArray(c) && c.length === 0) {
-          if (query instanceof JoinBuilder)
-            return negate ? query.on(sql<boolean>`FALSE`) : query.on(sql<boolean>`TRUE`)
-          else return negate ? query.where(sql<boolean>`FALSE`) : query.where(sql<boolean>`TRUE`)
+          if (query instanceof JoinBuilder) query = negate ? (query.on(sql<boolean>`FALSE`) as T) : query
+          else query = negate ? (query.where(sql<boolean>`FALSE`) as T) : query
           //
         } else if (negate) {
           const negatedB = OPERATION_NEGATION_MAP[b as keyof typeof OPERATION_NEGATION_MAP]
@@ -3579,7 +3578,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
             // postgres is unable to handle WHERE IN statements with blank arrays, such as in
             // "WHERE id IN ()", meaning that:
-            // 1. If we receive a blank array during a IN comparison,
+            // 1. If we receive a blank array during an IN comparison,
             //    then we need to simply regurgitate a where statement which
             //    guarantees no records.
             // 2. If we receive a blank array during a NOT IN comparison,
