@@ -46,7 +46,7 @@ export default function generateFactoryContent({
       case 'string':
       case 'text':
         stringAttributes.push(
-          `attrs.${camelize(attributeName)} ||= \`${fullyQualifiedModelName} ${camelize(attributeName)} ${firstStringAttr ? '${counter++}' : '${counter}'}\``
+          `attrs.${camelize(attributeName)} ||= \`${fullyQualifiedModelName} ${camelize(attributeName)} ${firstStringAttr ? '${++counter}' : '${counter}'}\``
         )
         firstStringAttr = false
         break

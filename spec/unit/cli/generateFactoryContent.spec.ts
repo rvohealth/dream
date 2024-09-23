@@ -31,7 +31,7 @@ import Post from '../../app/models/Post'
 let counter = 0
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
-  attrs.title ||= \`Post title \${counter++}\`
+  attrs.title ||= \`Post title \${++counter}\`
   attrs.body ||= \`Post body \${counter}\`
   attrs.type ||= 'WeeklyPost'
   return await Post.create(attrs)
@@ -74,7 +74,7 @@ let counter = 0
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
   attrs.user ||= createUser()
-  attrs.name ||= \`Post name \${counter++}\`
+  attrs.name ||= \`Post name \${++counter}\`
   return await Post.create(attrs)
 }
 `
@@ -98,7 +98,7 @@ let counter = 0
 
 export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
   attrs.myNestedDoubleNestedOrganization ||= createMyNestedDoubleNestedOrganization()
-  attrs.name ||= \`My/Nested/User name \${counter++}\`
+  attrs.name ||= \`My/Nested/User name \${++counter}\`
   return await MyNestedUser.create(attrs)
 }
 `
