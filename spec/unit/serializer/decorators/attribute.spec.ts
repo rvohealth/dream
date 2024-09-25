@@ -1,7 +1,8 @@
 import { Attribute, AttributeStatement, DreamSerializer } from '../../../../src'
 import { OpenapiSchemaBody } from '../../../../src/openapi/types'
+import Balloon from '../../../../test-app/app/models/Balloon'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec'
-import { SpeciesTypesEnumValues } from '../../../../test-app/db/sync'
+import { BalloonTypesEnumValues, SpeciesTypesEnumValues } from '../../../../test-app/db/sync'
 
 describe('@Attribute', () => {
   context('with no arguments', () => {
@@ -48,25 +49,49 @@ describe('@Attribute', () => {
     context('decorating a property corresponding to an enum column', () => {
       it('attributeStatements specify the enum type', () => {
         class TestSerializer extends DreamSerializer {
-          @Attribute(ModelForOpenapiTypeSpecs)
-          public species: string
+          @Attribute(Balloon)
+          public type: string
         }
 
         const expectedOpenapiShape: OpenapiSchemaBody = {
           type: 'string',
-          enum: SpeciesTypesEnumValues,
-          nullable: true,
+          enum: BalloonTypesEnumValues,
         }
 
         expect(TestSerializer.attributeStatements).toEqual([
           {
-            field: 'species',
+            field: 'type',
             functional: false,
             openApiShape: expectedOpenapiShape,
             renderAs: undefined,
             renderOptions: undefined,
           },
         ])
+      })
+
+      context('when the column is nullable', () => {
+        it('includes nullable true and null in the enum values', () => {
+          class TestSerializer extends DreamSerializer {
+            @Attribute(ModelForOpenapiTypeSpecs)
+            public species: string
+          }
+
+          const expectedOpenapiShape: OpenapiSchemaBody = {
+            type: 'string',
+            enum: [...SpeciesTypesEnumValues, 'null'],
+            nullable: true,
+          }
+
+          expect(TestSerializer.attributeStatements).toEqual([
+            {
+              field: 'species',
+              functional: false,
+              openApiShape: expectedOpenapiShape,
+              renderAs: undefined,
+              renderOptions: undefined,
+            },
+          ])
+        })
       })
     })
 

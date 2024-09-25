@@ -31,7 +31,11 @@ export function dreamAttributeOpenapiShape<DreamClass extends typeof Dream>(
 }
 
 function singularAttributeOpenapiShape(dreamColumnInfo: DreamColumnInfo): OpenapiSchemaBody {
-  if (dreamColumnInfo.enumValues) return { type: 'string', enum: dreamColumnInfo.enumValues }
+  if (dreamColumnInfo.enumValues)
+    return {
+      type: 'string',
+      enum: [...dreamColumnInfo.enumValues, ...(dreamColumnInfo.allowNull ? ['null'] : [])],
+    }
 
   switch (dreamColumnInfo.dbType.replace('[]', '')) {
     case 'boolean':

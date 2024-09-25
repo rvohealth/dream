@@ -557,7 +557,7 @@ describe('dreamAttributeOpenapiShape', () => {
       const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'species')
       const expectedOpenapiShape: OpenapiSchemaBody = {
         type: 'string',
-        enum: SpeciesTypesEnumValues,
+        enum: [...SpeciesTypesEnumValues, 'null'],
         nullable: true,
       }
 
@@ -571,7 +571,7 @@ describe('dreamAttributeOpenapiShape', () => {
           type: 'array',
           items: {
             type: 'string',
-            enum: PetTreatsEnumValues,
+            enum: [...PetTreatsEnumValues, 'null'],
           },
           nullable: true,
         }
