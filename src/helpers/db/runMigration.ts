@@ -129,15 +129,10 @@ function migratedActionPastTense(mode: MigrationModes) {
 function logResults(results: MigrationResult[] | undefined, mode: MigrationModes) {
   results?.forEach(it => {
     if (it.status === 'Success') {
-      DreamApplication.log(
-        `migration "${it.migrationName}" was ${migratedActionPastTense(mode)} successfully`
-      )
+      console.log(`migration "${it.migrationName}" was ${migratedActionPastTense(mode)} successfully`)
     } else if (it.status === 'Error') {
-      DreamApplication.log(it)
-      DreamApplication.logWithLevel(
-        'error',
-        `failed to ${migratedActionCurrentTense(mode)} migration "${it.migrationName}"`
-      )
+      console.log(it)
+      console.error(`failed to ${migratedActionCurrentTense(mode)} migration "${it.migrationName}"`)
     }
   })
 }
