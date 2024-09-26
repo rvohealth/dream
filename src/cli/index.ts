@@ -1,4 +1,4 @@
-import { Command } from 'commander'
+import { Command, InvalidArgumentError } from 'commander'
 import DreamBin from '../bin'
 import DreamApplication from '../dream-application'
 import developmentOrTestEnv from '../helpers/developmentOrTestEnv'
@@ -12,6 +12,31 @@ export default class DreamCLI {
       seedDb,
     }: {
       initializeDreamApplication: () => Promise<DreamApplication>
+      seedDb: () => Promise<void> | void
+    }
+  ) {
+    program
+      .command('sync')
+      .description(
+        'sync introspects your database, updating your schema to reflect, and then syncs the new schema with the installed dream node module, allowing it provide your schema to the underlying kysely integration'
+      )
+      .action(async () => {
+        await initializeDreamApplication()
+        await DreamBin.sync()
+
+        process.exit()
+      })
+
+    this.generateDreamCli(program, { initializeDreamApplication, seedDb })
+  }
+
+  public static generateDreamCli(
+    program: Command,
+    {
+      initializeDreamApplication,
+      seedDb,
+    }: {
+      initializeDreamApplication: () => Promise<any>
       seedDb: () => Promise<void> | void
     }
   ) {
@@ -85,18 +110,6 @@ export default class DreamCLI {
       )
 
     program
-      .command('sync')
-      .description(
-        'sync introspects your database, updating your schema to reflect, and then syncs the new schema with the installed dream node module, allowing it provide your schema to the underlying kysely integration'
-      )
-      .action(async () => {
-        await initializeDreamApplication()
-        await DreamBin.sync()
-
-        process.exit()
-      })
-
-    program
       .command('db:create')
       .description(
         'creates a new database, seeding from local .env or .env.test if NODE_ENV=test is set for env vars'
@@ -126,7 +139,7 @@ export default class DreamCLI {
     program
       .command('db:rollback')
       .description('db:rollback rolls back the migration')
-      .option('--step [integer]', 'number of steps back to travel', '1')
+      .option('--steps <number>', 'number of steps back to travel', myParseInt, 1)
       .option('--skip-sync', 'skips syncing local schema after running migrations')
       .action(async ({ steps, skipSync }: { steps: number; skipSync: boolean }) => {
         await initializeDreamApplication()
@@ -184,4 +197,12 @@ export default class DreamCLI {
         process.exit()
       })
   }
+}
+
+function myParseInt(value: string) {
+  const parsedValue = parseInt(value, 10)
+  if (isNaN(parsedValue)) {
+    throw new InvalidArgumentError(`${value} is not a number`)
+  }
+  return parsedValue
 }
