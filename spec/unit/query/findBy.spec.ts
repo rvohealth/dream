@@ -1,5 +1,6 @@
-import User from '../../../test-app/app/models/User'
+import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/exceptions/cannot-pass-undefined-as-a-value-to-a-where-clause'
 import ops from '../../../src/ops'
+import User from '../../../test-app/app/models/User'
 
 describe('Query#findBy', () => {
   let user: User
@@ -10,6 +11,14 @@ describe('Query#findBy', () => {
   it('applies a where query and grabs first result', async () => {
     const reloadedUser = await User.query().findBy({ email: 'fred@frewd' })
     expect(reloadedUser).toMatchDreamModel(user)
+  })
+
+  context('when passed undefined as a value', () => {
+    it('raises an exception', async () => {
+      await expect(async () => await User.query().findBy({ email: undefined })).rejects.toThrowError(
+        CannotPassUndefinedAsAValueToAWhereClause
+      )
+    })
   })
 
   context('similarity operator is used', () => {

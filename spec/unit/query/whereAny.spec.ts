@@ -1,6 +1,18 @@
+import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/exceptions/cannot-pass-undefined-as-a-value-to-a-where-clause'
 import User from '../../../test-app/app/models/User'
 
 describe('Query#whereAny', () => {
+  context('when passed undefined as a value', () => {
+    it('raises an exception', async () => {
+      await expect(
+        async () =>
+          await User.query()
+            .whereAny([{ email: undefined }, { email: 'hi' }])
+            .all()
+      ).rejects.toThrowError(CannotPassUndefinedAsAValueToAWhereClause)
+    })
+  })
+
   context('within where-object', () => {
     it('treats keys within the object as AND statements', async () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })

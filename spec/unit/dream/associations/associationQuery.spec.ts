@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
 import MissingRequiredAssociationWhereClause from '../../../../src/exceptions/associations/missing-required-association-where-clause'
+import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/exceptions/cannot-pass-undefined-as-a-value-to-a-where-clause'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import Collar from '../../../../test-app/app/models/Collar'
@@ -12,6 +13,39 @@ import PostComment from '../../../../test-app/app/models/PostComment'
 import User from '../../../../test-app/app/models/User'
 
 describe('Dream#associationQuery', () => {
+  context('with undefined passed in a where clause', () => {
+    it('raises an exception', async () => {
+      const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      await expect(
+        async () => await user.associationQuery('pets', { name: undefined }).all()
+      ).rejects.toThrowError(CannotPassUndefinedAsAValueToAWhereClause)
+    })
+
+    context('when undefined is applied at the association level', () => {
+      context('where clause has an undefined value', () => {
+        it('raises an exception', async () => {
+          const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+          const post = await user.createAssociation('posts')
+
+          await expect(
+            async () => await post.associationQuery('invalidWherePostComments').all()
+          ).rejects.toThrowError(CannotPassUndefinedAsAValueToAWhereClause)
+        })
+      })
+
+      context('whereNot clause has an undefined value', () => {
+        it('raises an exception', async () => {
+          const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+          const post = await user.createAssociation('posts')
+
+          await expect(
+            async () => await post.associationQuery('invalidWhereNotPostComments').all()
+          ).rejects.toThrowError(CannotPassUndefinedAsAValueToAWhereClause)
+        })
+      })
+    })
+  })
+
   context('with a HasMany association', () => {
     it('returns a chainable query encapsulating that association', async () => {
       const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })

@@ -48,6 +48,12 @@ export default class Post extends ApplicationModel {
   })
   public ratings: Rating[]
 
+  @Post.HasMany('PostComment', { where: { body: undefined } })
+  public invalidWherePostComments: PostComment[]
+
+  @Post.HasMany('PostComment', { whereNot: { body: undefined } })
+  public invalidWhereNotPostComments: PostComment[]
+
   // Traveling through NonNullRating, a model
   // which uses a default scope to automatically
   // exclude any Rating with a null body.

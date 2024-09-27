@@ -2670,6 +2670,20 @@ export const schema = {
         optional: null,
         requiredWhereClauses: null,
       },
+      invalidWhereNotPostComments: {
+        type: 'HasMany',
+        foreignKey: 'postId',
+        tables: ['post_comments'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
+      invalidWherePostComments: {
+        type: 'HasMany',
+        foreignKey: 'postId',
+        tables: ['post_comments'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
       overriddenNonNullRatings: {
         type: 'HasMany',
         foreignKey: 'rateableId',

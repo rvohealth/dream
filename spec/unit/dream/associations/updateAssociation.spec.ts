@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
 import MissingRequiredAssociationWhereClause from '../../../../src/exceptions/associations/missing-required-association-where-clause'
+import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/exceptions/cannot-pass-undefined-as-a-value-to-a-where-clause'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 import Collar from '../../../../test-app/app/models/Collar'
 import Composition from '../../../../test-app/app/models/Composition'
@@ -9,6 +10,40 @@ import Pet from '../../../../test-app/app/models/Pet'
 import User from '../../../../test-app/app/models/User'
 
 describe('Dream#updateAssociation', () => {
+  context('with undefined passed in a where clause', () => {
+    it('raises an exception', async () => {
+      const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      await expect(
+        async () =>
+          await user.updateAssociation('pets', { name: 'howyadoin' }, { where: { name: undefined } })
+      ).rejects.toThrowError(CannotPassUndefinedAsAValueToAWhereClause)
+    })
+
+    context('when undefined is applied at the association level', () => {
+      context('where clause has an undefined value', () => {
+        it('raises an exception', async () => {
+          const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+          const post = await user.createAssociation('posts')
+
+          await expect(
+            async () => await post.updateAssociation('invalidWherePostComments', { body: 'hello world' })
+          ).rejects.toThrowError(CannotPassUndefinedAsAValueToAWhereClause)
+        })
+      })
+
+      context('whereNot clause has an undefined value', () => {
+        it('raises an exception', async () => {
+          const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+          const post = await user.createAssociation('posts')
+
+          await expect(
+            async () => await post.updateAssociation('invalidWhereNotPostComments', { body: 'hello world' })
+          ).rejects.toThrowError(CannotPassUndefinedAsAValueToAWhereClause)
+        })
+      })
+    })
+  })
+
   it('calls model hooks for each associated record', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await user.createAssociation('compositions')

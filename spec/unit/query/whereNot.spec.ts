@@ -1,10 +1,19 @@
 import CannotNegateSimilarityClause from '../../../src/exceptions/cannot-negate-similarity-clause'
+import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/exceptions/cannot-pass-undefined-as-a-value-to-a-where-clause'
 import ops from '../../../src/ops'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
 
 describe('Query#whereNot', () => {
+  context('when passed undefined as a value', () => {
+    it('raises an exception', async () => {
+      await expect(async () => await User.query().whereNot({ email: undefined }).all()).rejects.toThrowError(
+        CannotPassUndefinedAsAValueToAWhereClause
+      )
+    })
+  })
+
   it('negates a query', async () => {
     await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user2 = await User.create({ email: 'danny@nelso', password: 'howyadoin' })

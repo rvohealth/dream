@@ -97,6 +97,7 @@ import {
   VariadicPluckEachThroughArgs,
   VariadicPluckThroughArgs,
 } from './types'
+import CannotPassUndefinedAsAValueToAWhereClause from '../exceptions/cannot-pass-undefined-as-a-value-to-a-where-clause'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -3480,10 +3481,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     } = {}
   ) {
     Object.keys(whereStatement)
-      .filter(
-        key =>
-          (whereStatement as any)[key] !== undefined && (whereStatement as any)[key] !== DreamConst.required
-      )
+      .filter(key => (whereStatement as any)[key] !== DreamConst.required)
       .forEach(attr => {
         const val = (whereStatement as any)[attr]
 
@@ -3553,61 +3551,58 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     } = {}
   ): ExpressionWrapper<any, any, any>[] {
     return compact(
-      Object.keys(whereStatement)
-        .filter(key => (whereStatement as any)[key] !== undefined)
-        .flatMap(
-          (
-            attr
-          ):
-            | ExpressionWrapper<any, any, any>
-            | ExpressionWrapper<any, any, any>[]
-            | RawBuilder<any>
-            | undefined => {
-            const val = (whereStatement as any)[attr]
+      Object.keys(whereStatement).flatMap(
+        (
+          attr
+        ):
+          | ExpressionWrapper<any, any, any>
+          | ExpressionWrapper<any, any, any>[]
+          | RawBuilder<any>
+          | undefined => {
+          const val = (whereStatement as any)[attr]
 
-            if (
-              (val as OpsStatement<any, any>)?.isOpsStatement &&
-              (val as OpsStatement<any, any>).shouldBypassWhereStatement
-            ) {
-              // some ops statements are handled specifically in the select portion of the query,
-              // and should be ommited from the where clause directly
-              return
-            }
-
-            const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val)
-
-            // postgres is unable to handle WHERE IN statements with blank arrays, such as in
-            // "WHERE id IN ()", meaning that:
-            // 1. If we receive a blank array during an IN comparison,
-            //    then we need to simply regurgitate a where statement which
-            //    guarantees no records.
-            // 2. If we receive a blank array during a NOT IN comparison,
-            //    then it is the same as the where statement not being present at all,
-            //    resulting in a noop on our end
-            if (b === 'in' && Array.isArray(c) && c.length === 0) {
-              return negate ? sql<boolean>`TRUE` : sql<boolean>`FALSE`
-            } else if (b === 'not in' && Array.isArray(c) && c.length === 0) {
-              return negate ? sql<boolean>`FALSE` : sql<boolean>`TRUE`
-            } else if (negate) {
-              const negatedB = OPERATION_NEGATION_MAP[b as keyof typeof OPERATION_NEGATION_MAP]
-              if (!negatedB) throw new Error(`no negation available for comparison operator ${b as string}`)
-              const whereExpression = [eb(a, negatedB, c)]
-
-              if (b2) {
-                const negatedB2 = OPERATION_NEGATION_MAP[b2 as keyof typeof OPERATION_NEGATION_MAP]
-                if (!negatedB2)
-                  throw new Error(`no negation available for comparison operator ${b2 as string}`)
-                whereExpression.push(eb(a2, negatedB2, c2))
-              }
-
-              return whereExpression
-            } else {
-              const whereExpression = [eb(a, b, c)]
-              if (b2) whereExpression.push(eb(a2, b2, c2))
-              return whereExpression
-            }
+          if (
+            (val as OpsStatement<any, any>)?.isOpsStatement &&
+            (val as OpsStatement<any, any>).shouldBypassWhereStatement
+          ) {
+            // some ops statements are handled specifically in the select portion of the query,
+            // and should be ommited from the where clause directly
+            return
           }
-        )
+
+          const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val)
+
+          // postgres is unable to handle WHERE IN statements with blank arrays, such as in
+          // "WHERE id IN ()", meaning that:
+          // 1. If we receive a blank array during an IN comparison,
+          //    then we need to simply regurgitate a where statement which
+          //    guarantees no records.
+          // 2. If we receive a blank array during a NOT IN comparison,
+          //    then it is the same as the where statement not being present at all,
+          //    resulting in a noop on our end
+          if (b === 'in' && Array.isArray(c) && c.length === 0) {
+            return negate ? sql<boolean>`TRUE` : sql<boolean>`FALSE`
+          } else if (b === 'not in' && Array.isArray(c) && c.length === 0) {
+            return negate ? sql<boolean>`FALSE` : sql<boolean>`TRUE`
+          } else if (negate) {
+            const negatedB = OPERATION_NEGATION_MAP[b as keyof typeof OPERATION_NEGATION_MAP]
+            if (!negatedB) throw new Error(`no negation available for comparison operator ${b as string}`)
+            const whereExpression = [eb(a, negatedB, c)]
+
+            if (b2) {
+              const negatedB2 = OPERATION_NEGATION_MAP[b2 as keyof typeof OPERATION_NEGATION_MAP]
+              if (!negatedB2) throw new Error(`no negation available for comparison operator ${b2 as string}`)
+              whereExpression.push(eb(a2, negatedB2, c2))
+            }
+
+            return whereExpression
+          } else {
+            const whereExpression = [eb(a, b, c)]
+            if (b2) whereExpression.push(eb(a2, b2, c2))
+            return whereExpression
+          }
+        }
+      )
     )
   }
 
@@ -3615,61 +3610,59 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     eb: ExpressionBuilder<any, any>,
     orStatement: WhereStatement<any, any, any>
   ): ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any> {
-    return Object.keys(orStatement)
-      .filter(key => (orStatement as any)[key] !== undefined)
-      .reduce(
-        (
-          expressionBuilderOrWrap: ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any> | null,
-          attr: any
-        ): ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any> => {
-          const val = (orStatement as any)[attr]
+    return Object.keys(orStatement).reduce(
+      (
+        expressionBuilderOrWrap: ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any> | null,
+        attr: any
+      ): ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any> => {
+        const val = (orStatement as any)[attr]
 
-          if (
-            (val as OpsStatement<any, any>)?.isOpsStatement &&
-            (val as OpsStatement<any, any>).shouldBypassWhereStatement
-          ) {
-            throw new Error('Similarity operator may not be used in whereAny')
-          }
+        if (
+          (val as OpsStatement<any, any>)?.isOpsStatement &&
+          (val as OpsStatement<any, any>).shouldBypassWhereStatement
+        ) {
+          throw new Error('Similarity operator may not be used in whereAny')
+        }
 
-          const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val)
+        const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val)
 
-          // postgres is unable to handle WHERE IN statements with blank arrays, such as in
-          // "WHERE id IN ()", meaning that:
-          // 1. If we receive a blank array during a IN comparison,
-          //    then we need to simply regurgitate a where statement which
-          //    guarantees no records.
-          // 2. If we receive a blank array during a NOT IN comparison,
-          //    then it is the same as the where statement not being present at all,
-          //    resulting in a noop on our end
-          if (b === 'in' && Array.isArray(c) && c.length === 0) {
-            if (expressionBuilderOrWrap === null) {
-              return sql<boolean>`FALSE` as any
-            } else {
-              return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
-                sql<boolean>`FALSE`
-              ) as any
-            }
-          } else if (b === 'not in' && Array.isArray(c) && c.length === 0) {
-            if (expressionBuilderOrWrap === null) {
-              return sql<boolean>`TRUE` as any
-            } else {
-              return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
-                sql<boolean>`TRUE`
-              ) as any
-            }
+        // postgres is unable to handle WHERE IN statements with blank arrays, such as in
+        // "WHERE id IN ()", meaning that:
+        // 1. If we receive a blank array during a IN comparison,
+        //    then we need to simply regurgitate a where statement which
+        //    guarantees no records.
+        // 2. If we receive a blank array during a NOT IN comparison,
+        //    then it is the same as the where statement not being present at all,
+        //    resulting in a noop on our end
+        if (b === 'in' && Array.isArray(c) && c.length === 0) {
+          if (expressionBuilderOrWrap === null) {
+            return sql<boolean>`FALSE` as any
           } else {
-            if (expressionBuilderOrWrap === null) {
-              expressionBuilderOrWrap = eb(a, b, c)
-            } else {
-              expressionBuilderOrWrap = (expressionBuilderOrWrap as any).and(eb(a, b, c))
-            }
-
-            if (b2) expressionBuilderOrWrap = (expressionBuilderOrWrap as any).and(eb(a2, b2, c2))
-            return expressionBuilderOrWrap as any
+            return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
+              sql<boolean>`FALSE`
+            ) as any
           }
-        },
-        null
-      ) as ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any>
+        } else if (b === 'not in' && Array.isArray(c) && c.length === 0) {
+          if (expressionBuilderOrWrap === null) {
+            return sql<boolean>`TRUE` as any
+          } else {
+            return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
+              sql<boolean>`TRUE`
+            ) as any
+          }
+        } else {
+          if (expressionBuilderOrWrap === null) {
+            expressionBuilderOrWrap = eb(a, b, c)
+          } else {
+            expressionBuilderOrWrap = (expressionBuilderOrWrap as any).and(eb(a, b, c))
+          }
+
+          if (b2) expressionBuilderOrWrap = (expressionBuilderOrWrap as any).and(eb(a2, b2, c2))
+          return expressionBuilderOrWrap as any
+        }
+      },
+      null
+    ) as ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any>
   }
 
   private dreamWhereStatementToExpressionBuilderParts(attr: string, val: any) {
@@ -3693,7 +3686,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       a = attr
       b = 'is'
       c = val
-    } else if (['SelectQueryBuilder', 'SelectQueryBuilderImpl'].includes(val.constructor.name as string)) {
+    } else if (['SelectQueryBuilder', 'SelectQueryBuilderImpl'].includes(val?.constructor?.name as string)) {
       a = attr
       b = 'in'
       c = val
@@ -3744,6 +3737,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     if (c instanceof DateTime || c instanceof CalendarDate) c = c.toJSDate()
     if (c2 instanceof DateTime || c2 instanceof CalendarDate) c2 = c2.toJSDate()
 
+    if (a && c === undefined) throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, a)
+    if (a2 && c2 === undefined) throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, a2)
+
     return { a, b, c, a2, b2, c2 }
   }
 
@@ -3766,7 +3762,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         key as keyof Updateable<DB[PreviousTableName]>
       ]
 
-      if (columnValue!.constructor !== Object) {
+      if (columnValue?.constructor !== Object) {
         join = (this as Query<DreamInstance>).applySingleWhereStatement(join, {
           [`${associationTableOrAlias}.${String(key)}`]: columnValue,
         } as WhereStatement<any, any, any>)

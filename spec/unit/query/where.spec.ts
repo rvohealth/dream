@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
 import { CalendarDate } from '../../../src'
+import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/exceptions/cannot-pass-undefined-as-a-value-to-a-where-clause'
 import AnyRequiresArrayColumn from '../../../src/exceptions/ops/any-requires-array-column'
 import ScoreMustBeANormalNumber from '../../../src/exceptions/ops/score-must-be-a-normal-number'
 import range from '../../../src/helpers/range'
@@ -27,6 +28,14 @@ describe('Query#where', () => {
 
     const users = await User.where({ email: 'fred@frewd', name: 'Hello' }).all()
     expect(users).toMatchDreamModels([user1])
+  })
+
+  context('when passed undefined as a value', () => {
+    it('raises an exception', async () => {
+      await expect(async () => await User.query().where({ email: undefined }).all()).rejects.toThrowError(
+        CannotPassUndefinedAsAValueToAWhereClause
+      )
+    })
   })
 
   it('supports querying by CalendarDate', async () => {

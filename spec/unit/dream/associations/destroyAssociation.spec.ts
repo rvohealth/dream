@@ -13,6 +13,7 @@ import Pet from '../../../../test-app/app/models/Pet'
 import Post from '../../../../test-app/app/models/Post'
 import Rating from '../../../../test-app/app/models/Rating'
 import User from '../../../../test-app/app/models/User'
+import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/exceptions/cannot-pass-undefined-as-a-value-to-a-where-clause'
 
 describe('Dream#destroyAssociation', () => {
   let hooksSpy: jest.SpyInstance
@@ -65,6 +66,39 @@ describe('Dream#destroyAssociation', () => {
       expect.toBeOneOf([expect.anything(), undefined, null])
     )
   }
+
+  context('with undefined passed in a where clause', () => {
+    it('raises an exception', async () => {
+      const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      await expect(
+        async () => await user.destroyAssociation('pets', { where: { name: undefined } })
+      ).rejects.toThrowError(CannotPassUndefinedAsAValueToAWhereClause)
+    })
+
+    context('when undefined is applied at the association level', () => {
+      context('where clause has an undefined value', () => {
+        it('raises an exception', async () => {
+          const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+          const post = await user.createAssociation('posts')
+
+          await expect(
+            async () => await post.destroyAssociation('invalidWherePostComments')
+          ).rejects.toThrowError(CannotPassUndefinedAsAValueToAWhereClause)
+        })
+      })
+
+      context('whereNot clause has an undefined value', () => {
+        it('raises an exception', async () => {
+          const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+          const post = await user.createAssociation('posts')
+
+          await expect(
+            async () => await post.destroyAssociation('invalidWhereNotPostComments')
+          ).rejects.toThrowError(CannotPassUndefinedAsAValueToAWhereClause)
+        })
+      })
+    })
+  })
 
   context('cascade is false (it is true by default)', () => {
     it('skips cascade-destroying associations', async () => {
