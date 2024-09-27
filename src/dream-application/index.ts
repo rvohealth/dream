@@ -19,6 +19,10 @@ import loadModels, { getModelsOrFail } from './helpers/loadModels'
 import loadSerializers, { getSerializersOrFail, setCachedSerializers } from './helpers/loadSerializers'
 import loadServices, { getServicesOrFail, setCachedServices } from './helpers/loadServices'
 import { envBool } from '../helpers/envHelpers'
+import { Settings } from 'luxon'
+
+// this needs to be done top-level to ensure proper configuration
+Settings.defaultZone = 'UTC'
 
 export default class DreamApplication {
   /**
