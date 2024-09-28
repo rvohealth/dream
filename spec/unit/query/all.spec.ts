@@ -1,7 +1,7 @@
-import ReplicaSafe from '../../../src/decorators/replica-safe'
-import User from '../../../test-app/app/models/User'
 import DreamDbConnection from '../../../src/db/dream-db-connection'
+import ReplicaSafe from '../../../src/decorators/replica-safe'
 import ops from '../../../src/ops'
+import User from '../../../test-app/app/models/User'
 
 describe('Query#all', () => {
   it('returns all records, ordered by id', async () => {
@@ -76,7 +76,7 @@ describe('Query#all', () => {
 
       context('with explicit primary connection override', () => {
         it('uses the primary connection, despite being ReplicaSafe', async () => {
-          await CustomUser.query()['connection']('primary').all()
+          await CustomUser.query().connection('primary').all()
 
           // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')

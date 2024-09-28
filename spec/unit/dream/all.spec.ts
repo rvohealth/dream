@@ -147,7 +147,7 @@ describe('Dream.all', () => {
 
       context('with explicit primary connection override', () => {
         it('uses the replica connection', async () => {
-          await CustomUser['connection']('primary').all()
+          await CustomUser.connection('primary').all()
 
           // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')

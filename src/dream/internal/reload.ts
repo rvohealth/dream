@@ -12,6 +12,9 @@ export default async function reload<DreamInstance extends Dream>(
   let query: Query<DreamInstance> = new Query<DreamInstance>(dream)
 
   if (txn) query = query.txn(txn)
+  // must always reload from the primary database to avoid the race condition in which changes
+  // we have persisted are not yet propagated
+  else query = query.connection('primary')
 
   query = query.removeAllDefaultScopes().where({ [dream.primaryKey as any]: dream.primaryKeyValue } as any)
 

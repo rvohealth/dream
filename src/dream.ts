@@ -1072,14 +1072,15 @@ export default class Dream {
   }
 
   /**
-   * @internal
+   * Forces use of a database connection (e.g. 'primary') during the query.
    *
-   * Retrieves a query with the requested connection
+   * NOTE: all queries within a transaction always use the 'primary' replica, so
+   * explicitly setting connection within a transaction has no effect.
    *
-   * @param connection - The connection you wish to access
-   * @returns A query with the requested connection
+   * @param connection - The connection you wish to access ('primary' or 'replica')
+   * @returns A Query with the requested connection
    */
-  protected static connection<T extends typeof Dream>(
+  public static connection<T extends typeof Dream>(
     this: T,
     connection: DbConnectionType
   ): Query<InstanceType<T>> {

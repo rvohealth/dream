@@ -43,6 +43,7 @@ import MissingThroughAssociationSource from '../exceptions/associations/missing-
 import CannotCallUndestroyOnANonSoftDeleteModel from '../exceptions/cannot-call-undestroy-on-a-non-soft-delete-model'
 import CannotNegateSimilarityClause from '../exceptions/cannot-negate-similarity-clause'
 import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../exceptions/cannot-pass-additional-fields-to-pluck-each-after-callback-function'
+import CannotPassUndefinedAsAValueToAWhereClause from '../exceptions/cannot-pass-undefined-as-a-value-to-a-where-clause'
 import MissingRequiredCallbackFunctionToPluckEach from '../exceptions/missing-required-callback-function-to-pluck-each'
 import NoUpdateAllOnAssociationQuery from '../exceptions/no-updateall-on-association-query'
 import NoUpdateAllOnJoins from '../exceptions/no-updateall-on-joins'
@@ -97,7 +98,6 @@ import {
   VariadicPluckEachThroughArgs,
   VariadicPluckThroughArgs,
 } from './types'
-import CannotPassUndefinedAsAValueToAWhereClause from '../exceptions/cannot-pass-undefined-as-a-value-to-a-where-clause'
 
 const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
   '=': '!=',
@@ -2199,14 +2199,15 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   /**
-   * @internal
+   * Forces use of a database connection (e.g. 'primary') during the query.
    *
-   * Retrieves a Query with the requested connection.
+   * NOTE: all queries within a transaction always use the 'primary' replica, so
+   * explicitly setting connection within a transaction has no effect.
    *
-   * @param connection - The connection you wish to access
+   * @param connection - The connection you wish to access ('primary' or 'replica')
    * @returns A Query with the requested connection
    */
-  protected connection(connection: DbConnectionType) {
+  public connection(connection: DbConnectionType) {
     return this.clone({ connection })
   }
 
