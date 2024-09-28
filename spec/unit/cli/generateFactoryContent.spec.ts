@@ -67,13 +67,12 @@ export default async function createMyNestedUser(attrs: UpdateableProperties<MyN
         `\
 import { UpdateableProperties } from '@rvohealth/dream'
 import Post from '../../app/models/Post'
-import User from '../../app/models/User'
 import createUser from './UserFactory'
 
 let counter = 0
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
-  attrs.user ||= createUser()
+  attrs.user ||= await createUser()
   attrs.name ||= \`Post name \${++counter}\`
   return await Post.create(attrs)
 }
@@ -91,13 +90,12 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
           `\
 import { UpdateableProperties } from '@rvohealth/dream'
 import MyNestedUser from '../../../../app/models/My/Nested/User'
-import MyNestedDoubleNestedOrganization from '../../../../app/models/My/Nested/DoubleNested/Organization'
 import createMyNestedDoubleNestedOrganization from './DoubleNested/OrganizationFactory'
 
 let counter = 0
 
 export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
-  attrs.myNestedDoubleNestedOrganization ||= createMyNestedDoubleNestedOrganization()
+  attrs.myNestedDoubleNestedOrganization ||= await createMyNestedDoubleNestedOrganization()
   attrs.name ||= \`My/Nested/User name \${++counter}\`
   return await MyNestedUser.create(attrs)
 }

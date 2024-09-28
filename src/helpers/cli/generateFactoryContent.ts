@@ -25,7 +25,6 @@ export default function generateFactoryContent({
     const [attributeName, attributeType, ...descriptors] = attribute.split(':')
     const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(attributeName)
     const associationModelName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
-    const associationImportStatement = `import ${associationModelName} from '${relativeDreamPath('factories', 'models', fullyQualifiedModelName, fullyQualifiedAssociatedModelName)}'`
     const associationFactoryImportStatement = `import create${associationModelName} from '${relativeDreamPath('factories', 'factories', fullyQualifiedModelName, fullyQualifiedAssociatedModelName)}'`
     const associationName = camelize(associationModelName)
 
@@ -38,9 +37,10 @@ export default function generateFactoryContent({
       case 'belongs_to':
         belongsToNames.push(associationName)
         belongsToTypedNames.push(`${associationName}: ${associationModelName}`)
-        additionalImports.push(associationImportStatement)
         additionalImports.push(associationFactoryImportStatement)
-        associationCreationStatements.push(`attrs.${associationName} ||= create${associationModelName}()`)
+        associationCreationStatements.push(
+          `attrs.${associationName} ||= await create${associationModelName}()`
+        )
         break
 
       case 'string':
