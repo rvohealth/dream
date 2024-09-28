@@ -1,13 +1,32 @@
 import User from '../../../test-app/app/models/User'
 
 describe('Dream#isNewRecord', () => {
-  it('returns true when the record is new', () => {
-    const user = User.new({ email: 'hi@there', password: 'howyadoin' })
-    expect(user.isNewRecord).toBe(true)
+  context('for a new record', () => {
+    it('is true', () => {
+      const user = User.new({ email: 'hi@there', password: 'howyadoin' })
+      expect(user.isNewRecord).toBe(true)
+    })
   })
 
-  it('returns false when the record is saved', async () => {
-    const user = await User.create({ email: 'hi@there', password: 'howyadoin' })
-    expect(user.isNewRecord).toBe(false)
+  context('after a record has been saved', () => {
+    it('is false', async () => {
+      const user = await User.create({ email: 'hi@there', password: 'howyadoin' })
+      expect(user.isNewRecord).toBe(false)
+    })
+
+    context('when saving failed', () => {
+      it('is true', async () => {
+        await User.create({ email: 'hi@there', password: 'howyadoin' })
+        const failedUser = User.new({ email: 'hi@there', password: 'howyadoin' })
+
+        try {
+          await failedUser.save()
+        } catch {
+          // no-op
+        }
+
+        expect(failedUser.isNewRecord).toBe(true)
+      })
+    })
   })
 })
