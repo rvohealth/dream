@@ -45,7 +45,7 @@ export default async function generateMigration({
   } else {
     const tableName: string | undefined = migrationName.match(/-to-(.+)$/)?.[1]
     finalContent = generateMigrationContent({
-      table: tableName ? pluralize(tableName) : '<table-name>',
+      table: tableName ? pluralize(snakeify(tableName)) : '<table-name>',
       columnsWithTypes,
       primaryKeyType: primaryKeyType(),
       createOrAlter: 'alter',

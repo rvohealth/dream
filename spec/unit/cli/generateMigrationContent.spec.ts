@@ -1,7 +1,36 @@
 import InvalidDecimalFieldPassedToGenerator from '../../../src/exceptions/invalid-decimal-field-passed-to-generator'
 import generateMigrationContent from '../../../src/helpers/cli/generateMigrationContent'
 
-describe('dream generate:model <name> [...attributes]', () => {
+describe('generateMigrationContent', () => {
+  context('createOrAlter: true', () => {
+    it('generates a migration with an alterTable syntax', () => {
+      const res = generateMigrationContent({
+        table: 'hello_worlds',
+        columnsWithTypes: ['greeting:string'],
+        primaryKeyType: 'bigserial',
+        createOrAlter: 'alter',
+      })
+      expect(res).toEqual(`\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('hello_worlds')
+    .addColumn('greeting', 'varchar(255)')
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('hello_worlds')
+    .dropColumn('greeting')
+    .execute()
+}`)
+    })
+  })
+
   context('with no attributes', () => {
     it('generates a migration with no columns', () => {
       const res = generateMigrationContent({
