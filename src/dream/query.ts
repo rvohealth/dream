@@ -481,7 +481,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           : this.defaultScopesToBypassExceptOnAssociations,
 
       transaction: opts.transaction || this.dreamTransaction,
-      connection: opts.connection,
+      connection: opts.connection || this.connectionOverride,
       shouldReallyDestroy:
         opts.shouldReallyDestroy !== undefined ? opts.shouldReallyDestroy : this.shouldReallyDestroy,
     })

@@ -6,9 +6,9 @@ import { DreamConstructorType, SqlCommandType } from '../dream/types'
 import { DbConnectionType } from './types'
 
 export default class ConnectedToDB<DreamInstance extends Dream> {
-  public readonly dreamClass: DreamConstructorType<DreamInstance>
-  public dreamTransaction: DreamTransaction<Dream> | null = null
-  public connectionOverride?: DbConnectionType
+  protected readonly dreamClass: DreamConstructorType<DreamInstance>
+  protected dreamTransaction: DreamTransaction<Dream> | null = null
+  protected connectionOverride?: DbConnectionType
 
   constructor(
     public dreamInstance: DreamInstance,

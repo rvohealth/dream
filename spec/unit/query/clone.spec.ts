@@ -10,4 +10,10 @@ describe('Query#clone', () => {
     expect(newClone.sql()).not.toEqual(query.sql())
     expect(newClone.sql()).not.toEqual(clone.sql())
   })
+
+  it('clones the connection', () => {
+    const query = User.query().connection('primary')
+    const clone = query['clone']()
+    expect(clone['connectionOverride']).toEqual('primary')
+  })
 })
