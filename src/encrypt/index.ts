@@ -19,7 +19,13 @@ export default class Encrypt {
     }
   }
 
-  public static decrypt<RetType>(encrypted: string, { algorithm, key }: DecryptOptions): RetType | null {
+  public static decrypt<RetType>(
+    encrypted: string,
+    { algorithm, key }: DecryptOptions,
+    legacyOpts?: DecryptOptions
+  ): RetType | null {
+    if (legacyOpts) return this.attemptDecryptionWithLegacyKeys(encrypted, { algorithm, key }, legacyOpts)
+
     if (!key) throw new MissingEncryptionKey()
     if ([null, undefined].includes(encrypted as unknown as null)) return null
 
@@ -27,13 +33,47 @@ export default class Encrypt {
       case 'aes-256-gcm':
       case 'aes-192-gcm':
       case 'aes-128-gcm':
-        return decryptAESGCM(algorithm, encrypted, key)
+        try {
+          return decryptAESGCM(algorithm, encrypted, key)
+        } catch {
+          return null
+        }
 
       default:
         throw new Error(`unrecognized algorith provided to decrypt: ${algorithm as string}`)
     }
   }
 
+  private static attemptDecryptionWithLegacyKeys<RetType>(
+    encrypted: string,
+    { algorithm, key }: DecryptOptions,
+    legacyOpts: DecryptOptions
+  ): RetType | null {
+    if (!key) throw new MissingEncryptionKey()
+    if ([null, undefined].includes(encrypted as unknown as null)) return null
+
+    let decrypted: RetType | null
+    switch (algorithm) {
+      case 'aes-256-gcm':
+      case 'aes-192-gcm':
+      case 'aes-128-gcm':
+        try {
+          decrypted = decryptAESGCM(algorithm, encrypted, key)
+          if (decrypted !== null) return decrypted
+        } catch {
+          // noop
+        }
+
+        try {
+          return decryptAESGCM(legacyOpts.algorithm, encrypted, legacyOpts.key)
+        } catch (error) {
+          return null
+        }
+
+      default:
+        throw new Error(`unrecognized algorith provided to decrypt: ${algorithm as string}`)
+    }
+  }
   public static generateKey(algorithm: EncryptAlgorithm) {
     switch (algorithm) {
       case 'aes-256-gcm':

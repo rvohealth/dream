@@ -1,11 +1,19 @@
 import Encrypt, { EncryptOptions } from '../../../src/encrypt'
 import MissingEncryptionKey from '../../../src/exceptions/encrypt/missing-encryption-key'
 
-const encryptionOptions: EncryptOptions[] = [
-  { algorithm: 'aes-256-gcm', key: '65ogKxacRKyNxj20PCQKuBnxKgOty5eQnY4Ktbk04U0=' },
-  { algorithm: 'aes-192-gcm', key: 'vqLHveiMB85Fq1uM8aqTMcPDXhPxEx0X' },
-  { algorithm: 'aes-128-gcm', key: 'UXXA1fMDefJV7Y2s/vqm1g==' },
-]
+const encryptionOptions = [
+  {
+    algorithm: 'aes-256-gcm',
+    key: '65ogKxacRKyNxj20PCQKuBnxKgOty5eQnY4Ktbk04U0=',
+    legacyKey: 'we7Ut3wRljXChrAqW673pjjYr0HN0yIJYtGrR2y7rDc=',
+  },
+  {
+    algorithm: 'aes-192-gcm',
+    key: 'vqLHveiMB85Fq1uM8aqTMcPDXhPxEx0X',
+    legacyKey: 'kNeLgDf1HdXCqmmkrJgVZESCW5oIl7UG',
+  },
+  { algorithm: 'aes-128-gcm', key: 'UXXA1fMDefJV7Y2s/vqm1g==', legacyKey: 'p4cTGaKtF26diZ3ECdQoqw==' },
+] as const
 
 describe('Encrypt', () => {
   describe('#encrypt, #decrypt', () => {
@@ -46,6 +54,58 @@ describe('Encrypt', () => {
         context('with no encryption key set', () => {
           it('raises a targeted exception', () => {
             expect(() => Encrypt.encrypt('how', { ...opts, key: null as any })).toThrow(MissingEncryptionKey)
+          })
+        })
+
+        context('with the wrong encryption key', () => {
+          it('raises a targeted exception', () => {
+            const encrypted = Encrypt.encrypt('how', { ...opts, key: opts.legacyKey })
+            const decrypted = Encrypt.decrypt(encrypted, { ...opts })
+            expect(decrypted).toBeNull()
+          })
+        })
+
+        context('with a legacy key provided', () => {
+          context('the legacy key is valid', () => {
+            it('decrypts value using legacy key', () => {
+              const encrypted = Encrypt.encrypt('howyadoin', {
+                algorithm: opts.algorithm,
+                key: opts.legacyKey,
+              })
+              const decrypted = Encrypt.decrypt(
+                encrypted,
+                {
+                  algorithm: opts.algorithm,
+                  key: opts.key,
+                },
+                {
+                  algorithm: opts.algorithm,
+                  key: opts.legacyKey,
+                }
+              )
+              expect(decrypted).toEqual('howyadoin')
+            })
+          })
+
+          context('the legacy key is invalid', () => {
+            it('fails to decrypt', () => {
+              const encrypted = Encrypt.encrypt('howyadoin', {
+                algorithm: opts.algorithm,
+                key: opts.legacyKey,
+              })
+              const decrypted = Encrypt.decrypt(
+                encrypted,
+                {
+                  algorithm: opts.algorithm,
+                  key: opts.key,
+                },
+                {
+                  algorithm: opts.algorithm,
+                  key: opts.key,
+                }
+              )
+              expect(decrypted).toBeNull()
+            })
           })
         })
       })
