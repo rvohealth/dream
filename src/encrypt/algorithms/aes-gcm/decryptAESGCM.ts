@@ -1,8 +1,8 @@
 import crypto from 'crypto'
-import { EncryptAlgorithm, PsychicEncryptionPayload } from '../..'
+import { EncryptAESAlgorithm, PsychicEncryptionPayload } from '../..'
 
 export default function decryptAESGCM<RetType>(
-  algorithm: EncryptAlgorithm,
+  algorithm: EncryptAESAlgorithm,
   encrypted: string,
   key: string
 ): RetType | null {

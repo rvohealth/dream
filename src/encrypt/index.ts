@@ -73,7 +73,8 @@ interface BaseOptions {
   algorithm: EncryptAlgorithm
   key: string
 }
-export type EncryptAlgorithm = 'aes-256-gcm' | 'aes-192-gcm' | 'aes-128-gcm'
+export type EncryptAESAlgorithm = 'aes-256-gcm' | 'aes-192-gcm' | 'aes-128-gcm'
+export type EncryptAlgorithm = EncryptAESAlgorithm
 export type EncryptAESBitSize = 256 | 192 | 128
 
 export interface PsychicEncryptionPayload {
