@@ -1,5 +1,5 @@
-import crypto from 'crypto'
+import generateKeyAESGCM from '../aes-gcm/generateKeyAESGCM'
 
 export default function generateKeyAES256GCM(): string {
-  return crypto.randomBytes(32).toString('base64')
+  return generateKeyAESGCM(256)
 }
