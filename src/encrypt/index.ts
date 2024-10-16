@@ -49,31 +49,12 @@ export default class Encrypt {
     { algorithm, key }: DecryptOptions,
     legacyOpts: DecryptOptions
   ): RetType | null {
-    if (!key) throw new MissingEncryptionKey()
-    if ([null, undefined].includes(encrypted as unknown as null)) return null
+    const decrypted = this.decrypt<RetType>(encrypted, { algorithm, key })
+    if (decrypted !== null) return decrypted
 
-    let decrypted: RetType | null
-    switch (algorithm) {
-      case 'aes-256-gcm':
-      case 'aes-192-gcm':
-      case 'aes-128-gcm':
-        try {
-          decrypted = decryptAESGCM(algorithm, encrypted, key)
-          if (decrypted !== null) return decrypted
-        } catch {
-          // noop
-        }
-
-        try {
-          return decryptAESGCM(legacyOpts.algorithm, encrypted, legacyOpts.key)
-        } catch (error) {
-          return null
-        }
-
-      default:
-        throw new Error(`unrecognized algorith provided to decrypt: ${algorithm as string}`)
-    }
+    return this.decrypt<RetType>(encrypted, legacyOpts)
   }
+
   public static generateKey(algorithm: EncryptAlgorithm) {
     switch (algorithm) {
       case 'aes-256-gcm':
