@@ -32,14 +32,6 @@ export default class InternalEncrypt {
     encryptionOpts: DecryptOptions,
     legacyEncryptionOpts?: DecryptOptions
   ) {
-    try {
-      return Encrypt.decrypt(data, encryptionOpts)
-    } catch (error) {
-      if (legacyEncryptionOpts) {
-        return Encrypt.decrypt(data, legacyEncryptionOpts)
-      } else {
-        throw error
-      }
-    }
+    return Encrypt.decrypt(data, encryptionOpts, legacyEncryptionOpts)
   }
 }

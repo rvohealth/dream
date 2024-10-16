@@ -1,8 +1,8 @@
 import MissingEncryptionKey from '../exceptions/encrypt/missing-encryption-key'
-import decryptAES256GCM from './algorithms/aes-256-gcm/decryptAES256GCM'
-import encryptAES256GCM from './algorithms/aes-256-gcm/encryptAES256GCM'
-import generateKeyAES256GCM from './algorithms/aes-256-gcm/generateKeyAES256GCM'
-import validateKeyAES256GCM from './algorithms/aes-256-gcm/validateKeyAES256GCM'
+import decryptAESGCM from './algorithms/aes-gcm/decryptAESGCM'
+import encryptAESGCM from './algorithms/aes-gcm/encryptAESGCM'
+import generateKeyAESGCM from './algorithms/aes-gcm/generateKeyAESGCM'
+import validateKeyAESGCM from './algorithms/aes-gcm/validateKeyAESGCM'
 //
 export default class Encrypt {
   public static encrypt(data: any, { algorithm, key }: EncryptOptions): string {
@@ -10,28 +10,62 @@ export default class Encrypt {
 
     switch (algorithm) {
       case 'aes-256-gcm':
-        return encryptAES256GCM(data, key)
+      case 'aes-192-gcm':
+      case 'aes-128-gcm':
+        return encryptAESGCM(algorithm, data, key)
+
       default:
         throw new Error(`unrecognized algorith provided to encrypt: ${algorithm as string}`)
     }
   }
 
-  public static decrypt<RetType>(encrypted: string, { algorithm, key }: DecryptOptions): RetType | null {
+  public static decrypt<RetType>(
+    encrypted: string,
+    { algorithm, key }: DecryptOptions,
+    legacyOpts?: DecryptOptions
+  ): RetType | null {
+    if (legacyOpts) return this.attemptDecryptionWithLegacyKeys(encrypted, { algorithm, key }, legacyOpts)
+
     if (!key) throw new MissingEncryptionKey()
     if ([null, undefined].includes(encrypted as unknown as null)) return null
 
     switch (algorithm) {
       case 'aes-256-gcm':
-        return decryptAES256GCM(encrypted, key)
+      case 'aes-192-gcm':
+      case 'aes-128-gcm':
+        try {
+          return decryptAESGCM(algorithm, encrypted, key)
+        } catch {
+          return null
+        }
+
       default:
         throw new Error(`unrecognized algorith provided to decrypt: ${algorithm as string}`)
     }
   }
 
+  private static attemptDecryptionWithLegacyKeys<RetType>(
+    encrypted: string,
+    { algorithm, key }: DecryptOptions,
+    legacyOpts: DecryptOptions
+  ): RetType | null {
+    const decrypted = this.decrypt<RetType>(encrypted, { algorithm, key })
+    if (decrypted !== null) return decrypted
+
+    return this.decrypt<RetType>(encrypted, legacyOpts)
+  }
+
   public static generateKey(algorithm: EncryptAlgorithm) {
     switch (algorithm) {
       case 'aes-256-gcm':
-        return generateKeyAES256GCM()
+        return generateKeyAESGCM(256)
+
+      case 'aes-192-gcm':
+        return generateKeyAESGCM(192)
+
+      case 'aes-128-gcm':
+        return generateKeyAESGCM(128)
+
       default:
         throw new Error(`unrecognized algorithm provided to generateKey: ${algorithm as string}`)
     }
@@ -40,7 +74,14 @@ export default class Encrypt {
   public static validateKey(base64EncodedKey: string, algorithm: EncryptAlgorithm) {
     switch (algorithm) {
       case 'aes-256-gcm':
-        return validateKeyAES256GCM(base64EncodedKey)
+        return validateKeyAESGCM(base64EncodedKey, 256)
+
+      case 'aes-192-gcm':
+        return validateKeyAESGCM(base64EncodedKey, 192)
+
+      case 'aes-128-gcm':
+        return validateKeyAESGCM(base64EncodedKey, 128)
+
       default:
         throw new Error(`unrecognized algorith provided to validateKey: ${algorithm as string}`)
     }
@@ -53,7 +94,9 @@ interface BaseOptions {
   algorithm: EncryptAlgorithm
   key: string
 }
-export type EncryptAlgorithm = 'aes-256-gcm'
+export type EncryptAESAlgorithm = 'aes-256-gcm' | 'aes-192-gcm' | 'aes-128-gcm'
+export type EncryptAlgorithm = EncryptAESAlgorithm
+export type EncryptAESBitSize = 256 | 192 | 128
 
 export interface PsychicEncryptionPayload {
   ciphertext: string

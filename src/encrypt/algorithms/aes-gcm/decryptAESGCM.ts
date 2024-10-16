@@ -1,14 +1,14 @@
 import crypto from 'crypto'
-import { PsychicEncryptionPayload } from '../..'
+import { EncryptAESAlgorithm, PsychicEncryptionPayload } from '../..'
 
-export default function decryptAES256GCM<RetType>(encrypted: string, key: string): RetType | null {
+export default function decryptAESGCM<RetType>(
+  algorithm: EncryptAESAlgorithm,
+  encrypted: string,
+  key: string
+): RetType | null {
   const { ciphertext, tag, iv } = unpackPayloadOrFail(encrypted)
 
-  const decipher = crypto.createDecipheriv(
-    'aes-256-gcm',
-    Buffer.from(key, 'base64'),
-    Buffer.from(iv, 'base64')
-  )
+  const decipher = crypto.createDecipheriv(algorithm, Buffer.from(key, 'base64'), Buffer.from(iv, 'base64'))
   decipher.setAuthTag(Buffer.from(tag, 'base64'))
 
   let plaintext = decipher.update(ciphertext, 'base64', 'utf8')
