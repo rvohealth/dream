@@ -10,6 +10,38 @@ import Pet from '../../../../test-app/app/models/Pet'
 import User from '../../../../test-app/app/models/User'
 
 describe('Dream#updateAssociation', () => {
+  context('with a where clause', () => {
+    it('limits the update to the where clause', async () => {
+      const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      const aster = await Pet.create({ user, name: 'Aster', species: 'cat' })
+      const violet = await Pet.create({ user, name: 'Violet', species: 'frog' })
+
+      await user.updateAssociation('pets', { species: 'dog' }, { where: { id: violet.id } })
+
+      await aster.reload()
+      await violet.reload()
+
+      expect(aster.species).toEqual('cat')
+      expect(violet.species).toEqual('dog')
+    })
+
+    it('retains the association based limits', async () => {
+      const user1 = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      const aster = await Pet.create({ user: user1, name: 'Aster', species: 'cat' })
+
+      const user2 = await User.create({ email: 'frewd@fred', password: 'howyadoin' })
+      const violet = await Pet.create({ user: user2, name: 'Violet', species: 'frog' })
+
+      await user1.updateAssociation('pets', { species: 'dog' }, { where: { id: violet.id } })
+
+      await aster.reload()
+      await violet.reload()
+
+      expect(aster.species).toEqual('cat')
+      expect(violet.species).toEqual('frog')
+    })
+  })
+
   context('with undefined passed in a where clause', () => {
     it('raises an exception', async () => {
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
@@ -69,7 +101,7 @@ describe('Dream#updateAssociation', () => {
   })
 
   context('with a HasMany association', () => {
-    it('updates the association', async () => {
+    it('updates the associated models', async () => {
       const otherUser = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       await Composition.create({ user: otherUser })
 

@@ -45,7 +45,7 @@ import CannotNegateSimilarityClause from '../exceptions/cannot-negate-similarity
 import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../exceptions/cannot-pass-additional-fields-to-pluck-each-after-callback-function'
 import CannotPassUndefinedAsAValueToAWhereClause from '../exceptions/cannot-pass-undefined-as-a-value-to-a-where-clause'
 import MissingRequiredCallbackFunctionToPluckEach from '../exceptions/missing-required-callback-function-to-pluck-each'
-import NoUpdateAllOnAssociationQuery from '../exceptions/no-updateall-on-association-query'
+import NoUpdateOnAssociationQuery from '../exceptions/no-update-on-association-query'
 import NoUpdateAllOnJoins from '../exceptions/no-updateall-on-joins'
 import RecordNotFound from '../exceptions/record-not-found'
 import CalendarDate from '../helpers/CalendarDate'
@@ -2478,7 +2478,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     attributes: DreamTableSchema<DreamInstance>,
     { skipHooks }: { skipHooks?: boolean } = {}
   ) {
-    if (this.baseSelectQuery) throw new NoUpdateAllOnAssociationQuery()
+    if (this.baseSelectQuery) throw new NoUpdateOnAssociationQuery()
     if (Object.keys(this.innerJoinStatements).length) throw new NoUpdateAllOnJoins()
     if (Object.keys(this.leftJoinStatements).length) throw new NoUpdateAllOnJoins()
 

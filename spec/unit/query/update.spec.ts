@@ -1,6 +1,6 @@
 import DreamDbConnection from '../../../src/db/dream-db-connection'
 import ReplicaSafe from '../../../src/decorators/replica-safe'
-import NoUpdateAllOnAssociationQuery from '../../../src/exceptions/no-updateall-on-association-query'
+import NoUpdateOnAssociationQuery from '../../../src/exceptions/no-update-on-association-query'
 import NoUpdateAllOnJoins from '../../../src/exceptions/no-updateall-on-joins'
 import ops from '../../../src/ops'
 import Pet from '../../../test-app/app/models/Pet'
@@ -57,7 +57,7 @@ describe('Query#update', () => {
       await user.createAssociation('compositions', { content: 'Opus' })
 
       await expect(user.associationQuery('compositions').update({ content: 'cool' })).rejects.toThrow(
-        NoUpdateAllOnAssociationQuery
+        NoUpdateOnAssociationQuery
       )
     })
   })
