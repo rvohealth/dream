@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import MissingEncryptionKey from '../exceptions/encrypt/missing-encryption-key'
 import decryptAESGCM from './algorithms/aes-gcm/decryptAESGCM'
 import encryptAESGCM from './algorithms/aes-gcm/encryptAESGCM'
@@ -85,6 +86,27 @@ export default class Encrypt {
       default:
         throw new Error(`unrecognized algorith provided to validateKey: ${algorithm as string}`)
     }
+  }
+
+  public static async hash(plaintext: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const salt = crypto.randomBytes(16).toString('hex')
+
+      crypto.scrypt(plaintext, salt, 64, (err, derivedKey) => {
+        if (err) reject(err)
+        resolve(salt + ':' + derivedKey.toString('hex'))
+      })
+    })
+  }
+
+  public static async verifyHash(plaintext: string, hash: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      const [salt, key] = hash.split(':')
+      crypto.scrypt(plaintext, salt, 64, (err, derivedKey) => {
+        if (err) reject(err)
+        resolve(crypto.timingSafeEqual(Buffer.from(key), Buffer.from(derivedKey.toString('hex'))))
+      })
+    })
   }
 }
 
