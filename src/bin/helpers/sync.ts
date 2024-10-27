@@ -66,9 +66,8 @@ export class DBClass {
 
 function removeUnwantedExports(file: string) {
   return file.replace(
-    '\nexport type Timestamp = ColumnType<Date, Date | string, Date | string>;',
-    `\
-export type IdType = string | number | bigint
+    /\nexport type Timestamp = ColumnType<.*/,
+    `export type IdType = string | number | bigint
 export type Timestamp = ColumnType<DateTime | CalendarDate>`
   )
 }
