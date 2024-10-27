@@ -21,7 +21,12 @@ export default async function createUser(attrs: UpdateableProperties<User> = {})
     it('defaults are provided when not supplied', () => {
       const res = generateFactoryContent({
         fullyQualifiedModelName: 'Post',
-        columnsWithTypes: ['title:string', 'body:text', 'type:enum:post_type:WeeklyPost,GuestPost'],
+        columnsWithTypes: [
+          'name:citext',
+          'title:string',
+          'body:text',
+          'type:enum:post_type:WeeklyPost,GuestPost',
+        ],
       })
       expect(res).toEqual(
         `\
@@ -31,7 +36,8 @@ import Post from '../../app/models/Post'
 let counter = 0
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
-  attrs.title ||= \`Post title \${++counter}\`
+  attrs.name ||= \`Post name \${++counter}\`
+  attrs.title ||= \`Post title \${counter}\`
   attrs.body ||= \`Post body \${counter}\`
   attrs.type ||= 'WeeklyPost'
   return await Post.create(attrs)

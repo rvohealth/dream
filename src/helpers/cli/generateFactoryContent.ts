@@ -45,6 +45,7 @@ export default function generateFactoryContent({
 
       case 'string':
       case 'text':
+      case 'citext':
         stringAttributes.push(
           `attrs.${camelize(attributeName)} ||= \`${fullyQualifiedModelName} ${camelize(attributeName)} ${firstStringAttr ? '${++counter}' : '${counter}'}\``
         )
