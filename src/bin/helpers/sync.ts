@@ -5,10 +5,10 @@ import path from 'path'
 import ConnectionConfRetriever from '../../db/connection-conf-retriever'
 import DreamApplication from '../../dream-application'
 import compact from '../../helpers/compact'
+import { envBool } from '../../helpers/envHelpers'
 import dreamPath from '../../helpers/path/dreamPath'
 import snakeify from '../../helpers/snakeify'
 import sspawn from '../../helpers/sspawn'
-import { envBool } from '../../helpers/envHelpers'
 
 export default async function writeSyncFile() {
   const dbConf = new ConnectionConfRetriever().getConnectionConf('primary')
@@ -47,7 +47,7 @@ function enhanceSchema(file: string) {
   file = addCustomImports(file)
 
   const transformedNames = compact(results.map(result => transformName(result)))
-  const fileWithCoercedTypes = exportedTypesToExportedTypeValues(file)
+  const fileWithCoercedTypes = exportedEnumTypesToExportedTypeValues(file)
 
   // BEGIN FILE CONTENTS BUILDING
   const newFileContents = `${fileWithCoercedTypes}
@@ -115,19 +115,10 @@ ${props.sort().join('\n')}
   })
 }
 
-function exportedTypesToExportedTypeValues(str: string) {
-  const ommitedTypes = [
-    'Generated<T>',
-    'Int8',
-    'Numeric',
-    'Json',
-    'JsonArray',
-    'JsonObject',
-    'JsonPrimitive',
-    'JsonValue',
-  ]
+function exportedEnumTypesToExportedTypeValues(str: string) {
+  const ommitedTypes = ['Generated<T>', 'Json', 'JsonArray', 'JsonObject', 'JsonPrimitive', 'JsonValue']
 
-  return str.replace(/export type ([^=]*) = ([^;\n]*);/g, (_match, typeDeclaration, types) => {
+  return str.replace(/export type ([^=]*) = ((?!ColumnType)[^;\n]*);/g, (_match, typeDeclaration, types) => {
     const originalType = `export type ${typeDeclaration} = ${types};`
     if (ommitedTypes.some(type => type === typeDeclaration)) {
       return originalType
