@@ -67,7 +67,7 @@ export default class DreamCLI {
         'the name of the model to create, e.g. Post or Settings/CommunicationPreferences'
       )
       .argument(
-        '<columnsWithTypes...>',
+        '[columnsWithTypes...]',
         'properties of the model property1:text/string/enum/etc. property2:text/string/enum/etc. ... propertyN:text/string/enum/etc.'
       )
       .action(async (modelName: string, columnsWithTypes: string[], options: { serializer: boolean }) => {
