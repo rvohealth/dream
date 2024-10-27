@@ -35,6 +35,7 @@ export default async function writeSyncFile() {
 
 function enhanceSchema(file: string) {
   file = removeUnwantedExports(file)
+  file = replaceInt8Type(file)
   file = replaceJsonType(file)
 
   const interfaces = file.split(/export interface /g)
@@ -82,6 +83,13 @@ import { DateTime } from 'luxon'`
 
   return `${customImports}
 ${file}`
+}
+
+function replaceInt8Type(str: string) {
+  return str.replace(
+    'export type Int8 = ColumnType<string, bigint | number | string>',
+    'export type Int8 = ColumnType<string, bigint | number | string, bigint | number | string>'
+  )
 }
 
 function replaceJsonType(str: string) {
