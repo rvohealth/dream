@@ -917,7 +917,7 @@ __metadata:
     jest-extended: "npm:^4.0.2"
     jest-plugin-context: "npm:^2.9.0"
     kysely: "npm:^0.27.4"
-    kysely-codegen: "npm:~0.16.3"
+    kysely-codegen: "npm:~0.17.0"
     lodash.clonedeep: "npm:^4.5.0"
     lodash.clonedeepwith: "npm:^4.5.0"
     lodash.isempty: "npm:^4.4.0"
@@ -941,7 +941,7 @@ __metadata:
     "@types/node": "*"
     "@types/pg": "*"
     kysely: ^0.27.4
-    kysely-codegen: ~0.16.3
+    kysely-codegen: ~0.17.0
     luxon: ^3.5.0
     pg: "*"
   bin:
@@ -3601,9 +3601,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"kysely-codegen@npm:~0.16.3":
-  version: 0.16.4
-  resolution: "kysely-codegen@npm:0.16.4"
+"kysely-codegen@npm:~0.17.0":
+  version: 0.17.0
+  resolution: "kysely-codegen@npm:0.17.0"
   dependencies:
     chalk: "npm:4.1.2"
     dotenv: "npm:^16.4.5"
@@ -3646,7 +3646,7 @@ __metadata:
       optional: true
   bin:
     kysely-codegen: dist/cli/bin.js
-  checksum: 10c0/7e46084b29175eab89a6197e5da19182f0edfb5a9eebde3dabf144ec0e3754ac9d2e7826a0bcae0d08e8b6198178eafdc5a43ad0ee2820947b72eb95b6a825c9
+  checksum: 10c0/9e780972aa5301f9df43e1e9018ef5aa5a26e6eed14af28fa1a5cdde5e8d0a2c7a6a46633eaa5dabfad4cda68d53b9612626692b4e45997ae33af288f87c6944
   languageName: node
   linkType: hard
 
