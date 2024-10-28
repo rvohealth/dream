@@ -277,12 +277,14 @@ interface HasOptionsBase<
   >[]
 }
 
+export type PolymorphicOption = 'polymorphic'
+export type ForeignKeyOption = 'foreignKey'
 type ThroughIncompatibleOptions =
   | 'dependent'
-  | 'foreignKey'
-  | 'polymorphic'
   | 'primaryKeyOverride'
   | 'withoutDefaultScopes'
+  | ForeignKeyOption
+  | PolymorphicOption
 
 type ThroughOnlyOptions = 'through' | 'source' | 'preloadThroughColumns'
 export type HasManyOnlyOptions = 'distinct'
@@ -292,7 +294,17 @@ export type HasOptions<
   AssociationGlobalNameOrNames extends
     | GlobalModelNames<BaseInstance>
     | readonly GlobalModelNames<BaseInstance>[],
-> = Omit<HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames>, ThroughOnlyOptions>
+> = Omit<HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames>, ThroughOnlyOptions | PolymorphicOption>
+
+export type PolymorphicHasOptions<
+  BaseInstance extends Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
+> = HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames> &
+  Required<
+    Pick<HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames>, PolymorphicOption | ForeignKeyOption>
+  >
 
 export type HasThroughOptions<
   BaseInstance extends Dream,
@@ -381,7 +393,7 @@ export function modelCBtoSingleDreamClass(
 ): typeof Dream {
   if (Array.isArray(partialAssociation.modelCB()))
     throw new Error(
-      `${dreamClass.name} association ${partialAssociation.as} is incompatible with array of ${partialAssociation.type} Dream types`
+      `Polymorphic association ${partialAssociation.as} on model ${dreamClass.name} requires an explicit foreignKey`
     )
 
   return partialAssociation.modelCB() as typeof Dream

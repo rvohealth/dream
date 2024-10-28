@@ -13,16 +13,22 @@ import db from './db'
 import { AssociationTableNames } from './db/reflections'
 import { DbConnectionType } from './db/types'
 import associationToGetterSetterProp from './decorators/associations/associationToGetterSetterProp'
-import BelongsTo, { BelongsToOptions, BelongsToStatement } from './decorators/associations/belongs-to'
+import BelongsTo, {
+  BelongsToStatement,
+  NonPolymorphicBelongsToOptions,
+  PolymorphicBelongsToOptions,
+} from './decorators/associations/belongs-to'
 import HasMany, {
   HasManyOptions,
   HasManyStatement,
   HasManyThroughOptions,
+  PolymorphicHasManyOptions,
 } from './decorators/associations/has-many'
 import HasOne, {
   HasOneOptions,
   HasOneStatement,
   HasOneThroughOptions,
+  PolymorphicHasOneOptions,
 } from './decorators/associations/has-one'
 import {
   blankAssociationsFactory,
@@ -402,6 +408,28 @@ export default class Dream {
     this.hooks[hookType] = [...this.hooks[hookType], statement]
   }
 
+  public static BelongsTo<
+    T extends typeof Dream,
+    const AssociationGlobalNameOrNames extends
+      | GlobalModelNames<InstanceType<T>>
+      | readonly GlobalModelNames<InstanceType<T>>[],
+  >(
+    this: T,
+    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+    options?: NonPolymorphicBelongsToOptions<InstanceType<T>, AssociationGlobalNameOrNames>
+  ): any
+
+  public static BelongsTo<
+    T extends typeof Dream,
+    const AssociationGlobalNameOrNames extends
+      | GlobalModelNames<InstanceType<T>>
+      | readonly GlobalModelNames<InstanceType<T>>[],
+  >(
+    this: T,
+    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+    options?: PolymorphicBelongsToOptions<InstanceType<T>, AssociationGlobalNameOrNames>
+  ): any
+
   /**
    * Establishes a "BelongsTo" association between the base dream
    * and the child dream, where the base dream has a foreign key
@@ -431,12 +459,11 @@ export default class Dream {
     const AssociationGlobalNameOrNames extends
       | GlobalModelNames<InstanceType<T>>
       | readonly GlobalModelNames<InstanceType<T>>[],
-  >(
-    this: T,
-    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
-    options: BelongsToOptions<InstanceType<T>, AssociationGlobalNameOrNames> = {}
-  ) {
-    return BelongsTo<InstanceType<T>, AssociationGlobalNameOrNames>(globalAssociationNameOrNames, options)
+  >(this: T, globalAssociationNameOrNames: AssociationGlobalNameOrNames, options: unknown = {}) {
+    return BelongsTo<InstanceType<T>, AssociationGlobalNameOrNames>(
+      globalAssociationNameOrNames,
+      options as any
+    )
   }
 
   ///////////
@@ -462,6 +489,17 @@ export default class Dream {
     this: T,
     globalAssociationNameOrNames: AssociationGlobalNameOrNames,
     options?: HasManyThroughOptions<InstanceType<T>, AssociationGlobalNameOrNames>
+  ): any
+
+  public static HasMany<
+    T extends typeof Dream,
+    const AssociationGlobalNameOrNames extends
+      | GlobalModelNames<InstanceType<T>>
+      | readonly GlobalModelNames<InstanceType<T>>[],
+  >(
+    this: T,
+    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+    options?: PolymorphicHasManyOptions<InstanceType<T>, AssociationGlobalNameOrNames>
   ): any
 
   /**
@@ -525,6 +563,17 @@ export default class Dream {
     this: T,
     globalAssociationNameOrNames: AssociationGlobalNameOrNames,
     options?: HasOneThroughOptions<InstanceType<T>, AssociationGlobalNameOrNames>
+  ): any
+
+  public static HasOne<
+    T extends typeof Dream,
+    const AssociationGlobalNameOrNames extends
+      | GlobalModelNames<InstanceType<T>>
+      | readonly GlobalModelNames<InstanceType<T>>[],
+  >(
+    this: T,
+    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+    options?: PolymorphicHasOneOptions<InstanceType<T>, AssociationGlobalNameOrNames>
   ): any
 
   /**

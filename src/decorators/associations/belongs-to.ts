@@ -18,6 +18,26 @@ import {
   foreignKeyTypeField,
 } from './shared'
 
+export default function BelongsTo<
+  BaseInstance extends Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
+>(
+  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+  opts?: NonPolymorphicBelongsToOptions<BaseInstance, AssociationGlobalNameOrNames>
+): any
+
+export default function BelongsTo<
+  BaseInstance extends Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
+>(
+  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+  opts?: PolymorphicBelongsToOptions<BaseInstance, AssociationGlobalNameOrNames>
+): any
+
 /**
  * Establishes a "BelongsTo" association between the base dream
  * and the child dream, where the base dream has a foreign key
@@ -47,16 +67,15 @@ export default function BelongsTo<
   AssociationGlobalNameOrNames extends
     | GlobalModelNames<BaseInstance>
     | readonly GlobalModelNames<BaseInstance>[],
->(
-  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
-  {
+>(globalAssociationNameOrNames: AssociationGlobalNameOrNames, opts: unknown = {}): any {
+  const {
     foreignKey,
     optional = false,
     polymorphic = false,
     primaryKeyOverride = null,
     withoutDefaultScopes,
-  }: BelongsToOptions<BaseInstance, AssociationGlobalNameOrNames> = {}
-): any {
+  } = opts as any
+
   return function (
     target: BaseInstance,
     key: string,
@@ -119,7 +138,7 @@ export interface BelongsToStatement<
   withoutDefaultScopes?: DefaultScopeName<BaseInstance>[]
 }
 
-export interface BelongsToOptions<
+export interface NonPolymorphicBelongsToOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
     | GlobalModelNames<BaseInstance>
@@ -138,6 +157,28 @@ export interface BelongsToOptions<
   foreignKey?: DreamColumnNames<BaseInstance>
   primaryKeyOverride?: TableColumnNames<BaseInstance['DB'], AssociationTableName> | null
   optional?: boolean
-  polymorphic?: boolean
+  withoutDefaultScopes?: DefaultScopeNameForTable<BaseInstance['schema'], AssociationTableName>[]
+}
+
+export interface PolymorphicBelongsToOptions<
+  BaseInstance extends Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
+  AssociationGlobalName = AssociationGlobalNameOrNames extends Readonly<any[]>
+    ? AssociationGlobalNameOrNames[0] & string
+    : AssociationGlobalNameOrNames & string,
+  AssociationTableName extends AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
+    keyof BaseInstance['DB'] = TableNameForGlobalModelName<
+    BaseInstance,
+    AssociationGlobalName & GlobalModelNames<BaseInstance>
+  > &
+    AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
+    keyof BaseInstance['DB'],
+> {
+  foreignKey: DreamColumnNames<BaseInstance>
+  primaryKeyOverride?: TableColumnNames<BaseInstance['DB'], AssociationTableName> | null
+  optional?: boolean
+  polymorphic: boolean
   withoutDefaultScopes?: DefaultScopeNameForTable<BaseInstance['schema'], AssociationTableName>[]
 }

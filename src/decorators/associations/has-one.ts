@@ -7,6 +7,7 @@ import {
   HasOptions,
   HasStatement,
   HasThroughOptions,
+  PolymorphicHasOptions,
   applyGetterAndSetter,
   associationPrimaryKeyAccessors,
   blankAssociationsFactory,
@@ -33,6 +34,16 @@ export default function HasOne<
 >(
   globalAssociationNameOrNames: AssociationGlobalNameOrNames,
   opts?: HasOneThroughOptions<BaseInstance, AssociationGlobalNameOrNames>
+): any
+
+export default function HasOne<
+  BaseInstance extends Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
+>(
+  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+  opts?: PolymorphicHasOneOptions<BaseInstance, AssociationGlobalNameOrNames>
 ): any
 
 /**
@@ -154,6 +165,13 @@ export type HasOneOptions<
     | GlobalModelNames<BaseInstance>
     | readonly GlobalModelNames<BaseInstance>[],
 > = Omit<HasOptions<BaseInstance, AssociationGlobalNameOrNames>, HasManyOnlyOptions>
+
+export type PolymorphicHasOneOptions<
+  BaseInstance extends Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
+> = Omit<PolymorphicHasOptions<BaseInstance, AssociationGlobalNameOrNames>, HasManyOnlyOptions>
 
 export type HasOneThroughOptions<
   BaseInstance extends Dream,
