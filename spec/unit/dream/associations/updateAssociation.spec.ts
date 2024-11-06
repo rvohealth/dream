@@ -240,50 +240,19 @@ describe('Dream#updateAssociation', () => {
   })
 
   context('HasOne', () => {
-    context('with order defined on association', () => {
-      it('respects order', async () => {
-        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
-        const composition1 = await Composition.create({ user, content: '1' })
-        const composition2 = await Composition.create({ user, content: '2' })
+    it('respects scopes on the associated model', async () => {
+      const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      const pet1 = await Pet.create({ user, name: 'Aster', species: 'dog' })
+      const pet2 = await Pet.create({ user, name: 'peta', species: 'dog' })
+      await pet2.destroy()
 
-        await user.updateAssociation('lastComposition', { content: 'zoomba' })
-        await composition1.reload()
-        await composition2.reload()
+      await user.updateAssociation('asterPet', { species: 'cat' })
 
-        expect(composition2.content).toEqual('zoomba')
-        expect(composition1.content).toEqual('1')
-      })
+      await pet1.reload()
+      const reloadedPet2 = await Pet.removeAllDefaultScopes().find(pet2.id)
 
-      it('respects multiple order statements', async () => {
-        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
-        const composition1 = await Composition.create({ user, content: '1' })
-        const composition2 = await Composition.create({ user, content: '2' })
-        const composition3 = await Composition.create({ user, content: '2' })
-
-        await user.updateAssociation('firstComposition2', { content: 'zoomba' })
-        await composition1.reload()
-        await composition2.reload()
-        await composition3.reload()
-
-        expect(composition2.content).toEqual('zoomba')
-        expect(composition1.content).toEqual('1')
-        expect(composition3.content).toEqual('2')
-      })
-
-      it('respects scopes on the associated model', async () => {
-        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
-        const pet1 = await Pet.create({ user, name: 'petb' })
-        const pet2 = await Pet.create({ user, name: 'peta' })
-        await pet2.destroy()
-
-        await user.updateAssociation('firstPet', { name: 'coolidge' })
-
-        await pet1.reload()
-        const reloadedPet2 = await Pet.removeAllDefaultScopes().find(pet2.id)
-
-        expect(pet1.name).toEqual('coolidge')
-        expect(reloadedPet2!.name).toEqual('peta')
-      })
+      expect(pet1.species).toEqual('cat')
+      expect(reloadedPet2!.species).toEqual('dog')
     })
   })
 

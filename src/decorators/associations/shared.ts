@@ -179,6 +179,16 @@ export interface HasStatement<
   primaryKey: (associationInstance?: Dream) => DreamColumnNames<BaseInstance>
   foreignKey: () => keyof DB[ForeignTableName] & string
   foreignKeyTypeField: () => keyof DB[ForeignTableName] & string
+  // ATTENTION
+  //
+  // Using `order` with HasOne is tempting as an elegant API
+  // (e.g. a `currentXyz` variant of a `currentXyzs` HasMany
+  // association by ordering on `createdAt`); however, it
+  // creates a fundamental problem when querying through the
+  // HasMany association: we can't `limit(1)` as part of the
+  // query because multiple records may match the HasMany
+  // association, each of which may HaveOne of the subsequent
+  // association
   polymorphic: boolean
   source: string
   through?: string
@@ -187,8 +197,6 @@ export interface HasStatement<
   whereNot?: WhereStatement<DB, Schema, ForeignTableName>
   selfWhere?: WhereSelfStatement<BaseInstance, DB, Schema, ForeignTableName>
   selfWhereNot?: WhereSelfStatement<BaseInstance, DB, Schema, ForeignTableName>
-  distinct?: TableColumnNames<DB, ForeignTableName>
-  order?: OrderStatement<DB, Schema, ForeignTableName>
   dependent?: DependentOptions
   withoutDefaultScopes?: DefaultScopeName<BaseInstance>[]
 }
@@ -287,7 +295,6 @@ type ThroughIncompatibleOptions =
   | PolymorphicOption
 
 type ThroughOnlyOptions = 'through' | 'source' | 'preloadThroughColumns'
-export type HasManyOnlyOptions = 'distinct'
 
 export type HasOptions<
   BaseInstance extends Dream,

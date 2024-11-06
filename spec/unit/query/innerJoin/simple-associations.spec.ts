@@ -428,18 +428,6 @@ describe('Query#joins with simple associations', () => {
         expect(reloaded).toMatchDreamModel(pet)
       })
     })
-
-    context('with order-clause-on-the-association', () => {
-      it('loads the associated object', async () => {
-        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-        await Composition.create({
-          user,
-        })
-
-        const reloadedUser = await User.innerJoin('lastComposition').first()
-        expect(reloadedUser).toMatchDreamModel(user)
-      })
-    })
   })
 
   context('when the model and its association have a default scope with the same attribute name', () => {

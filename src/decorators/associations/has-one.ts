@@ -3,7 +3,6 @@ import Dream from '../../dream'
 import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames'
 import { GlobalModelNames } from '../../dream/types'
 import {
-  HasManyOnlyOptions,
   HasOptions,
   HasStatement,
   HasThroughOptions,
@@ -87,7 +86,6 @@ export default function HasOne<
   const {
     dependent,
     foreignKey,
-    order,
     polymorphic = false,
     preloadThroughColumns,
     primaryKeyOverride = null,
@@ -128,8 +126,6 @@ export default function HasOne<
         whereNot,
         selfWhere,
         selfWhereNot,
-        distinct: null,
-        order,
         primaryKeyOverride,
         dependent,
         withoutDefaultScopes,
@@ -164,18 +160,18 @@ export type HasOneOptions<
   AssociationGlobalNameOrNames extends
     | GlobalModelNames<BaseInstance>
     | readonly GlobalModelNames<BaseInstance>[],
-> = Omit<HasOptions<BaseInstance, AssociationGlobalNameOrNames>, HasManyOnlyOptions>
+> = HasOptions<BaseInstance, AssociationGlobalNameOrNames>
 
 export type PolymorphicHasOneOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
     | GlobalModelNames<BaseInstance>
     | readonly GlobalModelNames<BaseInstance>[],
-> = Omit<PolymorphicHasOptions<BaseInstance, AssociationGlobalNameOrNames>, HasManyOnlyOptions>
+> = PolymorphicHasOptions<BaseInstance, AssociationGlobalNameOrNames>
 
 export type HasOneThroughOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
     | GlobalModelNames<BaseInstance>
     | readonly GlobalModelNames<BaseInstance>[],
-> = Omit<HasThroughOptions<BaseInstance, AssociationGlobalNameOrNames>, HasManyOnlyOptions>
+> = HasThroughOptions<BaseInstance, AssociationGlobalNameOrNames>

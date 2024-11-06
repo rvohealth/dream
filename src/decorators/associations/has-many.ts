@@ -1,11 +1,12 @@
 import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../dream'
 import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames'
-import { GlobalModelNames } from '../../dream/types'
+import { GlobalModelNames, TableColumnNames } from '../../dream/types'
 import {
   HasOptions,
   HasStatement,
   HasThroughOptions,
+  OrderStatement,
   PolymorphicHasOptions,
   applyGetterAndSetter,
   associationPrimaryKeyAccessors,
@@ -161,7 +162,10 @@ export type HasManyStatement<
   DB,
   Schema,
   ForeignTableName extends AssociationTableNames<DB, Schema> & keyof DB,
-> = HasStatement<BaseInstance, DB, Schema, ForeignTableName, 'HasMany'>
+> = HasStatement<BaseInstance, DB, Schema, ForeignTableName, 'HasMany'> & {
+  distinct?: TableColumnNames<DB, ForeignTableName>
+  order?: OrderStatement<DB, Schema, ForeignTableName>
+}
 
 export type HasManyOptions<
   BaseInstance extends Dream,

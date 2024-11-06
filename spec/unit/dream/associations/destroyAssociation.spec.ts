@@ -375,34 +375,6 @@ describe('Dream#destroyAssociation', () => {
         expect(await Pet.all()).toMatchDreamModels([pet2])
       })
     })
-
-    context('the association has order applied to it', () => {
-      it('respects ascending order clause', async () => {
-        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-        const composition1 = await Composition.create({ user, content: '1' })
-        const composition2 = await Composition.create({ user, content: '2' })
-
-        expect(await user.associationQuery('firstComposition').first()).toMatchDreamModel(composition1)
-
-        await user.destroyAssociation('firstComposition')
-        expect(await Composition.count()).toEqual(1)
-
-        expect(await user.associationQuery('firstComposition').first()).toMatchDreamModel(composition2)
-      })
-
-      it('respects descending order clause', async () => {
-        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-        const composition1 = await Composition.create({ user, content: '1' })
-        const composition2 = await Composition.create({ user, content: '2' })
-
-        expect(await user.associationQuery('lastComposition').first()).toMatchDreamModel(composition2)
-
-        await user.destroyAssociation('lastComposition')
-        expect(await Composition.count()).toEqual(1)
-
-        expect(await user.associationQuery('lastComposition').first()).toMatchDreamModel(composition1)
-      })
-    })
   })
 
   context('with an optional BelongsTo association', () => {
