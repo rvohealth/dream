@@ -121,25 +121,10 @@ export default class User extends ApplicationModel {
   })
   public mainCompositionAsset: CompositionAsset
 
-  @User.HasOne('Composition', {
-    order: 'id',
-  })
-  public firstComposition: Composition
-
-  @User.HasOne('Composition', {
-    order: { content: 'desc', id: 'asc' },
-  })
-  public firstComposition2: Composition
-
-  @User.HasOne('Composition', {
+  @User.HasMany('Composition', {
     order: { id: 'desc' },
   })
-  public lastComposition: Composition
-
-  @User.HasOne('Pet', {
-    order: 'name',
-  })
-  public firstPet: Pet
+  public reverseOrderedCompositions: Composition[]
 
   @User.HasMany('Composition', {
     order: { content: 'asc', id: 'desc' },
@@ -215,6 +200,9 @@ export default class User extends ApplicationModel {
 
   @User.HasOne('Pet', { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
   public firstPetFromUuid: Pet
+
+  @User.HasOne('Pet', { where: { name: 'Aster' } })
+  public asterPet: Pet
 
   @User.HasMany('Collar', { through: 'petsFromUuid', source: 'collars' })
   public collarsFromUuid: Collar[]

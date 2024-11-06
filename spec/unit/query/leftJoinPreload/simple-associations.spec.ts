@@ -338,11 +338,9 @@ describe('Query#leftJoinPreload with simple associations', () => {
           user,
         })
 
-        const reloadedUser = await User.leftJoinPreload('firstComposition')
-          .leftJoinPreload('lastComposition')
-          .firstOrFail()
-        expect(reloadedUser.firstComposition).toMatchDreamModel(firstComposition)
-        expect(reloadedUser.lastComposition).toMatchDreamModel(lastComposition)
+        const reloadedUser = await User.leftJoinPreload('reverseOrderedCompositions').firstOrFail()
+        expect(reloadedUser.reverseOrderedCompositions[0]).toMatchDreamModel(lastComposition)
+        expect(reloadedUser.reverseOrderedCompositions[1]).toMatchDreamModel(firstComposition)
       })
     })
   })

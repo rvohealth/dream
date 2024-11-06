@@ -281,6 +281,22 @@ describe('Query#preload with simple associations', () => {
         expect(reloadedUser!.notRecentCompositions).toMatchDreamModels([composition])
       })
     })
+
+    context('with order-clause-on-the-association', () => {
+      it('loads the associated object', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const firstComposition = await Composition.create({
+          user,
+        })
+        const lastComposition = await Composition.create({
+          user,
+        })
+
+        const reloadedUser = await User.preload('reverseOrderedCompositions').first()
+        expect(reloadedUser!.reverseOrderedCompositions[0]).toMatchDreamModel(lastComposition)
+        expect(reloadedUser!.reverseOrderedCompositions[1]).toMatchDreamModel(firstComposition)
+      })
+    })
   })
 
   context('HasOne', () => {
@@ -332,22 +348,6 @@ describe('Query#preload with simple associations', () => {
 
         const reloaded = await Pet.preload('notLostCollar').first()
         expect(reloaded?.notLostCollar).toMatchDreamModel(notLostCollar)
-      })
-    })
-
-    context('with order-clause-on-the-association', () => {
-      it('loads the associated object', async () => {
-        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-        const firstComposition = await Composition.create({
-          user,
-        })
-        const lastComposition = await Composition.create({
-          user,
-        })
-
-        const reloadedUser = await User.preload('firstComposition').preload('lastComposition').first()
-        expect(reloadedUser!.firstComposition).toMatchDreamModel(firstComposition)
-        expect(reloadedUser!.lastComposition).toMatchDreamModel(lastComposition)
       })
     })
   })

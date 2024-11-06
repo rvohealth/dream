@@ -703,17 +703,17 @@ describe('DreamSerializer#render', () => {
             }
 
             class UserSerializer extends DreamSerializer {
-              @RendersMany(() => CollarSerializer2, { through: 'firstPet' })
+              @RendersMany(() => CollarSerializer2, { through: 'asterPet' })
               public collars: any[]
             }
 
             it('correctly traverses nested objects to reach through target', async () => {
               let user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-              const pet = await Pet.create({ user })
+              const pet = await Pet.create({ user, name: 'Aster' })
               await Collar.create({ pet, tagName: 'collar 1' })
               await Collar.create({ pet, tagName: 'collar 2' })
 
-              user = await user.load('firstPet', 'collars').execute()
+              user = await user.load('asterPet', 'collars').execute()
 
               const serializer = new UserSerializer(user)
               expect(serializer.render()).toEqual({
@@ -1232,15 +1232,15 @@ describe('DreamSerializer#render', () => {
 
         context('through argument points to a HasOne association', () => {
           class UserSerializer extends DreamSerializer {
-            @RendersOne({ through: 'firstPet' })
+            @RendersOne({ through: 'asterPet' })
             public currentCollar: Collar
           }
 
           it('correctly traverses nested objects to reach through target', async () => {
             let user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-            const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+            const pet = await Pet.create({ user, name: 'Aster', species: 'cat' })
             const collar = await pet.createAssociation('collars', { lost: false })
-            user = await user.load('firstPet', 'currentCollar', 'pet', 'ratings').execute()
+            user = await user.load('asterPet', 'currentCollar', 'pet', 'ratings').execute()
 
             const serializer = new UserSerializer(user)
             expect(serializer.render()).toEqual({

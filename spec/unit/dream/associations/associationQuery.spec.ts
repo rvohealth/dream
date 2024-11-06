@@ -343,34 +343,6 @@ describe('Dream#associationQuery', () => {
     })
   })
 
-  context('HasOne', () => {
-    context('with order applied to the association', () => {
-      it('applies order', async () => {
-        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
-        const composition1 = await Composition.create({ user, content: 'b' })
-        const composition2 = await Composition.create({ user, content: 'a' })
-
-        const firstResults = await user.associationQuery('firstComposition').first()
-        expect(firstResults).toMatchDreamModel(composition1)
-
-        const lastResults = await user.associationQuery('lastComposition').first()
-        expect(lastResults).toMatchDreamModel(composition2)
-      })
-    })
-
-    context('with multiple order statements applied to the association', () => {
-      it('applies order', async () => {
-        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
-        await Composition.create({ user, content: 'a' })
-        const composition2 = await Composition.create({ user, content: 'b' })
-        await Composition.create({ user, content: 'b' })
-
-        const firstResults = await user.associationQuery('firstComposition2').first()
-        expect(firstResults).toMatchDreamModel(composition2)
-      })
-    })
-  })
-
   context('BelongsTo', () => {
     context('withoutDefaultScopes defined on the association', () => {
       it('removes the default scope', async () => {

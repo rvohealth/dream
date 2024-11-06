@@ -3070,21 +3070,24 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       ///////////////////////////////////////////////////////////////////////////////////////
       throughAssociations.forEach(
         (throughAssociation: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>) => {
-          if (throughAssociation.distinct) {
-            query = query.distinctOn(
-              this.distinctColumnNameForAssociation({
-                association: throughAssociation,
+          if (throughAssociation.type === 'HasMany') {
+            if (throughAssociation.distinct) {
+              query = query.distinctOn(
+                this.distinctColumnNameForAssociation({
+                  association: throughAssociation,
+                  tableNameOrAlias: throughAssociation.as,
+                  foreignKey: throughAssociation.primaryKey(),
+                }) as any
+              )
+            }
+
+            if (throughAssociation.order) {
+              query = this.applyOrderStatementForAssociation({
+                query,
                 tableNameOrAlias: throughAssociation.as,
-                foreignKey: throughAssociation.primaryKey(),
-              }) as any
-            )
-          }
-          if (throughAssociation.order) {
-            query = this.applyOrderStatementForAssociation({
-              query,
-              tableNameOrAlias: throughAssociation.as,
-              association: throughAssociation,
-            })
+                association: throughAssociation,
+              })
+            }
           }
         }
       )
@@ -3217,22 +3220,24 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         }
       )
 
-      if (association.order) {
-        query = this.applyOrderStatementForAssociation({
-          query,
-          tableNameOrAlias: currentAssociationTableOrAlias,
-          association,
-        })
-      }
-
-      if (association.distinct) {
-        query = query.distinctOn(
-          this.distinctColumnNameForAssociation({
-            association,
+      if (association.type === 'HasMany') {
+        if (association.order) {
+          query = this.applyOrderStatementForAssociation({
+            query,
             tableNameOrAlias: currentAssociationTableOrAlias,
-            foreignKey: association.foreignKey(),
-          }) as any
-        )
+            association,
+          })
+        }
+
+        if (association.distinct) {
+          query = query.distinctOn(
+            this.distinctColumnNameForAssociation({
+              association,
+              tableNameOrAlias: currentAssociationTableOrAlias,
+              foreignKey: association.foreignKey(),
+            }) as any
+          )
+        }
       }
     }
 
@@ -3452,7 +3457,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }: {
     query: SelectQueryBuilder<any, any, any>
     tableNameOrAlias: string
-    association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
+    association: HasManyStatement<any, any, any, any>
   }) {
     const orderStatement = association.order
 
@@ -3463,10 +3468,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         const direction = (orderStatement as any)[column] as OrderDir
         query = query.orderBy(`${tableNameOrAlias}.${column}`, direction)
       })
-    }
-
-    if (association.type === 'HasOne') {
-      query = query.limit(1)
     }
 
     return query
