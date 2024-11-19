@@ -54,7 +54,7 @@ export default function generateDreamContent({
         modelImportStatements.push(associationImportStatement)
         return `
 @${modelClassName}.BelongsTo('${fullyQualifiedAssociatedModelName}'${descriptors.includes('optional') ? ', { optional: true }' : ''})
-public ${associationName}: ${associationModelName}
+public ${associationName}: ${associationModelName}${descriptors.includes('optional') ? ' | null' : ''}
 public ${associationName}Id: DreamColumn<${modelClassName}, '${associationName}Id'>
 `
 

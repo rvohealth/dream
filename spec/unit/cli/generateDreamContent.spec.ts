@@ -304,7 +304,7 @@ export default class Composition extends ApplicationModel {
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
   @Composition.BelongsTo('GraphNode', { optional: true })
-  public graphNode: GraphNode
+  public graphNode: GraphNode | null
   public graphNodeId: DreamColumn<Composition, 'graphNodeId'>
 }
 `
