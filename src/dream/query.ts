@@ -435,14 +435,13 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     return new Query<DreamInstance>(this.dreamInstance, {
       baseSqlAlias: opts.baseSqlAlias || this.baseSqlAlias,
       baseSelectQuery: opts.baseSelectQuery || this.baseSelectQuery,
-      passthroughWhereStatement: Object.freeze({
+      passthroughWhereStatement: {
         ...this.passthroughWhereStatement,
         ...(opts.passthroughWhereStatement || {}),
-      }),
+      },
 
-      where: opts.where === null ? [] : Object.freeze([...this.whereStatements, ...(opts.where || [])]),
-      whereNot:
-        opts.whereNot === null ? [] : Object.freeze([...this.whereNotStatements, ...(opts.whereNot || [])]),
+      where: opts.where === null ? [] : [...this.whereStatements, ...(opts.where || [])],
+      whereNot: opts.whereNot === null ? [] : [...this.whereNotStatements, ...(opts.whereNot || [])],
       limit: opts.limit === null ? null : opts.limit !== undefined ? opts.limit : this.limitStatement || null,
       offset:
         opts.limit === null || opts.offset === null
@@ -460,6 +459,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       // cloned versions of the `this.` versions, handled in the `preload` and `joins` methods
       preloadStatements: opts.preloadStatements || this.preloadStatements,
       preloadWhereStatements: opts.preloadWhereStatements || this.preloadWhereStatements,
+      innerJoinDreamClasses: opts.innerJoinDreamClasses || this.innerJoinDreamClasses,
       innerJoinStatements: opts.innerJoinStatements || this.innerJoinStatements,
       innerJoinWhereStatements: opts.innerJoinWhereStatements || this.innerJoinWhereStatements,
       leftJoinStatements: opts.leftJoinStatements || this.leftJoinStatements,
@@ -731,7 +731,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       this.preloadWhereStatements
     )
 
-    this.fleshOutJoinsStatements(preloadStatements, preloadWhereStatements, null, [...(args as any)])
+    this.fleshOutJoinsStatements([], preloadStatements, preloadWhereStatements, null, [...(args as any)])
     return this.clone({ preloadStatements, preloadWhereStatements })
   }
 
@@ -752,13 +752,15 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
   >(...args: [...Arr, VariadicJoinsArgs<DB, Schema, TableName, Arr>]) {
+    const innerJoinDreamClasses: (typeof Dream)[] = [...this.innerJoinDreamClasses]
     const innerJoinStatements = cloneDeepSafe(this.innerJoinStatements)
-
     const innerJoinWhereStatements: RelaxedJoinWhereStatement<DB, Schema> = cloneDeepSafe(
       this.innerJoinWhereStatements
     )
-    this.fleshOutJoinsStatements(innerJoinStatements, innerJoinWhereStatements, null, [...(args as any)])
-    return this.clone({ innerJoinStatements, innerJoinWhereStatements })
+    this.fleshOutJoinsStatements(innerJoinDreamClasses, innerJoinStatements, innerJoinWhereStatements, null, [
+      ...(args as any),
+    ])
+    return this.clone({ innerJoinDreamClasses, innerJoinStatements, innerJoinWhereStatements })
   }
 
   /**
@@ -773,13 +775,16 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
   >(...args: [...Arr, VariadicJoinsArgs<DB, Schema, TableName, Arr>]) {
+    const innerJoinDreamClasses: (typeof Dream)[] = [...this.innerJoinDreamClasses]
     const leftJoinStatements = cloneDeepSafe(this.leftJoinStatements)
-
     const leftJoinWhereStatements: RelaxedJoinWhereStatement<DB, Schema> = cloneDeepSafe(
       this.leftJoinWhereStatements
     )
-    this.fleshOutJoinsStatements(leftJoinStatements, leftJoinWhereStatements, null, [...(args as any)])
-    return this.clone({ leftJoinStatements, leftJoinWhereStatements })
+
+    this.fleshOutJoinsStatements(innerJoinDreamClasses, leftJoinStatements, leftJoinWhereStatements, null, [
+      ...(args as any),
+    ])
+    return this.clone({ innerJoinDreamClasses, leftJoinStatements, leftJoinWhereStatements })
   }
 
   /**
@@ -789,10 +794,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    *
    */
   private fleshOutJoinsStatements<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
+    innerJoinDreamClasses: (typeof Dream)[],
     joinStatements: RelaxedJoinStatement,
     joinWhereStatements: RelaxedJoinWhereStatement<DB, Schema>,
     previousAssociationName: null | string,
-    associationStatements: (string | WhereStatement<DB, Schema, any> | undefined)[]
+    associationStatements: (string | WhereStatement<DB, Schema, any> | undefined)[],
+    previousDreamClass: typeof Dream | null = this.dreamClass
   ) {
     const nextAssociationStatement = associationStatements.shift()
 
@@ -805,6 +812,13 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         joinStatements[protectAgainstPollutingAssignment(nextStatement)] = {}
       if (!joinWhereStatements[nextStatement])
         joinWhereStatements[protectAgainstPollutingAssignment(nextStatement)] = {}
+
+      const nextDreamClass = this.addAssociatedDreamClassToInnerJoinDreamClasses(
+        previousDreamClass,
+        nextStatement,
+        innerJoinDreamClasses
+      )
+
       const nextJoinsStatements = joinStatements[nextStatement]
       const nextJoinsWhereStatements = joinWhereStatements[nextStatement] as RelaxedJoinWhereStatement<
         DB,
@@ -812,18 +826,28 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       >
 
       this.fleshOutJoinsStatements(
+        innerJoinDreamClasses,
         nextJoinsStatements as any,
         nextJoinsWhereStatements,
         nextStatement,
-        associationStatements
+        associationStatements,
+        nextDreamClass
       )
+      //
     } else if (Array.isArray(nextAssociationStatement)) {
       // this supports the final argument of load/preload statements
-      const nextStatement = nextAssociationStatement
+      nextAssociationStatement.forEach((associationName: string) => {
+        this.addAssociatedDreamClassToInnerJoinDreamClasses(
+          previousDreamClass,
+          associationName,
+          innerJoinDreamClasses
+        )
+      })
 
-      nextStatement.forEach(associationStatement => {
+      nextAssociationStatement.forEach(associationStatement => {
         joinStatements[protectAgainstPollutingAssignment(associationStatement)] = {}
       })
+      //
     } else if (isObject(nextAssociationStatement) && previousAssociationName) {
       const clonedNextAssociationStatement = cloneDeepSafe(nextAssociationStatement)
 
@@ -834,10 +858,12 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       })
 
       this.fleshOutJoinsStatements(
+        innerJoinDreamClasses,
         joinStatements,
         joinWhereStatements,
         previousAssociationName,
-        associationStatements
+        associationStatements,
+        previousDreamClass
       )
     }
   }
@@ -879,18 +905,27 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
   >(...args: [...Arr, VariadicPluckThroughArgs<DB, Schema, TableName, Arr>]): Promise<any[]> {
+    const innerJoinDreamClasses: (typeof Dream)[] = [...this.innerJoinDreamClasses]
     const innerJoinStatements = cloneDeepSafe(this.innerJoinStatements)
-
     const innerJoinWhereStatements: RelaxedJoinWhereStatement<DB, Schema> = cloneDeepSafe(
       this.innerJoinWhereStatements
     )
+
     const pluckStatement = [
-      this.fleshOutPluckThroughStatements(innerJoinStatements, innerJoinWhereStatements, null, [...args]),
+      this.fleshOutPluckThroughStatements(
+        innerJoinDreamClasses,
+        innerJoinStatements,
+        innerJoinWhereStatements,
+        null,
+        [...args]
+      ),
     ].flat() as any[]
 
-    const vals = await this.clone({ innerJoinStatements, innerJoinWhereStatements }).executePluck(
-      ...pluckStatement
-    )
+    const vals = await this.clone({
+      innerJoinDreamClasses,
+      innerJoinStatements,
+      innerJoinWhereStatements,
+    }).executePluck(...pluckStatement)
 
     const response = this.pluckValuesToPluckResponse(pluckStatement, vals, {
       excludeFirstValue: false,
@@ -945,8 +980,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     const batchSize = providedOpts?.batchSize || Query.BATCH_SIZES.PLUCK_EACH_THROUGH
 
+    const innerJoinDreamClasses: (typeof Dream)[] = [...this.innerJoinDreamClasses]
     const innerJoinStatements = cloneDeepSafe(this.innerJoinStatements)
-
     const innerJoinWhereStatements: RelaxedJoinWhereStatement<DB, Schema> = cloneDeepSafe(
       this.innerJoinWhereStatements
     )
@@ -955,7 +990,13 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     const onlyColumns: any[] = fieldArgs.filter((_, index) => index < providedCbIndex)
 
     const pluckStatement = [
-      this.fleshOutPluckThroughStatements(innerJoinStatements, innerJoinWhereStatements, null, onlyColumns),
+      this.fleshOutPluckThroughStatements(
+        innerJoinDreamClasses,
+        innerJoinStatements,
+        innerJoinWhereStatements,
+        null,
+        onlyColumns
+      ),
     ].flat() as string[]
 
     const associationNamesToDreamClasses = this.pluckThroughArgumentsToDreamClassesMap([...fieldArgs])
@@ -970,7 +1011,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       ? pluckStatement
       : [finalPrimaryKey, ...pluckStatement]
 
-    const baseQuery = this.clone({ innerJoinStatements, innerJoinWhereStatements })
+    const baseQuery = this.clone({ innerJoinDreamClasses, innerJoinStatements, innerJoinWhereStatements })
 
     let offset = 0
     let results: any[]
@@ -1000,7 +1041,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    */
   private pluckThroughArgumentsToAssociationNames(associationStatements: any[]): string[] {
     const innerJoinStatements = {}
-    this.fleshOutPluckThroughStatements(innerJoinStatements, {}, null, associationStatements)
+    this.fleshOutPluckThroughStatements([], innerJoinStatements, {}, null, associationStatements)
     return allNestedObjectKeys(innerJoinStatements)
   }
 
@@ -1169,6 +1210,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['schema'],
   >(
+    innerJoinDreamClasses: (typeof Dream)[],
     innerJoinStatements: RelaxedPreloadStatement,
     innerJoinWhereStatements: RelaxedJoinWhereStatement<DB, Schema>,
     previousAssociationName: null | string,
@@ -1180,7 +1222,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     //   | undefined
     // )[]
     // Complex type isn't gaining us anything and is making it difficult to use this private method
-    associationStatements: any[]
+    associationStatements: any[],
+    previousDreamClass: typeof Dream | null = this.dreamClass
   ): `${any}.${any}` | `${any}.${any}`[] | undefined {
     const nextAssociationStatement = associationStatements.shift()
 
@@ -1188,8 +1231,10 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       // just satisfying typing
     } else if (Array.isArray(nextAssociationStatement)) {
       return nextAssociationStatement
+      //
     } else if (isString(nextAssociationStatement) && (nextAssociationStatement as string).includes('.')) {
       return nextAssociationStatement as `${any}.${any}`
+      //
     } else if (isString(nextAssociationStatement)) {
       const nextStatement = nextAssociationStatement as string
 
@@ -1197,6 +1242,13 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         innerJoinStatements[protectAgainstPollutingAssignment(nextStatement)] = {}
       if (!innerJoinWhereStatements[nextStatement])
         innerJoinWhereStatements[protectAgainstPollutingAssignment(nextStatement)] = {}
+
+      const nextDreamClass = this.addAssociatedDreamClassToInnerJoinDreamClasses(
+        previousDreamClass,
+        nextStatement,
+        innerJoinDreamClasses
+      )
+
       const nextJoinsStatements = innerJoinStatements[nextStatement]
       const nextJoinsWhereStatements = innerJoinWhereStatements[nextStatement] as RelaxedJoinWhereStatement<
         DB,
@@ -1204,11 +1256,14 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       >
 
       return this.fleshOutPluckThroughStatements(
+        innerJoinDreamClasses,
         nextJoinsStatements as any,
         nextJoinsWhereStatements,
         nextStatement,
-        associationStatements
+        associationStatements,
+        nextDreamClass
       )
+      //
     } else if (isObject(nextAssociationStatement) && previousAssociationName) {
       const clonedNextAssociationStatement = cloneDeepSafe(nextAssociationStatement)
 
@@ -1219,12 +1274,75 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       })
 
       return this.fleshOutPluckThroughStatements(
+        innerJoinDreamClasses,
         innerJoinStatements,
         innerJoinWhereStatements,
         previousAssociationName,
-        associationStatements
+        associationStatements,
+        previousDreamClass
       )
     }
+  }
+
+  /**
+   * @internal
+   *
+   * Adds Dream class to temporary innerJoinDreamClasses array based on association name
+   *
+   */
+  private addAssociatedDreamClassToInnerJoinDreamClasses(
+    previousDreamClass: typeof Dream | null,
+    associationName: string,
+    innerJoinDreamClasses: (typeof Dream)[]
+  ): typeof Dream | null {
+    if (!previousDreamClass) return null
+
+    const association = (previousDreamClass['associationMetadataMap']() as any)[associationName] as
+      | BelongsToStatement<any, any, any, any>
+      | HasManyStatement<any, any, any, any>
+      | HasOneStatement<any, any, any, any>
+    if (!association) return null
+
+    this.addThroughAssociatedDreamClassToInnerJoinDreamClasses(
+      previousDreamClass,
+      association,
+      innerJoinDreamClasses
+    )
+
+    const dreamClasses = [association.modelCB()].flat()
+    dreamClasses.forEach(dreamClass => innerJoinDreamClasses.push(dreamClass))
+    return dreamClasses[0]
+  }
+
+  private addThroughAssociatedDreamClassToInnerJoinDreamClasses(
+    dreamClass: typeof Dream,
+    _association:
+      | BelongsToStatement<any, any, any, any>
+      | HasManyStatement<any, any, any, any>
+      | HasOneStatement<any, any, any, any>,
+    innerJoinDreamClasses: (typeof Dream)[]
+  ) {
+    const association = _association as
+      | HasManyStatement<any, any, any, any>
+      | HasOneStatement<any, any, any, any>
+    const throughAssociationName = association.through
+    if (!throughAssociationName) return
+
+    const throughAssociation = (dreamClass['associationMetadataMap']() as any)[throughAssociationName] as
+      | BelongsToStatement<any, any, any, any>
+      | HasManyStatement<any, any, any, any>
+      | HasOneStatement<any, any, any, any>
+
+    if (!throughAssociation) return
+
+    const throughDreamClass = [throughAssociation.modelCB()].flat()[0]
+    innerJoinDreamClasses.push(throughDreamClass)
+
+    this.addThroughAssociatedDreamClassToInnerJoinDreamClasses(
+      dreamClass,
+      throughAssociation,
+      innerJoinDreamClasses
+    )
   }
 
   /**
@@ -1771,22 +1889,31 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     minOrMax: 'min' | 'max',
     args: unknown[]
   ) {
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { min, max } = this.dbFor('select').fn
+    const innerJoinDreamClasses: (typeof Dream)[] = [...this.innerJoinDreamClasses]
     const innerJoinStatements = cloneDeepSafe(this.innerJoinStatements)
-
     const innerJoinWhereStatements: RelaxedJoinWhereStatement<DB, Schema> = cloneDeepSafe(
       this.innerJoinWhereStatements
     )
     const pluckStatement = [
-      this.fleshOutPluckThroughStatements(innerJoinStatements, innerJoinWhereStatements, null, [...args]),
+      this.fleshOutPluckThroughStatements(
+        innerJoinDreamClasses,
+        innerJoinStatements,
+        innerJoinWhereStatements,
+        null,
+        [...args]
+      ),
     ].flat() as any[]
     const columnName = pluckStatement[0]
 
-    let kyselyQuery = this.clone({ innerJoinStatements, innerJoinWhereStatements }).buildSelect({
+    const query = this.clone({ innerJoinStatements, innerJoinWhereStatements })
+
+    let kyselyQuery = query.buildSelect({
       bypassSelectAll: true,
       bypassOrder: true,
     })
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { min, max } = query.dbFor('select').fn
 
     switch (minOrMax) {
       case 'min':
@@ -1819,23 +1946,34 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
   >(...args: [...Arr, VariadicCountThroughArgs<DB, Schema, TableName, Arr>]): Promise<number> {
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { count } = this.dbFor('select').fn
+    const innerJoinDreamClasses: (typeof Dream)[] = [...this.innerJoinDreamClasses]
     const innerJoinStatements = cloneDeepSafe(this.innerJoinStatements)
-
     const innerJoinWhereStatements: RelaxedJoinWhereStatement<DB, Schema> = cloneDeepSafe(
       this.innerJoinWhereStatements
     )
 
-    this.fleshOutPluckThroughStatements(innerJoinStatements, innerJoinWhereStatements, null, [...args])
+    this.fleshOutPluckThroughStatements(
+      innerJoinDreamClasses,
+      innerJoinStatements,
+      innerJoinWhereStatements,
+      null,
+      [...args]
+    )
 
     const distinctColumn = this.distinctColumn
-    const query = this.clone({ innerJoinStatements, innerJoinWhereStatements, distinctColumn: null })
+    const query = this.clone({
+      innerJoinDreamClasses,
+      innerJoinStatements,
+      innerJoinWhereStatements,
+      distinctColumn: null,
+    })
     let kyselyQuery = query.buildSelect({
       bypassSelectAll: true,
       bypassOrder: true,
     })
 
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { count } = query.dbFor('select').fn
     const countClause = distinctColumn
       ? count(sql`DISTINCT ${distinctColumn}`)
       : count(query.namespaceColumn(query.dreamInstance.primaryKey))
@@ -4044,6 +4182,7 @@ export interface QueryOpts<
   preloadStatements?: RelaxedPreloadStatement
   preloadWhereStatements?: RelaxedPreloadWhereStatement<DB, Schema>
   distinctColumn?: ColumnType | null
+  innerJoinDreamClasses?: readonly (typeof Dream)[]
   innerJoinStatements?: RelaxedJoinStatement
   innerJoinWhereStatements?: RelaxedJoinWhereStatement<DB, Schema>
   leftJoinStatements?: RelaxedJoinStatement

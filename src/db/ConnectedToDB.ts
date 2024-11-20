@@ -10,6 +10,13 @@ export default class ConnectedToDB<DreamInstance extends Dream> {
   protected dreamTransaction: DreamTransaction<Dream> | null = null
   protected connectionOverride?: DbConnectionType
 
+  /**
+   * @internal
+   *
+   * stores the Dream models joined in this Query instance
+   */
+  protected readonly innerJoinDreamClasses: readonly (typeof Dream)[] = Object.freeze([])
+
   constructor(
     public dreamInstance: DreamInstance,
     opts: ConnectedToDBOpts = {}
@@ -17,6 +24,7 @@ export default class ConnectedToDB<DreamInstance extends Dream> {
     this.dreamClass = dreamInstance.constructor as DreamConstructorType<DreamInstance>
     this.dreamTransaction = opts.transaction || null
     this.connectionOverride = opts.connection
+    this.innerJoinDreamClasses = Object.freeze(opts.innerJoinDreamClasses || [])
   }
 
   public dbConnectionType(sqlCommandType: SqlCommandType): DbConnectionType {
@@ -24,7 +32,7 @@ export default class ConnectedToDB<DreamInstance extends Dream> {
 
     switch (sqlCommandType) {
       case 'select':
-        return this.connectionOverride || (this.dreamClass['replicaSafe'] ? 'replica' : 'primary')
+        return this.connectionOverride || (this.isReplicaSafe() ? 'replica' : 'primary')
 
       default:
         return 'primary'
@@ -39,9 +47,17 @@ export default class ConnectedToDB<DreamInstance extends Dream> {
     if (this.dreamTransaction?.kyselyTransaction) return this.dreamTransaction?.kyselyTransaction
     return _db<DreamInstance>(this.dbConnectionType(sqlCommandType))
   }
+
+  private isReplicaSafe(): boolean {
+    return this.innerJoinDreamClasses.reduce(
+      (accumulator, dreamClass) => accumulator && dreamClass['replicaSafe'],
+      this.dreamClass['replicaSafe']
+    )
+  }
 }
 
 export interface ConnectedToDBOpts {
   transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType
+  innerJoinDreamClasses?: readonly (typeof Dream)[]
 }

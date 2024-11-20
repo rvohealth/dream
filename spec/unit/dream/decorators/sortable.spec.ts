@@ -604,7 +604,7 @@ describe('@Sortable', () => {
       const edgeNode3 = await EdgeNode.create({ edge, node })
       const edgeNode4 = await EdgeNode.create({ edge, node })
 
-      await edgeNode2.destroy()
+      await edgeNode2.reallyDestroy()
       await edgeNode1.reload()
       await edgeNode3.reload()
       await edgeNode4.reload()

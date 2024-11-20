@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import JoinAttemptedOnMissingAssociation from '../../../../src/exceptions/associations/join-attempted-with-missing-association'
 import MissingThroughAssociationSource from '../../../../src/exceptions/associations/missing-through-association-source'
 import ops from '../../../../src/ops'
+import Balloon from '../../../../test-app/app/models/Balloon'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import BalloonSpotter from '../../../../test-app/app/models/BalloonSpotter'
 import BalloonSpotterBalloon from '../../../../test-app/app/models/BalloonSpotterBalloon'
@@ -520,8 +521,8 @@ describe('Query#joins through with simple associations', () => {
     })
   })
 
-  context('with a missing source', () => {
-    it('throws MissingThroughAssociationSource', async () => {
+  context('with a missing association', () => {
+    it('throws JoinAttemptedOnMissingAssociation', async () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
       const query = User.query().innerJoin('nonExtantCompositionAssets1').first()
@@ -538,5 +539,15 @@ describe('Query#joins through with simple associations', () => {
 
       await expect(query).rejects.toThrow(MissingThroughAssociationSource)
     })
+  })
+
+  it('it adds explicitly joined Dream classes to innerJoinDreamClasses', () => {
+    const query = BalloonSpotter.query().innerJoin('balloonSpotterBalloons', 'balloon')
+    expect(query['innerJoinDreamClasses']).toEqual([BalloonSpotterBalloon, Balloon])
+  })
+
+  it('it adds implicitly joined Dream classes to innerJoinDreamClasses', () => {
+    const query = BalloonSpotter.query().innerJoin('balloons')
+    expect(query['innerJoinDreamClasses']).toEqual([BalloonSpotterBalloon, Balloon])
   })
 })

@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import JoinAttemptedOnMissingAssociation from '../../../../src/exceptions/associations/join-attempted-with-missing-association'
 import MissingThroughAssociationSource from '../../../../src/exceptions/associations/missing-through-association-source'
+import Balloon from '../../../../test-app/app/models/Balloon'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import BalloonSpotter from '../../../../test-app/app/models/BalloonSpotter'
 import BalloonSpotterBalloon from '../../../../test-app/app/models/BalloonSpotterBalloon'
@@ -762,5 +763,29 @@ describe('Query#leftJoinPreload through', () => {
         expect(node.orderedSiblingsWithOrderOnSource[2]).toMatchDreamModel(edgeNode2)
       })
     })
+  })
+
+  it('it adds explicitly joined Dream classes to innerJoinDreamClasses', () => {
+    const query = BalloonSpotter.query().leftJoinPreload('balloonSpotterBalloons', 'balloon')
+    expect(query['innerJoinDreamClasses']).toEqual([BalloonSpotterBalloon, Balloon])
+  })
+
+  it('it adds implicitly joined Dream classes to innerJoinDreamClasses', () => {
+    const query = BalloonSpotter.query().leftJoinPreload('balloons')
+    expect(query['innerJoinDreamClasses']).toEqual([BalloonSpotterBalloon, Balloon])
+  })
+
+  it('applies default scopes when joining on a through association', async () => {
+    const node = await Node.create()
+    const edge = await Edge.create()
+    const edgeNode = await EdgeNode.create({ edge, node })
+
+    const reloaded = await Node.query().leftJoinPreload('edges').firstOrFail()
+    expect(reloaded.edges).toMatchDreamModels([edge])
+
+    await edgeNode.update({ deletedAt: DateTime.now() })
+
+    const reloadedAfterSoftdelete = await Node.query().leftJoinPreload('edges').firstOrFail()
+    expect(reloadedAfterSoftdelete.edges).toEqual([])
   })
 })

@@ -11,6 +11,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('multi_scoped_position', 'integer', col => col.notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .addColumn('deleted_at', 'timestamp')
     .execute()
 
   await DreamMigrationHelpers.addDeferrableUniqueConstraint(

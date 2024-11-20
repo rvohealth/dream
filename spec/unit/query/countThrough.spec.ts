@@ -1,6 +1,6 @@
-import User from '../../../test-app/app/models/User'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Pet from '../../../test-app/app/models/Pet'
+import User from '../../../test-app/app/models/User'
 
 describe('Dream.count', () => {
   it('counts all records for a given association', async () => {

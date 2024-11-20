@@ -1,4 +1,4 @@
-import { Query } from '../../../src'
+import { Query, ReplicaSafe } from '../../../src'
 import Scope from '../../../src/decorators/scope'
 import SoftDelete from '../../../src/decorators/soft-delete'
 import Sortable from '../../../src/decorators/sortable'
@@ -10,6 +10,7 @@ import BalloonLine from './BalloonLine'
 import HeartRating from './ExtraRating/HeartRating'
 import User from './User'
 
+@ReplicaSafe()
 @SoftDelete()
 export default class Balloon extends ApplicationModel {
   public get table() {

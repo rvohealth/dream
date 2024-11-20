@@ -1,10 +1,12 @@
 import { DreamColumn, DreamSerializers } from '../../../../src/dream/types'
 
+import { SoftDelete } from '../../../../src'
 import Sortable from '../../../../src/decorators/sortable'
 import ApplicationModel from '../ApplicationModel'
 import GraphEdge from './Edge'
 import GraphNode from './Node'
 
+@SoftDelete()
 export default class EdgeNode extends ApplicationModel {
   public get table() {
     return 'graph_edge_nodes' as const
@@ -17,6 +19,7 @@ export default class EdgeNode extends ApplicationModel {
   public id: DreamColumn<EdgeNode, 'id'>
   public createdAt: DreamColumn<EdgeNode, 'createdAt'>
   public updatedAt: DreamColumn<EdgeNode, 'updatedAt'>
+  public deletedAt: DreamColumn<EdgeNode, 'deletedAt'>
 
   @Sortable({ scope: 'node' })
   public position: DreamColumn<EdgeNode, 'position'>

@@ -252,6 +252,7 @@ export interface ExtraRatings {
 
 export interface GraphEdgeNodes {
   createdAt: Timestamp;
+  deletedAt: Timestamp | null;
   edgeId: Int8;
   id: Generated<Int8>;
   multiScopedPosition: number;

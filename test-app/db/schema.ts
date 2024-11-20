@@ -1026,7 +1026,7 @@ export const schema = {
     deletedAtField: 'deletedAt',
     serializerKeys: ['default'],
     scopes: {
-      default: [],
+      default: ['dream:SoftDelete'],
       named: [],
     },
     columns: {
@@ -1036,6 +1036,14 @@ export const schema = {
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
+        isArray: false,
+      },
+      deletedAt: {
+        coercedType: {} as DateTime | null,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: true,
         isArray: false,
       },
       edgeId: {
