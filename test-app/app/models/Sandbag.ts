@@ -1,4 +1,4 @@
-import Validate from '../../../src/decorators/validations/Validate2'
+import Validate from '../../../src/decorators/validations/Validate'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Mylar from './Balloon/Mylar'

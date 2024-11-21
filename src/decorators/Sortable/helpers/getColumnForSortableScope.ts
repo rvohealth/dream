@@ -1,4 +1,4 @@
-import Dream from '../../../Dream2'
+import Dream from '../../../Dream'
 import NonBelongsToAssociationProvidedAsSortableDecoratorScope from '../../../exceptions/non-belongs-to-association-provided-as-sortable-decorator-scope'
 import SortableDecoratorRequiresColumnOrBelongsToAssociation from '../../../exceptions/sortable-decorator-requires-column-or-belongs-to-association'
 import { BelongsToStatement } from '../../associations/BelongsTo'

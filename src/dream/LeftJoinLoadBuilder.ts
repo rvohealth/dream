@@ -1,7 +1,7 @@
 import { PassthroughWhere } from '../decorators/associations/shared'
-import Dream from '../Dream2'
+import Dream from '../Dream'
 import DreamTransaction from './DreamTransaction'
-import Query, { PreloadedDreamsAndWhatTheyPointTo } from './Query2'
+import Query, { PreloadedDreamsAndWhatTheyPointTo } from './Query'
 import { IdType, PassthroughColumnNames, VariadicLoadArgs } from './types'
 
 export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {

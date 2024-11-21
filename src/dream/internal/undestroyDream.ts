@@ -1,5 +1,5 @@
-import { applySortableScopesToQuery } from '../../decorators/Sortable2/helpers/setPosition'
-import Dream from '../../Dream2'
+import { applySortableScopesToQuery } from '../../decorators/Sortable/helpers/setPosition'
+import Dream from '../../Dream'
 import DreamTransaction from '../DreamTransaction'
 import { DestroyOptions as OptionalDestroyOptions } from './destroyOptions'
 import runHooksFor from './runHooksFor'

@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import Dream from '../../Dream2'
+import Dream from '../../Dream'
 import MissingDeletedAtFieldForSoftDelete from '../../exceptions/missing-deleted-at-field-for-soft-delete'
 import isDateTimeColumn from '../../helpers/db/types/isDateTimeColumn'
 import DreamTransaction from '../DreamTransaction'

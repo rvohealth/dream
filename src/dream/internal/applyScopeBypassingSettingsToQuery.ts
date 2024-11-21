@@ -1,5 +1,5 @@
-import Dream from '../../Dream2'
-import Query from '../Query2'
+import Dream from '../../Dream'
+import Query from '../Query'
 import { AllDefaultScopeNames } from '../types'
 
 export default function applyScopeBypassingSettingsToQuery<DreamInstance extends Dream>(

@@ -1,5 +1,5 @@
-import Dream from '../../../Dream2'
-import Query from '../../../dream/Query2'
+import Dream from '../../../Dream'
+import Query from '../../../dream/Query'
 import positionIsInvalid from '../helpers/positionIsInvalid'
 import scopeArray from '../helpers/scopeArray'
 import sortableCacheKeyName from '../helpers/sortableCacheKeyName'

@@ -1,7 +1,7 @@
-import Dream from '../Dream2'
-import Query from '../dream/Query2'
+import Dream from '../Dream'
+import Query from '../dream/Query'
 import StiChildIncompatibleWithSoftDeleteDecorator from '../exceptions/sti/sti-child-incompatible-with-soft-delete-decorator'
-import Scope from './Scope2'
+import Scope from './Scope'
 
 export const SOFT_DELETE_SCOPE_NAME = 'dream:SoftDelete'
 

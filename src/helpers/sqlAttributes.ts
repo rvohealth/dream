@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import Dream from '../Dream2'
+import Dream from '../Dream'
 import CalendarDate from './CalendarDate'
 import isDateTimeColumn from './db/types/isDateTimeColumn'
 import { isString } from './typechecks'

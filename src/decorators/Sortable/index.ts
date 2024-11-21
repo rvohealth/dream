@@ -1,4 +1,4 @@
-import Dream from '../../Dream2'
+import Dream from '../../Dream'
 import DreamTransaction from '../../dream/DreamTransaction'
 import pascalize from '../../helpers/pascalize'
 import AfterCreate from '../hooks/AfterCreate'

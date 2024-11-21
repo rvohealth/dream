@@ -1,4 +1,4 @@
-import Dream from '../Dream2'
+import Dream from '../Dream'
 import DreamApplication from '../dream-application'
 import { SerializableDreamClassOrViewModelClass, SerializableDreamOrViewModel } from '../dream/types'
 

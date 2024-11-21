@@ -1,6 +1,6 @@
 import { Kysely } from 'kysely'
 import { Settings } from 'luxon'
-import Dream from '../Dream2'
+import Dream from '../Dream'
 import { envValue } from '../helpers/envHelpers'
 import '../helpers/loadEnv'
 import DreamDbConnection from './DreamDbConnection'

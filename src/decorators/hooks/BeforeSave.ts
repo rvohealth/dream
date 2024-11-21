@@ -1,4 +1,4 @@
-import Dream from '../../Dream2'
+import Dream from '../../Dream'
 import { BeforeHookOpts, HookStatement, blankHooksFactory } from './shared'
 
 export default function BeforeSave<T extends Dream | null = null>(opts: BeforeHookOpts<T> = {}): any {

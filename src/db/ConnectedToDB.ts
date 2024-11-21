@@ -1,8 +1,8 @@
 import { Kysely, Transaction as KyselyTransaction } from 'kysely'
 import _db from '../db'
+import Dream from '../Dream'
 import DreamTransaction from '../dream/DreamTransaction'
 import { DreamConstructorType, SqlCommandType } from '../dream/types'
-import Dream from '../Dream2'
 import { DbConnectionType } from './types'
 
 export default class ConnectedToDB<DreamInstance extends Dream> {

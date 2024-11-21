@@ -1,6 +1,6 @@
 import { BeforeUpdate, ops } from '../../../src'
 import SoftDelete from '../../../src/decorators/SoftDelete'
-import Sortable from '../../../src/decorators/Sortable2'
+import Sortable from '../../../src/decorators/Sortable'
 import { DreamColumn, DreamSerializers, IdType } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'

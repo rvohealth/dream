@@ -1,5 +1,5 @@
 import { PartialAssociationStatement, modelCBtoSingleDreamClass } from '../../decorators/associations/shared'
-import Dream from '../../Dream2'
+import Dream from '../../Dream'
 
 export class InvalidComputedForeignKey extends Error {
   public dreamClass: typeof Dream

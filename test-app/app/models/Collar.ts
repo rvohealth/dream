@@ -1,6 +1,6 @@
 import { SoftDelete } from '../../../src'
-import Scope from '../../../src/decorators/Scope2'
-import Query from '../../../src/dream/Query2'
+import Scope from '../../../src/decorators/Scope'
+import Query from '../../../src/dream/Query'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'

@@ -1,5 +1,5 @@
 import pluralize from 'pluralize'
-import Dream from '../Dream2'
+import Dream from '../Dream'
 import snakeify from '../helpers/snakeify'
 
 export default class MissingTable extends Error {

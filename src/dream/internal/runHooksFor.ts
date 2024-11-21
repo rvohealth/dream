@@ -1,5 +1,5 @@
 import { HookStatement, HookType } from '../../decorators/hooks/shared'
-import Dream from '../../Dream2'
+import Dream from '../../Dream'
 import DreamTransaction from '../DreamTransaction'
 
 export default async function runHooksFor<T extends Dream>(

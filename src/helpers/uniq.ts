@@ -1,6 +1,6 @@
 import lodashUniq from 'lodash.uniq'
 import uniqWith from 'lodash.uniqwith'
-import Dream from '../Dream2'
+import Dream from '../Dream'
 
 export default function uniq<T>(
   arr: T[],

@@ -1,5 +1,5 @@
 import { DreamColumn } from '../../../../src'
-import Sortable from '../../../../src/decorators/Sortable2'
+import Sortable from '../../../../src/decorators/Sortable'
 import STI from '../../../../src/decorators/STI'
 import Balloon from '../Balloon'
 

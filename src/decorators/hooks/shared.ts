@@ -1,4 +1,4 @@
-import Dream from '../../Dream2'
+import Dream from '../../Dream'
 import { DreamColumnNames } from '../../dream/types'
 
 export type HookType =

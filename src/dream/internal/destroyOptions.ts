@@ -1,4 +1,4 @@
-import Dream from '../../Dream2'
+import Dream from '../../Dream'
 import { AllDefaultScopeNames } from '../types'
 import {
   addSoftDeleteScopeToUserScopes,

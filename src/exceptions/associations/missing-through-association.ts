@@ -1,6 +1,6 @@
 import { HasManyStatement } from '../../decorators/associations/HasMany'
 import { HasOneStatement } from '../../decorators/associations/HasOne'
-import Dream from '../../Dream2'
+import Dream from '../../Dream'
 
 export default class MissingThroughAssociation extends Error {
   public dreamClass: typeof Dream

@@ -1,5 +1,5 @@
 import { sql } from 'kysely'
-import Dream from '../Dream2'
+import Dream from '../Dream'
 import { ComparisonOperatorExpression } from '../dream/types'
 import AnyRequiresArrayColumn from '../exceptions/ops/any-requires-array-column'
 import isDatabaseArrayColumn from '../helpers/db/types/isDatabaseArrayColumn'

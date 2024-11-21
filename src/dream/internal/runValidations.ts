@@ -1,5 +1,5 @@
 import ValidationStatement from '../../decorators/validations/shared'
-import Dream from '../../Dream2'
+import Dream from '../../Dream'
 import checkSingleValidation from './checkSingleValidation'
 
 export default function runValidations(dream: Dream) {

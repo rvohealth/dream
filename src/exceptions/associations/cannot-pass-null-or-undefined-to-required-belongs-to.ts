@@ -1,5 +1,5 @@
 import { BelongsToStatement } from '../../decorators/associations/BelongsTo'
-import Dream from '../../Dream2'
+import Dream from '../../Dream'
 
 export default class CannotPassNullOrUndefinedToRequiredBelongsTo extends Error {
   public dreamClass: typeof Dream

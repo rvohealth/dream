@@ -1,4 +1,4 @@
-import Dream from '../../Dream2'
+import Dream from '../../Dream'
 import { HookStatement, blankHooksFactory } from './shared'
 
 export default function BeforeDestroy(): any {

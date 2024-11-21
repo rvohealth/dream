@@ -1,4 +1,4 @@
-import Dream from '../Dream2'
+import Dream from '../Dream'
 import StiChildIncompatibleWithReplicaSafeDecorator from '../exceptions/sti/sti-child-incompatible-with-replica-safe-decorator'
 
 export default function ReplicaSafe(): ClassDecorator {

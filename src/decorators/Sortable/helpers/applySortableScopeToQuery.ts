@@ -1,5 +1,5 @@
-import Dream from '../../../Dream2'
-import Query from '../../../dream/Query2'
+import Dream from '../../../Dream'
+import Query from '../../../dream/Query'
 import getColumnForSortableScope from './getColumnForSortableScope'
 import scopeArray from './scopeArray'
 

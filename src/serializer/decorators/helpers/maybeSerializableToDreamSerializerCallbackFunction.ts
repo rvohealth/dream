@@ -1,4 +1,4 @@
-import Dream from '../../../Dream2'
+import Dream from '../../../Dream'
 import { DreamSerializerCallback, SerializableClassOrClasses } from '../../../dream/types'
 import hasSerializersGetter from './hasSerializersGetter'
 

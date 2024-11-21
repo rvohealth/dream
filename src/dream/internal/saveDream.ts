@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import _db from '../../db'
-import Dream from '../../Dream2'
+import Dream from '../../Dream'
 import ValidationError from '../../exceptions/validation-error'
 import sqlAttributes from '../../helpers/sqlAttributes'
 import DreamTransaction from '../DreamTransaction'

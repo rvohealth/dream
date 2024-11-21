@@ -1,4 +1,4 @@
-import Dream from '../../Dream2'
+import Dream from '../../Dream'
 
 export default class StiChildIncompatibleWithSoftDeleteDecorator extends Error {
   constructor(public childStiDreamClass: typeof Dream) {
