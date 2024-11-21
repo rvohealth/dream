@@ -1,4 +1,4 @@
-import MissingRequiredPassthroughForAssociationWhereClause from '../../../src/exceptions/associations/missing-required-passthrough-for-association-where-clause'
+import MissingRequiredPassthroughForAssociationWhereClause from '../../../src/exceptions/associations/MissingRequiredPassthroughForAssociationWhereClause'
 import Composition from '../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import LocalizedText from '../../../test-app/app/models/LocalizedText'

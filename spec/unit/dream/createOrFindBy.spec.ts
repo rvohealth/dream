@@ -1,5 +1,5 @@
 import { Dream } from '../../../src'
-import CreateOrFindByFailedToCreateAndFind from '../../../src/exceptions/create-or-find-by-failed-to-create-and-find'
+import CreateOrFindByFailedToCreateAndFind from '../../../src/exceptions/CreateOrFindByFailedToCreateAndFind'
 import Composition from '../../../test-app/app/models/Composition'
 import User from '../../../test-app/app/models/User'
 

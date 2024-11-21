@@ -3,7 +3,8 @@ import { Dream, DreamTransaction, Query } from '../../../../src'
 import * as destroyAssociationModule from '../../../../src/dream/internal/associations/destroyAssociation'
 import * as runHooksForModule from '../../../../src/dream/internal/runHooksFor'
 import * as safelyRunCommitHooksModule from '../../../../src/dream/internal/safelyRunCommitHooks'
-import MissingRequiredAssociationWhereClause from '../../../../src/exceptions/associations/missing-required-association-where-clause'
+import MissingRequiredAssociationWhereClause from '../../../../src/exceptions/associations/MissingRequiredAssociationWhereClause'
+import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/exceptions/CannotPassUndefinedAsAValueToAWhereClause'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 import Collar from '../../../../test-app/app/models/Collar'
 import Composition from '../../../../test-app/app/models/Composition'
@@ -13,7 +14,6 @@ import Pet from '../../../../test-app/app/models/Pet'
 import Post from '../../../../test-app/app/models/Post'
 import Rating from '../../../../test-app/app/models/Rating'
 import User from '../../../../test-app/app/models/User'
-import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/exceptions/cannot-pass-undefined-as-a-value-to-a-where-clause'
 
 describe('Dream#destroyAssociation', () => {
   let hooksSpy: jest.SpyInstance

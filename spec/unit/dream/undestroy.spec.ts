@@ -1,4 +1,4 @@
-import CannotCallUndestroyOnANonSoftDeleteModel from '../../../src/exceptions/cannot-call-undestroy-on-a-non-soft-delete-model'
+import CannotCallUndestroyOnANonSoftDeleteModel from '../../../src/exceptions/CannotCallUndestroyOnANonSoftDeleteModel'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Collar from '../../../test-app/app/models/Collar'
 import Pet from '../../../test-app/app/models/Pet'

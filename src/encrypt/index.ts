@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import MissingEncryptionKey from '../exceptions/encrypt/missing-encryption-key'
+import MissingEncryptionKey from '../exceptions/encrypt/MissingEncryptionKey'
 import decryptAESGCM from './algorithms/aes-gcm/decryptAESGCM'
 import encryptAESGCM from './algorithms/aes-gcm/encryptAESGCM'
 import generateKeyAESGCM from './algorithms/aes-gcm/generateKeyAESGCM'

@@ -1,4 +1,4 @@
-import CannotCallUndestroyOnANonSoftDeleteModel from '../../../src/exceptions/cannot-call-undestroy-on-a-non-soft-delete-model'
+import CannotCallUndestroyOnANonSoftDeleteModel from '../../../src/exceptions/CannotCallUndestroyOnANonSoftDeleteModel'
 import Post from '../../../test-app/app/models/Post'
 import PostComment from '../../../test-app/app/models/PostComment'
 import User from '../../../test-app/app/models/User'

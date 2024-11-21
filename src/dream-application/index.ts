@@ -4,8 +4,8 @@ import db from '../db'
 import Dream from '../Dream'
 import { primaryKeyTypes } from '../dream/types'
 import Encrypt, { EncryptAlgorithm, EncryptOptions } from '../encrypt'
-import DreamApplicationInitMissingCallToLoadModels from '../exceptions/dream-application/init-missing-call-to-load-models'
-import DreamApplicationInitMissingMissingProjectRoot from '../exceptions/dream-application/init-missing-project-root'
+import DreamApplicationInitMissingCallToLoadModels from '../exceptions/dream-application/DreamApplicationInitMissingCallToLoadModels'
+import DreamApplicationInitMissingMissingProjectRoot from '../exceptions/dream-application/DreamApplicationInitMissingMissingProjectRoot'
 import {
   findCitextArrayOid,
   findCorrespondingArrayOid,

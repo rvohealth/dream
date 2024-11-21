@@ -1,4 +1,4 @@
-import InvalidTableName from '../../exceptions/invalid-table-name'
+import InvalidTableName from '../../exceptions/InvalidTableName'
 
 export default function validateTable<Schema, TableName extends keyof Schema & string>(
   schema: Schema,

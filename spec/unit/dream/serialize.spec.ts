@@ -1,4 +1,4 @@
-import MissingSerializersDefinition from '../../../src/exceptions/missing-serializers-definition'
+import MissingSerializersDefinition from '../../../src/exceptions/MissingSerializersDefinition'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import User from '../../../test-app/app/models/User'
 

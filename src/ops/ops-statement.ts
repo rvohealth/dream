@@ -1,5 +1,5 @@
 import { ComparisonOperatorExpression, TRIGRAM_OPERATORS } from '../dream/types'
-import ScoreMustBeANormalNumber from '../exceptions/ops/score-must-be-a-normal-number'
+import ScoreMustBeANormalNumber from '../exceptions/ops/ScoreMustBeANormalNumber'
 
 export interface ExtraOpsArgs {
   negated?: boolean

@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
-import JoinAttemptedOnMissingAssociation from '../../../../src/exceptions/associations/join-attempted-with-missing-association'
-import MissingThroughAssociationSource from '../../../../src/exceptions/associations/missing-through-association-source'
+import JoinAttemptedOnMissingAssociation from '../../../../src/exceptions/associations/JoinAttemptedOnMissingAssociation'
+import MissingThroughAssociationSource from '../../../../src/exceptions/associations/MissingThroughAssociationSource'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import BalloonSpotter from '../../../../test-app/app/models/BalloonSpotter'

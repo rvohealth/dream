@@ -1,6 +1,6 @@
 import { DreamConst } from '../../../../../src'
-import CannotDefineAssociationWithBothDependentAndPassthrough from '../../../../../src/exceptions/cannot-define-association-with-both-dependent-and-passthrough'
-import CannotDefineAssociationWithBothDependentAndRequiredWhereClause from '../../../../../src/exceptions/cannot-define-association-with-both-dependent-and-required-where-clause'
+import CannotDefineAssociationWithBothDependentAndPassthrough from '../../../../../src/exceptions/CannotDefineAssociationWithBothDependentAndPassthrough'
+import CannotDefineAssociationWithBothDependentAndRequiredWhereClause from '../../../../../src/exceptions/CannotDefineAssociationWithBothDependentAndRequiredWhereClause'
 import Post from '../../../../../test-app/app/models/Post'
 import User from '../../../../../test-app/app/models/User'
 

@@ -1,5 +1,5 @@
 import validateTableAlias from '../../../../src/db/validators/validateTableAlias'
-import InvalidTableAlias from '../../../../src/exceptions/invalid-table-alias'
+import InvalidTableAlias from '../../../../src/exceptions/InvalidTableAlias'
 
 describe('validateTableAlias', () => {
   context('valid table alias is provided', () => {

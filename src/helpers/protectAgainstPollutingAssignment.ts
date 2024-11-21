@@ -1,4 +1,4 @@
-import PrototypePollutingAssignment from '../exceptions/prototype-polluting-assignment'
+import PrototypePollutingAssignment from '../exceptions/PrototypePollutingAssignment'
 
 const reservedKeys = new Map([
   ['__proto__', true],

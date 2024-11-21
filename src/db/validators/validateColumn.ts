@@ -1,4 +1,4 @@
-import InvalidColumnName from '../../exceptions/invalid-column-name'
+import InvalidColumnName from '../../exceptions/InvalidColumnName'
 
 export default function validateColumn<Schema, TableName extends keyof Schema & string>(
   schema: Schema,

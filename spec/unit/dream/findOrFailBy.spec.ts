@@ -1,4 +1,4 @@
-import RecordNotFound from '../../../src/exceptions/record-not-found'
+import RecordNotFound from '../../../src/exceptions/RecordNotFound'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Balloon from '../../../test-app/app/models/Balloon'
 import Latex from '../../../test-app/app/models/Balloon/Latex'

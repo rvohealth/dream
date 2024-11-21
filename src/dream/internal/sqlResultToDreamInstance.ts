@@ -1,7 +1,7 @@
 import { Updateable } from 'kysely'
 import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../Dream'
-import STIChildMissing from '../../exceptions/sti/sti-child-missing'
+import STIChildMissing from '../../exceptions/sti/STIChildMissing'
 import { UpdateablePropertiesForClass } from '../types'
 
 export default function sqlResultToDreamInstance<

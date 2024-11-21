@@ -1,5 +1,5 @@
 import validateColumn from '../../../../src/db/validators/validateColumn'
-import InvalidColumnName from '../../../../src/exceptions/invalid-column-name'
+import InvalidColumnName from '../../../../src/exceptions/InvalidColumnName'
 import User from '../../../../test-app/app/models/User'
 
 describe('validateColumn', () => {

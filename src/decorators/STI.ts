@@ -1,7 +1,7 @@
 import Dream from '../Dream'
-import StiChildCannotDefineNewAssociations from '../exceptions/sti/sti-child-cannot-define-new-associations'
-import StiChildIncompatibleWithReplicaSafeDecorator from '../exceptions/sti/sti-child-incompatible-with-replica-safe-decorator'
-import StiChildIncompatibleWithSoftDeleteDecorator from '../exceptions/sti/sti-child-incompatible-with-soft-delete-decorator'
+import StiChildCannotDefineNewAssociations from '../exceptions/sti/StiChildCannotDefineNewAssociations'
+import StiChildIncompatibleWithReplicaSafeDecorator from '../exceptions/sti/StiChildIncompatibleWithReplicaSafeDecorator'
+import StiChildIncompatibleWithSoftDeleteDecorator from '../exceptions/sti/StiChildIncompatibleWithSoftDeleteDecorator'
 import Scope from './Scope'
 
 export const STI_SCOPE_NAME = 'dream:STI'

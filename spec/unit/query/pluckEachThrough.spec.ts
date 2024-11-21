@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
-import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../../../src/exceptions/cannot-pass-additional-fields-to-pluck-each-after-callback-function'
-import MissingRequiredCallbackFunctionToPluckEach from '../../../src/exceptions/missing-required-callback-function-to-pluck-each'
+import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../../../src/exceptions/CannotPassAdditionalFieldsToPluckEachAfterCallback'
+import MissingRequiredCallbackFunctionToPluckEach from '../../../src/exceptions/MissingRequiredCallbackFunctionToPluckEach'
 import ops from '../../../src/ops'
 import Composition from '../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'

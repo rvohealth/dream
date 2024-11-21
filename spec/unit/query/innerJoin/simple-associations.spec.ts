@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import MissingRequiredAssociationWhereClause from '../../../../src/exceptions/associations/missing-required-association-where-clause'
+import MissingRequiredAssociationWhereClause from '../../../../src/exceptions/associations/MissingRequiredAssociationWhereClause'
 import range from '../../../../src/helpers/range'
 import ops from '../../../../src/ops'
 import OpsStatement from '../../../../src/ops/ops-statement'

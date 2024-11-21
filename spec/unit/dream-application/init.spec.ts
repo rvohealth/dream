@@ -1,8 +1,8 @@
 import { describe as context } from '@jest/globals'
 import { DreamApplication } from '../../../src'
 import * as LoadModelsModule from '../../../src/dream-application/helpers/loadModels'
-import DreamApplicationInitMissingCallToLoadModels from '../../../src/exceptions/dream-application/init-missing-call-to-load-models'
-import DreamApplicationInitMissingMissingProjectRoot from '../../../src/exceptions/dream-application/init-missing-project-root'
+import DreamApplicationInitMissingCallToLoadModels from '../../../src/exceptions/dream-application/DreamApplicationInitMissingCallToLoadModels'
+import DreamApplicationInitMissingMissingProjectRoot from '../../../src/exceptions/dream-application/DreamApplicationInitMissingMissingProjectRoot'
 
 describe('DreamApplication#init', () => {
   const dbCredentials = {
