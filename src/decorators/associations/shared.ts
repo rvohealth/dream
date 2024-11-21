@@ -2,7 +2,7 @@ import { SelectQueryBuilder, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
 import { singular } from 'pluralize'
 import { AssociationTableNames } from '../../db/reflections'
-import Dream from '../../dream'
+import Dream from '../../Dream'
 import {
   AssociationTableName,
   DefaultScopeName,
@@ -28,9 +28,9 @@ import { MergeUnionOfRecordTypes, UnionToIntersection } from '../../helpers/type
 import CurriedOpsStatement from '../../ops/curried-ops-statement'
 import OpsStatement from '../../ops/ops-statement'
 import associationToGetterSetterProp from './associationToGetterSetterProp'
-import { BelongsToStatement } from './belongs-to'
-import { HasManyStatement } from './has-many'
-import { HasOneStatement } from './has-one'
+import { BelongsToStatement } from './BelongsTo'
+import { HasManyStatement } from './HasMany'
+import { HasOneStatement } from './HasOne'
 
 type AssociatedModelType<
   I extends Dream,

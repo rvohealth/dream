@@ -1,4 +1,4 @@
-import Dream from '../../dream'
+import Dream from '../../Dream'
 
 export default function Validate(): any {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

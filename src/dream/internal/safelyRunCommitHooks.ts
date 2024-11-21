@@ -1,6 +1,6 @@
 import { CommitHookType } from '../../decorators/hooks/shared'
-import Dream from '../../dream'
-import DreamTransaction from '../transaction'
+import Dream from '../../Dream'
+import DreamTransaction from '../DreamTransaction'
 import { DreamConstructorType } from '../types'
 import runHooksFor from './runHooksFor'
 

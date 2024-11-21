@@ -1,10 +1,10 @@
-import Dream from '../../../dream'
-import DreamTransaction from '../../transaction'
-import { UpdateableAssociationProperties } from '../../types'
-import { HasManyStatement } from '../../../decorators/associations/has-many'
-import { HasOneStatement } from '../../../decorators/associations/has-one'
-import { BelongsToStatement } from '../../../decorators/associations/belongs-to'
+import { BelongsToStatement } from '../../../decorators/associations/BelongsTo'
+import { HasManyStatement } from '../../../decorators/associations/HasMany'
+import { HasOneStatement } from '../../../decorators/associations/HasOne'
+import Dream from '../../../Dream'
 import CannotCreateAssociationWithThroughContext from '../../../exceptions/associations/cannot-create-association-with-through-context'
+import DreamTransaction from '../../DreamTransaction'
+import { UpdateableAssociationProperties } from '../../types'
 
 export default async function createAssociation<
   DreamInstance extends Dream,

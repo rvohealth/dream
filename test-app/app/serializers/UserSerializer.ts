@@ -1,9 +1,9 @@
+import { CalendarDate } from '../../../src'
 import { IdType } from '../../../src/dream/types'
 import DreamSerializer from '../../../src/serializer'
+import RendersOne from '../../../src/serializer/decorators/associations/RendersOne'
 import Attribute from '../../../src/serializer/decorators/attribute'
-import RendersOne from '../../../src/serializer/decorators/associations/renders-one'
 import User from '../models/User'
-import { CalendarDate } from '../../../src'
 import UserSettings from '../models/UserSettings'
 
 export default class UserSerializer<

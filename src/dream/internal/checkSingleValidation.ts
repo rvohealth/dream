@@ -1,5 +1,5 @@
 import ValidationStatement from '../../decorators/validations/shared'
-import Dream from '../../dream'
+import Dream from '../../Dream'
 import NonLoadedAssociation from '../../exceptions/associations/non-loaded-association'
 
 export default function checkSingleValidation(dream: Dream, validation: ValidationStatement) {

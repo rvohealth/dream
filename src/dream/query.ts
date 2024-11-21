@@ -19,9 +19,9 @@ import ConnectedToDB from '../db/ConnectedToDB'
 import { AssociationTableNames } from '../db/reflections'
 import { DbConnectionType } from '../db/types'
 import associationToGetterSetterProp from '../decorators/associations/associationToGetterSetterProp'
-import { BelongsToStatement } from '../decorators/associations/belongs-to'
-import { HasManyStatement } from '../decorators/associations/has-many'
-import { HasOneStatement } from '../decorators/associations/has-one'
+import { BelongsToStatement } from '../decorators/associations/BelongsTo'
+import { HasManyStatement } from '../decorators/associations/HasMany'
+import { HasOneStatement } from '../decorators/associations/HasOne'
 import {
   AssociationStatement,
   LimitStatement,
@@ -31,8 +31,8 @@ import {
   WhereSelfStatement,
   WhereStatement,
 } from '../decorators/associations/shared'
-import { SOFT_DELETE_SCOPE_NAME } from '../decorators/soft-delete'
-import Dream from '../dream'
+import { SOFT_DELETE_SCOPE_NAME } from '../decorators/SoftDelete'
+import Dream from '../Dream'
 import CannotAssociateThroughPolymorphic from '../exceptions/associations/cannot-associate-through-polymorphic'
 import CannotJoinPolymorphicBelongsToError from '../exceptions/associations/cannot-join-polymorphic-belongs-to-error'
 import JoinAttemptedOnMissingAssociation from '../exceptions/associations/join-attempted-with-missing-association'
@@ -48,8 +48,8 @@ import MissingRequiredCallbackFunctionToPluckEach from '../exceptions/missing-re
 import NoUpdateOnAssociationQuery from '../exceptions/no-update-on-association-query'
 import NoUpdateAllOnJoins from '../exceptions/no-updateall-on-joins'
 import RecordNotFound from '../exceptions/record-not-found'
-import CalendarDate from '../helpers/CalendarDate'
 import allNestedObjectKeys from '../helpers/allNestedObjectKeys'
+import CalendarDate from '../helpers/CalendarDate'
 import cloneDeepSafe from '../helpers/cloneDeepSafe'
 import compact from '../helpers/compact'
 import objectPathsToArrays from '../helpers/objectPathsToArrays'
@@ -61,13 +61,13 @@ import uniq from '../helpers/uniq'
 import ops from '../ops'
 import CurriedOpsStatement from '../ops/curried-ops-statement'
 import OpsStatement from '../ops/ops-statement'
+import DreamTransaction from './DreamTransaction'
 import LoadIntoModels from './internal/associations/load-into-models'
 import executeDatabaseQuery from './internal/executeDatabaseQuery'
 import orderByDirection from './internal/orderByDirection'
 import shouldBypassDefaultScope from './internal/shouldBypassDefaultScope'
 import SimilarityBuilder from './internal/similarity/SimilarityBuilder'
 import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance'
-import DreamTransaction from './transaction'
 import {
   AliasToDreamIdMap,
   AllDefaultScopeNames,

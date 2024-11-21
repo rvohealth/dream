@@ -1,4 +1,4 @@
-import Dream from '../../../dream'
+import Dream from '../../../Dream'
 import getColumnForSortableScope from './getColumnForSortableScope'
 import isSortedCorrectly from './isSortedCorrectly'
 import scopeArray from './scopeArray'

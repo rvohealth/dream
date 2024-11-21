@@ -1,9 +1,9 @@
-import User from '../../../test-app/app/models/User'
-import Animal from '../../../test-app/app/models/Balloon/Latex/Animal'
+import DreamDbConnection from '../../../src/db/DreamDbConnection'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Balloon from '../../../test-app/app/models/Balloon'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
-import DreamDbConnection from '../../../src/db/dream-db-connection'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
+import Animal from '../../../test-app/app/models/Balloon/Latex/Animal'
+import User from '../../../test-app/app/models/User'
 
 describe('Dream.findEach', () => {
   it('finds all records for a given model', async () => {

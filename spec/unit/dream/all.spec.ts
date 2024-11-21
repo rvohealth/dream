@@ -1,5 +1,5 @@
-import DreamDbConnection from '../../../src/db/dream-db-connection'
-import ReplicaSafe from '../../../src/decorators/replica-safe'
+import DreamDbConnection from '../../../src/db/DreamDbConnection'
+import ReplicaSafe from '../../../src/decorators/ReplicaSafe'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Balloon from '../../../test-app/app/models/Balloon'
 import Latex from '../../../test-app/app/models/Balloon/Latex'

@@ -1,4 +1,4 @@
-import Dream from '../dream'
+import Dream from '../Dream'
 
 export default class CannotReloadUnsavedDream extends Error {
   private dream: Dream

@@ -1,7 +1,7 @@
 import { Kysely, Transaction as KyselyTransaction } from 'kysely'
 import _db from '../db'
-import Dream from '../dream'
-import DreamTransaction from '../dream/transaction'
+import Dream from '../Dream'
+import DreamTransaction from '../dream/DreamTransaction'
 import { DreamConstructorType, SqlCommandType } from '../dream/types'
 import { DbConnectionType } from './types'
 

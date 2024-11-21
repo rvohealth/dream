@@ -1,6 +1,7 @@
+import { Settings } from 'luxon'
 import { types as pgTypes } from 'pg'
 import db from '../db'
-import Dream from '../dream'
+import Dream from '../Dream'
 import { primaryKeyTypes } from '../dream/types'
 import Encrypt, { EncryptAlgorithm, EncryptOptions } from '../encrypt'
 import DreamApplicationInitMissingCallToLoadModels from '../exceptions/dream-application/init-missing-call-to-load-models'
@@ -13,13 +14,12 @@ import {
   parsePostgresDatetime,
   parsePostgresDecimal,
 } from '../helpers/customPgParsers'
+import { envBool } from '../helpers/envHelpers'
 import DreamSerializer from '../serializer'
 import { cacheDreamApplication, getCachedDreamApplicationOrFail } from './cache'
 import loadModels, { getModelsOrFail } from './helpers/loadModels'
 import loadSerializers, { getSerializersOrFail, setCachedSerializers } from './helpers/loadSerializers'
 import loadServices, { getServicesOrFail, setCachedServices } from './helpers/loadServices'
-import { envBool } from '../helpers/envHelpers'
-import { Settings } from 'luxon'
 
 // this needs to be done top-level to ensure proper configuration
 Settings.defaultZone = 'UTC'

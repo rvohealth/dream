@@ -17,19 +17,19 @@ import BelongsTo, {
   BelongsToStatement,
   NonPolymorphicBelongsToOptions,
   PolymorphicBelongsToOptions,
-} from './decorators/associations/belongs-to'
+} from './decorators/associations/BelongsTo'
 import HasMany, {
   HasManyOptions,
   HasManyStatement,
   HasManyThroughOptions,
   PolymorphicHasManyOptions,
-} from './decorators/associations/has-many'
+} from './decorators/associations/HasMany'
 import HasOne, {
   HasOneOptions,
   HasOneStatement,
   HasOneThroughOptions,
   PolymorphicHasOneOptions,
-} from './decorators/associations/has-one'
+} from './decorators/associations/HasOne'
 import {
   blankAssociationsFactory,
   PassthroughWhere,
@@ -37,26 +37,27 @@ import {
   WhereStatementForAssociation,
 } from './decorators/associations/shared'
 import { EncryptedAttributeStatement } from './decorators/Encrypted'
-import AfterCreate from './decorators/hooks/after-create'
-import AfterCreateCommit from './decorators/hooks/after-create-commit'
-import AfterDestroy from './decorators/hooks/after-destroy'
-import AfterDestroyCommit from './decorators/hooks/after-destroy-commit'
-import AfterSave from './decorators/hooks/after-save'
-import AfterSaveCommit from './decorators/hooks/after-save-commit'
-import AfterUpdate from './decorators/hooks/after-update'
-import AfterUpdateCommit from './decorators/hooks/after-update-commit'
-import BeforeCreate from './decorators/hooks/before-create'
-import BeforeDestroy from './decorators/hooks/before-destroy'
-import BeforeSave from './decorators/hooks/before-save'
-import BeforeUpdate from './decorators/hooks/before-update'
+import AfterCreate from './decorators/hooks/AfterCreate'
+import AfterCreateCommit from './decorators/hooks/AfterCreateCommit'
+import AfterDestroy from './decorators/hooks/AfterDestroy'
+import AfterDestroyCommit from './decorators/hooks/AfterDestroyCommit'
+import AfterSave from './decorators/hooks/AfterSave'
+import AfterSaveCommit from './decorators/hooks/AfterSaveCommit'
+import AfterUpdate from './decorators/hooks/AfterUpdate'
+import AfterUpdateCommit from './decorators/hooks/AfterUpdateCommit'
+import BeforeCreate from './decorators/hooks/BeforeCreate'
+import BeforeDestroy from './decorators/hooks/BeforeDestroy'
+import BeforeSave from './decorators/hooks/BeforeSave'
+import BeforeUpdate from './decorators/hooks/BeforeUpdate'
 import { AfterHookOpts, BeforeHookOpts, blankHooksFactory, HookStatement } from './decorators/hooks/shared'
-import { ScopeStatement } from './decorators/scope'
-import Sortable, { SortableFieldConfig } from './decorators/sortable'
-import resortAllRecords from './decorators/sortable/helpers/resortAllRecords'
+import { ScopeStatement } from './decorators/Scope'
+import Sortable, { SortableFieldConfig } from './decorators/Sortable'
+import resortAllRecords from './decorators/Sortable/helpers/resortAllRecords'
 import ValidationStatement, { ValidationType } from './decorators/validations/shared'
 import { VirtualAttributeStatement } from './decorators/virtual'
-import DreamClassTransactionBuilder from './dream/class-transaction-builder'
-import DreamInstanceTransactionBuilder from './dream/instance-transaction-builder'
+import DreamClassTransactionBuilder from './dream/DreamClassTransactionBuilder'
+import DreamInstanceTransactionBuilder from './dream/DreamInstanceTransactionBuilder'
+import DreamTransaction from './dream/DreamTransaction'
 import associationQuery from './dream/internal/associations/associationQuery'
 import associationUpdateQuery from './dream/internal/associations/associationUpdateQuery'
 import createAssociation from './dream/internal/associations/createAssociation'
@@ -78,10 +79,9 @@ import {
   DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
 } from './dream/internal/scopeHelpers'
 import undestroyDream from './dream/internal/undestroyDream'
-import LeftJoinLoadBuilder from './dream/left-join-load-builder'
-import LoadBuilder from './dream/load-builder'
-import Query, { FindEachOpts } from './dream/query'
-import DreamTransaction from './dream/transaction'
+import LeftJoinLoadBuilder from './dream/LeftJoinLoadBuilder'
+import LoadBuilder from './dream/LoadBuilder'
+import Query, { FindEachOpts } from './dream/Query'
 import {
   AllDefaultScopeNames,
   AttributeKeys,
@@ -114,7 +114,7 @@ import {
   VariadicPluckEachThroughArgs,
   VariadicPluckThroughArgs,
 } from './dream/types'
-import InternalEncrypt from './encrypt/internal-encrypt'
+import InternalEncrypt from './encrypt/InternalEncrypt'
 import CanOnlyPassBelongsToModelParam from './exceptions/associations/can-only-pass-belongs-to-model-param'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
 import NonLoadedAssociation from './exceptions/associations/non-loaded-association'

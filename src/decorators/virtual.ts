@@ -1,4 +1,4 @@
-import Dream from '../dream'
+import Dream from '../Dream'
 import { SerializableTypes } from '../serializer/decorators/attribute'
 
 export default function Virtual(type?: SerializableTypes): any {

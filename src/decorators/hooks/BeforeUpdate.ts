@@ -1,7 +1,7 @@
-import Dream from '../../dream'
-import { HookStatement, blankHooksFactory } from './shared'
+import Dream from '../../Dream'
+import { BeforeHookOpts, HookStatement, blankHooksFactory } from './shared'
 
-export default function BeforeDestroy(): any {
+export default function BeforeUpdate<T extends Dream>(opts: BeforeHookOpts<T> = {}): any {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return function (target: any, key: string, _: any) {
     const dreamClass: typeof Dream = target.constructor
@@ -12,9 +12,10 @@ export default function BeforeDestroy(): any {
     const hookStatement: HookStatement = {
       className: dreamClass.name,
       method: key,
-      type: 'beforeDestroy',
+      type: 'beforeUpdate',
+      ifChanging: opts.ifChanging,
     }
 
-    dreamClass['addHook']('beforeDestroy', hookStatement)
+    dreamClass['addHook']('beforeUpdate', hookStatement)
   }
 }

@@ -1,5 +1,5 @@
-import Dream from '../../dream'
-import DreamTransaction from '../transaction'
+import Dream from '../../Dream'
+import DreamTransaction from '../DreamTransaction'
 import destroyAssociatedRecords from './destroyAssociatedRecords'
 import { DestroyOptions as OptionalDestroyOptions } from './destroyOptions'
 import runHooksFor from './runHooksFor'

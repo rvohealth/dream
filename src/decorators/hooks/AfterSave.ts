@@ -1,7 +1,7 @@
-import Dream from '../../dream'
-import { HookStatement, blankHooksFactory, BeforeHookOpts } from './shared'
+import Dream from '../../Dream'
+import { AfterHookOpts, HookStatement, blankHooksFactory } from './shared'
 
-export default function BeforeSave<T extends Dream | null = null>(opts: BeforeHookOpts<T> = {}): any {
+export default function AfterSave<T extends Dream | null = null>(opts: AfterHookOpts<T> = {}): any {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return function (target: any, key: string, _: any) {
     const dreamClass: typeof Dream = target.constructor
@@ -12,10 +12,10 @@ export default function BeforeSave<T extends Dream | null = null>(opts: BeforeHo
     const hookStatement: HookStatement = {
       className: dreamClass.name,
       method: key,
-      type: 'beforeSave',
-      ifChanging: opts.ifChanging,
+      type: 'afterSave',
+      ifChanged: opts.ifChanged,
     }
 
-    dreamClass['addHook']('beforeSave', hookStatement)
+    dreamClass['addHook']('afterSave', hookStatement)
   }
 }

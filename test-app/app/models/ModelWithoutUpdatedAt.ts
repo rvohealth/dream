@@ -1,5 +1,5 @@
+import BeforeUpdate from '../../../src/decorators/hooks/BeforeUpdate'
 import { DreamColumn } from '../../../src/dream/types'
-import BeforeUpdate from '../../../src/decorators/hooks/before-update'
 import ApplicationModel from './ApplicationModel'
 
 export default class ModelWithoutUpdatedAt extends ApplicationModel {

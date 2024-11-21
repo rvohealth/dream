@@ -1,5 +1,5 @@
-import { HasManyStatement } from '../../decorators/associations/has-many'
-import { HasOneStatement } from '../../decorators/associations/has-one'
+import { HasManyStatement } from '../../decorators/associations/HasMany'
+import { HasOneStatement } from '../../decorators/associations/HasOne'
 
 export default class MissingRequiredAssociationWhereClause extends Error {
   constructor(

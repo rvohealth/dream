@@ -1,4 +1,4 @@
-import Dream from '../dream'
+import Dream from '../Dream'
 
 export default class CreateOrFindByFailedToCreateAndFind extends Error {
   private dreamClass: typeof Dream

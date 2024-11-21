@@ -1,5 +1,5 @@
 import { Client } from 'pg'
-import ConnectionConfRetriever from '../../db/connection-conf-retriever'
+import ConnectionConfRetriever from '../../db/ConnectionConfRetriever'
 import { DbConnectionType } from '../../db/types'
 import DreamApplication from '../../dream-application'
 import { envValue } from '../envHelpers'

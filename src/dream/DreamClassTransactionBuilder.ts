@@ -1,10 +1,10 @@
 import { SelectArg, SelectExpression, Updateable } from 'kysely'
 import { AssociationTableNames } from '../db/reflections'
 import { PassthroughWhere, WhereStatement } from '../decorators/associations/shared'
-import Dream from '../dream'
+import Dream from '../Dream'
+import DreamTransaction from './DreamTransaction'
 import saveDream from './internal/saveDream'
-import Query, { FindEachOpts } from './query'
-import DreamTransaction from './transaction'
+import Query, { FindEachOpts } from './Query'
 import {
   DefaultScopeName,
   DreamColumnNames,

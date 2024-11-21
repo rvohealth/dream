@@ -1,7 +1,7 @@
+import { DreamColumn } from '../../../../src'
+import Sortable from '../../../../src/decorators/Sortable'
 import STI from '../../../../src/decorators/STI'
 import Balloon from '../Balloon'
-import Sortable from '../../../../src/decorators/sortable'
-import { DreamColumn } from '../../../../src'
 
 @STI(Balloon)
 export default class Latex extends Balloon {

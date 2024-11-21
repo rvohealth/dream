@@ -1,4 +1,4 @@
-import Dream from '../../dream'
+import Dream from '../../Dream'
 
 export default class AnyRequiresArrayColumn extends Error {
   public dreamClass: typeof Dream

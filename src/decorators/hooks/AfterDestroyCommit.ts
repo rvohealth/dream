@@ -1,24 +1,22 @@
-import Dream from '../../dream'
-import { HookStatement, blankHooksFactory, AfterHookOpts } from './shared'
+import Dream from '../../Dream'
+import { HookStatement, blankHooksFactory } from './shared'
 
 /**
  * Calls the decorated method whenever a dream has finished
- * being updated. If the save takes place within a transaction,
+ * being destroyed. If the destroy takes place within a transaction,
  * this method will not be called until the transaction is
- * committed. However, if the save is not taking place in
+ * committed. However, if the destroy is not taking place in
  * a transaction, the method will be run after the save
  * is complete.
  *
  * class User extends ApplicationModel {
- *   @AfterUpdateCommit()
+ *   @AfterDestroyCommit()
  *   public doSomething() {
  *     ...
  *   }
  * }
- *
- * @param opts.ifChanged - Optional. A list of columns which should must change in order for this function to be called.
  */
-export default function AfterUpdateCommit<T extends Dream | null = null>(opts: AfterHookOpts<T> = {}): any {
+export default function AfterDestroyCommit(): any {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return function (target: any, key: string, _: any) {
     const dreamClass: typeof Dream = target.constructor
@@ -29,10 +27,9 @@ export default function AfterUpdateCommit<T extends Dream | null = null>(opts: A
     const hookStatement: HookStatement = {
       className: dreamClass.name,
       method: key,
-      type: 'afterUpdateCommit',
-      ifChanged: opts.ifChanged,
+      type: 'afterDestroyCommit',
     }
 
-    dreamClass['addHook']('afterUpdateCommit', hookStatement)
+    dreamClass['addHook']('afterDestroyCommit', hookStatement)
   }
 }

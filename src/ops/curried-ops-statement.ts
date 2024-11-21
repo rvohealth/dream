@@ -1,4 +1,4 @@
-import Dream from '../dream'
+import Dream from '../Dream'
 import OpsStatement from './ops-statement'
 
 export default class CurriedOpsStatement<

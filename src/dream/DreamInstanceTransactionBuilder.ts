@@ -1,5 +1,6 @@
 import { WhereStatementForAssociation } from '../decorators/associations/shared'
-import Dream from '../dream'
+import Dream from '../Dream'
+import DreamTransaction from './DreamTransaction'
 import associationQuery from './internal/associations/associationQuery'
 import associationUpdateQuery from './internal/associations/associationUpdateQuery'
 import createAssociation from './internal/associations/createAssociation'
@@ -20,10 +21,9 @@ import {
   DEFAULT_SKIP_HOOKS,
 } from './internal/scopeHelpers'
 import undestroyDream from './internal/undestroyDream'
-import LeftJoinLoadBuilder from './left-join-load-builder'
-import LoadBuilder from './load-builder'
-import Query from './query'
-import DreamTransaction from './transaction'
+import LeftJoinLoadBuilder from './LeftJoinLoadBuilder'
+import LoadBuilder from './LoadBuilder'
+import Query from './Query'
 import {
   AllDefaultScopeNames,
   DreamAssociationNamesWithoutRequiredWhereClauses,

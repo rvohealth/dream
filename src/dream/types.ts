@@ -5,21 +5,21 @@ import {
 } from 'kysely'
 import { DateTime } from 'luxon'
 import { AssociationTableNames } from '../db/reflections'
-import { STI_SCOPE_NAME } from '../decorators/STI'
-import { BelongsToStatement } from '../decorators/associations/belongs-to'
-import { HasManyStatement } from '../decorators/associations/has-many'
-import { HasOneStatement } from '../decorators/associations/has-one'
+import { BelongsToStatement } from '../decorators/associations/BelongsTo'
+import { HasManyStatement } from '../decorators/associations/HasMany'
+import { HasOneStatement } from '../decorators/associations/HasOne'
 import {
   AssociatedModelParam,
   WhereStatement,
   WhereStatementForAssociation,
 } from '../decorators/associations/shared'
-import Dream from '../dream'
+import { STI_SCOPE_NAME } from '../decorators/STI'
+import Dream from '../Dream'
 import CalendarDate from '../helpers/CalendarDate'
 import { FilterInterface, Inc, ReadonlyTail, RejectInterface } from '../helpers/typeutils'
 import OpsStatement from '../ops/ops-statement'
 import DreamSerializer from '../serializer'
-import { FindEachOpts } from './query'
+import { FindEachOpts } from './Query'
 
 export const primaryKeyTypes = ['bigserial', 'bigint', 'uuid', 'integer'] as const
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]

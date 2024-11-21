@@ -1,4 +1,4 @@
-import SoftDelete from '../../../src/decorators/soft-delete'
+import SoftDelete from '../../../src/decorators/SoftDelete'
 import { DreamColumn } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Post from './Post'

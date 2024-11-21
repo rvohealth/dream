@@ -1,5 +1,5 @@
 import { DbTypes } from '../../../db/dataTypes'
-import Dream from '../../../dream'
+import Dream from '../../../Dream'
 import { DreamClassColumnNames } from '../../../dream/types'
 import { OpenapiSchemaBody } from '../../../openapi/types'
 

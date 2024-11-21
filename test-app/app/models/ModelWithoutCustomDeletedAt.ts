@@ -1,5 +1,5 @@
 import { DreamColumn } from '../../../src'
-import SoftDelete from '../../../src/decorators/soft-delete'
+import SoftDelete from '../../../src/decorators/SoftDelete'
 import ApplicationModel from './ApplicationModel'
 
 // NOTE: this model only exists for the sake of testing

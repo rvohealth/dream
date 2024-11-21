@@ -1,5 +1,5 @@
-import Dream from '../../../dream'
-import Query from '../../../dream/query'
+import Dream from '../../../Dream'
+import Query from '../../../dream/Query'
 import clearCachedSortableValues from '../helpers/clearCachedSortableValues'
 import decrementPositionForScopedRecordsGreaterThanPosition from '../helpers/decrementScopedRecordsGreaterThanPosition'
 

@@ -1,4 +1,4 @@
-import Dream from '../../dream'
+import Dream from '../../Dream'
 import getFiles from '../../helpers/getFiles'
 import globalModelKeyFromPath from './globalModelKeyFromPath'
 

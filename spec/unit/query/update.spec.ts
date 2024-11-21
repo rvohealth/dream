@@ -1,5 +1,5 @@
-import DreamDbConnection from '../../../src/db/dream-db-connection'
-import ReplicaSafe from '../../../src/decorators/replica-safe'
+import DreamDbConnection from '../../../src/db/DreamDbConnection'
+import ReplicaSafe from '../../../src/decorators/ReplicaSafe'
 import NoUpdateOnAssociationQuery from '../../../src/exceptions/no-update-on-association-query'
 import NoUpdateAllOnJoins from '../../../src/exceptions/no-updateall-on-joins'
 import ops from '../../../src/ops'

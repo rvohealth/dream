@@ -1,5 +1,5 @@
-import Dream from '../../dream'
-import DreamTransaction from '../transaction'
+import Dream from '../../Dream'
+import DreamTransaction from '../DreamTransaction'
 import { ReallyDestroyOptions } from './destroyDream'
 
 /**

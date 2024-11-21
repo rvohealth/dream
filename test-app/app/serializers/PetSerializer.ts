@@ -1,6 +1,6 @@
 import { DreamColumn, IdType } from '../../../src/dream/types'
 import DreamSerializer from '../../../src/serializer'
-import RendersMany from '../../../src/serializer/decorators/associations/renders-many'
+import RendersMany from '../../../src/serializer/decorators/associations/RendersMany'
 import Attribute from '../../../src/serializer/decorators/attribute'
 import Pet from '../models/Pet'
 import Rating from '../models/Rating'

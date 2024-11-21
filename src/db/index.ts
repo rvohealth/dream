@@ -1,10 +1,10 @@
 import { Kysely } from 'kysely'
 import { Settings } from 'luxon'
-import Dream from '../dream'
-import '../helpers/loadEnv'
-import DreamDbConnection from './dream-db-connection'
-import { DbConnectionType } from './types'
+import Dream from '../Dream'
 import { envValue } from '../helpers/envHelpers'
+import '../helpers/loadEnv'
+import DreamDbConnection from './DreamDbConnection'
+import { DbConnectionType } from './types'
 
 if (envValue('TZ')) Settings.defaultZone = envValue('TZ')
 

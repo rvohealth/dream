@@ -1,4 +1,4 @@
-import ConnectionConfRetriever from '../db/connection-conf-retriever'
+import ConnectionConfRetriever from '../db/ConnectionConfRetriever'
 import DreamApplication from '../dream-application'
 import SchemaBuilder from '../helpers/cli/SchemaBuilder'
 import generateDream from '../helpers/cli/generateDream'

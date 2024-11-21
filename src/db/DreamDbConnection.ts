@@ -2,7 +2,7 @@ import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely'
 import { Pool } from 'pg'
 import DreamApplication, { SingleDbCredential } from '../dream-application'
 import { envBool } from '../helpers/envHelpers'
-import ConnectionConfRetriever from './connection-conf-retriever'
+import ConnectionConfRetriever from './ConnectionConfRetriever'
 import { DbConnectionType } from './types'
 
 const connections = {} as { [key: string]: Kysely<any> }

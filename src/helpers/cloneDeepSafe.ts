@@ -1,7 +1,7 @@
 import { SelectQueryBuilder } from 'kysely'
 import cloneDeepWith from 'lodash.clonedeepwith'
-import Dream from '../dream'
-import Query from '../dream/query'
+import Dream from '../Dream'
+import Query from '../dream/Query'
 
 /**
  * @internal

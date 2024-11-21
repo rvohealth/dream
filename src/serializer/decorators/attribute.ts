@@ -1,5 +1,5 @@
 import DreamSerializer from '..'
-import Dream from '../../dream'
+import Dream from '../../Dream'
 import { RoundingPrecision } from '../../helpers/round'
 import { isString } from '../../helpers/typechecks'
 import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../openapi/types'

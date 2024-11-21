@@ -1,5 +1,5 @@
-import Dream from '../../../dream'
-import Query from '../../../dream/query'
+import Dream from '../../../Dream'
+import Query from '../../../dream/Query'
 import applySortableScopeToQuery from './applySortableScopeToQuery'
 
 export default async function positionIsInvalid({

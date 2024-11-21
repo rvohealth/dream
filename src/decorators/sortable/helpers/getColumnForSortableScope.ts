@@ -1,9 +1,9 @@
-import Dream from '../../../dream'
+import Dream from '../../../Dream'
 import NonBelongsToAssociationProvidedAsSortableDecoratorScope from '../../../exceptions/non-belongs-to-association-provided-as-sortable-decorator-scope'
 import SortableDecoratorRequiresColumnOrBelongsToAssociation from '../../../exceptions/sortable-decorator-requires-column-or-belongs-to-association'
-import { BelongsToStatement } from '../../associations/belongs-to'
-import { HasManyStatement } from '../../associations/has-many'
-import { HasOneStatement } from '../../associations/has-one'
+import { BelongsToStatement } from '../../associations/BelongsTo'
+import { HasManyStatement } from '../../associations/HasMany'
+import { HasOneStatement } from '../../associations/HasOne'
 
 export default function getColumnForSortableScope(dream: Dream, scope?: string) {
   if (!scope) return null

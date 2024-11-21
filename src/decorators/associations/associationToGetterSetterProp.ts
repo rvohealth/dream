@@ -1,6 +1,6 @@
-import { HasManyStatement } from './has-many'
-import { HasOneStatement } from './has-one'
-import { BelongsToStatement } from './belongs-to'
+import { BelongsToStatement } from './BelongsTo'
+import { HasManyStatement } from './HasMany'
+import { HasOneStatement } from './HasOne'
 import { PartialAssociationStatement } from './shared'
 
 export default function associationToGetterSetterProp(

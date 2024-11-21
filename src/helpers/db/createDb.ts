@@ -1,4 +1,4 @@
-import ConnectionConfRetriever from '../../db/connection-conf-retriever'
+import ConnectionConfRetriever from '../../db/ConnectionConfRetriever'
 import { DbConnectionType } from '../../db/types'
 import { envValue } from '../envHelpers'
 import loadPgClient from './loadPgClient'

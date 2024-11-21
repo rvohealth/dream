@@ -1,4 +1,4 @@
-import ConnectionConfRetriever from '../../../src/db/connection-conf-retriever'
+import ConnectionConfRetriever from '../../../src/db/ConnectionConfRetriever'
 import { DbConnectionType } from '../../../src/db/types'
 import DreamApplication, { SingleDbCredential } from '../../../src/dream-application'
 import { cacheDreamApplication } from '../../../src/dream-application/cache'

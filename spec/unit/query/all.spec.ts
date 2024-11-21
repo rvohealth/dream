@@ -1,5 +1,5 @@
-import DreamDbConnection from '../../../src/db/dream-db-connection'
-import ReplicaSafe from '../../../src/decorators/replica-safe'
+import DreamDbConnection from '../../../src/db/DreamDbConnection'
+import ReplicaSafe from '../../../src/decorators/ReplicaSafe'
 import ops from '../../../src/ops'
 import User from '../../../test-app/app/models/User'
 

@@ -1,4 +1,4 @@
-import Dream from '../dream'
+import Dream from '../Dream'
 import pascalize from '../helpers/pascalize'
 
 export default function Encrypted(encryptedColumnName?: string): any {

@@ -1,5 +1,5 @@
 import { AssociationTableNames } from '../../db/reflections'
-import Dream from '../../dream'
+import Dream from '../../Dream'
 import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames'
 import {
   DefaultScopeName,
@@ -9,7 +9,7 @@ import {
   TableColumnNames,
   TableNameForGlobalModelName,
 } from '../../dream/types'
-import Validates from '../validations/validates'
+import Validates from '../validations/Validates'
 import {
   applyGetterAndSetter,
   associationPrimaryKeyAccessors,

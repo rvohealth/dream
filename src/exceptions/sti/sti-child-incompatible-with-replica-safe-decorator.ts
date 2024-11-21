@@ -1,4 +1,4 @@
-import Dream from '../../dream'
+import Dream from '../../Dream'
 
 export default class StiChildIncompatibleWithReplicaSafeDecorator extends Error {
   constructor(public childStiDreamClass: typeof Dream) {

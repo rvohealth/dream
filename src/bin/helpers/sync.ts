@@ -2,7 +2,7 @@ import '../../helpers/loadEnv'
 
 import fs from 'fs/promises'
 import path from 'path'
-import ConnectionConfRetriever from '../../db/connection-conf-retriever'
+import ConnectionConfRetriever from '../../db/ConnectionConfRetriever'
 import DreamApplication from '../../dream-application'
 import compact from '../../helpers/compact'
 import { envBool } from '../../helpers/envHelpers'

@@ -1,7 +1,7 @@
-import Dream from '../../dream'
+import Dream from '../../Dream'
 import CannotReloadUnsavedDream from '../../exceptions/cannot-reload-unsaved-dream'
-import Query from '../query'
-import DreamTransaction from '../transaction'
+import DreamTransaction from '../DreamTransaction'
+import Query from '../Query'
 
 export default async function reload<DreamInstance extends Dream>(
   dream: DreamInstance,

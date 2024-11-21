@@ -2,7 +2,7 @@ import fs from 'fs/promises'
 import { FileMigrationProvider, MigrationResult, Migrator } from 'kysely'
 import path from 'path'
 import db from '../../db'
-import DreamDbConnection from '../../db/dream-db-connection'
+import DreamDbConnection from '../../db/DreamDbConnection'
 import DreamApplication from '../../dream-application'
 
 type MigrationModes = 'migrate' | 'rollback'

@@ -1,4 +1,4 @@
-import BeforeUpdate from '../../../src/decorators/hooks/before-update'
+import BeforeUpdate from '../../../src/decorators/hooks/BeforeUpdate'
 import { DreamColumn } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Composition from './Composition'

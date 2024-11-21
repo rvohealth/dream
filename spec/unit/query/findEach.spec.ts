@@ -1,6 +1,6 @@
-import User from '../../../test-app/app/models/User'
-import DreamDbConnection from '../../../src/db/dream-db-connection'
+import DreamDbConnection from '../../../src/db/DreamDbConnection'
 import ops from '../../../src/ops'
+import User from '../../../test-app/app/models/User'
 
 describe('Query#findEach', () => {
   it('returns all records, ordered by id', async () => {

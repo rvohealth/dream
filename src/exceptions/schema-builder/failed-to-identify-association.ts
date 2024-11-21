@@ -1,4 +1,4 @@
-import Dream from '../../dream'
+import Dream from '../../Dream'
 import DreamApplication from '../../dream-application'
 
 export default class FailedToIdentifyAssociation extends Error {

@@ -1,5 +1,5 @@
 import Encrypt from '../../../src/encrypt'
-import InternalEncrypt from '../../../src/encrypt/internal-encrypt'
+import InternalEncrypt from '../../../src/encrypt/InternalEncrypt'
 import initializeDreamApplication from '../../../test-app/cli/helpers/initializeDreamApplication'
 
 describe('InternalEncrypt', () => {

@@ -1,6 +1,6 @@
 import { WhereStatement } from '../../../decorators/associations/shared'
-import Dream from '../../../dream'
-import DreamTransaction from '../../transaction'
+import Dream from '../../../Dream'
+import DreamTransaction from '../../DreamTransaction'
 import associationUpdateQuery from './associationUpdateQuery'
 
 export default async function undestroyAssociation<

@@ -1,4 +1,4 @@
-import BeforeCreate from '../../../src/decorators/hooks/before-create'
+import BeforeCreate from '../../../src/decorators/hooks/BeforeCreate'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Post from './Post'

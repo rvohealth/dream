@@ -1,7 +1,7 @@
-import Dream from '../../dream'
-import { HookStatement, blankHooksFactory } from './shared'
+import Dream from '../../Dream'
+import { AfterHookOpts, HookStatement, blankHooksFactory } from './shared'
 
-export default function AfterDestroy(): any {
+export default function AfterCreate<T extends Dream | null = null>(opts: AfterHookOpts<T> = {}): any {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return function (target: any, key: string, _: any) {
     const dreamClass: typeof Dream = target.constructor
@@ -12,9 +12,10 @@ export default function AfterDestroy(): any {
     const hookStatement: HookStatement = {
       className: dreamClass.name,
       method: key,
-      type: 'afterDestroy',
+      type: 'afterCreate',
+      ifChanged: opts.ifChanged,
     }
 
-    dreamClass['addHook']('afterDestroy', hookStatement)
+    dreamClass['addHook']('afterCreate', hookStatement)
   }
 }

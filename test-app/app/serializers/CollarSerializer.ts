@@ -1,6 +1,6 @@
 import DreamSerializer from '../../../src/serializer'
+import RendersOne from '../../../src/serializer/decorators/associations/RendersOne'
 import Attribute from '../../../src/serializer/decorators/attribute'
-import RendersOne from '../../../src/serializer/decorators/associations/renders-one'
 
 export default class CollarSerializer extends DreamSerializer {
   @Attribute()
