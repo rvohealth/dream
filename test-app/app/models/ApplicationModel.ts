@@ -1,4 +1,4 @@
-import Dream from '../../../src/Dream'
+import Dream from '../../../src/Dream2'
 import { globalSchema, schema } from '../../db/schema'
 import { DBClass } from '../../db/sync'
 

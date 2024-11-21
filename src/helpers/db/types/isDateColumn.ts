@@ -1,4 +1,4 @@
-import Dream from '../../../Dream'
+import Dream from '../../../Dream2'
 
 export default function isDateColumn<
   T extends typeof Dream,

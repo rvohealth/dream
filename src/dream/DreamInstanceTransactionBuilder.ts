@@ -1,5 +1,5 @@
 import { WhereStatementForAssociation } from '../decorators/associations/shared'
-import Dream from '../Dream'
+import Dream from '../Dream2'
 import DreamTransaction from './DreamTransaction'
 import associationQuery from './internal/associations/associationQuery'
 import associationUpdateQuery from './internal/associations/associationUpdateQuery'
@@ -23,7 +23,7 @@ import {
 import undestroyDream from './internal/undestroyDream'
 import LeftJoinLoadBuilder from './LeftJoinLoadBuilder'
 import LoadBuilder from './LoadBuilder'
-import Query from './Query'
+import Query from './Query2'
 import {
   AllDefaultScopeNames,
   DreamAssociationNamesWithoutRequiredWhereClauses,

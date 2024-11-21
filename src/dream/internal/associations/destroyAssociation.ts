@@ -1,5 +1,5 @@
 import { WhereStatement } from '../../../decorators/associations/shared'
-import Dream from '../../../Dream'
+import Dream from '../../../Dream2'
 import DreamTransaction from '../../DreamTransaction'
 import associationUpdateQuery from './associationUpdateQuery'
 

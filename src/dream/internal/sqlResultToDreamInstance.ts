@@ -1,6 +1,6 @@
 import { Updateable } from 'kysely'
 import { AssociationTableNames } from '../../db/reflections'
-import Dream from '../../Dream'
+import Dream from '../../Dream2'
 import STIChildMissing from '../../exceptions/sti/sti-child-missing'
 import { UpdateablePropertiesForClass } from '../types'
 

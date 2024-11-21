@@ -32,7 +32,7 @@ import {
   WhereStatement,
 } from '../decorators/associations/shared'
 import { SOFT_DELETE_SCOPE_NAME } from '../decorators/SoftDelete'
-import Dream from '../Dream'
+import Dream from '../Dream2'
 import CannotAssociateThroughPolymorphic from '../exceptions/associations/cannot-associate-through-polymorphic'
 import CannotJoinPolymorphicBelongsToError from '../exceptions/associations/cannot-join-polymorphic-belongs-to-error'
 import JoinAttemptedOnMissingAssociation from '../exceptions/associations/join-attempted-with-missing-association'

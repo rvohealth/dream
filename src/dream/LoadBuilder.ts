@@ -1,7 +1,7 @@
 import { PassthroughWhere } from '../decorators/associations/shared'
-import Dream from '../Dream'
+import Dream from '../Dream2'
 import DreamTransaction from './DreamTransaction'
-import Query from './Query'
+import Query from './Query2'
 import { PassthroughColumnNames, VariadicLoadArgs } from './types'
 
 export default class LoadBuilder<DreamInstance extends Dream> {

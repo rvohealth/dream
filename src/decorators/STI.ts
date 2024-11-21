@@ -1,8 +1,8 @@
-import Dream from '../Dream'
+import Dream from '../Dream2'
 import StiChildCannotDefineNewAssociations from '../exceptions/sti/sti-child-cannot-define-new-associations'
 import StiChildIncompatibleWithReplicaSafeDecorator from '../exceptions/sti/sti-child-incompatible-with-replica-safe-decorator'
 import StiChildIncompatibleWithSoftDeleteDecorator from '../exceptions/sti/sti-child-incompatible-with-soft-delete-decorator'
-import Scope from './Scope'
+import Scope from './Scope2'
 
 export const STI_SCOPE_NAME = 'dream:STI'
 

@@ -1,5 +1,5 @@
 import { SOFT_DELETE_SCOPE_NAME } from '../../decorators/SoftDelete'
-import Dream from '../../Dream'
+import Dream from '../../Dream2'
 import uniq from '../../helpers/uniq'
 import { AllDefaultScopeNames } from '../types'
 

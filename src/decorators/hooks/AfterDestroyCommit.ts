@@ -1,4 +1,4 @@
-import Dream from '../../Dream'
+import Dream from '../../Dream2'
 import { HookStatement, blankHooksFactory } from './shared'
 
 /**

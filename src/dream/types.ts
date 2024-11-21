@@ -14,12 +14,12 @@ import {
   WhereStatementForAssociation,
 } from '../decorators/associations/shared'
 import { STI_SCOPE_NAME } from '../decorators/STI'
-import Dream from '../Dream'
+import Dream from '../Dream2'
 import CalendarDate from '../helpers/CalendarDate'
 import { FilterInterface, Inc, ReadonlyTail, RejectInterface } from '../helpers/typeutils'
 import OpsStatement from '../ops/ops-statement'
 import DreamSerializer from '../serializer'
-import { FindEachOpts } from './Query'
+import { FindEachOpts } from './Query2'
 
 export const primaryKeyTypes = ['bigserial', 'bigint', 'uuid', 'integer'] as const
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]

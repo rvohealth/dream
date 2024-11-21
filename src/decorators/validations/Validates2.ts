@@ -1,4 +1,4 @@
-import Dream from '../../Dream'
+import Dream from '../../Dream2'
 import ValidationStatement, { ValidationType } from './shared'
 
 export default function Validates<

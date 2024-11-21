@@ -19,15 +19,14 @@ export { default as BeforeDestroy } from './decorators/hooks/BeforeDestroy'
 export { default as BeforeSave } from './decorators/hooks/BeforeSave'
 export { default as BeforeUpdate } from './decorators/hooks/BeforeUpdate'
 export { default as ReplicaSafe } from './decorators/ReplicaSafe'
-export { default as Scope } from './decorators/Scope'
+export { default as Scope } from './decorators/Scope2'
 export { default as SoftDelete } from './decorators/SoftDelete'
-export { default as Sortable } from './decorators/Sortable'
+export { default as Sortable } from './decorators/Sortable2'
 export { default as STI } from './decorators/STI'
 export { ValidationType } from './decorators/validations/shared'
-export { default as Validate } from './decorators/validations/Validate'
-export { default as Validates } from './decorators/validations/Validates'
-export { default as Virtual } from './decorators/virtual'
-export { default as Dream } from './Dream'
+export { default as Validate } from './decorators/validations/Validate2'
+export { default as Validates } from './decorators/validations/Validates2'
+export { default as Virtual } from './decorators/Virtual2'
 export {
   default as DreamApplication,
   DreamApplicationOpts,
@@ -36,7 +35,7 @@ export {
 } from './dream-application'
 export { default as lookupClassByGlobalName } from './dream-application/helpers/lookupClassByGlobalName'
 export { default as DreamTransaction } from './dream/DreamTransaction'
-export { default as Query } from './dream/Query'
+export { default as Query } from './dream/Query2'
 export {
   DreamAssociationMetadata,
   DreamAttributes,
@@ -63,6 +62,7 @@ export {
   ViewModelSerializerKey,
   primaryKeyTypes,
 } from './dream/types'
+export { default as Dream } from './Dream2'
 export { default as Encrypt, EncryptAlgorithm, EncryptOptions } from './encrypt'
 export { default as NonLoadedAssociation } from './exceptions/associations/non-loaded-association'
 export { default as CreateOrFindByFailedToCreateAndFind } from './exceptions/create-or-find-by-failed-to-create-and-find'

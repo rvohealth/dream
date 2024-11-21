@@ -1,8 +1,8 @@
 import { HasManyStatement } from '../../../decorators/associations/HasMany'
 import { WhereStatementForAssociation } from '../../../decorators/associations/shared'
-import Dream from '../../../Dream'
+import Dream from '../../../Dream2'
 import DreamTransaction from '../../DreamTransaction'
-import Query from '../../Query'
+import Query from '../../Query2'
 import { DreamAssociationType, TableOrAssociationName } from '../../types'
 import applyScopeBypassingSettingsToQuery from '../applyScopeBypassingSettingsToQuery'
 

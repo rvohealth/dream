@@ -2,7 +2,6 @@ import { SelectQueryBuilder, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
 import { singular } from 'pluralize'
 import { AssociationTableNames } from '../../db/reflections'
-import Dream from '../../Dream'
 import {
   AssociationTableName,
   DefaultScopeName,
@@ -17,6 +16,7 @@ import {
   TableColumnNames,
   TableNameForGlobalModelName,
 } from '../../dream/types'
+import Dream from '../../Dream2'
 import { checkForeignKey } from '../../exceptions/associations/explicit-foreign-key'
 import NonLoadedAssociation from '../../exceptions/associations/non-loaded-association'
 import CannotDefineAssociationWithBothDependentAndPassthrough from '../../exceptions/cannot-define-association-with-both-dependent-and-passthrough'

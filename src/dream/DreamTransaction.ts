@@ -1,6 +1,6 @@
 import { Transaction } from 'kysely'
 import { HookStatement } from '../decorators/hooks/shared'
-import Dream from '../Dream'
+import Dream from '../Dream2'
 import { runHook } from './internal/runHooksFor'
 
 export interface TransactionCommitHookStatement {

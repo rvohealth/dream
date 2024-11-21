@@ -1,6 +1,6 @@
 import { HasManyStatement } from '../../decorators/associations/HasMany'
 import { HasOneStatement } from '../../decorators/associations/HasOne'
-import Dream from '../../Dream'
+import Dream from '../../Dream2'
 
 export default class CannotAssociateThroughPolymorphic extends Error {
   public dreamClass: typeof Dream

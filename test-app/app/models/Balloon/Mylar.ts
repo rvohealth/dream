@@ -1,6 +1,6 @@
 import { DreamColumn } from '../../../../src'
 import STI from '../../../../src/decorators/STI'
-import Sortable from '../../../../src/decorators/Sortable'
+import Sortable from '../../../../src/decorators/Sortable2'
 import Balloon from '../Balloon'
 
 @STI(Balloon)

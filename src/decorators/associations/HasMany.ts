@@ -1,7 +1,7 @@
 import { AssociationTableNames } from '../../db/reflections'
-import Dream from '../../Dream'
 import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames'
 import { GlobalModelNames, TableColumnNames } from '../../dream/types'
+import Dream from '../../Dream2'
 import {
   HasOptions,
   HasStatement,
