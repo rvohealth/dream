@@ -1,7 +1,7 @@
 import { Query, ReplicaSafe } from '../../../src'
 import Scope from '../../../src/decorators/Scope'
 import SoftDelete from '../../../src/decorators/SoftDelete'
-import Sortable from '../../../src/decorators/sortable2/Sortable'
+import Sortable from '../../../src/decorators/sortable/Sortable'
 import Validates from '../../../src/decorators/validations/Validates'
 import { DreamColumn, IdType } from '../../../src/dream/types'
 import { BalloonTypesEnum } from '../../db/sync'

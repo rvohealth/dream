@@ -1,5 +1,5 @@
 import { describe as context } from '@jest/globals'
-import Sortable from '../../../../src/decorators/sortable2/Sortable'
+import Sortable from '../../../../src/decorators/sortable/Sortable'
 import NonBelongsToAssociationProvidedAsSortableDecoratorScope from '../../../../src/exceptions/NonBelongsToAssociationProvidedAsSortableDecoratorScope'
 import SortableDecoratorRequiresColumnOrBelongsToAssociation from '../../../../src/exceptions/SortableDecoratorRequiresColumnOrBelongsToAssociation'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
