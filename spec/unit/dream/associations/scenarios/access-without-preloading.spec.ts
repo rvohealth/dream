@@ -51,7 +51,7 @@ describe('Accessing an association that hasn’t been loaded', () => {
   })
 
   context('STI model', () => {
-    it('reference the correct class in the exception', async () => {
+    it('reference the base class', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const post = await Post.create({ user })
       const rating = await HeartRating.create({ user, extraRateable: post })
@@ -66,7 +66,7 @@ describe('Accessing an association that hasn’t been loaded', () => {
         message = (err as any).message
       }
 
-      expect(message).toMatch('Attempting to access `user` on an instance of `HeartRating`')
+      expect(message).toMatch('Attempting to access `user` on an instance of `BaseExtraRating`')
     })
   })
 })

@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from '../../../src/exceptions/associations/cannot-pass-null-or-undefined-to-required-belongs-to'
-import Mylar from '../../../test-app/app/models/Balloon/Mylar'
+import BalloonLine from '../../../test-app/app/models/BalloonLine'
 import Composition from '../../../test-app/app/models/Composition'
 import Pet from '../../../test-app/app/models/Pet'
 import User from '../../../test-app/app/models/User'
@@ -29,7 +29,9 @@ describe('Dream initialization', () => {
 
       context('the relationship is required', () => {
         it('throws a targeted exception', () => {
-          expect(() => Mylar.new({ user: null })).toThrow(CannotPassNullOrUndefinedToRequiredBelongsTo)
+          expect(() => BalloonLine.new({ balloon: null })).toThrow(
+            CannotPassNullOrUndefinedToRequiredBelongsTo
+          )
         })
       })
     })
@@ -43,7 +45,9 @@ describe('Dream initialization', () => {
 
       context('the relationship is required', () => {
         it('throws a targeted exception', () => {
-          expect(() => Mylar.new({ user: undefined })).toThrow(CannotPassNullOrUndefinedToRequiredBelongsTo)
+          expect(() => BalloonLine.new({ balloon: undefined })).toThrow(
+            CannotPassNullOrUndefinedToRequiredBelongsTo
+          )
         })
       })
     })

@@ -84,7 +84,7 @@ export default function BelongsTo<
   ) {
     const dreamClass: typeof Dream = (target as any).constructor
 
-    if (!Object.getOwnPropertyDescriptor(dreamClass, 'associations'))
+    if (!Object.getOwnPropertyDescriptor(dreamClass, 'associationMetadataByType'))
       dreamClass['associationMetadataByType'] = blankAssociationsFactory(dreamClass)
 
     const partialAssociation = associationPrimaryKeyAccessors(

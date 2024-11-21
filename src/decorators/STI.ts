@@ -1,4 +1,7 @@
 import Dream from '../dream'
+import StiChildCannotDefineNewAssociations from '../exceptions/sti/sti-child-cannot-define-new-associations'
+import StiChildIncompatibleWithReplicaSafeDecorator from '../exceptions/sti/sti-child-incompatible-with-replica-safe-decorator'
+import StiChildIncompatibleWithSoftDeleteDecorator from '../exceptions/sti/sti-child-incompatible-with-soft-delete-decorator'
 import Scope from './scope'
 
 export const STI_SCOPE_NAME = 'dream:STI'
@@ -7,6 +10,15 @@ export default function STI(dreamClass: typeof Dream, { value }: { value?: strin
   return function (target: any) {
     const stiChildClass = target as typeof Dream
     const baseClass = dreamClass['sti'].baseClass || dreamClass
+
+    if (Object.getOwnPropertyDescriptor(stiChildClass, 'associationMetadataByType'))
+      throw new StiChildCannotDefineNewAssociations(baseClass, stiChildClass)
+
+    if (Object.getOwnPropertyDescriptor(stiChildClass, 'replicaSafe'))
+      throw new StiChildIncompatibleWithReplicaSafeDecorator(stiChildClass)
+
+    if (Object.getOwnPropertyDescriptor(stiChildClass, 'softDelete'))
+      throw new StiChildIncompatibleWithSoftDeleteDecorator(stiChildClass)
 
     if (!Object.getOwnPropertyDescriptor(stiChildClass, 'extendedBy')) stiChildClass['extendedBy'] = []
     if (!Object.getOwnPropertyDescriptor(dreamClass, 'extendedBy')) dreamClass['extendedBy'] = []

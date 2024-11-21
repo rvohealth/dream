@@ -1,5 +1,9 @@
 import { DreamColumn } from '../../../../src/dream/types'
 import ApplicationModel from '../ApplicationModel'
+import Balloon from '../Balloon'
+import Composition from '../Composition'
+import Post from '../Post'
+import User from '../User'
 
 export default class BaseExtraRating extends ApplicationModel {
   public get table() {
@@ -16,4 +20,14 @@ export default class BaseExtraRating extends ApplicationModel {
 
   public extraRateableId: DreamColumn<BaseExtraRating, 'extraRateableId'>
   public extraRateableType: DreamColumn<BaseExtraRating, 'extraRateableType'>
+
+  @BaseExtraRating.BelongsTo('User')
+  public user: User
+  public userId: DreamColumn<BaseExtraRating, 'userId'>
+
+  @BaseExtraRating.BelongsTo(['Composition', 'Post', 'Balloon'], {
+    foreignKey: 'extraRateableId',
+    polymorphic: true,
+  })
+  public extraRateable: Composition | Post | Balloon
 }

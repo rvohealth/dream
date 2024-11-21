@@ -8,6 +8,7 @@ import { BalloonTypesEnum } from '../../db/sync'
 import ApplicationModel from './ApplicationModel'
 import BalloonLine from './BalloonLine'
 import HeartRating from './ExtraRating/HeartRating'
+import Sandbag from './Sandbag'
 import User from './User'
 
 @ReplicaSafe()
@@ -51,4 +52,7 @@ export default class Balloon extends ApplicationModel {
 
   @Balloon.HasMany('ExtraRating/HeartRating', { polymorphic: true, foreignKey: 'extraRateableId' })
   public heartRatings: HeartRating[]
+
+  @Balloon.HasMany('Sandbag', { foreignKey: 'balloonId' })
+  public sandbags: Sandbag[]
 }
