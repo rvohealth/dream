@@ -1,7 +1,7 @@
 import { DreamColumn, DreamSerializers } from '../../../../src/dream/types'
 
 import { SoftDelete } from '../../../../src'
-import Sortable from '../../../../src/decorators/Sortable'
+import Sortable from '../../../../src/decorators/sortable2/Sortable'
 import ApplicationModel from '../ApplicationModel'
 import GraphEdge from './Edge'
 import GraphNode from './Node'
