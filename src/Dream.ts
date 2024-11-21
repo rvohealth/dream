@@ -646,7 +646,7 @@ export default class Dream {
    * @returns The BeforeCreate decorator
    *
    */
-  public static BeforeCreate<T extends typeof Dream>(this: T, opts: BeforeHookOpts<InstanceType<T>>) {
+  public static BeforeCreate<T extends typeof Dream>(this: T, opts?: BeforeHookOpts<InstanceType<T>>) {
     return BeforeCreate<InstanceType<T>>(opts)
   }
 
@@ -665,7 +665,7 @@ export default class Dream {
    * @returns The BeforeSave decorator
    *
    */
-  public static BeforeSave<T extends typeof Dream>(this: T, opts: BeforeHookOpts<InstanceType<T>>) {
+  public static BeforeSave<T extends typeof Dream>(this: T, opts?: BeforeHookOpts<InstanceType<T>>) {
     return BeforeSave<InstanceType<T>>(opts)
   }
 
@@ -684,7 +684,7 @@ export default class Dream {
    * @returns The BeforeUpdate decorator
    *
    */
-  public static BeforeUpdate<T extends typeof Dream>(this: T, opts: BeforeHookOpts<InstanceType<T>>) {
+  public static BeforeUpdate<T extends typeof Dream>(this: T, opts?: BeforeHookOpts<InstanceType<T>>) {
     return BeforeUpdate<InstanceType<T>>(opts)
   }
 
@@ -721,7 +721,7 @@ export default class Dream {
    * @returns The AfterCreate decorator
    *
    */
-  public static AfterCreate<T extends typeof Dream>(this: T, opts: AfterHookOpts<InstanceType<T>>) {
+  public static AfterCreate<T extends typeof Dream>(this: T, opts?: AfterHookOpts<InstanceType<T>>) {
     return AfterCreate<InstanceType<T>>(opts)
   }
 
@@ -739,7 +739,7 @@ export default class Dream {
    *
    * @returns The AfterCreateCommit decorator
    */
-  public static AfterCreateCommit<T extends typeof Dream>(this: T, opts: AfterHookOpts<InstanceType<T>>) {
+  public static AfterCreateCommit<T extends typeof Dream>(this: T, opts?: AfterHookOpts<InstanceType<T>>) {
     return AfterCreateCommit<InstanceType<T>>(opts)
   }
 
@@ -758,7 +758,7 @@ export default class Dream {
    * @returns The AfterSave decorator
    *
    */
-  public static AfterSave<T extends typeof Dream>(this: T, opts: AfterHookOpts<InstanceType<T>>) {
+  public static AfterSave<T extends typeof Dream>(this: T, opts?: AfterHookOpts<InstanceType<T>>) {
     return AfterSave<InstanceType<T>>(opts)
   }
 
@@ -777,7 +777,7 @@ export default class Dream {
    * @returns The AfterSaveCommit decorator
    *
    */
-  public static AfterSaveCommit<T extends typeof Dream>(this: T, opts: AfterHookOpts<InstanceType<T>>) {
+  public static AfterSaveCommit<T extends typeof Dream>(this: T, opts?: AfterHookOpts<InstanceType<T>>) {
     return AfterSaveCommit<InstanceType<T>>(opts)
   }
 
@@ -796,7 +796,7 @@ export default class Dream {
    * @returns The AfterUpdate decorator
    *
    */
-  public static AfterUpdate<T extends typeof Dream>(this: T, opts: AfterHookOpts<InstanceType<T>>) {
+  public static AfterUpdate<T extends typeof Dream>(this: T, opts?: AfterHookOpts<InstanceType<T>>) {
     return AfterUpdate<InstanceType<T>>(opts)
   }
 
@@ -815,7 +815,7 @@ export default class Dream {
    * @returns The AfterUpdateCommit decorator
    *
    */
-  public static AfterUpdateCommit<T extends typeof Dream>(this: T, opts: AfterHookOpts<InstanceType<T>>) {
+  public static AfterUpdateCommit<T extends typeof Dream>(this: T, opts?: AfterHookOpts<InstanceType<T>>) {
     return AfterUpdateCommit<InstanceType<T>>(opts)
   }
 
