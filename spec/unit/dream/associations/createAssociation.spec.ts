@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import CannotCreateAssociationWithThroughContext from '../../../../src/exceptions/associations/CannotCreateAssociationWithThroughContext'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import Composition from '../../../../test-app/app/models/Composition'
 import Pet from '../../../../test-app/app/models/Pet'
 import Post from '../../../../test-app/app/models/Post'
@@ -108,6 +109,29 @@ describe('Dream#createAssociation', () => {
 
         const rating = await user.createAssociation('ratings', { rateable: composition })
         expect(rating.rateableType).toEqual('Composition')
+      })
+    })
+
+    context('when the model being assined is an STI child', () => {
+      it('assigns class name of base STI model to polymorphic type field', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+
+        const mylarBalloon = await Mylar.create()
+        const rating = await mylarBalloon.createAssociation('heartRatings', { rating: 3, user })
+        expect(rating.extraRateableType).toEqual('Balloon')
+      })
+
+      context('when the polymorphic association is passed as an argument', () => {
+        it('assigns class name of base STI model to polymorphic type field', async () => {
+          const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+
+          const mylarBalloon = await Mylar.create()
+          const rating = await user.createAssociation('heartRatings', {
+            rating: 3,
+            extraRateable: mylarBalloon,
+          })
+          expect(rating.extraRateableType).toEqual('Balloon')
+        })
       })
     })
   })

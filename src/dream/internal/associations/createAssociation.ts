@@ -55,7 +55,7 @@ export default async function createAssociation<
         ...opts,
       }
       if (hasAssociation.polymorphic) {
-        modifiedOpts[hasAssociation.foreignKeyTypeField()] = dream.constructor.name
+        modifiedOpts[hasAssociation.foreignKeyTypeField()] = dream['stiBaseClassOrOwnClass'].name
       }
 
       if (txn) {
