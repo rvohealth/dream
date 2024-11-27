@@ -3228,6 +3228,13 @@ export const schema = {
         optional: null,
         requiredWhereClauses: null,
       },
+      heartRatings: {
+        type: 'HasMany',
+        foreignKey: 'userId',
+        tables: ['extra_ratings'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
       incompatibleForeignKeyTypeExamples: {
         type: 'HasMany',
         foreignKey: 'userId',

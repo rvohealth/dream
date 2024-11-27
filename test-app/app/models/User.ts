@@ -15,6 +15,7 @@ import Collar from './Collar'
 import Composition from './Composition'
 import CompositionAsset from './CompositionAsset'
 import CompositionAssetAudit from './CompositionAssetAudit'
+import HeartRating from './ExtraRating/HeartRating'
 import IncompatibleForeignKeyTypeExample from './IncompatibleForeignKeyTypeExample'
 import Pet from './Pet'
 import Post from './Post'
@@ -83,6 +84,9 @@ export default class User extends ApplicationModel {
 
   @User.HasMany('Rating')
   public ratings: Rating[]
+
+  @User.HasMany('ExtraRating/HeartRating')
+  public heartRatings: HeartRating[]
 
   @User.HasMany('Rating', { through: 'posts', source: 'ratings' })
   public postRatings: Rating[]
