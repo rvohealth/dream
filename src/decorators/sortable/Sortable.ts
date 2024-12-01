@@ -148,7 +148,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
   }
 }
 
-export interface SortableOpts {
+interface SortableOpts {
   scope?: string | string[]
 }
 

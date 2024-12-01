@@ -47,6 +47,13 @@ export type TrigramOperator = (typeof TRIGRAM_OPERATORS)[number]
 export type ComparisonOperatorExpression = KyselyComparisonOperatorExpression | TrigramOperator
 export type OrderDir = 'asc' | 'desc'
 
+export interface SortableOptions<T extends typeof Dream> {
+  scope?:
+    | keyof DreamBelongsToAssociationMetadata<InstanceType<T>>
+    | DreamColumnNames<InstanceType<T>>
+    | (keyof DreamBelongsToAssociationMetadata<InstanceType<T>> | DreamColumnNames<InstanceType<T>>)[]
+}
+
 export type DreamColumnNames<
   DreamInstance extends Dream,
   DB = DreamInstance['DB'],
