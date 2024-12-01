@@ -2689,7 +2689,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       return (await query.executeJoinLoad())[0] || null
     }
 
-    const kyselyQuery = this.buildSelect()
+    const kyselyQuery = this.limit(1).buildSelect()
     const results = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirst')
 
     if (results) {
