@@ -234,8 +234,8 @@ export default class UserSerializer<
       })
 
       context('when one of those attributes is an association', () => {
-        context('BelongsTo', () => {
-          it('correctly injects RendersOne decorator and imports for the model', () => {
+        context('belongs_to', () => {
+          it('omits it from the attributes', () => {
             const res = generateSerializerContent({
               fullyQualifiedModelName: 'user',
               columnsWithTypes: ['organization:belongs_to'],
@@ -243,9 +243,8 @@ export default class UserSerializer<
 
             expect(res).toEqual(
               `\
-import { Attribute, DreamColumn, DreamSerializer, RendersOne } from '@rvohealth/dream'
+import { Attribute, DreamColumn, DreamSerializer } from '@rvohealth/dream'
 import User from '../models/User'
-import Organization from '../models/Organization'
 
 export class UserSummarySerializer<
   DataType extends User,
@@ -259,91 +258,23 @@ export default class UserSerializer<
   DataType extends User,
   Passthrough extends object,
 > extends UserSummarySerializer<DataType, Passthrough> {
-  @RendersOne(Organization)
-  public organization: Organization
-}
-`
-            )
-          })
-        })
 
-        context('HasOne', () => {
-          it('correctly injects RendersOne decorator and imports for the model', () => {
-            const res = generateSerializerContent({
-              fullyQualifiedModelName: 'User',
-              columnsWithTypes: ['Organization:has_one'],
-            })
-
-            expect(res).toEqual(
-              `\
-import { Attribute, DreamColumn, DreamSerializer, RendersOne } from '@rvohealth/dream'
-import User from '../models/User'
-import Organization from '../models/Organization'
-
-export class UserSummarySerializer<
-  DataType extends User,
-  Passthrough extends object,
-> extends DreamSerializer<DataType, Passthrough> {
-  @Attribute(User)
-  public id: DreamColumn<User, 'id'>
-}
-
-export default class UserSerializer<
-  DataType extends User,
-  Passthrough extends object,
-> extends UserSummarySerializer<DataType, Passthrough> {
-  @RendersOne(Organization)
-  public organization: Organization
-}
-`
-            )
-          })
-        })
-
-        context('HasMany', () => {
-          it('correctly injects RendersMany decorator and imports for the model', () => {
-            const res = generateSerializerContent({
-              fullyQualifiedModelName: 'User',
-              columnsWithTypes: ['Organization:has_many'],
-            })
-
-            expect(res).toEqual(
-              `\
-import { Attribute, DreamColumn, DreamSerializer, RendersMany } from '@rvohealth/dream'
-import User from '../models/User'
-import Organization from '../models/Organization'
-
-export class UserSummarySerializer<
-  DataType extends User,
-  Passthrough extends object,
-> extends DreamSerializer<DataType, Passthrough> {
-  @Attribute(User)
-  public id: DreamColumn<User, 'id'>
-}
-
-export default class UserSerializer<
-  DataType extends User,
-  Passthrough extends object,
-> extends UserSummarySerializer<DataType, Passthrough> {
-  @RendersMany(Organization)
-  public organizations: Organization[]
 }
 `
             )
           })
 
-          context('when passed an association that should not be pluralized', () => {
-            it('correctly injects RendersMany decorator and imports for the model', () => {
+          context('optional', () => {
+            it('omits it from the attributes', () => {
               const res = generateSerializerContent({
-                fullyQualifiedModelName: 'User',
-                columnsWithTypes: ['Paper:has_many'],
+                fullyQualifiedModelName: 'user',
+                columnsWithTypes: ['organization:belongs_to:optional'],
               })
 
               expect(res).toEqual(
                 `\
-import { Attribute, DreamColumn, DreamSerializer, RendersMany } from '@rvohealth/dream'
+import { Attribute, DreamColumn, DreamSerializer } from '@rvohealth/dream'
 import User from '../models/User'
-import Paper from '../models/Paper'
 
 export class UserSummarySerializer<
   DataType extends User,
@@ -357,8 +288,7 @@ export default class UserSerializer<
   DataType extends User,
   Passthrough extends object,
 > extends UserSummarySerializer<DataType, Passthrough> {
-  @RendersMany(Paper)
-  public paper: Paper[]
+
 }
 `
               )
@@ -366,33 +296,62 @@ export default class UserSerializer<
           })
         })
 
-        context('nested models', () => {
-          it('correctly injects decorator and imports for the model, accounting for nesting', () => {
+        context('has_one', () => {
+          it('omits it from the attributes', () => {
             const res = generateSerializerContent({
-              fullyQualifiedModelName: 'User/Admin',
-              columnsWithTypes: ['Double/Nested/MyModel:belongs_to'],
+              fullyQualifiedModelName: 'user',
+              columnsWithTypes: ['organization:has_one'],
             })
 
             expect(res).toEqual(
               `\
-import { Attribute, DreamColumn, DreamSerializer, RendersOne } from '@rvohealth/dream'
-import UserAdmin from '../../models/User/Admin'
-import DoubleNestedMyModel from '../../models/Double/Nested/MyModel'
+import { Attribute, DreamColumn, DreamSerializer } from '@rvohealth/dream'
+import User from '../models/User'
 
-export class UserAdminSummarySerializer<
-  DataType extends UserAdmin,
+export class UserSummarySerializer<
+  DataType extends User,
   Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
-  @Attribute(UserAdmin)
-  public id: DreamColumn<UserAdmin, 'id'>
+  @Attribute(User)
+  public id: DreamColumn<User, 'id'>
 }
 
-export default class UserAdminSerializer<
-  DataType extends UserAdmin,
+export default class UserSerializer<
+  DataType extends User,
   Passthrough extends object,
-> extends UserAdminSummarySerializer<DataType, Passthrough> {
-  @RendersOne(DoubleNestedMyModel)
-  public doubleNestedMyModel: DoubleNestedMyModel
+> extends UserSummarySerializer<DataType, Passthrough> {
+
+}
+`
+            )
+          })
+        })
+
+        context('has_many', () => {
+          it('omits it from the attributes', () => {
+            const res = generateSerializerContent({
+              fullyQualifiedModelName: 'user',
+              columnsWithTypes: ['organization:has_many'],
+            })
+
+            expect(res).toEqual(
+              `\
+import { Attribute, DreamColumn, DreamSerializer } from '@rvohealth/dream'
+import User from '../models/User'
+
+export class UserSummarySerializer<
+  DataType extends User,
+  Passthrough extends object,
+> extends DreamSerializer<DataType, Passthrough> {
+  @Attribute(User)
+  public id: DreamColumn<User, 'id'>
+}
+
+export default class UserSerializer<
+  DataType extends User,
+  Passthrough extends object,
+> extends UserSummarySerializer<DataType, Passthrough> {
+
 }
 `
             )

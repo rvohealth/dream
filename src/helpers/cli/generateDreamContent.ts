@@ -59,18 +59,8 @@ public ${associationName}Id: DreamColumn<${modelClassName}, '${associationName}I
 `
 
       case 'has_one':
-        modelImportStatements.push(associationImportStatement)
-        return `
-@${modelClassName}.HasOne('${fullyQualifiedAssociatedModelName}')
-public ${associationName}: ${associationModelName}
-`
-
       case 'has_many':
-        modelImportStatements.push(associationImportStatement)
-        return `
-@${modelClassName}.HasMany('${fullyQualifiedAssociatedModelName}')
-public ${pluralize(associationName)}: ${associationModelName}[]
-`
+        return ''
 
       case 'encrypted':
         dreamImports.push('Encrypted')
