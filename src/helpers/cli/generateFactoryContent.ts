@@ -28,6 +28,8 @@ export default function generateFactoryContent({
     const associationFactoryImportStatement = `import create${associationModelName} from '${relativeDreamPath('factories', 'factories', fullyQualifiedModelName, fullyQualifiedAssociatedModelName)}'`
     const associationName = camelize(associationModelName)
 
+    if (/_type$/.test(attributeName)) continue
+
     if (!attributeType)
       throw new Error(
         `Must pass a column type for ${fullyQualifiedAssociatedModelName} (i.e. ${fullyQualifiedAssociatedModelName}:string)`
