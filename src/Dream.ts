@@ -90,7 +90,6 @@ import {
   DreamAssociationNamesWithRequiredWhereClauses,
   DreamAssociationType,
   DreamAttributes,
-  DreamBelongsToAssociationMetadata,
   DreamColumnNames,
   DreamConstructorType,
   DreamParamSafeColumnNames,
@@ -101,6 +100,7 @@ import {
   NextPreloadArgumentType,
   OrderDir,
   PassthroughColumnNames,
+  SortableOptions,
   TableColumnNames,
   TableColumnType,
   UpdateableAssociationProperties,
@@ -617,18 +617,8 @@ export default class Dream {
    * @param scope - The column, association, or combination there-of which you would like to restrict the incrementing logic to
    * @returns A Sortable decorator
    */
-  public static Sortable<T extends typeof Dream>(
-    this: T,
-    {
-      scope,
-    }: {
-      scope:
-        | keyof DreamBelongsToAssociationMetadata<InstanceType<T>>
-        | DreamColumnNames<InstanceType<T>>
-        | (keyof DreamBelongsToAssociationMetadata<InstanceType<T>> | DreamColumnNames<InstanceType<T>>)[]
-    }
-  ) {
-    return Sortable({ scope: scope as any })
+  public static Sortable<T extends typeof Dream>(this: T, opts?: SortableOptions<T>) {
+    return Sortable(opts)
   }
 
   /**
