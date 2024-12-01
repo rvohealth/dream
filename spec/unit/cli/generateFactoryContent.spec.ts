@@ -45,6 +45,28 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
 `
       )
     })
+
+    context('that end with "_type"', () => {
+      it('omits the default', () => {
+        const res = generateFactoryContent({
+          fullyQualifiedModelName: 'Post',
+          columnsWithTypes: [
+            'localizable_id:bigint',
+            'localizable_type:enum:localized_types:Host,Place,Room',
+          ],
+        })
+        expect(res).toEqual(
+          `\
+import { UpdateableProperties } from '@rvohealth/dream'
+import Post from '../../app/models/Post'
+
+export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
+  return await Post.create(attrs)
+}
+`
+        )
+      })
+    })
   })
 
   context('with a nested name', () => {
