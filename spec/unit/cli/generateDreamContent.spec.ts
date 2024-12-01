@@ -236,8 +236,8 @@ export default class Paper extends ApplicationModel {
       })
     })
 
-    context('relationships', () => {
-      context('when provided with a belongsTo relationship', () => {
+    context('associations', () => {
+      context('belongs_to', () => {
         it('generates a BelongsTo relationship in model', () => {
           const res = generateDreamContent({
             fullyQualifiedModelName: 'composition',
@@ -344,76 +344,6 @@ export default class CatToy extends ApplicationModel {
   @CatToy.BelongsTo('Pet/Domestic/Cat')
   public petDomesticCat: PetDomesticCat
   public petDomesticCatId: DreamColumn<CatToy, 'petDomesticCatId'>
-}
-`
-            )
-          })
-
-          it('can handle has many associations with nested paths', () => {
-            const res = generateDreamContent({
-              fullyQualifiedModelName: 'cat_toy',
-              columnsWithTypes: ['pet/domestic/cat:has_many'],
-              serializer: true,
-            })
-            expect(res).toEqual(
-              `\
-import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
-import ApplicationModel from './ApplicationModel'
-import PetDomesticCat from './Pet/Domestic/Cat'
-
-export default class CatToy extends ApplicationModel {
-  public get table() {
-    return 'cat_toys' as const
-  }
-
-  public get serializers(): DreamSerializers<CatToy> {
-    return {
-      default: 'CatToySerializer',
-      summary: 'CatToySummarySerializer',
-    }
-  }
-
-  public id: DreamColumn<CatToy, 'id'>
-  public createdAt: DreamColumn<CatToy, 'createdAt'>
-  public updatedAt: DreamColumn<CatToy, 'updatedAt'>
-
-  @CatToy.HasMany('Pet/Domestic/Cat')
-  public petDomesticCats: PetDomesticCat[]
-}
-`
-            )
-          })
-
-          it('can handle has one associations with nested paths', () => {
-            const res = generateDreamContent({
-              fullyQualifiedModelName: 'cat_toy',
-              columnsWithTypes: ['pet/domestic/cat:has_one'],
-              serializer: true,
-            })
-            expect(res).toEqual(
-              `\
-import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
-import ApplicationModel from './ApplicationModel'
-import PetDomesticCat from './Pet/Domestic/Cat'
-
-export default class CatToy extends ApplicationModel {
-  public get table() {
-    return 'cat_toys' as const
-  }
-
-  public get serializers(): DreamSerializers<CatToy> {
-    return {
-      default: 'CatToySerializer',
-      summary: 'CatToySummarySerializer',
-    }
-  }
-
-  public id: DreamColumn<CatToy, 'id'>
-  public createdAt: DreamColumn<CatToy, 'createdAt'>
-  public updatedAt: DreamColumn<CatToy, 'updatedAt'>
-
-  @CatToy.HasOne('Pet/Domestic/Cat')
-  public petDomesticCat: PetDomesticCat
 }
 `
             )
@@ -570,18 +500,17 @@ export default class Composition extends ApplicationModel {
         })
       })
 
-      context('when provided with a hasOne relationship', () => {
-        it('generates a HasOne relationship in model', () => {
+      context('has_one', () => {
+        it('is ignored', () => {
           const res = generateDreamContent({
             fullyQualifiedModelName: 'composition',
-            columnsWithTypes: ['user:has_one'],
+            columnsWithTypes: ['graph_node:has_one'],
             serializer: true,
           })
           expect(res).toEqual(
             `\
 import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import User from './User'
 
 export default class Composition extends ApplicationModel {
   public get table() {
@@ -598,64 +527,23 @@ export default class Composition extends ApplicationModel {
   public id: DreamColumn<Composition, 'id'>
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
-
-  @Composition.HasOne('User')
-  public user: User
 }
 `
           )
         })
       })
 
-      context('when provided with a hasMany relationship', () => {
-        it('generates a HasMany relationship in model', () => {
-          const res = generateDreamContent({
-            fullyQualifiedModelName: 'user',
-            columnsWithTypes: ['composition:has_many'],
-            serializer: true,
-          })
-          expect(res).toEqual(
-            `\
-import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
-import ApplicationModel from './ApplicationModel'
-import Composition from './Composition'
-
-export default class User extends ApplicationModel {
-  public get table() {
-    return 'users' as const
-  }
-
-  public get serializers(): DreamSerializers<User> {
-    return {
-      default: 'UserSerializer',
-      summary: 'UserSummarySerializer',
-    }
-  }
-
-  public id: DreamColumn<User, 'id'>
-  public createdAt: DreamColumn<User, 'createdAt'>
-  public updatedAt: DreamColumn<User, 'updatedAt'>
-
-  @User.HasMany('Composition')
-  public compositions: Composition[]
-}
-`
-          )
-        })
-      })
-
-      context('when provided with a relationship and using uuids', () => {
-        it('generates a uuid id field for relations relationship in model', () => {
+      context('has_many', () => {
+        it('is ignored', () => {
           const res = generateDreamContent({
             fullyQualifiedModelName: 'composition',
-            columnsWithTypes: ['user:belongs_to'],
+            columnsWithTypes: ['graph_node:has_one'],
             serializer: true,
           })
           expect(res).toEqual(
             `\
 import { DreamColumn, DreamSerializers } from '@rvohealth/dream'
 import ApplicationModel from './ApplicationModel'
-import User from './User'
 
 export default class Composition extends ApplicationModel {
   public get table() {
@@ -672,10 +560,6 @@ export default class Composition extends ApplicationModel {
   public id: DreamColumn<Composition, 'id'>
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
-
-  @Composition.BelongsTo('User')
-  public user: User
-  public userId: DreamColumn<Composition, 'userId'>
 }
 `
           )

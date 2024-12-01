@@ -1,4 +1,3 @@
-import pluralize from 'pluralize'
 import camelize from '../camelize'
 import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName'
 import pascalize from '../pascalize'
@@ -62,21 +61,20 @@ export default function generateSerializerContent({
       )
     : 'DreamSerializer'
 
-  if (columnsWithTypes.find(attr => /:belongs_to|:has_one/.test(attr))) dreamImports.push('RendersOne')
-  if (columnsWithTypes.find(attr => /:has_many/.test(attr))) dreamImports.push('RendersMany')
-
   const additionalModelImports: string[] = []
   columnsWithTypes.forEach(attr => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [name, type] = attr.split(':')
-    if (['belongs_to', 'has_one', 'has_many'].includes(type)) {
-      const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(name)
 
-      additionalModelImports.push(
-        importStatementForModel(fullyQualifiedModelName, fullyQualifiedAssociatedModelName)
-      )
-    } else {
-      dreamImports.push('Attribute')
-      dreamImports.push('DreamColumn')
+    switch (type) {
+      case 'belongs_to':
+      case 'has_one':
+      case 'has_many':
+        break
+
+      default:
+        dreamImports.push('Attribute')
+        dreamImports.push('DreamColumn')
     }
   })
 
@@ -110,12 +108,8 @@ ${columnsWithTypes
     switch (type) {
       case 'belongs_to':
       case 'has_one':
-        return `  @RendersOne(${associatedModelName})
-  public ${propertyName}: ${associatedModelName}`
-
       case 'has_many':
-        return `  @RendersMany(${associatedModelName})
-  public ${pluralize(propertyName)}: ${associatedModelName}[]`
+        return ''
 
       default:
         return `  @Attribute(${modelClassName}${attributeOptionsSpecifier(type, attr)})
