@@ -1,7 +1,6 @@
 import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely'
 import { Pool } from 'pg'
-import DreamApplication, { SingleDbCredential } from '../dream-application'
-import { envBool } from '../helpers/envHelpers'
+import DreamApplication, { KyselyLogEvent, SingleDbCredential } from '../dream-application'
 import ConnectionConfRetriever from './ConnectionConfRetriever'
 import { DbConnectionType } from './types'
 
@@ -18,7 +17,13 @@ export default class DreamDbConnection {
     const connectionConf = new ConnectionConfRetriever().getConnectionConf(connectionType)
 
     const dbConn = new Kysely<DB>({
-      log: envBool('DEBUG') ? ['query', 'error'] : undefined,
+      log(event) {
+        const dreamApp = DreamApplication.getOrFail()
+        dreamApp.specialHooks.dbLog.forEach(fn => {
+          fn(event as KyselyLogEvent)
+        })
+      },
+
       dialect: new PostgresDialect({
         pool: new Pool({
           user: connectionConf.user || '',

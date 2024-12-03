@@ -75,4 +75,34 @@ export default async function (dreamApp: DreamApplication) {
       useSsl: process.env.DB_USE_SSL === '1',
     },
   })
+
+  dreamApp.on('db:log', event => {
+    __cacheMessageForTests('db:log')
+
+    if (process.env.SQL_LOGGING !== '1') return
+
+    if (event.level === 'error') {
+      console.error('the following db query encountered an unexpected error: ', {
+        durationMs: event.queryDurationMillis,
+        error: event.error,
+        sql: event.query.sql,
+        params: event.query.parameters.map(maskPII),
+      })
+    } else {
+      console.log('db query completed:', {
+        durationMs: event.queryDurationMillis,
+        sql: event.query.sql,
+        params: event.query.parameters.map(maskPII),
+      })
+    }
+  })
+}
+
+function maskPII(data: unknown) {
+  return data
+}
+
+function __cacheMessageForTests(message: string) {
+  process.env.__DREAM_HOOKS_TEST_CACHE ||= ''
+  process.env.__DREAM_HOOKS_TEST_CACHE += `,${message}`
 }
