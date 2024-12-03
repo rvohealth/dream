@@ -20,6 +20,7 @@ import { cacheDreamApplication, getCachedDreamApplicationOrFail } from './cache'
 import loadModels, { getModelsOrFail } from './helpers/loadModels'
 import loadSerializers, { getSerializersOrFail, setCachedSerializers } from './helpers/loadSerializers'
 import loadServices, { getServicesOrFail, setCachedServices } from './helpers/loadServices'
+import { CompiledQuery } from 'kysely'
 
 // this needs to be done top-level to ensure proper configuration
 Settings.defaultZone = 'UTC'
@@ -152,6 +153,13 @@ Try setting it to something valid, like:
 
   public static logWithLevel(level: DreamLogLevel, ...args: any[]) {
     this.getOrFail().logger[level](...args)
+  }
+
+  private _specialHooks: DreamApplicationSpecialHooks = {
+    dbLog: [],
+  }
+  public get specialHooks() {
+    return this._specialHooks
   }
 
   private _dbCredentials: DreamDbCredentialOptions
@@ -315,7 +323,20 @@ Try setting it to something valid, like:
         throw new Error(`Unhandled applyOption encountered in Dreamconf: ${applyOption}`)
     }
   }
+
+  public on<T extends DreamHookEventType>(
+    hookEventType: T,
+    cb: T extends 'db:log' ? (event: KyselyLogEvent) => void : never
+  ) {
+    switch (hookEventType) {
+      case 'db:log':
+        this._specialHooks.dbLog.push(cb)
+        break
+    }
+  }
 }
+
+export type DreamHookEventType = 'db:log'
 
 export interface DreamApplicationOpts {
   projectRoot: string
@@ -377,4 +398,15 @@ export interface DreamApplicationEncryptionOptions {
 interface SegmentedEncryptionOptions {
   current: EncryptOptions
   legacy?: EncryptOptions
+}
+
+export interface DreamApplicationSpecialHooks {
+  dbLog: ((event: KyselyLogEvent) => void)[]
+}
+
+export interface KyselyLogEvent {
+  level: 'query' | 'error'
+  query: CompiledQuery // this object contains the raw SQL string, parameters, and Kysely's SQL syntax tree that helped output the raw SQL string.
+  queryDurationMillis: number // the time in milliseconds it took for the query to execute and get a response from the database.
+  error: unknown // only present if `level` is `'error'`.
 }
