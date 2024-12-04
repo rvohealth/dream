@@ -4,7 +4,6 @@ import Dream from '../../../Dream'
 import DreamTransaction from '../../../dream/DreamTransaction'
 import Query from '../../../dream/Query'
 import range from '../../../helpers/range'
-import ops from '../../../ops'
 import getColumnForSortableScope from './getColumnForSortableScope'
 import scopeArray from './scopeArray'
 import sortableQueryExcludingDream from './sortableQueryExcludingDream'
@@ -41,6 +40,7 @@ export default async function setPosition({
       dream,
       positionField,
       scope,
+      previousPosition,
       query,
       txn,
     })
@@ -128,16 +128,6 @@ async function applyUpdates({
     txn,
   })
 
-  await updatePreviousScope({
-    position,
-    previousPosition,
-    dream,
-    positionField,
-    query,
-    scope,
-    txn,
-  })
-
   await updatePositionForRecord(txn, dream, positionField, newPosition)
 }
 
@@ -146,12 +136,14 @@ async function setNewPosition({
   positionField,
   query,
   scope,
+  previousPosition,
   txn,
 }: {
   dream: Dream
   positionField: string
   query: Query<Dream>
   scope?: string | string[]
+  previousPosition?: number
   txn?: DreamTransaction<any>
 }) {
   const newPosition = (await sortableQueryExcludingDream(dream, query, scope).max(positionField)) + 1
@@ -170,6 +162,28 @@ async function setNewPosition({
   } else {
     await dream.reload()
   }
+
+  if (txn) {
+    await updateConflictingRecords({
+      previousPosition,
+      dream,
+      positionField,
+      query,
+      scope,
+      txn,
+    })
+  } else {
+    await (dream.constructor as typeof Dream).transaction(async txn => {
+      await updateConflictingRecords({
+        previousPosition,
+        dream,
+        positionField,
+        query,
+        scope,
+        txn,
+      })
+    })
+  }
 }
 
 async function updateConflictingRecords({
@@ -182,7 +196,7 @@ async function updateConflictingRecords({
   txn,
 }: {
   dream: Dream
-  position: number
+  position?: number
   previousPosition?: number
   positionField: string
   query: Query<Dream>
@@ -190,14 +204,16 @@ async function updateConflictingRecords({
   txn: DreamTransaction<any>
 }) {
   const newPosition = position
-  const increasing = previousPosition && previousPosition < newPosition
+  if (newPosition === undefined && previousPosition === undefined) return
+  const increasing =
+    newPosition === undefined || (previousPosition !== undefined && previousPosition < newPosition)
 
   let kyselyQuery = query
     .txn(txn)
     .whereNot({ [dream.primaryKey]: dream.primaryKeyValue as any })
     .where({
       [positionField]: increasing
-        ? range(previousPosition, newPosition)
+        ? range(previousPosition!, newPosition)
         : range(newPosition, previousPosition),
     })
     .toKysely('update')
@@ -205,59 +221,13 @@ async function updateConflictingRecords({
       [positionField]: eb(positionField, increasing ? '-' : '+', 1),
     }))
 
-  kyselyQuery = applySortableScopesToQuery(dream, kyselyQuery, column => (dream as any)[column], scope)
-
-  await kyselyQuery.execute()
-}
-
-// this function allows us to handle the case where, rather than a position being updated,
-// an attribute or association that is tied to the scope is updated. In these contexts, A
-// dream is now leaving the scope and entering a new one, in which case we need to make
-// sure the previous scope is updated so that holes in the positioning are correctly adapted.
-async function updatePreviousScope({
-  position,
-  dream,
-  positionField,
-  query,
-  scope,
-  txn,
-}: {
-  dream: Dream
-  position: number
-  previousPosition?: number
-  positionField: string
-  query: Query<Dream>
-  scope?: string | string[]
-  txn: DreamTransaction<any>
-}) {
-  const savingChangeToScopeField = scopeArray(scope).filter(
-    scopeField =>
-      (!dream['getAssociationMetadata'](scopeField) && dream.savedChangeToAttribute(scopeField as any)) ||
-      (dream['getAssociationMetadata'](scopeField) &&
-        dream.savedChangeToAttribute(dream['getAssociationMetadata'](scopeField).foreignKey()))
-  ).length
-
-  if (dream.changes()[dream.primaryKey] && dream.changes()[dream.primaryKey]!.was === undefined) return
-  if (!savingChangeToScopeField) return
-
-  let kyselyQuery = query
-    .txn(txn)
-    .whereNot({ [dream.primaryKey]: dream.primaryKeyValue as any })
-    .where({
-      [positionField]: ops.greaterThan(position),
-    })
-    .toKysely('update')
-    .set((eb: ExpressionBuilder<(typeof dream)['DB'], typeof dream.table>) => {
-      return {
-        [positionField]: eb(positionField, '-', 1),
-      }
-    })
-
-  const changes = dream.changes()
   kyselyQuery = applySortableScopesToQuery(
     dream,
     kyselyQuery,
-    column => changes[column as any]?.was || (dream as any)[column],
+    column =>
+      dream.savedChangeToAttribute(column)
+        ? (dream.changes()[column]?.was ?? (dream as any)[column])
+        : (dream as any)[column],
     scope
   )
 

@@ -18,54 +18,61 @@ export default async function beforeSortableSave({
 }) {
   const cacheKey = sortableCacheKeyName(positionField)
   const cachedValuesName = sortableCacheValuesName(positionField)
+  const dreamAsAny = dream as any
 
-  const savingChangeToScopeField = scopeArray(scope).filter(
-    scopeField =>
-      (!dream['getAssociationMetadata'](scopeField) && dream.willSaveChangeToAttribute(scopeField as any)) ||
-      (dream['getAssociationMetadata'](scopeField) &&
-        Object.keys(dream.changedAttributes()).includes(
-          dream['getAssociationMetadata'](scopeField).foreignKey()
-        ))
+  const changingScope = scopeArray(scope).filter(scopeField =>
+    dream['getAssociationMetadata'](scopeField)
+      ? dream.willSaveChangeToAttribute(dream['getAssociationMetadata'](scopeField).foreignKey())
+      : dream.willSaveChangeToAttribute(scopeField as any)
   ).length
 
-  if (!dream.willSaveChangeToAttribute(positionField) && !savingChangeToScopeField) return
+  if (!dream.willSaveChangeToAttribute(positionField) && !changingScope) return
 
-  const position = (dream as any)[positionField]
+  const onlyChangingScope = !dream.willSaveChangeToAttribute(positionField) && changingScope
 
-  if (await positionIsInvalid({ query, dream: dream, scope, position })) {
-    if (savingChangeToScopeField) {
-      ;(dream as any)[cacheKey] = dream.changes()[positionField]?.was
+  const position = dreamAsAny[positionField]
+
+  if (onlyChangingScope) {
+    dreamAsAny[cacheKey] = position
+  } else if (await positionIsInvalid({ query, dream: dream, scope, position })) {
+    if (changingScope) {
+      dreamAsAny[cacheKey] = dream.changes()[positionField]?.was
     } else {
       if (dream.isPersisted) {
-        ;(dream as any)[positionField] = undefined
+        dreamAsAny[positionField] = undefined
         return
       } else {
-        ;(dream as any)[cacheKey] = dream.changes()[positionField]?.was
+        dreamAsAny[cacheKey] = dream.changes()[positionField]?.was
       }
     }
   } else {
-    ;(dream as any)[cacheKey] = position
+    dreamAsAny[cacheKey] = position
   }
 
   // store values to be used in after create/update hook
   const values = {
-    position: (dream as any)[cacheKey],
-    dream: dream,
+    position: changingScope ? undefined : dreamAsAny[cacheKey],
+    dream,
     positionField,
     scope,
-    previousPosition: dream.changes()[positionField]?.was,
+    previousPosition: dream.willSaveChangeToAttribute(positionField)
+      ? dream.changes()[positionField]?.was
+      : changingScope
+        ? position
+        : undefined,
     query,
   }
-  ;(dream as any)[cachedValuesName] = values
+  dreamAsAny[cachedValuesName] = values
 
-  if (dream.isPersisted) {
+  if (dream.isNewRecord || changingScope) {
+    // if the dream is not saved, or is being moved between scopes, set position to 0
+    // to prevent collisions with existing position values.
+    // it will be updated in an AfterCreateCommit hook to the correct value after saving.
+    dreamAsAny[positionField] = 0
+  } else {
     // if the dream is saved, set the position field to undefined, which will cause
     // the update cycle to ignore the position field. We will proceed to update it in an
     // AfterUpdateCommit hook
-    ;(dream as any)[positionField] = undefined
-  } else {
-    // if the dream is not saved, set position to 0 to prevent collisions with existing position values.
-    // it will be updated in an AfterCreateCommit hook to the correct value after saving.
-    ;(dream as any)[positionField] = 0
+    dreamAsAny[positionField] = undefined
   }
 }

@@ -3445,6 +3445,15 @@ export default class Dream {
     ;(clone as any)[clone.createdAtField] = undefined
     ;(clone as any)[clone.updatedAtField] = undefined
 
+    const dreamClass = this.constructor as typeof Dream
+    dreamClass.sortableFields.forEach(data => {
+      ;(clone as any)[data.positionField] = undefined
+    })
+
+    clone.freezeAttributes()
+    clone.originalAttributes = { ...clone.getAttributes() }
+    clone.attributesFromBeforeLastSave = { ...clone.getAttributes() }
+
     return clone
   }
 

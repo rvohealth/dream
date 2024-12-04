@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon'
+import Latex from '../../../test-app/app/models/Balloon/Latex'
 import User from '../../../test-app/app/models/User'
 
 describe('Dream#dup', () => {
@@ -76,5 +77,14 @@ describe('Dream#dup', () => {
       const user2 = user.dup()
       expect((user2 as any).howyadoin).toBeNull()
     })
+  })
+
+  it('does not copy sortable attributes', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const balloon = await Latex.create({ user })
+
+    const balloon2 = balloon.dup()
+    expect(balloon2.positionAlpha).toBeUndefined()
+    expect(balloon2.positionBeta).toBeUndefined()
   })
 })

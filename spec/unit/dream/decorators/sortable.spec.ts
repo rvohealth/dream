@@ -352,6 +352,44 @@ describe('@Sortable', () => {
         expect(unrelatedPost.position).toEqual(1)
       })
 
+      context('changing scope', () => {
+        it('adjusts records in the old scope and sets position to N+1 in the new scope', async () => {
+          let postA1 = await Post.create({ body: 'A1', user })
+          let postA2 = await Post.create({ body: 'A2', user })
+          let postB1 = await Post.create({ body: 'B1', user: user2 })
+          let postC = await Post.create({ body: 'C', user: user2 })
+          let postB2 = await Post.create({ body: 'B2', user: user2 })
+
+          postA1 = await Post.findOrFail(postA1.id)
+          postA2 = await Post.findOrFail(postA2.id)
+          postB1 = await Post.findOrFail(postB1.id)
+          postC = await Post.findOrFail(postC.id)
+          postB2 = await Post.findOrFail(postB2.id)
+
+          expect(postA1.position).toEqual(1)
+          expect(postA2.position).toEqual(2)
+
+          expect(postB1.position).toEqual(1)
+          expect(postC.position).toEqual(2)
+          expect(postB2.position).toEqual(3)
+
+          await postC.update({ user })
+
+          await postA1.reload()
+          await postA2.reload()
+          await postB1.reload()
+          await postB2.reload()
+          await postC.reload()
+
+          expect(postA1.position).toEqual(1)
+          expect(postA2.position).toEqual(2)
+          expect(postC.position).toEqual(3)
+
+          expect(postB1.position).toEqual(1)
+          expect(postB2.position).toEqual(2)
+        })
+      })
+
       context('when part of the scope is pointing to a column', () => {
         let pet: Pet
         let pet2: Pet
@@ -359,6 +397,7 @@ describe('@Sortable', () => {
         let collar2: Collar
         let collar3: Collar
         let collar4: Collar
+
         beforeEach(async () => {
           pet = await Pet.create()
           pet2 = await Pet.create()
@@ -389,7 +428,6 @@ describe('@Sortable', () => {
 
         context('when updating a scope column, rather than the position', () => {
           it('also affects the ordering of the previous scope to close positional gaps left behind', async () => {
-            await collar3.update({ position: 2 })
             await collar3.update({ tagName: 'hello' })
             await collar1.reload()
             await collar2.reload()
@@ -397,8 +435,8 @@ describe('@Sortable', () => {
             await collar4.reload()
 
             expect(collar1.position).toEqual(1)
-            expect(collar3.position).toEqual(2)
-            expect(collar2.position).toEqual(3)
+            expect(collar2.position).toEqual(2)
+            expect(collar3.position).toEqual(3)
 
             await collar3.update({ pet: pet2 })
             await collar1.reload()
@@ -902,6 +940,70 @@ describe('@Sortable', () => {
       expect(edgeNode2.multiScopedPosition).toEqual(3)
       expect(unrelatedNode1.multiScopedPosition).toEqual(1)
       expect(unrelatedNode2.multiScopedPosition).toEqual(1)
+    })
+  })
+
+  context('dup of a sortable model and changing the scope before saving', () => {
+    it('does not update records from previous scope', async () => {
+      const user1 = await User.create({ email: 'how@yadoin1', password: 'howyadoin' })
+      const user2 = await User.create({ email: 'how@yadoin2', password: 'howyadoin' })
+      const balloon1 = await Latex.create({ user: user1 })
+      const balloon2 = await Latex.create({ user: user1 })
+      const balloon3 = await Latex.create({ user: user1 })
+
+      await Latex.create({ user: user2 })
+      await Latex.create({ user: user2 })
+
+      expect(balloon1.positionAlpha).toEqual(1)
+      expect(balloon2.positionAlpha).toEqual(2)
+      expect(balloon3.positionAlpha).toEqual(3)
+
+      const newBalloon = balloon2.dup()
+      newBalloon.user = user2
+      await newBalloon.save()
+
+      await balloon1.reload()
+      await balloon2.reload()
+      await balloon3.reload()
+
+      expect(balloon1.positionAlpha).toEqual(1)
+      expect(balloon2.positionAlpha).toEqual(2)
+      expect(balloon3.positionAlpha).toEqual(3)
+      expect(newBalloon.positionAlpha).toEqual(3)
+    })
+
+    context('when duping is done within a transaction', () => {
+      it('does not update records from previous scope', async () => {
+        const user1 = await User.create({ email: 'how@yadoin1', password: 'howyadoin' })
+        const user2 = await User.create({ email: 'how@yadoin2', password: 'howyadoin' })
+        const balloon1 = await Latex.create({ user: user1 })
+        const balloon2 = await Latex.create({ user: user1 })
+        const balloon3 = await Latex.create({ user: user1 })
+
+        await Latex.create({ user: user2 })
+        await Latex.create({ user: user2 })
+
+        expect(balloon1.positionAlpha).toEqual(1)
+        expect(balloon2.positionAlpha).toEqual(2)
+        expect(balloon3.positionAlpha).toEqual(3)
+
+        let newBalloon: Latex
+
+        await ApplicationModel.transaction(async txn => {
+          newBalloon = balloon2.dup()
+          newBalloon.user = user2
+          await newBalloon.txn(txn).save()
+        })
+
+        await balloon1.reload()
+        await balloon2.reload()
+        await balloon3.reload()
+
+        expect(balloon1.positionAlpha).toEqual(1)
+        expect(balloon2.positionAlpha).toEqual(2)
+        expect(balloon3.positionAlpha).toEqual(3)
+        expect(newBalloon!.positionAlpha).toEqual(3)
+      })
     })
   })
 })
