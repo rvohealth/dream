@@ -14,5 +14,9 @@ describe('Dream#dirtyAttributes', () => {
 
     user.email = 'ham@'
     expect(user.dirtyAttributes()).toEqual({})
+
+    await user.update({ email: 'fish@' })
+
+    expect(user.dirtyAttributes()).toEqual({})
   })
 })

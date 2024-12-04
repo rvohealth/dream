@@ -21,11 +21,12 @@ export default async function afterUpdateSortable({
 }) {
   const cacheKey = sortableCacheKeyName(positionField)
   const cachedValuesName = sortableCacheValuesName(positionField)
+  const cachedValues = (dream as any)[cachedValuesName]
 
-  if (!(dream as any)[cacheKey]) return
-  if ((dream as any)[cachedValuesName]) {
+  if (!(dream as any)[cacheKey] && !cachedValues?.onlySavingChangeToScopeField) return
+  if (cachedValues) {
     await setPosition({
-      ...(dream as any)[cachedValuesName],
+      ...cachedValues,
       txn,
     })
   } else {
@@ -37,6 +38,7 @@ export default async function afterUpdateSortable({
       previousPosition: dream.changes()[positionField]?.was,
       query,
       txn,
+      onlySavingChangeToScopeField: false,
     })
   }
 

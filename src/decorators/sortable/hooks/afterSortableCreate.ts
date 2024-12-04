@@ -4,6 +4,7 @@ import Query from '../../../dream/Query'
 import clearCachedSortableValues from '../helpers/clearCachedSortableValues'
 import setPosition from '../helpers/setPosition'
 import sortableCacheKeyName from '../helpers/sortableCacheKeyName'
+import sortableCacheValuesName from '../helpers/sortableCacheValuesName'
 
 export default async function afterSortableCreate({
   positionField,
@@ -19,6 +20,8 @@ export default async function afterSortableCreate({
   scope?: string | string[]
 }) {
   const cacheKey = sortableCacheKeyName(positionField)
+  const cachedValuesName = sortableCacheValuesName(positionField)
+  const cachedValues = (dream as any)[cachedValuesName]
 
   await setPosition({
     position: (dream as any)[cacheKey],
@@ -27,6 +30,7 @@ export default async function afterSortableCreate({
     txn,
     scope,
     query,
+    onlySavingChangeToScopeField: cachedValues?.onlySavingChangeToScopeField || false,
   })
 
   clearCachedSortableValues(dream, positionField)

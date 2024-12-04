@@ -1,7 +1,6 @@
 import { Query, ReplicaSafe } from '../../../src'
 import Scope from '../../../src/decorators/Scope'
 import SoftDelete from '../../../src/decorators/SoftDelete'
-import Sortable from '../../../src/decorators/sortable/Sortable'
 import Validates from '../../../src/decorators/validations/Validates'
 import { DreamColumn, IdType } from '../../../src/dream/types'
 import { BalloonTypesEnum } from '../../db/sync'
@@ -32,7 +31,7 @@ export default class Balloon extends ApplicationModel {
     ;(this as Balloon).setAttribute('type', newType)
   }
 
-  @Sortable({ scope: 'user' })
+  @Balloon.Sortable({ scope: 'user' })
   public positionAlpha: DreamColumn<Balloon, 'positionAlpha'>
 
   @Scope()

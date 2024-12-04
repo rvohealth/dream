@@ -31,9 +31,13 @@ export default async function beforeSortableSave({
   if (!dream.willSaveChangeToAttribute(positionField) && !savingChangeToScopeField) return
 
   const position = (dream as any)[positionField]
+  const onlySavingChangeToScopeField =
+    !dream.willSaveChangeToAttribute(positionField) && savingChangeToScopeField
 
   if (await positionIsInvalid({ query, dream: dream, scope, position })) {
-    if (savingChangeToScopeField) {
+    if (onlySavingChangeToScopeField) {
+      ;(dream as any)[cacheKey] = undefined
+    } else if (savingChangeToScopeField) {
       ;(dream as any)[cacheKey] = dream.changes()[positionField]?.was
     } else {
       if (dream.isPersisted) {
@@ -55,6 +59,7 @@ export default async function beforeSortableSave({
     scope,
     previousPosition: dream.changes()[positionField]?.was,
     query,
+    onlySavingChangeToScopeField,
   }
   ;(dream as any)[cachedValuesName] = values
 

@@ -14,8 +14,9 @@ export default async function setPosition({
   previousPosition,
   dream,
   positionField,
-  scope,
   query,
+  onlySavingChangeToScopeField,
+  scope,
   txn,
 }: {
   dream: Dream
@@ -23,6 +24,7 @@ export default async function setPosition({
   previousPosition?: number
   positionField: string
   query: Query<Dream>
+  onlySavingChangeToScopeField: boolean
   scope?: string | string[]
   txn?: DreamTransaction<any>
 }) {
@@ -37,13 +39,27 @@ export default async function setPosition({
       txn,
     })
   } else {
-    await setNewPosition({
-      dream,
-      positionField,
-      scope,
-      query,
-      txn,
-    })
+    if (txn) {
+      await setNewPosition({
+        dream,
+        positionField,
+        scope,
+        query,
+        onlySavingChangeToScopeField,
+        txn,
+      })
+    } else {
+      await (dream.constructor as typeof Dream).transaction(async txn => {
+        await setNewPosition({
+          dream,
+          positionField,
+          scope,
+          query,
+          onlySavingChangeToScopeField,
+          txn,
+        })
+      })
+    }
   }
 }
 
@@ -145,16 +161,30 @@ async function setNewPosition({
   dream,
   positionField,
   query,
+  onlySavingChangeToScopeField,
   scope,
   txn,
 }: {
   dream: Dream
   positionField: string
   query: Query<Dream>
+  onlySavingChangeToScopeField: boolean
+  txn: DreamTransaction<any>
   scope?: string | string[]
-  txn?: DreamTransaction<any>
 }) {
   const newPosition = (await sortableQueryExcludingDream(dream, query, scope).max(positionField)) + 1
+
+  if (onlySavingChangeToScopeField) {
+    await updatePreviousScope({
+      position: newPosition,
+      previousPosition: dream.changes()[positionField]?.was || (dream as any)[positionField],
+      dream,
+      positionField,
+      query,
+      scope,
+      txn,
+    })
+  }
 
   const dbOrTxn = txn ? txn.kyselyTransaction : db('primary')
   await dbOrTxn
