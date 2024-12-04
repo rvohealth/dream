@@ -936,12 +936,15 @@ describe('@Sortable', () => {
   })
 
   context('when duping records and then changing scope in isolation', () => {
-    it('does not update records from previous scope', async () => {
+    it.only('does not update records from previous scope', async () => {
       const user1 = await User.create({ email: 'how@yadoin1', password: 'howyadoin' })
       const user2 = await User.create({ email: 'how@yadoin2', password: 'howyadoin' })
       const balloon1 = await Latex.create({ user: user1 })
       const balloon2 = await Latex.create({ user: user1 })
       const balloon3 = await Latex.create({ user: user1 })
+
+      const otherBalloon1 = await Latex.create({ user: user2 })
+      const otherBalloon2 = await Latex.create({ user: user2 })
 
       expect(balloon1.positionAlpha).toEqual(1)
       expect(balloon2.positionAlpha).toEqual(2)
@@ -949,6 +952,7 @@ describe('@Sortable', () => {
 
       const newBalloon = balloon2.dup()
       newBalloon.user = user2
+      console.log('SAVING NOW', newBalloon.getAttributes(), newBalloon.changes())
       await newBalloon.save()
 
       await balloon1.reload()
@@ -969,14 +973,18 @@ describe('@Sortable', () => {
         const balloon2 = await Latex.create({ user: user1 })
         const balloon3 = await Latex.create({ user: user1 })
 
+        const otherBalloon1 = await Latex.create({ user: user2 })
+        const otherBalloon2 = await Latex.create({ user: user2 })
+
         expect(balloon1.positionAlpha).toEqual(1)
         expect(balloon2.positionAlpha).toEqual(2)
         expect(balloon3.positionAlpha).toEqual(3)
 
-        const newBalloon = balloon2.dup()
-        newBalloon.user = user2
+        let newBalloon: Latex
 
         await ApplicationModel.transaction(async txn => {
+          newBalloon = balloon2.dup()
+          newBalloon.user = user2
           await newBalloon.txn(txn).save()
         })
 
@@ -987,7 +995,7 @@ describe('@Sortable', () => {
         expect(balloon1.positionAlpha).toEqual(1)
         expect(balloon2.positionAlpha).toEqual(2)
         expect(balloon3.positionAlpha).toEqual(3)
-        expect(newBalloon.positionAlpha).toEqual(1)
+        expect(newBalloon!.positionAlpha).toEqual(1)
       })
     })
   })

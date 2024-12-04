@@ -19,7 +19,9 @@ export default function Sortable(opts: SortableOpts = {}): any {
   return function (target: any, key: string, _: any) {
     const dreamClass: typeof Dream = target.constructor
 
-    if (!Object.getOwnPropertyDescriptor(dreamClass, 'sortableFields')) dreamClass['sortableFields'] = []
+    if (!Object.getOwnPropertyDescriptor(dreamClass, 'sortableFields'))
+      dreamClass['sortableFields'] = [...dreamClass['sortableFields']]
+
     dreamClass['sortableFields'].push({
       scope: scopeArray(opts.scope),
       positionField: key,

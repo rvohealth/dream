@@ -3445,6 +3445,15 @@ export default class Dream {
     ;(clone as any)[clone.createdAtField] = undefined
     ;(clone as any)[clone.updatedAtField] = undefined
 
+    const dreamClass = this.constructor as typeof Dream
+    dreamClass.sortableFields.forEach(data => {
+      ;(clone as any)[data.positionField] = undefined
+    })
+
+    clone.freezeAttributes()
+    clone.originalAttributes = { ...clone.getAttributes() }
+    clone.attributesFromBeforeLastSave = { ...clone.getAttributes() }
+
     return clone
   }
 
@@ -3463,8 +3472,12 @@ export default class Dream {
       (this.constructor as typeof Dream).associationMetadataMap()
     ).map(association => associationToGetterSetterProp(association))
 
+    self['email'] = 'how@yadoin'
+    console.log('KEYS', Object.keys(self))
     Object.keys(this).forEach(property => {
-      if (!associationDataKeys.includes(property)) clone[property] = cloneDeepSafe(self[property])
+      console.log('PRPOP{', property, clone[property])
+      if (!associationDataKeys.includes(property) && clone[property] !== undefined)
+        clone[property] = cloneDeepSafe(self[property])
     })
 
     if (includeAssociations) {

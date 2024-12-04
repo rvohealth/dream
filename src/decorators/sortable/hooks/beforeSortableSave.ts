@@ -36,10 +36,13 @@ export default async function beforeSortableSave({
 
   if (await positionIsInvalid({ query, dream: dream, scope, position })) {
     if (onlySavingChangeToScopeField) {
+      console.log('AAAAA')
       ;(dream as any)[cacheKey] = undefined
     } else if (savingChangeToScopeField) {
+      console.log('BBBBB', position)
       ;(dream as any)[cacheKey] = dream.changes()[positionField]?.was
     } else {
+      console.log('CCCCC')
       if (dream.isPersisted) {
         ;(dream as any)[positionField] = undefined
         return
@@ -48,6 +51,7 @@ export default async function beforeSortableSave({
       }
     }
   } else {
+    console.log('DDDDD')
     ;(dream as any)[cacheKey] = position
   }
 

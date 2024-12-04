@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon'
+import Latex from '../../../test-app/app/models/Balloon/Latex'
 import User from '../../../test-app/app/models/User'
 
 describe('Dream#dup', () => {
@@ -8,6 +9,16 @@ describe('Dream#dup', () => {
     expect(user).not.toBe(user2)
     expect(user.isPersisted).toEqual(true)
     expect(user2.isPersisted).toEqual(false)
+  })
+
+  it.only('erases any change history on the record', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    user.secret = 'hello'
+
+    const user2 = user.dup()
+
+    console.log(User.new().changes(), user2.isPersisted)
+    expect(user2.changes()).toEqual({})
   })
 
   it('copies attributes to a new instance, resetting primary key, created and updated fields to undefined', async () => {
@@ -75,6 +86,15 @@ describe('Dream#dup', () => {
 
       const user2 = user.dup()
       expect((user2 as any).howyadoin).toBeNull()
+    })
+
+    it('does not copy sortable attributes', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const balloon = await Latex.create({ user })
+
+      const balloon2 = balloon.dup()
+      expect(balloon2.positionAlpha).toBeUndefined()
+      expect(balloon2.positionBeta).toBeUndefined()
     })
   })
 })

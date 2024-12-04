@@ -28,6 +28,7 @@ export default async function setPosition({
   scope?: string | string[]
   txn?: DreamTransaction<any>
 }) {
+  console.log('UPDATING POSITION', position)
   if (position) {
     await setPositionFromValue({
       position,
