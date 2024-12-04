@@ -67,7 +67,7 @@ export default async function beforeSortableSave({
     // if the dream is saved, set the position field to undefined, which will cause
     // the update cycle to ignore the position field. We will proceed to update it in an
     // AfterUpdateCommit hook
-    ;(dream as any)[positionField] = undefined
+    ;(dream as any)[positionField] = onlySavingChangeToScopeField ? 0 : undefined
   } else {
     // if the dream is not saved, set position to 0 to prevent collisions with existing position values.
     // it will be updated in an AfterCreateCommit hook to the correct value after saving.

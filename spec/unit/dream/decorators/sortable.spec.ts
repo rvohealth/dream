@@ -911,6 +911,9 @@ describe('@Sortable', () => {
       const balloon2 = await Latex.create({ user: user1 })
       const balloon3 = await Latex.create({ user: user1 })
 
+      const otherBalloon1 = await Latex.create({ user: user2 })
+      const otherBalloon2 = await Latex.create({ user: user2 })
+
       expect(balloon1.positionAlpha).toEqual(1)
       expect(balloon2.positionAlpha).toEqual(2)
       expect(balloon3.positionAlpha).toEqual(3)
@@ -920,10 +923,15 @@ describe('@Sortable', () => {
       await balloon1.reload()
       await balloon2.reload()
       await balloon3.reload()
+      await otherBalloon1.reload()
+      await otherBalloon2.reload()
 
       expect(balloon1.positionAlpha).toEqual(1)
-      expect(balloon2.positionAlpha).toEqual(1)
       expect(balloon3.positionAlpha).toEqual(2)
+
+      expect(otherBalloon1.positionAlpha).toEqual(1)
+      expect(balloon2.positionAlpha).toEqual(2)
+      expect(otherBalloon2.positionAlpha).toEqual(3)
     })
   })
 
@@ -981,6 +989,72 @@ describe('@Sortable', () => {
         expect(balloon3.positionAlpha).toEqual(3)
         expect(newBalloon.positionAlpha).toEqual(1)
       })
+    })
+  })
+
+  context('changing scope', () => {
+    it('adjusts records in the old scope and sets position to N+1 in the new scope', async () => {
+      const postA1 = await Post.create({ body: 'hello', user })
+      const postA2 = await Post.create({ body: 'hello', user })
+
+      const postB1 = await Post.create({ body: 'hello', user: user2 })
+      const postC = await Post.create({ body: 'hello', user: user2 })
+      const postB2 = await Post.create({ body: 'hello', user: user2 })
+
+      expect(postA1.position).toEqual(1)
+      expect(postA2.position).toEqual(2)
+
+      expect(postB1.position).toEqual(1)
+      expect(postC.position).toEqual(2)
+      expect(postB2.position).toEqual(3)
+
+      await postC.update({ user })
+
+      await postA1.reload()
+      await postA2.reload()
+      await postB1.reload()
+      await postB2.reload()
+      await postC.reload()
+
+      expect(postA1.position).toEqual(1)
+      expect(postA2.position).toEqual(3)
+      expect(postC.position).toEqual(2)
+
+      expect(postB1.position).toEqual(1)
+      expect(postB2.position).toEqual(2)
+    })
+  })
+
+  context('changing scope and position', () => {
+    it('adjusts records in the old scope and sets position in the new scope', async () => {
+      const postA1 = await Post.create({ body: 'hello', user })
+      const postA2 = await Post.create({ body: 'hello', user })
+
+      const postB1 = await Post.create({ body: 'hello', user: user2 })
+      const postC = await Post.create({ body: 'hello', user: user2 })
+      const postB2 = await Post.create({ body: 'hello', user: user2 })
+
+      expect(postA1.position).toEqual(1)
+      expect(postA2.position).toEqual(2)
+
+      expect(postB1.position).toEqual(1)
+      expect(postC.position).toEqual(2)
+      expect(postB2.position).toEqual(3)
+
+      await postC.update({ user, position: 2 })
+
+      await postA1.reload()
+      await postA2.reload()
+      await postB1.reload()
+      await postB2.reload()
+      await postC.reload()
+
+      expect(postA1.position).toEqual(1)
+      expect(postC.position).toEqual(2)
+      expect(postA2.position).toEqual(3)
+
+      expect(postB1.position).toEqual(1)
+      expect(postB2.position).toEqual(2)
     })
   })
 })
