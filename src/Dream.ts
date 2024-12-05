@@ -130,6 +130,7 @@ import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel'
 import { isString } from './helpers/typechecks'
+import DoNotSetEncryptedFieldsDirectly from './exceptions/DoNotSetEncryptedFieldsDirectly'
 
 export default class Dream {
   public DB: any
@@ -847,7 +848,6 @@ export default class Dream {
     return AfterDestroyCommit()
   }
 
-  private static _globalName: string
   /**
    * @internal
    *
@@ -859,7 +859,16 @@ export default class Dream {
     if (!this._globalName) throw new GlobalNameNotSet(this)
     return this._globalName
   }
+  private static _globalName: string
 
+  /**
+   * @internal
+   *
+   * Used by DreamApplication during the load process
+   * for models, services, and controllers to assign
+   * unique global names to each model based on the file
+   * name of that model.
+   */
   private static setGlobalName(globalName: string) {
     this._globalName = globalName
   }
@@ -885,30 +894,6 @@ export default class Dream {
     return this._columns as RetType
   }
   private static _columns: Set<any>
-
-  /**
-   * Returns the column names for the given model
-   *
-   * @returns The column names for the given model
-   */
-  public static accessibleColumns<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    DB extends I['DB'],
-    TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName],
-    RetType = Set<keyof Table & string>,
-  >(this: T): RetType {
-    if (this._accessibleColumns) return this._accessibleColumns as RetType
-    const accessibleColumns = [...this.columns()].filter(
-      column => !this['encryptedAttributes'].find(attr => attr.encryptedColumnName === column)
-    )
-
-    this._accessibleColumns = new Set(accessibleColumns)
-
-    return this._accessibleColumns as RetType
-  }
-  private static _accessibleColumns: Set<any>
 
   /**
    * Returns the list of column names that are safe for
@@ -2608,31 +2593,6 @@ export default class Dream {
         })
       }
     }
-
-    this.defineEncryptedAttributeAccessors()
-  }
-
-  /**
-   * @internal
-   *
-   * applies setters and getters for any proerties on your model
-   * that are utilizing the Encrypted decorator
-   */
-  private defineEncryptedAttributeAccessors() {
-    const encryptedAttributes = [...(this.constructor as typeof Dream).encryptedAttributes]
-    encryptedAttributes.forEach(encryptedAttribute => {
-      if (!Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), encryptedAttribute.property)?.get) {
-        Object.defineProperty(Object.getPrototypeOf(this), encryptedAttribute.property, {
-          get() {
-            return InternalEncrypt.decryptColumn(this.getAttribute(encryptedAttribute.encryptedColumnName))
-          },
-
-          set(val: any) {
-            this.setAttribute(encryptedAttribute.encryptedColumnName, InternalEncrypt.encryptColumn(val))
-          },
-        })
-      }
-    })
   }
 
   /**
@@ -2705,7 +2665,10 @@ export default class Dream {
    */
   protected defineAttributeAccessors() {
     const dreamClass = this.constructor as typeof Dream
-    const columns = dreamClass.accessibleColumns()
+    const columns = dreamClass.columns()
+
+    const encryptedAttributes = [...dreamClass.encryptedAttributes]
+    const encryptedAttributeNames = encryptedAttributes.map(attr => attr.encryptedColumnName)
 
     columns.forEach(column => {
       // this ensures that the currentAttributes object will contain keys
@@ -2716,6 +2679,7 @@ export default class Dream {
         !Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), column)?.get &&
         !Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), column)?.set
       ) {
+        // handle JSON columns
         if (isJsonColumn(this.constructor as typeof Dream, column)) {
           Object.defineProperty(Object.getPrototypeOf(this), column, {
             get() {
@@ -2730,6 +2694,45 @@ export default class Dream {
 
             configurable: true,
           })
+
+          // handle encrypted columns
+        } else if (encryptedAttributeNames.includes(column)) {
+          const encryptedAttribute = encryptedAttributes.find(attr => attr.encryptedColumnName === column)!
+
+          if (
+            !Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), encryptedAttribute.property)?.get
+          ) {
+            Object.defineProperty(Object.getPrototypeOf(this), encryptedAttribute.property, {
+              get() {
+                return InternalEncrypt.decryptColumn(
+                  this.getAttribute(encryptedAttribute.encryptedColumnName)
+                )
+              },
+
+              set(val: any) {
+                this.setAttribute(encryptedAttribute.encryptedColumnName, InternalEncrypt.encryptColumn(val))
+              },
+            })
+          }
+
+          Object.defineProperty(Object.getPrototypeOf(this), encryptedAttribute.encryptedColumnName, {
+            get() {
+              return this.currentAttributes[encryptedAttribute.encryptedColumnName]
+            },
+
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            set(_: any) {
+              throw new DoNotSetEncryptedFieldsDirectly(
+                dreamClass,
+                encryptedAttribute.encryptedColumnName,
+                encryptedAttribute.property
+              )
+            },
+
+            configurable: true,
+          })
+
+          // handle all other columns
         } else {
           Object.defineProperty(Object.getPrototypeOf(this), column, {
             get() {
