@@ -439,4 +439,14 @@ describe('Dream#update', () => {
       })
     }
   )
+
+  context('when updating an encrypted column', () => {
+    it('succeeds', async () => {
+      let user = await User.create({ email: 'how@yadoin', password: 'howyadoin', secret: 'shh!' })
+      await user.update({ secret: 'howyadoin' })
+
+      user = await User.findOrFail(user.id)
+      expect(user.secret).toEqual('howyadoin')
+    })
+  })
 })

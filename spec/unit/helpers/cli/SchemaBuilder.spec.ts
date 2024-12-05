@@ -23,6 +23,18 @@ describe('SchemaBuilder', () => {
       })
     })
 
+    context('virtual columns', () => {
+      it('renders virtualColumns', () => {
+        expect(User.prototype.schema.users.virtualColumns).toEqual(['password'])
+      })
+    })
+
+    context('encrypted columns', () => {
+      it('renders encryptedColumns', () => {
+        expect(User.prototype.schema.users.encryptedColumns).toEqual(['otherSecret', 'secret'])
+      })
+    })
+
     context('columns', () => {
       context('bigint', () => {
         it('renders "bigint" for dbType', () => {
