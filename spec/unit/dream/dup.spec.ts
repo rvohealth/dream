@@ -11,6 +11,12 @@ describe('Dream#dup', () => {
     expect(user2.isPersisted).toEqual(false)
   })
 
+  it('does not contain changes', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const user2 = user.dup()
+    expect(user2.changes()).toEqual({})
+  })
+
   it('copies attributes to a new instance, resetting primary key, created and updated fields to undefined', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user2 = user.dup()
