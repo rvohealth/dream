@@ -107,6 +107,7 @@ ${tableName}: {
         .join('\n      ')}
     },
     virtualColumns: ${stringifyArray(schemaData[tableName as keyof typeof schemaData].virtualColumns)},
+    encryptedColumns: ${stringifyArray(schemaData[tableName as keyof typeof schemaData].encryptedColumns)},
     associations: {
       ${Object.keys(schemaData[tableName as keyof typeof schemaData].associations)
         .sort()
@@ -193,6 +194,7 @@ may need to update the table getter in the corresponding Dream.
       },
       columns: await this.getColumnData(tableName, associationData),
       virtualColumns: this.getVirtualColumns(tableName),
+      encryptedColumns: this.getEncryptedColumns(tableName),
       associations: associationData,
       serializerKeys: Object.keys(serializers),
     }
@@ -243,6 +245,13 @@ may need to update the table getter in the corresponding Dream.
     const models = sortBy(Object.values(dreamApp.models), m => m.table)
     const model = models.find(model => model.table === tableName)
     return model?.['virtualAttributes']?.map(prop => prop.property) || []
+  }
+
+  private getEncryptedColumns(tableName: string) {
+    const dreamApp = DreamApplication.getOrFail()
+    const models = sortBy(Object.values(dreamApp.models), m => m.table)
+    const model = models.find(model => model.table === tableName)!
+    return model?.['encryptedAttributes']?.map(prop => prop.property) || []
   }
 
   private async getSchemaData() {
@@ -451,6 +460,7 @@ interface TableData {
   }
   columns: { [key: string]: ColumnData }
   virtualColumns: string[]
+  encryptedColumns: string[]
   associations: { [key: string]: AssociationData }
 }
 
