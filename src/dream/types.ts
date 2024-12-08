@@ -16,7 +16,7 @@ import {
 import { STI_SCOPE_NAME } from '../decorators/STI'
 import Dream from '../Dream'
 import CalendarDate from '../helpers/CalendarDate'
-import { FilterInterface, Inc, ReadonlyTail, RejectInterface } from '../helpers/typeutils'
+import { FilterInterface, Inc, ReadonlyTail } from '../helpers/typeutils'
 import OpsStatement from '../ops/ops-statement'
 import DreamSerializer from '../serializer'
 import { FindEachOpts } from './Query'
@@ -117,9 +117,8 @@ export type DreamClassColumn<
 
 export type DreamAssociationType<
   DreamInstance extends Dream,
-  // Schema extends I['schema'],
-  AssociationName extends keyof DreamInstance,
-  PossibleArrayAssociationType = DreamInstance[AssociationName],
+  AssociationName extends DreamAssociationNames<DreamInstance>,
+  PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
   AssociationType extends Dream = PossibleArrayAssociationType extends (infer ElementType)[]
     ? ElementType extends Dream
       ? ElementType
@@ -136,16 +135,6 @@ export type DreamAssociationMetadata<
     keyof Schema[DreamInstance['table'] & keyof Schema]],
 > = AssociationMetadata
 
-export type DreamAssociationNamesWithRequiredWhereClauses<
-  DreamInstance extends Dream,
-  SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
-  SchemaTypeInterface = {
-    [K in keyof SchemaAssociations]: SchemaAssociations[K]['requiredWhereClauses' &
-      keyof SchemaAssociations[K]]
-  },
-  RequiredWhereClauses = keyof RejectInterface<SchemaTypeInterface, null> & string,
-> = RequiredWhereClauses
-
 export type DreamAssociationNamesWithoutRequiredWhereClauses<
   DreamInstance extends Dream,
   SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
@@ -155,6 +144,11 @@ export type DreamAssociationNamesWithoutRequiredWhereClauses<
   },
   RequiredWhereClauses = keyof FilterInterface<SchemaTypeInterface, null> & string,
 > = RequiredWhereClauses
+
+export type DreamAssociationNames<
+  DreamInstance extends Dream,
+  SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
+> = keyof SchemaAssociations
 
 type VirtualColumnsForTable<
   Schema,

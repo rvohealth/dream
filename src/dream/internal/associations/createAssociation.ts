@@ -4,13 +4,11 @@ import { HasOneStatement } from '../../../decorators/associations/HasOne'
 import Dream from '../../../Dream'
 import CannotCreateAssociationWithThroughContext from '../../../exceptions/associations/CannotCreateAssociationWithThroughContext'
 import DreamTransaction from '../../DreamTransaction'
-import { UpdateableAssociationProperties } from '../../types'
+import { DreamAssociationNames, UpdateableAssociationProperties } from '../../types'
 
 export default async function createAssociation<
   DreamInstance extends Dream,
-  Schema extends DreamInstance['schema'],
-  AssociationName extends keyof Schema[DreamInstance['table']]['associations' &
-    keyof Schema[DreamInstance['table']]],
+  AssociationName extends DreamAssociationNames<DreamInstance>,
   PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
   AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
     ? ElementType & typeof Dream
