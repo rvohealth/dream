@@ -16,13 +16,13 @@ describe('Dream.find', () => {
 
   context('when passed undefined', () => {
     it('returns null', async () => {
-      expect(await User.find(undefined)).toBeNull()
+      expect(await User.find(undefined as any)).toBeNull()
     })
   })
 
   context('when passed null', () => {
     it('returns null', async () => {
-      expect(await User.find(null)).toBeNull()
+      expect(await User.find(null as any)).toBeNull()
     })
   })
 

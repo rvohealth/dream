@@ -1261,8 +1261,12 @@ export default class Dream {
     T extends typeof Dream,
     I extends InstanceType<T>,
     Schema extends I['schema'],
-    SchemaIdType = Schema[InstanceType<T>['table']]['columns'][I['primaryKey']]['coercedType'],
-  >(this: T, primaryKey: SchemaIdType): Promise<InstanceType<T> | null> {
+    TableName extends keyof Schema = I['table'] & keyof Schema,
+  >(
+    this: T,
+    primaryKey: Schema[TableName]['columns'][I['primaryKey'] &
+      keyof Schema[TableName]['columns']]['coercedType']
+  ): Promise<InstanceType<T> | null> {
     return await this.query().find(primaryKey)
   }
 
