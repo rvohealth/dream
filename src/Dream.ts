@@ -86,8 +86,8 @@ import {
   AllDefaultScopeNames,
   AttributeKeys,
   DefaultOrNamedScopeName,
+  DreamAssociationNames,
   DreamAssociationNamesWithoutRequiredWhereClauses,
-  DreamAssociationNamesWithRequiredWhereClauses,
   DreamAssociationType,
   DreamAttributes,
   DreamColumnNames,
@@ -120,6 +120,7 @@ import CanOnlyPassBelongsToModelParam from './exceptions/associations/CanOnlyPas
 import NonLoadedAssociation from './exceptions/associations/NonLoadedAssociation'
 import CannotCallUndestroyOnANonSoftDeleteModel from './exceptions/CannotCallUndestroyOnANonSoftDeleteModel'
 import CreateOrFindByFailedToCreateAndFind from './exceptions/CreateOrFindByFailedToCreateAndFind'
+import DoNotSetEncryptedFieldsDirectly from './exceptions/DoNotSetEncryptedFieldsDirectly'
 import GlobalNameNotSet from './exceptions/dream-application/GlobalNameNotSet'
 import MissingSerializer from './exceptions/MissingSerializersDefinition'
 import MissingTable from './exceptions/MissingTable'
@@ -130,7 +131,6 @@ import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel'
 import { isString } from './helpers/typechecks'
-import DoNotSetEncryptedFieldsDirectly from './exceptions/DoNotSetEncryptedFieldsDirectly'
 
 export default class Dream {
   public DB: any
@@ -3503,8 +3503,7 @@ export default class Dream {
    */
   public async createAssociation<
     I extends Dream,
-    Schema extends I['schema'],
-    AssociationName extends keyof Schema[I['table']]['associations'],
+    AssociationName extends DreamAssociationNames<I>,
     PossibleArrayAssociationType = I[AssociationName & keyof I],
     AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
       ? ElementType
@@ -3528,7 +3527,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['schema'],
-    AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<I>,
+    AssociationName extends DreamAssociationNames<I>,
   >(
     this: I,
     associationName: AssociationName,
@@ -3542,7 +3541,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['schema'],
-    AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<I>,
+    AssociationName extends DreamAssociationNamesWithoutRequiredWhereClauses<I>,
   >(
     this: I,
     associationName: AssociationName,
@@ -3565,7 +3564,7 @@ export default class Dream {
    * @param opts.cascade - if false, will skip applying cascade undeletes on "dependent: 'destroy'" associations. Defaults to true
    * @returns The number of records deleted
    */
-  public async destroyAssociation<I extends Dream, AssociationName extends keyof I>(
+  public async destroyAssociation<I extends Dream, AssociationName extends DreamAssociationNames<I>>(
     this: I,
     associationName: AssociationName,
     options?: unknown
@@ -3588,7 +3587,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['schema'],
-    AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<I>,
+    AssociationName extends DreamAssociationNames<I>,
   >(
     this: I,
     associationName: AssociationName,
@@ -3602,7 +3601,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['schema'],
-    AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<I>,
+    AssociationName extends DreamAssociationNamesWithoutRequiredWhereClauses<I>,
   >(
     this: I,
     associationName: AssociationName,
@@ -3630,7 +3629,7 @@ export default class Dream {
    * @param opts.cascade - if false, will skip applying cascade undeletes on "dependent: 'destroy'" associations. Defaults to true
    * @returns The number of records deleted
    */
-  public async reallyDestroyAssociation<I extends Dream, AssociationName extends keyof I>(
+  public async reallyDestroyAssociation<I extends Dream, AssociationName extends DreamAssociationNames<I>>(
     this: I,
     associationName: AssociationName,
     options?: unknown
@@ -3652,7 +3651,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['schema'],
-    AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<I>,
+    AssociationName extends DreamAssociationNames<I>,
   >(
     this: I,
     associationName: AssociationName,
@@ -3666,7 +3665,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['schema'],
-    AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<I>,
+    AssociationName extends DreamAssociationNamesWithoutRequiredWhereClauses<I>,
   >(
     this: I,
     associationName: AssociationName,
@@ -3691,7 +3690,7 @@ export default class Dream {
    * @param opts.cascade - Whether or not to cascade undestroy child associations
    * @returns The number of records undestroyed
    */
-  public async undestroyAssociation<I extends Dream, AssociationName extends keyof I>(
+  public async undestroyAssociation<I extends Dream, AssociationName extends DreamAssociationNames<I>>(
     this: I,
     associationName: AssociationName,
     options?: unknown
@@ -3713,7 +3712,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['schema'],
-    AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<I>,
+    AssociationName extends DreamAssociationNames<I>,
   >(
     this: I,
     associationName: AssociationName,
@@ -3725,7 +3724,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['schema'],
-    AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<I>,
+    AssociationName extends DreamAssociationNamesWithoutRequiredWhereClauses<I>,
   >(
     this: I,
     associationName: AssociationName,
@@ -3744,7 +3743,7 @@ export default class Dream {
    * @returns A Query scoped to the specified association on the current instance
    *
    */
-  public associationQuery<I extends Dream, AssociationName extends keyof I>(
+  public associationQuery<I extends Dream, AssociationName extends DreamAssociationNames<I>>(
     this: I,
     associationName: AssociationName,
     whereStatement?: unknown
@@ -3767,7 +3766,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['schema'],
-    AssociationName extends keyof I & DreamAssociationNamesWithRequiredWhereClauses<I>,
+    AssociationName extends DreamAssociationNames<I>,
   >(
     this: I,
     associationName: AssociationName,
@@ -3785,7 +3784,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['schema'],
-    AssociationName extends keyof I & DreamAssociationNamesWithoutRequiredWhereClauses<I>,
+    AssociationName extends DreamAssociationNamesWithoutRequiredWhereClauses<I>,
   >(
     this: I,
     associationName: AssociationName,
@@ -3813,11 +3812,11 @@ export default class Dream {
    *
    * @returns The number of updated records
    */
-  public async updateAssociation<I extends Dream, AssociationName extends keyof I>(
+  public async updateAssociation<I extends Dream, AssociationName extends DreamAssociationNames<I>>(
     this: I,
     associationName: AssociationName,
     attributes: Partial<DreamAttributes<DreamAssociationType<I, AssociationName>>>,
-    updateAssociationOptions: unknown
+    updateAssociationOptions?: unknown
   ): Promise<number> {
     return associationUpdateQuery(this, null, associationName, {
       associationWhereStatement: (updateAssociationOptions as any)?.where,

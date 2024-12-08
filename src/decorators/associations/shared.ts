@@ -32,7 +32,7 @@ import { BelongsToStatement } from './BelongsTo'
 import { HasManyStatement } from './HasMany'
 import { HasOneStatement } from './HasOne'
 
-type AssociatedModelType<
+type AssociatedBelongsToModelType<
   I extends Dream,
   AssociationName extends keyof DreamBelongsToAssociationMetadata<I>,
   PossibleArrayAssociationType extends I[AssociationName & keyof I] = I[AssociationName & keyof I],
@@ -43,6 +43,7 @@ type AssociatedModelType<
     : PossibleArrayAssociationType,
 > = AssociationType
 
+// For sending a BelongsTo model into a statement such as `await Post.create({ user })`
 export type AssociatedModelParam<
   I extends Dream,
   AssociationExists = keyof DreamBelongsToAssociationMetadata<I> extends never ? false : true,
@@ -54,10 +55,9 @@ export type AssociatedModelParam<
     : AssociationName extends never
       ? never
       : {
-          [K in AssociationName & keyof DreamBelongsToAssociationMetadata<I> & string]: AssociatedModelType<
-            I,
-            K
-          > | null
+          [K in AssociationName &
+            keyof DreamBelongsToAssociationMetadata<I> &
+            string]: AssociatedBelongsToModelType<I, K> | null
         },
 > = Partial<UnionToIntersection<RetObj>>
 
