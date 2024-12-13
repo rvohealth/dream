@@ -1212,10 +1212,7 @@ export default class Dream {
       await dreamModel.save()
       return dreamModel
     } catch (err) {
-      if (
-        err instanceof DatabaseError &&
-        err.message.includes('duplicate key value violates unique constraint')
-      ) {
+      if (err instanceof DatabaseError && err.code === '23505') {
         const dreamModel = await this.findBy(this.extractAttributesFromUpdateableProperties(attributes))
         if (!dreamModel) throw new CreateOrFindByFailedToCreateAndFind(this)
         return dreamModel
