@@ -8,8 +8,8 @@ import {
 } from 'kysely'
 import { DateTime } from 'luxon'
 
-import { DatabaseError } from 'pg'
 import db from './db'
+import { pgErrorType } from './db/errors'
 import { AssociationTableNames } from './db/reflections'
 import { DbConnectionType } from './db/types'
 import associationToGetterSetterProp from './decorators/associations/associationToGetterSetterProp'
@@ -1212,10 +1212,7 @@ export default class Dream {
       await dreamModel.save()
       return dreamModel
     } catch (err) {
-      if (
-        err instanceof DatabaseError &&
-        err.message.includes('duplicate key value violates unique constraint')
-      ) {
+      if (pgErrorType(err) === 'UNIQUE_CONSTRAINT_VIOLATION') {
         const dreamModel = await this.findBy(this.extractAttributesFromUpdateableProperties(attributes))
         if (!dreamModel) throw new CreateOrFindByFailedToCreateAndFind(this)
         return dreamModel
