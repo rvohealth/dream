@@ -47,5 +47,29 @@ describe('Dream.findOrFail', () => {
         expect(await User.txn(txn).findOrFail(user.id)).toMatchDreamModel(user)
       })
     })
+
+    context('when no record is found', () => {
+      it('raises an exception', async () => {
+        await ApplicationModel.transaction(async txn => {
+          await expect(User.txn(txn).findOrFail(0)).rejects.toThrow(RecordNotFound)
+        })
+      })
+    })
+
+    context('when passed undefined', () => {
+      it('raises an exception', async () => {
+        await ApplicationModel.transaction(async txn => {
+          await expect(User.txn(txn).findOrFail(undefined)).rejects.toThrow(RecordNotFound)
+        })
+      })
+    })
+
+    context('when passed null', () => {
+      it('raises an exception', async () => {
+        await ApplicationModel.transaction(async txn => {
+          await expect(User.txn(txn).findOrFail(null)).rejects.toThrow(RecordNotFound)
+        })
+      })
+    })
   })
 })

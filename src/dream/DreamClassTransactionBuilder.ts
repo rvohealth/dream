@@ -10,6 +10,7 @@ import {
   DreamColumnNames,
   OrderDir,
   PassthroughColumnNames,
+  PrimaryKeyForFind,
   UpdateableProperties,
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
@@ -174,14 +175,11 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @param primaryKey - The primaryKey of the record to look up
    * @returns Either the found record, or else null
    */
-  public async find<
-    I extends DreamClassTransactionBuilder<DreamInstance>,
-    Schema extends DreamInstance['schema'],
-    SchemaIdType = Schema[DreamInstance['table']]['columns'][DreamInstance['primaryKey']]['coercedType'],
-  >(this: I, id: SchemaIdType): Promise<DreamInstance | null> {
-    return await this.queryInstance()
-      .where({ [this.dreamInstance.primaryKey]: id } as any)
-      .first()
+  public async find<I extends DreamClassTransactionBuilder<DreamInstance>>(
+    this: I,
+    id: PrimaryKeyForFind<DreamInstance>
+  ): Promise<DreamInstance | null> {
+    return await this.queryInstance().find(id)
   }
 
   /**
@@ -198,11 +196,10 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @param primaryKey - The primaryKey of the record to look up
    * @returns The found record
    */
-  public async findOrFail<
-    I extends DreamClassTransactionBuilder<DreamInstance>,
-    Schema extends DreamInstance['schema'],
-    SchemaIdType = Schema[DreamInstance['table']]['columns'][DreamInstance['primaryKey']]['coercedType'],
-  >(this: I, primaryKey: SchemaIdType): Promise<DreamInstance> {
+  public async findOrFail<I extends DreamClassTransactionBuilder<DreamInstance>>(
+    this: I,
+    primaryKey: PrimaryKeyForFind<DreamInstance>
+  ): Promise<DreamInstance> {
     return await this.queryInstance().findOrFail(primaryKey)
   }
 
@@ -225,9 +222,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
     this: I,
     attributes: Updateable<DB[DreamInstance['table']]>
   ): Promise<DreamInstance | null> {
-    return await this.queryInstance()
-      .where(attributes as any)
-      .first()
+    return await this.queryInstance().findBy(attributes as any)
   }
 
   /**

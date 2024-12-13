@@ -1,5 +1,6 @@
 import RecordNotFound from '../../../src/exceptions/RecordNotFound'
 import ops from '../../../src/ops'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import User from '../../../test-app/app/models/User'
 
 describe('Query#findOrFail', () => {
@@ -16,7 +17,7 @@ describe('Query#findOrFail', () => {
 
   context('when passed undefined', () => {
     it('raises an exception', async () => {
-      await expect(User.query().findOrFail(undefined as any)).rejects.toThrow(RecordNotFound)
+      await expect(User.query().findOrFail(undefined)).rejects.toThrow(RecordNotFound)
     })
   })
 
@@ -46,6 +47,38 @@ describe('Query#findOrFail', () => {
           .where({ name: ops.similarity('nonmatch') })
           .findOrFail(user.id)
       ).rejects.toThrow(RecordNotFound)
+    })
+  })
+
+  context('when passed a transaction', () => {
+    it('can find records', async () => {
+      await ApplicationModel.transaction(async txn => {
+        expect(await User.query().txn(txn).findOrFail(user.id)).toMatchDreamModel(user)
+      })
+    })
+
+    context('when no record is found', () => {
+      it('raises an exception', async () => {
+        await ApplicationModel.transaction(async txn => {
+          await expect(User.query().txn(txn).findOrFail(0)).rejects.toThrow(RecordNotFound)
+        })
+      })
+    })
+
+    context('when passed undefined', () => {
+      it('raises an exception', async () => {
+        await ApplicationModel.transaction(async txn => {
+          await expect(User.query().txn(txn).findOrFail(undefined)).rejects.toThrow(RecordNotFound)
+        })
+      })
+    })
+
+    context('when passed null', () => {
+      it('raises an exception', async () => {
+        await ApplicationModel.transaction(async txn => {
+          await expect(User.query().txn(txn).findOrFail(null)).rejects.toThrow(RecordNotFound)
+        })
+      })
     })
   })
 })

@@ -100,6 +100,7 @@ import {
   NextPreloadArgumentType,
   OrderDir,
   PassthroughColumnNames,
+  PrimaryKeyForFind,
   SortableOptions,
   TableColumnNames,
   TableColumnType,
@@ -1257,15 +1258,9 @@ export default class Dream {
    * @param primaryKey - The primaryKey of the record to look up
    * @returns Either the found record, or else null
    */
-  public static async find<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    Schema extends I['schema'],
-    TableName extends keyof Schema = I['table'] & keyof Schema,
-  >(
+  public static async find<T extends typeof Dream, I extends InstanceType<T>>(
     this: T,
-    primaryKey: Schema[TableName]['columns'][I['primaryKey'] &
-      keyof Schema[TableName]['columns']]['coercedType']
+    primaryKey: PrimaryKeyForFind<I>
   ): Promise<InstanceType<T> | null> {
     return await this.query().find(primaryKey)
   }
@@ -1282,12 +1277,10 @@ export default class Dream {
    * @param primaryKey - The primaryKey of the record to look up
    * @returns Either the found record, or else null
    */
-  public static async findOrFail<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    Schema extends I['schema'],
-    SchemaIdType = Schema[InstanceType<T>['table']]['columns'][I['primaryKey']]['coercedType'],
-  >(this: T, primaryKey: SchemaIdType): Promise<InstanceType<T>> {
+  public static async findOrFail<T extends typeof Dream, I extends InstanceType<T>>(
+    this: T,
+    primaryKey: PrimaryKeyForFind<I>
+  ): Promise<InstanceType<T>> {
     return await this.query().findOrFail(primaryKey)
   }
 

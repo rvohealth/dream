@@ -54,6 +54,15 @@ export interface SortableOptions<T extends typeof Dream> {
     | (keyof DreamBelongsToAssociationMetadata<InstanceType<T>> | DreamColumnNames<InstanceType<T>>)[]
 }
 
+export type PrimaryKeyForFind<
+  I extends Dream,
+  Schema extends I['schema'] = I['schema'],
+  TableName extends keyof Schema = I['table'] & keyof Schema,
+> =
+  | Schema[TableName]['columns'][I['primaryKey'] & keyof Schema[TableName]['columns']]['coercedType']
+  | null
+  | undefined
+
 export type DreamColumnNames<
   DreamInstance extends Dream,
   DB = DreamInstance['DB'],

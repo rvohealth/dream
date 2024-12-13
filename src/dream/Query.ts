@@ -84,6 +84,7 @@ import {
   IdType,
   OrderDir,
   PassthroughColumnNames,
+  PrimaryKeyForFind,
   RelaxedJoinStatement,
   RelaxedJoinWhereStatement,
   RelaxedPreloadStatement,
@@ -500,13 +501,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @param primaryKey - The primaryKey of the record to look up
    * @returns Either the found record, or else null
    */
-  public async find<
-    Schema extends DreamInstance['schema'],
-    TableName extends keyof Schema = DreamInstance['table'] & keyof Schema,
-  >(
-    primaryKey: Schema[TableName]['columns'][DreamInstance['primaryKey'] &
-      keyof Schema[TableName]['columns']]['coercedType']
-  ): Promise<DreamInstance | null> {
+  public async find(primaryKey: PrimaryKeyForFind<DreamInstance>): Promise<DreamInstance | null> {
     if (!primaryKey) return null
 
     return await this.where({
@@ -527,13 +522,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @param primaryKey - The primaryKey of the record to look up
    * @returns The found record
    */
-  public async findOrFail<
-    Schema extends DreamInstance['schema'],
-    TableName extends keyof Schema = DreamInstance['table'] & keyof Schema,
-  >(
-    primaryKey: Schema[TableName]['columns'][DreamInstance['primaryKey'] &
-      keyof Schema[TableName]['columns']]['coercedType']
-  ): Promise<DreamInstance> {
+  public async findOrFail(primaryKey: PrimaryKeyForFind<DreamInstance>): Promise<DreamInstance> {
     const record = await this.find(primaryKey)
     if (!record) throw new RecordNotFound(this.dreamInstance.constructor.name)
     return record

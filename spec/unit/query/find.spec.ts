@@ -1,5 +1,6 @@
-import User from '../../../test-app/app/models/User'
 import ops from '../../../src/ops'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
+import User from '../../../test-app/app/models/User'
 
 describe('Query#find', () => {
   let user: User
@@ -15,13 +16,13 @@ describe('Query#find', () => {
 
   context('when passed undefined', () => {
     it('returns null', async () => {
-      expect(await User.query().find(undefined as any)).toBeNull()
+      expect(await User.query().find(undefined)).toBeNull()
     })
   })
 
   context('when passed null', () => {
     it('returns null', async () => {
-      expect(await User.query().find(null as any)).toBeNull()
+      expect(await User.query().find(null)).toBeNull()
     })
   })
 
@@ -43,6 +44,30 @@ describe('Query#find', () => {
           .where({ name: ops.similarity('nonmatch') })
           .find(user.id)
       ).toBeNull()
+    })
+  })
+
+  context('when passed a transaction', () => {
+    it('can find records', async () => {
+      await ApplicationModel.transaction(async txn => {
+        expect(await User.query().txn(txn).find(user.id)).toMatchDreamModel(user)
+      })
+    })
+
+    context('when passed undefined', () => {
+      it('returns null', async () => {
+        await ApplicationModel.transaction(async txn => {
+          expect(await User.query().txn(txn).find(undefined)).toBeNull()
+        })
+      })
+    })
+
+    context('when passed null', () => {
+      it('returns null', async () => {
+        await ApplicationModel.transaction(async txn => {
+          expect(await User.query().txn(txn).find(null)).toBeNull()
+        })
+      })
     })
   })
 })

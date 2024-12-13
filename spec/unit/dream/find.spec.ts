@@ -16,13 +16,13 @@ describe('Dream.find', () => {
 
   context('when passed undefined', () => {
     it('returns null', async () => {
-      expect(await User.find(undefined as any)).toBeNull()
+      expect(await User.find(undefined)).toBeNull()
     })
   })
 
   context('when passed null', () => {
     it('returns null', async () => {
-      expect(await User.find(null as any)).toBeNull()
+      expect(await User.find(null)).toBeNull()
     })
   })
 
@@ -44,6 +44,22 @@ describe('Dream.find', () => {
     it('can find records', async () => {
       await ApplicationModel.transaction(async txn => {
         expect(await User.txn(txn).find(user.id)).toMatchDreamModel(user)
+      })
+    })
+
+    context('when passed undefined', () => {
+      it('returns null', async () => {
+        await ApplicationModel.transaction(async txn => {
+          expect(await User.txn(txn).find(undefined)).toBeNull()
+        })
+      })
+    })
+
+    context('when passed null', () => {
+      it('returns null', async () => {
+        await ApplicationModel.transaction(async txn => {
+          expect(await User.txn(txn).find(null)).toBeNull()
+        })
       })
     })
   })
