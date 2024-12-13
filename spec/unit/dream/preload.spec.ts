@@ -1,10 +1,11 @@
-import User from '../../../test-app/app/models/User'
+import DreamDbConnection from '../../../src/db/DreamDbConnection'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
+import Latex from '../../../test-app/app/models/Balloon/Latex'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import Composition from '../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit'
-import Mylar from '../../../test-app/app/models/Balloon/Mylar'
-import Latex from '../../../test-app/app/models/Balloon/Latex'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
+import User from '../../../test-app/app/models/User'
 
 describe('Dream.preload', () => {
   it('loads a HasOne association', async () => {
@@ -58,5 +59,31 @@ describe('Dream.preload', () => {
       const users = await User.preload('balloons').all()
       expect(users[0].balloons).toMatchDreamModels([mylar, latex])
     })
+  })
+
+  it('supports overriding the connection', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    await Composition.create({ user })
+
+    const spy = jest.spyOn(DreamDbConnection, 'getConnection')
+
+    await User.connection('replica').preload('compositions', 'compositionAssets').all()
+
+    expect(spy).toHaveBeenCalledWith('replica')
+    expect(spy).not.toHaveBeenCalledWith('primary')
+  })
+
+  it('supports overriding the connection when using a where clause', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const composition = await Composition.create({ user })
+
+    const spy = jest.spyOn(DreamDbConnection, 'getConnection')
+
+    await User.connection('replica')
+      .preload('compositions', { id: composition.id }, 'compositionAssets')
+      .all()
+
+    expect(spy).toHaveBeenCalledWith('replica')
+    expect(spy).not.toHaveBeenCalledWith('primary')
   })
 })

@@ -2335,6 +2335,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @returns A Query with the requested connection
    */
   public connection(connection: DbConnectionType) {
+    return this._connection(connection)
+  }
+
+  private _connection(connection: DbConnectionType | undefined) {
+    if (!connection) return this
     return this.clone({ connection })
   }
 
@@ -2930,13 +2935,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
       [dreamClass.primaryKey]: dreams.map(obj => obj.primaryKeyValue),
     })
 
-    const hydrationData: any[][] = whereStatement
-      ? await associationDataScope.pluckThrough(
-          associationName,
-          whereStatement as WhereStatement<any, any, any>,
-          columnsToPluck
-        )
-      : await associationDataScope.pluckThrough(associationName, columnsToPluck)
+    const hydrationData: any[][] = await associationDataScope
+      ._connection(this.connectionOverride)
+      .pluckThrough(associationName, (whereStatement || {}) as WhereStatement<any, any, any>, columnsToPluck)
 
     const preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[] = hydrationData.map(
       pluckedData => {
