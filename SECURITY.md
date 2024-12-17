@@ -10,4 +10,4 @@ Currently, the following versions are supported:
 
 ## Reporting a Vulnerability
 
-To report a vulnerability, please contact us at `dream-security@rvohealth.com`. Once the vulnerability is verified, a patch will be provided. Once the patch is provided, a new version will be published closing the vulnerability. Private contact will resume between the reportee and the code maintainers until the vulnerability is resolved.
+To report a vulnerability, please contact us at [dream-security@rvohealth.com](mailto:dream-security@rvohealth.com). Once the vulnerability is verified, a patch will be provided. Once the patch is provided, a new version will be published closing the vulnerability. Private contact will resume between the reporter and the code maintainers until the vulnerability is resolved.
