@@ -394,7 +394,12 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('compositions')
-    .addColumn('id', 'uuid', col => col.primaryKey())
+    .addColumn('id', 'uuid', col =>
+      col
+        .notNull()
+        .defaultTo(sql\`uuid_generate_v4()\`)
+        .unique(),
+    )
     .addColumn('user_id', 'uuid', col => col.references('users.id').onDelete('restrict').notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
@@ -427,7 +432,12 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('compositions')
-    .addColumn('id', 'uuid', col => col.primaryKey())
+    .addColumn('id', 'uuid', col =>
+      col
+        .notNull()
+        .defaultTo(sql\`uuid_generate_v4()\`)
+        .unique(),
+    )
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
@@ -458,7 +468,12 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('compositions')
-    .addColumn('id', 'uuid', col => col.primaryKey())
+    .addColumn('id', 'uuid', col =>
+      col
+        .notNull()
+        .defaultTo(sql\`uuid_generate_v4()\`)
+        .unique(),
+    )
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
