@@ -238,7 +238,19 @@ function generateBelongsToStr(
 }
 
 function generateIdStr({ primaryKeyType }: { primaryKeyType: PrimaryKeyType }) {
-  return `.addColumn('id', '${primaryKeyType}', col => col.primaryKey())`
+  switch (primaryKeyType) {
+    case 'uuid':
+      return `\
+.addColumn('id', 'uuid', col =>
+      col
+        .notNull()
+        .defaultTo(sql\`uuid_generate_v4()\`)
+        .unique(),
+    )`
+
+    default:
+      return `.addColumn('id', '${primaryKeyType}', col => col.primaryKey())`
+  }
 }
 
 function associationNameToForeignKey(associationName: string) {
