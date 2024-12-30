@@ -2063,6 +2063,48 @@ export const schema = {
       
     },
   },
+  model_with_serial_primary_keys: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
+    serializerKeys: [],
+    scopes: {
+      default: [],
+      named: [],
+    },
+    columns: {
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+      id: {
+        coercedType: {} as number,
+        enumType: null,
+        enumValues: null,
+        dbType: 'integer',
+        allowNull: false,
+        isArray: false,
+      },
+      updatedAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+    },
+    virtualColumns: [],
+    encryptedColumns: [],
+    associations: {
+      
+    },
+  },
   model_without_custom_deleted_ats: {
     primaryKey: 'id',
     createdAtField: 'updatedAt',
@@ -3537,6 +3579,7 @@ export const globalSchema = {
       'IncompatibleForeignKeyTypeExample': 'incompatible_foreign_key_type_examples',
       'LocalizedText': 'localized_texts',
       'ModelForOpenapiTypeSpec': 'model_for_openapi_type_specs',
+      'ModelWithSerialPrimaryKey': 'model_with_serial_primary_keys',
       'ModelWithoutCustomDeletedAt': 'model_without_custom_deleted_ats',
       'ModelWithoutDeletedAt': 'model_without_deleted_ats',
       'ModelWithoutUpdatedAt': 'model_without_updated_at',

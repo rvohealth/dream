@@ -1,7 +1,9 @@
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Balloon from '../../../test-app/app/models/Balloon'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
+import ModelWithSerialPrimaryKey from '../../../test-app/app/models/ModelWithSerialPrimaryKey'
 import User from '../../../test-app/app/models/User'
+import createModelWithSerialPrimaryKey from '../../../test-app/spec/factories/ModelWithSerialPrimaryKeyFactory'
 
 describe('Dream.find', () => {
   let user: User
@@ -61,6 +63,14 @@ describe('Dream.find', () => {
           expect(await User.txn(txn).find(null)).toBeNull()
         })
       })
+    })
+  })
+
+  context('a model with a serial primary key', () => {
+    it('can be found by a string', async () => {
+      const model = await createModelWithSerialPrimaryKey()
+      const foundModel = await ModelWithSerialPrimaryKey.find(model.id.toString())
+      expect(foundModel).toMatchDreamModel(model)
     })
   })
 })

@@ -60,6 +60,7 @@ export type PrimaryKeyForFind<
   TableName extends keyof Schema = I['table'] & keyof Schema,
 > =
   | Schema[TableName]['columns'][I['primaryKey'] & keyof Schema[TableName]['columns']]['coercedType']
+  | string
   | null
   | undefined
 

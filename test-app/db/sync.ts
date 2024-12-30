@@ -469,6 +469,12 @@ export interface ModelWithoutUpdatedAt {
   name: string | null;
 }
 
+export interface ModelWithSerialPrimaryKeys {
+  createdAt: Timestamp;
+  id: Generated<number>;
+  updatedAt: Timestamp;
+}
+
 export interface Pets {
   createdAt: Timestamp;
   deletedAt: Timestamp | null;
@@ -586,6 +592,7 @@ export interface DB {
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples;
   localized_texts: LocalizedTexts;
   model_for_openapi_type_specs: ModelForOpenapiTypeSpecs;
+  model_with_serial_primary_keys: ModelWithSerialPrimaryKeys;
   model_without_custom_deleted_ats: ModelWithoutCustomDeletedAts;
   model_without_deleted_ats: ModelWithoutDeletedAts;
   model_without_updated_at: ModelWithoutUpdatedAt;
@@ -618,6 +625,7 @@ export class DBClass {
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples
   localized_texts: LocalizedTexts
   model_for_openapi_type_specs: ModelForOpenapiTypeSpecs
+  model_with_serial_primary_keys: ModelWithSerialPrimaryKeys
   model_without_custom_deleted_ats: ModelWithoutCustomDeletedAts
   model_without_deleted_ats: ModelWithoutDeletedAts
   model_without_updated_at: ModelWithoutUpdatedAt
