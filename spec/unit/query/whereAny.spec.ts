@@ -1,4 +1,4 @@
-import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/exceptions/CannotPassUndefinedAsAValueToAWhereClause'
+import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause'
 import User from '../../../test-app/app/models/User'
 
 describe('Query#whereAny', () => {

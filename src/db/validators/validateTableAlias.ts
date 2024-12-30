@@ -1,4 +1,4 @@
-import InvalidTableAlias from '../../exceptions/InvalidTableAlias'
+import InvalidTableAlias from '../../errors/InvalidTableAlias'
 
 export default function validateTableAlias(tableAlias: string) {
   if (!/^[a-zA-Z0-9_]*$/.test(tableAlias) || SINGLE_WORD_SQL_KEYWORDS.includes(tableAlias.toUpperCase()))

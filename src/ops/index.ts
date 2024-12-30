@@ -1,7 +1,7 @@
 import { sql } from 'kysely'
 import Dream from '../Dream'
 import { ComparisonOperatorExpression } from '../dream/types'
-import AnyRequiresArrayColumn from '../exceptions/ops/AnyRequiresArrayColumn'
+import AnyRequiresArrayColumn from '../errors/ops/AnyRequiresArrayColumn'
 import isDatabaseArrayColumn from '../helpers/db/types/isDatabaseArrayColumn'
 import CurriedOpsStatement from './curried-ops-statement'
 import OpsStatement from './ops-statement'

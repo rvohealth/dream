@@ -1,11 +1,12 @@
+import { CompiledQuery } from 'kysely'
 import { Settings } from 'luxon'
 import { types as pgTypes } from 'pg'
 import db from '../db'
 import Dream from '../Dream'
 import { primaryKeyTypes } from '../dream/types'
 import Encrypt, { EncryptAlgorithm, EncryptOptions } from '../encrypt'
-import DreamApplicationInitMissingCallToLoadModels from '../exceptions/dream-application/DreamApplicationInitMissingCallToLoadModels'
-import DreamApplicationInitMissingMissingProjectRoot from '../exceptions/dream-application/DreamApplicationInitMissingMissingProjectRoot'
+import DreamApplicationInitMissingCallToLoadModels from '../errors/dream-application/DreamApplicationInitMissingCallToLoadModels'
+import DreamApplicationInitMissingMissingProjectRoot from '../errors/dream-application/DreamApplicationInitMissingMissingProjectRoot'
 import {
   findCitextArrayOid,
   findCorrespondingArrayOid,
@@ -14,13 +15,12 @@ import {
   parsePostgresDatetime,
   parsePostgresDecimal,
 } from '../helpers/customPgParsers'
-import { envBool } from '../helpers/envHelpers'
+import EnvInternal from '../helpers/EnvInternal'
 import DreamSerializer from '../serializer'
 import { cacheDreamApplication, getCachedDreamApplicationOrFail } from './cache'
 import loadModels, { getModelsOrFail } from './helpers/loadModels'
 import loadSerializers, { getSerializersOrFail, setCachedSerializers } from './helpers/loadSerializers'
 import loadServices, { getServicesOrFail, setCachedServices } from './helpers/loadServices'
-import { CompiledQuery } from 'kysely'
 
 // this needs to be done top-level to ensure proper configuration
 Settings.defaultZone = 'UTC'
@@ -64,7 +64,7 @@ export default class DreamApplication {
 
     cacheDreamApplication(dreamApp)
 
-    if (!envBool('BYPASS_DB_CONNECTIONS_DURING_INIT')) await this.setDatabaseTypeParsers()
+    if (!EnvInternal.boolean('BYPASS_DB_CONNECTIONS_DURING_INIT')) await this.setDatabaseTypeParsers()
 
     return dreamApp
   }

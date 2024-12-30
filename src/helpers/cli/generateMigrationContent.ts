@@ -1,6 +1,6 @@
 import pluralize from 'pluralize'
 import { PrimaryKeyType } from '../../dream/types'
-import InvalidDecimalFieldPassedToGenerator from '../../exceptions/InvalidDecimalFieldPassedToGenerator'
+import InvalidDecimalFieldPassedToGenerator from '../../errors/InvalidDecimalFieldPassedToGenerator'
 import foreignKeyTypeFromPrimaryKey from '../db/foreignKeyTypeFromPrimaryKey'
 import snakeify from '../snakeify'
 interface ColumnDefsAndDrops {

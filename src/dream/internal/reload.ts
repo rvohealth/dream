@@ -1,5 +1,5 @@
 import Dream from '../../Dream'
-import CannotReloadUnsavedDream from '../../exceptions/CannotReloadUnsavedDream'
+import CannotReloadUnsavedDream from '../../errors/CannotReloadUnsavedDream'
 import DreamTransaction from '../DreamTransaction'
 import Query from '../Query'
 

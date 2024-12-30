@@ -2,7 +2,7 @@ import { BelongsToStatement } from '../../../decorators/associations/BelongsTo'
 import { HasManyStatement } from '../../../decorators/associations/HasMany'
 import { HasOneStatement } from '../../../decorators/associations/HasOne'
 import Dream from '../../../Dream'
-import CannotCreateAssociationWithThroughContext from '../../../exceptions/associations/CannotCreateAssociationWithThroughContext'
+import CannotCreateAssociationWithThroughContext from '../../../errors/associations/CannotCreateAssociationWithThroughContext'
 import DreamTransaction from '../../DreamTransaction'
 import { DreamAssociationNames, UpdateableAssociationProperties } from '../../types'
 

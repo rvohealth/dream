@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
-import MissingRequiredAssociationWhereClause from '../../../../src/exceptions/associations/MissingRequiredAssociationWhereClause'
-import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/exceptions/CannotPassUndefinedAsAValueToAWhereClause'
+import MissingRequiredAssociationWhereClause from '../../../../src/errors/associations/MissingRequiredAssociationWhereClause'
+import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
 import Collar from '../../../../test-app/app/models/Collar'

@@ -1,4 +1,4 @@
-import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/exceptions/CannotPassUndefinedAsAValueToAWhereClause'
+import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause'
 import ops from '../../../src/ops'
 import User from '../../../test-app/app/models/User'
 

@@ -17,10 +17,10 @@ import {
   TableColumnNames,
   TableNameForGlobalModelName,
 } from '../../dream/types'
-import { checkForeignKey } from '../../exceptions/associations/InvalidComputedForeignKey'
-import NonLoadedAssociation from '../../exceptions/associations/NonLoadedAssociation'
-import CannotDefineAssociationWithBothDependentAndPassthrough from '../../exceptions/CannotDefineAssociationWithBothDependentAndPassthrough'
-import CannotDefineAssociationWithBothDependentAndRequiredWhereClause from '../../exceptions/CannotDefineAssociationWithBothDependentAndRequiredWhereClause'
+import { checkForeignKey } from '../../errors/associations/InvalidComputedForeignKey'
+import NonLoadedAssociation from '../../errors/associations/NonLoadedAssociation'
+import CannotDefineAssociationWithBothDependentAndPassthrough from '../../errors/CannotDefineAssociationWithBothDependentAndPassthrough'
+import CannotDefineAssociationWithBothDependentAndRequiredWhereClause from '../../errors/CannotDefineAssociationWithBothDependentAndRequiredWhereClause'
 import CalendarDate from '../../helpers/CalendarDate'
 import camelize from '../../helpers/camelize'
 import { Range } from '../../helpers/range'

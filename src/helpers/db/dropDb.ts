@@ -2,13 +2,13 @@ import { Client } from 'pg'
 import ConnectionConfRetriever from '../../db/ConnectionConfRetriever'
 import { DbConnectionType } from '../../db/types'
 import DreamApplication from '../../dream-application'
-import { envValue } from '../envHelpers'
+import EnvInternal from '../EnvInternal'
 import loadPgClient from './loadPgClient'
 
 export default async function dropDb(connection: DbConnectionType, dbName?: string | null) {
   // this was only ever written to clear the db between tests or in development,
   // so there is no way to drop in production
-  if (envValue('NODE_ENV') === 'production') return false
+  if (EnvInternal.isProduction) return false
 
   const connectionRetriever = new ConnectionConfRetriever()
   const dbConf = connectionRetriever.getConnectionConf(connection)

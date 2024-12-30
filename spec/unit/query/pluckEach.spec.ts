@@ -1,5 +1,5 @@
-import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../../../src/exceptions/CannotPassAdditionalFieldsToPluckEachAfterCallback'
-import MissingRequiredCallbackFunctionToPluckEach from '../../../src/exceptions/MissingRequiredCallbackFunctionToPluckEach'
+import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../../../src/errors/CannotPassAdditionalFieldsToPluckEachAfterCallback'
+import MissingRequiredCallbackFunctionToPluckEach from '../../../src/errors/MissingRequiredCallbackFunctionToPluckEach'
 import ops from '../../../src/ops'
 import Edge from '../../../test-app/app/models/Graph/Edge'
 import User from '../../../test-app/app/models/User'

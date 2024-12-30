@@ -1,4 +1,4 @@
-import SerializerNameConflict from '../../exceptions/dream-application/SerializerNameConflict'
+import SerializerNameConflict from '../../errors/dream-application/SerializerNameConflict'
 import getFiles from '../../helpers/getFiles'
 import DreamSerializer from '../../serializer'
 import globalSerializerKeyFromPath from './globalSerializerKeyFromPath'

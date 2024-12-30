@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import CannotCreateAssociationWithThroughContext from '../../../../src/exceptions/associations/CannotCreateAssociationWithThroughContext'
+import CannotCreateAssociationWithThroughContext from '../../../../src/errors/associations/CannotCreateAssociationWithThroughContext'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import Composition from '../../../../test-app/app/models/Composition'

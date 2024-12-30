@@ -1,4 +1,4 @@
-import ValidationError from '../../../../src/exceptions/ValidationError'
+import ValidationError from '../../../../src/errors/ValidationError'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import User from '../../../../test-app/app/models/User'
 

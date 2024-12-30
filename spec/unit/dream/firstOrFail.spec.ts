@@ -1,4 +1,4 @@
-import RecordNotFound from '../../../src/exceptions/RecordNotFound'
+import RecordNotFound from '../../../src/errors/RecordNotFound'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import User from '../../../test-app/app/models/User'
 

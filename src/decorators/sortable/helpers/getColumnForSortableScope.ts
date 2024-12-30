@@ -1,6 +1,6 @@
 import Dream from '../../../Dream'
-import NonBelongsToAssociationProvidedAsSortableDecoratorScope from '../../../exceptions/NonBelongsToAssociationProvidedAsSortableDecoratorScope'
-import SortableDecoratorRequiresColumnOrBelongsToAssociation from '../../../exceptions/SortableDecoratorRequiresColumnOrBelongsToAssociation'
+import NonBelongsToAssociationProvidedAsSortableDecoratorScope from '../../../errors/NonBelongsToAssociationProvidedAsSortableDecoratorScope'
+import SortableDecoratorRequiresColumnOrBelongsToAssociation from '../../../errors/SortableDecoratorRequiresColumnOrBelongsToAssociation'
 import { BelongsToStatement } from '../../associations/BelongsTo'
 import { HasManyStatement } from '../../associations/HasMany'
 import { HasOneStatement } from '../../associations/HasOne'

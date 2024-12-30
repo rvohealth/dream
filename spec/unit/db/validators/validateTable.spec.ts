@@ -1,5 +1,5 @@
 import validateTable from '../../../../src/db/validators/validateTable'
-import InvalidTableName from '../../../../src/exceptions/InvalidTableName'
+import InvalidTableName from '../../../../src/errors/InvalidTableName'
 import User from '../../../../test-app/app/models/User'
 
 describe('validateTable', () => {

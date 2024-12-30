@@ -1,4 +1,4 @@
-import InvalidDecimalFieldPassedToGenerator from '../../../src/exceptions/InvalidDecimalFieldPassedToGenerator'
+import InvalidDecimalFieldPassedToGenerator from '../../../src/errors/InvalidDecimalFieldPassedToGenerator'
 import generateMigrationContent from '../../../src/helpers/cli/generateMigrationContent'
 
 describe('generateMigrationContent', () => {

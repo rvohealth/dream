@@ -1,6 +1,5 @@
 import { DateTime } from 'luxon'
-import testEnv from './testEnv'
-import { envBool } from './envHelpers'
+import EnvInternal from './EnvInternal'
 
 export type BenchmarkLogLevel = 'log' | 'warn' | 'error'
 
@@ -11,7 +10,7 @@ export default class Benchmark {
   }
 
   public mark(message: string, level: BenchmarkLogLevel = 'log') {
-    if (testEnv() && !envBool('ALLOW_BENCHMARKS')) return
+    if (EnvInternal.isTest && !EnvInternal.boolean('ALLOW_BENCHMARKS')) return
     if (!this._start) this.start()
     console[level](message, DateTime.now().diff(this._start, 'milliseconds').milliseconds)
   }

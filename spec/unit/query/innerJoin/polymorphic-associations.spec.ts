@@ -1,6 +1,6 @@
 import { sql } from 'kysely'
 import db from '../../../../src/db'
-import CannotJoinPolymorphicBelongsToError from '../../../../src/exceptions/associations/CannotJoinPolymorphicBelongsToError'
+import CannotJoinPolymorphicBelongsToError from '../../../../src/errors/associations/CannotJoinPolymorphicBelongsToError'
 import ops from '../../../../src/ops'
 import Balloon from '../../../../test-app/app/models/Balloon'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'

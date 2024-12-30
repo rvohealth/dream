@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import CannotPassNullOrUndefinedToRequiredBelongsTo from '../../../src/exceptions/associations/CannotPassNullOrUndefinedToRequiredBelongsTo'
+import CannotPassNullOrUndefinedToRequiredBelongsTo from '../../../src/errors/associations/CannotPassNullOrUndefinedToRequiredBelongsTo'
 import BalloonLine from '../../../test-app/app/models/BalloonLine'
 import Composition from '../../../test-app/app/models/Composition'
 import Pet from '../../../test-app/app/models/Pet'

@@ -1,5 +1,5 @@
 import DreamApplication, { SingleDbCredential } from '../dream-application'
-import { envValue } from '../helpers/envHelpers'
+import EnvInternal from '../helpers/EnvInternal'
 import { DbConnectionType } from './types'
 
 export default class ConnectionConfRetriever {
@@ -11,7 +11,7 @@ export default class ConnectionConfRetriever {
       throw new Error(`
       Cannot find a connection config given the following connection and node environment:
         connection: ${connection}
-        NODE_ENV: ${envValue('NODE_ENV')}
+        NODE_ENV: ${EnvInternal.nodeEnv}
     `)
 
     return conf

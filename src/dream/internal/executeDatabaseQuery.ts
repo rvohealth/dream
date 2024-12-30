@@ -1,5 +1,5 @@
 import DreamApplication from '../../dream-application'
-import { envBool } from '../../helpers/envHelpers'
+import EnvInternal from '../../helpers/EnvInternal'
 
 export default async function executeDatabaseQuery<
   Command extends 'execute' | 'executeTakeFirst' | 'executeTakeFirstOrThrow',
@@ -14,7 +14,7 @@ export default async function executeDatabaseQuery<
   try {
     return await kyselyQuery[command]()
   } catch (error) {
-    if (envBool('DEBUG')) {
+    if (EnvInternal.isDebug) {
       const sqlString = kyselyQuery.compile().sql
       const paramsString = kyselyQuery.compile().parameters.join(', ')
 

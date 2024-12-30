@@ -1,12 +1,12 @@
 import { Kysely } from 'kysely'
 import { Settings } from 'luxon'
 import Dream from '../Dream'
-import { envValue } from '../helpers/envHelpers'
+import EnvInternal from '../helpers/EnvInternal'
 import '../helpers/loadEnv'
 import DreamDbConnection from './DreamDbConnection'
 import { DbConnectionType } from './types'
 
-if (envValue('TZ')) Settings.defaultZone = envValue('TZ')
+if (EnvInternal.string('TZ', { optional: true })) Settings.defaultZone = EnvInternal.string('TZ')
 
 export default function db<T extends Dream, DB extends T['DB'] = T['DB']>(
   connectionType: DbConnectionType = 'primary'

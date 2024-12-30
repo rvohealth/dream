@@ -1,4 +1,4 @@
-import { envBool, envValue } from './envHelpers'
+import EnvInternal from './EnvInternal'
 
 export type DebugLogLevel = 'log' | 'warn' | 'error'
 
@@ -10,7 +10,7 @@ export default function debug(
     level?: DebugLogLevel
   } = {}
 ) {
-  if (envValue('NODE_ENV') === 'test') return
-  if (!envBool('DEBUG')) return
+  if (EnvInternal.isTest) return
+  if (!EnvInternal.isDebug) return
   console[level](message)
 }

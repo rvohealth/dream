@@ -1,4 +1,4 @@
-import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/exceptions/CannotPassUndefinedAsAValueToAWhereClause'
+import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Balloon from '../../../test-app/app/models/Balloon'
 import Latex from '../../../test-app/app/models/Balloon/Latex'

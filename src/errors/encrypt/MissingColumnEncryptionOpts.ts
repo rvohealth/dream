@@ -10,7 +10,7 @@ export default class MissingColumnEncryptionOpts extends Error {
             column: {
               current: {
                 algorithm: 'aes-256-gcm',
-                key: process.env.COLUMN_ENCRYPTION_KEY! 
+                key: Env.string('COLUMN_ENCRYPTION_KEY') 
               },
             }
           })

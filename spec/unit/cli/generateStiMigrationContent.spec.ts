@@ -1,4 +1,4 @@
-import InvalidDecimalFieldPassedToGenerator from '../../../src/exceptions/InvalidDecimalFieldPassedToGenerator'
+import InvalidDecimalFieldPassedToGenerator from '../../../src/errors/InvalidDecimalFieldPassedToGenerator'
 import generateStiMigrationContent from '../../../src/helpers/cli/generateStiMigrationContent'
 
 describe('dream generate:model <name> [...attributes]', () => {

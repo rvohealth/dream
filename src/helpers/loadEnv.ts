@@ -1,11 +1,11 @@
 import dotenv from 'dotenv'
-import { envBool, envValue } from './envHelpers'
+import EnvInternal from './EnvInternal'
 
-const fileName = `.env${envValue('NODE_ENV') === 'test' ? '.test' : ''}`
+const fileName = `.env${EnvInternal.isTest ? '.test' : ''}`
 let dotenvpath: string = ''
 
-if (envBool('DREAM_CORE_DEVELOPMENT')) {
-  dotenvpath = envBool('DREAM_CORE_SPEC_RUN')
+if (EnvInternal.boolean('DREAM_CORE_DEVELOPMENT')) {
+  dotenvpath = EnvInternal.boolean('DREAM_CORE_SPEC_RUN')
     ? __dirname + `/../../${fileName}`
     : __dirname + `/../../../${fileName}`
 } else {

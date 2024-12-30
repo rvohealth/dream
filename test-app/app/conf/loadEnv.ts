@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'
-import { envValue } from '../../../src/helpers/envHelpers'
+import EnvInternal from '../../../src/helpers/EnvInternal'
 
-const filePath = `./.env${envValue('NODE_ENV') === 'test' ? '.test' : ''}`
+const filePath = `./.env${EnvInternal.isTest ? '.test' : ''}`
 dotenv.config({ path: filePath })

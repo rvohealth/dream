@@ -1,7 +1,7 @@
 import { DreamTransaction } from '../../../../src'
 import * as runHooksForModule from '../../../../src/dream/internal/runHooksFor'
 import * as safelyRunCommitHooksModule from '../../../../src/dream/internal/safelyRunCommitHooks'
-import MissingDeletedAtFieldForSoftDelete from '../../../../src/exceptions/MissingDeletedAtFieldForSoftDelete'
+import MissingDeletedAtFieldForSoftDelete from '../../../../src/errors/MissingDeletedAtFieldForSoftDelete'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 import ModelWithoutCustomDeletedAt from '../../../../test-app/app/models/ModelWithoutCustomDeletedAt'
 import ModelWithoutDeletedAt from '../../../../test-app/app/models/ModelWithoutDeletedAt'

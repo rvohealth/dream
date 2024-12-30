@@ -1,6 +1,6 @@
 import Encrypt, { DecryptOptions, EncryptOptions } from '.'
 import DreamApplication from '../dream-application'
-import MissingColumnEncryptionOpts from '../exceptions/encrypt/MissingColumnEncryptionOpts'
+import MissingColumnEncryptionOpts from '../errors/encrypt/MissingColumnEncryptionOpts'
 
 export default class InternalEncrypt {
   public static encryptColumn(data: any) {

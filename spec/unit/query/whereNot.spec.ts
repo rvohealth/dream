@@ -1,5 +1,5 @@
-import CannotNegateSimilarityClause from '../../../src/exceptions/CannotNegateSimilarityClause'
-import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/exceptions/CannotPassUndefinedAsAValueToAWhereClause'
+import CannotNegateSimilarityClause from '../../../src/errors/CannotNegateSimilarityClause'
+import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause'
 import ops from '../../../src/ops'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'

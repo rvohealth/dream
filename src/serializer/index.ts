@@ -7,10 +7,10 @@ import {
   SerializableDreamClassOrViewModelClass,
   SerializableDreamOrViewModel,
 } from '../dream/types'
-import NonLoadedAssociation from '../exceptions/associations/NonLoadedAssociation'
-import GlobalNameNotSet from '../exceptions/dream-application/GlobalNameNotSet'
-import MissingSerializer from '../exceptions/MissingSerializersDefinition'
-import FailedToRenderThroughAssociationForSerializer from '../exceptions/serializers/FailedToRenderThroughAssociationForSerializer'
+import NonLoadedAssociation from '../errors/associations/NonLoadedAssociation'
+import GlobalNameNotSet from '../errors/dream-application/GlobalNameNotSet'
+import MissingSerializer from '../errors/MissingSerializersDefinition'
+import FailedToRenderThroughAssociationForSerializer from '../errors/serializers/FailedToRenderThroughAssociationForSerializer'
 import CalendarDate from '../helpers/CalendarDate'
 import camelize from '../helpers/camelize'
 import compact from '../helpers/compact'

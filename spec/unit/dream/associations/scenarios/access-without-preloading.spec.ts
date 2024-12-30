@@ -1,4 +1,4 @@
-import NonLoadedAssociation from '../../../../../src/exceptions/associations/NonLoadedAssociation'
+import NonLoadedAssociation from '../../../../../src/errors/associations/NonLoadedAssociation'
 import Mylar from '../../../../../test-app/app/models/Balloon/Mylar'
 import HeartRating from '../../../../../test-app/app/models/ExtraRating/HeartRating'
 import Post from '../../../../../test-app/app/models/Post'
