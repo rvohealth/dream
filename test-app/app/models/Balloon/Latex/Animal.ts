@@ -1,5 +1,5 @@
 import STI from '../../../../../src/decorators/STI'
-import { BalloonTypesEnum } from '../../../../types/sync'
+import { BalloonTypesEnum } from '../../../../types/db'
 import Latex from '../Latex'
 
 @STI(Latex)

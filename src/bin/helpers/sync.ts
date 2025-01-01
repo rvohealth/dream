@@ -15,7 +15,7 @@ export default async function writeSyncFile() {
   const dbConf = new ConnectionConfRetriever().getConnectionConf('primary')
   const dreamApp = DreamApplication.getOrFail()
 
-  const dbSyncFilePath = path.join(dreamPath('types'), 'sync.ts')
+  const dbSyncFilePath = path.join(dreamPath('types'), 'db.ts')
   const absoluteDbSyncPath = path.join(dreamApp.projectRoot, dbSyncFilePath)
 
   await sspawn(

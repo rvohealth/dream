@@ -8,7 +8,7 @@ const config = typescriptEslint.config(
   eslint.configs.recommended,
   ...typescriptEslint.configs.recommendedTypeChecked,
   {
-    ignores: ['src/db/schema.ts', 'src/db/sync.ts'],
+    ignores: ['src/types/dream.ts', 'src/types/db.ts'],
   },
   {
     files: ['**/*.ts'],

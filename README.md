@@ -315,7 +315,7 @@ yarn dream sync:schema
 yarn dream sync:schema --core
 # runs the same sync script mentioned above, but for core development. You would run this if you were trying to
 # sync for the test-app, which is used to seed the local tests and provide models for use within the console.
-# Similar to above, a local copy of schema is kept within test-app/db/schema.ts, which is updated each time you
+# Similar to above, a local copy of schema is kept within test-app/types/dream.ts, which is updated each time you
 # run yarn core:db:migrate.
 
 yarn dream sync:associations

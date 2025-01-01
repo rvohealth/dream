@@ -60,6 +60,7 @@ export default async function initDreamAppIntoExistingProject(
       modelSpecsPath: options.modelSpecsPath,
       factoriesPath: options.factoriesPath,
       primaryKeyType: options.primaryKeyType,
+      typesPath: options.typesPath,
     })
   )
 

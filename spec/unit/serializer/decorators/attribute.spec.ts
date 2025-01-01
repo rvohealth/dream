@@ -2,7 +2,7 @@ import { Attribute, AttributeStatement, DreamSerializer } from '../../../../src'
 import { OpenapiSchemaBody } from '../../../../src/openapi/types'
 import Balloon from '../../../../test-app/app/models/Balloon'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec'
-import { BalloonTypesEnumValues, SpeciesTypesEnumValues } from '../../../../test-app/types/sync'
+import { BalloonTypesEnumValues, SpeciesTypesEnumValues } from '../../../../test-app/types/db'
 
 describe('@Attribute', () => {
   context('with no arguments', () => {

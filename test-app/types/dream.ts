@@ -122,7 +122,7 @@ import {
   SpeciesTypesEnum,
   SpeciesTypesEnumValues,
   SpeciesValues
-} from './sync'
+} from './db'
 
 export const schema = {
   balloon_lines: {
