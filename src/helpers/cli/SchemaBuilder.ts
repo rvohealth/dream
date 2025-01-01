@@ -51,7 +51,7 @@ export const globalSchema = {
     // const newSchemaFileContents = `\
     // ${schemaConstContent}
     // `
-    const schemaPath = path.join(dreamApp.projectRoot, dreamApp.paths.db, 'schema.ts')
+    const schemaPath = path.join(dreamApp.projectRoot, dreamApp.paths.types, 'schema.ts')
     await fs.writeFile(schemaPath, newSchemaFileContents)
   }
 
@@ -420,7 +420,7 @@ may need to update the table getter in the corresponding Dream.
 
   private async loadDbSyncFile() {
     const dreamApp = DreamApplication.getOrFail()
-    const dbSyncPath = path.join(dreamApp.projectRoot, dreamApp.paths.db, 'sync.ts')
+    const dbSyncPath = path.join(dreamApp.projectRoot, dreamApp.paths.types, 'sync.ts')
     return (await fs.readFile(dbSyncPath)).toString()
   }
 }

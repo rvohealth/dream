@@ -1,7 +1,6 @@
 # Ignore generated files
 docs/*
-test-app/db/schema*
-test-app/db/sync*
+test-app/types/*
 test-app/client/schema.ts
 boilerplate/
 .yarn/

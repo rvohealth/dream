@@ -47,6 +47,7 @@ export default async function (dreamApp: DreamApplication) {
   dreamApp.set('paths', {
     conf: 'test-app/app/conf',
     db: 'test-app/db',
+    types: 'test-app/types',
     factories: 'test-app/spec/factories',
     models: 'test-app/app/models',
     serializers: 'test-app/app/serializers',
