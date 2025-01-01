@@ -18,6 +18,7 @@ export interface InitDreamAppCLIOptions {
   factoriesPath: string
   modelSpecsPath: string
   dbPath: string
+  typesPath: string
   projectPath: string
 }
 
@@ -82,6 +83,19 @@ async function dbPath(args: string[], options: InitDreamAppCLIOptions) {
     'Relative to the current directory, where would you like us to put your db files? (defaults to src/db)'
   ).run()
   options.dbPath = answer || options.dbPath
+}
+
+async function typesPath(args: string[], options: InitDreamAppCLIOptions) {
+  const [typesPath, value] = argAndValue('--typesPath', args)
+  if (typesPath) {
+    options.typesPath = value as string
+    return
+  }
+
+  const answer = await new Prompt(
+    'Relative to the current directory, where would you like us to put your dream.ts and db.ts type files? (defaults to src/types)'
+  ).run()
+  options.typesPath = answer || options.typesPath
 }
 
 async function modelSpecsPath(args: string[], options: InitDreamAppCLIOptions) {
@@ -153,6 +167,7 @@ async function gatherUserInput(args: string[]) {
     primaryKeyType: 'bigserial',
     configPath: 'src/conf',
     dbPath: 'src/db',
+    typesPath: 'src/types',
     modelsPath: 'src/app/models',
     serializersPath: 'src/app/serializers',
     servicesPath: 'src/app/services',
@@ -165,6 +180,7 @@ async function gatherUserInput(args: string[]) {
   await configPath(args, options)
   await serializersPath(args, options)
   await dbPath(args, options)
+  await typesPath(args, options)
   await modelSpecsPath(args, options)
   await factoriesPath(args, options)
   await servicesPath(args, options)

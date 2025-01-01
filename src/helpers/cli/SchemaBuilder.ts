@@ -22,7 +22,7 @@ export default class SchemaBuilder {
       ? `\
 import {
   ${imports.sort().join(',\n  ')}
-} from './sync'`
+} from './db'`
       : ''
 
     const calendarDateImportStatement = EnvInternal.boolean('DREAM_CORE_DEVELOPMENT')
@@ -51,7 +51,7 @@ export const globalSchema = {
     // const newSchemaFileContents = `\
     // ${schemaConstContent}
     // `
-    const schemaPath = path.join(dreamApp.projectRoot, dreamApp.paths.types, 'schema.ts')
+    const schemaPath = path.join(dreamApp.projectRoot, dreamApp.paths.types, 'dream.ts')
     await fs.writeFile(schemaPath, newSchemaFileContents)
   }
 
@@ -298,7 +298,7 @@ may need to update the table getter in the corresponding Dream.
         // this try-catch is here because the SchemaBuilder currently needs to be run twice to generate foreignKey
         // correctly. The first time will raise, since calling Dream.columns is dependant on the schema const to
         // introspect columns during a foreign key check. This will be repaired once kysely types have been successfully
-        // split off into a separate file from the types we diliver in schema.ts
+        // split off into a separate file from the types we diliver in types/dream.ts
         let foreignKey: string | null = null
         try {
           const _foreignKey = associationMetaData.foreignKey()
@@ -420,7 +420,7 @@ may need to update the table getter in the corresponding Dream.
 
   private async loadDbSyncFile() {
     const dreamApp = DreamApplication.getOrFail()
-    const dbSyncPath = path.join(dreamApp.projectRoot, dreamApp.paths.types, 'sync.ts')
+    const dbSyncPath = path.join(dreamApp.projectRoot, dreamApp.paths.types, 'db.ts')
     return (await fs.readFile(dbSyncPath)).toString()
   }
 }

@@ -2655,7 +2655,7 @@ export default class Dream {
    * @internal
    *
    * defines attribute setters and getters for every column
-   * set within your db/schema.ts file
+   * set within your types/dream.ts file
    */
   protected defineAttributeAccessors() {
     const dreamClass = this.constructor as typeof Dream

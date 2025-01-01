@@ -4,7 +4,7 @@ import {
   UseCustomOpenapiForJson,
 } from '../../../../../src/serializer/decorators/helpers/dreamAttributeOpenapiShape'
 import ModelForOpenapiTypeSpecs from '../../../../../test-app/app/models/ModelForOpenapiTypeSpec'
-import { PetTreatsEnumValues, SpeciesTypesEnumValues } from '../../../../../test-app/types/sync'
+import { PetTreatsEnumValues, SpeciesTypesEnumValues } from '../../../../../test-app/types/db'
 
 describe('dreamAttributeOpenapiShape', () => {
   context('bigint primaryKey', () => {

@@ -4,6 +4,7 @@ export default class DreamtsBuilder {
   public static build({
     confPath,
     dbPath,
+    typesPath,
     factoriesPath,
     modelsPath,
     serializersPath,
@@ -13,6 +14,7 @@ export default class DreamtsBuilder {
   }: {
     confPath: string
     dbPath: string
+    typesPath: string
     factoriesPath: string
     modelsPath: string
     serializersPath: string
@@ -52,6 +54,7 @@ export default async function (app: DreamApplication) {
   app.set('paths', {
     conf: '${confPath}',
     db: '${dbPath}',
+    types: '${typesPath}',
     factories: '${factoriesPath}',
     models: '${modelsPath}',
     serializers: '${serializersPath}',

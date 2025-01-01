@@ -35,6 +35,7 @@ export default async function buildNewDreamApp(appName: string, projectPath: str
     `${projectPath}/src/conf/dream.ts`,
     DreamtsBuilder.build({
       dbPath: 'src/db',
+      typesPath: 'src/types',
       modelsPath: 'src/app/models',
       serializersPath: 'src/app/serializers',
       confPath: 'src/conf',

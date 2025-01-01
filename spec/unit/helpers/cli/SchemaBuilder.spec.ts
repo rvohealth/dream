@@ -1,9 +1,9 @@
-// NOTE: since schema builder is responsible for writing db/schema.ts,
-// we can simply examine the schema.ts file to ensure that it is properly
+// NOTE: since schema builder is responsible for writing types/dream.ts,
+// we can simply examine the types/dream.ts file to ensure that it is properly
 // written
 
 import User from '../../../../test-app/app/models/User'
-import { BalloonColorsEnumValues } from '../../../../test-app/types/sync'
+import { BalloonColorsEnumValues } from '../../../../test-app/types/db'
 
 describe('SchemaBuilder', () => {
   describe('#build', () => {
