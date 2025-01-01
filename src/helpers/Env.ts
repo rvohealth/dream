@@ -15,7 +15,16 @@ export default class Env<
   }
 
   public get nodeEnv(): 'production' | 'development' | 'test' {
-    return (this.optional('NODE_ENV') || 'production') as 'production' | 'development' | 'test'
+    switch (this.optional('NODE_ENV')) {
+      case 'production':
+        return 'production'
+      case 'development':
+        return 'development'
+      case 'test':
+        return 'test'
+      default:
+        return 'production'
+    }
   }
 
   public get isDebug(): boolean {
@@ -48,11 +57,27 @@ export default class Env<
     const val = (opts as any)?.optional ? this.optional(env) : this.required(env)
     if (val === undefined) return undefined
     const parsedVal = parseInt(val, 10)
-    return typeof parsedVal === 'number' ? parsedVal : undefined
+    return parsedVal.toString() === val ? parsedVal : undefined
   }
 
   public boolean(env: BooleanEnvs): boolean {
     return this.optional(env) === '1'
+  }
+
+  public setString(env: StringEnvs, val: string | undefined) {
+    val === undefined ? delete process.env[env] : (process.env[env] = val)
+  }
+
+  public unsetString(env: StringEnvs) {
+    delete process.env[env]
+  }
+
+  public setInteger(env: IntegerEnvs, val: number | undefined) {
+    val === undefined ? delete process.env[env] : (process.env[env] = Math.floor(val).toString())
+  }
+
+  public unsetInteger(env: IntegerEnvs) {
+    delete process.env[env]
   }
 
   public setBoolean(env: BooleanEnvs) {
@@ -60,7 +85,7 @@ export default class Env<
   }
 
   public unsetBoolean(env: BooleanEnvs) {
-    process.env[env] = undefined
+    delete process.env[env]
   }
 
   protected required(variable: string): string {

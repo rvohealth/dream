@@ -12,7 +12,9 @@ describe('InternalEncrypt', () => {
     })
 
     afterEach(async () => {
-      process.env.APP_ENCRYPTION_KEY = originalEncryptionKey
+      originalEncryptionKey === undefined
+        ? delete process.env.APP_ENCRYPTION_KEY
+        : (process.env.APP_ENCRYPTION_KEY = originalEncryptionKey)
       await initializeDreamApplication()
     })
 
