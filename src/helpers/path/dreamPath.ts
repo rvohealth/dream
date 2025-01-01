@@ -1,4 +1,4 @@
-import DreamApplication from '../../dream-application'
+import DreamApplication, { DreamDirectoryPaths } from '../../dream-application'
 
 export default function (dreamPathType: DreamPaths) {
   const dreamApp = DreamApplication.getOrFail()
@@ -16,7 +16,11 @@ export default function (dreamPathType: DreamPaths) {
       return dreamApp.paths.modelSpecs
     case 'factories':
       return dreamApp.paths.factories
+    case 'types':
+      return dreamApp.paths.types
+    case 'services':
+      return dreamApp.paths.services
   }
 }
 
-export type DreamPaths = 'models' | 'serializers' | 'db' | 'conf' | 'modelSpecs' | 'factories'
+export type DreamPaths = keyof DreamDirectoryPaths

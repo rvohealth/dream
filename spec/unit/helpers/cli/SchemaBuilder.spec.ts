@@ -3,7 +3,7 @@
 // written
 
 import User from '../../../../test-app/app/models/User'
-import { BalloonColorsEnumValues } from '../../../../test-app/db/sync'
+import { BalloonColorsEnumValues } from '../../../../test-app/types/sync'
 
 describe('SchemaBuilder', () => {
   describe('#build', () => {

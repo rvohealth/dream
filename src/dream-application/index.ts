@@ -225,6 +225,7 @@ Try setting it to something valid, like:
       modelSpecs: opts?.paths?.modelSpecs || 'spec/unit/models',
       serializers: opts?.paths?.serializers || 'src/app/serializers',
       services: opts?.paths?.services || 'src/app/services',
+      types: opts?.paths?.types || 'src/types',
     }
   }
 
@@ -367,6 +368,7 @@ export interface DreamDirectoryPaths {
   db?: string
   modelSpecs?: string
   factories?: string
+  types?: string
 }
 
 export interface DreamDbCredentialOptions {
