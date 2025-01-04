@@ -21,6 +21,7 @@ import { cacheDreamApplication, getCachedDreamApplicationOrFail } from './cache'
 import loadModels, { getModelsOrFail } from './helpers/loadModels'
 import loadSerializers, { getSerializersOrFail, setCachedSerializers } from './helpers/loadSerializers'
 import loadServices, { getServicesOrFail, setCachedServices } from './helpers/loadServices'
+import validateTable from '../db/validators/validateTable'
 
 // this needs to be done top-level to ensure proper configuration
 Settings.defaultZone = 'UTC'
@@ -50,14 +51,7 @@ export default class DreamApplication {
 
     await deferCb?.(dreamApp)
 
-    if (!dreamApp.projectRoot) throw new DreamApplicationInitMissingMissingProjectRoot()
-    if (!dreamApp.loadedModels) throw new DreamApplicationInitMissingCallToLoadModels()
-    if (dreamApp.encryption?.columns?.current)
-      this.checkKey(
-        'columns',
-        dreamApp.encryption.columns.current.key,
-        dreamApp.encryption.columns.current.algorithm
-      )
+    dreamApp.validateApplicationBuildIntegrity()
 
     if (!dreamApp.serializers) setCachedSerializers({})
     if (!dreamApp.services) setCachedServices({})
@@ -67,6 +61,37 @@ export default class DreamApplication {
     if (!EnvInternal.boolean('BYPASS_DB_CONNECTIONS_DURING_INIT')) await this.setDatabaseTypeParsers()
 
     return dreamApp
+  }
+
+  /**
+   * @internal
+   *
+   * Ensures that the application build is not missing any critical components
+   * that would render it in an invalid state
+   *
+   */
+  private validateApplicationBuildIntegrity() {
+    if (!this.projectRoot) throw new DreamApplicationInitMissingMissingProjectRoot()
+    if (!this.loadedModels) throw new DreamApplicationInitMissingCallToLoadModels()
+    if (this.encryption?.columns?.current)
+      DreamApplication.checkKey(
+        'columns',
+        this.encryption.columns.current.key,
+        this.encryption.columns.current.algorithm
+      )
+    this.validateApplicationModels()
+  }
+
+  /**
+   * @internal
+   *
+   * Ensures that all models are in a valid state
+   *
+   */
+  private validateApplicationModels() {
+    Object.values(this.models).forEach(modelClass => {
+      validateTable(modelClass.prototype.schema, modelClass.prototype.table)
+    })
   }
 
   /**

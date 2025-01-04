@@ -3,6 +3,8 @@ import { DreamApplication } from '../../../src'
 import * as LoadModelsModule from '../../../src/dream-application/helpers/loadModels'
 import DreamApplicationInitMissingCallToLoadModels from '../../../src/errors/dream-application/DreamApplicationInitMissingCallToLoadModels'
 import DreamApplicationInitMissingMissingProjectRoot from '../../../src/errors/dream-application/DreamApplicationInitMissingMissingProjectRoot'
+import InvalidTableName from '../../../src/errors/InvalidTableName'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 
 describe('DreamApplication#init', () => {
   const dbCredentials = {
@@ -53,6 +55,30 @@ describe('DreamApplication#init', () => {
         }
 
         await expect(DreamApplication.init(cb)).rejects.toThrow(DreamApplicationInitMissingMissingProjectRoot)
+      })
+    })
+
+    context('model is introduced with invalid table name', () => {
+      class HelloWorld extends ApplicationModel {
+        public get table() {
+          // intentionally invalid table name
+          return 'userz'
+        }
+      }
+
+      it('throws targeted exception', async () => {
+        const cb = async (app: DreamApplication) => {
+          app.set('projectRoot', 'how/yadoin')
+          app.set('db', dbCredentials)
+
+          await app.load('models', 'how/yadoin')
+        }
+
+        jest.spyOn(DreamApplication.prototype, 'models', 'get').mockReturnValue({
+          HelloWorld,
+        })
+
+        await expect(DreamApplication.init(cb)).rejects.toThrow(InvalidTableName)
       })
     })
   })
