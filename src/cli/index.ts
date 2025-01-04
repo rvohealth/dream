@@ -21,12 +21,12 @@ export default class DreamCLI {
       )
       .action(async () => {
         await initializeDreamApplication()
-        await DreamBin.sync()
+        await DreamBin.sync(() => {})
 
         process.exit()
       })
 
-    this.generateDreamCli(program, { initializeDreamApplication, seedDb })
+    this.generateDreamCli(program, { initializeDreamApplication, seedDb, onSync: () => {} })
   }
 
   public static generateDreamCli(
@@ -34,9 +34,11 @@ export default class DreamCLI {
     {
       initializeDreamApplication,
       seedDb,
+      onSync,
     }: {
       initializeDreamApplication: () => Promise<any>
       seedDb: () => Promise<void> | void
+      onSync: () => Promise<void> | void
     }
   ) {
     program
@@ -129,7 +131,7 @@ export default class DreamCLI {
         await DreamBin.dbMigrate()
 
         if (EnvInternal.isDevelopmentOrTest && !skipSync) {
-          await DreamBin.sync()
+          await DreamBin.sync(onSync)
         }
 
         process.exit()
@@ -145,7 +147,7 @@ export default class DreamCLI {
         await DreamBin.dbRollback({ steps })
 
         if (EnvInternal.isDevelopmentOrTest && !skipSync) {
-          await DreamBin.sync()
+          await DreamBin.sync(onSync)
         }
 
         process.exit()
@@ -177,7 +179,7 @@ export default class DreamCLI {
         await initializeDreamApplication()
 
         await DreamBin.dbMigrate()
-        await DreamBin.sync()
+        await DreamBin.sync(onSync)
         await seedDb()
         process.exit()
       })

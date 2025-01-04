@@ -12,9 +12,10 @@ import sspawn from '../helpers/sspawn'
 import writeSyncFile from './helpers/sync'
 
 export default class DreamBin {
-  public static async sync() {
+  public static async sync(onSync: () => Promise<void> | void) {
     await writeSyncFile()
     await this.buildDreamSchema()
+    await onSync()
   }
 
   public static async buildDreamSchema() {
