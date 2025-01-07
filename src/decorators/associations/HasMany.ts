@@ -1,7 +1,7 @@
 import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../Dream'
 import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames'
-import { GlobalModelNames, TableColumnNames } from '../../dream/types'
+import { GlobalModelNames, TableColumnNames, TableNameForGlobalModelName } from '../../dream/types'
 import {
   HasOptions,
   HasStatement,
@@ -167,23 +167,65 @@ export type HasManyStatement<
   order?: OrderStatement<DB, Schema, ForeignTableName>
 }
 
+interface HasManyOnlyOptions<
+  BaseInstance extends Dream,
+  AssociationGlobalNameOrNames extends
+    | GlobalModelNames<BaseInstance>
+    | readonly GlobalModelNames<BaseInstance>[],
+  AssociationGlobalName = AssociationGlobalNameOrNames extends any[]
+    ? AssociationGlobalNameOrNames[0] & string
+    : AssociationGlobalNameOrNames & string,
+  AssociationTableName = TableNameForGlobalModelName<
+    BaseInstance,
+    AssociationGlobalName & GlobalModelNames<BaseInstance>
+  >,
+> {
+  distinct?:
+    | TableColumnNames<
+        BaseInstance['DB'],
+        AssociationTableName &
+          AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
+          keyof BaseInstance['DB']
+      >
+    | boolean
+
+  order?:
+    | OrderStatement<
+        BaseInstance['DB'],
+        BaseInstance['schema'],
+        AssociationTableName &
+          AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
+          keyof BaseInstance['DB']
+      >
+    | OrderStatement<
+        BaseInstance['DB'],
+        BaseInstance['schema'],
+        AssociationTableName &
+          AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
+          keyof BaseInstance['DB']
+      >[]
+}
+
 export type HasManyOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
     | GlobalModelNames<BaseInstance>
     | readonly GlobalModelNames<BaseInstance>[],
-> = HasOptions<BaseInstance, AssociationGlobalNameOrNames>
+> = HasOptions<BaseInstance, AssociationGlobalNameOrNames> &
+  HasManyOnlyOptions<BaseInstance, AssociationGlobalNameOrNames>
 
 export type PolymorphicHasManyOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
     | GlobalModelNames<BaseInstance>
     | readonly GlobalModelNames<BaseInstance>[],
-> = PolymorphicHasOptions<BaseInstance, AssociationGlobalNameOrNames>
+> = PolymorphicHasOptions<BaseInstance, AssociationGlobalNameOrNames> &
+  HasManyOnlyOptions<BaseInstance, AssociationGlobalNameOrNames>
 
 export type HasManyThroughOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
     | GlobalModelNames<BaseInstance>
     | readonly GlobalModelNames<BaseInstance>[],
-> = HasThroughOptions<BaseInstance, AssociationGlobalNameOrNames>
+> = HasThroughOptions<BaseInstance, AssociationGlobalNameOrNames> &
+  HasManyOnlyOptions<BaseInstance, AssociationGlobalNameOrNames>

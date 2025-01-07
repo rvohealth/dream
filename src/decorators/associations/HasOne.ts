@@ -65,7 +65,6 @@ export default function HasOne<
  *
  * @param opts.dependent - Can be either "destroy" or undefined. If "destroy", this record will be cascade deleted if the base model is destroyed.
  * @param opts.foreignKey - A custom column name to use for the foreign key.
- * @param opts.order - A custom order statement to apply to this association.
  * @param opts.polymorphic - If true, this association will be treated as a polymorphic association.
  * @param opts.preloadThroughColumns - An array of columns to pluck off the through association attached to this association. Can only be set if `through` is also set.
  * @param opts.primaryKeyOverride - A custom column name to use for the primary key.

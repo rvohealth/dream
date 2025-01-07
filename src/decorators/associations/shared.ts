@@ -252,31 +252,6 @@ interface HasOptionsBase<
       keyof BaseInstance['DB']
   >
 
-  order?:
-    | OrderStatement<
-        BaseInstance['DB'],
-        BaseInstance['schema'],
-        AssociationTableName &
-          AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
-          keyof BaseInstance['DB']
-      >
-    | OrderStatement<
-        BaseInstance['DB'],
-        BaseInstance['schema'],
-        AssociationTableName &
-          AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
-          keyof BaseInstance['DB']
-      >[]
-
-  distinct?:
-    | TableColumnNames<
-        BaseInstance['DB'],
-        AssociationTableName &
-          AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
-          keyof BaseInstance['DB']
-      >
-    | boolean
-
   preloadThroughColumns?: string[] | Record<string, string>
   dependent?: DependentOptions
   withoutDefaultScopes?: DefaultScopeNameForTable<
