@@ -69,6 +69,7 @@ export { default as NonLoadedAssociation } from './errors/associations/NonLoaded
 export { default as CreateOrFindByFailedToCreateAndFind } from './errors/CreateOrFindByFailedToCreateAndFind'
 export { default as GlobalNameNotSet } from './errors/dream-application/GlobalNameNotSet'
 export { default as ValidationError } from './errors/ValidationError'
+export { default as RecordNotFound } from './errors/RecordNotFound'
 export { default as Benchmark } from './helpers/benchmark'
 export { default as CalendarDate } from './helpers/CalendarDate'
 export { default as camelize } from './helpers/camelize'
