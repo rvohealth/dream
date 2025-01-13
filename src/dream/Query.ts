@@ -4019,7 +4019,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     let kyselyQuery: SelectQueryBuilder<any, any, any>
 
     if (this.baseSelectQuery) {
-      kyselyQuery = this.baseSelectQuery.buildSelect({ bypassSelectAll: true })
+      kyselyQuery = (
+        this.connectionOverride
+          ? this.baseSelectQuery.connection(this.connectionOverride)
+          : this.baseSelectQuery
+      ).buildSelect({ bypassSelectAll: true })
     } else {
       const from =
         this.baseSqlAlias === this.dreamClass.table

@@ -114,6 +114,13 @@ export default class DreamBin {
     const dbConf = connectionRetriever.getConnectionConf('primary')
     const client = await loadPgClient({ useSystemDb: true })
 
+    if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
+      const replicaTestWorkerDatabaseName = `replica_test_${dbConf.name}`
+      console.log(`creating fake replica test database ${replicaTestWorkerDatabaseName}`)
+      await client.query(`DROP DATABASE IF EXISTS ${replicaTestWorkerDatabaseName};`)
+      await client.query(`CREATE DATABASE ${replicaTestWorkerDatabaseName} TEMPLATE ${dbConf.name};`)
+    }
+
     for (let i = 2; i <= parallelTests; i++) {
       const workerDatabaseName = `${dbConf.name}_${i}`
 

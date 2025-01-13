@@ -29,6 +29,12 @@ async function maybeDropDuplicateDatabases(client: Client, dbName: string) {
   const parallelTests = DreamApplication.getOrFail().parallelTests
   if (!parallelTests) return
 
+  if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
+    const replicaTestWorkerDatabaseName = `replica_test_${dbName}`
+    console.log(`dropping fake replica test database ${replicaTestWorkerDatabaseName}`)
+    await client.query(`DROP DATABASE IF EXISTS ${replicaTestWorkerDatabaseName};`)
+  }
+
   for (let i = 2; i <= parallelTests; i++) {
     const workerDatabaseName = `${dbName}_${i}`
     console.log(`dropping duplicate test database ${workerDatabaseName}`)

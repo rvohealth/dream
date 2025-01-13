@@ -2,6 +2,7 @@ import { CompiledQuery } from 'kysely'
 import { Settings } from 'luxon'
 import { types as pgTypes } from 'pg'
 import db from '../db'
+import validateTable from '../db/validators/validateTable'
 import Dream from '../Dream'
 import { primaryKeyTypes } from '../dream/types'
 import Encrypt, { EncryptAlgorithm, EncryptOptions } from '../encrypt'
@@ -21,7 +22,6 @@ import { cacheDreamApplication, getCachedDreamApplicationOrFail } from './cache'
 import loadModels, { getModelsOrFail } from './helpers/loadModels'
 import loadSerializers, { getSerializersOrFail, setCachedSerializers } from './helpers/loadSerializers'
 import loadServices, { getServicesOrFail, setCachedServices } from './helpers/loadServices'
-import validateTable from '../db/validators/validateTable'
 
 // this needs to be done top-level to ensure proper configuration
 Settings.defaultZone = 'UTC'
@@ -199,7 +199,7 @@ Try setting it to something valid, like:
 
   private _parallelTests: number | undefined
   public get parallelTests() {
-    return this._parallelTests
+    return process.env.NODE_ENV === 'test' ? this._parallelTests : undefined
   }
 
   private _primaryKeyType: (typeof primaryKeyTypes)[number] = 'bigserial'
