@@ -10,7 +10,9 @@ export default class DreamCLI {
       initializeDreamApplication,
       seedDb,
     }: {
-      initializeDreamApplication: () => Promise<DreamApplication>
+      initializeDreamApplication: (opts?: {
+        bypassModelIntegrityCheck?: boolean
+      }) => Promise<DreamApplication>
       seedDb: () => Promise<void> | void
     }
   ) {
@@ -36,7 +38,8 @@ export default class DreamCLI {
       seedDb,
       onSync,
     }: {
-      initializeDreamApplication: () => Promise<any>
+      // uses Promise<any> because a PsychicApplication can also be returned here
+      initializeDreamApplication: (opts?: { bypassModelIntegrityCheck?: boolean }) => Promise<any>
       seedDb: () => Promise<void> | void
       onSync: () => Promise<void> | void
     }
@@ -117,7 +120,7 @@ export default class DreamCLI {
       )
       .action(async () => {
         EnvInternal.setBoolean('BYPASS_DB_CONNECTIONS_DURING_INIT')
-        await initializeDreamApplication()
+        await initializeDreamApplication({ bypassModelIntegrityCheck: true })
         await DreamBin.dbCreate()
         process.exit()
       })
@@ -127,7 +130,7 @@ export default class DreamCLI {
       .description('db:migrate runs any outstanding database migrations')
       .option('--skip-sync', 'skips syncing local schema after running migrations')
       .action(async ({ skipSync }: { skipSync: boolean }) => {
-        await initializeDreamApplication()
+        await initializeDreamApplication({ bypassModelIntegrityCheck: true })
         await DreamBin.dbMigrate()
 
         if (EnvInternal.isDevelopmentOrTest && !skipSync) {
@@ -143,7 +146,7 @@ export default class DreamCLI {
       .option('--steps <number>', 'number of steps back to travel', myParseInt, 1)
       .option('--skip-sync', 'skips syncing local schema after running migrations')
       .action(async ({ steps, skipSync }: { steps: number; skipSync: boolean }) => {
-        await initializeDreamApplication()
+        await initializeDreamApplication({ bypassModelIntegrityCheck: true })
         await DreamBin.dbRollback({ steps })
 
         if (EnvInternal.isDevelopmentOrTest && !skipSync) {
@@ -160,7 +163,7 @@ export default class DreamCLI {
       )
       .action(async () => {
         EnvInternal.setBoolean('BYPASS_DB_CONNECTIONS_DURING_INIT')
-        await initializeDreamApplication()
+        await initializeDreamApplication({ bypassModelIntegrityCheck: true })
         await DreamBin.dbDrop()
         process.exit()
       })
@@ -170,13 +173,13 @@ export default class DreamCLI {
       .description('runs db:drop (safely), then db:create, db:migrate, and db:seed')
       .action(async () => {
         EnvInternal.setBoolean('BYPASS_DB_CONNECTIONS_DURING_INIT')
-        await initializeDreamApplication()
+        await initializeDreamApplication({ bypassModelIntegrityCheck: true })
 
         await DreamBin.dbDrop()
         await DreamBin.dbCreate()
 
         EnvInternal.unsetBoolean('BYPASS_DB_CONNECTIONS_DURING_INIT')
-        await initializeDreamApplication()
+        await initializeDreamApplication({ bypassModelIntegrityCheck: true })
 
         await DreamBin.dbMigrate()
         await DreamBin.sync(onSync)
