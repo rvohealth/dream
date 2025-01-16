@@ -41,7 +41,7 @@ export default class DreamApplication {
    */
   public static async init(
     cb: (dreamApp: DreamApplication) => void | Promise<void>,
-    opts: Partial<DreamApplicationOpts> & { bypassModelIntegrityCheck?: boolean } = {},
+    opts: Partial<DreamApplicationOpts> & DreamApplicationInitOptions = {},
     deferCb?: (dreamApp: DreamApplication) => Promise<void> | void
   ) {
     const dreamApp = new DreamApplication(opts)
@@ -72,9 +72,7 @@ export default class DreamApplication {
    * that would render it in an invalid state
    *
    */
-  private validateApplicationBuildIntegrity({
-    bypassModelIntegrityCheck = false,
-  }: { bypassModelIntegrityCheck?: boolean } = {}) {
+  private validateApplicationBuildIntegrity({ bypassModelIntegrityCheck }: DreamApplicationInitOptions) {
     if (!this.projectRoot) throw new DreamApplicationInitMissingMissingProjectRoot()
     if (!this.loadedModels) throw new DreamApplicationInitMissingCallToLoadModels()
     if (this.encryption?.columns?.current)
@@ -434,6 +432,10 @@ interface SegmentedEncryptionOptions {
 
 export interface DreamApplicationSpecialHooks {
   dbLog: ((event: KyselyLogEvent) => void)[]
+}
+
+export interface DreamApplicationInitOptions {
+  bypassModelIntegrityCheck?: boolean
 }
 
 export interface KyselyLogEvent {
