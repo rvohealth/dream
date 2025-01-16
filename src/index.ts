@@ -34,6 +34,7 @@ export {
   DreamApplicationOpts,
   DreamLogger,
   DreamLogLevel,
+  DreamApplicationInitOptions,
 } from './dream-application'
 export { default as lookupClassByGlobalName } from './dream-application/helpers/lookupClassByGlobalName'
 export { default as DreamTransaction } from './dream/DreamTransaction'

@@ -1,6 +1,6 @@
 import { Command, InvalidArgumentError } from 'commander'
 import DreamBin from '../bin'
-import DreamApplication from '../dream-application'
+import DreamApplication, { DreamApplicationInitOptions } from '../dream-application'
 import EnvInternal from '../helpers/EnvInternal'
 
 export default class DreamCLI {
@@ -10,9 +10,7 @@ export default class DreamCLI {
       initializeDreamApplication,
       seedDb,
     }: {
-      initializeDreamApplication: (opts?: {
-        bypassModelIntegrityCheck?: boolean
-      }) => Promise<DreamApplication>
+      initializeDreamApplication: (opts?: DreamApplicationInitOptions) => Promise<DreamApplication>
       seedDb: () => Promise<void> | void
     }
   ) {
@@ -39,7 +37,7 @@ export default class DreamCLI {
       onSync,
     }: {
       // uses Promise<any> because a PsychicApplication can also be returned here
-      initializeDreamApplication: (opts?: { bypassModelIntegrityCheck?: boolean }) => Promise<any>
+      initializeDreamApplication: (opts?: DreamApplicationInitOptions) => Promise<any>
       seedDb: () => Promise<void> | void
       onSync: () => Promise<void> | void
     }
