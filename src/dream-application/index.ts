@@ -41,7 +41,7 @@ export default class DreamApplication {
    */
   public static async init(
     cb: (dreamApp: DreamApplication) => void | Promise<void>,
-    opts: Partial<DreamApplicationOpts> = {},
+    opts: Partial<DreamApplicationOpts> & { bypassModelIntegrityCheck?: boolean } = {},
     deferCb?: (dreamApp: DreamApplication) => Promise<void> | void
   ) {
     const dreamApp = new DreamApplication(opts)
@@ -51,7 +51,9 @@ export default class DreamApplication {
 
     await deferCb?.(dreamApp)
 
-    dreamApp.validateApplicationBuildIntegrity()
+    dreamApp.validateApplicationBuildIntegrity({
+      bypassModelIntegrityCheck: opts.bypassModelIntegrityCheck || false,
+    })
 
     if (!dreamApp.serializers) setCachedSerializers({})
     if (!dreamApp.services) setCachedServices({})
@@ -70,7 +72,9 @@ export default class DreamApplication {
    * that would render it in an invalid state
    *
    */
-  private validateApplicationBuildIntegrity() {
+  private validateApplicationBuildIntegrity({
+    bypassModelIntegrityCheck = false,
+  }: { bypassModelIntegrityCheck?: boolean } = {}) {
     if (!this.projectRoot) throw new DreamApplicationInitMissingMissingProjectRoot()
     if (!this.loadedModels) throw new DreamApplicationInitMissingCallToLoadModels()
     if (this.encryption?.columns?.current)
@@ -79,7 +83,8 @@ export default class DreamApplication {
         this.encryption.columns.current.key,
         this.encryption.columns.current.algorithm
       )
-    this.validateApplicationModels()
+
+    if (!bypassModelIntegrityCheck) this.validateApplicationModels()
   }
 
   /**
