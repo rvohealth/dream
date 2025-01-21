@@ -4,7 +4,7 @@ import DreamApplication, { KyselyLogEvent, SingleDbCredential } from '../dream-a
 import ConnectionConfRetriever from './ConnectionConfRetriever'
 import { DbConnectionType } from './types'
 
-const connections = {} as { [key: string]: Kysely<any> }
+let connections = {} as { [key: string]: Kysely<any> }
 
 export default class DreamDbConnection {
   public static getConnection<DB>(connectionType: DbConnectionType): Kysely<DB> {
@@ -83,4 +83,5 @@ export function dreamDbConnections() {
 
 export async function closeAllDbConnections() {
   await Promise.all(Object.values(connections).map(conn => conn.destroy()))
+  connections = {}
 }
