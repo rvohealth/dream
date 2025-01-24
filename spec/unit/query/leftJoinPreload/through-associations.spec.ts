@@ -574,8 +574,8 @@ describe('Query#leftJoinPreload through', () => {
       await pet.createAssociation('collars', { balloon: redBalloon })
       await pet.createAssociation('collars', { balloon: greenBalloon })
 
-      const reloaded = await Pet.leftJoinPreload('redBalloons').firstOrFail()
-      expect(reloaded.redBalloons).toMatchDreamModels([redBalloon])
+      const reloaded = await Pet.leftJoinPreload('where_red').firstOrFail()
+      expect(reloaded.where_red).toMatchDreamModels([redBalloon])
     })
 
     context('when no association matches the where clause', () => {
@@ -585,8 +585,8 @@ describe('Query#leftJoinPreload through', () => {
 
         await pet.createAssociation('collars', { balloon: greenBalloon })
 
-        const reloaded = await Pet.leftJoinPreload('redBalloons').firstOrFail()
-        expect(reloaded.redBalloons).toEqual([])
+        const reloaded = await Pet.leftJoinPreload('where_red').firstOrFail()
+        expect(reloaded.where_red).toEqual([])
       })
     })
   })
@@ -602,8 +602,8 @@ describe('Query#leftJoinPreload through', () => {
       await pet.createAssociation('collars', { balloon: greenBalloon })
       await pet.createAssociation('collars', { balloon: blueBalloon })
 
-      const reloaded = await Pet.leftJoinPreload('notRedBalloons').firstOrFail()
-      expect(reloaded.notRedBalloons).toMatchDreamModels([greenBalloon, blueBalloon])
+      const reloaded = await Pet.leftJoinPreload('whereNot_red').firstOrFail()
+      expect(reloaded.whereNot_red).toMatchDreamModels([greenBalloon, blueBalloon])
     })
 
     context('through a BelongsTo', () => {
@@ -656,11 +656,11 @@ describe('Query#leftJoinPreload through', () => {
       await Collar.create({ pet, balloon })
 
       const unscopedReloadedUser = await User.removeAllDefaultScopes()
-        .leftJoinPreload('pets', 'redBalloons')
+        .leftJoinPreload('pets', 'where_red')
         .firstOrFail()
       expect(unscopedReloadedUser).toMatchDreamModel(user)
       expect(unscopedReloadedUser.pets).toMatchDreamModels([pet])
-      expect(unscopedReloadedUser.pets[0].redBalloons).toMatchDreamModels([balloon])
+      expect(unscopedReloadedUser.pets[0].where_red).toMatchDreamModels([balloon])
     })
   })
 

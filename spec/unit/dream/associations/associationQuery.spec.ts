@@ -367,7 +367,7 @@ describe('Dream#associationQuery', () => {
       const notRedBalloon = await Latex.create({ color: 'blue' })
       await Collar.create({ pet, balloon: notRedBalloon })
 
-      expect(await pet.associationQuery('redBalloons').where(null).all()).toMatchDreamModels([redBalloon])
+      expect(await pet.associationQuery('where_red').where(null).all()).toMatchDreamModels([redBalloon])
     })
   })
 

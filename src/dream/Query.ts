@@ -8,6 +8,7 @@ import {
   ComparisonOperatorExpression as KyselyComparisonOperatorExpression,
   RawBuilder,
   SelectQueryBuilder,
+  SqlBool,
   UpdateQueryBuilder,
   Updateable,
   sql,
@@ -100,7 +101,9 @@ import {
   VariadicPluckThroughArgs,
 } from './types'
 
-const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
+const OPERATION_NEGATION_MAP: Partial<{
+  [Property in ComparisonOperator]: KyselyComparisonOperatorExpression
+}> = {
   '=': '!=',
   '==': '!=',
   '!=': '=',
@@ -3602,17 +3605,17 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   private applySingleWhereStatement<T extends SelectQueryBuilder<any, any, any> | JoinBuilder<any, any>>(
-    query: T,
+    _query: T,
     whereStatement: WhereStatement<any, any, any>,
     {
       negate = false,
     }: {
       negate?: boolean
     } = {}
-  ) {
-    Object.keys(whereStatement)
+  ): T {
+    return Object.keys(whereStatement)
       .filter(key => (whereStatement as any)[key] !== DreamConst.required)
-      .forEach(attr => {
+      .reduce((query: T, attr: string) => {
         const val = (whereStatement as any)[attr]
 
         if (
@@ -3621,10 +3624,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         ) {
           // some ops statements are handled specifically in the select portion of the query,
           // and should be ommited from the where clause directly
-          return
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+          return query as T
         }
 
-        const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val)
+        const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val, negate)
 
         // postgres is unable to handle WHERE IN statements with blank arrays, such as in
         // "WHERE id IN ()", meaning that:
@@ -3634,29 +3638,76 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         // 2. If we receive a blank array during a NOT IN comparison,
         //    then it is the same as the where statement not being present at all,
         //    resulting in a noop on our end
-        if (b === 'in' && Array.isArray(c) && c.length === 0) {
-          if (query instanceof JoinBuilder) {
-            query = negate ? query : (query.on(sql<boolean>`FALSE`) as T)
-          } else query = negate ? query : (query.where(sql<boolean>`FALSE`) as T)
-          //
-        } else if (b === 'not in' && Array.isArray(c) && c.length === 0) {
-          if (query instanceof JoinBuilder) query = negate ? (query.on(sql<boolean>`FALSE`) as T) : query
-          else query = negate ? (query.where(sql<boolean>`FALSE`) as T) : query
-          //
-        } else if (negate) {
-          const negatedB = OPERATION_NEGATION_MAP[b as keyof typeof OPERATION_NEGATION_MAP]
-          if (!negatedB) throw new Error(`no negation available for comparison operator ${b as string}`)
 
-          if (query instanceof JoinBuilder) query = query.on(a, negatedB, c) as T
-          else query = query.where(a, negatedB, c) as T
-
-          if (b2) {
-            const negatedB2 = OPERATION_NEGATION_MAP[b2 as keyof typeof OPERATION_NEGATION_MAP]
-            if (!negatedB2) throw new Error(`no negation available for comparison operator ${b2}`)
-
-            if (query instanceof JoinBuilder) query = query.on(a2, negatedB2, c2) as T
-            else query = query.where(a2, negatedB2, c2) as T
+        if (Array.isArray(c)) {
+          if ((b === 'in' && c.includes(null)) || (b === 'not in' && !c.includes(null))) {
+            if (query instanceof JoinBuilder) {
+              return query.on((eb: ExpressionBuilder<any, any>) =>
+                this.inArrayWithNull_or_notInArrayWithoutNull_ExpressionBuilder(eb, a, b, c)
+              ) as T
+            } else {
+              return query.where((eb: ExpressionBuilder<any, any>) =>
+                this.inArrayWithNull_or_notInArrayWithoutNull_ExpressionBuilder(eb, a, b, c)
+              ) as T
+            }
+          } else if (b === 'not in' && c.includes(null)) {
+            if (query instanceof JoinBuilder) {
+              query = query.on((eb: ExpressionBuilder<any, any>) =>
+                this.notInArrayWithNullExpressionBuilder(eb, a, b, c)
+              ) as T
+            } else {
+              query = query.where((eb: ExpressionBuilder<any, any>) =>
+                this.notInArrayWithNullExpressionBuilder(eb, a, b, c)
+              ) as T
+            }
           }
+
+          const compactedC = compact(c)
+
+          if (b === 'in' && compactedC.length === 0) {
+            if (query instanceof JoinBuilder) {
+              // in an empty array means match nothing
+              return query.on(sql<boolean>`FALSE`) as T
+            } else {
+              // in an empty array means match nothing
+              return query.where(sql<boolean>`FALSE`) as T
+            }
+
+            //
+          } else if (b === 'not in' && compactedC.length === 0) {
+            // not in an empty array means match everything, so in this case, don't change the query at all
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+            return query as T
+
+            //
+          } else {
+            if (query instanceof JoinBuilder) return query.on(a, b, compactedC) as T
+            else return query.where(a, b, compactedC) as T
+          }
+
+          //
+        } else if (b === '=' && c === null) {
+          if (query instanceof JoinBuilder) return query.on(a, 'is', null) as T
+          else return query.where(a, 'is', null) as T
+
+          //
+        } else if (b === '!=' && c === null) {
+          if (query instanceof JoinBuilder) return query.on(a, 'is not', null) as T
+          else return query.where(a, 'is not', null) as T
+
+          //
+        } else if (b === '!=' && c !== null) {
+          if (query instanceof JoinBuilder) {
+            return query.on((eb: ExpressionBuilder<any, any>) =>
+              eb.or([eb(a, '!=', c), eb(a, 'is', null)])
+            ) as T
+          } else {
+            return query.where((eb: ExpressionBuilder<any, any>) =>
+              eb.or([eb(a, '!=', c), eb(a, 'is', null)])
+            ) as T
+          }
+
+          //
         } else {
           if (query instanceof JoinBuilder) query = query.on(a, b, c) as T
           else query = query.where(a, b, c) as T
@@ -3665,10 +3716,38 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
             if (query instanceof JoinBuilder) query = query.on(a2, b2, c2) as T
             else query = query.where(a2, b2, c2) as T
           }
-        }
-      })
 
-    return query
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+          return query as T
+        }
+      }, _query)
+  }
+
+  private inArrayWithNull_or_notInArrayWithoutNull_ExpressionBuilder(
+    eb: ExpressionBuilder<any, any>,
+    a: any,
+    b: KyselyComparisonOperatorExpression,
+    c: any[]
+  ): ExpressionWrapper<any, any, SqlBool> {
+    const isNullStatement = eb(a, 'is', null)
+    const compactedC = compact(c)
+    if (compactedC.length) return eb.or([eb(a, b, compactedC), isNullStatement])
+    // not in an empty array means match everything
+    if (b === 'not in') return sql<boolean>`TRUE` as unknown as ExpressionWrapper<any, any, SqlBool>
+    return isNullStatement
+  }
+
+  private notInArrayWithNullExpressionBuilder(
+    eb: ExpressionBuilder<any, any>,
+    a: any,
+    b: KyselyComparisonOperatorExpression,
+    c: any[]
+  ): ExpressionWrapper<any, any, SqlBool> {
+    const isNullStatement = eb(a, 'is not', null)
+    const compactedC = compact(c)
+
+    if (compactedC.length) return eb.and([eb(a, 'not in', compactedC), isNullStatement])
+    return isNullStatement
   }
 
   private whereStatementsToExpressionWrappers(
@@ -3700,7 +3779,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
             return
           }
 
-          const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val)
+          const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val, negate)
 
           // postgres is unable to handle WHERE IN statements with blank arrays, such as in
           // "WHERE id IN ()", meaning that:
@@ -3710,30 +3789,57 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           // 2. If we receive a blank array during a NOT IN comparison,
           //    then it is the same as the where statement not being present at all,
           //    resulting in a noop on our end
-          if (b === 'in' && Array.isArray(c) && c.length === 0) {
-            return negate ? sql<boolean>`TRUE` : sql<boolean>`FALSE`
-          } else if (b === 'not in' && Array.isArray(c) && c.length === 0) {
-            return negate ? sql<boolean>`FALSE` : sql<boolean>`TRUE`
-          } else if (negate) {
-            const negatedB = OPERATION_NEGATION_MAP[b as keyof typeof OPERATION_NEGATION_MAP]
-            if (!negatedB) throw new Error(`no negation available for comparison operator ${b as string}`)
-            const whereExpression = [eb(a, negatedB, c)]
+          //
 
-            if (b2) {
-              const negatedB2 = OPERATION_NEGATION_MAP[b2 as keyof typeof OPERATION_NEGATION_MAP]
-              if (!negatedB2) throw new Error(`no negation available for comparison operator ${b2 as string}`)
-              whereExpression.push(eb(a2, negatedB2, c2))
+          if (Array.isArray(c)) {
+            if ((b === 'in' && c.includes(null)) || (b === 'not in' && !c.includes(null))) {
+              return this.inArrayWithNull_or_notInArrayWithoutNull_ExpressionBuilder(eb, a, b, c)
+            } else if (b === 'not in' && c.includes(null)) {
+              return this.notInArrayWithNullExpressionBuilder(eb, a, b, c)
             }
 
-            return whereExpression
+            const compactedC = compact(c)
+
+            if (b === 'in' && compactedC.length === 0) {
+              // in an empty array means match nothing
+              return sql<boolean>`FALSE`
+            } else if (b === 'not in' && compactedC.length === 0) {
+              // not in an empty array means match everything
+              return sql<boolean>`TRUE`
+            } else {
+              return eb(a, b, compactedC)
+            }
+
+            //
+          } else if (b === '=' && c === null) {
+            return eb(a, 'is', null)
+
+            //
+          } else if (b === '!=' && c === null) {
+            return eb(a, 'is not', null)
+
+            //
+          } else if (b === '!=' && c !== null) {
+            return eb.or([eb(a, '!=', c), eb(a, 'is', null)])
+
+            //
           } else {
             const whereExpression = [eb(a, b, c)]
             if (b2) whereExpression.push(eb(a2, b2, c2))
+
             return whereExpression
           }
         }
       )
     )
+  }
+
+  private operatorIsEquals(operator: KyselyComparisonOperatorExpression, negate: boolean) {
+    return (!negate && operator === '=') || (negate && operator === '!=')
+  }
+
+  private operatorIsNotEquals(operator: KyselyComparisonOperatorExpression, negate: boolean) {
+    return (!negate && operator === '!=') || (negate && operator === '=')
   }
 
   private orStatementsToExpressionWrappers(
@@ -3764,27 +3870,106 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         // 2. If we receive a blank array during a NOT IN comparison,
         //    then it is the same as the where statement not being present at all,
         //    resulting in a noop on our end
-        if (b === 'in' && Array.isArray(c) && c.length === 0) {
-          if (expressionBuilderOrWrap === null) {
-            return sql<boolean>`FALSE` as any
-          } else {
-            return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
-              sql<boolean>`FALSE`
-            ) as any
+
+        if (Array.isArray(c)) {
+          if ((b === 'in' && c.includes(null)) || (b === 'not in' && !c.includes(null))) {
+            if (expressionBuilderOrWrap) {
+              return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
+                this.inArrayWithNull_or_notInArrayWithoutNull_ExpressionBuilder(eb, a, b, c)
+              ) as any
+            } else {
+              return this.inArrayWithNull_or_notInArrayWithoutNull_ExpressionBuilder(eb, a, b, c)
+            }
+          } else if (b === 'not in' && c.includes(null)) {
+            if (expressionBuilderOrWrap) {
+              return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
+                this.notInArrayWithNullExpressionBuilder(eb, a, b, c)
+              ) as any
+            } else {
+              return this.notInArrayWithNullExpressionBuilder(eb, a, b, c)
+            }
           }
-        } else if (b === 'not in' && Array.isArray(c) && c.length === 0) {
-          if (expressionBuilderOrWrap === null) {
-            return sql<boolean>`TRUE` as any
+
+          const compactedC = compact(c)
+
+          if (b === 'in' && compactedC.length === 0) {
+            if (expressionBuilderOrWrap) {
+              return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
+                // in an empty array means match nothing
+                sql<boolean>`FALSE`
+              ) as any
+            } else {
+              // in an empty array means match nothing
+              return sql<boolean>`FALSE` as any
+            }
+
+            //
+          } else if (b === 'not in' && compactedC.length === 0) {
+            if (expressionBuilderOrWrap) {
+              return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
+                // not in an empty array means match everything
+                sql<boolean>`TRUE`
+              ) as any
+            } else {
+              // not in an empty array means match everything
+              return sql<boolean>`TRUE` as any
+            }
+
+            //
           } else {
-            return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
-              sql<boolean>`TRUE`
-            ) as any
+            if (expressionBuilderOrWrap) {
+              return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
+                eb(a, b, compactedC)
+              ) as any
+            } else {
+              return eb(a, b, compactedC)
+            }
           }
+
+          //
+        } else if (b === '=' && c === null) {
+          if (expressionBuilderOrWrap) {
+            return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(eb(a, 'is', null)) as any
+          } else {
+            return eb(a, 'is', null)
+          }
+
+          //   //
+          // } else if (b === 'not in' && Array.isArray(c) && c.includes(null)) {
+          //   if (expressionBuilderOrWrap === null) {
+          //     return eb.and([eb(a, 'not in', compact(c)), eb(a, 'is not', null)])
+          //   } else {
+          //     return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
+          //       eb.and([eb(a, 'not in', compact(c)), eb(a, 'is not', null)])
+          //     ) as any
+          //   }
+
+          //
+        } else if (b === '!=' && c === null) {
+          if (expressionBuilderOrWrap) {
+            return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
+              eb(a, 'is not', null)
+            ) as any
+          } else {
+            return eb(a, 'is not', null)
+          }
+
+          //
+        } else if (b === '!=' && c !== null) {
+          if (expressionBuilderOrWrap) {
+            return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
+              eb.or([eb(a, '!=', c), eb(a, 'is', null)])
+            ) as any
+          } else {
+            return eb.or([eb(a, '!=', c), eb(a, 'is', null)])
+          }
+
+          //
         } else {
-          if (expressionBuilderOrWrap === null) {
-            expressionBuilderOrWrap = eb(a, b, c)
-          } else {
+          if (expressionBuilderOrWrap) {
             expressionBuilderOrWrap = (expressionBuilderOrWrap as any).and(eb(a, b, c))
+          } else {
+            expressionBuilderOrWrap = eb(a, b, c)
           }
 
           if (b2) expressionBuilderOrWrap = (expressionBuilderOrWrap as any).and(eb(a2, b2, c2))
@@ -3795,7 +3980,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     ) as ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any>
   }
 
-  private dreamWhereStatementToExpressionBuilderParts(attr: string, val: any) {
+  private dreamWhereStatementToExpressionBuilderParts(attr: string, val: any, negate: boolean = false) {
     let a: any
     let b: KyselyComparisonOperatorExpression
     let c: any
@@ -3823,11 +4008,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     } else if (Array.isArray(val)) {
       a = attr
       b = 'in'
-
-      // postgres explicitly ignores null values within an IN query, but we want to be
-      // explicit about the fact that we do not support null values in an array, so
-      // we compact the value.
-      c = compact(val)
+      c = val
     } else if (val instanceof CurriedOpsStatement) {
       val = val.toOpsStatement(this.dreamClass, attr)
       a = attr
@@ -3869,6 +4050,18 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     if (a && c === undefined) throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, a)
     if (a2 && c2 === undefined) throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, a2)
+
+    if (negate) {
+      const negatedB = OPERATION_NEGATION_MAP[b as keyof typeof OPERATION_NEGATION_MAP]
+      if (!negatedB) throw new Error(`no negation available for comparison operator ${b as string}`)
+      b = negatedB
+
+      if (b2) {
+        const negatedB2 = OPERATION_NEGATION_MAP[b2 as keyof typeof OPERATION_NEGATION_MAP]
+        if (!negatedB2) throw new Error(`no negation available for comparison operator ${b2}`)
+        b2 = negatedB2 as typeof b2
+      }
+    }
 
     return { a, b, c, a2, b2, c2 }
   }

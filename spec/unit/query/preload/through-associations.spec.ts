@@ -582,8 +582,8 @@ describe('Query#preload through', () => {
       await pet.createAssociation('collars', { balloon: redBalloon })
       await pet.createAssociation('collars', { balloon: greenBalloon })
 
-      const reloaded = await Pet.preload('redBalloons').first()
-      expect(reloaded!.redBalloons).toMatchDreamModels([redBalloon])
+      const reloaded = await Pet.preload('where_red').first()
+      expect(reloaded!.where_red).toMatchDreamModels([redBalloon])
     })
   })
 
@@ -598,8 +598,8 @@ describe('Query#preload through', () => {
       await pet.createAssociation('collars', { balloon: greenBalloon })
       await pet.createAssociation('collars', { balloon: blueBalloon })
 
-      const reloaded = await Pet.preload('notRedBalloons').first()
-      expect(reloaded!.notRedBalloons).toMatchDreamModels([greenBalloon, blueBalloon])
+      const reloaded = await Pet.preload('whereNot_red').first()
+      expect(reloaded!.whereNot_red).toMatchDreamModels([greenBalloon, blueBalloon])
     })
 
     context('through a BelongsTo', () => {
@@ -651,10 +651,10 @@ describe('Query#preload through', () => {
       const balloon = await Latex.create({ color: 'red', deletedAt: DateTime.now() })
       await Collar.create({ pet, balloon })
 
-      const unscopedReloadedUser = await User.removeAllDefaultScopes().preload('pets', 'redBalloons').first()
+      const unscopedReloadedUser = await User.removeAllDefaultScopes().preload('pets', 'where_red').first()
       expect(unscopedReloadedUser).toMatchDreamModel(user)
       expect(unscopedReloadedUser!.pets).toMatchDreamModels([pet])
-      expect(unscopedReloadedUser!.pets[0].redBalloons).toMatchDreamModels([balloon])
+      expect(unscopedReloadedUser!.pets[0].where_red).toMatchDreamModels([balloon])
     })
   })
 
