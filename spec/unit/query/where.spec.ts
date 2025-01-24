@@ -256,6 +256,18 @@ describe('Query#where', () => {
         .pluck('id')
       expect(records).toEqual([user2.id])
     })
+
+    context('comparing against a null value', () => {
+      it('matches null values', async () => {
+        await Mylar.create({ color: 'red' })
+        const noColorBalloon = await Mylar.create({ color: null })
+
+        const balloons = await Balloon.query()
+          .where({ color: ops.equal(null) })
+          .all()
+        expect(balloons).toMatchDreamModels([noColorBalloon])
+      })
+    })
   })
 
   context('ops.not.equal is passed', () => {
@@ -277,6 +289,19 @@ describe('Query#where', () => {
         .where({ id: ops.not.equal(user1.id) })
         .pluck('id')
       expect(records).toEqual([user2.id, user3.id])
+    })
+
+    context('comparing against a non-null value', () => {
+      it('matches null values', async () => {
+        await Mylar.create({ color: 'red' })
+        const blueBalloon = await Mylar.create({ color: 'blue' })
+        const noColorBalloon = await Mylar.create({ color: null })
+
+        const balloons = await Balloon.query()
+          .where({ color: ops.not.equal('red') })
+          .all()
+        expect(balloons).toMatchDreamModels([blueBalloon, noColorBalloon])
+      })
     })
   })
 

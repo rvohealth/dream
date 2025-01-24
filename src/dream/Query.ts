@@ -3638,10 +3638,29 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           if (query instanceof JoinBuilder) {
             query = negate ? query : (query.on(sql<boolean>`FALSE`) as T)
           } else query = negate ? query : (query.where(sql<boolean>`FALSE`) as T)
+
           //
         } else if (b === 'not in' && Array.isArray(c) && c.length === 0) {
           if (query instanceof JoinBuilder) query = negate ? (query.on(sql<boolean>`FALSE`) as T) : query
           else query = negate ? (query.where(sql<boolean>`FALSE`) as T) : query
+
+          //
+        } else if (this.operatorIsEquals(b, negate) && c === null) {
+          if (query instanceof JoinBuilder) query = query.on(a, 'is', null) as T
+          else query = query.where(a, 'is', null) as T
+
+          //
+        } else if (this.operatorIsNotEquals(b, negate) && c !== null) {
+          if (query instanceof JoinBuilder) {
+            query = query.on((eb: ExpressionBuilder<any, any>) =>
+              eb.or([eb(a, '!=', c), eb(a, 'is', null)])
+            ) as T
+          } else {
+            query = query.where((eb: ExpressionBuilder<any, any>) =>
+              eb.or([eb(a, '!=', c), eb(a, 'is', null)])
+            ) as T
+          }
+
           //
         } else if (negate) {
           const negatedB = OPERATION_NEGATION_MAP[b as keyof typeof OPERATION_NEGATION_MAP]
@@ -3657,6 +3676,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
             if (query instanceof JoinBuilder) query = query.on(a2, negatedB2, c2) as T
             else query = query.where(a2, negatedB2, c2) as T
           }
+
+          //
         } else {
           if (query instanceof JoinBuilder) query = query.on(a, b, c) as T
           else query = query.where(a, b, c) as T
@@ -3712,8 +3733,20 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           //    resulting in a noop on our end
           if (b === 'in' && Array.isArray(c) && c.length === 0) {
             return negate ? sql<boolean>`TRUE` : sql<boolean>`FALSE`
+
+            //
           } else if (b === 'not in' && Array.isArray(c) && c.length === 0) {
             return negate ? sql<boolean>`FALSE` : sql<boolean>`TRUE`
+
+            //
+          } else if (this.operatorIsEquals(b, negate) && c === null) {
+            return eb(a, 'is', null)
+
+            //
+          } else if (this.operatorIsNotEquals(b, negate) && c !== null) {
+            return eb.or([eb(a, '!=', c), eb(a, 'is', null)])
+
+            //
           } else if (negate) {
             const negatedB = OPERATION_NEGATION_MAP[b as keyof typeof OPERATION_NEGATION_MAP]
             if (!negatedB) throw new Error(`no negation available for comparison operator ${b as string}`)
@@ -3726,14 +3759,25 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
             }
 
             return whereExpression
+
+            //
           } else {
             const whereExpression = [eb(a, b, c)]
             if (b2) whereExpression.push(eb(a2, b2, c2))
+
             return whereExpression
           }
         }
       )
     )
+  }
+
+  private operatorIsEquals(operator: KyselyComparisonOperatorExpression, negate: boolean) {
+    return (!negate && operator === '=') || (negate && operator === '!=')
+  }
+
+  private operatorIsNotEquals(operator: KyselyComparisonOperatorExpression, negate: boolean) {
+    return (!negate && operator === '!=') || (negate && operator === '=')
   }
 
   private orStatementsToExpressionWrappers(
@@ -3772,6 +3816,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
               sql<boolean>`FALSE`
             ) as any
           }
+
+          //
         } else if (b === 'not in' && Array.isArray(c) && c.length === 0) {
           if (expressionBuilderOrWrap === null) {
             return sql<boolean>`TRUE` as any
@@ -3780,6 +3826,26 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
               sql<boolean>`TRUE`
             ) as any
           }
+
+          //
+        } else if (b === '=' && c === null) {
+          if (expressionBuilderOrWrap === null) {
+            return eb(a, 'is', null)
+          } else {
+            return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(eb(a, 'is', null)) as any
+          }
+
+          //
+        } else if (b === '!=' && c !== null) {
+          if (expressionBuilderOrWrap === null) {
+            return eb.or([eb(a, '!=', c), eb(a, 'is', null)])
+          } else {
+            return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
+              eb.or([eb(a, '!=', c), eb(a, 'is', null)])
+            ) as any
+          }
+
+          //
         } else {
           if (expressionBuilderOrWrap === null) {
             expressionBuilderOrWrap = eb(a, b, c)

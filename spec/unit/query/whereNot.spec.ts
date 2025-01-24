@@ -1,6 +1,8 @@
 import CannotNegateSimilarityClause from '../../../src/errors/CannotNegateSimilarityClause'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause'
 import ops from '../../../src/ops'
+import Balloon from '../../../test-app/app/models/Balloon'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
@@ -23,7 +25,7 @@ describe('Query#whereNot', () => {
     expect(records).toMatchDreamModels([user2, user3])
   })
 
-  describe('inverse of negatable specs from Query#where', () => {
+  context('inverse of negatable specs from Query#where', () => {
     context('ops.in is passed', () => {
       let user1: User
       let user2: User
@@ -91,7 +93,7 @@ describe('Query#whereNot', () => {
       })
     })
 
-    context('ops.equal is passed', () => {
+    context('ops.not.equal is passed', () => {
       it('uses an "=" operator for comparison', async () => {
         await User.create({
           email: 'fred@frewd',
@@ -109,7 +111,7 @@ describe('Query#whereNot', () => {
       })
     })
 
-    context('ops.not.equal is passed', () => {
+    context('ops.equal is passed', () => {
       it('uses an "!=" operator for comparison', async () => {
         const user1 = await User.create({
           email: 'fred@frewd',
@@ -413,6 +415,27 @@ describe('Query#whereNot', () => {
           expect(records).toEqual([user3.id])
         })
       })
+    })
+  })
+
+  context('whereNot null', () => {
+    it('matches records with a non-null value for the specified field', async () => {
+      const redBalloon = await Mylar.create({ color: 'red' })
+      await Mylar.create({ color: null })
+
+      const balloons = await Balloon.whereNot({ color: null }).all()
+      expect(balloons).toMatchDreamModels([redBalloon])
+    })
+  })
+
+  context('whereNot a non-null value', () => {
+    it('matches records with the specified field value and also records with a null value for that field', async () => {
+      await Mylar.create({ color: 'red' })
+      const blueBalloon = await Mylar.create({ color: 'blue' })
+      const noColorBalloon = await Mylar.create({ color: null })
+
+      const balloons = await Balloon.whereNot({ color: 'red' }).all()
+      expect(balloons).toMatchDreamModels([blueBalloon, noColorBalloon])
     })
   })
 })

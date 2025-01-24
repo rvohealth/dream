@@ -275,6 +275,9 @@ yarn build
 yarn spec
 # runs core development specs (same as yarn dream spec --core)
 
+SQL_LOGGING=1 yarn spec
+# runs core development specs, printing SQL queries
+
 yarn console
 # opens console, providing access to the internal test-app/app/models folder (same as yarn dream console --core)
 

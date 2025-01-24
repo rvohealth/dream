@@ -1,4 +1,7 @@
+import { ops } from '../../../src'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause'
+import Balloon from '../../../test-app/app/models/Balloon'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import User from '../../../test-app/app/models/User'
 
 describe('Query#whereAny', () => {
@@ -103,6 +106,31 @@ describe('Query#whereAny', () => {
         },
       ]).all()
       expect(records).toMatchDreamModels([user1, user2])
+    })
+  })
+
+  context('comparing against a null value', () => {
+    it('matches null values', async () => {
+      await Mylar.create({ color: 'red' })
+      const noColorBalloon = await Mylar.create({ color: null })
+
+      const balloons = await Balloon.query()
+        .whereAny([{ color: null }])
+        .all()
+      expect(balloons).toMatchDreamModels([noColorBalloon])
+    })
+  })
+
+  context('not-equal with a non-null value', () => {
+    it('matches null values', async () => {
+      await Mylar.create({ color: 'red' })
+      const blueBalloon = await Mylar.create({ color: 'blue' })
+      const noColorBalloon = await Mylar.create({ color: null })
+
+      const balloons = await Balloon.query()
+        .whereAny([{ color: ops.not.equal('red') }])
+        .all()
+      expect(balloons).toMatchDreamModels([blueBalloon, noColorBalloon])
     })
   })
 })
