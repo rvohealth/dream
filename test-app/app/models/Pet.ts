@@ -83,45 +83,103 @@ export default class Pet extends ApplicationModel {
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', distinct: true })
   public distinctBalloons: Balloon
 
+  // where
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: null } })
+  public where_null: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: ops.equal(null) } })
+  public where_opsEqual_null: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: ops.not.equal(null) } })
+  public where_opsNotEqual_null: Balloon
+
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: 'red' } })
-  public redBalloons: Balloon
+  public where_red: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: ops.equal('red') } })
+  public where_opsEqual_red: Balloon
 
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: ops.not.equal('red') } })
-  public redBalloonsNegated: Balloon
+  public where_opsNotEqual_red: Balloon
 
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: ['red'] } })
-  public redBalloonsWithArrayWhere: Balloon
+  public where_redArray: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: ops.in(['red']) } })
+  public where_opsIn_redArray: Balloon
 
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: ops.not.in(['red']) } })
-  public redBalloonsWithArrayWhereNegated: Balloon
+  public where_opsNotIn_redArray: Balloon
 
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: [] } })
-  public redBalloonsWithEmptyArrayWhere: Balloon
+  public where_emptyArray: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: ops.in([]) } })
+  public where_opsIn_emptyArray: Balloon
 
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: ops.not.in([]) } })
-  public redBalloonsWithEmptyArrayWhereNegated: Balloon
+  public where_opsNotIn_emptyArray: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: [null as any] } })
+  public where_arrayWithNull: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: ops.in([null]) } })
+  public where_opsIn_arrayWithNull: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: ops.not.in([null]) } })
+  public where_opsNotIn_arrayWithNull: Balloon
+  // end: where
+
+  // whereNot
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: null } })
+  public whereNot_null: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: ops.equal(null) } })
+  public whereNot_opsEqual_null: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: ops.not.equal(null) } })
+  public whereNot_opsNotEqual_null: Balloon
 
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: 'red' } })
-  public notRedBalloons: Balloon
+  public whereNot_red: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: ops.equal('red') } })
+  public whereNot_opsEqual_red: Balloon
 
   @Pet.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
     whereNot: { color: ops.not.equal('red') },
   })
-  public notRedBalloonsNegated: Balloon
+  public whereNot_opsNotEqual_red: Balloon
 
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: ['red'] } })
-  public notRedBalloonsWithArrayWhereNot: Balloon
+  public whereNot_redArray: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: ops.in(['red']) } })
+  public whereNot_opsIn_redArray: Balloon
 
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: ops.not.in(['red']) } })
-  public notRedBalloonsWithArrayWhereNotNegated: Balloon
+  public whereNot_opsNotIn_redArray: Balloon
 
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: [] } })
-  public notRedBalloonsWithEmptyArrayWhereNot: Balloon
+  public whereNot_emptyArray: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: ops.in([]) } })
+  public whereNot_opsIn_emptyArray: Balloon
 
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: ops.not.in([]) } })
-  public notRedBalloonsWithEmptyArrayWhereNotNegated: Balloon
+  public whereNot_opsNotIn_emptyArray: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: [null as any] } })
+  public whereNot_arrayWithNull: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: ops.in([null]) } })
+  public whereNot_opsIn_arrayWithNull: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: ops.not.in([null]) } })
+  public whereNot_opsNotIn_arrayWithNull: Balloon
+  // end: whereNot
 
   @Pet.HasMany('PetUnderstudyJoinModel', { foreignKey: 'petId' })
   public petUnderstudies: PetUnderstudyJoinModel[]

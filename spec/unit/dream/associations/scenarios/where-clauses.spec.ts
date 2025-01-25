@@ -1,236 +1,199 @@
+import Balloon from '../../../../../test-app/app/models/Balloon'
 import Latex from '../../../../../test-app/app/models/Balloon/Latex'
 import Pet from '../../../../../test-app/app/models/Pet'
 
 describe('where clauses on associations (also see various specs in spec/unit/query)', () => {
+  let pet: Pet
+  let redBalloon: Balloon
+  let greenBalloon: Balloon
+  let noColorBalloon: Balloon
+
+  beforeEach(async () => {
+    pet = await Pet.create()
+    redBalloon = await Latex.create({ color: 'red' })
+    greenBalloon = await Latex.create({ color: 'green' })
+    noColorBalloon = await Latex.create({ color: null })
+
+    await pet.createAssociation('collars', { balloon: redBalloon })
+    await pet.createAssociation('collars', { balloon: greenBalloon })
+    await pet.createAssociation('collars', { balloon: noColorBalloon })
+  })
+
   context('where', () => {
-    it('properly applies the where clause', async () => {
-      const pet = await Pet.create()
-      const redBalloon = await Latex.create({ color: 'red' })
-      const greenBalloon = await Latex.create({ color: 'green' })
-      const blueBalloon = await Latex.create({ color: 'blue' })
-
-      await pet.createAssociation('collars', { balloon: redBalloon })
-      await pet.createAssociation('collars', { balloon: greenBalloon })
-      await pet.createAssociation('collars', { balloon: blueBalloon })
-
-      const reloaded = await Pet.leftJoinPreload('redBalloons').firstOrFail()
-      expect(reloaded.redBalloons).toMatchDreamModels([redBalloon])
-    })
-
-    context('negated', () => {
-      it('properly applies the whereNot clause', async () => {
-        const pet = await Pet.create()
-        const redBalloon = await Latex.create({ color: 'red' })
-        const greenBalloon = await Latex.create({ color: 'green' })
-        const blueBalloon = await Latex.create({ color: 'blue' })
-
-        await pet.createAssociation('collars', { balloon: redBalloon })
-        await pet.createAssociation('collars', { balloon: greenBalloon })
-        await pet.createAssociation('collars', { balloon: blueBalloon })
-
-        const reloaded = await Pet.leftJoinPreload('redBalloonsNegated').firstOrFail()
-        expect(reloaded.redBalloonsNegated).toMatchDreamModels([greenBalloon, blueBalloon])
+    context('a non-null value', () => {
+      it('matches records with the value in the specified column', async () => {
+        const reloaded = await Pet.leftJoinPreload('where_red').firstOrFail()
+        expect(reloaded.where_red).toMatchDreamModels([redBalloon])
       })
 
-      context('non-null whereNot clauses', () => {
-        it('include records with null in that field', async () => {
-          const pet = await Pet.create()
-          const redBalloon = await Latex.create({ color: 'red' })
-          const greenBalloon = await Latex.create({ color: 'green' })
-          const noColorBalloon = await Latex.create({ color: null })
-
-          await pet.createAssociation('collars', { balloon: redBalloon })
-          await pet.createAssociation('collars', { balloon: greenBalloon })
-          await pet.createAssociation('collars', { balloon: noColorBalloon })
-
-          const reloaded = await Pet.leftJoinPreload('notRedBalloons').firstOrFail()
-          expect(reloaded.notRedBalloons).toMatchDreamModels([greenBalloon, noColorBalloon])
+      context('ops.equal', () => {
+        it('matches records with the value in the specified column', async () => {
+          const reloaded = await Pet.leftJoinPreload('where_opsEqual_red').firstOrFail()
+          expect(reloaded.where_opsEqual_red).toMatchDreamModels([redBalloon])
         })
       })
 
-      context('non-null not.equal', () => {
-        it('include records with null in that field', async () => {
-          const pet = await Pet.create()
-          const redBalloon = await Latex.create({ color: 'red' })
-          const greenBalloon = await Latex.create({ color: 'green' })
-          const noColorBalloon = await Latex.create({ color: null })
+      context('ops.not.equal', () => {
+        it('include records with fields with a value that doesn’t match specified value, including null', async () => {
+          const reloaded = await Pet.leftJoinPreload('where_opsNotEqual_red').firstOrFail()
+          expect(reloaded.where_opsNotEqual_red).toMatchDreamModels([greenBalloon, noColorBalloon])
+        })
+      })
+    })
 
-          await pet.createAssociation('collars', { balloon: redBalloon })
-          await pet.createAssociation('collars', { balloon: greenBalloon })
-          await pet.createAssociation('collars', { balloon: noColorBalloon })
+    context('a non-null value array', () => {
+      it('matches records with any array value in the specified column', async () => {
+        const reloaded = await Pet.leftJoinPreload('where_redArray').firstOrFail()
+        expect(reloaded.where_redArray).toMatchDreamModels([redBalloon])
+      })
 
-          const reloaded = await Pet.leftJoinPreload('redBalloonsNegated').firstOrFail()
-          expect(reloaded.redBalloonsNegated).toMatchDreamModels([greenBalloon, noColorBalloon])
+      context('ops.in', () => {
+        it('matches records with any array value in the specified column', async () => {
+          const reloaded = await Pet.leftJoinPreload('where_opsIn_redArray').firstOrFail()
+          expect(reloaded.where_opsIn_redArray).toMatchDreamModels([redBalloon])
+        })
+      })
+
+      context('ops.not.in', () => {
+        it('include records with fields with a value that doesn’t match specified value, including null', async () => {
+          const reloaded = await Pet.leftJoinPreload('where_opsNotIn_redArray').firstOrFail()
+          expect(reloaded.where_opsNotIn_redArray).toMatchDreamModels([greenBalloon, noColorBalloon])
+        })
+      })
+    })
+
+    context('an empty array', () => {
+      it('returns no results', async () => {
+        const reloaded = await Pet.leftJoinPreload('where_emptyArray').firstOrFail()
+        expect(reloaded.where_emptyArray).toMatchDreamModels([])
+      })
+
+      context('ops.in', () => {
+        it('returns no results', async () => {
+          const reloaded = await Pet.leftJoinPreload('where_opsIn_emptyArray').firstOrFail()
+          expect(reloaded.where_opsIn_emptyArray).toMatchDreamModels([])
+        })
+      })
+
+      context('ops.not.in ', () => {
+        it('returns results as if the array whereNot clause were not present', async () => {
+          const reloaded = await Pet.leftJoinPreload('where_opsNotIn_emptyArray').firstOrFail()
+          expect(reloaded.where_opsNotIn_emptyArray).toMatchDreamModels([
+            redBalloon,
+            greenBalloon,
+            noColorBalloon,
+          ])
+        })
+      })
+    })
+
+    context('a null value', () => {
+      it('matches records with null in the specified column', async () => {
+        const reloaded = await Pet.leftJoinPreload('where_null').firstOrFail()
+        expect(reloaded.where_null).toMatchDreamModels([noColorBalloon])
+      })
+
+      context('ops.equal ', () => {
+        it('matches records with null in the specified column', async () => {
+          const reloaded = await Pet.leftJoinPreload('where_opsEqual_null').firstOrFail()
+          expect(reloaded.where_opsEqual_null).toMatchDreamModels([noColorBalloon])
+        })
+      })
+
+      context('ops.not.equal ', () => {
+        it('include records with non-null in that field', async () => {
+          const reloaded = await Pet.leftJoinPreload('where_opsNotEqual_null').firstOrFail()
+          expect(reloaded.where_opsNotEqual_null).toMatchDreamModels([redBalloon, greenBalloon])
         })
       })
     })
   })
 
   context('whereNot', () => {
-    it('properly applies the whereNot clause', async () => {
-      const pet = await Pet.create()
-      const redBalloon = await Latex.create({ color: 'red' })
-      const greenBalloon = await Latex.create({ color: 'green' })
-      const blueBalloon = await Latex.create({ color: 'blue' })
-
-      await pet.createAssociation('collars', { balloon: redBalloon })
-      await pet.createAssociation('collars', { balloon: greenBalloon })
-      await pet.createAssociation('collars', { balloon: blueBalloon })
-
-      const reloaded = await Pet.leftJoinPreload('notRedBalloons').firstOrFail()
-      expect(reloaded.notRedBalloons).toMatchDreamModels([greenBalloon, blueBalloon])
-    })
-
-    context('negated', () => {
-      it('properly applies the where clause', async () => {
-        const pet = await Pet.create()
-        const redBalloon = await Latex.create({ color: 'red' })
-        const greenBalloon = await Latex.create({ color: 'green' })
-        const blueBalloon = await Latex.create({ color: 'blue' })
-
-        await pet.createAssociation('collars', { balloon: redBalloon })
-        await pet.createAssociation('collars', { balloon: greenBalloon })
-        await pet.createAssociation('collars', { balloon: blueBalloon })
-
-        const reloaded = await Pet.leftJoinPreload('notRedBalloonsNegated').firstOrFail()
-        expect(reloaded.notRedBalloonsNegated).toMatchDreamModels([redBalloon])
-      })
-    })
-  })
-
-  context('where in an array', () => {
-    it('properly applies the array clause', async () => {
-      const pet = await Pet.create()
-      const redBalloon = await Latex.create({ color: 'red' })
-      const greenBalloon = await Latex.create({ color: 'green' })
-      const blueBalloon = await Latex.create({ color: 'blue' })
-
-      await pet.createAssociation('collars', { balloon: redBalloon })
-      await pet.createAssociation('collars', { balloon: greenBalloon })
-      await pet.createAssociation('collars', { balloon: blueBalloon })
-
-      const reloaded = await Pet.leftJoinPreload('redBalloonsWithArrayWhere').firstOrFail()
-      expect(reloaded.redBalloonsWithArrayWhere).toMatchDreamModels([redBalloon])
-    })
-
-    context('when the array is empty', () => {
-      it('returns no results', async () => {
-        const pet = await Pet.create()
-        const redBalloon = await Latex.create({ color: 'red' })
-        const greenBalloon = await Latex.create({ color: 'green' })
-        const blueBalloon = await Latex.create({ color: 'blue' })
-
-        await pet.createAssociation('collars', { balloon: redBalloon })
-        await pet.createAssociation('collars', { balloon: greenBalloon })
-        await pet.createAssociation('collars', { balloon: blueBalloon })
-
-        const reloaded = await Pet.leftJoinPreload('redBalloonsWithEmptyArrayWhere').firstOrFail()
-        expect(reloaded.redBalloonsWithEmptyArrayWhere).toEqual([])
-      })
-    })
-
-    context('negated (i.e.: where: ops.not.in)', () => {
-      it('properly applies the array clause', async () => {
-        const pet = await Pet.create()
-        const redBalloon = await Latex.create({ color: 'red' })
-        const greenBalloon = await Latex.create({ color: 'green' })
-        const blueBalloon = await Latex.create({ color: 'blue' })
-
-        await pet.createAssociation('collars', { balloon: redBalloon })
-        await pet.createAssociation('collars', { balloon: greenBalloon })
-        await pet.createAssociation('collars', { balloon: blueBalloon })
-
-        const reloaded = await Pet.leftJoinPreload('redBalloonsWithArrayWhereNegated').firstOrFail()
-        expect(reloaded.redBalloonsWithArrayWhereNegated).toMatchDreamModels([greenBalloon, blueBalloon])
+    context('a non-null value', () => {
+      it('include records with fields with a value that doesn’t match specified value, including null', async () => {
+        const reloaded = await Pet.leftJoinPreload('whereNot_red').firstOrFail()
+        expect(reloaded.whereNot_red).toMatchDreamModels([greenBalloon, noColorBalloon])
       })
 
-      context('when the array is empty', () => {
-        it('returns results as if the array whereNot clause were not present', async () => {
-          const pet = await Pet.create()
-          const redBalloon = await Latex.create({ color: 'red' })
-          const greenBalloon = await Latex.create({ color: 'green' })
-          const blueBalloon = await Latex.create({ color: 'blue' })
+      context('ops.equal', () => {
+        it('include records with fields with a value that doesn’t match specified value, including null', async () => {
+          const reloaded = await Pet.leftJoinPreload('whereNot_opsEqual_red').firstOrFail()
+          expect(reloaded.whereNot_opsEqual_red).toMatchDreamModels([greenBalloon, noColorBalloon])
+        })
+      })
 
-          await pet.createAssociation('collars', { balloon: redBalloon })
-          await pet.createAssociation('collars', { balloon: greenBalloon })
-          await pet.createAssociation('collars', { balloon: blueBalloon })
-
-          const reloaded = await Pet.leftJoinPreload('redBalloonsWithEmptyArrayWhereNegated').firstOrFail()
-          expect(reloaded.redBalloonsWithEmptyArrayWhereNegated).toMatchDreamModels([
-            redBalloon,
-            greenBalloon,
-            blueBalloon,
-          ])
+      context('ops.not.equal', () => {
+        it('matches records with the value in the specified column', async () => {
+          const reloaded = await Pet.leftJoinPreload('whereNot_opsNotEqual_red').firstOrFail()
+          expect(reloaded.whereNot_opsNotEqual_red).toMatchDreamModels([redBalloon])
         })
       })
     })
-  })
 
-  context('whereNot in an array', () => {
-    it('properly applies the array clause', async () => {
-      const pet = await Pet.create()
-      const redBalloon = await Latex.create({ color: 'red' })
-      const greenBalloon = await Latex.create({ color: 'green' })
-      const blueBalloon = await Latex.create({ color: 'blue' })
+    context('a non-null value array', () => {
+      it('include records with fields with a value that doesn’t match specified value, including null', async () => {
+        const reloaded = await Pet.leftJoinPreload('whereNot_redArray').firstOrFail()
+        expect(reloaded.whereNot_redArray).toMatchDreamModels([greenBalloon, noColorBalloon])
+      })
 
-      await pet.createAssociation('collars', { balloon: redBalloon })
-      await pet.createAssociation('collars', { balloon: greenBalloon })
-      await pet.createAssociation('collars', { balloon: blueBalloon })
+      context('ops.in', () => {
+        it('include records with fields with a value that doesn’t match specified value, including null', async () => {
+          const reloaded = await Pet.leftJoinPreload('whereNot_opsIn_redArray').firstOrFail()
+          expect(reloaded.whereNot_opsIn_redArray).toMatchDreamModels([greenBalloon, noColorBalloon])
+        })
+      })
 
-      const reloaded = await Pet.leftJoinPreload('notRedBalloonsWithArrayWhereNot').firstOrFail()
-      expect(reloaded.notRedBalloonsWithArrayWhereNot).toMatchDreamModels([greenBalloon, blueBalloon])
-    })
-
-    context('when the array is empty', () => {
-      it('returns results as if the array whereNot clause were not present', async () => {
-        const pet = await Pet.create()
-        const redBalloon = await Latex.create({ color: 'red' })
-        const greenBalloon = await Latex.create({ color: 'green' })
-        const blueBalloon = await Latex.create({ color: 'blue' })
-
-        await pet.createAssociation('collars', { balloon: redBalloon })
-        await pet.createAssociation('collars', { balloon: greenBalloon })
-        await pet.createAssociation('collars', { balloon: blueBalloon })
-
-        const reloaded = await Pet.leftJoinPreload('notRedBalloonsWithEmptyArrayWhereNot').firstOrFail()
-        expect(reloaded.notRedBalloonsWithEmptyArrayWhereNot).toMatchDreamModels([
-          redBalloon,
-          greenBalloon,
-          blueBalloon,
-        ])
+      context('ops.not.in', () => {
+        it('matches records with any array value in the specified column', async () => {
+          const reloaded = await Pet.leftJoinPreload('whereNot_opsNotIn_redArray').firstOrFail()
+          expect(reloaded.whereNot_opsNotIn_redArray).toMatchDreamModels([redBalloon])
+        })
       })
     })
 
-    context('negated (i.e.: whereNot: ops.not.in)', () => {
-      it('properly applies the array clause', async () => {
-        const pet = await Pet.create()
-        const redBalloon = await Latex.create({ color: 'red' })
-        const greenBalloon = await Latex.create({ color: 'green' })
-        const blueBalloon = await Latex.create({ color: 'blue' })
-
-        await pet.createAssociation('collars', { balloon: redBalloon })
-        await pet.createAssociation('collars', { balloon: greenBalloon })
-        await pet.createAssociation('collars', { balloon: blueBalloon })
-
-        const reloaded = await Pet.leftJoinPreload('notRedBalloonsWithArrayWhereNotNegated').firstOrFail()
-        expect(reloaded.notRedBalloonsWithArrayWhereNotNegated).toMatchDreamModels([redBalloon])
+    context('an empty array', () => {
+      it('returns results as if the array whereNotNot clause were not present', async () => {
+        const reloaded = await Pet.leftJoinPreload('whereNot_emptyArray').firstOrFail()
+        expect(reloaded.whereNot_emptyArray).toMatchDreamModels([redBalloon, greenBalloon, noColorBalloon])
       })
 
-      context('when the array is empty', () => {
+      context('ops.in', () => {
+        it('returns results as if the array whereNotNot clause were not present', async () => {
+          const reloaded = await Pet.leftJoinPreload('whereNot_opsIn_emptyArray').firstOrFail()
+          expect(reloaded.whereNot_opsIn_emptyArray).toMatchDreamModels([
+            redBalloon,
+            greenBalloon,
+            noColorBalloon,
+          ])
+        })
+      })
+
+      context('ops.not.in ', () => {
         it('returns no results', async () => {
-          const pet = await Pet.create()
-          const redBalloon = await Latex.create({ color: 'red' })
-          const greenBalloon = await Latex.create({ color: 'green' })
-          const blueBalloon = await Latex.create({ color: 'blue' })
+          const reloaded = await Pet.leftJoinPreload('whereNot_opsNotIn_emptyArray').firstOrFail()
+          expect(reloaded.whereNot_opsNotIn_emptyArray).toEqual([])
+        })
+      })
+    })
 
-          await pet.createAssociation('collars', { balloon: redBalloon })
-          await pet.createAssociation('collars', { balloon: greenBalloon })
-          await pet.createAssociation('collars', { balloon: blueBalloon })
+    context('a null value', () => {
+      it('matches records with null in the specified column', async () => {
+        const reloaded = await Pet.leftJoinPreload('whereNot_null').firstOrFail()
+        expect(reloaded.whereNot_null).toMatchDreamModels([redBalloon, greenBalloon])
+      })
 
-          const reloaded = await Pet.leftJoinPreload(
-            'notRedBalloonsWithEmptyArrayWhereNotNegated'
-          ).firstOrFail()
-          expect(reloaded.notRedBalloonsWithEmptyArrayWhereNotNegated).toEqual([])
+      context('ops.equal ', () => {
+        it('matches records with null in the specified column', async () => {
+          const reloaded = await Pet.leftJoinPreload('whereNot_opsEqual_null').firstOrFail()
+          expect(reloaded.whereNot_opsEqual_null).toMatchDreamModels([redBalloon, greenBalloon])
+        })
+      })
+
+      context('ops.not.equal ', () => {
+        it('include records with non-null in that field', async () => {
+          const reloaded = await Pet.leftJoinPreload('whereNot_opsNotEqual_null').firstOrFail()
+          expect(reloaded.whereNot_opsNotEqual_null).toMatchDreamModels([noColorBalloon])
         })
       })
     })

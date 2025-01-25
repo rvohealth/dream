@@ -3625,6 +3625,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         }
 
         const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val)
+        console.debug('applySingleWhereStatement', { a, b, c, a2, b2, c2, negate })
 
         // postgres is unable to handle WHERE IN statements with blank arrays, such as in
         // "WHERE id IN ()", meaning that:
@@ -3648,6 +3649,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         } else if (this.operatorIsEquals(b, negate) && c === null) {
           if (query instanceof JoinBuilder) query = query.on(a, 'is', null) as T
           else query = query.where(a, 'is', null) as T
+
+          //
+        } else if (this.operatorIsNotEquals(b, negate) && c === null) {
+          if (query instanceof JoinBuilder) query = query.on(a, 'is not', null) as T
+          else query = query.where(a, 'is not', null) as T
 
           //
         } else if (this.operatorIsNotEquals(b, negate) && c !== null) {
@@ -3722,6 +3728,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           }
 
           const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val)
+          console.debug('whereStatementsToExpressionWrappers', { a, b, c, a2, b2, c2 })
 
           // postgres is unable to handle WHERE IN statements with blank arrays, such as in
           // "WHERE id IN ()", meaning that:
@@ -3799,6 +3806,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         }
 
         const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val)
+        console.debug('orStatementsToExpressionWrappers', { a, b, c, a2, b2, c2 })
 
         // postgres is unable to handle WHERE IN statements with blank arrays, such as in
         // "WHERE id IN ()", meaning that:

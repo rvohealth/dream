@@ -136,6 +136,30 @@ import { isString } from './helpers/typechecks'
 export default class Dream {
   public DB: any
 
+  /**
+   * @internal
+   *
+   * This getter will throw an error when developers use .toEqual instead of
+   * useToMatchDreamModels or useToMatchDreamModel in a jest spec. This
+   * must be the first getter in the class in order for this to work, so don't move it.
+   *
+   */
+  private get _useToMatchDreamModels(): any {
+    throw new Error(`
+      Hi there! It looks like you're trying to compare a Dream model in
+      a Jest expectation using \`toEqual\`. That won't work.
+      Instead, use \`toMatchDreamModel\` or \`toMatchDreamModels\`.
+
+      For example, instead of:
+
+        expect(balloons).toEqual([balloon])
+
+      write:
+
+        expect(balloons).toMatchDreamModels([balloon])
+    `)
+  }
+
   public get schema(): any {
     throw new Error('Must define schema getter in ApplicationModel')
   }
@@ -2419,20 +2443,6 @@ export default class Dream {
    */
   public get primaryKeyValue(): IdType {
     return (this as any)[this.primaryKey] || null
-  }
-
-  /**
-   * @internal
-   *
-   * This is meant to be defined by ApplicationModel. Whenever
-   * migrations are run for your Dream application, files are synced
-   * to your db folder. This is one of those types.
-   *
-   * The passthroughColumns getter provides a few of the
-   * types used by Dream internals related to the passthrough api.
-   */
-  public get passthroughColumns(): any {
-    throw new Error('must have get passthroughColumns defined on child')
   }
 
   /**
