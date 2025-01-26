@@ -3629,7 +3629,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         }
 
         const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val, negate)
-        console.debug('applySingleWhereStatement', { a, b, c, a2, b2, c2, negate })
 
         // postgres is unable to handle WHERE IN statements with blank arrays, such as in
         // "WHERE id IN ()", meaning that:
@@ -3642,7 +3641,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
         if (Array.isArray(c)) {
           if ((b === 'in' && c.includes(null)) || (b === 'not in' && !c.includes(null))) {
-            console.debug('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
             if (query instanceof JoinBuilder) {
               return query.on((eb: ExpressionBuilder<any, any>) =>
                 this.inArrayWithNull_or_notInArrayWithoutNull_ExpressionBuilder(eb, a, b, c)
@@ -3731,13 +3729,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     b: KyselyComparisonOperatorExpression,
     c: any[]
   ): ExpressionWrapper<any, any, SqlBool> {
-    console.debug('inArrayWithNull_or_notInArrayWithoutNull_ExpressionBuilder 1111', { a, b, c })
     const isNullStatement = eb(a, 'is', null)
     const compactedC = compact(c)
     if (compactedC.length) return eb.or([eb(a, b, compactedC), isNullStatement])
     // not in an empty array means match everything
     if (b === 'not in') return sql<boolean>`TRUE` as unknown as ExpressionWrapper<any, any, SqlBool>
-    console.debug('inArrayWithNull_or_notInArrayWithoutNull_ExpressionBuilder 2222')
     return isNullStatement
   }
 
@@ -3747,12 +3743,10 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     b: KyselyComparisonOperatorExpression,
     c: any[]
   ): ExpressionWrapper<any, any, SqlBool> {
-    console.debug('notInArrayWithNullExpressionBuilder 1111', { a, b, c })
     const isNullStatement = eb(a, 'is not', null)
     const compactedC = compact(c)
 
     if (compactedC.length) return eb.and([eb(a, 'not in', compactedC), isNullStatement])
-    console.debug('notInArrayWithNullExpressionBuilder 2222')
     return isNullStatement
   }
 
@@ -3786,7 +3780,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           }
 
           const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val, negate)
-          console.debug('whereStatementsToExpressionWrappers', { a, b, c, a2, b2, c2 })
 
           // postgres is unable to handle WHERE IN statements with blank arrays, such as in
           // "WHERE id IN ()", meaning that:
@@ -3880,7 +3873,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         }
 
         const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val)
-        console.debug('orStatementsToExpressionWrappers', { a, b, c, a2, b2, c2 })
 
         // postgres is unable to handle WHERE IN statements with blank arrays, such as in
         // "WHERE id IN ()", meaning that:

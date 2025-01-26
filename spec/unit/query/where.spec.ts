@@ -15,6 +15,109 @@ import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
 
 describe('Query#where', () => {
+  it('supports multiple clauses', async () => {
+    const user1 = await User.create({
+      name: 'Hello',
+      email: 'fred@frewd',
+      password: 'howyadoin',
+    })
+    await User.create({
+      name: 'World',
+      email: 'frez@frewd',
+      password: 'howyadoin',
+    })
+
+    const users = await User.where({ email: 'fred@frewd', name: 'Hello' }).all()
+    expect(users).toMatchDreamModels([user1])
+  })
+
+  context('passing undefined', () => {
+    it('raises an exception', async () => {
+      await expect(async () => await User.query().where({ email: undefined }).all()).rejects.toThrowError(
+        CannotPassUndefinedAsAValueToAWhereClause
+      )
+    })
+  })
+
+  it('supports querying by CalendarDate', async () => {
+    const birthdate = CalendarDate.fromISO('1977-05-04')
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', birthdate })
+
+    const reloadedUser = await User.where({ birthdate }).first()
+    expect(reloadedUser).toMatchDreamModel(user)
+  })
+
+  it('supports querying by DateTime', async () => {
+    const birthdate = DateTime.fromISO('1977-05-04')
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', birthdate })
+
+    const reloadedUser = await User.where({ birthdate }).first()
+    expect(reloadedUser).toMatchDreamModel(user)
+  })
+
+  it('supports chaining `where` clauses', async () => {
+    const user1 = await User.create({
+      name: 'Hello',
+      email: 'fred@frewd',
+      password: 'howyadoin',
+    })
+    await User.create({
+      name: 'World',
+      email: 'frez@frewd',
+      password: 'howyadoin',
+    })
+
+    const users = await User.where({ email: 'fred@frewd' }).where({ name: 'Hello' }).all()
+    expect(users).toMatchDreamModels([user1])
+  })
+
+  context('passing null', () => {
+    it('unsets previously-applied where clauses', async () => {
+      const user1 = await User.create({
+        name: 'Hello',
+        email: 'fred@frewd',
+        password: 'howyadoin',
+      })
+      const user2 = await User.create({
+        name: 'World',
+        email: 'frez@frewd',
+        password: 'howyadoin',
+      })
+
+      const users = await User.where({ email: 'fred@frewd' }).where(null).all()
+      expect(users).toMatchDreamModels([user1, user2])
+    })
+
+    it('overrides named scopes', async () => {
+      const user1 = await User.create({
+        name: 'Chalupas jr',
+        email: 'fred@frewd',
+        password: 'howyadoin',
+      })
+      const user2 = await User.create({
+        name: 'World',
+        email: 'frez@frewd',
+        password: 'howyadoin',
+      })
+
+      const users = await User.scope('withFunnyName').where(null).all()
+      expect(users).toMatchDreamModels([user1, user2])
+    })
+
+    it('does not override default scopes', async () => {
+      const pet1 = await Pet.create({
+        name: 'Hello',
+      })
+      await Pet.create({
+        name: 'World',
+        deletedAt: DateTime.now(),
+      })
+
+      const users = await Pet.query().where(null).all()
+      expect(users).toMatchDreamModels([pet1])
+    })
+  })
+
   context('in, not in, equals, not equals', () => {
     let redBalloon: Balloon
     let greenBalloon: Balloon
@@ -237,111 +340,7 @@ describe('Query#where', () => {
     })
   })
 
-  // original
-  it('supports multiple clauses', async () => {
-    const user1 = await User.create({
-      name: 'Hello',
-      email: 'fred@frewd',
-      password: 'howyadoin',
-    })
-    await User.create({
-      name: 'World',
-      email: 'frez@frewd',
-      password: 'howyadoin',
-    })
-
-    const users = await User.where({ email: 'fred@frewd', name: 'Hello' }).all()
-    expect(users).toMatchDreamModels([user1])
-  })
-
-  context('when passed undefined as a value', () => {
-    it('raises an exception', async () => {
-      await expect(async () => await User.query().where({ email: undefined }).all()).rejects.toThrowError(
-        CannotPassUndefinedAsAValueToAWhereClause
-      )
-    })
-  })
-
-  it('supports querying by CalendarDate', async () => {
-    const birthdate = CalendarDate.fromISO('1977-05-04')
-    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', birthdate })
-
-    const reloadedUser = await User.where({ birthdate }).first()
-    expect(reloadedUser).toMatchDreamModel(user)
-  })
-
-  it('supports querying by DateTime', async () => {
-    const birthdate = DateTime.fromISO('1977-05-04')
-    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', birthdate })
-
-    const reloadedUser = await User.where({ birthdate }).first()
-    expect(reloadedUser).toMatchDreamModel(user)
-  })
-
-  it('supports chaining `where` clauses', async () => {
-    const user1 = await User.create({
-      name: 'Hello',
-      email: 'fred@frewd',
-      password: 'howyadoin',
-    })
-    await User.create({
-      name: 'World',
-      email: 'frez@frewd',
-      password: 'howyadoin',
-    })
-
-    const users = await User.where({ email: 'fred@frewd' }).where({ name: 'Hello' }).all()
-    expect(users).toMatchDreamModels([user1])
-  })
-
-  context('null is passed', () => {
-    it('unsets previously-applied where clauses', async () => {
-      const user1 = await User.create({
-        name: 'Hello',
-        email: 'fred@frewd',
-        password: 'howyadoin',
-      })
-      const user2 = await User.create({
-        name: 'World',
-        email: 'frez@frewd',
-        password: 'howyadoin',
-      })
-
-      const users = await User.where({ email: 'fred@frewd' }).where(null).all()
-      expect(users).toMatchDreamModels([user1, user2])
-    })
-
-    it('overrides named scopes', async () => {
-      const user1 = await User.create({
-        name: 'Chalupas jr',
-        email: 'fred@frewd',
-        password: 'howyadoin',
-      })
-      const user2 = await User.create({
-        name: 'World',
-        email: 'frez@frewd',
-        password: 'howyadoin',
-      })
-
-      const users = await User.scope('withFunnyName').where(null).all()
-      expect(users).toMatchDreamModels([user1, user2])
-    })
-
-    it('does not override default scopes', async () => {
-      const pet1 = await Pet.create({
-        name: 'Hello',
-      })
-      await Pet.create({
-        name: 'World',
-        deletedAt: DateTime.now(),
-      })
-
-      const users = await Pet.query().where(null).all()
-      expect(users).toMatchDreamModels([pet1])
-    })
-  })
-
-  context('ops.lessThan is passed', () => {
+  context('ops.lessThan', () => {
     it('uses a "<" operator for comparison', async () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
       const post = await Post.create({ user })
@@ -355,7 +354,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('ops.lessThanOrEqualTo is passed', () => {
+  context('ops.lessThanOrEqualTo', () => {
     it('uses a "<=" operator for comparison', async () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
       const post = await Post.create({ user })
@@ -370,7 +369,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('ops.greaterThan is passed', () => {
+  context('ops.greaterThan', () => {
     it('uses a ">" operator for comparison', async () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
       const post = await Post.create({ user })
@@ -384,7 +383,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('ops.greaterThanOrEqualTo is passed', () => {
+  context('ops.greaterThanOrEqualTo', () => {
     it('uses a ">=" operator for comparison', async () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
       const post = await Post.create({ user })
@@ -399,7 +398,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('ops.any is passed', () => {
+  context('ops.any', () => {
     it('uses an "@>" operator for comparison', async () => {
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       const multicolorBalloon = await Mylar.create({
@@ -435,29 +434,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('an array is passed', () => {
-    it('uses an "in" operator for comparison', async () => {
-      const user1 = await User.create({
-        email: 'fred@frewd',
-        password: 'howyadoin',
-      })
-      const user2 = await User.create({
-        email: 'frez@frewd',
-        password: 'howyadoin',
-      })
-      await User.create({
-        email: 'frez@fishman',
-        password: 'howyadoin',
-      })
-
-      const records = await User.query()
-        .where({ id: [user1.id, user2.id] })
-        .pluck('id')
-      expect(records).toEqual([user1.id, user2.id])
-    })
-  })
-
-  context('ops.like statement is passed', () => {
+  context('ops.like', () => {
     it('uses a "like" operator for comparison', async () => {
       const user1 = await User.create({
         email: 'aaa@aaa',
@@ -479,7 +456,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('ops.not.like statement is passed', () => {
+  context('ops.not.like', () => {
     it('uses a "not like" operator for comparison', async () => {
       await User.create({
         email: 'aaa@aaa',
@@ -501,7 +478,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('ops.ilike statement is passed', () => {
+  context('ops.ilike', () => {
     it('uses an "ilike" operator for comparison', async () => {
       const user1 = await User.create({
         email: 'aaa@aaa',
@@ -523,7 +500,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('ops.not.ilike statement is passed', () => {
+  context('ops.not.ilike', () => {
     it('uses a "not ilike" operator for comparison', async () => {
       await User.create({
         email: 'aaa@aaa',
@@ -546,7 +523,7 @@ describe('Query#where', () => {
   })
 
   // BEGIN: similarity search
-  context('ops.similarity statement is passed', () => {
+  context('ops.similarity', () => {
     let user1: User
     let user2: User
     let user3: User
@@ -651,7 +628,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('ops.wordSimilarity statement is passed', () => {
+  context('ops.wordSimilarity', () => {
     let user1: User
     let user2: User
     let user3: User
@@ -706,7 +683,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('ops.strictWordSimilarity statement is passed', () => {
+  context('ops.strictWordSimilarity', () => {
     let user1: User
     let user2: User
     let user3: User
@@ -762,7 +739,7 @@ describe('Query#where', () => {
   })
   // END: similarity search
 
-  context('ops.match statement is passed', () => {
+  context('ops.match', () => {
     it('uses a "~" operator for comparison', async () => {
       const user1 = await User.create({
         email: 'aaa@aaa',
@@ -806,7 +783,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('ops.not.match statement is passed', () => {
+  context('ops.not.match', () => {
     it('uses a "!~" operator for comparison', async () => {
       await User.create({
         email: 'aaa@aaa',
@@ -850,7 +827,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('a DateTime range is passed', () => {
+  context('a DateTime range', () => {
     const begin = DateTime.now()
     const end = DateTime.now().plus({ day: 1 })
 
@@ -931,7 +908,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('a CalendarDate range is passed', () => {
+  context('a CalendarDate', () => {
     const begin = CalendarDate.today()
     const end = CalendarDate.today().plus({ days: 3 })
 
@@ -1012,7 +989,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('a function returning a date range is passed', () => {
+  context('a function returning a date range', () => {
     const begin = DateTime.now()
     const end = DateTime.now().plus({ day: 1 })
 
@@ -1045,7 +1022,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('a number range is passed', () => {
+  context('a number range', () => {
     const begin = 3
     const end = 7
     let user: User
