@@ -3819,18 +3819,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
             return eb(a, 'is not', null)
 
             //
-            //          //   //
-            //          // } else if (b === 'not in' && Array.isArray(c) && c.includes(null)) {
-            //          //   if (query instanceof JoinBuilder) {
-            //          //     query = query.on((eb: ExpressionBuilder<any, any>) =>
-            //          //       eb.and([eb(a, 'not in', c), eb(a, 'is not', null)])
-            //          //     ) as T
-            //          //   } else {
-            //          //     query = query.where((eb: ExpressionBuilder<any, any>) =>
-            //          //       eb.and([eb(a, 'not in', c), eb(a, 'is not', null)])
-            //          //     ) as T
-            //          //   }
-            //
           } else if (b === '!=' && c !== null) {
             return eb.or([eb(a, '!=', c), eb(a, 'is', null)])
 
