@@ -68,14 +68,14 @@ describe('where clauses on associations (also see various specs in spec/unit/que
         expect(reloaded.where_arrayWithNull).toMatchDreamModels([noColorBalloon])
       })
 
-      context('ops.equal ', () => {
+      context('ops.in', () => {
         it('matches records with null in the specified column', async () => {
           const reloaded = await Pet.leftJoinPreload('where_opsIn_arrayWithNull').firstOrFail()
           expect(reloaded.where_opsIn_arrayWithNull).toMatchDreamModels([noColorBalloon])
         })
       })
 
-      context('ops.not.equal ', () => {
+      context('ops.not.in', () => {
         it('include records with non-null in that field', async () => {
           const reloaded = await Pet.leftJoinPreload('where_opsNotIn_arrayWithNull').firstOrFail()
           expect(reloaded.where_opsNotIn_arrayWithNull).toMatchDreamModels([redBalloon, greenBalloon])
@@ -89,14 +89,14 @@ describe('where clauses on associations (also see various specs in spec/unit/que
         expect(reloaded.where_arrayWithNullAndRed).toMatchDreamModels([noColorBalloon, redBalloon])
       })
 
-      context('ops.equal ', () => {
+      context('ops.in', () => {
         it('matches records with null or the non-null value in the specified column', async () => {
           const reloaded = await Pet.leftJoinPreload('where_opsIn_arrayWithNullAndRed').firstOrFail()
           expect(reloaded.where_opsIn_arrayWithNullAndRed).toMatchDreamModels([noColorBalloon, redBalloon])
         })
       })
 
-      context('ops.not.equal ', () => {
+      context('ops.not.in', () => {
         it('include records with non-null in that field that don’t match the non-null value', async () => {
           const reloaded = await Pet.leftJoinPreload('where_opsNotIn_arrayWithNullAndRed').firstOrFail()
           expect(reloaded.where_opsNotIn_arrayWithNullAndRed).toMatchDreamModels([greenBalloon])
@@ -142,7 +142,7 @@ describe('where clauses on associations (also see various specs in spec/unit/que
         })
       })
 
-      context('ops.not.equal ', () => {
+      context('ops.not.equal', () => {
         it('include records with non-null in that field', async () => {
           const reloaded = await Pet.leftJoinPreload('where_opsNotEqual_null').firstOrFail()
           expect(reloaded.where_opsNotEqual_null).toMatchDreamModels([redBalloon, greenBalloon])
@@ -225,14 +225,14 @@ describe('where clauses on associations (also see various specs in spec/unit/que
         expect(reloaded.whereNot_arrayWithNull).toMatchDreamModels([redBalloon, greenBalloon])
       })
 
-      context('ops.equal ', () => {
+      context('ops.in', () => {
         it('include records with non-null in that field', async () => {
           const reloaded = await Pet.leftJoinPreload('whereNot_opsIn_arrayWithNull').firstOrFail()
           expect(reloaded.whereNot_opsIn_arrayWithNull).toMatchDreamModels([redBalloon, greenBalloon])
         })
       })
 
-      context('ops.not.equal ', () => {
+      context('ops.not.in', () => {
         it('matches records with null in the specified column', async () => {
           const reloaded = await Pet.leftJoinPreload('whereNot_opsNotIn_arrayWithNull').firstOrFail()
           expect(reloaded.whereNot_opsNotIn_arrayWithNull).toMatchDreamModels([noColorBalloon])
@@ -246,14 +246,14 @@ describe('where clauses on associations (also see various specs in spec/unit/que
         expect(reloaded.whereNot_arrayWithNullAndRed).toMatchDreamModels([greenBalloon])
       })
 
-      context('ops.equal ', () => {
+      context('ops.in', () => {
         it('matches records with null or the non-null value in the specified column', async () => {
           const reloaded = await Pet.leftJoinPreload('whereNot_opsIn_arrayWithNullAndRed').firstOrFail()
           expect(reloaded.whereNot_opsIn_arrayWithNullAndRed).toMatchDreamModels([greenBalloon])
         })
       })
 
-      context('ops.not.equal ', () => {
+      context('ops.not.in', () => {
         it('include records with non-null in that field that don’t match the non-null value', async () => {
           const reloaded = await Pet.leftJoinPreload('whereNot_opsNotIn_arrayWithNullAndRed').firstOrFail()
           expect(reloaded.whereNot_opsNotIn_arrayWithNullAndRed).toMatchDreamModels([
@@ -270,14 +270,14 @@ describe('where clauses on associations (also see various specs in spec/unit/que
         expect(reloaded.whereNot_null).toMatchDreamModels([redBalloon, greenBalloon])
       })
 
-      context('ops.equal ', () => {
+      context('ops.equal', () => {
         it('matches records with null in the specified column', async () => {
           const reloaded = await Pet.leftJoinPreload('whereNot_opsEqual_null').firstOrFail()
           expect(reloaded.whereNot_opsEqual_null).toMatchDreamModels([redBalloon, greenBalloon])
         })
       })
 
-      context('ops.not.equal ', () => {
+      context('ops.not.equal', () => {
         it('include records with non-null in that field', async () => {
           const reloaded = await Pet.leftJoinPreload('whereNot_opsNotEqual_null').firstOrFail()
           expect(reloaded.whereNot_opsNotEqual_null).toMatchDreamModels([noColorBalloon])

@@ -45,6 +45,20 @@ describe('Query#where', () => {
           expect(balloons).toMatchDreamModels([greenBalloon, noColorBalloon])
         })
       })
+
+      context("ops.expression('=', ...)", () => {
+        it('matches records with the value in the specified column', async () => {
+          const balloons = await Balloon.where({ color: ops.expression('=', 'red') }).all()
+          expect(balloons).toMatchDreamModels([redBalloon])
+        })
+      })
+
+      context("ops.expression('!=', ...)", () => {
+        it('include records with fields with a value that doesn’t match specified value, including null', async () => {
+          const balloons = await Balloon.where({ color: ops.expression('!=', 'red') }).all()
+          expect(balloons).toMatchDreamModels([greenBalloon, noColorBalloon])
+        })
+      })
     })
 
     context('an array without null', () => {
@@ -66,6 +80,20 @@ describe('Query#where', () => {
           expect(balloons).toMatchDreamModels([greenBalloon, noColorBalloon])
         })
       })
+
+      context("ops.expression('in', ...)", () => {
+        it('matches records with any array value in the specified column', async () => {
+          const balloons = await Balloon.where({ color: ops.expression('in', ['red']) }).all()
+          expect(balloons).toMatchDreamModels([redBalloon])
+        })
+      })
+
+      context("ops.expression('not in', ...)", () => {
+        it('include records with fields with a value that doesn’t match specified value, including null', async () => {
+          const balloons = await Balloon.where({ color: ops.expression('not in', ['red']) }).all()
+          expect(balloons).toMatchDreamModels([greenBalloon, noColorBalloon])
+        })
+      })
     })
 
     context('an array with null', () => {
@@ -74,19 +102,21 @@ describe('Query#where', () => {
         expect(balloons).toMatchDreamModels([noColorBalloon])
       })
 
-      context('ops.equal ', () => {
+      context('ops.in', () => {
         it('matches records with null in the specified column', async () => {
           const balloons = await Balloon.where({ color: ops.in([null]) }).all()
           expect(balloons).toMatchDreamModels([noColorBalloon])
         })
       })
 
-      context('ops.not.equal ', () => {
+      context('ops.not.in', () => {
         it('include records with non-null in that field', async () => {
           const balloons = await Balloon.where({ color: ops.not.in([null]) }).all()
           expect(balloons).toMatchDreamModels([redBalloon, greenBalloon])
         })
       })
+
+      context("ops.expression('in', ...)", () => {
     })
 
     context('an array with null and a non-null value', () => {
@@ -95,14 +125,14 @@ describe('Query#where', () => {
         expect(balloons).toMatchDreamModels([noColorBalloon, redBalloon])
       })
 
-      context('ops.equal ', () => {
+      context('ops.in', () => {
         it('matches records with null or the non-null value in the specified column', async () => {
           const balloons = await Balloon.where({ color: ops.in([null, 'red']) }).all()
           expect(balloons).toMatchDreamModels([noColorBalloon, redBalloon])
         })
       })
 
-      context('ops.not.equal ', () => {
+      context('ops.not.in', () => {
         it('include records with non-null in that field that don’t match the non-null value', async () => {
           const balloons = await Balloon.where({ color: ops.not.in([null, 'red']) }).all()
           expect(balloons).toMatchDreamModels([greenBalloon])
@@ -137,14 +167,14 @@ describe('Query#where', () => {
         expect(balloons).toMatchDreamModels([noColorBalloon])
       })
 
-      context('ops.equal ', () => {
+      context('ops.equal', () => {
         it('matches records with null in the specified column', async () => {
           const balloons = await Balloon.where({ color: ops.equal(null) }).all()
           expect(balloons).toMatchDreamModels([noColorBalloon])
         })
       })
 
-      context('ops.not.equal ', () => {
+      context('ops.not.equal', () => {
         it('include records with non-null in that field', async () => {
           const balloons = await Balloon.where({ color: ops.not.equal(null) }).all()
           expect(balloons).toMatchDreamModels([redBalloon, greenBalloon])
@@ -254,163 +284,6 @@ describe('Query#where', () => {
 
       const users = await Pet.query().where(null).all()
       expect(users).toMatchDreamModels([pet1])
-    })
-  })
-
-  context('a generic expression is passed', () => {
-    it('uses an "in" operator for comparison', async () => {
-      const user1 = await User.create({
-        email: 'fred@frewd',
-        password: 'howyadoin',
-      })
-      const user2 = await User.create({
-        email: 'frez@frewd',
-        password: 'howyadoin',
-      })
-      await User.create({
-        email: 'frez@fishman',
-        password: 'howyadoin',
-      })
-
-      const records = await User.query()
-        .where({ id: ops.expression('in', [user1.id, user2.id]) })
-        .pluck('id')
-      expect(records).toEqual([user1.id, user2.id])
-    })
-  })
-
-  context('ops.in is passed', () => {
-    let user1: User
-    let user2: User
-    let user3: User
-    beforeEach(async () => {
-      user1 = await User.create({
-        email: 'fred@frewd',
-        name: 'fred',
-        password: 'howyadoin',
-      })
-      user2 = await User.create({
-        email: 'frez@frewd',
-        name: 'fred',
-        password: 'howyadoin',
-      })
-      user3 = await User.create({
-        email: 'frez@fishman',
-        name: null,
-        password: 'howyadoin',
-      })
-    })
-
-    it('uses an "in" operator for comparison', async () => {
-      const records = await User.query()
-        .where({ id: ops.in([user1.id, user2.id]) })
-        .pluck('id')
-      expect(records).toEqual([user1.id, user2.id])
-    })
-
-    context('with a blank array', () => {
-      it('does not find any results', async () => {
-        const records = await User.query()
-          .where({ id: ops.in([]) })
-          .pluck('id')
-        expect(records).toEqual([])
-      })
-
-      context('with a negated blank array', () => {
-        it('finds all results', async () => {
-          const records = await User.query()
-            .where({ id: ops.not.in([]) })
-            .pluck('id')
-          expect(records).toEqual([user1.id, user2.id, user3.id])
-        })
-      })
-    })
-  })
-
-  context('ops.not.in is passed', () => {
-    it('uses a "not in" operator for comparison', async () => {
-      const user1 = await User.create({
-        email: 'fred@frewd',
-        password: 'howyadoin',
-      })
-      const user2 = await User.create({
-        email: 'frez@frewd',
-        password: 'howyadoin',
-      })
-      const user3 = await User.create({
-        email: 'frez@fishman',
-        password: 'howyadoin',
-      })
-
-      const records = await User.query()
-        .where({ id: ops.not.in([user1.id, user2.id]) })
-        .pluck('id')
-      expect(records).toEqual([user3.id])
-    })
-  })
-
-  context('ops.equal is passed', () => {
-    it('uses an "=" operator for comparison', async () => {
-      await User.create({
-        email: 'fred@frewd',
-        password: 'howyadoin',
-      })
-      const user2 = await User.create({
-        email: 'frez@frewd',
-        password: 'howyadoin',
-      })
-
-      const records = await User.query()
-        .where({ id: ops.equal(user2.id) })
-        .pluck('id')
-      expect(records).toEqual([user2.id])
-    })
-
-    context('comparing against a null value', () => {
-      it('matches null values', async () => {
-        await Mylar.create({ color: 'red' })
-        const noColorBalloon = await Mylar.create({ color: null })
-
-        const balloons = await Balloon.query()
-          .where({ color: ops.equal(null) })
-          .all()
-        expect(balloons).toMatchDreamModels([noColorBalloon])
-      })
-    })
-  })
-
-  context('ops.not.equal is passed', () => {
-    it('uses an "!=" operator for comparison', async () => {
-      const user1 = await User.create({
-        email: 'fred@frewd',
-        password: 'howyadoin',
-      })
-      const user2 = await User.create({
-        email: 'frez@frewd',
-        password: 'howyadoin',
-      })
-      const user3 = await User.create({
-        email: 'frez@fishman',
-        password: 'howyadoin',
-      })
-
-      const records = await User.query()
-        .where({ id: ops.not.equal(user1.id) })
-        .pluck('id')
-      expect(records).toEqual([user2.id, user3.id])
-    })
-
-    context('comparing against a non-null value', () => {
-      it('matches null values', async () => {
-        await Mylar.create({ color: 'red' })
-        const blueBalloon = await Mylar.create({ color: 'blue' })
-        const noColorBalloon = await Mylar.create({ color: null })
-
-        const balloons = await Balloon.query()
-          .where({ color: ops.not.equal('red') })
-          .all()
-        expect(balloons).toMatchDreamModels([blueBalloon, noColorBalloon])
-      })
     })
   })
 
