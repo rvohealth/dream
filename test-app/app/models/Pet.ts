@@ -128,6 +128,20 @@ export default class Pet extends ApplicationModel {
 
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: ops.not.in([null]) } })
   public where_opsNotIn_arrayWithNull: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: [null as any, 'red'] } })
+  public where_arrayWithNullAndRed: Balloon
+
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', where: { color: ops.in([null, 'red']) } })
+  public where_opsIn_arrayWithNullAndRed: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    where: { color: ops.not.in([null, 'red']) },
+  })
+  public where_opsNotIn_arrayWithNullAndRed: Balloon
+
   // end: where
 
   // whereNot
@@ -179,6 +193,28 @@ export default class Pet extends ApplicationModel {
 
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', whereNot: { color: ops.not.in([null]) } })
   public whereNot_opsNotIn_arrayWithNull: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    whereNot: { color: [null as any, 'red'] },
+  })
+  public whereNot_arrayWithNullAndRed: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    whereNot: { color: ops.in([null, 'red']) },
+  })
+  public whereNot_opsIn_arrayWithNullAndRed: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    whereNot: { color: ops.not.in([null, 'red']) },
+  })
+  public whereNot_opsNotIn_arrayWithNullAndRed: Balloon
+
   // end: whereNot
 
   @Pet.HasMany('PetUnderstudyJoinModel', { foreignKey: 'petId' })

@@ -2519,6 +2519,13 @@ export const schema = {
         optional: null,
         requiredWhereClauses: null,
       },
+      whereNot_arrayWithNullAndRed: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['beautiful_balloons'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
       whereNot_emptyArray: {
         type: 'HasMany',
         foreignKey: null,
@@ -2548,6 +2555,13 @@ export const schema = {
         requiredWhereClauses: null,
       },
       whereNot_opsIn_arrayWithNull: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['beautiful_balloons'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
+      whereNot_opsIn_arrayWithNullAndRed: {
         type: 'HasMany',
         foreignKey: null,
         tables: ['beautiful_balloons'],
@@ -2589,6 +2603,13 @@ export const schema = {
         optional: null,
         requiredWhereClauses: null,
       },
+      whereNot_opsNotIn_arrayWithNullAndRed: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['beautiful_balloons'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
       whereNot_opsNotIn_emptyArray: {
         type: 'HasMany',
         foreignKey: null,
@@ -2618,6 +2639,13 @@ export const schema = {
         requiredWhereClauses: null,
       },
       where_arrayWithNull: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['beautiful_balloons'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
+      where_arrayWithNullAndRed: {
         type: 'HasMany',
         foreignKey: null,
         tables: ['beautiful_balloons'],
@@ -2659,6 +2687,13 @@ export const schema = {
         optional: null,
         requiredWhereClauses: null,
       },
+      where_opsIn_arrayWithNullAndRed: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['beautiful_balloons'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
       where_opsIn_emptyArray: {
         type: 'HasMany',
         foreignKey: null,
@@ -2688,6 +2723,13 @@ export const schema = {
         requiredWhereClauses: null,
       },
       where_opsNotIn_arrayWithNull: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['beautiful_balloons'],
+        optional: null,
+        requiredWhereClauses: null,
+      },
+      where_opsNotIn_arrayWithNullAndRed: {
         type: 'HasMany',
         foreignKey: null,
         tables: ['beautiful_balloons'],
