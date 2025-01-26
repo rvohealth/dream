@@ -172,7 +172,7 @@ describe('where clauses on associations (also see various specs in spec/unit/que
       context('ops.not.in ', () => {
         it('returns no results', async () => {
           const reloaded = await Pet.leftJoinPreload('whereNot_opsNotIn_emptyArray').firstOrFail()
-          expect(reloaded.whereNot_opsNotIn_emptyArray).toEqual([])
+          expect(reloaded.whereNot_opsNotIn_emptyArray).toMatchDreamModels([])
         })
       })
     })

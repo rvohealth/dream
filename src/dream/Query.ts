@@ -100,7 +100,9 @@ import {
   VariadicPluckThroughArgs,
 } from './types'
 
-const OPERATION_NEGATION_MAP: Partial<{ [Property in ComparisonOperator]: ComparisonOperator }> = {
+const OPERATION_NEGATION_MAP: Partial<{
+  [Property in ComparisonOperator]: KyselyComparisonOperatorExpression
+}> = {
   '=': '!=',
   '==': '!=',
   '!=': '=',
@@ -3624,7 +3626,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           return
         }
 
-        const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val)
+        const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val, negate)
         console.debug('applySingleWhereStatement', { a, b, c, a2, b2, c2, negate })
 
         // postgres is unable to handle WHERE IN statements with blank arrays, such as in
@@ -3637,26 +3639,60 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
         //    resulting in a noop on our end
         if (b === 'in' && Array.isArray(c) && c.length === 0) {
           if (query instanceof JoinBuilder) {
-            query = negate ? query : (query.on(sql<boolean>`FALSE`) as T)
-          } else query = negate ? query : (query.where(sql<boolean>`FALSE`) as T)
+            query = query.on(sql<boolean>`FALSE`) as T
+          } else query = query.where(sql<boolean>`FALSE`) as T
 
           //
         } else if (b === 'not in' && Array.isArray(c) && c.length === 0) {
-          if (query instanceof JoinBuilder) query = negate ? (query.on(sql<boolean>`FALSE`) as T) : query
-          else query = negate ? (query.where(sql<boolean>`FALSE`) as T) : query
-
+          // no-op (leave query untouched)
           //
-        } else if (this.operatorIsEquals(b, negate) && c === null) {
+        } else if (b === '=' && c === null) {
           if (query instanceof JoinBuilder) query = query.on(a, 'is', null) as T
           else query = query.where(a, 'is', null) as T
 
           //
-        } else if (this.operatorIsNotEquals(b, negate) && c === null) {
+        } else if (b === '!=' && c === null) {
           if (query instanceof JoinBuilder) query = query.on(a, 'is not', null) as T
           else query = query.where(a, 'is not', null) as T
 
           //
-        } else if (this.operatorIsNotEquals(b, negate) && c !== null) {
+        } else if (b === 'in' && Array.isArray(c) && c.includes(null)) {
+          if (query instanceof JoinBuilder) {
+            query = query.on((eb: ExpressionBuilder<any, any>) =>
+              eb.or([eb(a, 'in', c), eb(a, 'is', null)])
+            ) as T
+          } else {
+            query = query.where((eb: ExpressionBuilder<any, any>) =>
+              eb.or([eb(a, 'in', c), eb(a, 'is', null)])
+            ) as T
+          }
+
+          //
+        } else if (b === 'not in' && Array.isArray(c) && !c.includes(null)) {
+          if (query instanceof JoinBuilder) {
+            query = query.on((eb: ExpressionBuilder<any, any>) =>
+              eb.or([eb(a, 'not in', c), eb(a, 'is', null)])
+            ) as T
+          } else {
+            query = query.where((eb: ExpressionBuilder<any, any>) =>
+              eb.or([eb(a, 'not in', c), eb(a, 'is', null)])
+            ) as T
+          }
+
+          //   //
+          // } else if (b === 'not in' && Array.isArray(c) && c.includes(null)) {
+          //   if (query instanceof JoinBuilder) {
+          //     query = query.on((eb: ExpressionBuilder<any, any>) =>
+          //       eb.and([eb(a, 'not in', c), eb(a, 'is not', null)])
+          //     ) as T
+          //   } else {
+          //     query = query.where((eb: ExpressionBuilder<any, any>) =>
+          //       eb.and([eb(a, 'not in', c), eb(a, 'is not', null)])
+          //     ) as T
+          //   }
+
+          //
+        } else if (b === '!=' && c !== null) {
           if (query instanceof JoinBuilder) {
             query = query.on((eb: ExpressionBuilder<any, any>) =>
               eb.or([eb(a, '!=', c), eb(a, 'is', null)])
@@ -3665,22 +3701,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
             query = query.where((eb: ExpressionBuilder<any, any>) =>
               eb.or([eb(a, '!=', c), eb(a, 'is', null)])
             ) as T
-          }
-
-          //
-        } else if (negate) {
-          const negatedB = OPERATION_NEGATION_MAP[b as keyof typeof OPERATION_NEGATION_MAP]
-          if (!negatedB) throw new Error(`no negation available for comparison operator ${b as string}`)
-
-          if (query instanceof JoinBuilder) query = query.on(a, negatedB, c) as T
-          else query = query.where(a, negatedB, c) as T
-
-          if (b2) {
-            const negatedB2 = OPERATION_NEGATION_MAP[b2 as keyof typeof OPERATION_NEGATION_MAP]
-            if (!negatedB2) throw new Error(`no negation available for comparison operator ${b2}`)
-
-            if (query instanceof JoinBuilder) query = query.on(a2, negatedB2, c2) as T
-            else query = query.where(a2, negatedB2, c2) as T
           }
 
           //
@@ -3727,7 +3747,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
             return
           }
 
-          const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val)
+          const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val, negate)
           console.debug('whereStatementsToExpressionWrappers', { a, b, c, a2, b2, c2 })
 
           // postgres is unable to handle WHERE IN statements with blank arrays, such as in
@@ -3739,33 +3759,56 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           //    then it is the same as the where statement not being present at all,
           //    resulting in a noop on our end
           if (b === 'in' && Array.isArray(c) && c.length === 0) {
-            return negate ? sql<boolean>`TRUE` : sql<boolean>`FALSE`
+            return sql<boolean>`FALSE`
 
             //
           } else if (b === 'not in' && Array.isArray(c) && c.length === 0) {
-            return negate ? sql<boolean>`FALSE` : sql<boolean>`TRUE`
+            return sql<boolean>`TRUE`
 
             //
-          } else if (this.operatorIsEquals(b, negate) && c === null) {
+          } else if (b === '=' && c === null) {
             return eb(a, 'is', null)
 
             //
-          } else if (this.operatorIsNotEquals(b, negate) && c !== null) {
-            return eb.or([eb(a, '!=', c), eb(a, 'is', null)])
+          } else if (b === '!=' && c === null) {
+            return eb(a, 'is not', null)
 
             //
-          } else if (negate) {
-            const negatedB = OPERATION_NEGATION_MAP[b as keyof typeof OPERATION_NEGATION_MAP]
-            if (!negatedB) throw new Error(`no negation available for comparison operator ${b as string}`)
-            const whereExpression = [eb(a, negatedB, c)]
-
-            if (b2) {
-              const negatedB2 = OPERATION_NEGATION_MAP[b2 as keyof typeof OPERATION_NEGATION_MAP]
-              if (!negatedB2) throw new Error(`no negation available for comparison operator ${b2 as string}`)
-              whereExpression.push(eb(a2, negatedB2, c2))
-            }
-
-            return whereExpression
+          } else if (b === 'in' && Array.isArray(c) && c.includes(null)) {
+            // if (query instanceof JoinBuilder) {
+            //   query = query.on((eb: ExpressionBuilder<any, any>) =>
+            //     eb.or([eb(a, 'in', c), eb(a, 'is', null)])
+            //   ) as T
+            // } else {
+            //   query = query.where((eb: ExpressionBuilder<any, any>) =>
+            //     eb.or([eb(a, 'in', c), eb(a, 'is', null)])
+            //   ) as T
+            // }
+            //
+          } else if (b === 'not in' && Array.isArray(c) && !c.includes(null)) {
+            // if (query instanceof JoinBuilder) {
+            //   query = query.on((eb: ExpressionBuilder<any, any>) =>
+            //     eb.or([eb(a, 'not in', c), eb(a, 'is', null)])
+            //   ) as T
+            // } else {
+            //   query = query.where((eb: ExpressionBuilder<any, any>) =>
+            //     eb.or([eb(a, 'not in', c), eb(a, 'is', null)])
+            //   ) as T
+            // }
+            //          //   //
+            //          // } else if (b === 'not in' && Array.isArray(c) && c.includes(null)) {
+            //          //   if (query instanceof JoinBuilder) {
+            //          //     query = query.on((eb: ExpressionBuilder<any, any>) =>
+            //          //       eb.and([eb(a, 'not in', c), eb(a, 'is not', null)])
+            //          //     ) as T
+            //          //   } else {
+            //          //     query = query.where((eb: ExpressionBuilder<any, any>) =>
+            //          //       eb.and([eb(a, 'not in', c), eb(a, 'is not', null)])
+            //          //     ) as T
+            //          //   }
+            //
+          } else if (b === '!=' && c !== null) {
+            return eb.or([eb(a, '!=', c), eb(a, 'is', null)])
 
             //
           } else {
@@ -3844,6 +3887,46 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           }
 
           //
+        } else if (b === 'in' && Array.isArray(c) && c.includes(null)) {
+          if (expressionBuilderOrWrap === null) {
+            return eb.or([eb(a, 'in', compact(c)), eb(a, 'is', null)])
+          } else {
+            return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
+              eb.or([eb(a, 'in', compact(c)), eb(a, 'is', null)])
+            ) as any
+          }
+
+          //
+        } else if (b === 'not in' && Array.isArray(c) && !c.includes(null)) {
+          if (expressionBuilderOrWrap === null) {
+            return eb.or([eb(a, 'not in', compact(c)), eb(a, 'is', null)])
+          } else {
+            return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
+              eb.or([eb(a, 'not in', compact(c)), eb(a, 'is', null)])
+            ) as any
+          }
+
+          //   //
+          // } else if (b === 'not in' && Array.isArray(c) && c.includes(null)) {
+          //   if (expressionBuilderOrWrap === null) {
+          //     return eb.and([eb(a, 'not in', compact(c)), eb(a, 'is not', null)])
+          //   } else {
+          //     return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
+          //       eb.and([eb(a, 'not in', compact(c)), eb(a, 'is not', null)])
+          //     ) as any
+          //   }
+
+          //
+        } else if (b === '!=' && c === null) {
+          if (expressionBuilderOrWrap === null) {
+            return eb(a, 'is not', null)
+          } else {
+            return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
+              eb(a, 'is not', null)
+            ) as any
+          }
+
+          //
         } else if (b === '!=' && c !== null) {
           if (expressionBuilderOrWrap === null) {
             return eb.or([eb(a, '!=', c), eb(a, 'is', null)])
@@ -3869,7 +3952,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     ) as ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any>
   }
 
-  private dreamWhereStatementToExpressionBuilderParts(attr: string, val: any) {
+  private dreamWhereStatementToExpressionBuilderParts(attr: string, val: any, negate: boolean = false) {
     let a: any
     let b: KyselyComparisonOperatorExpression
     let c: any
@@ -3943,6 +4026,18 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     if (a && c === undefined) throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, a)
     if (a2 && c2 === undefined) throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, a2)
+
+    if (negate) {
+      const negatedB = OPERATION_NEGATION_MAP[b as keyof typeof OPERATION_NEGATION_MAP]
+      if (!negatedB) throw new Error(`no negation available for comparison operator ${b as string}`)
+      b = negatedB
+
+      if (b2) {
+        const negatedB2 = OPERATION_NEGATION_MAP[b2 as keyof typeof OPERATION_NEGATION_MAP]
+        if (!negatedB2) throw new Error(`no negation available for comparison operator ${b2}`)
+        b2 = negatedB2 as typeof b2
+      }
+    }
 
     return { a, b, c, a2, b2, c2 }
   }
