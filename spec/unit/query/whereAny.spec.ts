@@ -6,7 +6,7 @@ import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import User from '../../../test-app/app/models/User'
 
 describe('Query#whereAny', () => {
-  describe('where clauses on associations (also see various specs in spec/unit/query)', () => {
+  context('in, not in, equals, not equals', () => {
     let redBalloon: Balloon
     let greenBalloon: Balloon
     let noColorBalloon: Balloon
@@ -36,6 +36,20 @@ describe('Query#whereAny', () => {
           expect(balloons).toMatchDreamModels([greenBalloon, noColorBalloon])
         })
       })
+
+      context("ops.expression('=', ...)", () => {
+        it('matches records with the value in the specified column', async () => {
+          const balloons = await Balloon.whereAny([{ color: ops.expression('=', 'red') }]).all()
+          expect(balloons).toMatchDreamModels([redBalloon])
+        })
+      })
+
+      context("ops.expression('!=', ...)", () => {
+        it('include records with fields with a value that doesn’t match specified value, including null', async () => {
+          const balloons = await Balloon.whereAny([{ color: ops.expression('!=', 'red') }]).all()
+          expect(balloons).toMatchDreamModels([greenBalloon, noColorBalloon])
+        })
+      })
     })
 
     context('an array without null', () => {
@@ -54,6 +68,20 @@ describe('Query#whereAny', () => {
       context('ops.not.in', () => {
         it('include records with fields with a value that doesn’t match specified value, including null', async () => {
           const balloons = await Balloon.whereAny([{ color: ops.not.in(['red']) }]).all()
+          expect(balloons).toMatchDreamModels([greenBalloon, noColorBalloon])
+        })
+      })
+
+      context("ops.expression('in', ...)", () => {
+        it('matches records with any array value in the specified column', async () => {
+          const balloons = await Balloon.whereAny([{ color: ops.expression('in', ['red']) }]).all()
+          expect(balloons).toMatchDreamModels([redBalloon])
+        })
+      })
+
+      context("ops.expression('not in', ...)", () => {
+        it('include records with fields with a value that doesn’t match specified value, including null', async () => {
+          const balloons = await Balloon.whereAny([{ color: ops.expression('not in', ['red']) }]).all()
           expect(balloons).toMatchDreamModels([greenBalloon, noColorBalloon])
         })
       })
@@ -78,6 +106,20 @@ describe('Query#whereAny', () => {
           expect(balloons).toMatchDreamModels([redBalloon, greenBalloon])
         })
       })
+
+      context("ops.expression('in', ...)", () => {
+        it('matches records with null in the specified column', async () => {
+          const balloons = await Balloon.whereAny([{ color: ops.expression('in', [null]) }]).all()
+          expect(balloons).toMatchDreamModels([noColorBalloon])
+        })
+      })
+
+      context("ops.expression('not in', ...)", () => {
+        it('include records with non-null in that field', async () => {
+          const balloons = await Balloon.whereAny([{ color: ops.expression('not in', [null]) }]).all()
+          expect(balloons).toMatchDreamModels([redBalloon, greenBalloon])
+        })
+      })
     })
 
     context('an array with null and a non-null value', () => {
@@ -96,6 +138,20 @@ describe('Query#whereAny', () => {
       context('ops.not.in', () => {
         it('include records with non-null in that field that don’t match the non-null value', async () => {
           const balloons = await Balloon.whereAny([{ color: ops.not.in([null, 'red']) }]).all()
+          expect(balloons).toMatchDreamModels([greenBalloon])
+        })
+      })
+
+      context("ops.expression('in', ...)", () => {
+        it('matches records with null or the non-null value in the specified column', async () => {
+          const balloons = await Balloon.whereAny([{ color: ops.expression('in', [null, 'red']) }]).all()
+          expect(balloons).toMatchDreamModels([noColorBalloon, redBalloon])
+        })
+      })
+
+      context("ops.expression('not in', ...)", () => {
+        it('include records with non-null in that field that don’t match the non-null value', async () => {
+          const balloons = await Balloon.whereAny([{ color: ops.expression('not in', [null, 'red']) }]).all()
           expect(balloons).toMatchDreamModels([greenBalloon])
         })
       })
@@ -120,6 +176,20 @@ describe('Query#whereAny', () => {
           expect(balloons).toMatchDreamModels([redBalloon, greenBalloon, noColorBalloon])
         })
       })
+
+      context("ops.expression('in', ...)", () => {
+        it('returns no results', async () => {
+          const balloons = await Balloon.whereAny([{ color: ops.expression('in', []) }]).all()
+          expect(balloons).toMatchDreamModels([])
+        })
+      })
+
+      context("ops.expression('not in', ...)", () => {
+        it('returns results as if the array whereNot clause were not present', async () => {
+          const balloons = await Balloon.whereAny([{ color: ops.expression('not in', []) }]).all()
+          expect(balloons).toMatchDreamModels([redBalloon, greenBalloon, noColorBalloon])
+        })
+      })
     })
 
     context('a null value', () => {
@@ -138,6 +208,20 @@ describe('Query#whereAny', () => {
       context('ops.not.equal', () => {
         it('include records with non-null in that field', async () => {
           const balloons = await Balloon.whereAny([{ color: ops.not.equal(null) }]).all()
+          expect(balloons).toMatchDreamModels([redBalloon, greenBalloon])
+        })
+      })
+
+      context("ops.expression('=', ...)", () => {
+        it('matches records with null in the specified column', async () => {
+          const balloons = await Balloon.whereAny([{ color: ops.expression('=', null) }]).all()
+          expect(balloons).toMatchDreamModels([noColorBalloon])
+        })
+      })
+
+      context("ops.expression('!=', ...)", () => {
+        it('include records with non-null in that field', async () => {
+          const balloons = await Balloon.whereAny([{ color: ops.expression('!=', null) }]).all()
           expect(balloons).toMatchDreamModels([redBalloon, greenBalloon])
         })
       })
