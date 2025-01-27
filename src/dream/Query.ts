@@ -3760,14 +3760,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     } = {}
   ): ExpressionWrapper<any, any, any>[] {
     return compact(
-      Object.keys(whereStatement).flatMap(
-        (
-          attr
-        ):
-          | ExpressionWrapper<any, any, any>
-          | ExpressionWrapper<any, any, any>[]
-          | RawBuilder<any>
-          | undefined => {
+      Object.keys(whereStatement).map(
+        (attr): ExpressionWrapper<any, any, any> | RawBuilder<any> | undefined => {
           const val = (whereStatement as any)[attr]
 
           if (
@@ -3824,8 +3818,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
             //
           } else {
-            const whereExpression = [eb(a, b, c)]
-            if (b2) whereExpression.push(eb(a2, b2, c2))
+            const whereExpression = eb(a, b, c)
+            if (b2) whereExpression.and(eb(a2, b2, c2))
 
             return whereExpression
           }
@@ -3906,10 +3900,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
             //
           } else if (b === 'not in' && compactedC.length === 0) {
             if (expressionBuilderOrWrap) {
-              return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
-                // not in an empty array means match everything
-                sql<boolean>`TRUE`
-              ) as any
+              // not in an empty array means match everything
+              return expressionBuilderOrWrap
             } else {
               // not in an empty array means match everything
               return sql<boolean>`TRUE` as any
@@ -3933,16 +3925,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           } else {
             return eb(a, 'is', null)
           }
-
-          //   //
-          // } else if (b === 'not in' && Array.isArray(c) && c.includes(null)) {
-          //   if (expressionBuilderOrWrap === null) {
-          //     return eb.and([eb(a, 'not in', compact(c)), eb(a, 'is not', null)])
-          //   } else {
-          //     return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
-          //       eb.and([eb(a, 'not in', compact(c)), eb(a, 'is not', null)])
-          //     ) as any
-          //   }
 
           //
         } else if (b === '!=' && c === null) {
