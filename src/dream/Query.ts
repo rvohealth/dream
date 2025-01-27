@@ -6,7 +6,6 @@ import {
   ExpressionWrapper,
   JoinBuilder,
   ComparisonOperatorExpression as KyselyComparisonOperatorExpression,
-  RawBuilder,
   SelectQueryBuilder,
   SqlBool,
   UpdateQueryBuilder,
@@ -3758,200 +3757,71 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     }: {
       negate?: boolean
     } = {}
-  ): ExpressionWrapper<any, any, any>[] {
+  ): ExpressionWrapper<any, any, SqlBool>[] {
     return compact(
-      Object.keys(whereStatement).map(
-        (attr): ExpressionWrapper<any, any, any> | RawBuilder<any> | undefined => {
-          const val = (whereStatement as any)[attr]
-
-          if (
-            (val as OpsStatement<any, any>)?.isOpsStatement &&
-            (val as OpsStatement<any, any>).shouldBypassWhereStatement
-          ) {
-            // some ops statements are handled specifically in the select portion of the query,
-            // and should be ommited from the where clause directly
-            return
-          }
-
-          const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val, negate)
-
-          // postgres is unable to handle WHERE IN statements with blank arrays, such as in
-          // "WHERE id IN ()", meaning that:
-          // 1. If we receive a blank array during an IN comparison,
-          //    then we need to simply regurgitate a where statement which
-          //    guarantees no records.
-          // 2. If we receive a blank array during a NOT IN comparison,
-          //    then it is the same as the where statement not being present at all,
-          //    resulting in a noop on our end
-          //
-
-          if (Array.isArray(c)) {
-            if ((b === 'in' && c.includes(null)) || (b === 'not in' && !c.includes(null))) {
-              return this.inArrayWithNull_or_notInArrayWithoutNull_ExpressionBuilder(eb, a, b, c)
-            } else if (b === 'not in' && c.includes(null)) {
-              return this.notInArrayWithNullExpressionBuilder(eb, a, b, c)
-            }
-
-            const compactedC = compact(c)
-
-            if (b === 'in' && compactedC.length === 0) {
-              // in an empty array means match nothing
-              return sql<boolean>`FALSE`
-            } else if (b === 'not in' && compactedC.length === 0) {
-              // not in an empty array means match everything
-              return sql<boolean>`TRUE`
-            } else {
-              return eb(a, b, compactedC)
-            }
-
-            //
-          } else if (b === '=' && c === null) {
-            return eb(a, 'is', null)
-
-            //
-          } else if (b === '!=' && c === null) {
-            return eb(a, 'is not', null)
-
-            //
-          } else if (b === '!=' && c !== null) {
-            return eb.or([eb(a, '!=', c), eb(a, 'is', null)])
-
-            //
-          } else {
-            const whereExpression = eb(a, b, c)
-            if (b2) whereExpression.and(eb(a2, b2, c2))
-
-            return whereExpression
-          }
-        }
-      )
-    )
-  }
-
-  private orStatementsToExpressionWrappers(
-    eb: ExpressionBuilder<any, any>,
-    orStatement: WhereStatement<any, any, any>
-  ): ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any> {
-    return Object.keys(orStatement).reduce(
-      (
-        expressionBuilderOrWrap: ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any> | null,
-        attr: any
-      ): ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any> => {
-        const val = (orStatement as any)[attr]
+      Object.keys(whereStatement).map(attr => {
+        const val = (whereStatement as any)[attr]
 
         if (
           (val as OpsStatement<any, any>)?.isOpsStatement &&
           (val as OpsStatement<any, any>).shouldBypassWhereStatement
         ) {
-          throw new Error('Similarity operator may not be used in whereAny')
+          // some ops statements are handled specifically in the select portion of the query,
+          // and should be ommited from the where clause directly
+          return
         }
 
-        const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val)
+        const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val, negate)
 
         // postgres is unable to handle WHERE IN statements with blank arrays, such as in
         // "WHERE id IN ()", meaning that:
-        // 1. If we receive a blank array during a IN comparison,
+        // 1. If we receive a blank array during an IN comparison,
         //    then we need to simply regurgitate a where statement which
         //    guarantees no records.
         // 2. If we receive a blank array during a NOT IN comparison,
         //    then it is the same as the where statement not being present at all,
         //    resulting in a noop on our end
+        //
 
         if (Array.isArray(c)) {
           if ((b === 'in' && c.includes(null)) || (b === 'not in' && !c.includes(null))) {
-            if (expressionBuilderOrWrap) {
-              return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
-                this.inArrayWithNull_or_notInArrayWithoutNull_ExpressionBuilder(eb, a, b, c)
-              ) as any
-            } else {
-              return this.inArrayWithNull_or_notInArrayWithoutNull_ExpressionBuilder(eb, a, b, c)
-            }
+            return this.inArrayWithNull_or_notInArrayWithoutNull_ExpressionBuilder(eb, a, b, c)
           } else if (b === 'not in' && c.includes(null)) {
-            if (expressionBuilderOrWrap) {
-              return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
-                this.notInArrayWithNullExpressionBuilder(eb, a, b, c)
-              ) as any
-            } else {
-              return this.notInArrayWithNullExpressionBuilder(eb, a, b, c)
-            }
+            return this.notInArrayWithNullExpressionBuilder(eb, a, b, c)
           }
 
           const compactedC = compact(c)
 
           if (b === 'in' && compactedC.length === 0) {
-            if (expressionBuilderOrWrap) {
-              return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
-                // in an empty array means match nothing
-                sql<boolean>`FALSE`
-              ) as any
-            } else {
-              // in an empty array means match nothing
-              return sql<boolean>`FALSE` as any
-            }
-
-            //
+            // in an empty array means match nothing
+            return sql<boolean>`FALSE`
           } else if (b === 'not in' && compactedC.length === 0) {
-            if (expressionBuilderOrWrap) {
-              // not in an empty array means match everything
-              return expressionBuilderOrWrap
-            } else {
-              // not in an empty array means match everything
-              return sql<boolean>`TRUE` as any
-            }
-
-            //
+            // not in an empty array means match everything
+            return sql<boolean>`TRUE`
           } else {
-            if (expressionBuilderOrWrap) {
-              return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
-                eb(a, b, compactedC)
-              ) as any
-            } else {
-              return eb(a, b, compactedC)
-            }
+            return eb(a, b, compactedC)
           }
 
           //
         } else if (b === '=' && c === null) {
-          if (expressionBuilderOrWrap) {
-            return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(eb(a, 'is', null)) as any
-          } else {
-            return eb(a, 'is', null)
-          }
+          return eb(a, 'is', null)
 
           //
         } else if (b === '!=' && c === null) {
-          if (expressionBuilderOrWrap) {
-            return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
-              eb(a, 'is not', null)
-            ) as any
-          } else {
-            return eb(a, 'is not', null)
-          }
+          return eb(a, 'is not', null)
 
           //
         } else if (b === '!=' && c !== null) {
-          if (expressionBuilderOrWrap) {
-            return (expressionBuilderOrWrap as ExpressionWrapper<any, any, any>).and(
-              eb.or([eb(a, '!=', c), eb(a, 'is', null)])
-            ) as any
-          } else {
-            return eb.or([eb(a, '!=', c), eb(a, 'is', null)])
-          }
+          return eb.or([eb(a, '!=', c), eb(a, 'is', null)])
 
           //
         } else {
-          if (expressionBuilderOrWrap) {
-            expressionBuilderOrWrap = (expressionBuilderOrWrap as any).and(eb(a, b, c))
-          } else {
-            expressionBuilderOrWrap = eb(a, b, c)
-          }
-
-          if (b2) expressionBuilderOrWrap = (expressionBuilderOrWrap as any).and(eb(a2, b2, c2))
-          return expressionBuilderOrWrap as any
+          const expression = eb(a, b, c)
+          if (b2) return expression.and(eb(a2, b2, c2))
+          return expression
         }
-      },
-      null
-    ) as ExpressionBuilder<any, any> | ExpressionWrapper<any, any, any>
+      })
+    )
   }
 
   private dreamWhereStatementToExpressionBuilderParts(attr: string, val: any, negate: boolean = false) {
@@ -4106,13 +3976,15 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           .aliasWhereStatements(query.whereNotStatements, query.baseSqlAlias)
           .flatMap(statement => this.whereStatementsToExpressionWrappers(eb, statement, { negate: true }))
 
-        const orEbs: ExpressionWrapper<any, any, any>[] = []
+        const orEbs: ExpressionWrapper<any, any, SqlBool>[] = []
 
         if (query.orStatements.length) {
           query.orStatements.forEach(orStatement => {
             const aliasedOrStatementExpressionWrapper = query
               .aliasWhereStatements(orStatement, query.baseSqlAlias)
-              .map(aliasedOrStatement => this.orStatementsToExpressionWrappers(eb, aliasedOrStatement))
+              .map(aliasedOrStatement =>
+                eb.and(this.whereStatementsToExpressionWrappers(eb, aliasedOrStatement))
+              )
             orEbs.push(eb.or(aliasedOrStatementExpressionWrapper))
           })
         }
