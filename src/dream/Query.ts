@@ -3754,8 +3754,10 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     whereStatement: WhereStatement<any, any, any>,
     {
       negate = false,
+      disallowSimilarityOperator = false,
     }: {
       negate?: boolean
+      disallowSimilarityOperator?: boolean
     } = {}
   ): ExpressionWrapper<any, any, SqlBool>[] {
     return compact(
@@ -3766,6 +3768,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
           (val as OpsStatement<any, any>)?.isOpsStatement &&
           (val as OpsStatement<any, any>).shouldBypassWhereStatement
         ) {
+          if (disallowSimilarityOperator) throw new Error('Similarity operator may not be used in whereAny')
+
           // some ops statements are handled specifically in the select portion of the query,
           // and should be ommited from the where clause directly
           return
@@ -3983,7 +3987,11 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
             const aliasedOrStatementExpressionWrapper = query
               .aliasWhereStatements(orStatement, query.baseSqlAlias)
               .map(aliasedOrStatement =>
-                eb.and(this.whereStatementsToExpressionWrappers(eb, aliasedOrStatement))
+                eb.and(
+                  this.whereStatementsToExpressionWrappers(eb, aliasedOrStatement, {
+                    disallowSimilarityOperator: true,
+                  })
+                )
               )
             orEbs.push(eb.or(aliasedOrStatementExpressionWrapper))
           })
