@@ -3828,14 +3828,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
     )
   }
 
-  private operatorIsEquals(operator: KyselyComparisonOperatorExpression, negate: boolean) {
-    return (!negate && operator === '=') || (negate && operator === '!=')
-  }
-
-  private operatorIsNotEquals(operator: KyselyComparisonOperatorExpression, negate: boolean) {
-    return (!negate && operator === '!=') || (negate && operator === '=')
-  }
-
   private orStatementsToExpressionWrappers(
     eb: ExpressionBuilder<any, any>,
     orStatement: WhereStatement<any, any, any>
