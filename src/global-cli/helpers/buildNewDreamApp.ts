@@ -4,10 +4,9 @@ import * as fs from 'fs'
 import DreamtsBuilder from '../file-builders/DreamtsBuilder'
 import EnvBuilder from '../file-builders/EnvBuilder'
 import PackagejsonBuilder from '../file-builders/PackagejsonBuilder'
-import argAndValue from './argAndValue'
 import copyRecursive from './copyRecursive'
 import log from './log'
-import { primaryKeyTypes } from './primaryKeyTypes'
+import { cliPrimaryKeyTypes, InitDreamAppCliOptions } from './primaryKeyTypes'
 import Select from './select'
 import sleep from './sleep'
 import sspawn from './sspawn'
@@ -17,8 +16,15 @@ function testEnv() {
   return process.env.NODE_ENV === 'test'
 }
 
-export default async function buildNewDreamApp(appName: string, projectPath: string, args: string[]) {
-  const userOptions = await gatherUserInput(args)
+export default async function buildNewDreamApp(
+  appName: string,
+  projectPath: string,
+  options: InitDreamAppCliOptions
+) {
+  if (!options.primaryKeyType) {
+    const answer = await new Select('what primary key type would you like to use?', cliPrimaryKeyTypes).run()
+    options.primaryKeyType = answer
+  }
 
   copyRecursive(__dirname + '/../../../boilerplate', `${projectPath}/src`)
 
@@ -31,20 +37,7 @@ export default async function buildNewDreamApp(appName: string, projectPath: str
   fs.writeFileSync(`${projectPath}/.env`, EnvBuilder.build({ appName, env: 'development' }))
   fs.writeFileSync(`${projectPath}/.env.test`, EnvBuilder.build({ appName, env: 'test' }))
   fs.writeFileSync(projectPath + '/package.json', await PackagejsonBuilder.buildAPI())
-  fs.writeFileSync(
-    `${projectPath}/src/conf/dream.ts`,
-    DreamtsBuilder.build({
-      dbPath: 'src/db',
-      typesPath: 'src/types',
-      modelsPath: 'src/app/models',
-      serializersPath: 'src/app/serializers',
-      confPath: 'src/conf',
-      servicesPath: 'src/app/services',
-      modelSpecsPath: 'spec/unit/models',
-      factoriesPath: 'spec/factories',
-      primaryKeyType: userOptions.primaryKeyType,
-    })
-  )
+  fs.writeFileSync(`${projectPath}/src/conf/dream.ts`, DreamtsBuilder.build(options))
 
   if (!testEnv()) {
     log.restoreCache()
@@ -52,7 +45,7 @@ export default async function buildNewDreamApp(appName: string, projectPath: str
     log.write(c.green(`Step 3. Installing dream dependencies...`))
 
     // only run yarn install if not in test env to save time
-    await sspawn(`cd ${projectPath} && yarn install`)
+    await sspawn(`cd ${projectPath} && touch yarn.lock && yarn install`)
   }
 
   // sleeping here because yarn has a delayed print that we need to clean up
@@ -77,36 +70,8 @@ export default async function buildNewDreamApp(appName: string, projectPath: str
   // await sspawn(`yarn --cwd=${projectPath} dream sync:existing`)
 
   if (!testEnv()) {
-    // do not use git during tests, since this will break in CI
-    await sspawn(`cd ./${appName} && git add --all && git commit -m 'dream init' --quiet`)
-
     log.restoreCache()
     log.write(c.green(`Step 5. Build project: Done!`), { cache: true })
     console.log(welcomeMessage(appName))
   }
-}
-
-export interface NewAppCLIOptions {
-  primaryKeyType: (typeof primaryKeyTypes)[number]
-}
-
-async function primaryKeyTypeQuestion(args: string[], options: NewAppCLIOptions) {
-  const [primaryKeyArg, value] = argAndValue('--primaryKey', args)
-  if (primaryKeyArg && primaryKeyTypes.includes(value! as (typeof primaryKeyTypes)[number])) {
-    options.primaryKeyType = value as (typeof primaryKeyTypes)[number]
-    return
-  }
-
-  const answer = await new Select('what primary key type would you like to use?', primaryKeyTypes).run()
-  options.primaryKeyType = answer
-}
-
-async function gatherUserInput(args: string[]) {
-  const options: NewAppCLIOptions = {
-    primaryKeyType: 'bigserial',
-  }
-
-  await primaryKeyTypeQuestion(args, options)
-
-  return options
 }
