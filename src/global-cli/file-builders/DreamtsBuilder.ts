@@ -1,27 +1,19 @@
-import { primaryKeyTypes } from '../helpers/primaryKeyTypes'
+import { InitDreamAppCliOptions } from '../helpers/primaryKeyTypes'
 
 export default class DreamtsBuilder {
-  public static build({
-    confPath,
-    dbPath,
-    typesPath,
-    factoriesPath,
-    modelsPath,
-    serializersPath,
-    servicesPath,
-    modelSpecsPath,
-    primaryKeyType,
-  }: {
-    confPath: string
-    dbPath: string
-    typesPath: string
-    factoriesPath: string
-    modelsPath: string
-    serializersPath: string
-    servicesPath: string
-    modelSpecsPath: string
-    primaryKeyType: (typeof primaryKeyTypes)[number]
-  }) {
+  public static build(options: InitDreamAppCliOptions) {
+    const {
+      configPath,
+      dbPath,
+      typesPath,
+      factoriesPath,
+      modelsPath,
+      serializersPath,
+      servicesPath,
+      modelSpecsPath,
+      primaryKeyType,
+    } = options
+
     return `\
 import path from 'path'
 import { DreamApplication } from '@rvohealth/dream'
@@ -52,7 +44,7 @@ export default async function (app: DreamApplication) {
   // provides a list of path overrides for your app. This is optional, and will default
   // to the paths expected for a typical psychic application.
   app.set('paths', {
-    conf: '${confPath}',
+    conf: '${configPath}',
     db: '${dbPath}',
     types: '${typesPath}',
     factories: '${factoriesPath}',

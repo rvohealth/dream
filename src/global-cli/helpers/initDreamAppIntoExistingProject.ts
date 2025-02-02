@@ -5,17 +5,17 @@ import path from 'path'
 import DreamtsBuilder from '../file-builders/DreamtsBuilder'
 import EnvBuilder from '../file-builders/EnvBuilder'
 import PackagejsonBuilder from '../file-builders/PackagejsonBuilder'
-import { InitDreamAppCLIOptions } from '../init'
 import copyRecursive from './copyRecursive'
 import filterObjectByKey from './filterObjectByKey'
 import log from './log'
+import { InitDreamAppCliOptions } from './primaryKeyTypes'
 import sleep from './sleep'
 import sspawn from './sspawn'
 import welcomeMessage from './welcomeMessage'
 
 export default async function initDreamAppIntoExistingProject(
   appName: string,
-  options: InitDreamAppCLIOptions
+  options: InitDreamAppCliOptions
 ) {
   createDirIfNotExists(options.projectPath)
   createDirIfNotExists(path.join(options.projectPath, options.configPath))
@@ -37,7 +37,7 @@ export default async function initDreamAppIntoExistingProject(
     path.join(options.projectPath, options.serializersPath)
   )
   copyRecursive(
-    __dirname + '/../../../boilerplate/db',
+    __dirname + '/../../../boilerplate/types',
     path.join(process.cwd(), options.projectPath, options.dbPath)
   )
 
@@ -51,17 +51,7 @@ export default async function initDreamAppIntoExistingProject(
   fs.writeFileSync(`${options.projectPath}/.env.test`, EnvBuilder.build({ appName, env: 'test' }))
   fs.writeFileSync(
     path.join(process.cwd(), options.projectPath, options.configPath, 'dream.ts'),
-    DreamtsBuilder.build({
-      dbPath: options.dbPath,
-      modelsPath: options.modelsPath,
-      serializersPath: options.serializersPath,
-      confPath: options.configPath,
-      servicesPath: options.servicesPath,
-      modelSpecsPath: options.modelSpecsPath,
-      factoriesPath: options.factoriesPath,
-      primaryKeyType: options.primaryKeyType,
-      typesPath: options.typesPath,
-    })
+    DreamtsBuilder.build(options)
   )
 
   const packageJsonPath = path.join(process.cwd(), options.projectPath, 'package.json')
@@ -84,7 +74,7 @@ export default async function initDreamAppIntoExistingProject(
     log.write(c.green(`Step 3. Installing dream dependencies...`))
 
     // only run yarn install if not in test env to save time
-    await sspawn(`cd ${options.projectPath} && yarn install`)
+    await sspawn(`cd ${options.projectPath} && touch yarn.lock  && yarn install`)
   }
 
   // sleeping here because yarn has a delayed print that we need to clean up
@@ -100,9 +90,6 @@ export default async function initDreamAppIntoExistingProject(
   // await sspawn(`yarn --cwd=${projectPath} dream sync:existing`)
 
   if (!testEnv()) {
-    // do not use git during tests, since this will break in CI
-    await sspawn(`cd ./${options.projectPath} && git add --all && git commit -m 'dream init' --quiet`)
-
     log.restoreCache()
     log.write(c.green(`Step 5. Build project: Done!`), { cache: true })
     console.log(welcomeMessage(options.projectPath))
