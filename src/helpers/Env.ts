@@ -14,7 +14,7 @@ export default class Env<
     return !this.isDevelopmentOrTest
   }
 
-  public get nodeEnv(): 'production' | 'development' | 'test' {
+  public get nodeEnv(): StandardNodeEnvValues {
     switch (this.optional('NODE_ENV')) {
       case 'production':
         return 'production'
@@ -25,6 +25,11 @@ export default class Env<
       default:
         return 'production'
     }
+  }
+
+  public provideDefaultNodeEnv(defaultNodeEnv: StandardNodeEnvValues) {
+    if (process.env.NODE_ENV) return
+    process.env.NODE_ENV = defaultNodeEnv
   }
 
   public get isDebug(): boolean {
@@ -98,3 +103,5 @@ export default class Env<
     return process.env[variable]
   }
 }
+
+export type StandardNodeEnvValues = 'production' | 'development' | 'test'
