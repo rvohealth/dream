@@ -8,10 +8,31 @@ import {
   DEFAULT_SKIP_HOOKS,
 } from './scopeHelpers'
 
+/**
+ * Options for destroying a Dream instance or its associations.
+ */
 export interface DestroyOptions<DreamInstance extends Dream> {
+  /**
+   * If true, bypasses all default scopes when destroying the instance.
+   * Defaults to false.
+   */
   bypassAllDefaultScopes?: boolean
+
+  /**
+   * An array of default scope names to bypass when destroying the instance.
+   * Defaults to an empty array.
+   */
   defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance>[]
+
+  /**
+   * If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true.
+   */
   cascade?: boolean
+
+  /**
+   * If true, skips applying model hooks during the destroy operation.
+   * Defaults to false.
+   */
   skipHooks?: boolean
 }
 

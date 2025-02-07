@@ -2439,7 +2439,7 @@ export default class Dream {
   /**
    * Returns the value of the primary key
    *
-   * @returns The value of the primary key field for this Dream instance
+   * @returns IdType - the value of the primary key field for this Dream instance
    */
   public get primaryKeyValue(): IdType {
     return (this as any)[this.primaryKey] || null
@@ -3194,11 +3194,15 @@ export default class Dream {
    * await user.destroy()
    * ```
    *
-   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
-   * @param opts.cascade - if false, will skip applying cascade deletes on "dependent: 'destroy'" associations. Defaults to true
-   * @returns the instance that was destroyed
+   * @param options - Options for destroying the instance.
+   * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false.
+   * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true.
+   * @returns The instance that was destroyed
    */
-  public async destroy<I extends Dream>(this: I, options: DestroyOptions<I> = {}): Promise<I> {
+  public async destroy<I extends Dream>(
+    this: I,
+    options: Pick<DestroyOptions<I>, 'cascade' | 'skipHooks'> = {}
+  ): Promise<I> {
     return await destroyDream(this, null, destroyOptions<I>(options))
   }
 
@@ -3214,14 +3218,18 @@ export default class Dream {
    *
    * ```ts
    * const user = await User.last()
-   * await user.destroy()
+   * await user.reallyDestroy()
    * ```
    *
-   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
-   * @param opts.cascade - if false, will skip applying cascade deletes on "dependent: 'destroy'" associations. Defaults to true
-   * @returns the instance that was destroyed
+   * @param options - Options for destroying the instance.
+   * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false.
+   * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true.
+   * @returns The instance that was destroyed
    */
-  public async reallyDestroy<I extends Dream>(this: I, options: DestroyOptions<I> = {}): Promise<I> {
+  public async reallyDestroy<I extends Dream>(
+    this: I,
+    options: Pick<DestroyOptions<I>, 'cascade' | 'skipHooks'> = {}
+  ): Promise<I> {
     return await destroyDream(this, null, reallyDestroyOptions<I>(options))
   }
 
@@ -3235,14 +3243,17 @@ export default class Dream {
    * ```ts
    * const user = await User.removeAllDefaultScopes().last()
    * await user.undestroy()
-   * // 12
    * ```
    *
-   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
-   * @param opts.cascade - if false, will skip applying cascade undeletes on "dependent: 'destroy'" associations. Defaults to true
+   * @param options - Options for undestroying the instance.
+   * @param options.skipHooks - If true, skips applying model hooks during the undestroy operation. Defaults to false.
+   * @param options.cascade - If false, skips undestroying associations marked `dependent: 'destroy'`. Defaults to true.
    * @returns The undestroyed record
    */
-  public async undestroy<I extends Dream>(this: I, options: DestroyOptions<I> = {}): Promise<I> {
+  public async undestroy<I extends Dream>(
+    this: I,
+    options: Pick<DestroyOptions<I>, 'cascade' | 'skipHooks'> = {}
+  ): Promise<I> {
     const dreamClass = this.constructor as typeof Dream
     if (!dreamClass['softDelete']) throw new CannotCallUndestroyOnANonSoftDeleteModel(dreamClass)
 
@@ -3563,9 +3574,12 @@ export default class Dream {
    * ```
    *
    * @param associationName - The name of the association to destroy
-   * @param opts.whereStatement - Optional where statement to apply to query before destroying
-   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
-   * @param opts.cascade - if false, will skip applying cascade undeletes on "dependent: 'destroy'" associations. Defaults to true
+   * @param options - Options for destroying the association.
+   * @param options.where - Optional where statement to apply to query before destroying
+   * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false.
+   * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true.
+   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when destroying the association. Defaults to false.
+   * @param options.defaultScopesToBypass - An array of default scope names to bypass when destroying the association. Defaults to an empty array.
    * @returns The number of records deleted
    */
   public async destroyAssociation<I extends Dream, AssociationName extends DreamAssociationNames<I>>(
@@ -3618,7 +3632,7 @@ export default class Dream {
    * Destroys models associated with the current instance,
    * deleting their corresponding records within the database.
    *
-   * If the record, or else any of it's associations
+   * If the record, or else any of its associations
    * which are marked cascade: "destroy", are using
    * the SoftDelete decorator, it will be bypassed,
    * causing those records to be deleted from the database.
@@ -3628,9 +3642,12 @@ export default class Dream {
    * ```
    *
    * @param associationName - The name of the association to destroy
-   * @param opts.whereStatement - Optional where statement to apply to query before destroying
-   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
-   * @param opts.cascade - if false, will skip applying cascade undeletes on "dependent: 'destroy'" associations. Defaults to true
+   * @param options - Options for destroying the association.
+   * @param options.where - Optional where statement to apply to query before destroying
+   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when destroying the association. Defaults to false.
+   * @param options.defaultScopesToBypass - An array of default scope names to bypass when destroying the association. Defaults to an empty array.
+   * @param options.cascade - If true, cascades the destroy operation to associations marked with `dependent: 'destroy'`. Defaults to true.
+   * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false.
    * @returns The number of records deleted
    */
   public async reallyDestroyAssociation<I extends Dream, AssociationName extends DreamAssociationNames<I>>(
@@ -3688,10 +3705,13 @@ export default class Dream {
    * await user.undestroyAssociation('posts', { body: 'hello world' })
    * ```
    *
-   * @param associationName - The name of the association to destroy
-   * @param opts.whereStatement - Optional where statement to apply to query before undestroying
-   * @param opts.skipHooks - Whether or not to skip model hooks when undestroying
-   * @param opts.cascade - Whether or not to cascade undestroy child associations
+   * @param associationName - The name of the association to undestroy
+   * @param options - Options for undestroying the association.
+   * @param options.where - Optional where statement to apply to query before undestroying
+   * @param options.skipHooks - If true, skips applying model hooks during the undestroy operation. Defaults to false.
+   * @param options.cascade - If false, skips undestroying associations marked `dependent: 'destroy'`. Defaults to true.
+   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when undestroying the association. Defaults to false.
+   * @param options.defaultScopesToBypass - An array of default scope names to bypass when undestroying the association. Defaults to an empty array.
    * @returns The number of records undestroyed
    */
   public async undestroyAssociation<I extends Dream, AssociationName extends DreamAssociationNames<I>>(
@@ -3704,6 +3724,7 @@ export default class Dream {
       associationWhereStatement: (options as any)?.where,
     })
   }
+
   ///////////////////
   // end: undestroyAssociation
   ///////////////////
@@ -3814,6 +3835,13 @@ export default class Dream {
    * // 1
    * ```
    *
+   * @param associationName - The name of the association to update
+   * @param attributes - The attributes to update on the association
+   * @param options - Options for updating the association.
+   * @param options.where - Optional where statement to apply to query before updating
+   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when updating the association. Defaults to false.
+   * @param options.defaultScopesToBypass - An array of default scope names to bypass when updating the association. Defaults to an empty array.
+   * @param options.skipHooks - If true, skips applying model hooks during the update operation. Defaults to false.
    * @returns The number of updated records
    */
   public async updateAssociation<I extends Dream, AssociationName extends DreamAssociationNames<I>>(
@@ -3830,6 +3858,7 @@ export default class Dream {
         (updateAssociationOptions as any)?.defaultScopesToBypass ?? DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
     }).update(attributes, { skipHooks: (updateAssociationOptions as any)?.skipHooks })
   }
+
   ///////////////////
   // end: updateAssociation
   ///////////////////
