@@ -3199,10 +3199,7 @@ export default class Dream {
    * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true.
    * @returns The instance that was destroyed
    */
-  public async destroy<I extends Dream>(
-    this: I,
-    options: Pick<DestroyOptions<I>, 'cascade' | 'skipHooks'> = {}
-  ): Promise<I> {
+  public async destroy<I extends Dream>(this: I, options: DestroyOptions<I> = {}): Promise<I> {
     return await destroyDream(this, null, destroyOptions<I>(options))
   }
 
@@ -3250,10 +3247,7 @@ export default class Dream {
    * @param options.cascade - If false, skips undestroying associations marked `dependent: 'destroy'`. Defaults to true.
    * @returns The undestroyed record
    */
-  public async undestroy<I extends Dream>(
-    this: I,
-    options: Pick<DestroyOptions<I>, 'cascade' | 'skipHooks'> = {}
-  ): Promise<I> {
+  public async undestroy<I extends Dream>(this: I, options: DestroyOptions<I> = {}): Promise<I> {
     const dreamClass = this.constructor as typeof Dream
     if (!dreamClass['softDelete']) throw new CannotCallUndestroyOnANonSoftDeleteModel(dreamClass)
 
