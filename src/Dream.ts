@@ -2439,7 +2439,7 @@ export default class Dream {
   /**
    * Returns the value of the primary key
    *
-   * @returns IdType - the value of the primary key field for this Dream instance
+   * @returns The value of the primary key field for this Dream instance
    */
   public get primaryKeyValue(): IdType {
     return (this as any)[this.primaryKey] || null
