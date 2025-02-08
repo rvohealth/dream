@@ -693,7 +693,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
-   *   await user.txn(txn).destroyAssociation('posts', { body: 'hello world' })
+   *   await user.txn(txn).destroyAssociation('posts', { where: { body: 'hello world' } })
    * })
    * ```
    *
@@ -761,7 +761,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
-   *   await user.txn(txn).reallyDestroyAssociation('posts', { body: 'hello world' })
+   *   await user.txn(txn).reallyDestroyAssociation('posts', { where: { body: 'hello world' } })
    * })
    * ```
    *
@@ -825,7 +825,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * will also be undeleted.
    *
    * ```ts
-   * await user.undestroyAssociation('posts', { body: 'hello world' })
+   * await user.undestroyAssociation('posts', { where: { body: 'hello world' } })
    * ```
    *
    * @param associationName - The name of the association to undestroy
