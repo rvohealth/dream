@@ -493,14 +493,14 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   /**
    * Finds a record matching the Query with the
    * specified primary key. If not found, null
-   * is returned
+   * is returned.
    *
    * ```ts
    * await User.query().find(123)
    * // User{id: 123}
    * ```
    *
-   * @param primaryKey - The primaryKey of the record to look up
+   * @param primaryKey - The primary key of the record to look up
    * @returns Either the found record, or else null
    */
   public async find(primaryKey: PrimaryKeyForFind<DreamInstance>): Promise<DreamInstance | null> {
@@ -521,7 +521,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * // User{id: 123}
    * ```
    *
-   * @param primaryKey - The primaryKey of the record to look up
+   * @param primaryKey - The primary key of the record to look up
    * @returns The found record
    */
   public async findOrFail(primaryKey: PrimaryKeyForFind<DreamInstance>): Promise<DreamInstance> {
@@ -533,7 +533,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   /**
    * Finds a record matching the Query and the
    * specified where statement. If not found, null
-   * is returned
+   * is returned.
    *
    * ```ts
    * await User.query().findBy({ email: 'how@yadoin' })
@@ -541,7 +541,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * ```
    *
    * @param whereStatement - The where statement used to locate the record
-   * @returns Either the the first record found matching the attributes, or else null
+   * @returns Either the first record found matching the attributes, or else null
    */
   public async findBy<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
     whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>
@@ -551,8 +551,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
   /**
    * Finds a record matching the Query and the
-   * specified where statement. If not found, null
-   * is returned
+   * specified where statement. If not found, an exception
+   * is raised.
    *
    * ```ts
    * await User.query().findOrFailBy({ email: 'how@yadoin' })
@@ -560,7 +560,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * ```
    *
    * @param whereStatement - The where statement used to locate the record
-   * @returns Either the the first record found matching the attributes, or else null
+   * @returns The first record found matching the attributes
    */
   public async findOrFailBy<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
     whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>
@@ -572,9 +572,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
   /**
    * Finds all records matching the Query in batches,
-   * and then calls the provided callback
-   * for each found record. Once all records
-   * have been passed for a given batch, the next set of
+   * and then calls the provided callback for each found record.
+   * Once all records have been passed for a given batch, the next set of
    * records will be fetched and passed to your callback, until all
    * records matching the Query have been fetched.
    *
@@ -587,7 +586,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * ```
    *
    * @param cb - The callback to call for each found record
-   * @param opts.batchSize - the batch size you wish to collect records in. If not provided, it will default to 1000
+   * @param options.batchSize - The batch size you wish to collect records in. If not provided, it will default to 1000
    * @returns void
    */
   public async findEach(
@@ -642,7 +641,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @param dreams - An array of dream instances to load associations into
    * @param args - A chain of association names
    * @returns A LoadIntoModels instance
-   *
    */
   public async loadInto<
     DB extends DreamInstance['DB'],
