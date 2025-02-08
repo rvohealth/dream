@@ -47,6 +47,12 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   public dreamInstance: DreamInstance
   public dreamTransaction: DreamTransaction<Dream>
 
+  /**
+   * Constructs a new DreamInstanceTransactionBuilder.
+   *
+   * @param dreamInstance - The Dream instance to build the transaction for
+   * @param txn - The DreamTransaction instance
+   */
   constructor(dreamInstance: DreamInstance, txn: DreamTransaction<Dream>) {
     this.dreamInstance = dreamInstance
     this.dreamTransaction = txn
@@ -54,11 +60,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
 
   /**
    * Plucks the specified fields from the join Query,
-   * scoping the query to the model instance's primary
-   * key.
+   * scoping the query to the model instance's primary key.
    *
    * ```ts
-   *
    * await ApplicationModel.transaction(async txn => {
    *   const user = await User.txn(txn).first()
    *   await user.txn(txn).pluckThrough(
@@ -90,7 +94,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * ```
    *
    * @param args - A chain of association names and where clauses ending with the column or array of columns to pluck
-   * @returns An array of pluck results
+   * @returns An array of pluck results.
    */
   public async pluckThrough<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
@@ -147,7 +151,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
 
   /**
    * Join through associations, with optional where clauses,
-   * and return the minimum value for the specified column
+   * and return the minimum value for the specified column.
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
@@ -157,7 +161,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * ```
    *
    * @param args - A chain of association names and where clauses ending with the column to min
-   * @returns the min value of the specified column for the nested association's records
+   * @returns The min value of the specified column for the nested association's records.
    */
   public async minThrough<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
@@ -177,7 +181,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
 
   /**
    * Join through associations, with optional where clauses,
-   * and return the maximum value for the specified column
+   * and return the maximum value for the specified column.
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
@@ -187,7 +191,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * ```
    *
    * @param args - A chain of association names and where clauses ending with the column to max
-   * @returns the max value of the specified column for the nested association's records
+   * @returns The max value of the specified column for the nested association's records.
    */
   public async maxThrough<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
@@ -206,8 +210,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   }
 
   /**
-   * Retrieves the number of records matching
-   * the given query.
+   * Retrieves the number of records matching the given query.
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
@@ -217,7 +220,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * ```
    *
    * @param args - A chain of association names and where clauses
-   * @returns the number of records found matching the given parameters
+   * @returns The number of records found matching the given parameters.
    */
   public async countThrough<
     DB extends DreamInstance['DB'],
@@ -319,9 +322,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * })
    * ```
    *
-   * @param options - Options for destroying the instance.
-   * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true.
-   * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false.
+   * @param options - Options for destroying the instance
+   * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
+   * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
    * @returns The instance that was destroyed
    */
   public async destroy<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
@@ -347,9 +350,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * })
    * ```
    *
-   * @param options - Options for destroying the instance.
-   * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true.
-   * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false.
+   * @param options - Options for destroying the instance
+   * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
+   * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
    * @returns The instance that was destroyed
    */
   public async reallyDestroy<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
@@ -375,9 +378,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * await user.txn(txn).undestroy()
    * ```
    *
-   * @param options - Options for undestroying the instance.
-   * @param options.cascade - If false, skips undestroying associations marked `dependent: 'destroy'`. Defaults to true.
-   * @param options.skipHooks - If true, skips applying model hooks during the undestroy operation. Defaults to false.
+   * @param options - Options for undestroying the instance
+   * @param options.cascade - If false, skips undestroying associations marked `dependent: 'destroy'`. Defaults to true
+   * @param options.skipHooks - If true, skips applying model hooks during the undestroy operation. Defaults to false
    * @returns The undestroyed instance
    */
   public async undestroy<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
@@ -595,11 +598,11 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    *
    * @param associationName - The name of the association to update
    * @param attributes - The attributes to update on the association
-   * @param updateAssociationOptions - Options for updating the association.
+   * @param updateAssociationOptions - Options for updating the association
    * @param updateAssociationOptions.where - Optional where statement to apply to query before updating
-   * @param updateAssociationOptions.bypassAllDefaultScopes - If true, bypasses all default scopes when updating the association. Defaults to false.
-   * @param updateAssociationOptions.defaultScopesToBypass - An array of default scope names to bypass when updating the association. Defaults to an empty array.
-   * @param updateAssociationOptions.skipHooks - If true, skips applying model hooks during the update operation. Defaults to false.
+   * @param updateAssociationOptions.bypassAllDefaultScopes - If true, bypasses all default scopes when updating the association. Defaults to false
+   * @param updateAssociationOptions.defaultScopesToBypass - An array of default scope names to bypass when updating the association. Defaults to an empty array
+   * @param updateAssociationOptions.skipHooks - If true, skips applying model hooks during the update operation. Defaults to false
    * @returns The number of updated records
    */
   public async updateAssociation<
@@ -695,12 +698,12 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * ```
    *
    * @param associationName - The name of the association to destroy
-   * @param options - Options for destroying the association.
+   * @param options - Options for destroying the association
    * @param options.where - Optional where statement to apply to query before destroying
-   * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true.
-   * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false.
-   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when destroying the association. Defaults to false.
-   * @param options.defaultScopesToBypass - An array of default scope names to bypass when destroying the association. Defaults to an empty array.
+   * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
+   * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
+   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when destroying the association. Defaults to false
+   * @param options.defaultScopesToBypass - An array of default scope names to bypass when destroying the association. Defaults to an empty array
    * @returns The number of records deleted
    */
   public async destroyAssociation<
@@ -763,12 +766,12 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * ```
    *
    * @param associationName - The name of the association to destroy
-   * @param options - Options for destroying the association.
+   * @param options - Options for destroying the association
    * @param options.where - Optional where statement to apply to query before destroying
-   * @param options.cascade - If true, cascades the destroy operation to associations marked with `dependent: 'destroy'`. Defaults to true.
-   * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false.
-   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when destroying the association. Defaults to false.
-   * @param options.defaultScopesToBypass - An array of default scope names to bypass when destroying the association. Defaults to an empty array.
+   * @param options.cascade - If true, cascades the destroy operation to associations marked with `dependent: 'destroy'`. Defaults to true
+   * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
+   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when destroying the association. Defaults to false
+   * @param options.defaultScopesToBypass - An array of default scope names to bypass when destroying the association. Defaults to an empty array
    * @returns The number of records deleted
    */
   public async reallyDestroyAssociation<
@@ -826,12 +829,12 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * ```
    *
    * @param associationName - The name of the association to undestroy
-   * @param options - Options for undestroying the association.
+   * @param options - Options for undestroying the association
    * @param options.where - Optional where statement to apply to query before undestroying
-   * @param options.cascade - If false, skips undestroying associations marked `dependent: 'destroy'`. Defaults to true.
-   * @param options.skipHooks - If true, skips applying model hooks during the undestroy operation. Defaults to false.
-   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when undestroying the association. Defaults to false.
-   * @param options.defaultScopesToBypass - An array of default scope names to bypass when undestroying the association. Defaults to an empty array.
+   * @param options.cascade - If false, skips undestroying associations marked `dependent: 'destroy'`. Defaults to true
+   * @param options.skipHooks - If true, skips applying model hooks during the undestroy operation. Defaults to false
+   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when undestroying the association. Defaults to false
+   * @param options.defaultScopesToBypass - An array of default scope names to bypass when undestroying the association. Defaults to an empty array
    * @returns The number of records undestroyed
    */
   public async undestroyAssociation<
