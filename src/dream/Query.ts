@@ -493,14 +493,14 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   /**
    * Finds a record matching the Query with the
    * specified primary key. If not found, null
-   * is returned
+   * is returned.
    *
    * ```ts
    * await User.query().find(123)
    * // User{id: 123}
    * ```
    *
-   * @param primaryKey - The primaryKey of the record to look up
+   * @param primaryKey - The primary key of the record to look up
    * @returns Either the found record, or else null
    */
   public async find(primaryKey: PrimaryKeyForFind<DreamInstance>): Promise<DreamInstance | null> {
@@ -521,7 +521,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * // User{id: 123}
    * ```
    *
-   * @param primaryKey - The primaryKey of the record to look up
+   * @param primaryKey - The primary key of the record to look up
    * @returns The found record
    */
   public async findOrFail(primaryKey: PrimaryKeyForFind<DreamInstance>): Promise<DreamInstance> {
@@ -533,7 +533,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   /**
    * Finds a record matching the Query and the
    * specified where statement. If not found, null
-   * is returned
+   * is returned.
    *
    * ```ts
    * await User.query().findBy({ email: 'how@yadoin' })
@@ -541,7 +541,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * ```
    *
    * @param whereStatement - The where statement used to locate the record
-   * @returns Either the the first record found matching the attributes, or else null
+   * @returns Either the first record found matching the attributes, or else null
    */
   public async findBy<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
     whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>
@@ -551,8 +551,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
   /**
    * Finds a record matching the Query and the
-   * specified where statement. If not found, null
-   * is returned
+   * specified where statement. If not found, an exception
+   * is raised.
    *
    * ```ts
    * await User.query().findOrFailBy({ email: 'how@yadoin' })
@@ -560,7 +560,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * ```
    *
    * @param whereStatement - The where statement used to locate the record
-   * @returns Either the the first record found matching the attributes, or else null
+   * @returns The first record found matching the attributes
    */
   public async findOrFailBy<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
     whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>
@@ -572,9 +572,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
   /**
    * Finds all records matching the Query in batches,
-   * and then calls the provided callback
-   * for each found record. Once all records
-   * have been passed for a given batch, the next set of
+   * and then calls the provided callback for each found record.
+   * Once all records have been passed for a given batch, the next set of
    * records will be fetched and passed to your callback, until all
    * records matching the Query have been fetched.
    *
@@ -587,7 +586,8 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * ```
    *
    * @param cb - The callback to call for each found record
-   * @param opts.batchSize - the batch size you wish to collect records in. If not provided, it will default to 1000
+   * @param options - Options for destroying the instance
+   * @param options.batchSize - The batch size you wish to collect records in. If not provided, it will default to 1000
    * @returns void
    */
   public async findEach(
@@ -642,7 +642,6 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * @param dreams - An array of dream instances to load associations into
    * @param args - A chain of association names
    * @returns A LoadIntoModels instance
-   *
    */
   public async loadInto<
     DB extends DreamInstance['DB'],
@@ -2456,18 +2455,21 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * and returns the number of records that
    * were destroyed.
    *
-   * To delete in a signle database query,
+   * To delete in a single database query,
    * ignoring model hooks and association
    * dependent-destroy declarations, use
    * {@link Query.delete | delete} instead.
    *
    * ```ts
-   * await User.where({ email: ops.ilike('%burpcollaborator%')}).destroy()
+   * await User.where({ email: ops.ilike('%burpcollaborator%') }).destroy()
    * // 12
    * ```
    *
-   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
-   * @param opts.cascade - if false, will skip applying cascade deletes on "dependent: 'destroy'" associations. Defaults to true
+   * @param options - Options for destroying the instance
+   * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
+   * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
+   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade destroying. Defaults to false
+   * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade destroying. Defaults to an empty array
    * @returns The number of records that were removed
    */
   public async destroy({
@@ -2500,29 +2502,28 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   /**
-   * Destroy, deleting from the database even
-   * models designated SoftDelete.
+   * Destroys all records matching the Query,
+   * ignoring the SoftDelete decorator and
+   * permanently removing records from the database.
    *
    * Calls model hooks and applies cascade destroy
    * to associations with `dependent: 'destroy'`,
    * returning the number of records that
    * were destroyed.
    *
-   * If the record being destroyed is using
-   * a SoftDelete decorator, the soft delete
-   * will be bypassed, causing the record
-   * to be permanently removed from the database.
-   *
    * To destroy without bypassing the SoftDelete
    * decorator, use {@link Query.(destroy:instance) | destroy} instead.
    *
    * ```ts
-   * await User.where({ email: ops.ilike('%burpcollaborator%')}).reallyDestroy()
+   * await User.where({ email: ops.ilike('%burpcollaborator%') }).reallyDestroy()
    * // 12
    * ```
    *
-   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
-   * @param opts.cascade - if false, will skip applying cascade deletes on "dependent: 'destroy'" associations. Defaults to true
+   * @param options - Options for destroying the instance
+   * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
+   * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
+   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade destroying. Defaults to false
+   * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade destroying. Defaults to an empty array
    * @returns The number of records that were removed
    */
   public async reallyDestroy({
@@ -2540,12 +2541,15 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * this will raise an exception.
    *
    * ```ts
-   * await User.where({ email: ops.ilike('%burpcollaborator%')}).undestroy()
+   * await User.where({ email: ops.ilike('%burpcollaborator%') }).undestroy()
    * // 12
    * ```
    *
-   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
-   * @param opts.cascade - if false, will skip applying cascade undeletes on "dependent: 'destroy'" associations. Defaults to true
+   * @param options - Options for undestroying the instance
+   * @param options.skipHooks - If true, skips applying model hooks during the undestroy operation. Defaults to false
+   * @param options.cascade - If false, skips undestroying associations marked `dependent: 'destroy'`. Defaults to true
+   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade undestroying. Defaults to false
+   * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade undestroying (soft delete is always bypassed). Defaults to an empty array
    * @returns The number of records that were removed
    */
   public async undestroy({
@@ -2576,6 +2580,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
 
     return counter
   }
+
   /**
    * Deletes all records matching query using a single
    * database query, but does not call underlying callbacks.
@@ -2590,9 +2595,9 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * // 12
    * ```
    *
-   * @returns The number of records that were updated
+   * @returns The number of records that were removed
    */
-  public async delete() {
+  public async delete(): Promise<number> {
     const deletionResult = await executeDatabaseQuery(this.buildDelete(), 'executeTakeFirst')
     return Number(deletionResult?.numDeletedRows || 0)
   }
@@ -2605,13 +2610,14 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * // 12
    * ```
    * @param attributes - The attributes used to update the records
-   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
+   * @param options - Options for updating the instance
+   * @param options.skipHooks - If true, skips applying model hooks. Defaults to false
    * @returns The number of records that were updated
    */
   public async update(
     attributes: DreamTableSchema<DreamInstance>,
     { skipHooks }: { skipHooks?: boolean } = {}
-  ) {
+  ): Promise<number> {
     if (this.baseSelectQuery) throw new NoUpdateOnAssociationQuery()
     if (Object.keys(this.innerJoinStatements).length) throw new NoUpdateAllOnJoins()
     if (Object.keys(this.leftJoinStatements).length) throw new NoUpdateAllOnJoins()
