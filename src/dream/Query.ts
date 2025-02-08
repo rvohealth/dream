@@ -2461,7 +2461,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * {@link Query.delete | delete} instead.
    *
    * ```ts
-   * await User.where({ email: ops.ilike('%burpcollaborator%')}).destroy()
+   * await User.where({ email: ops.ilike('%burpcollaborator%') }).destroy()
    * // 12
    * ```
    *
@@ -2500,24 +2500,20 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
   }
 
   /**
-   * Destroy, deleting from the database even
-   * models designated SoftDelete.
+   * Destroys all records matching the Query,
+   * ignoring the SoftDelete decorator and
+   * permanently removing records from the database.
    *
    * Calls model hooks and applies cascade destroy
    * to associations with `dependent: 'destroy'`,
    * returning the number of records that
    * were destroyed.
    *
-   * If the record being destroyed is using
-   * a SoftDelete decorator, the soft delete
-   * will be bypassed, causing the record
-   * to be permanently removed from the database.
-   *
    * To destroy without bypassing the SoftDelete
    * decorator, use {@link Query.(destroy:instance) | destroy} instead.
    *
    * ```ts
-   * await User.where({ email: ops.ilike('%burpcollaborator%')}).reallyDestroy()
+   * await User.where({ email: ops.ilike('%burpcollaborator%') }).reallyDestroy()
    * // 12
    * ```
    *
@@ -2541,7 +2537,7 @@ export default class Query<DreamInstance extends Dream> extends ConnectedToDB<Dr
    * this will raise an exception.
    *
    * ```ts
-   * await User.where({ email: ops.ilike('%burpcollaborator%')}).undestroy()
+   * await User.where({ email: ops.ilike('%burpcollaborator%') }).undestroy()
    * // 12
    * ```
    *
