@@ -17,7 +17,6 @@ program
   .command('build:docs')
   .description('builds docs for the dream repository')
   .action(async () => {
-    await initializeDreamApplication()
     await DreamBin['buildDocs']()
     process.exit()
   })
