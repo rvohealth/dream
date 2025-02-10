@@ -4,32 +4,32 @@ import Post from '../../../test-app/app/models/Post'
 import PostComment from '../../../test-app/app/models/PostComment'
 import User from '../../../test-app/app/models/User'
 
-describe('Dream.innerJoin', () => {
-  it('joins a HasOne association, omitting models that don’t have an associated model', async () => {
-    await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-    await Composition.create({ userId: user.id, primary: true })
+describe('Dream.leftJoin', () => {
+  it('joins a HasOne association, including models that don’t have an associated model', async () => {
+    const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const user2 = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+    await Composition.create({ userId: user2.id, primary: true })
 
-    const reloadedUsers = await User.innerJoin('mainComposition').all()
-    expect(reloadedUsers).toMatchDreamModels([user])
+    const reloadedUsers = await User.leftJoin('mainComposition').all()
+    expect(reloadedUsers).toMatchDreamModels([user1, user2])
   })
 
   context('when encased in a transaction', () => {
-    it('joins a HasOne association, omitting models that don’t have an associated model', async () => {
-      await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-      await Composition.create({ userId: user.id, primary: true })
+    it('joins a HasOne association, including models that don’t have an associated model', async () => {
+      const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const user2 = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+      await Composition.create({ userId: user2.id, primary: true })
       let reloadedUsers: User[]
 
       await ApplicationModel.transaction(async txn => {
-        reloadedUsers = await User.txn(txn).innerJoin('mainComposition').all()
-        expect(reloadedUsers).toMatchDreamModels([user])
+        reloadedUsers = await User.txn(txn).leftJoin('mainComposition').all()
+        expect(reloadedUsers).toMatchDreamModels([user1, user2])
       })
     })
   })
 })
 
-describe('Dream#innerJoin', () => {
+describe('Dream#leftJoin', () => {
   it('does not apply a default scope to the (already loaded) model we are starting from', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const post = await Post.create({ user })
@@ -38,7 +38,7 @@ describe('Dream#innerJoin', () => {
     await post.destroy()
     await postComment.undestroy()
 
-    expect(await post.innerJoin('comments').pluck('comments.body')).toEqual(['hello world'])
+    expect(await post.leftJoin('comments').pluck('comments.body')).toEqual(['hello world'])
   })
 
   context('when encased in a transaction', () => {
@@ -50,7 +50,7 @@ describe('Dream#innerJoin', () => {
       await postComment.undestroy()
 
       await ApplicationModel.transaction(async txn => {
-        expect(await post.txn(txn).innerJoin('comments').pluck('comments.body')).toEqual(['hello world'])
+        expect(await post.txn(txn).leftJoin('comments').pluck('comments.body')).toEqual(['hello world'])
       })
     })
   })

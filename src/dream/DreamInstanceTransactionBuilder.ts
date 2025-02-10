@@ -23,7 +23,7 @@ import {
 import undestroyDream from './internal/undestroyDream'
 import LeftJoinLoadBuilder from './LeftJoinLoadBuilder'
 import LoadBuilder from './LoadBuilder'
-import Query from './Query'
+import Query, { DefaultQueryTypeOptions } from './Query'
 import {
   AllDefaultScopeNames,
   DreamAssociationNames,
@@ -31,16 +31,12 @@ import {
   DreamAssociationType,
   DreamAttributes,
   DreamConstructorType,
-  FinalVariadicTableName,
-  TableColumnType,
+  JoinedAssociationsTypeFromAssociations,
   UpdateableAssociationProperties,
   UpdateableProperties,
-  VariadicCountThroughArgs,
+  VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
-  VariadicMinMaxThroughArgs,
-  VariadicPluckEachThroughArgs,
-  VariadicPluckThroughArgs,
 } from './types'
 
 export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream> {
@@ -56,179 +52,6 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   constructor(dreamInstance: DreamInstance, txn: DreamTransaction<Dream>) {
     this.dreamInstance = dreamInstance
     this.dreamTransaction = txn
-  }
-
-  /**
-   * Plucks the specified fields from the join Query,
-   * scoping the query to the model instance's primary key.
-   *
-   * ```ts
-   * await ApplicationModel.transaction(async txn => {
-   *   const user = await User.txn(txn).first()
-   *   await user.txn(txn).pluckThrough(
-   *     'posts',
-   *     { createdAt: range(CalendarDate.yesterday()) },
-   *     'comments',
-   *     'replies',
-   *     'replies.body'
-   *   )
-   * })
-   * // ['loved it!', 'hated it :(']
-   * ```
-   *
-   * If more than one column is requested, a multi-dimensional
-   * array is returned:
-   *
-   * ```ts
-   * await ApplicationModel.transaction(async txn => {
-   *   const user = await User.txn(txn).first()
-   *   await user.txn(txn).pluckThrough(
-   *     'posts',
-   *     { createdAt: range(CalendarDate.yesterday()) },
-   *     'comments',
-   *     'replies',
-   *     ['replies.body', 'replies.numLikes']
-   *   )
-   * })
-   * // [['loved it!', 1], ['hated it :(', 3]]
-   * ```
-   *
-   * @param args - A chain of association names and where clauses ending with the column or array of columns to pluck
-   * @returns An array of pluck results.
-   */
-  public async pluckThrough<
-    I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['DB'],
-    TableName extends DreamInstance['table'],
-    Schema extends DreamInstance['schema'],
-    const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicPluckThroughArgs<DB, Schema, TableName, Arr>]): Promise<any[]> {
-    return this.queryInstance().pluckThrough(...(args as any))
-  }
-
-  /**
-   * Plucks the specified fields from the join Query in batches,
-   * passing each plucked value/set of plucked values
-   * into the provided callback function. It will continue
-   * doing this until it exhausts all results in the
-   * Query. This is useful when plucking would result in
-   * more results than would be desirable to instantiate
-   * in memory/more results than would be desirable to handle
-   * between awaits.
-   *
-   * ```ts
-   * const user = await User.first()
-   *
-   * await ApplicationModel.transaction(async txn => {
-   *   await user.txn(txn).pluckEachThrough(
-   *     'posts',
-   *     { createdAt: range(CalendarDate.yesterday()) },
-   *     'comments',
-   *     'replies',
-   *     ['replies.body', 'replies.numLikes'],
-   *     ([body, numLikes]) => {
-   *       console.log({ body, numLikes })
-   *     }
-   *   )
-   *
-   *   // { body: 'loved it!', numLikes: 2 }
-   *   // { body: 'hated it :(', numLikes: 0 }
-   *   })
-   * ```
-   *
-   * @param args - A chain of association names and where clauses ending with the column or array of columns to pluck and the callback function
-   * @returns void
-   */
-  public async pluckEachThrough<
-    I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['schema'],
-    TableName extends DreamInstance['table'],
-    const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicPluckEachThroughArgs<DB, Schema, TableName, Arr>]) {
-    return this.queryInstance().pluckEachThrough(...(args as any))
-  }
-
-  /**
-   * Join through associations, with optional where clauses,
-   * and return the minimum value for the specified column.
-   *
-   * ```ts
-   * await ApplicationModel.transaction(async txn => {
-   *   const firstPostId = await user.txn(txn).minThrough('posts', { createdAt: range(start) }, 'posts.rating')
-   * })
-   * // 2.5
-   * ```
-   *
-   * @param args - A chain of association names and where clauses ending with the column to min
-   * @returns The min value of the specified column for the nested association's records.
-   */
-  public async minThrough<
-    I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['schema'],
-    TableName extends DreamInstance['table'],
-    const Arr extends readonly unknown[],
-    FinalColumnWithAlias extends VariadicMinMaxThroughArgs<DB, Schema, TableName, Arr>,
-    FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
-      ? R
-      : never,
-    FinalTableName extends FinalVariadicTableName<DB, Schema, TableName, Arr>,
-    FinalColumnType extends TableColumnType<Schema, FinalTableName, FinalColumn>,
-  >(this: I, ...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
-    return (await this.queryInstance().minThrough(...(args as any))) as FinalColumnType
-  }
-
-  /**
-   * Join through associations, with optional where clauses,
-   * and return the maximum value for the specified column.
-   *
-   * ```ts
-   * await ApplicationModel.transaction(async txn => {
-   *   const firstPostId = await user.txn(txn).maxThrough('posts', { createdAt: range(start) }, 'posts.rating')
-   * })
-   * // 4.8
-   * ```
-   *
-   * @param args - A chain of association names and where clauses ending with the column to max
-   * @returns The max value of the specified column for the nested association's records.
-   */
-  public async maxThrough<
-    I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['schema'],
-    TableName extends DreamInstance['table'],
-    const Arr extends readonly unknown[],
-    FinalColumnWithAlias extends VariadicMinMaxThroughArgs<DB, Schema, TableName, Arr>,
-    FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
-      ? R
-      : never,
-    FinalTableName extends FinalVariadicTableName<DB, Schema, TableName, Arr>,
-    FinalColumnType extends TableColumnType<Schema, FinalTableName, FinalColumn>,
-  >(this: I, ...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
-    return (await this.queryInstance().maxThrough(...(args as any))) as FinalColumnType
-  }
-
-  /**
-   * Retrieves the number of records matching the given query.
-   *
-   * ```ts
-   * await ApplicationModel.transaction(async txn => {
-   *   await user.txn(txn).where({ email: null }).countThrough('posts', 'comments', { body: null })
-   *   // 42
-   * })
-   * ```
-   *
-   * @param args - A chain of association names and where clauses
-   * @returns The number of records found matching the given parameters.
-   */
-  public async countThrough<
-    DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['schema'],
-    TableName extends DreamInstance['table'],
-    const Arr extends readonly unknown[],
-  >(...args: [...Arr, VariadicCountThroughArgs<DB, Schema, TableName, Arr>]): Promise<number> {
-    return await this.queryInstance().countThrough(...(args as any))
   }
 
   /**
@@ -308,6 +131,62 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     return new LeftJoinLoadBuilder<DreamInstance>(this.dreamInstance, this.dreamTransaction).leftJoinLoad(
       ...(args as any)
     )
+  }
+
+  /**
+   * Returns a new Query instance with the provided
+   * inner join statement attached
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await user.txn(txn).innerJoin('posts').first()
+   * })
+   * ```
+   *
+   * @param args - A chain of association names and where clauses
+   * @returns A Query for this model with the inner join clause applied
+   */
+  public innerJoin<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    DB extends DreamInstance['DB'],
+    TableName extends DreamInstance['table'],
+    Schema extends DreamInstance['schema'],
+    const Arr extends readonly unknown[],
+    LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+  >(this: I, ...args: [...Arr, LastArg]) {
+    return this.queryInstance()
+      .innerJoin(...(args as any))
+      .clone<{
+        joinedAssociations: JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
+      }>()
+  }
+
+  /**
+   * Returns a new Query instance with the provided
+   * left join statement attached
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await user.txn(txn).leftJoin('posts').first()
+   * })
+   * ```
+   *
+   * @param args - A chain of association names and where clauses
+   * @returns A Query for this model with the left join clause applied
+   */
+  public leftJoin<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    DB extends DreamInstance['DB'],
+    TableName extends DreamInstance['table'],
+    Schema extends DreamInstance['schema'],
+    const Arr extends readonly unknown[],
+    LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+  >(this: I, ...args: [...Arr, LastArg]) {
+    return this.queryInstance()
+      .leftJoin(...(args as any))
+      .clone<{
+        joinedAssociations: JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
+      }>()
   }
 
   /**
@@ -865,7 +744,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    */
   private queryInstance<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I
-  ): Query<DreamInstance> {
+  ): Query<DreamInstance, DefaultQueryTypeOptions> {
     const dreamClass = this.dreamInstance.constructor as DreamConstructorType<DreamInstance>
     const id = this.dreamInstance.primaryKeyValue
 

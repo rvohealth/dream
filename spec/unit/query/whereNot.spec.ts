@@ -8,11 +8,21 @@ import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
 
 describe('Query#whereNot', () => {
-  context('passing undefined', () => {
+  context('passing undefined as a value for a field', () => {
     it('raises an exception', async () => {
       await expect(async () => await User.query().whereNot({ email: undefined }).all()).rejects.toThrowError(
         CannotPassUndefinedAsAValueToAWhereClause
       )
+    })
+  })
+
+  context('passing null', () => {
+    it('clears existing whereNots', async () => {
+      const redBalloon = await Latex.create({ color: 'red' })
+      const greenBalloon = await Latex.create({ color: 'green' })
+
+      const balloons = await Balloon.whereNot({ color: 'red' }).whereNot(null).all()
+      expect(balloons).toMatchDreamModels([redBalloon, greenBalloon])
     })
   })
 

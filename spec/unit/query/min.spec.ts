@@ -1,9 +1,10 @@
+import ops from '../../../src/ops'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Composition from '../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
-import ops from '../../../src/ops'
 
 describe('Query#min', () => {
   it('returns the record with the lowest value', async () => {
@@ -98,6 +99,58 @@ describe('Query#min', () => {
       const min = await user.associationQuery('compositionAssets').min('score')
 
       expect(min).toEqual(3)
+    })
+  })
+
+  context('on a join', () => {
+    it('returns the min field, first traveling through nested associations', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+      const composition = await Composition.create({ user })
+
+      await CompositionAsset.create({ composition, score: 7 })
+      await CompositionAsset.create({ composition, score: 3 })
+
+      const min = await Composition.query().innerJoin('compositionAssets').min('compositionAssets.score')
+
+      expect(min).toEqual(3)
+    })
+
+    context('when passed a where clause', () => {
+      it('respects the where clause', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+        const composition = await Composition.create({ user })
+
+        await CompositionAsset.create({ composition, name: 'howyadoin', score: 7 })
+        await CompositionAsset.create({ composition, score: 3 })
+
+        const min = await Composition.query()
+          .innerJoin('compositionAssets', { name: 'howyadoin' })
+          .min('compositionAssets.score')
+
+        expect(min).toEqual(7)
+      })
+    })
+
+    context('when passed a transaction', () => {
+      it('returns the min, traveling through nested associations', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+        const composition = await Composition.create({ user })
+
+        await CompositionAsset.create({ composition, score: 7 })
+        let min = await CompositionAsset.min('score')
+        expect(min).toEqual(7)
+
+        await ApplicationModel.transaction(async txn => {
+          await CompositionAsset.txn(txn).create({ composition, score: 3 })
+
+          min = await Composition.query()
+            .txn(txn)
+            .innerJoin('compositionAssets')
+            .min('compositionAssets.score')
+        })
+
+        expect(min).toEqual(3)
+      })
     })
   })
 })

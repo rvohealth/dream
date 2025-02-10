@@ -39,7 +39,9 @@ export default function associationQuery<
   const dreamClass = dream.constructor as typeof Dream
   const dreamClassOrTransaction = (txn ? dreamClass.txn(txn) : dreamClass) as typeof dreamClass
 
-  let baseSelectQuery = dreamClassOrTransaction.where({ [dream.primaryKey]: dream.primaryKeyValue })
+  let baseSelectQuery: Query<Dream, any> = dreamClassOrTransaction.where({
+    [dream.primaryKey]: dream.primaryKeyValue,
+  })
 
   if (associationWhereStatement)
     baseSelectQuery = baseSelectQuery.innerJoin(association.as, associationWhereStatement)

@@ -1,8 +1,8 @@
-import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../../../src/errors/CannotPassAdditionalFieldsToPluckEachAfterCallback'
-import MissingRequiredCallbackFunctionToPluckEach from '../../../src/errors/MissingRequiredCallbackFunctionToPluckEach'
-import ops from '../../../src/ops'
-import Edge from '../../../test-app/app/models/Graph/Edge'
-import User from '../../../test-app/app/models/User'
+import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../../../../src/errors/CannotPassAdditionalFieldsToPluckEachAfterCallback'
+import MissingRequiredCallbackFunctionToPluckEach from '../../../../src/errors/MissingRequiredCallbackFunctionToPluckEach'
+import ops from '../../../../src/ops'
+import Edge from '../../../../test-app/app/models/Graph/Edge'
+import User from '../../../../test-app/app/models/User'
 
 describe('Query#pluckEach', () => {
   let user1: User

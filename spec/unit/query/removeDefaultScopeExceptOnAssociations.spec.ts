@@ -24,7 +24,8 @@ describe('Query#removeDefaultScopeExceptOnAssociations', () => {
 
     const pluckedThrough = await Post.query()
       ['removeDefaultScopeExceptOnAssociations']('dream:SoftDelete')
-      .pluckThrough('comments', 'comments.body')
+      .innerJoin('comments')
+      .pluck('comments.body')
     expect(pluckedThrough).toHaveLength(0)
   })
 })

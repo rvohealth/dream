@@ -12,6 +12,7 @@ import {
   DreamConst,
   GlobalModelNames,
   IdType,
+  JoinedAssociation,
   OrderDir,
   RequiredWhereClauseKeys,
   TableColumnNames,
@@ -24,13 +25,15 @@ import CannotDefineAssociationWithBothDependentAndRequiredWhereClause from '../.
 import CalendarDate from '../../helpers/CalendarDate'
 import camelize from '../../helpers/camelize'
 import { Range } from '../../helpers/range'
-import { MergeUnionOfRecordTypes, UnionToIntersection } from '../../helpers/typeutils'
+import { Inc, MergeUnionOfRecordTypes, ReadonlyTail, UnionToIntersection } from '../../helpers/typeutils'
 import CurriedOpsStatement from '../../ops/curried-ops-statement'
 import OpsStatement from '../../ops/ops-statement'
 import associationToGetterSetterProp from './associationToGetterSetterProp'
 import { BelongsToStatement } from './BelongsTo'
 import { HasManyStatement } from './HasMany'
 import { HasOneStatement } from './HasOne'
+
+type MAX_JOINED_TABLES_DEPTH = 25
 
 type AssociatedBelongsToModelType<
   I extends Dream,
@@ -105,6 +108,49 @@ export type WhereStatementForDream<DreamInstance extends Dream> = WhereStatement
   DreamInstance['schema'],
   DreamInstance['table']
 >
+
+type AssociationNameToDotReferencedColumns<
+  DB,
+  TableName extends keyof DB,
+  AssociationName,
+> = `${AssociationName & string}.${TableColumnNames<DB, TableName>}`
+
+export type ColumnNamesAccountingForJoinedAssociations<
+  JoinedAssociations extends Readonly<JoinedAssociation[]>,
+  DB,
+  RootTableName extends keyof DB,
+> = JoinedAssociations['length'] extends 0
+  ? TableColumnNames<DB, RootTableName> // no associations; simply return the un-namespaced columns for the root table
+  : JoinedAssociationColumnNames<
+      JoinedAssociations,
+      DB,
+      // namespace columns for the root table
+      AssociationNameToDotReferencedColumns<DB, RootTableName & keyof DB, RootTableName>
+    >
+
+type JoinedAssociationColumnNames<
+  JoinedAssociations extends Readonly<JoinedAssociation[]>,
+  DB,
+  AllColumnNames,
+  Depth extends number = 0,
+  CurrentJoinedAssociation = Readonly<JoinedAssociations[0]>,
+  NextTableName = CurrentJoinedAssociation extends Readonly<JoinedAssociation>
+    ? CurrentJoinedAssociation['table']
+    : never,
+  NextAssociationName = CurrentJoinedAssociation extends Readonly<JoinedAssociation>
+    ? CurrentJoinedAssociation['alias']
+    : never,
+> = JoinedAssociations['length'] extends 0
+  ? AllColumnNames
+  : Depth extends MAX_JOINED_TABLES_DEPTH
+    ? AllColumnNames
+    : JoinedAssociationColumnNames<
+        ReadonlyTail<JoinedAssociations>,
+        DB,
+        | AllColumnNames
+        | AssociationNameToDotReferencedColumns<DB, NextTableName & keyof DB, NextAssociationName>,
+        Inc<Depth>
+      >
 
 export type WhereStatement<
   DB,

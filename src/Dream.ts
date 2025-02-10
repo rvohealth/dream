@@ -94,26 +94,21 @@ import {
   DreamConstructorType,
   DreamParamSafeColumnNames,
   DreamSerializeOptions,
-  FinalVariadicTableName,
   GlobalModelNames,
   IdType,
+  JoinedAssociationsTypeFromAssociations,
   NextPreloadArgumentType,
   OrderDir,
   PassthroughColumnNames,
   PrimaryKeyForFind,
   SortableOptions,
   TableColumnNames,
-  TableColumnType,
   UpdateableAssociationProperties,
   UpdateableProperties,
   UpdateablePropertiesForClass,
-  VariadicCountThroughArgs,
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
-  VariadicMinMaxThroughArgs,
-  VariadicPluckEachThroughArgs,
-  VariadicPluckThroughArgs,
 } from './dream/types'
 import InternalEncrypt from './encrypt/InternalEncrypt'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './errors/associations/CannotPassNullOrUndefinedToRequiredBelongsTo'
@@ -1400,8 +1395,7 @@ export default class Dream {
    *
    * ```ts
    * await user = User.first()
-   * await user.query().countThrough('posts')
-   * // 7
+   * await user.query()
    * ```
    *
    * @returns A new Query instance scoped to this Dream instance
@@ -1520,7 +1514,7 @@ export default class Dream {
    * // [Reply{id: 1}, Reply{id: 2}]
    * ```
    *
-   * @param args - A chain of associaition names and where clauses
+   * @param args - A chain of association names and where clauses
    * @returns A query for this model with the include statement applied
    */
   public static leftJoinPreload<
@@ -1530,8 +1524,13 @@ export default class Dream {
     TableName extends InstanceType<T>['table'],
     Schema extends I['schema'],
     const Arr extends readonly unknown[],
-  >(this: T, ...args: [...Arr, VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>]) {
-    return this.query().leftJoinPreload(...(args as any))
+    LastArg extends VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>,
+  >(this: T, ...args: [...Arr, LastArg]) {
+    return this.query()
+      .leftJoinPreload(...(args as any))
+      .clone<{
+        joinedAssociations: JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
+      }>()
   }
 
   /**
@@ -1550,7 +1549,7 @@ export default class Dream {
    * // [Reply{id: 1}, Reply{id: 2}]
    * ```
    *
-   * @param args - A chain of associaition names and where clauses
+   * @param args - A chain of association names and where clauses
    * @returns A query for this model with the preload statement applied
    */
   public static preload<
@@ -1566,14 +1565,14 @@ export default class Dream {
 
   /**
    * Returns a new Query instance with the provided
-   * joins statement attached
+   * inner join statement attached
    *
    * ```ts
    * await User.innerJoin('posts').first()
    * ```
    *
-   * @param args - A chain of associaition names and where clauses
-   * @returns A Query for this model with the joins clause applied
+   * @param args - A chain of association names and where clauses
+   * @returns A Query for this model with the inner join clause applied
    */
   public static innerJoin<
     T extends typeof Dream,
@@ -1582,8 +1581,92 @@ export default class Dream {
     Schema extends I['schema'],
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
-  >(this: T, ...args: [...Arr, VariadicJoinsArgs<DB, Schema, TableName, Arr>]) {
-    return this.query().innerJoin(...(args as any))
+    LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+  >(this: T, ...args: [...Arr, LastArg]) {
+    return this.query()
+      .innerJoin(...(args as any))
+      .clone<{
+        joinedAssociations: JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
+      }>()
+  }
+
+  /**
+   * Returns a new Query instance with the provided
+   * inner join statement attached
+   *
+   * ```ts
+   * await user.innerJoin('posts').first()
+   * ```
+   *
+   * @param args - A chain of association names and where clauses
+   * @returns A Query for this model with the inner join clause applied
+   */
+  public innerJoin<
+    I extends Dream,
+    DB extends I['DB'],
+    Schema extends I['schema'],
+    TableName extends I['table'] & keyof Schema,
+    const Arr extends readonly unknown[],
+    LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+  >(this: I, ...args: [...Arr, LastArg]) {
+    return this.query()
+      .innerJoin(...(args as any))
+      .clone<{
+        joinedAssociations: JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
+      }>()
+  }
+
+  /**
+   * Returns a new Query instance with the provided
+   * left join statement attached
+   *
+   * ```ts
+   * await User.leftJoin('posts').first()
+   * ```
+   *
+   * @param args - A chain of association names and where clauses
+   * @returns A Query for this model with the left join clause applied
+   */
+  public static leftJoin<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    DB extends I['DB'],
+    Schema extends I['schema'],
+    TableName extends I['table'] & keyof Schema,
+    const Arr extends readonly unknown[],
+    LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+  >(this: T, ...args: [...Arr, LastArg]) {
+    return this.query()
+      .leftJoin(...(args as any))
+      .clone<{
+        joinedAssociations: JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
+      }>()
+  }
+
+  /**
+   * Returns a new Query instance with the provided
+   * left join statement attached
+   *
+   * ```ts
+   * await user.leftJoin('posts').first()
+   * ```
+   *
+   * @param args - A chain of association names and where clauses
+   * @returns A Query for this model with the left join clause applied
+   */
+  public leftJoin<
+    I extends Dream,
+    DB extends I['DB'],
+    Schema extends I['schema'],
+    TableName extends I['table'] & keyof Schema,
+    const Arr extends readonly unknown[],
+    LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+  >(this: I, ...args: [...Arr, LastArg]) {
+    return this.query()
+      .leftJoin(...(args as any))
+      .clone<{
+        joinedAssociations: JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
+      }>()
   }
 
   /**
@@ -3282,171 +3365,6 @@ export default class Dream {
   }
 
   /**
-   * Plucks the specified fields from the join Query,
-   * scoping the query to the model instance's primary
-   * key.
-   *
-   * ```ts
-   * const user = await User.first()
-   * await user.pluckThrough(
-   *   'posts',
-   *   { createdAt: range(CalendarDate.yesterday()) },
-   *   'comments',
-   *   'replies',
-   *   'replies.body'
-   * )
-   * // ['loved it!', 'hated it :(']
-   * ```
-   *
-   * If more than one column is requested, a multi-dimensional
-   * array is returned:
-   *
-   * ```ts
-   * await user.pluckThrough(
-   *   'posts',
-   *   { createdAt: range(CalendarDate.yesterday()) },
-   *   'comments',
-   *   'replies',
-   *   ['replies.body', 'replies.numLikes']
-   * )
-   * // [['loved it!', 1], ['hated it :(', 3]]
-   * ```
-   *
-   * @param args - A chain of association names and where clauses ending with the column or array of columns to pluck
-   * @returns An array of pluck results
-   */
-  public async pluckThrough<
-    I extends Dream,
-    DB extends I['DB'],
-    Schema extends I['schema'],
-    TableName extends I['table'],
-    const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicPluckThroughArgs<DB, Schema, TableName, Arr>]): Promise<any[]> {
-    return await this.query().pluckThrough(...(args as any))
-  }
-
-  /**
-   * Plucks the specified fields from the join Query in batches,
-   * passing each plucked value/set of plucked values
-   * into the provided callback function. It will continue
-   * doing this until it exhausts all results in the
-   * Query. This is useful when plucking would result in
-   * more results than would be desirable to instantiate
-   * in memory/more results than would be desirable to handle
-   * between awaits.
-   *
-   * ```ts
-   * const user = await User.first()
-   * await user.pluckEachThrough(
-   *   'posts',
-   *   { createdAt: range(CalendarDate.yesterday()) },
-   *   'comments',
-   *   'replies',
-   *   ['replies.body', 'replies.numLikes'],
-   *   ([body, numLikes]) => {
-   *     console.log({ body, numLikes })
-   *   }
-   * )
-   *
-   * // { body: 'loved it!', numLikes: 2 }
-   * // { body: 'hated it :(', numLikes: 0 }
-   * ```
-   *
-   * @param args - A chain of association names and where clauses ending with the column or array of columns to pluck and the callback function
-   * @returns void
-   */
-  public async pluckEachThrough<
-    I extends Dream,
-    DB extends I['DB'],
-    Schema extends I['schema'],
-    TableName extends I['table'],
-    const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicPluckEachThroughArgs<DB, Schema, TableName, Arr>]): Promise<void> {
-    return await this.query().pluckEachThrough(...(args as any))
-  }
-
-  /**
-   * Join through associations, with optional where clauses,
-   * and return the minimum value for the specified column
-   *
-   * ```ts
-   * await user.minThrough('posts', { createdAt: range(start) }, 'posts.rating')
-   * // 2.5
-   * ```
-   *
-   * @param args - A chain of association names and where clauses ending with the column to min
-   * @returns the min value of the specified column for the nested association's records
-   */
-  public async minThrough<
-    I extends Dream,
-    DB extends I['DB'],
-    Schema extends I['schema'],
-    TableName extends I['table'],
-    const Arr extends readonly unknown[],
-    FinalColumnWithAlias extends VariadicMinMaxThroughArgs<DB, Schema, TableName, Arr>,
-    FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
-      ? R
-      : never,
-    FinalTableName extends FinalVariadicTableName<DB, Schema, TableName, Arr>,
-    FinalColumnType extends TableColumnType<Schema, FinalTableName, FinalColumn>,
-  >(this: I, ...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
-    return (await this.query().minThrough(...(args as any))) as FinalColumnType
-  }
-
-  /**
-   * Join through associations, with optional where clauses,
-   * and return the maximum value for the specified column
-   *
-   * ```ts
-   * await user.maxThrough('posts', { createdAt: range(start) }, 'posts.rating')
-   * // 4.8
-   * ```
-   * @param args - A chain of association names and where clauses ending with the column to max
-   * @returns the max value of the specified column for the nested association's records
-   */
-  public async maxThrough<
-    I extends Dream,
-    DB extends I['DB'],
-    Schema extends I['schema'],
-    TableName extends I['table'],
-    const Arr extends readonly unknown[],
-    FinalColumnWithAlias extends VariadicMinMaxThroughArgs<DB, Schema, TableName, Arr>,
-    FinalColumn extends FinalColumnWithAlias extends Readonly<`${string}.${infer R extends Readonly<string>}`>
-      ? R
-      : never,
-    FinalTableName extends FinalVariadicTableName<DB, Schema, TableName, Arr>,
-    FinalColumnType extends TableColumnType<Schema, FinalTableName, FinalColumn>,
-  >(this: I, ...args: [...Arr, FinalColumnWithAlias]): Promise<FinalColumnType> {
-    return (await this.query().maxThrough(...(args as any))) as FinalColumnType
-  }
-
-  /**
-   * Retrieves the number of records matching
-   * the default scopes for the final association.
-   * If the Dream class for the final association
-   * does not have any default scopes, this will be
-   * the equivilent of simply requesting a count on
-   * the table.
-   *
-   * ```ts
-   * await user.countThrough('posts', 'comments', { body: null })
-   * // 42
-   * ```
-   *
-   * @param args - A chain of association names and where clauses
-   * @returns the number of records found matching the given parameters
-   */
-  public async countThrough<
-    I extends Dream,
-    DB extends I['DB'],
-    Schema extends I['schema'],
-    TableName extends I['table'],
-    const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicCountThroughArgs<DB, Schema, TableName, Arr>]): Promise<number> {
-    return await this.query().countThrough(...(args as any))
-  }
-
-  /**
    * Deep clones the model and its non-association attributes.
    * Unsets primaryKey, created and updated fields.
    *
@@ -3589,7 +3507,6 @@ export default class Dream {
       associationWhereStatement: (options as any)?.where,
     })
   }
-
   ///////////////////
   // end: destroyAssociation
   ///////////////////

@@ -42,7 +42,9 @@ export default function associationUpdateQuery<
 
   const dreamClass = dream.constructor as typeof Dream
 
-  let nestedScope: Query<Dream> = txn ? (dreamClass.txn(txn) as unknown as Query<Dream>) : dreamClass.query()
+  let nestedScope: Query<Dream, any> = txn
+    ? (dreamClass.txn(txn) as unknown as Query<Dream>)
+    : dreamClass.query()
 
   nestedScope = applyScopeBypassingSettingsToQuery(nestedScope, {
     bypassAllDefaultScopes,

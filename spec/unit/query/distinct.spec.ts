@@ -9,10 +9,10 @@ describe('Query#distinct', () => {
     await node.createAssociation('edgeNodes', { edge })
     await node.createAssociation('edgeNodes', { edge })
 
-    let ids = await Edge.innerJoin('edgeNodes').pluck('id')
+    let ids = await Edge.innerJoin('edgeNodes').pluck('graph_edges.id')
     expect(ids).toEqual([edge.id, edge.id])
 
-    ids = await Edge.innerJoin('edgeNodes').distinct().pluck('id')
+    ids = await Edge.innerJoin('edgeNodes').distinct().pluck('graph_edges.id')
     expect(ids).toEqual([edge.id])
   })
 
@@ -24,10 +24,10 @@ describe('Query#distinct', () => {
       await node.createAssociation('edgeNodes', { edge: edge1 })
       await node.createAssociation('edgeNodes', { edge: edge2 })
 
-      let ids = await Edge.innerJoin('edgeNodes').pluck('id')
+      let ids = await Edge.innerJoin('edgeNodes').pluck('graph_edges.id')
       expect(ids).toEqual([edge1.id, edge2.id])
 
-      ids = await Edge.innerJoin('edgeNodes').distinct('name').pluck('id')
+      ids = await Edge.innerJoin('edgeNodes').distinct('name').pluck('graph_edges.id')
       expect(ids).toEqual([edge1.id])
     })
   })
@@ -39,10 +39,10 @@ describe('Query#distinct', () => {
       await node.createAssociation('edgeNodes', { edge })
       await node.createAssociation('edgeNodes', { edge })
 
-      let ids = await Edge.innerJoin('edgeNodes').pluck('id')
+      let ids = await Edge.innerJoin('edgeNodes').pluck('graph_edges.id')
       expect(ids).toEqual([edge.id, edge.id])
 
-      ids = await Edge.innerJoin('edgeNodes').distinct(true).pluck('id')
+      ids = await Edge.innerJoin('edgeNodes').distinct(true).pluck('graph_edges.id')
       expect(ids).toEqual([edge.id])
     })
   })
@@ -55,7 +55,7 @@ describe('Query#distinct', () => {
       await node.createAssociation('edgeNodes', { edge: edge1 })
       await node.createAssociation('edgeNodes', { edge: edge2 })
 
-      const ids = await Edge.innerJoin('edgeNodes').distinct('name').distinct(false).pluck('id')
+      const ids = await Edge.innerJoin('edgeNodes').distinct('name').distinct(false).pluck('graph_edges.id')
       expect(ids).toEqual([edge1.id, edge2.id])
     })
   })
@@ -72,7 +72,7 @@ describe('Query#distinct', () => {
         .distinct('name')
         .where({ name: ops.similarity('myedg') })
         .order({ name: 'desc' })
-        .pluck('id')
+        .pluck('graph_edges.id')
 
       expect(ids).toEqual([edge1.id])
     })

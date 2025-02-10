@@ -1,7 +1,7 @@
 import Dream from '../../Dream'
 import CannotReloadUnsavedDream from '../../errors/CannotReloadUnsavedDream'
 import DreamTransaction from '../DreamTransaction'
-import Query from '../Query'
+import Query, { DefaultQueryTypeOptions } from '../Query'
 
 export default async function reload<DreamInstance extends Dream>(
   dream: DreamInstance,
@@ -9,7 +9,10 @@ export default async function reload<DreamInstance extends Dream>(
 ) {
   if (dream.isNewRecord) throw new CannotReloadUnsavedDream(dream)
 
-  let query: Query<DreamInstance> = new Query<DreamInstance>(dream)
+  let query: Query<DreamInstance, DefaultQueryTypeOptions> = new Query<
+    DreamInstance,
+    DefaultQueryTypeOptions
+  >(dream)
 
   if (txn) query = query.txn(txn)
   // must always reload from the primary database to avoid the race condition in which changes

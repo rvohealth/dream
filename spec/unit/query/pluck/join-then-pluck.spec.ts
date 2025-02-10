@@ -1,17 +1,17 @@
 import { DateTime } from 'luxon'
-import ops from '../../../src/ops'
-import Composition from '../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
-import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit'
-import Edge from '../../../test-app/app/models/Graph/Edge'
-import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode'
-import Node from '../../../test-app/app/models/Graph/Node'
-import Pet from '../../../test-app/app/models/Pet'
-import Post from '../../../test-app/app/models/Post'
-import PostComment from '../../../test-app/app/models/PostComment'
-import User from '../../../test-app/app/models/User'
+import ops from '../../../../src/ops'
+import Composition from '../../../../test-app/app/models/Composition'
+import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
+import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
+import Edge from '../../../../test-app/app/models/Graph/Edge'
+import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
+import Node from '../../../../test-app/app/models/Graph/Node'
+import Pet from '../../../../test-app/app/models/Pet'
+import Post from '../../../../test-app/app/models/Post'
+import PostComment from '../../../../test-app/app/models/PostComment'
+import User from '../../../../test-app/app/models/User'
 
-describe('Query#pluckThrough', () => {
+describe('Query#pluck on a join query', () => {
   it('can pluck from the associated namespace', async () => {
     const node = await Node.create({ name: 'N1' })
     const edge1 = await Edge.create({ name: 'E1' })
@@ -19,10 +19,9 @@ describe('Query#pluckThrough', () => {
     await EdgeNode.create({ node, edge: edge1 })
     await EdgeNode.create({ node, edge: edge2 })
 
-    const plucked = await Node.query().pluckThrough('edgeNodes', 'edge', { name: 'E1' }, [
-      'edge.id',
-      'edge.name',
-    ])
+    const plucked = await Node.query()
+      .innerJoin('edgeNodes', 'edge', { name: 'E1' })
+      .pluck('edge.id', 'edge.name')
     expect(plucked).toEqual([[edge1.id, edge1.name]])
   })
 
@@ -33,12 +32,9 @@ describe('Query#pluckThrough', () => {
     await EdgeNode.create({ node, edge: edge1 })
     await EdgeNode.create({ node, edge: edge2 })
 
-    const plucked = await Node.query().pluckThrough(
-      'edgeNodes',
-      'edge',
-      { id: Edge.where({ name: 'E1' }).nestedSelect('id') },
-      ['edge.id', 'edge.name']
-    )
+    const plucked = await Node.query()
+      .innerJoin('edgeNodes', 'edge', { id: Edge.where({ name: 'E1' }).nestedSelect('id') })
+      .pluck('edge.id', 'edge.name')
     expect(plucked).toEqual([[edge1.id, edge1.name]])
   })
 
@@ -49,11 +45,9 @@ describe('Query#pluckThrough', () => {
     await EdgeNode.create({ node, edge: edge1 })
     await EdgeNode.create({ node, edge: edge2 })
 
-    const plucked = await Node.query().pluckThrough('edgeNodes', 'edge', { name: 'E1' }, [
-      'edge.name',
-      'edgeNodes.position',
-      'graph_nodes.name',
-    ])
+    const plucked = await Node.query()
+      .innerJoin('edgeNodes', 'edge', { name: 'E1' })
+      .pluck('edge.name', 'edgeNodes.position', 'graph_nodes.name')
     expect(plucked).toEqual([['E1', 1, 'N1']])
   })
 
@@ -64,8 +58,7 @@ describe('Query#pluckThrough', () => {
       const edge2 = await Edge.create({ name: 'E2', weight: 7.1 })
       await EdgeNode.create({ node, edge: edge1 })
       await EdgeNode.create({ node, edge: edge2 })
-
-      const plucked = await Node.query().pluckThrough('edgeNodes', 'edge', { name: 'E1' }, 'edge.weight')
+      const plucked = await Node.query().innerJoin('edgeNodes', 'edge', { name: 'E1' }).pluck('edge.weight')
       expect(plucked[0]).toEqual(2.3)
     })
   })
@@ -77,10 +70,9 @@ describe('Query#pluckThrough', () => {
     await EdgeNode.create({ node, edge: edge1 })
     await EdgeNode.create({ node, edge: edge2 })
 
-    const plucked = await Node.query().pluckThrough('edgeNodes', { edgeId: edge2.id }, 'edge', [
-      'edge.id',
-      'edge.name',
-    ])
+    const plucked = await Node.query()
+      .innerJoin('edgeNodes', { edgeId: edge2.id }, 'edge')
+      .pluck('edge.id', 'edge.name')
     expect(plucked).toEqual([[edge2.id, edge2.name]])
   })
 
@@ -92,9 +84,9 @@ describe('Query#pluckThrough', () => {
       const user2 = await User.create({ name: 'cheeseman', email: 'hello@world2', password: 'howyadoin' })
       await Composition.create({ content: 'howyadoin', user: user2 })
 
-      const plucked = await Composition.query().pluckThrough('user', { name: ops.similarity('jerem') }, [
-        'user.id',
-      ])
+      const plucked = await Composition.query()
+        .innerJoin('user', { name: ops.similarity('jerem') })
+        .pluck('user.id')
       expect(plucked).toEqual([user1.id])
     })
   })
@@ -104,20 +96,8 @@ describe('Query#pluckThrough', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       await Pet.create({ user, name: 'Snoopy' })
       await Pet.create({ user, name: 'Woodstock', deletedAt: DateTime.now() })
-
-      const names = await User.query().pluckThrough('pets', 'pets.name')
+      const names = await User.query().innerJoin('pets').pluck('pets.name')
       expect(names).toEqual(['Snoopy'])
-    })
-
-    it('does not apply a default scope to the (already loaded) model we are starting from', async () => {
-      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const post = await Post.create({ user })
-      const postComment = await PostComment.create({ post, body: 'hello world' })
-
-      await post.destroy()
-      await postComment.undestroy()
-
-      expect(await post.pluckThrough('comments', 'comments.body')).toEqual(['hello world'])
     })
   })
 
@@ -130,8 +110,7 @@ describe('Query#pluckThrough', () => {
       await CompositionAssetAudit.create({
         compositionAssetId: compositionAsset.id,
       })
-
-      const plucked = await CompositionAssetAudit.query().pluckThrough('user', 'user.email')
+      const plucked = await CompositionAssetAudit.query().innerJoin('user').pluck('user.email')
       expect(plucked).toEqual(['fred@frewd'])
     })
   })
@@ -148,7 +127,7 @@ describe('Query#pluckThrough', () => {
 
     it('applies default scopes to the join model', async () => {
       expect(
-        await User.where({ id: user.id }).pluckThrough('postComments', 'postComments.body')
+        await User.where({ id: user.id }).innerJoin('postComments').pluck('postComments.body')
       ).toHaveLength(0)
     })
 
@@ -156,7 +135,8 @@ describe('Query#pluckThrough', () => {
       expect(
         await User.removeAllDefaultScopes()
           .where({ id: user.id })
-          .pluckThrough('postComments', 'postComments.body')
+          .innerJoin('postComments')
+          .pluck('postComments.body')
       ).toEqual(['hello world'])
     })
 
@@ -164,7 +144,8 @@ describe('Query#pluckThrough', () => {
       expect(
         await User.removeDefaultScope('dream:SoftDelete')
           .where({ id: user.id })
-          .pluckThrough('postComments', 'postComments.body')
+          .innerJoin('postComments')
+          .pluck('postComments.body')
       ).toEqual(['hello world'])
     })
   })
@@ -181,7 +162,7 @@ describe('Query#pluckThrough', () => {
 
     it('applies default scopes to the join model', async () => {
       expect(
-        await User.where({ id: user.id }).pluckThrough('posts', 'comments', 'comments.body')
+        await User.where({ id: user.id }).innerJoin('posts', 'comments').pluck('comments.body')
       ).toHaveLength(0)
     })
 
@@ -189,7 +170,8 @@ describe('Query#pluckThrough', () => {
       expect(
         await User.removeAllDefaultScopes()
           .where({ id: user.id })
-          .pluckThrough('posts', 'comments', 'comments.body')
+          .innerJoin('posts', 'comments')
+          .pluck('comments.body')
       ).toEqual(['hello world'])
     })
 
@@ -197,7 +179,8 @@ describe('Query#pluckThrough', () => {
       expect(
         await User.removeDefaultScope('dream:SoftDelete')
           .where({ id: user.id })
-          .pluckThrough('posts', 'comments', 'comments.body')
+          .innerJoin('posts', 'comments')
+          .pluck('comments.body')
       ).toEqual(['hello world'])
     })
   })

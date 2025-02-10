@@ -16,6 +16,19 @@ describe('Query#whereAny', () => {
     })
   })
 
+  context('passing null', () => {
+    it('clears existing whereNots', async () => {
+      const redBalloon = await Latex.create({ color: 'red' })
+      const greenBalloon = await Latex.create({ color: 'green' })
+      const noColorBalloon = await Latex.create({ color: null })
+
+      const balloons = await Balloon.whereAny([{ color: 'red' }, { color: 'green' }])
+        .whereAny(null)
+        .all()
+      expect(balloons).toMatchDreamModels([redBalloon, greenBalloon, noColorBalloon])
+    })
+  })
+
   context('within where-object', () => {
     it('treats keys within the object as AND statements', async () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })
@@ -93,6 +106,27 @@ describe('Query#whereAny', () => {
       expect(records).toMatchDreamModels([user1, user2])
     })
   })
+
+  //
+  // Once we support onAny
+  //
+  // context('where the foreign key is null on a left join', () => {
+  //   context('a non-null value', () => {
+  //     it.only('matches records with the value in the specified column', async () => {
+  //       const userWithRedBalloon = await User.create({ email: 'red@red.com', password: 'password' })
+  //       await Latex.create({ color: 'red', user: userWithRedBalloon })
+
+  //       const userWithGreenBalloon = await User.create({ email: 'green@green.com', password: 'password' })
+  //       await Latex.create({ color: 'green', user: userWithGreenBalloon })
+
+  //       const userWithNoBalloon = await User.create({ email: 'none@none.com', password: 'password' })
+
+  //       const users = await User.leftJoin('balloons', { onAny: { userId: null, color: 'red' }}) // , 'balloonLine', 'balloon')
+  //         .all()
+  //       expect(users).toMatchDreamModels([userWithNoBalloon, userWithRedBalloon])
+  //     })
+  //   })
+  // })
 
   context('in, not in, equals, not equals', () => {
     let redBalloon: Balloon

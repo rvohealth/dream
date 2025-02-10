@@ -1,6 +1,6 @@
-import ops from '../../../src/ops'
-import Edge from '../../../test-app/app/models/Graph/Edge'
-import User from '../../../test-app/app/models/User'
+import ops from '../../../../src/ops'
+import Edge from '../../../../test-app/app/models/Graph/Edge'
+import User from '../../../../test-app/app/models/User'
 
 describe('Query#pluck', () => {
   let user1: User
@@ -21,7 +21,7 @@ describe('Query#pluck', () => {
   context('plucking from base model when joining associations', () => {
     it('plucks the specified attributes from the base model', async () => {
       await user2.createAssociation('compositions')
-      const plucked = await User.innerJoin('compositions').pluck('id')
+      const plucked = await User.innerJoin('compositions').pluck('users.id')
       expect(plucked).toEqual([user2.id])
     })
   })

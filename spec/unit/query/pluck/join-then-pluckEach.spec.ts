@@ -1,17 +1,15 @@
 import { DateTime } from 'luxon'
-import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../../../src/errors/CannotPassAdditionalFieldsToPluckEachAfterCallback'
-import MissingRequiredCallbackFunctionToPluckEach from '../../../src/errors/MissingRequiredCallbackFunctionToPluckEach'
-import ops from '../../../src/ops'
-import Composition from '../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
-import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit'
-import Edge from '../../../test-app/app/models/Graph/Edge'
-import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode'
-import Node from '../../../test-app/app/models/Graph/Node'
-import Pet from '../../../test-app/app/models/Pet'
-import User from '../../../test-app/app/models/User'
+import ops from '../../../../src/ops'
+import Composition from '../../../../test-app/app/models/Composition'
+import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
+import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
+import Edge from '../../../../test-app/app/models/Graph/Edge'
+import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
+import Node from '../../../../test-app/app/models/Graph/Node'
+import Pet from '../../../../test-app/app/models/Pet'
+import User from '../../../../test-app/app/models/User'
 
-describe('Query#pluckEachThrough', () => {
+describe('Query#pluckEach on a join query', () => {
   it('can pluck from the associated namespace', async () => {
     const node = await Node.create({ name: 'N1' })
     const edge1 = await Edge.create({ name: 'E1' })
@@ -20,15 +18,11 @@ describe('Query#pluckEachThrough', () => {
     await EdgeNode.create({ node, edge: edge2 })
 
     const plucked: any[] = []
-    await Node.query().pluckEachThrough(
-      'edgeNodes',
-      'edge',
-      { name: 'E1' },
-      ['edge.id', 'edge.name'],
-      arr => {
+    await Node.query()
+      .innerJoin('edgeNodes', 'edge', { name: 'E1' })
+      .pluckEach('edge.id', 'edge.name', arr => {
         plucked.push(arr)
-      }
-    )
+      })
 
     expect(plucked).toEqual([[edge1.id, edge1.name]])
   })
@@ -42,29 +36,13 @@ describe('Query#pluckEachThrough', () => {
       await EdgeNode.create({ node, edge: edge2 })
 
       const plucked: any[] = []
-      await Node.query().pluckEachThrough('edgeNodes', 'edge', ['edge.name'], arr => {
-        plucked.push(arr)
-      })
+      await Node.query()
+        .innerJoin('edgeNodes', 'edge')
+        .pluckEach('edge.name', arr => {
+          plucked.push(arr)
+        })
 
       expect(plucked).toEqual([edge1.name, edge2.name])
-    })
-  })
-
-  context('with invalid arguments', () => {
-    context('when the cb function is not provided', () => {
-      it('raises a targeted exception', async () => {
-        await expect(
-          async () => await Node.query().pluckEachThrough('edgeNodes', 'edge', ['edge.id'])
-        ).rejects.toThrow(MissingRequiredCallbackFunctionToPluckEach)
-      })
-    })
-
-    context('when additional pluck arguments are following the call to pluckEachThrough', () => {
-      it('raises a targeted exception', async () => {
-        await expect(
-          async () => await Node.query().pluckEachThrough('edgeNodes', 'edge', () => {}, ['edge.id'] as any)
-        ).rejects.toThrow(CannotPassAdditionalFieldsToPluckEachAfterCallback)
-      })
     })
   })
 
@@ -77,9 +55,11 @@ describe('Query#pluckEachThrough', () => {
       await EdgeNode.create({ node, edge: edge2 })
 
       const plucked: any[] = []
-      await Node.query().pluckEachThrough('edgeNodes', 'edge', { name: 'E1' }, 'edge.weight', data => {
-        plucked.push(data)
-      })
+      await Node.query()
+        .innerJoin('edgeNodes', 'edge', { name: 'E1' })
+        .pluckEach('edge.weight', data => {
+          plucked.push(data)
+        })
       expect(plucked[0]).toEqual(2.3)
     })
   })
@@ -92,15 +72,11 @@ describe('Query#pluckEachThrough', () => {
     await EdgeNode.create({ node, edge: edge2 })
 
     const plucked: any[] = []
-    await Node.query().pluckEachThrough(
-      'edgeNodes',
-      { edgeId: edge2.id },
-      'edge',
-      ['edge.id', 'edge.name'],
-      data => {
+    await Node.query()
+      .innerJoin('edgeNodes', { edgeId: edge2.id }, 'edge')
+      .pluckEach('edge.id', 'edge.name', data => {
         plucked.push(data)
-      }
-    )
+      })
     expect(plucked).toEqual([[edge2.id, edge2.name]])
   })
 
@@ -113,14 +89,11 @@ describe('Query#pluckEachThrough', () => {
       await Composition.create({ content: 'howyadoin', user: user2 })
 
       const plucked: any[] = []
-      await Composition.query().pluckEachThrough(
-        'user',
-        { name: ops.similarity('jerem') },
-        ['user.id'],
-        data => {
+      await Composition.query()
+        .innerJoin('user', { name: ops.similarity('jerem') })
+        .pluckEach('user.id', data => {
           plucked.push(data)
-        }
-      )
+        })
       expect(plucked).toEqual([user1.id])
     })
   })
@@ -132,9 +105,11 @@ describe('Query#pluckEachThrough', () => {
       await Pet.create({ user, name: 'Woodstock', deletedAt: DateTime.now() })
 
       const names: any[] = []
-      await User.query().pluckEachThrough('pets', 'pets.name', data => {
-        names.push(data)
-      })
+      await User.query()
+        .innerJoin('pets')
+        .pluckEach('pets.name', data => {
+          names.push(data)
+        })
       expect(names).toEqual(['Snoopy'])
     })
   })
@@ -150,9 +125,11 @@ describe('Query#pluckEachThrough', () => {
       })
 
       const plucked: any[] = []
-      await CompositionAssetAudit.query().pluckEachThrough('user', 'user.email', data => {
-        plucked.push(data)
-      })
+      await CompositionAssetAudit.query()
+        .innerJoin('user')
+        .pluckEach('user.email', data => {
+          plucked.push(data)
+        })
       expect(plucked).toEqual(['fred@frewd'])
     })
 
@@ -174,15 +151,15 @@ describe('Query#pluckEachThrough', () => {
         })
 
         const plucked: any[] = []
-        await User.query().pluckEachThrough(
-          'compositions',
-          'compositionAssets',
-          ['compositionAssets.name'],
-          (data: any) => {
-            plucked.push(data)
-          },
-          { batchSize: 1 }
-        )
+        await User.query()
+          .innerJoin('compositions', 'compositionAssets')
+          .pluckEach(
+            'compositionAssets.name',
+            (data: any) => {
+              plucked.push(data)
+            },
+            { batchSize: 1 }
+          )
         expect(plucked).toEqual(expect.arrayContaining(['asset 1', 'asset 2', 'asset 3', 'asset 4']))
       })
     })

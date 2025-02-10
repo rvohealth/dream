@@ -2,12 +2,17 @@ import { PassthroughWhere } from '../decorators/associations/shared'
 import Dream from '../Dream'
 import DreamTransaction from './DreamTransaction'
 import Query, { PreloadedDreamsAndWhatTheyPointTo } from './Query'
-import { IdType, PassthroughColumnNames, VariadicLoadArgs } from './types'
+import {
+  IdType,
+  JoinedAssociationsTypeFromAssociations,
+  PassthroughColumnNames,
+  VariadicLoadArgs,
+} from './types'
 
 export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
   private dream: Dream
   private dreamTransaction: DreamTransaction<any> | undefined
-  private query: Query<DreamInstance>
+  private query: Query<DreamInstance, any>
 
   /**
    * An intermediate class on the way to executing a load
@@ -57,8 +62,11 @@ export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
-    this.query = this.query.leftJoinPreload(...(args as any))
+    LastArg extends VariadicLoadArgs<DB, Schema, TableName, Arr>,
+  >(this: I, ...args: [...Arr, LastArg]) {
+    this.query = this.query.leftJoinPreload(...(args as any)).clone<{
+      joinedAssociations: JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
+    }>()
     return this
   }
 

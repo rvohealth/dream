@@ -24,7 +24,8 @@ describe('Query#removeAllDefaultScopesExceptOnAssociations', () => {
 
     const pluckedThrough = await Post.query()
       ['removeAllDefaultScopesExceptOnAssociations']()
-      .pluckThrough('comments', 'comments.body')
+      .innerJoin('comments')
+      .pluck('comments.body')
     expect(pluckedThrough).toHaveLength(0)
   })
 })

@@ -1,13 +1,13 @@
 import { PassthroughWhere } from '../decorators/associations/shared'
 import Dream from '../Dream'
 import DreamTransaction from './DreamTransaction'
-import Query from './Query'
+import Query, { DefaultQueryTypeOptions } from './Query'
 import { PassthroughColumnNames, VariadicLoadArgs } from './types'
 
 export default class LoadBuilder<DreamInstance extends Dream> {
   private dream: Dream
   private dreamTransaction: DreamTransaction<any> | undefined
-  private query: Query<DreamInstance>
+  private query: Query<DreamInstance, DefaultQueryTypeOptions>
 
   /**
    * An intermediate class on the way to executing a load

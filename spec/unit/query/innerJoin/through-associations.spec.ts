@@ -452,7 +452,7 @@ describe('Query#joins through with simple associations', () => {
       await pet.createAssociation('collars', { balloon: redBalloon })
       await pet.createAssociation('collars', { balloon: greenBalloon })
 
-      const ids = await pet.pluckThrough('where_red', ['where_red.id'])
+      const ids = await pet.associationQuery('where_red').pluck('id')
       expect(ids).toEqual([redBalloon.id])
     })
   })
@@ -469,10 +469,9 @@ describe('Query#joins through with simple associations', () => {
       await Post.create({ user, body: 'hello' })
       const post2 = await Post.create({ user, body: 'world' })
 
-      const plucked = await User.query().pluckThrough('featuredPost', [
-        'featuredPost.id',
-        'featuredPost.body',
-      ])
+      const plucked = await User.query()
+        .innerJoin('featuredPost')
+        .pluck('featuredPost.id', 'featuredPost.body')
       expect(plucked).toEqual([[post2.id, 'world']])
     })
 
@@ -490,10 +489,12 @@ describe('Query#joins through with simple associations', () => {
         const rating2a = await Rating.create({ user, rateable: post2, rating: 7 })
         await Rating.create({ user, rateable: post2, rating: 5 })
 
-        const plucked = await User.query().pluckThrough('ratingsThroughPostsThatMatchUserTargetRating', [
-          'ratingsThroughPostsThatMatchUserTargetRating.id',
-          'ratingsThroughPostsThatMatchUserTargetRating.rating',
-        ])
+        const plucked = await User.query()
+          .innerJoin('ratingsThroughPostsThatMatchUserTargetRating')
+          .pluck(
+            'ratingsThroughPostsThatMatchUserTargetRating.id',
+            'ratingsThroughPostsThatMatchUserTargetRating.rating'
+          )
         expect(plucked).toHaveLength(2)
         expect(plucked).toEqual(
           expect.arrayContaining([
@@ -516,7 +517,7 @@ describe('Query#joins through with simple associations', () => {
       await pet.createAssociation('collars', { balloon: greenBalloon })
       await pet.createAssociation('collars', { balloon: blueBalloon })
 
-      const ids = await pet.pluckThrough('whereNot_red', ['whereNot_red.id'])
+      const ids = await pet.associationQuery('whereNot_red').pluck('id')
       expect(ids).toEqual([greenBalloon.id, blueBalloon.id])
     })
   })

@@ -25,7 +25,8 @@ describe('Query#removeAllDefaultScopes', () => {
 
     const pluckedThrough = await Post.query()
       .removeAllDefaultScopes()
-      .pluckThrough('comments', 'comments.body')
+      .innerJoin('comments')
+      .pluck('comments.body')
     expect(pluckedThrough).toEqual(['hello world'])
   })
 })
