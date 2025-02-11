@@ -81,14 +81,14 @@ import {
 import undestroyDream from './dream/internal/undestroyDream'
 import LeftJoinLoadBuilder from './dream/LeftJoinLoadBuilder'
 import LoadBuilder from './dream/LoadBuilder'
-import Query, { FindEachOpts } from './dream/Query'
+import Query, { DefaultQueryTypeOptions, FindEachOpts } from './dream/Query'
 import {
   AllDefaultScopeNames,
+  AssociationNameToDream,
   AttributeKeys,
   DefaultOrNamedScopeName,
   DreamAssociationNames,
   DreamAssociationNamesWithoutRequiredWhereClauses,
-  DreamAssociationType,
   DreamAttributes,
   DreamColumnNames,
   DreamConstructorType,
@@ -3652,11 +3652,12 @@ export default class Dream {
     TableName extends I['table'],
     Schema extends I['schema'],
     AssociationName extends DreamAssociationNames<I>,
+    AssociationDream extends AssociationNameToDream<I, AssociationName>,
   >(
     this: I,
     associationName: AssociationName,
     whereStatement: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
-  ): Query<DreamAssociationType<I, AssociationName>>
+  ): Query<AssociationDream, DefaultQueryTypeOptions<AssociationDream, AssociationName & string>>
 
   public associationQuery<
     I extends Dream,
@@ -3664,11 +3665,12 @@ export default class Dream {
     TableName extends I['table'],
     Schema extends I['schema'],
     AssociationName extends DreamAssociationNamesWithoutRequiredWhereClauses<I>,
+    AssociationDream extends AssociationNameToDream<I, AssociationName>,
   >(
     this: I,
     associationName: AssociationName,
     whereStatement?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
-  ): Query<DreamAssociationType<I, AssociationName>>
+  ): Query<AssociationDream, DefaultQueryTypeOptions<AssociationDream, AssociationName & string>>
 
   /**
    * Returns a Query instance for the specified
@@ -3709,7 +3711,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    attributes: Partial<DreamAttributes<DreamAssociationType<I, AssociationName>>>,
+    attributes: Partial<DreamAttributes<AssociationNameToDream<I, AssociationName>>>,
     updateAssociationOptions: {
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<I>[]
@@ -3727,7 +3729,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    attributes: Partial<DreamAttributes<DreamAssociationType<I, AssociationName>>>,
+    attributes: Partial<DreamAttributes<AssociationNameToDream<I, AssociationName>>>,
     updateAssociationOptions?: {
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<I>[]
@@ -3761,7 +3763,7 @@ export default class Dream {
   public async updateAssociation<I extends Dream, AssociationName extends DreamAssociationNames<I>>(
     this: I,
     associationName: AssociationName,
-    attributes: Partial<DreamAttributes<DreamAssociationType<I, AssociationName>>>,
+    attributes: Partial<DreamAttributes<AssociationNameToDream<I, AssociationName>>>,
     updateAssociationOptions?: unknown
   ): Promise<number> {
     return associationUpdateQuery(this, null, associationName, {

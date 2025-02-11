@@ -1,4 +1,5 @@
 import ops from '../../../../src/ops'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import Edge from '../../../../test-app/app/models/Graph/Edge'
 import User from '../../../../test-app/app/models/User'
 
@@ -16,6 +17,15 @@ describe('Query#pluck', () => {
   it('plucks the specified attributes and returns them as raw data', async () => {
     const plucked = await User.order('id').pluck('id')
     expect(plucked).toEqual([user1.id, user2.id, user3.id])
+  })
+
+  context('on an associationQuery', () => {
+    it('columns corresponding to the root of the query are namespaced to the association name in associationQuery', async () => {
+      await Mylar.create({ user: user1, color: 'red' })
+
+      const colors = await user1.associationQuery('balloons').pluck('color')
+      expect(colors[0]).toEqual('red')
+    })
   })
 
   context('plucking from base model when joining associations', () => {

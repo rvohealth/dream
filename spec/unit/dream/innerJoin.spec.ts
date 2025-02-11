@@ -1,4 +1,6 @@
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar'
+import BalloonLine from '../../../test-app/app/models/BalloonLine'
 import Composition from '../../../test-app/app/models/Composition'
 import Post from '../../../test-app/app/models/Post'
 import PostComment from '../../../test-app/app/models/PostComment'
@@ -51,6 +53,34 @@ describe('Dream#innerJoin', () => {
 
       await ApplicationModel.transaction(async txn => {
         expect(await post.txn(txn).innerJoin('comments').pluck('comments.body')).toEqual(['hello world'])
+      })
+    })
+  })
+
+  context('on an associationQuery', () => {
+    it('columns corresponding to the root of the query are namespaced to the association name in associationQuery', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const balloon = await Mylar.create({ user, color: 'red' })
+      await BalloonLine.create({ balloon, material: 'nylon' })
+
+      const colors = await user.associationQuery('balloons').innerJoin('balloonLine').pluck('balloons.color')
+      expect(colors[0]).toEqual('red')
+    })
+
+    context('when encased in a transaction', () => {
+      it('columns corresponding to the root of the query are namespaced to the association name in associationQuery', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const balloon = await Mylar.create({ user, color: 'red' })
+        await BalloonLine.create({ balloon, material: 'nylon' })
+
+        await ApplicationModel.transaction(async txn => {
+          const colors = await user
+            .txn(txn)
+            .associationQuery('balloons')
+            .innerJoin('balloonLine')
+            .pluck('balloons.color')
+          expect(colors[0]).toEqual('red')
+        })
       })
     })
   })

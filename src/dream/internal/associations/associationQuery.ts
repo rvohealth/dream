@@ -3,7 +3,7 @@ import { WhereStatementForAssociation } from '../../../decorators/associations/s
 import Dream from '../../../Dream'
 import DreamTransaction from '../../DreamTransaction'
 import Query from '../../Query'
-import { DreamAssociationNames, DreamAssociationType, TableOrAssociationName } from '../../types'
+import { AssociationNameToDream, DreamAssociationNames, TableOrAssociationName } from '../../types'
 import applyScopeBypassingSettingsToQuery from '../applyScopeBypassingSettingsToQuery'
 
 export default function associationQuery<
@@ -13,7 +13,7 @@ export default function associationQuery<
   Schema extends DreamInstance['schema'],
   AssociationName extends DreamAssociationNames<DreamInstance>,
   Where extends WhereStatementForAssociation<DB, Schema, TableName, AssociationName>,
-  AssociationQuery = Query<DreamAssociationType<DreamInstance, AssociationName>>,
+  AssociationQuery = Query<AssociationNameToDream<DreamInstance, AssociationName>>,
 >(
   dream: DreamInstance,
   txn: DreamTransaction<Dream> | null = null,

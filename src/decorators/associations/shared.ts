@@ -119,13 +119,14 @@ export type ColumnNamesAccountingForJoinedAssociations<
   JoinedAssociations extends Readonly<JoinedAssociation[]>,
   DB,
   RootTableName extends keyof DB,
+  RootTableAlias extends string,
 > = JoinedAssociations['length'] extends 0
   ? TableColumnNames<DB, RootTableName> // no associations; simply return the un-namespaced columns for the root table
   : JoinedAssociationColumnNames<
       JoinedAssociations,
       DB,
       // namespace columns for the root table
-      AssociationNameToDotReferencedColumns<DB, RootTableName & keyof DB, RootTableName>
+      AssociationNameToDotReferencedColumns<DB, RootTableName & keyof DB, RootTableAlias>
     >
 
 type JoinedAssociationColumnNames<

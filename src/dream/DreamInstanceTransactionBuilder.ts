@@ -26,9 +26,9 @@ import LoadBuilder from './LoadBuilder'
 import Query, { DefaultQueryTypeOptions } from './Query'
 import {
   AllDefaultScopeNames,
+  AssociationNameToDream,
   DreamAssociationNames,
   DreamAssociationNamesWithoutRequiredWhereClauses,
-  DreamAssociationType,
   DreamAttributes,
   DreamConstructorType,
   JoinedAssociationsTypeFromAssociations,
@@ -418,7 +418,11 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   public associationQuery<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends DreamAssociationNames<DreamInstance>,
-  >(this: I, associationName: AssociationName): Query<DreamAssociationType<DreamInstance, AssociationName>> {
+    AssociationDream extends AssociationNameToDream<DreamInstance, AssociationName>,
+  >(
+    this: I,
+    associationName: AssociationName
+  ): Query<AssociationDream, DefaultQueryTypeOptions<AssociationDream, AssociationName & string>> {
     return associationQuery(this.dreamInstance, this.dreamTransaction, associationName, {
       bypassAllDefaultScopes: DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
       defaultScopesToBypass: DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
@@ -437,7 +441,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    attributes: Partial<DreamAttributes<DreamAssociationType<DreamInstance, AssociationName>>>,
+    attributes: Partial<DreamAttributes<AssociationNameToDream<DreamInstance, AssociationName>>>,
     updateAssociationOptions: {
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance>[]
@@ -456,7 +460,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    attributes: Partial<DreamAttributes<DreamAssociationType<DreamInstance, AssociationName>>>,
+    attributes: Partial<DreamAttributes<AssociationNameToDream<DreamInstance, AssociationName>>>,
     updateAssociationOptions?: {
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance>[]
@@ -496,7 +500,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    attributes: Partial<DreamAttributes<DreamAssociationType<DreamInstance, AssociationName>>>,
+    attributes: Partial<DreamAttributes<AssociationNameToDream<DreamInstance, AssociationName>>>,
     updateAssociationOptions: unknown
   ): Promise<number> {
     return await associationUpdateQuery(this.dreamInstance, this.dreamTransaction, associationName, {
@@ -744,7 +748,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    */
   private queryInstance<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I
-  ): Query<DreamInstance, DefaultQueryTypeOptions> {
+  ): Query<DreamInstance, DefaultQueryTypeOptions<DreamInstance>> {
     const dreamClass = this.dreamInstance.constructor as DreamConstructorType<DreamInstance>
     const id = this.dreamInstance.primaryKeyValue
 

@@ -71,9 +71,9 @@ import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance'
 import {
   AliasToDreamIdMap,
   AllDefaultScopeNames,
-  AssociationNameToAssociation,
-  AssociationNameToAssociationDataAndDreamClass,
-  AssociationNameToDreamClass,
+  AssociationNameToAssociationDataAndDreamClassMap,
+  AssociationNameToAssociationMap,
+  AssociationNameToDreamClassMap,
   DefaultScopeName,
   DreamColumnNames,
   DreamConst,
@@ -132,11 +132,18 @@ const OPERATION_NEGATION_MAP: Partial<{
   // '<->',
 } as const
 
-export type DefaultQueryTypeOptions = Readonly<{ joinedAssociations: [] }>
+export type DefaultQueryTypeOptions<
+  TableNameSource extends Dream,
+  TableAliasSource extends Dream | string = TableNameSource,
+> = Readonly<{
+  joinedAssociations: []
+  rootTableName: TableNameSource['table']
+  rootTableAlias: TableAliasSource extends Dream ? TableAliasSource['table'] : TableAliasSource
+}>
 
 export default class Query<
   DreamInstance extends Dream,
-  QueryTypeOpts extends QueryTypeOptions = DefaultQueryTypeOptions,
+  QueryTypeOpts extends QueryTypeOptions = DefaultQueryTypeOptions<DreamInstance>,
 > extends ConnectedToDB<DreamInstance> {
   /**
    * @internal
@@ -415,7 +422,7 @@ export default class Query<
       bypassAllDefaultScopesExceptOnAssociations?: boolean
       defaultScopesToBypassExceptOnAssociations?: AllDefaultScopeNames<DreamInstance>[]
     } = {}
-  ): Query<InstanceType<T>, DefaultQueryTypeOptions> {
+  ): Query<InstanceType<T>, DefaultQueryTypeOptions<DreamInstance>> {
     const associationQuery = dreamClass.query().clone({
       passthroughWhereStatement: this.passthroughWhereStatement,
       bypassAllDefaultScopes: this.bypassAllDefaultScopes,
@@ -424,7 +431,10 @@ export default class Query<
       defaultScopesToBypassExceptOnAssociations,
     })
 
-    return this.dreamTransaction ? associationQuery.txn(this.dreamTransaction) : associationQuery
+    return (this.dreamTransaction ? associationQuery.txn(this.dreamTransaction) : associationQuery) as Query<
+      InstanceType<T>,
+      DefaultQueryTypeOptions<DreamInstance>
+    >
   }
 
   /**
@@ -894,8 +904,8 @@ export default class Query<
    */
   private associationNamesToDreamClassesMap(
     associationNames: string[],
-    associationsToDreamClassesMap: AssociationNameToDreamClass = {}
-  ): AssociationNameToDreamClass {
+    associationsToDreamClassesMap: AssociationNameToDreamClassMap = {}
+  ): AssociationNameToDreamClassMap {
     const namesToAssociationsAndDreamClasses =
       this.associationNamesToAssociationDataAndDreamClassesMap(associationNames)
     return Object.keys(namesToAssociationsAndDreamClasses).reduce((remap, associationName) => {
@@ -911,8 +921,8 @@ export default class Query<
    */
   private associationNamesToAssociationsMap(
     associationNames: string[],
-    associationsToAssociations: AssociationNameToAssociation = {}
-  ): AssociationNameToAssociation {
+    associationsToAssociations: AssociationNameToAssociationMap = {}
+  ): AssociationNameToAssociationMap {
     const namesToAssociationsAndDreamClasses =
       this.associationNamesToAssociationDataAndDreamClassesMap(associationNames)
     return Object.keys(namesToAssociationsAndDreamClasses).reduce((remap, associationName) => {
@@ -926,8 +936,8 @@ export default class Query<
    */
   private associationNamesToAssociationDataAndDreamClassesMap(
     associationNames: string[]
-  ): AssociationNameToAssociationDataAndDreamClass {
-    const associationsToDreamClassesMap: AssociationNameToAssociationDataAndDreamClass = {}
+  ): AssociationNameToAssociationDataAndDreamClassMap {
+    const associationsToDreamClassesMap: AssociationNameToAssociationDataAndDreamClassMap = {}
 
     associationNames.reduce((dreamClass: typeof Dream, associationName: string) => {
       const association = dreamClass['getAssociationMetadata'](associationName)
@@ -976,7 +986,7 @@ export default class Query<
    *
    */
   private joinStatementsToDreamClassesMap(joinStatements: RelaxedJoinStatement) {
-    const associationsToDreamClassesMap: AssociationNameToDreamClass = {}
+    const associationsToDreamClassesMap: AssociationNameToDreamClassMap = {}
 
     objectPathsToArrays(joinStatements).forEach(associationChain =>
       this.associationNamesToDreamClassesMap(associationChain, associationsToDreamClassesMap)
@@ -991,7 +1001,7 @@ export default class Query<
    *
    */
   private joinStatementsToAssociationsMap(joinStatements: RelaxedJoinStatement) {
-    const associationsToAssociationsMap: AssociationNameToAssociation = {}
+    const associationsToAssociationsMap: AssociationNameToAssociationMap = {}
 
     objectPathsToArrays(joinStatements).forEach(associationChain =>
       this.associationNamesToAssociationsMap(associationChain, associationsToAssociationsMap)
@@ -1510,15 +1520,12 @@ export default class Query<
    * @returns the max value of the specified column for this Query
    *
    */
-  public async max<
-    Q extends Query<DreamInstance, QueryTypeOpts>,
-    DB extends DreamInstance['DB'],
-    TableName extends DreamInstance['table'],
-  >(
+  public async max<Q extends Query<DreamInstance, QueryTypeOpts>, DB extends DreamInstance['DB']>(
     columnName: ColumnNamesAccountingForJoinedAssociations<
       Q['queryTypeOpts']['joinedAssociations'],
       DB,
-      TableName
+      QueryTypeOpts['rootTableName'],
+      QueryTypeOpts['rootTableAlias']
     >
   ): Promise<any> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -1544,15 +1551,12 @@ export default class Query<
    * @param columnName - a column name on the model
    * @returns the min value of the specified column for this Query
    */
-  public async min<
-    Q extends Query<DreamInstance, QueryTypeOpts>,
-    DB extends DreamInstance['DB'],
-    TableName extends DreamInstance['table'],
-  >(
+  public async min<Q extends Query<DreamInstance, QueryTypeOpts>, DB extends DreamInstance['DB']>(
     columnName: ColumnNamesAccountingForJoinedAssociations<
       Q['queryTypeOpts']['joinedAssociations'],
       DB,
-      TableName
+      QueryTypeOpts['rootTableName'],
+      QueryTypeOpts['rootTableAlias']
     >
   ): Promise<any> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -1681,8 +1685,8 @@ export default class Query<
     singleSqlResult: any
     aliasToDreamIdMap: AliasToDreamIdMap
     associationAliasToColumnAliasMap: Record<string, Record<string, string>>
-    aliasToAssociationsMap: AssociationNameToAssociation
-    aliasToDreamClassesMap: AssociationNameToDreamClass
+    aliasToAssociationsMap: AssociationNameToAssociationMap
+    aliasToDreamClassesMap: AssociationNameToDreamClassMap
     leftJoinStatements: RelaxedJoinStatement
   }) {
     const dreamClass = aliasToDreamClassesMap[currentAlias]
@@ -1811,16 +1815,13 @@ export default class Query<
    * @param fields - The column or array of columns to pluck
    * @returns An array of pluck results
    */
-  public async pluck<
-    Q extends Query<DreamInstance, QueryTypeOpts>,
-    DB extends DreamInstance['DB'],
-    TableName extends DreamInstance['table'],
-  >(
+  public async pluck<Q extends Query<DreamInstance, QueryTypeOpts>, DB extends DreamInstance['DB']>(
     this: Q,
     ...fields: ColumnNamesAccountingForJoinedAssociations<
       Q['queryTypeOpts']['joinedAssociations'],
       DB,
-      TableName
+      QueryTypeOpts['rootTableName'],
+      QueryTypeOpts['rootTableAlias']
     >[]
   ): Promise<any[]> {
     const vals = await this.executePluck(...(fields as any[]))
@@ -1850,12 +1851,16 @@ export default class Query<
   public async pluckEach<
     Q extends Query<DreamInstance, QueryTypeOpts>,
     DB extends DreamInstance['DB'],
-    TableName extends DreamInstance['table'],
     CB extends (plucked: any) => void | Promise<void>,
   >(
     this: Q,
     ...fields: (
-      | ColumnNamesAccountingForJoinedAssociations<Q['queryTypeOpts']['joinedAssociations'], DB, TableName>
+      | ColumnNamesAccountingForJoinedAssociations<
+          Q['queryTypeOpts']['joinedAssociations'],
+          DB,
+          QueryTypeOpts['rootTableName'],
+          QueryTypeOpts['rootTableAlias']
+        >
       | CB
       | FindEachOpts
     )[]
@@ -3872,4 +3877,7 @@ type ExtendQueryType<
   joinedAssociations: Opts['joinedAssociations'] extends Readonly<Readonly<JoinedAssociation>[]>
     ? Readonly<[...OriginalOpts['joinedAssociations'], ...Opts['joinedAssociations']]>
     : OriginalOpts['joinedAssociations']
+
+  rootTableName: OriginalOpts['rootTableName']
+  rootTableAlias: OriginalOpts['rootTableAlias']
 }>

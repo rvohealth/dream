@@ -9,9 +9,9 @@ export default async function reload<DreamInstance extends Dream>(
 ) {
   if (dream.isNewRecord) throw new CannotReloadUnsavedDream(dream)
 
-  let query: Query<DreamInstance, DefaultQueryTypeOptions> = new Query<
+  let query: Query<DreamInstance, DefaultQueryTypeOptions<DreamInstance>> = new Query<
     DreamInstance,
-    DefaultQueryTypeOptions
+    DefaultQueryTypeOptions<DreamInstance>
   >(dream)
 
   if (txn) query = query.txn(txn)

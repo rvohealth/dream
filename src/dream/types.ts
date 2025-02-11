@@ -124,7 +124,7 @@ export type DreamClassColumn<
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
 > = DreamColumn<DreamInstance, Column>
 
-export type DreamAssociationType<
+export type AssociationNameToDream<
   DreamInstance extends Dream,
   AssociationName extends DreamAssociationNames<DreamInstance>,
   PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
@@ -391,14 +391,14 @@ export type PreloadArgumentTypeAssociatedTableNames<
       string[])[number]
 // end:preload
 
-export type AssociationNameToDreamClass = Record<string, typeof Dream>
-export type AssociationNameToAssociation = Record<
+export type AssociationNameToDreamClassMap = Record<string, typeof Dream>
+export type AssociationNameToAssociationMap = Record<
   string,
   | BelongsToStatement<any, any, any, any>
   | HasOneStatement<any, any, any, any>
   | HasManyStatement<any, any, any, any>
 >
-export type AssociationNameToAssociationDataAndDreamClass = Record<
+export type AssociationNameToAssociationDataAndDreamClassMap = Record<
   string,
   {
     dreamClass: typeof Dream
@@ -841,6 +841,8 @@ export interface JoinedAssociation {
 
 export interface QueryTypeOptions {
   joinedAssociations: Readonly<JoinedAssociation[]>
+  rootTableName: string
+  rootTableAlias: string
 }
 
 export type JoinedAssociationsTypeFromAssociations<

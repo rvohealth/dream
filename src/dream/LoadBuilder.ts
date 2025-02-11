@@ -7,7 +7,7 @@ import { PassthroughColumnNames, VariadicLoadArgs } from './types'
 export default class LoadBuilder<DreamInstance extends Dream> {
   private dream: Dream
   private dreamTransaction: DreamTransaction<any> | undefined
-  private query: Query<DreamInstance, DefaultQueryTypeOptions>
+  private query: Query<DreamInstance, DefaultQueryTypeOptions<DreamInstance>>
 
   /**
    * An intermediate class on the way to executing a load

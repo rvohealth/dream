@@ -5,7 +5,7 @@ import { WhereStatement } from '../../../decorators/associations/shared'
 import Dream from '../../../Dream'
 import DreamTransaction from '../../DreamTransaction'
 import Query from '../../Query'
-import { DreamAssociationNames, DreamAssociationType } from '../../types'
+import { AssociationNameToDream, DreamAssociationNames } from '../../types'
 import applyScopeBypassingSettingsToQuery from '../applyScopeBypassingSettingsToQuery'
 
 export default function associationUpdateQuery<
@@ -15,7 +15,7 @@ export default function associationUpdateQuery<
   Schema extends DreamInstance['schema'],
   AssociationName extends DreamAssociationNames<DreamInstance>,
   Where extends WhereStatement<DB, Schema, TableName>,
-  AssociationQuery = Query<DreamAssociationType<DreamInstance, AssociationName>>,
+  AssociationQuery = Query<AssociationNameToDream<DreamInstance, AssociationName>>,
 >(
   dream: DreamInstance,
   txn: DreamTransaction<Dream> | null = null,

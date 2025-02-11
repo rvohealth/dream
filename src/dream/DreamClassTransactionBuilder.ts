@@ -81,7 +81,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
   public limit<I extends DreamClassTransactionBuilder<DreamInstance>>(
     this: I,
     limit: number | null
-  ): Query<DreamInstance, DefaultQueryTypeOptions> {
+  ): Query<DreamInstance, DefaultQueryTypeOptions<DreamInstance>> {
     return this.queryInstance().limit(limit)
   }
 
@@ -101,7 +101,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
   public offset<I extends DreamClassTransactionBuilder<DreamInstance>>(
     this: I,
     offset: number | null
-  ): Query<DreamInstance, DefaultQueryTypeOptions> {
+  ): Query<DreamInstance, DefaultQueryTypeOptions<DreamInstance>> {
     return this.queryInstance().offset(offset)
   }
 
@@ -476,8 +476,10 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    */
   public queryInstance<I extends DreamClassTransactionBuilder<DreamInstance>>(
     this: I
-  ): Query<DreamInstance, DefaultQueryTypeOptions> {
-    return new Query<DreamInstance, DefaultQueryTypeOptions>(this.dreamInstance).txn(this.dreamTransaction)
+  ): Query<DreamInstance, DefaultQueryTypeOptions<DreamInstance>> {
+    return new Query<DreamInstance, DefaultQueryTypeOptions<DreamInstance>>(this.dreamInstance).txn(
+      this.dreamTransaction
+    )
   }
 
   /**
@@ -487,7 +489,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    */
   public removeAllDefaultScopes<I extends DreamClassTransactionBuilder<DreamInstance>>(
     this: I
-  ): Query<DreamInstance, DefaultQueryTypeOptions> {
+  ): Query<DreamInstance, DefaultQueryTypeOptions<DreamInstance>> {
     return this.queryInstance().removeAllDefaultScopes()
   }
 
@@ -500,7 +502,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
   public removeDefaultScope<I extends DreamClassTransactionBuilder<DreamInstance>>(
     this: I,
     scopeName: DefaultScopeName<DreamInstance>
-  ): Query<DreamInstance, DefaultQueryTypeOptions> {
+  ): Query<DreamInstance, DefaultQueryTypeOptions<DreamInstance>> {
     return this.queryInstance().removeDefaultScope(scopeName)
   }
 
@@ -684,7 +686,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
   >(
     this: I,
     passthroughWhereStatement: PassthroughWhere<PassthroughColumns>
-  ): Query<DreamInstance, DefaultQueryTypeOptions> {
+  ): Query<DreamInstance, DefaultQueryTypeOptions<DreamInstance>> {
     return this.queryInstance().passthrough(passthroughWhereStatement as any)
   }
 
@@ -710,7 +712,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
   >(
     this: I,
     whereStatement: WhereStatement<DB, Schema, TableName>
-  ): Query<DreamInstance, DefaultQueryTypeOptions> {
+  ): Query<DreamInstance, DefaultQueryTypeOptions<DreamInstance>> {
     return this.queryInstance().where(whereStatement as any)
   }
 
@@ -736,7 +738,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
   >(
     this: I,
     whereStatements: WhereStatement<DB, Schema, TableName>[]
-  ): Query<DreamInstance, DefaultQueryTypeOptions> {
+  ): Query<DreamInstance, DefaultQueryTypeOptions<DreamInstance>> {
     return this.queryInstance().whereAny(whereStatements as any)
   }
 
@@ -762,7 +764,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
   >(
     this: I,
     whereStatement: WhereStatement<DB, Schema, TableName>
-  ): Query<DreamInstance, DefaultQueryTypeOptions> {
+  ): Query<DreamInstance, DefaultQueryTypeOptions<DreamInstance>> {
     return this.queryInstance().whereNot(whereStatement as any)
   }
 }
