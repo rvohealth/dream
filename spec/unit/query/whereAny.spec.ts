@@ -107,26 +107,32 @@ describe('Query#whereAny', () => {
     })
   })
 
-  //
-  // Once we support onAny
-  //
-  // context('where the foreign key is null on a left join', () => {
-  //   context('a non-null value', () => {
-  //     it.only('matches records with the value in the specified column', async () => {
-  //       const userWithRedBalloon = await User.create({ email: 'red@red.com', password: 'password' })
-  //       await Latex.create({ color: 'red', user: userWithRedBalloon })
+  context('where the foreign key is null on a left join', () => {
+    context('a non-null value', () => {
+      it('matches records with the value in the specified column', async () => {
+        const userWithRedBalloon = await User.create({ email: 'red@red.com', password: 'password' })
+        await Latex.create({ color: 'red', user: userWithRedBalloon })
 
-  //       const userWithGreenBalloon = await User.create({ email: 'green@green.com', password: 'password' })
-  //       await Latex.create({ color: 'green', user: userWithGreenBalloon })
+        const userWithGreenBalloon = await User.create({ email: 'green@green.com', password: 'password' })
+        await Latex.create({ color: 'green', user: userWithGreenBalloon })
 
-  //       const userWithNoBalloon = await User.create({ email: 'none@none.com', password: 'password' })
+        const userWithNoBalloon = await User.create({ email: 'none@none.com', password: 'password' })
 
-  //       const users = await User.leftJoin('balloons', { onAny: { userId: null, color: 'red' }}) // , 'balloonLine', 'balloon')
-  //         .all()
-  //       expect(users).toMatchDreamModels([userWithNoBalloon, userWithRedBalloon])
-  //     })
-  //   })
-  // })
+        const users = await User.query()
+          .leftJoin('balloons')
+          .whereAny([
+            {
+              'balloons.color': 'red',
+            },
+            {
+              'balloons.userId': null,
+            },
+          ])
+          .all()
+        expect(users).toMatchDreamModels([userWithNoBalloon, userWithRedBalloon])
+      })
+    })
+  })
 
   context('in, not in, equals, not equals', () => {
     let redBalloon: Balloon

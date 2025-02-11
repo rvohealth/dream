@@ -6,10 +6,11 @@ import validateTable from '../../../db/validators/validateTable'
 import validateTableAlias from '../../../db/validators/validateTableAlias'
 import { WhereStatement } from '../../../decorators/associations/shared'
 import Dream from '../../../Dream'
+import namespaceColumn from '../../../helpers/namespaceColumn'
 import { isObject } from '../../../helpers/typechecks'
 import OpsStatement from '../../../ops/ops-statement'
 import DreamTransaction from '../../DreamTransaction'
-import { RelaxedJoinWhereStatement, SimilarityStatement, TRIGRAM_OPERATORS } from '../../types'
+import { JoinOnStatements, RelaxedJoinOnStatement, SimilarityStatement, TRIGRAM_OPERATORS } from '../../types'
 import similaritySelectSql from './similaritySelectSql'
 import similarityWhereSql from './similarityWhereSql'
 
@@ -20,13 +21,13 @@ export default class SimilarityBuilder<
 > extends ConnectedToDB<DreamInstance> {
   public readonly whereStatement: readonly WhereStatement<DB, Schema, any>[]
   public readonly whereNotStatement: readonly WhereStatement<DB, Schema, any>[]
-  public readonly joinWhereStatements: RelaxedJoinWhereStatement<DB, Schema> = Object.freeze({})
+  public readonly joinOnStatements: JoinOnStatements<DB, Schema, any> = Object.freeze({})
 
   constructor(dreamInstance: DreamInstance, opts: SimilarityBuilderOpts<DreamInstance> = {}) {
     super(dreamInstance, opts)
     this.whereStatement = Object.freeze(opts.where || [])
     this.whereNotStatement = Object.freeze(opts.whereNot || [])
-    this.joinWhereStatements = Object.freeze(opts.joinWhereStatements || {})
+    this.joinOnStatements = Object.freeze(opts.joinOnStatements || {})
   }
 
   /*
@@ -86,11 +87,11 @@ export default class SimilarityBuilder<
       })
     })
 
-    this.whereJoinsStatementsWithSimilarityClauses().forEach((similarityStatement, index) => {
+    this.joinOnStatementsWithSimilarityClauses().forEach((similarityStatement, index) => {
       kyselyQuery = this.addStatementToSelectQuery({
         kyselyQuery,
         similarityStatement,
-        statementType: 'where_joins',
+        statementType: 'on',
         index,
         bypassOrder,
       })
@@ -167,11 +168,11 @@ export default class SimilarityBuilder<
       })
     })
 
-    this.whereJoinsStatementsWithSimilarityClauses().forEach((similarityStatement, index) => {
+    this.joinOnStatementsWithSimilarityClauses().forEach((similarityStatement, index) => {
       kyselyQuery = this.addStatementToUpdateQuery({
         kyselyQuery,
         similarityStatement,
-        statementType: 'where_joins',
+        statementType: 'on',
         index,
       })
     })
@@ -191,11 +192,11 @@ export default class SimilarityBuilder<
     return this.similarityStatementFilter(this.whereNotStatement)
   }
 
-  public whereJoinsStatementsWithSimilarityClauses() {
-    return this.recursiveWhereJoinsFinder(this.joinWhereStatements, this.dreamClass)
+  public joinOnStatementsWithSimilarityClauses() {
+    return this.recursiveJoinsOnFinder(removeOnFromObjectHierarchy(this.joinOnStatements), this.dreamClass)
   }
 
-  private recursiveWhereJoinsFinder(obj: any, dreamClass: typeof Dream) {
+  private recursiveJoinsOnFinder(obj: any, dreamClass: typeof Dream) {
     const similar: SimilarityStatement[] = []
 
     Object.keys(obj).forEach(associationName => {
@@ -212,6 +213,7 @@ export default class SimilarityBuilder<
 
       Object.keys(tableValues).forEach(columnOrAssociationName => {
         const statementOrValueOrNestedObject = tableValues[columnOrAssociationName]
+
         if (
           statementOrValueOrNestedObject?.isOpsStatement &&
           TRIGRAM_OPERATORS.includes(statementOrValueOrNestedObject?.operator)
@@ -231,7 +233,7 @@ export default class SimilarityBuilder<
           // {
           //   users: { compositions: { compositionAssets: { compositionAssetAudits: { notes: [OpsStatement] } } } }
           // }
-          similar.push(...this.recursiveWhereJoinsFinder(tableValues, associationDreamClass))
+          similar.push(...this.recursiveJoinsOnFinder(tableValues, associationDreamClass))
         }
       })
     })
@@ -243,7 +245,7 @@ export default class SimilarityBuilder<
     return [
       ...this.whereStatementsWithSimilarityClauses(),
       ...this.whereNotStatementsWithSimilarityClauses(),
-      ...this.whereJoinsStatementsWithSimilarityClauses(),
+      ...this.joinOnStatementsWithSimilarityClauses(),
     ]
   }
 
@@ -283,15 +285,15 @@ export default class SimilarityBuilder<
     const trigramSearchAlias = this.similaritySearchId(tableAlias, columnName)
     kyselyQuery = kyselyQuery.innerJoin(nestedQuery.as(trigramSearchAlias), join =>
       join.onRef(
-        `${validatedTableAlias}.${validatedPrimaryKey}` as any,
+        namespaceColumn(validatedPrimaryKey, validatedTableAlias) as any,
         '=',
-        `${trigramSearchAlias}.trigram_search_id` as any
+        namespaceColumn('trigram_search_id', trigramSearchAlias) as any
       )
     )
 
     if (!bypassOrder) {
       const rankSQLAlias = this.rankSQLAlias(statementType, index)
-      kyselyQuery = kyselyQuery.orderBy(ref(`${trigramSearchAlias}.${rankSQLAlias}`), 'desc')
+      kyselyQuery = kyselyQuery.orderBy(ref(namespaceColumn(rankSQLAlias, trigramSearchAlias)), 'desc')
     }
 
     return kyselyQuery
@@ -331,9 +333,9 @@ export default class SimilarityBuilder<
       .select(`${trigramSearchAlias}.trigram_search_id`)
       .innerJoin(nestedQuery.as(trigramSearchAlias), join =>
         join.onRef(
-          `${validatedTableAlias}.${validatedPrimaryKey}` as any,
+          namespaceColumn(validatedPrimaryKey, validatedTableAlias) as any,
           '=',
-          `${trigramSearchAlias}.trigram_search_id` as any
+          namespaceColumn('trigram_search_id', trigramSearchAlias) as any
         )
       )
 
@@ -429,10 +431,32 @@ export interface SimilarityBuilderOpts<
 > {
   where?: WhereStatement<DB, Schema, any>[]
   whereNot?: WhereStatement<DB, Schema, any>[]
-  joinWhereStatements?: RelaxedJoinWhereStatement<DB, Schema>
+  joinOnStatements?: RelaxedJoinOnStatement<DB, Schema>
   transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType
 }
 
-export const SIMILARITY_TYPES = ['where', 'where_joins'] as const
+export const SIMILARITY_TYPES = ['where', 'on'] as const
 export type SimilarityStatementType = (typeof SIMILARITY_TYPES)[number]
+
+type NestedObject = {
+  [key: string]: any
+}
+
+function removeOnFromObjectHierarchy(obj: NestedObject): NestedObject {
+  if (obj?.isOpsStatement) return obj
+
+  const result: NestedObject = {}
+
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      if (isObject(obj[key])) {
+        result[key] = removeOnFromObjectHierarchy(obj[key].on || obj[key])
+      } else {
+        result[key] = obj[key]
+      }
+    }
+  }
+
+  return result
+}

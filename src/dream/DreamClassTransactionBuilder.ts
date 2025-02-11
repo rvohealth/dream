@@ -4,7 +4,7 @@ import { PassthroughWhere, WhereStatement } from '../decorators/associations/sha
 import Dream from '../Dream'
 import DreamTransaction from './DreamTransaction'
 import saveDream from './internal/saveDream'
-import Query, { DefaultQueryTypeOptions, FindEachOpts } from './Query'
+import Query, { DefaultQueryTypeOptions, FindEachOpts, QueryWithJoinedAssociationsType } from './Query'
 import {
   DefaultScopeName,
   DreamColumnNames,
@@ -371,8 +371,12 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>]) {
-    return this.queryInstance().leftJoinPreload(...(args as any))
+    LastArg extends VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>,
+  >(this: I, ...args: [...Arr, LastArg]) {
+    return this.queryInstance().leftJoinPreload(...(args as any)) as QueryWithJoinedAssociationsType<
+      DreamInstance,
+      JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
+    >
   }
 
   /**
@@ -427,11 +431,10 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
     const Arr extends readonly unknown[],
     LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
   >(this: I, ...args: [...Arr, LastArg]) {
-    return this.queryInstance()
-      .innerJoin(...(args as any))
-      .clone<{
-        joinedAssociations: JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
-      }>()
+    return this.queryInstance().innerJoin(...(args as any)) as QueryWithJoinedAssociationsType<
+      DreamInstance,
+      JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
+    >
   }
 
   /**
@@ -455,11 +458,10 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
     const Arr extends readonly unknown[],
     LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
   >(this: I, ...args: [...Arr, LastArg]) {
-    return this.queryInstance()
-      .leftJoin(...(args as any))
-      .clone<{
-        joinedAssociations: JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
-      }>()
+    return this.queryInstance().leftJoin(...(args as any)) as QueryWithJoinedAssociationsType<
+      DreamInstance,
+      JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
+    >
   }
 
   /**

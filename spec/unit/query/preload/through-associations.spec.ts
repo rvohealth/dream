@@ -39,7 +39,7 @@ describe('Query#preload through', () => {
       const balloonSpotterBalloon2 = await BalloonSpotterBalloon.create({ balloonSpotter, balloon: balloon2 })
 
       const reloaded = await BalloonSpotter.query()
-        .preload('balloonSpotterBalloons', { id: balloonSpotterBalloon2.id }, 'balloon')
+        .preload('balloonSpotterBalloons', { on: { id: balloonSpotterBalloon2.id } }, 'balloon')
         .first()
       expect(reloaded!.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon2])
       expect(reloaded!.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon2)
@@ -51,12 +51,14 @@ describe('Query#preload through', () => {
       const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
 
       const reloaded = await BalloonSpotter.query()
-        .preload('balloonSpotterBalloons', { id: balloonSpotterBalloon.id }, 'balloon', { color: 'red' })
+        .preload('balloonSpotterBalloons', { on: { id: balloonSpotterBalloon.id } }, 'balloon', {
+          on: { color: 'red' },
+        })
         .first()
       expect(reloaded!.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon)
 
       const reloaded2 = await BalloonSpotter.query()
-        .preload('balloonSpotterBalloons', 'balloon', { color: 'blue' })
+        .preload('balloonSpotterBalloons', 'balloon', { on: { color: 'blue' } })
         .first()
       expect(reloaded2!.balloonSpotterBalloons[0].balloon).toBeNull()
     })
@@ -79,7 +81,9 @@ describe('Query#preload through', () => {
       await BalloonSpotterBalloon.create({ balloonSpotter, balloon: blueBalloon })
       await BalloonSpotterBalloon.create({ balloonSpotter, balloon: redBalloon })
 
-      const reloaded = await BalloonSpotter.query().preload('balloons', { color: 'red' }).first()
+      const reloaded = await BalloonSpotter.query()
+        .preload('balloons', { on: { color: 'red' } })
+        .first()
       expect(reloaded!.balloons).toMatchDreamModels([redBalloon])
     })
 

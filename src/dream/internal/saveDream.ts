@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import _db from '../../db'
 import Dream from '../../Dream'
 import ValidationError from '../../errors/ValidationError'
+import namespaceColumn from '../../helpers/namespaceColumn'
 import sqlAttributes from '../../helpers/sqlAttributes'
 import DreamTransaction from '../DreamTransaction'
 import executeDatabaseQuery from './executeDatabaseQuery'
@@ -46,7 +47,7 @@ export default async function saveDream<DreamInstance extends Dream>(
     query = db
       .updateTable(dream.table)
       .set(sqlifiedAttributes as any)
-      .where(`${dream.table}.${dream.primaryKey}`, '=', dream.primaryKeyValue)
+      .where(namespaceColumn(dream.primaryKey, dream.table), '=', dream.primaryKeyValue)
   } else {
     query = db.insertInto(dream.table).values(sqlifiedAttributes as any)
   }

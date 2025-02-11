@@ -25,7 +25,7 @@ describe('Dream.preload', () => {
     await Composition.create({ user, content: 'hello' })
     const composition = await Composition.create({ user, content: 'goodbye' })
 
-    const reloaded = await User.preload('compositions', { content: 'goodbye' }).first()
+    const reloaded = await User.preload('compositions', { on: { content: 'goodbye' } }).first()
     expect(reloaded!.compositions).toMatchDreamModels([composition])
   })
 
@@ -80,7 +80,7 @@ describe('Dream.preload', () => {
     const spy = jest.spyOn(DreamDbConnection, 'getConnection')
 
     await User.connection('replica')
-      .preload('compositions', { id: composition.id }, 'compositionAssets')
+      .preload('compositions', { on: { id: composition.id } }, 'compositionAssets')
       .all()
 
     expect(spy).toHaveBeenCalledWith('replica')

@@ -198,6 +198,54 @@ export type WhereSelfStatement<
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
 > = Partial<Record<keyof DB[TableName], DreamColumnNames<BaseInstance>>>
 
+export type JoinedAssociationWhereClauses<
+  JoinedAssociations extends Readonly<JoinedAssociation[]>,
+  DB,
+  Schema,
+  TableName extends AssociationTableNames<DB, Schema> & keyof DB,
+> = RecursiveJoinedAssociationWhereClauses<
+  JoinedAssociations,
+  DB,
+  Schema,
+  Partial<MergeUnionOfRecordTypes<Updateable<DB[TableName]> | DreamSelectable<DB, Schema, TableName>>>
+>
+
+type RecursiveJoinedAssociationWhereClauses<
+  JoinedAssociations extends Readonly<JoinedAssociation[]>,
+  DB,
+  Schema,
+  OriginalWhereStatement,
+  Depth extends number = 0,
+  CurrentJoinedAssociation = JoinedAssociations[0],
+  TableName = CurrentJoinedAssociation extends JoinedAssociation ? CurrentJoinedAssociation['table'] : never,
+  AssociationName = CurrentJoinedAssociation extends JoinedAssociation
+    ? CurrentJoinedAssociation['alias']
+    : never,
+  NonNamespacedAssociationWhereStatement = TableName extends never
+    ? never
+    : AssociationName extends never
+      ? never
+      : WhereStatement<DB, Schema, TableName & AssociationTableNames<DB, Schema> & keyof DB>,
+  NextWhereStatement = NonNamespacedAssociationWhereStatement extends never
+    ? OriginalWhereStatement
+    : OriginalWhereStatement & {
+        [K in keyof NonNamespacedAssociationWhereStatement as `${AssociationName & string}.${K & string}`]: NonNamespacedAssociationWhereStatement[K &
+          keyof NonNamespacedAssociationWhereStatement]
+      },
+> = JoinedAssociations['length'] extends 0
+  ? OriginalWhereStatement
+  : Depth extends MAX_JOINED_TABLES_DEPTH
+    ? OriginalWhereStatement
+    : TableName extends never
+      ? OriginalWhereStatement
+      : RecursiveJoinedAssociationWhereClauses<
+          ReadonlyTail<JoinedAssociations>,
+          DB,
+          Schema,
+          NextWhereStatement,
+          Inc<Depth>
+        >
+
 export type OrderStatement<DB, Schema, TableName extends AssociationTableNames<DB, Schema> & keyof DB> =
   | TableColumnNames<DB, TableName>
   | Partial<Record<TableColumnNames<DB, TableName>, OrderDir>>

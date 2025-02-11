@@ -44,7 +44,7 @@ export default function associationQuery<
   })
 
   if (associationWhereStatement)
-    baseSelectQuery = baseSelectQuery.innerJoin(association.as, associationWhereStatement)
+    baseSelectQuery = baseSelectQuery.innerJoin(association.as, { on: associationWhereStatement })
   else baseSelectQuery = baseSelectQuery.innerJoin(association.as)
 
   let query = txn ? associationClass.txn(txn).queryInstance() : associationClass.query()

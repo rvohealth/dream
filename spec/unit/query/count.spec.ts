@@ -23,7 +23,9 @@ describe('Query#count', () => {
       await Composition.create({ user, content: 'Hello' })
       await Composition.create({ user, content: 'Goodbye' })
 
-      const count = await User.innerJoin('compositions', { content: 'Hello' }).distinct().count()
+      const count = await User.innerJoin('compositions', { on: { content: 'Hello' } })
+        .distinct()
+        .count()
       expect(count).toEqual(1)
     })
   })
@@ -79,7 +81,9 @@ describe('Query#count', () => {
 
         await Pet.create()
 
-        const results = await User.query().innerJoin('pets', { name: 'Aster' }).count()
+        const results = await User.query()
+          .innerJoin('pets', { on: { name: 'Aster' } })
+          .count()
         expect(results).toEqual(1)
       })
     })
@@ -94,7 +98,10 @@ describe('Query#count', () => {
 
         await ApplicationModel.transaction(async txn => {
           await user.txn(txn).createAssociation('pets', { name: 'Aster' })
-          count = await User.query().txn(txn).innerJoin('pets', { name: 'Aster' }).count()
+          count = await User.query()
+            .txn(txn)
+            .innerJoin('pets', { on: { name: 'Aster' } })
+            .count()
         })
 
         expect(count).toEqual(2)

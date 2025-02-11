@@ -25,7 +25,9 @@ describe('Dream.leftJoinPreload', () => {
     const composition = await Composition.create({ user, content: 'goodbye' })
 
     const reloaded = (
-      await User.leftJoinPreload('compositions', { content: 'goodbye' }).order('birthdate').all()
+      await User.leftJoinPreload('compositions', { on: { content: 'goodbye' } })
+        .order('birthdate')
+        .all()
     )[0]
     expect(reloaded.compositions).toMatchDreamModels([composition])
   })

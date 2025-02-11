@@ -19,7 +19,7 @@ describe('Query#pluckEach on a join query', () => {
 
     const plucked: any[] = []
     await Node.query()
-      .innerJoin('edgeNodes', 'edge', { name: 'E1' })
+      .innerJoin('edgeNodes', 'edge', { on: { name: 'E1' } })
       .pluckEach('edge.id', 'edge.name', arr => {
         plucked.push(arr)
       })
@@ -56,7 +56,7 @@ describe('Query#pluckEach on a join query', () => {
 
       const plucked: any[] = []
       await Node.query()
-        .innerJoin('edgeNodes', 'edge', { name: 'E1' })
+        .innerJoin('edgeNodes', 'edge', { on: { name: 'E1' } })
         .pluckEach('edge.weight', data => {
           plucked.push(data)
         })
@@ -73,7 +73,7 @@ describe('Query#pluckEach on a join query', () => {
 
     const plucked: any[] = []
     await Node.query()
-      .innerJoin('edgeNodes', { edgeId: edge2.id }, 'edge')
+      .innerJoin('edgeNodes', { on: { edgeId: edge2.id } }, 'edge')
       .pluckEach('edge.id', 'edge.name', data => {
         plucked.push(data)
       })
@@ -90,7 +90,7 @@ describe('Query#pluckEach on a join query', () => {
 
       const plucked: any[] = []
       await Composition.query()
-        .innerJoin('user', { name: ops.similarity('jerem') })
+        .innerJoin('user', { on: { name: ops.similarity('jerem') } })
         .pluckEach('user.id', data => {
           plucked.push(data)
         })

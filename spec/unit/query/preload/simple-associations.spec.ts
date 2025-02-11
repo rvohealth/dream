@@ -24,15 +24,75 @@ describe('Query#preload with simple associations', () => {
       expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
     })
 
-    it('supports where clauses', async () => {
+    it('supports on clauses', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      const composition = await Composition.create({ userId: user.id, primary: true, content: 'Hello' })
+      const composition = await Composition.create({ userId: user.id, content: 'Hello' })
 
-      const reloadedUser = await User.query().preload('mainComposition', { content: 'Goodbye' }).first()
-      expect(reloadedUser?.mainComposition).toBeNull()
+      const reloadedUser = await User.query()
+        .preload('compositions', { on: { content: 'Goodbye' } })
+        .firstOrFail()
+      expect(reloadedUser.compositions).toEqual([])
 
-      const reloadedUser2 = await User.query().preload('mainComposition', { content: 'Hello' }).first()
-      expect(reloadedUser2!.mainComposition).toMatchDreamModel(composition)
+      const reloadedUser2 = await User.query()
+        .preload('compositions', { on: { content: 'Hello' } })
+        .firstOrFail()
+      expect(reloadedUser2.compositions).toMatchDreamModels([composition])
+    })
+
+    it('supports notOn clauses', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ userId: user.id, content: 'Hello' })
+
+      const reloadedUser = await User.query()
+        .preload('compositions', { notOn: { content: 'Goodbye' } })
+        .firstOrFail()
+      expect(reloadedUser.compositions).toMatchDreamModels([composition])
+
+      const reloadedUser2 = await User.query()
+        .preload('compositions', { notOn: { content: 'Hello' } })
+        .firstOrFail()
+      expect(reloadedUser2.compositions).toEqual([])
+    })
+
+    it('supports onAny clauses', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ userId: user.id, content: 'Hello' })
+
+      const reloadedUser = await User.query()
+        .preload('compositions', { onAny: [{ content: 'Goodbye' }] })
+        .firstOrFail()
+      expect(reloadedUser.compositions).toEqual([])
+
+      const reloadedUser2 = await User.query()
+        .preload('compositions', { onAny: [{ content: 'Goodbye' }, { content: 'Hello' }] })
+        .firstOrFail()
+      expect(reloadedUser2.compositions).toMatchDreamModels([composition])
+    })
+
+    it('supports onAny clauses with multiple terms', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const compositionX = await Composition.create({
+        userId: user.id,
+        content: 'Hello',
+        metadata: { not: 'me' },
+      })
+      const compositionY = await Composition.create({
+        userId: user.id,
+        content: 'Hello',
+        metadata: { hello: 'world' },
+      })
+
+      const reloadedUser1 = await User.query()
+        .preload('compositions', { onAny: [{ content: 'Goodbye' }, { content: 'Hello' }] })
+        .firstOrFail()
+      expect(reloadedUser1.compositions).toMatchDreamModels([compositionX, compositionY])
+
+      const reloadedUser2 = await User.query()
+        .preload('compositions', {
+          onAny: [{ content: 'Goodbye' }, { content: 'Hello', metadata: { hello: 'world' } }],
+        })
+        .firstOrFail()
+      expect(reloadedUser2.compositions).toMatchDreamModels([compositionY])
     })
 
     context('when the association does not exist', () => {
@@ -70,7 +130,9 @@ describe('Query#preload with simple associations', () => {
       await Composition.create({ user, content: 'Hello' })
       const composition2 = await Composition.create({ user, content: 'Goodbye' })
 
-      const reloadedUser = await User.query().preload('compositions', { content: 'Goodbye' }).first()
+      const reloadedUser = await User.query()
+        .preload('compositions', { on: { content: 'Goodbye' } })
+        .first()
       expect(reloadedUser!.compositions).toMatchDreamModels([composition2])
     })
 

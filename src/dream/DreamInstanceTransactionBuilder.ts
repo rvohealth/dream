@@ -23,7 +23,7 @@ import {
 import undestroyDream from './internal/undestroyDream'
 import LeftJoinLoadBuilder from './LeftJoinLoadBuilder'
 import LoadBuilder from './LoadBuilder'
-import Query, { DefaultQueryTypeOptions } from './Query'
+import Query, { DefaultQueryTypeOptions, QueryWithJoinedAssociationsType } from './Query'
 import {
   AllDefaultScopeNames,
   AssociationNameToDream,
@@ -154,11 +154,10 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     const Arr extends readonly unknown[],
     LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
   >(this: I, ...args: [...Arr, LastArg]) {
-    return this.queryInstance()
-      .innerJoin(...(args as any))
-      .clone<{
-        joinedAssociations: JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
-      }>()
+    return this.queryInstance().innerJoin(...(args as any)) as QueryWithJoinedAssociationsType<
+      DreamInstance,
+      JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
+    >
   }
 
   /**
@@ -182,11 +181,10 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     const Arr extends readonly unknown[],
     LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
   >(this: I, ...args: [...Arr, LastArg]) {
-    return this.queryInstance()
-      .leftJoin(...(args as any))
-      .clone<{
-        joinedAssociations: JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
-      }>()
+    return this.queryInstance().leftJoin(...(args as any)) as QueryWithJoinedAssociationsType<
+      DreamInstance,
+      JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
+    >
   }
 
   /**

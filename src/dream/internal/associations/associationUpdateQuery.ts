@@ -3,6 +3,7 @@ import { HasManyStatement } from '../../../decorators/associations/HasMany'
 import { HasOneStatement } from '../../../decorators/associations/HasOne'
 import { WhereStatement } from '../../../decorators/associations/shared'
 import Dream from '../../../Dream'
+import namespaceColumn from '../../../helpers/namespaceColumn'
 import DreamTransaction from '../../DreamTransaction'
 import Query from '../../Query'
 import { AssociationNameToDream, DreamAssociationNames } from '../../types'
@@ -52,12 +53,12 @@ export default function associationUpdateQuery<
   })
 
   if (associationWhereStatement)
-    nestedScope = nestedScope.innerJoin(association.as, associationWhereStatement)
+    nestedScope = nestedScope.innerJoin(association.as, { on: associationWhereStatement })
   else nestedScope = nestedScope.innerJoin(association.as)
 
   const nestedSelect = nestedScope
     .where({ [dream.primaryKey]: dream.primaryKeyValue as any })
-    .nestedSelect(`${association.as}.${associationClass.primaryKey}`)
+    .nestedSelect(namespaceColumn(associationClass.primaryKey, association.as))
 
   const whereClause = {
     [associationClass.primaryKey]: nestedSelect,

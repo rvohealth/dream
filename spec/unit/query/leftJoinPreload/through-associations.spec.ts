@@ -40,7 +40,7 @@ describe('Query#leftJoinPreload through', () => {
       const balloonSpotterBalloon2 = await BalloonSpotterBalloon.create({ balloonSpotter, balloon: balloon2 })
 
       const reloaded = await BalloonSpotter.query()
-        .leftJoinPreload('balloonSpotterBalloons', { id: balloonSpotterBalloon2.id }, 'balloon')
+        .leftJoinPreload('balloonSpotterBalloons', { on: { id: balloonSpotterBalloon2.id } }, 'balloon')
         .firstOrFail()
       expect(reloaded.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon2])
       expect(reloaded.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon2)
@@ -52,14 +52,14 @@ describe('Query#leftJoinPreload through', () => {
       const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
 
       const reloaded = await BalloonSpotter.query()
-        .leftJoinPreload('balloonSpotterBalloons', { id: balloonSpotterBalloon.id }, 'balloon', {
-          color: 'red',
+        .leftJoinPreload('balloonSpotterBalloons', { on: { id: balloonSpotterBalloon.id } }, 'balloon', {
+          on: { color: 'red' },
         })
         .firstOrFail()
       expect(reloaded.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon)
 
       const reloaded2 = await BalloonSpotter.query()
-        .leftJoinPreload('balloonSpotterBalloons', 'balloon', { color: 'blue' })
+        .leftJoinPreload('balloonSpotterBalloons', 'balloon', { on: { color: 'blue' } })
         .firstOrFail()
       expect(reloaded2.balloonSpotterBalloons[0].balloon).toBeNull()
     })
@@ -83,7 +83,7 @@ describe('Query#leftJoinPreload through', () => {
       await BalloonSpotterBalloon.create({ balloonSpotter, balloon: redBalloon })
 
       const reloaded = await BalloonSpotter.query()
-        .leftJoinPreload('balloons', { color: 'red' })
+        .leftJoinPreload('balloons', { on: { color: 'red' } })
         .firstOrFail()
       expect(reloaded.balloons).toMatchDreamModels([redBalloon])
     })

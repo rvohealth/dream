@@ -29,12 +29,12 @@ describe('Query#leftJoinPreload with simple associations', () => {
       const composition = await Composition.create({ userId: user.id, primary: true, content: 'Hello' })
 
       const reloadedUser = await User.query()
-        .leftJoinPreload('mainComposition', { content: 'Goodbye' })
+        .leftJoinPreload('mainComposition', { on: { content: 'Goodbye' } })
         .firstOrFail()
       expect(reloadedUser.mainComposition).toBeNull()
 
       const reloadedUser2 = await User.query()
-        .leftJoinPreload('mainComposition', { content: 'Hello' })
+        .leftJoinPreload('mainComposition', { on: { content: 'Hello' } })
         .firstOrFail()
       expect(reloadedUser2.mainComposition).toMatchDreamModel(composition)
     })
@@ -75,7 +75,7 @@ describe('Query#leftJoinPreload with simple associations', () => {
       const composition2 = await Composition.create({ user, content: 'Goodbye' })
 
       const reloadedUser = await User.query()
-        .leftJoinPreload('compositions', { content: 'Goodbye' })
+        .leftJoinPreload('compositions', { on: { content: 'Goodbye' } })
         .firstOrFail()
       expect(reloadedUser.compositions).toMatchDreamModels([composition2])
     })

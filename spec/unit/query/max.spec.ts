@@ -124,7 +124,7 @@ describe('Query#max', () => {
         await CompositionAsset.create({ composition, name: 'howyadoin', score: 3 })
 
         const max = await Composition.query()
-          .innerJoin('compositionAssets', { name: 'howyadoin' })
+          .innerJoin('compositionAssets', { on: { name: 'howyadoin' } })
           .max('compositionAssets.score')
 
         expect(max).toEqual(3)

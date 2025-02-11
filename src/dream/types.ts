@@ -8,11 +8,7 @@ import { AssociationTableNames } from '../db/reflections'
 import { BelongsToStatement } from '../decorators/associations/BelongsTo'
 import { HasManyStatement } from '../decorators/associations/HasMany'
 import { HasOneStatement } from '../decorators/associations/HasOne'
-import {
-  AssociatedModelParam,
-  WhereStatement,
-  WhereStatementForAssociation,
-} from '../decorators/associations/shared'
+import { AssociatedModelParam, WhereStatement } from '../decorators/associations/shared'
 import { STI_SCOPE_NAME } from '../decorators/STI'
 import Dream from '../Dream'
 import CalendarDate from '../helpers/CalendarDate'
@@ -256,6 +252,18 @@ export type AssociationTableName<
   AssociationData = MetadataForAssociation<Schema, TableName, AssociationName>,
 > = (AssociationData['tables' & keyof AssociationData] & any[])[0] & keyof Schema
 
+export type JoinOnStatements<
+  DB,
+  Schema,
+  TableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
+> = {
+  on?: WhereStatement<DB, Schema, TableName>
+  notOn?: WhereStatement<DB, Schema, TableName>
+  // notOn?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>
+  onAny?: WhereStatement<DB, Schema, TableName>[]
+  // onAny?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>[]
+}
+
 type AllowedNextArgValuesForLoad<
   DB,
   Schema,
@@ -263,7 +271,7 @@ type AllowedNextArgValuesForLoad<
 > =
   | AssociationNamesForTable<Schema, TableName>
   | AssociationNamesForTable<Schema, TableName>[]
-  | WhereStatement<DB, Schema, TableName>
+  | JoinOnStatements<DB, Schema, TableName>
 ////////////////////////////////
 // end: Association type helpers
 ////////////////////////////////
@@ -418,16 +426,24 @@ export type RelaxedJoinStatement<Depth extends number = 0> = Depth extends 7
   ? object
   : Record<string, RelaxedJoinStatement<Inc<Depth>>>
 
-export type RelaxedPreloadWhereStatement<DB, Schema, Depth extends number = 0> = RelaxedJoinWhereStatement<
-  DB,
-  Schema,
-  Depth
->
-
-export type RelaxedJoinWhereStatement<DB, Schema, Depth extends number = 0> = Depth extends 7
+export type RelaxedPreloadWhereStatement<DB, Schema, Depth extends number = 0> = Depth extends 7
   ? object
   : {
-      [key: string]: RelaxedJoinWhereStatement<DB, Schema, Inc<Depth>> | FakeWhereClauseValue | object
+      [key: string]:
+        | RelaxedPreloadWhereStatement<DB, Schema, Inc<Depth>>
+        | JoinOnStatements<any, any, any>
+        | FakeWhereClauseValue
+        | object
+    }
+
+export type RelaxedJoinOnStatement<DB, Schema, Depth extends number = 0> = Depth extends 7
+  ? object
+  : {
+      [key: string]:
+        | RelaxedJoinOnStatement<DB, Schema, Inc<Depth>>
+        | JoinOnStatements<any, any, any>
+        | FakeWhereClauseValue
+        | object
     }
 
 // Just need something that is not an object, but that could be an array and also null
@@ -519,7 +535,8 @@ export type DefaultOrNamedScopeName<DreamInstance extends Dream> =
   | DefaultScopeName<DreamInstance>
   | NamedScopeName<DreamInstance>
 
-type NA = 'na'
+// REQUIRED WHERE CLAUSES uncomment
+// type NA = 'na'
 type VALID = 'valid'
 type INVALID = 'invalid'
 
@@ -711,26 +728,28 @@ type VariadicCheckThenRecurse<
   //
   AssociationNamesOrWhereClause,
   //
-  RequiredWhereClauses = RequiredWhereClauseKeys<Schema, PreviousConcreteTableName, ConcreteAssociationName>,
-  WhereClauseRequirementsMet extends VALID | INVALID | NA = RequiredWhereClauses extends null
-    ? NA
-    : RequiredWhereClauses extends string[]
-      ? ConcreteArgs[0] extends object
-        ? keyof ConcreteArgs[0] extends RequiredWhereClauses[number]
-          ? VALID
-          : INVALID
-        : INVALID
-      : never,
+  // REQUIRED WHERE CLAUSES uncomment and fix
+  // RequiredWhereClauses = RequiredWhereClauseKeys<Schema, PreviousConcreteTableName, ConcreteAssociationName>,
+  // WhereClauseRequirementsMet extends VALID | INVALID | NA = RequiredWhereClauses extends null
+  //   ? NA
+  //   : RequiredWhereClauses extends string[]
+  //     ? ConcreteArgs[0] extends object
+  //       ? keyof ConcreteArgs[0] extends RequiredWhereClauses[number]
+  //         ? VALID
+  //         : INVALID
+  //       : INVALID
+  //     : never,
   SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
   NthArgument extends VALID | INVALID = ConcreteArgs['length'] extends 0
     ? VALID
-    : WhereClauseRequirementsMet extends INVALID
-      ? INVALID
-      : ConcreteArgs[0] extends keyof SchemaAssociations & string
+    : // REQUIRED WHERE CLAUSES uncomment and fix
+      // : WhereClauseRequirementsMet extends INVALID
+      //   ? INVALID
+      ConcreteArgs[0] extends keyof SchemaAssociations & string
+      ? VALID
+      : ConcreteArgs[0] extends JoinOnStatements<DB, Schema, ConcreteTableName>
         ? VALID
-        : ConcreteArgs[0] extends WhereStatement<DB, Schema, ConcreteTableName>
-          ? VALID
-          : INVALID,
+        : INVALID,
 > = NthArgument extends INVALID
   ? `invalid where clause in argument ${Inc<Depth>}`
   : ConcreteArgs['length'] extends 0
@@ -744,8 +763,8 @@ type VariadicCheckThenRecurse<
         UsedNamespaces,
         Depth,
         PreviousConcreteTableName,
-        ConcreteAssociationName,
-        WhereClauseRequirementsMet
+        ConcreteAssociationName
+        // WhereClauseRequirementsMet
       >
 
 type VariadicRecurse<
@@ -759,7 +778,7 @@ type VariadicRecurse<
   //
   PreviousConcreteTableName,
   ConcreteAssociationName,
-  WhereClauseRequirementsMet extends VALID | INVALID | NA,
+  // WhereClauseRequirementsMet extends VALID | INVALID | NA,
   //
   SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
   ConcreteNthArg extends (keyof SchemaAssociations & string) | null = ConcreteArgs[0] extends null
@@ -797,18 +816,27 @@ type VariadicRecurse<
     ? ConcreteNthArg
     : ConcreteAssociationName,
   //
-  RequiredWhereClauses = WhereClauseRequirementsMet extends VALID
-    ? null
-    : RequiredWhereClauseKeys<Schema, ConcreteTableName, NextAssociationName>,
+  // REQUIRED WHERE CLAUSES uncomment and fix
+  // RequiredWhereClauses = WhereClauseRequirementsMet extends VALID
+  //   ? null
+  //   : RequiredWhereClauseKeys<Schema, ConcreteTableName, NextAssociationName>,
+  // //
+  // AllowedNextArgValues = RequiredWhereClauses extends null
+  //   ? RecursionType extends 'load'
+  //     ? AllowedNextArgValuesForLoad<DB, Schema, NextTableName>
+  //     : RecursionType extends 'leftJoinLoad' | 'join'
+  //       ? AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
+  //       : never
+  //   : RequiredWhereClauses extends string[]
+  //     ? WhereStatementForAssociation<DB, Schema, ConcreteTableName, NextAssociationName>
+  //     : never,
   //
-  AllowedNextArgValues = RequiredWhereClauses extends null
-    ? RecursionType extends 'load'
-      ? AllowedNextArgValuesForLoad<DB, Schema, NextTableName>
-      : RecursionType extends 'leftJoinLoad' | 'join'
-        ? AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
-        : never
-    : RequiredWhereClauses extends string[]
-      ? WhereStatementForAssociation<DB, Schema, ConcreteTableName, NextAssociationName>
+
+  // REQUIRED WHERE CLAUSES replace with above commented-out section
+  AllowedNextArgValues = RecursionType extends 'load'
+    ? AllowedNextArgValuesForLoad<DB, Schema, NextTableName>
+    : RecursionType extends 'leftJoinLoad' | 'join'
+      ? AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
       : never,
 > = Depth extends MAX_VARIADIC_DEPTH
   ? never
@@ -832,7 +860,7 @@ type AllowedNextArgValuesForJoins<
   UsedNamespaces,
 > =
   | Exclude<AssociationNamesForTable<Schema, TableName>, UsedNamespaces>
-  | WhereStatement<DB, Schema, TableName>
+  | JoinOnStatements<DB, Schema, TableName>
 
 export interface JoinedAssociation {
   table: string
@@ -850,6 +878,8 @@ export type JoinedAssociationsTypeFromAssociations<
   Schema,
   ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
   ConcreteArgs extends readonly unknown[],
+  Depth extends number = 0,
+  //
   //
   PreviousConcreteTableName = ConcreteTableName,
   ConcreteAssociationName = never,
@@ -890,14 +920,17 @@ export type JoinedAssociationsTypeFromAssociations<
   //
 > = ConcreteArgs['length'] extends 0
   ? JoinedAssociationsType
-  : JoinedAssociationsTypeFromAssociations<
-      DB,
-      Schema,
-      NextTableName,
-      ReadonlyTail<ConcreteArgs>,
-      NextPreviousConcreteTableName,
-      NextAssociationName,
-      Readonly<
-        [...JoinedAssociationsType, { table: NextTableName & string; alias: NextAssociationName & string }]
+  : Depth extends MAX_VARIADIC_DEPTH
+    ? JoinedAssociationsType
+    : JoinedAssociationsTypeFromAssociations<
+        DB,
+        Schema,
+        NextTableName,
+        ReadonlyTail<ConcreteArgs>,
+        Inc<Depth>,
+        NextPreviousConcreteTableName,
+        NextAssociationName,
+        Readonly<
+          [...JoinedAssociationsType, { table: NextTableName & string; alias: NextAssociationName & string }]
+        >
       >
-    >
