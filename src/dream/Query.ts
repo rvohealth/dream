@@ -57,6 +57,7 @@ import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutin
 import { Range } from '../helpers/range'
 import snakeify from '../helpers/snakeify'
 import { isObject, isString } from '../helpers/typechecks'
+import { FindInterfaceWithValue } from '../helpers/typeutils'
 import uniq from '../helpers/uniq'
 import ops from '../ops'
 import CurriedOpsStatement from '../ops/curried-ops-statement'
@@ -91,6 +92,7 @@ import {
   RelaxedPreloadWhereStatement,
   TableColumnNames,
   TableOrAssociationName,
+  UpdateableProperties,
   VariadicJoinsArgs,
   VariadicLoadArgs,
 } from './types'
@@ -1520,14 +1522,17 @@ export default class Query<
    * @returns the max value of the specified column for this Query
    *
    */
-  public async max<Q extends Query<DreamInstance, QueryTypeOpts>, DB extends DreamInstance['DB']>(
-    columnName: ColumnNamesAccountingForJoinedAssociations<
+  public async max<
+    Q extends Query<DreamInstance, QueryTypeOpts>,
+    DB extends DreamInstance['DB'],
+    ColumnName extends ColumnNamesAccountingForJoinedAssociations<
       Q['queryTypeOpts']['joinedAssociations'],
       DB,
       QueryTypeOpts['rootTableName'],
       QueryTypeOpts['rootTableAlias']
-    >
-  ): Promise<any> {
+    >,
+    ReturnType extends NamespacedColumnType<ColumnName, Q, DreamInstance>,
+  >(columnName: ColumnName): Promise<ReturnType> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { max } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true, bypassOrder: true })
@@ -1551,14 +1556,17 @@ export default class Query<
    * @param columnName - a column name on the model
    * @returns the min value of the specified column for this Query
    */
-  public async min<Q extends Query<DreamInstance, QueryTypeOpts>, DB extends DreamInstance['DB']>(
-    columnName: ColumnNamesAccountingForJoinedAssociations<
+  public async min<
+    Q extends Query<DreamInstance, QueryTypeOpts>,
+    DB extends DreamInstance['DB'],
+    ColumnName extends ColumnNamesAccountingForJoinedAssociations<
       Q['queryTypeOpts']['joinedAssociations'],
       DB,
       QueryTypeOpts['rootTableName'],
       QueryTypeOpts['rootTableAlias']
-    >
-  ): Promise<any> {
+    >,
+    ReturnType extends NamespacedColumnType<ColumnName, Q, DreamInstance>,
+  >(columnName: ColumnName): Promise<ReturnType> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { min } = this.dbFor('select').fn
     let kyselyQuery = this.buildSelect({ bypassSelectAll: true, bypassOrder: true })
@@ -3881,3 +3889,22 @@ type ExtendQueryType<
   rootTableName: OriginalOpts['rootTableName']
   rootTableAlias: OriginalOpts['rootTableAlias']
 }>
+
+export type NamespacedColumnType<
+  ColumnName,
+  Q extends Query<any, any>,
+  DreamInstance extends Dream,
+  //
+  // begin: inferred types
+  JoinedAssociationsArr = Q['queryTypeOpts']['joinedAssociations'],
+  AssociationName = ColumnName extends `${infer Name extends string}.${string}` ? Name : never,
+  RealColumnName = ColumnName extends `${string}.${infer Col extends string}` ? Col : never,
+  JoinedAssociation extends FindInterfaceWithValue<
+    JoinedAssociationsArr,
+    'alias',
+    AssociationName
+  > = FindInterfaceWithValue<JoinedAssociationsArr, 'alias', AssociationName>,
+  JoinedTable extends JoinedAssociation['table'] = JoinedAssociation['table'],
+  AssociationProperties = UpdateableProperties<DreamInstance, JoinedTable>,
+  ReturnType = AssociationProperties[RealColumnName & keyof AssociationProperties],
+> = ReturnType

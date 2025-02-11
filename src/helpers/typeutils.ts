@@ -128,3 +128,16 @@ export type NotReadonlyHead<T extends readonly any[]> = T extends [infer Head, .
 // type L = Last<[1, 2, 3]> // 3
 // type L = Last<['a', 'b', 'c']> // 'c'
 // export type Last<T extends readonly any[]> = T[Decrement<T['length']>]
+
+export type FindInterfaceWithValue<T, Key, Value> =
+  T extends Readonly<[infer First, ...infer Rest]>
+    ? Key extends keyof First
+      ? First[Key] extends never
+        ? Value extends never
+          ? First
+          : FindInterfaceWithValue<Rest, Key, Value>
+        : First[Key] extends Value
+          ? First
+          : FindInterfaceWithValue<Rest, Key, Value>
+      : FindInterfaceWithValue<Rest, Key, Value>
+    : never
