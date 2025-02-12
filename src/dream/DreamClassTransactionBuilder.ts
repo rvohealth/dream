@@ -4,14 +4,21 @@ import { PassthroughWhere, WhereStatement } from '../decorators/associations/sha
 import Dream from '../Dream'
 import DreamTransaction from './DreamTransaction'
 import saveDream from './internal/saveDream'
-import Query, { DefaultQueryTypeOptions, FindEachOpts, QueryWithJoinedAssociationsType } from './Query'
+import Query, {
+  BaseModelColumnTypes,
+  DefaultQueryTypeOptions,
+  FindEachOpts,
+  QueryWithJoinedAssociationsType,
+} from './Query'
 import {
   DefaultScopeName,
   DreamColumnNames,
   JoinedAssociationsTypeFromAssociations,
+  PluckEachArgs,
   OrderDir,
   PassthroughColumnNames,
   PrimaryKeyForFind,
+  TableColumnNames,
   UpdateableProperties,
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
@@ -619,15 +626,17 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * })
    * ```
    *
-   * @param fields - The column or array of columns to pluck
+   * @param columnNames - The column or array of columns to pluck
    * @returns An array of pluck results
    */
   public async pluck<
     I extends DreamClassTransactionBuilder<DreamInstance>,
-    TableName extends DreamInstance['table'],
-    ColumnType extends DreamColumnNames<DreamInstance>,
-  >(this: I, ...fields: (ColumnType | `${TableName}.${ColumnType}`)[]) {
-    return await this.queryInstance().pluck(...(fields as any[]))
+    ColumnNames extends TableColumnNames<DreamInstance['DB'], DreamInstance['table']>[],
+    ReturnValue extends ColumnNames['length'] extends 1
+      ? BaseModelColumnTypes<ColumnNames, DreamInstance>[0][]
+      : BaseModelColumnTypes<ColumnNames, DreamInstance>[],
+  >(this: I, ...columnNames: ColumnNames): Promise<ReturnValue> {
+    return (await this.queryInstance().pluck(...(columnNames as any[]))) as ReturnValue
   }
 
   /**
@@ -650,11 +659,11 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    */
   public async pluckEach<
     I extends DreamClassTransactionBuilder<DreamInstance>,
-    TableName extends DreamInstance['table'],
-    ColumnType extends DreamColumnNames<DreamInstance>,
-    CB extends (plucked: any) => void | Promise<void>,
-  >(this: I, ...fields: (ColumnType | `${TableName}.${ColumnType}` | CB | FindEachOpts)[]): Promise<void> {
-    await this.queryInstance().pluckEach(...fields)
+    ColumnName extends keyof UpdateableProperties<DreamInstance>,
+    ColumnNames extends ColumnName[],
+    CbArgTypes extends BaseModelColumnTypes<ColumnNames, DreamInstance>,
+  >(this: I, ...args: PluckEachArgs<ColumnNames, CbArgTypes>) {
+    await this.queryInstance().pluckEach(...(args as any))
   }
 
   /**

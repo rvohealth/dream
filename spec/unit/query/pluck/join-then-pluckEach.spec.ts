@@ -20,7 +20,7 @@ describe('Query#pluckEach on a join query', () => {
     const plucked: any[] = []
     await Node.query()
       .innerJoin('edgeNodes', 'edge', { on: { name: 'E1' } })
-      .pluckEach('edge.id', 'edge.name', arr => {
+      .pluckEach('edge.id', 'edge.name', (...arr) => {
         plucked.push(arr)
       })
 
@@ -74,7 +74,7 @@ describe('Query#pluckEach on a join query', () => {
     const plucked: any[] = []
     await Node.query()
       .innerJoin('edgeNodes', { on: { edgeId: edge2.id } }, 'edge')
-      .pluckEach('edge.id', 'edge.name', data => {
+      .pluckEach('edge.id', 'edge.name', (...data) => {
         plucked.push(data)
       })
     expect(plucked).toEqual([[edge2.id, edge2.name]])
@@ -155,8 +155,8 @@ describe('Query#pluckEach on a join query', () => {
           .innerJoin('compositions', 'compositionAssets')
           .pluckEach(
             'compositionAssets.name',
-            (data: any) => {
-              plucked.push(data)
+            name => {
+              plucked.push(name)
             },
             { batchSize: 1 }
           )

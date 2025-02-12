@@ -81,7 +81,12 @@ import {
 import undestroyDream from './dream/internal/undestroyDream'
 import LeftJoinLoadBuilder from './dream/LeftJoinLoadBuilder'
 import LoadBuilder from './dream/LoadBuilder'
-import Query, { DefaultQueryTypeOptions, FindEachOpts, QueryWithJoinedAssociationsType } from './dream/Query'
+import Query, {
+  BaseModelColumnTypes,
+  DefaultQueryTypeOptions,
+  FindEachOpts,
+  QueryWithJoinedAssociationsType,
+} from './dream/Query'
 import {
   AllDefaultScopeNames,
   AssociationNameToDream,
@@ -97,6 +102,7 @@ import {
   GlobalModelNames,
   IdType,
   JoinedAssociationsTypeFromAssociations,
+  PluckEachArgs,
   NextPreloadArgumentType,
   OrderDir,
   PassthroughColumnNames,
@@ -1794,11 +1800,18 @@ export default class Dream {
    * // [[1, 'a@a.com'], [2, 'b@b.com']]
    * ```
    *
-   * @param fields - The column or array of columns to pluck
+   * @param columnNames - The column or array of columns to pluck
    * @returns An array of pluck results
    */
-  public static async pluck<T extends typeof Dream>(this: T, ...fields: DreamColumnNames<InstanceType<T>>[]) {
-    return await this.query().pluck(...(fields as any[]))
+  public static async pluck<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    ColumnNames extends TableColumnNames<I['DB'], I['table']>[],
+    ReturnValue extends ColumnNames['length'] extends 1
+      ? BaseModelColumnTypes<ColumnNames, I>[0][]
+      : BaseModelColumnTypes<ColumnNames, I>[],
+  >(this: T, ...columnNames: ColumnNames): Promise<ReturnValue> {
+    return (await this.query().pluck(...(columnNames as any[]))) as ReturnValue
   }
 
   /**
@@ -1818,11 +1831,13 @@ export default class Dream {
    * @param fields - a list of fields to pluck, followed by a callback function to call for each set of found fields
    * @returns void
    */
-  public static async pluckEach<T extends typeof Dream, CB extends (plucked: any) => void | Promise<void>>(
-    this: T,
-    ...fields: (DreamColumnNames<InstanceType<T>> | CB | FindEachOpts)[]
-  ) {
-    return await this.query().pluckEach(...(fields as any))
+  public static async pluckEach<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    ColumnNames extends TableColumnNames<I['DB'], I['table']>[],
+    CbArgTypes extends BaseModelColumnTypes<ColumnNames, I>,
+  >(this: T, ...args: PluckEachArgs<ColumnNames, CbArgTypes>) {
+    return await this.query().pluckEach(...(args as any))
   }
 
   /**

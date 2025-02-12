@@ -15,6 +15,7 @@ import CalendarDate from '../helpers/CalendarDate'
 import { FilterInterface, Inc, ReadonlyTail } from '../helpers/typeutils'
 import OpsStatement from '../ops/ops-statement'
 import DreamSerializer from '../serializer'
+import { FindEachOpts } from './Query'
 
 export const primaryKeyTypes = ['bigserial', 'bigint', 'uuid', 'integer'] as const
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
@@ -534,6 +535,11 @@ export type NamedScopeName<
 export type DefaultOrNamedScopeName<DreamInstance extends Dream> =
   | DefaultScopeName<DreamInstance>
   | NamedScopeName<DreamInstance>
+
+export type PluckEachArgs<ColumnNames extends unknown[], CbArgTypes extends unknown[]> =
+  | [...fields: ColumnNames]
+  | [...fields: ColumnNames, callback: (...values: CbArgTypes) => void | Promise<void>]
+  | [...fields: ColumnNames, callback: (...values: CbArgTypes) => void | Promise<void>, opts: FindEachOpts]
 
 // REQUIRED WHERE CLAUSES uncomment
 // type NA = 'na'

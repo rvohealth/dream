@@ -1,4 +1,6 @@
+import { IdType } from '../../../../src'
 import ops from '../../../../src/ops'
+import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import Edge from '../../../../test-app/app/models/Graph/Edge'
 import User from '../../../../test-app/app/models/User'
@@ -82,6 +84,18 @@ describe('Query#pluck', () => {
         const plucked = await User.where({ name: ops.similarity('hello world') }).pluck('id')
         expect(plucked).toEqual([user2.id, user1.id])
       })
+    })
+  })
+
+  context('when in a transaction', () => {
+    it('correctly applies scope to transaction', async () => {
+      let plucked: IdType[] = []
+      await ApplicationModel.transaction(async txn => {
+        const ids = await User.txn(txn).pluck('id')
+        plucked = ids
+      })
+
+      expect(plucked).toEqual([user1.id, user2.id, user3.id])
     })
   })
 })
