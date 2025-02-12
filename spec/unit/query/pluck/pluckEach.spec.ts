@@ -1,6 +1,7 @@
 import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../../../../src/errors/CannotPassAdditionalFieldsToPluckEachAfterCallback'
 import MissingRequiredCallbackFunctionToPluckEach from '../../../../src/errors/MissingRequiredCallbackFunctionToPluckEach'
 import ops from '../../../../src/ops'
+import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 import Edge from '../../../../test-app/app/models/Graph/Edge'
 import User from '../../../../test-app/app/models/User'
 
@@ -27,8 +28,8 @@ describe('Query#pluckEach', () => {
   context('when the primary key is included as one of the fields', () => {
     it('does not remove primary key from results', async () => {
       const plucked: any[] = []
-      await User.query().pluckEach('name', 'id', id => {
-        plucked.push(id)
+      await User.query().pluckEach('name', 'id', (...fields) => {
+        plucked.push(fields)
       })
 
       expect(plucked).toEqual([
@@ -42,13 +43,15 @@ describe('Query#pluckEach', () => {
   context('with invalid arguments', () => {
     context('when the cb function is not provided', () => {
       it('raises a targeted exception', async () => {
-        await expect(User.query().pluckEach('id')).rejects.toThrow(MissingRequiredCallbackFunctionToPluckEach)
+        await expect(User.query().pluckEach('id' as any)).rejects.toThrow(
+          MissingRequiredCallbackFunctionToPluckEach
+        )
       })
     })
 
     context('when additional pluck arguments are following the call to pluckEachThrough', () => {
       it('raises a targeted exception', async () => {
-        await expect(User.query().pluckEach('id', () => {}, 'email')).rejects.toThrow(
+        await expect(User.query().pluckEach('id', () => {}, 'email' as any)).rejects.toThrow(
           CannotPassAdditionalFieldsToPluckEachAfterCallback
         )
       })
@@ -61,9 +64,9 @@ describe('Query#pluckEach', () => {
         await Edge.create({ name: 'E1', weight: 2.3 })
         await Edge.create({ name: 'E2', weight: 7.1 })
 
-        const plucked: any[] = []
-        await Edge.query().pluckEach('weight', weight => {
-          plucked.push(weight)
+        const plucked: (number | null)[] = []
+        await Edge.query().pluckEach('weight', data => {
+          plucked.push(data)
         })
         expect(plucked[0]).toEqual(2.3)
         expect(plucked[1]).toEqual(7.1)
@@ -75,9 +78,9 @@ describe('Query#pluckEach', () => {
         await Edge.create({ name: 'E1', weight: 2.3 })
         await Edge.create({ name: 'E2', weight: 7.1 })
 
-        const plucked: any[] = []
-        await Edge.query().pluckEach('name', 'weight', arr => {
-          plucked.push(arr)
+        const plucked: [string | null, number | null][] = []
+        await Edge.query().pluckEach('name', 'weight', (name, weight) => {
+          plucked.push([name, weight])
         })
         expect(plucked[0]).toEqual(['E1', 2.3])
         expect(plucked[1]).toEqual(['E2', 7.1])
@@ -88,7 +91,7 @@ describe('Query#pluckEach', () => {
   context('with multiple fields', () => {
     it('should return multi-dimensional array', async () => {
       const plucked: any[] = []
-      await User.order('id').pluckEach('id', 'createdAt', arr => {
+      await User.order('id').pluckEach('id', 'createdAt', (...arr) => {
         plucked.push(arr)
       })
       expect(plucked).toEqual([
@@ -124,6 +127,18 @@ describe('Query#pluckEach', () => {
 
         expect(plucked).toEqual([user2.id, user1.id])
       })
+    })
+  })
+
+  context('when in a transaction', () => {
+    it('correctly applies scope to transaction', async () => {
+      const plucked: any[] = []
+      await ApplicationModel.transaction(async txn => {
+        await User.txn(txn).pluckEach('id', id => {
+          plucked.push(id)
+        })
+      })
+      expect(plucked).toEqual([user1.id, user2.id, user3.id])
     })
   })
 })

@@ -1,3 +1,4 @@
+import { IdType } from '../../../src'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import User from '../../../test-app/app/models/User'
 
@@ -19,7 +20,7 @@ describe('Dream#pluckEach', () => {
 
   context('with chunk size specified', () => {
     it('plucks the specified attributes and returns them as raw data', async () => {
-      const ids: any[] = []
+      const ids: IdType[] = []
       await User.pluckEach(
         'id',
         id => {
@@ -49,7 +50,7 @@ describe('Dream#pluckEach', () => {
   context('with multiple fields', () => {
     it('should return multi-dimensional array', async () => {
       const data: any[] = []
-      await User.order('id').pluckEach('id', 'createdAt', arr => {
+      await User.order('id').pluckEach('id', 'createdAt', (...arr) => {
         data.push(arr)
       })
 

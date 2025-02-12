@@ -85,6 +85,7 @@ import {
   JoinOnStatements,
   JoinedAssociation,
   JoinedAssociationsTypeFromAssociations,
+  PluckEachArgs,
   OrderDir,
   PassthroughColumnNames,
   PrimaryKeyForFind,
@@ -94,8 +95,8 @@ import {
   RelaxedPreloadStatement,
   RelaxedPreloadWhereStatement,
   TableColumnNames,
+  TableColumnType,
   TableOrAssociationName,
-  UpdateableProperties,
   VariadicJoinsArgs,
   VariadicLoadArgs,
 } from './types'
@@ -1562,7 +1563,7 @@ export default class Query<
       QueryTypeOpts['rootTableName'],
       QueryTypeOpts['rootTableAlias']
     >,
-    ReturnType extends NamespacedColumnType<ColumnName, Q, DreamInstance>,
+    ReturnType extends NamespacedOrBaseModelColumnTypes<[ColumnName], Q, DreamInstance>[0],
   >(columnName: ColumnName): Promise<ReturnType> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { max } = this.dbFor('select').fn
@@ -1596,7 +1597,7 @@ export default class Query<
       QueryTypeOpts['rootTableName'],
       QueryTypeOpts['rootTableAlias']
     >,
-    ReturnType extends NamespacedColumnType<ColumnName, Q, DreamInstance>,
+    ReturnType extends NamespacedOrBaseModelColumnTypes<[ColumnName], Q, DreamInstance>[0],
   >(columnName: ColumnName): Promise<ReturnType> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { min } = this.dbFor('select').fn
@@ -1853,27 +1854,29 @@ export default class Query<
    * // [[1, 'a@a.com'], [2, 'b@b.com']]
    * ```
    *
-   * @param fields - The column or array of columns to pluck
+   * @param columnNames - The column or array of columns to pluck
    * @returns An array of pluck results
    */
-  public async pluck<Q extends Query<DreamInstance, QueryTypeOpts>, DB extends DreamInstance['DB']>(
-    this: Q,
-    ...fields: ColumnNamesAccountingForJoinedAssociations<
+  public async pluck<
+    Q extends Query<DreamInstance, QueryTypeOpts>,
+    DB extends DreamInstance['DB'],
+    const ColumnNames extends ColumnNamesAccountingForJoinedAssociations<
       Q['queryTypeOpts']['joinedAssociations'],
       DB,
       QueryTypeOpts['rootTableName'],
       QueryTypeOpts['rootTableAlias']
-    >[]
-  ): Promise<any[]> {
-    const vals = await this.executePluck(...(fields as any[]))
+    >[],
+    ReturnValue extends ColumnNames['length'] extends 1
+      ? NamespacedOrBaseModelColumnTypes<ColumnNames, Q, DreamInstance>[0][]
+      : NamespacedOrBaseModelColumnTypes<ColumnNames, Q, DreamInstance>[],
+  >(this: Q, ...columnNames: ColumnNames): Promise<ReturnValue> {
+    const vals = await this.executePluck(...(columnNames as any[]))
 
-    return this.pluckValuesToPluckResponse(fields, vals, {
-      excludeFirstValue: false,
-    })
+    return (columnNames.length > 1 ? vals : vals.flat()) as ReturnValue
   }
 
   /**
-   * Plucks the specified fields from the given dream class table
+   * Plucks the specified column names from the given dream class table
    * in batches, passing each found columns into the
    * provided callback function
    *
@@ -1886,35 +1889,29 @@ export default class Query<
    * // 3
    * ```
    *
-   * @param fields - a list of fields to pluck, followed by a callback function to call for each set of found fields
+   * @param args - a list of column names to pluck, followed by a callback function to call for each set of found fields
    * @returns void
    */
   public async pluckEach<
     Q extends Query<DreamInstance, QueryTypeOpts>,
     DB extends DreamInstance['DB'],
-    CB extends (plucked: any) => void | Promise<void>,
-  >(
-    this: Q,
-    ...fields: (
-      | ColumnNamesAccountingForJoinedAssociations<
-          Q['queryTypeOpts']['joinedAssociations'],
-          DB,
-          QueryTypeOpts['rootTableName'],
-          QueryTypeOpts['rootTableAlias']
-        >
-      | CB
-      | FindEachOpts
-    )[]
-  ): Promise<void> {
-    const providedCbIndex = fields.findIndex(v => typeof v === 'function')
-    const providedCb = fields[providedCbIndex] as CB
-    const providedOpts = fields[providedCbIndex + 1] as FindEachOpts
+    const ColumnNames extends ColumnNamesAccountingForJoinedAssociations<
+      Q['queryTypeOpts']['joinedAssociations'],
+      DB,
+      QueryTypeOpts['rootTableName'],
+      QueryTypeOpts['rootTableAlias']
+    >[],
+    CbArgTypes extends NamespacedOrBaseModelColumnTypes<ColumnNames, Q, DreamInstance>,
+  >(this: Q, ...args: PluckEachArgs<ColumnNames, CbArgTypes>): Promise<void> {
+    const providedCbIndex = args.findIndex(v => typeof v === 'function')
+    const providedCb = args[providedCbIndex] as unknown as (...plucked: any[]) => void | Promise<void>
+    const providedOpts = args[providedCbIndex + 1] as FindEachOpts
 
-    if (!providedCb) throw new MissingRequiredCallbackFunctionToPluckEach('pluckEach', fields)
+    if (!providedCb) throw new MissingRequiredCallbackFunctionToPluckEach('pluckEach', args)
     if (providedOpts !== undefined && !providedOpts?.batchSize)
-      throw new CannotPassAdditionalFieldsToPluckEachAfterCallback('pluckEach', fields)
+      throw new CannotPassAdditionalFieldsToPluckEachAfterCallback('pluckEach', args)
 
-    const onlyColumns = fields.filter(
+    const onlyColumns = args.filter(
       (_, index) => index < providedCbIndex
     ) as DreamColumnNames<DreamInstance>[]
 
@@ -1934,11 +1931,13 @@ export default class Query<
         .limit(batchSize)
         .executePluck(...columnsIncludingPrimaryKey)
 
-      const vals = this.pluckValuesToPluckResponse(onlyColumns, records, {
-        excludeFirstValue: !onlyIncludesPrimaryKey,
-      })
+      // In order to batch, we need to order by primary key, so the primary key must be plucked.
+      // If the developer did not include the primary key in the columns to pluck, then we prepended it above
+      // and need to remove it from each group of plucked columns prior to passing them into the callback functions
+      const vals = onlyIncludesPrimaryKey ? records : records.map(valueArr => valueArr.slice(1))
+
       for (const val of vals) {
-        await providedCb(val)
+        await providedCb(...val)
       }
 
       offset += batchSize
@@ -2291,27 +2290,6 @@ export default class Query<
     const resultData = Array.from(res.entries())?.[0]?.[1]
 
     return Number(resultData?.numUpdatedRows || 0)
-  }
-
-  /**
-   * @internal
-   *
-   * Applies pluck values to a provided callback function
-   *
-   * @returns An array of pluck values
-   */
-  private pluckValuesToPluckResponse(
-    fields: any[],
-    vals: any[],
-    { excludeFirstValue }: { excludeFirstValue: boolean }
-  ) {
-    if (excludeFirstValue) vals = vals.map(valueArr => valueArr.slice(1))
-
-    if (fields.length > 1) {
-      return vals
-    } else {
-      return vals.flat()
-    }
   }
 
   /**
@@ -4004,7 +3982,32 @@ export type NamespacedColumnType<
     'alias',
     AssociationName
   > = FindInterfaceWithValue<JoinedAssociationsArr, 'alias', AssociationName>,
-  JoinedTable extends JoinedAssociation['table'] = JoinedAssociation['table'],
-  AssociationProperties = UpdateableProperties<DreamInstance, JoinedTable>,
-  ReturnType = AssociationProperties[RealColumnName & keyof AssociationProperties],
+  JoinedTable = JoinedAssociation['table'] extends never
+    ? DreamInstance['table']
+    : JoinedAssociation['table'],
+  ReturnType = TableColumnType<DreamInstance['schema'], JoinedTable, RealColumnName>,
 > = ReturnType
+
+type NamespacedColumnTypes<ColumnNames, Q extends Query<any, any>, DreamInstance extends Dream> =
+  ColumnNames extends Readonly<[infer First, ...infer Rest]>
+    ? [
+        NamespacedColumnType<First, Q, DreamInstance>,
+        ...NamespacedColumnTypes<Readonly<Rest>, Q, DreamInstance>,
+      ]
+    : []
+
+export type BaseModelColumnTypes<ColumnNames, DreamInstance extends Dream> =
+  ColumnNames extends Readonly<[infer First, ...infer Rest]>
+    ? [
+        TableColumnType<DreamInstance['schema'], DreamInstance['table'], First>,
+        ...BaseModelColumnTypes<Readonly<Rest>, DreamInstance>,
+      ]
+    : []
+
+export type NamespacedOrBaseModelColumnTypes<
+  ColumnNames,
+  Q extends Query<any, any>,
+  DreamInstance extends Dream,
+> = Q['queryTypeOpts']['joinedAssociations']['length'] extends 0
+  ? BaseModelColumnTypes<ColumnNames, DreamInstance>
+  : NamespacedColumnTypes<ColumnNames, Q, DreamInstance>
