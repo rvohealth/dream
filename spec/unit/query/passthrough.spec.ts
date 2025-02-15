@@ -1,4 +1,4 @@
-import MissingRequiredPassthroughForAssociationWhereClause from '../../../src/errors/associations/MissingRequiredPassthroughForAssociationWhereClause'
+import MissingRequiredPassthroughForAssociationOnClause from '../../../src/errors/associations/MissingRequiredPassthroughForAssociationOnClause'
 import Composition from '../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import LocalizedText from '../../../test-app/app/models/LocalizedText'
@@ -28,13 +28,15 @@ describe('Query#passthrough', () => {
 
         const reloadedUser = await User.query()
           .passthrough({ locale: 'es-ES' })
-          .preload('compositions', 'currentLocalizedText')
-          .preload('compositions', 'compositionAssets', 'currentLocalizedText')
+          .preload('compositions', 'passthroughCurrentLocalizedText')
+          .preload('compositions', 'compositionAssets', 'passthroughCurrentLocalizedText')
           .first()
-        expect(reloadedUser!.compositions[0].currentLocalizedText).toMatchDreamModel(compositionText2)
-        expect(reloadedUser!.compositions[0].compositionAssets[0].currentLocalizedText).toMatchDreamModel(
-          compositionAssetText1
+        expect(reloadedUser!.compositions[0].passthroughCurrentLocalizedText).toMatchDreamModel(
+          compositionText2
         )
+        expect(
+          reloadedUser!.compositions[0].compositionAssets[0].passthroughCurrentLocalizedText
+        ).toMatchDreamModel(compositionAssetText1)
       }
     )
 
@@ -57,20 +59,22 @@ describe('Query#passthrough', () => {
 
       const reloadedUser = await User.query()
         .passthrough({ locale: ['es-ES', 'de-DE'] })
-        .preload('compositions', 'currentLocalizedText')
-        .preload('compositions', 'compositionAssets', 'currentLocalizedText')
+        .preload('compositions', 'passthroughCurrentLocalizedText')
+        .preload('compositions', 'compositionAssets', 'passthroughCurrentLocalizedText')
         .first()
-      expect(reloadedUser!.compositions[0].currentLocalizedText).toMatchDreamModel(compositionText2)
-      expect(reloadedUser!.compositions[0].compositionAssets[0].currentLocalizedText).toMatchDreamModel(
-        compositionAssetText1
+      expect(reloadedUser!.compositions[0].passthroughCurrentLocalizedText).toMatchDreamModel(
+        compositionText2
       )
+      expect(
+        reloadedUser!.compositions[0].compositionAssets[0].passthroughCurrentLocalizedText
+      ).toMatchDreamModel(compositionAssetText1)
     })
 
     context('when the passthrough has not been set', () => {
       it('throws MissingRequiredPassthroughForAssociationWhereClause', async () => {
-        await expect(User.query().innerJoin('compositions', 'currentLocalizedText').first()).rejects.toThrow(
-          MissingRequiredPassthroughForAssociationWhereClause
-        )
+        await expect(
+          User.query().innerJoin('compositions', 'passthroughCurrentLocalizedText').first()
+        ).rejects.toThrow(MissingRequiredPassthroughForAssociationOnClause)
       })
     })
   })

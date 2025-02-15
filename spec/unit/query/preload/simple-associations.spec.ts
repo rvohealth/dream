@@ -248,13 +248,15 @@ describe('Query#preload with simple associations', () => {
 
           const reloadedUser = await User.query()
             .passthrough({ locale: 'es-ES' })
-            .preload('compositions', 'currentLocalizedText')
-            .preload('compositions', 'compositionAssets', 'currentLocalizedText')
+            .preload('compositions', 'passthroughCurrentLocalizedText')
+            .preload('compositions', 'compositionAssets', 'passthroughCurrentLocalizedText')
             .first()
-          expect(reloadedUser!.compositions[0].currentLocalizedText).toMatchDreamModel(compositionText2)
-          expect(reloadedUser!.compositions[0].compositionAssets[0].currentLocalizedText).toMatchDreamModel(
-            compositionAssetText1
+          expect(reloadedUser!.compositions[0].passthroughCurrentLocalizedText).toMatchDreamModel(
+            compositionText2
           )
+          expect(
+            reloadedUser!.compositions[0].compositionAssets[0].passthroughCurrentLocalizedText
+          ).toMatchDreamModel(compositionAssetText1)
         })
       })
     })

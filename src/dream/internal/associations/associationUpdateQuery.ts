@@ -1,32 +1,31 @@
 import { BelongsToStatement } from '../../../decorators/associations/BelongsTo'
 import { HasManyStatement } from '../../../decorators/associations/HasMany'
 import { HasOneStatement } from '../../../decorators/associations/HasOne'
-import { WhereStatement } from '../../../decorators/associations/shared'
 import Dream from '../../../Dream'
 import namespaceColumn from '../../../helpers/namespaceColumn'
 import DreamTransaction from '../../DreamTransaction'
 import Query from '../../Query'
-import { AssociationNameToDream, DreamAssociationNames } from '../../types'
+import { AssociationNameToDream, DreamAssociationNames, JoinOnStatements } from '../../types'
 import applyScopeBypassingSettingsToQuery from '../applyScopeBypassingSettingsToQuery'
 
 export default function associationUpdateQuery<
   DreamInstance extends Dream,
   DB extends DreamInstance['DB'],
-  TableName extends DreamInstance['table'],
   Schema extends DreamInstance['schema'],
   AssociationName extends DreamAssociationNames<DreamInstance>,
-  Where extends WhereStatement<DB, Schema, TableName>,
+  AssociationDream extends AssociationNameToDream<DreamInstance, AssociationName>,
+  AssociationTableName extends AssociationDream['table'],
   AssociationQuery = Query<AssociationNameToDream<DreamInstance, AssociationName>>,
 >(
   dream: DreamInstance,
   txn: DreamTransaction<Dream> | null = null,
   associationName: AssociationName,
   {
-    associationWhereStatement,
+    joinOnStatements,
     bypassAllDefaultScopes,
     defaultScopesToBypass,
   }: {
-    associationWhereStatement?: Where
+    joinOnStatements: JoinOnStatements<DB, Schema, AssociationTableName, null>
     bypassAllDefaultScopes: boolean
     defaultScopesToBypass: string[]
   }
@@ -52,8 +51,8 @@ export default function associationUpdateQuery<
     defaultScopesToBypass,
   })
 
-  if (associationWhereStatement)
-    nestedScope = nestedScope.innerJoin(association.as, { on: associationWhereStatement })
+  if (joinOnStatements && (joinOnStatements.on || joinOnStatements.notOn || joinOnStatements.onAny))
+    nestedScope = nestedScope.innerJoin(association.as, joinOnStatements)
   else nestedScope = nestedScope.innerJoin(association.as)
 
   const nestedSelect = nestedScope

@@ -1,7 +1,7 @@
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import User from '../../../test-app/app/models/User'
 import Composition from '../../../test-app/app/models/Composition'
 import LocalizedText from '../../../test-app/app/models/LocalizedText'
+import User from '../../../test-app/app/models/User'
 
 describe('Dream.passthrough', () => {
   it('sets up the passthrough data to be used by passthrough where clauses on associations', async () => {
@@ -12,9 +12,9 @@ describe('Dream.passthrough', () => {
     const compositionText2 = await LocalizedText.create({ localizable: composition, locale: 'es-ES' })
 
     const reloadedUser = await User.passthrough({ locale: 'es-ES' })
-      .preload('compositions', 'currentLocalizedText')
+      .preload('compositions', 'passthroughCurrentLocalizedText')
       .first()
-    expect(reloadedUser!.compositions[0].currentLocalizedText).toMatchDreamModel(compositionText2)
+    expect(reloadedUser!.compositions[0].passthroughCurrentLocalizedText).toMatchDreamModel(compositionText2)
   })
 
   context('in a transaction', () => {
@@ -34,9 +34,11 @@ describe('Dream.passthrough', () => {
 
         const reloadedUser = await User.txn(txn)
           .passthrough({ locale: 'es-ES' })
-          .preload('compositions', 'currentLocalizedText')
+          .preload('compositions', 'passthroughCurrentLocalizedText')
           .first()
-        expect(reloadedUser!.compositions[0].currentLocalizedText).toMatchDreamModel(compositionText2)
+        expect(reloadedUser!.compositions[0].passthroughCurrentLocalizedText).toMatchDreamModel(
+          compositionText2
+        )
       })
     })
   })
@@ -52,9 +54,9 @@ describe('Dream#passthrough', () => {
 
     const reloadedUser = await user
       .passthrough({ locale: 'es-ES' })
-      .load('compositions', 'currentLocalizedText')
+      .load('compositions', 'passthroughCurrentLocalizedText')
       .execute()
 
-    expect(reloadedUser.compositions[0].currentLocalizedText).toMatchDreamModel(compositionText2)
+    expect(reloadedUser.compositions[0].passthroughCurrentLocalizedText).toMatchDreamModel(compositionText2)
   })
 })

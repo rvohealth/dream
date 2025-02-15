@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import MissingRequiredAssociationWhereClause from '../../../../src/errors/associations/MissingRequiredAssociationWhereClause'
+import MissingRequiredAssociationOnClause from '../../../../src/errors/associations/MissingRequiredAssociationOnClause'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
@@ -17,7 +17,7 @@ describe('Dream#associationQuery', () => {
     it('raises an exception', async () => {
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       await expect(
-        async () => await user.associationQuery('pets', { name: undefined }).all()
+        async () => await user.associationQuery('pets', { on: { name: undefined } }).all()
       ).rejects.toThrowError(CannotPassUndefinedAsAValueToAWhereClause)
     })
 
@@ -67,8 +67,8 @@ describe('Dream#associationQuery', () => {
         const composition = await Composition.create({ user })
 
         await expect(
-          async () => await (composition.associationQuery as any)('inlineWhereCurrentLocalizedText').all()
-        ).rejects.toThrow(MissingRequiredAssociationWhereClause)
+          async () => await (composition.associationQuery as any)('requiredCurrentLocalizedText').all()
+        ).rejects.toThrow(MissingRequiredAssociationOnClause)
       })
     })
 
@@ -80,7 +80,9 @@ describe('Dream#associationQuery', () => {
         const localizedText = await LocalizedText.create({ localizable: composition, locale: 'es-ES' })
 
         expect(
-          await composition.associationQuery('inlineWhereCurrentLocalizedText', { locale: 'es-ES' }).first()
+          await composition
+            .associationQuery('requiredCurrentLocalizedText', { on: { locale: 'es-ES' } })
+            .first()
         ).toMatchDreamModel(localizedText)
       })
 
@@ -91,7 +93,7 @@ describe('Dream#associationQuery', () => {
 
         expect(
           await composition
-            .associationQuery('inlineWhereCurrentLocalizedText', { locale: ['es-ES', 'de-DE'] })
+            .associationQuery('requiredCurrentLocalizedText', { on: { locale: ['es-ES', 'de-DE'] } })
             .first()
         ).toMatchDreamModel(localizedText)
       })
@@ -345,6 +347,39 @@ describe('Dream#associationQuery', () => {
         })
 
         expect(await user!.associationQuery('petsFromUuid').all()).toMatchDreamModels([pet])
+      })
+    })
+
+    context('when a required where clause is passed', () => {
+      it('applies the where clause to the association', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user })
+        await LocalizedText.create({ localizable: composition, locale: 'en-US' })
+        const localizedText = await LocalizedText.create({ localizable: composition, locale: 'es-ES' })
+
+        await ApplicationModel.transaction(async txn => {
+          expect(
+            await composition
+              .txn(txn)
+              .associationQuery('requiredCurrentLocalizedText', { on: { locale: 'es-ES' } })
+              .first()
+          ).toMatchDreamModel(localizedText)
+        })
+      })
+
+      it('supports array where clauses', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user })
+        const localizedText = await LocalizedText.create({ localizable: composition, locale: 'es-ES' })
+
+        await ApplicationModel.transaction(async txn => {
+          expect(
+            await composition
+              .txn(txn)
+              .associationQuery('requiredCurrentLocalizedText', { on: { locale: ['es-ES', 'de-DE'] } })
+              .first()
+          ).toMatchDreamModel(localizedText)
+        })
       })
     })
   })

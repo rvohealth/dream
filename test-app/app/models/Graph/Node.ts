@@ -40,7 +40,7 @@ export default class Node extends ApplicationModel {
   @Node.HasMany('Graph/Edge', { through: 'orderedEdgeNodes', source: 'edge' })
   public edgesOrderedByPosition: GraphEdge[]
 
-  @Node.HasMany('Graph/EdgeNode', { foreignKey: 'nodeId', selfWhereNot: { position: 'omittedEdgePosition' } })
+  @Node.HasMany('Graph/EdgeNode', { foreignKey: 'nodeId', selfNotOn: { position: 'omittedEdgePosition' } })
   public nonOmittedPositionEdgeNodes: EdgeNode[]
 
   @Node.HasMany('Graph/Edge', { through: 'nonOmittedPositionEdgeNodes', source: 'edge' })
@@ -49,7 +49,7 @@ export default class Node extends ApplicationModel {
   @Node.HasMany('Graph/Edge', {
     through: 'edgeNodes',
     source: 'edge',
-    selfWhereNot: { name: 'name' },
+    selfNotOn: { name: 'name' },
   })
   public nonNodeNameEdgesOnThroughAssociation: GraphEdge[]
 }

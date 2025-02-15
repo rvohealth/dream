@@ -3,7 +3,7 @@ import { Dream, DreamTransaction, Query } from '../../../../src'
 import * as destroyAssociationModule from '../../../../src/dream/internal/associations/destroyAssociation'
 import * as runHooksForModule from '../../../../src/dream/internal/runHooksFor'
 import * as safelyRunCommitHooksModule from '../../../../src/dream/internal/safelyRunCommitHooks'
-import MissingRequiredAssociationWhereClause from '../../../../src/errors/associations/MissingRequiredAssociationWhereClause'
+import MissingRequiredAssociationOnClause from '../../../../src/errors/associations/MissingRequiredAssociationOnClause'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 import Collar from '../../../../test-app/app/models/Collar'
 import Composition from '../../../../test-app/app/models/Composition'
@@ -222,7 +222,7 @@ describe('Dream#reallyDestroyAssociation', () => {
           composition,
           composition2,
         ])
-        await user.reallyDestroyAssociation('compositions', { where: { content: 'chalupas dujour' } })
+        await user.reallyDestroyAssociation('compositions', { on: { content: 'chalupas dujour' } })
 
         expect(await user.associationQuery('compositions').all()).toMatchDreamModels([composition2])
         expect(await Composition.all()).toMatchDreamModels([composition2])
@@ -234,9 +234,9 @@ describe('Dream#reallyDestroyAssociation', () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })
 
-        await expect(
-          (composition.destroyAssociation as any)('inlineWhereCurrentLocalizedText')
-        ).rejects.toThrow(MissingRequiredAssociationWhereClause)
+        await expect((composition.destroyAssociation as any)('requiredCurrentLocalizedText')).rejects.toThrow(
+          MissingRequiredAssociationOnClause
+        )
       })
     })
 
@@ -250,8 +250,8 @@ describe('Dream#reallyDestroyAssociation', () => {
           locale: 'es-ES',
         })
 
-        await composition.reallyDestroyAssociation('inlineWhereCurrentLocalizedText', {
-          where: { locale: 'es-ES' },
+        await composition.reallyDestroyAssociation('requiredCurrentLocalizedText', {
+          on: { locale: 'es-ES' },
         })
 
         expect(await LocalizedText.find(localizedTextToKeep.id)).toMatchDreamModel(localizedTextToKeep)
@@ -276,7 +276,7 @@ describe('Dream#reallyDestroyAssociation', () => {
         compositionAsset1,
         compositionAsset2,
       ])
-      await user.reallyDestroyAssociation('compositionAssets', { where: { name: 'chalupas dujour' } })
+      await user.reallyDestroyAssociation('compositionAssets', { on: { name: 'chalupas dujour' } })
 
       expect(await user.associationQuery('compositionAssets').all()).toMatchDreamModels([compositionAsset2])
       expect(await CompositionAsset.all()).toMatchDreamModels([compositionAsset2])
@@ -382,7 +382,7 @@ describe('Dream#reallyDestroyAssociation', () => {
           expect.anything(),
           'compositions',
           {
-            associationWhereStatement: undefined,
+            joinOnStatements: { on: undefined, notOn: undefined, onAny: undefined },
             bypassAllDefaultScopes: true,
             defaultScopesToBypass: ['hideDeleted', 'dream:SoftDelete'],
             cascade: false,

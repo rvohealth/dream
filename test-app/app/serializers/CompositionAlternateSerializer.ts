@@ -25,5 +25,5 @@ export default class CompositionAlternateSerializer extends DreamSerializer {
   // intentionally omitting the serializer callback to
   // explicitly test importing from only a path config
   @RendersOne({ path: 'LocalizedText/BaseSerializer', exportedAs: 'LocalizedTextBaseSerializer' })
-  public currentLocalizedText: LocalizedText
+  public passthroughCurrentLocalizedText: LocalizedText
 }

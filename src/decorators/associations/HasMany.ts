@@ -77,12 +77,12 @@ export default function HasMany<
  * @param opts.polymorphic - If true, this association will be treated as a polymorphic association.
  * @param opts.preloadThroughColumns - An array of columns to pluck off the through association attached to this association. Can only be set if `through` is also set.
  * @param opts.primaryKeyOverride - A custom column name to use for the primary key.
- * @param opts.selfWhere - Adds a where clause to an association between a column on the associated model and a column on this model.
- * @param opts.selfWhereNot - Adds a where not clause to an association between a column on the associated model and a column on this model.
+ * @param opts.selfOn - Adds an on clause to an association between a column on the associated model and a column on this model.
+ * @param opts.selfNotOn - Adds a not on clause to an association between a column on the associated model and a column on this model.
  * @param opts.source - Used in conjunction with 'through' to specify the source association on a child model.
  * @param opts.through - If passed, this association will travel through another association.
- * @param opts.where - A where clause to be applied when this association is loaded
- * @param opts.whereNot - A where not clause to be applied when this association is loaded
+ * @param opts.on - An on clause to be applied when this association is loaded
+ * @param opts.notOn - A not on clause to be applied when this association is loaded
  * @param opts.withoutDefaultScopes - A list of default scopes to bypass when loading this association
  */
 export default function HasMany<
@@ -97,12 +97,12 @@ export default function HasMany<
     polymorphic = false,
     preloadThroughColumns,
     primaryKeyOverride = null,
-    selfWhere,
-    selfWhereNot,
+    selfOn,
+    selfNotOn,
     source,
     through,
-    where,
-    whereNot,
+    on,
+    notOn,
     withoutDefaultScopes,
   } = opts as any
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -116,7 +116,7 @@ export default function HasMany<
       dreamClass,
       dependent: dependent ?? null,
       methodName: key,
-      where: where ?? null,
+      on: on ?? null,
     })
 
     const partialAssociation = associationPrimaryKeyAccessors(
@@ -128,10 +128,10 @@ export default function HasMany<
         polymorphic,
         source: source || key,
         preloadThroughColumns,
-        where,
-        whereNot,
-        selfWhere,
-        selfWhereNot,
+        on,
+        notOn,
+        selfOn,
+        selfNotOn,
         primaryKeyOverride,
         dependent,
         withoutDefaultScopes,

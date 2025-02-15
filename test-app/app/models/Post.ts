@@ -48,10 +48,10 @@ export default class Post extends ApplicationModel {
   })
   public ratings: Rating[]
 
-  @Post.HasMany('PostComment', { where: { body: undefined } })
+  @Post.HasMany('PostComment', { on: { body: undefined } })
   public invalidWherePostComments: PostComment[]
 
-  @Post.HasMany('PostComment', { whereNot: { body: undefined } })
+  @Post.HasMany('PostComment', { notOn: { body: undefined } })
   public invalidWhereNotPostComments: PostComment[]
 
   // Traveling through NonNullRating, a model

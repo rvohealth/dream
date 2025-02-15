@@ -1,29 +1,33 @@
 import { HasManyStatement } from '../../../decorators/associations/HasMany'
-import { WhereStatementForAssociation } from '../../../decorators/associations/shared'
 import Dream from '../../../Dream'
 import DreamTransaction from '../../DreamTransaction'
 import Query from '../../Query'
-import { AssociationNameToDream, DreamAssociationNames, TableOrAssociationName } from '../../types'
+import {
+  AssociationNameToDream,
+  DreamAssociationNames,
+  JoinOnStatements,
+  TableOrAssociationName,
+} from '../../types'
 import applyScopeBypassingSettingsToQuery from '../applyScopeBypassingSettingsToQuery'
 
 export default function associationQuery<
   DreamInstance extends Dream,
   DB extends DreamInstance['DB'],
-  TableName extends DreamInstance['table'],
   Schema extends DreamInstance['schema'],
   AssociationName extends DreamAssociationNames<DreamInstance>,
-  Where extends WhereStatementForAssociation<DB, Schema, TableName, AssociationName>,
+  AssociationDream extends AssociationNameToDream<DreamInstance, AssociationName>,
+  AssociationTableName extends AssociationDream['table'],
   AssociationQuery = Query<AssociationNameToDream<DreamInstance, AssociationName>>,
 >(
   dream: DreamInstance,
   txn: DreamTransaction<Dream> | null = null,
   associationName: AssociationName,
   {
-    associationWhereStatement,
+    joinOnStatements,
     bypassAllDefaultScopes,
     defaultScopesToBypass,
   }: {
-    associationWhereStatement?: Where
+    joinOnStatements: JoinOnStatements<DB, Schema, AssociationTableName, null>
     bypassAllDefaultScopes: boolean
     defaultScopesToBypass: string[]
   }
@@ -43,8 +47,8 @@ export default function associationQuery<
     [dream.primaryKey]: dream.primaryKeyValue,
   })
 
-  if (associationWhereStatement)
-    baseSelectQuery = baseSelectQuery.innerJoin(association.as, { on: associationWhereStatement })
+  if (joinOnStatements && (joinOnStatements.on || joinOnStatements.notOn || joinOnStatements.onAny))
+    baseSelectQuery = baseSelectQuery.innerJoin(association.as, joinOnStatements)
   else baseSelectQuery = baseSelectQuery.innerJoin(association.as)
 
   let query = txn ? associationClass.txn(txn).queryInstance() : associationClass.query()

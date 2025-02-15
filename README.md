@@ -455,7 +455,7 @@ class B extends A {
 
 @STI(A)
 class C extends A {
-  @C.HasMany('X', { where: { something: true } })
+  @C.HasMany('X', { on: { something: true } })
   public xx: X[]
 }
 

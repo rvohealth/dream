@@ -71,6 +71,38 @@ describe('Query#where', () => {
     expect(users).toMatchDreamModels([user1])
   })
 
+  context('after a join', () => {
+    it('limits the results', async () => {
+      const pet = await Pet.create()
+      const redBalloon = await Latex.create({ color: 'red' })
+      const greenBalloon = await Latex.create({ color: 'green' })
+      const noColorBalloon = await Latex.create({ color: null })
+
+      await pet.createAssociation('collars', { balloon: redBalloon })
+      await pet.createAssociation('collars', { balloon: greenBalloon })
+      await pet.createAssociation('collars', { balloon: noColorBalloon })
+
+      const reloaded = await Pet.leftJoinPreload('whereNot_red')
+        .where({ 'whereNot_red.color': ['red', 'green'] })
+        .firstOrFail()
+      expect(reloaded.whereNot_red).toMatchDreamModels([greenBalloon])
+    })
+
+    it('implicitly namespaces un-namespaced columns to the base model’s table', async () => {
+      const pet = await Pet.create()
+      const redBalloon = await Latex.create({ color: 'red' })
+      const greenBalloon = await Latex.create({ color: 'green' })
+      const noColorBalloon = await Latex.create({ color: null })
+
+      await pet.createAssociation('collars', { balloon: redBalloon })
+      await pet.createAssociation('collars', { balloon: greenBalloon })
+      await pet.createAssociation('collars', { balloon: noColorBalloon })
+
+      const reloaded = await Pet.leftJoinPreload('whereNot_red').where({ id: pet.id }).firstOrFail()
+      expect(reloaded.whereNot_red).toMatchDreamModels([greenBalloon, noColorBalloon])
+    })
+  })
+
   context('passing null', () => {
     it('unsets previously-applied where clauses', async () => {
       const user1 = await User.create({

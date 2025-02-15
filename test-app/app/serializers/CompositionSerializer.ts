@@ -20,5 +20,5 @@ export default class CompositionSerializer extends DreamSerializer {
   public localizedTexts: LocalizedText[]
 
   @RendersOne()
-  public currentLocalizedText: LocalizedText
+  public passthroughCurrentLocalizedText: LocalizedText
 }

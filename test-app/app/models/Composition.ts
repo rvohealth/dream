@@ -36,7 +36,7 @@ export default class Composition extends ApplicationModel {
   public compositionAssets: CompositionAsset[]
 
   @Composition.HasOne('CompositionAsset', {
-    where: { primary: true },
+    on: { primary: true },
   })
   public mainCompositionAsset: CompositionAsset
 
@@ -103,21 +103,21 @@ export default class Composition extends ApplicationModel {
   @Composition.HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
-    where: { locale: DreamConst.required },
+    on: { locale: DreamConst.required },
   })
-  public inlineWhereCurrentLocalizedText: LocalizedText
+  public requiredCurrentLocalizedText: LocalizedText
 
   @Composition.HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
-    where: { locale: DreamConst.passthrough },
+    on: { locale: DreamConst.passthrough },
   })
-  public currentLocalizedText: LocalizedText
+  public passthroughCurrentLocalizedText: LocalizedText
 
   @Composition.HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
-    where: { name: 'cascade delete me' },
+    on: { name: 'cascade delete me' },
     dependent: 'destroy',
   })
   public cascadeDeletableLocalizedText: LocalizedText

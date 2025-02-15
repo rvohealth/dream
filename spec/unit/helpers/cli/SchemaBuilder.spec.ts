@@ -171,17 +171,17 @@ describe('SchemaBuilder', () => {
           tables: ['pets'],
           optional: false,
           foreignKey: 'petId',
-          requiredWhereClauses: null,
+          requiredOnClauses: null,
         })
       })
 
       it('renders required where clauses', () => {
-        expect(User.prototype.schema.compositions.associations.inlineWhereCurrentLocalizedText).toEqual({
+        expect(User.prototype.schema.compositions.associations.requiredCurrentLocalizedText).toEqual({
           type: 'HasOne',
           foreignKey: 'localizableId',
           tables: ['localized_texts'],
           optional: null,
-          requiredWhereClauses: ['locale'],
+          requiredOnClauses: ['locale'],
         })
       })
     })

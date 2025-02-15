@@ -1,28 +1,27 @@
-import { WhereStatement } from '../../../decorators/associations/shared'
 import Dream from '../../../Dream'
 import DreamTransaction from '../../DreamTransaction'
-import { DreamAssociationNames } from '../../types'
+import { AssociationNameToDream, DreamAssociationNames, JoinOnStatements } from '../../types'
 import associationUpdateQuery from './associationUpdateQuery'
 
 export default async function undestroyAssociation<
   DreamInstance extends Dream,
   DB extends DreamInstance['DB'],
-  TableName extends DreamInstance['table'],
   Schema extends DreamInstance['schema'],
   AssociationName extends DreamAssociationNames<DreamInstance>,
-  Where extends WhereStatement<DB, Schema, TableName>,
+  AssociationDream extends AssociationNameToDream<DreamInstance, AssociationName>,
+  AssociationTableName extends AssociationDream['table'],
 >(
   dream: DreamInstance,
   txn: DreamTransaction<Dream> | null = null,
   associationName: AssociationName,
   {
-    associationWhereStatement,
+    joinOnStatements,
     bypassAllDefaultScopes,
     defaultScopesToBypass,
     cascade,
     skipHooks,
   }: {
-    associationWhereStatement?: Where
+    joinOnStatements: JoinOnStatements<DB, Schema, AssociationTableName, null>
     bypassAllDefaultScopes: boolean
     defaultScopesToBypass: string[]
     cascade: boolean
@@ -30,7 +29,7 @@ export default async function undestroyAssociation<
   }
 ): Promise<number> {
   const query = associationUpdateQuery(dream, txn, associationName, {
-    associationWhereStatement,
+    joinOnStatements,
     bypassAllDefaultScopes,
     defaultScopesToBypass,
   })

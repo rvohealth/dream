@@ -1,6 +1,6 @@
 import { SelectArg, SelectExpression, Updateable } from 'kysely'
 import { AssociationTableNames } from '../db/reflections'
-import { PassthroughWhere, WhereStatement } from '../decorators/associations/shared'
+import { PassthroughOnClause, WhereStatement } from '../decorators/associations/shared'
 import Dream from '../Dream'
 import DreamTransaction from './DreamTransaction'
 import saveDream from './internal/saveDream'
@@ -14,9 +14,9 @@ import {
   DefaultScopeName,
   DreamColumnNames,
   JoinedAssociationsTypeFromAssociations,
-  PluckEachArgs,
   OrderDir,
   PassthroughColumnNames,
+  PluckEachArgs,
   PrimaryKeyForFind,
   TableColumnNames,
   UpdateableProperties,
@@ -696,7 +696,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
     PassthroughColumns extends PassthroughColumnNames<DreamInstance>,
   >(
     this: I,
-    passthroughWhereStatement: PassthroughWhere<PassthroughColumns>
+    passthroughWhereStatement: PassthroughOnClause<PassthroughColumns>
   ): Query<DreamInstance, DefaultQueryTypeOptions<DreamInstance>> {
     return this.queryInstance().passthrough(passthroughWhereStatement as any)
   }

@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import MissingRequiredAssociationWhereClause from '../../../../src/errors/associations/MissingRequiredAssociationWhereClause'
+import MissingRequiredAssociationOnClause from '../../../../src/errors/associations/MissingRequiredAssociationOnClause'
 import range from '../../../../src/helpers/range'
 import ops from '../../../../src/ops'
 import OpsStatement from '../../../../src/ops/ops-statement'
@@ -77,7 +77,7 @@ describe('Query#joins with simple associations', () => {
       expect(noResults).toEqual([])
     })
 
-    context('with an array as the where clause value', () => {
+    context('with an array as the on-clause value', () => {
       it('selects results that match items in the array', async () => {
         await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
@@ -136,14 +136,14 @@ describe('Query#joins with simple associations', () => {
         await LocalizedText.create({ localizable: composition2, locale: 'es-ES' })
 
         const reloaded = await User.passthrough({ locale: 'es-ES' })
-          .innerJoin('compositions', 'currentLocalizedText')
+          .innerJoin('compositions', 'passthroughCurrentLocalizedText')
           .all()
         expect(reloaded).toMatchDreamModels([user2])
       })
     })
 
-    context('with required where clause', () => {
-      it('replaces DreamConst.required with the supplied where clause when joining the associations', async () => {
+    context('with required on-clause', () => {
+      it('replaces DreamConst.required with the supplied on-clause when joining the associations', async () => {
         const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition1 = await Composition.create({ user: user1 })
         await LocalizedText.create({ localizable: composition1, locale: 'en-US' })
@@ -152,7 +152,7 @@ describe('Query#joins with simple associations', () => {
         const composition2 = await Composition.create({ user: user2 })
         await LocalizedText.create({ localizable: composition2, locale: 'es-ES' })
 
-        const reloaded = await User.innerJoin('compositions', 'inlineWhereCurrentLocalizedText', {
+        const reloaded = await User.innerJoin('compositions', 'requiredCurrentLocalizedText', {
           on: {
             locale: 'es-ES',
           },
@@ -160,11 +160,11 @@ describe('Query#joins with simple associations', () => {
         expect(reloaded).toMatchDreamModels([user2])
       })
 
-      context('when the required where clause isn’t passed', () => {
+      context('when the required on-clause isn’t passed', () => {
         it('throws MissingRequiredAssociationWhereClause', async () => {
-          await expect(
-            User.innerJoin('compositions', 'inlineWhereCurrentLocalizedText').all()
-          ).rejects.toThrow(MissingRequiredAssociationWhereClause)
+          await expect(User.innerJoin('compositions', 'requiredCurrentLocalizedText').all()).rejects.toThrow(
+            MissingRequiredAssociationOnClause
+          )
         })
       })
     })
@@ -190,9 +190,9 @@ describe('Query#joins with simple associations', () => {
         const balloon1 = await Mylar.create({ user: user1 })
         await Mylar.create({ user: user2 })
 
-        const whereClause: Record<string, OpsStatement<any, any>> = { id: ops.equal(user1.id) }
-        const query = Balloon.innerJoin('user', { on: whereClause })
-        whereClause.id.value = user2.id
+        const onClause: Record<string, OpsStatement<any, any>> = { id: ops.equal(user1.id) }
+        const query = Balloon.innerJoin('user', { on: onClause })
+        onClause.id.value = user2.id
         const balloons = await query.all()
         expect(balloons).toMatchDreamModels([balloon1])
       })
@@ -232,7 +232,7 @@ describe('Query#joins with simple associations', () => {
       expect(noResults).toEqual([])
     })
 
-    context('when the where clause attribute exists on both models', () => {
+    context('when the on-clause attribute exists on both models', () => {
       it('namespaces the attribute in the BelongsTo direction', async () => {
         const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
         const composition = await Composition.create({ user })
@@ -317,7 +317,7 @@ describe('Query#joins with simple associations', () => {
   })
 
   context('HasMany', () => {
-    context('with matching where-clause-on-the-association', () => {
+    context('with matching on-clause-on-the-association', () => {
       it('loads the associated object', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         await Composition.create({
@@ -330,7 +330,7 @@ describe('Query#joins with simple associations', () => {
       })
     })
 
-    context('with NON-matching where-clause-on-the-association', () => {
+    context('with NON-matching on-clause-on-the-association', () => {
       it('does not load the object', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         await Composition.create({
@@ -343,7 +343,7 @@ describe('Query#joins with simple associations', () => {
       })
     })
 
-    context('with matching whereNot-clause-on-the-association', () => {
+    context('with matching notOn-clause-on-the-association', () => {
       it('does not load the object', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         await Composition.create({
@@ -356,7 +356,7 @@ describe('Query#joins with simple associations', () => {
       })
     })
 
-    context('with NON-matching whereNot-clause-on-the-association', () => {
+    context('with NON-matching notOn-clause-on-the-association', () => {
       it('loads the associated object', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         await Composition.create({
@@ -393,7 +393,7 @@ describe('Query#joins with simple associations', () => {
   })
 
   context('HasOne', () => {
-    context('with matching where-clause-on-the-association', () => {
+    context('with matching on-clause-on-the-association', () => {
       it('loads the associated object', async () => {
         const pet = await Pet.create()
         await pet.createAssociation('collars', {
@@ -405,7 +405,7 @@ describe('Query#joins with simple associations', () => {
       })
     })
 
-    context('with NON-matching where-clause-on-the-association', () => {
+    context('with NON-matching on-clause-on-the-association', () => {
       it('does not load the object', async () => {
         const pet = await Pet.create()
         await pet.createAssociation('collars', {
@@ -417,7 +417,7 @@ describe('Query#joins with simple associations', () => {
       })
     })
 
-    context('with matching whereNot-clause-on-the-association', () => {
+    context('with matching notOn-clause-on-the-association', () => {
       it('does not load the associated object', async () => {
         const pet = await Pet.create()
         await pet.createAssociation('collars', {
@@ -429,7 +429,7 @@ describe('Query#joins with simple associations', () => {
       })
     })
 
-    context('with NON-matching whereNot-clause-on-the-association', () => {
+    context('with NON-matching notOn-clause-on-the-association', () => {
       it('loads the associated object', async () => {
         const pet = await Pet.create()
         await pet.createAssociation('collars', {
@@ -486,7 +486,7 @@ describe('Query#joins with simple associations', () => {
       pet1 = await Pet.create({ user: user1 })
     })
 
-    it('is able to apply date ranges to where clause', async () => {
+    it('is able to apply date ranges to on-clause', async () => {
       const pets = await Pet.innerJoin('user', { on: { createdAt: range(begin.plus({ hour: 1 })) } }).all()
       expect(pets).toMatchDreamModels([pet1])
     })
@@ -515,7 +515,7 @@ describe('Query#joins with simple associations', () => {
     })
   })
 
-  context('join + where statement more than one level deep', () => {
+  context('join + on-statement more than one level deep', () => {
     it('does not leak between clones', async () => {
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
       const pet = await user.createAssociation('pets', { name: 'aster' })

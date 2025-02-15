@@ -116,7 +116,7 @@ ${tableName}: {
         .map(associationName => {
           const associationMetadata = tableData.associations[associationName as keyof typeof tableData]
           const whereStatement = associationMetadata.where
-          const requiredWhereClauses =
+          const requiredOnClauses =
             whereStatement === null
               ? []
               : Object.keys(whereStatement).filter(column => whereStatement[column] === DreamConst.required)
@@ -134,7 +134,7 @@ ${tableName}: {
         foreignKey: ${associationMetadata.foreignKey ? `'${associationMetadata.foreignKey}'` : 'null'},
         tables: ${stringifyArray(associationMetadata.tables)},
         optional: ${associationMetadata.optional},
-        requiredWhereClauses: ${requiredWhereClauses.length === 0 ? 'null' : stringifyArray(requiredWhereClauses)},
+        requiredOnClauses: ${requiredOnClauses.length === 0 ? 'null' : stringifyArray(requiredOnClauses)},
       },`
         })
         .join('\n      ')}
@@ -291,7 +291,7 @@ may need to update the table getter in the corresponding Dream.
 
         const where =
           associationMetaData.type === 'HasMany' || associationMetaData.type === 'HasOne'
-            ? associationMetaData.where || null
+            ? associationMetaData.on || null
             : null
 
         // NOTE

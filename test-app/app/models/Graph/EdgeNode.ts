@@ -44,7 +44,7 @@ export default class EdgeNode extends ApplicationModel {
   @EdgeNode.HasMany('Graph/EdgeNode', {
     through: 'node',
     source: 'edgeNodes',
-    selfWhereNot: { id: 'id' },
+    selfNotOn: { id: 'id' },
   })
   public siblings: EdgeNode[]
 
@@ -64,21 +64,21 @@ export default class EdgeNode extends ApplicationModel {
   @EdgeNode.HasOne('Graph/EdgeNode', {
     through: 'node',
     source: 'edgeNodes',
-    selfWhere: { id: 'id' },
+    selfOn: { id: 'id' },
   })
   public justThisSibling: EdgeNode
 
   @EdgeNode.HasOne('Graph/EdgeNode', {
     through: 'node',
     source: 'edgeNodes',
-    where: { position: 1 },
+    on: { position: 1 },
   })
   public headSibling: EdgeNode
 
   @EdgeNode.HasMany('Graph/EdgeNode', {
     through: 'node',
     source: 'edgeNodes',
-    whereNot: { position: 1 },
+    notOn: { position: 1 },
   })
   public tailSiblings: EdgeNode[]
 }

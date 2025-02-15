@@ -25,21 +25,21 @@ import { HasOneStatement } from '../decorators/associations/HasOne'
 import {
   AssociationStatement,
   ColumnNamesAccountingForJoinedAssociations,
-  JoinedAssociationWhereClauses,
   LimitStatement,
   OffsetStatement,
   OrderQueryStatement,
-  PassthroughWhere,
-  WhereSelfStatement,
+  PassthroughOnClause,
+  SelfOnStatement,
   WhereStatement,
+  WhereStatementForJoinedAssociation,
 } from '../decorators/associations/shared'
 import { SOFT_DELETE_SCOPE_NAME } from '../decorators/SoftDelete'
 import Dream from '../Dream'
 import CannotAssociateThroughPolymorphic from '../errors/associations/CannotAssociateThroughPolymorphic'
 import CannotJoinPolymorphicBelongsToError from '../errors/associations/CannotJoinPolymorphicBelongsToError'
 import JoinAttemptedOnMissingAssociation from '../errors/associations/JoinAttemptedOnMissingAssociation'
-import MissingRequiredAssociationWhereClause from '../errors/associations/MissingRequiredAssociationWhereClause'
-import MissingRequiredPassthroughForAssociationWhereClause from '../errors/associations/MissingRequiredPassthroughForAssociationWhereClause'
+import MissingRequiredAssociationOnClause from '../errors/associations/MissingRequiredAssociationOnClause'
+import MissingRequiredPassthroughForAssociationOnClause from '../errors/associations/MissingRequiredPassthroughForAssociationOnClause'
 import MissingThroughAssociation from '../errors/associations/MissingThroughAssociation'
 import MissingThroughAssociationSource from '../errors/associations/MissingThroughAssociationSource'
 import CannotCallUndestroyOnANonSoftDeleteModel from '../errors/CannotCallUndestroyOnANonSoftDeleteModel'
@@ -65,7 +65,6 @@ import ops from '../ops'
 import CurriedOpsStatement from '../ops/curried-ops-statement'
 import OpsStatement from '../ops/ops-statement'
 import DreamTransaction from './DreamTransaction'
-import LoadIntoModels from './internal/associations/load-into-models'
 import executeDatabaseQuery from './internal/executeDatabaseQuery'
 import orderByDirection from './internal/orderByDirection'
 import shouldBypassDefaultScope from './internal/shouldBypassDefaultScope'
@@ -85,15 +84,15 @@ import {
   JoinOnStatements,
   JoinedAssociation,
   JoinedAssociationsTypeFromAssociations,
-  PluckEachArgs,
   OrderDir,
   PassthroughColumnNames,
+  PluckEachArgs,
   PrimaryKeyForFind,
   QueryTypeOptions,
   RelaxedJoinOnStatement,
   RelaxedJoinStatement,
+  RelaxedPreloadOnStatement,
   RelaxedPreloadStatement,
-  RelaxedPreloadWhereStatement,
   TableColumnNames,
   TableColumnType,
   TableOrAssociationName,
@@ -193,10 +192,10 @@ export default class Query<
   /**
    * @internal
    *
-   * stores the passthrough where statements applied to the
+   * stores the passthrough on statements applied to the
    * current Query instance
    */
-  private readonly passthroughWhereStatement: PassthroughWhere<PassthroughColumnNames<DreamInstance>> =
+  private readonly passthroughOnStatement: PassthroughOnClause<PassthroughColumnNames<DreamInstance>> =
     Object.freeze({})
 
   /**
@@ -278,10 +277,10 @@ export default class Query<
   /**
    * @internal
    *
-   * stores the preload where statements applied to the
+   * stores the preload on statements applied to the
    * current Query instance
    */
-  private readonly preloadWhereStatements: RelaxedPreloadWhereStatement<
+  private readonly preloadOnStatements: RelaxedPreloadOnStatement<
     DreamInstance['DB'],
     DreamInstance['schema']
   > = Object.freeze({})
@@ -389,14 +388,14 @@ export default class Query<
     opts: QueryOpts<DreamInstance, DreamColumnNames<DreamInstance>> = {}
   ) {
     super(dreamInstance, opts)
-    this.passthroughWhereStatement = Object.freeze(opts.passthroughWhereStatement || {})
+    this.passthroughOnStatement = Object.freeze(opts.passthroughOnStatement || {})
     this.whereStatements = Object.freeze(opts.where || [])
     this.whereNotStatements = Object.freeze(opts.whereNot || [])
     this.orStatements = Object.freeze(opts.or || [])
     this.orderStatements = Object.freeze(opts.order || [])
     this.joinLoadActivated = opts.loadFromJoins || false
     this.preloadStatements = Object.freeze(opts.preloadStatements || {})
-    this.preloadWhereStatements = Object.freeze(opts.preloadWhereStatements || {})
+    this.preloadOnStatements = Object.freeze(opts.preloadOnStatements || {})
     this.innerJoinStatements = Object.freeze(opts.innerJoinStatements || {})
     this.innerJoinOnStatements = Object.freeze(opts.innerJoinOnStatements || {})
     this.leftJoinStatements = Object.freeze(opts.leftJoinStatements || {})
@@ -443,7 +442,7 @@ export default class Query<
     } = {}
   ): Query<InstanceType<T>, DefaultQueryTypeOptions<DreamInstance>> {
     const associationQuery = dreamClass.query().clone({
-      passthroughWhereStatement: this.passthroughWhereStatement,
+      passthroughOnStatement: this.passthroughOnStatement,
       bypassAllDefaultScopes: this.bypassAllDefaultScopes,
       bypassAllDefaultScopesExceptOnAssociations,
       defaultScopesToBypass: this.defaultScopesToBypass,
@@ -483,9 +482,9 @@ export default class Query<
     return new Query<DreamInstance, NewQueryOpts>(this.dreamInstance, {
       baseSqlAlias: opts.baseSqlAlias || this.baseSqlAlias,
       baseSelectQuery: opts.baseSelectQuery || this.baseSelectQuery,
-      passthroughWhereStatement: {
-        ...this.passthroughWhereStatement,
-        ...(opts.passthroughWhereStatement || {}),
+      passthroughOnStatement: {
+        ...this.passthroughOnStatement,
+        ...(opts.passthroughOnStatement || {}),
       },
 
       where: opts.where === null ? [] : [...this.whereStatements, ...(opts.where || [])],
@@ -503,16 +502,16 @@ export default class Query<
       distinctColumn: opts.distinctColumn !== undefined ? opts.distinctColumn : this.distinctColumn,
       loadFromJoins: opts.loadFromJoins !== undefined ? opts.loadFromJoins : this.joinLoadActivated,
 
-      // when passed, preloadStatements, preloadWhereStatements, innerJoinStatements, and innerJoinOnStatements are already
+      // when passed, preloadStatements, preloadOnStatements, innerJoinStatements, and innerJoinOnStatements are already
       // cloned versions of the `this.` versions, handled in the `preload` and `joins` methods
       preloadStatements: opts.preloadStatements || this.preloadStatements,
-      preloadWhereStatements: opts.preloadWhereStatements || this.preloadWhereStatements,
+      preloadOnStatements: opts.preloadOnStatements || this.preloadOnStatements,
       innerJoinDreamClasses: opts.innerJoinDreamClasses || this.innerJoinDreamClasses,
       innerJoinStatements: opts.innerJoinStatements || this.innerJoinStatements,
       innerJoinOnStatements: opts.innerJoinOnStatements || this.innerJoinOnStatements,
       leftJoinStatements: opts.leftJoinStatements || this.leftJoinStatements,
       leftJoinOnStatements: opts.leftJoinOnStatements || this.leftJoinOnStatements,
-      // end:when passed, preloadStatements, preloadWhereStatements, innerJoinStatements, and innerJoinOnStatements are already...
+      // end:when passed, preloadStatements, preloadOnStatements, innerJoinStatements, and innerJoinOnStatements are already...
 
       bypassAllDefaultScopes:
         opts.bypassAllDefaultScopes !== undefined ? opts.bypassAllDefaultScopes : this.bypassAllDefaultScopes,
@@ -658,50 +657,6 @@ export default class Query<
   }
 
   /**
-   * Given a collection of records, load a common association.
-   * This can be useful to reduce database queries when multiple
-   * dream classes have identical associations that should be loaded.
-   *
-   * For example, we can sideload the associations
-   * shared by both associations called `localizedTexts`,
-   * so long as `localizedTexts` points to the same class on
-   * both Image and Post:
-   *
-   * ```ts
-   * class Image extends ApplicationModel {
-   *   @Image.HasMany('LocalizedText')
-   *   public localizedTexts: LocalizedText[]
-   * }
-   *
-   * class Post extends ApplicationModel {
-   *   @Post.HasMany('LocalizedText')
-   *   public localizedTexts: LocalizedText[]
-   * }
-   *
-   * const post = await Post.preload('image').first()
-   * const image = post.image
-   *
-   * await Image.query().loadInto([image, post], 'localizedTexts')
-   * ```
-   *
-   * @param dreams - An array of dream instances to load associations into
-   * @param args - A chain of association names
-   * @returns A LoadIntoModels instance
-   */
-  public async loadInto<
-    DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['schema'],
-    TableName extends DreamInstance['table'],
-    const Arr extends readonly unknown[],
-  >(dreams: Dream[], ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
-    const query = this.preload(...(args as any))
-    await new LoadIntoModels<DreamInstance>(
-      query.preloadStatements,
-      query.passthroughWhereStatement
-    ).loadInto(dreams)
-  }
-
-  /**
    * Load each specified association using a single SQL query.
    * See {@link #preload} for preloading in separate queries.
    *
@@ -720,7 +675,7 @@ export default class Query<
    * // [Reply{id: 1}, Reply{id: 2}]
    * ```
    *
-   * @param args - A chain of association names and where clauses
+   * @param args - A chain of association names and on/notOn/onAny clauses
    * @returns A cloned Query with the joinLoad statement applied
    */
   public leftJoinPreload<
@@ -733,10 +688,10 @@ export default class Query<
     const untypedArgs: any[] = [...args] as any[]
     const lastAssociations = [untypedArgs.pop()].flat()
 
-    let joinedClone: Query<DreamInstance, any> = this.clone()
+    let joinedClone = this
 
     lastAssociations.forEach(associationName => {
-      joinedClone = joinedClone.leftJoin(...untypedArgs, associationName)
+      joinedClone = joinedClone.leftJoin(...untypedArgs, associationName) as unknown as typeof this
     })
 
     return joinedClone.clone<{
@@ -754,7 +709,7 @@ export default class Query<
    * // [Reply{id: 1}, Reply{id: 2}]
    * ```
    *
-   * @param args - A chain of association names and where clauses
+   * @param args - A chain of association names and on/notOn/onAny clauses
    * @returns A cloned Query with the preload statement applied
    */
   public preload<
@@ -765,12 +720,10 @@ export default class Query<
   >(...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
     const preloadStatements = cloneDeepSafe(this.preloadStatements)
 
-    const preloadWhereStatements: RelaxedPreloadWhereStatement<DB, Schema> = cloneDeepSafe(
-      this.preloadWhereStatements
-    )
+    const preloadOnStatements: RelaxedPreloadOnStatement<DB, Schema> = cloneDeepSafe(this.preloadOnStatements)
 
-    this.fleshOutJoinStatements([], preloadStatements, preloadWhereStatements, null, [...(args as any)])
-    return this.clone({ preloadStatements, preloadWhereStatements })
+    this.fleshOutJoinStatements([], preloadStatements, preloadOnStatements, null, [...(args as any)])
+    return this.clone({ preloadStatements, preloadOnStatements: preloadOnStatements })
   }
 
   /**
@@ -781,7 +734,7 @@ export default class Query<
    * await User.query().innerJoin('posts').first()
    * ```
    *
-   * @param args - A chain of association names and where clauses
+   * @param args - A chain of association names and on/notOn/onAny clauses
    * @returns A cloned Query with the joins clause applied
    */
   public innerJoin<
@@ -810,7 +763,7 @@ export default class Query<
   /**
    * @internal
    *
-   * @param args - A chain of association names and where clauses
+   * @param args - A chain of association names and on/notOn/onAny clauses
    * @returns A cloned Query with the joins clause applied
    */
   public leftJoin<
@@ -1198,7 +1151,7 @@ export default class Query<
    *   public localizedTexts: LocalizedText[]
    *
    *   @Post.HasOne('LocalizedText', {
-   *     where: { locale: DreamConst.passthrough },
+   *     on: { locale: DreamConst.passthrough },
    *   })
    *   public currentLocalizedText: LocalizedText
    * }
@@ -1208,11 +1161,11 @@ export default class Query<
    *   .first()
    * ```
    *
-   * @param passthroughWhereStatement - where statement used for associations that require passthrough data
+   * @param passthroughOnStatement - where statement used for associations that require passthrough data
    * @returns A cloned Query with the passthrough data
    */
-  public passthrough(passthroughWhereStatement: PassthroughWhere<PassthroughColumnNames<DreamInstance>>) {
-    return this.clone({ passthroughWhereStatement })
+  public passthrough(passthroughOnStatement: PassthroughOnClause<PassthroughColumnNames<DreamInstance>>) {
+    return this.clone({ passthroughOnStatement: passthroughOnStatement })
   }
 
   /**
@@ -1227,7 +1180,7 @@ export default class Query<
    * @returns A cloned Query with the where clause applied
    */
   public where<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
-    whereStatement: JoinedAssociationWhereClauses<
+    whereStatement: WhereStatementForJoinedAssociation<
       QueryTypeOpts['joinedAssociations'],
       DB,
       Schema,
@@ -1251,7 +1204,7 @@ export default class Query<
    */
   public whereAny<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
     whereStatements:
-      | JoinedAssociationWhereClauses<
+      | WhereStatementForJoinedAssociation<
           QueryTypeOpts['joinedAssociations'],
           DB,
           Schema,
@@ -1276,7 +1229,7 @@ export default class Query<
    * @returns A cloned Query with the whereNot clause applied
    */
   public whereNot<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
-    whereStatement: JoinedAssociationWhereClauses<
+    whereStatement: WhereStatementForJoinedAssociation<
       QueryTypeOpts['joinedAssociations'],
       DB,
       Schema,
@@ -1967,7 +1920,7 @@ export default class Query<
     const kyselyQuery = this.buildSelect(options)
     const results = await executeDatabaseQuery(kyselyQuery, 'execute')
     const theAll = results.map(r => sqlResultToDreamInstance(this.dreamClass, r)) as DreamInstance[]
-    await this.applyPreload(this.preloadStatements as any, this.preloadWhereStatements as any, theAll)
+    await this.applyPreload(this.preloadStatements as any, this.preloadOnStatements as any, theAll)
 
     return theAll
   }
@@ -2323,7 +2276,7 @@ export default class Query<
       const theFirst = sqlResultToDreamInstance(this.dreamClass, results) as DreamInstance
 
       if (theFirst)
-        await this.applyPreload(this.preloadStatements as any, this.preloadWhereStatements as any, [theFirst])
+        await this.applyPreload(this.preloadStatements as any, this.preloadOnStatements as any, [theFirst])
 
       return theFirst
     } else return null
@@ -2506,7 +2459,7 @@ export default class Query<
     this: Query<DreamInstance, QueryTypeOpts>,
     associationName: string,
     dreams: Dream | Dream[],
-    whereStatement: RelaxedPreloadWhereStatement<any, any> = {}
+    onStatement: RelaxedPreloadOnStatement<any, any> = {}
   ) {
     if (!Array.isArray(dreams)) dreams = [dreams] as Dream[]
 
@@ -2570,7 +2523,7 @@ export default class Query<
 
     const hydrationData: any[][] = await associationDataScope
       ._connection(this.connectionOverride)
-      .innerJoin(associationName, (whereStatement || {}) as JoinOnStatements<any, any, any>)
+      .innerJoin(associationName, (onStatement || {}) as JoinOnStatements<any, any, any, any>)
       .pluck(...columnsToPluck)
 
     const preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[] = hydrationData.map(
@@ -2607,7 +2560,7 @@ export default class Query<
    * Used by loadBuider
    */
   private async hydratePreload(this: Query<DreamInstance, QueryTypeOpts>, dream: Dream) {
-    await this.applyPreload(this.preloadStatements as any, this.preloadWhereStatements as any, dream)
+    await this.applyPreload(this.preloadStatements as any, this.preloadOnStatements as any, dream)
   }
 
   /**
@@ -2618,7 +2571,7 @@ export default class Query<
   private async applyPreload(
     this: Query<DreamInstance, QueryTypeOpts>,
     preloadStatement: RelaxedPreloadStatement,
-    preloadWhereStatements: RelaxedPreloadWhereStatement<any, any>,
+    preloadOnStatements: RelaxedPreloadOnStatement<any, any>,
     dream: Dream | Dream[]
   ) {
     const keys = Object.keys(preloadStatement as any)
@@ -2627,15 +2580,11 @@ export default class Query<
       const nestedDreams = await this.applyOnePreload(
         key,
         dream,
-        this.applyableWhereStatements(preloadWhereStatements[key] as RelaxedPreloadWhereStatement<any, any>)
+        this.applyablePreloadOnStatements(preloadOnStatements[key] as RelaxedPreloadOnStatement<any, any>)
       )
 
       if (nestedDreams) {
-        await this.applyPreload(
-          (preloadStatement as any)[key],
-          preloadWhereStatements[key] as any,
-          nestedDreams
-        )
+        await this.applyPreload((preloadStatement as any)[key], preloadOnStatements[key] as any, nestedDreams)
       }
     }
   }
@@ -2643,16 +2592,16 @@ export default class Query<
   /**
    * @internal
    *
-   * retrieves where statements that can be applied
+   * retrieves on statements that can be applied to a preload
    */
-  private applyableWhereStatements(
-    preloadWhereStatements: RelaxedPreloadWhereStatement<any, any> | undefined
-  ): RelaxedPreloadWhereStatement<any, any> | undefined {
-    if (preloadWhereStatements === undefined) return undefined
+  private applyablePreloadOnStatements(
+    preloadOnStatements: RelaxedPreloadOnStatement<any, any> | undefined
+  ): RelaxedPreloadOnStatement<any, any> | undefined {
+    if (preloadOnStatements === undefined) return undefined
 
-    return Object.keys(preloadWhereStatements).reduce(
+    return Object.keys(preloadOnStatements).reduce(
       (agg, key) => {
-        const value = preloadWhereStatements[key]
+        const value = preloadOnStatements[key]
         // filter out plain objects, but not ops and not on/notOn/onAny statements
         // because plain objects are just the next level of nested preload
         if (
@@ -2667,7 +2616,7 @@ export default class Query<
 
         return agg
       },
-      {} as RelaxedPreloadWhereStatement<any, any>
+      {} as RelaxedPreloadOnStatement<any, any>
     )
   }
 
@@ -2894,7 +2843,7 @@ export default class Query<
               (
                 throughAssociation: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
               ) => {
-                join = this.applyAssociationWhereStatementsToJoinStatement({
+                join = this.applyAssociationOnStatementsToJoinStatement({
                   join,
                   association: throughAssociation,
                   currentAssociationTableOrAlias,
@@ -2937,7 +2886,7 @@ export default class Query<
           )
 
           if (association.polymorphic) {
-            join = this.applyWhereStatements(
+            join = this.applyWhereOrOnStatements(
               join,
               this.aliasWhereStatements(
                 [
@@ -2957,7 +2906,7 @@ export default class Query<
               (
                 throughAssociation: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
               ) => {
-                join = this.applyAssociationWhereStatementsToJoinStatement({
+                join = this.applyAssociationOnStatementsToJoinStatement({
                   join,
                   association: throughAssociation,
                   currentAssociationTableOrAlias,
@@ -2968,7 +2917,7 @@ export default class Query<
             )
           }
 
-          join = this.applyAssociationWhereStatementsToJoinStatement({
+          join = this.applyAssociationOnStatementsToJoinStatement({
             join,
             association,
             currentAssociationTableOrAlias,
@@ -3021,7 +2970,7 @@ export default class Query<
     }
   }
 
-  private applyAssociationWhereStatementsToJoinStatement({
+  private applyAssociationOnStatementsToJoinStatement({
     join,
     currentAssociationTableOrAlias,
     previousAssociationTableOrAlias,
@@ -3034,11 +2983,11 @@ export default class Query<
     association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
     joinOnStatements: RelaxedJoinOnStatement<any, any>
   }) {
-    if (association.where) {
-      join = this.applyWhereStatements(
+    if (association.on) {
+      join = this.applyWhereOrOnStatements(
         join,
         this.aliasWhereStatements(
-          [association.where as WhereStatement<any, any, any>],
+          [association.on as WhereStatement<any, any, any>],
           currentAssociationTableOrAlias
         )
       )
@@ -3050,35 +2999,35 @@ export default class Query<
       )
     }
 
-    if (association.whereNot) {
-      join = this.applyWhereStatements(
+    if (association.notOn) {
+      join = this.applyWhereOrOnStatements(
         join,
         this.aliasWhereStatements(
-          [association.whereNot as WhereStatement<any, any, any>],
+          [association.notOn as WhereStatement<any, any, any>],
           currentAssociationTableOrAlias
         ),
         { negate: true }
       )
     }
 
-    if (association.selfWhere) {
-      join = this.applyWhereStatements(
+    if (association.selfOn) {
+      join = this.applyWhereOrOnStatements(
         join,
-        this.rawifiedSelfWhereClause({
+        this.rawifiedSelfOnClause({
           associationAlias: association.as,
           selfAlias: previousAssociationTableOrAlias,
-          selfWhereClause: association.selfWhere,
+          selfOnClause: association.selfOn,
         })
       )
     }
 
-    if (association.selfWhereNot) {
-      join = this.applyWhereStatements(
+    if (association.selfNotOn) {
+      join = this.applyWhereOrOnStatements(
         join,
-        this.rawifiedSelfWhereClause({
+        this.rawifiedSelfOnClause({
           associationAlias: association.as,
           selfAlias: previousAssociationTableOrAlias,
-          selfWhereClause: association.selfWhereNot,
+          selfOnClause: association.selfNotOn,
         }),
         { negate: true }
       )
@@ -3120,7 +3069,7 @@ export default class Query<
     }
 
     if (scopesQuery.whereStatements.length) {
-      join = this.applyWhereStatements(
+      join = this.applyWhereOrOnStatements(
         join,
         this.aliasWhereStatements(scopesQuery.whereStatements, tableNameOrAlias)
       )
@@ -3189,7 +3138,7 @@ export default class Query<
     namespace: string,
     joinOnStatements: RelaxedJoinOnStatement<any, any>
   ) {
-    const whereStatement = association.where!
+    const whereStatement = association.on!
     const columnsRequiringWhereStatements = Object.keys(whereStatement).reduce((agg, column) => {
       if (whereStatement[column] === DreamConst.required) agg.push(column)
       return agg
@@ -3200,10 +3149,10 @@ export default class Query<
     )
 
     if (missingRequiredWhereStatements.length)
-      throw new MissingRequiredAssociationWhereClause(association, missingRequiredWhereStatements[0])
+      throw new MissingRequiredAssociationOnClause(association, missingRequiredWhereStatements[0])
   }
 
-  private applyWhereStatements<
+  private applyWhereOrOnStatements<
     T extends SelectQueryBuilder<any, any, any> | JoinBuilder<any, any>,
     WS extends WhereStatement<any, any, any>,
   >(
@@ -3216,7 +3165,7 @@ export default class Query<
     } = {}
   ): T {
     ;([whereStatements].flat() as WS[]).forEach(statement => {
-      query = this.applySingleWhereStatement(query, statement, { negate })
+      query = this.applySingleWhereOrOnStatement(query, statement, { negate })
     })
 
     return query
@@ -3245,26 +3194,26 @@ export default class Query<
     return query
   }
 
-  private applySingleWhereStatement<T extends SelectQueryBuilder<any, any, any> | JoinBuilder<any, any>>(
+  private applySingleWhereOrOnStatement<T extends SelectQueryBuilder<any, any, any> | JoinBuilder<any, any>>(
     _query: T,
-    whereStatement: WhereStatement<any, any, any>,
+    whereOrOnClause: WhereStatement<any, any, any>,
     {
       negate = false,
     }: {
       negate?: boolean
     } = {}
   ): T {
-    return Object.keys(whereStatement)
-      .filter(key => (whereStatement as any)[key] !== DreamConst.required)
+    return Object.keys(whereOrOnClause)
+      .filter(key => (whereOrOnClause as any)[key] !== DreamConst.required)
       .reduce((query: T, attr: string) => {
-        const val = (whereStatement as any)[attr]
+        const val = (whereOrOnClause as any)[attr]
 
         if (
           (val as OpsStatement<any, any>)?.isOpsStatement &&
           (val as OpsStatement<any, any>).shouldBypassWhereStatement
         ) {
           // some ops statements are handled specifically in the select portion of the query,
-          // and should be ommited from the where clause directly
+          // and should be ommited from the where/on clause directly
           // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
           return query as T
         }
@@ -3274,10 +3223,10 @@ export default class Query<
         // postgres is unable to handle WHERE IN statements with blank arrays, such as in
         // "WHERE id IN ()", meaning that:
         // 1. If we receive a blank array during an IN comparison,
-        //    then we need to simply regurgitate a where statement which
+        //    then we need to simply regurgitate a where/on statement which
         //    guarantees no records.
         // 2. If we receive a blank array during a NOT IN comparison,
-        //    then it is the same as the where statement not being present at all,
+        //    then it is the same as the where/on statement not being present at all,
         //    resulting in a noop on our end
 
         if (Array.isArray(c)) {
@@ -3482,9 +3431,9 @@ export default class Query<
       val = val()
     } else if (val === DreamConst.passthrough) {
       const column = attr.split('.').pop()
-      if ((this.passthroughWhereStatement as any)[column!] === undefined)
-        throw new MissingRequiredPassthroughForAssociationWhereClause(column!)
-      val = (this.passthroughWhereStatement as any)[column!]
+      if ((this.passthroughOnStatement as any)[column!] === undefined)
+        throw new MissingRequiredPassthroughForAssociationOnClause(column!)
+      val = (this.passthroughOnStatement as any)[column!]
     }
 
     if (val === null) {
@@ -3558,7 +3507,7 @@ export default class Query<
 
   private applyJoinOnStatements<Schema extends DreamInstance['schema']>(
     join: JoinBuilder<any, any>,
-    joinOnStatement: JoinOnStatements<any, any, any> | null,
+    joinOnStatement: JoinOnStatements<any, any, any, any> | null,
     rootTableOrAssociationAlias: TableOrAssociationName<Schema>
   ) {
     if (!joinOnStatement) return join
@@ -3597,7 +3546,7 @@ export default class Query<
       ]
 
       if (columnValue?.constructor !== Object) {
-        join = (this as Query<DreamInstance, QueryTypeOpts>).applySingleWhereStatement(
+        join = (this as Query<DreamInstance, QueryTypeOpts>).applySingleWhereOrOnStatement(
           join,
           {
             [this.namespaceColumn(key.toString(), rootTableOrAssociationAlias)]: columnValue,
@@ -3718,20 +3667,20 @@ export default class Query<
     })
   }
 
-  private rawifiedSelfWhereClause<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>({
+  private rawifiedSelfOnClause<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>({
     associationAlias,
     selfAlias,
-    selfWhereClause,
+    selfOnClause,
   }: {
     associationAlias: string
     selfAlias: string
-    selfWhereClause: WhereSelfStatement<any, DB, Schema, DreamInstance['table']>
+    selfOnClause: SelfOnStatement<any, DB, Schema, DreamInstance['table']>
   }) {
     const alphanumericUnderscoreRegexp = /[^a-zA-Z0-9_]/g
     selfAlias = selfAlias.replace(alphanumericUnderscoreRegexp, '')
 
-    return Object.keys(selfWhereClause).reduce((acc, key) => {
-      const selfColumn = selfWhereClause[key]?.replace(alphanumericUnderscoreRegexp, '')
+    return Object.keys(selfOnClause).reduce((acc, key) => {
+      const selfColumn = selfOnClause[key]?.replace(alphanumericUnderscoreRegexp, '')
       if (!selfColumn) return acc
 
       acc[this.namespaceColumn(key, associationAlias)] = sql.raw(
@@ -3911,7 +3860,7 @@ export interface QueryOpts<
 > {
   baseSqlAlias?: TableOrAssociationName<Schema>
   baseSelectQuery?: Query<any> | null
-  passthroughWhereStatement?: PassthroughWhere<PassthroughColumns> | null
+  passthroughOnStatement?: PassthroughOnClause<PassthroughColumns> | null
   where?: readonly WhereStatement<DB, Schema, any>[] | null
   whereNot?: readonly WhereStatement<DB, Schema, any>[] | null
   limit?: LimitStatement | null
@@ -3920,7 +3869,7 @@ export interface QueryOpts<
   order?: OrderQueryStatement<ColumnType>[] | null
   loadFromJoins?: boolean
   preloadStatements?: RelaxedPreloadStatement
-  preloadWhereStatements?: RelaxedPreloadWhereStatement<DB, Schema>
+  preloadOnStatements?: RelaxedPreloadOnStatement<DB, Schema>
   distinctColumn?: ColumnType | null
   innerJoinDreamClasses?: readonly (typeof Dream)[]
   innerJoinStatements?: RelaxedJoinStatement

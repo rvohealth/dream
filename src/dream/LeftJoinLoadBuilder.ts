@@ -1,4 +1,4 @@
-import { PassthroughWhere } from '../decorators/associations/shared'
+import { PassthroughOnClause } from '../decorators/associations/shared'
 import Dream from '../Dream'
 import DreamTransaction from './DreamTransaction'
 import Query, { PreloadedDreamsAndWhatTheyPointTo, QueryWithJoinedAssociationsType } from './Query'
@@ -40,7 +40,7 @@ export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
   public passthrough<
     I extends LeftJoinLoadBuilder<DreamInstance>,
     PassthroughColumns extends PassthroughColumnNames<DreamInstance>,
-  >(this: I, passthroughWhereStatement: PassthroughWhere<PassthroughColumns>) {
+  >(this: I, passthroughWhereStatement: PassthroughOnClause<PassthroughColumns>) {
     this.query = this.query.passthrough(passthroughWhereStatement)
     return this
   }

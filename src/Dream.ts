@@ -32,9 +32,8 @@ import HasOne, {
 } from './decorators/associations/HasOne'
 import {
   blankAssociationsFactory,
-  PassthroughWhere,
+  PassthroughOnClause,
   WhereStatement,
-  WhereStatementForAssociation,
 } from './decorators/associations/shared'
 import { EncryptedAttributeStatement } from './decorators/Encrypted'
 import AfterCreate from './decorators/hooks/AfterCreate'
@@ -77,6 +76,7 @@ import saveDream from './dream/internal/saveDream'
 import {
   DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
   DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
+  DEFAULT_SKIP_HOOKS,
 } from './dream/internal/scopeHelpers'
 import undestroyDream from './dream/internal/undestroyDream'
 import LeftJoinLoadBuilder from './dream/LeftJoinLoadBuilder'
@@ -93,7 +93,7 @@ import {
   AttributeKeys,
   DefaultOrNamedScopeName,
   DreamAssociationNames,
-  DreamAssociationNamesWithoutRequiredWhereClauses,
+  DreamAssociationNamesWithoutRequiredOnClauses,
   DreamAttributes,
   DreamColumnNames,
   DreamConstructorType,
@@ -102,11 +102,13 @@ import {
   GlobalModelNames,
   IdType,
   JoinedAssociationsTypeFromAssociations,
-  PluckEachArgs,
+  JoinOnStatements,
   NextPreloadArgumentType,
   OrderDir,
   PassthroughColumnNames,
+  PluckEachArgs,
   PrimaryKeyForFind,
+  RequiredOnClauseKeys,
   SortableOptions,
   TableColumnNames,
   UpdateableAssociationProperties,
@@ -1335,49 +1337,6 @@ export default class Dream {
   }
 
   /**
-   * Given a collection of records, load a common association.
-   * This can be useful to reduce database queries when multiple
-   * dream classes have identical associations that should be loaded.
-   *
-   * For example, we can sideload the associations
-   * shared by both associations called `localizedTexts`,
-   * so long as `localizedTexts` is defined identically (same
-   * association type, same target class, same association options,
-   * same association name) on both Image and Post:
-   *
-   * ```ts
-   * class Image extends ApplicationModel {
-   *   @Image.HasMany('LocalizedText')
-   *   public localizedTexts: LocalizedText[]
-   * }
-   *
-   * class Post extends ApplicationModel {
-   *   @Post.HasMany('LocalizedText')
-   *   public localizedTexts: LocalizedText[]
-   * }
-   *
-   * const post = await Post.preload('image').first()
-   * const image = post.image
-   *
-   * await Image.loadInto([image, post], 'localizedTexts')
-   * ```
-   *
-   * @param dreams - An array of dream instances to load associations into
-   * @param args - A chain of association names
-   * @returns A LoadIntoModels instance
-   */
-  public static async loadInto<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    DB extends I['DB'],
-    TableName extends I['table'],
-    Schema extends I['schema'],
-    const Arr extends readonly unknown[],
-  >(this: T, dreams: Dream[], ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
-    await this.query().loadInto(dreams, ...(args as any))
-  }
-
-  /**
    * Returns a new instance of Query scoped to the given
    * model class
    *
@@ -2067,7 +2026,7 @@ export default class Dream {
     T extends typeof Dream,
     I extends InstanceType<T>,
     PassthroughColumns extends PassthroughColumnNames<I>,
-  >(this: T, passthroughWhereStatement: PassthroughWhere<PassthroughColumns>): Query<InstanceType<T>> {
+  >(this: T, passthroughWhereStatement: PassthroughOnClause<PassthroughColumns>): Query<InstanceType<T>> {
     return this.query().passthrough(passthroughWhereStatement)
   }
 
@@ -3468,26 +3427,27 @@ export default class Dream {
     TableName extends I['table'],
     Schema extends I['schema'],
     AssociationName extends DreamAssociationNames<I>,
+    RequiredOnClauseKeysForThisAssociation extends RequiredOnClauseKeys<Schema, TableName, AssociationName>,
+    AssociationDream extends AssociationNameToDream<I, AssociationName>,
+    AssociationTableName extends AssociationDream['table'],
   >(
     this: I,
     associationName: AssociationName,
-    options: DestroyOptions<I> & {
-      where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
-    }
+    options: DestroyOptions<I> &
+      JoinOnStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
   ): Promise<number>
 
   public async destroyAssociation<
     I extends Dream,
     DB extends I['DB'],
-    TableName extends I['table'],
     Schema extends I['schema'],
-    AssociationName extends DreamAssociationNamesWithoutRequiredWhereClauses<I>,
+    AssociationName extends DreamAssociationNamesWithoutRequiredOnClauses<I>,
+    AssociationDream extends AssociationNameToDream<I, AssociationName>,
+    AssociationTableName extends AssociationDream['table'],
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<I> & {
-      where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
-    }
+    options?: DestroyOptions<I> & JoinOnStatements<DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -3500,7 +3460,7 @@ export default class Dream {
    *
    * @param associationName - The name of the association to destroy
    * @param options - Options for destroying the association
-   * @param options.where - Optional where statement to apply to query before destroying
+   * @param options.on - Optional where statement to apply to query before destroying
    * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
    * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
    * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when destroying the association. Defaults to false
@@ -3514,7 +3474,11 @@ export default class Dream {
   ): Promise<number> {
     return await destroyAssociation(this, null, associationName, {
       ...destroyOptions<I>(options as any),
-      associationWhereStatement: (options as any)?.where,
+      joinOnStatements: {
+        on: (options as any)?.on,
+        notOn: (options as any)?.notOn,
+        onAny: (options as any)?.onAny,
+      },
     })
   }
   ///////////////////
@@ -3530,26 +3494,27 @@ export default class Dream {
     TableName extends I['table'],
     Schema extends I['schema'],
     AssociationName extends DreamAssociationNames<I>,
+    RequiredOnClauseKeysForThisAssociation extends RequiredOnClauseKeys<Schema, TableName, AssociationName>,
+    AssociationDream extends AssociationNameToDream<I, AssociationName>,
+    AssociationTableName extends AssociationDream['table'],
   >(
     this: I,
     associationName: AssociationName,
-    options: DestroyOptions<I> & {
-      where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
-    }
+    options: DestroyOptions<I> &
+      JoinOnStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
   ): Promise<number>
 
   public async reallyDestroyAssociation<
     I extends Dream,
     DB extends I['DB'],
-    TableName extends I['table'],
     Schema extends I['schema'],
-    AssociationName extends DreamAssociationNamesWithoutRequiredWhereClauses<I>,
+    AssociationName extends DreamAssociationNamesWithoutRequiredOnClauses<I>,
+    AssociationDream extends AssociationNameToDream<I, AssociationName>,
+    AssociationTableName extends AssociationDream['table'],
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<I> & {
-      where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
-    }
+    options?: DestroyOptions<I> & JoinOnStatements<DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -3567,7 +3532,7 @@ export default class Dream {
    *
    * @param associationName - The name of the association to destroy
    * @param options - Options for destroying the association
-   * @param options.where - Optional where statement to apply to query before destroying
+   * @param options.on - Optional where statement to apply to query before destroying
    * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
    * @param options.cascade - If true, cascades the destroy operation to associations marked with `dependent: 'destroy'`. Defaults to true
    * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when destroying the association. Defaults to false
@@ -3581,7 +3546,11 @@ export default class Dream {
   ): Promise<number> {
     return await destroyAssociation(this, null, associationName, {
       ...reallyDestroyOptions<I>(options as any),
-      associationWhereStatement: (options as any)?.where,
+      joinOnStatements: {
+        on: (options as any)?.on,
+        notOn: (options as any)?.notOn,
+        onAny: (options as any)?.onAny,
+      },
     })
   }
   ////////////////////////////////
@@ -3597,26 +3566,27 @@ export default class Dream {
     TableName extends I['table'],
     Schema extends I['schema'],
     AssociationName extends DreamAssociationNames<I>,
+    RequiredOnClauseKeysForThisAssociation extends RequiredOnClauseKeys<Schema, TableName, AssociationName>,
+    AssociationDream extends AssociationNameToDream<I, AssociationName>,
+    AssociationTableName extends AssociationDream['table'],
   >(
     this: I,
     associationName: AssociationName,
-    options: DestroyOptions<I> & {
-      where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
-    }
+    options: DestroyOptions<I> &
+      JoinOnStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
   ): Promise<number>
 
   public async undestroyAssociation<
     I extends Dream,
     DB extends I['DB'],
-    TableName extends I['table'],
     Schema extends I['schema'],
-    AssociationName extends DreamAssociationNamesWithoutRequiredWhereClauses<I>,
+    AssociationName extends DreamAssociationNamesWithoutRequiredOnClauses<I>,
+    AssociationDream extends AssociationNameToDream<I, AssociationName>,
+    AssociationTableName extends AssociationDream['table'],
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<I> & {
-      where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
-    }
+    options?: DestroyOptions<I> & JoinOnStatements<DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -3631,7 +3601,7 @@ export default class Dream {
    *
    * @param associationName - The name of the association to undestroy
    * @param options - Options for undestroying the association
-   * @param options.where - Optional where statement to apply to query before undestroying
+   * @param options.on - Optional where statement to apply to query before undestroying
    * @param options.skipHooks - If true, skips applying model hooks during the undestroy operation. Defaults to false
    * @param options.cascade - If false, skips undestroying associations marked `dependent: 'destroy'`. Defaults to true
    * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when undestroying the association. Defaults to false
@@ -3645,7 +3615,11 @@ export default class Dream {
   ): Promise<number> {
     return await undestroyAssociation(this, null, associationName, {
       ...undestroyOptions<I>(options as any),
-      associationWhereStatement: (options as any)?.where,
+      joinOnStatements: {
+        on: (options as any)?.on,
+        notOn: (options as any)?.notOn,
+        onAny: (options as any)?.onAny,
+      },
     })
   }
 
@@ -3662,24 +3636,31 @@ export default class Dream {
     TableName extends I['table'],
     Schema extends I['schema'],
     AssociationName extends DreamAssociationNames<I>,
+    RequiredOnClauseKeysForThisAssociation extends RequiredOnClauseKeys<Schema, TableName, AssociationName>,
     AssociationDream extends AssociationNameToDream<I, AssociationName>,
+    AssociationTableName extends AssociationDream['table'],
   >(
     this: I,
     associationName: AssociationName,
-    whereStatement: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+    joinOnStatements: JoinOnStatements<
+      DB,
+      Schema,
+      AssociationTableName,
+      RequiredOnClauseKeysForThisAssociation
+    >
   ): Query<AssociationDream, DefaultQueryTypeOptions<AssociationDream, AssociationName & string>>
 
   public associationQuery<
     I extends Dream,
     DB extends I['DB'],
-    TableName extends I['table'],
     Schema extends I['schema'],
-    AssociationName extends DreamAssociationNamesWithoutRequiredWhereClauses<I>,
+    AssociationName extends DreamAssociationNamesWithoutRequiredOnClauses<I>,
     AssociationDream extends AssociationNameToDream<I, AssociationName>,
+    AssociationTableName extends AssociationDream['table'],
   >(
     this: I,
     associationName: AssociationName,
-    whereStatement?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
+    joinOnStatements?: JoinOnStatements<DB, Schema, AssociationTableName, null>
   ): Query<AssociationDream, DefaultQueryTypeOptions<AssociationDream, AssociationName & string>>
 
   /**
@@ -3697,10 +3678,10 @@ export default class Dream {
   public associationQuery<I extends Dream, AssociationName extends DreamAssociationNames<I>>(
     this: I,
     associationName: AssociationName,
-    whereStatement?: unknown
+    joinOnStatements?: unknown
   ): unknown {
     return associationQuery(this, null, associationName, {
-      associationWhereStatement: whereStatement as any,
+      joinOnStatements: joinOnStatements as any,
       bypassAllDefaultScopes: DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
       defaultScopesToBypass: DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
     })
@@ -3718,6 +3699,9 @@ export default class Dream {
     TableName extends I['table'],
     Schema extends I['schema'],
     AssociationName extends DreamAssociationNames<I>,
+    RequiredOnClauseKeysForThisAssociation extends RequiredOnClauseKeys<Schema, TableName, AssociationName>,
+    AssociationDream extends AssociationNameToDream<I, AssociationName>,
+    AssociationTableName extends AssociationDream['table'],
   >(
     this: I,
     associationName: AssociationName,
@@ -3726,16 +3710,16 @@ export default class Dream {
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<I>[]
       skipHooks?: boolean
-      where: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
-    }
+    } & JoinOnStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
   ): Promise<number>
 
   public async updateAssociation<
     I extends Dream,
     DB extends I['DB'],
-    TableName extends I['table'],
     Schema extends I['schema'],
-    AssociationName extends DreamAssociationNamesWithoutRequiredWhereClauses<I>,
+    AssociationName extends DreamAssociationNamesWithoutRequiredOnClauses<I>,
+    AssociationDream extends AssociationNameToDream<I, AssociationName>,
+    AssociationTableName extends AssociationDream['table'],
   >(
     this: I,
     associationName: AssociationName,
@@ -3744,27 +3728,26 @@ export default class Dream {
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<I>[]
       skipHooks?: boolean
-      where?: WhereStatementForAssociation<DB, Schema, TableName, AssociationName>
-    }
+    } & JoinOnStatements<DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
    * Updates all records matching the association with
    * the provided attributes. If a where statement is passed,
-   * The where statement will be applied to the query
+   * The on statement will be applied to the query
    * before updating.
    *
    * ```ts
    * await user.createAssociation('posts', { body: 'hello world' })
    * await user.createAssociation('posts', { body: 'howyadoin' })
-   * await user.updateAssociation('posts', { body: 'goodbye world' }, { where: { body: 'hello world' }})
+   * await user.updateAssociation('posts', { body: 'goodbye world' }, { on: { body: 'hello world' }})
    * // 1
    * ```
    *
    * @param associationName - The name of the association to update
    * @param attributes - The attributes to update on the association
    * @param options - Options for updating the association
-   * @param options.where - Optional where statement to apply to query before updating
+   * @param options.on - Optional on statement to apply to query before updating
    * @param options.skipHooks - If true, skips applying model hooks during the update operation. Defaults to false
    * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when updating the association. Defaults to false
    * @param options.defaultScopesToBypass - An array of default scope names to bypass when updating the association. Defaults to an empty array
@@ -3777,12 +3760,17 @@ export default class Dream {
     updateAssociationOptions?: unknown
   ): Promise<number> {
     return associationUpdateQuery(this, null, associationName, {
-      associationWhereStatement: (updateAssociationOptions as any)?.where,
+      joinOnStatements: {
+        on: (updateAssociationOptions as any)?.on,
+        notOn: (updateAssociationOptions as any)?.notOn,
+        onAny: (updateAssociationOptions as any)?.onAny,
+      },
+
       bypassAllDefaultScopes:
         (updateAssociationOptions as any)?.bypassAllDefaultScopes ?? DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
       defaultScopesToBypass:
         (updateAssociationOptions as any)?.defaultScopesToBypass ?? DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
-    }).update(attributes, { skipHooks: (updateAssociationOptions as any)?.skipHooks })
+    }).update(attributes, { skipHooks: (updateAssociationOptions as any)?.skipHooks ?? DEFAULT_SKIP_HOOKS })
   }
 
   ///////////////////
@@ -3814,7 +3802,7 @@ export default class Dream {
    */
   public passthrough<I extends Dream, PassthroughColumns extends PassthroughColumnNames<I>>(
     this: I,
-    passthroughWhereStatement: PassthroughWhere<PassthroughColumns>
+    passthroughWhereStatement: PassthroughOnClause<PassthroughColumns>
   ): LoadBuilder<I> {
     return new LoadBuilder<I>(this).passthrough(passthroughWhereStatement)
   }

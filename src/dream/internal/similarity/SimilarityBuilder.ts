@@ -21,7 +21,7 @@ export default class SimilarityBuilder<
 > extends ConnectedToDB<DreamInstance> {
   public readonly whereStatement: readonly WhereStatement<DB, Schema, any>[]
   public readonly whereNotStatement: readonly WhereStatement<DB, Schema, any>[]
-  public readonly joinOnStatements: JoinOnStatements<DB, Schema, any> = Object.freeze({})
+  public readonly joinOnStatements: JoinOnStatements<DB, Schema, any, any> = Object.freeze({})
 
   constructor(dreamInstance: DreamInstance, opts: SimilarityBuilderOpts<DreamInstance> = {}) {
     super(dreamInstance, opts)

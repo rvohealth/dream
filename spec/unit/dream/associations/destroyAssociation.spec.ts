@@ -3,7 +3,7 @@ import { Dream, DreamTransaction, Query } from '../../../../src'
 import * as destroyAssociationModule from '../../../../src/dream/internal/associations/destroyAssociation'
 import * as runHooksForModule from '../../../../src/dream/internal/runHooksFor'
 import * as safelyRunCommitHooksModule from '../../../../src/dream/internal/safelyRunCommitHooks'
-import MissingRequiredAssociationWhereClause from '../../../../src/errors/associations/MissingRequiredAssociationWhereClause'
+import MissingRequiredAssociationOnClause from '../../../../src/errors/associations/MissingRequiredAssociationOnClause'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 import Collar from '../../../../test-app/app/models/Collar'
@@ -67,16 +67,16 @@ describe('Dream#destroyAssociation', () => {
     )
   }
 
-  context('with undefined passed in a where clause', () => {
+  context('with undefined passed in a on-clause', () => {
     it('raises an exception', async () => {
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       await expect(
-        async () => await user.destroyAssociation('pets', { where: { name: undefined } })
+        async () => await user.destroyAssociation('pets', { on: { name: undefined } })
       ).rejects.toThrowError(CannotPassUndefinedAsAValueToAWhereClause)
     })
 
     context('when undefined is applied at the association level', () => {
-      context('where clause has an undefined value', () => {
+      context('on-clause has an undefined value', () => {
         it('raises an exception', async () => {
           const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
           const post = await user.createAssociation('posts')
@@ -87,7 +87,7 @@ describe('Dream#destroyAssociation', () => {
         })
       })
 
-      context('whereNot clause has an undefined value', () => {
+      context('notOn-clause has an undefined value', () => {
         it('raises an exception', async () => {
           const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
           const post = await user.createAssociation('posts')
@@ -270,26 +270,26 @@ describe('Dream#destroyAssociation', () => {
           composition,
           composition2,
         ])
-        await user.destroyAssociation('compositions', { where: { content: 'chalupas dujour' } })
+        await user.destroyAssociation('compositions', { on: { content: 'chalupas dujour' } })
 
         expect(await user.associationQuery('compositions').all()).toMatchDreamModels([composition2])
         expect(await Composition.all()).toMatchDreamModels([composition2])
       })
     })
 
-    context('when a required where clause isn’t passed', () => {
+    context('when a required on-clause isn’t passed', () => {
       it('throws MissingRequiredAssociationWhereClause', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })
 
-        await expect(
-          (composition.destroyAssociation as any)('inlineWhereCurrentLocalizedText')
-        ).rejects.toThrow(MissingRequiredAssociationWhereClause)
+        await expect((composition.destroyAssociation as any)('requiredCurrentLocalizedText')).rejects.toThrow(
+          MissingRequiredAssociationOnClause
+        )
       })
     })
 
-    context('when a required where clause is passed', () => {
-      it('destroys the record indicated by the where clause', async () => {
+    context('when a required on-clause is passed', () => {
+      it('destroys the record indicated by the on-clause', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })
         const localizedTextToKeep = await LocalizedText.create({ localizable: composition, locale: 'en-US' })
@@ -298,8 +298,8 @@ describe('Dream#destroyAssociation', () => {
           locale: 'es-ES',
         })
 
-        await composition.destroyAssociation('inlineWhereCurrentLocalizedText', {
-          where: { locale: 'es-ES' },
+        await composition.destroyAssociation('requiredCurrentLocalizedText', {
+          on: { locale: 'es-ES' },
         })
 
         expect(await LocalizedText.find(localizedTextToKeep.id)).toMatchDreamModel(localizedTextToKeep)
@@ -324,7 +324,7 @@ describe('Dream#destroyAssociation', () => {
         compositionAsset1,
         compositionAsset2,
       ])
-      await user.destroyAssociation('compositionAssets', { where: { name: 'chalupas dujour' } })
+      await user.destroyAssociation('compositionAssets', { on: { name: 'chalupas dujour' } })
 
       expect(await user.associationQuery('compositionAssets').all()).toMatchDreamModels([compositionAsset2])
       expect(await CompositionAsset.all()).toMatchDreamModels([compositionAsset2])
@@ -430,7 +430,7 @@ describe('Dream#destroyAssociation', () => {
           expect.anything(),
           'compositions',
           {
-            associationWhereStatement: undefined,
+            joinOnStatements: { on: undefined, notOn: undefined, onAny: undefined },
             bypassAllDefaultScopes: true,
             defaultScopesToBypass: ['hideDeleted'],
             cascade: false,

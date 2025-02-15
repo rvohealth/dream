@@ -4,7 +4,6 @@ import { singular } from 'pluralize'
 import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../Dream'
 import {
-  AssociationTableName,
   DefaultScopeName,
   DefaultScopeNameForTable,
   DreamBelongsToAssociationMetadata,
@@ -14,14 +13,13 @@ import {
   IdType,
   JoinedAssociation,
   OrderDir,
-  RequiredWhereClauseKeys,
   TableColumnNames,
   TableNameForGlobalModelName,
 } from '../../dream/types'
 import { checkForeignKey } from '../../errors/associations/InvalidComputedForeignKey'
 import NonLoadedAssociation from '../../errors/associations/NonLoadedAssociation'
 import CannotDefineAssociationWithBothDependentAndPassthrough from '../../errors/CannotDefineAssociationWithBothDependentAndPassthrough'
-import CannotDefineAssociationWithBothDependentAndRequiredWhereClause from '../../errors/CannotDefineAssociationWithBothDependentAndRequiredWhereClause'
+import CannotDefineAssociationWithBothDependentAndRequiredOnClause from '../../errors/CannotDefineAssociationWithBothDependentAndRequiredOnClause'
 import CalendarDate from '../../helpers/CalendarDate'
 import camelize from '../../helpers/camelize'
 import { Range } from '../../helpers/range'
@@ -64,7 +62,7 @@ export type AssociatedModelParam<
         },
 > = Partial<UnionToIntersection<RetObj>>
 
-export type PassthroughWhere<PassthroughColumns extends string[]> = Partial<
+export type PassthroughOnClause<PassthroughColumns extends string[]> = Partial<
   Record<PassthroughColumns[number], any>
 >
 
@@ -72,6 +70,9 @@ type DreamSelectable<DB, Schema, TableName extends AssociationTableNames<DB, Sch
   Record<keyof DB[TableName], NonKyselySupportedSupplementalWhereClauseValues<DB>>
 >
 
+// TODO https://rvohealth.atlassian.net/browse/PDTC-7085
+// Is it possible to make this less all-permissive? This allows
+// types of no relation to the actual column.
 type NonKyselySupportedSupplementalWhereClauseValues<DB> =
   | Range<DateTime>
   | (() => Range<DateTime>)
@@ -83,19 +84,6 @@ type NonKyselySupportedSupplementalWhereClauseValues<DB> =
   // the non-array allowed types are set by Kysely in Updateable
   | (IdType | string | number | bigint)[]
   | SelectQueryBuilder<DB, keyof DB, any>
-
-type AssociationDreamSelectable<
-  DB,
-  Schema,
-  TableName extends AssociationTableNames<DB, Schema> & keyof DB,
-> = Partial<
-  Record<
-    keyof DB[TableName],
-    | NonKyselySupportedSupplementalWhereClauseValues<DB>
-    | typeof DreamConst.passthrough
-    | typeof DreamConst.required
-  >
->
 
 export type WhereStatementForDreamClass<DreamClass extends typeof Dream> = WhereStatement<
   InstanceType<DreamClass>['DB'],
@@ -159,90 +147,90 @@ export type WhereStatement<
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
 > = Partial<MergeUnionOfRecordTypes<Updateable<DB[TableName]> | DreamSelectable<DB, Schema, TableName>>>
 
-export type WhereStatementForAssociation<
+export type OnStatementForAssociation<
   DB,
   Schema,
-  TableName extends keyof Schema,
-  AssociationName,
-  TableNameForAssociation extends AssociationTableName<
-    Schema,
-    TableName,
-    AssociationName
-  > = AssociationTableName<Schema, TableName, AssociationName>,
-  RequiredWhereClauses = RequiredWhereClauseKeys<Schema, TableName, AssociationName>,
-> = RequiredWhereClauses extends null
-  ? WhereStatement<DB, Schema, TableNameForAssociation>
-  : RequiredWhereClauses extends string[]
-    ? Partial<Omit<WhereStatement<DB, Schema, TableNameForAssociation>, RequiredWhereClauses[number]>> &
-        Required<
-          Pick<
-            WhereStatement<DB, Schema, TableNameForAssociation>,
-            RequiredWhereClauses[number] & keyof WhereStatement<DB, Schema, TableNameForAssociation>
-          >
-        >
+  TableName extends AssociationTableNames<DB, Schema> & keyof DB,
+  RequiredOnClauseKeysForThisAssociation,
+  OnStatement extends WhereStatement<DB, Schema, TableName> = WhereStatement<DB, Schema, TableName>,
+> = RequiredOnClauseKeysForThisAssociation extends null
+  ? WhereStatement<DB, Schema, TableName>
+  : RequiredOnClauseKeysForThisAssociation extends string[]
+    ? Required<Pick<OnStatement, RequiredOnClauseKeysForThisAssociation[number] & keyof OnStatement>> &
+        Partial<Omit<OnStatement, RequiredOnClauseKeysForThisAssociation[number] & keyof OnStatement>>
     : never
 
-// where statement on an association definition
-type WhereStatementForAssociationDefinition<
+// on statement on an association definition
+type OnStatementForAssociationDefinition<
   DB,
   Schema,
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
 > = Partial<
-  MergeUnionOfRecordTypes<Updateable<DB[TableName]> | AssociationDreamSelectable<DB, Schema, TableName>>
+  MergeUnionOfRecordTypes<
+    | Updateable<DB[TableName]>
+    | Partial<
+        Record<
+          keyof DB[TableName],
+          | NonKyselySupportedSupplementalWhereClauseValues<DB>
+          | typeof DreamConst.passthrough
+          | typeof DreamConst.required
+        >
+      >
+  >
 >
 
-export type WhereSelfStatement<
+export type SelfOnStatement<
   BaseInstance extends Dream,
   DB,
   Schema,
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
 > = Partial<Record<keyof DB[TableName], DreamColumnNames<BaseInstance>>>
 
-export type JoinedAssociationWhereClauses<
+export type WhereStatementForJoinedAssociation<
   JoinedAssociations extends Readonly<JoinedAssociation[]>,
   DB,
   Schema,
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
-> = RecursiveJoinedAssociationWhereClauses<
+> = RecursiveWhereStatementForJoinedAssociation<
   JoinedAssociations,
   DB,
   Schema,
-  Partial<MergeUnionOfRecordTypes<Updateable<DB[TableName]> | DreamSelectable<DB, Schema, TableName>>>
+  WhereStatement<DB, Schema, TableName>
 >
 
-type RecursiveJoinedAssociationWhereClauses<
+type RecursiveWhereStatementForJoinedAssociation<
   JoinedAssociations extends Readonly<JoinedAssociation[]>,
   DB,
   Schema,
-  OriginalWhereStatement,
+  OriginalOnStatement,
   Depth extends number = 0,
   CurrentJoinedAssociation = JoinedAssociations[0],
   TableName = CurrentJoinedAssociation extends JoinedAssociation ? CurrentJoinedAssociation['table'] : never,
   AssociationName = CurrentJoinedAssociation extends JoinedAssociation
     ? CurrentJoinedAssociation['alias']
     : never,
-  NonNamespacedAssociationWhereStatement = TableName extends never
+  NonNamespacedAssociationOnStatement = TableName extends never
     ? never
     : AssociationName extends never
       ? never
       : WhereStatement<DB, Schema, TableName & AssociationTableNames<DB, Schema> & keyof DB>,
-  NextWhereStatement = NonNamespacedAssociationWhereStatement extends never
-    ? OriginalWhereStatement
-    : OriginalWhereStatement & {
-        [K in keyof NonNamespacedAssociationWhereStatement as `${AssociationName & string}.${K & string}`]: NonNamespacedAssociationWhereStatement[K &
-          keyof NonNamespacedAssociationWhereStatement]
+  NextOnStatement = NonNamespacedAssociationOnStatement extends never
+    ? OriginalOnStatement
+    : OriginalOnStatement & {
+        [K in keyof NonNamespacedAssociationOnStatement as `${AssociationName & string}.${K & string}`]: NonNamespacedAssociationOnStatement[K &
+          keyof NonNamespacedAssociationOnStatement]
       },
 > = JoinedAssociations['length'] extends 0
-  ? OriginalWhereStatement
+  ? OriginalOnStatement
   : Depth extends MAX_JOINED_TABLES_DEPTH
-    ? OriginalWhereStatement
+    ? OriginalOnStatement
     : TableName extends never
-      ? OriginalWhereStatement
-      : RecursiveJoinedAssociationWhereClauses<
+      ? OriginalOnStatement
+      : RecursiveWhereStatementForJoinedAssociation<
           ReadonlyTail<JoinedAssociations>,
           DB,
           Schema,
-          NextWhereStatement,
+          NextOnStatement,
           Inc<Depth>
         >
 
@@ -288,10 +276,10 @@ export interface HasStatement<
   source: string
   through?: string
   preloadThroughColumns?: string[] | Record<string, string>
-  where?: WhereStatementForAssociationDefinition<DB, Schema, ForeignTableName>
-  whereNot?: WhereStatement<DB, Schema, ForeignTableName>
-  selfWhere?: WhereSelfStatement<BaseInstance, DB, Schema, ForeignTableName>
-  selfWhereNot?: WhereSelfStatement<BaseInstance, DB, Schema, ForeignTableName>
+  on?: OnStatementForAssociationDefinition<DB, Schema, ForeignTableName>
+  notOn?: WhereStatement<DB, Schema, ForeignTableName>
+  selfOn?: SelfOnStatement<BaseInstance, DB, Schema, ForeignTableName>
+  selfNotOn?: SelfOnStatement<BaseInstance, DB, Schema, ForeignTableName>
   dependent?: DependentOptions
   withoutDefaultScopes?: DefaultScopeName<BaseInstance>[]
 }
@@ -314,14 +302,14 @@ interface HasOptionsBase<
   through?: keyof BaseInstance['schema'][BaseInstance['table']]['associations']
   polymorphic?: boolean
   source?: string
-  where?: WhereStatementForAssociationDefinition<
+  on?: OnStatementForAssociationDefinition<
     BaseInstance['DB'],
     BaseInstance['schema'],
     AssociationTableName &
       AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
       keyof BaseInstance['DB']
   >
-  whereNot?: WhereStatement<
+  notOn?: WhereStatement<
     BaseInstance['DB'],
     BaseInstance['schema'],
     AssociationTableName &
@@ -329,7 +317,7 @@ interface HasOptionsBase<
       keyof BaseInstance['DB']
   >
 
-  selfWhere?: WhereSelfStatement<
+  selfOn?: SelfOnStatement<
     BaseInstance,
     BaseInstance['DB'],
     BaseInstance['schema'],
@@ -338,7 +326,7 @@ interface HasOptionsBase<
       keyof BaseInstance['DB']
   >
 
-  selfWhereNot?: WhereSelfStatement<
+  selfNotOn?: SelfOnStatement<
     BaseInstance,
     BaseInstance['DB'],
     BaseInstance['schema'],
@@ -418,10 +406,10 @@ type hasOneManySpecificFields =
   | 'source'
   | 'through'
   | 'preloadThroughColumns'
-  | 'where'
-  | 'whereNot'
-  | 'selfWhere'
-  | 'selfWhereNot'
+  | 'on'
+  | 'notOn'
+  | 'selfOn'
+  | 'selfNotOn'
 type belongsToSpecificFields = 'optional'
 
 export type PartialAssociationStatement =
@@ -549,19 +537,19 @@ export function validateHasStatementArgs({
   dreamClass,
   dependent,
   methodName,
-  where,
+  on,
 }: {
   dreamClass: typeof Dream
   dependent: DependentOptions | null
   methodName: string
-  where: object | null
+  on: object | null
 }) {
-  const hasPassthroughWhere = Object.values(where || {}).find(val => val === DreamConst.passthrough)
-  const hasRequiredWhere = Object.values(where || {}).find(val => val === DreamConst.required)
-  if (dependent && hasPassthroughWhere)
+  const hasPassthroughOn = Object.values(on || {}).find(val => val === DreamConst.passthrough)
+  const hasRequiredOn = Object.values(on || {}).find(val => val === DreamConst.required)
+  if (dependent && hasPassthroughOn)
     throw new CannotDefineAssociationWithBothDependentAndPassthrough(dreamClass, methodName)
-  if (dependent && hasRequiredWhere)
-    throw new CannotDefineAssociationWithBothDependentAndRequiredWhereClause(dreamClass, methodName)
+  if (dependent && hasRequiredOn)
+    throw new CannotDefineAssociationWithBothDependentAndRequiredOnClause(dreamClass, methodName)
 }
 
 // function hydratedSourceValue(dream: Dream | typeof Dream | undefined, sourceName: string) {

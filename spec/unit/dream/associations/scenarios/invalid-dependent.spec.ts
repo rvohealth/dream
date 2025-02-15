@@ -1,6 +1,6 @@
 import { DreamConst } from '../../../../../src'
 import CannotDefineAssociationWithBothDependentAndPassthrough from '../../../../../src/errors/CannotDefineAssociationWithBothDependentAndPassthrough'
-import CannotDefineAssociationWithBothDependentAndRequiredWhereClause from '../../../../../src/errors/CannotDefineAssociationWithBothDependentAndRequiredWhereClause'
+import CannotDefineAssociationWithBothDependentAndRequiredOnClause from '../../../../../src/errors/CannotDefineAssociationWithBothDependentAndRequiredOnClause'
 import Post from '../../../../../test-app/app/models/Post'
 import User from '../../../../../test-app/app/models/User'
 
@@ -13,7 +13,7 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
           class User2 extends User {
             @User2.HasMany('Post', {
               dependent: 'destroy',
-              where: { body: DreamConst.passthrough },
+              on: { body: DreamConst.passthrough },
             })
             public testAssociation: Post
           }
@@ -28,11 +28,11 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
           class User2 extends User {
             @User2.HasMany('Post', {
               dependent: 'destroy',
-              where: { body: DreamConst.required },
+              on: { body: DreamConst.required },
             })
             public testAssociation: Post
           }
-        }).toThrow(CannotDefineAssociationWithBothDependentAndRequiredWhereClause)
+        }).toThrow(CannotDefineAssociationWithBothDependentAndRequiredOnClause)
       })
     })
   })
@@ -45,7 +45,7 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
           class User2 extends User {
             @User2.HasOne('Post', {
               dependent: 'destroy',
-              where: { body: DreamConst.passthrough },
+              on: { body: DreamConst.passthrough },
             })
             public testAssociation: Post
           }
@@ -60,11 +60,11 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
           class User2 extends User {
             @User2.HasOne('Post', {
               dependent: 'destroy',
-              where: { body: DreamConst.required },
+              on: { body: DreamConst.required },
             })
             public testAssociation: Post
           }
-        }).toThrow(CannotDefineAssociationWithBothDependentAndRequiredWhereClause)
+        }).toThrow(CannotDefineAssociationWithBothDependentAndRequiredOnClause)
       })
     })
   })

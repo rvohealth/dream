@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import MissingRequiredAssociationWhereClause from '../../../../src/errors/associations/MissingRequiredAssociationWhereClause'
+import MissingRequiredAssociationOnClause from '../../../../src/errors/associations/MissingRequiredAssociationOnClause'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 import Collar from '../../../../test-app/app/models/Collar'
@@ -10,13 +10,13 @@ import Pet from '../../../../test-app/app/models/Pet'
 import User from '../../../../test-app/app/models/User'
 
 describe('Dream#updateAssociation', () => {
-  context('with a where clause', () => {
-    it('limits the update to the where clause', async () => {
+  context('with an on-clause', () => {
+    it('limits the update to the on-clause', async () => {
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       const aster = await Pet.create({ user, name: 'Aster', species: 'cat' })
       const violet = await Pet.create({ user, name: 'Violet', species: 'frog' })
 
-      await user.updateAssociation('pets', { species: 'dog' }, { where: { id: violet.id } })
+      await user.updateAssociation('pets', { species: 'dog' }, { on: { id: violet.id } })
 
       await aster.reload()
       await violet.reload()
@@ -32,7 +32,7 @@ describe('Dream#updateAssociation', () => {
       const user2 = await User.create({ email: 'frewd@fred', password: 'howyadoin' })
       const violet = await Pet.create({ user: user2, name: 'Violet', species: 'frog' })
 
-      await user1.updateAssociation('pets', { species: 'dog' }, { where: { id: violet.id } })
+      await user1.updateAssociation('pets', { species: 'dog' }, { on: { id: violet.id } })
 
       await aster.reload()
       await violet.reload()
@@ -42,17 +42,16 @@ describe('Dream#updateAssociation', () => {
     })
   })
 
-  context('with undefined passed in a where clause', () => {
+  context('with undefined passed in an on-clause', () => {
     it('raises an exception', async () => {
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       await expect(
-        async () =>
-          await user.updateAssociation('pets', { name: 'howyadoin' }, { where: { name: undefined } })
+        async () => await user.updateAssociation('pets', { name: 'howyadoin' }, { on: { name: undefined } })
       ).rejects.toThrowError(CannotPassUndefinedAsAValueToAWhereClause)
     })
 
     context('when undefined is applied at the association level', () => {
-      context('where clause has an undefined value', () => {
+      context('on-clause has an undefined value', () => {
         it('raises an exception', async () => {
           const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
           const post = await user.createAssociation('posts')
@@ -142,21 +141,21 @@ describe('Dream#updateAssociation', () => {
       })
     })
 
-    context('when a required where clause isn’t passed', () => {
+    context('when a required on-clause isn’t passed', () => {
       it('throws MissingRequiredAssociationWhereClause', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })
 
         await expect(
-          (composition.updateAssociation as any)('inlineWhereCurrentLocalizedText', {
+          (composition.updateAssociation as any)('requiredCurrentLocalizedText', {
             name: 'Name was updated',
           })
-        ).rejects.toThrow(MissingRequiredAssociationWhereClause)
+        ).rejects.toThrow(MissingRequiredAssociationOnClause)
       })
     })
 
-    context('when a required where clause is passed', () => {
-      it('applies the where clause to the association', async () => {
+    context('when a required on-clause is passed', () => {
+      it('applies the on-clause to the association', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })
         const localizedTextToLeaveAlone = await LocalizedText.create({
@@ -171,11 +170,11 @@ describe('Dream#updateAssociation', () => {
         })
 
         await composition.updateAssociation(
-          'inlineWhereCurrentLocalizedText',
+          'requiredCurrentLocalizedText',
           {
             name: 'Name was updated',
           },
-          { where: { locale: 'es-ES' } }
+          { on: { locale: 'es-ES' } }
         )
 
         await localizedTextToLeaveAlone.reload()

@@ -8,7 +8,11 @@ import { AssociationTableNames } from '../db/reflections'
 import { BelongsToStatement } from '../decorators/associations/BelongsTo'
 import { HasManyStatement } from '../decorators/associations/HasMany'
 import { HasOneStatement } from '../decorators/associations/HasOne'
-import { AssociatedModelParam, WhereStatement } from '../decorators/associations/shared'
+import {
+  AssociatedModelParam,
+  OnStatementForAssociation,
+  WhereStatement,
+} from '../decorators/associations/shared'
 import { STI_SCOPE_NAME } from '../decorators/STI'
 import Dream from '../Dream'
 import CalendarDate from '../helpers/CalendarDate'
@@ -141,15 +145,14 @@ export type DreamAssociationMetadata<
     keyof Schema[DreamInstance['table'] & keyof Schema]],
 > = AssociationMetadata
 
-export type DreamAssociationNamesWithoutRequiredWhereClauses<
+export type DreamAssociationNamesWithoutRequiredOnClauses<
   DreamInstance extends Dream,
   SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
   SchemaTypeInterface = {
-    [K in keyof SchemaAssociations]: SchemaAssociations[K]['requiredWhereClauses' &
-      keyof SchemaAssociations[K]]
+    [K in keyof SchemaAssociations]: SchemaAssociations[K]['requiredOnClauses' & keyof SchemaAssociations[K]]
   },
-  RequiredWhereClauses = keyof FilterInterface<SchemaTypeInterface, null> & string,
-> = RequiredWhereClauses
+  RequiredOnClauses = keyof FilterInterface<SchemaTypeInterface, null> & string,
+> = RequiredOnClauses
 
 export type DreamAssociationNames<
   DreamInstance extends Dream,
@@ -257,22 +260,34 @@ export type JoinOnStatements<
   DB,
   Schema,
   TableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
-> = {
-  on?: WhereStatement<DB, Schema, TableName>
-  notOn?: WhereStatement<DB, Schema, TableName>
-  // notOn?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>
-  onAny?: WhereStatement<DB, Schema, TableName>[]
-  // onAny?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>[]
-}
+  RequiredOnClauseKeysForThisAssociation,
+> = RequiredOnClauseKeysForThisAssociation extends null
+  ? {
+      on?: WhereStatement<DB, Schema, TableName>
+      notOn?: WhereStatement<DB, Schema, TableName>
+      // notOn?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>
+      onAny?: WhereStatement<DB, Schema, TableName>[]
+      // onAny?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>[]
+    }
+  : RequiredOnClauseKeysForThisAssociation extends string[]
+    ? {
+        on: OnStatementForAssociation<DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
+        notOn?: WhereStatement<DB, Schema, TableName>
+        // notOn?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>
+        onAny?: WhereStatement<DB, Schema, TableName>[]
+        // onAny?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>[]
+      }
+    : never
 
 type AllowedNextArgValuesForLoad<
   DB,
   Schema,
   TableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
+  RequiredOnClauseKeysForThisAssociation,
 > =
   | AssociationNamesForTable<Schema, TableName>
   | AssociationNamesForTable<Schema, TableName>[]
-  | JoinOnStatements<DB, Schema, TableName>
+  | JoinOnStatements<DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
 ////////////////////////////////
 // end: Association type helpers
 ////////////////////////////////
@@ -427,13 +442,13 @@ export type RelaxedJoinStatement<Depth extends number = 0> = Depth extends 7
   ? object
   : Record<string, RelaxedJoinStatement<Inc<Depth>>>
 
-export type RelaxedPreloadWhereStatement<DB, Schema, Depth extends number = 0> = Depth extends 7
+export type RelaxedPreloadOnStatement<DB, Schema, Depth extends number = 0> = Depth extends 7
   ? object
   : {
       [key: string]:
-        | RelaxedPreloadWhereStatement<DB, Schema, Inc<Depth>>
-        | JoinOnStatements<any, any, any>
-        | FakeWhereClauseValue
+        | RelaxedPreloadOnStatement<DB, Schema, Inc<Depth>>
+        | JoinOnStatements<any, any, any, any>
+        | FakeOnClauseValue
         | object
     }
 
@@ -442,13 +457,13 @@ export type RelaxedJoinOnStatement<DB, Schema, Depth extends number = 0> = Depth
   : {
       [key: string]:
         | RelaxedJoinOnStatement<DB, Schema, Inc<Depth>>
-        | JoinOnStatements<any, any, any>
-        | FakeWhereClauseValue
+        | JoinOnStatements<any, any, any, any>
+        | FakeOnClauseValue
         | object
     }
 
 // Just need something that is not an object, but that could be an array and also null
-type FakeWhereClauseValue = string | string[] | number | number[] | null
+type FakeOnClauseValue = string | string[] | number | number[] | null
 
 export type TableOrAssociationName<Schema> = (keyof Schema & string) | (keyof Schema[keyof Schema] & string)
 
@@ -541,8 +556,6 @@ export type PluckEachArgs<ColumnNames extends unknown[], CbArgTypes extends unkn
   | [...fields: ColumnNames, callback: (...values: CbArgTypes) => void | Promise<void>]
   | [...fields: ColumnNames, callback: (...values: CbArgTypes) => void | Promise<void>, opts: FindEachOpts]
 
-// REQUIRED WHERE CLAUSES uncomment
-// type NA = 'na'
 type VALID = 'valid'
 type INVALID = 'invalid'
 
@@ -701,7 +714,7 @@ type VariadicDreamClassRecurse<
         NextAssociationName
       >
 
-export type RequiredWhereClauseKeys<
+export type RequiredOnClauseKeys<
   Schema,
   TableName,
   AssociationName,
@@ -715,10 +728,10 @@ export type RequiredWhereClauseKeys<
     : AssociationName extends keyof Associations
       ? Associations[AssociationName]
       : null,
-  RequiredWhereClauses = Association extends null
+  RequiredOnClauses = Association extends null
     ? null
-    : Association['requiredWhereClauses' & keyof Association] & (string[] | null),
-> = RequiredWhereClauses
+    : Association['requiredOnClauses' & keyof Association] & (string[] | null),
+> = RequiredOnClauses
 
 type VariadicCheckThenRecurse<
   DB,
@@ -732,34 +745,26 @@ type VariadicCheckThenRecurse<
   PreviousConcreteTableName,
   ConcreteAssociationName,
   //
-  AssociationNamesOrWhereClause,
+  AssociationNamesOrOnClause,
   //
-  // REQUIRED WHERE CLAUSES uncomment and fix
-  // RequiredWhereClauses = RequiredWhereClauseKeys<Schema, PreviousConcreteTableName, ConcreteAssociationName>,
-  // WhereClauseRequirementsMet extends VALID | INVALID | NA = RequiredWhereClauses extends null
-  //   ? NA
-  //   : RequiredWhereClauses extends string[]
-  //     ? ConcreteArgs[0] extends object
-  //       ? keyof ConcreteArgs[0] extends RequiredWhereClauses[number]
-  //         ? VALID
-  //         : INVALID
-  //       : INVALID
-  //     : never,
+
   SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
   NthArgument extends VALID | INVALID = ConcreteArgs['length'] extends 0
     ? VALID
-    : // REQUIRED WHERE CLAUSES uncomment and fix
-      // : WhereClauseRequirementsMet extends INVALID
-      //   ? INVALID
-      ConcreteArgs[0] extends keyof SchemaAssociations & string
+    : ConcreteArgs[0] extends keyof SchemaAssociations & string
       ? VALID
-      : ConcreteArgs[0] extends JoinOnStatements<DB, Schema, ConcreteTableName>
+      : ConcreteArgs[0] extends JoinOnStatements<
+            DB,
+            Schema,
+            ConcreteTableName,
+            RequiredOnClauseKeys<Schema, PreviousConcreteTableName, ConcreteAssociationName>
+          >
         ? VALID
         : INVALID,
 > = NthArgument extends INVALID
   ? `invalid where clause in argument ${Inc<Depth>}`
   : ConcreteArgs['length'] extends 0
-    ? AssociationNamesOrWhereClause
+    ? AssociationNamesOrOnClause
     : VariadicRecurse<
         DB,
         Schema,
@@ -770,7 +775,6 @@ type VariadicCheckThenRecurse<
         Depth,
         PreviousConcreteTableName,
         ConcreteAssociationName
-        // WhereClauseRequirementsMet
       >
 
 type VariadicRecurse<
@@ -784,7 +788,6 @@ type VariadicRecurse<
   //
   PreviousConcreteTableName,
   ConcreteAssociationName,
-  // WhereClauseRequirementsMet extends VALID | INVALID | NA,
   //
   SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
   ConcreteNthArg extends (keyof SchemaAssociations & string) | null = ConcreteArgs[0] extends null
@@ -822,27 +825,21 @@ type VariadicRecurse<
     ? ConcreteNthArg
     : ConcreteAssociationName,
   //
-  // REQUIRED WHERE CLAUSES uncomment and fix
-  // RequiredWhereClauses = WhereClauseRequirementsMet extends VALID
-  //   ? null
-  //   : RequiredWhereClauseKeys<Schema, ConcreteTableName, NextAssociationName>,
-  // //
-  // AllowedNextArgValues = RequiredWhereClauses extends null
-  //   ? RecursionType extends 'load'
-  //     ? AllowedNextArgValuesForLoad<DB, Schema, NextTableName>
-  //     : RecursionType extends 'leftJoinLoad' | 'join'
-  //       ? AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
-  //       : never
-  //   : RequiredWhereClauses extends string[]
-  //     ? WhereStatementForAssociation<DB, Schema, ConcreteTableName, NextAssociationName>
-  //     : never,
-  //
-
-  // REQUIRED WHERE CLAUSES replace with above commented-out section
   AllowedNextArgValues = RecursionType extends 'load'
-    ? AllowedNextArgValuesForLoad<DB, Schema, NextTableName>
+    ? AllowedNextArgValuesForLoad<
+        DB,
+        Schema,
+        NextTableName,
+        RequiredOnClauseKeys<Schema, ConcreteTableName, NextAssociationName>
+      >
     : RecursionType extends 'leftJoinLoad' | 'join'
-      ? AllowedNextArgValuesForJoins<DB, Schema, NextTableName, NextUsedNamespaces>
+      ? AllowedNextArgValuesForJoin<
+          DB,
+          Schema,
+          NextTableName,
+          RequiredOnClauseKeys<Schema, ConcreteTableName, NextAssociationName>,
+          NextUsedNamespaces
+        >
       : never,
 > = Depth extends MAX_VARIADIC_DEPTH
   ? never
@@ -859,14 +856,15 @@ type VariadicRecurse<
       AllowedNextArgValues
     >
 
-type AllowedNextArgValuesForJoins<
+type AllowedNextArgValuesForJoin<
   DB,
   Schema,
   TableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
+  RequiredOnClauseKeysForThisAssociation,
   UsedNamespaces,
 > =
   | Exclude<AssociationNamesForTable<Schema, TableName>, UsedNamespaces>
-  | JoinOnStatements<DB, Schema, TableName>
+  | JoinOnStatements<DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
 
 export interface JoinedAssociation {
   table: string
