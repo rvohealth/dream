@@ -99,6 +99,7 @@ import {
   VariadicJoinsArgs,
   VariadicLoadArgs,
 } from './types'
+import extractAssociationMetadataFromAssociationName from './internal/extractAssociationMetadataFromAssociationName'
 
 const OPERATION_NEGATION_MAP: Partial<{
   [Property in ComparisonOperator]: KyselyComparisonOperatorExpression
@@ -911,7 +912,8 @@ export default class Query<
     const associationsToDreamClassesMap: AssociationNameToAssociationDataAndDreamClassMap = {}
 
     associationNames.reduce((dreamClass: typeof Dream, associationName: string) => {
-      const association = dreamClass['getAssociationMetadata'](associationName)
+      const { name, alias } = extractAssociationMetadataFromAssociationName(associationName)
+      const association = dreamClass['getAssociationMetadata'](name)
       const through = (association as any).through
 
       if (through) {
@@ -926,7 +928,7 @@ export default class Query<
       }
 
       const nextDreamClass = association.modelCB() as typeof Dream
-      associationsToDreamClassesMap[associationName] = { association, dreamClass: nextDreamClass }
+      associationsToDreamClassesMap[alias] = { association, dreamClass: nextDreamClass }
       return nextDreamClass
     }, this.dreamClass)
 
@@ -1609,7 +1611,9 @@ export default class Query<
 
     let nextColumnAliasCounter = 0
 
-    aliases.forEach((alias: string) => {
+    aliases.forEach((aliasOrExpression: string) => {
+      const alias = extractAssociationMetadataFromAssociationName(aliasOrExpression).alias
+
       associationAliasToColumnAliasMap[alias] ||= {}
       const aliasedDreamClass = aliasToDreamClassesMap[alias]
       const association = aliasToAssociationsMap[alias]
@@ -1724,9 +1728,11 @@ export default class Query<
     const dream = aliasToDreamIdMap[currentAlias][primaryKeyValue] as any
 
     Object.keys(leftJoinStatements).forEach(nextAlias => {
-      const association = dreamClass['getAssociationMetadata'](nextAlias)
+      const { name: associationName, alias } = extractAssociationMetadataFromAssociationName(nextAlias)
+
+      const association = dreamClass['getAssociationMetadata'](associationName)
       const associatedDream = this.fleshOutJoinLoadExecutionResults({
-        currentAlias: nextAlias,
+        currentAlias: alias,
         singleSqlResult,
         aliasToDreamIdMap,
         associationAliasToColumnAliasMap,
@@ -2754,7 +2760,13 @@ export default class Query<
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
     currentAssociationTableOrAlias: TableOrAssociationName<Schema>
   } {
-    let association = dreamClass['getAssociationMetadata'](currentAssociationTableOrAlias)
+    const { name, alias } = extractAssociationMetadataFromAssociationName(currentAssociationTableOrAlias)
+    previousAssociationTableOrAlias = extractAssociationMetadataFromAssociationName(
+      previousAssociationTableOrAlias
+    ).alias
+    currentAssociationTableOrAlias = alias
+
+    let association = dreamClass['getAssociationMetadata'](name)
 
     if (!association) {
       throw new JoinAttemptedOnMissingAssociation({
