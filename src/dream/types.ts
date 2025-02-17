@@ -237,10 +237,9 @@ export type TableColumnType<
 type AssociationMetadataForTable<Schema, TableName extends keyof Schema> = Schema[TableName]['associations' &
   keyof Schema[TableName]]
 
-type AssociationNamesForTable<Schema, TableName extends keyof Schema> = keyof AssociationMetadataForTable<
-  Schema,
-  TableName
->
+type AssociationNamesForTable<Schema, TableName extends keyof Schema> =
+  | keyof AssociationMetadataForTable<Schema, TableName>
+  | AliasedSchemaAssociation<Schema, TableName>
 
 type MetadataForAssociation<
   Schema,
@@ -559,6 +558,7 @@ export type PluckEachArgs<ColumnNames extends unknown[], CbArgTypes extends unkn
 type VALID = 'valid'
 type INVALID = 'invalid'
 
+type IS_ASSOCIATION_ALIAS = 'association_alias'
 type IS_ASSOCIATION_NAME = 'association_name'
 type IS_NOT_ASSOCIATION_NAME = 'not_association_name'
 
@@ -574,7 +574,9 @@ export type VariadicLoadArgs<
   ConcreteArgs extends readonly unknown[],
   //
   SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
-  AllowedNextArgValues = keyof SchemaAssociations & string,
+  AllowedNextArgValues =
+    | (keyof SchemaAssociations & string)
+    | AliasedSchemaAssociation<Schema, ConcreteTableName>,
 > = VariadicCheckThenRecurse<
   DB,
   Schema,
@@ -753,14 +755,16 @@ type VariadicCheckThenRecurse<
     ? VALID
     : ConcreteArgs[0] extends keyof SchemaAssociations & string
       ? VALID
-      : ConcreteArgs[0] extends JoinOnStatements<
-            DB,
-            Schema,
-            ConcreteTableName,
-            RequiredOnClauseKeys<Schema, PreviousConcreteTableName, ConcreteAssociationName>
-          >
+      : ConcreteArgs[0] extends AliasedSchemaAssociation<Schema, ConcreteTableName>
         ? VALID
-        : INVALID,
+        : ConcreteArgs[0] extends JoinOnStatements<
+              DB,
+              Schema,
+              ConcreteTableName,
+              RequiredOnClauseKeys<Schema, PreviousConcreteTableName, ConcreteAssociationName>
+            >
+          ? VALID
+          : INVALID,
 > = NthArgument extends INVALID
   ? `invalid where clause in argument ${Inc<Depth>}`
   : ConcreteArgs['length'] extends 0
@@ -777,6 +781,12 @@ type VariadicCheckThenRecurse<
         ConcreteAssociationName
       >
 
+export type AliasedSchemaAssociation<
+  Schema,
+  ConcreteTableName extends keyof Schema,
+  SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
+> = `${keyof SchemaAssociations & string} as ${string}`
+
 type VariadicRecurse<
   DB,
   Schema,
@@ -790,54 +800,84 @@ type VariadicRecurse<
   ConcreteAssociationName,
   //
   SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
-  ConcreteNthArg extends (keyof SchemaAssociations & string) | null = ConcreteArgs[0] extends null
+  ConcreteNthArg extends
+    | (keyof SchemaAssociations & string)
+    | AliasedSchemaAssociation<Schema, ConcreteTableName>
+    | null = ConcreteArgs[0] extends null
     ? never
     : ConcreteArgs[0] extends keyof SchemaAssociations & string
       ? ConcreteArgs[0] & keyof SchemaAssociations & string
-      : null,
+      : ConcreteArgs[0] extends AliasedSchemaAssociation<Schema, ConcreteTableName>
+        ? ConcreteArgs[0] & AliasedSchemaAssociation<Schema, ConcreteTableName>
+        : null,
   NextUsedNamespaces = ConcreteArgs[0] extends null
     ? never
     : ConcreteArgs[0] extends keyof SchemaAssociations & string
       ? UsedNamespaces | ConcreteNthArg
       : UsedNamespaces,
   //
-  CurrentArgumentType extends IS_ASSOCIATION_NAME | IS_NOT_ASSOCIATION_NAME = ConcreteNthArg extends null
+  CurrentArgumentType extends
+    | IS_ASSOCIATION_NAME
+    | IS_ASSOCIATION_ALIAS
+    | IS_NOT_ASSOCIATION_NAME = ConcreteNthArg extends null
     ? IS_NOT_ASSOCIATION_NAME
     : ConcreteNthArg extends keyof SchemaAssociations & string
       ? IS_ASSOCIATION_NAME
-      : IS_NOT_ASSOCIATION_NAME,
+      : ConcreteNthArg extends AliasedSchemaAssociation<Schema, ConcreteTableName>
+        ? IS_ASSOCIATION_ALIAS
+        : IS_NOT_ASSOCIATION_NAME,
   //
   NextPreviousConcreteTableName = CurrentArgumentType extends IS_ASSOCIATION_NAME
     ? ConcreteTableName
-    : PreviousConcreteTableName,
+    : CurrentArgumentType extends IS_ASSOCIATION_ALIAS
+      ? ConcreteTableName
+      : PreviousConcreteTableName,
+  //
+  NextUnaliasedAssociationName = CurrentArgumentType extends IS_ASSOCIATION_NAME
+    ? ConcreteNthArg
+    : CurrentArgumentType extends IS_ASSOCIATION_ALIAS
+      ? ConcreteNthArg extends `${infer AssocName extends string} as ${string}`
+        ? AssocName & keyof SchemaAssociations & string
+        : never
+      : never,
+  //
+  NextAliasedAssociationName = CurrentArgumentType extends IS_ASSOCIATION_NAME
+    ? ConcreteNthArg
+    : CurrentArgumentType extends IS_ASSOCIATION_ALIAS
+      ? ConcreteNthArg extends `${string} as ${infer AssocAlias extends string}`
+        ? AssocAlias & string
+        : ConcreteAssociationName
+      : ConcreteAssociationName,
   //
   NextTableName extends keyof Schema &
     AssociationTableNames<DB, Schema> &
     keyof DB = CurrentArgumentType extends IS_ASSOCIATION_NAME
-    ? (SchemaAssociations[ConcreteNthArg & keyof SchemaAssociations]['tables' &
-        keyof SchemaAssociations[ConcreteNthArg & keyof SchemaAssociations]] &
+    ? (SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]['tables' &
+        keyof SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]] &
         any[])[0] &
         AssociationTableNames<DB, Schema> &
         keyof DB
-    : ConcreteTableName & AssociationTableNames<DB, Schema> & keyof DB,
-  //
-  NextAssociationName = CurrentArgumentType extends IS_ASSOCIATION_NAME
-    ? ConcreteNthArg
-    : ConcreteAssociationName,
+    : CurrentArgumentType extends IS_ASSOCIATION_ALIAS
+      ? (SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]['tables' &
+          keyof SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]] &
+          any[])[0] &
+          AssociationTableNames<DB, Schema> &
+          keyof DB
+      : ConcreteTableName & AssociationTableNames<DB, Schema> & keyof DB,
   //
   AllowedNextArgValues = RecursionType extends 'load'
     ? AllowedNextArgValuesForLoad<
         DB,
         Schema,
         NextTableName,
-        RequiredOnClauseKeys<Schema, ConcreteTableName, NextAssociationName>
+        RequiredOnClauseKeys<Schema, ConcreteTableName, NextAliasedAssociationName>
       >
     : RecursionType extends 'leftJoinLoad' | 'join'
       ? AllowedNextArgValuesForJoin<
           DB,
           Schema,
           NextTableName,
-          RequiredOnClauseKeys<Schema, ConcreteTableName, NextAssociationName>,
+          RequiredOnClauseKeys<Schema, ConcreteTableName, NextAliasedAssociationName>,
           NextUsedNamespaces
         >
       : never,
@@ -852,7 +892,7 @@ type VariadicRecurse<
       NextUsedNamespaces,
       Inc<Depth>,
       NextPreviousConcreteTableName,
-      NextAssociationName,
+      NextAliasedAssociationName,
       AllowedNextArgValues
     >
 
@@ -892,35 +932,65 @@ export type JoinedAssociationsTypeFromAssociations<
   SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
   //
 
-  ConcreteNthArg extends (keyof SchemaAssociations & string) | null = ConcreteArgs[0] extends null
+  ConcreteNthArg extends
+    | (keyof SchemaAssociations & string)
+    | AliasedSchemaAssociation<Schema, ConcreteTableName>
+    | null = ConcreteArgs[0] extends null
     ? never
     : ConcreteArgs[0] extends keyof SchemaAssociations & string
       ? ConcreteArgs[0] & keyof SchemaAssociations & string
-      : null,
+      : ConcreteArgs[0] extends AliasedSchemaAssociation<Schema, ConcreteTableName>
+        ? ConcreteArgs[0] & AliasedSchemaAssociation<Schema, ConcreteTableName>
+        : null,
   //
-  CurrentArgumentType extends IS_ASSOCIATION_NAME | IS_NOT_ASSOCIATION_NAME = ConcreteNthArg extends null
+  CurrentArgumentType extends
+    | IS_ASSOCIATION_NAME
+    | IS_ASSOCIATION_ALIAS
+    | IS_NOT_ASSOCIATION_NAME = ConcreteNthArg extends null
     ? IS_NOT_ASSOCIATION_NAME
     : ConcreteNthArg extends keyof SchemaAssociations & string
       ? IS_ASSOCIATION_NAME
-      : IS_NOT_ASSOCIATION_NAME,
+      : ConcreteNthArg extends AliasedSchemaAssociation<Schema, ConcreteTableName>
+        ? IS_ASSOCIATION_ALIAS
+        : IS_NOT_ASSOCIATION_NAME,
   //
   NextPreviousConcreteTableName = CurrentArgumentType extends IS_ASSOCIATION_NAME
     ? ConcreteTableName
-    : PreviousConcreteTableName,
+    : CurrentArgumentType extends IS_ASSOCIATION_ALIAS
+      ? ConcreteTableName
+      : PreviousConcreteTableName,
+  //
+  NextUnaliasedAssociationName = CurrentArgumentType extends IS_ASSOCIATION_NAME
+    ? ConcreteNthArg
+    : CurrentArgumentType extends IS_ASSOCIATION_ALIAS
+      ? ConcreteNthArg extends `${infer AssocName extends string} as ${string}`
+        ? AssocName & keyof SchemaAssociations
+        : never
+      : never,
+  //
+  NextAliasedAssociationName = CurrentArgumentType extends IS_ASSOCIATION_NAME
+    ? ConcreteNthArg
+    : CurrentArgumentType extends IS_ASSOCIATION_ALIAS
+      ? ConcreteNthArg extends `${string} as ${infer Alias extends string}`
+        ? Alias
+        : ConcreteAssociationName
+      : ConcreteAssociationName,
   //
   NextTableName extends keyof Schema &
     AssociationTableNames<DB, Schema> &
     keyof DB = CurrentArgumentType extends IS_ASSOCIATION_NAME
-    ? (SchemaAssociations[ConcreteNthArg & keyof SchemaAssociations]['tables' &
-        keyof SchemaAssociations[ConcreteNthArg & keyof SchemaAssociations]] &
+    ? (SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]['tables' &
+        keyof SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]] &
         any[])[0] &
         AssociationTableNames<DB, Schema> &
         keyof DB
-    : ConcreteTableName & AssociationTableNames<DB, Schema> & keyof DB,
-  //
-  NextAssociationName = CurrentArgumentType extends IS_ASSOCIATION_NAME
-    ? ConcreteNthArg
-    : ConcreteAssociationName,
+    : CurrentArgumentType extends IS_ASSOCIATION_ALIAS
+      ? (SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]['tables' &
+          keyof SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]] &
+          any[])[0] &
+          AssociationTableNames<DB, Schema> &
+          keyof DB
+      : ConcreteTableName & AssociationTableNames<DB, Schema> & keyof DB,
   //
 > = ConcreteArgs['length'] extends 0
   ? JoinedAssociationsType
@@ -933,8 +1003,11 @@ export type JoinedAssociationsTypeFromAssociations<
         ReadonlyTail<ConcreteArgs>,
         Inc<Depth>,
         NextPreviousConcreteTableName,
-        NextAssociationName,
+        NextAliasedAssociationName,
         Readonly<
-          [...JoinedAssociationsType, { table: NextTableName & string; alias: NextAssociationName & string }]
+          [
+            ...JoinedAssociationsType,
+            { table: NextTableName & string; alias: NextAliasedAssociationName & string },
+          ]
         >
       >

@@ -135,6 +135,7 @@ import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel'
 import { isString } from './helpers/typechecks'
+import extractAssociationMetadataFromAssociationName from './dream/internal/extractAssociationMetadataFromAssociationName'
 
 export default class Dream {
   public DB: any
@@ -1025,7 +1026,7 @@ export default class Dream {
     I extends InstanceType<T>,
     Schema extends I['schema'],
   >(this: T, associationName: Schema[I['table']]['associations'][number]) {
-    return this.associationMetadataMap()[associationName]
+    return this.associationMetadataMap()[extractAssociationMetadataFromAssociationName(associationName).name]
   }
 
   /**
