@@ -60,5 +60,5 @@ export default function associationQuery<
 
   return query['setBaseSQLAlias'](association.as as TableOrAssociationName<DreamInstance['schema']>)[
     'setAssociationQueryBase'
-  ](baseSelectQuery as Query<any>) as AssociationQuery
+  ](baseSelectQuery as Query<any, any>) as AssociationQuery
 }

@@ -1,9 +1,9 @@
 import Dream from '../../Dream'
-import Query, { DefaultQueryTypeOptions } from '../Query'
+import Query from '../Query'
 import { AllDefaultScopeNames } from '../types'
 
 export default function applyScopeBypassingSettingsToQuery<DreamInstance extends Dream>(
-  query: Query<DreamInstance, DefaultQueryTypeOptions<DreamInstance>>,
+  query: Query<DreamInstance>,
   {
     bypassAllDefaultScopes,
     defaultScopesToBypass,

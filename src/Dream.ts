@@ -70,6 +70,7 @@ import {
   undestroyOptions,
 } from './dream/internal/destroyOptions'
 import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet'
+import extractAssociationMetadataFromAssociationName from './dream/internal/extractAssociationMetadataFromAssociationName'
 import reload from './dream/internal/reload'
 import runValidations from './dream/internal/runValidations'
 import saveDream from './dream/internal/saveDream'
@@ -86,6 +87,7 @@ import Query, {
   DefaultQueryTypeOptions,
   FindEachOpts,
   QueryWithJoinedAssociationsType,
+  QueryWithJoinedAssociationsTypeAndNoPreload,
 } from './dream/Query'
 import {
   AllDefaultScopeNames,
@@ -135,7 +137,6 @@ import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
 import isJsonColumn from './helpers/db/types/isJsonColumn'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel'
 import { isString } from './helpers/typechecks'
-import extractAssociationMetadataFromAssociationName from './dream/internal/extractAssociationMetadataFromAssociationName'
 
 export default class Dream {
   public DB: any
@@ -1492,8 +1493,10 @@ export default class Dream {
     const Arr extends readonly unknown[],
     LastArg extends VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>,
   >(this: T, ...args: [...Arr, LastArg]) {
-    return this.query().leftJoinPreload(...(args as any)) as QueryWithJoinedAssociationsType<
-      I,
+    return this.query().leftJoinPreload(
+      ...(args as any)
+    ) as unknown as QueryWithJoinedAssociationsTypeAndNoPreload<
+      Query<I>,
       JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
     >
   }
@@ -1549,7 +1552,7 @@ export default class Dream {
     LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
   >(this: T, ...args: [...Arr, LastArg]) {
     return this.query().innerJoin(...(args as any)) as QueryWithJoinedAssociationsType<
-      I,
+      Query<I>,
       JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
     >
   }
@@ -1574,7 +1577,7 @@ export default class Dream {
     LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
   >(this: I, ...args: [...Arr, LastArg]) {
     return this.query().innerJoin(...(args as any)) as QueryWithJoinedAssociationsType<
-      I,
+      Query<I>,
       JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
     >
   }
@@ -1600,7 +1603,7 @@ export default class Dream {
     LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
   >(this: T, ...args: [...Arr, LastArg]) {
     return this.query().leftJoin(...(args as any)) as QueryWithJoinedAssociationsType<
-      I,
+      Query<I>,
       JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
     >
   }
@@ -1625,7 +1628,7 @@ export default class Dream {
     LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
   >(this: I, ...args: [...Arr, LastArg]) {
     return this.query().leftJoin(...(args as any)) as QueryWithJoinedAssociationsType<
-      I,
+      Query<I>,
       JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
     >
   }

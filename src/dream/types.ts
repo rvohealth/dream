@@ -915,6 +915,8 @@ export interface QueryTypeOptions {
   joinedAssociations: Readonly<JoinedAssociation[]>
   rootTableName: string
   rootTableAlias: string
+  allowPreload: boolean
+  allowLeftJoinPreload: boolean
 }
 
 export type JoinedAssociationsTypeFromAssociations<

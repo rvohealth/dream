@@ -1,7 +1,10 @@
 import { PassthroughOnClause } from '../decorators/associations/shared'
 import Dream from '../Dream'
 import DreamTransaction from './DreamTransaction'
-import Query, { PreloadedDreamsAndWhatTheyPointTo, QueryWithJoinedAssociationsType } from './Query'
+import Query, {
+  PreloadedDreamsAndWhatTheyPointTo,
+  QueryWithJoinedAssociationsTypeAndNoPreload,
+} from './Query'
 import {
   IdType,
   JoinedAssociationsTypeFromAssociations,
@@ -64,8 +67,8 @@ export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
     const Arr extends readonly unknown[],
     LastArg extends VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>,
   >(this: I, ...args: [...Arr, LastArg]) {
-    this.query = this.query.leftJoinPreload(...(args as any)) as QueryWithJoinedAssociationsType<
-      DreamInstance,
+    this.query = this.query.leftJoinPreload(...(args as any)) as QueryWithJoinedAssociationsTypeAndNoPreload<
+      Query<DreamInstance>,
       JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
     >
 
