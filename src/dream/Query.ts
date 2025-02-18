@@ -737,7 +737,12 @@ export default class Query<
     })
 
     return joinedClone.clone<{
-      joinedAssociations: JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
+      joinedAssociations: JoinedAssociationsTypeFromAssociations<
+        DB,
+        Schema,
+        TableName,
+        Incompatible extends true ? [] : [...Arr, LastArg]
+      >
       allowPreload: false
     }>({ loadFromJoins: true })
   }

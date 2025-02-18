@@ -31,7 +31,7 @@ import { BelongsToStatement } from './BelongsTo'
 import { HasManyStatement } from './HasMany'
 import { HasOneStatement } from './HasOne'
 
-type MAX_JOINED_TABLES_DEPTH = 25
+type MAX_JOINED_TABLES_DEPTH = 20
 
 type AssociatedBelongsToModelType<
   I extends Dream,

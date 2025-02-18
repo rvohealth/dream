@@ -27,7 +27,7 @@ export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
 export type IdType = string | number | bigint
 export type Timestamp = ColumnType<DateTime | CalendarDate>
 
-type MAX_VARIADIC_DEPTH = 25
+type MAX_VARIADIC_DEPTH = 20
 
 class RequiredAttribute {
   constructor() {}
@@ -277,16 +277,6 @@ export type JoinOnStatements<
         // onAny?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>[]
       }
     : never
-
-type AllowedNextArgValuesForLoad<
-  DB,
-  Schema,
-  TableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
-  RequiredOnClauseKeysForThisAssociation,
-> =
-  | AssociationNamesForTable<Schema, TableName>
-  | AssociationNamesForTable<Schema, TableName>[]
-  | JoinOnStatements<DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
 ////////////////////////////////
 // end: Association type helpers
 ////////////////////////////////
@@ -561,6 +551,7 @@ type INVALID = 'invalid'
 type IS_ASSOCIATION_ALIAS = 'association_alias'
 type IS_ASSOCIATION_NAME = 'association_name'
 type IS_NOT_ASSOCIATION_NAME = 'not_association_name'
+type SKIP = 'skip'
 
 type RecursionTypes = 'load' | 'leftJoinLoad' | 'join'
 
@@ -587,7 +578,7 @@ export type VariadicLoadArgs<
   0,
   null,
   never,
-  AllowedNextArgValues | AllowedNextArgValues[]
+  AllowedNextArgValues | Readonly<AllowedNextArgValues[]>
 >
 ///////////////////////////////
 // end: VARIADIC LOAD
@@ -614,7 +605,7 @@ export type VariadicLeftJoinLoadArgs<
   0,
   null,
   never,
-  AllowedNextArgValues | AllowedNextArgValues[]
+  AllowedNextArgValues | Readonly<AllowedNextArgValues[]>
 >
 ///////////////////////////////
 // end:VARIADIC LEFT JOIN LOAD
@@ -872,15 +863,23 @@ type VariadicRecurse<
         NextTableName,
         RequiredOnClauseKeys<Schema, ConcreteTableName, NextAliasedAssociationName>
       >
-    : RecursionType extends 'leftJoinLoad' | 'join'
-      ? AllowedNextArgValuesForJoin<
+    : RecursionType extends 'leftJoinLoad'
+      ? AllowedNextArgValuesForLeftJoinLoad<
           DB,
           Schema,
           NextTableName,
           RequiredOnClauseKeys<Schema, ConcreteTableName, NextAliasedAssociationName>,
           NextUsedNamespaces
         >
-      : never,
+      : RecursionType extends 'join'
+        ? AllowedNextArgValuesForJoin<
+            DB,
+            Schema,
+            NextTableName,
+            RequiredOnClauseKeys<Schema, ConcreteTableName, NextAliasedAssociationName>,
+            NextUsedNamespaces
+          >
+        : never,
 > = Depth extends MAX_VARIADIC_DEPTH
   ? never
   : VariadicCheckThenRecurse<
@@ -895,6 +894,27 @@ type VariadicRecurse<
       NextAliasedAssociationName,
       AllowedNextArgValues
     >
+
+type AllowedNextArgValuesForLoad<
+  DB,
+  Schema,
+  TableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
+  RequiredOnClauseKeysForThisAssociation,
+> =
+  | AssociationNamesForTable<Schema, TableName>
+  | AssociationNamesForTable<Schema, TableName>[]
+  | JoinOnStatements<DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
+
+type AllowedNextArgValuesForLeftJoinLoad<
+  DB,
+  Schema,
+  TableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
+  RequiredOnClauseKeysForThisAssociation,
+  UsedNamespaces,
+> =
+  | Exclude<AssociationNamesForTable<Schema, TableName>, UsedNamespaces>
+  | Exclude<AssociationNamesForTable<Schema, TableName>, UsedNamespaces>[]
+  | JoinOnStatements<DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
 
 type AllowedNextArgValuesForJoin<
   DB,
@@ -937,24 +957,29 @@ export type JoinedAssociationsTypeFromAssociations<
   ConcreteNthArg extends
     | (keyof SchemaAssociations & string)
     | AliasedSchemaAssociation<Schema, ConcreteTableName>
-    | null = ConcreteArgs[0] extends null
-    ? never
+    | Readonly<unknown[]>
+    | SKIP = ConcreteArgs[0] extends null
+    ? SKIP
     : ConcreteArgs[0] extends keyof SchemaAssociations & string
       ? ConcreteArgs[0] & keyof SchemaAssociations & string
       : ConcreteArgs[0] extends AliasedSchemaAssociation<Schema, ConcreteTableName>
         ? ConcreteArgs[0] & AliasedSchemaAssociation<Schema, ConcreteTableName>
-        : null,
+        : Readonly<ConcreteArgs[0]> extends Readonly<unknown[]>
+          ? Readonly<ConcreteArgs[0]>
+          : SKIP,
   //
   CurrentArgumentType extends
     | IS_ASSOCIATION_NAME
     | IS_ASSOCIATION_ALIAS
-    | IS_NOT_ASSOCIATION_NAME = ConcreteNthArg extends null
+    | IS_NOT_ASSOCIATION_NAME = ConcreteNthArg extends SKIP
     ? IS_NOT_ASSOCIATION_NAME
-    : ConcreteNthArg extends keyof SchemaAssociations & string
-      ? IS_ASSOCIATION_NAME
-      : ConcreteNthArg extends AliasedSchemaAssociation<Schema, ConcreteTableName>
-        ? IS_ASSOCIATION_ALIAS
-        : IS_NOT_ASSOCIATION_NAME,
+    : ConcreteNthArg extends unknown[]
+      ? IS_NOT_ASSOCIATION_NAME
+      : ConcreteNthArg extends keyof SchemaAssociations & string
+        ? IS_ASSOCIATION_NAME
+        : ConcreteNthArg extends AliasedSchemaAssociation<Schema, ConcreteTableName>
+          ? IS_ASSOCIATION_ALIAS
+          : IS_NOT_ASSOCIATION_NAME,
   //
   NextPreviousConcreteTableName = CurrentArgumentType extends IS_ASSOCIATION_NAME
     ? ConcreteTableName
@@ -998,18 +1023,145 @@ export type JoinedAssociationsTypeFromAssociations<
   ? JoinedAssociationsType
   : Depth extends MAX_VARIADIC_DEPTH
     ? JoinedAssociationsType
-    : JoinedAssociationsTypeFromAssociations<
-        DB,
-        Schema,
-        NextTableName,
-        ReadonlyTail<ConcreteArgs>,
-        Inc<Depth>,
-        NextPreviousConcreteTableName,
-        NextAliasedAssociationName,
-        Readonly<
-          [
-            ...JoinedAssociationsType,
-            { table: NextTableName & string; alias: NextAliasedAssociationName & string },
-          ]
-        >
-      >
+    : ConcreteNthArg extends SKIP
+      ? JoinedAssociationsType
+      : ConcreteArgs['length'] extends 1
+        ? ConcreteNthArg extends Readonly<unknown[]>
+          ? JoinedAssociationsType
+          : // short-circuited because this recursion brought Typescript to its knees. Unclear why.
+            // This is a compromise that retains the leftJoinPreload flexibility of a final array of association names,
+            // but those association names won't be available in subsequent `where` calls. To use joined association
+            // names in subsequent `where` calls, use separate `leftJoinPreload` calls rather than a final array.
+            //
+            //  ? LeftJoinedPreloadAssociationsTypeFromAssociations<
+            //     DB,
+            //     Schema,
+            //     ConcreteTableName,
+            //     ConcreteNthArg,
+            //     0,
+            //     PreviousConcreteTableName,
+            //     ConcreteAssociationName,
+            //     JoinedAssociationsType
+            //   >
+            JoinedAssociationsTypeFromAssociations<
+              DB,
+              Schema,
+              NextTableName,
+              ReadonlyTail<ConcreteArgs>,
+              Inc<Depth>,
+              NextPreviousConcreteTableName,
+              NextAliasedAssociationName,
+              Readonly<
+                [
+                  ...JoinedAssociationsType,
+                  { table: NextTableName & string; alias: NextAliasedAssociationName & string },
+                ]
+              >
+            >
+        : JoinedAssociationsTypeFromAssociations<
+            DB,
+            Schema,
+            NextTableName,
+            ReadonlyTail<ConcreteArgs>,
+            Inc<Depth>,
+            NextPreviousConcreteTableName,
+            NextAliasedAssociationName,
+            Readonly<
+              [
+                ...JoinedAssociationsType,
+                { table: NextTableName & string; alias: NextAliasedAssociationName & string },
+              ]
+            >
+          >
+
+// export type LeftJoinedPreloadAssociationsTypeFromAssociations<
+//   DB,
+//   Schema,
+//   ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
+//   ConcreteArgs extends readonly unknown[],
+//   Depth extends number = 0,
+//   //
+//   //
+//   PreviousConcreteTableName = ConcreteTableName,
+//   ConcreteAssociationName = never,
+//   //
+//   JoinedAssociationsType extends Readonly<JoinedAssociation[]> = Readonly<[]>,
+//   SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
+//   //
+
+//   ConcreteNthArg extends
+//     | (keyof SchemaAssociations & string)
+//     | AliasedSchemaAssociation<Schema, ConcreteTableName>
+//     | Readonly<((keyof SchemaAssociations & string) | AliasedSchemaAssociation<Schema, ConcreteTableName>)[]>
+//     | SKIP = ConcreteArgs[0] extends null
+//     ? SKIP
+//     : ConcreteArgs[0] extends keyof SchemaAssociations & string
+//       ? ConcreteArgs[0] & keyof SchemaAssociations & string
+//       : ConcreteArgs[0] extends AliasedSchemaAssociation<Schema, ConcreteTableName>
+//         ? ConcreteArgs[0] & AliasedSchemaAssociation<Schema, ConcreteTableName>
+//         : SKIP,
+//   //
+
+//   //
+//   CurrentArgumentType extends
+//     | IS_ASSOCIATION_NAME
+//     | IS_ASSOCIATION_ALIAS
+//     | IS_NOT_ASSOCIATION_NAME = ConcreteNthArg extends SKIP
+//     ? IS_NOT_ASSOCIATION_NAME
+//     : ConcreteNthArg extends keyof SchemaAssociations & string
+//       ? IS_ASSOCIATION_NAME
+//       : ConcreteNthArg extends AliasedSchemaAssociation<Schema, ConcreteTableName>
+//         ? IS_ASSOCIATION_ALIAS
+//         : IS_NOT_ASSOCIATION_NAME,
+//   //
+//   NextUnaliasedAssociationName = CurrentArgumentType extends IS_ASSOCIATION_NAME
+//     ? ConcreteNthArg
+//     : CurrentArgumentType extends IS_ASSOCIATION_ALIAS
+//       ? ConcreteNthArg extends `${infer AssocName extends string} as ${string}`
+//         ? AssocName & keyof SchemaAssociations
+//         : never
+//       : never,
+//   //
+//   NextAliasedAssociationName = CurrentArgumentType extends IS_ASSOCIATION_NAME
+//     ? ConcreteNthArg
+//     : CurrentArgumentType extends IS_ASSOCIATION_ALIAS
+//       ? ConcreteNthArg extends `${string} as ${infer Alias extends string}`
+//         ? Alias
+//         : ConcreteAssociationName
+//       : ConcreteAssociationName,
+//   //
+//   NextTableName extends keyof Schema &
+//     AssociationTableNames<DB, Schema> &
+//     keyof DB = CurrentArgumentType extends IS_ASSOCIATION_NAME
+//     ? (SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]['tables' &
+//         keyof SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]] &
+//         any[])[0] &
+//         AssociationTableNames<DB, Schema> &
+//         keyof DB
+//     : CurrentArgumentType extends IS_ASSOCIATION_ALIAS
+//       ? (SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]['tables' &
+//           keyof SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]] &
+//           any[])[0] &
+//           AssociationTableNames<DB, Schema> &
+//           keyof DB
+//       : ConcreteTableName & AssociationTableNames<DB, Schema> & keyof DB,
+//   //
+// > = ConcreteArgs['length'] extends 0
+//   ? JoinedAssociationsType
+//   : Depth extends MAX_VARIADIC_DEPTH
+//     ? JoinedAssociationsType
+//     : LeftJoinedPreloadAssociationsTypeFromAssociations<
+//         DB,
+//         Schema,
+//         ConcreteTableName,
+//         ReadonlyTail<ConcreteArgs>,
+//         Inc<Depth>,
+//         PreviousConcreteTableName,
+//         ConcreteAssociationName,
+//         Readonly<
+//           [
+//             ...JoinedAssociationsType,
+//             { table: NextTableName & string; alias: NextAliasedAssociationName & string },
+//           ]
+//         >
+//       >
