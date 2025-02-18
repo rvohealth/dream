@@ -6,7 +6,7 @@ import {
   IdType,
   JoinedAssociationsTypeFromAssociations,
   PassthroughColumnNames,
-  VariadicLoadArgs,
+  VariadicLeftJoinLoadArgs,
 } from './types'
 
 export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
@@ -62,7 +62,7 @@ export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
-    LastArg extends VariadicLoadArgs<DB, Schema, TableName, Arr>,
+    LastArg extends VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>,
   >(this: I, ...args: [...Arr, LastArg]) {
     this.query = this.query.leftJoinPreload(...(args as any)) as QueryWithJoinedAssociationsType<
       DreamInstance,

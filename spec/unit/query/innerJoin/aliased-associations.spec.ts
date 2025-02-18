@@ -54,4 +54,12 @@ describe('Query#innerJoin with aliased associations', () => {
       expect(notMatching).toBeNull()
     })
   })
+
+  context('type tests', () => {
+    it.skip('does not break when a single aliased argument is provided', () => {
+      User.innerJoin('compositions as c')
+      User.query().innerJoin('compositions as c')
+      User.txn(undefined as any).innerJoin('compositions as c')
+    })
+  })
 })

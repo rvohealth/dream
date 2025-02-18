@@ -574,7 +574,9 @@ export type VariadicLoadArgs<
   ConcreteArgs extends readonly unknown[],
   //
   SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
-  AllowedNextArgValues = keyof SchemaAssociations & string,
+  AllowedNextArgValues =
+    | (keyof SchemaAssociations & string)
+    | AliasedSchemaAssociation<Schema, ConcreteTableName>,
 > = VariadicCheckThenRecurse<
   DB,
   Schema,

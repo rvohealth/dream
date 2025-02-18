@@ -97,6 +97,7 @@ import {
   TableColumnType,
   TableOrAssociationName,
   VariadicJoinsArgs,
+  VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
 } from './types'
 import extractAssociationMetadataFromAssociationName from './internal/extractAssociationMetadataFromAssociationName'
@@ -684,7 +685,7 @@ export default class Query<
     Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-    LastArg extends VariadicLoadArgs<DB, Schema, TableName, Arr>,
+    LastArg extends VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>,
   >(...args: [...Arr, LastArg]) {
     const untypedArgs: any[] = [...args] as any[]
     const lastAssociations = [untypedArgs.pop()].flat()

@@ -44,4 +44,9 @@ describe('Query#leftJoinPreload with aliased associations', () => {
       expect(reloaded!.compositions[0].compositionAssets).toMatchDreamModels([otherCompositionAsset!])
     })
   })
+
+  // type test
+  it.skip('does not break when a single aliased argument is provided', () => {
+    User.query().leftJoinPreload('compositions as c')
+  })
 })
