@@ -146,37 +146,37 @@ export type QueryWithJoinedAssociationsType<
   Q['dreamInstance'],
   ExtendQueryType<
     Q['queryTypeOpts'],
-    {
+    Readonly<{
       joinedAssociations: JoinedAssociations
-    }
+    }>
   >
 >
 
 export type QueryWithJoinedAssociationsTypeAndNoPreload<
   Q extends Query<any, any>,
-  JoinedAssociations extends Readonly<JoinedAssociation[]>,
+  JoinedAssociations extends Readonly<JoinedAssociation[]> = Readonly<JoinedAssociation[]>,
 > = Query<
   Q['dreamInstance'],
   ExtendQueryType<
     Q['queryTypeOpts'],
-    {
+    Readonly<{
       joinedAssociations: JoinedAssociations
       allowPreload: false
-    }
+    }>
   >
 >
 
 export type QueryWithJoinedAssociationsTypeAndNoLeftJoinPreload<
   Q extends Query<any, any>,
-  JoinedAssociations extends Readonly<JoinedAssociation[]>,
+  JoinedAssociations extends Readonly<JoinedAssociation[]> = Readonly<JoinedAssociation[]>,
 > = Query<
   Q['dreamInstance'],
   ExtendQueryType<
     Q['queryTypeOpts'],
-    {
+    Readonly<{
       joinedAssociations: JoinedAssociations
       allowLeftJoinPreload: false
-    }
+    }>
   >
 >
 
@@ -184,7 +184,7 @@ export type DefaultQueryTypeOptions<
   TableNameSource extends Dream,
   TableAliasSource extends Dream | string = TableNameSource,
 > = Readonly<{
-  joinedAssociations: []
+  joinedAssociations: Readonly<[]>
   rootTableName: TableNameSource['table']
   rootTableAlias: TableAliasSource extends Dream ? TableAliasSource['table'] : TableAliasSource
   allowPreload: true
@@ -193,7 +193,7 @@ export type DefaultQueryTypeOptions<
 
 export default class Query<
   DreamInstance extends Dream,
-  QueryTypeOpts extends QueryTypeOptions = DefaultQueryTypeOptions<DreamInstance>,
+  QueryTypeOpts extends Readonly<QueryTypeOptions> = DefaultQueryTypeOptions<DreamInstance>,
 > extends ConnectedToDB<DreamInstance> {
   /**
    * @internal
@@ -505,19 +505,11 @@ export default class Query<
    * @param opts - Statements to override when cloning the Query
    * @returns A cloned Query with the provided overrides clause applied
    */
-  public clone<
-    QueryTypeExtensions extends Partial<QueryTypeOptions> | undefined = undefined,
-    Q extends Query<DreamInstance, QueryTypeOpts> = Query<DreamInstance, QueryTypeOpts>,
-    NewQueryOpts extends QueryTypeExtensions extends undefined
-      ? QueryTypeOpts
-      : ExtendQueryType<
-          Q['queryTypeOpts'],
-          Readonly<QueryTypeExtensions>
-        > = QueryTypeExtensions extends undefined
-      ? QueryTypeOpts
-      : ExtendQueryType<Q['queryTypeOpts'], Readonly<QueryTypeExtensions>>,
-  >(this: Q, opts: QueryOpts<DreamInstance, any> = {}): Query<DreamInstance, NewQueryOpts> {
-    return new Query<DreamInstance, NewQueryOpts>(this.dreamInstance, {
+  public clone<Q extends Query<DreamInstance, QueryTypeOpts>>(
+    this: Q,
+    opts: QueryOpts<DreamInstance, any> = {}
+  ): Q {
+    return new Query<DreamInstance, QueryTypeOpts>(this.dreamInstance, {
       baseSqlAlias: opts.baseSqlAlias || this.baseSqlAlias,
       baseSelectQuery: opts.baseSelectQuery || this.baseSelectQuery,
       passthroughOnStatement: {
@@ -569,7 +561,7 @@ export default class Query<
       connection: opts.connection || this.connectionOverride,
       shouldReallyDestroy:
         opts.shouldReallyDestroy !== undefined ? opts.shouldReallyDestroy : this.shouldReallyDestroy,
-    })
+    }) as Q
   }
 
   /**
@@ -717,40 +709,43 @@ export default class Query<
    * @returns A cloned Query with the joinLoad statement applied
    */
   public leftJoinPreload<
-    Q extends Query<DreamInstance, ExtendQueryType<QueryTypeOpts, { allowLeftJoinPreload: true }>>,
+    Q extends Query<DreamInstance, any>,
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
     const LastArg extends VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>,
-    Incompatible extends Q extends Query<
+    Incompatible extends Q['queryTypeOpts'] extends Readonly<{ allowLeftJoinPreload: false }> ? true : false,
+    const JoinedAssociations = JoinedAssociationsTypeFromAssociations<
+      DB,
+      Schema,
+      TableName,
+      Incompatible extends true ? [] : [...Arr, LastArg]
+    >,
+    RetQuery = Query<
       DreamInstance,
-      ExtendQueryType<QueryTypeOpts, { allowLeftJoinPreload: false }>
-    >
-      ? true
-      : false,
+      ExtendQueryType<
+        QueryTypeOpts,
+        Readonly<{
+          joinedAssociations: JoinedAssociations & readonly JoinedAssociation[]
+          allowPreload: false
+        }>
+      >
+    >,
   >(
     this: Q,
     ...args: Incompatible extends true ? 'leftJoinPreload is incompatible with preload'[] : [...Arr, LastArg]
-  ) {
+  ): RetQuery {
     const untypedArgs: any[] = [...args] as any[]
     const lastAssociations = [untypedArgs.pop()].flat()
 
     let joinedClone = this
 
     lastAssociations.forEach(associationName => {
-      joinedClone = joinedClone.leftJoin(...untypedArgs, associationName) as unknown as typeof this
+      joinedClone = joinedClone.leftJoin(...untypedArgs, associationName)
     })
 
-    return joinedClone.clone<{
-      joinedAssociations: JoinedAssociationsTypeFromAssociations<
-        DB,
-        Schema,
-        TableName,
-        Incompatible extends true ? [] : [...Arr, LastArg]
-      >
-      allowPreload: false
-    }>({ loadFromJoins: true })
+    return joinedClone.clone({ loadFromJoins: true }) as any
   }
 
   /**
@@ -767,32 +762,33 @@ export default class Query<
    * @returns A cloned Query with the preload statement applied
    */
   public preload<
-    Q extends Query<DreamInstance, ExtendQueryType<QueryTypeOpts, { allowPreload: true }>>,
+    Q extends Query<DreamInstance, any>,
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-    Incompatible extends Q extends Query<
+    Incompatible extends Q['queryTypeOpts'] extends Readonly<{ allowPreload: false }> ? true : false,
+    RetQuery = Query<
       DreamInstance,
-      ExtendQueryType<QueryTypeOpts, { allowPreload: false }>
-    >
-      ? true
-      : false,
+      ExtendQueryType<
+        QueryTypeOpts,
+        Readonly<{
+          allowLeftJoinPreload: false
+        }>
+      >
+    >,
   >(
     this: Q,
     ...args: Incompatible extends true
       ? 'preload is incompatible with leftJoinPreload'[]
       : [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]
-  ) {
+  ): RetQuery {
     const preloadStatements = cloneDeepSafe(this.preloadStatements)
 
     const preloadOnStatements: RelaxedPreloadOnStatement<DB, Schema> = cloneDeepSafe(this.preloadOnStatements)
 
     this.fleshOutJoinStatements([], preloadStatements, preloadOnStatements, null, [...(args as any)])
-    return this.clone<{ allowLeftJoinPreload: false }>({
-      preloadStatements,
-      preloadOnStatements: preloadOnStatements,
-    })
+    return this.clone({ preloadStatements, preloadOnStatements: preloadOnStatements }) as any
   }
 
   /**
@@ -812,7 +808,22 @@ export default class Query<
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
     const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
-  >(...args: [...Arr, LastArg]) {
+    const JoinedAssociations = JoinedAssociationsTypeFromAssociations<
+      DB,
+      Schema,
+      TableName,
+      [...Arr, LastArg]
+    >,
+    RetQuery = Query<
+      DreamInstance,
+      ExtendQueryType<
+        QueryTypeOpts,
+        Readonly<{
+          joinedAssociations: JoinedAssociations & readonly JoinedAssociation[]
+        }>
+      >
+    >,
+  >(...args: [...Arr, LastArg]): RetQuery {
     const innerJoinDreamClasses: (typeof Dream)[] = [...this.innerJoinDreamClasses]
     const innerJoinStatements = cloneDeepSafe(this.innerJoinStatements)
 
@@ -820,13 +831,15 @@ export default class Query<
       this.innerJoinOnStatements
     )
 
-    this.fleshOutJoinStatements(innerJoinDreamClasses, innerJoinStatements, innerJoinOnStatements, null, [
-      ...(args as any),
-    ])
+    this.fleshOutJoinStatements(
+      innerJoinDreamClasses as any,
+      innerJoinStatements,
+      innerJoinOnStatements,
+      null,
+      [...(args as any)]
+    )
 
-    return this.clone<{
-      joinedAssociations: JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
-    }>({ innerJoinDreamClasses, innerJoinStatements, innerJoinOnStatements })
+    return this.clone({ innerJoinDreamClasses, innerJoinStatements, innerJoinOnStatements }) as any
   }
 
   /**
@@ -841,7 +854,22 @@ export default class Query<
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
     const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
-  >(...args: [...Arr, LastArg]) {
+    const JoinedAssociations = JoinedAssociationsTypeFromAssociations<
+      DB,
+      Schema,
+      TableName,
+      [...Arr, LastArg]
+    >,
+    RetQuery = Query<
+      DreamInstance,
+      ExtendQueryType<
+        QueryTypeOpts,
+        Readonly<{
+          joinedAssociations: JoinedAssociations & readonly JoinedAssociation[]
+        }>
+      >
+    >,
+  >(...args: [...Arr, LastArg]): RetQuery {
     const innerJoinDreamClasses: (typeof Dream)[] = [...this.innerJoinDreamClasses]
     const leftJoinStatements = cloneDeepSafe(this.leftJoinStatements)
 
@@ -851,13 +879,7 @@ export default class Query<
       ...(args as any),
     ])
 
-    return this.clone<{
-      joinedAssociations: JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
-    }>({
-      innerJoinDreamClasses,
-      leftJoinStatements,
-      leftJoinOnStatements,
-    })
+    return this.clone({ innerJoinDreamClasses, leftJoinStatements, leftJoinOnStatements }) as any
   }
 
   /**
@@ -3873,7 +3895,7 @@ export default class Query<
 
       return {
         kyselyQuery,
-        clone: this.clone({ where: null, whereNot: null, order: null, limit: null }) as T,
+        clone: this.clone<T>({ where: null, whereNot: null, order: null, limit: null }),
       }
     }
 
@@ -3987,9 +4009,9 @@ type JoinTypes = 'inner' | 'left'
 
 export type ExtendQueryType<
   OriginalOpts extends Readonly<QueryTypeOptions>,
-  Opts extends Partial<QueryTypeOptions>,
+  Opts extends Readonly<Partial<QueryTypeOptions>>,
 > = Readonly<{
-  joinedAssociations: Opts['joinedAssociations'] extends Readonly<Readonly<JoinedAssociation>[]>
+  joinedAssociations: Opts['joinedAssociations'] extends Readonly<JoinedAssociation[]>
     ? Readonly<[...OriginalOpts['joinedAssociations'], ...Opts['joinedAssociations']]>
     : OriginalOpts['joinedAssociations']
 

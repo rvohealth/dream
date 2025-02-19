@@ -27,7 +27,7 @@ export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
 export type IdType = string | number | bigint
 export type Timestamp = ColumnType<DateTime | CalendarDate>
 
-type MAX_VARIADIC_DEPTH = 4
+type MAX_VARIADIC_DEPTH = 25
 
 class RequiredAttribute {
   constructor() {}
@@ -861,7 +861,7 @@ export interface JoinedAssociation {
   alias: string
 }
 
-export interface QueryTypeOptions {
+export type QueryTypeOptions = {
   joinedAssociations: Readonly<JoinedAssociation[]>
   rootTableName: string
   rootTableAlias: string

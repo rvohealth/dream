@@ -13,6 +13,7 @@ import Query, {
 import {
   DefaultScopeName,
   DreamColumnNames,
+  JoinedAssociation,
   JoinedAssociationsTypeFromAssociations,
   OrderDir,
   PassthroughColumnNames,
@@ -379,13 +380,18 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
     const LastArg extends VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>,
-  >(this: I, ...args: [...Arr, LastArg]) {
-    return this.queryInstance().leftJoinPreload(
-      ...(args as any)
-    ) as QueryWithJoinedAssociationsTypeAndNoPreload<
+    const JoinedAssociations = JoinedAssociationsTypeFromAssociations<
+      DB,
+      Schema,
+      TableName,
+      [...Arr, LastArg]
+    >,
+    RetQuery = QueryWithJoinedAssociationsTypeAndNoPreload<
       Query<DreamInstance>,
-      JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
-    >
+      JoinedAssociations & readonly JoinedAssociation[]
+    >,
+  >(this: I, ...args: [...Arr, LastArg]): RetQuery {
+    return this.queryInstance().leftJoinPreload(...(args as any))
   }
 
   /**
@@ -439,11 +445,18 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
     const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
-  >(this: I, ...args: [...Arr, LastArg]) {
-    return this.queryInstance().innerJoin(...(args as any)) as QueryWithJoinedAssociationsType<
+    const JoinedAssociations = JoinedAssociationsTypeFromAssociations<
+      DB,
+      Schema,
+      TableName,
+      [...Arr, LastArg]
+    >,
+    RetQuery = QueryWithJoinedAssociationsType<
       Query<DreamInstance>,
-      JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
-    >
+      JoinedAssociations & readonly JoinedAssociation[]
+    >,
+  >(this: I, ...args: [...Arr, LastArg]): RetQuery {
+    return this.queryInstance().innerJoin(...(args as any))
   }
 
   /**
@@ -466,11 +479,18 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
     const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
-  >(this: I, ...args: [...Arr, LastArg]) {
-    return this.queryInstance().leftJoin(...(args as any)) as QueryWithJoinedAssociationsType<
+    const JoinedAssociations = JoinedAssociationsTypeFromAssociations<
+      DB,
+      Schema,
+      TableName,
+      [...Arr, LastArg]
+    >,
+    RetQuery = QueryWithJoinedAssociationsType<
       Query<DreamInstance>,
-      JoinedAssociationsTypeFromAssociations<DB, Schema, TableName, [...Arr, LastArg]>
-    >
+      JoinedAssociations & readonly JoinedAssociation[]
+    >,
+  >(this: I, ...args: [...Arr, LastArg]): RetQuery {
+    return this.queryInstance().leftJoin(...(args as any))
   }
 
   /**
