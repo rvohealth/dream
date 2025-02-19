@@ -72,7 +72,7 @@ describe('Query#pluck on a join query', () => {
     await EdgeNode.create({ node, edge: edge1 })
     await EdgeNode.create({ node, edge: edge2 })
 
-    const plucked = await Node.query()
+    const plucked = Node.query()
       .innerJoin('edgeNodes', { on: { edgeId: edge2.id } }, 'edge')
       .pluck('edge.id', 'edge.name')
     expect(plucked).toEqual([[edge2.id, edge2.name]])
