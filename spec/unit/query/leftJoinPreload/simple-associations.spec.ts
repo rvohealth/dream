@@ -15,6 +15,33 @@ import PostComment from '../../../../test-app/app/models/PostComment'
 import User from '../../../../test-app/app/models/User'
 
 describe('Query#leftJoinPreload with simple associations', () => {
+  context('multiple associations', () => {
+    let user: User
+    let composition: Composition
+    let balloon: Balloon
+
+    beforeEach(async () => {
+      user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      composition = await Composition.create({ userId: user.id, primary: true })
+      balloon = await Latex.create({ user, color: 'blue' })
+    })
+
+    it('can be loaded via the array syntax', async () => {
+      const reloaded = await User.query().leftJoinPreload(['balloons', 'compositions']).firstOrFail()
+      expect(reloaded.balloons).toMatchDreamModels([balloon])
+      expect(reloaded.compositions).toMatchDreamModels([composition])
+    })
+
+    it('can be loaded via subsequent leftJoinPreload queries', async () => {
+      const reloaded = await User.query()
+        .leftJoinPreload('balloons')
+        .leftJoinPreload('compositions')
+        .firstOrFail()
+      expect(reloaded.balloons).toMatchDreamModels([balloon])
+      expect(reloaded.compositions).toMatchDreamModels([composition])
+    })
+  })
+
   context('HasOne', () => {
     it('loads the association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
