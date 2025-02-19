@@ -27,7 +27,7 @@ export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
 export type IdType = string | number | bigint
 export type Timestamp = ColumnType<DateTime | CalendarDate>
 
-type MAX_VARIADIC_DEPTH = 25
+type MAX_VARIADIC_DEPTH = 4
 
 class RequiredAttribute {
   constructor() {}
@@ -781,17 +781,9 @@ type VariadicRecurse<
   NextTableName extends keyof Schema &
     AssociationTableNames<DB, Schema> &
     keyof DB = CurrentArgumentType extends IS_ASSOCIATION_NAME
-    ? (SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]['tables' &
-        keyof SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]] &
-        any[])[0] &
-        AssociationTableNames<DB, Schema> &
-        keyof DB
+    ? AssociationTableName<Schema, ConcreteTableName, NextUnaliasedAssociationName>
     : CurrentArgumentType extends IS_ASSOCIATION_ALIAS
-      ? (SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]['tables' &
-          keyof SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]] &
-          any[])[0] &
-          AssociationTableNames<DB, Schema> &
-          keyof DB
+      ? AssociationTableName<Schema, ConcreteTableName, NextUnaliasedAssociationName>
       : ConcreteTableName & AssociationTableNames<DB, Schema> & keyof DB,
   //
   AllowedNextArgValues = RecursionType extends 'load'
@@ -946,40 +938,52 @@ export type JoinedAssociationsTypeFromAssociations<
   NextTableName extends keyof Schema &
     AssociationTableNames<DB, Schema> &
     keyof DB = CurrentArgumentType extends IS_ASSOCIATION_NAME
-    ? (SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]['tables' &
-        keyof SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]] &
-        any[])[0] &
-        AssociationTableNames<DB, Schema> &
-        keyof DB
+    ? AssociationTableName<Schema, ConcreteTableName, NextUnaliasedAssociationName>
     : CurrentArgumentType extends IS_ASSOCIATION_ALIAS
-      ? (SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]['tables' &
-          keyof SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]] &
-          any[])[0] &
-          AssociationTableNames<DB, Schema> &
-          keyof DB
+      ? AssociationTableName<Schema, ConcreteTableName, NextUnaliasedAssociationName>
       : ConcreteTableName & AssociationTableNames<DB, Schema> & keyof DB,
   //
 > = ConcreteArgs['length'] extends 0
   ? JoinedAssociationsType
   : Depth extends MAX_VARIADIC_DEPTH
     ? never
-    : JoinedAssociationsTypeFromAssociations<
-        DB,
-        Schema,
-        NextTableName,
-        ReadonlyTail<ConcreteArgs>,
-        Inc<Depth>,
-        NextPreviousConcreteTableName,
-        NextUnaliasedAssociationName,
-        CurrentArgumentType extends IS_NOT_ASSOCIATION_NAME
-          ? JoinedAssociationsType
-          : Readonly<
-              [
-                ...JoinedAssociationsType,
-                { table: NextTableName & string; alias: NextAliasedAssociationName & string },
-              ]
-            >
-      >
+    : ConcreteArgs['length'] extends 1
+      ? ConcreteNthArg extends Readonly<unknown[]>
+        ? JoinedAssociationsType
+        : JoinedAssociationsTypeFromAssociations<
+            DB,
+            Schema,
+            NextTableName,
+            ReadonlyTail<ConcreteArgs>,
+            Inc<Depth>,
+            NextPreviousConcreteTableName,
+            NextAliasedAssociationName,
+            CurrentArgumentType extends IS_NOT_ASSOCIATION_NAME
+              ? JoinedAssociationsType
+              : Readonly<
+                  [
+                    ...JoinedAssociationsType,
+                    { table: NextTableName & string; alias: NextAliasedAssociationName & string },
+                  ]
+                >
+          >
+      : JoinedAssociationsTypeFromAssociations<
+          DB,
+          Schema,
+          NextTableName,
+          ReadonlyTail<ConcreteArgs>,
+          Inc<Depth>,
+          NextPreviousConcreteTableName,
+          NextAliasedAssociationName,
+          CurrentArgumentType extends IS_NOT_ASSOCIATION_NAME
+            ? JoinedAssociationsType
+            : Readonly<
+                [
+                  ...JoinedAssociationsType,
+                  { table: NextTableName & string; alias: NextAliasedAssociationName & string },
+                ]
+              >
+        >
 
 // export type LeftJoinedPreloadAssociationsTypeFromAssociations<
 //   DB,
@@ -1042,17 +1046,9 @@ export type JoinedAssociationsTypeFromAssociations<
 //   NextTableName extends keyof Schema &
 //     AssociationTableNames<DB, Schema> &
 //     keyof DB = CurrentArgumentType extends IS_ASSOCIATION_NAME
-//     ? (SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]['tables' &
-//         keyof SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]] &
-//         any[])[0] &
-//         AssociationTableNames<DB, Schema> &
-//         keyof DB
+//     ? AssociationTableName<Schema, ConcreteTableName, NextUnaliasedAssociationName>
 //     : CurrentArgumentType extends IS_ASSOCIATION_ALIAS
-//       ? (SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]['tables' &
-//           keyof SchemaAssociations[NextUnaliasedAssociationName & keyof SchemaAssociations]] &
-//           any[])[0] &
-//           AssociationTableNames<DB, Schema> &
-//           keyof DB
+//     ? AssociationTableName<Schema, ConcreteTableName, NextUnaliasedAssociationName>
 //       : ConcreteTableName & AssociationTableNames<DB, Schema> & keyof DB,
 //   //
 // > = ConcreteArgs['length'] extends 0

@@ -153,7 +153,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
-    LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
   >(this: I, ...args: [...Arr, LastArg]) {
     return this.queryInstance().innerJoin(...(args as any)) as QueryWithJoinedAssociationsType<
       Query<DreamInstance>,
@@ -180,7 +180,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
-    LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
   >(this: I, ...args: [...Arr, LastArg]) {
     return this.queryInstance().leftJoin(...(args as any)) as QueryWithJoinedAssociationsType<
       Query<DreamInstance>,

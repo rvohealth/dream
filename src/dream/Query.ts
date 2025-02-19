@@ -143,9 +143,9 @@ export type QueryWithJoinedAssociationsType<
   Q extends Query<any, any>,
   JoinedAssociations extends Readonly<JoinedAssociation[]>,
 > = Query<
-  Q extends Query<infer DreamInstance> ? DreamInstance : never,
+  Q['dreamInstance'],
   ExtendQueryType<
-    Q extends Query<any, infer QueryTypeOpts> ? QueryTypeOpts : never,
+    Q['queryTypeOpts'],
     {
       joinedAssociations: JoinedAssociations
     }
@@ -156,9 +156,9 @@ export type QueryWithJoinedAssociationsTypeAndNoPreload<
   Q extends Query<any, any>,
   JoinedAssociations extends Readonly<JoinedAssociation[]>,
 > = Query<
-  Q extends Query<infer DreamInstance> ? DreamInstance : never,
+  Q['dreamInstance'],
   ExtendQueryType<
-    Q extends Query<any, infer QueryTypeOpts> ? QueryTypeOpts : never,
+    Q['queryTypeOpts'],
     {
       joinedAssociations: JoinedAssociations
       allowPreload: false
@@ -170,9 +170,9 @@ export type QueryWithJoinedAssociationsTypeAndNoLeftJoinPreload<
   Q extends Query<any, any>,
   JoinedAssociations extends Readonly<JoinedAssociation[]>,
 > = Query<
-  Q extends Query<infer DreamInstance> ? DreamInstance : never,
+  Q['dreamInstance'],
   ExtendQueryType<
-    Q extends Query<any, infer QueryTypeOpts> ? QueryTypeOpts : never,
+    Q['queryTypeOpts'],
     {
       joinedAssociations: JoinedAssociations
       allowLeftJoinPreload: false
@@ -212,6 +212,12 @@ export default class Query<
    * purely for typing
    */
   public queryTypeOpts: QueryTypeOpts
+
+  /**
+   * @internal
+   * purely for typing
+   */
+  public dreamInstance: DreamInstance
 
   /**
    * @internal
@@ -716,7 +722,7 @@ export default class Query<
     Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-    LastArg extends VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>,
     Incompatible extends Q extends Query<
       DreamInstance,
       ExtendQueryType<QueryTypeOpts, { allowLeftJoinPreload: false }>
@@ -805,7 +811,7 @@ export default class Query<
     Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-    LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
   >(...args: [...Arr, LastArg]) {
     const innerJoinDreamClasses: (typeof Dream)[] = [...this.innerJoinDreamClasses]
     const innerJoinStatements = cloneDeepSafe(this.innerJoinStatements)
@@ -834,7 +840,7 @@ export default class Query<
     Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-    LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
   >(...args: [...Arr, LastArg]) {
     const innerJoinDreamClasses: (typeof Dream)[] = [...this.innerJoinDreamClasses]
     const leftJoinStatements = cloneDeepSafe(this.leftJoinStatements)

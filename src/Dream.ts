@@ -1491,7 +1491,7 @@ export default class Dream {
     TableName extends InstanceType<T>['table'],
     Schema extends I['schema'],
     const Arr extends readonly unknown[],
-    LastArg extends VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>,
   >(this: T, ...args: [...Arr, LastArg]) {
     return this.query().leftJoinPreload(
       ...(args as any)
@@ -1549,7 +1549,7 @@ export default class Dream {
     Schema extends I['schema'],
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
-    LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
   >(this: T, ...args: [...Arr, LastArg]) {
     return this.query().innerJoin(...(args as any)) as QueryWithJoinedAssociationsType<
       Query<I>,
@@ -1574,7 +1574,7 @@ export default class Dream {
     Schema extends I['schema'],
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
-    LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
   >(this: I, ...args: [...Arr, LastArg]) {
     return this.query().innerJoin(...(args as any)) as QueryWithJoinedAssociationsType<
       Query<I>,
@@ -1600,7 +1600,7 @@ export default class Dream {
     Schema extends I['schema'],
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
-    LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
   >(this: T, ...args: [...Arr, LastArg]) {
     return this.query().leftJoin(...(args as any)) as QueryWithJoinedAssociationsType<
       Query<I>,
@@ -1625,7 +1625,7 @@ export default class Dream {
     Schema extends I['schema'],
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
-    LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
   >(this: I, ...args: [...Arr, LastArg]) {
     return this.query().leftJoin(...(args as any)) as QueryWithJoinedAssociationsType<
       Query<I>,
