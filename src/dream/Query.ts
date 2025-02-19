@@ -716,18 +716,22 @@ export default class Query<
     const Arr extends readonly unknown[],
     const LastArg extends VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>,
     Incompatible extends Q['queryTypeOpts'] extends Readonly<{ allowLeftJoinPreload: false }> ? true : false,
-    const JoinedAssociations = JoinedAssociationsTypeFromAssociations<
+    const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
       TableName,
       Incompatible extends true ? [] : [...Arr, LastArg]
     >,
+    const JoinedAssociations extends
+      readonly JoinedAssociation[] = JoinedAssociationsCandidate extends readonly JoinedAssociation[]
+      ? JoinedAssociationsCandidate
+      : never,
     RetQuery = Query<
       DreamInstance,
       ExtendQueryType<
         QueryTypeOpts,
         Readonly<{
-          joinedAssociations: JoinedAssociations & readonly JoinedAssociation[]
+          joinedAssociations: JoinedAssociations
           allowPreload: false
         }>
       >
@@ -808,18 +812,22 @@ export default class Query<
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
     const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
-    const JoinedAssociations = JoinedAssociationsTypeFromAssociations<
+    const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
       TableName,
       [...Arr, LastArg]
     >,
+    const JoinedAssociations extends
+      readonly JoinedAssociation[] = JoinedAssociationsCandidate extends readonly JoinedAssociation[]
+      ? JoinedAssociationsCandidate
+      : never,
     RetQuery = Query<
       DreamInstance,
       ExtendQueryType<
         QueryTypeOpts,
         Readonly<{
-          joinedAssociations: JoinedAssociations & readonly JoinedAssociation[]
+          joinedAssociations: JoinedAssociations
         }>
       >
     >,
@@ -854,18 +862,22 @@ export default class Query<
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
     const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
-    const JoinedAssociations = JoinedAssociationsTypeFromAssociations<
+    const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
       TableName,
       [...Arr, LastArg]
     >,
+    const JoinedAssociations extends
+      readonly JoinedAssociation[] = JoinedAssociationsCandidate extends readonly JoinedAssociation[]
+      ? JoinedAssociationsCandidate
+      : never,
     RetQuery = Query<
       DreamInstance,
       ExtendQueryType<
         QueryTypeOpts,
         Readonly<{
-          joinedAssociations: JoinedAssociations & readonly JoinedAssociation[]
+          joinedAssociations: JoinedAssociations
         }>
       >
     >,

@@ -1493,16 +1493,17 @@ export default class Dream {
     Schema extends I['schema'],
     const Arr extends readonly unknown[],
     const LastArg extends VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>,
-    const JoinedAssociations = JoinedAssociationsTypeFromAssociations<
+    const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
       TableName,
       [...Arr, LastArg]
     >,
-    RetQuery = QueryWithJoinedAssociationsTypeAndNoPreload<
-      Query<I>,
-      JoinedAssociations & readonly JoinedAssociation[]
-    >,
+    const JoinedAssociations extends
+      readonly JoinedAssociation[] = JoinedAssociationsCandidate extends readonly JoinedAssociation[]
+      ? JoinedAssociationsCandidate
+      : never,
+    RetQuery = QueryWithJoinedAssociationsTypeAndNoPreload<Query<I>, JoinedAssociations>,
   >(this: T, ...args: [...Arr, LastArg]): RetQuery {
     return this.query().leftJoinPreload(...(args as any))
   }
@@ -1556,13 +1557,17 @@ export default class Dream {
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
     const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
-    const JoinedAssociations = JoinedAssociationsTypeFromAssociations<
+    const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
       TableName,
       [...Arr, LastArg]
     >,
-    RetQuery = QueryWithJoinedAssociationsType<Query<I>, JoinedAssociations & readonly JoinedAssociation[]>,
+    const JoinedAssociations extends
+      readonly JoinedAssociation[] = JoinedAssociationsCandidate extends readonly JoinedAssociation[]
+      ? JoinedAssociationsCandidate
+      : never,
+    RetQuery = QueryWithJoinedAssociationsType<Query<I>, JoinedAssociations>,
   >(this: T, ...args: [...Arr, LastArg]): RetQuery {
     return this.query().innerJoin(...(args as any))
   }
@@ -1585,13 +1590,17 @@ export default class Dream {
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
     const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
-    const JoinedAssociations = JoinedAssociationsTypeFromAssociations<
+    const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
       TableName,
       [...Arr, LastArg]
     >,
-    RetQuery = QueryWithJoinedAssociationsType<Query<I>, JoinedAssociations & readonly JoinedAssociation[]>,
+    const JoinedAssociations extends
+      readonly JoinedAssociation[] = JoinedAssociationsCandidate extends readonly JoinedAssociation[]
+      ? JoinedAssociationsCandidate
+      : never,
+    RetQuery = QueryWithJoinedAssociationsType<Query<I>, JoinedAssociations>,
   >(this: I, ...args: [...Arr, LastArg]): RetQuery {
     return this.query().innerJoin(...(args as any))
   }
@@ -1615,13 +1624,17 @@ export default class Dream {
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
     const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
-    const JoinedAssociations = JoinedAssociationsTypeFromAssociations<
+    const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
       TableName,
       [...Arr, LastArg]
     >,
-    RetQuery = QueryWithJoinedAssociationsType<Query<I>, JoinedAssociations & readonly JoinedAssociation[]>,
+    const JoinedAssociations extends
+      readonly JoinedAssociation[] = JoinedAssociationsCandidate extends readonly JoinedAssociation[]
+      ? JoinedAssociationsCandidate
+      : never,
+    RetQuery = QueryWithJoinedAssociationsType<Query<I>, JoinedAssociations>,
   >(this: T, ...args: [...Arr, LastArg]): RetQuery {
     return this.query().leftJoin(...(args as any))
   }
@@ -1644,13 +1657,17 @@ export default class Dream {
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
     const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
-    const JoinedAssociations = JoinedAssociationsTypeFromAssociations<
+    const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
       TableName,
       [...Arr, LastArg]
     >,
-    RetQuery = QueryWithJoinedAssociationsType<Query<I>, JoinedAssociations & readonly JoinedAssociation[]>,
+    const JoinedAssociations extends
+      readonly JoinedAssociation[] = JoinedAssociationsCandidate extends readonly JoinedAssociation[]
+      ? JoinedAssociationsCandidate
+      : never,
+    RetQuery = QueryWithJoinedAssociationsType<Query<I>, JoinedAssociations>,
   >(this: I, ...args: [...Arr, LastArg]): RetQuery {
     return this.query().leftJoin(...(args as any))
   }

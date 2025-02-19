@@ -155,16 +155,17 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
     const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
-    const JoinedAssociations = JoinedAssociationsTypeFromAssociations<
+    const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
       TableName,
       [...Arr, LastArg]
     >,
-    RetQuery = QueryWithJoinedAssociationsType<
-      Query<DreamInstance>,
-      JoinedAssociations & readonly JoinedAssociation[]
-    >,
+    const JoinedAssociations extends
+      readonly JoinedAssociation[] = JoinedAssociationsCandidate extends readonly JoinedAssociation[]
+      ? JoinedAssociationsCandidate
+      : never,
+    RetQuery = QueryWithJoinedAssociationsType<Query<DreamInstance>, JoinedAssociations>,
   >(this: I, ...args: [...Arr, LastArg]): RetQuery {
     return this.queryInstance().innerJoin(...(args as any))
   }
@@ -189,16 +190,17 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
     const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
-    const JoinedAssociations = JoinedAssociationsTypeFromAssociations<
+    const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
       TableName,
       [...Arr, LastArg]
     >,
-    RetQuery = QueryWithJoinedAssociationsType<
-      Query<DreamInstance>,
-      JoinedAssociations & readonly JoinedAssociation[]
-    >,
+    const JoinedAssociations extends
+      readonly JoinedAssociation[] = JoinedAssociationsCandidate extends readonly JoinedAssociation[]
+      ? JoinedAssociationsCandidate
+      : never,
+    RetQuery = QueryWithJoinedAssociationsType<Query<DreamInstance>, JoinedAssociations>,
   >(this: I, ...args: [...Arr, LastArg]): RetQuery {
     return this.queryInstance().leftJoin(...(args as any))
   }
