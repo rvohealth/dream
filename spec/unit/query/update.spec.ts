@@ -2,6 +2,7 @@ import DreamDbConnection from '../../../src/db/DreamDbConnection'
 import ReplicaSafe from '../../../src/decorators/ReplicaSafe'
 import NoUpdateAllOnJoins from '../../../src/errors/NoUpdateAllOnJoins'
 import NoUpdateOnAssociationQuery from '../../../src/errors/NoUpdateOnAssociationQuery'
+import modifiers from '../../../src/modifiers'
 import ops from '../../../src/ops'
 import Pet from '../../../test-app/app/models/Pet'
 import User from '../../../test-app/app/models/User'
@@ -108,6 +109,42 @@ describe('Query#update', () => {
 
       expect(user1.name).toEqual('cool')
       expect(user2.name).toEqual('calvin')
+    })
+  })
+
+  context('arrays', () => {
+    context('arrayCat', () => {
+      it('provides support for updating an array field by pushing into it', async () => {
+        const user = await User.create({ email: 'fred@fred', password: 'howyadoin', favoriteNumbers: [1] })
+        await User.where({ id: user.id }).update({ favoriteNumbers: modifiers.arrayCat([2, 3]) })
+
+        await user.reload()
+        expect(user.favoriteNumbers).toEqual([1, 2, 3])
+      })
+    })
+
+    context('arrayPush', () => {
+      it('provides support for updating an array field by pushing into it', async () => {
+        const user = await User.create({ email: 'fred@fred', password: 'howyadoin', favoriteNumbers: [1] })
+        await User.where({ id: user.id }).update({ favoriteNumbers: modifiers.arrayAppend(2) })
+
+        await user.reload()
+        expect(user.favoriteNumbers).toEqual([1, 2])
+      })
+    })
+
+    context('arrayRemove', () => {
+      it('provides support for removing a value from an array field', async () => {
+        const user = await User.create({
+          email: 'fred@fred',
+          password: 'howyadoin',
+          favoriteNumbers: [1, 2, 3],
+        })
+        await User.where({ id: user.id }).update({ favoriteNumbers: modifiers.arrayRemove(2) })
+
+        await user.reload()
+        expect(user.favoriteNumbers).toEqual([1, 3])
+      })
     })
   })
 

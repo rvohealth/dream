@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { CalendarDate, Dream, DreamTransaction } from '../../../src'
+import { CalendarDate, Dream, DreamTransaction, modifiers } from '../../../src'
 import * as runHooksForModule from '../../../src/dream/internal/runHooksFor'
 import * as safelyRunCommitHooksModule from '../../../src/dream/internal/safelyRunCommitHooks'
 import CanOnlyPassBelongsToModelParam from '../../../src/errors/associations/CanOnlyPassBelongsToModelParam'
@@ -447,6 +447,48 @@ describe('Dream#update', () => {
 
       user = await User.findOrFail(user.id)
       expect(user.secret).toEqual('howyadoin')
+    })
+  })
+
+  context('arrays', () => {
+    context('arrayCat', () => {
+      it('provides support for updating an array field by pushing into it', async () => {
+        const user = await User.create({ email: 'fred@fred', password: 'howyadoin', favoriteNumbers: [1] })
+        await user.update({ favoriteNumbers: modifiers.arrayCat([2, 3]) })
+
+        expect(user.favoriteNumbers).toEqual([1, 2, 3])
+
+        await user.reload()
+        expect(user.favoriteNumbers).toEqual([1, 2, 3])
+      })
+    })
+
+    context('arrayPush', () => {
+      it('provides support for updating an array field by pushing into it', async () => {
+        const user = await User.create({ email: 'fred@fred', password: 'howyadoin', favoriteNumbers: [1] })
+        await user.update({ favoriteNumbers: modifiers.arrayAppend(2) })
+
+        expect(user.favoriteNumbers).toEqual([1, 2])
+
+        await user.reload()
+        expect(user.favoriteNumbers).toEqual([1, 2])
+      })
+    })
+
+    context('arrayRemove', () => {
+      it('provides support for removing a value from an array field', async () => {
+        const user = await User.create({
+          email: 'fred@fred',
+          password: 'howyadoin',
+          favoriteNumbers: [1, 2, 3],
+        })
+        await user.update({ favoriteNumbers: modifiers.arrayRemove(2) })
+
+        expect(user.favoriteNumbers).toEqual([1, 3])
+
+        await user.reload()
+        expect(user.favoriteNumbers).toEqual([1, 3])
+      })
     })
   })
 })

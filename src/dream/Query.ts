@@ -8,7 +8,6 @@ import {
   SelectQueryBuilder,
   SqlBool,
   UpdateQueryBuilder,
-  Updateable,
   sql,
 } from 'kysely'
 import isEmpty from 'lodash.isempty'
@@ -78,7 +77,6 @@ import {
   DefaultScopeName,
   DreamColumnNames,
   DreamConst,
-  DreamTableSchema,
   IdType,
   JoinOnStatements,
   JoinedAssociation,
@@ -95,6 +93,7 @@ import {
   TableColumnNames,
   TableColumnType,
   TableOrAssociationName,
+  UpdateableProperties,
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
@@ -2283,7 +2282,7 @@ export default class Query<
    * @returns The number of records that were updated
    */
   public async update(
-    attributes: DreamTableSchema<DreamInstance>,
+    attributes: UpdateableProperties<DreamInstance>,
     { skipHooks }: { skipHooks?: boolean } = {}
   ): Promise<number> {
     if (this.baseSelectQuery) throw new NoUpdateOnAssociationQuery()
@@ -2306,7 +2305,7 @@ export default class Query<
     return counter
   }
 
-  private async updateWithoutCallingModelHooks(attributes: DreamTableSchema<DreamInstance>) {
+  private async updateWithoutCallingModelHooks(attributes: UpdateableProperties<DreamInstance>) {
     const kyselyQuery = this.buildUpdate(attributes)
     const res = await executeDatabaseQuery(kyselyQuery, 'execute')
     const resultData = Array.from(res.entries())?.[0]?.[1]
@@ -3773,7 +3772,7 @@ export default class Query<
   }
 
   private buildUpdate<DB extends DreamInstance['DB']>(
-    attributes: Updateable<DreamInstance['table']>
+    attributes: UpdateableProperties<DreamInstance>
   ): UpdateQueryBuilder<DB, any, any, object> {
     let kyselyQuery = this.dbFor('update')
       .updateTable(this.dreamClass.table as DreamInstance['table'])

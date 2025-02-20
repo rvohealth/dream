@@ -8,6 +8,7 @@ import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
 import LocalizedText from '../../../../test-app/app/models/LocalizedText'
 import Pet from '../../../../test-app/app/models/Pet'
 import User from '../../../../test-app/app/models/User'
+import { modifiers } from '../../../../src'
 
 describe('Dream#updateAssociation', () => {
   context('with an on-clause', () => {
@@ -233,6 +234,56 @@ describe('Dream#updateAssociation', () => {
 
           expect(collar.tagName).toEqual('howdy')
           expect(unrelatedCollar.tagName).toEqual('unrelated')
+        })
+      })
+    })
+
+    context('arrays', () => {
+      context('arrayCat', () => {
+        it('provides support for updating an array field by pushing into it', async () => {
+          const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+          const pet = await Pet.create({ user, favoriteTreats: ['tuna'] })
+          const otherPet = await Pet.create({ favoriteTreats: ['tuna'] })
+          await user.updateAssociation('pets', {
+            favoriteTreats: modifiers.arrayCat(['chicken', 'ocean fish']),
+          })
+
+          await pet.reload()
+          await otherPet.reload()
+          expect(pet.favoriteTreats).toEqual(['tuna', 'chicken', 'ocean fish'])
+          expect(otherPet.favoriteTreats).toEqual(['tuna'])
+        })
+      })
+
+      context('arrayAppend', () => {
+        it('provides support for updating an array field by pushing into it', async () => {
+          const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+          const pet = await Pet.create({ user, favoriteTreats: ['tuna'] })
+          const otherPet = await Pet.create({ favoriteTreats: ['tuna'] })
+          await user.updateAssociation('pets', {
+            favoriteTreats: modifiers.arrayAppend('chicken'),
+          })
+
+          await pet.reload()
+          await otherPet.reload()
+          expect(pet.favoriteTreats).toEqual(['tuna', 'chicken'])
+          expect(otherPet.favoriteTreats).toEqual(['tuna'])
+        })
+      })
+
+      context('arrayRemove', () => {
+        it('provides support for removing a value from an array field', async () => {
+          const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+          const pet = await Pet.create({ user, favoriteTreats: ['tuna', 'chicken'] })
+          const otherPet = await Pet.create({ favoriteTreats: ['tuna', 'chicken'] })
+          await user.updateAssociation('pets', {
+            favoriteTreats: modifiers.arrayRemove('chicken'),
+          })
+
+          await pet.reload()
+          await otherPet.reload()
+          expect(pet.favoriteTreats).toEqual(['tuna'])
+          expect(otherPet.favoriteTreats).toEqual(['tuna', 'chicken'])
         })
       })
     })

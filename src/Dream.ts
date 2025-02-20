@@ -3753,7 +3753,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    attributes: Partial<DreamAttributes<AssociationNameToDream<I, AssociationName>>>,
+    attributes: Partial<UpdateableProperties<AssociationNameToDream<I, AssociationName>>>,
     updateAssociationOptions: {
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<I>[]
@@ -3771,7 +3771,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    attributes: Partial<DreamAttributes<AssociationNameToDream<I, AssociationName>>>,
+    attributes: Partial<UpdateableProperties<AssociationNameToDream<I, AssociationName>>>,
     updateAssociationOptions?: {
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<I>[]
@@ -3804,7 +3804,7 @@ export default class Dream {
   public async updateAssociation<I extends Dream, AssociationName extends DreamAssociationNames<I>>(
     this: I,
     associationName: AssociationName,
-    attributes: Partial<DreamAttributes<AssociationNameToDream<I, AssociationName>>>,
+    attributes: Partial<UpdateableProperties<AssociationNameToDream<I, AssociationName>>>,
     updateAssociationOptions?: unknown
   ): Promise<number> {
     return associationUpdateQuery(this, null, associationName, {

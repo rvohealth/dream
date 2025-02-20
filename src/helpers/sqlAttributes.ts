@@ -3,6 +3,9 @@ import Dream from '../Dream'
 import CalendarDate from './CalendarDate'
 import isDateTimeColumn from './db/types/isDateTimeColumn'
 import { isString } from './typechecks'
+import ModifierStatement from '../modifiers/modifier-statement'
+import { sql } from 'kysely'
+import snakeify from './snakeify'
 
 export default function sqlAttributes(dream: Dream) {
   const attributes = dream.dirtyAttributes()
@@ -22,6 +25,8 @@ export default function sqlAttributes(dream: Dream) {
         // handing off to Kysely, we bypass Javascript dates altogether, sending the string into the
         // database for storage as a date or datetime.
         result[key] = val.toSQL()
+      } else if (val instanceof ModifierStatement) {
+        result[key] = modifierStatementToVal(dream.table, key, val)
       } else if (val !== undefined) {
         result[key] = val
       }
@@ -30,4 +35,21 @@ export default function sqlAttributes(dream: Dream) {
     },
     {} as { [key: string]: any }
   )
+}
+
+function modifierStatementToVal(
+  tableName: string,
+  columnName: string,
+  modifierStatement: ModifierStatement<any>
+) {
+  switch (modifierStatement.operator) {
+    case 'arrayCat':
+      return sql`array_cat(${sql.raw(tableName)}.${sql.raw(snakeify(columnName))}, ${modifierStatement.value})`
+
+    case 'arrayAppend':
+      return sql`array_append(${sql.raw(tableName)}.${sql.raw(snakeify(columnName))}, ${modifierStatement.value})`
+
+    case 'arrayRemove':
+      return sql`array_remove(${sql.raw(tableName)}.${sql.raw(snakeify(columnName))}, ${modifierStatement.value})`
+  }
 }

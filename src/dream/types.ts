@@ -16,6 +16,7 @@ import { FilterInterface, Inc, ReadonlyTail } from '../helpers/typeutils'
 import OpsStatement from '../ops/ops-statement'
 import DreamSerializer from '../serializer'
 import { FindEachOpts } from './Query'
+import ModifierStatement from '../modifiers/modifier-statement'
 
 export const primaryKeyTypes = ['bigserial', 'bigint', 'uuid', 'integer'] as const
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
@@ -40,6 +41,8 @@ export const DreamConst = {
 
 export const TRIGRAM_OPERATORS = ['%', '<%', '<<%'] as const
 export type TrigramOperator = (typeof TRIGRAM_OPERATORS)[number]
+
+export type ModifierExpression = 'arrayCat' | 'arrayAppend' | 'arrayRemove'
 export type OrderDir = 'asc' | 'desc'
 
 export interface SortableOptions<T extends typeof Dream> {
@@ -295,6 +298,20 @@ export type JoinOnStatements<
 // end: Association type helpers
 ////////////////////////////////
 
+export type UpdateableProperties<
+  I extends Dream,
+  TableName extends AssociationTableNames<I['DB'], I['schema']> & I['table'] = I['table'],
+  VirtualColumns = DreamVirtualColumns<I>,
+  EncryptedColumns = DreamEncryptedColumns<I>,
+  KyselyUpdateable = Updateable<I['DB'][TableName]>,
+> = Partial<
+  {
+    [K in keyof KyselyUpdateable]: KyselyUpdateable[K] | ModifierStatement<any>
+  } & (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object) &
+    (EncryptedColumns extends readonly any[] ? Record<EncryptedColumns[number], any> : object) &
+    (AssociatedModelParam<I> extends never ? object : AssociatedModelParam<I>)
+>
+
 export type UpdateablePropertiesForClass<
   DreamClass extends typeof Dream,
   TableName extends AssociationTableNames<
@@ -304,9 +321,11 @@ export type UpdateablePropertiesForClass<
     InstanceType<DreamClass>['table'] = InstanceType<DreamClass>['table'],
   VirtualColumns = DreamVirtualColumns<InstanceType<DreamClass>>,
   EncryptedColumns = DreamEncryptedColumns<InstanceType<DreamClass>>,
+  KyselyUpdateable = Updateable<InstanceType<DreamClass>['DB'][TableName]>,
 > = Partial<
-  Updateable<InstanceType<DreamClass>['DB'][TableName]> &
-    (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object) &
+  {
+    [K in keyof KyselyUpdateable]: KyselyUpdateable[K] | ModifierStatement<any>
+  } & (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object) &
     (EncryptedColumns extends readonly any[] ? Record<EncryptedColumns[number], any> : object) &
     (AssociatedModelParam<InstanceType<DreamClass>> extends never
       ? object
@@ -320,9 +339,11 @@ export type UpdateableAssociationProperties<
   AssociationTableName extends AssociationTableNames<DreamInstance['DB'], DreamInstance['schema']> &
     keyof DreamInstance['DB'] = AssociationClass['table'],
   VirtualColumns = VirtualColumnsForTable<Schema, AssociationTableName>,
+  KyselyUpdateable = Updateable<DreamInstance['DB'][AssociationTableName]>,
 > = Partial<
-  Updateable<DreamInstance['DB'][AssociationTableName]> &
-    (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object) &
+  {
+    [K in keyof KyselyUpdateable]: KyselyUpdateable[K] | ModifierStatement<any>
+  } & (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object) &
     (AssociatedModelParam<AssociationClass> extends never ? object : AssociatedModelParam<AssociationClass>)
 >
 
@@ -332,18 +353,6 @@ export type AttributeKeys<
   VirtualColumns = DreamVirtualColumns<I>,
 > = keyof (Updateable<I['DB'][TableName]> &
   (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object))
-
-export type UpdateableProperties<
-  I extends Dream,
-  TableName extends AssociationTableNames<I['DB'], I['schema']> & I['table'] = I['table'],
-  VirtualColumns = DreamVirtualColumns<I>,
-  EncryptedColumns = DreamEncryptedColumns<I>,
-> = Partial<
-  Updateable<I['DB'][TableName]> &
-    (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object) &
-    (EncryptedColumns extends readonly any[] ? Record<EncryptedColumns[number], any> : object) &
-    (AssociatedModelParam<I> extends never ? object : AssociatedModelParam<I>)
->
 
 // Model global names and tables
 export type TableNameForGlobalModelName<
