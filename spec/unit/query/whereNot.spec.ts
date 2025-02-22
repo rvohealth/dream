@@ -3,11 +3,21 @@ import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/Canno
 import ops from '../../../src/ops'
 import Balloon from '../../../test-app/app/models/Balloon'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
 
 describe('Query#whereNot', () => {
+  it('negates the logic of all the clauses ANDed together', async () => {
+    await Latex.create({ color: 'red' })
+    const redMylarBalloon = await Mylar.create({ color: 'red' })
+    const greenLatexBalloon = await Latex.create({ color: 'green' })
+
+    const balloons = await Balloon.whereNot({ color: 'red', type: 'Latex' }).all()
+    expect(balloons).toMatchDreamModels([redMylarBalloon, greenLatexBalloon])
+  })
+
   context('passing undefined as a value for a field', () => {
     it('raises an exception', async () => {
       await expect(async () => await User.query().whereNot({ email: undefined }).all()).rejects.toThrowError(

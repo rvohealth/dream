@@ -1,8 +1,9 @@
 import Balloon from '../../../../../test-app/app/models/Balloon'
 import Latex from '../../../../../test-app/app/models/Balloon/Latex'
+import Mylar from '../../../../../test-app/app/models/Balloon/Mylar'
 import Pet from '../../../../../test-app/app/models/Pet'
 
-describe('where clauses on associations (also see various specs in spec/unit/query)', () => {
+describe('on clauses on associations (also see various specs in spec/unit/query)', () => {
   let pet: Pet
   let redBalloon: Balloon
   let greenBalloon: Balloon
@@ -19,7 +20,7 @@ describe('where clauses on associations (also see various specs in spec/unit/que
     await pet.createAssociation('collars', { balloon: noColorBalloon })
   })
 
-  context('where', () => {
+  context('on', () => {
     context('a non-null value', () => {
       it('matches records with the value in the specified column', async () => {
         const reloaded = await Pet.leftJoinPreload('where_red').firstOrFail()
@@ -151,7 +152,17 @@ describe('where clauses on associations (also see various specs in spec/unit/que
     })
   })
 
-  context('whereNot', () => {
+  context('notOn', () => {
+    context('multiple clauses', () => {
+      it('negates the logic of all the clauses ANDed together', async () => {
+        const redMylarBalloon = await Mylar.create({ color: 'red' })
+        await pet.createAssociation('collars', { balloon: redBalloon })
+
+        const balloons = await Balloon.whereNot({ color: 'red', type: 'Latex' }).all()
+        expect(balloons).toMatchDreamModels([redMylarBalloon, greenBalloon, noColorBalloon])
+      })
+    })
+
     context('a non-null value', () => {
       it('include records with fields with a value that doesn’t match specified value, including null', async () => {
         const reloaded = await Pet.leftJoinPreload('whereNot_red').firstOrFail()

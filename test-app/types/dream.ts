@@ -2533,6 +2533,13 @@ export const schema = {
         optional: null,
         requiredOnClauses: null,
       },
+      whereNot_multipleClauses: {
+        type: 'HasMany',
+        foreignKey: null,
+        tables: ['beautiful_balloons'],
+        optional: null,
+        requiredOnClauses: null,
+      },
       whereNot_null: {
         type: 'HasMany',
         foreignKey: null,

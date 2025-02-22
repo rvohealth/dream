@@ -3,6 +3,7 @@ import JoinAttemptedOnMissingAssociation from '../../../../src/errors/associatio
 import MissingThroughAssociationSource from '../../../../src/errors/associations/MissingThroughAssociationSource'
 import Balloon from '../../../../test-app/app/models/Balloon'
 import Latex from '../../../../test-app/app/models/Balloon/Latex'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import BalloonSpotter from '../../../../test-app/app/models/BalloonSpotter'
 import BalloonSpotterBalloon from '../../../../test-app/app/models/BalloonSpotterBalloon'
 import Collar from '../../../../test-app/app/models/Collar'
@@ -32,7 +33,7 @@ describe('Query#leftJoinPreload through', () => {
       expect(reloaded.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon)
     })
 
-    it('supports where clauses', async () => {
+    it('supports on-clauses', async () => {
       const balloon = await Latex.create()
       const balloon2 = await Latex.create()
       const balloonSpotter = await BalloonSpotter.create()
@@ -44,6 +45,21 @@ describe('Query#leftJoinPreload through', () => {
         .firstOrFail()
       expect(reloaded.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon2])
       expect(reloaded.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon2)
+    })
+
+    context('supports notOn-clauses', () => {
+      it('negates the logic of all the clauses ANDed together', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+
+        await Latex.create({ user, color: 'red' })
+        const redMylarBalloon = await Mylar.create({ user, color: 'red' })
+        const greenLatexBalloon = await Latex.create({ user, color: 'green' })
+
+        const reloaded = await User.leftJoinPreload('balloons', {
+          notOn: { color: 'red', type: 'Latex' },
+        }).firstOrFail()
+        expect(reloaded.balloons).toMatchDreamModels([redMylarBalloon, greenLatexBalloon])
+      })
     })
 
     it('supports where clauses farther in', async () => {

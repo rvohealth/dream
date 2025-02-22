@@ -1,6 +1,5 @@
 import {
   AliasedExpression,
-  ComparisonOperator,
   DeleteQueryBuilder,
   ExpressionBuilder,
   ExpressionWrapper,
@@ -16,7 +15,6 @@ import isEmpty from 'lodash.isempty'
 import { DateTime } from 'luxon'
 import { singular } from 'pluralize'
 import ConnectedToDB from '../db/ConnectedToDB'
-import { AssociationTableNames } from '../db/reflections'
 import { DbConnectionType } from '../db/types'
 import associationToGetterSetterProp from '../decorators/associations/associationToGetterSetterProp'
 import { BelongsToStatement } from '../decorators/associations/BelongsTo'
@@ -101,43 +99,6 @@ import {
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
 } from './types'
-
-const OPERATION_NEGATION_MAP: Partial<{
-  [Property in ComparisonOperator]: KyselyComparisonOperatorExpression
-}> = {
-  '=': '!=',
-  '==': '!=',
-  '!=': '=',
-  '<>': '=',
-  '>': '<=',
-  '>=': '<',
-  '<': '>=',
-  '<=': '>',
-  in: 'not in',
-  'not in': 'in',
-  is: 'is not',
-  'is not': 'is',
-  like: 'not like',
-  'not like': 'like',
-  // 'match',
-  ilike: 'not ilike',
-  'not ilike': 'ilike',
-  // '@>',
-  // '<@',
-  // '?',
-  // '?&',
-  '!<': '<',
-  '!>': '>',
-  // '<=>',
-  '!~': '~',
-  '~': '!~',
-  '~*': '!~*',
-  '!~*': '~*',
-  // '@@',
-  // '@@@',
-  // '!!',
-  // '<->',
-} as const
 
 export type QueryWithJoinedAssociationsType<
   Q extends Query<any, any>,
@@ -282,7 +243,7 @@ export default class Query<
    * stores the or statements applied to the
    * current Query instance
    */
-  private readonly orStatements: readonly WhereStatement<
+  private readonly whereAnyStatements: readonly WhereStatement<
     DreamInstance['DB'],
     DreamInstance['schema'],
     any
@@ -429,7 +390,7 @@ export default class Query<
     this.passthroughOnStatement = Object.freeze(opts.passthroughOnStatement || {})
     this.whereStatements = Object.freeze(opts.where || [])
     this.whereNotStatements = Object.freeze(opts.whereNot || [])
-    this.orStatements = Object.freeze(opts.or || [])
+    this.whereAnyStatements = Object.freeze(opts.or || [])
     this.orderStatements = Object.freeze(opts.order || [])
     this.joinLoadActivated = opts.loadFromJoins || false
     this.preloadStatements = Object.freeze(opts.preloadStatements || {})
@@ -526,7 +487,7 @@ export default class Query<
           : opts.offset !== undefined
             ? opts.offset
             : this.offsetStatement || null,
-      or: opts.or === null ? [] : [...this.orStatements, ...(opts.or || [])],
+      or: opts.or === null ? [] : [...this.whereAnyStatements, ...(opts.or || [])],
       order: opts.order === null ? [] : [...this.orderStatements, ...(opts.order || [])],
 
       distinctColumn: opts.distinctColumn !== undefined ? opts.distinctColumn : this.distinctColumn,
@@ -2752,7 +2713,13 @@ export default class Query<
   // Through associations don't get written into the SQL; they
   // locate the next association we need to build into the SQL
   // AND the source to reference on the other side
-  private joinsBridgeThroughAssociations<Schema extends DreamInstance['schema']>({
+  private joinsBridgeThroughAssociations<
+    QueryType extends
+      | SelectQueryBuilder<any, any, any>
+      | UpdateQueryBuilder<any, any, any, any>
+      | DeleteQueryBuilder<any, any, any>,
+    Schema extends DreamInstance['schema'],
+  >({
     query,
     dreamClass,
     association,
@@ -2760,7 +2727,7 @@ export default class Query<
     throughAssociations,
     joinType,
   }: {
-    query: SelectQueryBuilder<any, any, any>
+    query: QueryType
     dreamClass: typeof Dream
     association:
       | HasOneStatement<any, any, any, any>
@@ -2770,7 +2737,7 @@ export default class Query<
     throughAssociations: (HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>)[]
     joinType: JoinTypes
   }): {
-    query: SelectQueryBuilder<any, any, any>
+    query: QueryType
     dreamClass: typeof Dream
     association:
       | HasOneStatement<any, any, any, any>
@@ -2836,7 +2803,14 @@ export default class Query<
     }
   }
 
-  private applyOneJoin<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>({
+  private applyOneJoin<
+    QueryType extends
+      | SelectQueryBuilder<any, any, any>
+      | UpdateQueryBuilder<any, any, any, any>
+      | DeleteQueryBuilder<any, any, any>,
+    DB extends DreamInstance['DB'],
+    Schema extends DreamInstance['schema'],
+  >({
     query,
     dreamClass,
     previousAssociationTableOrAlias,
@@ -2845,7 +2819,7 @@ export default class Query<
     throughAssociations = [],
     joinType,
   }: {
-    query: SelectQueryBuilder<any, any, any>
+    query: QueryType
     dreamClass: typeof Dream
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
     currentAssociationTableOrAlias: TableOrAssociationName<Schema>
@@ -2854,7 +2828,7 @@ export default class Query<
 
     joinType: JoinTypes
   }): {
-    query: SelectQueryBuilder<any, any, any>
+    query: QueryType
     association:
       | HasOneStatement<any, any, any, any>
       | HasManyStatement<any, any, any, any>
@@ -2906,14 +2880,14 @@ export default class Query<
       throughAssociations.forEach(
         (throughAssociation: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>) => {
           if (throughAssociation.type === 'HasMany') {
-            if (throughAssociation.distinct) {
-              query = query.distinctOn(
+            if ((query as SelectQueryBuilder<any, any, any>)?.distinctOn && throughAssociation.distinct) {
+              query = (query as SelectQueryBuilder<any, any, any>).distinctOn(
                 this.distinctColumnNameForAssociation({
                   association: throughAssociation,
                   tableNameOrAlias: throughAssociation.as,
                   foreignKey: throughAssociation.primaryKey(),
-                }) as any
-              )
+                }) as string
+              ) as QueryType
             }
 
             if (throughAssociation.order) {
@@ -2943,7 +2917,7 @@ export default class Query<
           ? currentAssociationTableOrAlias
           : `${to} as ${currentAssociationTableOrAlias}`
 
-      query = query[(joinType === 'inner' ? 'innerJoin' : 'leftJoin') as 'innerJoin'](
+      query = (query as any)[(joinType === 'inner' ? 'innerJoin' : 'leftJoin') as 'innerJoin'](
         joinTableExpression,
         (join: JoinBuilder<any, any>) => {
           join = join.onRef(
@@ -2990,7 +2964,7 @@ export default class Query<
           ? currentAssociationTableOrAlias
           : `${to} as ${currentAssociationTableOrAlias}`
 
-      query = query[(joinType === 'inner' ? 'innerJoin' : 'leftJoin') as 'innerJoin'](
+      query = (query as any)[(joinType === 'inner' ? 'innerJoin' : 'leftJoin') as 'innerJoin'](
         joinTableExpression,
         (join: JoinBuilder<any, any>) => {
           join = join.onRef(
@@ -3000,17 +2974,17 @@ export default class Query<
           )
 
           if (association.polymorphic) {
-            join = this.applyWhereOrOnStatements(
-              join,
-              this.aliasWhereStatements(
-                [
+            join = join.on((eb: ExpressionBuilder<any, any>) =>
+              this.whereStatementsToExpressionWrapper(
+                eb,
+                this.aliasWhereStatement(
                   {
                     [association.foreignKeyTypeField()]: throughClass
                       ? throughClass['stiBaseClassOrOwnClass'].name
                       : dreamClass['stiBaseClassOrOwnClass'].name,
                   } as any,
-                ],
-                currentAssociationTableOrAlias
+                  currentAssociationTableOrAlias
+                )
               )
             )
           }
@@ -3064,14 +3038,14 @@ export default class Query<
           })
         }
 
-        if (association.distinct) {
-          query = query.distinctOn(
+        if ((query as SelectQueryBuilder<any, any, any>).distinctOn && association.distinct) {
+          query = (query as SelectQueryBuilder<any, any, any>).distinctOn(
             this.distinctColumnNameForAssociation({
               association,
               tableNameOrAlias: currentAssociationTableOrAlias,
               foreignKey: association.foreignKey(),
-            }) as any
-          )
+            }) as string
+          ) as QueryType
         }
       }
     }
@@ -3098,52 +3072,61 @@ export default class Query<
     joinOnStatements: RelaxedJoinOnStatement<any, any>
   }) {
     if (association.on) {
-      join = this.applyWhereOrOnStatements(
-        join,
-        this.aliasWhereStatements(
-          [association.on as WhereStatement<any, any, any>],
-          currentAssociationTableOrAlias
-        )
-      )
-
       this.throwUnlessAllRequiredWhereClausesProvided(
         association,
         currentAssociationTableOrAlias,
         joinOnStatements
       )
+
+      join = join.on((eb: ExpressionBuilder<any, any>) =>
+        this.whereStatementsToExpressionWrapper(
+          eb,
+          this.aliasWhereStatement(
+            association.on as WhereStatement<any, any, any>,
+            currentAssociationTableOrAlias
+          ),
+          { disallowSimilarityOperator: false }
+        )
+      )
     }
 
     if (association.notOn) {
-      join = this.applyWhereOrOnStatements(
-        join,
-        this.aliasWhereStatements(
-          [association.notOn as WhereStatement<any, any, any>],
-          currentAssociationTableOrAlias
-        ),
-        { negate: true }
+      join = join.on((eb: ExpressionBuilder<any, any>) =>
+        this.whereStatementsToExpressionWrapper(
+          eb,
+          this.aliasWhereStatement(
+            association.notOn as WhereStatement<any, any, any>,
+            currentAssociationTableOrAlias
+          ),
+          { negate: true }
+        )
       )
     }
 
     if (association.selfOn) {
-      join = this.applyWhereOrOnStatements(
-        join,
-        this.rawifiedSelfOnClause({
-          associationAlias: association.as,
-          selfAlias: previousAssociationTableOrAlias,
-          selfOnClause: association.selfOn,
-        })
+      join = join.on((eb: ExpressionBuilder<any, any>) =>
+        this.whereStatementsToExpressionWrapper(
+          eb,
+          this.rawifiedSelfOnClause({
+            associationAlias: association.as,
+            selfAlias: previousAssociationTableOrAlias,
+            selfOnClause: association.selfOn as any,
+          })
+        )
       )
     }
 
     if (association.selfNotOn) {
-      join = this.applyWhereOrOnStatements(
-        join,
-        this.rawifiedSelfOnClause({
-          associationAlias: association.as,
-          selfAlias: previousAssociationTableOrAlias,
-          selfOnClause: association.selfNotOn,
-        }),
-        { negate: true }
+      join = join.on((eb: ExpressionBuilder<any, any>) =>
+        this.whereStatementsToExpressionWrapper(
+          eb,
+          this.rawifiedSelfOnClause({
+            associationAlias: association.as,
+            selfAlias: previousAssociationTableOrAlias,
+            selfOnClause: association.selfNotOn as any,
+          }),
+          { negate: true }
+        )
       )
     }
 
@@ -3183,9 +3166,16 @@ export default class Query<
     }
 
     if (scopesQuery.whereStatements.length) {
-      join = this.applyWhereOrOnStatements(
-        join,
-        this.aliasWhereStatements(scopesQuery.whereStatements, tableNameOrAlias)
+      join = join.on((eb: ExpressionBuilder<any, any>) =>
+        eb.and(
+          scopesQuery.whereStatements.flatMap(whereStatement =>
+            this.whereStatementsToExpressionWrapper(
+              eb,
+              this.aliasWhereStatement(whereStatement, tableNameOrAlias),
+              { disallowSimilarityOperator: false }
+            )
+          )
+        )
       )
     }
 
@@ -3206,7 +3196,13 @@ export default class Query<
     return this.namespaceColumn(association.distinct, tableNameOrAlias)
   }
 
-  private recursivelyJoin<Schema extends DreamInstance['schema']>({
+  private recursivelyJoin<
+    QueryType extends
+      | SelectQueryBuilder<any, any, any>
+      | UpdateQueryBuilder<any, any, any, any>
+      | DeleteQueryBuilder<any, any, any>,
+    Schema extends DreamInstance['schema'],
+  >({
     query,
     joinsStatement,
     joinOnStatements,
@@ -3214,13 +3210,13 @@ export default class Query<
     previousAssociationTableOrAlias,
     joinType,
   }: {
-    query: SelectQueryBuilder<any, any, any>
+    query: QueryType
     joinsStatement: RelaxedJoinOnStatement<any, any>
     joinOnStatements: RelaxedJoinOnStatement<any, any>
     dreamClass: typeof Dream
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
     joinType: 'inner' | 'left'
-  }): SelectQueryBuilder<any, any, any> {
+  }): QueryType {
     for (const currentAssociationTableOrAlias of Object.keys(joinsStatement)) {
       const results = this.applyOneJoin({
         query,
@@ -3266,165 +3262,37 @@ export default class Query<
       throw new MissingRequiredAssociationOnClause(association, missingRequiredWhereStatements[0])
   }
 
-  private applyWhereOrOnStatements<
-    T extends SelectQueryBuilder<any, any, any> | JoinBuilder<any, any>,
-    WS extends WhereStatement<any, any, any>,
-  >(
-    query: T,
-    whereStatements: WS | WS[],
-    {
-      negate = false,
-    }: {
-      negate?: boolean
-    } = {}
-  ): T {
-    ;([whereStatements].flat() as WS[]).forEach(statement => {
-      query = this.applySingleWhereOrOnStatement(query, statement, { negate })
-    })
-
-    return query
-  }
-
-  private applyOrderStatementForAssociation({
+  private applyOrderStatementForAssociation<
+    QueryType extends
+      | SelectQueryBuilder<any, any, any>
+      | UpdateQueryBuilder<any, any, any, any>
+      | DeleteQueryBuilder<any, any, any>,
+  >({
     query,
     tableNameOrAlias,
     association,
   }: {
-    query: SelectQueryBuilder<any, any, any>
+    query: QueryType
     tableNameOrAlias: string
     association: HasManyStatement<any, any, any, any>
-  }) {
+  }): QueryType {
+    if (!(query as SelectQueryBuilder<any, any, any>).orderBy) return query
+    let selectQuery = query as SelectQueryBuilder<any, any, any>
     const orderStatement = association.order
 
     if (isString(orderStatement)) {
-      query = query.orderBy(this.namespaceColumn(orderStatement as string, tableNameOrAlias), 'asc')
+      selectQuery = selectQuery.orderBy(
+        this.namespaceColumn(orderStatement as string, tableNameOrAlias),
+        'asc'
+      )
     } else {
       Object.keys(orderStatement as Record<string, OrderDir>).forEach(column => {
         const direction = (orderStatement as any)[column] as OrderDir
-        query = query.orderBy(this.namespaceColumn(column, tableNameOrAlias), direction)
+        selectQuery = selectQuery.orderBy(this.namespaceColumn(column, tableNameOrAlias), direction)
       })
     }
 
-    return query
-  }
-
-  private applySingleWhereOrOnStatement<T extends SelectQueryBuilder<any, any, any> | JoinBuilder<any, any>>(
-    _query: T,
-    whereOrOnClause: WhereStatement<any, any, any>,
-    {
-      negate = false,
-    }: {
-      negate?: boolean
-    } = {}
-  ): T {
-    return Object.keys(whereOrOnClause)
-      .filter(key => (whereOrOnClause as any)[key] !== DreamConst.required)
-      .reduce((query: T, attr: string) => {
-        const val = (whereOrOnClause as any)[attr]
-
-        if (
-          (val as OpsStatement<any, any>)?.isOpsStatement &&
-          (val as OpsStatement<any, any>).shouldBypassWhereStatement
-        ) {
-          // some ops statements are handled specifically in the select portion of the query,
-          // and should be ommited from the where/on clause directly
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-          return query as T
-        }
-
-        const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val, negate)
-
-        // postgres is unable to handle WHERE IN statements with blank arrays, such as in
-        // "WHERE id IN ()", meaning that:
-        // 1. If we receive a blank array during an IN comparison,
-        //    then we need to simply regurgitate a where/on statement which
-        //    guarantees no records.
-        // 2. If we receive a blank array during a NOT IN comparison,
-        //    then it is the same as the where/on statement not being present at all,
-        //    resulting in a noop on our end
-
-        if (Array.isArray(c)) {
-          if ((b === 'in' && c.includes(null)) || (b === 'not in' && !c.includes(null))) {
-            if (query instanceof JoinBuilder) {
-              return query.on((eb: ExpressionBuilder<any, any>) =>
-                this.inArrayWithNull_or_notInArrayWithoutNull_ExpressionBuilder(eb, a, b, c)
-              ) as T
-            } else {
-              return query.where((eb: ExpressionBuilder<any, any>) =>
-                this.inArrayWithNull_or_notInArrayWithoutNull_ExpressionBuilder(eb, a, b, c)
-              ) as T
-            }
-          } else if (b === 'not in' && c.includes(null)) {
-            if (query instanceof JoinBuilder) {
-              query = query.on((eb: ExpressionBuilder<any, any>) =>
-                this.notInArrayWithNullExpressionBuilder(eb, a, b, c)
-              ) as T
-            } else {
-              query = query.where((eb: ExpressionBuilder<any, any>) =>
-                this.notInArrayWithNullExpressionBuilder(eb, a, b, c)
-              ) as T
-            }
-          }
-
-          const compactedC = compact(c)
-
-          if (b === 'in' && compactedC.length === 0) {
-            if (query instanceof JoinBuilder) {
-              // in an empty array means match nothing
-              return query.on(sql<boolean>`FALSE`) as T
-            } else {
-              // in an empty array means match nothing
-              return query.where(sql<boolean>`FALSE`) as T
-            }
-
-            //
-          } else if (b === 'not in' && compactedC.length === 0) {
-            // not in an empty array means match everything, so in this case, don't change the query at all
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-            return query as T
-
-            //
-          } else {
-            if (query instanceof JoinBuilder) return query.on(a, b, compactedC) as T
-            else return query.where(a, b, compactedC) as T
-          }
-
-          //
-        } else if (b === '=' && c === null) {
-          if (query instanceof JoinBuilder) return query.on(a, 'is', null) as T
-          else return query.where(a, 'is', null) as T
-
-          //
-        } else if (b === '!=' && c === null) {
-          if (query instanceof JoinBuilder) return query.on(a, 'is not', null) as T
-          else return query.where(a, 'is not', null) as T
-
-          //
-        } else if (b === '!=' && c !== null) {
-          if (query instanceof JoinBuilder) {
-            return query.on((eb: ExpressionBuilder<any, any>) =>
-              eb.or([eb(a, '!=', c), eb(a, 'is', null)])
-            ) as T
-          } else {
-            return query.where((eb: ExpressionBuilder<any, any>) =>
-              eb.or([eb(a, '!=', c), eb(a, 'is', null)])
-            ) as T
-          }
-
-          //
-        } else {
-          if (query instanceof JoinBuilder) query = query.on(a, b, c) as T
-          else query = query.where(a, b, c) as T
-
-          if (b2) {
-            if (query instanceof JoinBuilder) query = query.on(a2, b2, c2) as T
-            else query = query.where(a2, b2, c2) as T
-          }
-
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-          return query as T
-        }
-      }, _query)
+    return selectQuery as QueryType
   }
 
   private inArrayWithNull_or_notInArrayWithoutNull_ExpressionBuilder(
@@ -3441,6 +3309,19 @@ export default class Query<
     return isNullStatement
   }
 
+  private inArrayWithoutNullExpressionBuilder(
+    eb: ExpressionBuilder<any, any>,
+    a: any,
+    b: KyselyComparisonOperatorExpression,
+    c: any[]
+  ): ExpressionWrapper<any, any, SqlBool> {
+    const isNotNullStatement = eb(a, 'is not', null)
+    const compactedC = compact(c)
+    if (compactedC.length) return eb.and([eb(a, 'in', compactedC), isNotNullStatement])
+    // in an empty array means match nothing
+    return sql<boolean>`FALSE` as unknown as ExpressionWrapper<any, any, SqlBool>
+  }
+
   private notInArrayWithNullExpressionBuilder(
     eb: ExpressionBuilder<any, any>,
     a: any,
@@ -3454,86 +3335,96 @@ export default class Query<
     return isNullStatement
   }
 
-  private whereStatementsToExpressionWrappers(
+  private whereStatementsToExpressionWrapper(
     eb: ExpressionBuilder<any, any>,
     whereStatement: WhereStatement<any, any, any>,
     {
       negate = false,
-      disallowSimilarityOperator = false,
+      disallowSimilarityOperator = true,
     }: {
       negate?: boolean
       disallowSimilarityOperator?: boolean
     } = {}
-  ): ExpressionWrapper<any, any, SqlBool>[] {
-    return compact(
-      Object.keys(whereStatement).map(attr => {
-        const val = (whereStatement as any)[attr]
+  ): ExpressionWrapper<any, any, SqlBool> {
+    const clauses = compact(
+      Object.keys(whereStatement)
+        .filter(key => (whereStatement as any)[key] !== DreamConst.required)
+        .map(attr => {
+          const val = (whereStatement as any)[attr]
 
-        if (
-          (val as OpsStatement<any, any>)?.isOpsStatement &&
-          (val as OpsStatement<any, any>).shouldBypassWhereStatement
-        ) {
-          if (disallowSimilarityOperator) throw new Error('Similarity operator may not be used in whereAny')
+          if (
+            (val as OpsStatement<any, any>)?.isOpsStatement &&
+            (val as OpsStatement<any, any>).shouldBypassWhereStatement
+          ) {
+            if (disallowSimilarityOperator) throw new Error('Similarity operator may not be used in whereAny')
 
-          // some ops statements are handled specifically in the select portion of the query,
-          // and should be ommited from the where clause directly
-          return
-        }
-
-        const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val, negate)
-
-        // postgres is unable to handle WHERE IN statements with blank arrays, such as in
-        // "WHERE id IN ()", meaning that:
-        // 1. If we receive a blank array during an IN comparison,
-        //    then we need to simply regurgitate a where statement which
-        //    guarantees no records.
-        // 2. If we receive a blank array during a NOT IN comparison,
-        //    then it is the same as the where statement not being present at all,
-        //    resulting in a noop on our end
-        //
-
-        if (Array.isArray(c)) {
-          if ((b === 'in' && c.includes(null)) || (b === 'not in' && !c.includes(null))) {
-            return this.inArrayWithNull_or_notInArrayWithoutNull_ExpressionBuilder(eb, a, b, c)
-          } else if (b === 'not in' && c.includes(null)) {
-            return this.notInArrayWithNullExpressionBuilder(eb, a, b, c)
+            // some ops statements are handled specifically in the select portion of the query,
+            // and should be ommited from the where clause directly
+            return
           }
 
-          const compactedC = compact(c)
+          const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(attr, val)
 
-          if (b === 'in' && compactedC.length === 0) {
-            // in an empty array means match nothing
-            return sql<boolean>`FALSE`
-          } else if (b === 'not in' && compactedC.length === 0) {
-            // not in an empty array means match everything
-            return sql<boolean>`TRUE`
+          // postgres is unable to handle WHERE IN statements with blank arrays, such as in
+          // "WHERE id IN ()", meaning that:
+          // 1. If we receive a blank array during an IN comparison,
+          //    then we need to simply regurgitate a where statement which
+          //    guarantees no records.
+          // 2. If we receive a blank array during a NOT IN comparison,
+          //    then it is the same as the where statement not being present at all,
+          //    resulting in a noop on our end
+          //
+
+          if (Array.isArray(c)) {
+            if ((b === 'in' && c.includes(null)) || (b === 'not in' && !c.includes(null))) {
+              return this.inArrayWithNull_or_notInArrayWithoutNull_ExpressionBuilder(eb, a, b, c)
+            } else if (negate && b === 'in' && !c.includes(null)) {
+              return this.inArrayWithoutNullExpressionBuilder(eb, a, b, c)
+            } else if (b === 'not in' && c.includes(null)) {
+              return this.notInArrayWithNullExpressionBuilder(eb, a, b, c)
+            }
+
+            const compactedC = compact(c)
+
+            if (b === 'in' && compactedC.length === 0) {
+              // in an empty array means match nothing
+              return sql<boolean>`FALSE`
+            } else if (b === 'not in' && compactedC.length === 0) {
+              // not in an empty array means match everything
+              return sql<boolean>`TRUE`
+            } else {
+              return eb(a, b, compactedC)
+            }
+
+            //
+          } else if (b === '=' && c === null) {
+            return eb(a, 'is', null)
+
+            //
+          } else if (b === '!=' && c === null) {
+            return eb(a, 'is not', null)
+
+            //
+          } else if (b === '=' && negate) {
+            return eb.and([eb(a, '=', c), eb(a, 'is not', null)])
+
+            //
+          } else if (b === '!=' && c !== null) {
+            return eb.or([eb(a, '!=', c), eb(a, 'is', null)])
+
+            //
           } else {
-            return eb(a, b, compactedC)
+            const expression = eb(a, b, c)
+            if (b2) return expression.and(eb(a2, b2, c2))
+            return expression
           }
-
-          //
-        } else if (b === '=' && c === null) {
-          return eb(a, 'is', null)
-
-          //
-        } else if (b === '!=' && c === null) {
-          return eb(a, 'is not', null)
-
-          //
-        } else if (b === '!=' && c !== null) {
-          return eb.or([eb(a, '!=', c), eb(a, 'is', null)])
-
-          //
-        } else {
-          const expression = eb(a, b, c)
-          if (b2) return expression.and(eb(a2, b2, c2))
-          return expression
-        }
-      })
+        })
     )
+
+    return negate ? eb.not(eb.parens(eb.and(clauses))) : eb.and(clauses)
   }
 
-  private dreamWhereStatementToExpressionBuilderParts(attr: string, val: any, negate: boolean = false) {
+  private dreamWhereStatementToExpressionBuilderParts(attr: string, val: any) {
     let a: any
     let b: KyselyComparisonOperatorExpression
     let c: any
@@ -3604,18 +3495,6 @@ export default class Query<
     if (a && c === undefined) throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, a)
     if (a2 && c2 === undefined) throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, a2)
 
-    if (negate) {
-      const negatedB = OPERATION_NEGATION_MAP[b as keyof typeof OPERATION_NEGATION_MAP]
-      if (!negatedB) throw new Error(`no negation available for comparison operator ${b as string}`)
-      b = negatedB
-
-      if (b2) {
-        const negatedB2 = OPERATION_NEGATION_MAP[b2 as keyof typeof OPERATION_NEGATION_MAP]
-        if (!negatedB2) throw new Error(`no negation available for comparison operator ${b2}`)
-        b2 = negatedB2 as typeof b2
-      }
-    }
-
     return { a, b, c, a2, b2, c2 }
   }
 
@@ -3635,11 +3514,7 @@ export default class Query<
     return join
   }
 
-  private _applyJoinOnStatements<
-    DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['schema'],
-    PreviousTableName extends AssociationTableNames<DreamInstance['DB'], Schema> & keyof Schema,
-  >(
+  private _applyJoinOnStatements<Schema extends DreamInstance['schema']>(
     join: JoinBuilder<any, any>,
     joinOnStatement: WhereStatement<any, any, any> | undefined,
     rootTableOrAssociationAlias: TableOrAssociationName<Schema>,
@@ -3651,26 +3526,12 @@ export default class Query<
   ) {
     if (!joinOnStatement) return join
 
-    for (const key of Object.keys(joinOnStatement) as (
-      | keyof Schema[PreviousTableName]['associations']
-      | keyof Updateable<DB[PreviousTableName]>
-    )[]) {
-      const columnValue = (joinOnStatement as Updateable<DB[PreviousTableName]>)[
-        key as keyof Updateable<DB[PreviousTableName]>
-      ]
-
-      if (columnValue?.constructor !== Object) {
-        join = (this as Query<DreamInstance, QueryTypeOpts>).applySingleWhereOrOnStatement(
-          join,
-          {
-            [this.namespaceColumn(key.toString(), rootTableOrAssociationAlias)]: columnValue,
-          } as WhereStatement<any, any, any>,
-          { negate }
-        )
-      }
-    }
-
-    return join
+    return join.on((eb: ExpressionBuilder<any, any>) =>
+      this.joinOnStatementToExpressionWrapper(joinOnStatement, rootTableOrAssociationAlias, eb, {
+        negate,
+        disallowSimilarityOperator: negate,
+      })
+    )
   }
 
   private _applyJoinOnAnyStatements<Schema extends DreamInstance['schema']>(
@@ -3684,26 +3545,45 @@ export default class Query<
     return join.on((eb: ExpressionBuilder<any, any>) => {
       return eb.or(
         joinOnAnyStatement.map(joinOnStatement =>
-          eb.and(
-            this.whereStatementsToExpressionWrappers(
-              eb,
-
-              Object.keys(joinOnStatement).reduce((agg: any, key: any) => {
-                agg[this.namespaceColumn(key.toString(), rootTableOrAssociationAlias)] = joinOnStatement[key]
-                return agg
-              }, {}),
-
-              {
-                disallowSimilarityOperator: true,
-              }
-            )
-          )
+          this.joinOnStatementToExpressionWrapper(joinOnStatement, rootTableOrAssociationAlias, eb)
         )
       )
     })
   }
 
-  private buildCommon(this: Query<DreamInstance, QueryTypeOpts>, kyselyQuery: any) {
+  private joinOnStatementToExpressionWrapper<Schema extends DreamInstance['schema']>(
+    joinOnStatement: WhereStatement<any, any, any>,
+    rootTableOrAssociationAlias: TableOrAssociationName<Schema>,
+    eb: ExpressionBuilder<any, any>,
+    {
+      negate = false,
+      disallowSimilarityOperator = true,
+    }: {
+      negate?: boolean
+      disallowSimilarityOperator?: boolean
+    } = {}
+  ) {
+    return this.whereStatementsToExpressionWrapper(
+      eb,
+
+      Object.keys(joinOnStatement).reduce((agg: any, key: any) => {
+        agg[this.namespaceColumn(key.toString(), rootTableOrAssociationAlias)] = joinOnStatement[key]
+        return agg
+      }, {}),
+
+      {
+        negate,
+        disallowSimilarityOperator,
+      }
+    )
+  }
+
+  private buildCommon<
+    QueryType extends
+      | SelectQueryBuilder<any, any, any>
+      | UpdateQueryBuilder<any, any, any, any>
+      | DeleteQueryBuilder<any, any, any>,
+  >(this: Query<DreamInstance, QueryTypeOpts>, kyselyQuery: QueryType): QueryType {
     this.checkForQueryViolations()
 
     const query = this.conditionallyApplyDefaultScopes()
@@ -3730,35 +3610,30 @@ export default class Query<
       })
     }
 
-    if (query.whereStatements.length || query.whereNotStatements.length || query.orStatements.length) {
-      kyselyQuery = kyselyQuery.where((eb: ExpressionBuilder<any, any>) => {
-        const whereStatement = query
-          .aliasWhereStatements(query.whereStatements, query.baseSqlAlias)
-          .flatMap(statement => this.whereStatementsToExpressionWrappers(eb, statement))
+    if (query.whereStatements.length || query.whereNotStatements.length || query.whereAnyStatements.length) {
+      kyselyQuery = (kyselyQuery as SelectQueryBuilder<any, any, any>).where(
+        (eb: ExpressionBuilder<any, any>) =>
+          eb.and([
+            ...this.aliasWhereStatements(query.whereStatements, query.baseSqlAlias).map(whereStatement =>
+              this.whereStatementsToExpressionWrapper(eb, whereStatement, {
+                disallowSimilarityOperator: false,
+              })
+            ),
 
-        const whereNotStatement = query
-          .aliasWhereStatements(query.whereNotStatements, query.baseSqlAlias)
-          .flatMap(statement => this.whereStatementsToExpressionWrappers(eb, statement, { negate: true }))
+            ...this.aliasWhereStatements(query.whereNotStatements, query.baseSqlAlias).map(
+              whereNotStatement =>
+                this.whereStatementsToExpressionWrapper(eb, whereNotStatement, { negate: true })
+            ),
 
-        const orEbs: ExpressionWrapper<any, any, SqlBool>[] = []
-
-        if (query.orStatements.length) {
-          query.orStatements.forEach(orStatement => {
-            const aliasedOrStatementExpressionWrapper = query
-              .aliasWhereStatements(orStatement, query.baseSqlAlias)
-              .map(aliasedOrStatement =>
-                eb.and(
-                  this.whereStatementsToExpressionWrappers(eb, aliasedOrStatement, {
-                    disallowSimilarityOperator: true,
-                  })
+            ...query.whereAnyStatements.map(whereAnyStatements =>
+              eb.or(
+                this.aliasWhereStatements(whereAnyStatements, query.baseSqlAlias).map(whereAnyStatement =>
+                  this.whereStatementsToExpressionWrapper(eb, whereAnyStatement)
                 )
               )
-            orEbs.push(eb.or(aliasedOrStatementExpressionWrapper))
-          })
-        }
-
-        return eb.and(compact([...whereStatement, ...whereNotStatement, ...orEbs]))
-      })
+            ),
+          ])
+      ) as QueryType
     }
 
     return kyselyQuery
@@ -3773,12 +3648,14 @@ export default class Query<
   }
 
   private aliasWhereStatements(whereStatements: Readonly<WhereStatement<any, any, any>[]>, alias: string) {
-    return whereStatements.map(whereStatement => {
-      return Object.keys(whereStatement).reduce((aliasedWhere, key) => {
-        aliasedWhere[this.namespaceColumn(key, alias)] = (whereStatement as any)[key]
-        return aliasedWhere
-      }, {} as any)
-    })
+    return whereStatements.map(whereStatement => this.aliasWhereStatement(whereStatement, alias))
+  }
+
+  private aliasWhereStatement(whereStatement: Readonly<WhereStatement<any, any, any>>, alias: string) {
+    return Object.keys(whereStatement).reduce((aliasedWhere, key) => {
+      aliasedWhere[this.namespaceColumn(key, alias)] = (whereStatement as any)[key]
+      return aliasedWhere
+    }, {} as any)
   }
 
   private rawifiedSelfOnClause<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>({
@@ -3899,7 +3776,7 @@ export default class Query<
     QueryType extends UpdateQueryBuilder<any, any, any, any> | DeleteQueryBuilder<any, any, any>,
   >(this: T, kyselyQuery: QueryType): { kyselyQuery: QueryType; clone: T } {
     if (this.limitStatement || this.orderStatements.length) {
-      kyselyQuery = (kyselyQuery as any).where((eb: any) => {
+      kyselyQuery = (kyselyQuery as any).where((eb: ExpressionBuilder<any, any>) => {
         const subquery = this.nestedSelect(this.dreamInstance.primaryKey)
 
         return eb(this.dreamInstance.primaryKey as any, 'in', subquery)

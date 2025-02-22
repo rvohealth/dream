@@ -42,7 +42,10 @@ const ops = {
     match: (match: string, { caseInsensitive = false }: { caseInsensitive?: boolean } = {}) =>
       new OpsStatement(caseInsensitive ? '!~*' : '!~', match, { negated: true }),
     equal: (equal: any) => new OpsStatement('!=', equal, { negated: true }),
-    lessThan: (lessThan: number) => new OpsStatement('!<', lessThan, { negated: true }),
+    lessThan: (lessThan: number) => new OpsStatement('>=', lessThan),
+    lessThanOrEqualTo: (lessThanOrEqualTo: number) => new OpsStatement('>', lessThanOrEqualTo),
+    greaterThan: (greaterThan: number) => new OpsStatement('<=', greaterThan),
+    greaterThanOrEqualTo: (greaterThanOrEqualTo: number) => new OpsStatement('<', greaterThanOrEqualTo),
   },
 }
 

@@ -157,6 +157,9 @@ export default class Pet extends ApplicationModel {
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', notOn: { color: 'red' } })
   public whereNot_red: Balloon
 
+  @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', notOn: { color: 'red', type: 'Latex' } })
+  public whereNot_multipleClauses: Balloon
+
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', notOn: { color: ops.equal('red') } })
   public whereNot_opsEqual_red: Balloon
 
