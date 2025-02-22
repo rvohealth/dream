@@ -766,12 +766,12 @@ describe('DreamSerializer#render', () => {
             public pets: Pet[]
           }
 
-          it('renders the association as null', async () => {
+          it('renders the association as a blank array', async () => {
             const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
             await Pet.create({ user, name: 'aster', species: 'cat' })
 
             const serializer = new UserSerializer(user)
-            expect(serializer.render()).toEqual({ pets: null })
+            expect(serializer.render()).toEqual({ pets: [] })
           })
         })
       })
@@ -1082,18 +1082,31 @@ describe('DreamSerializer#render', () => {
       })
 
       context('with flatten set on RendersOne', () => {
+        class UserSerializer extends DreamSerializer {
+          @Attribute()
+          public email: string
+
+          @Attribute()
+          public name: string
+        }
+
         class PetSerializerFlattened extends DreamSerializer {
           @RendersOne(() => UserSerializer, { flatten: true })
           public user: User
         }
 
+        let user: User
+
+        beforeEach(async () => {
+          user = await User.create({ email: 'how@yadoin', password: 'howyadoin', name: 'Chalupa Jones' })
+        })
+
         it('flattens association attributes into parent serializer', async () => {
-          const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
           let pet = await Pet.create({ user, name: 'aster', species: 'cat' })
           pet = await pet.load('user').execute()
 
           const serializer = new PetSerializerFlattened(pet)
-          expect(serializer.render()).toEqual({ email: 'how@yadoin' })
+          expect(serializer.render()).toEqual({ email: 'how@yadoin', name: 'Chalupa Jones' })
         })
 
         context('when the attribute is computed', () => {
@@ -1110,7 +1123,7 @@ describe('DreamSerializer#render', () => {
           it('correctly renders the computed value', async () => {
             const today = CalendarDate.today()
             const user = await User.create({
-              email: 'how@yadoin',
+              email: 'how@yadoin2',
               password: 'howyadoin',
               birthdate: today,
             })
