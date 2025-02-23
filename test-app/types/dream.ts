@@ -139,6 +139,7 @@ export const schema = {
       balloonId: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -147,6 +148,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -155,6 +157,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -163,6 +166,7 @@ export const schema = {
       material: {
         coercedType: {} as BalloonLineMaterialsEnum | null,
         enumType: {} as BalloonLineMaterialsEnum,
+        enumArrayType: [] as BalloonLineMaterialsEnum[],
         enumValues: BalloonLineMaterialsEnumValues,
         dbType: 'balloon_line_materials_enum',
         allowNull: true,
@@ -171,6 +175,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -203,6 +208,7 @@ export const schema = {
       balloonId: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -211,6 +217,7 @@ export const schema = {
       balloonSpotterId: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -219,6 +226,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -227,6 +235,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -235,6 +244,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -243,6 +253,7 @@ export const schema = {
       userId: {
         coercedType: {} as IdType | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: true,
@@ -289,6 +300,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -297,6 +309,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -305,6 +318,7 @@ export const schema = {
       name: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
         allowNull: true,
@@ -313,6 +327,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -359,6 +374,7 @@ export const schema = {
       color: {
         coercedType: {} as BalloonColorsEnum | null,
         enumType: {} as BalloonColorsEnum,
+        enumArrayType: [] as BalloonColorsEnum[],
         enumValues: BalloonColorsEnumValues,
         dbType: 'balloon_colors_enum',
         allowNull: true,
@@ -367,6 +383,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -375,6 +392,7 @@ export const schema = {
       deletedAt: {
         coercedType: {} as DateTime | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: true,
@@ -383,6 +401,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -391,6 +410,7 @@ export const schema = {
       multicolor: {
         coercedType: {} as BalloonColorsEnum[] | null,
         enumType: {} as BalloonColorsEnum,
+        enumArrayType: [] as BalloonColorsEnum[],
         enumValues: BalloonColorsEnumValues,
         dbType: 'balloon_colors_enum[]',
         allowNull: true,
@@ -399,6 +419,7 @@ export const schema = {
       positionAlpha: {
         coercedType: {} as number | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: true,
@@ -407,6 +428,7 @@ export const schema = {
       positionBeta: {
         coercedType: {} as number | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: true,
@@ -415,6 +437,7 @@ export const schema = {
       type: {
         coercedType: {} as BalloonTypesEnum,
         enumType: {} as BalloonTypesEnum,
+        enumArrayType: [] as BalloonTypesEnum[],
         enumValues: BalloonTypesEnumValues,
         dbType: 'balloon_types_enum',
         allowNull: false,
@@ -423,6 +446,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -431,6 +455,7 @@ export const schema = {
       userId: {
         coercedType: {} as IdType | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: true,
@@ -439,6 +464,7 @@ export const schema = {
       volume: {
         coercedType: {} as number | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'numeric',
         allowNull: true,
@@ -492,6 +518,7 @@ export const schema = {
       balloonId: {
         coercedType: {} as IdType | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: true,
@@ -500,6 +527,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -508,6 +536,7 @@ export const schema = {
       deletedAt: {
         coercedType: {} as DateTime | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: true,
@@ -516,6 +545,7 @@ export const schema = {
       hidden: {
         coercedType: {} as boolean | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'boolean',
         allowNull: true,
@@ -524,6 +554,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -532,6 +563,7 @@ export const schema = {
       lost: {
         coercedType: {} as boolean | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'boolean',
         allowNull: true,
@@ -540,6 +572,7 @@ export const schema = {
       petId: {
         coercedType: {} as IdType | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: true,
@@ -548,6 +581,7 @@ export const schema = {
       position: {
         coercedType: {} as number | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: true,
@@ -556,6 +590,7 @@ export const schema = {
       tagName: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
         allowNull: true,
@@ -564,6 +599,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -603,6 +639,7 @@ export const schema = {
       approval: {
         coercedType: {} as boolean | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'boolean',
         allowNull: true,
@@ -611,6 +648,7 @@ export const schema = {
       compositionAssetId: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -619,6 +657,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -627,6 +666,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -635,6 +675,7 @@ export const schema = {
       notes: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'text',
         allowNull: true,
@@ -643,6 +684,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -689,6 +731,7 @@ export const schema = {
       compositionId: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -697,6 +740,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -705,6 +749,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -713,6 +758,7 @@ export const schema = {
       name: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
         allowNull: true,
@@ -721,6 +767,7 @@ export const schema = {
       primary: {
         coercedType: {} as boolean | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'boolean',
         allowNull: true,
@@ -729,6 +776,7 @@ export const schema = {
       score: {
         coercedType: {} as number | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: true,
@@ -737,6 +785,7 @@ export const schema = {
       src: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'text',
         allowNull: true,
@@ -745,6 +794,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -812,6 +862,7 @@ export const schema = {
       content: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'text',
         allowNull: true,
@@ -820,6 +871,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -828,6 +880,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -836,6 +889,7 @@ export const schema = {
       metadata: {
         coercedType: {} as Json,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'jsonb',
         allowNull: false,
@@ -844,6 +898,7 @@ export const schema = {
       metadata2: {
         coercedType: {} as Json | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'jsonb',
         allowNull: true,
@@ -852,6 +907,7 @@ export const schema = {
       metadata3: {
         coercedType: {} as Json | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'json',
         allowNull: true,
@@ -860,6 +916,7 @@ export const schema = {
       primary: {
         coercedType: {} as boolean | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'boolean',
         allowNull: true,
@@ -868,6 +925,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -876,6 +934,7 @@ export const schema = {
       userId: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -971,6 +1030,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -979,6 +1039,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -987,6 +1048,7 @@ export const schema = {
       kPop: {
         coercedType: {} as boolean | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'boolean',
         allowNull: true,
@@ -995,6 +1057,7 @@ export const schema = {
       popK: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
         allowNull: true,
@@ -1003,6 +1066,7 @@ export const schema = {
       popKPop: {
         coercedType: {} as number | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: true,
@@ -1011,6 +1075,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -1037,6 +1102,7 @@ export const schema = {
       body: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'text',
         allowNull: true,
@@ -1045,6 +1111,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -1053,6 +1120,7 @@ export const schema = {
       extraRateableId: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -1061,6 +1129,7 @@ export const schema = {
       extraRateableType: {
         coercedType: {} as ExtraRateableTypesEnum,
         enumType: {} as ExtraRateableTypesEnum,
+        enumArrayType: [] as ExtraRateableTypesEnum[],
         enumValues: ExtraRateableTypesEnumValues,
         dbType: 'extra_rateable_types_enum',
         allowNull: false,
@@ -1069,6 +1138,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -1077,6 +1147,7 @@ export const schema = {
       rating: {
         coercedType: {} as number | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: true,
@@ -1085,6 +1156,7 @@ export const schema = {
       type: {
         coercedType: {} as ExtraRatingTypesEnum,
         enumType: {} as ExtraRatingTypesEnum,
+        enumArrayType: [] as ExtraRatingTypesEnum[],
         enumValues: ExtraRatingTypesEnumValues,
         dbType: 'extra_rating_types_enum',
         allowNull: false,
@@ -1093,6 +1165,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -1101,6 +1174,7 @@ export const schema = {
       userId: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -1140,6 +1214,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -1148,6 +1223,7 @@ export const schema = {
       deletedAt: {
         coercedType: {} as DateTime | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: true,
@@ -1156,6 +1232,7 @@ export const schema = {
       edgeId: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -1164,6 +1241,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -1172,6 +1250,7 @@ export const schema = {
       multiScopedPosition: {
         coercedType: {} as number,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: false,
@@ -1180,6 +1259,7 @@ export const schema = {
       nodeId: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -1188,6 +1268,7 @@ export const schema = {
       position: {
         coercedType: {} as number,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: false,
@@ -1196,6 +1277,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -1284,6 +1366,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -1292,6 +1375,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -1300,6 +1384,7 @@ export const schema = {
       name: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
         allowNull: true,
@@ -1308,6 +1393,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -1316,6 +1402,7 @@ export const schema = {
       weight: {
         coercedType: {} as number | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'numeric',
         allowNull: true,
@@ -1355,6 +1442,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -1363,6 +1451,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -1371,6 +1460,7 @@ export const schema = {
       name: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
         allowNull: true,
@@ -1379,6 +1469,7 @@ export const schema = {
       omittedEdgePosition: {
         coercedType: {} as number | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: true,
@@ -1387,6 +1478,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -1475,6 +1567,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -1483,6 +1576,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -1491,6 +1585,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -1499,6 +1594,7 @@ export const schema = {
       userId: {
         coercedType: {} as number,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: false,
@@ -1531,6 +1627,7 @@ export const schema = {
       body: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'text',
         allowNull: true,
@@ -1539,6 +1636,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -1547,6 +1645,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -1555,6 +1654,7 @@ export const schema = {
       locale: {
         coercedType: {} as LocalesEnum,
         enumType: {} as LocalesEnum,
+        enumArrayType: [] as LocalesEnum[],
         enumValues: LocalesEnumValues,
         dbType: 'locales_enum',
         allowNull: false,
@@ -1563,6 +1663,7 @@ export const schema = {
       localizableId: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -1571,6 +1672,7 @@ export const schema = {
       localizableType: {
         coercedType: {} as LocalizableTypesEnum,
         enumType: {} as LocalizableTypesEnum,
+        enumArrayType: [] as LocalizableTypesEnum[],
         enumValues: LocalizableTypesEnumValues,
         dbType: 'localizable_types_enum',
         allowNull: false,
@@ -1579,6 +1681,7 @@ export const schema = {
       name: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
         allowNull: true,
@@ -1587,6 +1690,7 @@ export const schema = {
       title: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
         allowNull: true,
@@ -1595,6 +1699,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -1627,6 +1732,7 @@ export const schema = {
       bio: {
         coercedType: {} as string,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'text',
         allowNull: false,
@@ -1635,6 +1741,7 @@ export const schema = {
       birthdate: {
         coercedType: {} as CalendarDate | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'date',
         allowNull: true,
@@ -1643,6 +1750,7 @@ export const schema = {
       collarCount: {
         coercedType: {} as IdType | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: true,
@@ -1651,6 +1759,7 @@ export const schema = {
       collarCountInt: {
         coercedType: {} as number | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: true,
@@ -1659,6 +1768,7 @@ export const schema = {
       collarCountNumeric: {
         coercedType: {} as number | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'numeric',
         allowNull: true,
@@ -1667,6 +1777,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -1675,6 +1786,7 @@ export const schema = {
       createdOn: {
         coercedType: {} as CalendarDate,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'date',
         allowNull: false,
@@ -1683,6 +1795,7 @@ export const schema = {
       email: {
         coercedType: {} as string,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
         allowNull: false,
@@ -1691,6 +1804,7 @@ export const schema = {
       favoriteBigint: {
         coercedType: {} as IdType | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: true,
@@ -1699,6 +1813,7 @@ export const schema = {
       favoriteBigints: {
         coercedType: {} as IdType[] | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint[]',
         allowNull: true,
@@ -1707,6 +1822,7 @@ export const schema = {
       favoriteBooleans: {
         coercedType: {} as boolean[] | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'boolean[]',
         allowNull: true,
@@ -1715,6 +1831,7 @@ export const schema = {
       favoriteCitext: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'citext',
         allowNull: true,
@@ -1723,6 +1840,7 @@ export const schema = {
       favoriteCitexts: {
         coercedType: {} as string[] | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'citext[]',
         allowNull: true,
@@ -1731,6 +1849,7 @@ export const schema = {
       favoriteDates: {
         coercedType: {} as CalendarDate[] | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'date[]',
         allowNull: true,
@@ -1739,6 +1858,7 @@ export const schema = {
       favoriteDatetimes: {
         coercedType: {} as DateTime[] | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone[]',
         allowNull: true,
@@ -1747,6 +1867,7 @@ export const schema = {
       favoriteIntegers: {
         coercedType: {} as number[] | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer[]',
         allowNull: true,
@@ -1755,6 +1876,7 @@ export const schema = {
       favoriteJsonbs: {
         coercedType: {} as Json[] | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'jsonb[]',
         allowNull: true,
@@ -1763,6 +1885,7 @@ export const schema = {
       favoriteJsons: {
         coercedType: {} as Json[] | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'json[]',
         allowNull: true,
@@ -1771,6 +1894,7 @@ export const schema = {
       favoriteNumerics: {
         coercedType: {} as number[] | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'numeric[]',
         allowNull: true,
@@ -1779,6 +1903,7 @@ export const schema = {
       favoriteTexts: {
         coercedType: {} as string[] | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'text[]',
         allowNull: true,
@@ -1787,6 +1912,7 @@ export const schema = {
       favoriteTreats: {
         coercedType: {} as PetTreatsEnum[] | null,
         enumType: {} as PetTreatsEnum,
+        enumArrayType: [] as PetTreatsEnum[],
         enumValues: PetTreatsEnumValues,
         dbType: 'pet_treats_enum[]',
         allowNull: true,
@@ -1795,6 +1921,7 @@ export const schema = {
       favoriteUuids: {
         coercedType: {} as string[] | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'uuid[]',
         allowNull: true,
@@ -1803,6 +1930,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -1811,6 +1939,7 @@ export const schema = {
       jsonData: {
         coercedType: {} as Json | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'json',
         allowNull: true,
@@ -1819,6 +1948,7 @@ export const schema = {
       jsonbData: {
         coercedType: {} as Json | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'jsonb',
         allowNull: true,
@@ -1827,6 +1957,7 @@ export const schema = {
       likesTreats: {
         coercedType: {} as boolean,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'boolean',
         allowNull: false,
@@ -1835,6 +1966,7 @@ export const schema = {
       likesWalks: {
         coercedType: {} as boolean | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'boolean',
         allowNull: true,
@@ -1843,6 +1975,7 @@ export const schema = {
       name: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
         allowNull: true,
@@ -1851,6 +1984,7 @@ export const schema = {
       nicknames: {
         coercedType: {} as string[] | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'character varying[]',
         allowNull: true,
@@ -1859,6 +1993,7 @@ export const schema = {
       notes: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'text',
         allowNull: true,
@@ -1867,6 +2002,7 @@ export const schema = {
       optionalUuid: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'uuid',
         allowNull: true,
@@ -1875,6 +2011,7 @@ export const schema = {
       passwordDigest: {
         coercedType: {} as string,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
         allowNull: false,
@@ -1883,6 +2020,7 @@ export const schema = {
       requiredCollarCount: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -1891,6 +2029,7 @@ export const schema = {
       requiredCollarCountInt: {
         coercedType: {} as number,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: false,
@@ -1899,6 +2038,7 @@ export const schema = {
       requiredFavoriteBigint: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -1907,6 +2047,7 @@ export const schema = {
       requiredFavoriteBigints: {
         coercedType: {} as IdType[],
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint[]',
         allowNull: false,
@@ -1915,6 +2056,7 @@ export const schema = {
       requiredFavoriteBooleans: {
         coercedType: {} as boolean[],
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'boolean[]',
         allowNull: false,
@@ -1923,6 +2065,7 @@ export const schema = {
       requiredFavoriteCitext: {
         coercedType: {} as string,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'citext',
         allowNull: false,
@@ -1931,6 +2074,7 @@ export const schema = {
       requiredFavoriteCitexts: {
         coercedType: {} as string[],
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'citext[]',
         allowNull: false,
@@ -1939,6 +2083,7 @@ export const schema = {
       requiredFavoriteDates: {
         coercedType: {} as CalendarDate[],
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'date[]',
         allowNull: false,
@@ -1947,6 +2092,7 @@ export const schema = {
       requiredFavoriteDatetimes: {
         coercedType: {} as DateTime[],
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone[]',
         allowNull: false,
@@ -1955,6 +2101,7 @@ export const schema = {
       requiredFavoriteIntegers: {
         coercedType: {} as number[],
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer[]',
         allowNull: false,
@@ -1963,6 +2110,7 @@ export const schema = {
       requiredFavoriteJsonbs: {
         coercedType: {} as Json[],
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'jsonb[]',
         allowNull: false,
@@ -1971,6 +2119,7 @@ export const schema = {
       requiredFavoriteJsons: {
         coercedType: {} as Json[],
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'json[]',
         allowNull: false,
@@ -1979,6 +2128,7 @@ export const schema = {
       requiredFavoriteNumerics: {
         coercedType: {} as number[],
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'numeric[]',
         allowNull: false,
@@ -1987,6 +2137,7 @@ export const schema = {
       requiredFavoriteTexts: {
         coercedType: {} as string[],
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'text[]',
         allowNull: false,
@@ -1995,6 +2146,7 @@ export const schema = {
       requiredFavoriteUuids: {
         coercedType: {} as string[],
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'uuid[]',
         allowNull: false,
@@ -2003,6 +2155,7 @@ export const schema = {
       requiredJsonData: {
         coercedType: {} as Json,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'json',
         allowNull: false,
@@ -2011,6 +2164,7 @@ export const schema = {
       requiredJsonbData: {
         coercedType: {} as Json,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'jsonb',
         allowNull: false,
@@ -2019,6 +2173,7 @@ export const schema = {
       requiredNicknames: {
         coercedType: {} as string[],
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'character varying[]',
         allowNull: false,
@@ -2027,6 +2182,7 @@ export const schema = {
       species: {
         coercedType: {} as SpeciesTypesEnum | null,
         enumType: {} as SpeciesTypesEnum,
+        enumArrayType: [] as SpeciesTypesEnum[],
         enumValues: SpeciesTypesEnumValues,
         dbType: 'species_types_enum',
         allowNull: true,
@@ -2035,6 +2191,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -2043,6 +2200,7 @@ export const schema = {
       uuid: {
         coercedType: {} as string,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'uuid',
         allowNull: false,
@@ -2051,6 +2209,7 @@ export const schema = {
       volume: {
         coercedType: {} as number | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'numeric',
         allowNull: true,
@@ -2077,6 +2236,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -2085,6 +2245,7 @@ export const schema = {
       id: {
         coercedType: {} as number,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: false,
@@ -2093,6 +2254,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -2119,6 +2281,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -2127,6 +2290,7 @@ export const schema = {
       deletedAt: {
         coercedType: {} as DateTime | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: true,
@@ -2135,6 +2299,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -2143,6 +2308,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -2169,6 +2335,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -2177,6 +2344,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -2185,6 +2353,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -2211,6 +2380,7 @@ export const schema = {
       cantUpdateThis: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
         allowNull: true,
@@ -2219,6 +2389,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -2227,6 +2398,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -2235,6 +2407,7 @@ export const schema = {
       name: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
         allowNull: true,
@@ -2261,6 +2434,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -2269,6 +2443,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -2277,6 +2452,7 @@ export const schema = {
       petId: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -2285,6 +2461,7 @@ export const schema = {
       understudyId: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -2293,6 +2470,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -2332,6 +2510,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -2340,6 +2519,7 @@ export const schema = {
       deletedAt: {
         coercedType: {} as DateTime | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: true,
@@ -2348,6 +2528,7 @@ export const schema = {
       favoriteDaysOfWeek: {
         coercedType: {} as number[] | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer[]',
         allowNull: true,
@@ -2356,6 +2537,7 @@ export const schema = {
       favoriteTreats: {
         coercedType: {} as CatTreats[] | null,
         enumType: {} as CatTreats,
+        enumArrayType: [] as CatTreats[],
         enumValues: CatTreatsValues,
         dbType: 'cat_treats[]',
         allowNull: true,
@@ -2364,6 +2546,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -2372,6 +2555,7 @@ export const schema = {
       name: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'text',
         allowNull: true,
@@ -2380,6 +2564,7 @@ export const schema = {
       nickname: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'text',
         allowNull: true,
@@ -2388,6 +2573,7 @@ export const schema = {
       positionWithinSpecies: {
         coercedType: {} as number | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: true,
@@ -2396,6 +2582,7 @@ export const schema = {
       species: {
         coercedType: {} as Species | null,
         enumType: {} as Species,
+        enumArrayType: [] as Species[],
         enumValues: SpeciesValues,
         dbType: 'species',
         allowNull: true,
@@ -2404,6 +2591,7 @@ export const schema = {
       userId: {
         coercedType: {} as IdType | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: true,
@@ -2412,6 +2600,7 @@ export const schema = {
       userUuid: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'uuid',
         allowNull: true,
@@ -2913,6 +3102,7 @@ export const schema = {
       body: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'text',
         allowNull: true,
@@ -2921,6 +3111,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -2929,6 +3120,7 @@ export const schema = {
       deletedAt: {
         coercedType: {} as DateTime | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: true,
@@ -2937,6 +3129,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -2945,6 +3138,7 @@ export const schema = {
       postId: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -2953,6 +3147,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -2992,6 +3187,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -3000,6 +3196,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -3008,6 +3205,7 @@ export const schema = {
       notes: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'text',
         allowNull: true,
@@ -3016,6 +3214,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -3024,6 +3223,7 @@ export const schema = {
       visibility: {
         coercedType: {} as boolean | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'boolean',
         allowNull: true,
@@ -3056,6 +3256,7 @@ export const schema = {
       body: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'text',
         allowNull: true,
@@ -3064,6 +3265,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -3072,6 +3274,7 @@ export const schema = {
       deletedAt: {
         coercedType: {} as DateTime | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: true,
@@ -3080,6 +3283,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -3088,6 +3292,7 @@ export const schema = {
       position: {
         coercedType: {} as number | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: true,
@@ -3096,6 +3301,7 @@ export const schema = {
       postVisibilityId: {
         coercedType: {} as IdType | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: true,
@@ -3104,6 +3310,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -3112,6 +3319,7 @@ export const schema = {
       userId: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -3200,6 +3408,7 @@ export const schema = {
       body: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'text',
         allowNull: true,
@@ -3208,6 +3417,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -3216,6 +3426,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -3224,6 +3435,7 @@ export const schema = {
       rateableId: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -3232,6 +3444,7 @@ export const schema = {
       rateableType: {
         coercedType: {} as string,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
         allowNull: false,
@@ -3240,6 +3453,7 @@ export const schema = {
       rating: {
         coercedType: {} as number | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: true,
@@ -3248,6 +3462,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -3256,6 +3471,7 @@ export const schema = {
       userId: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -3302,6 +3518,7 @@ export const schema = {
       balloonId: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -3310,6 +3527,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -3318,6 +3536,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -3326,6 +3545,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -3334,6 +3554,7 @@ export const schema = {
       weight: {
         coercedType: {} as number | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: true,
@@ -3342,6 +3563,7 @@ export const schema = {
       weightKgs: {
         coercedType: {} as number | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: true,
@@ -3350,6 +3572,7 @@ export const schema = {
       weightTons: {
         coercedType: {} as number | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: true,
@@ -3382,6 +3605,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -3390,6 +3614,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -3398,6 +3623,7 @@ export const schema = {
       likesChalupas: {
         coercedType: {} as boolean,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'boolean',
         allowNull: false,
@@ -3406,6 +3632,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -3414,6 +3641,7 @@ export const schema = {
       userId: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -3446,6 +3674,7 @@ export const schema = {
       birthdate: {
         coercedType: {} as CalendarDate | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'date',
         allowNull: true,
@@ -3454,6 +3683,7 @@ export const schema = {
       createdAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -3462,6 +3692,7 @@ export const schema = {
       deletedAt: {
         coercedType: {} as DateTime | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: true,
@@ -3470,6 +3701,7 @@ export const schema = {
       email: {
         coercedType: {} as string,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
         allowNull: false,
@@ -3478,6 +3710,7 @@ export const schema = {
       encryptedSecret: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'text',
         allowNull: true,
@@ -3486,6 +3719,7 @@ export const schema = {
       favoriteDates: {
         coercedType: {} as CalendarDate[] | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'date[]',
         allowNull: true,
@@ -3494,6 +3728,7 @@ export const schema = {
       favoriteDatetimes: {
         coercedType: {} as DateTime[] | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone[]',
         allowNull: true,
@@ -3502,6 +3737,7 @@ export const schema = {
       favoriteNumbers: {
         coercedType: {} as number[] | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer[]',
         allowNull: true,
@@ -3510,6 +3746,7 @@ export const schema = {
       favoriteWord: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'citext',
         allowNull: true,
@@ -3518,6 +3755,7 @@ export const schema = {
       featuredPostPosition: {
         coercedType: {} as number | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: true,
@@ -3526,6 +3764,7 @@ export const schema = {
       id: {
         coercedType: {} as IdType,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'bigint',
         allowNull: false,
@@ -3534,6 +3773,7 @@ export const schema = {
       myOtherEncryptedSecret: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'text',
         allowNull: true,
@@ -3542,6 +3782,7 @@ export const schema = {
       name: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
         allowNull: true,
@@ -3550,6 +3791,7 @@ export const schema = {
       passwordDigest: {
         coercedType: {} as string,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
         allowNull: false,
@@ -3558,6 +3800,7 @@ export const schema = {
       socialSecurityNumber: {
         coercedType: {} as string | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
         allowNull: true,
@@ -3566,6 +3809,7 @@ export const schema = {
       targetRating: {
         coercedType: {} as number | null,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'integer',
         allowNull: true,
@@ -3574,6 +3818,7 @@ export const schema = {
       updatedAt: {
         coercedType: {} as DateTime,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
@@ -3582,6 +3827,7 @@ export const schema = {
       uuid: {
         coercedType: {} as string,
         enumType: null,
+        enumArrayType: null,
         enumValues: null,
         dbType: 'uuid',
         allowNull: false,

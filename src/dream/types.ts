@@ -1,8 +1,4 @@
-import {
-  ColumnType,
-  ComparisonOperatorExpression as KyselyComparisonOperatorExpression,
-  Updateable,
-} from 'kysely'
+import { ColumnType, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
 import { AssociationTableNames } from '../db/reflections'
 import { BelongsToStatement } from '../decorators/associations/BelongsTo'
@@ -44,7 +40,6 @@ export const DreamConst = {
 
 export const TRIGRAM_OPERATORS = ['%', '<%', '<<%'] as const
 export type TrigramOperator = (typeof TRIGRAM_OPERATORS)[number]
-export type ComparisonOperatorExpression = KyselyComparisonOperatorExpression | TrigramOperator
 export type OrderDir = 'asc' | 'desc'
 
 export interface SortableOptions<T extends typeof Dream> {
@@ -230,6 +225,25 @@ export type TableColumnType<
   ColumnType extends TableColumnMetadata['coercedType' &
     keyof TableColumnMetadata] = TableColumnMetadata['coercedType' & keyof TableColumnMetadata],
 > = ColumnType
+
+export type TableColumnEnumTypeArray<
+  Schema,
+  TableName,
+  Column,
+  TableSchema extends Schema[TableName & keyof Schema] = Schema[TableName & keyof Schema],
+  TableColumns extends TableSchema['columns' & keyof TableSchema] = TableSchema['columns' &
+    keyof TableSchema],
+  TableColumnMetadata extends TableColumns[Column & keyof TableColumns] = TableColumns[Column &
+    keyof TableColumns],
+  EnumTypeCandidate = TableColumnMetadata['enumArrayType' & keyof TableColumnMetadata],
+  EnumTypeArray extends string[] | null = EnumTypeCandidate extends null
+    ? null
+    : EnumTypeCandidate extends undefined
+      ? null
+      : EnumTypeCandidate extends string[]
+        ? EnumTypeCandidate
+        : never,
+> = EnumTypeArray
 
 ///////////////////////////
 // Association type helpers

@@ -1,4 +1,8 @@
-import { SelectQueryBuilder, Updateable } from 'kysely'
+import {
+  ComparisonOperatorExpression as KyselyComparisonOperatorExpression,
+  SelectQueryBuilder,
+  Updateable,
+} from 'kysely'
 import { DateTime } from 'luxon'
 import { singular } from 'pluralize'
 import { AssociationTableNames } from '../../db/reflections'
@@ -13,8 +17,11 @@ import {
   IdType,
   JoinedAssociation,
   OrderDir,
+  TableColumnEnumTypeArray,
   TableColumnNames,
+  TableColumnType,
   TableNameForGlobalModelName,
+  TrigramOperator,
 } from '../../dream/types'
 import { checkForeignKey } from '../../errors/associations/InvalidComputedForeignKey'
 import NonLoadedAssociation from '../../errors/associations/NonLoadedAssociation'
@@ -25,7 +32,7 @@ import camelize from '../../helpers/camelize'
 import { Range } from '../../helpers/range'
 import { Inc, MergeUnionOfRecordTypes, ReadonlyTail, UnionToIntersection } from '../../helpers/typeutils'
 import CurriedOpsStatement from '../../ops/curried-ops-statement'
-import OpsStatement from '../../ops/ops-statement'
+import OpsStatement, { ExtraSimilarityArgs } from '../../ops/ops-statement'
 import associationToGetterSetterProp from './associationToGetterSetterProp'
 import { BelongsToStatement } from './BelongsTo'
 import { HasManyStatement } from './HasMany'
@@ -66,24 +73,58 @@ export type PassthroughOnClause<PassthroughColumns extends string[]> = Partial<
   Record<PassthroughColumns[number], any>
 >
 
-type DreamSelectable<DB, Schema, TableName extends AssociationTableNames<DB, Schema> & keyof DB> = Partial<
-  Record<keyof DB[TableName], NonKyselySupportedSupplementalWhereClauseValues<DB>>
->
+type DreamSelectable<DB, Schema, TableName extends AssociationTableNames<DB, Schema> & keyof DB> = Partial<{
+  [ColumnName in keyof DB[TableName]]: NonKyselySupportedSupplementalWhereClauseValues<
+    DB,
+    Schema,
+    TableName,
+    ColumnName
+  >
+}>
 
-// TODO https://rvohealth.atlassian.net/browse/PDTC-7085
-// Is it possible to make this less all-permissive? This allows
-// types of no relation to the actual column.
-type NonKyselySupportedSupplementalWhereClauseValues<DB> =
-  | Range<DateTime>
-  | (() => Range<DateTime>)
-  | Range<CalendarDate>
-  | (() => Range<CalendarDate>)
-  | Range<number>
-  | OpsStatement<any, any>
-  | CurriedOpsStatement<any, any, any>
-  // the non-array allowed types are set by Kysely in Updateable
-  | (IdType | string | number | bigint)[]
-  | SelectQueryBuilder<DB, keyof DB, any>
+type NonKyselySupportedSupplementalWhereClauseValues<
+  DB,
+  Schema,
+  TableName,
+  Column,
+  ColumnType = TableColumnType<Schema, TableName, Column>,
+  EnumTypeArray extends string[] | null = TableColumnEnumTypeArray<Schema, TableName, Column>,
+  PartialTypes = EnumTypeArray extends null
+    ? ColumnType extends DateTime
+      ?
+          | DateTime[]
+          | Range<DateTime>
+          | (() => Range<DateTime>)
+          | Range<CalendarDate>
+          | (() => Range<CalendarDate>)
+          | OpsStatement<KyselyComparisonOperatorExpression>
+      : ColumnType extends CalendarDate
+        ?
+            | CalendarDate[]
+            | Range<CalendarDate>
+            | (() => Range<CalendarDate>)
+            | Range<DateTime>
+            | (() => Range<DateTime>)
+            | OpsStatement<KyselyComparisonOperatorExpression>
+        : ColumnType extends number
+          ? (number | bigint)[] | Range<number> | OpsStatement<KyselyComparisonOperatorExpression>
+          : ColumnType extends string
+            ?
+                | string[]
+                | OpsStatement<KyselyComparisonOperatorExpression>
+                | OpsStatement<TrigramOperator, ExtraSimilarityArgs>
+            : ColumnType extends IdType
+              ? IdType[] | OpsStatement<KyselyComparisonOperatorExpression>
+              : never
+    : EnumTypeArray extends string[]
+      ? EnumTypeArray | OpsStatement<KyselyComparisonOperatorExpression>
+      : never,
+> = PartialTypes extends never
+  ?
+      | OpsStatement<KyselyComparisonOperatorExpression>
+      | CurriedOpsStatement<any, any, any>
+      | SelectQueryBuilder<DB, keyof DB, any>
+  : PartialTypes | CurriedOpsStatement<any, any, any> | SelectQueryBuilder<DB, keyof DB, any>
 
 export type WhereStatementForDreamClass<DreamClass extends typeof Dream> = WhereStatement<
   InstanceType<DreamClass>['DB'],
@@ -168,14 +209,12 @@ type OnStatementForAssociationDefinition<
 > = Partial<
   MergeUnionOfRecordTypes<
     | Updateable<DB[TableName]>
-    | Partial<
-        Record<
-          keyof DB[TableName],
-          | NonKyselySupportedSupplementalWhereClauseValues<DB>
+    | Partial<{
+        [ColumnName in keyof DB[TableName]]:
+          | NonKyselySupportedSupplementalWhereClauseValues<DB, Schema, TableName, ColumnName>
           | typeof DreamConst.passthrough
           | typeof DreamConst.required
-        >
-      >
+      }>
   >
 >
 

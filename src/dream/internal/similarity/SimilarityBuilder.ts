@@ -400,7 +400,7 @@ export default class SimilarityBuilder<
       Object.keys(statement).forEach(key => {
         if (
           (statement as any)[key]?.constructor?.name === 'OpsStatement' &&
-          TRIGRAM_OPERATORS.includes(((statement as any)[key] as OpsStatement<any, any>).operator as any)
+          TRIGRAM_OPERATORS.includes(((statement as any)[key] as OpsStatement<any, any>).operator)
         ) {
           similar.push({
             tableName,

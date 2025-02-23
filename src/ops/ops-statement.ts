@@ -1,4 +1,5 @@
-import { ComparisonOperatorExpression, TRIGRAM_OPERATORS } from '../dream/types'
+import { ComparisonOperatorExpression as KyselyComparisonOperatorExpression } from 'kysely'
+import { TRIGRAM_OPERATORS, TrigramOperator } from '../dream/types'
 import ScoreMustBeANormalNumber from '../errors/ops/ScoreMustBeANormalNumber'
 
 export interface ExtraOpsArgs {
@@ -9,15 +10,16 @@ export interface ExtraSimilarityArgs extends ExtraOpsArgs {
 }
 
 export default class OpsStatement<
-  COE extends ComparisonOperatorExpression,
+  COE extends KyselyComparisonOperatorExpression | TrigramOperator,
   ExtraArgs extends COE extends '%' | '<%' | '<<%'
     ? ExtraSimilarityArgs | undefined
-    : ExtraOpsArgs | undefined,
+    : ExtraOpsArgs | undefined = ExtraOpsArgs | undefined,
 > {
-  public operator: ComparisonOperatorExpression
+  public operator: COE
   public value: any
   public extraArgs: ExtraArgs
   public negated: boolean = false
+
   constructor(operator: COE, value: any, extraArgs?: ExtraArgs) {
     if (
       typeof (extraArgs as ExtraSimilarityArgs)?.score === 'number' &&

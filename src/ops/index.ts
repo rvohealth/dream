@@ -1,13 +1,14 @@
-import { sql } from 'kysely'
+import { ComparisonOperatorExpression as KyselyComparisonOperatorExpression, sql } from 'kysely'
 import Dream from '../Dream'
-import { ComparisonOperatorExpression } from '../dream/types'
+import { TrigramOperator } from '../dream/types'
 import AnyRequiresArrayColumn from '../errors/ops/AnyRequiresArrayColumn'
 import isDatabaseArrayColumn from '../helpers/db/types/isDatabaseArrayColumn'
 import CurriedOpsStatement from './curried-ops-statement'
 import OpsStatement from './ops-statement'
 
 const ops = {
-  expression: (operator: ComparisonOperatorExpression, value: any) => new OpsStatement(operator, value),
+  expression: (operator: KyselyComparisonOperatorExpression | TrigramOperator, value: any) =>
+    new OpsStatement(operator, value) as OpsStatement<any, any>,
   in: (arr: any[]) => new OpsStatement('in', arr),
   any: (value: any) =>
     new CurriedOpsStatement(function <

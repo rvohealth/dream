@@ -78,6 +78,36 @@ type DecrementTable = {
   31: 30
 }
 
+/**
+ *
+ *  Given two interfaces that define the same attributes, but with different types for the values,
+ *  create a new type that allows all of the types allowed for a particular key by either of the
+ * joined types.
+ *
+ * @example
+ * ```
+ * type A = {
+ *     a: string
+ *     c: 'hello'
+ * }
+ *
+ * type B = {
+ *     b: number
+ *     c: 'world'
+ * }
+ *
+ * type Combined = MergeUnionOfRecordTypes<A | B>
+ *
+ * // Combined is now equivalent to type {
+ * //     a: string,
+ * //     b: number,
+ * //     c: 'hello' | 'world',
+ * // }
+ *
+ * ```
+ * From https://stackoverflow.com/a/72375765/349332
+ */
+
 export type MergeUnionOfRecordTypes<U extends Record<string, unknown>> = {
   [K in U extends unknown ? keyof U : never]: U extends unknown ? (K extends keyof U ? U[K] : never) : never
 }

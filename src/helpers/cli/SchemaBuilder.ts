@@ -100,6 +100,7 @@ ${tableName}: {
           return `${columnName}: {
         coercedType: {} as ${this.coercedType(kyselyType, columnData.dbType)},
         enumType: ${columnData.enumType ? `{} as ${columnData.enumType}` : 'null'},
+        enumArrayType: ${columnData.enumType ? `[] as ${columnData.enumType}[]` : 'null'},
         enumValues: ${columnData.enumValues ?? 'null'},
         dbType: '${columnData.dbType}',
         allowNull: ${columnData.allowNull},
