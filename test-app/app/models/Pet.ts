@@ -83,7 +83,7 @@ export default class Pet extends ApplicationModel {
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', distinct: true })
   public distinctBalloons: Balloon
 
-  // where
+  // on
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', on: { color: null } })
   public where_null: Balloon
 
@@ -141,10 +141,9 @@ export default class Pet extends ApplicationModel {
     on: { color: ops.not.in([null, 'red']) },
   })
   public where_opsNotIn_arrayWithNullAndRed: Balloon
+  // end: on
 
-  // end: where
-
-  // whereNot
+  // notOn
   @Pet.HasMany('Balloon', { through: 'collars', source: 'balloon', notOn: { color: null } })
   public whereNot_null: Balloon
 
@@ -218,7 +217,135 @@ export default class Pet extends ApplicationModel {
   })
   public whereNot_opsNotIn_arrayWithNullAndRed: Balloon
 
-  // end: whereNot
+  // end: notOn
+
+  // onAny
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    onAny: [{ color: null }, { positionAlpha: null }],
+  })
+  public onAny_null: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    onAny: [{ color: ops.equal(null) }, { positionAlpha: null }],
+  })
+  public onAny_opsEqual_null: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    onAny: [{ color: ops.not.equal(null) }, { positionAlpha: null }],
+  })
+  public onAny_opsNotEqual_null: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    onAny: [{ color: 'red' }, { positionAlpha: null }],
+  })
+  public onAny_red: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    onAny: [{ color: ops.equal('red') }, { positionAlpha: null }],
+  })
+  public onAny_opsEqual_red: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    onAny: [{ color: ops.not.equal('red') }, { positionAlpha: null }],
+  })
+  public onAny_opsNotEqual_red: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    onAny: [{ color: ['red'] }, { positionAlpha: null }],
+  })
+  public onAny_redArray: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    onAny: [{ color: ops.in(['red']) }, { positionAlpha: null }],
+  })
+  public onAny_opsIn_redArray: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    onAny: [{ color: ops.not.in(['red']) }, { positionAlpha: null }],
+  })
+  public onAny_opsNotIn_redArray: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    onAny: [{ color: [] }, { positionAlpha: null }],
+  })
+  public onAny_emptyArray: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    onAny: [{ color: ops.in([]) }, { positionAlpha: null }],
+  })
+  public onAny_opsIn_emptyArray: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    onAny: [{ color: ops.not.in([]) }, { positionAlpha: null }],
+  })
+  public onAny_opsNotIn_emptyArray: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    onAny: [{ color: [null as any] }, { positionAlpha: null }],
+  })
+  public onAny_arrayWithNull: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    onAny: [{ color: ops.in([null]) }, { positionAlpha: null }],
+  })
+  public onAny_opsIn_arrayWithNull: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    onAny: [{ color: ops.not.in([null]) }, { positionAlpha: null }],
+  })
+  public onAny_opsNotIn_arrayWithNull: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    onAny: [{ color: [null as any, 'red'] }, { positionAlpha: null }],
+  })
+  public onAny_arrayWithNullAndRed: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    onAny: [{ color: ops.in([null, 'red']) }, { positionAlpha: null }],
+  })
+  public onAny_opsIn_arrayWithNullAndRed: Balloon
+
+  @Pet.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    onAny: [{ color: ops.not.in([null, 'red']) }, { positionAlpha: null }],
+  })
+  public onAny_opsNotIn_arrayWithNullAndRed: Balloon
+  // end: onAny
 
   @Pet.HasMany('PetUnderstudyJoinModel', { foreignKey: 'petId' })
   public petUnderstudies: PetUnderstudyJoinModel[]

@@ -2975,7 +2975,7 @@ export default class Query<
 
           if (association.polymorphic) {
             join = join.on((eb: ExpressionBuilder<any, any>) =>
-              this.whereStatementsToExpressionWrapper(
+              this.whereStatementToExpressionWrapper(
                 eb,
                 this.aliasWhereStatement(
                   {
@@ -3079,7 +3079,7 @@ export default class Query<
       )
 
       join = join.on((eb: ExpressionBuilder<any, any>) =>
-        this.whereStatementsToExpressionWrapper(
+        this.whereStatementToExpressionWrapper(
           eb,
           this.aliasWhereStatement(
             association.on as WhereStatement<any, any, any>,
@@ -3092,7 +3092,7 @@ export default class Query<
 
     if (association.notOn) {
       join = join.on((eb: ExpressionBuilder<any, any>) =>
-        this.whereStatementsToExpressionWrapper(
+        this.whereStatementToExpressionWrapper(
           eb,
           this.aliasWhereStatement(
             association.notOn as WhereStatement<any, any, any>,
@@ -3103,9 +3103,23 @@ export default class Query<
       )
     }
 
+    if (association.onAny) {
+      join = join.on((eb: ExpressionBuilder<any, any>) =>
+        eb.or(
+          (association.onAny as WhereStatement<any, any, any>[]).map(whereAnyStatement =>
+            this.whereStatementToExpressionWrapper(
+              eb,
+              this.aliasWhereStatement(whereAnyStatement, currentAssociationTableOrAlias),
+              { disallowSimilarityOperator: false }
+            )
+          )
+        )
+      )
+    }
+
     if (association.selfOn) {
       join = join.on((eb: ExpressionBuilder<any, any>) =>
-        this.whereStatementsToExpressionWrapper(
+        this.whereStatementToExpressionWrapper(
           eb,
           this.rawifiedSelfOnClause({
             associationAlias: association.as,
@@ -3118,7 +3132,7 @@ export default class Query<
 
     if (association.selfNotOn) {
       join = join.on((eb: ExpressionBuilder<any, any>) =>
-        this.whereStatementsToExpressionWrapper(
+        this.whereStatementToExpressionWrapper(
           eb,
           this.rawifiedSelfOnClause({
             associationAlias: association.as,
@@ -3169,7 +3183,7 @@ export default class Query<
       join = join.on((eb: ExpressionBuilder<any, any>) =>
         eb.and(
           scopesQuery.whereStatements.flatMap(whereStatement =>
-            this.whereStatementsToExpressionWrapper(
+            this.whereStatementToExpressionWrapper(
               eb,
               this.aliasWhereStatement(whereStatement, tableNameOrAlias),
               { disallowSimilarityOperator: false }
@@ -3335,7 +3349,7 @@ export default class Query<
     return isNullStatement
   }
 
-  private whereStatementsToExpressionWrapper(
+  private whereStatementToExpressionWrapper(
     eb: ExpressionBuilder<any, any>,
     whereStatement: WhereStatement<any, any, any>,
     {
@@ -3563,7 +3577,7 @@ export default class Query<
       disallowSimilarityOperator?: boolean
     } = {}
   ) {
-    return this.whereStatementsToExpressionWrapper(
+    return this.whereStatementToExpressionWrapper(
       eb,
 
       Object.keys(joinOnStatement).reduce((agg: any, key: any) => {
@@ -3615,20 +3629,20 @@ export default class Query<
         (eb: ExpressionBuilder<any, any>) =>
           eb.and([
             ...this.aliasWhereStatements(query.whereStatements, query.baseSqlAlias).map(whereStatement =>
-              this.whereStatementsToExpressionWrapper(eb, whereStatement, {
+              this.whereStatementToExpressionWrapper(eb, whereStatement, {
                 disallowSimilarityOperator: false,
               })
             ),
 
             ...this.aliasWhereStatements(query.whereNotStatements, query.baseSqlAlias).map(
               whereNotStatement =>
-                this.whereStatementsToExpressionWrapper(eb, whereNotStatement, { negate: true })
+                this.whereStatementToExpressionWrapper(eb, whereNotStatement, { negate: true })
             ),
 
             ...query.whereAnyStatements.map(whereAnyStatements =>
               eb.or(
                 this.aliasWhereStatements(whereAnyStatements, query.baseSqlAlias).map(whereAnyStatement =>
-                  this.whereStatementsToExpressionWrapper(eb, whereAnyStatement)
+                  this.whereStatementToExpressionWrapper(eb, whereAnyStatement)
                 )
               )
             ),

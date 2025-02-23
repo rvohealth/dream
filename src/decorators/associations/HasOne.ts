@@ -65,6 +65,9 @@ export default function HasOne<
  *
  * @param opts.dependent - Can be either "destroy" or undefined. If "destroy", this record will be cascade deleted if the base model is destroyed.
  * @param opts.foreignKey - A custom column name to use for the foreign key.
+ * @param opts.on - An on clause to be applied when this association is loaded
+ * @param opts.notOn - A not on clause to be applied when this association is loaded
+ * @param opts.onAny - An onAny clause to be applied when this association is loaded
  * @param opts.polymorphic - If true, this association will be treated as a polymorphic association.
  * @param opts.preloadThroughColumns - An array of columns to pluck off the through association attached to this association. Can only be set if `through` is also set.
  * @param opts.primaryKeyOverride - A custom column name to use for the primary key.
@@ -72,8 +75,6 @@ export default function HasOne<
  * @param opts.selfNotOn - Adds a not on clause to an association between a column on the associated model and a column on this model.
  * @param opts.source - Used in conjunction with 'through' to specify the source association on a child model.
  * @param opts.through - If passed, this association will travel through another association.
- * @param opts.on - An on clause to be applied when this association is loaded
- * @param opts.notOn - A not on clause to be applied when this association is loaded
  * @param opts.withoutDefaultScopes - A list of default scopes to bypass when loading this association
  */
 export default function HasOne<
@@ -85,6 +86,9 @@ export default function HasOne<
   const {
     dependent,
     foreignKey,
+    on,
+    notOn,
+    onAny,
     polymorphic = false,
     preloadThroughColumns,
     primaryKeyOverride = null,
@@ -92,8 +96,6 @@ export default function HasOne<
     selfNotOn,
     source,
     through,
-    on,
-    notOn,
     withoutDefaultScopes,
   } = opts as any
 
@@ -114,19 +116,20 @@ export default function HasOne<
     const partialAssociation = associationPrimaryKeyAccessors(
       {
         modelCB: () => lookupModelByGlobalNameOrNames(globalAssociationNameOrNames as string | string[]),
-        globalAssociationNameOrNames,
-        type: 'HasOne',
         as: key,
-        polymorphic,
-        source: source || key,
-        through,
-        preloadThroughColumns,
+        dependent,
+        globalAssociationNameOrNames,
         on,
         notOn,
+        onAny,
+        polymorphic,
+        preloadThroughColumns,
+        primaryKeyOverride,
         selfOn,
         selfNotOn,
-        primaryKeyOverride,
-        dependent,
+        source: source || key,
+        through,
+        type: 'HasOne',
         withoutDefaultScopes,
       } as any,
       dreamClass

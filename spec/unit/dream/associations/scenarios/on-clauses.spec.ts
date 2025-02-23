@@ -296,4 +296,136 @@ describe('on clauses on associations (also see various specs in spec/unit/query)
       })
     })
   })
+
+  context('onAny', () => {
+    context('a non-null value', () => {
+      it('matches records with the value in the specified column', async () => {
+        const reloaded = await Pet.leftJoinPreload('onAny_red').firstOrFail()
+        expect(reloaded.onAny_red).toMatchDreamModels([redBalloon])
+      })
+
+      context('ops.equal', () => {
+        it('matches records with the value in the specified column', async () => {
+          const reloaded = await Pet.leftJoinPreload('onAny_opsEqual_red').firstOrFail()
+          expect(reloaded.onAny_opsEqual_red).toMatchDreamModels([redBalloon])
+        })
+      })
+
+      context('ops.not.equal', () => {
+        it('include records with fields with a value that doesn’t match specified value, including null', async () => {
+          const reloaded = await Pet.leftJoinPreload('onAny_opsNotEqual_red').firstOrFail()
+          expect(reloaded.onAny_opsNotEqual_red).toMatchDreamModels([greenBalloon, noColorBalloon])
+        })
+      })
+    })
+
+    context('an array without null', () => {
+      it('matches records with any array value in the specified column', async () => {
+        const reloaded = await Pet.leftJoinPreload('onAny_redArray').firstOrFail()
+        expect(reloaded.onAny_redArray).toMatchDreamModels([redBalloon])
+      })
+
+      context('ops.in', () => {
+        it('matches records with any array value in the specified column', async () => {
+          const reloaded = await Pet.leftJoinPreload('onAny_opsIn_redArray').firstOrFail()
+          expect(reloaded.onAny_opsIn_redArray).toMatchDreamModels([redBalloon])
+        })
+      })
+
+      context('ops.not.in', () => {
+        it('include records with fields with a value that doesn’t match specified value, including null', async () => {
+          const reloaded = await Pet.leftJoinPreload('onAny_opsNotIn_redArray').firstOrFail()
+          expect(reloaded.onAny_opsNotIn_redArray).toMatchDreamModels([greenBalloon, noColorBalloon])
+        })
+      })
+    })
+
+    context('an array with null', () => {
+      it('matches records with null in the specified column', async () => {
+        const reloaded = await Pet.leftJoinPreload('onAny_arrayWithNull').firstOrFail()
+        expect(reloaded.onAny_arrayWithNull).toMatchDreamModels([noColorBalloon])
+      })
+
+      context('ops.in', () => {
+        it('matches records with null in the specified column', async () => {
+          const reloaded = await Pet.leftJoinPreload('onAny_opsIn_arrayWithNull').firstOrFail()
+          expect(reloaded.onAny_opsIn_arrayWithNull).toMatchDreamModels([noColorBalloon])
+        })
+      })
+
+      context('ops.not.in', () => {
+        it('include records with non-null in that field', async () => {
+          const reloaded = await Pet.leftJoinPreload('onAny_opsNotIn_arrayWithNull').firstOrFail()
+          expect(reloaded.onAny_opsNotIn_arrayWithNull).toMatchDreamModels([redBalloon, greenBalloon])
+        })
+      })
+    })
+
+    context('an array with null and a non-null value', () => {
+      it('matches records with null or the non-null value in the specified column', async () => {
+        const reloaded = await Pet.leftJoinPreload('onAny_arrayWithNullAndRed').firstOrFail()
+        expect(reloaded.onAny_arrayWithNullAndRed).toMatchDreamModels([noColorBalloon, redBalloon])
+      })
+
+      context('ops.in', () => {
+        it('matches records with null or the non-null value in the specified column', async () => {
+          const reloaded = await Pet.leftJoinPreload('onAny_opsIn_arrayWithNullAndRed').firstOrFail()
+          expect(reloaded.onAny_opsIn_arrayWithNullAndRed).toMatchDreamModels([noColorBalloon, redBalloon])
+        })
+      })
+
+      context('ops.not.in', () => {
+        it('include records with non-null in that field that don’t match the non-null value', async () => {
+          const reloaded = await Pet.leftJoinPreload('onAny_opsNotIn_arrayWithNullAndRed').firstOrFail()
+          expect(reloaded.onAny_opsNotIn_arrayWithNullAndRed).toMatchDreamModels([greenBalloon])
+        })
+      })
+    })
+
+    context('an empty array', () => {
+      it('returns no results', async () => {
+        const reloaded = await Pet.leftJoinPreload('onAny_emptyArray').firstOrFail()
+        expect(reloaded.onAny_emptyArray).toMatchDreamModels([])
+      })
+
+      context('ops.in', () => {
+        it('returns no results', async () => {
+          const reloaded = await Pet.leftJoinPreload('onAny_opsIn_emptyArray').firstOrFail()
+          expect(reloaded.onAny_opsIn_emptyArray).toMatchDreamModels([])
+        })
+      })
+
+      context('ops.not.in ', () => {
+        it('returns results as if the array whereNot clause were not present', async () => {
+          const reloaded = await Pet.leftJoinPreload('onAny_opsNotIn_emptyArray').firstOrFail()
+          expect(reloaded.onAny_opsNotIn_emptyArray).toMatchDreamModels([
+            redBalloon,
+            greenBalloon,
+            noColorBalloon,
+          ])
+        })
+      })
+    })
+
+    context('a null value', () => {
+      it('matches records with null in the specified column', async () => {
+        const reloaded = await Pet.leftJoinPreload('onAny_null').firstOrFail()
+        expect(reloaded.onAny_null).toMatchDreamModels([noColorBalloon])
+      })
+
+      context('ops.equal ', () => {
+        it('matches records with null in the specified column', async () => {
+          const reloaded = await Pet.leftJoinPreload('onAny_opsEqual_null').firstOrFail()
+          expect(reloaded.onAny_opsEqual_null).toMatchDreamModels([noColorBalloon])
+        })
+      })
+
+      context('ops.not.equal', () => {
+        it('include records with non-null in that field', async () => {
+          const reloaded = await Pet.leftJoinPreload('onAny_opsNotEqual_null').firstOrFail()
+          expect(reloaded.onAny_opsNotEqual_null).toMatchDreamModels([redBalloon, greenBalloon])
+        })
+      })
+    })
+  })
 })

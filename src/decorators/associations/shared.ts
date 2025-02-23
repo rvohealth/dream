@@ -254,14 +254,14 @@ export interface HasStatement<
   HasType extends 'HasOne' | 'HasMany',
 > {
   modelCB: () => typeof Dream
-  globalAssociationNameOrNames: string[]
-  type: HasType
   as: string
-  primaryKeyValue: (associationInstance: Dream) => any
-  primaryKeyOverride?: DreamColumnNames<BaseInstance> | null
-  primaryKey: (associationInstance?: Dream) => DreamColumnNames<BaseInstance>
+  dependent?: DependentOptions
   foreignKey: () => keyof DB[ForeignTableName] & string
   foreignKeyTypeField: () => keyof DB[ForeignTableName] & string
+  globalAssociationNameOrNames: string[]
+  on?: OnStatementForAssociationDefinition<DB, Schema, ForeignTableName>
+  notOn?: WhereStatement<DB, Schema, ForeignTableName>
+  onAny?: WhereStatement<DB, Schema, ForeignTableName>[]
   // ATTENTION
   //
   // Using `order` with HasOne is tempting as an elegant API
@@ -273,14 +273,15 @@ export interface HasStatement<
   // association, each of which may HaveOne of the subsequent
   // association
   polymorphic: boolean
-  source: string
-  through?: string
   preloadThroughColumns?: string[] | Record<string, string>
-  on?: OnStatementForAssociationDefinition<DB, Schema, ForeignTableName>
-  notOn?: WhereStatement<DB, Schema, ForeignTableName>
+  primaryKey: (associationInstance?: Dream) => DreamColumnNames<BaseInstance>
+  primaryKeyOverride?: DreamColumnNames<BaseInstance> | null
+  primaryKeyValue: (associationInstance: Dream) => any
   selfOn?: SelfOnStatement<BaseInstance, DB, Schema, ForeignTableName>
   selfNotOn?: SelfOnStatement<BaseInstance, DB, Schema, ForeignTableName>
-  dependent?: DependentOptions
+  source: string
+  through?: string
+  type: HasType
   withoutDefaultScopes?: DefaultScopeName<BaseInstance>[]
 }
 
@@ -297,11 +298,9 @@ interface HasOptionsBase<
     AssociationGlobalName & GlobalModelNames<BaseInstance>
   >,
 > {
+  dependent?: DependentOptions
   foreignKey?: TableColumnNames<BaseInstance['DB'], AssociationTableName & keyof BaseInstance['DB']>
-  primaryKeyOverride?: DreamColumnNames<BaseInstance> | null
-  through?: keyof BaseInstance['schema'][BaseInstance['table']]['associations']
-  polymorphic?: boolean
-  source?: string
+
   on?: OnStatementForAssociationDefinition<
     BaseInstance['DB'],
     BaseInstance['schema'],
@@ -309,6 +308,7 @@ interface HasOptionsBase<
       AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
       keyof BaseInstance['DB']
   >
+
   notOn?: WhereStatement<
     BaseInstance['DB'],
     BaseInstance['schema'],
@@ -316,6 +316,18 @@ interface HasOptionsBase<
       AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
       keyof BaseInstance['DB']
   >
+
+  onAny?: WhereStatement<
+    BaseInstance['DB'],
+    BaseInstance['schema'],
+    AssociationTableName &
+      AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
+      keyof BaseInstance['DB']
+  >[]
+
+  polymorphic?: boolean
+  preloadThroughColumns?: string[] | Record<string, string>
+  primaryKeyOverride?: DreamColumnNames<BaseInstance> | null
 
   selfOn?: SelfOnStatement<
     BaseInstance,
@@ -335,8 +347,9 @@ interface HasOptionsBase<
       keyof BaseInstance['DB']
   >
 
-  preloadThroughColumns?: string[] | Record<string, string>
-  dependent?: DependentOptions
+  source?: string
+  through?: keyof BaseInstance['schema'][BaseInstance['table']]['associations']
+
   withoutDefaultScopes?: DefaultScopeNameForTable<
     BaseInstance['schema'],
     AssociationTableName & keyof BaseInstance['DB']
