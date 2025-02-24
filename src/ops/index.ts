@@ -37,12 +37,12 @@ const ops = {
   strictWordSimilarity: (similarity: string, { score = 0.6 }: { score?: number } = {}) =>
     new OpsStatement('<<%', similarity, { score }),
   not: {
-    in: (arr: any[]) => new OpsStatement('not in', arr, { negated: true }),
-    like: (like: string) => new OpsStatement('not like', like, { negated: true }),
-    ilike: (ilike: string) => new OpsStatement('not ilike', ilike, { negated: true }),
+    in: (arr: any[]) => new OpsStatement('not in', arr),
+    like: (like: string) => new OpsStatement('not like', like),
+    ilike: (ilike: string) => new OpsStatement('not ilike', ilike),
     match: (match: string, { caseInsensitive = false }: { caseInsensitive?: boolean } = {}) =>
-      new OpsStatement(caseInsensitive ? '!~*' : '!~', match, { negated: true }),
-    equal: (equal: any) => new OpsStatement('!=', equal, { negated: true }),
+      new OpsStatement(caseInsensitive ? '!~*' : '!~', match),
+    equal: (equal: any) => new OpsStatement('!=', equal),
     lessThan: (lessThan: number) => new OpsStatement('>=', lessThan),
     lessThanOrEqualTo: (lessThanOrEqualTo: number) => new OpsStatement('>', lessThanOrEqualTo),
     greaterThan: (greaterThan: number) => new OpsStatement('<=', greaterThan),

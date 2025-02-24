@@ -2,23 +2,17 @@ import { ComparisonOperatorExpression as KyselyComparisonOperatorExpression } fr
 import { TRIGRAM_OPERATORS, TrigramOperator } from '../dream/types'
 import ScoreMustBeANormalNumber from '../errors/ops/ScoreMustBeANormalNumber'
 
-export interface ExtraOpsArgs {
-  negated?: boolean
-}
-export interface ExtraSimilarityArgs extends ExtraOpsArgs {
+export interface ExtraSimilarityArgs {
   score?: number
 }
 
 export default class OpsStatement<
   COE extends KyselyComparisonOperatorExpression | TrigramOperator,
-  ExtraArgs extends COE extends '%' | '<%' | '<<%'
-    ? ExtraSimilarityArgs | undefined
-    : ExtraOpsArgs | undefined = ExtraOpsArgs | undefined,
+  ExtraArgs = COE extends '%' | '<%' | '<<%' ? ExtraSimilarityArgs | undefined : undefined,
 > {
   public operator: COE
   public value: any
   public extraArgs: ExtraArgs
-  public negated: boolean = false
 
   constructor(operator: COE, value: any, extraArgs?: ExtraArgs) {
     if (
@@ -33,7 +27,6 @@ export default class OpsStatement<
 
     if (extraArgs) {
       this.extraArgs = extraArgs
-      this.negated = extraArgs?.negated || false
     }
   }
 
