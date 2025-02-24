@@ -254,8 +254,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
       associatedData = this.associatedData(associationStatement)
     } catch (error) {
       if ((error as any).constructor !== NonLoadedAssociation) throw error
-      if (associationStatement.optional) return undefined
-      throw error
+      if (!associationStatement.optional) throw error
     }
 
     if (associationStatement.type === 'RendersMany' && Array.isArray(associatedData))

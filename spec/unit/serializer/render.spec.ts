@@ -766,12 +766,12 @@ describe('DreamSerializer#render', () => {
             public pets: Pet[]
           }
 
-          it('renders the association as undefined', async () => {
+          it('renders the association as null', async () => {
             const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
             await Pet.create({ user, name: 'aster', species: 'cat' })
 
             const serializer = new UserSerializer(user)
-            expect(serializer.render()).toEqual({ pets: undefined })
+            expect(serializer.render()).toEqual({ pets: null })
           })
         })
       })
@@ -974,7 +974,7 @@ describe('DreamSerializer#render', () => {
             const reloadedPet = await Pet.find(pet.id)
 
             const serializer = new PetSerializer(reloadedPet)
-            expect(serializer.render()).toEqual({ pets: undefined })
+            expect(serializer.render()).toEqual({ user: null })
           })
         })
       })
@@ -1116,7 +1116,7 @@ describe('DreamSerializer#render', () => {
 
           const serializer = new PetSerializer(pet)
           expect(serializer.render()).toEqual({
-            user: { id: user.id, name: 'Charlie Brown', birthdate: '1983-07-29' },
+            user: { id: user.id, name: 'Charlie Brown', birthdate: '1983-07-29', userSettings: null },
           })
         })
       })
