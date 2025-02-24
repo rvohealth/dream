@@ -1959,13 +1959,18 @@ export default class Dream {
     T extends typeof Dream,
     QueryType extends 'select' | 'delete' | 'update' | 'insert',
     ToKyselyReturnType = QueryType extends 'select'
-      ? SelectQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], any>
+      ? SelectQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], unknown>
       : QueryType extends 'delete'
-        ? DeleteQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], any>
+        ? DeleteQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], unknown>
         : QueryType extends 'update'
-          ? UpdateQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], InstanceType<T>['table'], any>
+          ? UpdateQueryBuilder<
+              InstanceType<T>['DB'],
+              InstanceType<T>['table'],
+              InstanceType<T>['table'],
+              unknown
+            >
           : QueryType extends 'insert'
-            ? InsertQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], any>
+            ? InsertQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], unknown>
             : never,
   >(this: T, type: QueryType) {
     switch (type) {
