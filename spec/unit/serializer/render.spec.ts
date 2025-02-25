@@ -1095,6 +1095,32 @@ describe('DreamSerializer#render', () => {
           const serializer = new PetSerializerFlattened(pet)
           expect(serializer.render()).toEqual({ email: 'how@yadoin' })
         })
+
+        context('when the attribute is computed', () => {
+          class UserSerializer extends DreamSerializer {
+            @Attribute('date')
+            public birthdate: CalendarDate
+          }
+
+          class PetSerializerFlattened extends DreamSerializer {
+            @RendersOne(() => UserSerializer, { flatten: true })
+            public user: User
+          }
+
+          it('correctly renders the computed value', async () => {
+            const today = CalendarDate.today()
+            const user = await User.create({
+              email: 'how@yadoin',
+              password: 'howyadoin',
+              birthdate: today,
+            })
+            let pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+            pet = await pet.load('user').execute()
+
+            const serializer = new PetSerializerFlattened(pet)
+            expect(serializer.render()).toEqual({ birthdate: today.toISO() })
+          })
+        })
       })
 
       context('when no serializer class is passed', () => {
