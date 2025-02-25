@@ -21,7 +21,7 @@ describe('DreamSerializer.renderArray', () => {
       class MySerializer extends DreamSerializer {
         @Attribute()
         public name() {
-          return this.passthroughData.name
+          return this.$passthroughData.name
         }
       }
 
