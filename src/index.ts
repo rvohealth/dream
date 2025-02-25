@@ -144,6 +144,7 @@ export {
   openapiShorthandPrimitiveTypes,
   OpenapiTypeField,
   OpenapiTypeFieldObject,
+  OpenapiSchemaNull,
 } from './openapi/types'
 export { default as ops } from './ops'
 export { default as DreamSerializer } from './serializer'
