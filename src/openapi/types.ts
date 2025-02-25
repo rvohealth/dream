@@ -18,6 +18,7 @@ export type OpenapiSchemaBodyShorthand =
   | OpenapiSchemaShorthandExpressionAllOf
   | OpenapiSchemaObjectShorthand
   | OpenapiSchemaArrayShorthand
+  | OpenapiSchemaNull // no shorthand for type: null
   | OpenapiSchemaExpressionRefSchemaShorthand
   | OpenapiSchemaShorthandExpressionSerializerRef
   | OpenapiSchemaShorthandExpressionSerializableRef
@@ -26,6 +27,7 @@ export type OpenapiSchemaBase =
   | OpenapiSchemaString
   | OpenapiSchemaInteger
   | OpenapiSchemaNumber
+  | OpenapiSchemaNull
   | OpenapiSchemaExpressionRef
 
 export type OpenapiSchemaShorthandExpressionAnyOf = {
@@ -105,6 +107,10 @@ export type OpenapiSchemaNumber = OpenapiSchemaCommonFields<{
   minimum?: number
   maximum?: number
 }>
+
+export type OpenapiSchemaNull = {
+  type: 'null'
+}
 
 export type OpenapiNumberFormats = 'decimal' | 'double'
 
@@ -230,6 +236,7 @@ export const openapiPrimitiveTypes = [
   'date-time',
   'double',
   'integer',
+  'null',
 ] as const
 
 export const openapiShorthandPrimitiveTypes = [
