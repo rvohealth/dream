@@ -1,9 +1,9 @@
 import { ModifierExpression } from '../dream/types'
 
-export default class ModifierStatement<ME extends ModifierExpression> {
+export default class ModifierStatement<ME extends ModifierExpression, ValType> {
   public operator: ModifierExpression
-  public value: any
-  constructor(operator: ME, value: any) {
+  public value: ValType
+  constructor(operator: ME, value: ValType) {
     this.operator = operator
     this.value = value
   }

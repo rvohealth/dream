@@ -306,7 +306,7 @@ export type UpdateableProperties<
   KyselyUpdateable = Updateable<I['DB'][TableName]>,
 > = Partial<
   {
-    [K in keyof KyselyUpdateable]: KyselyUpdateable[K] | ModifierStatement<any>
+    [K in keyof KyselyUpdateable]: KyselyUpdateable[K] | ModifierStatement<any, KyselyUpdateable[K]>
   } & (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object) &
     (EncryptedColumns extends readonly any[] ? Record<EncryptedColumns[number], any> : object) &
     (AssociatedModelParam<I> extends never ? object : AssociatedModelParam<I>)
@@ -324,7 +324,7 @@ export type UpdateablePropertiesForClass<
   KyselyUpdateable = Updateable<InstanceType<DreamClass>['DB'][TableName]>,
 > = Partial<
   {
-    [K in keyof KyselyUpdateable]: KyselyUpdateable[K] | ModifierStatement<any>
+    [K in keyof KyselyUpdateable]: KyselyUpdateable[K] | ModifierStatement<any, KyselyUpdateable[K]>
   } & (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object) &
     (EncryptedColumns extends readonly any[] ? Record<EncryptedColumns[number], any> : object) &
     (AssociatedModelParam<InstanceType<DreamClass>> extends never
@@ -342,7 +342,7 @@ export type UpdateableAssociationProperties<
   KyselyUpdateable = Updateable<DreamInstance['DB'][AssociationTableName]>,
 > = Partial<
   {
-    [K in keyof KyselyUpdateable]: KyselyUpdateable[K] | ModifierStatement<any>
+    [K in keyof KyselyUpdateable]: KyselyUpdateable[K] | ModifierStatement<any, KyselyUpdateable[K]>
   } & (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object) &
     (AssociatedModelParam<AssociationClass> extends never ? object : AssociatedModelParam<AssociationClass>)
 >

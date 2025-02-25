@@ -242,6 +242,13 @@ export const SpeciesTypesEnumValues = [
 export type IdType = string | number | bigint
 export type Timestamp = ColumnType<DateTime | CalendarDate>
 
+export type UserFavoriteEnumsEnum = "chalupas" | "dujour";
+export const UserFavoriteEnumsEnumValues = [
+  "chalupas",
+  "dujour"
+] as const
+
+
 export interface BalloonLines {
   balloonId: Int8;
   createdAt: Timestamp;
@@ -554,6 +561,7 @@ export interface Users {
   encryptedSecret: string | null;
   favoriteDates: ArrayType<Timestamp> | null;
   favoriteDatetimes: ArrayType<Timestamp> | null;
+  favoriteEnums: ArrayType<UserFavoriteEnumsEnum> | null;
   favoriteNumbers: number[] | null;
   favoriteWord: string | null;
   featuredPostPosition: number | null;

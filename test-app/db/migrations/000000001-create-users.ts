@@ -5,6 +5,8 @@ export async function up(db: Kysely<any>): Promise<void> {
   await DreamMigrationHelpers.createExtension(db, 'uuid-ossp')
   await DreamMigrationHelpers.createExtension(db, 'citext')
 
+  await db.schema.createType('user_favorite_enums_enum').asEnum(['chalupas', 'dujour']).execute()
+
   await db.schema
     .createTable('users')
     .addColumn('id', 'bigserial', col => col.primaryKey())
@@ -26,6 +28,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('favorite_numbers', sql`integer[]`)
     .addColumn('favorite_dates', sql`date[]`)
     .addColumn('favorite_datetimes', sql`timestamp[]`)
+    .addColumn('favorite_enums', sql`user_favorite_enums_enum[]`)
     .addColumn('password_digest', 'varchar', col => col.notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())

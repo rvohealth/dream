@@ -121,7 +121,9 @@ import {
   Species,
   SpeciesTypesEnum,
   SpeciesTypesEnumValues,
-  SpeciesValues
+  SpeciesValues,
+  UserFavoriteEnumsEnum,
+  UserFavoriteEnumsEnumValues
 } from './db'
 
 export const schema = {
@@ -3731,6 +3733,15 @@ export const schema = {
         enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone[]',
+        allowNull: true,
+        isArray: true,
+      },
+      favoriteEnums: {
+        coercedType: {} as UserFavoriteEnumsEnum[] | null,
+        enumType: {} as UserFavoriteEnumsEnum,
+        enumArrayType: [] as UserFavoriteEnumsEnum[],
+        enumValues: UserFavoriteEnumsEnumValues,
+        dbType: 'user_favorite_enums_enum[]',
         allowNull: true,
         isArray: true,
       },

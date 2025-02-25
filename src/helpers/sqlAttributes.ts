@@ -40,7 +40,7 @@ export default function sqlAttributes(dream: Dream) {
 function modifierStatementToVal(
   tableName: string,
   columnName: string,
-  modifierStatement: ModifierStatement<any>
+  modifierStatement: ModifierStatement<any, any>
 ) {
   switch (modifierStatement.operator) {
     case 'arrayCat':

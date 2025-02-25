@@ -42,6 +42,7 @@ export default class User extends ApplicationModel {
   public socialSecurityNumber: DreamColumn<User, 'socialSecurityNumber'>
   public favoriteWord: DreamColumn<User, 'favoriteWord'>
   public favoriteNumbers: DreamColumn<User, 'favoriteNumbers'>
+  public favoriteEnums: DreamColumn<User, 'favoriteEnums'>
   public featuredPostPosition: DreamColumn<User, 'featuredPostPosition'>
   public targetRating: DreamColumn<User, 'targetRating'>
   public deletedAt: DreamColumn<User, 'deletedAt'>
