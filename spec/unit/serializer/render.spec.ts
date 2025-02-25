@@ -31,7 +31,7 @@ describe('DreamSerailizer.render', () => {
       class MySerializer extends DreamSerializer {
         @Attribute()
         public name() {
-          return this.passthroughData.name
+          return this.$passthroughData.name
         }
       }
 
@@ -119,7 +119,7 @@ describe('DreamSerializer#render', () => {
 
       @Attribute()
       public howyadoin() {
-        return this.passthroughData.howyadoin
+        return this.$passthroughData.howyadoin
       }
     }
     const serializer = new MySerializer({ email: 'abc' }).passthrough({ howyadoin: 'yay' })
@@ -1322,7 +1322,7 @@ describe('DreamSerializer#render', () => {
     > extends DreamSerializer<DataType, PassthroughData> {
       @Attribute()
       public howyadoin() {
-        return this.passthroughData.howyadoin
+        return this.$passthroughData.howyadoin
       }
     }
 
@@ -1332,7 +1332,7 @@ describe('DreamSerializer#render', () => {
 
       @Attribute()
       public howyadoin() {
-        return this.passthroughData.howyadoin
+        return this.$passthroughData.howyadoin
       }
     }
 
