@@ -7,7 +7,6 @@ import {
   SerializableDreamClassOrViewModelClass,
   SerializableDreamOrViewModel,
 } from '../dream/types'
-import NonLoadedAssociation from '../errors/associations/NonLoadedAssociation'
 import GlobalNameNotSet from '../errors/dream-application/GlobalNameNotSet'
 import MissingSerializer from '../errors/MissingSerializersDefinition'
 import FailedToRenderThroughAssociationForSerializer from '../errors/serializers/FailedToRenderThroughAssociationForSerializer'
@@ -252,22 +251,12 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   }
 
   private applyAssociation(associationStatement: DreamSerializerAssociationStatement) {
-    // let associatedData: ReturnType<DreamSerializer.prototype.associatedData>
-    let associatedData: any
-    const defaultValue = associationStatement.type === 'RendersMany' ? [] : null
-
-    try {
-      associatedData = this.associatedData(associationStatement)
-    } catch (error) {
-      if ((error as any).constructor !== NonLoadedAssociation) throw error
-      if (associationStatement.optional) return defaultValue
-      throw error
-    }
+    const associatedData = this.associatedData(associationStatement)
 
     if (associationStatement.type === 'RendersMany' && Array.isArray(associatedData))
       return associatedData.map(d => this.renderAssociation(d, associationStatement))
     else if (associatedData) return this.renderAssociation(associatedData, associationStatement)
-    return defaultValue
+    return associationStatement.type === 'RendersMany' ? [] : null
   }
 
   private renderAssociation(

@@ -767,11 +767,20 @@ describe('DreamSerializer#render', () => {
           }
 
           it('renders the association as a blank array', async () => {
-            const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-            await Pet.create({ user, name: 'aster', species: 'cat' })
+            let user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+            user = await user.load('pets').execute()
 
             const serializer = new UserSerializer(user)
             expect(serializer.render()).toEqual({ pets: [] })
+          })
+
+          context('when the association is not loaded', () => {
+            it('throws NonLoadedAssociation', async () => {
+              const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+
+              const serializer = new UserSerializer(user)
+              expect(() => serializer.render()).toThrow(NonLoadedAssociation)
+            })
           })
         })
       })
@@ -969,9 +978,8 @@ describe('DreamSerializer#render', () => {
           }
 
           it('renders the association as undefined', async () => {
-            const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-            const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
-            const reloadedPet = await Pet.find(pet.id)
+            const pet = await Pet.create({ name: 'aster', species: 'cat' })
+            const reloadedPet = await Pet.preload('user').find(pet.id)
 
             const serializer = new PetSerializer(reloadedPet)
             expect(serializer.render()).toEqual({ user: null })
@@ -1151,7 +1159,7 @@ describe('DreamSerializer#render', () => {
             favoriteWord: 'chalupas',
           })
           let pet = await Pet.create({ user, name: 'aster', species: 'cat' })
-          pet = await pet.load('user').execute()
+          pet = await pet.load('user', 'userSettings').execute()
 
           const serializer = new PetSerializer(pet)
           expect(serializer.render()).toEqual({
