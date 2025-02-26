@@ -8,13 +8,14 @@ export interface ExtraSimilarityArgs {
 
 export default class OpsStatement<
   COE extends KyselyComparisonOperatorExpression | TrigramOperator,
+  ValType,
   ExtraArgs = COE extends '%' | '<%' | '<<%' ? ExtraSimilarityArgs | undefined : undefined,
 > {
   public operator: COE
-  public value: any
+  public value: ValType
   public extraArgs: ExtraArgs
 
-  constructor(operator: COE, value: any, extraArgs?: ExtraArgs) {
+  constructor(operator: COE, value: ValType, extraArgs?: ExtraArgs) {
     if (
       typeof (extraArgs as ExtraSimilarityArgs)?.score === 'number' &&
       ((extraArgs as ExtraSimilarityArgs).score! < 0 || (extraArgs as ExtraSimilarityArgs).score! > 1)
