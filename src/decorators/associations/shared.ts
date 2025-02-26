@@ -89,6 +89,10 @@ type NonKyselySupportedSupplementalWhereClauseValues<
   Column,
   ColumnType = TableColumnType<Schema, TableName, Column>,
   EnumTypeArray extends string[] | null = TableColumnEnumTypeArray<Schema, TableName, Column>,
+  PermanentOpsValTypes = null | readonly [],
+  OpsValType = EnumTypeArray extends string[]
+    ? EnumTypeArray[number] | PermanentOpsValTypes
+    : ColumnType | PermanentOpsValTypes,
   PartialTypes = EnumTypeArray extends null
     ? ColumnType extends DateTime
       ?
@@ -97,7 +101,7 @@ type NonKyselySupportedSupplementalWhereClauseValues<
           | (() => Range<DateTime>)
           | Range<CalendarDate>
           | (() => Range<CalendarDate>)
-          | OpsStatement<KyselyComparisonOperatorExpression>
+          | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
       : ColumnType extends CalendarDate
         ?
             | CalendarDate[]
@@ -105,26 +109,29 @@ type NonKyselySupportedSupplementalWhereClauseValues<
             | (() => Range<CalendarDate>)
             | Range<DateTime>
             | (() => Range<DateTime>)
-            | OpsStatement<KyselyComparisonOperatorExpression>
+            | OpsStatement<KyselyComparisonOperatorExpression, OpsValType>
         : ColumnType extends number
-          ? (number | bigint)[] | Range<number> | OpsStatement<KyselyComparisonOperatorExpression>
+          ?
+              | (number | bigint)[]
+              | Range<number>
+              | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
           : ColumnType extends string
             ?
                 | string[]
-                | OpsStatement<KyselyComparisonOperatorExpression>
-                | OpsStatement<TrigramOperator, ExtraSimilarityArgs>
+                | OpsStatement<KyselyComparisonOperatorExpression, string, any>
+                | OpsStatement<TrigramOperator, OpsValType, ExtraSimilarityArgs>
             : ColumnType extends IdType
-              ? IdType[] | OpsStatement<KyselyComparisonOperatorExpression>
+              ? IdType[] | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
               : never
     : EnumTypeArray extends string[]
-      ? EnumTypeArray | OpsStatement<KyselyComparisonOperatorExpression>
+      ? EnumTypeArray | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
       : never,
 > = PartialTypes extends never
   ?
-      | OpsStatement<KyselyComparisonOperatorExpression>
-      | CurriedOpsStatement<any, any, any>
+      | OpsStatement<KyselyComparisonOperatorExpression, any, any>
+      | CurriedOpsStatement<any, any, any, OpsValType>
       | SelectQueryBuilder<DB, keyof DB, any>
-  : PartialTypes | CurriedOpsStatement<any, any, any> | SelectQueryBuilder<DB, keyof DB, any>
+  : PartialTypes | CurriedOpsStatement<any, any, any, OpsValType> | SelectQueryBuilder<DB, keyof DB, any>
 
 export type WhereStatementForDreamClass<DreamClass extends typeof Dream> = WhereStatement<
   InstanceType<DreamClass>['DB'],
