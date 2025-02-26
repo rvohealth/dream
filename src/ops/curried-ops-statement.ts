@@ -5,10 +5,11 @@ export default class CurriedOpsStatement<
   T extends typeof Dream,
   DB extends InstanceType<T>['DB'],
   FN extends keyof DB[InstanceType<T>['table']] & string,
+  FinalType,
 > {
-  public factoryFn: (dreamClass: T, fieldName: FN) => OpsStatement<any, any>
+  public factoryFn: (dreamClass: T, fieldName: FN) => OpsStatement<any, FinalType>
 
-  constructor(factoryFn: (dreamClass: T, fieldName: FN) => OpsStatement<any, any>) {
+  constructor(factoryFn: (dreamClass: T, fieldName: FN) => OpsStatement<any, FinalType>) {
     this.factoryFn = factoryFn
   }
 
