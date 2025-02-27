@@ -1456,11 +1456,11 @@ export default class Query<
   public toKysely<
     QueryType extends 'select' | 'delete' | 'update',
     ToKyselyReturnType = QueryType extends 'select'
-      ? SelectQueryBuilder<DreamInstance['DB'], DreamInstance['table'], any>
+      ? SelectQueryBuilder<DreamInstance['DB'], DreamInstance['table'], unknown>
       : QueryType extends 'delete'
-        ? DeleteQueryBuilder<DreamInstance['DB'], DreamInstance['table'], any>
+        ? DeleteQueryBuilder<DreamInstance['DB'], DreamInstance['table'], unknown>
         : QueryType extends 'update'
-          ? UpdateQueryBuilder<DreamInstance['DB'], DreamInstance['table'], DreamInstance['table'], any>
+          ? UpdateQueryBuilder<DreamInstance['DB'], DreamInstance['table'], DreamInstance['table'], unknown>
           : never,
   >(type: QueryType) {
     switch (type) {
