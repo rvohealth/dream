@@ -39,10 +39,10 @@ const ops = {
     new OpsStatement(caseInsensitive ? '~*' : '~', match),
   // current
   equal: <const T>(equal: T) => new OpsStatement('=', equal),
-  lessThan: (lessThan: number) => new OpsStatement('<', lessThan),
-  lessThanOrEqualTo: (lessThanOrEqualTo: number) => new OpsStatement('<=', lessThanOrEqualTo),
-  greaterThan: (greaterThan: number) => new OpsStatement('>', greaterThan),
-  greaterThanOrEqualTo: (greaterThanOrEqualTo: number) => new OpsStatement('>=', greaterThanOrEqualTo),
+  lessThan: <const T>(lessThan: T) => new OpsStatement('<', lessThan),
+  lessThanOrEqualTo: <const T>(lessThanOrEqualTo: T) => new OpsStatement('<=', lessThanOrEqualTo),
+  greaterThan: <const T>(greaterThan: T) => new OpsStatement('>', greaterThan),
+  greaterThanOrEqualTo: <const T>(greaterThanOrEqualTo: T) => new OpsStatement('>=', greaterThanOrEqualTo),
   similarity: (similarity: string, { score = 0.3 }: { score?: number } = {}) =>
     new OpsStatement('%', similarity, { score }),
   wordSimilarity: (similarity: string, { score = 0.5 }: { score?: number } = {}) =>
@@ -56,10 +56,10 @@ const ops = {
     match: (match: string, { caseInsensitive = false }: { caseInsensitive?: boolean } = {}) =>
       new OpsStatement(caseInsensitive ? '!~*' : '!~', match),
     equal: <const T>(equal: T) => new OpsStatement('!=', equal),
-    lessThan: (lessThan: number) => new OpsStatement('>=', lessThan),
-    lessThanOrEqualTo: (lessThanOrEqualTo: number) => new OpsStatement('>', lessThanOrEqualTo),
-    greaterThan: (greaterThan: number) => new OpsStatement('<=', greaterThan),
-    greaterThanOrEqualTo: (greaterThanOrEqualTo: number) => new OpsStatement('<', greaterThanOrEqualTo),
+    lessThan: <const T>(lessThan: T) => new OpsStatement('>=', lessThan),
+    lessThanOrEqualTo: <const T>(lessThanOrEqualTo: T) => new OpsStatement('>', lessThanOrEqualTo),
+    greaterThan: <const T>(greaterThan: T) => new OpsStatement('<=', greaterThan),
+    greaterThanOrEqualTo: <const T>(greaterThanOrEqualTo: T) => new OpsStatement('<', greaterThanOrEqualTo),
   },
 }
 
