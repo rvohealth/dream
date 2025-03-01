@@ -2,10 +2,19 @@
   "name": "@rvohealth/dream",
   "version": "0.28.2",
   "description": "dream orm",
-  "main": "dist/src/index.js",
   "repository": "https://github.com/rvohealth/dream.git",
   "author": "RVOHealth",
   "license": "MIT",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/cjs/index.js",
+      "import": "./dist/esm/index.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
   "files": [
     "boilerplate/**/*",
     "dist/**/*",
@@ -19,12 +28,15 @@
     "dreamts": "npx ts-node --transpile-only -r ./src/helpers/loadEnv.ts test-app/cli/index.ts",
     "dreamcore": "DREAM_CORE_DEVELOPMENT=1 yarn dreamts",
     "gdreamcore": "DREAM_CORE_DEVELOPMENT=1 npx ts-node --transpile-only ./src/global-cli/dream.ts",
-    "build": "echo \"building dream...\" && rm -rf dist && npx tsc -p ./tsconfig.build.json",
-    "build:core": "rm -rf dist && mkdir dist && npx tsc -p ./tsconfig.build.core.json",
+    "build": "echo \"building dream...\" && rm -rf dist && npx tsc -p ./tsconfig.cjs.build.json && npx tsc -p ./tsconfig.esm.build.json",
+    "build:core": "rm -rf dist && mkdir dist && npx tsc -p ./tsconfig.cjs.build.core.json && npx tsc -p ./tsconfig.esm.build.core.json",
     "spec": "DREAM_CORE_DEVELOPMENT=1 NODE_ENV=test DREAM_CORE_SPEC_RUN=1 jest --maxWorkers=${DREAM_PARALLEL_TESTS:-1} --forceExit",
-    "console": "DREAM_CORE_DEVELOPMENT=1 npx ts-node --transpile-only --project ./tsconfig.json ./test-app/app/conf/repl.ts",
-    "types:trace": "rm -rf dist && npx tsc -p ./tsconfig.build.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
-    "types:trace-test-app": "rm -rf dist && npx tsc -p ./tsconfig.trace.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
+    "console:cjs": "DREAM_CORE_DEVELOPMENT=1 npx ts-node --transpile-only --project ./tsconfig.cjs.json ./test-app/app/conf/repl.ts",
+    "console:esm": "DREAM_CORE_DEVELOPMENT=1 npx ts-node --transpile-only --project ./tsconfig.esm.json ./test-app/app/conf/repl.ts",
+    "types:cjs:trace": "rm -rf dist && npx tsc -p ./tsconfig.cjs.build.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
+    "types:esm:trace": "rm -rf dist && npx tsc -p ./tsconfig.esm.build.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
+    "types:cjs:trace-test-app": "rm -rf dist && npx tsc -p ./tsconfig.cjs.trace.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
+    "types:esm:trace-test-app": "rm -rf dist && npx tsc -p ./tsconfig.esm.trace.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",
     "format": "yarn run prettier . --write",
     "lint": "yarn run eslint --no-warn-ignored \"src/**/*.ts\" \"spec/**/*.ts\" \"test-app/**/*.ts\" && yarn run prettier . --check",
     "prepack": "yarn build && yarn dreamcore build:docs"

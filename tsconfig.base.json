@@ -1,25 +1,21 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2021",
-    "strict": true,
-    "noImplicitAny": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "resolveJsonModule": true,
     "declaration": true,
-    "skipLibCheck": true,
-    "strictNullChecks": true,
-
-    /* do not require all properties to be initialized in constructor */
-    "strictPropertyInitialization": false,
-
-    /* with esnext as target, need to specify this so that Object.defineProperty works */
-    "useDefineForClassFields": false,
-
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": true,
+    "resolveJsonModule": true,
     /* rootDir and outDir together help maintain dist/src folder */
     "rootDir": "./",
-    "outDir": "./dist"
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": true,
+    /* do not require all properties to be initialized in constructor */
+    "strictPropertyInitialization": false,
+    "target": "es2021",
+    /* with esnext as target, need to specify this so that Object.defineProperty works */
+    "useDefineForClassFields": false
   },
   "include": ["src/**/*", "shared/**/*"]
 }
