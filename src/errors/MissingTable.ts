@@ -1,4 +1,4 @@
-import pluralize from 'pluralize'
+import * as pluralize from 'pluralize'
 import Dream from '../Dream'
 import snakeify from '../helpers/snakeify'
 

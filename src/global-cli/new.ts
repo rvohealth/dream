@@ -1,4 +1,4 @@
-import fs from 'fs/promises'
+import * as fs from 'fs/promises'
 import buildNewDreamApp from './helpers/buildNewDreamApp'
 import { InitDreamAppCliOptions } from './helpers/primaryKeyTypes'
 

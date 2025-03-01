@@ -11,7 +11,7 @@ export default async function loadModels(modelsPath: string): Promise<Record<str
   const modelPaths = (await getFiles(modelsPath)).filter(path => /\.[jt]s$/.test(path))
 
   for (const modelPath of modelPaths) {
-    const modelClass = (await import(modelPath)).default as typeof Dream
+    const modelClass = (await import(modelPath)) as typeof Dream
 
     if (modelClass.isDream) {
       try {

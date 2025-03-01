@@ -1,5 +1,5 @@
 import { SelectQueryBuilder } from 'kysely'
-import cloneDeepWith from 'lodash.clonedeepwith'
+import { cloneDeepWith } from 'lodash-es'
 import Dream from '../Dream'
 import Query from '../dream/Query'
 

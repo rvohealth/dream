@@ -1,4 +1,4 @@
-import dotenv from 'dotenv'
+import * as dotenv from 'dotenv'
 import EnvInternal from './EnvInternal'
 
 const fileName = `.env${EnvInternal.isTest ? '.test' : ''}`

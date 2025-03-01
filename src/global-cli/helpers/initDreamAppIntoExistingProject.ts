@@ -1,7 +1,7 @@
 import * as c from 'colorette'
 import * as fs from 'fs'
 
-import path from 'path'
+import * as path from 'path'
 import DreamtsBuilder from '../file-builders/DreamtsBuilder'
 import EnvBuilder from '../file-builders/EnvBuilder'
 import PackagejsonBuilder from '../file-builders/PackagejsonBuilder'
@@ -56,8 +56,8 @@ export default async function initDreamAppIntoExistingProject(
 
   const packageJsonPath = path.join(process.cwd(), options.projectPath, 'package.json')
   if (fs.existsSync(packageJsonPath)) {
-    const packagejson = (await import('../../../boilerplate/package.json')).default
-    const userPackagejson = (await import(packageJsonPath)).default
+    const packagejson = await import('../../../boilerplate/package.json')
+    const userPackagejson = await import(packageJsonPath)
 
     mergePackageJsonField('scripts', packagejson, userPackagejson)
     mergePackageJsonField('dependencies', packagejson, userPackagejson)

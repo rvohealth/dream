@@ -1,4 +1,4 @@
-import crypto from 'crypto'
+import * as crypto from 'crypto'
 import { EncryptAESAlgorithm } from '../..'
 
 export default function encryptAESGCM(algorithm: EncryptAESAlgorithm, data: any, key: string): string {
