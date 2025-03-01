@@ -1,3 +1,4 @@
+import { Decorators } from '../../../src'
 import AfterDestroy from '../../../src/decorators/hooks/AfterDestroy'
 import AfterDestroyCommit from '../../../src/decorators/hooks/AfterDestroyCommit'
 import BeforeDestroy from '../../../src/decorators/hooks/BeforeDestroy'
@@ -8,6 +9,8 @@ import Composition from './Composition'
 import CompositionAssetAudit from './CompositionAssetAudit'
 import LocalizedText from './LocalizedText'
 import User from './User'
+
+const Decorator = new Decorators<CompositionAsset>()
 
 export default class CompositionAsset extends ApplicationModel {
   public get table() {
@@ -20,16 +23,16 @@ export default class CompositionAsset extends ApplicationModel {
   public primary: DreamColumn<CompositionAsset, 'primary'>
   public score: DreamColumn<CompositionAsset, 'score'>
 
-  @CompositionAsset.BelongsTo('Composition')
+  @Decorator.BelongsTo('Composition')
   public composition: Composition
   public compositionId: DreamColumn<CompositionAsset, 'compositionId'>
 
-  @CompositionAsset.HasOne('User', {
+  @Decorator.HasOne('User', {
     through: 'composition',
   })
   public user: User
 
-  @CompositionAsset.HasMany('CompositionAssetAudit')
+  @Decorator.HasMany('CompositionAssetAudit')
   public compositionAssetAudits: CompositionAssetAudit[]
 
   @BeforeSave()
@@ -63,20 +66,20 @@ export default class CompositionAsset extends ApplicationModel {
       })
   }
 
-  @CompositionAsset.HasOne('LocalizedText', {
+  @Decorator.HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
     on: { locale: DreamConst.required },
   })
   public requiredCurrentLocalizedText: LocalizedText
 
-  @CompositionAsset.HasOne('LocalizedText', {
+  @Decorator.HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
     on: { locale: DreamConst.passthrough },
   })
   public passthroughCurrentLocalizedText: LocalizedText
 
-  @CompositionAsset.HasMany('LocalizedText', { polymorphic: true, foreignKey: 'localizableId' })
+  @Decorator.HasMany('LocalizedText', { polymorphic: true, foreignKey: 'localizableId' })
   public localizedTexts: LocalizedText[]
 }

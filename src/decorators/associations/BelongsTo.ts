@@ -6,6 +6,7 @@ import {
   DefaultScopeNameForTable,
   DreamColumnNames,
   GlobalModelNames,
+  GlobalModelNameTableMap,
   TableColumnNames,
   TableNameForGlobalModelName,
 } from '../../dream/types'
@@ -21,8 +22,8 @@ import {
 export default function BelongsTo<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
+    | keyof GlobalModelNameTableMap<BaseInstance>
+    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
 >(
   globalAssociationNameOrNames: AssociationGlobalNameOrNames,
   opts?: NonPolymorphicBelongsToOptions<BaseInstance, AssociationGlobalNameOrNames>
@@ -31,8 +32,8 @@ export default function BelongsTo<
 export default function BelongsTo<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
+    | keyof GlobalModelNameTableMap<BaseInstance>
+    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
 >(
   globalAssociationNameOrNames: AssociationGlobalNameOrNames,
   opts?: PolymorphicBelongsToOptions<BaseInstance, AssociationGlobalNameOrNames>
@@ -62,12 +63,10 @@ export default function BelongsTo<
  * @param opts.primaryKeyOverride - A custom column name to use for the primary key.
  * @param opts.withoutDefaultScopes - A list of default scopes to bypass when loading this association
  */
-export default function BelongsTo<
-  BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
->(globalAssociationNameOrNames: AssociationGlobalNameOrNames, opts: unknown = {}): any {
+export default function BelongsTo<BaseInstance extends Dream, AssociationGlobalNameOrNames extends unknown>(
+  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+  opts: unknown = {}
+): any {
   const {
     foreignKey,
     optional = false,

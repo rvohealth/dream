@@ -1,3 +1,4 @@
+import { Decorators } from '../../../src'
 import AfterCreate from '../../../src/decorators/hooks/AfterCreate'
 import AfterCreateCommit from '../../../src/decorators/hooks/AfterCreateCommit'
 import AfterSave from '../../../src/decorators/hooks/AfterSave'
@@ -12,6 +13,8 @@ import CompositionAssetAudit from './CompositionAssetAudit'
 import HeartRating from './ExtraRating/HeartRating'
 import LocalizedText from './LocalizedText'
 import User from './User'
+
+const Decorator = new Decorators<Composition>()
 
 export default class Composition extends ApplicationModel {
   public get table() {
@@ -28,30 +31,30 @@ export default class Composition extends ApplicationModel {
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @Composition.BelongsTo('User')
+  @Decorator.BelongsTo('User')
   public user: User
   public userId: DreamColumn<Composition, 'userId'>
 
-  @Composition.HasMany('CompositionAsset')
+  @Decorator.HasMany('CompositionAsset')
   public compositionAssets: CompositionAsset[]
 
-  @Composition.HasOne('CompositionAsset', {
+  @Decorator.HasOne('CompositionAsset', {
     on: { primary: true },
   })
   public mainCompositionAsset: CompositionAsset
 
-  @Composition.HasMany('CompositionAssetAudit', {
+  @Decorator.HasMany('CompositionAssetAudit', {
     through: 'compositionAssets',
   })
   public compositionAssetAudits: CompositionAssetAudit[]
 
-  @Composition.HasMany('CompositionAssetAudit', {
+  @Decorator.HasMany('CompositionAssetAudit', {
     through: 'mainCompositionAsset',
     source: 'compositionAssetAudits',
   })
   public mainCompositionAssetAudits: CompositionAssetAudit[]
 
-  @Composition.HasMany('ExtraRating/HeartRating', {
+  @Decorator.HasMany('ExtraRating/HeartRating', {
     foreignKey: 'extraRateableId',
     polymorphic: true,
   })
@@ -100,21 +103,21 @@ export default class Composition extends ApplicationModel {
       this.content = 'changed after save commit'
   }
 
-  @Composition.HasOne('LocalizedText', {
+  @Decorator.HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
     on: { locale: DreamConst.required },
   })
   public requiredCurrentLocalizedText: LocalizedText
 
-  @Composition.HasOne('LocalizedText', {
+  @Decorator.HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
     on: { locale: DreamConst.passthrough },
   })
   public passthroughCurrentLocalizedText: LocalizedText
 
-  @Composition.HasOne('LocalizedText', {
+  @Decorator.HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
     on: { name: 'cascade delete me' },
@@ -122,7 +125,7 @@ export default class Composition extends ApplicationModel {
   })
   public cascadeDeletableLocalizedText: LocalizedText
 
-  @Composition.HasMany('LocalizedText', { polymorphic: true, foreignKey: 'localizableId' })
+  @Decorator.HasMany('LocalizedText', { polymorphic: true, foreignKey: 'localizableId' })
   public localizedTexts: LocalizedText[]
 }
 

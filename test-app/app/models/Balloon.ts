@@ -1,15 +1,17 @@
 import { Query, ReplicaSafe } from '../../../src'
+import Decorators from '../../../src/decorators/Decorators'
 import Scope from '../../../src/decorators/Scope'
 import SoftDelete from '../../../src/decorators/SoftDelete'
-import Sortable from '../../../src/decorators/sortable/Sortable'
 import Validates from '../../../src/decorators/validations/Validates'
-import { DreamColumn, IdType } from '../../../src/dream/types'
+import { DreamColumn, IdType, Type } from '../../../src/dream/types'
 import { BalloonTypesEnum } from '../../types/db'
 import ApplicationModel from './ApplicationModel'
 import BalloonLine from './BalloonLine'
 import HeartRating from './ExtraRating/HeartRating'
 import Sandbag from './Sandbag'
 import User from './User'
+
+const Decorator = new Decorators<Type<typeof Balloon>>()
 
 @ReplicaSafe()
 @SoftDelete()
@@ -32,7 +34,7 @@ export default class Balloon extends ApplicationModel {
     ;(this as Balloon).setAttribute('type', newType)
   }
 
-  @Sortable({ scope: 'user' })
+  @Decorator.Sortable({ scope: 'user' })
   public positionAlpha: DreamColumn<Balloon, 'positionAlpha'>
 
   @Scope()
@@ -43,16 +45,16 @@ export default class Balloon extends ApplicationModel {
   @Validates('numericality', { min: 0, max: 100 })
   public volume: number
 
-  @Balloon.BelongsTo('User', { optional: true })
+  @Decorator.BelongsTo('User', { optional: true })
   public user: User
   public userId: IdType
 
-  @Balloon.HasOne('BalloonLine', { foreignKey: 'balloonId' })
+  @Decorator.HasOne(['BalloonLine'], { foreignKey: 'balloonId' })
   public balloonLine: BalloonLine
 
-  @Balloon.HasMany('ExtraRating/HeartRating', { polymorphic: true, foreignKey: 'extraRateableId' })
+  @Decorator.HasMany('ExtraRating/HeartRating', { polymorphic: true, foreignKey: 'extraRateableId' })
   public heartRatings: HeartRating[]
 
-  @Balloon.HasMany('Sandbag', { foreignKey: 'balloonId' })
+  @Decorator.HasMany('Sandbag', { foreignKey: 'balloonId' })
   public sandbags: Sandbag[]
 }

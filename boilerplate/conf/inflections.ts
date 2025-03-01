@@ -1,4 +1,4 @@
-import pluralize from 'pluralize'
+import * as pluralize from 'pluralize'
 
 export default () => {
   pluralize.addUncountableRule('paper')

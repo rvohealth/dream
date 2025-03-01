@@ -1,7 +1,10 @@
+import { Decorators } from '../../../src'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Composition from './Composition'
 import CompositionAsset from './CompositionAsset'
+
+const Decorator = new Decorators<LocalizedText>()
 
 export default class LocalizedText extends ApplicationModel {
   public get table() {
@@ -22,7 +25,7 @@ export default class LocalizedText extends ApplicationModel {
   public createdAt: DreamColumn<LocalizedText, 'createdAt'>
   public updatedAt: DreamColumn<LocalizedText, 'updatedAt'>
 
-  @LocalizedText.BelongsTo(['Composition', 'CompositionAsset'], {
+  @Decorator.BelongsTo(['Composition', 'CompositionAsset'], {
     foreignKey: 'localizableId',
     polymorphic: true,
   })

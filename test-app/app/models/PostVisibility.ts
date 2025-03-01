@@ -1,7 +1,10 @@
+import { Decorators } from '../../../src'
 import BeforeCreate from '../../../src/decorators/hooks/BeforeCreate'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Post from './Post'
+
+const Decorator = new Decorators<PostVisibility>()
 
 export default class PostVisibility extends ApplicationModel {
   public get table() {
@@ -18,7 +21,7 @@ export default class PostVisibility extends ApplicationModel {
   public createdAt: DreamColumn<PostVisibility, 'createdAt'>
   public updatedAt: DreamColumn<PostVisibility, 'updatedAt'>
 
-  @PostVisibility.HasOne('Post', { dependent: 'destroy' })
+  @Decorator.HasOne('Post', { dependent: 'destroy' })
   public post: Post
 
   @BeforeCreate()

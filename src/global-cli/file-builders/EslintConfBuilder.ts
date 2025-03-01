@@ -1,7 +1,7 @@
 export default class ESLintConfBuilder {
   public static buildForViteReact() {
     return `\
-module.exports = {
+export default  {
   root: true,
   env: { browser: true, es2020: true },
   extends: [

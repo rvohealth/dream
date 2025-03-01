@@ -3,6 +3,10 @@
   "compilerOptions": {
     "outDir": "./dist/esm",
     "module": "ESNext",
-    "declaration": false
+    "declaration": false,
+
+    "target": "ESNext",
+    "lib": ["ESNext"]
+    // "isolatedModules": true,
   }
 }

@@ -1,12 +1,14 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
-module.exports = {
-  restoreMocks: true,
+export default {
   clearMocks: true,
-  resetMocks: true,
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  setupFiles: ['jest-plugin-context/setup'],
-  setupFilesAfterEnv: ['<rootDir>spec/setup/hooks.ts', 'luxon-jest-matchers'],
+  extensionsToTreatAsEsm: ['.ts'],
   globalSetup: '<rootDir>spec/setup/beforeAll.ts',
   globalTeardown: '<rootDir>spec/setup/afterAll.ts',
+  preset: 'ts-jest',
+  resetMocks: true,
+  restoreMocks: true,
+  setupFiles: ['jest-plugin-context/setup'],
+  setupFilesAfterEnv: ['<rootDir>spec/setup/hooks.ts', 'luxon-jest-matchers'],
+  testEnvironment: 'node',
+  transform: {},
 }

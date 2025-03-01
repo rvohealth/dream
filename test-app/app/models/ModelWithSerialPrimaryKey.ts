@@ -1,5 +1,8 @@
+import { Decorators } from '../../../src'
 import { DreamColumn } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
+
+const Decorator = new Decorators<ModelWithSerialPrimaryKey>()
 
 export default class ModelWithSerialPrimaryKey extends ApplicationModel {
   public get table() {
