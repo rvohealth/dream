@@ -1,9 +1,11 @@
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar'
+import Collar from '../../../test-app/app/models/Collar'
 import Composition from '../../../test-app/app/models/Composition'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
 import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit'
+import Pet from '../../../test-app/app/models/Pet'
 import User from '../../../test-app/app/models/User'
 
 describe('Dream.leftJoinPreload', () => {
@@ -30,6 +32,35 @@ describe('Dream.leftJoinPreload', () => {
         .all()
     )[0]
     expect(reloaded.compositions).toMatchDreamModels([composition])
+  })
+
+  it('does not duplicate top level results', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    await Pet.create({ user, name: 'a' })
+    await Pet.create({ user, name: 'b' })
+
+    const users = await User.leftJoinPreload('pets').all()
+    expect(await User.count()).toEqual(1)
+    expect(users.length).toEqual(1)
+  })
+
+  context('with multiple levels of joining', () => {
+    it('does not duplicate top level results or intermediate results', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const pet1 = await Pet.create({ user, name: 'a' })
+      await Collar.create({ pet: pet1 })
+      await Collar.create({ pet: pet1 })
+      const pet2 = await Pet.create({ user, name: 'b' })
+      await Collar.create({ pet: pet2 })
+      await Collar.create({ pet: pet2 })
+
+      const users = await User.leftJoinPreload('pets', 'collars').all()
+      expect(await User.count()).toEqual(1)
+      expect(users.length).toEqual(1)
+      expect(users[0].pets.length).toEqual(2)
+      expect(users[0].pets[0].collars.length).toEqual(2)
+      expect(users[0].pets[1].collars.length).toEqual(2)
+    })
   })
 
   context('within a transaction', () => {
