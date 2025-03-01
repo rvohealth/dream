@@ -1,4 +1,4 @@
-import path from 'path'
+import * as path from 'path'
 import { DreamApplication } from '../../../src'
 import inflections from './inflections'
 

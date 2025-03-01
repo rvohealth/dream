@@ -11,7 +11,6 @@ import {
   Updateable,
   sql,
 } from 'kysely'
-import { isEmpty } from 'lodash-es'
 import { DateTime } from 'luxon'
 import { singular } from 'pluralize'
 import ConnectedToDB from '../db/ConnectedToDB'
@@ -53,6 +52,7 @@ import CalendarDate from '../helpers/CalendarDate'
 import camelize from '../helpers/camelize'
 import cloneDeepSafe from '../helpers/cloneDeepSafe'
 import compact from '../helpers/compact'
+import isEmpty from '../helpers/isEmpty'
 import namespaceColumn from '../helpers/namespaceColumn'
 import objectPathsToArrays from '../helpers/objectPathsToArrays'
 import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment'
@@ -175,12 +175,6 @@ export default class Query<
    * purely for typing
    */
   public queryTypeOpts: QueryTypeOpts
-
-  /**
-   * @internal
-   * purely for typing
-   */
-  public dreamInstance: DreamInstance
 
   /**
    * @internal

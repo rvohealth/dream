@@ -897,7 +897,6 @@ __metadata:
     "@rvohealth/dream-spec-helpers": "npm:^0.0.8"
     "@types/jest": "npm:^29.5.12"
     "@types/jest-plugin-context": "npm:^2.9.7"
-    "@types/lodash-es": "npm:^4.17.12"
     "@types/luxon": "npm:^3.4.2"
     "@types/node": "npm:^22.5.1"
     "@types/pg": "npm:^8.11.8"
@@ -913,7 +912,6 @@ __metadata:
     jest-plugin-context: "npm:^2.9.0"
     kysely: "npm:^0.27.4"
     kysely-codegen: "npm:~0.17.0"
-    lodash-es: "npm:^4.17.21"
     luxon: "npm:^3.5.0"
     luxon-jest-matchers: "npm:^0.1.14"
     pg: "npm:^8.12.0"
@@ -1101,22 +1099,6 @@ __metadata:
     expect: "npm:^29.0.0"
     pretty-format: "npm:^29.0.0"
   checksum: 10c0/25fc8e4c611fa6c4421e631432e9f0a6865a8cb07c9815ec9ac90d630271cad773b2ee5fe08066f7b95bebd18bb967f8ce05d018ee9ab0430f9dfd1d84665b6f
-  languageName: node
-  linkType: hard
-
-"@types/lodash-es@npm:^4.17.12":
-  version: 4.17.12
-  resolution: "@types/lodash-es@npm:4.17.12"
-  dependencies:
-    "@types/lodash": "npm:*"
-  checksum: 10c0/5d12d2cede07f07ab067541371ed1b838a33edb3c35cb81b73284e93c6fd0c4bbeaefee984e69294bffb53f62d7272c5d679fdba8e595ff71e11d00f2601dde0
-  languageName: node
-  linkType: hard
-
-"@types/lodash@npm:*":
-  version: 4.17.7
-  resolution: "@types/lodash@npm:4.17.7"
-  checksum: 10c0/40c965b5ffdcf7ff5c9105307ee08b782da228c01b5c0529122c554c64f6b7168fc8f11dc79aa7bae4e67e17efafaba685dc3a47e294dbf52a65ed2b67100561
   languageName: node
   linkType: hard
 
@@ -3650,13 +3632,6 @@ __metadata:
   dependencies:
     p-locate: "npm:^5.0.0"
   checksum: 10c0/d3972ab70dfe58ce620e64265f90162d247e87159b6126b01314dd67be43d50e96a50b517bce2d9452a79409c7614054c277b5232377de50416564a77ac7aad3
-  languageName: node
-  linkType: hard
-
-"lodash-es@npm:^4.17.21":
-  version: 4.17.21
-  resolution: "lodash-es@npm:4.17.21"
-  checksum: 10c0/fb407355f7e6cd523a9383e76e6b455321f0f153a6c9625e21a8827d10c54c2a2341bd2ae8d034358b60e07325e1330c14c224ff582d04612a46a4f0479ff2f2
   languageName: node
   linkType: hard
 

@@ -18,6 +18,8 @@ import OpsStatement from '../ops/ops-statement'
 import DreamSerializer from '../serializer'
 import { FindEachOpts } from './Query'
 
+export type Type<T extends typeof Dream> = InstanceType<T>
+
 export const primaryKeyTypes = ['bigserial', 'bigint', 'uuid', 'integer'] as const
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
 
@@ -43,11 +45,11 @@ export const TRIGRAM_OPERATORS = ['%', '<%', '<<%'] as const
 export type TrigramOperator = (typeof TRIGRAM_OPERATORS)[number]
 export type OrderDir = 'asc' | 'desc'
 
-export interface SortableOptions<T extends typeof Dream> {
+export interface SortableOptions<T extends Dream> {
   scope?:
-    | keyof DreamBelongsToAssociationMetadata<InstanceType<T>>
-    | DreamColumnNames<InstanceType<T>>
-    | (keyof DreamBelongsToAssociationMetadata<InstanceType<T>> | DreamColumnNames<InstanceType<T>>)[]
+    | keyof DreamBelongsToAssociationMetadata<T>
+    | DreamColumnNames<T>
+    | (keyof DreamBelongsToAssociationMetadata<T> | DreamColumnNames<T>)[]
 }
 
 export type PrimaryKeyForFind<
@@ -349,12 +351,12 @@ export type UpdateableProperties<
 // Model global names and tables
 export type TableNameForGlobalModelName<
   I extends Dream,
-  GMN extends GlobalModelNames<I>,
+  GMN extends keyof GlobalModelNameTableMap<I>,
 > = GlobalModelNameTableMap<I>[GMN]
 
 export type GlobalModelNames<I extends Dream> = keyof GlobalModelNameTableMap<I>
 
-type GlobalModelNameTableMap<
+export type GlobalModelNameTableMap<
   I extends Dream,
   GlobalSchema = I['globalSchema'],
   GlobalNames = GlobalSchema['globalNames' & keyof GlobalSchema],

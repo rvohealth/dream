@@ -1,8 +1,8 @@
 // @ts-check
 
-const eslint = require('@eslint/js')
-const typescriptEslint = require('typescript-eslint')
-const typescriptParser = require('@typescript-eslint/parser')
+import eslint from '@eslint/js'
+import typescriptEslint from 'typescript-eslint'
+import typescriptParser from '@typescript-eslint/parser'
 
 const config = typescriptEslint.config(
   eslint.configs.recommended,
@@ -28,8 +28,8 @@ const config = typescriptEslint.config(
     files: ['**/*.ts'],
     languageOptions: {
       parser: typescriptParser,
-      parserOptions: { project: './tsconfig.json' },
+      parserOptions: { project: './tsconfig.esm.json' },
     },
   }
 )
-module.exports = config
+export default config

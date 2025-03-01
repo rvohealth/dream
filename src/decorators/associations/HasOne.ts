@@ -1,25 +1,25 @@
 import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../Dream'
 import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames'
-import { GlobalModelNames } from '../../dream/types'
+import { GlobalModelNameTableMap } from '../../dream/types'
 import {
-  HasOptions,
-  HasStatement,
-  HasThroughOptions,
-  PolymorphicHasOptions,
   applyGetterAndSetter,
   associationPrimaryKeyAccessors,
   blankAssociationsFactory,
   finalForeignKey,
   foreignKeyTypeField,
+  HasOptions,
+  HasStatement,
+  HasThroughOptions,
+  PolymorphicHasOptions,
   validateHasStatementArgs,
 } from './shared'
 
 export default function HasOne<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
+    | keyof GlobalModelNameTableMap<BaseInstance>
+    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
 >(
   globalAssociationNameOrNames: AssociationGlobalNameOrNames,
   opts?: HasOneOptions<BaseInstance, AssociationGlobalNameOrNames>
@@ -28,8 +28,8 @@ export default function HasOne<
 export default function HasOne<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
+    | keyof GlobalModelNameTableMap<BaseInstance>
+    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
 >(
   globalAssociationNameOrNames: AssociationGlobalNameOrNames,
   opts?: HasOneThroughOptions<BaseInstance, AssociationGlobalNameOrNames>
@@ -38,8 +38,8 @@ export default function HasOne<
 export default function HasOne<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
+    | keyof GlobalModelNameTableMap<BaseInstance>
+    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
 >(
   globalAssociationNameOrNames: AssociationGlobalNameOrNames,
   opts?: PolymorphicHasOneOptions<BaseInstance, AssociationGlobalNameOrNames>
@@ -77,12 +77,10 @@ export default function HasOne<
  * @param opts.through - If passed, this association will travel through another association.
  * @param opts.withoutDefaultScopes - A list of default scopes to bypass when loading this association
  */
-export default function HasOne<
-  BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
->(globalAssociationNameOrNames: AssociationGlobalNameOrNames, opts: unknown = {}): any {
+export default function HasOne<BaseInstance extends Dream, AssociationGlobalNameOrNames extends unknown>(
+  globalAssociationNameOrNames: unknown,
+  opts: unknown = {}
+): any {
   const {
     dependent,
     foreignKey,
@@ -160,20 +158,20 @@ export type HasOneStatement<
 export type HasOneOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
+    | keyof GlobalModelNameTableMap<BaseInstance>
+    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
 > = HasOptions<BaseInstance, AssociationGlobalNameOrNames>
 
 export type PolymorphicHasOneOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
+    | keyof GlobalModelNameTableMap<BaseInstance>
+    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
 > = PolymorphicHasOptions<BaseInstance, AssociationGlobalNameOrNames>
 
 export type HasOneThroughOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
+    | keyof GlobalModelNameTableMap<BaseInstance>
+    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
 > = HasThroughOptions<BaseInstance, AssociationGlobalNameOrNames>

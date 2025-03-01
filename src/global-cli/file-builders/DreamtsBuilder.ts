@@ -15,7 +15,7 @@ export default class DreamtsBuilder {
     } = options
 
     return `\
-import path from 'path'
+import * as path from 'path'
 import { DreamApplication } from '@rvohealth/dream'
 import inflections from './inflections'
 

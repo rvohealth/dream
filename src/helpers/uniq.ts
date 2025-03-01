@@ -1,15 +1,23 @@
-import { uniq as lodashUniq, uniqWith } from 'lodash-es'
 import Dream from '../Dream'
 
-export default function uniq<T>(
-  arr: T[],
-  comparator: ((a: T, b: T) => boolean) | undefined = undefined
-): T[] {
-  if (comparator) return uniqWith(arr, comparator)
-  else if ((arr[0] as Dream)?.isDreamInstance) return uniqWith(arr as Dream[], dreamComparator) as T[]
-  else return lodashUniq(arr)
+export default function uniq<T>(arr: T[], toKey: ((a: T) => string) | undefined = undefined): T[] {
+  if (toKey) return uniqWith(arr, toKey)
+  else if ((arr[0] as Dream)?.isDreamInstance) return uniqWith(arr as Dream[], dreamKey) as T[]
+  else return Array.from(new Set(arr))
 }
 
-function dreamComparator(a: Dream, b: Dream) {
-  return a.equals(b)
+function dreamKey(dream: Dream): string {
+  return `${(dream.constructor as typeof Dream).globalName}:${dream.primaryKeyValue}`
+}
+
+function uniqWith<T>(arr: T[], toKey: (a: T) => string): T[] {
+  const map: Record<string, T> = arr.reduce(
+    (acc, val) => {
+      acc[toKey(val)] ||= val
+      return acc
+    },
+    {} as Record<string, T>
+  )
+
+  return Object.values(map)
 }

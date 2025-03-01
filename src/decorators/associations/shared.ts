@@ -13,7 +13,7 @@ import {
   DreamBelongsToAssociationMetadata,
   DreamColumnNames,
   DreamConst,
-  GlobalModelNames,
+  GlobalModelNameTableMap,
   IdType,
   JoinedAssociation,
   OrderDir,
@@ -334,14 +334,14 @@ export interface HasStatement<
 interface HasOptionsBase<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
+    | keyof GlobalModelNameTableMap<BaseInstance>
+    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
   AssociationGlobalName = AssociationGlobalNameOrNames extends any[]
     ? AssociationGlobalNameOrNames[0] & string
     : AssociationGlobalNameOrNames & string,
   AssociationTableName = TableNameForGlobalModelName<
     BaseInstance,
-    AssociationGlobalName & GlobalModelNames<BaseInstance>
+    AssociationGlobalName & keyof GlobalModelNameTableMap<BaseInstance>
   >,
 > {
   dependent?: DependentOptions
@@ -416,15 +416,16 @@ type ThroughOnlyOptions = 'through' | 'source' | 'preloadThroughColumns'
 export type HasOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
-> = Omit<HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames>, ThroughOnlyOptions | PolymorphicOption>
+    | keyof GlobalModelNameTableMap<BaseInstance>
+    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
+> = HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames>
+// > = Omit<HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames>, ThroughOnlyOptions | PolymorphicOption>
 
 export type PolymorphicHasOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
+    | keyof GlobalModelNameTableMap<BaseInstance>
+    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
 > = HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames> &
   Required<
     Pick<HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames>, PolymorphicOption | ForeignKeyOption>
@@ -433,10 +434,8 @@ export type PolymorphicHasOptions<
 export type HasThroughOptions<
   BaseInstance extends Dream,
   AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[] =
-    | GlobalModelNames<BaseInstance>
-    | GlobalModelNames<BaseInstance>[],
+    | keyof GlobalModelNameTableMap<BaseInstance>
+    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
 > = Omit<HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames>, ThroughIncompatibleOptions>
 
 export function blankAssociationsFactory(dreamClass: typeof Dream): {

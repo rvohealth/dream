@@ -1,8 +1,11 @@
+import { Decorators } from '../../../src'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Composition from './Composition'
 import Post from './Post'
 import User from './User'
+
+const Decorator = new Decorators<Rating>()
 
 export default class Rating extends ApplicationModel {
   public get table() {
@@ -17,11 +20,11 @@ export default class Rating extends ApplicationModel {
   public body: DreamColumn<Rating, 'body'>
   public rating: DreamColumn<Rating, 'rating'>
 
-  @Rating.BelongsTo('User')
+  @Decorator.BelongsTo('User')
   public user: User
   public userId: DreamColumn<Rating, 'userId'>
 
-  @Rating.BelongsTo(['Composition', 'Post'], {
+  @Decorator.BelongsTo(['Composition', 'Post'], {
     foreignKey: 'rateableId',
     polymorphic: true,
   })
@@ -29,7 +32,7 @@ export default class Rating extends ApplicationModel {
   public rateableId: DreamColumn<Rating, 'rateableId'>
   public rateableType: DreamColumn<Rating, 'rateableType'>
 
-  @Rating.BelongsTo(['Post', 'Composition'], {
+  @Decorator.BelongsTo(['Post', 'Composition'], {
     foreignKey: 'rateableId',
     polymorphic: true,
     withoutDefaultScopes: ['dream:SoftDelete'],

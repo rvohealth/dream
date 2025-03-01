@@ -2,8 +2,8 @@ import uniq from '../../../src/helpers/uniq'
 import GraphNode from '../../../test-app/app/models/Graph/Node'
 
 describe('uniq', () => {
-  const subject = () => uniq(array(), comparator)
-  let comparator: ((a: any, b: any) => boolean) | undefined
+  const subject = () => uniq(array(), toKey)
+  let toKey: ((a: any) => string) | undefined
 
   let item1: any
   let item2: any
@@ -11,7 +11,7 @@ describe('uniq', () => {
   const array = () => [item1, item2, item1Reloaded]
 
   beforeEach(() => {
-    comparator = undefined
+    toKey = undefined
   })
 
   context('when the first element is a Dream', () => {
@@ -27,7 +27,7 @@ describe('uniq', () => {
 
     context('when a custom comparator is passed', () => {
       it('uses the custom comparator', () => {
-        comparator = (a, b) => a.name === b.name
+        toKey = a => a.name
         expect(subject()).toMatchObject([item1])
       })
     })
@@ -35,8 +35,8 @@ describe('uniq', () => {
 
   context('when the first element is not a Dream', () => {
     beforeEach(() => {
-      item1 = 'hello'
-      item2 = 'world'
+      item1 = 'world'
+      item2 = 'hello'
       item1Reloaded = 'hello'
     })
 
@@ -46,7 +46,7 @@ describe('uniq', () => {
 
     context('when a custom comparator is passed', () => {
       it('uses the custom comparator', () => {
-        comparator = (a, b) => a.constructor === b.constructor
+        toKey = a => a.constructor.name
         expect(subject()).toMatchObject([item1])
       })
     })

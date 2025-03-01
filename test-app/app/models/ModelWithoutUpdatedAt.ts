@@ -1,6 +1,9 @@
+import { Decorators } from '../../../src'
 import BeforeUpdate from '../../../src/decorators/hooks/BeforeUpdate'
 import { DreamColumn } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
+
+const Decorator = new Decorators<ModelWithoutUpdatedAt>()
 
 export default class ModelWithoutUpdatedAt extends ApplicationModel {
   public get table() {

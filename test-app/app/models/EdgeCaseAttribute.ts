@@ -1,5 +1,8 @@
+import { Decorators } from '../../../src'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
+
+const Decorator = new Decorators<EdgeCaseAttribute>()
 
 export default class EdgeCaseAttribute extends ApplicationModel {
   public get table() {

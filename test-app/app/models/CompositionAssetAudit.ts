@@ -1,9 +1,12 @@
+import { Decorators } from '../../../src'
 import BeforeUpdate from '../../../src/decorators/hooks/BeforeUpdate'
 import { DreamColumn } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Composition from './Composition'
 import CompositionAsset from './CompositionAsset'
 import User from './User'
+
+const Decorator = new Decorators<CompositionAssetAudit>()
 
 export default class CompositionAssetAudit extends ApplicationModel {
   public get table() {
@@ -14,16 +17,16 @@ export default class CompositionAssetAudit extends ApplicationModel {
   public approval: DreamColumn<CompositionAssetAudit, 'approval'>
   public notes: DreamColumn<CompositionAssetAudit, 'notes'>
 
-  @CompositionAssetAudit.BelongsTo('CompositionAsset')
+  @Decorator.BelongsTo('CompositionAsset')
   public compositionAsset: CompositionAsset
   public compositionAssetId: DreamColumn<CompositionAssetAudit, 'compositionAssetId'>
 
-  @CompositionAssetAudit.HasOne('Composition', {
+  @Decorator.HasOne('Composition', {
     through: 'compositionAsset',
   })
   public composition: Composition
 
-  @CompositionAssetAudit.HasOne('User', {
+  @Decorator.HasOne('User', {
     through: 'compositionAsset',
   })
   public user: User
