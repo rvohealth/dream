@@ -1,4 +1,4 @@
-import crypto from 'crypto'
+import * as crypto from 'crypto'
 import MissingEncryptionKey from '../errors/encrypt/MissingEncryptionKey'
 import decryptAESGCM from './algorithms/aes-gcm/decryptAESGCM'
 import encryptAESGCM from './algorithms/aes-gcm/encryptAESGCM'

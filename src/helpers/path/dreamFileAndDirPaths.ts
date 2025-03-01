@@ -1,4 +1,4 @@
-import path from 'path'
+import * as path from 'path'
 import DreamApplication from '../../dream-application'
 
 export default function (relDirPath: string, partialFilePath: string) {

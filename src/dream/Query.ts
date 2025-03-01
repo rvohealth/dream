@@ -11,7 +11,7 @@ import {
   Updateable,
   sql,
 } from 'kysely'
-import isEmpty from 'lodash.isempty'
+import { isEmpty } from 'lodash-es'
 import { DateTime } from 'luxon'
 import { singular } from 'pluralize'
 import ConnectedToDB from '../db/ConnectedToDB'
