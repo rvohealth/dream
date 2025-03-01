@@ -1715,22 +1715,24 @@ export default class Query<
       }
     })
 
-    const aliasToDreamIdMap: AliasToDreamIdMap = {}
     const queryResults = await executeDatabaseQuery(kyselyQuery, 'execute')
 
+    const aliasToDreamIdMap = queryResults.reduce((aliasToDreamIdMap, singleSqlResult) => {
+      ;(this.fleshOutJoinLoadExecutionResults({
+        currentAlias: this.baseSqlAlias,
+        singleSqlResult,
+        aliasToDreamIdMap,
+        associationAliasToColumnAliasMap,
+        aliasToAssociationsMap,
+        aliasToDreamClassesMap,
+        leftJoinStatements: this.leftJoinStatements,
+      }) as DreamInstance) || null
+
+      return aliasToDreamIdMap
+    }, {} as AliasToDreamIdMap)
+
     return compact(
-      queryResults.map(
-        singleSqlResult =>
-          (this.fleshOutJoinLoadExecutionResults({
-            currentAlias: this.baseSqlAlias,
-            singleSqlResult,
-            aliasToDreamIdMap,
-            associationAliasToColumnAliasMap,
-            aliasToAssociationsMap,
-            aliasToDreamClassesMap,
-            leftJoinStatements: this.leftJoinStatements,
-          }) as DreamInstance) || null
-      )
+      Object.keys(aliasToDreamIdMap[this.baseSqlAlias]).map(key => aliasToDreamIdMap[this.baseSqlAlias][key])
     )
   }
 
