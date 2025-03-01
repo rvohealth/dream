@@ -1,4 +1,4 @@
-import pluralize from 'pluralize'
+import * as pluralize from 'pluralize'
 import { PrimaryKeyType } from '../../dream/types'
 import InvalidDecimalFieldPassedToGenerator from '../../errors/InvalidDecimalFieldPassedToGenerator'
 import foreignKeyTypeFromPrimaryKey from '../db/foreignKeyTypeFromPrimaryKey'

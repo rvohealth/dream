@@ -10,7 +10,7 @@ export default async function loadServices(servicesPath: string): Promise<Record
   const servicePaths = (await getFiles(servicesPath)).filter(path => /\.[jt]s$/.test(path))
 
   for (const servicePath of servicePaths) {
-    const serviceClass = (await import(servicePath)).default
+    const serviceClass = await import(servicePath)
 
     // we only want to register services within our app
     // that are backgroundable, since the only purpose

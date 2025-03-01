@@ -33,22 +33,11 @@
     "registry": "https://npm.pkg.github.com"
   },
   "dependencies": {
-    "@types/lodash.clonedeep": "^4.5.9",
-    "@types/lodash.clonedeepwith": "^4.5.9",
-    "@types/lodash.isempty": "^4.4.9",
-    "@types/lodash.sortby": "^4.7.9",
-    "@types/lodash.uniq": "^4.5.9",
-    "@types/lodash.uniqwith": "^4.5.9",
     "@types/pluralize": "^0.0.33",
     "colorette": "^2.0.20",
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
-    "lodash.clonedeep": "^4.5.0",
-    "lodash.clonedeepwith": "^4.5.0",
-    "lodash.isempty": "^4.4.0",
-    "lodash.sortby": "^4.7.0",
-    "lodash.uniq": "^4.5.0",
-    "lodash.uniqwith": "^4.5.0",
+    "lodash-es": "^4.17.21",
     "pluralize": "^8.0.0"
   },
   "peerDependencies": {
@@ -66,6 +55,7 @@
     "@rvohealth/dream-spec-helpers": "^0.0.8",
     "@types/jest": "^29.5.12",
     "@types/jest-plugin-context": "^2.9.7",
+    "@types/lodash-es": "^4.17.12",
     "@types/luxon": "^3.4.2",
     "@types/node": "^22.5.1",
     "@types/pg": "^8.11.8",

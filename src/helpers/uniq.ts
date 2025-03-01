@@ -1,5 +1,4 @@
-import lodashUniq from 'lodash.uniq'
-import uniqWith from 'lodash.uniqwith'
+import { uniq as lodashUniq, uniqWith } from 'lodash-es'
 import Dream from '../Dream'
 
 export default function uniq<T>(

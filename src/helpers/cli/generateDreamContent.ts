@@ -1,4 +1,4 @@
-import pluralize from 'pluralize'
+import * as pluralize from 'pluralize'
 import camelize from '../camelize'
 import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName'
 import relativeDreamPath from '../path/relativeDreamPath'

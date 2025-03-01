@@ -1,4 +1,4 @@
-import fs from 'fs/promises'
+import * as fs from 'fs/promises'
 import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths'
 import dreamPath from '../path/dreamPath'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
