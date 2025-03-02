@@ -18,6 +18,10 @@ export default function Encrypted(encryptedColumnName?: string): any {
         encryptedColumnName: encryptedColumnName || `encrypted${pascalize(key)}`,
       })
     })
+
+    return function (this: Dream) {
+      return this[context.name]
+    }
   }
 }
 

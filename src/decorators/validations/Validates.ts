@@ -16,6 +16,10 @@ export default function Validates<
     context.addInitializer(function (this: Dream) {
       validatesImplementation(this, context.name, type, args)
     })
+
+    return function (this: Dream) {
+      return this[context.name]
+    }
   }
 }
 
@@ -30,6 +34,7 @@ export function validatesImplementation<
         : never,
 >(target: Dream, key: string, type: VT, args?: VTArgs) {
   const t: typeof Dream = target.constructor as typeof Dream
+
   if (!t.initializingDecorators) return
 
   if (!Object.getOwnPropertyDescriptor(t, 'validations'))

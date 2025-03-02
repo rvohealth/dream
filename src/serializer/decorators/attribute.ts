@@ -161,6 +161,10 @@ Attribute: ${key}
         } as AttributeStatement,
       ]
     })
+
+    return function (this: DreamSerializer) {
+      return this[context.name]
+    }
   }
 }
 

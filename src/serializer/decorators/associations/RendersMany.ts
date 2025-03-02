@@ -75,6 +75,10 @@ export default function RendersMany(
         } as DreamSerializerAssociationStatement,
       ]
     })
+
+    return function (this: DreamSerializer) {
+      return this[context.name]
+    }
   }
 }
 

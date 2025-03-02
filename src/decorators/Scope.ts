@@ -13,21 +13,25 @@ export default function Scope(
     // can only be set on static methods
     const t: typeof Dream = target
 
-    const branch = opts.default ? 'default' : 'named'
-    if (!Object.getOwnPropertyDescriptor(t, 'scopes'))
-      t['scopes'] = {
-        default: [...(t['scopes']?.default || [])] as ScopeStatement[],
-        named: [...(t['scopes']?.named || [])] as ScopeStatement[],
-      }
+    scopeImplementation(t, key, opts)
+  }
+}
 
-    const alreadyApplied = !!t['scopes'][branch].find(scope => scope.method === key)
-
-    if (!alreadyApplied) {
-      t['scopes'][branch].push({
-        method: key,
-        default: opts.default || false,
-      })
+export function scopeImplementation(t: typeof Dream, key: string, opts: { default?: boolean } = {}) {
+  const branch = opts.default ? 'default' : 'named'
+  if (!Object.getOwnPropertyDescriptor(t, 'scopes'))
+    t['scopes'] = {
+      default: [...(t['scopes']?.default || [])] as ScopeStatement[],
+      named: [...(t['scopes']?.named || [])] as ScopeStatement[],
     }
+
+  const alreadyApplied = !!t['scopes'][branch].find(scope => scope.method === key)
+
+  if (!alreadyApplied) {
+    t['scopes'][branch].push({
+      method: key,
+      default: opts.default || false,
+    })
   }
 }
 
