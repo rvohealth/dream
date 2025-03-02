@@ -29,6 +29,17 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
 
   private static _globalName: string
 
+  /**
+   * @internal
+   *
+   * Certain features (e.g. building OpenAPI specs from Attribute and RendersOne/Many decorators)
+   * need static access to things set up by decorators. Stage 3 Decorators change the context that is available
+   * at decoration time such that the class of a property being decorated is only avilable during instance instantiation. In order
+   * to only apply static values once, on boot, `initializingDecorators` is set to true on DreamSerializer, and all serializers are instantiated.
+   *
+   */
+  public static initializingDecorators: boolean = false
+
   public static get globalName(): string {
     if (!this._globalName) throw new GlobalNameNotSet(this)
     return this._globalName

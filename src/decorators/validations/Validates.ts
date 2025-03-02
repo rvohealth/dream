@@ -1,4 +1,5 @@
 import Dream from '../../Dream'
+import { DecoratorContext } from '../DecoratorContextType'
 import ValidationStatement, { ValidationType } from './shared'
 
 export default function Validates<
@@ -11,17 +12,22 @@ export default function Validates<
         ? string | RegExp
         : never,
 >(type: VT, args?: VTArgs): any {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  return function (target: any, key: string, _: any) {
-    const t = target.constructor as typeof Dream
-    if (!Object.getOwnPropertyDescriptor(t, 'validations'))
-      t['validations'] = [...(t['validations'] || [])] as ValidationStatement[]
+  return function (_: undefined, context: DecoratorContext) {
+    const key = context.name
 
-    t['validations'].push({
-      type,
-      column: key,
-      options: extractValidationOptionsFromArgs(type, args),
-    } as ValidationStatement)
+    context.addInitializer(function (this: Dream) {
+      const t: typeof Dream = this.constructor as typeof Dream
+      if (!t.initializingDecorators) return
+
+      if (!Object.getOwnPropertyDescriptor(t, 'validations'))
+        t['validations'] = [...(t['validations'] || [])] as ValidationStatement[]
+
+      t['validations'].push({
+        type,
+        column: key,
+        options: extractValidationOptionsFromArgs(type, args),
+      } as ValidationStatement)
+    })
   }
 }
 
@@ -55,7 +61,7 @@ function extractValidationOptionsFromArgs(type: ValidationType, args: any) {
         throw new ValidationInstantiationError(`
           When validating using "length", the second argument must be a number representing
           the min length, or else an object expressing both min and max length, like so:
-          
+
           @Validates('length', { min: 4, max: 32 })
         `)
       }

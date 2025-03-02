@@ -1,10 +1,10 @@
 import { Decorators } from '../../../src'
-import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
+import { DreamColumn, DreamSerializers, Type } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Composition from './Composition'
 import CompositionAsset from './CompositionAsset'
 
-const Decorator = new Decorators<LocalizedText>()
+const Decorator = new Decorators<Type<typeof LocalizedText>>()
 
 export default class LocalizedText extends ApplicationModel {
   public get table() {

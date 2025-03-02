@@ -1,4 +1,5 @@
 import Dream from '../../Dream'
+import { DecoratorContext } from '../DecoratorContextType'
 import { AfterHookOpts, HookStatement, blankHooksFactory } from './shared'
 
 /**
@@ -10,7 +11,7 @@ import { AfterHookOpts, HookStatement, blankHooksFactory } from './shared'
  * is complete.
  *
  * class User extends ApplicationModel {
- *   @AfterUpdateCommit()
+ *   @Decorator.AfterUpdateCommit()
  *   public doSomething() {
  *     ...
  *   }
@@ -18,21 +19,32 @@ import { AfterHookOpts, HookStatement, blankHooksFactory } from './shared'
  *
  * @param opts.ifChanged - Optional. A list of columns which should must change in order for this function to be called.
  */
-export default function AfterUpdateCommit<T extends Dream | null = null>(opts: AfterHookOpts<T> = {}): any {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  return function (target: any, key: string, _: any) {
-    const dreamClass: typeof Dream = target.constructor
 
-    if (!Object.getOwnPropertyDescriptor(dreamClass, 'hooks'))
-      dreamClass['hooks'] = blankHooksFactory(dreamClass)
-
-    const hookStatement: HookStatement = {
-      className: dreamClass.name,
-      method: key,
-      type: 'afterUpdateCommit',
-      ifChanged: opts.ifChanged,
-    }
-
-    dreamClass['addHook']('afterUpdateCommit', hookStatement)
+export default function AfterUpdateCommit<T extends Dream>(opts: AfterHookOpts<T> = {}): any {
+  return function (_: any, context: DecoratorContext) {
+    context.addInitializer(function (this: T) {
+      afterUpdateCommitImplementation(this, context.name, opts)
+    })
   }
+}
+
+export function afterUpdateCommitImplementation<T extends Dream>(
+  target: T,
+  key: string,
+  opts: AfterHookOpts<T> = {}
+) {
+  const dreamClass: typeof Dream = target.constructor as typeof Dream
+  if (!dreamClass.initializingDecorators) return
+
+  if (!Object.getOwnPropertyDescriptor(dreamClass, 'hooks'))
+    dreamClass['hooks'] = blankHooksFactory(dreamClass)
+
+  const hookStatement: HookStatement = {
+    className: dreamClass.name,
+    method: key,
+    type: 'afterUpdateCommit',
+    ifChanged: opts.ifChanged,
+  }
+
+  dreamClass['addHook']('afterUpdateCommit', hookStatement)
 }

@@ -1,6 +1,6 @@
 import { Decorators } from '../../../src'
 import SoftDelete from '../../../src/decorators/SoftDelete'
-import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
+import { DreamColumn, DreamSerializers, Type } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import HeartRating from './ExtraRating/HeartRating'
 import NonNullRating from './NonNullRating'
@@ -9,7 +9,7 @@ import PostVisibility from './PostVisibility'
 import Rating from './Rating'
 import User from './User'
 
-const Decorator = new Decorators<Post>()
+const Decorator = new Decorators<Type<typeof Post>>()
 
 @SoftDelete()
 export default class Post extends ApplicationModel {

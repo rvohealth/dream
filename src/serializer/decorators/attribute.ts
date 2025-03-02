@@ -1,4 +1,5 @@
 import DreamSerializer from '..'
+import { DecoratorContext } from '../../decorators/DecoratorContextType'
 import Dream from '../../Dream'
 import { RoundingPrecision } from '../../helpers/round'
 import { isString } from '../../helpers/typechecks'
@@ -106,54 +107,62 @@ export default function Attribute(
   dreamClass_or_shorthandAttribute_or_manualOpenapiOptions?: unknown,
   openApiAndRenderOptions_or_renderOptions: unknown = {}
 ): any {
-  return function (target: any, key: string, def: any) {
-    const serializerClass: typeof DreamSerializer = target.constructor
+  return function (_: undefined, context: DecoratorContext) {
+    const key = context.name
 
-    let renderAs: SerializableTypes | undefined
-    let openApiShape: OpenapiSchemaBodyShorthand | undefined
-    const { openApiOptions, renderOptions } = openApiAndRenderOptionsToSeparateOptions(
-      openApiAndRenderOptions_or_renderOptions as DecimalShorthandAttributeOpenapiAndRenderOptions
-    )
+    context.addInitializer(function (this: DreamSerializer) {
+      const target = this
+      const serializerClass: typeof DreamSerializer = target.constructor as typeof DreamSerializer
+      if (!serializerClass.initializingDecorators) return
 
-    if ((dreamClass_or_shorthandAttribute_or_manualOpenapiOptions as typeof Dream)?.isDream) {
-      openApiShape = {
-        ...dreamAttributeOpenapiShape(
-          dreamClass_or_shorthandAttribute_or_manualOpenapiOptions as typeof Dream,
-          key
-        ),
-        ...openApiOptions,
-      }
+      let renderAs: SerializableTypes | undefined
+      let openApiShape: OpenapiSchemaBodyShorthand | undefined
+      const { openApiOptions, renderOptions } = openApiAndRenderOptionsToSeparateOptions(
+        openApiAndRenderOptions_or_renderOptions as DecimalShorthandAttributeOpenapiAndRenderOptions
+      )
 
-      //
-    } else if (isString(dreamClass_or_shorthandAttribute_or_manualOpenapiOptions)) {
-      renderAs = dreamClass_or_shorthandAttribute_or_manualOpenapiOptions as OpenapiShorthandPrimitiveTypes
-      openApiShape = { type: renderAs, ...openApiOptions }
-      //
-    } else if (typeof dreamClass_or_shorthandAttribute_or_manualOpenapiOptions === 'object') {
-      openApiShape = dreamClass_or_shorthandAttribute_or_manualOpenapiOptions as OpenapiSchemaBodyShorthand
-      renderAs = openApiShape
-    } else if (dreamClass_or_shorthandAttribute_or_manualOpenapiOptions === undefined) {
-      // no-op
-    } else {
-      throw new Error(
-        `
+      if ((dreamClass_or_shorthandAttribute_or_manualOpenapiOptions as typeof Dream)?.isDream) {
+        openApiShape = {
+          ...dreamAttributeOpenapiShape(
+            dreamClass_or_shorthandAttribute_or_manualOpenapiOptions as typeof Dream,
+            key
+          ),
+          ...openApiOptions,
+        }
+
+        //
+      } else if (isString(dreamClass_or_shorthandAttribute_or_manualOpenapiOptions)) {
+        renderAs = dreamClass_or_shorthandAttribute_or_manualOpenapiOptions as OpenapiShorthandPrimitiveTypes
+        openApiShape = { type: renderAs, ...openApiOptions }
+        //
+      } else if (typeof dreamClass_or_shorthandAttribute_or_manualOpenapiOptions === 'object') {
+        openApiShape = dreamClass_or_shorthandAttribute_or_manualOpenapiOptions as OpenapiSchemaBodyShorthand
+        renderAs = openApiShape
+      } else if (dreamClass_or_shorthandAttribute_or_manualOpenapiOptions === undefined) {
+        // no-op
+      } else {
+        throw new Error(
+          `
 Unrecognized first argument to @Attriute decorator: ${JSON.stringify(dreamClass_or_shorthandAttribute_or_manualOpenapiOptions)}
 Serializer: ${serializerClass.name}
 Attribute: ${key}
 `
-      )
-    }
+        )
+      }
 
-    serializerClass.attributeStatements = [
-      ...(serializerClass.attributeStatements || []),
-      {
-        field: key,
-        functional: typeof def?.value === 'function',
-        openApiShape,
-        renderAs,
-        renderOptions,
-      } as AttributeStatement,
-    ]
+      console.debug('context.kind:', context.kind)
+
+      serializerClass.attributeStatements = [
+        ...(serializerClass.attributeStatements || []),
+        {
+          field: key,
+          functional: context.kind === 'method',
+          openApiShape,
+          renderAs,
+          renderOptions,
+        } as AttributeStatement,
+      ]
+    })
   }
 }
 

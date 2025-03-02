@@ -9,6 +9,13 @@ export default async function loadSerializers(
   serializersPath: string
 ): Promise<Record<string, typeof DreamSerializer>> {
   if (_serializers) return _serializers
+  /**
+   * Certain features (e.g. building OpenAPI specs from Attribute and RendersOne/Many decorators)
+   * need static access to things set up by decorators. Stage 3 Decorators change the context that is available
+   * at decoration time such that the class of a property being decorated is only avilable during instance instantiation. In order
+   * to only apply static values once, on boot, `initializingDecorators` is set to true on DreamSerializer, and all serializers are instantiated.
+   */
+  DreamSerializer.initializingDecorators = true
 
   _serializers = {}
   const serializerPaths = (await getFiles(serializersPath)).filter(path => /\.[jt]s$/.test(path))
@@ -24,13 +31,29 @@ export default async function loadSerializers(
 
         if (_serializers[serializerKey]) throw new SerializerNameConflict(serializerKey)
 
-        const serializer = potentialSerializer as typeof DreamSerializer
-        serializer['setGlobalName'](serializerKey)
+        const serializerClass = potentialSerializer as typeof DreamSerializer
+        serializerClass['setGlobalName'](serializerKey)
+
+        /**
+         * Certain features (e.g. building OpenAPI specs from Attribute and RendersOne/Many decorators)
+         * need static access to things set up by decorators. Stage 3 Decorators change the context that is available
+         * at decoration time such that the class of a property being decorated is only avilable during instance instantiation. In order
+         * to only apply static values once, on boot, `initializingDecorators` is set to true on DreamSerializer, and all serializers are instantiated.
+         */
+        new serializerClass({})
 
         _serializers[serializerKey] = potentialSerializer
       }
     })
   }
+
+  /**
+   * Certain features (e.g. building OpenAPI specs from Attribute and RendersOne/Many decorators)
+   * need static access to things set up by decorators. Stage 3 Decorators change the context that is available
+   * at decoration time such that the class of a property being decorated is only avilable during instance instantiation. In order
+   * to only apply static values once, on boot, `initializingDecorators` is set to true on DreamSerializer, and all serializers are instantiated.
+   */
+  DreamSerializer.initializingDecorators = false
 
   return _serializers
 }

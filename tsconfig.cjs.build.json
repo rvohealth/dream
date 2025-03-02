@@ -3,6 +3,8 @@
   "compilerOptions": {
     "outDir": "./dist/cjs",
     "module": "CommonJS",
-    "declarationDir": "./dist/types"
+    "declaration": false,
+
+    "target": "es2022"
   }
 }

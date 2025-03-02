@@ -1,10 +1,10 @@
 import { Decorators } from '../../../src'
 import SoftDelete from '../../../src/decorators/SoftDelete'
-import { DreamColumn } from '../../../src/dream/types'
+import { DreamColumn, Type } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Post from './Post'
 
-const Decorator = new Decorators<PostComment>()
+const Decorator = new Decorators<Type<typeof PostComment>>()
 
 @SoftDelete()
 export default class PostComment extends ApplicationModel {

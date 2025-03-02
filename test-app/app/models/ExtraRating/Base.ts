@@ -1,12 +1,12 @@
 import { Decorators } from '../../../../src'
-import { DreamColumn } from '../../../../src/dream/types'
+import { DreamColumn, Type } from '../../../../src/dream/types'
 import ApplicationModel from '../ApplicationModel'
 import Balloon from '../Balloon'
 import Composition from '../Composition'
 import Post from '../Post'
 import User from '../User'
 
-const Decorator = new Decorators<BaseExtraRating>()
+const Decorator = new Decorators<Type<typeof BaseExtraRating>>()
 
 export default class BaseExtraRating extends ApplicationModel {
   public get table() {

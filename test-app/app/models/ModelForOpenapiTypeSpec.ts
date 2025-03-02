@@ -1,7 +1,8 @@
 import { Decorators, DreamColumn } from '../../../src'
+import { Type } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 
-const Decorator = new Decorators<ModelForOpenapiTypeSpecs>()
+const Decorator = new Decorators<Type<typeof ModelForOpenapiTypeSpecs>>()
 
 export default class ModelForOpenapiTypeSpecs extends ApplicationModel {
   public get table() {

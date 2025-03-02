@@ -1,12 +1,14 @@
 import Dream from '../Dream'
+import { DecoratorContext } from './DecoratorContextType'
 
 export default function Scope(
   opts: {
     default?: boolean
   } = {}
 ): any {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  return function (target: any, key: string, _: any) {
+  return function (target: typeof Dream, context: DecoratorContext & { static: true }) {
+    const key = context.name
+
     // target is already a typeof Dream here, because scopes
     // can only be set on static methods
     const t: typeof Dream = target

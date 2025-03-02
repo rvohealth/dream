@@ -10,6 +10,7 @@ import {
   TableColumnNames,
   TableNameForGlobalModelName,
 } from '../../dream/types'
+import { DecoratorContext } from '../DecoratorContextType'
 import Validates from '../validations/Validates'
 import {
   applyGetterAndSetter,
@@ -63,7 +64,7 @@ export default function BelongsTo<
  * @param opts.primaryKeyOverride - A custom column name to use for the primary key.
  * @param opts.withoutDefaultScopes - A list of default scopes to bypass when loading this association
  */
-export default function BelongsTo<BaseInstance extends Dream, AssociationGlobalNameOrNames extends unknown>(
+export default function BelongsTo<BaseInstance extends Dream, AssociationGlobalNameOrNames>(
   globalAssociationNameOrNames: AssociationGlobalNameOrNames,
   opts: unknown = {}
 ): any {
@@ -75,44 +76,45 @@ export default function BelongsTo<BaseInstance extends Dream, AssociationGlobalN
     withoutDefaultScopes,
   } = opts as any
 
-  return function (
-    target: BaseInstance,
-    key: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _: any
-  ) {
-    const dreamClass: typeof Dream = (target as any).constructor
+  return function (_: undefined, context: DecoratorContext) {
+    const key = context.name
 
-    if (!Object.getOwnPropertyDescriptor(dreamClass, 'associationMetadataByType'))
-      dreamClass['associationMetadataByType'] = blankAssociationsFactory(dreamClass)
+    context.addInitializer(function (this: BaseInstance) {
+      const target = this
+      const dreamClass: typeof Dream = target.constructor as typeof Dream
+      if (!dreamClass.initializingDecorators) return
 
-    const partialAssociation = associationPrimaryKeyAccessors(
-      {
-        modelCB: () => lookupModelByGlobalNameOrNames(globalAssociationNameOrNames as string | string[]),
-        globalAssociationNameOrNames,
-        type: 'BelongsTo',
-        as: key,
-        optional,
-        polymorphic,
-        primaryKeyOverride,
-        withoutDefaultScopes,
-      } as any,
-      dreamClass
-    )
+      if (!Object.getOwnPropertyDescriptor(dreamClass, 'associationMetadataByType'))
+        dreamClass['associationMetadataByType'] = blankAssociationsFactory(dreamClass)
 
-    const association = {
-      ...partialAssociation,
-      foreignKey() {
-        return finalForeignKey(foreignKey, dreamClass, partialAssociation)
-      },
-      foreignKeyTypeField() {
-        return foreignKeyTypeField(foreignKey, dreamClass, partialAssociation)
-      },
-    } as BelongsToStatement<any, any, any, any>
+      const partialAssociation = associationPrimaryKeyAccessors(
+        {
+          modelCB: () => lookupModelByGlobalNameOrNames(globalAssociationNameOrNames as string | string[]),
+          globalAssociationNameOrNames,
+          type: 'BelongsTo',
+          as: key,
+          optional,
+          polymorphic,
+          primaryKeyOverride,
+          withoutDefaultScopes,
+        } as any,
+        dreamClass
+      )
 
-    dreamClass['associationMetadataByType']['belongsTo'].push(association)
-    applyGetterAndSetter(target, association, { isBelongsTo: true, foreignKeyBase: foreignKey })
-    if (!optional) Validates('requiredBelongsTo')(target, key)
+      const association = {
+        ...partialAssociation,
+        foreignKey() {
+          return finalForeignKey(foreignKey, dreamClass, partialAssociation)
+        },
+        foreignKeyTypeField() {
+          return foreignKeyTypeField(foreignKey, dreamClass, partialAssociation)
+        },
+      } as BelongsToStatement<any, any, any, any>
+
+      dreamClass['associationMetadataByType']['belongsTo'].push(association)
+      applyGetterAndSetter(target, association, { isBelongsTo: true, foreignKeyBase: foreignKey })
+      if (!optional) Validates('requiredBelongsTo')(target, key)
+    })
   }
 }
 

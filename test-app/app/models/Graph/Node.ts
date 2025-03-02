@@ -1,10 +1,10 @@
 import { Decorators } from '../../../../src'
-import { DreamColumn, DreamSerializers } from '../../../../src/dream/types'
+import { DreamColumn, DreamSerializers, Type } from '../../../../src/dream/types'
 import ApplicationModel from '../ApplicationModel'
 import GraphEdge from './Edge'
 import EdgeNode from './EdgeNode'
 
-const Decorator = new Decorators<Node>()
+const Decorator = new Decorators<Type<typeof Node>>()
 
 export default class Node extends ApplicationModel {
   public get table() {
