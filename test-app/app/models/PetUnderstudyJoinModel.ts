@@ -1,9 +1,9 @@
 import { Decorators } from '../../../src'
-import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
+import { DreamColumn, DreamSerializers, Type } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Pet from './Pet'
 
-const Decorator = new Decorators<PetUnderstudyJoinModel>()
+const Decorator = new Decorators<Type<typeof PetUnderstudyJoinModel>>()
 
 export default class PetUnderstudyJoinModel extends ApplicationModel {
   public get table() {

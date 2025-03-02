@@ -297,7 +297,7 @@ export default class Decorators<T extends Dream> {
    *
    * @returns The BeforeDestroy decorator
    */
-  public BeforeDestroy(this: T) {
+  public BeforeDestroy(this: Decorators<T>) {
     return BeforeDestroy()
   }
 
@@ -429,7 +429,7 @@ export default class Decorators<T extends Dream> {
    * @returns The AfterDestroy decorator
    *
    */
-  public AfterDestroy(this: T) {
+  public AfterDestroy(this: Decorators<T>) {
     return AfterDestroy()
   }
 
@@ -448,7 +448,7 @@ export default class Decorators<T extends Dream> {
    * @returns The AfterDestroyCommit decorator
    *
    */
-  public AfterDestroyCommit(this: T) {
+  public AfterDestroyCommit(this: Decorators<T>) {
     return AfterDestroyCommit()
   }
 }

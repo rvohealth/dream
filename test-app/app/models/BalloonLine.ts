@@ -1,9 +1,9 @@
 import { Decorators } from '../../../src'
-import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
+import { DreamColumn, DreamSerializers, Type } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
 
-const Decorator = new Decorators<BalloonLine>()
+const Decorator = new Decorators<Type<typeof BalloonLine>>()
 
 export default class BalloonLine extends ApplicationModel {
   public get table() {

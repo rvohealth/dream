@@ -1,11 +1,11 @@
 import { Decorators } from '../../../src'
-import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
+import { DreamColumn, DreamSerializers, Type } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Composition from './Composition'
 import Post from './Post'
 import User from './User'
 
-const Decorator = new Decorators<Rating>()
+const Decorator = new Decorators<Type<typeof Rating>>()
 
 export default class Rating extends ApplicationModel {
   public get table() {

@@ -1,7 +1,7 @@
-import { BeforeUpdate, Decorators, ops } from '../../../src'
+import { Decorators, ops } from '../../../src'
 import SoftDelete from '../../../src/decorators/SoftDelete'
 import Sortable from '../../../src/decorators/sortable/Sortable'
-import { DreamColumn, DreamSerializers, IdType } from '../../../src/dream/types'
+import { DreamColumn, DreamSerializers, IdType, Type } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
 import Collar from './Collar'
@@ -10,7 +10,7 @@ import Post from './Post'
 import Rating from './Rating'
 import User from './User'
 
-const Decorator = new Decorators<Pet>()
+const Decorator = new Decorators<Type<typeof Pet>>()
 
 @SoftDelete()
 export default class Pet extends ApplicationModel {
@@ -388,7 +388,7 @@ export default class Pet extends ApplicationModel {
   public understudies: Pet[]
   // end: totally contrived for testing purposes
 
-  @BeforeUpdate()
+  @Decorator.BeforeUpdate()
   public markRecordUpdated() {
     if (this.name === 'change me') {
       this.name = 'changed by update hook'

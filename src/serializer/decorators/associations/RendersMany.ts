@@ -1,4 +1,5 @@
 import DreamSerializer from '../..'
+import { DecoratorContext } from '../../../decorators/DecoratorContextType'
 import { SerializableClassOrClasses } from '../../../dream/types'
 import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOpts } from './shared'
 
@@ -44,31 +45,36 @@ export default function RendersMany(
   serializableClassOrClasses: SerializableClassOrClasses | RendersManyOpts | null = null,
   opts?: RendersManyOpts
 ): any {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  return function (target: any, key: string, def: any) {
-    const serializerClass: typeof DreamSerializer = target.constructor
+  return function (_: undefined, context: DecoratorContext) {
+    const key = context.name
 
-    if (isSerializable(serializableClassOrClasses)) {
-      opts ||= {} as RendersManyOpts
-    } else {
-      opts = (serializableClassOrClasses || {}) as RendersManyOpts
-      serializableClassOrClasses = null
-    }
+    context.addInitializer(function (this: DreamSerializer) {
+      const target = this
+      const serializerClass: typeof DreamSerializer = target.constructor as typeof DreamSerializer
+      if (!serializerClass.initializingDecorators) return
 
-    serializerClass.associationStatements = [
-      ...(serializerClass.associationStatements || []),
-      {
-        type: 'RendersMany',
-        field: key,
-        optional: opts.optional || false,
-        dreamOrSerializerClass: serializableClassOrClasses,
-        serializerKey: opts.serializerKey,
-        source: opts.source || key,
-        through: opts.through || null,
-        path: opts.path || null,
-        exportedAs: opts.exportedAs || null,
-      } as DreamSerializerAssociationStatement,
-    ]
+      if (isSerializable(serializableClassOrClasses)) {
+        opts ||= {} as RendersManyOpts
+      } else {
+        opts = (serializableClassOrClasses || {}) as RendersManyOpts
+        serializableClassOrClasses = null
+      }
+
+      serializerClass.associationStatements = [
+        ...(serializerClass.associationStatements || []),
+        {
+          type: 'RendersMany',
+          field: key,
+          optional: opts.optional || false,
+          dreamOrSerializerClass: serializableClassOrClasses,
+          serializerKey: opts.serializerKey,
+          source: opts.source || key,
+          through: opts.through || null,
+          path: opts.path || null,
+          exportedAs: opts.exportedAs || null,
+        } as DreamSerializerAssociationStatement,
+      ]
+    })
   }
 }
 

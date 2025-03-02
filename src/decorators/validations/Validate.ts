@@ -1,12 +1,17 @@
 import Dream from '../../Dream'
+import { DecoratorContext } from '../DecoratorContextType'
 
 export default function Validate(): any {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  return function (target: any, key: string, _: any) {
-    const t = target.constructor as typeof Dream
-    if (!Object.getOwnPropertyDescriptor(t, 'customValidations'))
-      t['customValidations'] = [...(t['customValidations'] || [])] as string[]
+  return function (_: undefined, context: DecoratorContext) {
+    const key = context.name
+    context.addInitializer(function (this: Dream) {
+      const t: typeof Dream = this.constructor as typeof Dream
+      if (!t.initializingDecorators) return
 
-    t['customValidations'].push(key)
+      if (!Object.getOwnPropertyDescriptor(t, 'customValidations'))
+        t['customValidations'] = [...(t['customValidations'] || [])] as string[]
+
+      t['customValidations'].push(key)
+    })
   }
 }

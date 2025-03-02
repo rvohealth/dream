@@ -2,12 +2,11 @@ import { randomBytes, scrypt, timingSafeEqual } from 'crypto'
 import { DateTime } from 'luxon'
 import { Decorators } from '../../../src'
 import Encrypted from '../../../src/decorators/Encrypted'
-import BeforeSave from '../../../src/decorators/hooks/BeforeSave'
 import Scope from '../../../src/decorators/Scope'
 import Validates from '../../../src/decorators/validations/Validates'
 import Virtual from '../../../src/decorators/Virtual'
 import Query from '../../../src/dream/Query'
-import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
+import { DreamColumn, DreamSerializers, Type } from '../../../src/dream/types'
 import range from '../../../src/helpers/range'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
@@ -24,7 +23,7 @@ import PostComment from './PostComment'
 import Rating from './Rating'
 import UserSettings from './UserSettings'
 
-const Decorator = new Decorators<User>()
+const Decorator = new Decorators<Type<typeof User>>()
 
 export default class User extends ApplicationModel {
   public get table() {
@@ -230,7 +229,7 @@ export default class User extends ApplicationModel {
     return query.where({ deletedAt: null })
   }
 
-  @BeforeSave()
+  @Decorator.BeforeSave()
   public async hashPass() {
     if (this.password)
       this.passwordDigest = await insecurePasswordHashSinceBcryptBringsInTooMuchGarbage(this.password)

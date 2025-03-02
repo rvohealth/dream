@@ -1,10 +1,10 @@
 import { Decorators } from '../../../src'
 import Validate from '../../../src/decorators/validations/Validate'
-import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
+import { DreamColumn, DreamSerializers, Type } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Mylar from './Balloon/Mylar'
 
-const Decorator = new Decorators<Sandbag>()
+const Decorator = new Decorators<Type<typeof Sandbag>>()
 
 export default class Sandbag extends ApplicationModel {
   public get table() {

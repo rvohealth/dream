@@ -101,22 +101,22 @@ const user = await User.where({ email: ops.like('%fred@%') })
 
 class Composition {
   ...
-  @BeforeCreate()
+  @Decorator.BeforeCreate()
   public setDefaultContent() {
     if (!this.content) this.content = 'default content'
   }
 
-  @AfterCreate()
+  @Decorator.AfterCreate()
   public conditionallyChangeContentOnCreate() {
     if (this.content === 'change me after create') this.content = 'changed after create'
   }
 
-  @AfterUpdate()
+  @Decorator.AfterUpdate()
   public conditionallyChangeContentOnUpdate() {
     if (this.content === 'change me after update') this.content = 'changed after update'
   }
 
-  @AfterSave()
+  @Decorator.AfterSave()
   public conditionallyChangeContentOnSave() {
     if (this.content === 'change me after save') this.content = 'changed after save'
   }

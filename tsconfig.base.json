@@ -1,8 +1,6 @@
 {
   "compilerOptions": {
     "declaration": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "Node",
     "noImplicitAny": true,
@@ -14,7 +12,6 @@
     "strictNullChecks": true,
     /* do not require all properties to be initialized in constructor */
     "strictPropertyInitialization": false,
-    "target": "es2021",
     /* with esnext as target, need to specify this so that Object.defineProperty works */
     "useDefineForClassFields": false
   },

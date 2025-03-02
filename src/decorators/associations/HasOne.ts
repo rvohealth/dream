@@ -2,6 +2,7 @@ import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../Dream'
 import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames'
 import { GlobalModelNameTableMap } from '../../dream/types'
+import { DecoratorContext } from '../DecoratorContextType'
 import {
   applyGetterAndSetter,
   associationPrimaryKeyAccessors,
@@ -77,8 +78,8 @@ export default function HasOne<
  * @param opts.through - If passed, this association will travel through another association.
  * @param opts.withoutDefaultScopes - A list of default scopes to bypass when loading this association
  */
-export default function HasOne<BaseInstance extends Dream, AssociationGlobalNameOrNames extends unknown>(
-  globalAssociationNameOrNames: unknown,
+export default function HasOne<BaseInstance extends Dream, AssociationGlobalNameOrNames>(
+  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
   opts: unknown = {}
 ): any {
   const {
@@ -97,54 +98,59 @@ export default function HasOne<BaseInstance extends Dream, AssociationGlobalName
     withoutDefaultScopes,
   } = opts as any
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  return function (target: BaseInstance, key: string, _: any) {
-    const dreamClass: typeof Dream = (target as any).constructor
+  return function (_: undefined, context: DecoratorContext) {
+    const key = context.name
 
-    if (!Object.getOwnPropertyDescriptor(dreamClass, 'associationMetadataByType'))
-      dreamClass['associationMetadataByType'] = blankAssociationsFactory(dreamClass)
+    context.addInitializer(function (this: BaseInstance) {
+      const target = this
+      const dreamClass: typeof Dream = target.constructor as typeof Dream
+      if (!dreamClass.initializingDecorators) return
 
-    validateHasStatementArgs({
-      dreamClass,
-      dependent: dependent ?? null,
-      methodName: key,
-      on: on ?? null,
+      if (!Object.getOwnPropertyDescriptor(dreamClass, 'associationMetadataByType'))
+        dreamClass['associationMetadataByType'] = blankAssociationsFactory(dreamClass)
+
+      validateHasStatementArgs({
+        dreamClass,
+        dependent: dependent ?? null,
+        methodName: key,
+        on: on ?? null,
+      })
+
+      const partialAssociation = associationPrimaryKeyAccessors(
+        {
+          modelCB: () => lookupModelByGlobalNameOrNames(globalAssociationNameOrNames as string | string[]),
+          as: key,
+          dependent,
+          globalAssociationNameOrNames,
+          on,
+          notOn,
+          onAny,
+          polymorphic,
+          preloadThroughColumns,
+          primaryKeyOverride,
+          selfOn,
+          selfNotOn,
+          source: source || key,
+          through,
+          type: 'HasOne',
+          withoutDefaultScopes,
+        } as any,
+        dreamClass
+      )
+
+      const association = {
+        ...partialAssociation,
+        foreignKey() {
+          return finalForeignKey(foreignKey, dreamClass, partialAssociation)
+        },
+        foreignKeyTypeField() {
+          return foreignKeyTypeField(foreignKey, dreamClass, partialAssociation)
+        },
+      } as HasOneStatement<any, any, any, any>
+
+      dreamClass['associationMetadataByType']['hasOne'].push(association)
+      applyGetterAndSetter(target, association)
     })
-
-    const partialAssociation = associationPrimaryKeyAccessors(
-      {
-        modelCB: () => lookupModelByGlobalNameOrNames(globalAssociationNameOrNames as string | string[]),
-        as: key,
-        dependent,
-        globalAssociationNameOrNames,
-        on,
-        notOn,
-        onAny,
-        polymorphic,
-        preloadThroughColumns,
-        primaryKeyOverride,
-        selfOn,
-        selfNotOn,
-        source: source || key,
-        through,
-        type: 'HasOne',
-        withoutDefaultScopes,
-      } as any,
-      dreamClass
-    )
-
-    const association = {
-      ...partialAssociation,
-      foreignKey() {
-        return finalForeignKey(foreignKey, dreamClass, partialAssociation)
-      },
-      foreignKeyTypeField() {
-        return foreignKeyTypeField(foreignKey, dreamClass, partialAssociation)
-      },
-    } as HasOneStatement<any, any, any, any>
-
-    dreamClass['associationMetadataByType']['hasOne'].push(association)
-    applyGetterAndSetter(target, association)
   }
 }
 

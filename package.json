@@ -31,7 +31,7 @@
     "gdreamcore": "DREAM_CORE_DEVELOPMENT=1 npx ts-node --transpile-only ./src/global-cli/dream.ts",
     "build": "echo \"building dream...\" && rm -rf dist && npx tsc -p ./tsconfig.cjs.build.json && npx tsc -p ./tsconfig.esm.build.json",
     "build:core": "rm -rf dist && mkdir dist && npx tsc -p ./tsconfig.cjs.build.core.json && npx tsc -p ./tsconfig.esm.build.core.json",
-    "spec": "DREAM_CORE_DEVELOPMENT=1 NODE_ENV=test DREAM_CORE_SPEC_RUN=1 yarn node --experimental-vm-modules $(yarn jest --maxWorkers=${DREAM_PARALLEL_TESTS:-1} --config=jest.config.js --forceExit)",
+    "spec": "DREAM_CORE_DEVELOPMENT=1 NODE_ENV=test DREAM_CORE_SPEC_RUN=1 yarn jest --maxWorkers=${DREAM_PARALLEL_TESTS:-1} --config=jest.config.js --detectOpenHandles --forceExit",
     "console:cjs": "DREAM_CORE_DEVELOPMENT=1 npx ts-node --transpile-only --project ./tsconfig.cjs.json ./test-app/app/conf/repl.ts",
     "console:esm": "DREAM_CORE_DEVELOPMENT=1 npx ts-node --transpile-only --project ./tsconfig.esm.json ./test-app/app/conf/repl.ts",
     "types:cjs:trace": "rm -rf dist && npx tsc -p ./tsconfig.cjs.build.json --generateTrace ./typetrace --diagnostics && yarn analyze-trace ./typetrace --skipMillis 100 --forceMillis 300",

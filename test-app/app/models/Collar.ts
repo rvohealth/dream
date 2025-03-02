@@ -1,12 +1,12 @@
 import { Decorators, SoftDelete } from '../../../src'
 import Scope from '../../../src/decorators/Scope'
 import Query from '../../../src/dream/Query'
-import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
+import { DreamColumn, DreamSerializers, Type } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
 import Pet from './Pet'
 
-const Decorator = new Decorators<Collar>()
+const Decorator = new Decorators<Type<typeof Collar>>()
 
 @SoftDelete()
 export default class Collar extends ApplicationModel {

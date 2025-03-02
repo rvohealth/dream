@@ -418,8 +418,7 @@ export type HasOptions<
   AssociationGlobalNameOrNames extends
     | keyof GlobalModelNameTableMap<BaseInstance>
     | (keyof GlobalModelNameTableMap<BaseInstance>)[],
-> = HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames>
-// > = Omit<HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames>, ThroughOnlyOptions | PolymorphicOption>
+> = Omit<HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames>, ThroughOnlyOptions | PolymorphicOption>
 
 export type PolymorphicHasOptions<
   BaseInstance extends Dream,

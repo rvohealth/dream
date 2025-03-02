@@ -1,16 +1,12 @@
 import { Decorators } from '../../../src'
-import AfterDestroy from '../../../src/decorators/hooks/AfterDestroy'
-import AfterDestroyCommit from '../../../src/decorators/hooks/AfterDestroyCommit'
-import BeforeDestroy from '../../../src/decorators/hooks/BeforeDestroy'
-import BeforeSave from '../../../src/decorators/hooks/BeforeSave'
-import { DreamColumn, DreamConst } from '../../../src/dream/types'
+import { DreamColumn, DreamConst, Type } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Composition from './Composition'
 import CompositionAssetAudit from './CompositionAssetAudit'
 import LocalizedText from './LocalizedText'
 import User from './User'
 
-const Decorator = new Decorators<CompositionAsset>()
+const Decorator = new Decorators<Type<typeof CompositionAsset>>()
 
 export default class CompositionAsset extends ApplicationModel {
   public get table() {
@@ -35,14 +31,14 @@ export default class CompositionAsset extends ApplicationModel {
   @Decorator.HasMany('CompositionAssetAudit')
   public compositionAssetAudits: CompositionAssetAudit[]
 
-  @BeforeSave()
+  @Decorator.BeforeSave()
   public ensureDefaultSrc() {
     this.src ||= 'default src'
   }
 
   private compositionToUpdateDuringDestroy: Composition | undefined
 
-  @BeforeDestroy()
+  @Decorator.BeforeDestroy()
   public async updateCompositionContentBeforeDestroy(this: CompositionAsset) {
     const reloaded = this.loaded('composition') ? this : await this.load('composition').execute()
     this.compositionToUpdateDuringDestroy = reloaded.composition
@@ -50,7 +46,7 @@ export default class CompositionAsset extends ApplicationModel {
       await reloaded.composition.update({ content: 'something was destroyed' })
   }
 
-  @AfterDestroy()
+  @Decorator.AfterDestroy()
   public async updateCompositionContentAfterDestroy(this: CompositionAsset) {
     if (this.src === 'mark after destroy')
       await this.compositionToUpdateDuringDestroy?.update({
@@ -58,7 +54,7 @@ export default class CompositionAsset extends ApplicationModel {
       })
   }
 
-  @AfterDestroyCommit()
+  @Decorator.AfterDestroyCommit()
   public async updateCompositionContentAfterDestroyCommit(this: CompositionAsset) {
     if (this.src === 'mark after destroy commit')
       await this.compositionToUpdateDuringDestroy?.update({

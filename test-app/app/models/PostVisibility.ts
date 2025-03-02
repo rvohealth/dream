@@ -1,10 +1,9 @@
 import { Decorators } from '../../../src'
-import BeforeCreate from '../../../src/decorators/hooks/BeforeCreate'
-import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
+import { DreamColumn, DreamSerializers, Type } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Post from './Post'
 
-const Decorator = new Decorators<PostVisibility>()
+const Decorator = new Decorators<Type<typeof PostVisibility>>()
 
 export default class PostVisibility extends ApplicationModel {
   public get table() {
@@ -24,7 +23,7 @@ export default class PostVisibility extends ApplicationModel {
   @Decorator.HasOne('Post', { dependent: 'destroy' })
   public post: Post
 
-  @BeforeCreate()
+  @Decorator.BeforeCreate()
   public conditionallyRaise() {
     if (this.notes === 'raise exception if notes set to this')
       throw new Error(

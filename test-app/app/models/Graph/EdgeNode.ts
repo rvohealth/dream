@@ -2,11 +2,12 @@ import { DreamColumn, DreamSerializers } from '../../../../src/dream/types'
 
 import { Decorators, SoftDelete } from '../../../../src'
 import Sortable from '../../../../src/decorators/sortable/Sortable'
+import { Type } from '../../../../src/dream/types'
 import ApplicationModel from '../ApplicationModel'
 import GraphEdge from './Edge'
 import GraphNode from './Node'
 
-const Decorator = new Decorators<EdgeNode>()
+const Decorator = new Decorators<Type<typeof EdgeNode>>()
 
 @SoftDelete()
 export default class EdgeNode extends ApplicationModel {
