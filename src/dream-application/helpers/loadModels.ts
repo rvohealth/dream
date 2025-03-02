@@ -18,9 +18,13 @@ export default async function loadModels(modelsPath: string): Promise<Record<str
   _models = {}
   const modelPaths = (await getFiles(modelsPath)).filter(path => /\.[jt]s$/.test(path))
 
-  for (const modelPath of modelPaths) {
-    const modelClass = (await import(modelPath)) as typeof Dream
+  const modelClasses: [string, typeof Dream][] = []
 
+  for (const modelPath of modelPaths) {
+    modelClasses.push([modelPath, (await import(modelPath)).default as typeof Dream])
+  }
+
+  for (const [modelPath, modelClass] of modelClasses) {
     if (modelClass.isDream) {
       try {
         // Don't create a global lookup for ApplicationModel
@@ -30,7 +34,16 @@ export default async function loadModels(modelsPath: string): Promise<Record<str
           modelClass['setGlobalName'](modelKey)
           _models[modelKey] = modelClass
         }
+      } catch {
+        // ApplicationModel will automatically raise an exception here,
+        // since it does not have a table.
+      }
+    }
+  }
 
+  for (const [, modelClass] of modelClasses) {
+    if (modelClass.isDream) {
+      try {
         /**
          * Certain features (e.g. passing a Dream instance to `create` so that it automatically destructures polymorphic type and primary key)
          * need static access to things set up by decorators (e.g. associations). Stage 3 Decorators change the context that is available

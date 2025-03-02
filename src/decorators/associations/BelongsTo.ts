@@ -11,7 +11,7 @@ import {
   TableNameForGlobalModelName,
 } from '../../dream/types'
 import { DecoratorContext } from '../DecoratorContextType'
-import Validates from '../validations/Validates'
+import { validatesImplementation } from '../validations/Validates'
 import {
   applyGetterAndSetter,
   associationPrimaryKeyAccessors,
@@ -113,7 +113,7 @@ export default function BelongsTo<BaseInstance extends Dream, AssociationGlobalN
 
       dreamClass['associationMetadataByType']['belongsTo'].push(association)
       applyGetterAndSetter(target, association, { isBelongsTo: true, foreignKeyBase: foreignKey })
-      if (!optional) Validates('requiredBelongsTo')(target, key)
+      if (!optional) validatesImplementation(target, key, 'requiredBelongsTo')
     })
   }
 }
