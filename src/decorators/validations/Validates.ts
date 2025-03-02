@@ -13,22 +13,33 @@ export default function Validates<
         : never,
 >(type: VT, args?: VTArgs): any {
   return function (_: undefined, context: DecoratorContext) {
-    const key = context.name
-
     context.addInitializer(function (this: Dream) {
-      const t: typeof Dream = this.constructor as typeof Dream
-      if (!t.initializingDecorators) return
-
-      if (!Object.getOwnPropertyDescriptor(t, 'validations'))
-        t['validations'] = [...(t['validations'] || [])] as ValidationStatement[]
-
-      t['validations'].push({
-        type,
-        column: key,
-        options: extractValidationOptionsFromArgs(type, args),
-      } as ValidationStatement)
+      validatesImplementation(this, context.name, type, args)
     })
   }
+}
+
+export function validatesImplementation<
+  VT extends ValidationType,
+  VTArgs extends VT extends 'numericality'
+    ? { min?: number; max?: number }
+    : VT extends 'length'
+      ? { min: number; max?: number }
+      : VT extends 'contains'
+        ? string | RegExp
+        : never,
+>(target: Dream, key: string, type: VT, args?: VTArgs) {
+  const t: typeof Dream = target.constructor as typeof Dream
+  if (!t.initializingDecorators) return
+
+  if (!Object.getOwnPropertyDescriptor(t, 'validations'))
+    t['validations'] = [...(t['validations'] || [])] as ValidationStatement[]
+
+  t['validations'].push({
+    type,
+    column: key,
+    options: extractValidationOptionsFromArgs(type, args),
+  } as ValidationStatement)
 }
 
 function extractValidationOptionsFromArgs(type: ValidationType, args: any) {

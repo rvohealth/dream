@@ -150,8 +150,6 @@ Attribute: ${key}
         )
       }
 
-      console.debug('context.kind:', context.kind)
-
       serializerClass.attributeStatements = [
         ...(serializerClass.attributeStatements || []),
         {
