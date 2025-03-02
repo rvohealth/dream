@@ -43,7 +43,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
 
       // before saving, we remember the new value for position, but clear it from our
       // supervised attributes to prevent position from saving
-      dream[beforeSaveMethodName] = async function (txn?: DreamTransaction<any>) {
+      dreamClass.prototype[beforeSaveMethodName] = async function (txn?: DreamTransaction<any>) {
         let query = dreamClass.query()
         if (txn) query = query.txn(txn)
 
@@ -56,7 +56,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
       }
 
       // once saved, we can now safely update position in isolation
-      dream[afterUpdateMethodName] = async function (txn?: DreamTransaction<any>) {
+      dreamClass.prototype[afterUpdateMethodName] = async function (txn?: DreamTransaction<any>) {
         // if no transaction is provided, leverage update commit hook instead
         if (!txn) return
         const query = dreamClass.query().txn(txn)
@@ -69,7 +69,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
           txn,
         })
       }
-      dream[afterUpdateCommitMethodName] = async function (txn?: DreamTransaction<any>) {
+      dreamClass.prototype[afterUpdateCommitMethodName] = async function (txn?: DreamTransaction<any>) {
         // if transaction is provided, leverage update hook instead
         if (txn) return
         const query = dreamClass.query()
@@ -85,7 +85,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
       // after create, we always want to ensure the position is set, so if they provide one,
       // we need to split existing records on position and update, but otherwise we simply set the new position
       // to be the length of all existing records + 1
-      dream[afterCreateMethodName] = async function (txn?: DreamTransaction<any>) {
+      dreamClass.prototype[afterCreateMethodName] = async function (txn?: DreamTransaction<any>) {
         // if no transaction is provided, leverage create commit hook instead
         if (!txn) return
         const query = dreamClass.query().txn(txn)
@@ -98,7 +98,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
           txn,
         })
       }
-      dream[afterCreateCommitMethodName] = async function (txn?: DreamTransaction<any>) {
+      dreamClass.prototype[afterCreateCommitMethodName] = async function (txn?: DreamTransaction<any>) {
         // if transaction is provided, leverage create hook instead
         if (txn) return
         const query = dreamClass.query()
@@ -113,7 +113,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
 
       // after destroy, auto-adjust positions of all related records with a greater position
       // than this one to maintain incrementing order,
-      dream[afterDestroyMethodName] = async function (txn?: DreamTransaction<any>) {
+      dreamClass.prototype[afterDestroyMethodName] = async function (txn?: DreamTransaction<any>) {
         // if no transaction is provided, leverage destroy commit hook instead
         if (!txn) return
         const query = dreamClass.query().txn(txn)
@@ -125,7 +125,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
           scope: opts.scope,
         })
       }
-      dream[afterDestroyCommitMethodName] = async function (txn?: DreamTransaction<any>) {
+      dreamClass.prototype[afterDestroyCommitMethodName] = async function (txn?: DreamTransaction<any>) {
         // if transaction is provided, leverage destroy hook instead
         if (txn) return
         const query = dreamClass.query()
@@ -146,6 +146,10 @@ export default function Sortable(opts: SortableOpts = {}): any {
       afterDestroyImplementation(dream, afterDestroyMethodName)
       afterDestroyCommitImplementation(dream, afterDestroyCommitMethodName)
     })
+
+    return function (this: Dream) {
+      return this[key]
+    }
   }
 }
 

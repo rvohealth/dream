@@ -13,5 +13,9 @@ export default function Validate(): any {
 
       t['customValidations'].push(key)
     })
+
+    return function (this: Dream) {
+      return this[context.name]
+    }
   }
 }
