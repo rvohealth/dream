@@ -2913,7 +2913,10 @@ export default class Dream {
    * @returns A boolean
    */
   public equals(other: any): boolean {
-    return other?.constructor === this.constructor && other.primaryKeyValue === this.primaryKeyValue
+    return (
+      (other?.constructor as typeof Dream).globalName === (this.constructor as typeof Dream).globalName &&
+      other.primaryKeyValue === this.primaryKeyValue
+    )
   }
 
   /**
