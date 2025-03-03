@@ -14,7 +14,7 @@ export default function applySortableScopeToQuery(
   for (const scope of scopes) {
     const column = getColumnForSortableScope(dream, scope)!
     query = query.where({
-      [column]: (dream as any)[column],
+      [column]: (dream as any)[column] ?? null,
     })
   }
 

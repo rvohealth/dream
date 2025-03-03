@@ -1,7 +1,9 @@
 import { SelectQueryBuilder } from 'kysely'
+import { DateTime } from 'luxon'
 import Dream from '../Dream'
 import Query from '../dream/Query'
-import { isString } from './typechecks'
+import CalendarDate from './CalendarDate'
+import { isObject } from './typechecks'
 
 /**
  * @internal
@@ -16,31 +18,35 @@ import { isString } from './typechecks'
  * @returns Either a clone, or else the original value
  */
 export default function cloneDeepSafe<T>(original: T): T {
-  return cloneDeepWith(original, (value: any) => {
-    if (value?.isDreamInstance) return (value as Dream)['clone']()
-    if (value?.isDreamQuery) return (value as Query<Dream>).clone()
-    if ((value as SelectQueryBuilder<any, any, any>)?.isSelectQueryBuilder) return value
-  })
-}
-
-function cloneDeepWith<T>(original: T, cloneFunction: (value: T) => T): T {
   if (original === undefined) return original
   if (original === null) return original
-  if (isString(original)) return `${original}` as T
+  if (typeof original === 'string') return original
   if (['number', 'boolean', 'bigint', 'symbol'].includes(typeof original)) return original
 
-  if (Array.isArray(original)) return original.map(value => cloneFunction(value)) as T
+  if (Array.isArray(original)) return original.map(value => cloneDeepSafe(value)) as T
 
-  const clone = cloneFunction(original)
-  if (clone !== undefined) return clone
-
-  try {
-    const clone = { ...original }
-    Object.keys(clone).forEach(key => (clone[key] = cloneDeepWith(clone[key], cloneFunction)))
-    return clone
-  } catch {
-    throw new TypeUnsupportedByClone(original)
+  if (original instanceof CalendarDate) {
+    const iso = original.toISO()
+    return (iso === null ? null : CalendarDate.fromISO(iso)) as T
   }
+
+  if (original instanceof DateTime) {
+    const iso = original.toISO()
+    return (iso === null ? null : DateTime.fromISO(iso)) as T
+  }
+
+  if ((original as unknown as Dream)?.isDreamInstance) return (original as unknown as Dream)['clone']() as T
+  if ((original as unknown as Query<Dream>)?.isDreamQuery)
+    return (original as unknown as Query<Dream>).clone() as T
+  if ((original as unknown as SelectQueryBuilder<any, any, any>)?.isSelectQueryBuilder) return original
+
+  if (isObject(original) && original.constructor.name === 'Object') {
+    const clone = { ...original }
+    Object.keys(clone).forEach(key => (clone[key] = cloneDeepSafe(clone[key])))
+    return clone
+  }
+
+  throw new TypeUnsupportedByClone(original)
 }
 
 export class TypeUnsupportedByClone extends Error {
@@ -51,6 +57,7 @@ export class TypeUnsupportedByClone extends Error {
   public get message() {
     return `Type unsupported by cloneDeepSafe:
 ${this.original}
+${this.original.toString()}
 ${this.original.constructor?.name}
 ${typeof this.original}
 `

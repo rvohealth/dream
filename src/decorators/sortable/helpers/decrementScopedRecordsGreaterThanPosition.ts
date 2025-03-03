@@ -34,7 +34,7 @@ export default async function decrementPositionForScopedRecordsGreaterThanPositi
   for (const singleScope of scopeArray(scope)) {
     const column = getColumnForSortableScope(dream, singleScope)
     if (column) {
-      kyselyQuery = kyselyQuery.where(column, '=', (dream as any)[column])
+      kyselyQuery = kyselyQuery.where(column, '=', (dream as any)[column] ?? null)
     }
   }
 
