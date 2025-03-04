@@ -12,6 +12,7 @@ import {
 import { STI_SCOPE_NAME } from '../decorators/STI'
 import Dream from '../Dream'
 import CalendarDate from '../helpers/CalendarDate'
+import { Camelized } from '../helpers/stringCasing'
 import { FilterInterface, Inc, ReadonlyTail } from '../helpers/typeutils'
 import OpsStatement from '../ops/ops-statement'
 import DreamSerializer from '../serializer'
@@ -616,7 +617,12 @@ export type VariadicLeftJoinLoadArgs<
   ConcreteTableName,
   ConcreteArgs,
   'leftJoinLoad',
-  ConcreteTableName,
+  // Dream configures Kysely to use camel case in Typescript land and
+  // convert to snake case in SQL; however, Dream reference snake-cased table names.
+  // Without camelizing, the table name of the starting model could conflict with the
+  // snake-cased version of an association name. By camelizing the table that goes
+  // into the UsedNamespaces, we prevent this from happeing at the type level.
+  Camelized<ConcreteTableName>,
   0,
   null,
   never,
@@ -645,7 +651,13 @@ export type VariadicJoinsArgs<
   ConcreteTableName,
   ConcreteArgs,
   'join',
-  ConcreteTableName,
+  // Dream configures Kysely to use camel case in Typescript land and
+  // convert to snake case in SQL; however, Dream reference snake-cased table names.
+  // Without camelizing, the table name of the starting model could conflict with the
+  // snake-cased version of an association name. By camelizing the table that goes
+  // into the UsedNamespaces, we prevent this from happeing at the type level.
+  // Camelized<ConcreteTableName>,
+  Camelized<ConcreteTableName>,
   0,
   null,
   never,
