@@ -49,6 +49,7 @@ import NoUpdateAllOnJoins from '../errors/NoUpdateAllOnJoins'
 import NoUpdateOnAssociationQuery from '../errors/NoUpdateOnAssociationQuery'
 import RecordNotFound from '../errors/RecordNotFound'
 import CalendarDate from '../helpers/CalendarDate'
+import camelize from '../helpers/camelize'
 import cloneDeepSafe from '../helpers/cloneDeepSafe'
 import compact from '../helpers/compact'
 import namespaceColumn from '../helpers/namespaceColumn'
@@ -373,6 +374,14 @@ export default class Query<
    */
   private baseSqlAlias: TableOrAssociationName<DreamInstance['schema']>
 
+  private get tableName() {
+    return this.dreamClass.table
+  }
+
+  private get namespacedPrimaryKey() {
+    return namespaceColumn(this.dreamClass.primaryKey, this.baseSqlAlias)
+  }
+
   /**
    * @internal
    *
@@ -399,7 +408,7 @@ export default class Query<
     this.innerJoinOnStatements = Object.freeze(opts.innerJoinOnStatements || {})
     this.leftJoinStatements = Object.freeze(opts.leftJoinStatements || {})
     this.leftJoinOnStatements = Object.freeze(opts.leftJoinOnStatements || {})
-    this.baseSqlAlias = opts.baseSqlAlias || this.dreamInstance['table']
+    this.baseSqlAlias = opts.baseSqlAlias || this.tableName
     this.baseSelectQuery = opts.baseSelectQuery || null
     this.limitStatement = opts.limit || null
     this.offsetStatement = opts.offset || null
@@ -631,7 +640,9 @@ export default class Query<
     { batchSize = Query.BATCH_SIZES.FIND_EACH }: { batchSize?: number } = {}
   ): Promise<void> {
     let records: any[]
-    const query = this.order(null).order(this.dreamClass.primaryKey).limit(batchSize)
+    const query = this.order(null)
+      .order(this.namespacedPrimaryKey as any)
+      .limit(batchSize)
     let lastId = null
 
     do {
@@ -1357,9 +1368,17 @@ export default class Query<
    * @param orderStatement - Either a string or an object specifying order. If a string, the order is implicitly ascending. If the orderStatement is an object, statements will be provided in the order of the keys set in the object
    * @returns A cloned Query with the order clause applied
    */
-  public order(
-    arg: DreamColumnNames<DreamInstance> | Partial<Record<DreamColumnNames<DreamInstance>, OrderDir>> | null
-  ) {
+
+  public order<
+    Q extends Query<DreamInstance, QueryTypeOpts>,
+    DB extends DreamInstance['DB'],
+    ColumnName extends ColumnNamesAccountingForJoinedAssociations<
+      Q['queryTypeOpts']['joinedAssociations'],
+      DB,
+      QueryTypeOpts['rootTableName'],
+      QueryTypeOpts['rootTableAlias']
+    >,
+  >(arg: ColumnName | Partial<Record<ColumnName, OrderDir>> | null) {
     if (arg === null) return this.clone({ order: null })
     if (isString(arg)) return this.clone({ order: [{ column: arg as any, direction: 'asc' }] })
 
@@ -1638,10 +1657,12 @@ export default class Query<
     let kyselyQuery = this.removeAllDefaultScopesExceptOnAssociations().buildSelect({ bypassSelectAll: true })
     const aliases: string[] = []
 
-    fields.forEach((field: string, index: number) => {
-      const alias = `dr${index}`
-      aliases.push(alias)
-      kyselyQuery = kyselyQuery.select(`${this.namespaceColumn(field)} as ${alias}` as any)
+    fields.forEach((field: string) => {
+      // field will already be namespaced in a join situation, but when the field to pluck is on the
+      // base model, it will be underscored (to match the table name), but when the selected column
+      // comes back from Kysely camelCased
+      aliases.push(field.includes('_') ? camelize(field) : field)
+      kyselyQuery = kyselyQuery.select(`${this.namespaceColumn(field)} as ${field}` as any)
     })
 
     return (await executeDatabaseQuery(kyselyQuery, 'execute')).map(singleResult =>
@@ -1732,7 +1753,9 @@ export default class Query<
     }, {} as AliasToDreamIdMap)
 
     return compact(
-      Object.keys(aliasToDreamIdMap[this.baseSqlAlias]).map(key => aliasToDreamIdMap[this.baseSqlAlias][key])
+      Object.keys(aliasToDreamIdMap[this.baseSqlAlias] || {}).map(
+        key => aliasToDreamIdMap[this.baseSqlAlias][key]
+      )
     )
   }
 
@@ -1944,14 +1967,16 @@ export default class Query<
     let offset = 0
     let records: any[]
     do {
-      const onlyIncludesPrimaryKey = onlyColumns.includes(this.dreamClass.primaryKey)
+      const onlyIncludesPrimaryKey = onlyColumns.find(
+        column => column === this.dreamClass.primaryKey || column === this.namespacedPrimaryKey
+      )
       const columnsIncludingPrimaryKey: DreamColumnNames<DreamInstance>[] = onlyIncludesPrimaryKey
         ? onlyColumns
-        : [this.dreamClass.primaryKey, ...onlyColumns]
+        : [this.namespacedPrimaryKey, ...onlyColumns]
 
       records = await this.offset(offset)
         .order(null)
-        .order(this.dreamClass.primaryKey)
+        .order(this.namespacedPrimaryKey as any)
         .limit(batchSize)
         .executePluck(...columnsIncludingPrimaryKey)
 
@@ -2053,7 +2078,7 @@ export default class Query<
   public async first() {
     const query = this.orderStatements.length
       ? this
-      : this.order({ [this.dreamInstance.primaryKey as any]: 'asc' } as any)
+      : this.order({ [this.namespacedPrimaryKey as any]: 'asc' } as any)
     return await query.takeOne()
   }
 
@@ -2093,7 +2118,7 @@ export default class Query<
   public async last() {
     const query = this.orderStatements.length
       ? this.invertOrder()
-      : this.order({ [this.dreamInstance.primaryKey as any]: 'desc' } as any)
+      : this.order({ [this.namespacedPrimaryKey]: 'desc' } as any)
 
     return await query.takeOne()
   }
@@ -2327,14 +2352,20 @@ export default class Query<
     if (this.joinLoadActivated) {
       let query: Query<DreamInstance, QueryTypeOpts>
 
-      if (this.whereStatements.find(whereStatement => (whereStatement as any)[this.dreamClass.primaryKey])) {
+      if (
+        this.whereStatements.find(
+          whereStatement =>
+            (whereStatement as any)[this.dreamClass.primaryKey] ||
+            (whereStatement as any)[this.namespacedPrimaryKey]
+        )
+      ) {
         // the query already includes a primary key where statement
         query = this
       } else {
         // otherwise find the primary key and apply it to the query
-        const primaryKeyValue = (await this.limit(1).pluck(this.dreamClass.primaryKey as any))[0]
+        const primaryKeyValue = (await this.limit(1).pluck(this.namespacedPrimaryKey as any))[0]
         if (primaryKeyValue === undefined) return null
-        query = this.where({ [this.dreamClass.primaryKey]: primaryKeyValue } as any)
+        query = this.where({ [this.namespacedPrimaryKey]: primaryKeyValue } as any)
       }
 
       return (await query.executeJoinLoad())[0] || null
@@ -3728,9 +3759,7 @@ export default class Query<
       ).buildSelect({ bypassSelectAll: true })
     } else {
       const from =
-        this.baseSqlAlias === this.dreamClass.table
-          ? this.dreamClass.table
-          : `${this.dreamClass.table} as ${this.baseSqlAlias}`
+        this.baseSqlAlias === this.tableName ? this.tableName : `${this.tableName} as ${this.baseSqlAlias}`
 
       kyselyQuery = this.dbFor('select').selectFrom(from)
     }
@@ -3778,7 +3807,7 @@ export default class Query<
     attributes: Updateable<DreamInstance['table']>
   ): UpdateQueryBuilder<DB, any, any, object> {
     let kyselyQuery = this.dbFor('update')
-      .updateTable(this.dreamClass.table as DreamInstance['table'])
+      .updateTable(this.tableName as DreamInstance['table'])
       .set(attributes as any)
 
     kyselyQuery = this.conditionallyAttachSimilarityColumnsToUpdate(kyselyQuery)

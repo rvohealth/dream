@@ -55,7 +55,7 @@ describe('Dream.all', () => {
       it('only selects those fields', async () => {
         await User.create({ name: 'Fred', email: 'fred@frewd', password: 'howyadoin' })
 
-        const results = await User.leftJoinPreload('pets').all({ columns: ['name'] })
+        const results = await User.leftJoinPreload('pets').all({ columns: ['id', 'name'] })
         expect(results[0].name).toEqual('Fred')
         expect(results[0].email).toBeUndefined()
       })

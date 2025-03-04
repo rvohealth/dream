@@ -28,7 +28,7 @@ describe('Dream.leftJoinPreload', () => {
 
     const reloaded = (
       await User.leftJoinPreload('compositions', { on: { content: 'goodbye' } })
-        .order('birthdate')
+        .order('users.birthdate')
         .all()
     )[0]
     expect(reloaded.compositions).toMatchDreamModels([composition])
@@ -47,19 +47,60 @@ describe('Dream.leftJoinPreload', () => {
   context('with multiple levels of joining', () => {
     it('does not duplicate top level results or intermediate results', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+
       const pet1 = await Pet.create({ user, name: 'a' })
-      await Collar.create({ pet: pet1 })
-      await Collar.create({ pet: pet1 })
+      const collar1a = await Collar.create({ pet: pet1 })
+      const collar1b = await Collar.create({ pet: pet1 })
+
       const pet2 = await Pet.create({ user, name: 'b' })
-      await Collar.create({ pet: pet2 })
-      await Collar.create({ pet: pet2 })
+      const collar2a = await Collar.create({ pet: pet2 })
+      const collar2b = await Collar.create({ pet: pet2 })
 
       const users = await User.leftJoinPreload('pets', 'collars').all()
+
       expect(await User.count()).toEqual(1)
       expect(users.length).toEqual(1)
+
       expect(users[0].pets.length).toEqual(2)
+      expect(users[0].pets).toMatchDreamModels([pet1, pet2])
+
       expect(users[0].pets[0].collars.length).toEqual(2)
+      expect(users[0].pets[0].collars).toMatchDreamModels([collar1a, collar1b])
+
       expect(users[0].pets[1].collars.length).toEqual(2)
+      expect(users[0].pets[1].collars).toMatchDreamModels([collar2a, collar2b])
+    })
+
+    context('some models without the next level', () => {
+      it('loads those models with associations initialized to null/[]', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+
+        const pet1 = await Pet.create({ user, name: 'a' })
+        const collar1a = await Collar.create({ pet: pet1 })
+        const collar1b = await Collar.create({ pet: pet1 })
+
+        const pet2 = await Pet.create({ user, name: 'b' })
+        const collar2a = await Collar.create({ pet: pet2 })
+        const collar2b = await Collar.create({ pet: pet2 })
+
+        await User.create({ email: 'gred@frewd', password: 'howyadoin' })
+
+        const users = await User.leftJoinPreload('pets', 'collars').all()
+
+        expect(await User.count()).toEqual(2)
+        expect(users.length).toEqual(2)
+
+        expect(users[0].pets.length).toEqual(2)
+        expect(users[0].pets).toMatchDreamModels([pet1, pet2])
+
+        expect(users[0].pets[0].collars.length).toEqual(2)
+        expect(users[0].pets[0].collars).toMatchDreamModels([collar1a, collar1b])
+
+        expect(users[0].pets[1].collars.length).toEqual(2)
+        expect(users[0].pets[1].collars).toMatchDreamModels([collar2a, collar2b])
+
+        expect(users[1].pets.length).toEqual(0)
+      })
     })
   })
 

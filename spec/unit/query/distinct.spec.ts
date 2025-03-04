@@ -71,7 +71,7 @@ describe('Query#distinct', () => {
       const ids = await Edge.innerJoin('edgeNodes')
         .distinct('name')
         .where({ name: ops.similarity('myedg') })
-        .order({ name: 'desc' })
+        .order({ 'graph_edges.name': 'desc' })
         .pluck('graph_edges.id')
 
       expect(ids).toEqual([edge1.id])

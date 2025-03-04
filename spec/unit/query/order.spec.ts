@@ -1,6 +1,7 @@
+import ops from '../../../src/ops'
+import Latex from '../../../test-app/app/models/Balloon/Latex'
 import Pet from '../../../test-app/app/models/Pet'
 import User from '../../../test-app/app/models/User'
-import ops from '../../../src/ops'
 
 describe('Query#order', () => {
   it('orders by ascending direction when passed a single column', async () => {
@@ -22,6 +23,47 @@ describe('Query#order', () => {
 
       const plucked = await user2.associationQuery('compositions').order('id').pluck('id', 'content')
       expect(plucked).toEqual([[composition2.id, 'Hello']])
+    })
+  })
+
+  context('after an innerJoin', () => {
+    it('supports ordering by a joined column', async () => {
+      const pet1 = await Pet.create({ name: 'Violet' })
+      const pet2 = await Pet.create({ name: 'Aster' })
+      const pet3 = await Pet.create({ name: 'Kermit' })
+      const largeBalloon = await Latex.create({ color: 'red', volume: 7 })
+      const smallBalloon = await Latex.create({ color: 'green', volume: 3 })
+
+      await pet1.createAssociation('collars', { balloon: largeBalloon })
+      await pet2.createAssociation('collars', { balloon: smallBalloon })
+      await pet3.createAssociation('collars')
+
+      const plucked = await Pet.innerJoin('collars', 'balloon')
+        .order('balloon.volume')
+        .pluck('pets.name', 'balloon.volume')
+      expect(plucked[0]).toEqual(['Aster', 3])
+      expect(plucked[1]).toEqual(['Violet', 7])
+    })
+  })
+
+  context('after a leftJoin', () => {
+    it('supports ordering by a joined column', async () => {
+      const pet1 = await Pet.create({ name: 'Violet' })
+      const pet2 = await Pet.create({ name: 'Aster' })
+      const pet3 = await Pet.create({ name: 'Kermit' })
+      const largeBalloon = await Latex.create({ color: 'red', volume: 7 })
+      const smallBalloon = await Latex.create({ color: 'green', volume: 3 })
+
+      await pet1.createAssociation('collars', { balloon: largeBalloon })
+      await pet2.createAssociation('collars', { balloon: smallBalloon })
+      await pet3.createAssociation('collars')
+
+      const plucked = await Pet.leftJoin('collars', 'balloon')
+        .order('balloon.volume')
+        .pluck('pets.name', 'balloon.volume')
+      expect(plucked[0]).toEqual(['Aster', 3])
+      expect(plucked[1]).toEqual(['Violet', 7])
+      expect(plucked[2]).toEqual(['Kermit', null])
     })
   })
 
