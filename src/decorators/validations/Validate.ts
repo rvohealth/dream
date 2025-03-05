@@ -6,7 +6,7 @@ export default function Validate(): any {
     const key = context.name
     context.addInitializer(function (this: Dream) {
       const t: typeof Dream = this.constructor as typeof Dream
-      if (!t.initializingDecorators) return
+      if (!t['globallyInitializingDecorators']) return
 
       if (!Object.getOwnPropertyDescriptor(t, 'customValidations'))
         t['customValidations'] = [...(t['customValidations'] || [])] as string[]

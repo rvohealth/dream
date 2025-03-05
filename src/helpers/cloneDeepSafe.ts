@@ -24,25 +24,17 @@ export default function cloneDeepSafe<T>(original: T): T {
   if (original === null) return original
   if (typeof original === 'string') return original
   if (['number', 'boolean', 'bigint', 'symbol'].includes(typeof original)) return original
+  if (original instanceof DateTime) return original
+  if (original instanceof CalendarDate) return original
   if (original instanceof Range) return original
   if (original instanceof OpsStatement) return original
-
-  if (Array.isArray(original)) return original.map(value => cloneDeepSafe(value)) as T
-
-  if (original instanceof CalendarDate) {
-    const iso = original.toISO()
-    return (iso === null ? null : CalendarDate.fromISO(iso)) as T
-  }
-
-  if (original instanceof DateTime) {
-    const iso = original.toISO()
-    return (iso === null ? null : DateTime.fromISO(iso)) as T
-  }
 
   if ((original as unknown as Dream)?.isDreamInstance) return (original as unknown as Dream)['clone']() as T
   if ((original as unknown as Query<Dream>)?.isDreamQuery)
     return (original as unknown as Query<Dream>).clone() as T
   if ((original as unknown as SelectQueryBuilder<any, any, any>)?.isSelectQueryBuilder) return original
+
+  if (Array.isArray(original)) return original.map(value => cloneDeepSafe(value)) as T
 
   if (isObject(original) && original.constructor.name === 'Object') {
     const clone = { ...original }

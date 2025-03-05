@@ -1,4 +1,5 @@
-import { ops, range } from '../../../src'
+import { DateTime } from 'luxon'
+import { CalendarDate, ops, range } from '../../../src'
 import cloneDeepSafe, { TypeUnsupportedByClone } from '../../../src/helpers/cloneDeepSafe'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
 
@@ -54,6 +55,22 @@ describe('cloneDeepSafe', () => {
   context('an OpsStatement', () => {
     it('is the same OpsStatement (since OpsStatement are immutable)', () => {
       const original = ops.expression('!=', 'red')
+      const clone = cloneDeepSafe(original)
+      expect(clone).toBe(original)
+    })
+  })
+
+  context('a DateTime', () => {
+    it('is the same DateTime (since DateTimes are immutable)', () => {
+      const original = DateTime.now()
+      const clone = cloneDeepSafe(original)
+      expect(clone).toBe(original)
+    })
+  })
+
+  context('a CalendarDate', () => {
+    it('is the same CalendarDate (since CalendarDates are immutable)', () => {
+      const original = CalendarDate.today()
       const clone = cloneDeepSafe(original)
       expect(clone).toBe(original)
     })

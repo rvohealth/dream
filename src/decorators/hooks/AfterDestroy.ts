@@ -12,7 +12,7 @@ export default function AfterDestroy(): any {
 
 export function afterDestroyImplementation(target: Dream, key: string) {
   const dreamClass: typeof Dream = target.constructor as typeof Dream
-  if (!dreamClass.initializingDecorators) return
+  if (!dreamClass['globallyInitializingDecorators']) return
 
   if (!Object.getOwnPropertyDescriptor(dreamClass, 'hooks'))
     dreamClass['hooks'] = blankHooksFactory(dreamClass)

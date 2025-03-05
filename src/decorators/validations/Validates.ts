@@ -35,7 +35,7 @@ export function validatesImplementation<
 >(target: Dream, key: string, type: VT, args?: VTArgs) {
   const t: typeof Dream = target.constructor as typeof Dream
 
-  if (!t.initializingDecorators) return
+  if (!t['globallyInitializingDecorators']) return
 
   if (!Object.getOwnPropertyDescriptor(t, 'validations'))
     t['validations'] = [...(t['validations'] || [])] as ValidationStatement[]

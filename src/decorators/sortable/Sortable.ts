@@ -24,7 +24,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
       const dream = this
       const dreamClass: typeof Dream = dream.constructor as typeof Dream
       const dreamPrototype = Object.getPrototypeOf(dream)
-      if (!dreamClass.initializingDecorators) return
+      if (!dreamClass['globallyInitializingDecorators']) return
 
       if (!Object.getOwnPropertyDescriptor(dreamClass, 'sortableFields'))
         dreamClass['sortableFields'] = [...(dreamClass['sortableFields'] || [])]

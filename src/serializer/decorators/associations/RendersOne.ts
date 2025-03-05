@@ -53,7 +53,7 @@ export default function RendersOne(
     context.addInitializer(function (this: DreamSerializer) {
       const target = this
       const serializerClass: typeof DreamSerializer = target.constructor as typeof DreamSerializer
-      if (!serializerClass.initializingDecorators) return
+      if (!serializerClass['globallyInitializingDecorators']) return
 
       if (isSerializable(serializableClassOrClasses)) {
         opts ||= {} as RendersOneOpts
