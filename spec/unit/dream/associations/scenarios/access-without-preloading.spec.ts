@@ -66,7 +66,7 @@ describe('Accessing an association that hasn’t been loaded', () => {
         message = (err as any).message
       }
 
-      expect(message).toMatch('Attempting to access `user` on an instance of `BaseExtraRating`')
+      expect(message).toMatch('Attempting to access `user` on an instance of `HeartRating`')
     })
   })
 })

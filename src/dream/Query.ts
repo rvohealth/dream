@@ -912,7 +912,9 @@ export default class Query<
       const keys = Object.keys(clonedNextAssociationStatement)
 
       keys.forEach((key: string) => {
-        joinOnStatements[protectAgainstPollutingAssignment(key)] = clonedNextAssociationStatement[key]
+        joinOnStatements[protectAgainstPollutingAssignment(key)] = (clonedNextAssociationStatement as any)[
+          key
+        ]
       })
 
       this.fleshOutJoinStatements(

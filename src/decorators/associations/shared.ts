@@ -333,12 +333,7 @@ export interface HasStatement<
 
 interface HasOptionsBase<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | keyof GlobalModelNameTableMap<BaseInstance>
-    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
-  AssociationGlobalName = AssociationGlobalNameOrNames extends any[]
-    ? AssociationGlobalNameOrNames[0] & string
-    : AssociationGlobalNameOrNames & string,
+  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
   AssociationTableName = TableNameForGlobalModelName<
     BaseInstance,
     AssociationGlobalName & keyof GlobalModelNameTableMap<BaseInstance>
@@ -415,27 +410,19 @@ type ThroughOnlyOptions = 'through' | 'source' | 'preloadThroughColumns'
 
 export type HasOptions<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | keyof GlobalModelNameTableMap<BaseInstance>
-    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
-> = Omit<HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames>, ThroughOnlyOptions | PolymorphicOption>
+  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
+> = Omit<HasOptionsBase<BaseInstance, AssociationGlobalName>, ThroughOnlyOptions | PolymorphicOption>
 
 export type PolymorphicHasOptions<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | keyof GlobalModelNameTableMap<BaseInstance>
-    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
-> = HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames> &
-  Required<
-    Pick<HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames>, PolymorphicOption | ForeignKeyOption>
-  >
+  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
+> = HasOptionsBase<BaseInstance, AssociationGlobalName> &
+  Required<Pick<HasOptionsBase<BaseInstance, AssociationGlobalName>, PolymorphicOption | ForeignKeyOption>>
 
 export type HasThroughOptions<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | keyof GlobalModelNameTableMap<BaseInstance>
-    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
-> = Omit<HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames>, ThroughIncompatibleOptions>
+  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
+> = Omit<HasOptionsBase<BaseInstance, AssociationGlobalName>, ThroughIncompatibleOptions>
 
 export function blankAssociationsFactory(dreamClass: typeof Dream): {
   belongsTo: BelongsToStatement<any, any, any, any>[]
@@ -538,14 +525,17 @@ export function applyGetterAndSetter(
     Object.defineProperty(dreamClass.prototype, partialAssociation.as, {
       configurable: true,
 
-      get: function (this: any) {
+      get: function (this: Dream) {
         const value = this[associationToGetterSetterProp(partialAssociation)]
         if (value === undefined)
           throw new NonLoadedAssociation({ dreamClass, associationName: partialAssociation.as })
         else return value
       },
 
-      set: function (this: any, associatedModel: any) {
+      set: function (this: Dream, associatedModel: any) {
+        // protect against a stage 3 decorator bug
+        if (this['stage3DecoratorBugGuardOn']) return
+
         this[associationToGetterSetterProp(partialAssociation)] = associatedModel
 
         if (isBelongsTo) {
@@ -572,14 +562,15 @@ export function associationPrimaryKeyAccessors(
       if (associationInstance) return associationInstance.primaryKey
 
       const associationClass = this.modelCB()
-      if (Array.isArray(associationClass) && this.type === 'BelongsTo')
+      if (Array.isArray(associationClass)) {
         throw new Error(`
 Cannot lookup primaryKey on polymorphic association:
 dream class: ${dreamClass.name}
 association: ${this.as}
           `)
+      }
 
-      return (associationClass as typeof Dream).primaryKey
+      return associationClass.primaryKey
     },
 
     primaryKeyValue(associationInstance: Dream | null) {

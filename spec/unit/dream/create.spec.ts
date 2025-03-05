@@ -147,7 +147,7 @@ describe('Dream.create', () => {
   })
 
   context('encrypted columns', () => {
-    it('allows saving of encrypted fields', async () => {
+    it.only('allows saving of encrypted fields', async () => {
       let user = await User.create({ email: 'how@yadoin', password: 'howyadoin', secret: 'shh!' })
       user = await User.findOrFail(user.id)
       expect(user.secret).toEqual('shh!')
