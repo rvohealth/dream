@@ -18,15 +18,25 @@ export default function sqlResultToDreamInstance<
     if (!extendingDreamClass)
       throw new STIChildMissing(dreamClass, sqlResult.type, sqlResult[dreamClass.primaryKey])
 
-    return new extendingDreamClass(sqlResult as Updateable<Table>, {
+    const dreamModel = new extendingDreamClass(sqlResult as Updateable<Table>, {
       bypassUserDefinedSetters: true,
       isPersisted: true,
+      _internalUseOnly: true,
     })
+
+    dreamModel['_initializing'] = false
+
+    return dreamModel
   } else {
-    return new dreamClass(sqlResult as UpdateablePropertiesForClass<Table>, {
+    const dreamModel = new dreamClass(sqlResult as UpdateablePropertiesForClass<Table>, {
       bypassUserDefinedSetters: true,
       isPersisted: true,
+      _internalUseOnly: true,
     })
+
+    dreamModel['_initializing'] = false
+
+    return dreamModel
   }
 }
 

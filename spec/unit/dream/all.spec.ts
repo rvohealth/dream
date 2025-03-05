@@ -7,7 +7,7 @@ import Animal from '../../../test-app/app/models/Balloon/Latex/Animal'
 import User from '../../../test-app/app/models/User'
 
 describe('Dream.all', () => {
-  it.only('finds all records for a given model', async () => {
+  it('finds all records for a given model', async () => {
     const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 

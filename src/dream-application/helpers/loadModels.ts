@@ -50,7 +50,7 @@ export default async function loadModels(modelsPath: string): Promise<Record<str
          * at decoration time such that the class of a property being decorated is only avilable during instance instantiation. In order
          * to only apply static values once, on boot, `initializingDecorators` is set to true on Dream, and all Dream models are instantiated.
          */
-        new modelClass()
+        new modelClass({}, { _internalUseOnly: true })
       } catch {
         // ApplicationModel will automatically raise an exception here,
         // since it does not have a table.

@@ -163,7 +163,7 @@ Attribute: ${key}
     })
 
     return function (this: DreamSerializer) {
-      return this[context.name]
+      return this[key]
     }
   }
 }

@@ -98,6 +98,7 @@ import CannotPassNullOrUndefinedToRequiredBelongsTo from './errors/associations/
 import CanOnlyPassBelongsToModelParam from './errors/associations/CanOnlyPassBelongsToModelParam'
 import NonLoadedAssociation from './errors/associations/NonLoadedAssociation'
 import CannotCallUndestroyOnANonSoftDeleteModel from './errors/CannotCallUndestroyOnANonSoftDeleteModel'
+import ConstructorOnlyForInternalUse from './errors/ConstructorOnlyForInternalUse'
 import CreateOrFindByFailedToCreateAndFind from './errors/CreateOrFindByFailedToCreateAndFind'
 import DoNotSetEncryptedFieldsDirectly from './errors/DoNotSetEncryptedFieldsDirectly'
 import GlobalNameNotSet from './errors/dream-application/GlobalNameNotSet'
@@ -137,6 +138,30 @@ export default class Dream {
         expect(balloons).toMatchDreamModels([balloon])
     `)
   }
+
+  /**
+   * @internal
+   *
+   * There is a stage 3 decorator bug:
+   * - when a base class defines setters for fields defined in an inheriting class
+   * - the second field after the decorator (so not the field decorated) gets set
+   *   with `undefined` after the base class constructor ends (before the extending
+   *   class implicit constructor is called, since decorators initialize before each
+   *   constructor) (this is the same behavior as if the field had been initialized
+   *   to undefined via `public myField: string = undefined` even though it has no
+   *   such initialization)
+   *
+   * In order to prevent the value from being set to undefined after it was initialized
+   * in this constructor with some value, we set `_initializing` now, include guards in
+   * each setter so that they do not set when `_initializing` is true, and then follow
+   * each instantiation by setting `_initializing` to false.
+   *
+   * Only dynamically added setters are affected, not setters defined on the model itself,
+   * so custom setters on the user model are not subject to this bug.
+   *
+   */
+
+  protected _initializing: boolean = false
 
   /**
    * @internal
@@ -749,7 +774,8 @@ export default class Dream {
    * @returns A newly persisted dream instance
    */
   public static async create<T extends typeof Dream>(this: T, attributes?: UpdateablePropertiesForClass<T>) {
-    const dreamModel = new (this as any)(attributes as any)
+    const dreamModel = new this(attributes, { _internalUseOnly: true })
+    dreamModel._initializing = false
     await dreamModel.save()
     return dreamModel as InstanceType<T>
   }
@@ -978,10 +1004,14 @@ export default class Dream {
     const existingRecord = await this.findBy(this.extractAttributesFromUpdateableProperties(attributes))
     if (existingRecord) return existingRecord
 
-    const dreamModel = new (this as any)({
-      ...attributes,
-      ...(extraOpts?.createWith || {}),
-    })
+    const dreamModel = new this(
+      {
+        ...attributes,
+        ...(extraOpts?.createWith || {}),
+      },
+      { _internalUseOnly: true }
+    )
+    dreamModel._initializing = false
 
     await dreamModel.save()
 
@@ -2192,15 +2222,22 @@ export default class Dream {
     opts?: UpdateablePropertiesForClass<T>,
     additionalOpts: { bypassUserDefinedSetters?: boolean } = {}
   ) {
-    return new this(opts as any, additionalOpts) as InstanceType<T>
+    const dreamModel = new this(opts as any, {
+      ...additionalOpts,
+      _internalUseOnly: true,
+    }) as InstanceType<T>
+
+    dreamModel._initializing = false
+
+    return dreamModel
   }
 
   /**
    * @internal
    *
    * NOTE: avoid using the constructor function directly.
-   * Use the static `.new` method instead, which will provide
-   * type guarding for your attributes.
+   * Use the static `.new` or `.create` methods instead, which
+   * will provide type guarding for your attributes.
    *
    * Since typescript prevents constructor functions
    * from absorbing type generics, we provide the `new`
@@ -2213,13 +2250,14 @@ export default class Dream {
    * @returns A new (unpersisted) instance of the provided dream class
    */
   constructor(
-    opts?: any,
-    additionalOpts: { bypassUserDefinedSetters?: boolean; isPersisted?: boolean } = {}
-    // opts?: Updateable<
-    //   InstanceType<DreamModel & typeof Dream>['DB'][InstanceType<DreamModel>['table'] &
-    //     keyof InstanceType<DreamModel>['DB']]
-    // >
+    opts: any,
+    additionalOpts: {
+      bypassUserDefinedSetters?: boolean
+      isPersisted?: boolean
+      _internalUseOnly: true
+    }
   ) {
+    if (!additionalOpts._internalUseOnly) throw new ConstructorOnlyForInternalUse()
     this.isPersisted = additionalOpts?.isPersisted || false
 
     this.defineAttributeAccessors()
@@ -2241,6 +2279,27 @@ export default class Dream {
         })
       }
     }
+
+    /**
+     * There is a stage 3 decorator bug:
+     * - when a base class defines setters for fields defined in an inheriting class
+     * - the second field after the decorator (so not the field decorated) gets set
+     *   with `undefined` after the base class constructor ends (before the extending
+     *   class implicit constructor is called, since decorators initialize before each
+     *   constructor) (this is the same behavior as if the field had been initialized
+     *   to undefined via `public myField: string = undefined` even though it has no
+     *   such initialization)
+     *
+     * In order to prevent the value from being set to undefined after it was initialized
+     * in this constructor with some value, we set `_initializing` now, include guards in
+     * each setter so that they do not set when `_initializing` is true, and then follow
+     * each instantiation by setting `_initializing` to false.
+     *
+     * Only dynamically added setters are affected, not setters defined on the model itself,
+     * so custom setters on the user model are not subject to this bug.
+     *
+     */
+    this._initializing = true
   }
 
   /**
@@ -2323,6 +2382,8 @@ export default class Dream {
       // for each of the properties
       if (this.currentAttributes[column] === undefined) this.currentAttributes[column] = undefined
 
+      // Don't overwrite getter and setter the user has set on the model (or that previous instantiations
+      // have set)
       if (
         !Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), column)?.get &&
         !Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), column)?.set
@@ -2337,6 +2398,8 @@ export default class Dream {
             },
 
             set(val: any) {
+              // protect against a stage 3 decorator bug
+              if (this._initializing) return
               this.currentAttributes[column] = isString(val) ? val : JSON.stringify(val)
             },
 
@@ -2358,6 +2421,8 @@ export default class Dream {
               },
 
               set(val: any) {
+                // protect against a stage 3 decorator bug
+                if (this._initializing) return
                 this.setAttribute(encryptedAttribute.encryptedColumnName, InternalEncrypt.encryptColumn(val))
               },
             })
@@ -2388,6 +2453,8 @@ export default class Dream {
             },
 
             set(val: any) {
+              // protect against a stage 3 decorator bug
+              if (this._initializing) return
               return (this.currentAttributes[column] = val)
             },
 
@@ -2963,7 +3030,8 @@ export default class Dream {
     { includeAssociations = true }: { includeAssociations?: boolean } = {}
   ): I {
     const self: any = this
-    const clone: any = new self.constructor()
+    const clone: any = new (self.constructor as typeof Dream)({}, { _internalUseOnly: true })
+    clone._initializing = false
 
     const associationDataKeys = Object.values(
       (this.constructor as typeof Dream).associationMetadataMap()

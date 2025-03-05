@@ -80,7 +80,7 @@ export default function RendersOne(
     })
 
     return function (this: DreamSerializer) {
-      return this[context.name]
+      return this[key]
     }
   }
 }

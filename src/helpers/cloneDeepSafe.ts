@@ -2,7 +2,9 @@ import { SelectQueryBuilder } from 'kysely'
 import { DateTime } from 'luxon'
 import Dream from '../Dream'
 import Query from '../dream/Query'
+import OpsStatement from '../ops/ops-statement'
 import CalendarDate from './CalendarDate'
+import { Range } from './range'
 import { isObject } from './typechecks'
 
 /**
@@ -22,6 +24,8 @@ export default function cloneDeepSafe<T>(original: T): T {
   if (original === null) return original
   if (typeof original === 'string') return original
   if (['number', 'boolean', 'bigint', 'symbol'].includes(typeof original)) return original
+  if (original instanceof Range) return original
+  if (original instanceof OpsStatement) return original
 
   if (Array.isArray(original)) return original.map(value => cloneDeepSafe(value)) as T
 

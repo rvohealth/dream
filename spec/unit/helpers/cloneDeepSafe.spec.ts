@@ -1,3 +1,4 @@
+import { ops, range } from '../../../src'
 import cloneDeepSafe, { TypeUnsupportedByClone } from '../../../src/helpers/cloneDeepSafe'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
 
@@ -39,6 +40,22 @@ describe('cloneDeepSafe', () => {
       const original = null
       const clone = cloneDeepSafe(original)
       expect(clone).toBeNull()
+    })
+  })
+
+  context('a Range', () => {
+    it('is the same Range (since Ranges are immutable)', () => {
+      const original = range(0, 10)
+      const clone = cloneDeepSafe(original)
+      expect(clone).toBe(original)
+    })
+  })
+
+  context('an OpsStatement', () => {
+    it('is the same OpsStatement (since OpsStatement are immutable)', () => {
+      const original = ops.expression('!=', 'red')
+      const clone = cloneDeepSafe(original)
+      expect(clone).toBe(original)
     })
   })
 

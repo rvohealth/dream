@@ -11,11 +11,11 @@ export default class OpsStatement<
   ValType,
   ExtraArgs = COE extends '%' | '<%' | '<<%' ? ExtraSimilarityArgs | undefined : undefined,
 > {
-  public operator: COE
-  public value: ValType
-  public extraArgs: ExtraArgs
-
-  constructor(operator: COE, value: ValType, extraArgs?: ExtraArgs) {
+  constructor(
+    public readonly operator: COE,
+    public readonly value: ValType,
+    public readonly extraArgs?: ExtraArgs
+  ) {
     if (
       typeof (extraArgs as ExtraSimilarityArgs)?.score === 'number' &&
       ((extraArgs as ExtraSimilarityArgs).score! < 0 || (extraArgs as ExtraSimilarityArgs).score! > 1)
@@ -27,7 +27,7 @@ export default class OpsStatement<
     this.value = value
 
     if (extraArgs) {
-      this.extraArgs = extraArgs
+      this.extraArgs = Object.freeze({ ...extraArgs })
     }
   }
 

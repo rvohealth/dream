@@ -14,7 +14,7 @@ describe('@Encrypted', () => {
         },
       ])
 
-      const user = new User()
+      const user = User.new()
       user.secret = 'shh!'
       expect(user.secret).toEqual('shh!')
       expect(user.getAttribute('encryptedSecret')).not.toEqual('shh!')
@@ -24,7 +24,7 @@ describe('@Encrypted', () => {
 
   context('with a field provided', () => {
     it('uses the provided field as the encryptedColumnName', () => {
-      const user = new User()
+      const user = User.new()
       user.otherSecret = { token: 'SHH!' }
       expect(user.otherSecret).toEqual({ token: 'SHH!' })
       expect(user.getAttribute('myOtherEncryptedSecret')).not.toEqual({ token: 'SHH!' })
