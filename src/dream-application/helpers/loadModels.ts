@@ -1,4 +1,5 @@
 import Dream from '../../Dream'
+import MissingTable from '../../errors/MissingTable'
 import getFiles from '../../helpers/getFiles'
 import globalModelKeyFromPath from './globalModelKeyFromPath'
 
@@ -34,9 +35,10 @@ export default async function loadModels(modelsPath: string): Promise<Record<str
           modelClass['setGlobalName'](modelKey)
           _models[modelKey] = modelClass
         }
-      } catch {
+      } catch (error) {
         // ApplicationModel will automatically raise an exception here,
         // since it does not have a table.
+        if (!(error instanceof MissingTable)) throw error
       }
     }
   }
@@ -51,9 +53,10 @@ export default async function loadModels(modelsPath: string): Promise<Record<str
          * to only apply static values once, on boot, `globallyInitializingDecorators` is set to true on Dream, and all Dream models are instantiated.
          */
         new modelClass({}, { _internalUseOnly: true })
-      } catch {
+      } catch (error) {
         // ApplicationModel will automatically raise an exception here,
         // since it does not have a table.
+        if (!(error instanceof MissingTable)) throw error
       }
     }
   }
