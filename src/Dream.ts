@@ -2350,7 +2350,7 @@ export default class Dream {
           returnValues[foreignKey] = foreignKeyValue
           setAttributeOnDreamInstance(foreignKey, returnValues[foreignKey])
           // Set the belongs-to association
-          setAttributeOnDreamInstance(attr, attributes[attr])
+          setAttributeOnDreamInstance(attr, (attributes as any)[attr])
         }
 
         if (belongsToAssociationMetaData.polymorphic) {
