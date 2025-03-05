@@ -20,7 +20,7 @@ export default function Encrypted(encryptedColumnName?: string): any {
     })
 
     return function (this: Dream) {
-      return this[context.name]
+      return this[key]
     }
   }
 }

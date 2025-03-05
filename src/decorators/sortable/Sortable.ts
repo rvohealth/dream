@@ -18,10 +18,12 @@ import beforeSortableSave from './hooks/beforeSortableSave'
 export default function Sortable(opts: SortableOpts = {}): any {
   return function (_: undefined, context: DecoratorContext) {
     const key = context.name
+    return
 
     context.addInitializer(function (this: Dream) {
       const dream = this
       const dreamClass: typeof Dream = dream.constructor as typeof Dream
+      const dreamPrototype = Object.getPrototypeOf(dream)
       if (!dreamClass.initializingDecorators) return
 
       if (!Object.getOwnPropertyDescriptor(dreamClass, 'sortableFields'))
@@ -43,12 +45,12 @@ export default function Sortable(opts: SortableOpts = {}): any {
 
       // before saving, we remember the new value for position, but clear it from our
       // supervised attributes to prevent position from saving
-      dreamClass.prototype[beforeSaveMethodName] = async function (txn?: DreamTransaction<any>) {
+      dreamPrototype[beforeSaveMethodName] = async function (txn?: DreamTransaction<any>) {
         let query = dreamClass.query()
         if (txn) query = query.txn(txn)
 
         await beforeSortableSave({
-          dream: this,
+          dream,
           positionField,
           query,
           scope: opts.scope,
@@ -56,26 +58,26 @@ export default function Sortable(opts: SortableOpts = {}): any {
       }
 
       // once saved, we can now safely update position in isolation
-      dreamClass.prototype[afterUpdateMethodName] = async function (txn?: DreamTransaction<any>) {
+      dreamPrototype[afterUpdateMethodName] = async function (txn?: DreamTransaction<any>) {
         // if no transaction is provided, leverage update commit hook instead
         if (!txn) return
         const query = dreamClass.query().txn(txn)
 
         await afterUpdateSortable({
-          dream: this,
+          dream,
           positionField,
           query,
           scope: opts.scope,
           txn,
         })
       }
-      dreamClass.prototype[afterUpdateCommitMethodName] = async function (txn?: DreamTransaction<any>) {
+      dreamPrototype[afterUpdateCommitMethodName] = async function (txn?: DreamTransaction<any>) {
         // if transaction is provided, leverage update hook instead
         if (txn) return
         const query = dreamClass.query()
 
         await afterUpdateSortable({
-          dream: this,
+          dream,
           positionField,
           query,
           scope: opts.scope,
@@ -85,26 +87,26 @@ export default function Sortable(opts: SortableOpts = {}): any {
       // after create, we always want to ensure the position is set, so if they provide one,
       // we need to split existing records on position and update, but otherwise we simply set the new position
       // to be the length of all existing records + 1
-      dreamClass.prototype[afterCreateMethodName] = async function (txn?: DreamTransaction<any>) {
+      dreamPrototype[afterCreateMethodName] = async function (txn?: DreamTransaction<any>) {
         // if no transaction is provided, leverage create commit hook instead
         if (!txn) return
         const query = dreamClass.query().txn(txn)
 
         await afterSortableCreate({
-          dream: this,
+          dream,
           positionField,
           query,
           scope: opts.scope,
           txn,
         })
       }
-      dreamClass.prototype[afterCreateCommitMethodName] = async function (txn?: DreamTransaction<any>) {
+      dreamPrototype[afterCreateCommitMethodName] = async function (txn?: DreamTransaction<any>) {
         // if transaction is provided, leverage create hook instead
         if (txn) return
         const query = dreamClass.query()
 
         await afterSortableCreate({
-          dream: this,
+          dream,
           positionField,
           query,
           scope: opts.scope,
@@ -113,25 +115,25 @@ export default function Sortable(opts: SortableOpts = {}): any {
 
       // after destroy, auto-adjust positions of all related records with a greater position
       // than this one to maintain incrementing order,
-      dreamClass.prototype[afterDestroyMethodName] = async function (txn?: DreamTransaction<any>) {
+      dreamPrototype[afterDestroyMethodName] = async function (txn?: DreamTransaction<any>) {
         // if no transaction is provided, leverage destroy commit hook instead
         if (!txn) return
         const query = dreamClass.query().txn(txn)
 
         await afterSortableDestroy({
-          dream: this,
+          dream,
           positionField,
           query,
           scope: opts.scope,
         })
       }
-      dreamClass.prototype[afterDestroyCommitMethodName] = async function (txn?: DreamTransaction<any>) {
+      dreamPrototype[afterDestroyCommitMethodName] = async function (txn?: DreamTransaction<any>) {
         // if transaction is provided, leverage destroy hook instead
         if (txn) return
         const query = dreamClass.query()
 
         await afterSortableDestroy({
-          dream: this,
+          dream,
           positionField,
           query,
           scope: opts.scope,

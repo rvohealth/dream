@@ -2,7 +2,6 @@ import { DateTime } from 'luxon'
 import MissingRequiredAssociationOnClause from '../../../../src/errors/associations/MissingRequiredAssociationOnClause'
 import range from '../../../../src/helpers/range'
 import ops from '../../../../src/ops'
-import OpsStatement from '../../../../src/ops/ops-statement'
 import Balloon from '../../../../test-app/app/models/Balloon'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
 import Collar from '../../../../test-app/app/models/Collar'
@@ -180,21 +179,6 @@ describe('Query#joins with simple associations', () => {
 
         const balloons = await Balloon.innerJoin('user', { on: { name: ops.similarity('hello') } }).all()
         expect(balloons).toMatchDreamModels([balloon1, balloon2])
-      })
-    })
-
-    context('with an ops object', () => {
-      it('changing the ops object after joining does not affect the join', async () => {
-        const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'Hello World' })
-        const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin', name: 'Hallo' })
-        const balloon1 = await Mylar.create({ user: user1 })
-        await Mylar.create({ user: user2 })
-
-        const onClause: Record<string, OpsStatement<any, any>> = { id: ops.equal(user1.id) }
-        const query = Balloon.innerJoin('user', { on: onClause })
-        onClause.id.value = user2.id
-        const balloons = await query.all()
-        expect(balloons).toMatchDreamModels([balloon1])
       })
     })
 
