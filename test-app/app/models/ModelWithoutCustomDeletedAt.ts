@@ -1,9 +1,8 @@
-import { Decorators, DreamColumn } from '../../../src'
+import { DreamColumn } from '../../../src'
 import SoftDelete from '../../../src/decorators/SoftDelete'
-import { Type } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 
-const Decorator = new Decorators<Type<typeof ModelWithoutCustomDeletedAt>>()
+// const Decorator = new Decorators<Type<typeof ModelWithoutCustomDeletedAt>>()
 
 // NOTE: this model only exists for the sake of testing
 // what happens when @SoftDelete is applied to a model

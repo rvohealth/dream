@@ -49,7 +49,7 @@ export default class Balloon extends ApplicationModel {
   public user: User
   public userId: IdType
 
-  @Decorator.HasOne(['BalloonLine'], { foreignKey: 'balloonId' })
+  @Decorator.HasOne('BalloonLine', { foreignKey: 'balloonId' })
   public balloonLine: BalloonLine
 
   @Decorator.HasMany('ExtraRating/HeartRating', { polymorphic: true, foreignKey: 'extraRateableId' })

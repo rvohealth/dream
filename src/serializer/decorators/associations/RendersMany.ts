@@ -77,7 +77,7 @@ export default function RendersMany(
     })
 
     return function (this: DreamSerializer) {
-      return this[key]
+      return (this as any)[key]
     }
   }
 }

@@ -20,7 +20,7 @@ export default function Encrypted(encryptedColumnName?: string): any {
     })
 
     return function (this: Dream) {
-      return this[key]
+      return (this as any)[key]
     }
   }
 }

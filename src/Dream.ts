@@ -2345,15 +2345,18 @@ export default class Dream {
 
         const foreignKey = belongsToAssociationMetaData.foreignKey()
         const foreignKeyValue = belongsToAssociationMetaData.primaryKeyValue(associatedObject)
+
         if (foreignKeyValue !== undefined) {
           returnValues[foreignKey] = foreignKeyValue
           setAttributeOnDreamInstance(foreignKey, returnValues[foreignKey])
+          // Set the belongs-to association
+          setAttributeOnDreamInstance(attr, attributes[attr])
         }
 
         if (belongsToAssociationMetaData.polymorphic) {
           const foreignKeyTypeField = belongsToAssociationMetaData.foreignKeyTypeField()
           returnValues[foreignKeyTypeField] = associatedObject?.stiBaseClassOrOwnClass?.name
-          setAttributeOnDreamInstance(foreignKeyTypeField, associatedObject?.stiBaseClassOrOwnClass?.name)
+          setAttributeOnDreamInstance(foreignKeyTypeField, returnValues[foreignKeyTypeField])
         }
       } else {
         returnValues[attr] = (attributes as any)[attr]
@@ -2981,7 +2984,7 @@ export default class Dream {
    */
   public equals(other: any): boolean {
     return (
-      (other?.constructor as typeof Dream).globalName === (this.constructor as typeof Dream).globalName &&
+      (other?.constructor as typeof Dream)?.globalName === (this.constructor as typeof Dream)?.globalName &&
       other.primaryKeyValue === this.primaryKeyValue
     )
   }

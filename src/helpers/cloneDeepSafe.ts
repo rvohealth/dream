@@ -38,7 +38,7 @@ export default function cloneDeepSafe<T>(original: T): T {
 
   if (isObject(original) && original.constructor.name === 'Object') {
     const clone = { ...original }
-    Object.keys(clone).forEach(key => (clone[key] = cloneDeepSafe(clone[key])))
+    Object.keys(clone).forEach(key => ((clone as any)[key] = cloneDeepSafe((clone as any)[key])))
     return clone
   }
 

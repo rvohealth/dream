@@ -149,7 +149,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
     })
 
     return function (this: Dream) {
-      return this[key]
+      return (this as any)[key]
     }
   }
 }

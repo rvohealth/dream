@@ -104,7 +104,9 @@ export default class Encrypt {
       const [salt, key] = hash.split(':')
       crypto.scrypt(plaintext, salt, 64, (err, derivedKey) => {
         if (err) reject(err)
-        resolve(crypto.timingSafeEqual(Buffer.from(key), Buffer.from(derivedKey.toString('hex'))))
+        resolve(
+          crypto.timingSafeEqual(Buffer.from(key) as any, Buffer.from(derivedKey.toString('hex')) as any)
+        )
       })
     })
   }

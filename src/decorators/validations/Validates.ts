@@ -13,12 +13,14 @@ export default function Validates<
         : never,
 >(type: VT, args?: VTArgs): any {
   return function (_: undefined, context: DecoratorContext) {
+    const key = context.name
+
     context.addInitializer(function (this: Dream) {
       validatesImplementation(this, context.name, type, args)
     })
 
     return function (this: Dream) {
-      return this[context.name]
+      return (this as any)[key]
     }
   }
 }

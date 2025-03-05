@@ -18,32 +18,26 @@ import {
 
 export default function HasOne<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | keyof GlobalModelNameTableMap<BaseInstance>
-    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
+  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
 >(
-  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
-  opts?: HasOneOptions<BaseInstance, AssociationGlobalNameOrNames>
+  globalAssociationName: AssociationGlobalName,
+  opts?: HasOneOptions<BaseInstance, AssociationGlobalName>
 ): any
 
 export default function HasOne<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | keyof GlobalModelNameTableMap<BaseInstance>
-    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
+  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
 >(
-  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
-  opts?: HasOneThroughOptions<BaseInstance, AssociationGlobalNameOrNames>
+  globalAssociationNameOrNames: AssociationGlobalName,
+  opts?: HasOneThroughOptions<BaseInstance, AssociationGlobalName>
 ): any
 
 export default function HasOne<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | keyof GlobalModelNameTableMap<BaseInstance>
-    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
+  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
 >(
-  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
-  opts?: PolymorphicHasOneOptions<BaseInstance, AssociationGlobalNameOrNames>
+  globalAssociationNameOrNames: AssociationGlobalName,
+  opts?: PolymorphicHasOneOptions<BaseInstance, AssociationGlobalName>
 ): any
 
 /**
@@ -163,21 +157,15 @@ export type HasOneStatement<
 
 export type HasOneOptions<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | keyof GlobalModelNameTableMap<BaseInstance>
-    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
-> = HasOptions<BaseInstance, AssociationGlobalNameOrNames>
+  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
+> = HasOptions<BaseInstance, AssociationGlobalName>
 
 export type PolymorphicHasOneOptions<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | keyof GlobalModelNameTableMap<BaseInstance>
-    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
-> = PolymorphicHasOptions<BaseInstance, AssociationGlobalNameOrNames>
+  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
+> = PolymorphicHasOptions<BaseInstance, AssociationGlobalName>
 
 export type HasOneThroughOptions<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | keyof GlobalModelNameTableMap<BaseInstance>
-    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
-> = HasThroughOptions<BaseInstance, AssociationGlobalNameOrNames>
+  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
+> = HasThroughOptions<BaseInstance, AssociationGlobalName>
