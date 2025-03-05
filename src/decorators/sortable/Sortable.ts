@@ -18,7 +18,6 @@ import beforeSortableSave from './hooks/beforeSortableSave'
 export default function Sortable(opts: SortableOpts = {}): any {
   return function (_: undefined, context: DecoratorContext) {
     const key = context.name
-    return
 
     context.addInitializer(function (this: Dream) {
       const dream = this
@@ -50,7 +49,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
         if (txn) query = query.txn(txn)
 
         await beforeSortableSave({
-          dream,
+          dream: this,
           positionField,
           query,
           scope: opts.scope,
@@ -64,7 +63,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
         const query = dreamClass.query().txn(txn)
 
         await afterUpdateSortable({
-          dream,
+          dream: this,
           positionField,
           query,
           scope: opts.scope,
@@ -77,7 +76,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
         const query = dreamClass.query()
 
         await afterUpdateSortable({
-          dream,
+          dream: this,
           positionField,
           query,
           scope: opts.scope,
@@ -93,7 +92,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
         const query = dreamClass.query().txn(txn)
 
         await afterSortableCreate({
-          dream,
+          dream: this,
           positionField,
           query,
           scope: opts.scope,
@@ -106,7 +105,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
         const query = dreamClass.query()
 
         await afterSortableCreate({
-          dream,
+          dream: this,
           positionField,
           query,
           scope: opts.scope,
@@ -121,7 +120,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
         const query = dreamClass.query().txn(txn)
 
         await afterSortableDestroy({
-          dream,
+          dream: this,
           positionField,
           query,
           scope: opts.scope,
@@ -133,7 +132,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
         const query = dreamClass.query()
 
         await afterSortableDestroy({
-          dream,
+          dream: this,
           positionField,
           query,
           scope: opts.scope,

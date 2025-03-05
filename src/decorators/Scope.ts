@@ -6,14 +6,16 @@ export default function Scope(
     default?: boolean
   } = {}
 ): any {
-  return function (target: typeof Dream, context: DecoratorContext & { static: true }) {
+  return function (_: any, context: DecoratorContext & { static: true }) {
     const key = context.name
 
-    // target is already a typeof Dream here, because scopes
-    // can only be set on static methods
-    const t: typeof Dream = target
+    context.addInitializer(function (this: typeof Dream) {
+      // this is already a typeof Dream here, because scopes
+      // can only be set on static methods
+      const t: typeof Dream = this
 
-    scopeImplementation(t, key, opts)
+      scopeImplementation(t, key, opts)
+    })
   }
 }
 

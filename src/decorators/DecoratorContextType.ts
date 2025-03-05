@@ -1,6 +1,6 @@
 export interface DecoratorContext {
   kind: 'class' | 'field' | 'method'
-  name: 'positionAlpha'
+  name: string
   static: boolean
   private: boolean
   access: {

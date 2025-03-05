@@ -243,7 +243,7 @@ export function applySortableScopesToQuery<
       kyselyQuery = (kyselyQuery as UpdateQueryBuilder<any, string, string, any>).where(
         column,
         '=',
-        whereValueCB(column) ?? null
+        whereValueCB(column)
       ) as QB
     }
   }

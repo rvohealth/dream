@@ -40,5 +40,5 @@ export default async function resortAllRecords(
 function foreignKeysForScope(dream: Dream, scope?: string | string[]) {
   return scopeArray(scope)
     .map(singleScope => getColumnForSortableScope(dream, singleScope))
-    .map(fk => (dream as any)[fk] ?? null)
+    .map(fk => (dream as any)[fk])
 }
