@@ -8,7 +8,7 @@ describe('Dream "validate" validation (the "validate" decorator is used to run c
     expect(Sandbag['customValidations']).toEqual(expect.arrayContaining(['validateWeight']))
   })
 
-  it.only('prevents saving when a field when custom function applies errors', async () => {
+  it('prevents saving when a field when custom function applies errors', async () => {
     const user = await User.create({ email: 'hi@hi', password: 'howyadoin' })
     const mylar = await Mylar.create({ user })
     const sandbag = Sandbag.new({ mylar, weight: 100, weightKgs: 0 })

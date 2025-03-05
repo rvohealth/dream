@@ -19,7 +19,7 @@ describe('@Sortable', () => {
 
   class SortedPost extends Post {
     @Sortable()
-    public position: number
+    public declare position: number
   }
 
   beforeEach(async () => {
@@ -814,7 +814,7 @@ describe('@Sortable', () => {
     context('with a scope pointing to a non-existent association', () => {
       class InvalidPost extends Post {
         @Sortable({ scope: 'intentionallyInvalidScope' })
-        public position: number
+        public declare position: number
       }
 
       it('raises a targeted exception', async () => {
@@ -827,7 +827,7 @@ describe('@Sortable', () => {
     context('with a scope pointing to a non-belongs-to association', () => {
       class InvalidPost extends Post {
         @Sortable({ scope: 'ratings' })
-        public position: number
+        public declare position: number
       }
 
       it('raises a targeted exception', async () => {

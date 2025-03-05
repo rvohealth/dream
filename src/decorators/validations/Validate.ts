@@ -2,8 +2,9 @@ import Dream from '../../Dream'
 import { DecoratorContext } from '../DecoratorContextType'
 
 export default function Validate(): any {
-  return function (_: undefined, context: DecoratorContext) {
+  return function (target: undefined, context: DecoratorContext) {
     const key = context.name
+
     context.addInitializer(function (this: Dream) {
       const t: typeof Dream = this.constructor as typeof Dream
       if (!t['globallyInitializingDecorators']) return
@@ -13,9 +14,5 @@ export default function Validate(): any {
 
       t['customValidations'].push(key)
     })
-
-    return function (this: Dream) {
-      return this[context.name]
-    }
   }
 }

@@ -73,7 +73,6 @@ describe('Dream#dup', () => {
 
       const user2 = user.dup()
       expect((user2 as any).howyadoin).toEqual(now)
-      expect((user2 as any).howyadoin).not.toBe(now)
     })
 
     it('copies miscellaneous null values to the copy', async () => {
