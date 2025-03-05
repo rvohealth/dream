@@ -152,16 +152,16 @@ export default class Dream {
    *   such initialization)
    *
    * In order to prevent the value from being set to undefined after it was initialized
-   * in this constructor with some value, we set `_initializing` now, include guards in
-   * each setter so that they do not set when `_initializing` is true, and then follow
-   * each instantiation by setting `_initializing` to false.
+   * in this constructor with some value, we set `stage3DecoratorBugGuardOn` now, include guards in
+   * each setter so that they do not set when `stage3DecoratorBugGuardOn` is true, and then follow
+   * each instantiation by setting `stage3DecoratorBugGuardOn` to false.
    *
    * Only dynamically added setters are affected, not setters defined on the model itself,
    * so custom setters on the user model are not subject to this bug.
    *
    */
 
-  protected _initializing: boolean = false
+  protected stage3DecoratorBugGuardOn: boolean = false
 
   /**
    * @internal
@@ -169,10 +169,10 @@ export default class Dream {
    * Certain features (e.g. passing a Dream instance to `create` so that it automatically destructures polymorphic type and primary key)
    * need static access to things set up by decorators (e.g. associations). Stage 3 Decorators change the context that is available
    * at decoration time such that the class of a property being decorated is only avilable during instance instantiation. In order
-   * to only apply static values once, on boot, `initializingDecorators` is set to true on Dream, and all Dream models are instantiated.
+   * to only apply static values once, on boot, `globallyInitializingDecorators` is set to true on Dream, and all Dream models are instantiated.
    *
    */
-  public static initializingDecorators: boolean = false
+  private static globallyInitializingDecorators: boolean = false
 
   public get schema(): any {
     throw new Error('Must define schema getter in ApplicationModel')
@@ -775,7 +775,7 @@ export default class Dream {
    */
   public static async create<T extends typeof Dream>(this: T, attributes?: UpdateablePropertiesForClass<T>) {
     const dreamModel = new this(attributes, { _internalUseOnly: true })
-    dreamModel._initializing = false
+    dreamModel.stage3DecoratorBugGuardOn = false
     await dreamModel.save()
     return dreamModel as InstanceType<T>
   }
@@ -1011,7 +1011,7 @@ export default class Dream {
       },
       { _internalUseOnly: true }
     )
-    dreamModel._initializing = false
+    dreamModel.stage3DecoratorBugGuardOn = false
 
     await dreamModel.save()
 
@@ -2227,7 +2227,7 @@ export default class Dream {
       _internalUseOnly: true,
     }) as InstanceType<T>
 
-    dreamModel._initializing = false
+    dreamModel.stage3DecoratorBugGuardOn = false
 
     return dreamModel
   }
@@ -2291,15 +2291,15 @@ export default class Dream {
      *   such initialization)
      *
      * In order to prevent the value from being set to undefined after it was initialized
-     * in this constructor with some value, we set `_initializing` now, include guards in
-     * each setter so that they do not set when `_initializing` is true, and then follow
-     * each instantiation by setting `_initializing` to false.
+     * in this constructor with some value, we set `stage3DecoratorBugGuardOn` now, include guards in
+     * each setter so that they do not set when `stage3DecoratorBugGuardOn` is true, and then follow
+     * each instantiation by setting `stage3DecoratorBugGuardOn` to false.
      *
      * Only dynamically added setters are affected, not setters defined on the model itself,
      * so custom setters on the user model are not subject to this bug.
      *
      */
-    this._initializing = true
+    this.stage3DecoratorBugGuardOn = true
   }
 
   /**
@@ -2399,7 +2399,7 @@ export default class Dream {
 
             set(val: any) {
               // protect against a stage 3 decorator bug
-              if (this._initializing) return
+              if (this.stage3DecoratorBugGuardOn) return
               this.currentAttributes[column] = isString(val) ? val : JSON.stringify(val)
             },
 
@@ -2422,7 +2422,7 @@ export default class Dream {
 
               set(val: any) {
                 // protect against a stage 3 decorator bug
-                if (this._initializing) return
+                if (this.stage3DecoratorBugGuardOn) return
                 this.setAttribute(encryptedAttribute.encryptedColumnName, InternalEncrypt.encryptColumn(val))
               },
             })
@@ -2454,7 +2454,7 @@ export default class Dream {
 
             set(val: any) {
               // protect against a stage 3 decorator bug
-              if (this._initializing) return
+              if (this.stage3DecoratorBugGuardOn) return
               return (this.currentAttributes[column] = val)
             },
 
@@ -3031,7 +3031,7 @@ export default class Dream {
   ): I {
     const self: any = this
     const clone: any = new (self.constructor as typeof Dream)({}, { _internalUseOnly: true })
-    clone._initializing = false
+    clone.stage3DecoratorBugGuardOn = false
 
     const associationDataKeys = Object.values(
       (this.constructor as typeof Dream).associationMetadataMap()

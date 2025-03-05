@@ -24,7 +24,7 @@ export default function sqlResultToDreamInstance<
       _internalUseOnly: true,
     })
 
-    dreamModel['_initializing'] = false
+    dreamModel['stage3DecoratorBugGuardOn'] = false
 
     return dreamModel
   } else {
@@ -34,7 +34,7 @@ export default function sqlResultToDreamInstance<
       _internalUseOnly: true,
     })
 
-    dreamModel['_initializing'] = false
+    dreamModel['stage3DecoratorBugGuardOn'] = false
 
     return dreamModel
   }

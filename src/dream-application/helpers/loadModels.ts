@@ -11,9 +11,9 @@ export default async function loadModels(modelsPath: string): Promise<Record<str
    * Certain features (e.g. passing a Dream instance to `create` so that it automatically destructures polymorphic type and primary key)
    * need static access to things set up by decorators (e.g. associations). Stage 3 Decorators change the context that is available
    * at decoration time such that the class of a property being decorated is only avilable during instance instantiation. In order
-   * to only apply static values once, on boot, `initializingDecorators` is set to true on Dream, and all Dream models are instantiated.
+   * to only apply static values once, on boot, `globallyInitializingDecorators` is set to true on Dream, and all Dream models are instantiated.
    */
-  Dream.initializingDecorators = true
+  Dream['globallyInitializingDecorators'] = true
 
   _models = {}
   const modelPaths = (await getFiles(modelsPath)).filter(path => /\.[jt]s$/.test(path))
@@ -48,7 +48,7 @@ export default async function loadModels(modelsPath: string): Promise<Record<str
          * Certain features (e.g. passing a Dream instance to `create` so that it automatically destructures polymorphic type and primary key)
          * need static access to things set up by decorators (e.g. associations). Stage 3 Decorators change the context that is available
          * at decoration time such that the class of a property being decorated is only avilable during instance instantiation. In order
-         * to only apply static values once, on boot, `initializingDecorators` is set to true on Dream, and all Dream models are instantiated.
+         * to only apply static values once, on boot, `globallyInitializingDecorators` is set to true on Dream, and all Dream models are instantiated.
          */
         new modelClass({}, { _internalUseOnly: true })
       } catch {
@@ -62,9 +62,9 @@ export default async function loadModels(modelsPath: string): Promise<Record<str
    * Certain features (e.g. passing a Dream instance to `create` so that it automatically destructures polymorphic type and primary key)
    * need static access to things set up by decorators (e.g. associations). Stage 3 Decorators change the context that is available
    * at decoration time such that the class of a property being decorated is only avilable during instance instantiation. In order
-   * to only apply static values once, on boot, `initializingDecorators` is set to true on Dream, and all Dream models are instantiated.
+   * to only apply static values once, on boot, `globallyInitializingDecorators` is set to true on Dream, and all Dream models are instantiated.
    */
-  Dream.initializingDecorators = false
+  Dream['globallyInitializingDecorators'] = false
 
   return _models
 }

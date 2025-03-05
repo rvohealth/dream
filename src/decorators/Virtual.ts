@@ -8,7 +8,7 @@ export default function Virtual(type?: SerializableTypes): any {
 
     context.addInitializer(function (this: Dream) {
       const t: typeof Dream = this.constructor as typeof Dream
-      if (!t.initializingDecorators) return
+      if (!t['globallyInitializingDecorators']) return
 
       if (!Object.getOwnPropertyDescriptor(t, 'virtualAttributes'))
         t['virtualAttributes'] = [...(t['virtualAttributes'] || [])]

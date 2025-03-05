@@ -114,7 +114,7 @@ export default function HasMany<BaseInstance extends Dream, AssociationGlobalNam
     context.addInitializer(function (this: BaseInstance) {
       const target = this
       const dreamClass: typeof Dream = target.constructor as typeof Dream
-      if (!dreamClass.initializingDecorators) return
+      if (!dreamClass['globallyInitializingDecorators']) return
 
       if (!Object.getOwnPropertyDescriptor(dreamClass, 'associationMetadataByType'))
         dreamClass['associationMetadataByType'] = blankAssociationsFactory(dreamClass)

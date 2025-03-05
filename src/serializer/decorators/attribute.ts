@@ -113,7 +113,7 @@ export default function Attribute(
     context.addInitializer(function (this: DreamSerializer) {
       const target = this
       const serializerClass: typeof DreamSerializer = target.constructor as typeof DreamSerializer
-      if (!serializerClass.initializingDecorators) return
+      if (!serializerClass['globallyInitializingDecorators']) return
 
       let renderAs: SerializableTypes | undefined
       let openApiShape: OpenapiSchemaBodyShorthand | undefined
