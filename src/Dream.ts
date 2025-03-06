@@ -2487,6 +2487,8 @@ export default class Dream {
         delete (dream as any)[column]
       }
     })
+
+    this.associationNames.forEach(association => delete (dream as any)[association])
   }
 
   protected finalizeConstruction() {

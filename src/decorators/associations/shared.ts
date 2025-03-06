@@ -519,9 +519,10 @@ export function applyGetterAndSetter(
     isBelongsTo?: boolean
   } = {}
 ) {
+  const dreamPrototype = Object.getPrototypeOf(target)
   const dreamClass: typeof Dream = target.constructor as typeof Dream
 
-  Object.defineProperty(target, partialAssociation.as, {
+  Object.defineProperty(dreamPrototype, partialAssociation.as, {
     configurable: true,
 
     get: function (this: Dream) {
