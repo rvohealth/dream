@@ -98,10 +98,6 @@ export default function HasOne<BaseInstance extends Dream, AssociationGlobalName
     context.addInitializer(function (this: BaseInstance) {
       const target = this
       const dreamClass: typeof Dream = target.constructor as typeof Dream
-      if (!dreamClass['globallyInitializingDecorators']) return
-
-      if (!Object.getOwnPropertyDescriptor(dreamClass, 'associationMetadataByType'))
-        dreamClass['associationMetadataByType'] = blankAssociationsFactory(dreamClass)
 
       validateHasStatementArgs({
         dreamClass,
@@ -142,7 +138,13 @@ export default function HasOne<BaseInstance extends Dream, AssociationGlobalName
         },
       } as HasOneStatement<any, any, any, any>
 
-      dreamClass['associationMetadataByType']['hasOne'].push(association)
+      if (dreamClass['globallyInitializingDecorators']) {
+        if (!Object.getOwnPropertyDescriptor(dreamClass, 'associationMetadataByType'))
+          dreamClass['associationMetadataByType'] = blankAssociationsFactory(dreamClass)
+
+        dreamClass['associationMetadataByType']['hasOne'].push(association)
+      }
+
       applyGetterAndSetter(target, association)
     })
   }
