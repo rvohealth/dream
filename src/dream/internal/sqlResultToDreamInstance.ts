@@ -24,8 +24,7 @@ export default function sqlResultToDreamInstance<
       _internalUseOnly: true,
     })
 
-    dreamModel['stage3DecoratorBugGuardOn'] = false
-    dreamModel['defineAttributeAccessors']()
+    dreamModel['finalizeConstruction']()
 
     return dreamModel
   } else {
@@ -35,8 +34,7 @@ export default function sqlResultToDreamInstance<
       _internalUseOnly: true,
     })
 
-    dreamModel['stage3DecoratorBugGuardOn'] = false
-    dreamModel['defineAttributeAccessors']()
+    dreamModel['finalizeConstruction']()
 
     return dreamModel
   }
