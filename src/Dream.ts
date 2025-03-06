@@ -776,6 +776,7 @@ export default class Dream {
   public static async create<T extends typeof Dream>(this: T, attributes?: UpdateablePropertiesForClass<T>) {
     const dreamModel = new this(attributes, { _internalUseOnly: true })
     dreamModel.stage3DecoratorBugGuardOn = false
+    dreamModel.defineAttributeAccessors()
     await dreamModel.save()
     return dreamModel as InstanceType<T>
   }
@@ -1012,6 +1013,7 @@ export default class Dream {
       { _internalUseOnly: true }
     )
     dreamModel.stage3DecoratorBugGuardOn = false
+    dreamModel.defineAttributeAccessors()
 
     await dreamModel.save()
 
@@ -2228,6 +2230,7 @@ export default class Dream {
     }) as InstanceType<T>
 
     dreamModel.stage3DecoratorBugGuardOn = false
+    dreamModel.defineAttributeAccessors()
 
     return dreamModel
   }
@@ -2376,6 +2379,8 @@ export default class Dream {
   protected defineAttributeAccessors() {
     const dreamClass = this.constructor as typeof Dream
     const columns = dreamClass.columns()
+    const dream = this
+    const dreamPrototype = Object.getPrototypeOf(dream)
 
     const encryptedAttributes = [...dreamClass.encryptedAttributes]
     const encryptedAttributeNames = encryptedAttributes.map(attr => attr.encryptedColumnName)
@@ -2385,15 +2390,13 @@ export default class Dream {
       // for each of the properties
       if (this.currentAttributes[column] === undefined) this.currentAttributes[column] = undefined
 
-      // Don't overwrite getter and setter the user has set on the model (or that previous instantiations
-      // have set)
       if (
-        !Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), column)?.get &&
-        !Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), column)?.set
+        !Object.getOwnPropertyDescriptor(dreamPrototype, column)?.set ||
+        Object.getOwnPropertyDescriptor(dream, column)?.configurable
       ) {
         // handle JSON columns
         if (isJsonColumn(this.constructor as typeof Dream, column)) {
-          Object.defineProperty(Object.getPrototypeOf(this), column, {
+          Object.defineProperty(dream, column, {
             get() {
               if ([undefined, null].includes(this.currentAttributes[column]))
                 return this.currentAttributes[column]
@@ -2407,6 +2410,7 @@ export default class Dream {
             },
 
             configurable: true,
+            enumerable: false,
           })
 
           // handle encrypted columns
@@ -2414,9 +2418,10 @@ export default class Dream {
           const encryptedAttribute = encryptedAttributes.find(attr => attr.encryptedColumnName === column)!
 
           if (
-            !Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), encryptedAttribute.property)?.get
+            !Object.getOwnPropertyDescriptor(dreamPrototype, encryptedAttribute.property)?.set ||
+            Object.getOwnPropertyDescriptor(dream, encryptedAttribute.property)?.configurable
           ) {
-            Object.defineProperty(Object.getPrototypeOf(this), encryptedAttribute.property, {
+            Object.defineProperty(dream, encryptedAttribute.property, {
               get() {
                 return InternalEncrypt.decryptColumn(
                   this.getAttribute(encryptedAttribute.encryptedColumnName)
@@ -2428,10 +2433,13 @@ export default class Dream {
                 if (this.stage3DecoratorBugGuardOn) return
                 this.setAttribute(encryptedAttribute.encryptedColumnName, InternalEncrypt.encryptColumn(val))
               },
+
+              configurable: true,
+              enumerable: false,
             })
           }
 
-          Object.defineProperty(Object.getPrototypeOf(this), encryptedAttribute.encryptedColumnName, {
+          Object.defineProperty(dream, encryptedAttribute.encryptedColumnName, {
             get() {
               return this.currentAttributes[encryptedAttribute.encryptedColumnName]
             },
@@ -2446,11 +2454,12 @@ export default class Dream {
             },
 
             configurable: true,
+            enumerable: false,
           })
 
           // handle all other columns
         } else {
-          Object.defineProperty(Object.getPrototypeOf(this), column, {
+          Object.defineProperty(dream, column, {
             get() {
               return this.currentAttributes[column]
             },
@@ -2462,6 +2471,7 @@ export default class Dream {
             },
 
             configurable: true,
+            enumerable: false,
           })
         }
       }
@@ -3035,6 +3045,7 @@ export default class Dream {
     const self: any = this
     const clone: any = new (self.constructor as typeof Dream)({}, { _internalUseOnly: true })
     clone.stage3DecoratorBugGuardOn = false
+    clone.defineAttributeAccessors()
 
     const associationDataKeys = Object.values(
       (this.constructor as typeof Dream).associationMetadataMap()

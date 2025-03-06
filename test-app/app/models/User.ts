@@ -233,6 +233,7 @@ export default class User extends ApplicationModel {
   public async hashPass() {
     if (this.password)
       this.passwordDigest = await insecurePasswordHashSinceBcryptBringsInTooMuchGarbage(this.password)
+
     this.password = undefined
   }
 
