@@ -1,5 +1,6 @@
 import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely'
-import { Pool } from 'pg'
+// @ts-ignore
+import pg from 'pg'
 import DreamApplication, { KyselyLogEvent, SingleDbCredential } from '../dream-application'
 import ConnectionConfRetriever from './ConnectionConfRetriever'
 import { DbConnectionType } from './types'
@@ -25,7 +26,7 @@ export default class DreamDbConnection {
       },
 
       dialect: new PostgresDialect({
-        pool: new Pool({
+        pool: new pg.Pool({
           user: connectionConf.user || '',
           password: connectionConf.password || '',
           database: getDatabaseName(connectionConf.name),

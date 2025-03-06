@@ -1,11 +1,15 @@
-import * as path from 'path'
 import { DreamApplication } from '../../../src'
 import inflections from './inflections'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 export default async function (dreamApp: DreamApplication) {
-  await dreamApp.load('models', path.join(__dirname, '..', 'models'))
-  await dreamApp.load('serializers', path.join(__dirname, '..', 'serializers'))
-  await dreamApp.load('services', path.join(__dirname, '..', 'services'))
+  await dreamApp.load('models', join(__dirname, '..', 'models'))
+  await dreamApp.load('serializers', join(__dirname, '..', 'serializers'))
+  await dreamApp.load('services', join(__dirname, '..', 'services'))
 
   dreamApp.set('encryption', {
     columns: {
@@ -20,7 +24,7 @@ export default async function (dreamApp: DreamApplication) {
     },
   })
 
-  dreamApp.set('projectRoot', path.join(__dirname, '..', '..', '..'))
+  dreamApp.set('projectRoot', join(__dirname, '..', '..', '..'))
   dreamApp.set('primaryKeyType', 'bigserial')
   dreamApp.set('inflections', inflections)
 

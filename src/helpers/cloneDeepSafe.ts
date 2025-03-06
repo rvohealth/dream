@@ -24,8 +24,8 @@ export default function cloneDeepSafe<T>(original: T): T {
   if (original === null) return original
   if (typeof original === 'string') return original
   if (['number', 'boolean', 'bigint', 'symbol'].includes(typeof original)) return original
-  if (original instanceof DateTime) return original
-  if (original instanceof CalendarDate) return original
+  if (original instanceof DateTime) return original.plus({ hours: 0 })
+  if (original instanceof CalendarDate) return original.plus({ day: 0 }) as T
   if (original instanceof Range) return original
   if (original instanceof OpsStatement) return original
 

@@ -1,6 +1,7 @@
 import { CompiledQuery } from 'kysely'
 import { Settings } from 'luxon'
-import { types as pgTypes } from 'pg'
+// @ts-ignore
+import pg from 'pg'
 import db from '../db'
 import validateTable from '../db/validators/validateTable'
 import Dream from '../Dream'
@@ -22,6 +23,8 @@ import { cacheDreamApplication, getCachedDreamApplicationOrFail } from './cache'
 import loadModels, { getModelsOrFail } from './helpers/loadModels'
 import loadSerializers, { getSerializersOrFail, setCachedSerializers } from './helpers/loadSerializers'
 import loadServices, { getServicesOrFail, setCachedServices } from './helpers/loadServices'
+
+const pgTypes = pg.types
 
 // this needs to be done top-level to ensure proper configuration
 Settings.defaultZone = 'UTC'

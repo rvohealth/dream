@@ -4,7 +4,7 @@ import {
   Updateable,
 } from 'kysely'
 import { DateTime } from 'luxon'
-import { singular } from 'pluralize'
+import pluralize from 'pluralize-esm'
 import { AssociationTableNames } from '../../db/reflections'
 import Dream from '../../Dream'
 import {
@@ -479,7 +479,7 @@ export function finalForeignKey(
         ? modelCBtoSingleDreamClass(dreamClass, partialAssociation).table
         : dreamClass.table
 
-    computedForeignKey = camelize(singular(table)) + 'Id'
+    computedForeignKey = camelize(pluralize.singular(table)) + 'Id'
   }
 
   if (partialAssociation.type === 'BelongsTo' || !partialAssociation.through)

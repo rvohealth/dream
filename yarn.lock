@@ -900,7 +900,6 @@ __metadata:
     "@types/luxon": "npm:^3.4.2"
     "@types/node": "npm:^22.5.1"
     "@types/pg": "npm:^8.11.8"
-    "@types/pluralize": "npm:^0.0.33"
     "@types/winston": "npm:^2.4.4"
     "@typescript/analyze-trace": "npm:^0.10.1"
     colorette: "npm:^2.0.20"
@@ -915,7 +914,7 @@ __metadata:
     luxon: "npm:^3.5.0"
     luxon-jest-matchers: "npm:^0.1.14"
     pg: "npm:^8.12.0"
-    pluralize: "npm:^8.0.0"
+    pluralize-esm: "npm:^9.0.5"
     prettier: "npm:^3.3.3"
     ts-jest: "npm:^29.2.5"
     ts-node: "npm:^10.9.2"
@@ -1126,13 +1125,6 @@ __metadata:
     pg-protocol: "npm:*"
     pg-types: "npm:^4.0.1"
   checksum: 10c0/040eb04edda338a13dccee47585b4479549fd54561e1bc3768690545adb8708a089b178e04fab9241935d7bad361314fc57af3ad87b391cfb9dc0895dd049763
-  languageName: node
-  linkType: hard
-
-"@types/pluralize@npm:^0.0.33":
-  version: 0.0.33
-  resolution: "@types/pluralize@npm:0.0.33"
-  checksum: 10c0/24899caf85b79dd291a6b6e9b9f3b67b452b18d578d0ac0d531a705bf5ee0361d9386ea1f8532c64de9e22c6e9606c5497787bb5e31bd299c487980436c59785
   languageName: node
   linkType: hard
 
@@ -4332,6 +4324,13 @@ __metadata:
   dependencies:
     find-up: "npm:^4.0.0"
   checksum: 10c0/c56bda7769e04907a88423feb320babaed0711af8c436ce3e56763ab1021ba107c7b0cafb11cde7529f669cfc22bffcaebffb573645cbd63842ea9fb17cd7728
+  languageName: node
+  linkType: hard
+
+"pluralize-esm@npm:^9.0.5":
+  version: 9.0.5
+  resolution: "pluralize-esm@npm:9.0.5"
+  checksum: 10c0/99708b7e9ff7b98f333bb7373e3d7f6db44edf0e700d0de18f82fd4e3bf80e47ecdcdfbbefbc91cdf304af00d0553fa8ccc79aedd7b57a2972a3355afcbf4037
   languageName: node
   linkType: hard
 

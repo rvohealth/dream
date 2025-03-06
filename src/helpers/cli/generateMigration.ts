@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises'
 import * as path from 'path'
-import * as pluralize from 'pluralize'
+import pluralize from 'pluralize-esm'
 import generateMigrationContent from '../cli/generateMigrationContent'
 import primaryKeyType from '../db/primaryKeyType'
 import hyphenize from '../hyphenize'

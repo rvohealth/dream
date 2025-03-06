@@ -12,7 +12,7 @@ import {
   sql,
 } from 'kysely'
 import { DateTime } from 'luxon'
-import { singular } from 'pluralize'
+import pluralize from 'pluralize-esm'
 import ConnectedToDB from '../db/ConnectedToDB'
 import { DbConnectionType } from '../db/types'
 import associationToGetterSetterProp from '../decorators/associations/associationToGetterSetterProp'
@@ -3893,7 +3893,7 @@ function getSourceAssociation(dream: Dream | typeof Dream | undefined, sourceNam
   if (!sourceName) return
   return (
     (dream as Dream)['getAssociationMetadata'](sourceName) ||
-    (dream as Dream)['getAssociationMetadata'](singular(sourceName))
+    (dream as Dream)['getAssociationMetadata'](pluralize.singular(sourceName))
   )
 }
 

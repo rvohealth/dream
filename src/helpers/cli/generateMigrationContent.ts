@@ -1,4 +1,4 @@
-import * as pluralize from 'pluralize'
+import pluralize from 'pluralize-esm'
 import { PrimaryKeyType } from '../../dream/types'
 import InvalidDecimalFieldPassedToGenerator from '../../errors/InvalidDecimalFieldPassedToGenerator'
 import foreignKeyTypeFromPrimaryKey from '../db/foreignKeyTypeFromPrimaryKey'
@@ -89,7 +89,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     ? `  await DreamMigrationHelpers.createExtension(db, 'citext')\n\n`
     : ''
   const kyselyImports = ['Kysely', 'sql']
-  const dreamImports = []
+  const dreamImports: string[] = []
   if (requireCitextExtension) dreamImports.push('DreamMigrationHelpers')
 
   const newline = '\n    '
