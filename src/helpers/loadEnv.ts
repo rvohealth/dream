@@ -18,6 +18,8 @@ if (typeof importMeta !== 'undefined') {
     // @ts-ignore
     finalDirname = __dirname
   } catch {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const __filename = fileURLToPath(import.meta.url)
     finalDirname = dirname(__filename)
   }
