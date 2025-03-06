@@ -1,4 +1,4 @@
-import pascalize from './pascalize'
+import pascalize from './pascalize.js'
 
 export default function (str: string): string {
   return str

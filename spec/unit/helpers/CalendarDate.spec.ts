@@ -63,7 +63,7 @@ describe('CalendarDate', () => {
 
   describe('.tomorrow', () => {
     it('is today plus 1 day', () => {
-      jest.spyOn(CalendarDate, 'today').mockReturnValue(CalendarDate.fromISO('2023-12-31'))
+      vi.spyOn(CalendarDate, 'today').mockReturnValue(CalendarDate.fromISO('2023-12-31'))
       const tomorrow = CalendarDate.tomorrow()
       expect(tomorrow.toISO()).toEqual('2024-01-01')
     })
@@ -71,7 +71,7 @@ describe('CalendarDate', () => {
 
   describe('.yesterday', () => {
     it('is today minus 1 day ', () => {
-      jest.spyOn(CalendarDate, 'today').mockReturnValue(CalendarDate.fromISO('2024-01-01'))
+      vi.spyOn(CalendarDate, 'today').mockReturnValue(CalendarDate.fromISO('2024-01-01'))
       const yesterday = CalendarDate.yesterday()
       expect(yesterday.toISO()).toEqual('2023-12-31')
     })
@@ -176,7 +176,7 @@ describe('CalendarDate', () => {
   describe('#toISODate', () => {
     it('aliases toISO', () => {
       const calendarDate = CalendarDate.today()
-      jest.spyOn(calendarDate, 'toISO').mockReturnValue('hello world')
+      vi.spyOn(calendarDate, 'toISO').mockReturnValue('hello world')
       expect(calendarDate.toISODate()).toEqual('hello world')
     })
   })
@@ -184,7 +184,7 @@ describe('CalendarDate', () => {
   describe('#toJSON', () => {
     it('aliases toISO', () => {
       const calendarDate = CalendarDate.today()
-      jest.spyOn(calendarDate, 'toISO').mockReturnValue('hello world')
+      vi.spyOn(calendarDate, 'toISO').mockReturnValue('hello world')
       expect(calendarDate.toJSON()).toEqual('hello world')
     })
   })
@@ -192,7 +192,7 @@ describe('CalendarDate', () => {
   describe('#valueOf', () => {
     it('aliases toISO', () => {
       const calendarDate = CalendarDate.today()
-      jest.spyOn(calendarDate, 'toISO').mockReturnValue('hello world')
+      vi.spyOn(calendarDate, 'toISO').mockReturnValue('hello world')
       expect(calendarDate.valueOf()).toEqual('hello world')
     })
   })
@@ -212,7 +212,7 @@ describe('CalendarDate', () => {
   describe('#toString', () => {
     it('aliases toISO', () => {
       const calendarDate = CalendarDate.today()
-      jest.spyOn(calendarDate, 'toISO').mockReturnValue('hello world')
+      vi.spyOn(calendarDate, 'toISO').mockReturnValue('hello world')
       expect(calendarDate.toString()).toEqual('hello world')
     })
   })

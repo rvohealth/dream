@@ -1,12 +1,12 @@
-import { BelongsToStatement } from '../../../decorators/associations/BelongsTo'
-import { HasManyStatement } from '../../../decorators/associations/HasMany'
-import { HasOneStatement } from '../../../decorators/associations/HasOne'
-import Dream from '../../../Dream'
-import namespaceColumn from '../../../helpers/namespaceColumn'
-import DreamTransaction from '../../DreamTransaction'
-import Query from '../../Query'
-import { AssociationNameToDream, DreamAssociationNames, JoinOnStatements } from '../../types'
-import applyScopeBypassingSettingsToQuery from '../applyScopeBypassingSettingsToQuery'
+import { BelongsToStatement } from '../../../decorators/associations/BelongsTo.js'
+import { HasManyStatement } from '../../../decorators/associations/HasMany.js'
+import { HasOneStatement } from '../../../decorators/associations/HasOne.js'
+import Dream from '../../../Dream.js'
+import namespaceColumn from '../../../helpers/namespaceColumn.js'
+import DreamTransaction from '../../DreamTransaction.js'
+import Query from '../../Query.js'
+import { AssociationNameToDream, DreamAssociationNames, JoinOnStatements } from '../../types.js'
+import applyScopeBypassingSettingsToQuery from '../applyScopeBypassingSettingsToQuery.js'
 
 export default function associationUpdateQuery<
   DreamInstance extends Dream,

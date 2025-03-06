@@ -1,7 +1,7 @@
-import Dream from '../../../Dream'
-import Query from '../../../dream/Query'
-import getColumnForSortableScope from './getColumnForSortableScope'
-import scopeArray from './scopeArray'
+import Dream from '../../../Dream.js'
+import Query from '../../../dream/Query.js'
+import getColumnForSortableScope from './getColumnForSortableScope.js'
+import scopeArray from './scopeArray.js'
 
 export default function applySortableScopeToQuery(
   query: Query<Dream>,

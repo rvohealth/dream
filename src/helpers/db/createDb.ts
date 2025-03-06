@@ -1,7 +1,7 @@
-import ConnectionConfRetriever from '../../db/ConnectionConfRetriever'
-import { DbConnectionType } from '../../db/types'
-import EnvInternal from '../EnvInternal'
-import loadPgClient from './loadPgClient'
+import ConnectionConfRetriever from '../../db/ConnectionConfRetriever.js'
+import { DbConnectionType } from '../../db/types.js'
+import EnvInternal from '../EnvInternal.js'
+import loadPgClient from './loadPgClient.js'
 
 export default async function createDb(connection: DbConnectionType, dbName?: string | null) {
   // this was only ever written to clear the db between tests or in development,

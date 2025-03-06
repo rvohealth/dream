@@ -1,13 +1,16 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import pg from 'pg'
+
 import { CompiledQuery } from 'kysely'
 import { Settings } from 'luxon'
-import { types as pgTypes } from 'pg'
-import db from '../db'
-import validateTable from '../db/validators/validateTable'
-import Dream from '../Dream'
-import { primaryKeyTypes } from '../dream/types'
-import Encrypt, { EncryptAlgorithm, EncryptOptions } from '../encrypt'
-import DreamApplicationInitMissingCallToLoadModels from '../errors/dream-application/DreamApplicationInitMissingCallToLoadModels'
-import DreamApplicationInitMissingMissingProjectRoot from '../errors/dream-application/DreamApplicationInitMissingMissingProjectRoot'
+import db from '../db/index.js'
+import validateTable from '../db/validators/validateTable.js'
+import Dream from '../Dream.js'
+import { primaryKeyTypes } from '../dream/types.js'
+import Encrypt, { EncryptAlgorithm, EncryptOptions } from '../encrypt/index.js'
+import DreamApplicationInitMissingCallToLoadModels from '../errors/dream-application/DreamApplicationInitMissingCallToLoadModels.js'
+import DreamApplicationInitMissingMissingProjectRoot from '../errors/dream-application/DreamApplicationInitMissingMissingProjectRoot.js'
 import {
   findCitextArrayOid,
   findCorrespondingArrayOid,
@@ -15,13 +18,18 @@ import {
   parsePostgresDate,
   parsePostgresDatetime,
   parsePostgresDecimal,
-} from '../helpers/customPgParsers'
-import EnvInternal from '../helpers/EnvInternal'
-import DreamSerializer from '../serializer'
-import { cacheDreamApplication, getCachedDreamApplicationOrFail } from './cache'
-import loadModels, { getModelsOrFail } from './helpers/loadModels'
-import loadSerializers, { getSerializersOrFail, setCachedSerializers } from './helpers/loadSerializers'
-import loadServices, { getServicesOrFail, setCachedServices } from './helpers/loadServices'
+} from '../helpers/customPgParsers.js'
+import EnvInternal from '../helpers/EnvInternal.js'
+import DreamSerializer from '../serializer/index.js'
+import { cacheDreamApplication, getCachedDreamApplicationOrFail } from './cache.js'
+import processModels, { getModelsOrFail } from './helpers/processModels.js'
+import processSerializers, {
+  getSerializersOrFail,
+  setCachedSerializers,
+} from './helpers/processSerializers.js'
+import processServices, { getServicesOrFail, setCachedServices } from './helpers/processServices.js'
+
+const pgTypes = pg.types
 
 // this needs to be done top-level to ensure proper configuration
 Settings.defaultZone = 'UTC'
@@ -269,19 +277,29 @@ Try setting it to something valid, like:
     return getServicesOrFail()
   }
 
-  public async load(resourceType: 'models' | 'serializers' | 'services', resourcePath: string) {
+  public load<RT extends 'models' | 'serializers' | 'services'>(
+    resourceType: RT,
+    resourcePath: string,
+    resources: RT extends 'models'
+      ? [string, typeof Dream][]
+      : RT extends 'serializers'
+        ? [string, Record<string, typeof DreamSerializer>][]
+        : RT extends 'services'
+          ? [string, any][]
+          : never
+  ) {
     switch (resourceType) {
       case 'models':
-        await loadModels(resourcePath)
+        processModels(resourcePath, resources as [string, typeof Dream][])
         this.loadedModels = true
         break
 
       case 'serializers':
-        await loadSerializers(resourcePath)
+        processSerializers(resourcePath, resources as [string, Record<string, typeof DreamSerializer>][])
         break
 
       case 'services':
-        await loadServices(resourcePath)
+        processServices(resourcePath, resources as [string, any][])
         break
     }
   }

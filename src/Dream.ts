@@ -8,61 +8,61 @@ import {
 } from 'kysely'
 import { DateTime } from 'luxon'
 
-import db from './db'
-import { pgErrorType } from './db/errors'
-import { AssociationTableNames } from './db/reflections'
-import { DbConnectionType } from './db/types'
-import associationToGetterSetterProp from './decorators/associations/associationToGetterSetterProp'
-import { BelongsToStatement } from './decorators/associations/BelongsTo'
-import { HasManyStatement } from './decorators/associations/HasMany'
-import { HasOneStatement } from './decorators/associations/HasOne'
+import { pgErrorType } from './db/errors.js'
+import db from './db/index.js'
+import { AssociationTableNames } from './db/reflections.js'
+import { DbConnectionType } from './db/types.js'
+import associationToGetterSetterProp from './decorators/associations/associationToGetterSetterProp.js'
+import { BelongsToStatement } from './decorators/associations/BelongsTo.js'
+import { HasManyStatement } from './decorators/associations/HasMany.js'
+import { HasOneStatement } from './decorators/associations/HasOne.js'
 import {
   blankAssociationsFactory,
   PassthroughOnClause,
   WhereStatement,
-} from './decorators/associations/shared'
-import { EncryptedAttributeStatement } from './decorators/Encrypted'
-import { blankHooksFactory, HookStatement } from './decorators/hooks/shared'
-import { ScopeStatement } from './decorators/Scope'
-import resortAllRecords from './decorators/sortable/helpers/resortAllRecords'
-import { SortableFieldConfig } from './decorators/sortable/Sortable'
-import ValidationStatement, { ValidationType } from './decorators/validations/shared'
-import { VirtualAttributeStatement } from './decorators/Virtual'
-import DreamClassTransactionBuilder from './dream/DreamClassTransactionBuilder'
-import DreamInstanceTransactionBuilder from './dream/DreamInstanceTransactionBuilder'
-import DreamTransaction from './dream/DreamTransaction'
-import associationQuery from './dream/internal/associations/associationQuery'
-import associationUpdateQuery from './dream/internal/associations/associationUpdateQuery'
-import createAssociation from './dream/internal/associations/createAssociation'
-import destroyAssociation from './dream/internal/associations/destroyAssociation'
-import undestroyAssociation from './dream/internal/associations/undestroyAssociation'
-import destroyDream from './dream/internal/destroyDream'
+} from './decorators/associations/shared.js'
+import { EncryptedAttributeStatement } from './decorators/Encrypted.js'
+import { blankHooksFactory, HookStatement } from './decorators/hooks/shared.js'
+import { ScopeStatement } from './decorators/Scope.js'
+import resortAllRecords from './decorators/sortable/helpers/resortAllRecords.js'
+import { SortableFieldConfig } from './decorators/sortable/Sortable.js'
+import ValidationStatement, { ValidationType } from './decorators/validations/shared.js'
+import { VirtualAttributeStatement } from './decorators/Virtual.js'
+import DreamClassTransactionBuilder from './dream/DreamClassTransactionBuilder.js'
+import DreamInstanceTransactionBuilder from './dream/DreamInstanceTransactionBuilder.js'
+import DreamTransaction from './dream/DreamTransaction.js'
+import associationQuery from './dream/internal/associations/associationQuery.js'
+import associationUpdateQuery from './dream/internal/associations/associationUpdateQuery.js'
+import createAssociation from './dream/internal/associations/createAssociation.js'
+import destroyAssociation from './dream/internal/associations/destroyAssociation.js'
+import undestroyAssociation from './dream/internal/associations/undestroyAssociation.js'
+import destroyDream from './dream/internal/destroyDream.js'
 import {
   DestroyOptions,
   destroyOptions,
   reallyDestroyOptions,
   undestroyOptions,
-} from './dream/internal/destroyOptions'
-import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet'
-import extractAssociationMetadataFromAssociationName from './dream/internal/extractAssociationMetadataFromAssociationName'
-import reload from './dream/internal/reload'
-import runValidations from './dream/internal/runValidations'
-import saveDream from './dream/internal/saveDream'
+} from './dream/internal/destroyOptions.js'
+import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet.js'
+import extractAssociationMetadataFromAssociationName from './dream/internal/extractAssociationMetadataFromAssociationName.js'
+import reload from './dream/internal/reload.js'
+import runValidations from './dream/internal/runValidations.js'
+import saveDream from './dream/internal/saveDream.js'
 import {
   DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
   DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
   DEFAULT_SKIP_HOOKS,
-} from './dream/internal/scopeHelpers'
-import undestroyDream from './dream/internal/undestroyDream'
-import LeftJoinLoadBuilder from './dream/LeftJoinLoadBuilder'
-import LoadBuilder from './dream/LoadBuilder'
+} from './dream/internal/scopeHelpers.js'
+import undestroyDream from './dream/internal/undestroyDream.js'
+import LeftJoinLoadBuilder from './dream/LeftJoinLoadBuilder.js'
+import LoadBuilder from './dream/LoadBuilder.js'
 import Query, {
   BaseModelColumnTypes,
   DefaultQueryTypeOptions,
   FindEachOpts,
   QueryWithJoinedAssociationsType,
   QueryWithJoinedAssociationsTypeAndNoPreload,
-} from './dream/Query'
+} from './dream/Query.js'
 import {
   AllDefaultScopeNames,
   AssociationNameToDream,
@@ -92,25 +92,25 @@ import {
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
-} from './dream/types'
-import InternalEncrypt from './encrypt/InternalEncrypt'
-import CannotPassNullOrUndefinedToRequiredBelongsTo from './errors/associations/CannotPassNullOrUndefinedToRequiredBelongsTo'
-import CanOnlyPassBelongsToModelParam from './errors/associations/CanOnlyPassBelongsToModelParam'
-import NonLoadedAssociation from './errors/associations/NonLoadedAssociation'
-import CannotCallUndestroyOnANonSoftDeleteModel from './errors/CannotCallUndestroyOnANonSoftDeleteModel'
-import ConstructorOnlyForInternalUse from './errors/ConstructorOnlyForInternalUse'
-import CreateOrFindByFailedToCreateAndFind from './errors/CreateOrFindByFailedToCreateAndFind'
-import DoNotSetEncryptedFieldsDirectly from './errors/DoNotSetEncryptedFieldsDirectly'
-import GlobalNameNotSet from './errors/dream-application/GlobalNameNotSet'
-import MissingSerializer from './errors/MissingSerializersDefinition'
-import MissingTable from './errors/MissingTable'
-import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort'
-import CalendarDate from './helpers/CalendarDate'
-import cloneDeepSafe from './helpers/cloneDeepSafe'
-import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
-import isJsonColumn from './helpers/db/types/isJsonColumn'
-import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel'
-import { isString } from './helpers/typechecks'
+} from './dream/types.js'
+import InternalEncrypt from './encrypt/InternalEncrypt.js'
+import CannotPassNullOrUndefinedToRequiredBelongsTo from './errors/associations/CannotPassNullOrUndefinedToRequiredBelongsTo.js'
+import CanOnlyPassBelongsToModelParam from './errors/associations/CanOnlyPassBelongsToModelParam.js'
+import NonLoadedAssociation from './errors/associations/NonLoadedAssociation.js'
+import CannotCallUndestroyOnANonSoftDeleteModel from './errors/CannotCallUndestroyOnANonSoftDeleteModel.js'
+import ConstructorOnlyForInternalUse from './errors/ConstructorOnlyForInternalUse.js'
+import CreateOrFindByFailedToCreateAndFind from './errors/CreateOrFindByFailedToCreateAndFind.js'
+import DoNotSetEncryptedFieldsDirectly from './errors/DoNotSetEncryptedFieldsDirectly.js'
+import GlobalNameNotSet from './errors/dream-application/GlobalNameNotSet.js'
+import MissingSerializer from './errors/MissingSerializersDefinition.js'
+import MissingTable from './errors/MissingTable.js'
+import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort.js'
+import CalendarDate from './helpers/CalendarDate.js'
+import cloneDeepSafe from './helpers/cloneDeepSafe.js'
+import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
+import isJsonColumn from './helpers/db/types/isJsonColumn.js'
+import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
+import { isString } from './helpers/typechecks.js'
 
 export default class Dream {
   public DB: any
@@ -251,9 +251,9 @@ export default class Dream {
    * @internal
    *
    * Model storage for association metadata, set when using the association decorators like:
-   *   @ModelName.HasOne
-   *   @ModelName.HasMany
-   *   @ModelName.BelongsTo
+   *   @Deco.HasOne
+   *   @Deco.HasMany
+   *   @Deco.BelongsTo
    */
   protected static associationMetadataByType: {
     belongsTo: BelongsToStatement<any, any, any, any>[]
@@ -1627,10 +1627,10 @@ export default class Dream {
    *
    * ```ts
    * class Post {
-   *   @Post.HasMany('LocalizedText')
+   *   @Deco.HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    *
-   *   @Post.HasOne('LocalizedText', {
+   *   @Deco.HasOne('LocalizedText', {
    *     where: { locale: DreamConst.passthrough },
    *   })
    *   public currentLocalizedText: LocalizedText
@@ -2386,7 +2386,45 @@ export default class Dream {
       // for each of the properties
       if (this.currentAttributes[column] === undefined) this.currentAttributes[column] = undefined
 
-      if (!Object.getOwnPropertyDescriptor(dreamPrototype, column)?.set) {
+      // handle encrypted columns
+      if (encryptedAttributeNames.includes(column)) {
+        const encryptedAttribute = encryptedAttributes.find(attr => attr.encryptedColumnName === column)!
+
+        if (!Object.getOwnPropertyDescriptor(dreamPrototype, encryptedAttribute.property)?.set) {
+          Object.defineProperty(dreamPrototype, encryptedAttribute.property, {
+            get() {
+              return InternalEncrypt.decryptColumn(this.getAttribute(encryptedAttribute.encryptedColumnName))
+            },
+
+            set(val: any) {
+              // protect against a stage 3 decorator bug
+              if (this.stage3DecoratorBugGuardOn) return
+              this.setAttribute(encryptedAttribute.encryptedColumnName, InternalEncrypt.encryptColumn(val))
+            },
+
+            configurable: true,
+            enumerable: false,
+          })
+        }
+
+        Object.defineProperty(dreamPrototype, encryptedAttribute.encryptedColumnName, {
+          get() {
+            return this.currentAttributes[encryptedAttribute.encryptedColumnName]
+          },
+
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          set(_: any) {
+            throw new DoNotSetEncryptedFieldsDirectly(
+              dreamClass,
+              encryptedAttribute.encryptedColumnName,
+              encryptedAttribute.property
+            )
+          },
+
+          configurable: true,
+          enumerable: false,
+        })
+      } else if (!Object.getOwnPropertyDescriptor(dreamPrototype, column)?.set) {
         // handle JSON columns
         if (isJsonColumn(this.constructor as typeof Dream, column)) {
           Object.defineProperty(dreamPrototype, column, {
@@ -2400,47 +2438,6 @@ export default class Dream {
               // protect against a stage 3 decorator bug
               if (this.stage3DecoratorBugGuardOn) return
               this.currentAttributes[column] = isString(val) ? val : JSON.stringify(val)
-            },
-
-            configurable: true,
-            enumerable: false,
-          })
-
-          // handle encrypted columns
-        } else if (encryptedAttributeNames.includes(column)) {
-          const encryptedAttribute = encryptedAttributes.find(attr => attr.encryptedColumnName === column)!
-
-          if (!Object.getOwnPropertyDescriptor(dreamPrototype, encryptedAttribute.property)?.set) {
-            Object.defineProperty(dreamPrototype, encryptedAttribute.property, {
-              get() {
-                return InternalEncrypt.decryptColumn(
-                  this.getAttribute(encryptedAttribute.encryptedColumnName)
-                )
-              },
-
-              set(val: any) {
-                // protect against a stage 3 decorator bug
-                if (this.stage3DecoratorBugGuardOn) return
-                this.setAttribute(encryptedAttribute.encryptedColumnName, InternalEncrypt.encryptColumn(val))
-              },
-
-              configurable: true,
-              enumerable: false,
-            })
-          }
-
-          Object.defineProperty(dreamPrototype, encryptedAttribute.encryptedColumnName, {
-            get() {
-              return this.currentAttributes[encryptedAttribute.encryptedColumnName]
-            },
-
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            set(_: any) {
-              throw new DoNotSetEncryptedFieldsDirectly(
-                dreamClass,
-                encryptedAttribute.encryptedColumnName,
-                encryptedAttribute.property
-              )
             },
 
             configurable: true,
@@ -3067,7 +3064,7 @@ export default class Dream {
     ).map(association => associationToGetterSetterProp(association))
 
     Object.keys(this).forEach(property => {
-      if (!associationDataKeys.includes(property)) clone[property] = cloneDeepSafe(self[property])
+      if (!associationDataKeys.includes(`__${property}__`)) clone[property] = cloneDeepSafe(self[property])
     })
 
     if (includeAssociations) {
@@ -3475,10 +3472,10 @@ export default class Dream {
    *
    * ```ts
    * class Post {
-   *   @Post.HasMany('LocalizedText')
+   *   @Deco.HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    *
-   *   @Post.HasOne('LocalizedText', {
+   *   @Deco.HasOne('LocalizedText', {
    *     where: { locale: DreamConst.passthrough },
    *   })
    *   public currentLocalizedText: LocalizedText
@@ -3827,7 +3824,7 @@ export default class Dream {
    *
    * ```ts
    * class User extends ApplicationModel {
-   *   @Decorator.BeforeDestroy()
+   *   @Deco.BeforeDestroy()
    *   public softDelete() {
    *     await this.update({ deletedAt: DateTime.now() })
    *     this.preventDeletion()
@@ -3849,13 +3846,13 @@ export default class Dream {
    *
    * ```ts
    * class User extends ApplicationModel {
-   *   @Decorator.BeforeDestroy()
+   *   @Deco.BeforeDestroy()
    *   public async softDelete() {
    *     await this.update({ deletedAt: DateTime.now() })
    *     this.preventDeletion()
    *   }
    *
-   *   @Decorator.BeforeDestroy()
+   *   @Deco.BeforeDestroy()
    *   public async undoSoftDelete() {
    *     await this.update({ deletedAt: null })
    *     this.unpreventDeletion()

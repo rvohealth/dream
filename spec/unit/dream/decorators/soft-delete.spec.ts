@@ -41,8 +41,8 @@ describe('@SoftDelete', () => {
   it('calls all model hooks', async () => {
     const post = await Post.create({ body: 'hello', user })
 
-    const hooksSpy = jest.spyOn(runHooksForModule, 'default')
-    const commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+    const hooksSpy = vi.spyOn(runHooksForModule, 'default')
+    const commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
     await post.destroy()
 

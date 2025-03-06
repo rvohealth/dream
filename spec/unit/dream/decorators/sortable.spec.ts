@@ -1,5 +1,3 @@
-import { describe as context } from '@jest/globals'
-import Sortable from '../../../../src/decorators/sortable/Sortable'
 import NonBelongsToAssociationProvidedAsSortableDecoratorScope from '../../../../src/errors/NonBelongsToAssociationProvidedAsSortableDecoratorScope'
 import SortableDecoratorRequiresColumnOrBelongsToAssociation from '../../../../src/errors/SortableDecoratorRequiresColumnOrBelongsToAssociation'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
@@ -9,18 +7,16 @@ import Collar from '../../../../test-app/app/models/Collar'
 import Edge from '../../../../test-app/app/models/Graph/Edge'
 import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
 import Node from '../../../../test-app/app/models/Graph/Node'
+import InvalidAssociationSortableModel from '../../../../test-app/app/models/InvalidAssociationSortableModel'
+import InvalidScopeSortableModel from '../../../../test-app/app/models/InvalidScopeSortableModel'
 import Pet from '../../../../test-app/app/models/Pet'
 import Post from '../../../../test-app/app/models/Post'
+import UnscopedSortableModel from '../../../../test-app/app/models/UnscopedSortableModel'
 import User from '../../../../test-app/app/models/User'
 
 describe('@Sortable', () => {
   let user: User
   let user2: User
-
-  class SortedPost extends Post {
-    @Sortable()
-    public declare position: number
-  }
 
   beforeEach(async () => {
     user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
@@ -32,16 +28,16 @@ describe('@Sortable', () => {
       context('when position is not set on the record', () => {
         context('when no other records exist', () => {
           it('sets the position to 1', async () => {
-            const post = await SortedPost.create({ body: 'hello', user })
-            expect(post.position).toEqual(1)
+            const model = await UnscopedSortableModel.create()
+            expect(model.position).toEqual(1)
           })
         })
 
         context('when other records exist', () => {
           it('sets the position to be the highest existing position + 1', async () => {
-            await SortedPost.create({ body: 'hello', user: user2 })
-            const post = await SortedPost.create({ body: 'hello', user })
-            expect(post.position).toEqual(2)
+            await UnscopedSortableModel.create()
+            const model = await UnscopedSortableModel.create()
+            expect(model.position).toEqual(2)
           })
         })
       })
@@ -49,9 +45,9 @@ describe('@Sortable', () => {
       context('when position is set on the record', () => {
         context('the position is set to a value that is equal to the highest existing position + 1', () => {
           it('leaves the position as-is for all records', async () => {
-            await SortedPost.create({ body: 'hello', user: user2 })
-            const post = await SortedPost.create({ body: 'hello', user, position: 2 })
-            expect(post.position).toEqual(2)
+            await UnscopedSortableModel.create()
+            const model = await UnscopedSortableModel.create({ position: 2 })
+            expect(model.position).toEqual(2)
           })
         })
 
@@ -59,8 +55,8 @@ describe('@Sortable', () => {
           'the position is set to a value that is greater than the highest existing position + 1',
           () => {
             it('sets the position of the new record to be the highest existing position + 1', async () => {
-              await SortedPost.create({ body: 'hello', user: user2 })
-              const post = await SortedPost.create({ body: 'hello', user, position: 3 })
+              await UnscopedSortableModel.create()
+              const post = await UnscopedSortableModel.create({ position: 3 })
               expect(post.position).toEqual(2)
             })
           }
@@ -68,19 +64,19 @@ describe('@Sortable', () => {
 
         context('the position is set to a value that is lower than the highest existing position + 1', () => {
           it('leaves the position as-is for the new record, but offsets all records with a position >= the position of this new record', async () => {
-            const post1 = await SortedPost.create({ body: 'post 1', user })
-            const post2 = await SortedPost.create({ body: 'post 2', user: user2 })
-            const post3 = await SortedPost.create({ body: 'hello', user: user2 })
-            const newPost = await SortedPost.create({ body: 'new post', user, position: 2 })
+            const model1 = await UnscopedSortableModel.create()
+            const model2 = await UnscopedSortableModel.create()
+            const model3 = await UnscopedSortableModel.create()
+            const newModel = await UnscopedSortableModel.create({ position: 2 })
 
-            expect(newPost.position).toEqual(2)
-            await post1.reload()
-            await post2.reload()
-            await post3.reload()
+            expect(newModel.position).toEqual(2)
+            await model1.reload()
+            await model2.reload()
+            await model3.reload()
 
-            expect(post1.position).toEqual(1)
-            expect(post2.position).toEqual(3)
-            expect(post3.position).toEqual(4)
+            expect(model1.position).toEqual(1)
+            expect(model2.position).toEqual(3)
+            expect(model3.position).toEqual(4)
           })
         })
       })
@@ -157,30 +153,30 @@ describe('@Sortable', () => {
     context('without a scope present', () => {
       context('when increasing the position', () => {
         it('reshuffles existing positions based on new position value', async () => {
-          const post1 = await SortedPost.create({ body: 'post1', user })
-          const post2 = await SortedPost.create({ body: 'post2', user: user2 })
-          const post3 = await SortedPost.create({ body: 'post3', user: user2 })
-          const post4 = await SortedPost.create({ body: 'post4', user })
+          const model1 = await UnscopedSortableModel.create()
+          const model2 = await UnscopedSortableModel.create()
+          const model3 = await UnscopedSortableModel.create()
+          const model4 = await UnscopedSortableModel.create()
 
-          await post2.update({ position: 3 })
-          await post1.reload()
-          await post2.reload()
-          await post3.reload()
-          await post4.reload()
+          await model2.update({ position: 3 })
+          await model1.reload()
+          await model2.reload()
+          await model3.reload()
+          await model4.reload()
 
-          expect(post1.position).toEqual(1)
-          expect(post2.position).toEqual(3)
-          expect(post3.position).toEqual(2)
-          expect(post4.position).toEqual(4)
+          expect(model1.position).toEqual(1)
+          expect(model2.position).toEqual(3)
+          expect(model3.position).toEqual(2)
+          expect(model4.position).toEqual(4)
         })
       })
 
       context('when decreasing the position', () => {
         it('reshuffles existing positions based on new position value', async () => {
-          const post1 = await SortedPost.create({ body: 'hello', user })
-          const post2 = await SortedPost.create({ body: 'hello', user: user2 })
-          const post3 = await SortedPost.create({ body: 'hello', user: user2 })
-          const post4 = await SortedPost.create({ body: 'hello', user })
+          const post1 = await UnscopedSortableModel.create()
+          const post2 = await UnscopedSortableModel.create()
+          const post3 = await UnscopedSortableModel.create()
+          const post4 = await UnscopedSortableModel.create()
 
           expect(post4.position).toEqual(4)
           await post1.reload()
@@ -207,10 +203,10 @@ describe('@Sortable', () => {
 
       context('when attempting to set position to zero', () => {
         it('does not change the position', async () => {
-          const post1 = await SortedPost.create({ body: 'post1', user })
-          const post2 = await SortedPost.create({ body: 'post2', user: user2 })
-          const post3 = await SortedPost.create({ body: 'post3', user: user2 })
-          const post4 = await SortedPost.create({ body: 'post4', user })
+          const post1 = await UnscopedSortableModel.create()
+          const post2 = await UnscopedSortableModel.create()
+          const post3 = await UnscopedSortableModel.create()
+          const post4 = await UnscopedSortableModel.create()
 
           await post2.update({ position: 0 })
           await post1.reload()
@@ -227,10 +223,10 @@ describe('@Sortable', () => {
 
       context('when attempting to set position to a negative number', () => {
         it('does not change the position', async () => {
-          const post1 = await SortedPost.create({ body: 'post1', user })
-          const post2 = await SortedPost.create({ body: 'post2', user: user2 })
-          const post3 = await SortedPost.create({ body: 'post3', user: user2 })
-          const post4 = await SortedPost.create({ body: 'post4', user })
+          const post1 = await UnscopedSortableModel.create()
+          const post2 = await UnscopedSortableModel.create()
+          const post3 = await UnscopedSortableModel.create()
+          const post4 = await UnscopedSortableModel.create()
 
           await post2.update({ position: -1 })
           await post1.reload()
@@ -247,10 +243,10 @@ describe('@Sortable', () => {
 
       context('when attempting to set position to more than the number of items', () => {
         it('does not change the position', async () => {
-          const post1 = await SortedPost.create({ body: 'post1', user })
-          const post2 = await SortedPost.create({ body: 'post2', user: user2 })
-          const post3 = await SortedPost.create({ body: 'post3', user: user2 })
-          const post4 = await SortedPost.create({ body: 'post4', user })
+          const post1 = await UnscopedSortableModel.create()
+          const post2 = await UnscopedSortableModel.create()
+          const post3 = await UnscopedSortableModel.create()
+          const post4 = await UnscopedSortableModel.create()
 
           await post2.update({ position: 5 })
           await post1.reload()
@@ -267,10 +263,10 @@ describe('@Sortable', () => {
 
       context('when attempting to set position to undefined', () => {
         it('does not change the position', async () => {
-          const post1 = await SortedPost.create({ body: 'post1', user })
-          const post2 = await SortedPost.create({ body: 'post2', user: user2 })
-          const post3 = await SortedPost.create({ body: 'post3', user: user2 })
-          const post4 = await SortedPost.create({ body: 'post4', user })
+          const post1 = await UnscopedSortableModel.create()
+          const post2 = await UnscopedSortableModel.create()
+          const post3 = await UnscopedSortableModel.create()
+          const post4 = await UnscopedSortableModel.create()
 
           await post2.update({ position: undefined })
           await post1.reload()
@@ -287,10 +283,10 @@ describe('@Sortable', () => {
 
       context('when attempting to set position to null', () => {
         it('does not change the position', async () => {
-          const post1 = await SortedPost.create({ body: 'post1', user })
-          const post2 = await SortedPost.create({ body: 'post2', user: user2 })
-          const post3 = await SortedPost.create({ body: 'post3', user: user2 })
-          const post4 = await SortedPost.create({ body: 'post4', user })
+          const post1 = await UnscopedSortableModel.create()
+          const post2 = await UnscopedSortableModel.create()
+          const post3 = await UnscopedSortableModel.create()
+          const post4 = await UnscopedSortableModel.create()
 
           await post2.update({ position: null } as any)
           await post1.reload()
@@ -812,26 +808,16 @@ describe('@Sortable', () => {
 
   context('with an invalid scope provided', () => {
     context('with a scope pointing to a non-existent association', () => {
-      class InvalidPost extends Post {
-        @Sortable({ scope: 'intentionallyInvalidScope' })
-        public declare position: number
-      }
-
       it('raises a targeted exception', async () => {
-        await expect(InvalidPost.create({ body: 'hello', user })).rejects.toThrow(
+        await expect(InvalidScopeSortableModel.create()).rejects.toThrow(
           SortableDecoratorRequiresColumnOrBelongsToAssociation
         )
       })
     })
 
     context('with a scope pointing to a non-belongs-to association', () => {
-      class InvalidPost extends Post {
-        @Sortable({ scope: 'ratings' })
-        public declare position: number
-      }
-
       it('raises a targeted exception', async () => {
-        await expect(InvalidPost.create({ body: 'hello', user })).rejects.toThrow(
+        await expect(InvalidAssociationSortableModel.create()).rejects.toThrow(
           NonBelongsToAssociationProvidedAsSortableDecoratorScope
         )
       })
@@ -872,7 +858,10 @@ describe('@Sortable', () => {
   })
 
   context('when the sortable decorator is applied within an STI child class', () => {
-    it('applies sorting logic against foreign key of scope AND child STI class', async () => {
+    // skipping, since I want to flag the functionality we are losing
+    // since we have backed out of allowing STI child classes to define
+    // custom sortable properties
+    it.skip('applies sorting logic against foreign key of scope AND child STI class', async () => {
       const unrelatedBalloon = await Mylar.create({ user: user2 })
       const balloon1 = await Mylar.create({ user })
       const balloon2 = await Latex.create({ user })

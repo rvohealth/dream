@@ -1,5 +1,6 @@
 import DreamSerializer from '../../../src/serializer'
 import Attribute from '../../../src/serializer/decorators/attribute'
+import processDynamicallyDefinedSerializers from '../../helpers/processDynamicallyDefinedSerializers'
 
 describe('DreamSerializer attribute accessors', () => {
   it('allows accessing attributes from serializer', () => {
@@ -7,6 +8,8 @@ describe('DreamSerializer attribute accessors', () => {
       @Attribute()
       public email: string
     }
+    processDynamicallyDefinedSerializers(MySerializer)
+
     const serializer = new MySerializer({ email: 'abc', password: '123' })
     expect(serializer.email).toEqual('abc')
   })
@@ -16,6 +19,8 @@ describe('DreamSerializer attribute accessors', () => {
       @Attribute()
       public email: string
     }
+    processDynamicallyDefinedSerializers(MySerializer)
+
     const serializer = new MySerializer({ email: 'abc', password: '123' })
     serializer.email = 'hellowdy'
 

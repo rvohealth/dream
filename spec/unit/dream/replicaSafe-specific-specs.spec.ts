@@ -40,11 +40,9 @@ describe('replicaSafe specific specs', () => {
       plugins: [new CamelCasePlugin({ underscoreBetweenUppercaseLetters: true })],
     })
 
-    jest
-      .spyOn(DreamDbConnection, 'getConnection')
-      .mockImplementation((connectionType: DbConnectionType) =>
-        connectionType === 'replica' ? fakeReplicaConnection : originalPrimaryConnection
-      )
+    vi.spyOn(DreamDbConnection, 'getConnection').mockImplementation((connectionType: DbConnectionType) =>
+      connectionType === 'replica' ? fakeReplicaConnection : originalPrimaryConnection
+    )
 
     // Spec suite truncation does not hit the fake replica database, so delete all data explicitly
     await sql`DELETE FROM users;`.execute(db('replica'))

@@ -1,5 +1,5 @@
-import DreamApplication from '../../dream-application'
-import { primaryKeyTypes } from '../../dream/types'
+import DreamApplication from '../../dream-application/index.js'
+import { primaryKeyTypes } from '../../dream/types.js'
 
 export default function primaryKeyType() {
   const dreamconf = DreamApplication.getOrFail()

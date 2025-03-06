@@ -1,6 +1,6 @@
-import Dream from '../../Dream'
-import { DecoratorContext } from '../DecoratorContextType'
-import { HookStatement, blankHooksFactory } from './shared'
+import Dream from '../../Dream.js'
+import { DecoratorContext } from '../DecoratorContextType.js'
+import { HookStatement, blankHooksFactory } from './shared.js'
 
 export default function BeforeDestroy(): any {
   return function (_: any, context: DecoratorContext) {

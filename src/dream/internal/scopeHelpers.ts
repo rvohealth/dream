@@ -1,7 +1,7 @@
-import { SOFT_DELETE_SCOPE_NAME } from '../../decorators/SoftDelete'
-import Dream from '../../Dream'
-import uniq from '../../helpers/uniq'
-import { AllDefaultScopeNames } from '../types'
+import { SOFT_DELETE_SCOPE_NAME } from '../../decorators/SoftDelete.js'
+import Dream from '../../Dream.js'
+import uniq from '../../helpers/uniq.js'
+import { AllDefaultScopeNames } from '../types.js'
 
 export const DEFAULT_BYPASS_ALL_DEFAULT_SCOPES = false
 export const DEFAULT_CASCADE = true

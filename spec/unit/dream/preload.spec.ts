@@ -65,7 +65,7 @@ describe('Dream.preload', () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     await Composition.create({ user })
 
-    const spy = jest.spyOn(DreamDbConnection, 'getConnection')
+    const spy = vi.spyOn(DreamDbConnection, 'getConnection')
 
     await User.connection('replica').preload('compositions', 'compositionAssets').all()
 
@@ -77,7 +77,7 @@ describe('Dream.preload', () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const composition = await Composition.create({ user })
 
-    const spy = jest.spyOn(DreamDbConnection, 'getConnection')
+    const spy = vi.spyOn(DreamDbConnection, 'getConnection')
 
     await User.connection('replica')
       .preload('compositions', { on: { id: composition.id } }, 'compositionAssets')

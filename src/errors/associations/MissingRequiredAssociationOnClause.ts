@@ -1,5 +1,5 @@
-import { HasManyStatement } from '../../decorators/associations/HasMany'
-import { HasOneStatement } from '../../decorators/associations/HasOne'
+import { HasManyStatement } from '../../decorators/associations/HasMany.js'
+import { HasOneStatement } from '../../decorators/associations/HasOne.js'
 
 export default class MissingRequiredAssociationOnClause extends Error {
   constructor(

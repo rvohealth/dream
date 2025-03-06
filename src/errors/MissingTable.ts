@@ -1,6 +1,6 @@
-import * as pluralize from 'pluralize'
-import Dream from '../Dream'
-import snakeify from '../helpers/snakeify'
+import pluralize from 'pluralize-esm'
+import Dream from '../Dream.js'
+import snakeify from '../helpers/snakeify.js'
 
 export default class MissingTable extends Error {
   public dreamClass: typeof Dream

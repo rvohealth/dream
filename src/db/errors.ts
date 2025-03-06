@@ -1,4 +1,6 @@
-import { DatabaseError } from 'pg'
+import * as pg from 'pg'
+
+const { DatabaseError } = pg
 
 export const PG_ERRORS = {
   23505: 'UNIQUE_CONSTRAINT_VIOLATION',

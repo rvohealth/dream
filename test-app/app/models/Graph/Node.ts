@@ -1,10 +1,10 @@
 import { Decorators } from '../../../../src'
-import { DreamColumn, DreamSerializers, Type } from '../../../../src/dream/types'
+import { DreamColumn, DreamSerializers } from '../../../../src/dream/types'
 import ApplicationModel from '../ApplicationModel'
 import GraphEdge from './Edge'
 import EdgeNode from './EdgeNode'
 
-const Decorator = new Decorators<Type<typeof Node>>()
+const Deco = new Decorators<InstanceType<typeof Node>>()
 
 export default class Node extends ApplicationModel {
   public get table() {
@@ -21,38 +21,38 @@ export default class Node extends ApplicationModel {
   public createdAt: DreamColumn<Node, 'createdAt'>
   public updatedAt: DreamColumn<Node, 'updatedAt'>
 
-  @Decorator.HasMany('Graph/EdgeNode', { foreignKey: 'nodeId' })
+  @Deco.HasMany('Graph/EdgeNode', { foreignKey: 'nodeId' })
   public edgeNodes: EdgeNode[]
 
-  @Decorator.HasMany('Graph/EdgeNode', { foreignKey: 'nodeId', order: 'position' })
+  @Deco.HasMany('Graph/EdgeNode', { foreignKey: 'nodeId', order: 'position' })
   public orderedEdgeNodes: EdgeNode[]
 
-  @Decorator.HasMany('Graph/Edge', { through: 'edgeNodes', preloadThroughColumns: ['position', 'createdAt'] })
+  @Deco.HasMany('Graph/Edge', { through: 'edgeNodes', preloadThroughColumns: ['position', 'createdAt'] })
   public edges: GraphEdge[]
 
-  @Decorator.HasMany('Graph/Edge', {
+  @Deco.HasMany('Graph/Edge', {
     through: 'edgeNodes',
     preloadThroughColumns: { position: 'aliasedPosition', createdAt: 'aliasedCreatedAt' },
     source: 'edge',
   })
   public edgesWithAliasedPreloads: GraphEdge[]
 
-  @Decorator.HasMany('Graph/Edge', { through: 'edgeNodes', order: 'name', source: 'edge' })
+  @Deco.HasMany('Graph/Edge', { through: 'edgeNodes', order: 'name', source: 'edge' })
   public edgesOrderedByName: GraphEdge[]
 
-  @Decorator.HasMany('Graph/Edge', { through: 'orderedEdgeNodes', source: 'edge' })
+  @Deco.HasMany('Graph/Edge', { through: 'orderedEdgeNodes', source: 'edge' })
   public edgesOrderedByPosition: GraphEdge[]
 
-  @Decorator.HasMany('Graph/EdgeNode', {
+  @Deco.HasMany('Graph/EdgeNode', {
     foreignKey: 'nodeId',
     selfNotOn: { position: 'omittedEdgePosition' },
   })
   public nonOmittedPositionEdgeNodes: EdgeNode[]
 
-  @Decorator.HasMany('Graph/Edge', { through: 'nonOmittedPositionEdgeNodes', source: 'edge' })
+  @Deco.HasMany('Graph/Edge', { through: 'nonOmittedPositionEdgeNodes', source: 'edge' })
   public nonOmittedPositionEdges: GraphEdge[]
 
-  @Decorator.HasMany('Graph/Edge', {
+  @Deco.HasMany('Graph/Edge', {
     through: 'edgeNodes',
     source: 'edge',
     selfNotOn: { name: 'name' },

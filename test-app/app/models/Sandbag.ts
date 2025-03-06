@@ -1,10 +1,10 @@
 import { Decorators } from '../../../src'
 import Validate from '../../../src/decorators/validations/Validate'
-import { DreamColumn, DreamSerializers, Type } from '../../../src/dream/types'
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Mylar from './Balloon/Mylar'
 
-const Decorator = new Decorators<Type<typeof Sandbag>>()
+const Deco = new Decorators<InstanceType<typeof Sandbag>>()
 
 export default class Sandbag extends ApplicationModel {
   public get table() {
@@ -33,34 +33,34 @@ export default class Sandbag extends ApplicationModel {
       this.addError('weight', 'cannot include weightTons AND weight')
   }
 
-  @Decorator.BelongsTo('Balloon/Mylar', { foreignKey: 'balloonId' })
+  @Deco.BelongsTo('Balloon/Mylar', { foreignKey: 'balloonId' })
   public mylar: Mylar
   public balloonId: DreamColumn<Sandbag, 'balloonId'>
 
-  @Decorator.BeforeCreate({ ifChanging: ['weightKgs'] })
+  @Deco.BeforeCreate({ ifChanging: ['weightKgs'] })
   public conditionalBeforeCreateHook() {}
 
-  @Decorator.BeforeSave({ ifChanging: ['weight'] })
+  @Deco.BeforeSave({ ifChanging: ['weight'] })
   public conditionalBeforeSaveHook() {}
 
-  @Decorator.BeforeUpdate({ ifChanging: ['weightTons'] })
+  @Deco.BeforeUpdate({ ifChanging: ['weightTons'] })
   public conditionalBeforeUpdateHook() {}
 
-  @Decorator.AfterCreate({ ifChanged: ['weightKgs'] })
+  @Deco.AfterCreate({ ifChanged: ['weightKgs'] })
   public conditionalAfterCreateHook() {}
 
-  @Decorator.AfterSave({ ifChanged: ['weight'] })
+  @Deco.AfterSave({ ifChanged: ['weight'] })
   public conditionalAfterSaveHook() {}
 
-  @Decorator.AfterUpdate({ ifChanged: ['weightTons'] })
+  @Deco.AfterUpdate({ ifChanged: ['weightTons'] })
   public conditionalAfterUpdateHook() {}
 
-  @Decorator.AfterCreateCommit({ ifChanged: ['weightKgs'] })
+  @Deco.AfterCreateCommit({ ifChanged: ['weightKgs'] })
   public conditionalAfterCreateCommitHook() {}
 
-  @Decorator.AfterSaveCommit({ ifChanged: ['weight'] })
+  @Deco.AfterSaveCommit({ ifChanged: ['weight'] })
   public conditionalAfterSaveCommitHook() {}
 
-  @Decorator.AfterUpdateCommit({ ifChanged: ['weightTons'] })
+  @Deco.AfterUpdateCommit({ ifChanged: ['weightTons'] })
   public conditionalAfterUpdateCommitHook() {}
 }

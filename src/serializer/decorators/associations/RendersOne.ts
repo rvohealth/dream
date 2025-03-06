@@ -1,7 +1,7 @@
-import DreamSerializer from '../..'
-import { DecoratorContext } from '../../../decorators/DecoratorContextType'
-import { SerializableClassOrClasses } from '../../../dream/types'
-import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOpts } from './shared'
+import { DecoratorContext } from '../../../decorators/DecoratorContextType.js'
+import { SerializableClassOrClasses } from '../../../dream/types.js'
+import DreamSerializer from '../../index.js'
+import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOpts } from './shared.js'
 
 /**
  * Establishes a One to One relationship between
@@ -17,12 +17,12 @@ import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOp
  *
  * ```ts
  * class User extends ApplicationModel {
- *   @User.HasOne('Settings')
+ *   @Deco.HasOne('Settings')
  *   public settings: Settings
  * }
  *
  * class Settings extends ApplicationModel {
- *   @Settings.BelongsTo('User')
+ *   @Deco.BelongsTo('User')
  *   public user: User
  * }
  *
@@ -53,7 +53,10 @@ export default function RendersOne(
     context.addInitializer(function (this: DreamSerializer) {
       const target = this
       const serializerClass: typeof DreamSerializer = target.constructor as typeof DreamSerializer
-      if (!serializerClass['globallyInitializingDecorators']) return
+      if (!serializerClass['globallyInitializingDecorators']) {
+        delete (this as any)[key]
+        return
+      }
 
       if (isSerializable(serializableClassOrClasses)) {
         opts ||= {} as RendersOneOpts
@@ -79,9 +82,9 @@ export default function RendersOne(
       ]
     })
 
-    return function (this: DreamSerializer) {
-      return (this as any)[key]
-    }
+    // return function (this: DreamSerializer) {
+    //   return (this as any)[key]
+    // }
   }
 }
 

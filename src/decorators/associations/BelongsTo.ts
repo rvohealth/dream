@@ -1,6 +1,6 @@
-import { AssociationTableNames } from '../../db/reflections'
-import Dream from '../../Dream'
-import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames'
+import { AssociationTableNames } from '../../db/reflections.js'
+import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames.js'
+import Dream from '../../Dream.js'
 import {
   DefaultScopeName,
   DefaultScopeNameForTable,
@@ -9,16 +9,16 @@ import {
   GlobalModelNameTableMap,
   TableColumnNames,
   TableNameForGlobalModelName,
-} from '../../dream/types'
-import { DecoratorContext } from '../DecoratorContextType'
-import { validatesImplementation } from '../validations/Validates'
+} from '../../dream/types.js'
+import { DecoratorContext } from '../DecoratorContextType.js'
+import { validatesImplementation } from '../validations/Validates.js'
 import {
   applyGetterAndSetter,
   associationPrimaryKeyAccessors,
   blankAssociationsFactory,
   finalForeignKey,
   foreignKeyTypeField,
-} from './shared'
+} from './shared.js'
 
 export default function BelongsTo<
   BaseInstance extends Dream,
@@ -47,13 +47,13 @@ export default function BelongsTo<
  *
  * ```ts
  * class UserSettings extends ApplicationModel {
- *   @UserSettings.BelongsTo('User')
+ *   @Deco.BelongsTo('User')
  *   public user: User
  *   public userId: DreamColumn<UserSettings, 'userId'>
  * }
  *
  * class User extends ApplicationModel {
- *   @User.HasOne('UserSettings')
+ *   @Deco.HasOne('UserSettings')
  *   public userSettings: UserSettings
  * }
  * ```

@@ -1,7 +1,7 @@
 import { Query, Scope } from '../../../src'
 import Rating from './Rating'
 
-// const Decorator = new Decorators<Type<typeof NonNullRating>>()
+// const Deco = new Decorators<InstanceType<typeof NonNullRating>>()
 
 export default class NonNullRating extends Rating {
   @Scope({ default: true })

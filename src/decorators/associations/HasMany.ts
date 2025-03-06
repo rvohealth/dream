@@ -1,13 +1,13 @@
-import { AssociationTableNames } from '../../db/reflections'
-import Dream from '../../Dream'
-import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames'
+import { AssociationTableNames } from '../../db/reflections.js'
+import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames.js'
+import Dream from '../../Dream.js'
 import {
   GlobalModelNames,
   GlobalModelNameTableMap,
   TableColumnNames,
   TableNameForGlobalModelName,
-} from '../../dream/types'
-import { DecoratorContext } from '../DecoratorContextType'
+} from '../../dream/types.js'
+import { DecoratorContext } from '../DecoratorContextType.js'
 import {
   applyGetterAndSetter,
   associationPrimaryKeyAccessors,
@@ -20,7 +20,7 @@ import {
   OrderStatement,
   PolymorphicHasOptions,
   validateHasStatementArgs,
-} from './shared'
+} from './shared.js'
 
 export default function HasMany<
   BaseInstance extends Dream,
@@ -53,12 +53,12 @@ export default function HasMany<
  *
  * ```ts
  * class User extends ApplicationModel {
- *   @User.HasMany('Post')
+ *   @Deco.HasMany('Post')
  *   public posts: Post[]
  * }
  *
  * class Post extends ApplicationModel {
- *   @Post.BelongsTo('User')
+ *   @Deco.BelongsTo('User')
  *   public user: User
  *   public userId: DreamColumn<Post, 'userId'>
  * }

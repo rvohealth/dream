@@ -1,24 +1,22 @@
 import { ColumnType, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
-import { AssociationTableNames } from '../db/reflections'
-import { BelongsToStatement } from '../decorators/associations/BelongsTo'
-import { HasManyStatement } from '../decorators/associations/HasMany'
-import { HasOneStatement } from '../decorators/associations/HasOne'
+import { AssociationTableNames } from '../db/reflections.js'
+import { BelongsToStatement } from '../decorators/associations/BelongsTo.js'
+import { HasManyStatement } from '../decorators/associations/HasMany.js'
+import { HasOneStatement } from '../decorators/associations/HasOne.js'
 import {
   AssociatedModelParam,
   OnStatementForAssociation,
   WhereStatement,
-} from '../decorators/associations/shared'
-import { STI_SCOPE_NAME } from '../decorators/STI'
-import Dream from '../Dream'
-import CalendarDate from '../helpers/CalendarDate'
-import { Camelized } from '../helpers/stringCasing'
-import { FilterInterface, Inc, ReadonlyTail } from '../helpers/typeutils'
-import OpsStatement from '../ops/ops-statement'
-import DreamSerializer from '../serializer'
-import { FindEachOpts } from './Query'
-
-export type Type<T extends typeof Dream> = InstanceType<T>
+} from '../decorators/associations/shared.js'
+import { STI_SCOPE_NAME } from '../decorators/STI.js'
+import Dream from '../Dream.js'
+import CalendarDate from '../helpers/CalendarDate.js'
+import { Camelized } from '../helpers/stringCasing.js'
+import { FilterInterface, Inc, ReadonlyTail } from '../helpers/typeutils.js'
+import OpsStatement from '../ops/ops-statement.js'
+import DreamSerializer from '../serializer/index.js'
+import { FindEachOpts } from './Query.js'
 
 export const primaryKeyTypes = ['bigserial', 'bigint', 'uuid', 'integer'] as const
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
