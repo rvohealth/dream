@@ -14,6 +14,24 @@ describe('uniq', () => {
     toKey = undefined
   })
 
+  /**
+   *
+   *
+   *
+   * What about simple objects? Simple objects always compare as not equal
+   * This also needs to test Range, ops, DateTime, CalendarDate
+   * First test that objects are the same constructor type (instanceof, if possible)
+   * if not, then not the same
+   * if have .equals, then call that (dream, DateTime, CalendarDate, Range, ops)
+   * otherwise, convert to JSON and compare strings? or recursively check everything in the object?
+   * or do we just want objects to be compared based on whether they are the actual same object?
+   * Maybe that
+   *
+   *
+   *
+   *
+   */
+
   context('when the first element is a Dream', () => {
     beforeEach(async () => {
       item1 = await GraphNode.create({ name: 'Hello' })

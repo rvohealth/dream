@@ -12,8 +12,8 @@
     "strictNullChecks": true,
     /* do not require all properties to be initialized in constructor */
     "strictPropertyInitialization": false,
-    /* with esnext as target, need to specify this so that Object.defineProperty works */
-    "useDefineForClassFields": false
+    /* TRYING TO GET DREAM WORKING with useDefineForClassFields set to true */
+    "useDefineForClassFields": true
   },
   "include": ["src/**/*", "shared/**/*"]
 }

@@ -10,5 +10,12 @@ export default {
   setupFiles: ['jest-plugin-context/setup'],
   setupFilesAfterEnv: ['<rootDir>spec/setup/hooks.ts', 'luxon-jest-matchers'],
   testEnvironment: 'node',
-  transform: {},
+  transform: {
+    '^.+\\.(ts|tsx)$': [
+      'ts-jest',
+      {
+        tsConfig: 'tsconfig.json',
+      },
+    ],
+  },
 }

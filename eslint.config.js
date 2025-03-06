@@ -28,7 +28,7 @@ const config = typescriptEslint.config(
     files: ['**/*.ts'],
     languageOptions: {
       parser: typescriptParser,
-      parserOptions: { project: './tsconfig.esm.json' },
+      parserOptions: { project: './tsconfig.json' },
     },
   }
 )

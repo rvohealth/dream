@@ -526,7 +526,7 @@ export function applyGetterAndSetter(
       configurable: true,
 
       get: function (this: Dream) {
-        const value = this[associationToGetterSetterProp(partialAssociation)]
+        const value = (this as any)[associationToGetterSetterProp(partialAssociation)]
         if (value === undefined)
           throw new NonLoadedAssociation({ dreamClass, associationName: partialAssociation.as })
         else return value
@@ -536,13 +536,13 @@ export function applyGetterAndSetter(
         // protect against a stage 3 decorator bug
         if (this['stage3DecoratorBugGuardOn']) return
 
-        this[associationToGetterSetterProp(partialAssociation)] = associatedModel
+        ;(this as any)[associationToGetterSetterProp(partialAssociation)] = associatedModel
 
         if (isBelongsTo) {
-          this[finalForeignKey(foreignKeyBase, dreamClass, partialAssociation)] =
+          ;(this as any)[finalForeignKey(foreignKeyBase, dreamClass, partialAssociation)] =
             partialAssociation.primaryKeyValue(associatedModel)
           if (partialAssociation.polymorphic)
-            this[foreignKeyTypeField(foreignKeyBase, dreamClass, partialAssociation)] =
+            (this as any)[foreignKeyTypeField(foreignKeyBase, dreamClass, partialAssociation)] =
               associatedModel?.constructor?.name
         }
       },
