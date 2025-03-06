@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon'
+import { MockInstance } from 'vitest'
 import { CalendarDate, Dream, DreamTransaction } from '../../../src'
 import * as runHooksForModule from '../../../src/dream/internal/runHooksFor'
 import * as safelyRunCommitHooksModule from '../../../src/dream/internal/safelyRunCommitHooks'
@@ -93,8 +94,8 @@ describe('Dream#update', () => {
     })
 
     context('model hooks', () => {
-      let hooksSpy: jest.SpyInstance
-      let commitHooksSpy: jest.SpyInstance
+      let hooksSpy: MockInstance
+      let commitHooksSpy: MockInstance
 
       function expectAfterUpdateAndSaveHooksCalled(dream: Dream) {
         expect(hooksSpy).toHaveBeenCalledWith(
@@ -162,8 +163,8 @@ describe('Dream#update', () => {
         const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
         await ApplicationModel.transaction(async txn => {
-          hooksSpy = jest.spyOn(runHooksForModule, 'default')
-          commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+          hooksSpy = vi.spyOn(runHooksForModule, 'default')
+          commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
           await user.txn(txn).update({ email: 'something@else' })
         })
 
@@ -177,8 +178,8 @@ describe('Dream#update', () => {
 
           try {
             await ApplicationModel.transaction(async txn => {
-              hooksSpy = jest.spyOn(runHooksForModule, 'default')
-              commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+              hooksSpy = vi.spyOn(runHooksForModule, 'default')
+              commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
               await user.txn(txn).update({ email: 'fred@alreadyexists', password: 'howyadoin' })
             })
           } catch {
@@ -443,6 +444,7 @@ describe('Dream#update', () => {
   context('when updating an encrypted column', () => {
     it('succeeds', async () => {
       let user = await User.create({ email: 'how@yadoin', password: 'howyadoin', secret: 'shh!' })
+      expect(user.secret).toEqual('shh!')
       await user.update({ secret: 'howyadoin' })
 
       user = await User.findOrFail(user.id)

@@ -16,14 +16,14 @@ describe('Dream#removeAllDefaultScopes', () => {
   })
 
   it('calls Query#removeAllDefaultScopes', async () => {
-    const spy = jest.spyOn(Query.prototype, 'removeAllDefaultScopes')
+    const spy = vi.spyOn(Query.prototype, 'removeAllDefaultScopes')
     await Pet.removeAllDefaultScopes().find(petId)
     expect(spy).toHaveBeenCalled()
   })
 
   context('within a transaction', () => {
     it('calls Query#removeAllDefaultScopes', async () => {
-      const spy = jest.spyOn(Query.prototype, 'removeAllDefaultScopes')
+      const spy = vi.spyOn(Query.prototype, 'removeAllDefaultScopes')
 
       await ApplicationModel.transaction(async txn => {
         await Pet.txn(txn).removeAllDefaultScopes().find(petId)

@@ -43,9 +43,6 @@ export default class Pet extends ApplicationModel {
   @Sortable({ scope: 'species' })
   public positionWithinSpecies: number
 
-  @Sortable()
-  public unscopedPosition: number
-
   @Decorator.BelongsTo('User', {
     optional: true,
     primaryKeyOverride: 'uuid',

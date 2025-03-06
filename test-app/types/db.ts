@@ -485,7 +485,6 @@ export interface Pets {
   nickname: string | null;
   positionWithinSpecies: number | null;
   species: Species | null;
-  unscopedPosition: number | null;
   userId: Int8 | null;
   userUuid: string | null;
 }

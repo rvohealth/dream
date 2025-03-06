@@ -8,7 +8,10 @@ export default function Encrypted(encryptedColumnName?: string): any {
 
     context.addInitializer(function (this: Dream) {
       const t: typeof Dream = this.constructor as typeof Dream
-      if (!t['globallyInitializingDecorators']) return
+      if (!t['globallyInitializingDecorators']) {
+        delete (this as any)[key]
+        return
+      }
 
       if (!Object.getOwnPropertyDescriptor(t, 'encryptedAttributes'))
         t['encryptedAttributes'] = [...(t['encryptedAttributes'] || [])]

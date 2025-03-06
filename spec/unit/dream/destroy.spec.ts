@@ -1,4 +1,4 @@
-import { describe as context } from '@jest/globals'
+import { MockInstance } from 'vitest'
 import { Dream, DreamTransaction } from '../../../src'
 import * as destroyAssociatedRecordsModule from '../../../src/dream/internal/destroyAssociatedRecords'
 import * as runHooksForModule from '../../../src/dream/internal/runHooksFor'
@@ -15,9 +15,9 @@ import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
 
 describe('Dream#destroy', () => {
-  let hooksSpy: jest.SpyInstance
-  let commitHooksSpy: jest.SpyInstance
-  let cascadeSpy: jest.SpyInstance
+  let hooksSpy: MockInstance
+  let commitHooksSpy: MockInstance
+  let cascadeSpy: MockInstance
 
   function expectDestroyHooksCalled(dream: Dream) {
     expect(hooksSpy).toHaveBeenCalledWith(
@@ -88,8 +88,8 @@ describe('Dream#destroy', () => {
     it('calls model hooks', async () => {
       const pet = await Pet.create()
 
-      hooksSpy = jest.spyOn(runHooksForModule, 'default')
-      commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+      hooksSpy = vi.spyOn(runHooksForModule, 'default')
+      commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
       await pet.destroy()
 
@@ -100,8 +100,8 @@ describe('Dream#destroy', () => {
       it('skips model hooks', async () => {
         const pet = await Pet.create()
 
-        hooksSpy = jest.spyOn(runHooksForModule, 'default')
-        commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+        hooksSpy = vi.spyOn(runHooksForModule, 'default')
+        commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
         await pet.destroy({ skipHooks: true })
 
@@ -113,8 +113,8 @@ describe('Dream#destroy', () => {
       it('calls model hooks', async () => {
         const pet = await Pet.create()
 
-        hooksSpy = jest.spyOn(runHooksForModule, 'default')
-        commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+        hooksSpy = vi.spyOn(runHooksForModule, 'default')
+        commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
         await pet.destroy()
 
@@ -125,8 +125,8 @@ describe('Dream#destroy', () => {
         it('skips model hooks', async () => {
           const pet = await Pet.create()
 
-          hooksSpy = jest.spyOn(runHooksForModule, 'default')
-          commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+          hooksSpy = vi.spyOn(runHooksForModule, 'default')
+          commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
           await pet.destroy({ skipHooks: true })
 
@@ -151,8 +151,8 @@ describe('Dream#destroy', () => {
       expect(await Rating.count()).toEqual(1)
       expect(await HeartRating.count()).toEqual(1)
 
-      hooksSpy = jest.spyOn(runHooksForModule, 'default')
-      commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+      hooksSpy = vi.spyOn(runHooksForModule, 'default')
+      commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
     })
 
     it('cascade deletes all related HasMany associations, including deeply nested associations', async () => {
@@ -376,8 +376,8 @@ describe('Dream#destroy', () => {
 
       expect(await LocalizedText.count()).toEqual(2)
 
-      hooksSpy = jest.spyOn(runHooksForModule, 'default')
-      commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+      hooksSpy = vi.spyOn(runHooksForModule, 'default')
+      commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
     })
 
     it('cascade deletes all related HasOne associations', async () => {
@@ -402,7 +402,7 @@ describe('Dream#destroy', () => {
     it('skips cascade-destroying associations', async () => {
       const pet = await Pet.create()
 
-      cascadeSpy = jest.spyOn(destroyAssociatedRecordsModule, 'default')
+      cascadeSpy = vi.spyOn(destroyAssociatedRecordsModule, 'default')
 
       await pet.destroy({ cascade: false })
 

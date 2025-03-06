@@ -18,7 +18,6 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('favorite_days_of_week', sql`integer[]`)
     .addColumn('species', sql`species`)
     .addColumn('position_within_species', 'integer')
-    .addColumn('unscoped_position', 'integer')
     .addColumn('name', 'text')
     .addColumn('nickname', 'text')
     .addColumn('deleted_at', 'timestamp')
@@ -28,11 +27,6 @@ export async function up(db: Kysely<any>): Promise<void> {
   await DreamMigrationHelpers.addDeferrableUniqueConstraint(db, 'pets_unique_position_within_species', {
     table: 'pets',
     columns: ['species', 'position_within_species'],
-  })
-
-  await DreamMigrationHelpers.addDeferrableUniqueConstraint(db, 'pets_unique_unscoped_position', {
-    table: 'pets',
-    columns: ['unscoped_position'],
   })
 }
 

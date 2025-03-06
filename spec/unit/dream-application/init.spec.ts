@@ -1,4 +1,3 @@
-import { describe as context } from '@jest/globals'
 import { DreamApplication } from '../../../src'
 import * as LoadModelsModule from '../../../src/dream-application/helpers/loadModels'
 import DreamApplicationInitMissingCallToLoadModels from '../../../src/errors/dream-application/DreamApplicationInitMissingCallToLoadModels'
@@ -19,7 +18,7 @@ describe('DreamApplication#init', () => {
   }
 
   beforeEach(() => {
-    jest.spyOn(LoadModelsModule, 'default').mockResolvedValue({} as any)
+    vi.spyOn(LoadModelsModule, 'default').mockResolvedValue({} as any)
   })
 
   context('with a valid config', () => {
@@ -74,7 +73,7 @@ describe('DreamApplication#init', () => {
           await app.load('models', 'how/yadoin')
         }
 
-        jest.spyOn(DreamApplication.prototype, 'models', 'get').mockReturnValue({
+        vi.spyOn(DreamApplication.prototype, 'models', 'get').mockReturnValue({
           HelloWorld,
         })
 

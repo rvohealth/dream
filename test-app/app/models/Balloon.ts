@@ -37,6 +37,9 @@ export default class Balloon extends ApplicationModel {
   @Decorator.Sortable({ scope: 'user' })
   public positionAlpha: DreamColumn<Balloon, 'positionAlpha'>
 
+  @Decorator.Sortable({ scope: 'user' })
+  public positionBeta: DreamColumn<Balloon, 'positionBeta'>
+
   @Scope()
   public static red(query: Query<Balloon>) {
     return query.where({ color: 'red' })

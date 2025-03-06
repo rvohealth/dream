@@ -1,4 +1,4 @@
 {
   "extends": "./tsconfig.esm.build.json",
-  "include": ["src/**/*", "shared/**/*", "test-app/**/*", "spec/**/*"]
+  "include": ["global.d.ts", "src/**/*", "shared/**/*", "test-app/**/*", "spec/**/*"]
 }

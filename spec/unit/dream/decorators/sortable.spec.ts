@@ -1,4 +1,3 @@
-import { describe as context } from '@jest/globals'
 import Sortable from '../../../../src/decorators/sortable/Sortable'
 import NonBelongsToAssociationProvidedAsSortableDecoratorScope from '../../../../src/errors/NonBelongsToAssociationProvidedAsSortableDecoratorScope'
 import SortableDecoratorRequiresColumnOrBelongsToAssociation from '../../../../src/errors/SortableDecoratorRequiresColumnOrBelongsToAssociation'

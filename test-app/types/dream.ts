@@ -2588,15 +2588,6 @@ export const schema = {
         allowNull: true,
         isArray: false,
       },
-      unscopedPosition: {
-        coercedType: {} as number | null,
-        enumType: null,
-        enumArrayType: null,
-        enumValues: null,
-        dbType: 'integer',
-        allowNull: true,
-        isArray: false,
-      },
       userId: {
         coercedType: {} as IdType | null,
         enumType: null,

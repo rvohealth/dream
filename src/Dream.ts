@@ -2386,7 +2386,45 @@ export default class Dream {
       // for each of the properties
       if (this.currentAttributes[column] === undefined) this.currentAttributes[column] = undefined
 
-      if (!Object.getOwnPropertyDescriptor(dreamPrototype, column)?.set) {
+      // handle encrypted columns
+      if (encryptedAttributeNames.includes(column)) {
+        const encryptedAttribute = encryptedAttributes.find(attr => attr.encryptedColumnName === column)!
+
+        if (!Object.getOwnPropertyDescriptor(dreamPrototype, encryptedAttribute.property)?.set) {
+          Object.defineProperty(dreamPrototype, encryptedAttribute.property, {
+            get() {
+              return InternalEncrypt.decryptColumn(this.getAttribute(encryptedAttribute.encryptedColumnName))
+            },
+
+            set(val: any) {
+              // protect against a stage 3 decorator bug
+              if (this.stage3DecoratorBugGuardOn) return
+              this.setAttribute(encryptedAttribute.encryptedColumnName, InternalEncrypt.encryptColumn(val))
+            },
+
+            configurable: true,
+            enumerable: false,
+          })
+        }
+
+        Object.defineProperty(dreamPrototype, encryptedAttribute.encryptedColumnName, {
+          get() {
+            return this.currentAttributes[encryptedAttribute.encryptedColumnName]
+          },
+
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          set(_: any) {
+            throw new DoNotSetEncryptedFieldsDirectly(
+              dreamClass,
+              encryptedAttribute.encryptedColumnName,
+              encryptedAttribute.property
+            )
+          },
+
+          configurable: true,
+          enumerable: false,
+        })
+      } else if (!Object.getOwnPropertyDescriptor(dreamPrototype, column)?.set) {
         // handle JSON columns
         if (isJsonColumn(this.constructor as typeof Dream, column)) {
           Object.defineProperty(dreamPrototype, column, {
@@ -2400,47 +2438,6 @@ export default class Dream {
               // protect against a stage 3 decorator bug
               if (this.stage3DecoratorBugGuardOn) return
               this.currentAttributes[column] = isString(val) ? val : JSON.stringify(val)
-            },
-
-            configurable: true,
-            enumerable: false,
-          })
-
-          // handle encrypted columns
-        } else if (encryptedAttributeNames.includes(column)) {
-          const encryptedAttribute = encryptedAttributes.find(attr => attr.encryptedColumnName === column)!
-
-          if (!Object.getOwnPropertyDescriptor(dreamPrototype, encryptedAttribute.property)?.set) {
-            Object.defineProperty(dreamPrototype, encryptedAttribute.property, {
-              get() {
-                return InternalEncrypt.decryptColumn(
-                  this.getAttribute(encryptedAttribute.encryptedColumnName)
-                )
-              },
-
-              set(val: any) {
-                // protect against a stage 3 decorator bug
-                if (this.stage3DecoratorBugGuardOn) return
-                this.setAttribute(encryptedAttribute.encryptedColumnName, InternalEncrypt.encryptColumn(val))
-              },
-
-              configurable: true,
-              enumerable: false,
-            })
-          }
-
-          Object.defineProperty(dreamPrototype, encryptedAttribute.encryptedColumnName, {
-            get() {
-              return this.currentAttributes[encryptedAttribute.encryptedColumnName]
-            },
-
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            set(_: any) {
-              throw new DoNotSetEncryptedFieldsDirectly(
-                dreamClass,
-                encryptedAttribute.encryptedColumnName,
-                encryptedAttribute.property
-              )
             },
 
             configurable: true,

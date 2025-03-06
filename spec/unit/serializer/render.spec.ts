@@ -13,14 +13,7 @@ import Pet from '../../../test-app/app/models/Pet'
 import Post from '../../../test-app/app/models/Post'
 import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
-
-function processDynamicallyDefinedSerializers(...serializerClasses: (typeof DreamSerializer<any, any>)[]) {
-  DreamSerializer['globallyInitializingDecorators'] = true
-  serializerClasses.forEach(serializerClass => {
-    new serializerClass({})
-  })
-  DreamSerializer['globallyInitializingDecorators'] = false
-}
+import processDynamicallyDefinedSerializers from '../../helpers/processDynamicallyDefinedSerializers'
 
 describe('DreamSerailizer.render', () => {
   it('renders a dream instance', () => {
@@ -684,7 +677,7 @@ describe('DreamSerializer#render', () => {
           beforeEach(() => {
             const dreamApp = DreamApplication.getOrFail()
             dreamApp.serializers['HowdySerializer'] = HowdySerializer
-            jest.spyOn(DreamApplication, 'getOrFail').mockReturnValue(dreamApp)
+            vi.spyOn(DreamApplication, 'getOrFail').mockReturnValue(dreamApp)
           })
 
           it('serializes the passthrough data', async () => {
@@ -840,7 +833,7 @@ describe('DreamSerializer#render', () => {
           const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
           await Pet.create({ user, name: 'aster', species: 'cat' })
 
-          jest.spyOn(user, 'pets', 'get').mockReturnValue(undefined as any)
+          vi.spyOn(user, 'pets', 'get').mockReturnValue(undefined as any)
 
           const serializer = new UserSerializer(user)
           expect(serializer.render()).toEqual({ pets: [] })
@@ -867,7 +860,7 @@ describe('DreamSerializer#render', () => {
 
         context('when a serializer is not present on the model', () => {
           beforeEach(() => {
-            jest.spyOn(Pet.prototype, 'serializers', 'get').mockReturnValue(undefined as any)
+            vi.spyOn(Pet.prototype, 'serializers', 'get').mockReturnValue(undefined as any)
           })
 
           it('raises an exception on render', async () => {
@@ -1054,7 +1047,7 @@ describe('DreamSerializer#render', () => {
           const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
           const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
 
-          jest.spyOn(pet, 'user', 'get').mockReturnValue(undefined as any)
+          vi.spyOn(pet, 'user', 'get').mockReturnValue(undefined as any)
 
           const serializer = new PetSerializer(pet)
           expect(serializer.render()).toEqual({ user: null })
@@ -1108,7 +1101,7 @@ describe('DreamSerializer#render', () => {
           beforeEach(() => {
             const dreamApp = DreamApplication.getOrFail()
             dreamApp.serializers['HowdySerializer'] = HowdySerializer
-            jest.spyOn(DreamApplication, 'getOrFail').mockReturnValue(dreamApp)
+            vi.spyOn(DreamApplication, 'getOrFail').mockReturnValue(dreamApp)
           })
 
           it('serializes the passthrough data', async () => {
@@ -1316,7 +1309,7 @@ describe('DreamSerializer#render', () => {
 
       context('when a serializer is not present on the model', () => {
         beforeEach(() => {
-          jest.spyOn(Pet.prototype, 'serializers', 'get').mockReturnValue(undefined as any)
+          vi.spyOn(Pet.prototype, 'serializers', 'get').mockReturnValue(undefined as any)
         })
 
         it('raises an exception on render', async () => {
