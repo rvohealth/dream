@@ -51,7 +51,10 @@ export default function RendersMany(
     context.addInitializer(function (this: DreamSerializer) {
       const target = this
       const serializerClass: typeof DreamSerializer = target.constructor as typeof DreamSerializer
-      if (!serializerClass['globallyInitializingDecorators']) return
+      if (!serializerClass['globallyInitializingDecorators']) {
+        delete (this as any)[key]
+        return
+      }
 
       if (isSerializable(serializableClassOrClasses)) {
         opts ||= {} as RendersManyOpts
@@ -76,9 +79,9 @@ export default function RendersMany(
       ]
     })
 
-    return function (this: DreamSerializer) {
-      return (this as any)[key]
-    }
+    // return function (this: DreamSerializer) {
+    //   return (this as any)[key]
+    // }
   }
 }
 

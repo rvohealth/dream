@@ -109,12 +109,13 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   constructor(data: DataType) {
     this._data = data
 
+    const serializerPrototype = Object.getPrototypeOf(this)
     const attributeStatements = [...(this.constructor as typeof DreamSerializer).attributeStatements]
 
     attributeStatements.forEach(attributeStatement => {
       if (!attributeStatement.functional) {
-        if (!Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), attributeStatement.field)?.get) {
-          Object.defineProperty(Object.getPrototypeOf(this), attributeStatement.field, {
+        if (!Object.getOwnPropertyDescriptor(serializerPrototype, attributeStatement.field)?.get) {
+          Object.defineProperty(serializerPrototype, attributeStatement.field, {
             get() {
               return this.$data[attributeStatement.field]
             },
@@ -263,6 +264,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
 
   private applyAssociation(associationStatement: DreamSerializerAssociationStatement) {
     const associatedData = this.associatedData(associationStatement)
+    console.debug({ associatedData })
 
     if (associationStatement.type === 'RendersMany' && Array.isArray(associatedData))
       return associatedData.map(d => this.renderAssociation(d, associationStatement))
