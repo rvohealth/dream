@@ -82,10 +82,6 @@ export default function BelongsTo<BaseInstance extends Dream, AssociationGlobalN
     context.addInitializer(function (this: BaseInstance) {
       const target = this
       const dreamClass: typeof Dream = target.constructor as typeof Dream
-      if (!dreamClass['globallyInitializingDecorators']) return
-
-      if (!Object.getOwnPropertyDescriptor(dreamClass, 'associationMetadataByType'))
-        dreamClass['associationMetadataByType'] = blankAssociationsFactory(dreamClass)
 
       const partialAssociation = associationPrimaryKeyAccessors(
         {
@@ -111,7 +107,13 @@ export default function BelongsTo<BaseInstance extends Dream, AssociationGlobalN
         },
       } as BelongsToStatement<any, any, any, any>
 
-      dreamClass['associationMetadataByType']['belongsTo'].push(association)
+      if (dreamClass['globallyInitializingDecorators']) {
+        if (!Object.getOwnPropertyDescriptor(dreamClass, 'associationMetadataByType'))
+          dreamClass['associationMetadataByType'] = blankAssociationsFactory(dreamClass)
+
+        dreamClass['associationMetadataByType']['belongsTo'].push(association)
+      }
+
       applyGetterAndSetter(target, association, { isBelongsTo: true, foreignKeyBase: foreignKey })
       if (!optional) validatesImplementation(target, key, 'requiredBelongsTo')
     })

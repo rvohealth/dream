@@ -521,33 +521,30 @@ export function applyGetterAndSetter(
 ) {
   const dreamClass: typeof Dream = target.constructor as typeof Dream
 
-  if (!Object.getOwnPropertyDescriptor(dreamClass.prototype, partialAssociation.as)?.get) {
-    Object.defineProperty(dreamClass.prototype, partialAssociation.as, {
-      configurable: true,
+  Object.defineProperty(target, partialAssociation.as, {
+    configurable: true,
 
-      get: function (this: Dream) {
-        const value = (this as any)[associationToGetterSetterProp(partialAssociation)]
-        if (value === undefined)
-          throw new NonLoadedAssociation({ dreamClass, associationName: partialAssociation.as })
-        else return value
-      },
+    get: function (this: Dream) {
+      const value = (this as any)[associationToGetterSetterProp(partialAssociation)]
+      if (value === undefined)
+        throw new NonLoadedAssociation({ dreamClass, associationName: partialAssociation.as })
+      else return value
+    },
 
-      set: function (this: Dream, associatedModel: any) {
-        // protect against a stage 3 decorator bug
-        if (this['stage3DecoratorBugGuardOn']) return
+    set: function (this: Dream, associatedModel: any) {
+      // protect against a stage 3 decorator bug
+      if (this['stage3DecoratorBugGuardOn']) return
+      ;(this as any)[associationToGetterSetterProp(partialAssociation)] = associatedModel
 
-        ;(this as any)[associationToGetterSetterProp(partialAssociation)] = associatedModel
-
-        if (isBelongsTo) {
-          ;(this as any)[finalForeignKey(foreignKeyBase, dreamClass, partialAssociation)] =
-            partialAssociation.primaryKeyValue(associatedModel)
-          if (partialAssociation.polymorphic)
-            (this as any)[foreignKeyTypeField(foreignKeyBase, dreamClass, partialAssociation)] =
-              associatedModel?.constructor?.name
-        }
-      },
-    })
-  }
+      if (isBelongsTo) {
+        ;(this as any)[finalForeignKey(foreignKeyBase, dreamClass, partialAssociation)] =
+          partialAssociation.primaryKeyValue(associatedModel)
+        if (partialAssociation.polymorphic)
+          (this as any)[foreignKeyTypeField(foreignKeyBase, dreamClass, partialAssociation)] =
+            associatedModel?.constructor?.name
+      }
+    },
+  })
 }
 
 export function associationPrimaryKeyAccessors(
