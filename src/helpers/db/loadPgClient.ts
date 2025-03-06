@@ -1,5 +1,7 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import pg from 'pg'
+
 import DreamApplication from '../../dream-application'
 
 export default async function loadPgClient({ useSystemDb }: { useSystemDb?: boolean } = {}) {
