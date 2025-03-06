@@ -1,6 +1,6 @@
-import Dream from '../../Dream'
-import { DecoratorContext } from '../DecoratorContextType'
-import { HookStatement, blankHooksFactory } from './shared'
+import Dream from '../../Dream.js'
+import { DecoratorContext } from '../DecoratorContextType.js'
+import { HookStatement, blankHooksFactory } from './shared.js'
 
 /**
  * Calls the decorated method whenever a dream has finished
@@ -11,7 +11,7 @@ import { HookStatement, blankHooksFactory } from './shared'
  * is complete.
  *
  * class User extends ApplicationModel {
- *   @Decorator.AfterDestroyCommit()
+ *   @Deco.AfterDestroyCommit()
  *   public doSomething() {
  *     ...
  *   }

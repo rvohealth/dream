@@ -1,4 +1,4 @@
-import standardizeFullyQualifiedModelName from './standardizeFullyQualifiedModelName'
+import standardizeFullyQualifiedModelName from './standardizeFullyQualifiedModelName.js'
 
 export default function (fullyQualifiedModelName: string, serializerType: 'default' | 'summary' = 'default') {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)

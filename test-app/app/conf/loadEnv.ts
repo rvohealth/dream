@@ -1,4 +1,4 @@
-import dotenv from 'dotenv'
+import * as dotenv from 'dotenv'
 import EnvInternal from '../../../src/helpers/EnvInternal'
 
 const filePath = `./.env${EnvInternal.isTest ? '.test' : ''}`

@@ -129,7 +129,7 @@ describe('camelize', () => {
 
     context('when passed a key with a Dream value', () => {
       it('does not alter Dream models', () => {
-        const balloon = new Balloon()
+        const balloon = Balloon.new()
         expect(camelize({ hello_world: balloon })).toEqual({ helloWorld: balloon })
       })
     })

@@ -36,7 +36,7 @@ describe('Dream AfterCreateCommit decorator', () => {
 
     context('one of the attributes specified in the "ifChanging" clause is changing to non-null', () => {
       it('calls hook', async () => {
-        jest.spyOn(Sandbag.prototype, 'conditionalAfterCreateCommitHook')
+        vi.spyOn(Sandbag.prototype, 'conditionalAfterCreateCommitHook')
         await mylar.createAssociation('sandbags', { weightKgs: 10 })
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -46,7 +46,7 @@ describe('Dream AfterCreateCommit decorator', () => {
 
     context('none of the attributes specified in the "ifChanging" clause are changing', () => {
       it('calls hook', async () => {
-        jest.spyOn(Sandbag.prototype, 'conditionalAfterCreateCommitHook')
+        vi.spyOn(Sandbag.prototype, 'conditionalAfterCreateCommitHook')
         await mylar.createAssociation('sandbags', { weight: 10 })
 
         // eslint-disable-next-line @typescript-eslint/unbound-method

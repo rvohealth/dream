@@ -1,4 +1,3 @@
-import { describe as context } from '@jest/globals'
 import { ExpressionBuilder } from 'kysely'
 import NonExistentScopeProvidedToResort from '../../../src/errors/NonExistentScopeProvidedToResort'
 import Balloon from '../../../test-app/app/models/Balloon'

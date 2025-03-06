@@ -1,4 +1,4 @@
-import DreamApplication from '.'
+import DreamApplication from './index.js'
 
 let _dreamApp: DreamApplication | undefined = undefined
 

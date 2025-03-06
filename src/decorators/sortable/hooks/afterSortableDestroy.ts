@@ -1,7 +1,7 @@
-import Dream from '../../../Dream'
-import Query from '../../../dream/Query'
-import clearCachedSortableValues from '../helpers/clearCachedSortableValues'
-import decrementPositionForScopedRecordsGreaterThanPosition from '../helpers/decrementScopedRecordsGreaterThanPosition'
+import Dream from '../../../Dream.js'
+import Query from '../../../dream/Query.js'
+import clearCachedSortableValues from '../helpers/clearCachedSortableValues.js'
+import decrementPositionForScopedRecordsGreaterThanPosition from '../helpers/decrementScopedRecordsGreaterThanPosition.js'
 
 export default async function afterSortableDestroy({
   positionField,

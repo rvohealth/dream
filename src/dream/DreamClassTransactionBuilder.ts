@@ -1,15 +1,15 @@
 import { SelectArg, SelectExpression, Updateable } from 'kysely'
-import { AssociationTableNames } from '../db/reflections'
-import { PassthroughOnClause, WhereStatement } from '../decorators/associations/shared'
-import Dream from '../Dream'
-import DreamTransaction from './DreamTransaction'
-import saveDream from './internal/saveDream'
+import { AssociationTableNames } from '../db/reflections.js'
+import { PassthroughOnClause, WhereStatement } from '../decorators/associations/shared.js'
+import Dream from '../Dream.js'
+import DreamTransaction from './DreamTransaction.js'
+import saveDream from './internal/saveDream.js'
 import Query, {
   BaseModelColumnTypes,
   FindEachOpts,
   QueryWithJoinedAssociationsType,
   QueryWithJoinedAssociationsTypeAndNoPreload,
-} from './Query'
+} from './Query.js'
 import {
   DefaultScopeName,
   DreamColumnNames,
@@ -24,7 +24,7 @@ import {
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
-} from './types'
+} from './types.js'
 
 export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
   /**
@@ -693,10 +693,10 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    *
    * ```ts
    * class Post {
-   *   @Post.HasMany('LocalizedText')
+   *   @Deco.HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    *
-   *   @Post.HasOne('LocalizedText', {
+   *   @Deco.HasOne('LocalizedText', {
    *     where: { locale: DreamConst.passthrough },
    *   })
    *   public currentLocalizedText: LocalizedText

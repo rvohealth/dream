@@ -1,11 +1,14 @@
-import { Client } from 'pg'
-import DreamApplication from '../../dream-application'
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import pg from 'pg'
+
+import DreamApplication from '../../dream-application/index.js'
 
 export default async function loadPgClient({ useSystemDb }: { useSystemDb?: boolean } = {}) {
   const dreamconf = DreamApplication.getOrFail()
   const creds = dreamconf.dbCredentials.primary
 
-  const client = new Client({
+  const client = new pg.Client({
     host: creds.host || 'localhost',
     port: creds.port,
     database: useSystemDb ? 'postgres' : creds.name,

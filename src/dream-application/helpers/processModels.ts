@@ -1,11 +1,13 @@
-import Dream from '../../Dream'
-import MissingTable from '../../errors/MissingTable'
-import getFiles from '../../helpers/getFiles'
-import globalModelKeyFromPath from './globalModelKeyFromPath'
+import Dream from '../../Dream.js'
+import MissingTable from '../../errors/MissingTable.js'
+import globalModelKeyFromPath from './globalModelKeyFromPath.js'
 
 let _models: Record<string, typeof Dream>
 
-export default async function loadModels(modelsPath: string): Promise<Record<string, typeof Dream>> {
+export default function processModels(
+  modelsPath: string,
+  modelClasses: [string, typeof Dream][]
+): Record<string, typeof Dream> {
   if (_models) return _models
 
   /**
@@ -17,13 +19,6 @@ export default async function loadModels(modelsPath: string): Promise<Record<str
   Dream['globallyInitializingDecorators'] = true
 
   _models = {}
-  const modelPaths = (await getFiles(modelsPath)).filter(path => /\.[jt]s$/.test(path))
-
-  const modelClasses: [string, typeof Dream][] = []
-
-  for (const modelPath of modelPaths) {
-    modelClasses.push([modelPath, (await import(modelPath)).default as typeof Dream])
-  }
 
   for (const [modelPath, modelClass] of modelClasses) {
     if (modelClass.isDream) {

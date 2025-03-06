@@ -6,7 +6,7 @@ import Scope from '../../../src/decorators/Scope'
 import Validates from '../../../src/decorators/validations/Validates'
 import Virtual from '../../../src/decorators/Virtual'
 import Query from '../../../src/dream/Query'
-import { DreamColumn, DreamSerializers, Type } from '../../../src/dream/types'
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import range from '../../../src/helpers/range'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
@@ -23,7 +23,7 @@ import PostComment from './PostComment'
 import Rating from './Rating'
 import UserSettings from './UserSettings'
 
-const Decorator = new Decorators<Type<typeof User>>()
+const Deco = new Decorators<InstanceType<typeof User>>()
 
 export default class User extends ApplicationModel {
   public get table() {
@@ -65,79 +65,79 @@ export default class User extends ApplicationModel {
   @Validates('length', { min: 4, max: 64 })
   public email: DreamColumn<User, 'email'>
 
-  @Decorator.HasOne('UserSettings')
+  @Deco.HasOne('UserSettings')
   public userSettings: UserSettings
 
-  @Decorator.HasMany('Post')
-  // @Decs.HasMany('Post', { dependent: 'destroy' })
+  @Deco.HasMany('Post')
+  // @Deco.HasMany('Post', { dependent: 'destroy' })
   public posts: Post[]
 
-  @Decorator.HasMany('Post', { withoutDefaultScopes: ['dream:SoftDelete'] })
+  @Deco.HasMany('Post', { withoutDefaultScopes: ['dream:SoftDelete'] })
   public allPosts: Post[]
 
-  @Decorator.HasMany('PostComment', { through: 'posts', source: 'comments' })
+  @Deco.HasMany('PostComment', { through: 'posts', source: 'comments' })
   public postComments: PostComment[]
 
-  @Decorator.HasMany('PostComment', {
+  @Deco.HasMany('PostComment', {
     through: 'allPosts',
     source: 'allComments',
   })
   public allPostComments: PostComment[]
 
-  @Decorator.HasMany('Rating')
+  @Deco.HasMany('Rating')
   public ratings: Rating[]
 
-  @Decorator.HasMany('ExtraRating/HeartRating')
+  @Deco.HasMany('ExtraRating/HeartRating')
   public heartRatings: HeartRating[]
 
-  @Decorator.HasMany('Rating', { through: 'posts', source: 'ratings' })
+  @Deco.HasMany('Rating', { through: 'posts', source: 'ratings' })
   public postRatings: Rating[]
 
-  @Decorator.HasOne('Post', { selfOn: { position: 'featuredPostPosition' } })
+  @Deco.HasOne('Post', { selfOn: { position: 'featuredPostPosition' } })
   public featuredPost: Post
 
-  @Decorator.HasMany('Rating', { through: 'featuredPost', source: 'ratings' })
+  @Deco.HasMany('Rating', { through: 'featuredPost', source: 'ratings' })
   public featuredRatings: Rating[]
 
-  @Decorator.HasMany('Rating', {
+  @Deco.HasMany('Rating', {
     through: 'posts',
     source: 'ratings',
     selfOn: { rating: 'targetRating' },
   })
   public ratingsThroughPostsThatMatchUserTargetRating: Rating[]
 
-  @Decorator.HasMany('Composition', { dependent: 'destroy' })
+  @Deco.HasMany('Composition', { dependent: 'destroy' })
   public compositions: Composition[]
 
-  @Decorator.HasOne('Composition', {
+  @Deco.HasOne('Composition', {
     on: { primary: true },
   })
   public mainComposition: Composition
 
-  @Decorator.HasMany('IncompatibleForeignKeyTypeExample')
+  @Deco.HasMany('IncompatibleForeignKeyTypeExample')
   public incompatibleForeignKeyTypeExamples: IncompatibleForeignKeyTypeExample[]
 
-  @Decorator.HasMany('CompositionAsset', {
+  @Deco.HasMany('CompositionAsset', {
     through: 'compositions',
   })
   public compositionAssets: CompositionAsset[]
 
-  @Decorator.HasOne('CompositionAsset', {
+  @Deco.HasOne('CompositionAsset', {
     through: 'mainComposition',
   })
   public mainCompositionAsset: CompositionAsset
 
-  @Decorator.HasMany('Composition', {
+  @Deco.HasMany('Composition', {
     order: { id: 'desc' },
   })
   public reverseOrderedCompositions: Composition[]
 
-  @Decorator.HasMany('Composition', {
+  @Deco.HasMany('Composition', {
     order: { content: 'asc', id: 'desc' },
   })
   public sortedCompositions: Composition[]
 
-  @Decorator.HasMany('Composition', {
+  @Deco.HasMany('Composition', {
     order: {
       content: 'asc',
       id: 'desc',
@@ -145,30 +145,30 @@ export default class User extends ApplicationModel {
   })
   public sortedCompositions2: Composition[]
 
-  @Decorator.HasMany('CompositionAssetAudit', {
+  @Deco.HasMany('CompositionAssetAudit', {
     through: 'compositionAssets',
   })
   public compositionAssetAudits: CompositionAssetAudit[]
 
   // recent associations
-  @Decorator.HasMany('Composition', {
+  @Deco.HasMany('Composition', {
     on: { createdAt: () => range(DateTime.now().minus({ week: 1 })) },
   })
   public recentCompositions: Composition[]
 
   // not recent associations (contrived so that we can test whereNot)
-  @Decorator.HasMany('Composition', {
+  @Deco.HasMany('Composition', {
     notOn: { createdAt: () => range(DateTime.now().minus({ week: 1 })) },
   })
   public notRecentCompositions: Composition[]
 
-  @Decorator.HasMany('CompositionAsset', {
+  @Deco.HasMany('CompositionAsset', {
     through: 'recentCompositions',
     source: 'compositionAssets',
   })
   public recentCompositionAssets: CompositionAsset[]
 
-  @Decorator.HasMany('CompositionAsset', {
+  @Deco.HasMany('CompositionAsset', {
     through: 'recentCompositions',
     source: 'mainCompositionAsset',
   })
@@ -177,46 +177,46 @@ export default class User extends ApplicationModel {
   // end:recent associations
 
   // missing through association
-  @Decorator.HasMany('CompositionAsset', { through: 'nonExtantCompositions' as any })
+  @Deco.HasMany('CompositionAsset', { through: 'nonExtantCompositions' as any })
   public nonExtantCompositionAssets1: CompositionAsset[]
   // end: missing through association
 
   // missing through association source
-  @Decorator.HasMany('CompositionAsset', { through: 'compositions' })
+  @Deco.HasMany('CompositionAsset', { through: 'compositions' })
   public nonExtantCompositionAssets2: CompositionAsset[]
   // end: missing through association source
 
-  @Decorator.HasMany('Balloon')
+  @Deco.HasMany('Balloon')
   public balloons: Balloon[]
 
-  @Decorator.HasMany('BalloonLine', { through: 'balloons', source: 'balloonLine' })
+  @Deco.HasMany('BalloonLine', { through: 'balloons', source: 'balloonLine' })
   public balloonLines: BalloonLine[]
 
-  @Decorator.HasMany('Pet')
+  @Deco.HasMany('Pet')
   public pets: Pet[]
 
   // allows us to find hidden pets
-  @Decorator.HasMany('Pet', {
+  @Deco.HasMany('Pet', {
     withoutDefaultScopes: ['dream:SoftDelete'],
   })
   public allPets: Pet[]
 
-  @Decorator.HasMany('Pet', { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
+  @Deco.HasMany('Pet', { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
   public petsFromUuid: Pet[]
 
-  @Decorator.HasOne('Pet', { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
+  @Deco.HasOne('Pet', { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
   public firstPetFromUuid: Pet
 
-  @Decorator.HasOne('Pet', { on: { name: 'Aster' } })
+  @Deco.HasOne('Pet', { on: { name: 'Aster' } })
   public asterPet: Pet
 
-  @Decorator.HasMany('Collar', { through: 'petsFromUuid', source: 'collars' })
+  @Deco.HasMany('Collar', { through: 'petsFromUuid', source: 'collars' })
   public collarsFromUuid: Collar[]
 
-  @Decorator.HasOne('Collar', { through: 'firstPetFromUuid', source: 'collars' })
+  @Deco.HasOne('Collar', { through: 'firstPetFromUuid', source: 'collars' })
   public firstCollarFromUuid: Collar[]
 
-  @Decorator.HasMany('Balloon', { through: 'collarsFromUuid', source: 'balloon' })
+  @Deco.HasMany('Balloon', { through: 'collarsFromUuid', source: 'balloon' })
   public balloonsFromUuid: Collar[]
 
   @Scope()
@@ -229,7 +229,7 @@ export default class User extends ApplicationModel {
     return query.where({ deletedAt: null })
   }
 
-  @Decorator.BeforeSave()
+  @Deco.BeforeSave()
   public async hashPass() {
     if (this.password)
       this.passwordDigest = await insecurePasswordHashSinceBcryptBringsInTooMuchGarbage(this.password)

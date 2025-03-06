@@ -1,6 +1,6 @@
-import { DreamConst, SerializableClassOrClasses } from '../../../dream/types'
-import hasSerializersGetter from '../helpers/hasSerializersGetter'
-import maybeSerializableToDreamSerializerCallbackFunction from '../helpers/maybeSerializableToDreamSerializerCallbackFunction'
+import { DreamConst, SerializableClassOrClasses } from '../../../dream/types.js'
+import hasSerializersGetter from '../helpers/hasSerializersGetter.js'
+import maybeSerializableToDreamSerializerCallbackFunction from '../helpers/maybeSerializableToDreamSerializerCallbackFunction.js'
 
 export type SerializableAssociationType = 'RendersOne' | 'RendersMany'
 

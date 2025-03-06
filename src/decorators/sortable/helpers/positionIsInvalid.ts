@@ -1,6 +1,6 @@
-import Dream from '../../../Dream'
-import Query from '../../../dream/Query'
-import applySortableScopeToQuery from './applySortableScopeToQuery'
+import Dream from '../../../Dream.js'
+import Query from '../../../dream/Query.js'
+import applySortableScopeToQuery from './applySortableScopeToQuery.js'
 
 export default async function positionIsInvalid({
   query,

@@ -1,5 +1,5 @@
-import Dream from '../../Dream'
-import DreamApplication from '../../dream-application'
+import Dream from '../../Dream.js'
+import DreamApplication from '../../dream-application/index.js'
 
 export default class FailedToIdentifyAssociation extends Error {
   constructor(

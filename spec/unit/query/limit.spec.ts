@@ -1,4 +1,3 @@
-import { describe as context } from '@jest/globals'
 import Post from '../../../test-app/app/models/Post'
 import User from '../../../test-app/app/models/User'
 import ops from '../../../src/ops'

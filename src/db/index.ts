@@ -1,10 +1,10 @@
 import { Kysely } from 'kysely'
 import { Settings } from 'luxon'
-import Dream from '../Dream'
-import EnvInternal from '../helpers/EnvInternal'
-import '../helpers/loadEnv'
-import DreamDbConnection from './DreamDbConnection'
-import { DbConnectionType } from './types'
+import Dream from '../Dream.js'
+import EnvInternal from '../helpers/EnvInternal.js'
+import '../helpers/loadEnv.js'
+import DreamDbConnection from './DreamDbConnection.js'
+import { DbConnectionType } from './types.js'
 
 if (EnvInternal.string('TZ', { optional: true })) Settings.defaultZone = EnvInternal.string('TZ')
 

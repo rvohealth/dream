@@ -72,7 +72,7 @@ describe('Dream AfterSaveCommit decorator', () => {
 
     context('one of the attributes specified in the "ifChanging" clause is changing', () => {
       it('calls hook', async () => {
-        jest.spyOn(Sandbag.prototype, 'conditionalAfterSaveCommitHook')
+        vi.spyOn(Sandbag.prototype, 'conditionalAfterSaveCommitHook')
         await sandbag.update({ weight: 11 })
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -83,7 +83,7 @@ describe('Dream AfterSaveCommit decorator', () => {
     context('none of the attributes specified in the "ifChanging" clause are changing', () => {
       it('calls hook', async () => {
         await sandbag.update({ weight: null })
-        jest.spyOn(Sandbag.prototype, 'conditionalAfterSaveCommitHook')
+        vi.spyOn(Sandbag.prototype, 'conditionalAfterSaveCommitHook')
         await sandbag.update({ weightKgs: 120 })
 
         // eslint-disable-next-line @typescript-eslint/unbound-method

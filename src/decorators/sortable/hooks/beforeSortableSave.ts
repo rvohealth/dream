@@ -1,9 +1,9 @@
-import Dream from '../../../Dream'
-import Query from '../../../dream/Query'
-import positionIsInvalid from '../helpers/positionIsInvalid'
-import scopeArray from '../helpers/scopeArray'
-import sortableCacheKeyName from '../helpers/sortableCacheKeyName'
-import sortableCacheValuesName from '../helpers/sortableCacheValuesName'
+import Dream from '../../../Dream.js'
+import Query from '../../../dream/Query.js'
+import positionIsInvalid from '../helpers/positionIsInvalid.js'
+import scopeArray from '../helpers/scopeArray.js'
+import sortableCacheKeyName from '../helpers/sortableCacheKeyName.js'
+import sortableCacheValuesName from '../helpers/sortableCacheValuesName.js'
 
 export default async function beforeSortableSave({
   positionField,

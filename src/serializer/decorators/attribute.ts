@@ -1,10 +1,10 @@
-import DreamSerializer from '..'
-import { DecoratorContext } from '../../decorators/DecoratorContextType'
-import Dream from '../../Dream'
-import { RoundingPrecision } from '../../helpers/round'
-import { isString } from '../../helpers/typechecks'
-import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../openapi/types'
-import { dreamAttributeOpenapiShape } from './helpers/dreamAttributeOpenapiShape'
+import DreamSerializer from '../index.js'
+import { DecoratorContext } from '../../decorators/DecoratorContextType.js'
+import Dream from '../../Dream.js'
+import { RoundingPrecision } from '../../helpers/round.js'
+import { isString } from '../../helpers/typechecks.js'
+import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../openapi/types.js'
+import { dreamAttributeOpenapiShape } from './helpers/dreamAttributeOpenapiShape.js'
 
 export default function Attribute(): any
 
@@ -113,7 +113,10 @@ export default function Attribute(
     context.addInitializer(function (this: DreamSerializer) {
       const target = this
       const serializerClass: typeof DreamSerializer = target.constructor as typeof DreamSerializer
-      if (!serializerClass['globallyInitializingDecorators']) return
+      if (!serializerClass['globallyInitializingDecorators']) {
+        delete (this as any)[key]
+        return
+      }
 
       let renderAs: SerializableTypes | undefined
       let openApiShape: OpenapiSchemaBodyShorthand | undefined
@@ -161,10 +164,6 @@ Attribute: ${key}
         } as AttributeStatement,
       ]
     })
-
-    return function (this: DreamSerializer) {
-      return (this as any)[key]
-    }
   }
 }
 

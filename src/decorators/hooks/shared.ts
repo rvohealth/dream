@@ -1,5 +1,5 @@
-import Dream from '../../Dream'
-import { DreamColumnNames } from '../../dream/types'
+import Dream from '../../Dream.js'
+import { DreamColumnNames } from '../../dream/types.js'
 
 export type HookType =
   | 'beforeCreate'

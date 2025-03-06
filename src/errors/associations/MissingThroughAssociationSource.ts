@@ -1,6 +1,6 @@
-import { HasManyStatement } from '../../decorators/associations/HasMany'
-import { HasOneStatement } from '../../decorators/associations/HasOne'
-import Dream from '../../Dream'
+import { HasManyStatement } from '../../decorators/associations/HasMany.js'
+import { HasOneStatement } from '../../decorators/associations/HasOne.js'
+import Dream from '../../Dream.js'
 
 export default class MissingThroughAssociationSource extends Error {
   public dreamClass: typeof Dream

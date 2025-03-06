@@ -1,8 +1,8 @@
 import * as fs from 'fs/promises'
-import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths'
-import dreamPath from '../path/dreamPath'
-import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
-import generateSerializerContent from './generateSerializerContent'
+import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths.js'
+import dreamPath from '../path/dreamPath.js'
+import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
+import generateSerializerContent from './generateSerializerContent.js'
 
 export default async function generateSerializer({
   fullyQualifiedModelName,

@@ -1,6 +1,6 @@
 import { ComparisonOperatorExpression as KyselyComparisonOperatorExpression } from 'kysely'
-import { TRIGRAM_OPERATORS, TrigramOperator } from '../dream/types'
-import ScoreMustBeANormalNumber from '../errors/ops/ScoreMustBeANormalNumber'
+import { TRIGRAM_OPERATORS, TrigramOperator } from '../dream/types.js'
+import ScoreMustBeANormalNumber from '../errors/ops/ScoreMustBeANormalNumber.js'
 
 export interface ExtraSimilarityArgs {
   score?: number

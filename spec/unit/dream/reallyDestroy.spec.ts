@@ -19,7 +19,7 @@ describe('Dream#reallyDestroy', () => {
   context('skipHooks passed', () => {
     it('passes along skipHooks to underlying destroyDream call', async () => {
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-      const spy = jest.spyOn(destroyDreamModule, 'default')
+      const spy = vi.spyOn(destroyDreamModule, 'default')
       await user.reallyDestroy({ skipHooks: true })
       expect(spy).toHaveBeenCalledWith(user, null, expect.objectContaining({ skipHooks: true }))
     })
@@ -28,7 +28,7 @@ describe('Dream#reallyDestroy', () => {
   context('cascade passed', () => {
     it('passes along cascade to underlying destroyDream call', async () => {
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-      const spy = jest.spyOn(destroyDreamModule, 'default')
+      const spy = vi.spyOn(destroyDreamModule, 'default')
       await user.reallyDestroy({ cascade: false })
       expect(spy).toHaveBeenCalledWith(user, null, expect.objectContaining({ cascade: false }))
     })
@@ -157,7 +157,7 @@ describe('Dream#reallyDestroy', () => {
           const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
           const post = await Post.create({ user })
 
-          const spy = jest.spyOn(Query.prototype, 'destroy')
+          const spy = vi.spyOn(Query.prototype, 'destroy')
 
           await ApplicationModel.transaction(async txn => {
             await post.txn(txn).reallyDestroy({ skipHooks: true })

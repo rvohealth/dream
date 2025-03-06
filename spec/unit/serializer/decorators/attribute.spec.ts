@@ -3,6 +3,7 @@ import { OpenapiSchemaBody } from '../../../../src/openapi/types'
 import Balloon from '../../../../test-app/app/models/Balloon'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec'
 import { BalloonTypesEnumValues, SpeciesTypesEnumValues } from '../../../../test-app/types/db'
+import processDynamicallyDefinedSerializers from '../../../helpers/processDynamicallyDefinedSerializers'
 
 describe('@Attribute', () => {
   context('with no arguments', () => {
@@ -11,6 +12,7 @@ describe('@Attribute', () => {
         @Attribute()
         public name: string
       }
+      processDynamicallyDefinedSerializers(TestSerializer)
 
       expect(TestSerializer.attributeStatements).toEqual([
         {
@@ -31,6 +33,7 @@ describe('@Attribute', () => {
           @Attribute(ModelForOpenapiTypeSpecs)
           public name: string
         }
+        processDynamicallyDefinedSerializers(TestSerializer)
 
         const expectedOpenapiShape: OpenapiSchemaBody = { type: 'string', nullable: true }
 
@@ -52,6 +55,7 @@ describe('@Attribute', () => {
           @Attribute(Balloon)
           public type: string
         }
+        processDynamicallyDefinedSerializers(TestSerializer)
 
         const expectedOpenapiShape: OpenapiSchemaBody = {
           type: 'string',
@@ -75,6 +79,7 @@ describe('@Attribute', () => {
             @Attribute(ModelForOpenapiTypeSpecs)
             public species: string
           }
+          processDynamicallyDefinedSerializers(TestSerializer)
 
           const expectedOpenapiShape: OpenapiSchemaBody = {
             type: 'string',
@@ -101,6 +106,7 @@ describe('@Attribute', () => {
           @Attribute(ModelForOpenapiTypeSpecs, { description: 'Hello world' })
           public name: string
         }
+        processDynamicallyDefinedSerializers(TestSerializer)
 
         const expectedOpenapiShape: OpenapiSchemaBody = {
           type: 'string',
@@ -126,6 +132,7 @@ describe('@Attribute', () => {
           @Attribute(ModelForOpenapiTypeSpecs)
           public collarCountInt: number
         }
+        processDynamicallyDefinedSerializers(TestSerializer)
 
         const expectedOpenapiShape: OpenapiSchemaBody = { type: 'integer', nullable: true }
 
@@ -147,6 +154,7 @@ describe('@Attribute', () => {
           @Attribute(ModelForOpenapiTypeSpecs, { precision: 2 })
           public volume: number
         }
+        processDynamicallyDefinedSerializers(TestSerializer)
 
         const expectedOpenapiShape: OpenapiSchemaBody = { type: 'number', format: 'decimal', nullable: true }
 
@@ -169,6 +177,7 @@ describe('@Attribute', () => {
         @Attribute('date-time[]')
         public name: string
       }
+      processDynamicallyDefinedSerializers(TestSerializer)
 
       expect(TestSerializer.attributeStatements).toEqual([
         {
@@ -189,6 +198,7 @@ describe('@Attribute', () => {
             @Attribute('date-time[]', { nullable: true, delegate: 'hello', description: 'Hello world' })
             public name: string
           }
+          processDynamicallyDefinedSerializers(TestSerializer)
 
           expect(TestSerializer.attributeStatements).toEqual([
             {
@@ -210,6 +220,7 @@ describe('@Attribute', () => {
         @Attribute({ type: 'date', description: 'Hello world' })
         public name: string
       }
+      processDynamicallyDefinedSerializers(TestSerializer)
 
       expect(TestSerializer.attributeStatements).toEqual([
         {
@@ -230,6 +241,7 @@ describe('@Attribute', () => {
             @Attribute({ type: 'decimal', nullable: true }, { precision: 2 })
             public name: string
           }
+          processDynamicallyDefinedSerializers(TestSerializer)
 
           expect(TestSerializer.attributeStatements).toEqual([
             {

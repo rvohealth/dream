@@ -2,7 +2,7 @@ import User from '../../../test-app/app/models/User'
 import Balloon from '../../../test-app/app/models/Balloon'
 import CalendarDate from '../../../src/helpers/CalendarDate'
 
-describe('jestMatchers', () => {
+describe('viMatchers', () => {
   describe('toMatchDreamModel', () => {
     let user: User
     let balloon: Balloon
@@ -13,7 +13,7 @@ describe('jestMatchers', () => {
     })
 
     it('can match with asymmetrical matchers', () => {
-      const mock = jest.fn()
+      const mock = vi.fn()
       mock(user)
 
       expect(mock).toHaveBeenCalledWith(expect.toMatchDreamModel(user))
@@ -21,7 +21,7 @@ describe('jestMatchers', () => {
     })
 
     it('can be used with toHaveBeenCalledWith multiple times', () => {
-      const mock = jest.fn()
+      const mock = vi.fn()
       mock(user, balloon)
 
       expect(mock).toHaveBeenCalledWith(expect.toMatchDreamModel(user), expect.toMatchDreamModel(balloon))
@@ -50,7 +50,7 @@ describe('jestMatchers', () => {
 
   describe('toEqualCalendarDate', () => {
     it('can match with asymmetrical matchers', () => {
-      const mock = jest.fn()
+      const mock = vi.fn()
       const calendarDate = CalendarDate.today()
       mock(calendarDate)
 
@@ -58,7 +58,7 @@ describe('jestMatchers', () => {
     })
 
     it('can be used with toHaveBeenCalledWith multiple times', () => {
-      const mock = jest.fn()
+      const mock = vi.fn()
       const today = CalendarDate.today()
       const tomorrow = CalendarDate.tomorrow()
       mock(today, tomorrow)

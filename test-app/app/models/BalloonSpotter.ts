@@ -1,11 +1,11 @@
 import { Decorators } from '../../../src'
-import { DreamColumn, DreamSerializers, Type } from '../../../src/dream/types'
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
 import BalloonSpotterBalloon from './BalloonSpotterBalloon'
 import User from './User'
 
-const Decorator = new Decorators<Type<typeof BalloonSpotter>>()
+const Deco = new Decorators<InstanceType<typeof BalloonSpotter>>()
 
 export default class BalloonSpotter extends ApplicationModel {
   public get table() {
@@ -21,12 +21,12 @@ export default class BalloonSpotter extends ApplicationModel {
   public createdAt: DreamColumn<BalloonSpotter, 'createdAt'>
   public updatedAt: DreamColumn<BalloonSpotter, 'updatedAt'>
 
-  @Decorator.HasMany('BalloonSpotterBalloon')
+  @Deco.HasMany('BalloonSpotterBalloon')
   public balloonSpotterBalloons: BalloonSpotterBalloon[]
 
-  @Decorator.HasMany('Balloon', { through: 'balloonSpotterBalloons', source: 'balloon' })
+  @Deco.HasMany('Balloon', { through: 'balloonSpotterBalloons', source: 'balloon' })
   public balloons: Balloon[]
 
-  @Decorator.HasMany('User', { through: 'balloonSpotterBalloons', source: 'user' })
+  @Deco.HasMany('User', { through: 'balloonSpotterBalloons', source: 'user' })
   public users: User[]
 }

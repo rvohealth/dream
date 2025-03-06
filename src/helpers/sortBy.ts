@@ -1,10 +1,11 @@
-import { IdType } from '../dream/types'
+import { IdType } from '../dream/types.js'
 
 export default function sortBy<T>(
   array: T[],
   valueToCompare: (value: T) => number | string | bigint | IdType
 ): T[] {
-  return array.sort((a: T, b: T) => {
+  const arrayClone = [...array]
+  return arrayClone.sort((a: T, b: T) => {
     const aPrime = valueToCompare(a)
     const bPrime = valueToCompare(b)
 

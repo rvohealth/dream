@@ -1,12 +1,12 @@
 import * as fs from 'fs/promises'
-import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths'
-import dreamPath from '../path/dreamPath'
-import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName'
-import generateDreamContent from './generateDreamContent'
-import generateFactory from './generateFactory'
-import generateMigration from './generateMigration'
-import generateSerializer from './generateSerializer'
-import generateUnitSpec from './generateUnitSpec'
+import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths.js'
+import dreamPath from '../path/dreamPath.js'
+import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
+import generateDreamContent from './generateDreamContent.js'
+import generateFactory from './generateFactory.js'
+import generateMigration from './generateMigration.js'
+import generateSerializer from './generateSerializer.js'
+import generateUnitSpec from './generateUnitSpec.js'
 
 export default async function generateDream({
   fullyQualifiedModelName,
