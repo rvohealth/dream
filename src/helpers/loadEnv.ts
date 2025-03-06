@@ -11,10 +11,16 @@ if (typeof importMeta !== 'undefined') {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   const __filename = fileURLToPath(import.meta.url)
-  const __dirname = dirname(__filename)
-  finalDirname = __dirname
+  finalDirname = dirname(__filename)
 } else {
-  finalDirname = __dirname
+  try {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    finalDirname = __dirname
+  } catch {
+    const __filename = fileURLToPath(import.meta.url)
+    finalDirname = dirname(__filename)
+  }
 }
 
 const fileName = `.env${EnvInternal.isTest ? '.test' : ''}`
