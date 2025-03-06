@@ -1,8 +1,8 @@
-import './loadEnv'
+import './loadEnv.js'
 
 import * as repl from 'node:repl'
-import { loadRepl } from '../../../src'
-import initializeDreamApplication from '../../cli/helpers/initializeDreamApplication'
+import { loadRepl } from '../../../src/index.js'
+import initializeDreamApplication from '../../cli/helpers/initializeDreamApplication.js'
 
 const replServer = repl.start('> ')
 export default (async function () {

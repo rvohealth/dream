@@ -1,4 +1,4 @@
-import Dream from '../../../Dream'
+import Dream from '../../../Dream.js'
 
 export default function isJsonColumn<
   T extends typeof Dream,

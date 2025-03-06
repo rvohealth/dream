@@ -1,5 +1,5 @@
 import * as crypto from 'crypto'
-import { EncryptAESAlgorithm, PsychicEncryptionPayload } from '../..'
+import { EncryptAESAlgorithm, PsychicEncryptionPayload } from '../../index.js'
 
 export default function decryptAESGCM<RetType>(
   algorithm: EncryptAESAlgorithm,

@@ -1,8 +1,9 @@
-import * as pluralize from 'pluralize'
-import { PrimaryKeyType } from '../../dream/types'
-import InvalidDecimalFieldPassedToGenerator from '../../errors/InvalidDecimalFieldPassedToGenerator'
-import foreignKeyTypeFromPrimaryKey from '../db/foreignKeyTypeFromPrimaryKey'
-import snakeify from '../snakeify'
+import pluralize from 'pluralize-esm'
+import { PrimaryKeyType } from '../../dream/types.js'
+import InvalidDecimalFieldPassedToGenerator from '../../errors/InvalidDecimalFieldPassedToGenerator.js'
+import foreignKeyTypeFromPrimaryKey from '../db/foreignKeyTypeFromPrimaryKey.js'
+import snakeify from '../snakeify.js'
+
 interface ColumnDefsAndDrops {
   columnDefs: string[]
   columnDrops: string[]
@@ -89,7 +90,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     ? `  await DreamMigrationHelpers.createExtension(db, 'citext')\n\n`
     : ''
   const kyselyImports = ['Kysely', 'sql']
-  const dreamImports = []
+  const dreamImports: string[] = []
   if (requireCitextExtension) dreamImports.push('DreamMigrationHelpers')
 
   const newline = '\n    '

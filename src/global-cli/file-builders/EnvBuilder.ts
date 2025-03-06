@@ -1,4 +1,4 @@
-import generateEncryptionKey from '../helpers/generateEncryptionKey'
+import generateEncryptionKey from '../helpers/generateEncryptionKey.js'
 
 export default class EnvBuilder {
   public static build({ env, appName }: { env: 'test' | 'development' | 'production'; appName: string }) {

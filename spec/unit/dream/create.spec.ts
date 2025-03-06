@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon'
+import { MockInstance } from 'vitest'
 import { Dream, DreamTransaction } from '../../../src'
 import DreamDbConnection from '../../../src/db/DreamDbConnection'
 import ReplicaSafe from '../../../src/decorators/ReplicaSafe'
@@ -51,8 +52,8 @@ describe('Dream.create', () => {
 
     context('model hooks', () => {
       let user: User
-      let hooksSpy: jest.SpyInstance
-      let commitHooksSpy: jest.SpyInstance
+      let hooksSpy: MockInstance
+      let commitHooksSpy: MockInstance
 
       function expectAfterCreateAndSaveHooksCalled(dream: Dream) {
         expect(hooksSpy).toHaveBeenCalledWith(
@@ -118,8 +119,8 @@ describe('Dream.create', () => {
 
       it('calls model hooks', async () => {
         await ApplicationModel.transaction(async txn => {
-          hooksSpy = jest.spyOn(runHooksForModule, 'default')
-          commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+          hooksSpy = vi.spyOn(runHooksForModule, 'default')
+          commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
           user = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
         })
 
@@ -132,8 +133,8 @@ describe('Dream.create', () => {
 
           try {
             await ApplicationModel.transaction(async txn => {
-              hooksSpy = jest.spyOn(runHooksForModule, 'default')
-              commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+              hooksSpy = vi.spyOn(runHooksForModule, 'default')
+              commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
               user = await User.txn(txn).create({ email: 'fred@alreadyexists', password: 'howyadoin' })
             })
           } catch {
@@ -147,7 +148,7 @@ describe('Dream.create', () => {
   })
 
   context('encrypted columns', () => {
-    it.only('allows saving of encrypted fields', async () => {
+    it('allows saving of encrypted fields', async () => {
       let user = await User.create({ email: 'how@yadoin', password: 'howyadoin', secret: 'shh!' })
       user = await User.findOrFail(user.id)
       expect(user.secret).toEqual('shh!')
@@ -222,7 +223,7 @@ describe('Dream.create', () => {
 
   context('regarding connections', () => {
     beforeEach(() => {
-      jest.spyOn(DreamDbConnection, 'getConnection')
+      vi.spyOn(DreamDbConnection, 'getConnection')
     })
 
     it('uses primary connection', async () => {

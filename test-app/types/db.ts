@@ -380,6 +380,20 @@ export interface IncompatibleForeignKeyTypeExamples {
   userId: number;
 }
 
+export interface InvalidAssociationSortableModels {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  position: number | null;
+  updatedAt: Timestamp;
+}
+
+export interface InvalidScopeSortableModels {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  position: number | null;
+  updatedAt: Timestamp;
+}
+
 export interface LocalizedTexts {
   body: string | null;
   createdAt: Timestamp;
@@ -546,6 +560,13 @@ export interface Sandbags {
   weightTons: number | null;
 }
 
+export interface UnscopedSortableModels {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  position: number | null;
+  updatedAt: Timestamp;
+}
+
 export interface Users {
   birthdate: Timestamp | null;
   createdAt: Timestamp;
@@ -590,6 +611,8 @@ export interface DB {
   graph_edges: GraphEdges;
   graph_nodes: GraphNodes;
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples;
+  invalid_association_sortable_models: InvalidAssociationSortableModels;
+  invalid_scope_sortable_models: InvalidScopeSortableModels;
   localized_texts: LocalizedTexts;
   model_for_openapi_type_specs: ModelForOpenapiTypeSpecs;
   model_with_serial_primary_keys: ModelWithSerialPrimaryKeys;
@@ -603,6 +626,7 @@ export interface DB {
   posts: Posts;
   ratings: Ratings;
   sandbags: Sandbags;
+  unscoped_sortable_models: UnscopedSortableModels;
   user_settings: UserSettings;
   users: Users;
 }
@@ -623,6 +647,8 @@ export class DBClass {
   graph_edges: GraphEdges
   graph_nodes: GraphNodes
   incompatible_foreign_key_type_examples: IncompatibleForeignKeyTypeExamples
+  invalid_association_sortable_models: InvalidAssociationSortableModels
+  invalid_scope_sortable_models: InvalidScopeSortableModels
   localized_texts: LocalizedTexts
   model_for_openapi_type_specs: ModelForOpenapiTypeSpecs
   model_with_serial_primary_keys: ModelWithSerialPrimaryKeys
@@ -636,6 +662,7 @@ export class DBClass {
   posts: Posts
   ratings: Ratings
   sandbags: Sandbags
+  unscoped_sortable_models: UnscopedSortableModels
   user_settings: UserSettings
   users: Users
 }

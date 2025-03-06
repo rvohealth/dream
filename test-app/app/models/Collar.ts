@@ -1,12 +1,12 @@
 import { Decorators, SoftDelete } from '../../../src'
 import Scope from '../../../src/decorators/Scope'
 import Query from '../../../src/dream/Query'
-import { DreamColumn, DreamSerializers, Type } from '../../../src/dream/types'
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
 import Pet from './Pet'
 
-const Decorator = new Decorators<Type<typeof Collar>>()
+const Deco = new Decorators<InstanceType<typeof Collar>>()
 
 @SoftDelete()
 export default class Collar extends ApplicationModel {
@@ -24,14 +24,14 @@ export default class Collar extends ApplicationModel {
   public createdAt: DreamColumn<Collar, 'createdAt'>
   public updatedAt: DreamColumn<Collar, 'updatedAt'>
 
-  @Decorator.Sortable({ scope: ['pet', 'tagName'] })
+  @Deco.Sortable({ scope: ['pet', 'tagName'] })
   public position: DreamColumn<Collar, 'position'>
 
-  @Decorator.BelongsTo('Pet')
+  @Deco.BelongsTo('Pet')
   public pet: Pet
   public petId: DreamColumn<Collar, 'petId'>
 
-  @Decorator.BelongsTo('Balloon', { foreignKey: 'balloonId', optional: true })
+  @Deco.BelongsTo('Balloon', { foreignKey: 'balloonId', optional: true })
   public balloon: Balloon
   public balloonId: DreamColumn<Collar, 'balloonId'>
 

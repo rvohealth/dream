@@ -1,4 +1,4 @@
-import Dream from '../Dream'
+import Dream from '../Dream.js'
 
 export default class NonExistentScopeProvidedToResort extends Error {
   private scopes: string[]

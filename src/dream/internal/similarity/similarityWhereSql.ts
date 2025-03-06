@@ -1,8 +1,8 @@
 import { ExpressionBuilder, sql } from 'kysely'
-import validateColumn from '../../../db/validators/validateColumn'
-import validateTable from '../../../db/validators/validateTable'
-import Dream from '../../../Dream'
-import OpsStatement from '../../../ops/ops-statement'
+import validateColumn from '../../../db/validators/validateColumn.js'
+import validateTable from '../../../db/validators/validateTable.js'
+import Dream from '../../../Dream.js'
+import OpsStatement from '../../../ops/ops-statement.js'
 
 export default function similarityWhereSql<DreamInstance extends Dream>({
   eb,

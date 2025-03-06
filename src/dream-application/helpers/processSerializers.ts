@@ -1,13 +1,13 @@
-import SerializerNameConflict from '../../errors/dream-application/SerializerNameConflict'
-import getFiles from '../../helpers/getFiles'
-import DreamSerializer from '../../serializer'
-import globalSerializerKeyFromPath from './globalSerializerKeyFromPath'
+import SerializerNameConflict from '../../errors/dream-application/SerializerNameConflict.js'
+import DreamSerializer from '../../serializer/index.js'
+import globalSerializerKeyFromPath from './globalSerializerKeyFromPath.js'
 
 let _serializers: Record<string, typeof DreamSerializer>
 
-export default async function loadSerializers(
-  serializersPath: string
-): Promise<Record<string, typeof DreamSerializer>> {
+export default function processSerializers(
+  serializersPath: string,
+  serializerClasses: [string, Record<string, typeof DreamSerializer>][]
+): Record<string, typeof DreamSerializer> {
   if (_serializers) return _serializers
   /**
    * Certain features (e.g. building OpenAPI specs from Attribute and RendersOne/Many decorators)
@@ -18,20 +18,17 @@ export default async function loadSerializers(
   DreamSerializer['globallyInitializingDecorators'] = true
 
   _serializers = {}
-  const serializerPaths = (await getFiles(serializersPath)).filter(path => /\.[jt]s$/.test(path))
 
-  for (const serializerPath of serializerPaths) {
-    const allSerializers = await import(serializerPath)
-
+  for (const [serializerPath, allSerializers] of serializerClasses) {
     Object.keys(allSerializers).forEach(key => {
       const potentialSerializer = allSerializers[key]
 
-      if ((potentialSerializer as typeof DreamSerializer)?.isDreamSerializer) {
+      if (potentialSerializer?.isDreamSerializer) {
         const serializerKey = globalSerializerKeyFromPath(serializerPath, serializersPath, key)
 
         if (_serializers[serializerKey]) throw new SerializerNameConflict(serializerKey)
 
-        const serializerClass = potentialSerializer as typeof DreamSerializer
+        const serializerClass = potentialSerializer
         serializerClass['setGlobalName'](serializerKey)
 
         /**

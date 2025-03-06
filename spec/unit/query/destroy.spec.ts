@@ -1,3 +1,4 @@
+import { MockInstance } from 'vitest'
 import { Dream, DreamTransaction } from '../../../src'
 import DreamDbConnection from '../../../src/db/DreamDbConnection'
 import ReplicaSafe from '../../../src/decorators/ReplicaSafe'
@@ -17,9 +18,9 @@ import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
 
 describe('Query#destroy', () => {
-  let hooksSpy: jest.SpyInstance
-  let commitHooksSpy: jest.SpyInstance
-  let cascadeSpy: jest.SpyInstance
+  let hooksSpy: MockInstance
+  let commitHooksSpy: MockInstance
+  let cascadeSpy: MockInstance
 
   function expectDestroyHooksCalled(dream: Dream) {
     expect(hooksSpy).toHaveBeenCalledWith(
@@ -92,8 +93,8 @@ describe('Query#destroy', () => {
     it('calls model hooks', async () => {
       const pet = await Pet.create()
 
-      hooksSpy = jest.spyOn(runHooksForModule, 'default')
-      commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+      hooksSpy = vi.spyOn(runHooksForModule, 'default')
+      commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
       await Pet.query().destroy()
 
@@ -104,8 +105,8 @@ describe('Query#destroy', () => {
       it('skips model hooks', async () => {
         const pet = await Pet.create()
 
-        hooksSpy = jest.spyOn(runHooksForModule, 'default')
-        commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+        hooksSpy = vi.spyOn(runHooksForModule, 'default')
+        commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
         await Pet.query().destroy({ skipHooks: true })
 
@@ -117,8 +118,8 @@ describe('Query#destroy', () => {
       it('calls model hooks', async () => {
         const pet = await Pet.create()
 
-        hooksSpy = jest.spyOn(runHooksForModule, 'default')
-        commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+        hooksSpy = vi.spyOn(runHooksForModule, 'default')
+        commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
         await Pet.query().destroy()
 
@@ -129,8 +130,8 @@ describe('Query#destroy', () => {
         it('skips model hooks', async () => {
           const pet = await Pet.create()
 
-          hooksSpy = jest.spyOn(runHooksForModule, 'default')
-          commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+          hooksSpy = vi.spyOn(runHooksForModule, 'default')
+          commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
           await Pet.query().destroy({ skipHooks: true })
 
@@ -155,8 +156,8 @@ describe('Query#destroy', () => {
       expect(await Rating.count()).toEqual(1)
       expect(await HeartRating.count()).toEqual(1)
 
-      hooksSpy = jest.spyOn(runHooksForModule, 'default')
-      commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+      hooksSpy = vi.spyOn(runHooksForModule, 'default')
+      commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
     })
 
     it('cascade deletes all related HasMany associations, including deeply nested associations', async () => {
@@ -334,8 +335,8 @@ describe('Query#destroy', () => {
 
       expect(await LocalizedText.count()).toEqual(2)
 
-      hooksSpy = jest.spyOn(runHooksForModule, 'default')
-      commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+      hooksSpy = vi.spyOn(runHooksForModule, 'default')
+      commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
     })
 
     it('cascade deletes all related HasOne associations', async () => {
@@ -360,7 +361,7 @@ describe('Query#destroy', () => {
     it('skips cascade-destroying associations', async () => {
       const pet = await Pet.create()
 
-      cascadeSpy = jest.spyOn(destroyAssociatedRecordsModule, 'default')
+      cascadeSpy = vi.spyOn(destroyAssociatedRecordsModule, 'default')
 
       await Pet.query().destroy({ cascade: false })
 
@@ -372,7 +373,7 @@ describe('Query#destroy', () => {
     beforeEach(async () => {
       await User.create({ email: 'fred@fred', password: 'howyadoin' })
 
-      jest.spyOn(DreamDbConnection, 'getConnection')
+      vi.spyOn(DreamDbConnection, 'getConnection')
     })
 
     it('uses primary connection', async () => {

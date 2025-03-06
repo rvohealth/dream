@@ -1,4 +1,4 @@
-import DreamApplication, { DreamDirectoryPaths } from '../../dream-application'
+import DreamApplication, { DreamDirectoryPaths } from '../../dream-application/index.js'
 
 export default function (dreamPathType: DreamPaths) {
   const dreamApp = DreamApplication.getOrFail()

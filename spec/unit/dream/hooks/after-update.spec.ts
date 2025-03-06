@@ -24,7 +24,7 @@ describe('Dream AfterUpdate decorator', () => {
 
     context('one of the attributes specified in the "ifChanging" clause is changing to non-null', () => {
       it('calls hook', async () => {
-        jest.spyOn(Sandbag.prototype, 'conditionalAfterUpdateHook')
+        vi.spyOn(Sandbag.prototype, 'conditionalAfterUpdateHook')
         await sandbag.update({ weightTons: 11 })
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -36,7 +36,7 @@ describe('Dream AfterUpdate decorator', () => {
       it('calls hook', async () => {
         await sandbag.update({ weightTons: 11 })
 
-        jest.spyOn(Sandbag.prototype, 'conditionalAfterUpdateHook')
+        vi.spyOn(Sandbag.prototype, 'conditionalAfterUpdateHook')
         await sandbag.update({ weightTons: null })
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -47,7 +47,7 @@ describe('Dream AfterUpdate decorator', () => {
     context('none of the attributes specified in the "ifChanging" clause are changing', () => {
       it('calls hook', async () => {
         await sandbag.update({ weightTons: null })
-        jest.spyOn(Sandbag.prototype, 'conditionalAfterUpdateHook')
+        vi.spyOn(Sandbag.prototype, 'conditionalAfterUpdateHook')
         await sandbag.update({ weightKgs: 120 })
 
         // eslint-disable-next-line @typescript-eslint/unbound-method

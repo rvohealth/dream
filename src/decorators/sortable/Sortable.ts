@@ -1,19 +1,20 @@
-import Dream from '../../Dream'
-import DreamTransaction from '../../dream/DreamTransaction'
-import pascalize from '../../helpers/pascalize'
-import { DecoratorContext } from '../DecoratorContextType'
-import { afterCreateImplementation } from '../hooks/AfterCreate'
-import { afterCreateCommitImplementation } from '../hooks/AfterCreateCommit'
-import { afterDestroyImplementation } from '../hooks/AfterDestroy'
-import { afterDestroyCommitImplementation } from '../hooks/AfterDestroyCommit'
-import { afterUpdateImplementation } from '../hooks/AfterUpdate'
-import { afterUpdateCommitImplementation } from '../hooks/AfterUpdateCommit'
-import { beforeSaveImplementation } from '../hooks/BeforeSave'
-import scopeArray from './helpers/scopeArray'
-import afterSortableCreate from './hooks/afterSortableCreate'
-import afterSortableDestroy from './hooks/afterSortableDestroy'
-import afterUpdateSortable from './hooks/afterSortableUpdate'
-import beforeSortableSave from './hooks/beforeSortableSave'
+import Dream from '../../Dream.js'
+import DreamTransaction from '../../dream/DreamTransaction.js'
+import pascalize from '../../helpers/pascalize.js'
+import { DecoratorContext } from '../DecoratorContextType.js'
+import { afterCreateImplementation } from '../hooks/AfterCreate.js'
+import { afterCreateCommitImplementation } from '../hooks/AfterCreateCommit.js'
+import { afterDestroyImplementation } from '../hooks/AfterDestroy.js'
+import { afterDestroyCommitImplementation } from '../hooks/AfterDestroyCommit.js'
+import { afterUpdateImplementation } from '../hooks/AfterUpdate.js'
+import { afterUpdateCommitImplementation } from '../hooks/AfterUpdateCommit.js'
+import { beforeSaveImplementation } from '../hooks/BeforeSave.js'
+import { STI_SCOPE_NAME } from '../STI.js'
+import scopeArray from './helpers/scopeArray.js'
+import afterSortableCreate from './hooks/afterSortableCreate.js'
+import afterSortableDestroy from './hooks/afterSortableDestroy.js'
+import afterUpdateSortable from './hooks/afterSortableUpdate.js'
+import beforeSortableSave from './hooks/beforeSortableSave.js'
 
 export default function Sortable(opts: SortableOpts = {}): any {
   return function (_: undefined, context: DecoratorContext) {
@@ -22,6 +23,20 @@ export default function Sortable(opts: SortableOpts = {}): any {
     context.addInitializer(function (this: Dream) {
       const dream = this
       const dreamClass: typeof Dream = dream.constructor as typeof Dream
+
+      if (dreamClass['sti']['active']) {
+        if (!(dreamClass instanceof dreamClass['stiBaseClassOrOwnClass'])) {
+          // what we should really be doing is throwing CannotCallSortableOnSTIChild,
+          // but we cannot, since there is no way to know during this initializer if
+          // the Sortable decorator was applied to the STI child, or the STI parent.
+          //
+          // because of this bizarre issue, we are forced to early return when
+          // we are processing Sortable on an STI child.
+          // throw new CannotCallSortableOnSTIChild(dreamClass)
+          return
+        }
+      }
+
       const dreamPrototype = Object.getPrototypeOf(dream)
       if (!dreamClass['globallyInitializingDecorators']) return
 
@@ -45,7 +60,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
       // before saving, we remember the new value for position, but clear it from our
       // supervised attributes to prevent position from saving
       dreamPrototype[beforeSaveMethodName] = async function (txn?: DreamTransaction<any>) {
-        let query = dreamClass.query()
+        let query = dreamClass.query().clone({ defaultScopesToBypass: [STI_SCOPE_NAME] })
         if (txn) query = query.txn(txn)
 
         await beforeSortableSave({
@@ -60,7 +75,10 @@ export default function Sortable(opts: SortableOpts = {}): any {
       dreamPrototype[afterUpdateMethodName] = async function (txn?: DreamTransaction<any>) {
         // if no transaction is provided, leverage update commit hook instead
         if (!txn) return
-        const query = dreamClass.query().txn(txn)
+        const query = dreamClass
+          .query()
+          .txn(txn)
+          .clone({ defaultScopesToBypass: [STI_SCOPE_NAME] })
 
         await afterUpdateSortable({
           dream: this,
@@ -73,7 +91,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
       dreamPrototype[afterUpdateCommitMethodName] = async function (txn?: DreamTransaction<any>) {
         // if transaction is provided, leverage update hook instead
         if (txn) return
-        const query = dreamClass.query()
+        const query = dreamClass.query().clone({ defaultScopesToBypass: [STI_SCOPE_NAME] })
 
         await afterUpdateSortable({
           dream: this,
@@ -89,7 +107,8 @@ export default function Sortable(opts: SortableOpts = {}): any {
       dreamPrototype[afterCreateMethodName] = async function (txn?: DreamTransaction<any>) {
         // if no transaction is provided, leverage create commit hook instead
         if (!txn) return
-        const query = dreamClass.query().txn(txn)
+        const query = dreamClass.query().txn(txn).clone({ bypassAllDefaultScopes: true })
+        // .clone({ defaultScopesToBypass: [STI_SCOPE_NAME] })
 
         await afterSortableCreate({
           dream: this,
@@ -102,7 +121,11 @@ export default function Sortable(opts: SortableOpts = {}): any {
       dreamPrototype[afterCreateCommitMethodName] = async function (txn?: DreamTransaction<any>) {
         // if transaction is provided, leverage create hook instead
         if (txn) return
-        const query = dreamClass.query()
+
+        const query = dreamClass
+          .query()
+          .clone({ bypassAllDefaultScopes: true })
+          .clone({ defaultScopesToBypass: [STI_SCOPE_NAME] })
 
         await afterSortableCreate({
           dream: this,
@@ -117,7 +140,10 @@ export default function Sortable(opts: SortableOpts = {}): any {
       dreamPrototype[afterDestroyMethodName] = async function (txn?: DreamTransaction<any>) {
         // if no transaction is provided, leverage destroy commit hook instead
         if (!txn) return
-        const query = dreamClass.query().txn(txn)
+        const query = dreamClass
+          .query()
+          .txn(txn)
+          .clone({ defaultScopesToBypass: [STI_SCOPE_NAME] })
 
         await afterSortableDestroy({
           dream: this,
@@ -129,7 +155,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
       dreamPrototype[afterDestroyCommitMethodName] = async function (txn?: DreamTransaction<any>) {
         // if transaction is provided, leverage destroy hook instead
         if (txn) return
-        const query = dreamClass.query()
+        const query = dreamClass.query().clone({ defaultScopesToBypass: [STI_SCOPE_NAME] })
 
         await afterSortableDestroy({
           dream: this,

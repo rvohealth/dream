@@ -1,9 +1,9 @@
 import { Decorators } from '../../../src'
-import { DreamColumn, DreamSerializers, Type } from '../../../src/dream/types'
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Pet from './Pet'
 
-const Decorator = new Decorators<Type<typeof PetUnderstudyJoinModel>>()
+const Deco = new Decorators<InstanceType<typeof PetUnderstudyJoinModel>>()
 
 export default class PetUnderstudyJoinModel extends ApplicationModel {
   public get table() {
@@ -18,11 +18,11 @@ export default class PetUnderstudyJoinModel extends ApplicationModel {
   public createdAt: DreamColumn<PetUnderstudyJoinModel, 'createdAt'>
   public updatedAt: DreamColumn<PetUnderstudyJoinModel, 'updatedAt'>
 
-  @Decorator.BelongsTo('Pet')
+  @Deco.BelongsTo('Pet')
   public pet: Pet
   public petId: DreamColumn<PetUnderstudyJoinModel, 'petId'>
 
-  @Decorator.BelongsTo('Pet', { foreignKey: 'understudyId' })
+  @Deco.BelongsTo('Pet', { foreignKey: 'understudyId' })
   public understudy: Pet
   public understudyId: DreamColumn<PetUnderstudyJoinModel, 'understudyId'>
 }

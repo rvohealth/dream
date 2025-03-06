@@ -1,8 +1,8 @@
 import { DateTime } from 'luxon'
-import Dream from '../../Dream'
-import MissingDeletedAtFieldForSoftDelete from '../../errors/MissingDeletedAtFieldForSoftDelete'
-import isDateTimeColumn from '../../helpers/db/types/isDateTimeColumn'
-import DreamTransaction from '../DreamTransaction'
+import Dream from '../../Dream.js'
+import MissingDeletedAtFieldForSoftDelete from '../../errors/MissingDeletedAtFieldForSoftDelete.js'
+import isDateTimeColumn from '../../helpers/db/types/isDateTimeColumn.js'
+import DreamTransaction from '../DreamTransaction.js'
 
 export default async function softDeleteDream(dream: Dream, txn: DreamTransaction<any>) {
   const deletedAtField = dream.deletedAtField

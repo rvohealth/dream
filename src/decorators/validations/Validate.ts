@@ -1,5 +1,5 @@
-import Dream from '../../Dream'
-import { DecoratorContext } from '../DecoratorContextType'
+import Dream from '../../Dream.js'
+import { DecoratorContext } from '../DecoratorContextType.js'
 
 export default function Validate(): any {
   return function (target: undefined, context: DecoratorContext) {

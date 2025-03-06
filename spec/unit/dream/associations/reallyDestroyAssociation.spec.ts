@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon'
+import { MockInstance } from 'vitest'
 import { Dream, DreamTransaction, Query } from '../../../../src'
 import * as destroyAssociationModule from '../../../../src/dream/internal/associations/destroyAssociation'
 import * as runHooksForModule from '../../../../src/dream/internal/runHooksFor'
@@ -15,8 +16,8 @@ import Rating from '../../../../test-app/app/models/Rating'
 import User from '../../../../test-app/app/models/User'
 
 describe('Dream#reallyDestroyAssociation', () => {
-  let hooksSpy: jest.SpyInstance
-  let commitHooksSpy: jest.SpyInstance
+  let hooksSpy: MockInstance
+  let commitHooksSpy: MockInstance
 
   function expectDestroyHooksCalled(dream: Dream) {
     expect(hooksSpy).toHaveBeenCalledWith(
@@ -71,8 +72,8 @@ describe('Dream#reallyDestroyAssociation', () => {
     const composition = await user.createAssociation('compositions')
     const compositionAsset = await composition.createAssociation('compositionAssets')
 
-    hooksSpy = jest.spyOn(runHooksForModule, 'default')
-    commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+    hooksSpy = vi.spyOn(runHooksForModule, 'default')
+    commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
     await composition.reallyDestroyAssociation('compositionAssets')
     expectDestroyHooksCalled(compositionAsset)
@@ -84,7 +85,7 @@ describe('Dream#reallyDestroyAssociation', () => {
       const composition = await user.createAssociation('compositions')
       await composition.createAssociation('compositionAssets')
 
-      const reallyDestroySpy = jest.spyOn(Query.prototype, 'reallyDestroy')
+      const reallyDestroySpy = vi.spyOn(Query.prototype, 'reallyDestroy')
 
       await composition.reallyDestroyAssociation('compositionAssets', { cascade: false })
 
@@ -98,8 +99,8 @@ describe('Dream#reallyDestroyAssociation', () => {
       const composition = await user.createAssociation('compositions')
       const compositionAsset = await composition.createAssociation('compositionAssets')
 
-      hooksSpy = jest.spyOn(runHooksForModule, 'default')
-      commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+      hooksSpy = vi.spyOn(runHooksForModule, 'default')
+      commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
       await composition.reallyDestroyAssociation('compositionAssets')
 
@@ -112,8 +113,8 @@ describe('Dream#reallyDestroyAssociation', () => {
         const composition = await user.createAssociation('compositions')
         const compositionAsset = await composition.createAssociation('compositionAssets')
 
-        hooksSpy = jest.spyOn(runHooksForModule, 'default')
-        commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+        hooksSpy = vi.spyOn(runHooksForModule, 'default')
+        commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
         await composition.reallyDestroyAssociation('compositionAssets', { skipHooks: true })
 
@@ -125,8 +126,8 @@ describe('Dream#reallyDestroyAssociation', () => {
           const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
           const post = await Post.create({ user })
 
-          hooksSpy = jest.spyOn(runHooksForModule, 'default')
-          commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+          hooksSpy = vi.spyOn(runHooksForModule, 'default')
+          commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
           await user.reallyDestroyAssociation('posts')
 
@@ -138,8 +139,8 @@ describe('Dream#reallyDestroyAssociation', () => {
           const post = await Post.create({ user })
           await Rating.create({ rateable: post, user })
 
-          hooksSpy = jest.spyOn(runHooksForModule, 'default')
-          commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+          hooksSpy = vi.spyOn(runHooksForModule, 'default')
+          commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
           await user.reallyDestroyAssociation('posts')
 
@@ -153,8 +154,8 @@ describe('Dream#reallyDestroyAssociation', () => {
             const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
             const pet = await Pet.create({ user })
 
-            hooksSpy = jest.spyOn(runHooksForModule, 'default')
-            commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+            hooksSpy = vi.spyOn(runHooksForModule, 'default')
+            commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
             await user.reallyDestroyAssociation('posts', { skipHooks: true })
 
@@ -171,8 +172,8 @@ describe('Dream#reallyDestroyAssociation', () => {
       const post = await Post.create({ user })
       const rating = await Rating.create({ rateable: post, user })
 
-      hooksSpy = jest.spyOn(runHooksForModule, 'default')
-      commitHooksSpy = jest.spyOn(safelyRunCommitHooksModule, 'default')
+      hooksSpy = vi.spyOn(runHooksForModule, 'default')
+      commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
       await user.reallyDestroyAssociation('posts')
 
@@ -366,7 +367,7 @@ describe('Dream#reallyDestroyAssociation', () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         await user.createAssociation('compositions')
 
-        const destroyAssociationSpy = jest.spyOn(destroyAssociationModule, 'default')
+        const destroyAssociationSpy = vi.spyOn(destroyAssociationModule, 'default')
 
         await ApplicationModel.transaction(async txn => {
           await user.txn(txn).reallyDestroyAssociation('compositions', {

@@ -1,6 +1,6 @@
-import DreamApplication, { SingleDbCredential } from '../dream-application'
-import EnvInternal from '../helpers/EnvInternal'
-import { DbConnectionType } from './types'
+import DreamApplication, { SingleDbCredential } from '../dream-application/index.js'
+import EnvInternal from '../helpers/EnvInternal.js'
+import { DbConnectionType } from './types.js'
 
 export default class ConnectionConfRetriever {
   public getConnectionConf(connection: DbConnectionType): SingleDbCredential {
