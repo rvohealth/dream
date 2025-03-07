@@ -1,5 +1,5 @@
 import { DreamApplication } from '../../../src'
-import * as LoadModelsModule from '../../../src/dream-application/helpers/loadModels'
+import * as LoadModelsModule from '../../../src/dream-application/helpers/processModels'
 import DreamApplicationInitMissingCallToLoadModels from '../../../src/errors/dream-application/DreamApplicationInitMissingCallToLoadModels'
 import DreamApplicationInitMissingMissingProjectRoot from '../../../src/errors/dream-application/DreamApplicationInitMissingMissingProjectRoot'
 import InvalidTableName from '../../../src/errors/InvalidTableName'
