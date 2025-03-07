@@ -4,7 +4,7 @@ import pascalize from '../pascalize.js'
 import relativeDreamPath from '../path/relativeDreamPath.js'
 import serializerNameFromFullyQualifiedModelName from '../serializerNameFromFullyQualifiedModelName.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
-import uniq from '../uniq'
+import uniq from '../uniq.js'
 
 export default function generateSerializerContent({
   fullyQualifiedModelName,
