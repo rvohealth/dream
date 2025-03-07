@@ -1,12 +1,12 @@
 {
   "type": "module",
   "name": "@rvohealth/dream",
-  "version": "0.29.0-fgbeta-1",
+  "version": "0.29.0-fgbeta-3",
   "description": "dream orm",
   "repository": "https://github.com/rvohealth/dream.git",
   "author": "RVOHealth",
   "license": "MIT",
-  "main": "./dist/cjs/src/index.js",
+  "main": "./dist/esm/src/index.js",
   "module": "./dist/esm/src/index.js",
   "types": "./dist/types/src/index.d.ts",
   "exports": {
