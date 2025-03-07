@@ -11,6 +11,7 @@ export {
   type WhereStatementForDreamClass,
 } from './decorators/associations/shared'
 export { default as Decorators } from './decorators/Decorators'
+export { type DecoratorContext } from './decorators/DecoratorContextType'
 export { default as AfterCreate } from './decorators/hooks/AfterCreate'
 export { default as AfterCreateCommit } from './decorators/hooks/AfterCreateCommit'
 export { default as AfterDestroy } from './decorators/hooks/AfterDestroy'
