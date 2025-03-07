@@ -1,6 +1,5 @@
-import { Kysely, sql } from 'kysely'
+import { Kysely } from 'kysely'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('invalid_scope_sortable_models')
@@ -11,7 +10,6 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable('invalid_scope_sortable_models').execute()
 }
