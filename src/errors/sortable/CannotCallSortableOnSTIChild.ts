@@ -1,4 +1,4 @@
-import Dream from '../../Dream'
+import Dream from '../../Dream.js'
 
 export default class CannotCallSortableOnSTIChild extends Error {
   constructor(private dreamClass: typeof Dream) {

@@ -1,6 +1,6 @@
-import Dream from '../Dream'
-import pascalize from '../helpers/pascalize'
-import { DecoratorContext } from './DecoratorContextType'
+import Dream from '../Dream.js'
+import pascalize from '../helpers/pascalize.js'
+import { DecoratorContext } from './DecoratorContextType.js'
 
 export default function Encrypted(encryptedColumnName?: string): any {
   return function (_: undefined, context: DecoratorContext) {

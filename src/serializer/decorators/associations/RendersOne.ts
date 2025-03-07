@@ -1,7 +1,7 @@
-import DreamSerializer from '../..'
-import { DecoratorContext } from '../../../decorators/DecoratorContextType'
-import { SerializableClassOrClasses } from '../../../dream/types'
-import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOpts } from './shared'
+import DreamSerializer from '../../index.js'
+import { DecoratorContext } from '../../../decorators/DecoratorContextType.js'
+import { SerializableClassOrClasses } from '../../../dream/types.js'
+import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOpts } from './shared.js'
 
 /**
  * Establishes a One to One relationship between

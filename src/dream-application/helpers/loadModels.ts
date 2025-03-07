@@ -1,7 +1,7 @@
-import Dream from '../../Dream'
-import MissingTable from '../../errors/MissingTable'
-import getFiles from '../../helpers/getFiles'
-import globalModelKeyFromPath from './globalModelKeyFromPath'
+import Dream from '../../Dream.js'
+import MissingTable from '../../errors/MissingTable.js'
+import getFiles from '../../helpers/getFiles.js'
+import globalModelKeyFromPath from './globalModelKeyFromPath.js'
 
 let _models: Record<string, typeof Dream>
 

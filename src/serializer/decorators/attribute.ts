@@ -1,10 +1,10 @@
-import DreamSerializer from '..'
-import { DecoratorContext } from '../../decorators/DecoratorContextType'
-import Dream from '../../Dream'
-import { RoundingPrecision } from '../../helpers/round'
-import { isString } from '../../helpers/typechecks'
-import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../openapi/types'
-import { dreamAttributeOpenapiShape } from './helpers/dreamAttributeOpenapiShape'
+import DreamSerializer from '../index.js'
+import { DecoratorContext } from '../../decorators/DecoratorContextType.js'
+import Dream from '../../Dream.js'
+import { RoundingPrecision } from '../../helpers/round.js'
+import { isString } from '../../helpers/typechecks.js'
+import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../openapi/types.js'
+import { dreamAttributeOpenapiShape } from './helpers/dreamAttributeOpenapiShape.js'
 
 export default function Attribute(): any
 

@@ -1,4 +1,4 @@
-import { getModelsOrFail } from './loadModels'
+import { getModelsOrFail } from './loadModels.js'
 
 let _globalNameMap: any
 

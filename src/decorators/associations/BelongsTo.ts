@@ -1,6 +1,6 @@
-import { AssociationTableNames } from '../../db/reflections'
-import Dream from '../../Dream'
-import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames'
+import { AssociationTableNames } from '../../db/reflections.js'
+import Dream from '../../Dream.js'
+import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames.js'
 import {
   DefaultScopeName,
   DefaultScopeNameForTable,
@@ -9,16 +9,16 @@ import {
   GlobalModelNameTableMap,
   TableColumnNames,
   TableNameForGlobalModelName,
-} from '../../dream/types'
-import { DecoratorContext } from '../DecoratorContextType'
-import { validatesImplementation } from '../validations/Validates'
+} from '../../dream/types.js'
+import { DecoratorContext } from '../DecoratorContextType.js'
+import { validatesImplementation } from '../validations/Validates.js'
 import {
   applyGetterAndSetter,
   associationPrimaryKeyAccessors,
   blankAssociationsFactory,
   finalForeignKey,
   foreignKeyTypeField,
-} from './shared'
+} from './shared.js'
 
 export default function BelongsTo<
   BaseInstance extends Dream,

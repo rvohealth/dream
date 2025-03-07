@@ -1,5 +1,5 @@
-import getFiles from '../../helpers/getFiles'
-import globalServiceKeyFromPath from './globalServiceKeyFromPath'
+import getFiles from '../../helpers/getFiles.js'
+import globalServiceKeyFromPath from './globalServiceKeyFromPath.js'
 
 let _services: Record<string, any>
 

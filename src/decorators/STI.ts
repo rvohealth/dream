@@ -1,8 +1,8 @@
-import Dream from '../Dream'
-import StiChildCannotDefineNewAssociations from '../errors/sti/StiChildCannotDefineNewAssociations'
-import StiChildIncompatibleWithReplicaSafeDecorator from '../errors/sti/StiChildIncompatibleWithReplicaSafeDecorator'
-import StiChildIncompatibleWithSoftDeleteDecorator from '../errors/sti/StiChildIncompatibleWithSoftDeleteDecorator'
-import { scopeImplementation } from './Scope'
+import Dream from '../Dream.js'
+import StiChildCannotDefineNewAssociations from '../errors/sti/StiChildCannotDefineNewAssociations.js'
+import StiChildIncompatibleWithReplicaSafeDecorator from '../errors/sti/StiChildIncompatibleWithReplicaSafeDecorator.js'
+import StiChildIncompatibleWithSoftDeleteDecorator from '../errors/sti/StiChildIncompatibleWithSoftDeleteDecorator.js'
+import { scopeImplementation } from './Scope.js'
 
 export const STI_SCOPE_NAME = 'dream:STI'
 

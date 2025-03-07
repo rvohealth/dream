@@ -4,13 +4,13 @@ import pg from 'pg'
 
 import { CompiledQuery } from 'kysely'
 import { Settings } from 'luxon'
-import db from '../db'
-import validateTable from '../db/validators/validateTable'
-import Dream from '../Dream'
-import { primaryKeyTypes } from '../dream/types'
-import Encrypt, { EncryptAlgorithm, EncryptOptions } from '../encrypt'
-import DreamApplicationInitMissingCallToLoadModels from '../errors/dream-application/DreamApplicationInitMissingCallToLoadModels'
-import DreamApplicationInitMissingMissingProjectRoot from '../errors/dream-application/DreamApplicationInitMissingMissingProjectRoot'
+import db from '../db/index.js'
+import validateTable from '../db/validators/validateTable.js'
+import Dream from '../Dream.js'
+import { primaryKeyTypes } from '../dream/types.js'
+import Encrypt, { EncryptAlgorithm, EncryptOptions } from '../encrypt/index.js'
+import DreamApplicationInitMissingCallToLoadModels from '../errors/dream-application/DreamApplicationInitMissingCallToLoadModels.js'
+import DreamApplicationInitMissingMissingProjectRoot from '../errors/dream-application/DreamApplicationInitMissingMissingProjectRoot.js'
 import {
   findCitextArrayOid,
   findCorrespondingArrayOid,
@@ -18,13 +18,13 @@ import {
   parsePostgresDate,
   parsePostgresDatetime,
   parsePostgresDecimal,
-} from '../helpers/customPgParsers'
-import EnvInternal from '../helpers/EnvInternal'
-import DreamSerializer from '../serializer'
-import { cacheDreamApplication, getCachedDreamApplicationOrFail } from './cache'
-import loadModels, { getModelsOrFail } from './helpers/loadModels'
-import loadSerializers, { getSerializersOrFail, setCachedSerializers } from './helpers/loadSerializers'
-import loadServices, { getServicesOrFail, setCachedServices } from './helpers/loadServices'
+} from '../helpers/customPgParsers.js'
+import EnvInternal from '../helpers/EnvInternal.js'
+import DreamSerializer from '../serializer/index.js'
+import { cacheDreamApplication, getCachedDreamApplicationOrFail } from './cache.js'
+import loadModels, { getModelsOrFail } from './helpers/loadModels.js'
+import loadSerializers, { getSerializersOrFail, setCachedSerializers } from './helpers/loadSerializers.js'
+import loadServices, { getServicesOrFail, setCachedServices } from './helpers/loadServices.js'
 
 const pgTypes = pg.types
 

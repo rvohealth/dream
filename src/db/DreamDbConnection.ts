@@ -2,9 +2,9 @@ import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely'
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import pg from 'pg'
-import DreamApplication, { KyselyLogEvent, SingleDbCredential } from '../dream-application'
-import ConnectionConfRetriever from './ConnectionConfRetriever'
-import { DbConnectionType } from './types'
+import DreamApplication, { KyselyLogEvent, SingleDbCredential } from '../dream-application/index.js'
+import ConnectionConfRetriever from './ConnectionConfRetriever.js'
+import { DbConnectionType } from './types.js'
 
 let connections = {} as { [key: string]: Kysely<any> }
 

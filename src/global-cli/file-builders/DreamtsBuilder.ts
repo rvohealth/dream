@@ -1,4 +1,4 @@
-import { InitDreamAppCliOptions } from '../helpers/primaryKeyTypes'
+import { InitDreamAppCliOptions } from '../helpers/primaryKeyTypes.js'
 
 export default class DreamtsBuilder {
   public static build(options: InitDreamAppCliOptions) {
