@@ -1,4 +1,4 @@
-import './loadEnv'
+import './loadEnv.js'
 
 import { DateTime } from 'luxon'
 import DreamApplication from '../dream-application/index.js'
