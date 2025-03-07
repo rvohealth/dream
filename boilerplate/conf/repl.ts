@@ -1,4 +1,4 @@
-import './loadEnv'
+import './loadEnv.js'
 
 import { loadRepl } from '@rvohealth/dream'
 import * as repl from 'node:repl'
