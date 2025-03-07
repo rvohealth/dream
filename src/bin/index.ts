@@ -102,7 +102,7 @@ export default class DreamBin {
   // to use it to generate docs for their apps.
   private static async buildDocs() {
     console.log('generating docs...')
-    await sspawn('yarn typedoc src/index.ts --tsconfig ./tsconfig.build.json --out docs')
+    await sspawn('yarn typedoc src/index.ts --tsconfig ./tsconfig.esm.build.json --out docs')
     console.log('done!')
   }
 
