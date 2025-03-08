@@ -1666,7 +1666,7 @@ export const schema = {
     associations: {
       users: {
         type: 'HasMany',
-        foreignKey: null,
+        foreignKey: 'id',
         tables: ['users'],
         optional: null,
         requiredOnClauses: null,

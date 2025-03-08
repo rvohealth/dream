@@ -1,4 +1,3 @@
-import { join } from 'node:path'
 import { DreamApplication } from '../../../src'
 import srcPath from '../helpers/srcPath'
 import inflections from './inflections'
@@ -8,8 +7,8 @@ import loadServices from './loaders/loadServices'
 
 export default async function (dreamApp: DreamApplication) {
   dreamApp.load('models', srcPath('app', 'models'), await loadModels())
-  dreamApp.load('serializers', join(__dirname, '..', 'serializers'), await loadSerializers())
-  dreamApp.load('services', join(__dirname, '..', 'services'), await loadServices())
+  dreamApp.load('serializers', srcPath('app', 'serializers'), await loadSerializers())
+  dreamApp.load('services', srcPath('app', 'services'), await loadServices())
 
   dreamApp.set('encryption', {
     columns: {
@@ -24,7 +23,7 @@ export default async function (dreamApp: DreamApplication) {
     },
   })
 
-  dreamApp.set('projectRoot', join(__dirname, '..', '..', '..'))
+  dreamApp.set('projectRoot', srcPath('..'))
   dreamApp.set('primaryKeyType', 'bigserial')
   dreamApp.set('inflections', inflections)
 
