@@ -1,16 +1,13 @@
+import { join } from 'node:path'
 import { DreamApplication } from '../../../src'
+import srcPath from '../helpers/srcPath'
 import inflections from './inflections'
-import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'node:path'
 import loadModels from './loaders/loadModels'
 import loadSerializers from './loaders/loadSerializers'
 import loadServices from './loaders/loadServices'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
 export default async function (dreamApp: DreamApplication) {
-  dreamApp.load('models', join(__dirname, '..', 'models'), await loadModels())
+  dreamApp.load('models', srcPath('app', 'models'), await loadModels())
   dreamApp.load('serializers', join(__dirname, '..', 'serializers'), await loadSerializers())
   dreamApp.load('services', join(__dirname, '..', 'services'), await loadServices())
 

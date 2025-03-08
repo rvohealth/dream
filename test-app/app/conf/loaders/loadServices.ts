@@ -1,19 +1,7 @@
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import getFiles from './getFiles'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+import DreamImporter from '../../../../src/dream-application/helpers/DreamImporter'
+import srcPath from '../../helpers/srcPath'
 
 export default async function loadServices() {
-  const servicesPath = join(__dirname, '..', '..', 'services')
-  const servicePaths = (await getFiles(servicesPath)).filter(path => /\.[jt]s$/.test(path))
-
-  const serviceClasses: [string, any][] = []
-
-  for (const servicePath of servicePaths) {
-    serviceClasses.push([servicePath, (await import(servicePath)).default])
-  }
-
-  return serviceClasses
+  const servicePaths = await DreamImporter.ls(srcPath('app', 'services'))
+  return await DreamImporter.importServices(servicePaths)
 }

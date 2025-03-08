@@ -1,23 +1,7 @@
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { DreamSerializer } from '../../../../src'
-import getFiles from './getFiles'
+import DreamImporter from '../../../../src/dream-application/helpers/DreamImporter'
+import srcPath from '../../helpers/srcPath'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
-export default async function loadSerializers() {
-  const serializersPath = join(__dirname, '..', '..', 'serializers')
-  const serializerPaths = (await getFiles(serializersPath)).filter(path => /\.[jt]s$/.test(path))
-
-  const serializerClasses: [string, Record<string, typeof DreamSerializer>][] = []
-
-  for (const serializerPath of serializerPaths) {
-    serializerClasses.push([
-      serializerPath,
-      (await import(serializerPath)) as Record<string, typeof DreamSerializer>,
-    ])
-  }
-
-  return serializerClasses
+export default async function loadServices() {
+  const serializerPaths = await DreamImporter.ls(srcPath('app', 'serializers'))
+  return await DreamImporter.importSerializers(serializerPaths)
 }

@@ -1,20 +1,7 @@
-import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'node:path'
-import getFiles from './getFiles'
-import { Dream } from '../../../../src'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+import DreamImporter from '../../../../src/dream-application/helpers/DreamImporter'
+import srcPath from '../../helpers/srcPath'
 
 export default async function loadModels() {
-  const modelsPath = join(__dirname, '..', '..', 'models')
-  const modelPaths = (await getFiles(modelsPath)).filter(path => /\.[jt]s$/.test(path))
-
-  const modelClasses: [string, typeof Dream][] = []
-
-  for (const modelPath of modelPaths) {
-    modelClasses.push([modelPath, (await import(modelPath)).default as typeof Dream])
-  }
-
-  return modelClasses
+  const modelPaths = await DreamImporter.ls(srcPath('app', 'models'))
+  return await DreamImporter.importDreams(modelPaths)
 }
