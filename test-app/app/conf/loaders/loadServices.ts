@@ -2,6 +2,8 @@ import DreamImporter from '../../../../src/dream-application/helpers/DreamImport
 import srcPath from '../../helpers/srcPath'
 
 export default async function loadServices() {
-  const servicePaths = await DreamImporter.ls(srcPath('app', 'services'))
-  return await DreamImporter.importServices(servicePaths, async path => (await import(path)).default)
+  return await DreamImporter.importServices(
+    srcPath('app', 'services'),
+    async path => (await import(path)).default
+  )
 }

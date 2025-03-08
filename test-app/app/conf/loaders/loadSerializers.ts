@@ -2,6 +2,8 @@ import DreamImporter from '../../../../src/dream-application/helpers/DreamImport
 import srcPath from '../../helpers/srcPath'
 
 export default async function loadServices() {
-  const serializerPaths = await DreamImporter.ls(srcPath('app', 'serializers'))
-  return await DreamImporter.importSerializers(serializerPaths, async path => await import(path))
+  return await DreamImporter.importSerializers(
+    srcPath('app', 'serializers'),
+    async path => await import(path)
+  )
 }

@@ -31,7 +31,8 @@ export default class DreamImporter {
     return modelClasses
   }
 
-  public static async importSerializers(serializerPaths: string[], importCb: (path: string) => Promise<any>) {
+  public static async importSerializers(pathToSerializers: string, importCb: (path: string) => Promise<any>) {
+    const serializerPaths = await DreamImporter.ls(pathToSerializers)
     const serializerClasses: [string, Record<string, typeof DreamSerializer>][] = []
 
     for (const serializerPath of serializerPaths) {
@@ -44,7 +45,8 @@ export default class DreamImporter {
     return serializerClasses
   }
 
-  public static async importServices(servicePaths: string[], importCb: (path: string) => Promise<any>) {
+  public static async importServices(pathToServices: string, importCb: (path: string) => Promise<any>) {
+    const servicePaths = await DreamImporter.ls(pathToServices)
     const serviceClasses: [string, any][] = []
 
     for (const servicePath of servicePaths) {
