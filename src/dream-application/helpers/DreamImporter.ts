@@ -8,10 +8,13 @@ export default class DreamImporter {
     try {
       const dirents = await fs.readdir(dir, { withFileTypes: true })
       const files = await Promise.all(
-        dirents.map(dirent => {
-          const res = path.resolve(dir, dirent.name)
-          return dirent.isDirectory() ? this.ls(res) : res.replace(/\.ts$/, '.js')
-        })
+        dirents
+          .map(dirent => {
+            const res = path.resolve(dir, dirent.name)
+            const sanitizedPath = res.replace(/\.ts$/, '.js')
+            return dirent.isDirectory() ? this.ls(res) : /\.js$/.test(sanitizedPath) ? sanitizedPath : null
+          })
+          .filter(ent => ent !== null)
       )
       return Array.prototype.concat(...files)
     } catch (err) {
