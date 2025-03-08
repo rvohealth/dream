@@ -61,9 +61,58 @@ describe('Query#order', () => {
       const plucked = await Pet.leftJoin('collars', 'balloon')
         .order('balloon.volume')
         .pluck('pets.name', 'balloon.volume')
-      expect(plucked[0]).toEqual(['Aster', 3])
-      expect(plucked[1]).toEqual(['Violet', 7])
-      expect(plucked[2]).toEqual(['Kermit', null])
+      expect(plucked[0]).toEqual(['Kermit', null])
+      expect(plucked[1]).toEqual(['Aster', 3])
+      expect(plucked[2]).toEqual(['Violet', 7])
+    })
+  })
+
+  context('after a leftJoinPreload', () => {
+    it('supports ordering by a joined column and selecting all', async () => {
+      const pet1 = await Pet.create({ name: 'Violet' })
+      const pet2 = await Pet.create({ name: 'Aster' })
+      const pet3 = await Pet.create({ name: 'Kermit' })
+      const largeBalloon = await Latex.create({ color: 'red', volume: 7 })
+      const smallBalloon = await Latex.create({ color: 'green', volume: 3 })
+
+      await pet1.createAssociation('collars', { balloon: largeBalloon })
+      await pet2.createAssociation('collars', { balloon: smallBalloon })
+      await pet3.createAssociation('collars')
+
+      const plucked = await Pet.leftJoinPreload('collars', 'balloon').order('balloon.volume').all()
+      expect(plucked[0]).toMatchDreamModel(pet3)
+      expect(plucked[1]).toMatchDreamModel(pet2)
+      expect(plucked[2]).toMatchDreamModel(pet1)
+    })
+
+    it('supports ordering by a joined column and selecting the first', async () => {
+      const pet1 = await Pet.create({ name: 'Violet' })
+      const pet2 = await Pet.create({ name: 'Aster' })
+      const pet3 = await Pet.create({ name: 'Kermit' })
+      const largeBalloon = await Latex.create({ color: 'red', volume: 7 })
+      const smallBalloon = await Latex.create({ color: 'green', volume: 3 })
+
+      await pet1.createAssociation('collars', { balloon: largeBalloon })
+      await pet2.createAssociation('collars', { balloon: smallBalloon })
+      await pet3.createAssociation('collars')
+
+      const first = await Pet.leftJoinPreload('collars', 'balloon').order('balloon.volume').first()
+      expect(first).toMatchDreamModel(pet3)
+    })
+
+    it('supports ordering by a joined column and selecting the last', async () => {
+      const pet1 = await Pet.create({ name: 'Violet' })
+      const pet2 = await Pet.create({ name: 'Aster' })
+      const pet3 = await Pet.create({ name: 'Kermit' })
+      const largeBalloon = await Latex.create({ color: 'red', volume: 7 })
+      const smallBalloon = await Latex.create({ color: 'green', volume: 3 })
+
+      await pet1.createAssociation('collars', { balloon: largeBalloon })
+      await pet2.createAssociation('collars', { balloon: smallBalloon })
+      await pet3.createAssociation('collars')
+
+      const last = await Pet.leftJoinPreload('collars', 'balloon').order('balloon.volume').last()
+      expect(last).toMatchDreamModel(pet1)
     })
   })
 
@@ -77,17 +126,47 @@ describe('Query#order', () => {
     })
   })
 
-  context('when one of the records has a null value', () => {
-    it('prioritizes null values last', async () => {
-      const user1 = await User.create({ email: 'c@cccccc', targetRating: 4, password: 'howyadoin' })
-      const user2 = await User.create({ email: 'b@bbbbbb', targetRating: 5, password: 'howyadoin' })
-      const user3 = await User.create({ email: 'a@aaaaaa', targetRating: null, password: 'howyadoin' })
+  context('null handling', () => {
+    context('implicit ascending order', () => {
+      it('nulls come first', async () => {
+        const user1 = await User.create({ email: 'c@cccccc', targetRating: 4, password: 'howyadoin' })
+        const user2 = await User.create({ email: 'b@bbbbbb', targetRating: 5, password: 'howyadoin' })
+        const user3 = await User.create({ email: 'a@aaaaaa', targetRating: null, password: 'howyadoin' })
 
-      const records = await User.query().order({ targetRating: 'desc' }).all()
-      expect(records.length).toEqual(3)
-      expect(records[0]).toMatchDreamModel(user2)
-      expect(records[1]).toMatchDreamModel(user1)
-      expect(records[2]).toMatchDreamModel(user3)
+        const records = await User.query().order('targetRating').all()
+        expect(records.length).toEqual(3)
+        expect(records[0]).toMatchDreamModel(user3)
+        expect(records[1]).toMatchDreamModel(user1)
+        expect(records[2]).toMatchDreamModel(user2)
+      })
+    })
+
+    context('explicit ascending order', () => {
+      it('nulls come first', async () => {
+        const user1 = await User.create({ email: 'c@cccccc', targetRating: 4, password: 'howyadoin' })
+        const user2 = await User.create({ email: 'b@bbbbbb', targetRating: 5, password: 'howyadoin' })
+        const user3 = await User.create({ email: 'a@aaaaaa', targetRating: null, password: 'howyadoin' })
+
+        const records = await User.query().order({ targetRating: 'asc' }).all()
+        expect(records.length).toEqual(3)
+        expect(records[0]).toMatchDreamModel(user3)
+        expect(records[1]).toMatchDreamModel(user1)
+        expect(records[2]).toMatchDreamModel(user2)
+      })
+    })
+
+    context('explicit descending order', () => {
+      it('nulls come last', async () => {
+        const user1 = await User.create({ email: 'c@cccccc', targetRating: 4, password: 'howyadoin' })
+        const user2 = await User.create({ email: 'b@bbbbbb', targetRating: 5, password: 'howyadoin' })
+        const user3 = await User.create({ email: 'a@aaaaaa', targetRating: null, password: 'howyadoin' })
+
+        const records = await User.query().order({ targetRating: 'desc' }).all()
+        expect(records.length).toEqual(3)
+        expect(records[0]).toMatchDreamModel(user2)
+        expect(records[1]).toMatchDreamModel(user1)
+        expect(records[2]).toMatchDreamModel(user3)
+      })
     })
   })
 

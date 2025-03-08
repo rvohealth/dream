@@ -44,6 +44,7 @@ import CannotCallUndestroyOnANonSoftDeleteModel from '../errors/CannotCallUndest
 import CannotNegateSimilarityClause from '../errors/CannotNegateSimilarityClause'
 import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../errors/CannotPassAdditionalFieldsToPluckEachAfterCallback'
 import CannotPassUndefinedAsAValueToAWhereClause from '../errors/CannotPassUndefinedAsAValueToAWhereClause'
+import LeftJoinPreloadIncompatibleWithFindEach from '../errors/LeftJoinPreloadIncompatibleWithFindEach'
 import MissingRequiredCallbackFunctionToPluckEach from '../errors/MissingRequiredCallbackFunctionToPluckEach'
 import NoUpdateAllOnJoins from '../errors/NoUpdateAllOnJoins'
 import NoUpdateOnAssociationQuery from '../errors/NoUpdateOnAssociationQuery'
@@ -639,6 +640,7 @@ export default class Query<
     cb: (instance: DreamInstance) => void | Promise<void>,
     { batchSize = Query.BATCH_SIZES.FIND_EACH }: { batchSize?: number } = {}
   ): Promise<void> {
+    if (this.joinLoadActivated) throw new LeftJoinPreloadIncompatibleWithFindEach()
     let records: any[]
     const query = this.order(null)
       .order(this.namespacedPrimaryKey as any)
@@ -1738,25 +1740,25 @@ export default class Query<
 
     const queryResults = await executeDatabaseQuery(kyselyQuery, 'execute')
 
-    const aliasToDreamIdMap = queryResults.reduce((aliasToDreamIdMap, singleSqlResult) => {
-      ;(this.fleshOutJoinLoadExecutionResults({
-        currentAlias: this.baseSqlAlias,
-        singleSqlResult,
-        aliasToDreamIdMap,
-        associationAliasToColumnAliasMap,
-        aliasToAssociationsMap,
-        aliasToDreamClassesMap,
-        leftJoinStatements: this.leftJoinStatements,
-      }) as DreamInstance) || null
+    const aliasToDreamIdMap = queryResults.reduce(
+      (aliasToDreamIdMap: AliasToDreamIdMap, singleSqlResult: any) => {
+        this.fleshOutJoinLoadExecutionResults({
+          currentAlias: this.baseSqlAlias,
+          singleSqlResult,
+          aliasToDreamIdMap,
+          associationAliasToColumnAliasMap,
+          aliasToAssociationsMap,
+          aliasToDreamClassesMap,
+          leftJoinStatements: this.leftJoinStatements,
+        })
 
-      return aliasToDreamIdMap
-    }, {} as AliasToDreamIdMap)
-
-    return compact(
-      Object.keys(aliasToDreamIdMap[this.baseSqlAlias] || {}).map(
-        key => aliasToDreamIdMap[this.baseSqlAlias][key]
-      )
+        return aliasToDreamIdMap
+      },
+      {} as AliasToDreamIdMap
     )
+
+    const baseModelIdToDreamMap = aliasToDreamIdMap[this.baseSqlAlias] || new Map()
+    return compact(Array.from(baseModelIdToDreamMap.values()) as DreamInstance[])
   }
 
   private fleshOutJoinLoadExecutionResults({
@@ -1782,9 +1784,9 @@ export default class Query<
 
     if (!primaryKeyValue) return null
 
-    aliasToDreamIdMap[currentAlias] ||= {}
+    aliasToDreamIdMap[currentAlias] ||= new Map()
 
-    if (!aliasToDreamIdMap[currentAlias][primaryKeyValue]) {
+    if (!aliasToDreamIdMap[currentAlias].get(primaryKeyValue)) {
       const columnValueMap = Object.keys(columnToColumnAliasMap).reduce(
         (columnNameValueMap, columnName) => {
           columnNameValueMap[columnName] = singleSqlResult[columnToColumnAliasMap[columnName]]
@@ -1808,12 +1810,10 @@ export default class Query<
         })
       }
 
-      aliasToDreamIdMap[protectAgainstPollutingAssignment(currentAlias)][
-        protectAgainstPollutingAssignment(primaryKeyValue)
-      ] = dream
+      aliasToDreamIdMap[protectAgainstPollutingAssignment(currentAlias)].set(primaryKeyValue, dream)
     }
 
-    const dream = aliasToDreamIdMap[currentAlias][primaryKeyValue] as any
+    const dream = aliasToDreamIdMap[currentAlias].get(primaryKeyValue)
 
     Object.keys(leftJoinStatements).forEach(nextAlias => {
       const { name: associationName, alias } = extractAssociationMetadataFromAssociationName(nextAlias)
@@ -1832,17 +1832,18 @@ export default class Query<
 
       // initialize by trying to access the association, which throws an exception if not yet initialized
       try {
-        dream[association.as]
+        ;(dream as any)[association.as]
       } catch {
-        if (hasMany) dream[association.as] = []
-        else dream[associationToGetterSetterProp(association)] = null
+        if (hasMany) (dream as any)[association.as] = []
+        else (dream as any)[associationToGetterSetterProp(association)] = null
       }
 
       if (!associatedDream) return
 
       if (hasMany) {
-        if (!dream[association.as].includes(associatedDream)) dream[association.as].push(associatedDream)
-      } else dream[associationToGetterSetterProp(association)] = associatedDream
+        if (!(dream as any)[association.as].includes(associatedDream))
+          (dream as any)[association.as].push(associatedDream)
+      } else (dream as any)[associationToGetterSetterProp(association)] = associatedDream
     })
 
     return dream

@@ -1,3 +1,4 @@
+import LeftJoinPreloadIncompatibleWithFindEach from '../../../src/errors/LeftJoinPreloadIncompatibleWithFindEach'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar'
@@ -19,6 +20,19 @@ describe('Dream.leftJoinPreload', () => {
 
     const reloaded = (await CompositionAssetAudit.leftJoinPreload('compositionAsset').all())[0]
     expect(reloaded.compositionAsset).toMatchDreamModel(compositionAsset)
+  })
+
+  it('is incompatible with findEach', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const composition = await Composition.create({ user })
+    const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
+    await CompositionAssetAudit.create({
+      compositionAssetId: compositionAsset.id,
+    })
+
+    await expect(
+      CompositionAssetAudit.leftJoinPreload('compositionAsset').findEach(dream => console.debug(dream))
+    ).rejects.toThrow(LeftJoinPreloadIncompatibleWithFindEach)
   })
 
   it('supports where clauses', async () => {

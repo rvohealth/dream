@@ -1,8 +1,4 @@
 export default class DreamApplicationInitMissingCallToLoadModels extends Error {
-  constructor() {
-    super()
-  }
-
   public get message() {
     return `
 must load models when initializing a new DreamApplication.

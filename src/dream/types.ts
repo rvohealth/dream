@@ -437,7 +437,7 @@ export type AssociationNameToAssociationDataAndDreamClassMap = Record<
   }
 >
 
-type IdToDreamMap = Record<string, Dream>
+type IdToDreamMap = Map<string | number, Dream>
 export type AliasToDreamIdMap = Record<string, IdToDreamMap>
 
 export type RelaxedPreloadStatement<Depth extends number = 0> = RelaxedJoinStatement<Depth>
