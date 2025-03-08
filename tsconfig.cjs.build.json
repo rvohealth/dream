@@ -5,6 +5,8 @@
     "module": "CommonJS",
     "declaration": false,
 
-    "target": "es2022"
+    "target": "es2022",
+    "esModuleInterop": true
+    // "resolveJsonModule": true,
   }
 }
