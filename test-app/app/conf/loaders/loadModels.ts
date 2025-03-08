@@ -3,5 +3,5 @@ import srcPath from '../../helpers/srcPath'
 
 export default async function loadModels() {
   const modelPaths = await DreamImporter.ls(srcPath('app', 'models'))
-  return await DreamImporter.importDreams(modelPaths)
+  return await DreamImporter.importDreams(modelPaths, async path => (await import(path)).default)
 }

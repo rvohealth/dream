@@ -20,34 +20,34 @@ export default class DreamImporter {
     }
   }
 
-  public static async importDreams(modelPaths: string[]) {
+  public static async importDreams(modelPaths: string[], importCb: (path: string) => Promise<any>) {
     const modelClasses: [string, typeof Dream][] = []
 
     for (const modelPath of modelPaths) {
-      modelClasses.push([modelPath, (await import(modelPath)).default as typeof Dream])
+      modelClasses.push([modelPath, (await importCb(modelPath)) as typeof Dream])
     }
 
     return modelClasses
   }
 
-  public static async importSerializers(serializerPaths: string[]) {
+  public static async importSerializers(serializerPaths: string[], importCb: (path: string) => Promise<any>) {
     const serializerClasses: [string, Record<string, typeof DreamSerializer>][] = []
 
     for (const serializerPath of serializerPaths) {
       serializerClasses.push([
         serializerPath,
-        (await import(serializerPath)) as Record<string, typeof DreamSerializer>,
+        (await importCb(serializerPath)) as Record<string, typeof DreamSerializer>,
       ])
     }
 
     return serializerClasses
   }
 
-  public static async importServices(servicePaths: string[]) {
+  public static async importServices(servicePaths: string[], importCb: (path: string) => Promise<any>) {
     const serviceClasses: [string, any][] = []
 
     for (const servicePath of servicePaths) {
-      serviceClasses.push([servicePath, (await import(servicePath)).default])
+      serviceClasses.push([servicePath, await importCb(servicePath)])
     }
 
     return serviceClasses
