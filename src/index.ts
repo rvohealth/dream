@@ -34,6 +34,7 @@ export { default as Validate } from './decorators/validations/Validate.js'
 export { default as Validates } from './decorators/validations/Validates.js'
 export { default as Virtual } from './decorators/Virtual.js'
 export { default as Dream } from './Dream.js'
+export { default as DreamImporter } from './dream-application/helpers/DreamImporter.js'
 export {
   default as DreamApplication,
   type DreamApplicationInitOptions,
