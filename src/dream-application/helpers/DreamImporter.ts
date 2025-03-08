@@ -20,7 +20,8 @@ export default class DreamImporter {
     }
   }
 
-  public static async importDreams(modelPaths: string[], importCb: (path: string) => Promise<any>) {
+  public static async importDreams(pathToModels: string, importCb: (path: string) => Promise<any>) {
+    const modelPaths = await DreamImporter.ls(pathToModels)
     const modelClasses: [string, typeof Dream][] = []
 
     for (const modelPath of modelPaths) {
