@@ -63,7 +63,7 @@
   },
   "devDependencies": {
     "@eslint/js": "=9.0.0",
-    "@rvohealth/dream-spec-helpers": "=0.1.0-fgbeta-15",
+    "@rvohealth/dream-spec-helpers": "=0.1.0-fgbeta-16",
     "@types/luxon": "^3.4.2",
     "@types/node": "^22.5.1",
     "@types/pg": "^8.11.8",
