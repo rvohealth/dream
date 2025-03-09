@@ -81,10 +81,6 @@ export default function RendersOne(
         } as DreamSerializerAssociationStatement,
       ]
     })
-
-    // return function (this: DreamSerializer) {
-    //   return (this as any)[key]
-    // }
   }
 }
 

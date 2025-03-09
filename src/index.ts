@@ -1,8 +1,8 @@
 export { default as DreamBin } from './bin/index.js'
 export { default as DreamCLI } from './cli/index.js'
-export { default as db } from './db/index.js'
 export { closeAllDbConnections, dreamDbConnections } from './db/DreamDbConnection.js'
 export { pgErrorType } from './db/errors.js'
+export { default as db } from './db/index.js'
 export { default as DreamMigrationHelpers } from './db/migration-helpers/DreamMigrationHelpers.js'
 export { default as validateColumn } from './db/validators/validateColumn.js'
 export { default as validateTable } from './db/validators/validateTable.js'
@@ -10,8 +10,8 @@ export {
   type WhereStatementForDream,
   type WhereStatementForDreamClass,
 } from './decorators/associations/shared.js'
-export { default as Decorators } from './decorators/Decorators.js'
 export { type DecoratorContext } from './decorators/DecoratorContextType.js'
+export { default as Decorators } from './decorators/Decorators.js'
 export { default as AfterCreate } from './decorators/hooks/AfterCreate.js'
 export { default as AfterCreateCommit } from './decorators/hooks/AfterCreateCommit.js'
 export { default as AfterDestroy } from './decorators/hooks/AfterDestroy.js'
@@ -33,8 +33,8 @@ export { type ValidationType } from './decorators/validations/shared.js'
 export { default as Validate } from './decorators/validations/Validate.js'
 export { default as Validates } from './decorators/validations/Validates.js'
 export { default as Virtual } from './decorators/Virtual.js'
-export { default as Dream } from './Dream.js'
 export { default as DreamImporter } from './dream-application/helpers/DreamImporter.js'
+export { default as lookupClassByGlobalName } from './dream-application/helpers/lookupClassByGlobalName.js'
 export {
   default as DreamApplication,
   type DreamApplicationInitOptions,
@@ -42,16 +42,16 @@ export {
   type DreamLogger,
   type DreamLogLevel,
 } from './dream-application/index.js'
-export { default as lookupClassByGlobalName } from './dream-application/helpers/lookupClassByGlobalName.js'
+export { default as Dream } from './Dream.js'
 export { default as DreamTransaction } from './dream/DreamTransaction.js'
 export { default as Query } from './dream/Query.js'
 export {
+  DreamConst,
   type DreamAssociationMetadata,
   type DreamAttributes,
   type DreamClassColumn,
   type DreamColumn,
   type DreamColumnNames,
-  DreamConst,
   type DreamOrViewModelSerializerKey,
   type DreamParamSafeAttributes,
   type DreamParamSafeColumnNames,
@@ -100,17 +100,19 @@ export { Range, default as range } from './helpers/range.js'
 export { default as round, type RoundingPrecision } from './helpers/round.js'
 export { default as serializerNameFromFullyQualifiedModelName } from './helpers/serializerNameFromFullyQualifiedModelName.js'
 export { default as snakeify } from './helpers/snakeify.js'
+export { default as sortBy } from './helpers/sortBy.js'
 export { default as standardizeFullyQualifiedModelName } from './helpers/standardizeFullyQualifiedModelName.js'
 export { type Camelized, type Hyphenized, type Pascalized, type Snakeified } from './helpers/stringCasing.js'
 export { default as uncapitalize } from './helpers/uncapitalize.js'
 export { default as uniq } from './helpers/uniq.js'
 export {
+  openapiPrimitiveTypes,
+  openapiShorthandPrimitiveTypes,
   type CommonOpenapiSchemaObjectFields,
   type OpenapiAllTypes,
   type OpenapiFormats,
   type OpenapiNumberFormats,
   type OpenapiPrimitiveTypes,
-  openapiPrimitiveTypes,
   type OpenapiSchemaArray,
   type OpenapiSchemaArrayShorthand,
   type OpenapiSchemaBase,
@@ -148,12 +150,10 @@ export {
   type OpenapiSchemaString,
   type OpenapiShorthandAllTypes,
   type OpenapiShorthandPrimitiveTypes,
-  openapiShorthandPrimitiveTypes,
   type OpenapiTypeField,
   type OpenapiTypeFieldObject,
 } from './openapi/types.js'
 export { default as ops } from './ops/index.js'
-export { default as DreamSerializer } from './serializer/index.js'
 export { default as RendersMany } from './serializer/decorators/associations/RendersMany.js'
 export { default as RendersOne } from './serializer/decorators/associations/RendersOne.js'
 export { type DreamSerializerAssociationStatement } from './serializer/decorators/associations/shared.js'
@@ -162,3 +162,4 @@ export {
   type AttributeStatement,
   type SerializableTypes,
 } from './serializer/decorators/attribute.js'
+export { default as DreamSerializer } from './serializer/index.js'
