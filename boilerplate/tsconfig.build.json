@@ -6,7 +6,6 @@
     "moduleResolution": "Node",
     "noImplicitAny": true,
     "outDir": "./dist",
-    "resolveJsonModule": true,
     "rootDir": "./",
     "skipLibCheck": true,
     "sourceMap": true,
