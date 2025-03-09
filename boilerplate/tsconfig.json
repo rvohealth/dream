@@ -6,7 +6,8 @@
   },
   "compilerOptions": {
     "baseUrl": "src",
-    "types": ["jest", "@types/jest", "jest-playwright-preset", "expect-playwright", "luxon-jest-matchers"]
+    "types": ["luxon-jest-matchers"],
+    "typeRoots": ["spec/global.d.ts"]
   },
   "include": ["src", "spec"]
 }
