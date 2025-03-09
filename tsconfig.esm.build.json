@@ -6,8 +6,6 @@
     "declarationDir": "./dist/types",
 
     "target": "ES2022",
-    "lib": ["ES2022"],
-
-    "typeRoots": ["global.d.ts"]
+    "lib": ["ES2022"]
   }
 }
