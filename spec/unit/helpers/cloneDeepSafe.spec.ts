@@ -64,7 +64,7 @@ describe('cloneDeepSafe', () => {
     it('is the same DateTime (since DateTimes are immutable)', () => {
       const original = DateTime.now()
       const clone = cloneDeepSafe(original)
-      expect(clone).toEqual(original)
+      expect(clone).toBe(original)
     })
   })
 
@@ -72,7 +72,7 @@ describe('cloneDeepSafe', () => {
     it('is the same CalendarDate (since CalendarDates are immutable)', () => {
       const original = CalendarDate.today()
       const clone = cloneDeepSafe(original)
-      expect(clone).toEqual(original)
+      expect(clone).toBe(original)
     })
   })
 

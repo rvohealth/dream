@@ -1754,7 +1754,6 @@ export default class Query<
     )
 
     const baseModelIdToDreamMap = aliasToDreamIdMap[this.baseSqlAlias] || new Map()
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     return compact(Array.from(baseModelIdToDreamMap.values()) as DreamInstance[])
   }
 

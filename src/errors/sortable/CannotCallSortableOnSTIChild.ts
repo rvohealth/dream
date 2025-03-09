@@ -7,10 +7,10 @@ export default class CannotCallSortableOnSTIChild extends Error {
 
   public get message() {
     return `
-Cannot call @Sortable decorator on the child of an STI base class.
+Cannot add @Sortable decorator to a property on an STI child class.
 
-offending child class: ${this.dreamClass.globalName}
-base class: ${this.dreamClass['stiBaseClassOrOwnClass'].globalName}
+STI child class: ${this.dreamClass.globalName}
+STI base class: ${this.dreamClass['stiBaseClassOrOwnClass'].globalName}
 `
   }
 }
