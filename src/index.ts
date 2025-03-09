@@ -91,6 +91,7 @@ export {
   inferSerializerFromDreamClassOrViewModelClass,
   default as inferSerializerFromDreamOrViewModel,
 } from './helpers/inferSerializerFromDreamOrViewModel.js'
+export { default as isEmpty } from './helpers/isEmpty.js'
 export { default as loadRepl } from './helpers/loadRepl.js'
 export { default as pascalize } from './helpers/pascalize.js'
 export { default as dreamPath } from './helpers/path/dreamPath.js'
