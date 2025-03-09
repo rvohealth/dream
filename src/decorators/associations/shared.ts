@@ -533,8 +533,21 @@ export function applyGetterAndSetter(
     },
 
     set: function (this: Dream, associatedModel: any) {
-      // protect against a stage 3 decorator bug
-      if (this['stage3DecoratorBugGuardOn']) return
+      /**
+       *
+       * Modern Javascript sets all properties that do not have an explicit
+       * assignment within the constructor to undefined in an implicit constructor.
+       * Since the Dream constructor sets the value of properties of instances of
+       * classes that extend Dream (e.g. when passing attributes to #new or #create
+       * or when loading a model via one of the #find methods or #all), we need to
+       * prevent those properties from being set back to undefined. Since all
+       * properties corresponding to a database column get a setter, we achieve this
+       * protection by including a guard in the setters that returns if this
+       * property is set.
+       *
+       */
+
+      if (this['columnSetterGuardActivated']) return
       ;(this as any)[associationToGetterSetterProp(partialAssociation)] = associatedModel
 
       if (isBelongsTo) {

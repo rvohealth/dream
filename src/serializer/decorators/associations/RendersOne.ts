@@ -54,6 +54,14 @@ export default function RendersOne(
       const target = this
       const serializerClass: typeof DreamSerializer = target.constructor as typeof DreamSerializer
       if (!serializerClass['globallyInitializingDecorators']) {
+        /**
+         * Modern Javascript applies implicit accessors to instance properties
+         * that don't have an accessor explicitly defined in the class definition.
+         * The instance accessors shadow prototype accessors.
+         * `addInitializer` is called by Decorators after an instance has been fully
+         * constructed. We leverage this opportunity to delete the instance accessors
+         * so that the prototype accessors applied by this decorator can be reached.
+         */
         delete (this as any)[key]
         return
       }

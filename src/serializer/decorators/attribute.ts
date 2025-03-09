@@ -1,9 +1,9 @@
-import DreamSerializer from '../index.js'
 import { DecoratorContext } from '../../decorators/DecoratorContextType.js'
 import Dream from '../../Dream.js'
 import { RoundingPrecision } from '../../helpers/round.js'
 import { isString } from '../../helpers/typechecks.js'
 import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../openapi/types.js'
+import DreamSerializer from '../index.js'
 import { dreamAttributeOpenapiShape } from './helpers/dreamAttributeOpenapiShape.js'
 
 export default function Attribute(): any
@@ -114,6 +114,14 @@ export default function Attribute(
       const target = this
       const serializerClass: typeof DreamSerializer = target.constructor as typeof DreamSerializer
       if (!serializerClass['globallyInitializingDecorators']) {
+        /**
+         * Modern Javascript applies implicit accessors to instance properties
+         * that don't have an accessor explicitly defined in the class definition.
+         * The instance accessors shadow prototype accessors.
+         * `addInitializer` is called by Decorators after an instance has been fully
+         * constructed. We leverage this opportunity to delete the instance accessors
+         * so that the prototype accessors applied by this decorator can be reached.
+         */
         delete (this as any)[key]
         return
       }

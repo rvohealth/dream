@@ -142,26 +142,18 @@ export default class Dream {
   /**
    * @internal
    *
-   * There is a stage 3 decorator bug:
-   * - when a base class defines setters for fields defined in an inheriting class
-   * - the second field after the decorator (so not the field decorated) gets set
-   *   with `undefined` after the base class constructor ends (before the extending
-   *   class implicit constructor is called, since decorators initialize before each
-   *   constructor) (this is the same behavior as if the field had been initialized
-   *   to undefined via `public myField: string = undefined` even though it has no
-   *   such initialization)
-   *
-   * In order to prevent the value from being set to undefined after it was initialized
-   * in this constructor with some value, we set `stage3DecoratorBugGuardOn` now, include guards in
-   * each setter so that they do not set when `stage3DecoratorBugGuardOn` is true, and then follow
-   * each instantiation by setting `stage3DecoratorBugGuardOn` to false.
-   *
-   * Only dynamically added setters are affected, not setters defined on the model itself,
-   * so custom setters on the user model are not subject to this bug.
+   * Modern Javascript sets all properties that do not have an explicit
+   * assignment within the constructor to undefined in an implicit constructor.
+   * Since the Dream constructor sets the value of properties of instances of
+   * classes that extend Dream (e.g. when passing attributes to #new or #create
+   * or when loading a model via one of the #find methods or #all), we need to
+   * prevent those properties from being set back to undefined. Since all
+   * properties corresponding to a database column get a setter, we achieve this
+   * protection by including a guard in the setters that returns if this
+   * property is set.
    *
    */
-
-  protected stage3DecoratorBugGuardOn: boolean = false
+  protected columnSetterGuardActivated: boolean = false
 
   /**
    * @internal
@@ -2281,25 +2273,19 @@ export default class Dream {
     }
 
     /**
-     * There is a stage 3 decorator bug:
-     * - when a base class defines setters for fields defined in an inheriting class
-     * - the second field after the decorator (so not the field decorated) gets set
-     *   with `undefined` after the base class constructor ends (before the extending
-     *   class implicit constructor is called, since decorators initialize before each
-     *   constructor) (this is the same behavior as if the field had been initialized
-     *   to undefined via `public myField: string = undefined` even though it has no
-     *   such initialization)
      *
-     * In order to prevent the value from being set to undefined after it was initialized
-     * in this constructor with some value, we set `stage3DecoratorBugGuardOn` now, include guards in
-     * each setter so that they do not set when `stage3DecoratorBugGuardOn` is true, and then follow
-     * each instantiation by setting `stage3DecoratorBugGuardOn` to false.
-     *
-     * Only dynamically added setters are affected, not setters defined on the model itself,
-     * so custom setters on the user model are not subject to this bug.
+     * Modern Javascript sets all properties that do not have an explicit
+     * assignment within the constructor to undefined in an implicit constructor.
+     * Since the Dream constructor sets the value of properties of instances of
+     * classes that extend Dream (e.g. when passing attributes to #new or #create
+     * or when loading a model via one of the #find methods or #all), we need to
+     * prevent those properties from being set back to undefined. Since all
+     * properties corresponding to a database column get a setter, we achieve this
+     * protection by including a guard in the setters that returns if this
+     * property is set.
      *
      */
-    this.stage3DecoratorBugGuardOn = true
+    this.columnSetterGuardActivated = true
   }
 
   /**
@@ -2397,8 +2383,20 @@ export default class Dream {
             },
 
             set(val: any) {
-              // protect against a stage 3 decorator bug
-              if (this.stage3DecoratorBugGuardOn) return
+              /**
+               *
+               * Modern Javascript sets all properties that do not have an explicit
+               * assignment within the constructor to undefined in an implicit constructor.
+               * Since the Dream constructor sets the value of properties of instances of
+               * classes that extend Dream (e.g. when passing attributes to #new or #create
+               * or when loading a model via one of the #find methods or #all), we need to
+               * prevent those properties from being set back to undefined. Since all
+               * properties corresponding to a database column get a setter, we achieve this
+               * protection by including a guard in the setters that returns if this
+               * property is set.
+               *
+               */
+              if (this.columnSetterGuardActivated) return
               this.setAttribute(encryptedAttribute.encryptedColumnName, InternalEncrypt.encryptColumn(val))
             },
 
@@ -2435,8 +2433,20 @@ export default class Dream {
             },
 
             set(val: any) {
-              // protect against a stage 3 decorator bug
-              if (this.stage3DecoratorBugGuardOn) return
+              /**
+               *
+               * Modern Javascript sets all properties that do not have an explicit
+               * assignment within the constructor to undefined in an implicit constructor.
+               * Since the Dream constructor sets the value of properties of instances of
+               * classes that extend Dream (e.g. when passing attributes to #new or #create
+               * or when loading a model via one of the #find methods or #all), we need to
+               * prevent those properties from being set back to undefined. Since all
+               * properties corresponding to a database column get a setter, we achieve this
+               * protection by including a guard in the setters that returns if this
+               * property is set.
+               *
+               */
+              if (this.columnSetterGuardActivated) return
               this.currentAttributes[column] = isString(val) ? val : JSON.stringify(val)
             },
 
@@ -2452,8 +2462,20 @@ export default class Dream {
             },
 
             set(val: any) {
-              // protect against a stage 3 decorator bug
-              if (this.stage3DecoratorBugGuardOn) return
+              /**
+               *
+               * Modern Javascript sets all properties that do not have an explicit
+               * assignment within the constructor to undefined in an implicit constructor.
+               * Since the Dream constructor sets the value of properties of instances of
+               * classes that extend Dream (e.g. when passing attributes to #new or #create
+               * or when loading a model via one of the #find methods or #all), we need to
+               * prevent those properties from being set back to undefined. Since all
+               * properties corresponding to a database column get a setter, we achieve this
+               * protection by including a guard in the setters that returns if this
+               * property is set.
+               *
+               */
+              if (this.columnSetterGuardActivated) return
               return (this.currentAttributes[column] = val)
             },
 
@@ -2467,7 +2489,15 @@ export default class Dream {
     ensureSTITypeFieldIsSet(this)
   }
 
-  protected removeInstanceAttributeAccessors() {
+  /**
+   * @internal
+   *
+   * Modern Javascript applies implicit accessors to instance properties that
+   * shadow prototype accessors applied by Dream. This method is called after
+   * every Dream model is initialized to delete the instance accessors so that
+   * the prototype accessors can be reached.
+   */
+  protected unshadowColumnPropertyPrototypeAccessors() {
     const dreamClass = this.constructor as typeof Dream
     const columns = dreamClass.columns()
     const dream = this
@@ -2484,13 +2514,32 @@ export default class Dream {
         delete (dream as any)[column]
       }
     })
-
-    this.associationNames.forEach(association => delete (dream as any)[association])
   }
 
   protected finalizeConstruction() {
-    this.stage3DecoratorBugGuardOn = false
-    this.removeInstanceAttributeAccessors()
+    /**
+     *
+     * Modern Javascript sets all properties that do not have an explicit
+     * assignment within the constructor to undefined in an implicit constructor.
+     * Since the Dream constructor sets the value of properties of instances of
+     * classes that extend Dream (e.g. when passing attributes to #new or #create
+     * or when loading a model via one of the #find methods or #all), we need to
+     * prevent those properties from being set back to undefined. Since all
+     * properties corresponding to a database column get a setter, we achieve this
+     * protection by including a guard in the setters that returns if this
+     * property is set.
+     *
+     */
+    this.columnSetterGuardActivated = false
+
+    /**
+     * Modern Javascript applies implicit accessors to instance properties
+     * that don't have an accessor explicitly defined in the class definition.
+     * The instance accessors shadow prototype accessors applied by Dream.
+     * This method is called after every Dream model is initialized to delete the
+     * instance accessors so that the prototype accessors can be reached.
+     */
+    this.unshadowColumnPropertyPrototypeAccessors()
   }
 
   /**
