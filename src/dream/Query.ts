@@ -43,6 +43,7 @@ import CannotCallUndestroyOnANonSoftDeleteModel from '../errors/CannotCallUndest
 import CannotNegateSimilarityClause from '../errors/CannotNegateSimilarityClause.js'
 import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../errors/CannotPassAdditionalFieldsToPluckEachAfterCallback.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../errors/CannotPassUndefinedAsAValueToAWhereClause.js'
+import LeftJoinPreloadIncompatibleWithFindEach from '../errors/LeftJoinPreloadIncompatibleWithFindEach.js'
 import MissingRequiredCallbackFunctionToPluckEach from '../errors/MissingRequiredCallbackFunctionToPluckEach.js'
 import NoUpdateAllOnJoins from '../errors/NoUpdateAllOnJoins.js'
 import NoUpdateOnAssociationQuery from '../errors/NoUpdateOnAssociationQuery.js'
@@ -1753,6 +1754,7 @@ export default class Query<
     )
 
     const baseModelIdToDreamMap = aliasToDreamIdMap[this.baseSqlAlias] || new Map()
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     return compact(Array.from(baseModelIdToDreamMap.values()) as DreamInstance[])
   }
 
