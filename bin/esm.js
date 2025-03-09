@@ -11,7 +11,7 @@
  * same thing, and then import it in your node command, which is what we are now doing
  * in our package.json file:
  *
- * node --experimental-specifier-resolution=node --import=./node/esm.js ./test-app/cli/index.ts
+ * node --experimental-specifier-resolution=node --import=./bin/esm.js ./test-app/cli/index.ts
  * */
 import { register } from 'node:module'
 import { pathToFileURL } from 'node:url'
