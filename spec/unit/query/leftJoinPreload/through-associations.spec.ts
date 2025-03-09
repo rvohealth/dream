@@ -51,13 +51,14 @@ describe('Query#leftJoinPreload through', () => {
       it('negates the logic of all the clauses ANDed together', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
-        await Mylar.create({ user, color: 'red' })
-        const greenLatexBalloon = await Mylar.create({ user, color: 'green' })
+        await Latex.create({ user, color: 'red' })
+        const redMylarBalloon = await Mylar.create({ user, color: 'red' })
+        const greenLatexBalloon = await Latex.create({ user, color: 'green' })
 
         const reloaded = await User.leftJoinPreload('balloons', {
-          notOn: { color: 'red', type: 'Mylar' },
+          notOn: { color: 'red', type: 'Latex' },
         }).firstOrFail()
-        expect(reloaded.balloons).toMatchDreamModels([greenLatexBalloon])
+        expect(reloaded.balloons).toMatchDreamModels([redMylarBalloon, greenLatexBalloon])
       })
     })
 
