@@ -510,9 +510,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rvohealth/dream-spec-helpers@npm:0.1.0-fgbeta-19":
-  version: 0.1.0-fgbeta-19
-  resolution: "@rvohealth/dream-spec-helpers@npm:0.1.0-fgbeta-19::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40rvohealth%2Fdream-spec-helpers%2F0.1.0-fgbeta-19%2F24cfc65ca6e1af3709ee2ff0e028d56f7e25abbd"
+"@rvohealth/dream-spec-helpers@npm:0.1.0":
+  version: 0.1.0
+  resolution: "@rvohealth/dream-spec-helpers@npm:0.1.0::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40rvohealth%2Fdream-spec-helpers%2F0.1.0%2Fff165214987e7df2581d2943a06aecfdeffc8fb7"
   dependencies:
     lodash.sortby: "npm:^4.7.0"
   peerDependencies:
@@ -520,7 +520,7 @@ __metadata:
     "@types/pg": "*"
     pg: "*"
     ts-node: "*"
-  checksum: 10c0/de50b85d3660df7abb5901404c5be0c4838f0eea393c976d7c1e89cbf6bef4e0209da7147c58ded197a99de376ef206966ee429b9fde751317edb587abf1ac17
+  checksum: 10c0/511a354056da3878ff8f9497686832f85642af7fe917780e67393e5bbfa3b83869dd32306b95fc9b42a4b3c33bf9903bd942897373b9d9f9f80f911c3757a92a
   languageName: node
   linkType: hard
 
@@ -529,7 +529,7 @@ __metadata:
   resolution: "@rvohealth/dream@workspace:."
   dependencies:
     "@eslint/js": "npm:=9.0.0"
-    "@rvohealth/dream-spec-helpers": "npm:0.1.0-fgbeta-19"
+    "@rvohealth/dream-spec-helpers": "npm:0.1.0"
     "@types/luxon": "npm:^3.4.2"
     "@types/node": "npm:^22.5.1"
     "@types/pg": "npm:^8.11.8"
