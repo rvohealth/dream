@@ -1,9 +1,8 @@
-import ApplicationModel from './ApplicationModel'
 import { Decorators, DreamColumn, Sortable } from '../../../src'
-import { Type } from '../../../src/dream/types'
+import ApplicationModel from './ApplicationModel'
 import User from './User'
 
-const Deco = new Decorators<Type<typeof InvalidAssociationSortableModel>>()
+const Deco = new Decorators<InstanceType<typeof InvalidAssociationSortableModel>>()
 
 export default class InvalidAssociationSortableModel extends ApplicationModel {
   public get table() {

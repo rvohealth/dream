@@ -1,6 +1,6 @@
 import { AssociationTableNames } from '../../db/reflections.js'
-import Dream from '../../Dream.js'
 import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames.js'
+import Dream from '../../Dream.js'
 import {
   DefaultScopeName,
   DefaultScopeNameForTable,
@@ -47,13 +47,13 @@ export default function BelongsTo<
  *
  * ```ts
  * class UserSettings extends ApplicationModel {
- *   @UserSettings.BelongsTo('User')
+ *   @Deco.BelongsTo('User')
  *   public user: User
  *   public userId: DreamColumn<UserSettings, 'userId'>
  * }
  *
  * class User extends ApplicationModel {
- *   @User.HasOne('UserSettings')
+ *   @Deco.HasOne('UserSettings')
  *   public userSettings: UserSettings
  * }
  * ```

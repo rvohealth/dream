@@ -8,8 +8,8 @@ import {
 } from 'kysely'
 import { DateTime } from 'luxon'
 
-import db from './db/index.js'
 import { pgErrorType } from './db/errors.js'
+import db from './db/index.js'
 import { AssociationTableNames } from './db/reflections.js'
 import { DbConnectionType } from './db/types.js'
 import associationToGetterSetterProp from './decorators/associations/associationToGetterSetterProp.js'
@@ -251,9 +251,9 @@ export default class Dream {
    * @internal
    *
    * Model storage for association metadata, set when using the association decorators like:
-   *   @ModelName.HasOne
-   *   @ModelName.HasMany
-   *   @ModelName.BelongsTo
+   *   @Deco.HasOne
+   *   @Deco.HasMany
+   *   @Deco.BelongsTo
    */
   protected static associationMetadataByType: {
     belongsTo: BelongsToStatement<any, any, any, any>[]
@@ -1627,10 +1627,10 @@ export default class Dream {
    *
    * ```ts
    * class Post {
-   *   @Post.HasMany('LocalizedText')
+   *   @Deco.HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    *
-   *   @Post.HasOne('LocalizedText', {
+   *   @Deco.HasOne('LocalizedText', {
    *     where: { locale: DreamConst.passthrough },
    *   })
    *   public currentLocalizedText: LocalizedText
@@ -3472,10 +3472,10 @@ export default class Dream {
    *
    * ```ts
    * class Post {
-   *   @Post.HasMany('LocalizedText')
+   *   @Deco.HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    *
-   *   @Post.HasOne('LocalizedText', {
+   *   @Deco.HasOne('LocalizedText', {
    *     where: { locale: DreamConst.passthrough },
    *   })
    *   public currentLocalizedText: LocalizedText
@@ -3824,7 +3824,7 @@ export default class Dream {
    *
    * ```ts
    * class User extends ApplicationModel {
-   *   @Decorator.BeforeDestroy()
+   *   @Deco.BeforeDestroy()
    *   public softDelete() {
    *     await this.update({ deletedAt: DateTime.now() })
    *     this.preventDeletion()
@@ -3846,13 +3846,13 @@ export default class Dream {
    *
    * ```ts
    * class User extends ApplicationModel {
-   *   @Decorator.BeforeDestroy()
+   *   @Deco.BeforeDestroy()
    *   public async softDelete() {
    *     await this.update({ deletedAt: DateTime.now() })
    *     this.preventDeletion()
    *   }
    *
-   *   @Decorator.BeforeDestroy()
+   *   @Deco.BeforeDestroy()
    *   public async undoSoftDelete() {
    *     await this.update({ deletedAt: null })
    *     this.unpreventDeletion()

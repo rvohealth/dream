@@ -17,8 +17,6 @@ import OpsStatement from '../ops/ops-statement.js'
 import DreamSerializer from '../serializer/index.js'
 import { FindEachOpts } from './Query.js'
 
-export type Type<T extends typeof Dream> = InstanceType<T>
-
 export const primaryKeyTypes = ['bigserial', 'bigint', 'uuid', 'integer'] as const
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
 

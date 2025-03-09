@@ -59,8 +59,8 @@ import snakeify from '../helpers/snakeify.js'
 import { isObject, isString } from '../helpers/typechecks.js'
 import { FindInterfaceWithValue } from '../helpers/typeutils.js'
 import uniq from '../helpers/uniq.js'
-import ops from '../ops/index.js'
 import CurriedOpsStatement from '../ops/curried-ops-statement.js'
+import ops from '../ops/index.js'
 import OpsStatement from '../ops/ops-statement.js'
 import DreamTransaction from './DreamTransaction.js'
 import executeDatabaseQuery from './internal/executeDatabaseQuery.js'
@@ -1208,10 +1208,10 @@ export default class Query<
    *
    * ```ts
    * class Post {
-   *   @Post.HasMany('LocalizedText')
+   *   @Deco.HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    *
-   *   @Post.HasOne('LocalizedText', {
+   *   @Deco.HasOne('LocalizedText', {
    *     on: { locale: DreamConst.passthrough },
    *   })
    *   public currentLocalizedText: LocalizedText

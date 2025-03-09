@@ -1,6 +1,6 @@
 import { AssociationTableNames } from '../../db/reflections.js'
-import Dream from '../../Dream.js'
 import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames.js'
+import Dream from '../../Dream.js'
 import {
   GlobalModelNames,
   GlobalModelNameTableMap,
@@ -53,12 +53,12 @@ export default function HasMany<
  *
  * ```ts
  * class User extends ApplicationModel {
- *   @User.HasMany('Post')
+ *   @Deco.HasMany('Post')
  *   public posts: Post[]
  * }
  *
  * class Post extends ApplicationModel {
- *   @Post.BelongsTo('User')
+ *   @Deco.BelongsTo('User')
  *   public user: User
  *   public userId: DreamColumn<Post, 'userId'>
  * }

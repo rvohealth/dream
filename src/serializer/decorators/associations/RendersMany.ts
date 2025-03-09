@@ -1,6 +1,6 @@
-import DreamSerializer from '../../index.js'
 import { DecoratorContext } from '../../../decorators/DecoratorContextType.js'
 import { SerializableClassOrClasses } from '../../../dream/types.js'
+import DreamSerializer from '../../index.js'
 import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOpts } from './shared.js'
 
 /**
@@ -17,12 +17,12 @@ import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOp
  *
  * ```ts
  * class User extends ApplicationModel {
- *   @User.HasOne('Settings')
+ *   @Deco.HasOne('Settings')
  *   public settings: Settings
  * }
  *
  * class Post extends ApplicationModel {
- *   @Post.BelongsTo('User')
+ *   @Deco.BelongsTo('User')
  *   public user: User
  * }
  *

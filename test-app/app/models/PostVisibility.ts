@@ -1,9 +1,9 @@
 import { Decorators } from '../../../src'
-import { DreamColumn, DreamSerializers, Type } from '../../../src/dream/types'
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Post from './Post'
 
-const Decorator = new Decorators<Type<typeof PostVisibility>>()
+const Deco = new Decorators<InstanceType<typeof PostVisibility>>()
 
 export default class PostVisibility extends ApplicationModel {
   public get table() {
@@ -20,10 +20,10 @@ export default class PostVisibility extends ApplicationModel {
   public createdAt: DreamColumn<PostVisibility, 'createdAt'>
   public updatedAt: DreamColumn<PostVisibility, 'updatedAt'>
 
-  @Decorator.HasOne('Post', { dependent: 'destroy' })
+  @Deco.HasOne('Post', { dependent: 'destroy' })
   public post: Post
 
-  @Decorator.BeforeCreate()
+  @Deco.BeforeCreate()
   public conditionallyRaise() {
     if (this.notes === 'raise exception if notes set to this')
       throw new Error(

@@ -57,13 +57,13 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class UserSettings extends ApplicationModel {
-   *   @UserSettings.BelongsTo('User')
+   *   @Deco.BelongsTo('User')
    *   public user: User
    *   public userId: DreamColumn<UserSettings, 'userId'>
    * }
    *
    * class User extends ApplicationModel {
-   *   @User.HasOne('UserSettings')
+   *   @Deco.HasOne('UserSettings')
    *   public userSettings: UserSettings
    * }
    * ```
@@ -111,12 +111,12 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class User extends ApplicationModel {
-   *   @User.HasMany('Post')
+   *   @Deco.HasMany('Post')
    *   public posts: Post[]
    * }
    *
    * class Post extends ApplicationModel {
-   *   @Post.BelongsTo('User')
+   *   @Deco.BelongsTo('User')
    *   public user: User
    *   public userId: DreamColumn<Post, 'userId'>
    * }
@@ -165,12 +165,12 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class User extends ApplicationModel {
-   *   @User.HasOne('UserSettings')
+   *   @Deco.HasOne('UserSettings')
    *   public userSettings: UserSettings
    * }
    *
    * class UserSettings extends ApplicationModel {
-   *   @UserSettings.BelongsTo('User')
+   *   @Deco.BelongsTo('User')
    *   public user: User
    *   public userId: DreamColumn<UserSettings, 'userId'>
    * }

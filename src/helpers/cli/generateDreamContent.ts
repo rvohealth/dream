@@ -21,7 +21,7 @@ export default function generateDreamContent({
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
   const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
   let parentModelClassName: string | undefined
-  const dreamImports: string[] = ['DreamColumn']
+  const dreamImports: string[] = ['Decorators', 'DreamColumn']
   if (serializer) dreamImports.push('DreamSerializers')
   const isSTI = !!fullyQualifiedParentName
 
@@ -53,7 +53,7 @@ export default function generateDreamContent({
       case 'belongs_to':
         modelImportStatements.push(associationImportStatement)
         return `
-@${modelClassName}.BelongsTo('${fullyQualifiedAssociatedModelName}'${descriptors.includes('optional') ? ', { optional: true }' : ''})
+@Deco.BelongsTo('${fullyQualifiedAssociatedModelName}'${descriptors.includes('optional') ? ', { optional: true }' : ''})
 public ${associationName}: ${associationModelName}${descriptors.includes('optional') ? ' | null' : ''}
 public ${associationName}Id: DreamColumn<${modelClassName}, '${associationName}Id'>
 `
@@ -96,6 +96,8 @@ public ${camelize(attributeName)}: ${getAttributeType(attribute, modelClassName)
 
   return `\
 import { ${uniq(dreamImports).join(', ')} } from '@rvohealth/dream'${uniq(modelImportStatements).join('')}
+
+const Deco = new Decorators<InstanceType<typeof ${modelClassName}>>()
 
 ${isSTI ? `\n@STI(${parentModelClassName})` : ''}
 export default class ${modelClassName} extends ${isSTI ? parentModelClassName : 'ApplicationModel'} {

@@ -11,7 +11,7 @@ import { HookStatement, blankHooksFactory } from './shared.js'
  * is complete.
  *
  * class User extends ApplicationModel {
- *   @Decorator.AfterDestroyCommit()
+ *   @Deco.AfterDestroyCommit()
  *   public doSomething() {
  *     ...
  *   }

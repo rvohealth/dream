@@ -11,7 +11,7 @@ import { AfterHookOpts, HookStatement, blankHooksFactory } from './shared.js'
  * is complete.
  *
  * class User extends ApplicationModel {
- *   @Decorator.AfterSaveCommit()
+ *   @Deco.AfterSaveCommit()
  *   public doSomething() {
  *     ...
  *   }
