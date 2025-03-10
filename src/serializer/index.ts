@@ -38,7 +38,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
    * to only apply static values once, on boot, `globallyInitializingDecorators` is set to true on DreamSerializer, and all serializers are instantiated.
    *
    */
-  public static globallyInitializingDecorators: boolean = false
+  private static globallyInitializingDecorators: boolean = false
 
   public static get globalName(): string {
     if (!this._globalName) throw new GlobalNameNotSet(this)

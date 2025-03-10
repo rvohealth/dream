@@ -1,7 +1,7 @@
 {
   "type": "module",
-  "name": "@rvohealth/dream",
-  "version": "0.29.0",
+  "name": "@rvoh/dream",
+  "version": "0.29.1",
   "description": "dream orm",
   "repository": "https://github.com/rvohealth/dream.git",
   "author": "RVOHealth",
@@ -23,7 +23,6 @@
   ],
   "bin": "./dist/src/global-cli/dream.js",
   "scripts": {
-    "publish": "yarn && yarn npm publish",
     "dream": "yarn dreamts",
     "dreamjs": "node --experimental-modules dist/test-app/cli/index.js",
     "dreamts": "node --experimental-specifier-resolution=node --import=./bin/esm.js ./test-app/cli/index.ts",
@@ -51,7 +50,7 @@
     "pluralize-esm": "^9.0.5"
   },
   "peerDependencies": {
-    "@rvohealth/dream-spec-helpers": "*",
+    "@rvoh/dream-spec-helpers": "*",
     "@types/luxon": "^3.4.2",
     "@types/node": "*",
     "@types/pg": "*",
@@ -62,7 +61,7 @@
   },
   "devDependencies": {
     "@eslint/js": "=9.0.0",
-    "@rvohealth/dream-spec-helpers": "0.1.0",
+    "@rvoh/dream-spec-helpers": "0.1.0",
     "@types/luxon": "^3.4.2",
     "@types/node": "^22.5.1",
     "@types/pg": "^8.11.11",
