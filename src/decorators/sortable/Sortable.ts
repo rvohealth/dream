@@ -23,6 +23,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
     context.addInitializer(function (this: Dream) {
       const dream = this
       const dreamClass: typeof Dream = dream.constructor as typeof Dream
+      if (!dreamClass['globallyInitializingDecorators']) return
 
       if (dreamClass['sti']['active']) {
         if (!(dreamClass instanceof dreamClass['stiBaseClassOrOwnClass'])) {
@@ -36,9 +37,6 @@ export default function Sortable(opts: SortableOpts = {}): any {
           return
         }
       }
-
-      const dreamPrototype = Object.getPrototypeOf(dream)
-      if (!dreamClass['globallyInitializingDecorators']) return
 
       if (!Object.getOwnPropertyDescriptor(dreamClass, 'sortableFields')) {
         // This pattern allows `sortableFields` on a base STI class and on
@@ -62,6 +60,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
       const afterDestroyMethodName = `_setValuesAfterDestructionFor${pascalize(key)}AfterDestroy`
       const afterDestroyCommitMethodName = `_setValuesAfterDestructionFor${pascalize(key)}AfterDestroyCommit`
 
+      const dreamPrototype = Object.getPrototypeOf(dream)
       // before saving, we remember the new value for position, but clear it from our
       // supervised attributes to prevent position from saving
       dreamPrototype[beforeSaveMethodName] = async function (txn?: DreamTransaction<any>) {
