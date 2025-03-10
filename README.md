@@ -1,68 +1,9 @@
-# dream ORM
+> ATTENTION: we are currently in the process of releasing this code to the world. This notice will be removed, and the version of this repo will be bumped to 1.0.0, once all of the repos have been migrated to the new spaces and we can verify that it is all working. This is anticipated to take 1 day.
 
-The dream ORM is an ORM inspired heavily by the [Ruby on Rails Active Record](https://guides.rubyonrails.org/active_record_querying.html) pattern, and was designed predominantly as a tool to help migrate PlateJoy's app ecosystem from ruby to node. In the search for a comprehensive ORM in node that maintains the depth and necessary features provided by rails, we have decided to write our own, written on a [very powerful, safely type-guarded query builder called kysely](https://github.com/kysely-org/kysely).
+Dream is a typescript-driven, esm-first ORM built on top of [kysely](http://kysely.dev). It is built to operate within the [Psychic web framework](https://psychic-docs.netlify.app), but can be brought into other projects and used without the encapsulating framework (though this is theoretical, and we do not encourage it at this time). It is actively being developed to support production-grade applications in use within the [RVOHealth organization](https://www.rvohealth.com), who has kindly sponsored the continued development of this ORM, as well as the Psychic web framework as a whole.
 
-Using this library as our query building engine, we have stacked a comprehensive ORM layer on top to provide a rich set of features, of which will be predominantly used in the psychic web framework, also being developed and inspired by the Ruby on Rails web framework.
-
-## Getting started
-
-### Install `nodenv`
-
-In order to use dream, you must be using node = 18.15.0. A `.node-version` file exists at the root of this repo to flag the node version, but it will not work unless `nodenv` has been correctly installed on your machine.
-
-### Add ENV files
-
-make sure to add the following files to the root of the project:
-
-```
-# .env
-DREAM_CORE_DEVELOPMENT=1
-DB_USER=YOUR_PG_USERNAME
-DB_NAME=dream_core_dev
-DB_PORT=5432
-DB_HOST=localhost
-```
-
-```
-# .env.test
-DREAM_CORE_DEVELOPMENT=1
-DB_USER=YOUR_PG_USERNAME
-DB_NAME=dream_core_test
-DB_PORT=5432
-DB_HOST=localhost
-```
-
-### Build db and sync schema
-
-```bash
-yarn install
-NODE_ENV=development yarn dreamcore db:create
-NODE_ENV=development yarn dreamcore db:migrate
-NODE_ENV=test yarn dreamcore db:create
-NODE_ENV=test yarn dreamcore db:migrate
-```
-
-## Global CLI
-
-The global CLI is used to build a new psychic app. You can access the global cli on your machine by doing the following:
-
-```bash
-yarn dlx @rvohealth/dream
-```
-
-Once installed globally, you can access the global cli like so:
-
-```bash
-dream new myapp
-```
-
-To test the global cli without publishing, you can run the following from within the psychic directory:
-
-```bash
-yarn gdreamcore new myapp
-```
-
-NOTE: doing so will create the new app in the dream folder, so once done testing remember to remove it.
+Documentation: [https://psychic-docs.netlify.app](https://psychic-docs.netlify.app)
+Psychic web framework github: [https://github.com/rvohealth/psychic](https://github.com/rvohealth/psychic)
 
 ## Features
 
@@ -406,42 +347,6 @@ const pets = await user
   .all()
 ```
 
-### Contributing
-
-Though the spec framework isn't entirely comprehensive, this application was built with a BDD philosophy guiding its foundation, using tests that actually excercize the ORM from front to back, rather than relying on lot's of stubbing of internal modules.
-
-Though the specs are not technically unit tests in the traditional sense, they are all located under `spec/unit`, and resemble unit tests in their file structure, since there is generally a file for each method on a class. If you are contributing to this project, it will probably in the form of either adding or augmenting the functionality of existing methods, so it should be relatively easy to jump in and not make a mess. If you are adding a new method, you should be adding a new file for it. If it is new behavior on an existing method, you can add context blocks within that method spec file to expand on the behavior of that method. Static and instance methods with the same name should be in the same file, but contextualized differently, though this should rarely happen.
-
-I am not writing tests for internal functions for the most part, though if you find yourself writing something particularly complex, feel free to find a home in the `spec/unit` folder somewhere for it (probably in the `spec/unit/helpers` folder, since that is where I will put specs for helpers I have written when I feel the need to test them).
-
-In terms of setup, you will need to run a few commands to get the environment set up. The commands are the same as those used when you are developing in a real dream app, but you have to pass the `--core` suffix to get the correct behavior. After installing dream on your machine, you will need to first set up a .env and .env.test file (same as in a real dream app), and you will need to make sure to add an extra flag called `DREAM_CORE_DEVELOPMENT`, setting it to `1`.
-
-```
-DREAM_CORE_DEVELOPMENT=1
-DB_USER=YOUR_LOCAL_DB_USERNAME
-DB_NAME=dream_core_dev
-DB_PORT=5432
-DB_HOST=localhost
-```
-
-Once done, you can run the following commands to get up and running:
-
-```bash
-psy db:create --core
-NODE_ENV=test psy db:create --core
-
-psy db:migrate --core
-NODE_ENV=test psy db:migrate --core
-```
-
-#### Generating type docs
-
-```bash
-# first, you will need to update package.json version, in order to keep
-# docs generated on a per-version basis
-yarn build:docs
-```
-
 #### Hidden gotchas
 
 - STI descendants of the same root model that define the same association must define that association identically if they are used in joins, preload, or load. For example, the following will not work properly:
@@ -471,8 +376,6 @@ await z.load({ aa: 'xx' }).execute()
 ## Questions?
 
 - **Ask them on [Stack Overflow](https://stackoverflow.com)**, using the `[dream]` tag.
-
-## Contributing
 
 Dream is an open source library, so we encourage you to actively contribute. Visit our [Contributing](https://github.com/rvohealth/dream/CONTRIBUTING.md) guide to learn more about the processes we use for submitting pull requests or issues.
 
