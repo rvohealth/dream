@@ -2434,10 +2434,7 @@ export default class Dream {
    * the prototype accessors can be reached.
    */
   protected unshadowColumnPropertyPrototypeAccessors() {
-    const dreamClass = this.constructor as typeof Dream
-    const columns = dreamClass.columns()
-    const dream = this
-    columns.forEach(column => delete (dream as any)[column])
+    ;(this.constructor as typeof Dream).columns().forEach(column => delete (this as any)[column])
   }
 
   protected finalizeConstruction() {
