@@ -9,8 +9,13 @@ export default function Validate(): any {
       const t: typeof Dream = this.constructor as typeof Dream
       if (!t['globallyInitializingDecorators']) return
 
-      if (!Object.getOwnPropertyDescriptor(t, 'customValidations'))
-        t['customValidations'] = [...(t['customValidations'] || [])]
+      if (!Object.getOwnPropertyDescriptor(t, 'customValidations')) {
+        // This pattern allows Virtual attributes on a base STI class and on
+        // child STI classes. The new `customValidations` property will be created
+        // on the child STI class, but it will include all the `customValidations`
+        // already declared on the base STI class.
+        t['customValidations'] = [...t['customValidations']]
+      }
       ;(t['customValidations'] as string[]).push(key)
     })
   }

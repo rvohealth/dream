@@ -10,8 +10,13 @@ export default function Virtual(type?: SerializableTypes): any {
       const t: typeof Dream = this.constructor as typeof Dream
       if (!t['globallyInitializingDecorators']) return
 
-      if (!Object.getOwnPropertyDescriptor(t, 'virtualAttributes'))
+      if (!Object.getOwnPropertyDescriptor(t, 'virtualAttributes')) {
+        // This pattern allows Virtual attributes on a base STI class and on
+        // child STI classes. The new `virtualAttributes` property will be created
+        // on the child STI class, but it will include all the `virtualAttributes`
+        // already declared on the base STI class.
         t['virtualAttributes'] = [...t['virtualAttributes']]
+      }
       ;(t['virtualAttributes'] as VirtualAttributeStatement[]).push({
         property: key,
         type,
