@@ -33,6 +33,7 @@ import { Range } from '../../helpers/range.js'
 import { Inc, MergeUnionOfRecordTypes, ReadonlyTail, UnionToIntersection } from '../../helpers/typeutils.js'
 import CurriedOpsStatement from '../../ops/curried-ops-statement.js'
 import OpsStatement, { ExtraSimilarityArgs } from '../../ops/ops-statement.js'
+import freezeBaseClassArrayMap from '../helpers/freezeBaseClassArrayMap.js'
 import associationToGetterSetterProp from './associationToGetterSetterProp.js'
 import { BelongsToStatement } from './BelongsTo.js'
 import { HasManyStatement } from './HasMany.js'
@@ -424,16 +425,28 @@ export type HasThroughOptions<
   AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
 > = Omit<HasOptionsBase<BaseInstance, AssociationGlobalName>, ThroughIncompatibleOptions>
 
-export function blankAssociationsFactory(dreamClass: typeof Dream): {
-  belongsTo: BelongsToStatement<any, any, any, any>[]
-  hasMany: HasManyStatement<any, any, any, any>[]
-  hasOne: HasOneStatement<any, any, any, any>[]
-} {
-  return {
+export interface AssociationStatementsMap {
+  belongsTo: readonly BelongsToStatement<any, any, any, any>[] | BelongsToStatement<any, any, any, any>[]
+  hasMany: readonly HasManyStatement<any, any, any, any>[] | HasManyStatement<any, any, any, any>[]
+  hasOne: readonly HasOneStatement<any, any, any, any>[] | HasOneStatement<any, any, any, any>[]
+}
+
+export function blankAssociationsFactory(
+  dreamClass: typeof Dream,
+  {
+    freeze = false,
+  }: {
+    freeze?: boolean
+  } = {}
+): AssociationStatementsMap {
+  const associationsMap = {
     belongsTo: [...(dreamClass['associationMetadataByType']?.belongsTo || [])],
     hasMany: [...(dreamClass['associationMetadataByType']?.hasMany || [])],
     hasOne: [...(dreamClass['associationMetadataByType']?.hasOne || [])],
   }
+
+  if (freeze) return freezeBaseClassArrayMap(associationsMap)
+  return associationsMap
 }
 
 type DependentOptions = 'destroy'

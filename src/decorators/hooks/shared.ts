@@ -1,5 +1,6 @@
 import Dream from '../../Dream.js'
 import { DreamColumnNames } from '../../dream/types.js'
+import freezeBaseClassArrayMap from '../helpers/freezeBaseClassArrayMap.js'
 
 export type HookType =
   | 'beforeCreate'
@@ -57,7 +58,7 @@ export function blankHooksFactory(
     freeze?: boolean
   } = {}
 ): HookStatementMap {
-  const hooks = {
+  const hooksMap = {
     beforeCreate: [...(dreamClass['hooks']?.beforeCreate || [])],
     beforeUpdate: [...(dreamClass['hooks']?.beforeUpdate || [])],
     beforeSave: [...(dreamClass['hooks']?.beforeSave || [])],
@@ -72,14 +73,6 @@ export function blankHooksFactory(
     afterDestroyCommit: [...(dreamClass['hooks']?.afterDestroyCommit || [])],
   }
 
-  if (freeze) {
-    return Object.freeze(
-      Object.keys(hooks).reduce((frozenHooks, key) => {
-        frozenHooks[key as keyof typeof frozenHooks] = Object.freeze(hooks[key as keyof typeof hooks])
-        return frozenHooks
-      }, {} as HookStatementMap)
-    )
-  }
-
-  return hooks
+  if (freeze) return freezeBaseClassArrayMap(hooksMap)
+  return hooksMap
 }

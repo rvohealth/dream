@@ -164,7 +164,9 @@ export default function HasMany<BaseInstance extends Dream, AssociationGlobalNam
 
       if (!Object.getOwnPropertyDescriptor(dreamClass, 'associationMetadataByType'))
         dreamClass['associationMetadataByType'] = blankAssociationsFactory(dreamClass)
-      dreamClass['associationMetadataByType']['hasMany'].push(association)
+      ;(dreamClass['associationMetadataByType']['hasMany'] as HasManyStatement<any, any, any, any>[]).push(
+        association
+      )
 
       applyGetterAndSetter(target as any, association)
     })

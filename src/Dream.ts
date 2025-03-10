@@ -17,6 +17,7 @@ import { BelongsToStatement } from './decorators/associations/BelongsTo.js'
 import { HasManyStatement } from './decorators/associations/HasMany.js'
 import { HasOneStatement } from './decorators/associations/HasOne.js'
 import {
+  AssociationStatementsMap,
   blankAssociationsFactory,
   PassthroughOnClause,
   WhereStatement,
@@ -244,11 +245,9 @@ export default class Dream {
    *   @Deco.HasMany
    *   @Deco.BelongsTo
    */
-  protected static associationMetadataByType: {
-    belongsTo: BelongsToStatement<any, any, any, any>[]
-    hasMany: HasManyStatement<any, any, any, any>[]
-    hasOne: HasOneStatement<any, any, any, any>[]
-  } = Object.freeze(blankAssociationsFactory(this))
+  protected static associationMetadataByType: AssociationStatementsMap = Object.freeze(
+    blankAssociationsFactory(this, { freeze: true })
+  )
 
   /**
    * @internal

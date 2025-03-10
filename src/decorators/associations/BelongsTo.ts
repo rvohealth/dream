@@ -121,7 +121,9 @@ export default function BelongsTo<BaseInstance extends Dream, AssociationGlobalN
 
       if (!Object.getOwnPropertyDescriptor(dreamClass, 'associationMetadataByType'))
         dreamClass['associationMetadataByType'] = blankAssociationsFactory(dreamClass)
-      dreamClass['associationMetadataByType']['belongsTo'].push(association)
+      ;(
+        dreamClass['associationMetadataByType']['belongsTo'] as BelongsToStatement<any, any, any, any>[]
+      ).push(association)
 
       applyGetterAndSetter(target, association, { isBelongsTo: true, foreignKeyBase: foreignKey })
       if (!optional) validatesImplementation(target, key, 'requiredBelongsTo')
