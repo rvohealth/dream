@@ -1,4 +1,4 @@
-import { UpdateableProperties } from '@rvohealth/dream'
+import { UpdateableProperties } from '@rvoh/dream'
 import ModelWithoutCustomDeletedAt from '../../../test-app/app/models/ModelWithoutCustomDeletedAt'
 
 export default async function createModelWithoutCustomDeletedAt(

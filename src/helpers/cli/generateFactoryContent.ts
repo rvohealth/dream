@@ -69,7 +69,7 @@ export default function generateFactoryContent({
   const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
 
   return `\
-import { ${uniq(dreamImports).join(', ')} } from '@rvohealth/dream'
+import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'
 import ${modelClassName} from '${relativePath}'${
     additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
   }

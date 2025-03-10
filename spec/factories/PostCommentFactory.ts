@@ -1,4 +1,4 @@
-import { UpdateableProperties } from '@rvohealth/dream'
+import { UpdateableProperties } from '@rvoh/dream'
 import PostComment from '../../../test-app/app/models/PostComment'
 import Post from '../../../test-app/app/models/Post'
 

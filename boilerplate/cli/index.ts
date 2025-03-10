@@ -7,7 +7,7 @@
 
 import '../conf/loadEnv'
 
-import { DreamCLI } from '@rvohealth/dream'
+import { DreamCLI } from '@rvoh/dream'
 import { Command } from 'commander'
 import seedDb from '../db/seed'
 import initializeDreamApplication from './helpers/initializeDreamApplication'

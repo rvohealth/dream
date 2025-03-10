@@ -6,7 +6,7 @@ describe('dream generate:model <name> [...attributes] (factory context)', () => 
       const res = generateFactoryContent({ fullyQualifiedModelName: 'User', columnsWithTypes: [] })
       expect(res).toEqual(
         `\
-import { UpdateableProperties } from '@rvohealth/dream'
+import { UpdateableProperties } from '@rvoh/dream'
 import User from '../../app/models/User'
 
 export default async function createUser(attrs: UpdateableProperties<User> = {}) {
@@ -30,7 +30,7 @@ export default async function createUser(attrs: UpdateableProperties<User> = {})
       })
       expect(res).toEqual(
         `\
-import { UpdateableProperties } from '@rvohealth/dream'
+import { UpdateableProperties } from '@rvoh/dream'
 import Post from '../../app/models/Post'
 
 let counter = 0
@@ -57,7 +57,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
         })
         expect(res).toEqual(
           `\
-import { UpdateableProperties } from '@rvohealth/dream'
+import { UpdateableProperties } from '@rvoh/dream'
 import Post from '../../app/models/Post'
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
@@ -74,7 +74,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
       const res = generateFactoryContent({ fullyQualifiedModelName: 'My/Nested/User', columnsWithTypes: [] })
       expect(res).toEqual(
         `\
-import { UpdateableProperties } from '@rvohealth/dream'
+import { UpdateableProperties } from '@rvoh/dream'
 import MyNestedUser from '../../../../app/models/My/Nested/User'
 
 export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
@@ -93,7 +93,7 @@ export default async function createMyNestedUser(attrs: UpdateableProperties<MyN
       })
       expect(res).toEqual(
         `\
-import { UpdateableProperties } from '@rvohealth/dream'
+import { UpdateableProperties } from '@rvoh/dream'
 import Post from '../../app/models/Post'
 import createUser from './UserFactory'
 
@@ -116,7 +116,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
         })
         expect(res).toEqual(
           `\
-import { UpdateableProperties } from '@rvohealth/dream'
+import { UpdateableProperties } from '@rvoh/dream'
 import MyNestedUser from '../../../../app/models/My/Nested/User'
 import createMyNestedDoubleNestedOrganization from './DoubleNested/OrganizationFactory'
 

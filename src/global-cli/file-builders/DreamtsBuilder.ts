@@ -16,7 +16,7 @@ export default class DreamtsBuilder {
 
     return `\
 import * as path from 'path'
-import { DreamApplication } from '@rvohealth/dream'
+import { DreamApplication } from '@rvoh/dream'
 import inflections from './inflections'
 
 export default async function (app: DreamApplication) {

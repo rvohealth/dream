@@ -290,7 +290,7 @@ Open the generated migration, create the pg_trgm extension and create a gin inde
 
 ```ts
 import { Kysely, sql } from 'kysely'
-import { createGinIndex, createExtension } from '@rvohealth/dream'
+import { createGinIndex, createExtension } from '@rvoh/dream'
 
 export async function up(db: Kysely<any>): Promise<void> {
   // this only needs to be run once per db
@@ -315,7 +315,7 @@ NODE_ENV=development yarn psy db:migrate
 Now you can take full advantage of pg_trgm using the dream adapters!
 
 ```ts
-import { ops } from '@rvohealth/dream'
+import { ops } from '@rvoh/dream'
 
 // applies a score match of 0.3
 const users = await User.where({ name: ops.similarity('steeven hawkins') }).all()

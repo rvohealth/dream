@@ -1,4 +1,4 @@
-import { Dream } from '@rvohealth/dream'
+import { Dream } from '@rvoh/dream'
 import { globalSchema, schema } from '../../db/schema'
 import { DBClass } from '../../db/sync'
 

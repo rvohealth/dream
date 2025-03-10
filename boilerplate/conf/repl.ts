@@ -1,6 +1,6 @@
 import './loadEnv.js'
 
-import { loadRepl } from '@rvohealth/dream'
+import { loadRepl } from '@rvoh/dream'
 import * as repl from 'node:repl'
 import initializePsychicApplication from '../cli/helpers/initializePsychicApplication'
 

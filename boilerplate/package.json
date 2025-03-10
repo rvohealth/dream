@@ -13,7 +13,7 @@
     "lint": "yarn run eslint --no-warn-ignored \"src/**/*.ts\" \"spec/**/*.ts\""
   },
   "dependencies": {
-    "@rvohealth/dream": "1.0.0",
+    "@rvoh/dream": "1.0.0",
     "@types/luxon": "^3.4.2",
     "@types/node": "^20.11.17",
     "@types/pg": "^8.11.3",
@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@eslint/js": "=9.0.0",
-    "@rvohealth/dream-spec-helpers": "1.0.0",
+    "@rvoh/dream-spec-helpers": "1.0.0",
     "@types/jest": "^29.5.12",
     "@types/luxon": "^3.4.2",
     "@types/node": "^20.11.17",

@@ -95,7 +95,7 @@ public ${camelize(attributeName)}: ${getAttributeType(attribute, modelClassName)
   const tableName = snakeify(pluralize(fullyQualifiedModelName.replace(/\//g, '_')))
 
   return `\
-import { ${uniq(dreamImports).join(', ')} } from '@rvohealth/dream'${uniq(modelImportStatements).join('')}
+import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'${uniq(modelImportStatements).join('')}
 
 const Deco = new Decorators<InstanceType<typeof ${modelClassName}>>()
 

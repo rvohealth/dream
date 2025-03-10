@@ -11,7 +11,7 @@ describe('dream generate:serializer <name> [...attributes]', () => {
 
         expect(res).toEqual(
           `\
-import { Attribute, DreamColumn, DreamSerializer } from '@rvohealth/dream'
+import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
 import User from '../models/User'
 
 export class UserSummarySerializer<
@@ -44,7 +44,7 @@ export default class UserSerializer<
 
         expect(res).toEqual(
           `\
-import { Attribute, DreamColumn } from '@rvohealth/dream'
+import { Attribute, DreamColumn } from '@rvoh/dream'
 import FooBaseSerializer, { FooBaseSummarySerializer } from './BaseSerializer'
 import FooBar from '../../models/Foo/Bar'
 
@@ -73,7 +73,7 @@ export default class FooBarSerializer<
 
           expect(res).toEqual(
             `\
-import { Attribute, DreamColumn, DreamSerializer } from '@rvohealth/dream'
+import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
 import UserAdmin from '../../models/User/Admin'
 
 export class UserAdminSummarySerializer<
@@ -130,7 +130,7 @@ export default class UserAdminSerializer<
 
           expect(res).toEqual(
             `\
-import { Attribute, DreamColumn, DreamSerializer } from '@rvohealth/dream'
+import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
 import User from '../models/User'
 
 export class UserSummarySerializer<
@@ -210,7 +210,7 @@ export default class UserSerializer<
 
           expect(res).toEqual(
             `\
-import { Attribute, DreamColumn, DreamSerializer } from '@rvohealth/dream'
+import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
 import User from '../models/User'
 
 export class UserSummarySerializer<
@@ -243,7 +243,7 @@ export default class UserSerializer<
 
             expect(res).toEqual(
               `\
-import { Attribute, DreamColumn, DreamSerializer } from '@rvohealth/dream'
+import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
 import User from '../models/User'
 
 export class UserSummarySerializer<
@@ -273,7 +273,7 @@ export default class UserSerializer<
 
               expect(res).toEqual(
                 `\
-import { Attribute, DreamColumn, DreamSerializer } from '@rvohealth/dream'
+import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
 import User from '../models/User'
 
 export class UserSummarySerializer<
@@ -305,7 +305,7 @@ export default class UserSerializer<
 
             expect(res).toEqual(
               `\
-import { Attribute, DreamColumn, DreamSerializer } from '@rvohealth/dream'
+import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
 import User from '../models/User'
 
 export class UserSummarySerializer<
@@ -336,7 +336,7 @@ export default class UserSerializer<
 
             expect(res).toEqual(
               `\
-import { Attribute, DreamColumn, DreamSerializer } from '@rvohealth/dream'
+import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
 import User from '../models/User'
 
 export class UserSummarySerializer<
@@ -369,7 +369,7 @@ function expectAttributeType(startingAttributeType: string) {
   })
   expect(res).toEqual(
     `\
-import { Attribute, DreamColumn, DreamSerializer } from '@rvohealth/dream'
+import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
 import User from '../models/User'
 
 export class UserSummarySerializer<
