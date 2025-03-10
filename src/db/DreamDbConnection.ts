@@ -1,8 +1,10 @@
 import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely'
-import { Pool } from 'pg'
+import * as pg from 'pg'
 import DreamApplication, { KyselyLogEvent, SingleDbCredential } from '../dream-application/index.js'
 import ConnectionConfRetriever from './ConnectionConfRetriever.js'
 import { DbConnectionType } from './types.js'
+
+const { Pool } = pg
 
 let connections = {} as { [key: string]: Kysely<any> }
 

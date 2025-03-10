@@ -1,6 +1,8 @@
-import { Client } from 'pg'
+import * as pg from 'pg'
 
 import DreamApplication from '../../dream-application/index.js'
+
+const { Client } = pg
 
 export default async function loadPgClient({ useSystemDb }: { useSystemDb?: boolean } = {}) {
   const dreamconf = DreamApplication.getOrFail()
