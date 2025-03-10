@@ -763,10 +763,9 @@ export default class Dream {
    * @returns A newly persisted dream instance
    */
   public static async create<T extends typeof Dream>(this: T, attributes?: UpdateablePropertiesForClass<T>) {
-    const dreamModel = new this(attributes, { _internalUseOnly: true })
-    dreamModel.finalizeConstruction()
+    const dreamModel = this.new(attributes)
     await dreamModel.save()
-    return dreamModel as InstanceType<T>
+    return dreamModel
   }
 
   /**
@@ -993,18 +992,14 @@ export default class Dream {
     const existingRecord = await this.findBy(this.extractAttributesFromUpdateableProperties(attributes))
     if (existingRecord) return existingRecord
 
-    const dreamModel = new this(
-      {
-        ...attributes,
-        ...(extraOpts?.createWith || {}),
-      },
-      { _internalUseOnly: true }
-    )
+    const dreamModel = this.new({
+      ...attributes,
+      ...(extraOpts?.createWith || {}),
+    })
 
-    dreamModel.finalizeConstruction()
     await dreamModel.save()
 
-    return dreamModel as InstanceType<T>
+    return dreamModel
   }
 
   /**
@@ -3036,8 +3031,7 @@ export default class Dream {
     { includeAssociations = true }: { includeAssociations?: boolean } = {}
   ): I {
     const self: any = this
-    const clone: any = new (self.constructor as typeof Dream)({}, { _internalUseOnly: true })
-    clone.finalizeConstruction()
+    const clone: any = (self.constructor as typeof Dream).new({})
 
     const associationDataKeys = Object.values(
       (this.constructor as typeof Dream).associationMetadataMap()
