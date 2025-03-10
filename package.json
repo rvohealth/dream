@@ -40,9 +40,6 @@
     "lint": "yarn run eslint --no-warn-ignored \"src/**/*.ts\" \"spec/**/*.ts\" \"test-app/**/*.ts\" && yarn run prettier . --check",
     "prepack": "yarn build && yarn dreamcore build:docs"
   },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
   "dependencies": {
     "colorette": "^2.0.20",
     "commander": "^12.1.0",
