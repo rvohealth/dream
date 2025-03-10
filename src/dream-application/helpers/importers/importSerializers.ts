@@ -1,14 +1,17 @@
-import SerializerNameConflict from '../../errors/dream-application/SerializerNameConflict.js'
-import DreamSerializer from '../../serializer/index.js'
-import globalSerializerKeyFromPath from './globalSerializerKeyFromPath.js'
+import SerializerNameConflict from '../../../errors/dream-application/SerializerNameConflict.js'
+import DreamSerializer from '../../../serializer/index.js'
+import DreamImporter from '../DreamImporter.js'
+import globalSerializerKeyFromPath from '../globalSerializerKeyFromPath.js'
 
 let _serializers: Record<string, typeof DreamSerializer>
 
-export default function processSerializers(
+export default async function importSerializers(
   serializersPath: string,
-  serializerClasses: [string, Record<string, typeof DreamSerializer>][]
-): Record<string, typeof DreamSerializer> {
+  serializerImportCb: (path: string) => Promise<any>
+): Promise<Record<string, typeof DreamSerializer>> {
   if (_serializers) return _serializers
+
+  const serializerClasses = await DreamImporter.importSerializers(serializersPath, serializerImportCb)
   /**
    * Certain features (e.g. building OpenAPI specs from Attribute and RendersOne/Many decorators)
    * need static access to things set up by decorators. Stage 3 Decorators change the context that is available

@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@rvohealth/dream",
-  "version": "0.29.0",
+  "version": "0.29.0-fgnewbeta-2",
   "description": "dream orm",
   "repository": "https://github.com/rvohealth/dream.git",
   "author": "RVOHealth",

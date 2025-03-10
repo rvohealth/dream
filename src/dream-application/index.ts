@@ -22,12 +22,12 @@ import {
 import EnvInternal from '../helpers/EnvInternal.js'
 import DreamSerializer from '../serializer/index.js'
 import { cacheDreamApplication, getCachedDreamApplicationOrFail } from './cache.js'
-import processModels, { getModelsOrFail } from './helpers/processModels.js'
-import processSerializers, {
+import importModels, { getModelsOrFail } from './helpers/importers/importModels.js'
+import importSerializers, {
   getSerializersOrFail,
   setCachedSerializers,
-} from './helpers/processSerializers.js'
-import processServices, { getServicesOrFail, setCachedServices } from './helpers/processServices.js'
+} from './helpers/importers/importSerializers.js'
+import importServices, { getServicesOrFail, setCachedServices } from './helpers/importers/importServices.js'
 
 const pgTypes = pg.types
 
@@ -277,29 +277,23 @@ Try setting it to something valid, like:
     return getServicesOrFail()
   }
 
-  public load<RT extends 'models' | 'serializers' | 'services'>(
+  public async load<RT extends 'models' | 'serializers' | 'services'>(
     resourceType: RT,
     resourcePath: string,
-    resources: RT extends 'models'
-      ? [string, typeof Dream][]
-      : RT extends 'serializers'
-        ? [string, Record<string, typeof DreamSerializer>][]
-        : RT extends 'services'
-          ? [string, any][]
-          : never
+    importCb: (path: string) => Promise<any>
   ) {
     switch (resourceType) {
       case 'models':
-        processModels(resourcePath, resources as [string, typeof Dream][])
+        await importModels(resourcePath, importCb)
         this.loadedModels = true
         break
 
       case 'serializers':
-        processSerializers(resourcePath, resources as [string, Record<string, typeof DreamSerializer>][])
+        await importSerializers(resourcePath, importCb)
         break
 
       case 'services':
-        processServices(resourcePath, resources as [string, any][])
+        await importServices(resourcePath, importCb)
         break
     }
   }

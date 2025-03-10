@@ -1,4 +1,4 @@
-import { getModelsOrFail } from './processModels.js'
+import { getModelsOrFail } from './importers/importModels.js'
 
 let _globalNameMap: any
 

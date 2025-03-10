@@ -1,9 +1,8 @@
-import { DreamApplication, DreamImporter } from '../../../src'
-import * as LoadModelsModule from '../../../src/dream-application/helpers/processModels'
+import { DreamApplication } from '../../../src'
+import * as LoadModelsModule from '../../../src/dream-application/helpers/importers/importModels'
 import DreamApplicationInitMissingCallToLoadModels from '../../../src/errors/dream-application/DreamApplicationInitMissingCallToLoadModels'
 import DreamApplicationInitMissingMissingProjectRoot from '../../../src/errors/dream-application/DreamApplicationInitMissingMissingProjectRoot'
 import InvalidTableName from '../../../src/errors/InvalidTableName'
-import srcPath from '../../../test-app/app/helpers/srcPath'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
 
 describe('DreamApplication#init', () => {
@@ -28,14 +27,7 @@ describe('DreamApplication#init', () => {
         app.set('projectRoot', 'how/yadoin')
         app.set('db', dbCredentials)
 
-        app.load(
-          'models',
-          'how/yadoin',
-          await DreamImporter.importDreams(
-            srcPath('app', 'models'),
-            async path => (await import(path)).default
-          )
-        )
+        await app.load('models', 'how/yadoin', async path => (await import(path)).default)
       }
 
       await expect(DreamApplication.init(cb)).resolves.not.toThrow()
@@ -57,14 +49,7 @@ describe('DreamApplication#init', () => {
     context('projectRoot not set', () => {
       it('throws targeted exception', async () => {
         const cb = async (app: DreamApplication) => {
-          app.load(
-            'models',
-            'how/yadoin',
-            await DreamImporter.importDreams(
-              srcPath('app', 'models'),
-              async path => (await import(path)).default
-            )
-          )
+          await app.load('models', 'how/yadoin', async path => (await import(path)).default)
           app.set('db', dbCredentials)
         }
 
@@ -85,14 +70,7 @@ describe('DreamApplication#init', () => {
           app.set('projectRoot', 'how/yadoin')
           app.set('db', dbCredentials)
 
-          app.load(
-            'models',
-            'how/yadoin',
-            await DreamImporter.importDreams(
-              srcPath('app', 'models'),
-              async path => (await import(path)).default
-            )
-          )
+          await app.load('models', 'how/yadoin', async path => (await import(path)).default)
         }
 
         vi.spyOn(DreamApplication.prototype, 'models', 'get').mockReturnValue({

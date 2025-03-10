@@ -1,14 +1,11 @@
 import { DreamApplication } from '../../../src'
 import srcPath from '../helpers/srcPath'
 import inflections from './inflections'
-import loadModels from './loaders/loadModels'
-import loadSerializers from './loaders/loadSerializers'
-import loadServices from './loaders/loadServices'
 
 export default async function (dreamApp: DreamApplication) {
-  dreamApp.load('models', srcPath('app', 'models'), await loadModels())
-  dreamApp.load('serializers', srcPath('app', 'serializers'), await loadSerializers())
-  dreamApp.load('services', srcPath('app', 'services'), await loadServices())
+  await dreamApp.load('models', srcPath('app', 'models'), async path => (await import(path)).default)
+  await dreamApp.load('serializers', srcPath('app', 'serializers'), async path => await import(path))
+  await dreamApp.load('services', srcPath('app', 'services'), async path => (await import(path)).default)
 
   dreamApp.set('encryption', {
     columns: {
