@@ -2390,7 +2390,6 @@ export default class Dream {
             },
 
             configurable: true,
-            enumerable: false,
           })
         } else {
           // handle all other columns
@@ -2418,7 +2417,6 @@ export default class Dream {
             },
 
             configurable: true,
-            enumerable: false,
           })
         }
       }
