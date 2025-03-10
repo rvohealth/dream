@@ -40,7 +40,7 @@ export function validatesImplementation<
   if (!t['globallyInitializingDecorators']) return
 
   if (!Object.getOwnPropertyDescriptor(t, 'validations')) {
-    // This pattern allows Virtual attributes on a base STI class and on
+    // This pattern allows `validations` on a base STI class and on
     // child STI classes. The new `validations` property will be created
     // on the child STI class, but it will include all the `validations`
     // already declared on the base STI class.

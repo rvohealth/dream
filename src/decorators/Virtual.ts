@@ -11,7 +11,7 @@ export default function Virtual(type?: SerializableTypes): any {
       if (!t['globallyInitializingDecorators']) return
 
       if (!Object.getOwnPropertyDescriptor(t, 'virtualAttributes')) {
-        // This pattern allows Virtual attributes on a base STI class and on
+        // This pattern allows `virtualAttributes` on a base STI class and on
         // child STI classes. The new `virtualAttributes` property will be created
         // on the child STI class, but it will include all the `virtualAttributes`
         // already declared on the base STI class.

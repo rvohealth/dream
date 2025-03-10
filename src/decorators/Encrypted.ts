@@ -26,7 +26,7 @@ export default function Encrypted(encryptedColumnName?: string): any {
       }
 
       if (!Object.getOwnPropertyDescriptor(dreamClass, 'virtualAttributes')) {
-        // This pattern allows Virtual attributes on a base STI class and on
+        // This pattern allows `virtualAttributes` on a base STI class and on
         // child STI classes. The new `virtualAttributes` property will be created
         // on the child STI class, but it will include all the `virtualAttributes`
         // already declared on the base STI class.
@@ -38,7 +38,7 @@ export default function Encrypted(encryptedColumnName?: string): any {
       } satisfies VirtualAttributeStatement)
 
       if (!Object.getOwnPropertyDescriptor(dreamClass, 'explicitUnsafeParamColumns')) {
-        // This pattern allows Virtual attributes on a base STI class and on
+        // This pattern allows `explicitUnsafeParamColumns` on a base STI class and on
         // child STI classes. The new `explicitUnsafeParamColumns` property will be created
         // on the child STI class, but it will include all the `explicitUnsafeParamColumns`
         // already declared on the base STI class.

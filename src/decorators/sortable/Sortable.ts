@@ -41,7 +41,7 @@ export default function Sortable(opts: SortableOpts = {}): any {
       if (!dreamClass['globallyInitializingDecorators']) return
 
       if (!Object.getOwnPropertyDescriptor(dreamClass, 'sortableFields')) {
-        // This pattern allows Virtual attributes on a base STI class and on
+        // This pattern allows `sortableFields` on a base STI class and on
         // child STI classes. The new `sortableFields` property will be created
         // on the child STI class, but it will include all the `sortableFields`
         // already declared on the base STI class.

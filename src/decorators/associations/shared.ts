@@ -439,6 +439,10 @@ export function blankAssociationsFactory(
     freeze?: boolean
   } = {}
 ): AssociationStatementsMap {
+  // This pattern allows associations to be defined on a base STI class and on
+  // child STI classes. The new `associationsMap` property will be created
+  // on the child STI class, but it will include all the associations already
+  // declared on the base STI class.
   const associationsMap = {
     belongsTo: [...(dreamClass['associationMetadataByType']?.belongsTo || [])],
     hasMany: [...(dreamClass['associationMetadataByType']?.hasMany || [])],
