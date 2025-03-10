@@ -79,10 +79,6 @@ export default function Encrypted(encryptedColumnName?: string): any {
         enumerable: false,
       })
     })
-
-    return function (this: Dream) {
-      return (this as any)[key]
-    }
   }
 }
 
