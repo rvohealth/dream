@@ -245,9 +245,9 @@ export default class Dream {
    *   @Deco.HasMany
    *   @Deco.BelongsTo
    */
-  protected static associationMetadataByType: AssociationStatementsMap = Object.freeze(
-    blankAssociationsFactory(this, { freeze: true })
-  )
+  protected static associationMetadataByType: AssociationStatementsMap = blankAssociationsFactory(this, {
+    freeze: true,
+  })
 
   /**
    * @internal
@@ -336,9 +336,7 @@ export default class Dream {
    *   AfterDestroy
    *   AfterDestroyCommit
    */
-  protected static hooks: Readonly<HookStatementMap> = Object.freeze(
-    blankHooksFactory(this, { freeze: true })
-  )
+  protected static hooks: Readonly<HookStatementMap> = blankHooksFactory(this, { freeze: true })
 
   /**
    * @internal
