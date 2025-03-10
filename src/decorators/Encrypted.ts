@@ -11,8 +11,8 @@ export default function Encrypted(encryptedColumnName?: string): any {
     const encryptedKey = encryptedColumnName || `encrypted${pascalize(key)}`
 
     context.addInitializer(function (this: Dream) {
-      const t: typeof Dream = this.constructor as typeof Dream
-      if (!t['globallyInitializingDecorators']) {
+      const dreamClass: typeof Dream = this.constructor as typeof Dream
+      if (!dreamClass['globallyInitializingDecorators']) {
         /**
          * Modern Javascript applies implicit accessors to instance properties
          * that don't have an accessor explicitly defined in the class definition.
@@ -25,16 +25,16 @@ export default function Encrypted(encryptedColumnName?: string): any {
         return
       }
 
-      if (!Object.getOwnPropertyDescriptor(t, 'virtualAttributes'))
-        t['virtualAttributes'] = [...t['virtualAttributes']]
-      ;(t['virtualAttributes'] as VirtualAttributeStatement[]).push({
+      if (!Object.getOwnPropertyDescriptor(dreamClass, 'virtualAttributes'))
+        dreamClass['virtualAttributes'] = [...dreamClass['virtualAttributes']]
+      ;(dreamClass['virtualAttributes'] as VirtualAttributeStatement[]).push({
         property: key,
         type: 'string',
       } satisfies VirtualAttributeStatement)
 
-      if (!Object.getOwnPropertyDescriptor(t, 'explicitUnsafeParamColumns'))
-        t['explicitUnsafeParamColumns'] = [...t['explicitUnsafeParamColumns']]
-      ;(t['explicitUnsafeParamColumns'] as string[]).push(encryptedKey)
+      if (!Object.getOwnPropertyDescriptor(dreamClass, 'explicitUnsafeParamColumns'))
+        dreamClass['explicitUnsafeParamColumns'] = [...dreamClass['explicitUnsafeParamColumns']]
+      ;(dreamClass['explicitUnsafeParamColumns'] as string[]).push(encryptedKey)
 
       const dreamPrototype = Object.getPrototypeOf(this)
 
@@ -72,7 +72,7 @@ export default function Encrypted(encryptedColumnName?: string): any {
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         set(_: any) {
-          throw new DoNotSetEncryptedFieldsDirectly(t, encryptedKey, key)
+          throw new DoNotSetEncryptedFieldsDirectly(dreamClass, encryptedKey, key)
         },
 
         configurable: false,
